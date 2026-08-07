@@ -14,8 +14,6 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import <Sparkle/SUVersionComparisonProtocol.h>
-
 /*!
  *
  * @mainpage Adium
@@ -24,7 +22,7 @@
  * You can find more about Adium at <http://www.adium.im/about/>.
  */
 
-@class  AICorePluginLoader, AICoreComponentLoader, SUUpdater;
+@class  AICorePluginLoader, AICoreComponentLoader;
 
 @protocol	AIAccountController, AIChatController, AIContactAlertsController, AIDebugController,
 			AIPreferenceController, AIMenuController, AIApplescriptabilityController, AIStatusController,
@@ -32,11 +30,10 @@
 			AIFileTransferController, AILoginController, AIInterfaceController, AIContactController,
 			AIDockController, AIMediaController;
 
-@interface AIAdium : NSObject <AIAdium, SUVersionComparison> {
+@interface AIAdium : NSObject <AIAdium> {
 @private
 	IBOutlet	NSObject <AIMenuController>			*menuController;
 	IBOutlet	NSObject <AIInterfaceController>		*interfaceController;
-	IBOutlet	SUUpdater									*updater;
 
 	NSObject <AIAccountController>					*accountController;
 	NSObject <AIChatController>						*chatController;

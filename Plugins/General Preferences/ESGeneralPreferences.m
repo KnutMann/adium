@@ -17,7 +17,6 @@
 #import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import "AISoundController.h"
-#import <ShortcutRecorder/SRRecorderControl.h>
 #import "ESGeneralPreferences.h"
 #import "ESGeneralPreferencesPlugin.h"
 #import "SGHotKeyCenter.h"
@@ -46,10 +45,6 @@
 @implementation ESGeneralPreferences
 
 @synthesize shortcutRecorder;
-
-// XXX in order to edit the nib, you need the ShortcutReporter palette
-// You can download it at http://evands.penguinmilitia.net/ShortcutRecorder.palette.zip
-// This comes from http://wafflesoftware.net/shortcut/
 
 + (NSSet *)keyPathsForValuesAffectingChatHistoryDisplayActive
 {
@@ -114,28 +109,21 @@
 	[popUp_tabPositionMenu selectItemWithTag:[[adium.preferenceController preferenceForKey:KEY_TABBAR_POSITION
 																								 group:PREF_GROUP_DUAL_WINDOW_INTERFACE] intValue]];
 
-    self.shortcutRecorder = [[[SRRecorderControl alloc] initWithFrame:placeholder_shortcutRecorder.frame] autorelease];
-    shortcutRecorder.delegate = self;
-    [[placeholder_shortcutRecorder superview] addSubview:shortcutRecorder];
+    NSTextField *shortcutNotice = [[[NSTextField alloc] initWithFrame:placeholder_shortcutRecorder.bounds] autorelease];
+    [shortcutNotice setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+    [shortcutNotice setBezeled:NO];
+    [shortcutNotice setBordered:NO];
+    [shortcutNotice setDrawsBackground:NO];
+    [shortcutNotice setEditable:NO];
+    [shortcutNotice setSelectable:NO];
+    [shortcutNotice setAlignment:NSTextAlignmentLeft];
+    [shortcutNotice setLineBreakMode:NSLineBreakByWordWrapping];
+    [shortcutNotice setUsesSingleLineMode:NO];
+    [shortcutNotice setStringValue:AILocalizedString(@"Global shortcut recording is disabled in this modernized build.", nil)];
+    [placeholder_shortcutRecorder addSubview:shortcutNotice];
+    self.shortcutRecorder = shortcutNotice;
 
-	//Global hotkey
-	TISInputSourceRef currentLayout = TISCopyCurrentKeyboardLayoutInputSource();
-	
-	if (TISGetInputSourceProperty(currentLayout, kTISPropertyUnicodeKeyLayoutData)) {
-		SGKeyCombo *keyCombo = [[[SGKeyCombo alloc] initWithPlistRepresentation:[adium.preferenceController preferenceForKey:KEY_GENERAL_HOTKEY
-																														 group:PREF_GROUP_GENERAL]] autorelease];
-		[shortcutRecorder setKeyCombo:SRMakeKeyCombo([keyCombo keyCode], [shortcutRecorder carbonToCocoaFlags:[keyCombo modifiers]])];
-		[shortcutRecorder setAnimates:YES];
-		[shortcutRecorder setStyle:SRGreyStyle];
-		
-		[label_shortcutRecorder setLocalizedString:AILocalizedString(@"When pressed, this key combination will bring Adium to the front", nil)];
-	} else {
-		[shortcutRecorder setEnabled:NO];
-		
-		[label_shortcutRecorder setLocalizedString:AILocalizedString(@"You are using an old-style (rsrc) keyboard layout which Adium does not support.", nil)];
-	}
-	
-	CFRelease(currentLayout);
+    [label_shortcutRecorder setLocalizedString:AILocalizedString(@"Global shortcut configuration is currently unavailable on this build.", nil)];
 
     [self configureControlDimming];
 }
@@ -253,22 +241,6 @@
 					   tag:AIBraces];
 	
 	return [menu autorelease];		
-}
-
-- (BOOL)shortcutRecorder:(SRRecorderControl *)aRecorder isKeyCode:(NSInteger)keyCode andFlagsTaken:(NSUInteger)flags reason:(NSString **)aReason
-{
-	return NO;
-}
-
-- (void)shortcutRecorder:(SRRecorderControl *)aRecorder keyComboDidChange:(KeyCombo)newKeyCombo
-{
-	if (aRecorder == shortcutRecorder) {
-		SGKeyCombo *keyCombo = [SGKeyCombo keyComboWithKeyCode:[shortcutRecorder keyCombo].code
-													 modifiers:[shortcutRecorder cocoaToCarbonFlags:[shortcutRecorder keyCombo].flags]];
-		[adium.preferenceController setPreference:[keyCombo plistRepresentation]
-											 forKey:KEY_GENERAL_HOTKEY
-											  group:PREF_GROUP_GENERAL];
-	}
 }
 
 /*!

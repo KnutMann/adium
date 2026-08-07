@@ -417,7 +417,6 @@
 	//Adium menu
 	[menuItem_aboutAdium setTitle:AILocalizedString(@"About Adium",nil)];
 	[menuItem_adiumXtras setTitle:[AILocalizedString(@"Xtras Manager",nil) stringByAppendingEllipsis]];
-	[menuItem_checkForUpdates setTitle:[AILocalizedString(@"Check For Updates",nil) stringByAppendingEllipsis]];
 	[menuItem_preferences setTitle:[AILocalizedString(@"Preferences",nil) stringByAppendingEllipsis]];
 	[menuItem_donate setTitle:[AILocalizedString(@"Donate",nil) stringByAppendingEllipsis]];
 	[menuItem_helpOut setTitle:[AILocalizedString(@"Contributing to Adium",nil) stringByAppendingEllipsis]];

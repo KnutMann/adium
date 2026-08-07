@@ -312,8 +312,6 @@ static NSString* serviceClassForPurpleProtocolID(const char *protocolID)
 			serviceClass = @"Gadu-Gadu";
 		else if (!strcmp(protocolID, "prpl-jabber"))
 			serviceClass = @"Jabber";
-		else if (!strcmp(protocolID, "prpl-meanwhile"))
-			serviceClass = @"Sametime";
 		else if (!strcmp(protocolID, "prpl-msn"))
 			serviceClass = @"MSN";
 		else if (!strcmp(protocolID, "prpl-novell"))

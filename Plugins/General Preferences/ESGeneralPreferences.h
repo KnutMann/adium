@@ -16,8 +16,6 @@
 
 #import <Adium/AIPreferencePane.h>
 
-@class SRRecorderControl;
-
 @interface ESGeneralPreferences : AIPreferencePane {
     IBOutlet	NSButton		*checkBox_messagesInTabs;
     IBOutlet	NSButton		*checkBox_arrangeByGroup;
@@ -37,11 +35,11 @@
 	IBOutlet	NSTextField		*label_shortcutRecorder;
 
     IBOutlet    NSView          *placeholder_shortcutRecorder;
-    SRRecorderControl           *shortcutRecorder;		
+    NSView                      *shortcutRecorder;		
 }
 
 - (IBAction)configureLogCertainAccounts:(id)sender;
 
-@property (nonatomic, retain) SRRecorderControl *shortcutRecorder;
+@property (nonatomic, retain) NSView *shortcutRecorder;
 
 @end

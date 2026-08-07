@@ -17,7 +17,6 @@
             <connections>
                 <outlet property="interfaceController" destination="6706" id="6721"/>
                 <outlet property="menuController" destination="6655" id="6656"/>
-                <outlet property="updater" destination="7246" id="7265"/>
             </connections>
         </customObject>
         <menu title="menubartest" systemMenu="main" id="6600" userLabel="MainMenu1">
@@ -28,11 +27,6 @@
                             <menuItem title="About Adium" tag="1" id="6474">
                                 <connections>
                                     <action selector="showAboutBox:" target="4001" id="6964"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Check For Updates..." tag="1" id="7240">
-                                <connections>
-                                    <action selector="checkForUpdates:" target="7246" id="7247"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Adium Xtras" id="7054">
@@ -492,7 +486,6 @@
                 <outlet property="menuItem_bigger" destination="7272" id="7277"/>
                 <outlet property="menuItem_bold" destination="6539" id="7177"/>
                 <outlet property="menuItem_bringAllToFront" destination="6508" id="7183"/>
-                <outlet property="menuItem_checkForUpdates" destination="7240" id="7262"/>
                 <outlet property="menuItem_clear" destination="6542" id="7171"/>
                 <outlet property="menuItem_close" destination="7057" id="7161"/>
                 <outlet property="menuItem_closeAllChats" destination="7214" id="7215"/>
@@ -617,10 +610,5 @@
             </connections>
         </customObject>
         <menu title="Menu" id="6946" userLabel="DockMenu"/>
-        <customObject id="7246" userLabel="SUUpdater" customClass="SUUpdater">
-            <connections>
-                <outlet property="delegate" destination="4001" id="7250"/>
-            </connections>
-        </customObject>
     </objects>
 </document>
