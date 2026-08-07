@@ -75,9 +75,9 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 {
 	AILogWithSignature(@"Exception raised: %@", exception);
 	AILogBacktrace();
-	
-	NSLog(@"Exception was raised: %@", exception);
-	
+
+	NSLog(@"Exception was raised: %@\nBacktrace:\n%@", exception, [exception callStackSymbols]);
+
 	return NO;
 }
 

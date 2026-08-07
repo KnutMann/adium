@@ -582,7 +582,14 @@
 		}
 	}
 	
-	[[tabView_tabBar overflowPopUpButton] setAlternateImage:someUnviewedContent];
+	/* Pulse the unviewed-content icon on the overflow button. The old code
+	 * passed the BOOL itself to setAlternateImage:, which crashes now that
+	 * the preceding loop no longer throws before reaching this line. */
+	[[tabView_tabBar overflowPopUpButton] setSecondImage:(someUnviewedContent ?
+		[AIStatusIcons statusIconForStatusName:@"content"
+									statusType:AIAvailableStatusType
+									  iconType:AIStatusIconTab
+									 direction:AIIconNormal] : nil)];
 }
 
 

@@ -264,7 +264,9 @@
 	[image drawInRect:destRect
 			 fromRect:NSMakeRect(0,0,size.width,size.height)
 			operation:NSCompositeSourceOver
-			 fraction:1.0f];
+			 fraction:1.0f
+	   respectFlipped:YES
+				hints:nil];
 	[NSGraphicsContext restoreGraphicsState];
 
 	return destRect.size;

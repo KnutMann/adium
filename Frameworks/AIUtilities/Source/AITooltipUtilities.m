@@ -241,7 +241,12 @@ static	AITooltipOrientation	tooltipOrientation;
 
 + (void)_closeTooltip
 {
-	NSAssert2(!fadeOutAnimation, @"%s: Trying to close tooltip while a tooltip is already fading out! Animation is %@", __PRETTY_FUNCTION__, fadeOutAnimation);
+	if (fadeOutAnimation) {
+		/* A fade-out is already in progress; let it finish. The old
+		 * NSAssert here raised on rapid hover changes, and the swallowed
+		 * exception left the tooltip window on screen forever. */
+		return;
+	}
 	fadeOutAnimation = [[NSViewAnimation alloc] initWithViewAnimations:[NSArray arrayWithObject:[NSDictionary dictionaryWithObjectsAndKeys:
 		tooltipWindow, NSViewAnimationTargetKey,
 		NSViewAnimationFadeOutEffect, NSViewAnimationEffectKey,
