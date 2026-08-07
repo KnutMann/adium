@@ -25,6 +25,15 @@
 
 @implementation AITextColorPreviewView
 
+/* The backgroundColor outlet collides with NSView's own backgroundColor
+ * property (added in macOS 14): nib loading now goes through this setter,
+ * passing the connected NSColorWell, instead of setting the ivar directly.
+ * NSColor's -copy on the well then crashed the theme editor sheet. */
+- (void)setBackgroundColor:(id)inColorWell
+{
+	backgroundColor = inColorWell;
+}
+
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
     if ((self = [super initWithCoder:aDecoder])) {

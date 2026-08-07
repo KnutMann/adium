@@ -76,7 +76,10 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 	AILogWithSignature(@"Exception raised: %@", exception);
 	AILogBacktrace();
 
-	NSLog(@"Exception was raised: %@\nBacktrace:\n%@", exception, [exception callStackSymbols]);
+	/* This handler runs synchronously inside the raise, so the current
+	 * thread's stack is the throw site ([exception callStackSymbols] is
+	 * nil for exceptions delivered through NSExceptionHandler). */
+	NSLog(@"Exception was raised: %@\nBacktrace:\n%@", exception, [NSThread callStackSymbols]);
 
 	return NO;
 }
