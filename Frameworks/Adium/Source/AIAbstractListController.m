@@ -311,6 +311,16 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	id item = [notification object];
 	if ([contactListView rowForItem:item] != -1) {
 		[contactListView reloadItem:item];
+
+		/* Re-apply the stored expansion state. On current AppKit,
+		 * expanding a group while it has no children (as during startup,
+		 * before accounts connect) is a no-op, so groups stayed collapsed
+		 * once their contacts arrived. */
+		if ([contactListView isExpandable:item] &&
+			![contactListView isItemExpanded:item] &&
+			[self outlineView:contactListView expandStateOfItem:item]) {
+			[contactListView expandItem:item];
+		}
 	}
 }
 

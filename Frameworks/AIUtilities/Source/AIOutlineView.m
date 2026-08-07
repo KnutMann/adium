@@ -222,8 +222,18 @@
         needsReload = NO;
 
 		[super reloadData];
-		
+
 		[self expandOrCollapseItemsOfItem:nil];
+
+		/* Current AppKit rebuilds the rows deferred after reloadData, which
+		 * discards the synchronous expandItem: calls above; apply the
+		 * stored expansion state again on the next runloop turn. */
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self expandOrCollapseItemsOfItem:nil];
+			/* Fire the row-count/height change path so observers (e.g. the
+			 * contact list's autosizing window) see the expanded rows. */
+			[self noteNumberOfRowsChanged];
+		});
 	}
 }
 
