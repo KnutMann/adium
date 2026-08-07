@@ -41,8 +41,6 @@
 #import <glib.h>
 #import <stdlib.h>
 
-#import "ESPurpleAIMAccount.h"
-#import "CBPurpleOscarAccount.h"
 
 #import "ESiTunesPlugin.h"
 
@@ -51,7 +49,6 @@
 //Purple slash command interface
 #import <libpurple/cmds.h>
 
-#import "libpurple_extensions/oscar-adium.h"
 
 @interface SLPurpleCocoaAdapter ()
 - (void)initLibPurple;
@@ -306,9 +303,7 @@ static NSString* serviceClassForPurpleProtocolID(const char *protocolID)
 {
 	NSString	*serviceClass = nil;
 	if (protocolID) {
-		if (!strcmp(protocolID, "prpl-oscar"))
-			serviceClass = @"AIM-compatible";
-		else if (!strcmp(protocolID, "prpl-gg"))
+		if (!strcmp(protocolID, "prpl-gg"))
 			serviceClass = @"Gadu-Gadu";
 		else if (!strcmp(protocolID, "prpl-jabber"))
 			serviceClass = @"Jabber";
@@ -1529,37 +1524,6 @@ GList *createListFromDictionary(NSDictionary *arguments)
 		account->perm_deny = PURPLE_PRIVACY_DENY_USERS;
 		serv_set_permit_deny(purple_account_get_connection(account));
 	}	
-}
-
-#pragma mark Protocol specific accessors
-- (void)OSCAREditComment:(NSString *)inComment forUID:(NSString *)inUID onAccount:(id)adiumAccount
-{
-	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
-	if (purple_account_is_connected(account)) {
-		PurpleBuddy   *buddy;
-		PurpleGroup   *g;
-		OscarData   *od;
-
-		const char  *uidUTF8String = [inUID UTF8String];
-
-		if ((buddy = purple_find_buddy(account, uidUTF8String)) &&
-			(g = purple_buddy_get_group(buddy)) && 
-			(od = purple_account_get_connection(account)->proto_data)) {
-			aim_ssi_editcomment(od, purple_group_get_name(g), uidUTF8String, [inComment UTF8String]);	
-		}
-	}
-}
-
-- (void)OSCARSetFormatTo:(NSString *)inFormattedUID onAccount:(id)adiumAccount
-{
-	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
-
-	if (account &&
-		purple_account_is_connected(account) &&
-		[inFormattedUID length]) {
-		
-		oscar_reformat_screenname(purple_account_get_connection(account), [inFormattedUID UTF8String]);
-	}
 }
 
 #pragma mark Request callbacks

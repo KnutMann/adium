@@ -17,8 +17,6 @@
 #import "BGICImportController.h"
 #import "BGICLogImportController.h"
 
-#import "ESAIMService.h"
-#import "ESDotMacService.h"
 #import "ESJabberService.h"
 #import "AWBonjourService.h"
 
@@ -113,16 +111,16 @@
 	NSArray *accountsFromRaw = [[rawPrefsFile valueForKey:@"Accounts"] allValues];
 	
 	// we'll grab these momentarily and use judiciously afterwards, Bonjour is external to this to method, unlike the others
-	ESAIMService *aimService = nil;
-	ESDotMacService *macService = nil;
+	AIService *aimService = nil;
+	AIService *macService = nil;
 	ESJabberService *jabberService = nil;	
 	
 #warning iChat Import needs to be updated for MobileMe
 	for (AIService *service in adium.accountController.services) {
 		if ([service.serviceID isEqual:@"AIM"])
-			aimService = (ESAIMService *)service;
+			aimService = service;
 		else if ([service.serviceID isEqual:@"Mac"])
-			macService = (ESDotMacService *)service;
+			macService = service;
 		else if ([service.serviceID isEqual:@"Jabber"])
 			jabberService = (ESJabberService *)service;
 		else if ([service.serviceID isEqual:@"Bonjour"])
