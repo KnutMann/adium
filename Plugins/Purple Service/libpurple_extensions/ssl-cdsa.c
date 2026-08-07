@@ -133,7 +133,7 @@ static void
 ssl_cdsa_handshake_cb(gpointer data, gint source, PurpleInputCondition cond)
 {
 	PurpleSslConnection *gsc = (PurpleSslConnection *)data;
-	PurpleAccount *account = gsc->account;
+	PurpleAccount *account = NULL;
 	PurpleSslCDSAData *cdsa_data = PURPLE_SSL_CDSA_DATA(gsc);
     OSStatus err;
 	
@@ -144,7 +144,8 @@ ssl_cdsa_handshake_cb(gpointer data, gint source, PurpleInputCondition cond)
 	 * here and there.
 	 */
 	err = SSLHandshake(cdsa_data->ssl_ctx);
-    if (err == errSSLPeerBadRecordMac
+    if (account != NULL &&
+		err == errSSLPeerBadRecordMac
 		&& !purple_account_get_bool(account, PURPLE_SSL_CDSA_BUGGY_TLS_WORKAROUND, false)
 		&& !strcmp(purple_account_get_protocol_id(account),"prpl-jabber")) {
         /*
@@ -394,7 +395,7 @@ ssl_cdsa_use_cipher(SSLCipherSuite suite) {
 static void
 ssl_cdsa_create_context(gpointer data) {
     PurpleSslConnection *gsc = (PurpleSslConnection *)data;
-    PurpleAccount *account = gsc->account;
+    PurpleAccount *account = NULL;
 	PurpleSslCDSAData *cdsa_data;
     OSStatus err;
     
@@ -498,7 +499,8 @@ ssl_cdsa_create_context(gpointer data) {
         return;
     }
     
-    if (purple_account_get_bool(account, PURPLE_SSL_CDSA_BUGGY_TLS_WORKAROUND, false)) {
+    if (account != NULL &&
+		purple_account_get_bool(account, PURPLE_SSL_CDSA_BUGGY_TLS_WORKAROUND, false)) {
         purple_debug_info("cdsa", "Explicitly disabling TLS 1.1 and above to try and work around buggy TLS stacks\n");
         
         OSStatus protoErr;
@@ -519,7 +521,8 @@ ssl_cdsa_create_context(gpointer data) {
 	#define kSSLSessionOptionSendOneByteRecord 4 /* Appears in 10.9 */
 #endif
     
-    if (purple_account_get_bool(account, PURPLE_SSL_CDSA_BEAST_TLS_WORKAROUND, false)) {
+    if (account != NULL &&
+		purple_account_get_bool(account, PURPLE_SSL_CDSA_BEAST_TLS_WORKAROUND, false)) {
         purple_debug_info("cdsa", "Explicitly disabling SSL BEAST mitigation for broken server implementations\n");
         
         OSStatus protoErr;

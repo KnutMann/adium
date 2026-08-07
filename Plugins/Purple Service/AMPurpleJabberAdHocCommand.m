@@ -42,7 +42,7 @@
 	xmlnode *jabberForm = xmlnode_get_child_with_namespace(command,"x","jabber:x:data");
 	if(!jabberForm)
 		return nil;
-	return [[[AMPurpleJabberFormGenerator alloc] initWithXML:form] autorelease];
+	return [[[AMPurpleJabberFormGenerator alloc] initWithXML:jabberForm] autorelease];
 }
 
 - (NSString*)jid {

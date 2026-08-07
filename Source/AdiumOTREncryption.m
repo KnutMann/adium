@@ -342,8 +342,8 @@ static ConnContext* contextForChat(AIChat *chat)
     username = [chat.listObject.UID UTF8String];
 	
     context = otrl_context_find(otrg_plugin_userstate,
-								username, accountname, proto, 0, NULL,
-								NULL, NULL);
+								username, accountname, proto, OTRL_INSTAG_BEST,
+								0, NULL, NULL, NULL);
 	
 	return context;
 }
@@ -627,7 +627,7 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 	ConnContext			*context;
 	
 	context = otrl_context_find(us, username, accountname,
-								protocol, 0, NULL, NULL, NULL);
+								protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
 	
 	if (context == NULL/* || context->msgstate != OTRL_MSGSTATE_ENCRYPTED*/) {
 		NSLog(@"otrg_adium_dialog_unknown_fingerprint: Ack!");
@@ -736,24 +736,29 @@ int max_message_size_cb(void *opdata, ConnContext *context)
 }
 
 static OtrlMessageAppOps ui_ops = {
-    policy_cb,
-    create_privkey_cb,
-    is_logged_in_cb,
-    inject_message_cb,
-    notify_cb,
-    display_otr_message_cb,
-    update_context_list_cb,
-    protocol_name_cb,
-    protocol_name_free_cb,
-    new_fingerprint_cb,
-    write_fingerprints_cb,
-    gone_secure_cb,
-    gone_insecure_cb,
-    still_secure_cb,
-    log_message_cb,
-	max_message_size_cb,
-	account_display_name_cb,
-	account_display_name_free_cb,
+	.policy = policy_cb,
+	.create_privkey = create_privkey_cb,
+	.is_logged_in = is_logged_in_cb,
+	.inject_message = inject_message_cb,
+	.update_context_list = update_context_list_cb,
+	.new_fingerprint = new_fingerprint_cb,
+	.write_fingerprints = write_fingerprints_cb,
+	.gone_secure = gone_secure_cb,
+	.gone_insecure = gone_insecure_cb,
+	.still_secure = still_secure_cb,
+	.max_message_size = max_message_size_cb,
+	.account_name = account_display_name_cb,
+	.account_name_free = account_display_name_free_cb,
+	.otr_error_message = NULL,
+	.otr_error_message_free = NULL,
+	.resent_msg_prefix = NULL,
+	.resent_msg_prefix_free = NULL,
+	.handle_smp_event = NULL,
+	.handle_msg_event = NULL,
+	.create_instag = NULL,
+	.convert_msg = NULL,
+	.convert_free = NULL,
+	.timer_control = NULL,
 };
 
 #pragma mark -
@@ -773,7 +778,9 @@ static OtrlMessageAppOps ui_ops = {
 		return;
 
     err = otrl_message_sending(otrg_plugin_userstate, &ui_ops, /* opData */ NULL,
-							   accountname, protocol, username, originalMessage, /* tlvs */ NULL, &fullOutgoingMessage,
+							   accountname, protocol, username, OTRL_INSTAG_BEST,
+							   originalMessage, /* tlvs */ NULL, &fullOutgoingMessage,
+							   OTRL_FRAGMENT_SEND_ALL_BUT_LAST, NULL,
 							   /* add_appdata cb */NULL, /* appdata */ NULL);
 
     if (err && fullOutgoingMessage == NULL) {
@@ -784,19 +791,11 @@ static OtrlMessageAppOps ui_ops = {
 		/* We got a message to send. Fragment it, saving the last fragment so Adium has something to do (and therefore
 		 * knows that a message is really being sent.
 		 */
-		char *lastFragmentOfMessage = NULL;
-
-		ConnContext		*context = contextForChat(inContentMessage.chat);
-
-		otrl_message_fragment_and_send(&ui_ops, /* opData */ NULL, context,
-											 fullOutgoingMessage, OTRL_FRAGMENT_SEND_ALL_BUT_LAST, &lastFragmentOfMessage);
-
-		//This new message is what should be sent to the remote contact
-		[inContentMessage setEncodedMessage:[NSString stringWithUTF8String:lastFragmentOfMessage]];
+		// libotr already sent all earlier fragments; messagep contains the remaining fragment.
+		[inContentMessage setEncodedMessage:[NSString stringWithUTF8String:fullOutgoingMessage]];
 
 		//We're now done with the messages allocated by OTR
 		otrl_message_free(fullOutgoingMessage);
-		otrl_message_free(lastFragmentOfMessage);
     }
 }
 
@@ -859,7 +858,7 @@ static void otrg_dialog_update_smp(ConnContext *context, CGFloat percentage)
 	 */
     res = otrl_message_receiving(otrg_plugin_userstate, &ui_ops, NULL,
 								 accountname, protocol, username, message,
-								 &newMessage, &tlvs, NULL, NULL);
+								 &newMessage, &tlvs, NULL, NULL, NULL);
 	
 	if (!newMessage && !res) {
 		//Use the original mesage; this was not an OTR-related message
@@ -892,7 +891,7 @@ static void otrg_dialog_update_smp(ConnContext *context, CGFloat percentage)
 	/* Keep track of our current progress in the Socialist Millionaires'
      * Protocol. */
 	ConnContext *context = otrl_context_find(otrg_plugin_userstate, username,
-											 accountname, protocol, 0, NULL, NULL, NULL);
+											 accountname, protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
     if (context) {
 		NextExpectedSMP nextMsg = context->smstate->nextExpected;
 		
@@ -1059,7 +1058,8 @@ void send_default_query_to_chat(AIChat *inChat)
 void disconnect_from_context(ConnContext *context)
 {
     otrl_message_disconnect(otrg_plugin_userstate, &ui_ops, NULL,
-							context->accountname, context->protocol, context->username);
+							context->accountname, context->protocol, context->username,
+							OTRL_INSTAG_BEST);
 	gone_insecure_cb(NULL, context);
 }
 
@@ -1223,7 +1223,6 @@ OtrlUserState otrg_get_userstate(void)
 		@"libpurple-OSCAR-AIM", @"prpl-oscar",
 		@"libpurple-Gadu-Gadu", @"prpl-gg",
 		@"libpurple-Jabber", @"prpl-jabber",
-		@"libpurple-Sametime", @"prpl-meanwhile",
 		@"libpurple-MSN", @"prpl-msn",
 		@"libpurple-GroupWise", @"prpl-novell",
 		@"libpurple-Yahoo!", @"prpl-yahoo",

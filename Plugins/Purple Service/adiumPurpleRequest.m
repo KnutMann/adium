@@ -30,7 +30,7 @@
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
-#import <libintl/libintl.h>
+#import <libintl.h>
 
 /*
  * Purple requires us to return a handle from each of the request functions.  This handle is passed back to use in 
