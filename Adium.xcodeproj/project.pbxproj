@@ -131,6 +131,10 @@
 		11EE1B500CDCFAF40097F246 /* ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = 11EE1B4C0CDCFAF40097F246 /* ssl.c */; };
 		11EE1CD00CDD01120097F246 /* libgmodule.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC40CDAA8D400B8E233 /* libgmodule.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000002 /* libglib.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000001 /* libglib.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000012 /* libotr.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000011 /* libotr.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000014 /* libgcrypt.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000013 /* libgcrypt.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000016 /* libgpgerror.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000015 /* libgpgerror.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000018 /* libintl8.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000017 /* libintl8.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000003 /* libgio.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD10CDD01120097F246 /* libgobject.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC50CDAA8D400B8E233 /* libgobject.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD20CDD01120097F246 /* libgthread.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC60CDAA8D400B8E233 /* libgthread.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1283,6 +1287,10 @@
 				639DF9D80F97E678003C9A32 /* AdiumLibpurple.framework in Copy Frameworks */,
 				11EE1CD00CDD01120097F246 /* libgmodule.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000002 /* libglib.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000012 /* libotr.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000014 /* libgcrypt.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000016 /* libgpgerror.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000018 /* libintl8.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */,
 				11EE1CD10CDD01120097F246 /* libgobject.framework in Copy Frameworks */,
 				11EE1CD20CDD01120097F246 /* libgthread.framework in Copy Frameworks */,
@@ -1480,6 +1488,10 @@
 		1172FBC30CDAA8D400B8E233 /* glib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = glib.framework; path = Frameworks/glib.framework; sourceTree = "<group>"; };
 		1172FBC40CDAA8D400B8E233 /* libgmodule.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgmodule.framework; path = Frameworks/libgmodule.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000001 /* libglib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libglib.framework; path = Frameworks/libglib.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000011 /* libotr.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libotr.framework; path = Frameworks/libotr.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000013 /* libgcrypt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgcrypt.framework; path = Frameworks/libgcrypt.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000015 /* libgpgerror.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgpgerror.framework; path = Frameworks/libgpgerror.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000017 /* libintl8.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl8.framework; path = Frameworks/libintl8.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000003 /* libgio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgio.framework; path = Frameworks/libgio.framework; sourceTree = "<group>"; };
 		1172FBC50CDAA8D400B8E233 /* libgobject.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgobject.framework; path = Frameworks/libgobject.framework; sourceTree = "<group>"; };
 		1172FBC60CDAA8D400B8E233 /* libgthread.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgthread.framework; path = Frameworks/libgthread.framework; sourceTree = "<group>"; };
@@ -3414,20 +3426,20 @@
 		4D4A20A125775535008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
 		4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MMTabBarView.xcodeproj; path = Dependencies/MMTabBarView/MMTabBarView/MMTabBarView.xcodeproj; sourceTree = "<group>"; };
 		4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
-		4D4B482E25F3EFC5000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libglib-2.0.dylib"; sourceTree = "<group>"; };
-		4D4B483525F3F04B000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgobject-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libgobject-2.0.dylib"; sourceTree = "<group>"; };
-		4D4B483725F3F058000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgthread-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libgthread-2.0.dylib"; sourceTree = "<group>"; };
-		4D4B483925F3F064000CEF01 /* libgmodule-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgmodule-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libgmodule-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B482E25F3EFC5000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.dylib"; path = "libglib-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B483525F3F04B000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgobject-2.0.dylib"; path = "libgobject-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B483725F3F058000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgthread-2.0.dylib"; path = "libgthread-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B483925F3F064000CEF01 /* libgmodule-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgmodule-2.0.dylib"; path = "libgmodule-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B483D25F3F204000CEF01 /* adium-dependencies.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "adium-dependencies.xcodeproj"; path = "Dependencies/adium-dependencies.xcodeproj"; sourceTree = "<group>"; };
-		4D4B484025F3F575000CEF01 /* libjson-glib-1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libjson-glib-1.0.dylib"; path = "../../../../../opt/homebrew/lib/libjson-glib-1.0.dylib"; sourceTree = "<group>"; };
-		4D4B484225F3F5EC000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libintl.8.dylib; path = ../../../../../opt/homebrew/lib/libintl.8.dylib; sourceTree = "<group>"; };
+		4D4B484025F3F575000CEF01 /* libjson-glib-1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libjson-glib-1.0.dylib"; path = "libjson-glib-1.0.dylib"; sourceTree = "<group>"; };
+		4D4B484225F3F5EC000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libintl.8.dylib; path = libintl.8.dylib; sourceTree = "<group>"; };
 		4D4B484825F3F6AB000CEF01 /* libjson-glib-1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libjson-glib-1.0.dylib"; sourceTree = "<group>"; };
 		4D4B484D25F3F6EB000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libgthread-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B484E25F3F6EC000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libglib-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B484F25F3F6EC000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libgobject-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B485025F3F6EC000CEF01 /* libgmodule-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libgmodule-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B485225F3F70B000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libintl.8.dylib; sourceTree = "<group>"; };
-		4D4B485425F3F79E000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libotr.5.dylib; path = ../../../../../opt/homebrew/lib/libotr.5.dylib; sourceTree = "<group>"; };
+		4D4B485425F3F79E000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libotr.5.dylib; path = libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B485625F3F7A3000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libffi.7.dylib; path = ../../../../../usr/local/Cellar/libffi/3.3_2/lib/libffi.7.dylib; sourceTree = "<group>"; };
 		4D4B486825F3F932000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../opt/homebrew/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
@@ -4019,8 +4031,6 @@
 				4D4B486525F3F8DF000CEF01 /* libjson-glib-1.0.dylib in Frameworks */,
 				4D4B485525F3F79E000CEF01 /* libotr.5.dylib in Frameworks */,
 				4D4B485825F3F7D6000CEF01 /* libintl.8.dylib in Frameworks */,
-				4D4B486C25F3F949000CEF01 /* libgcrypt.20.dylib in Frameworks */,
-				4D4B486F25F3F981000CEF01 /* libfribidi.0.dylib in Frameworks */,
 				3448758E06D1EBDF00DA778C /* Cocoa.framework in Frameworks */,
 				6318DBC20F8D943A00C5E584 /* WebKit.framework in Frameworks */,
 				636D92CD0E4E990500E5F558 /* AddressBook.framework in Frameworks */,
@@ -4130,6 +4140,10 @@
 				1172FBC30CDAA8D400B8E233 /* glib.framework */,
 				1172FBC40CDAA8D400B8E233 /* libgmodule.framework */,
 				ADD1E5C0DE00000000000001 /* libglib.framework */,
+				ADD1E5C0DE00000000000011 /* libotr.framework */,
+				ADD1E5C0DE00000000000013 /* libgcrypt.framework */,
+				ADD1E5C0DE00000000000015 /* libgpgerror.framework */,
+				ADD1E5C0DE00000000000017 /* libintl8.framework */,
 				ADD1E5C0DE00000000000003 /* libgio.framework */,
 				1172FBC50CDAA8D400B8E233 /* libgobject.framework */,
 				1172FBC60CDAA8D400B8E233 /* libgthread.framework */,
@@ -10483,12 +10497,8 @@
 					/opt/homebrew/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/usr/local/opt/libffi/lib,
-					/usr/local/opt/expat/lib,
-					/usr/local/lib,
-					/opt/homebrew/opt/libffi/lib,
-					/opt/homebrew/opt/expat/lib,
-					/opt/homebrew/lib,
+					"$(inherited)",
+					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
@@ -10540,12 +10550,8 @@
 					/opt/homebrew/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/usr/local/opt/libffi/lib,
-					/usr/local/opt/expat/lib,
-					/usr/local/lib,
-					/opt/homebrew/opt/libffi/lib,
-					/opt/homebrew/opt/expat/lib,
-					/opt/homebrew/lib,
+					"$(inherited)",
+					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
@@ -10597,12 +10603,8 @@
 					/opt/homebrew/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/usr/local/opt/libffi/lib,
-					/usr/local/opt/expat/lib,
-					/usr/local/lib,
-					/opt/homebrew/opt/libffi/lib,
-					/opt/homebrew/opt/expat/lib,
-					/opt/homebrew/lib,
+					"$(inherited)",
+					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
