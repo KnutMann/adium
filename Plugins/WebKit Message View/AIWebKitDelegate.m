@@ -27,7 +27,22 @@ static AIWebKitDelegate *AISharedWebKitDelegate;
 - (void)webViewIsReady;
 @end
 
-@implementation AIWebKitDelegate 
+@implementation AIWebKitDelegate
+
+#pragma mark Diagnostics
+
+//WebResourceLoadDelegate: log style resources that fail to load
+- (void)webView:(WebView *)sender resource:(id)identifier didFailLoadingWithError:(NSError *)error fromDataSource:(WebDataSource *)dataSource
+{
+	NSLog(@"WebKit resource failed: %@ (%@)", [[error userInfo] objectForKey:NSURLErrorFailingURLStringErrorKey], error);
+}
+
+//WebUIDelegate (SPI): surface the page's JavaScript/CSS console
+- (void)webView:(WebView *)sender addMessageToConsole:(NSDictionary *)message
+{
+	NSLog(@"WebKit console: %@", message);
+}
+
 
 - (id)init 
 {

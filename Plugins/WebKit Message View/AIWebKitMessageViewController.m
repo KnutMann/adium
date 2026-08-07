@@ -101,6 +101,14 @@
 
 static NSArray *draggedTypes = nil;
 
+/* WebKitLegacy SPI: modern WebKit denies file:// subresource loads (the
+ * message style's CSS and images) by default; the old Intel binary got
+ * permissive behavior via linked-on-or-after compatibility checks. */
+@interface WebPreferences (AIFileAccessSPI)
+- (void)setAllowUniversalAccessFromFileURLs:(BOOL)flag;
+- (void)setAllowFileAccessFromFileURLs:(BOOL)flag;
+@end
+
 @implementation AIWebKitMessageViewController
 
 + (AIWebKitMessageViewController *)messageDisplayControllerForChat:(AIChat *)inChat withPlugin:(AIWebKitMessageViewPlugin *)inPlugin
@@ -363,7 +371,14 @@ static NSArray *draggedTypes = nil;
 		
 		[webView setPreferencesIdentifier:[NSString stringWithFormat:@"%@-%@",
 										   activeStyle, preferenceGroup]];
-		
+
+		/* Allow the message style's local CSS and images to load as
+		 * subresources of the file:// based template. Universal access
+		 * stays off so page content cannot XHR other local files. */
+		WebPreferences *webPrefs = [webView preferences];
+		if ([webPrefs respondsToSelector:@selector(setAllowFileAccessFromFileURLs:)])
+			[webPrefs setAllowFileAccessFromFileURLs:YES];
+
 		//Get the prefered variant (or the default if a prefered is not available)
 		NSString *activeVariant;
 		activeVariant = [adium.preferenceController preferenceForKey:[plugin styleSpecificKey:@"Variant" forStyle:activeStyle]
@@ -508,10 +523,13 @@ static NSArray *draggedTypes = nil;
 	//Hack: this will re-set us for all the delegates, but that shouldn't matter
 	[delegateProxy addDelegate:self forView:webView];
 	
-	// We need to pass a local URL to allow LocalStorage from the WebView.
-	// The hostname-part determines the namespace, which we seperate per style.
-	// The path-part may not end in a /, as directories don't get local permissions.
-	NSURL *baseURL = [NSURL URLWithString:[NSString stringWithFormat:@"adium://%@/adium", [messageStyle.bundle bundleIdentifier]]];
+	/* The historical fake adium:// base URL relied on
+	 * registerURLSchemeAsLocal: granting access to the style's file://
+	 * subresources; current WebKit no longer honors that, leaving every
+	 * message style unstyled. Use the style's real file URL as the base
+	 * instead. XHR reads of other local files stay blocked because
+	 * allowUniversalAccessFromFileURLs remains off. */
+	NSURL *baseURL = [NSURL fileURLWithPath:[messageStyle.bundle resourcePath] isDirectory:YES];
 	[[webView mainFrame] loadHTMLString:[messageStyle baseTemplateForChat:chat] baseURL:baseURL];
 
 	if(chat.isGroupChat && chat.supportsTopic) {
