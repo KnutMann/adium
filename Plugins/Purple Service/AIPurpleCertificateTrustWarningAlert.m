@@ -22,7 +22,6 @@
 #import <Security/oidsalg.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import "ESPurpleJabberAccount.h"
-#import "AIPurpleGTalkAccount.h"
 
 //#define ALWAYS_SHOW_TRUST_WARNING
 

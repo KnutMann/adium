@@ -37,7 +37,7 @@
 #import <Adium/AIContactControllerProtocol.h>
 #import <WebKit/WebKit.h>
 
-#import <FriBidi/NSString-FBAdditions.h>
+#import "NSString+AIBidi.h"
 
 #define MAX_HISTORY					25		//Number of messages to remember in history
 #define ENTRY_TEXTVIEW_PADDING		6		//Padding for auto-sizing
