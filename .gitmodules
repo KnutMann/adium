@@ -1,3 +1,3 @@
 [submodule "Dependencies/MMTabBarView"]
 	path = Dependencies/MMTabBarView
-	url = https://github.com/adium/MMTabBarView.git
+	url = https://github.com/KnutMann/MMTabBarView.git
