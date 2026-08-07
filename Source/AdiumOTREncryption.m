@@ -528,45 +528,6 @@ static int display_otr_message(const char *accountname, const char *protocol,
 	return 0;
 }
 
-/* Display a notification message for a particular accountname /
- * protocol / username conversation. */
-static void notify_cb(void *opdata, OtrlNotifyLevel level,
-					  const char *accountname, const char *protocol, const char *username,
-					  const char *title, const char *primary, const char *secondary)
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AIListContact	*listContact = contactFromInfo(accountname, protocol, username);
-	NSString		*displayName = listContact.displayName;
-
-	[adiumOTREncryption notifyWithTitle:[adiumOTREncryption localizedOTRMessage:[NSString stringWithUTF8String:title]
-																   withUsername:displayName
-														 isWorthOpeningANewChat:NULL]
-								primary:[adiumOTREncryption localizedOTRMessage:[NSString stringWithUTF8String:primary]
-																   withUsername:displayName
-														 isWorthOpeningANewChat:NULL]
-							  secondary:[adiumOTREncryption localizedOTRMessage:[NSString stringWithUTF8String:secondary]
-																   withUsername:displayName
-																 isWorthOpeningANewChat:NULL]];
-	[pool release];
-}
-
-/* Display an OTR control message for a particular accountname /
- * protocol / username conversation.  Return 0 if you are able to
- * successfully display it.  If you return non-0 (or if this
- * function is NULL), the control message will be displayed inline,
- * as a received message, or else by using the above notify()
- * callback. */
-static int display_otr_message_cb(void *opdata, const char *accountname,
-								  const char *protocol, const char *username, const char *msg)
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	int ret = display_otr_message(accountname, protocol, username, msg);
-	
-	[pool release];
-	
-	return ret;
-}
-
 /* When the list of ConnContexts changes (including a change in
  * state), this is called so the UI can be updated. */
 static void update_context_list_cb(void *opdata)
@@ -597,26 +558,6 @@ static void account_display_name_free_cb(void *opdata, const char *account_displ
 	if (account_display_name)
 		free((char *)account_display_name);
 }
-
-/* Return a newly allocated string containing a human-friendly name
- * for the given protocol id */
-static const char *protocol_name_cb(void *opdata, const char *protocol)
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	const char *ret = strdup([[serviceFromServiceID(protocol) shortDescription] UTF8String]);
-	
-	[pool release];
-	
-	return ret;
-}
-
-/* Deallocate a string allocated by protocol_name */
-static void protocol_name_free_cb(void *opdata, const char *protocol_name)
-{
-	if (protocol_name)
-		free((char *)protocol_name);
-}
-
 
 /* A new fingerprint for the given user has been received. */
 static void new_fingerprint_cb(void *opdata, OtrlUserState us,
@@ -685,16 +626,6 @@ static void still_secure_cb(void *opdata, ConnContext *context, int is_reply)
 	[pool release];
 }
 
-/* Log a message.  The passed message will end in "\n". */
-static void log_message_cb(void *opdata, const char *message)
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-    AILog(@"otr: %s", (message ? message : "(null)"));
-	
-	[pool release];
-}
-
 /*!
  * @brief Find the maximum message size supported by this protocol.
  *
@@ -735,6 +666,155 @@ int max_message_size_cb(void *opdata, ConnContext *context)
 	return ret;
 }
 
+/* Forward declaration; defined with the other SMP helpers below */
+static void otrg_plugin_abort_smp(ConnContext *context);
+
+/* Display a status message in the chat belonging to the given context */
+static void display_otr_message_for_context(ConnContext *context, NSString *message)
+{
+	if (!context || !message) return;
+	display_otr_message(context->accountname, context->protocol, context->username, [message UTF8String]);
+}
+
+/* Return a message to be sent to the peer when an OTR error occurs (libotr 4.x) */
+static const char *otr_error_message_cb(void *opdata, ConnContext *context, OtrlErrorCode err_code)
+{
+	const char *msg;
+	switch (err_code) {
+		case OTRL_ERRCODE_ENCRYPTION_ERROR:
+			msg = "Error occurred encrypting message.";
+			break;
+		case OTRL_ERRCODE_MSG_NOT_IN_PRIVATE:
+			msg = "You sent an encrypted message, but we finished the private conversation.";
+			break;
+		case OTRL_ERRCODE_MSG_UNREADABLE:
+			msg = "You transmitted an unreadable encrypted message.";
+			break;
+		case OTRL_ERRCODE_MSG_MALFORMED:
+			msg = "You transmitted a malformed data message.";
+			break;
+		default:
+			msg = "Unknown OTR error.";
+			break;
+	}
+	return strdup(msg);
+}
+
+static void otr_error_message_free_cb(void *opdata, const char *err_msg)
+{
+	if (err_msg) free((char *)err_msg);
+}
+
+/* Handle and display OTR message events; replaces the notify/display
+ * callbacks of libotr 3.x, so errors reach the user again. */
+static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnContext *context,
+								const char *message, gcry_error_t err)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	AIListContact *listContact = (context ? contactFromInfo(context->accountname, context->protocol, context->username) : nil);
+	NSString *displayName = (listContact.displayName ?: @"?");
+	NSString *text = nil;
+
+	switch (msg_event) {
+		case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
+			text = [NSString stringWithFormat:@"Your message was not sent: your policy requires encryption, but you are not currently in a private conversation with %@. Attempting to start one...", displayName];
+			break;
+		case OTRL_MSGEVENT_ENCRYPTION_ERROR:
+			text = @"An error occurred while encrypting your message. The message was not sent.";
+			break;
+		case OTRL_MSGEVENT_CONNECTION_ENDED:
+			text = [NSString stringWithFormat:@"Your message was not sent: %@ has already closed the private connection. End or restart your private conversation.", displayName];
+			break;
+		case OTRL_MSGEVENT_SETUP_ERROR:
+			text = [NSString stringWithFormat:@"Error setting up the private conversation with %@.", displayName];
+			break;
+		case OTRL_MSGEVENT_MSG_REFLECTED:
+			text = @"You are receiving your own OTR messages: either you are trying to talk to yourself, or someone is reflecting your messages back at you.";
+			break;
+		case OTRL_MSGEVENT_MSG_RESENT:
+			text = [NSString stringWithFormat:@"The last message to %@ was resent.", displayName];
+			break;
+		case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
+			text = [NSString stringWithFormat:@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", displayName];
+			break;
+		case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
+			text = [NSString stringWithFormat:@"An unreadable encrypted message from %@ was received.", displayName];
+			break;
+		case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
+			text = [NSString stringWithFormat:@"A malformed message from %@ was received.", displayName];
+			break;
+		case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
+			if (message) text = [NSString stringWithUTF8String:message];
+			break;
+		case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
+			/* Format matches what display_otr_message() parses to show the
+			 * plaintext as a normal incoming message with a warning. */
+			if (context && message) {
+				char *formatted = NULL;
+				if (asprintf(&formatted, "<b>The following message received from %s was <i>not</i> encrypted: [</b>%s<b>]</b>",
+							 context->username, message) >= 0 && formatted) {
+					display_otr_message(context->accountname, context->protocol, context->username, formatted);
+					free(formatted);
+				}
+			}
+			break;
+		case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
+			text = [NSString stringWithFormat:@"An unrecognized OTR message from %@ was received.", displayName];
+			break;
+		case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
+		case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
+		case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
+		case OTRL_MSGEVENT_NONE:
+		default:
+			AILog(@"OTR message event %u for %@ (err %u)", msg_event, displayName, err);
+			break;
+	}
+
+	if (text) display_otr_message_for_context(context, text);
+
+	[pool release];
+}
+
+/* Handle SMP (Socialist Millionaires' Protocol) events. Adium has no SMP
+ * UI -- fingerprint verification is the supported path -- so incoming
+ * verification requests are cancelled cleanly instead of stalling. */
+static void handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_event, ConnContext *context,
+								unsigned short progress_percent, char *question)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	AIListContact *listContact = (context ? contactFromInfo(context->accountname, context->protocol, context->username) : nil);
+	NSString *displayName = (listContact.displayName ?: @"?");
+	NSString *text = nil;
+
+	switch (smp_event) {
+		case OTRL_SMPEVENT_ASK_FOR_SECRET:
+		case OTRL_SMPEVENT_ASK_FOR_ANSWER:
+			otrg_plugin_abort_smp(context);
+			text = [NSString stringWithFormat:@"%@ requested identity verification via a shared secret, which Adium does not support. The request was cancelled; please verify the fingerprint instead.", displayName];
+			break;
+		case OTRL_SMPEVENT_SUCCESS:
+			text = [NSString stringWithFormat:@"Identity verification with %@ succeeded.", displayName];
+			break;
+		case OTRL_SMPEVENT_FAILURE:
+		case OTRL_SMPEVENT_CHEATED:
+		case OTRL_SMPEVENT_ERROR:
+			if (smp_event != OTRL_SMPEVENT_FAILURE) otrg_plugin_abort_smp(context);
+			text = [NSString stringWithFormat:@"Identity verification with %@ failed.", displayName];
+			break;
+		case OTRL_SMPEVENT_ABORT:
+			text = [NSString stringWithFormat:@"%@ aborted identity verification.", displayName];
+			break;
+		case OTRL_SMPEVENT_IN_PROGRESS:
+		case OTRL_SMPEVENT_NONE:
+		default:
+			break;
+	}
+
+	if (text) display_otr_message_for_context(context, text);
+
+	[pool release];
+}
+
 static OtrlMessageAppOps ui_ops = {
 	.policy = policy_cb,
 	.create_privkey = create_privkey_cb,
@@ -749,12 +829,12 @@ static OtrlMessageAppOps ui_ops = {
 	.max_message_size = max_message_size_cb,
 	.account_name = account_display_name_cb,
 	.account_name_free = account_display_name_free_cb,
-	.otr_error_message = NULL,
-	.otr_error_message_free = NULL,
+	.otr_error_message = otr_error_message_cb,
+	.otr_error_message_free = otr_error_message_free_cb,
 	.resent_msg_prefix = NULL,
 	.resent_msg_prefix_free = NULL,
-	.handle_smp_event = NULL,
-	.handle_msg_event = NULL,
+	.handle_smp_event = handle_smp_event_cb,
+	.handle_msg_event = handle_msg_event_cb,
 	.create_instag = NULL,
 	.convert_msg = NULL,
 	.convert_free = NULL,
@@ -824,22 +904,6 @@ void otrg_plugin_continue_smp(ConnContext *context,
 							 context, secret, secretlen);
 }
 
-/* Show a dialog asking the user to respond to an SMP secret sent by a remote contact.
- * Our user should enter the same secret entered by the remote contact. */
-static void otrg_dialogue_respond_socialist_millionaires(ConnContext *context)
-{
-    if (context == NULL || context->msgstate != OTRL_MSGSTATE_ENCRYPTED)
-		return;
-
-	/* XXX Implement me - prompt to respond to a secret, and then call
-	 * otrg_plugin_continue_smp() with the secret and the appropriate context */
-}
-
-static void otrg_dialog_update_smp(ConnContext *context, CGFloat percentage)
-{
-	/* SMP status update */
-}
-
 - (NSString *)decryptIncomingMessage:(NSString *)inString fromContact:(AIListContact *)inListContact onAccount:(AIAccount *)inAccount
 {
 	NSString	*decryptedMessage = nil;
@@ -888,54 +952,6 @@ static void otrg_dialog_update_smp(ConnContext *context, CGFloat percentage)
 		otrg_ui_update_keylist();
     }
 
-	/* Keep track of our current progress in the Socialist Millionaires'
-     * Protocol. */
-	ConnContext *context = otrl_context_find(otrg_plugin_userstate, username,
-											 accountname, protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
-    if (context) {
-		NextExpectedSMP nextMsg = context->smstate->nextExpected;
-		
-		tlv = otrl_tlv_find(tlvs, OTRL_TLV_SMP1);
-		if (tlv) {
-			if (nextMsg != OTRL_SMP_EXPECT1)
-				otrg_plugin_abort_smp(context);
-			else {
-				otrg_dialogue_respond_socialist_millionaires(context);
-			}
-		}
-		tlv = otrl_tlv_find(tlvs, OTRL_TLV_SMP2);
-		if (tlv) {
-			if (nextMsg != OTRL_SMP_EXPECT2)
-				otrg_plugin_abort_smp(context);
-			else {
-				otrg_dialog_update_smp(context, 0.6f);
-				context->smstate->nextExpected = OTRL_SMP_EXPECT4;
-			}
-		}
-		tlv = otrl_tlv_find(tlvs, OTRL_TLV_SMP3);
-		if (tlv) {
-			if (nextMsg != OTRL_SMP_EXPECT3)
-				otrg_plugin_abort_smp(context);
-			else {
-				otrg_dialog_update_smp(context, 1.0f);
-				context->smstate->nextExpected = OTRL_SMP_EXPECT1;
-			}
-		}
-		tlv = otrl_tlv_find(tlvs, OTRL_TLV_SMP4);
-		if (tlv) {
-			if (nextMsg != OTRL_SMP_EXPECT4)
-				otrg_plugin_abort_smp(context);
-			else {
-				otrg_dialog_update_smp(context, 1.0f);
-				context->smstate->nextExpected = OTRL_SMP_EXPECT1;
-			}
-		}
-		tlv = otrl_tlv_find(tlvs, OTRL_TLV_SMP_ABORT);
-		if (tlv) {
-			otrg_dialog_update_smp(context, 0.0f);
-			context->smstate->nextExpected = OTRL_SMP_EXPECT1;
-		}
-	}
 
     otrl_tlv_free(tlvs);
 	
