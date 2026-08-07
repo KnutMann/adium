@@ -76,25 +76,32 @@
 
 	//Update our containing toolbar item's size so it will scale with us
 	switch (controlSize) {
-		case NSRegularControlSize:
-			targetSize = NSMakeSize(32, 32);
-			break;
 		case NSSmallControlSize:
 			targetSize = NSMakeSize(24, 24);
 			break;
 		case NSMiniControlSize:
 			targetSize = NSMakeSize(16, 16); /*XXX Numbers right?*/
 			break;
-	}	
-	
+		case NSRegularControlSize:
+		default:
+			/* Includes NSControlSizeLarge (macOS 11+), which toolbars now
+			 * use; a zero target size would raise when scaling the image. */
+			targetSize = NSMakeSize(32, 32);
+			break;
+	}
+
 	[toolbarItem setMinSize:targetSize];
 	[toolbarItem setMaxSize:targetSize];
 
 	bigImageSize = [bigImage size];
-	if ((bigImageSize.width > targetSize.width) || (bigImageSize.height > targetSize.height)) {
+	if (bigImageSize.width <= 0 || bigImageSize.height <= 0) {
+		//No image (or an unloadable one); nothing to scale or display
+		[super setImage:nil];
+
+	} else if ((bigImageSize.width > targetSize.width) || (bigImageSize.height > targetSize.height)) {
 		//If the image is bigger than our target, we should set a scaled image, not the bigImage itself
 		[super setImage:[bigImage imageByScalingToSize:targetSize]];
-		
+
 	} else {
 		[super setImage:bigImage];
 	}

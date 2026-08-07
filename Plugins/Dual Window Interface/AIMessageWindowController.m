@@ -184,8 +184,18 @@
 //Setup our window before it is displayed
 - (void)windowDidLoad
 {
+    /* Remove any tabs from our tab view, it needs to start out empty.
+     * This must happen before -[super windowDidLoad] restores the saved
+     * window frame: on current AppKit, -setFrame: synchronously triggers
+     * tab bar layout callbacks which call -chat on the items, and the
+     * nib's placeholder NSTabViewItem does not respond to that.
+     */
+    while ([tabView_messages numberOfTabViewItems] > 0) {
+        [tabView_messages removeTabViewItem:[tabView_messages tabViewItemAtIndex:0]];
+    }
+
 	[super windowDidLoad];
-	
+
 	NSWindow	*theWindow = [self window];
 
     //Exclude this window from the window menu (since we add it manually)
@@ -194,11 +204,6 @@
 
 	[self _configureToolbar];
 
-    //Remove any tabs from our tab view, it needs to start out empty
-    while ([tabView_messages numberOfTabViewItems] > 0) {
-        [tabView_messages removeTabViewItem:[tabView_messages tabViewItemAtIndex:0]];
-    }
-	
 	//Setup the tab bar
 	tabView_tabStyle = [[[MMAdiumTabStyle alloc] init] autorelease];
 	[tabView_tabBar setStyle:tabView_tabStyle];
@@ -564,10 +569,14 @@
 - (void)updateOverflowMenuUnviewedContentIcon
 {
 	BOOL someUnviewedContent = NO;
-	
-	NSInteger count = [tabView_tabBar numberOfTabViewItems];
+
+	/* Check the overflowed (non-visible) tabs. Index the full item list;
+	 * indexing visibleTabViewItems with an overflow index was out of
+	 * bounds whenever the visible list was shorter (e.g. during layout). */
+	NSArray *allTabViewItems = [tabView_messages tabViewItems];
+	NSInteger count = allTabViewItems.count;
 	for (NSInteger i = [tabView_tabBar numberOfVisibleTabViewItems]; i < count; i++) {
-		if ([[[[tabView_tabBar visibleTabViewItems] objectAtIndex:i] chat] unviewedContentCount] > 0) {
+		if ([[[allTabViewItems objectAtIndex:i] chat] unviewedContentCount] > 0) {
 			someUnviewedContent = YES;
 			break;
 		}
