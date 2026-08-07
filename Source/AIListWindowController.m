@@ -170,10 +170,16 @@ static NSMutableDictionary *screenSlideBoundaryRectDictionary = nil;
 
 //Setup the window after it has loaded
 - (void)windowDidLoad
-{	
+{
+	/* Modern AppKit applies automatic (safe area) content insets, pushing
+	 * the list content away from the window's top edge; the contact list
+	 * manages its own geometry. */
+	[scrollView_contactList setAutomaticallyAdjustsContentInsets:NO];
+	[scrollView_contactList setContentInsets:NSEdgeInsetsMake(0, 0, 0, 0)];
+
 	contactListController = [[[self listControllerClass] alloc] initWithContactList:[self contactList]
 																	  inOutlineView:contactListView
-																	   inScrollView:scrollView_contactList 
+																	   inScrollView:scrollView_contactList
 																		   delegate:self];
 
 	//super's windowDidLoad will restore our location, which is based upon the contactListRoot

@@ -77,8 +77,14 @@
 
 - (void)AI_initListOutlineView
 {
+	/* macOS 11+ gives outline views the padded "automatic" (inset) table
+	 * style, shifting the contact list's content away from the window
+	 * edges. Adium's cells do their own layout; keep the plain style. */
+	if ([self respondsToSelector:@selector(setStyle:)])
+		[self setStyle:NSTableViewStylePlain];
+
 	updateShadowsWhileDrawing = NO;
-	
+
 	backgroundImage = nil;
 	backgroundFade = 1.0f;
 	backgroundColor = nil;
