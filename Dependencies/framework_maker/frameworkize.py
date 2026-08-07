@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import otool_parse
 
 import sys
 import os
 import re
-import dircache
 import shutil
 
 def otool_library(lib):
@@ -25,11 +24,11 @@ def recursively_discover_all_dependencies(lib):
   old_libraries = {}
   while libraries != old_libraries:
     old_libraries = libraries.copy()
-    for lib in libraries.keys():
+    for lib in list(libraries.keys()):
       dep_parser = otool_library(lib)
       for dep in dep_parser.third_party_shlib_deps():
         libraries[dep] = 1
-  return old_libraries.keys()
+  return list(old_libraries.keys())
 
 def lib_path_to_framework_and_version(library_path):
   library_name = library_path.split('/')[-1]
@@ -50,13 +49,13 @@ def lib_path_to_framework_and_version(library_path):
       return match.groups()
   
   # If we get here, we need a new regex. Throw an exception.
-  raise ValueError, ('Library ' + library_path + ' with name ' + library_name +
-                     ' did not match any known format, please update the'
-                     ' script.')
+  raise ValueError('Library ' + library_path + ' with name ' + library_name +
+                   ' did not match any known format, please update the'
+                   ' script.')
 
 if __name__ == '__main__':
   if len(sys.argv) < 3:
-    print 'Usage:', sys.argv[0], '/paths/to/libraries.dylib', 'output_dir'
+    print('Usage:', sys.argv[0], '/paths/to/libraries.dylib', 'output_dir')
     sys.exit(1)
   output_dir = sys.argv[-1]
   libs_to_convert = sys.argv[1:-1]
@@ -82,8 +81,8 @@ if __name__ == '__main__':
       header_path += '-'+version
     try:
       header_path = ' '.join([header_path+'/'+h for h in 
-                              dircache.listdir(header_path)])
-    except OSError, e:
+                              os.listdir(header_path)])
+    except OSError:
       # the directory didn't exist, we don't care.
       pass
     args = ['rtool',
@@ -98,20 +97,19 @@ if __name__ == '__main__':
              ]
     status = os.spawnvp(os.P_WAIT, 'rtool', args)
     if status != 0:
-      print 'Something went wrong. rtool failed for ', lib,
-      print ' with status ', status
+      print('Something went wrong. rtool failed for', lib, 'with status', status)
       sys.exit(1)
 
-  directories_to_visit = [output_dir+'/'+d for d in dircache.listdir(output_dir)
+  directories_to_visit = [output_dir+'/'+d for d in os.listdir(output_dir)
                           if d.endswith('.frwkproj')]
   for direct in directories_to_visit:
-    frameworks = [direct+'/'+f for f in dircache.listdir(direct) if
+    frameworks = [direct+'/'+f for f in os.listdir(direct) if
                   f.endswith('.framework')]
     for f in frameworks:
       f_new = output_dir+'/'+f.split('/')[-1]
       try:
         shutil.rmtree(f_new)
-      except Exception, e:
+      except Exception:
         pass
       shutil.move(f, f_new)
     shutil.rmtree(direct)

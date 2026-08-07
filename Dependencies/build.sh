@@ -173,14 +173,10 @@ set_arch_flags
 
 # assert that the developer can, in fact, build libpurple.  Why waste his time if he can't?
 asserttools gcc
-asserttools hg
 
 # Ok, so we keep running into issues where MacPorts will volunteer to supply
 # dependencies that we want to build ourselves.
-# Getting hg's path before we export our own (safer?) path will ensure it works,
-# even if it's being managed by MacPorts, Fink, or similar.
-HG=`which hg`
-export PATH=$ROOTDIR/build/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$DEVELOPER/usr/bin:$DEVELOPER/usr/sbin
+export PATH=$ROOTDIR/build/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:$DEVELOPER/usr/bin:$DEVELOPER/usr/sbin
 #export PKG_CONFIG="$ROOTDIR/build/bin/pkg-config"
 #export PKG_CONFIG_PATH="$ROOTDIR/build/lib/pkgconfig:/usr/lib/pkgconfig"
 
@@ -199,9 +195,6 @@ else
     if $BUILD_OTR; then
     	build_otr $@
     else
-      build_meanwhile $@
-
-    	build_intltool $@
     	build_jsonglib $@
 
     	#build_gstreamer $@

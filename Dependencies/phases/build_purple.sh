@@ -21,20 +21,14 @@ sniff_libpurple_version() {
 # fetch_libpurple
 #
 fetch_libpurple() {
-	quiet pushd "$ROOTDIR/source"
-	
-	if [ -d "libpurple" ]; then
-		status "Pulling latest changes to libpurple"
-		cd "libpurple"
-		$HG pull
+	local libpurple_url="${LIBPURPLE_URL:-https://downloads.sourceforge.net/project/pidgin/Pidgin/2.12.0/pidgin-2.12.0.tar.bz2}"
 
-		status "Updating libpurple with ${HG_UPDATE_PARAM}"
-		$HG update ${HG_UPDATE_PARAM}
-	else
-		$HG clone -b adium "http://hg.adium.im/libpurple/" libpurple
+	if [ -d "$ROOTDIR/source/libpurple" ]; then
+		status "Using existing libpurple checkout in $ROOTDIR/source/libpurple"
+		return 0
 	fi
-	
-	quiet popd
+
+	prereq "libpurple" "${libpurple_url}"
 }
 
 ##
@@ -59,8 +53,8 @@ build_libpurple() {
 	
 	quiet pushd "$ROOTDIR/source/libpurple"
 	
-	PROTOCOLS="bonjour,gg,irc,jabber,msn,novell,oscar,"
-	PROTOCOLS+="sametime,simple,yahoo,zephyr"
+	PROTOCOLS="bonjour,gg,irc,jabber,novell,oscar,"
+	PROTOCOLS+="simple,zephyr"
 	
 	# Leopard's 64-bit Kerberos library is missing symbols, as evidenced by
 	#    $ nm -arch x86_64 /usr/lib/libkrb4.dylib | grep krb_rd_req
@@ -77,15 +71,19 @@ build_libpurple() {
 	if needsconfigure $@; then
 	(
 		status "Configuring libpurple"
+		log cp -f /opt/homebrew/bin/intltool-extract /opt/homebrew/bin/intltool-merge /opt/homebrew/bin/intltool-update "$ROOTDIR/build/bin/"
+		perl -0pi -e 's{^#!.*perl\n}{#!/usr/bin/perl\n}' "$ROOTDIR/build/bin/intltool-extract" "$ROOTDIR/build/bin/intltool-merge" "$ROOTDIR/build/bin/intltool-update"
+		export PATH="$ROOTDIR/build/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$DEVELOPER/usr/bin:$DEVELOPER/usr/sbin"
 		export ACLOCAL_FLAGS="-I $ROOTDIR/build/share/aclocal"
 		export LIBXML_CFLAGS="-I/usr/include/libxml2"
 		export LIBXML_LIBS="-lxml2"
-		export MEANWHILE_CFLAGS="-I$ROOTDIR/build/include/meanwhile \
-			-I$ROOTDIR/build/include/glib-2.0 \
-			-I$ROOTDIR/build/lib/glib-2.0/include"
-		export MEANWHILE_LIBS="-lmeanwhile -lglib-2.0 -liconv"
 		export MSGFMT="$ROOTDIR/build/bin/msgfmt"
-		CONFIG_CMD="./autogen.sh \
+		if [ -x "./configure" ]; then
+			CONFIGURE_SCRIPT="./configure"
+		else
+			CONFIGURE_SCRIPT="./autogen.sh"
+		fi
+		CONFIG_CMD="${CONFIGURE_SCRIPT} \
 				--disable-dependency-tracking \
 				--disable-gtkui \
 				--disable-consoleui \
@@ -96,6 +94,7 @@ build_libpurple() {
 				--enable-cyrus-sasl \
 				--prefix=$ROOTDIR/build \
 				--with-static-prpls=$PROTOCOLS \
+				--disable-meanwhile \
 				--disable-plugins \
 				--disable-avahi \
 				--disable-dbus \
@@ -124,8 +123,6 @@ build_libpurple() {
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/oscar/peer.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/cmds.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/internal.h" \
-		  "$ROOTDIR/source/libpurple/libpurple/protocols/msn/"*.h \
-		  "$ROOTDIR/source/libpurple/libpurple/protocols/yahoo/"*.h \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/gg/buddylist.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/gg/gg.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/gg/search.h" \
@@ -133,6 +130,7 @@ build_libpurple() {
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/bosh.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/buddy.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/caps.h" \
+		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/chat.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/jutil.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/presence.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/si.h" \

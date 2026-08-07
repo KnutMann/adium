@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import re
 import sys
@@ -46,11 +46,11 @@ def otool_library(path, arch = None):
   
 if __name__ == '__main__':
   if len(sys.argv) != 2:
-    print 'Usage:', sys.argv[0], '/path/to/library.dylib'
+    print('Usage:', sys.argv[0], '/path/to/library.dylib')
     sys.exit(1)
   parser = otool_library(sys.argv[1])
-  print 'Library name:', parser.library_name()
-  print 'Library path:', parser.library_path()
-  print 'Non-base shlib dependencies:'
+  print('Library name:', parser.library_name())
+  print('Library path:', parser.library_path())
+  print('Non-base shlib dependencies:')
   for lib in parser.third_party_shlib_deps():
-    print '  ' + lib
+    print('  ' + lib)

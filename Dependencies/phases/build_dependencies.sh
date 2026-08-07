@@ -29,33 +29,18 @@ build_pkgconfig() {
 # gettext
 #
 build_gettext() {
-	prereq "gettext" \
-		"http://mirrors.kernel.org/gnu/gettext/gettext-0.21.tar.gz"
-	
-	quiet pushd "$ROOTDIR/source/gettext"
-	
-	if needsconfigure $@; then
-	(
-		status "Configuring gettext"
-		CONFIG_CMD="./configure \
-				--prefix=$ROOTDIR/build \
-				--disable-java \
-				--disable-static \
-				--enable-shared \
-				--disable-dependency-tracking"
-		xconfigure "${BASE_CFLAGS}" "${BASE_LDFLAGS}" "${CONFIG_CMD}" \
-			"${ROOTDIR}/source/gettext/gettext-runtime/config.h" \
-			"${ROOTDIR}/source/gettext/gettext-runtime/libasprintf/config.h" \
-			"${ROOTDIR}/source/gettext/gettext-tools/config.h"
-	)
-	fi
-	
-	status "Building and installing gettext"
-	log make -j $NUMBER_OF_CORES
-	log make install
+	local gettext_prefix
+	gettext_prefix="$(brew --prefix gettext)"
+
+	status "Staging gettext from ${gettext_prefix}"
+	quiet mkdir -p "$ROOTDIR/build/include" "$ROOTDIR/build/lib" "$ROOTDIR/build/bin"
+	log cp -f "${gettext_prefix}/include/libintl.h" "$ROOTDIR/build/include/"
+	log cp -f "${gettext_prefix}/lib/libintl.8.dylib" "$ROOTDIR/build/lib/"
+	log cp -f "${gettext_prefix}/bin/msgfmt" "$ROOTDIR/build/bin/"
+	log cp -f "${gettext_prefix}/bin/xgettext" "$ROOTDIR/build/bin/"
+	log cp -f "${gettext_prefix}/bin/msgmerge" "$ROOTDIR/build/bin/"
 
 	status "Successfully installed gettext"
-	quiet popd
 }
 
 ##
@@ -67,10 +52,14 @@ build_glib() {
 		"https://download.gnome.org/sources/glib/2.66/glib-2.66.7.tar.xz"
 	
 	quiet pushd "$ROOTDIR/source/glib"
+	perl -0pi -e "s/build_tests = not meson\\.is_cross_build\\(\\) or \\(meson\\.is_cross_build\\(\\) and meson\\.has_exe_wrapper\\(\\)\\) or installed_tests_enabled/build_tests = false/" meson.build
 	
 	if needsconfigure $@; then
 	(
 		status "Configuring glib"
+		log ln -sf /usr/bin/python3 "$ROOTDIR/build/bin/python3"
+		export PYTHON=/usr/bin/python3
+		quiet rm -rf _build
     meson \
         -Dprefix=$ROOTDIR/build \
         -Dman=false \
@@ -95,10 +84,7 @@ build_glib() {
 	fi
 	
 	status "Building and installing glib"
-  ninja -C _build
-  status "Finished Building glib."
-  status "Installing glib."
-  ninja -C _build install
+	ninja -C _build install
 	
 	status "Successfully installed glib"
 	quiet popd
@@ -212,7 +198,7 @@ build_intltool() {
 #
 JSON_GLIB_VERSION=1.0
 build_jsonglib() {
-	prereq "json-glib-0.9.2" \
+	prereq "json-glib-1.6.2" \
 		"https://download.gnome.org/sources/json-glib/1.6/json-glib-1.6.2.tar.xz"
 	
 	quiet pushd "$ROOTDIR/source/json-glib-1.6.2"
@@ -220,27 +206,25 @@ build_jsonglib() {
 	if needsconfigure $@; then
 	(
 		status "Configuring json-glib"
+		log ln -sf /usr/bin/python3 "$ROOTDIR/build/bin/python3"
 		export CFLAGS="$ARCH_CFLAGS"
 		export LDFLAGS="$ARCH_LDFLAGS"
 		export GLIB_LIBS="$ROOTDIR/build/lib"
 		export GLIB_CFLAGS="-I$ROOTDIR/build/include/glib-2.0 -I$ROOTDIR/build/lib/glib-2.0/include"
-    meson \
+		export PYTHON=/usr/bin/python3
+		quiet rm -rf _build
+		meson \
         -Dprefix=$ROOTDIR/build \
+        -Dintrospection=disabled \
         -Dman=false \
+        -Dtests=false \
         _build
-    status "Configured."
-
-		log ./configure \
-				--prefix="$ROOTDIR/build" \
-				--disable-dependency-tracking
+		status "Configured."
 	)
 	fi
 	
 	status "Building and installing json-glib"
-  ninja -C _build
-  status "Finished Building json-glib."
-  status "Installing json-glib."
-  ninja -C _build install
+	ninja -C _build install
 	
 	# C'mon, why do you make me do this?
 #	log ln -fs "$ROOTDIR/build/include/json-glib-1.0/json-glib" \

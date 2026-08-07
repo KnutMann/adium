@@ -84,6 +84,7 @@ make_framework() {
 	
 	prep_headers
 	
+	log chmod +x "${ROOTDIR}/rtool/rtool"
 	export PATH="${ROOTDIR}/rtool:$PATH"
 	
 	# resolve symlinks - rtool doesn't like lthem :(
@@ -100,21 +101,36 @@ make_framework() {
 	
 	if $BUILD_OTR; then
 		status "Making a framework for libotr..."
-		log python "${ROOTDIR}/framework_maker/frameworkize.py" \
+		log python3 "${ROOTDIR}/framework_maker/frameworkize.py" \
 			"${ROOTDIR}/build/lib/libotr.${OTR_VERSION}.dylib" \
 			"${FRAMEWORK_DIR}"
 		
 		log cp "${ROOTDIR}/Libotr-Info.plist" \
 			"${FRAMEWORK_DIR}/libotr.subproj/libotr.framework/Resources/Info.plist"
 	else
+		local purpleLibPath
+		purpleLibPath="$(find "${ROOTDIR}/build/lib" -maxdepth 1 -type f -name 'libpurple.*.dylib' ! -name 'libpurple.dylib' | head -n 1)"
+		if [ -z "${purpleLibPath}" ]; then
+			error "Could not find a built libpurple dylib in ${ROOTDIR}/build/lib"
+			exit 1
+		fi
 		status "Making a framework for libpurple-${LIBPURPLE_VERSION} and all dependencies..."
-		log python "${ROOTDIR}/framework_maker/frameworkize.py" \
-			"${ROOTDIR}/build/lib/libpurple.${LIBPURPLE_VERSION}.dylib" \
+		log python3 "${ROOTDIR}/framework_maker/frameworkize.py" \
+			"${purpleLibPath}" \
 			"${FRAMEWORK_DIR}"
 
 		status "Adding the Adium framework header..."
 		log cp "${ROOTDIR}/libpurple-full.h" \
 			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers/libpurple.h"
+		log ditto "${ROOTDIR}/build/include/libpurple" \
+			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers"
+		quiet mkdir -p "${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers/libpurple"
+		log ditto "${ROOTDIR}/build/include/libpurple" \
+			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers/libpurple"
+		log cp "${ROOTDIR}/source/libpurple/config.h" \
+			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers/config.h"
+		log cp "${ROOTDIR}/source/libpurple/config.h" \
+			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers/libpurple/config.h"
 
 		log cp "${ROOTDIR}/Libpurple-Info.plist" \
 			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Resources/Info.plist"
