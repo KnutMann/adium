@@ -622,7 +622,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AutoHyperlinks;
 				PRODUCT_NAME = AutoHyperlinks;
 				SKIP_INSTALL = YES;
-				VALID_ARCHS = x86_64;
 			};
 			name = "Release-Debug";
 		};
@@ -655,9 +654,8 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
-				VALID_ARCHS = x86_64;
 			};
 			name = "Release-Debug";
 		};
@@ -895,7 +893,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AutoHyperlinks;
 				PRODUCT_NAME = AutoHyperlinks;
 				SKIP_INSTALL = YES;
-				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -917,7 +914,6 @@
 				PRODUCT_NAME = AutoHyperlinks;
 				SKIP_INSTALL = YES;
 				STRIP_INSTALLED_PRODUCT = YES;
-				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
@@ -950,8 +946,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				VALID_ARCHS = x86_64;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 			};
 			name = Debug;
 		};
@@ -983,8 +978,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				VALID_ARCHS = x86_64;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 			};
 			name = Release;
 		};

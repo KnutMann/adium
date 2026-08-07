@@ -1,3 +1,4 @@
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SRCROOT)/Frameworks/libpurple.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "$(SRCROOT)/Frameworks/libotr.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "$(SRCROOT)/Frameworks/glib.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_6 = "$(SRCROOT)/Frameworks/libgcrypt.framework/Headers"
@@ -8,5 +9,6 @@ FRAMEWORK_SEARCH_PATHS = $(inherited)
 INFOPLIST_OTHER_PREPROCESSOR_FLAGS = -C
 INFOPLIST_FILE = Resources/Info.plist
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
-HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_6) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_7) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread)
-OTHER_LDFLAGS = -framework QTKit
+HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_6) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_7) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread) "$(SRCROOT)/Dependencies/build/include" "$(SRCROOT)/Dependencies/build/include/glib-2.0" "$(SRCROOT)/Dependencies/build/lib/glib-2.0/include" "$(SRCROOT)/Dependencies/build/include/json-glib-1.0" /opt/homebrew/include /opt/homebrew/include/glib-2.0 /opt/homebrew/lib/glib-2.0/include /opt/homebrew/include/json-glib-1.0
+LIBRARY_SEARCH_PATHS = /opt/homebrew/opt/libgpg-error/lib $(inherited)
+OTHER_LDFLAGS = -lgpg-error -lexpat

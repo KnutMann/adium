@@ -92,7 +92,6 @@
 		117009A70F7E7D720078D6AB /* AIIRCServicesPasswordPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 117009A10F7E7D3A0078D6AB /* AIIRCServicesPasswordPlugin.m */; };
 		11700A350F7E8BE80078D6AB /* AISpecialPasswordPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 11700A340F7E8BE80078D6AB /* AISpecialPasswordPromptController.m */; };
 		11700A440F7E8CB60078D6AB /* AISpecialPasswordPrompt.nib in Resources */ = {isa = PBXBuildFile; fileRef = 11700A430F7E8CB60078D6AB /* AISpecialPasswordPrompt.nib */; };
-		1172FBD00CDAA8D400B8E233 /* libmeanwhile.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC80CDAA8D400B8E233 /* libmeanwhile.framework */; };
 		1172FBD10CDAA8D400B8E233 /* libpurple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC90CDAA8D400B8E233 /* libpurple.framework */; };
 		117866DE0EC759B9003E9B97 /* FTProgressResend_Selected.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866D80EC759B9003E9B97 /* FTProgressResend_Selected.tif */; };
 		117866DF0EC759B9003E9B97 /* FTProgressResend.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866D90EC759B9003E9B97 /* FTProgressResend.tif */; };
@@ -135,10 +134,11 @@
 		11EE1B4F0CDCFAF40097F246 /* ssl-openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = 11EE1B4B0CDCFAF40097F246 /* ssl-openssl.c */; };
 		11EE1B500CDCFAF40097F246 /* ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = 11EE1B4C0CDCFAF40097F246 /* ssl.c */; };
 		11EE1CD00CDD01120097F246 /* libgmodule.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC40CDAA8D400B8E233 /* libgmodule.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000002 /* libglib.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000001 /* libglib.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000003 /* libgio.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD10CDD01120097F246 /* libgobject.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC50CDAA8D400B8E233 /* libgobject.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD20CDD01120097F246 /* libgthread.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC60CDAA8D400B8E233 /* libgthread.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD30CDD01120097F246 /* libintl.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC70CDAA8D400B8E233 /* libintl.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		11EE1CD40CDD01120097F246 /* libmeanwhile.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC80CDAA8D400B8E233 /* libmeanwhile.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD50CDD01120097F246 /* libpurple.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC90CDAA8D400B8E233 /* libpurple.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11F145F00B546AC500CA91F6 /* Menu Bar Icons in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 11F145C70B546A6D00CA91F6 /* Menu Bar Icons */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11F1460C0B546C1200CA91F6 /* AIMenuBarIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 11F1460A0B546C1200CA91F6 /* AIMenuBarIcons.m */; };
@@ -976,6 +976,9 @@
 		4D9162642577EDC600930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
 		4D91645E2577F7C800930BC8 /* AutoHyperlinks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; };
 		4D9164BC25780B2D00930BC8 /* AdiumSpotlightImporter.mdimporter in Copy Spotlight Importer */ = {isa = PBXBuildFile; fileRef = 4DAA966B2577B2820000D3F7 /* AdiumSpotlightImporter.mdimporter */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A1D100012603150000000001 /* AIUtilities.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A1D100022603150000000001 /* AutoHyperlinks.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A1D100032603150000000001 /* MMTabBarView.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4A20E425775815008BB8E3 /* MMTabBarView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4DAA979F2577BEE40000D3F7 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
 		4DAA97BB2577C4140000D3F7 /* AutoHyperlinks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; };
 		4F1CB6260D640D5C0073A1E6 /* AIContactInfoContentController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1CB6250D640D5B0073A1E6 /* AIContactInfoContentController.m */; };
@@ -1059,7 +1062,6 @@
 		6394845B0EB13E04008CB6DE /* AIContactHidingController.h in Headers */ = {isa = PBXBuildFile; fileRef = 661561630D84AEEC004B7946 /* AIContactHidingController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		639DF7710F97E61D003C9A32 /* CBPurpleServicePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B7F278A05440C8D00CDFC90 /* CBPurpleServicePlugin.m */; };
 		639DF9140F97E639003C9A32 /* AdiumLibpurple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3485D68009EB416300232CC4 /* AdiumLibpurple.framework */; };
-		639DF91A0F97E639003C9A32 /* libmeanwhile.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC80CDAA8D400B8E233 /* libmeanwhile.framework */; };
 		639DF91B0F97E639003C9A32 /* libpurple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC90CDAA8D400B8E233 /* libpurple.framework */; };
 		639DF9D80F97E678003C9A32 /* AdiumLibpurple.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 3485D68009EB416300232CC4 /* AdiumLibpurple.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		63B0EC9C0F8FBB660062476B /* AIProxyListObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 63B0EC9A0F8FBB660062476B /* AIProxyListObject.m */; };
@@ -1080,12 +1082,10 @@
 		766ABAB61306D1020049FFB7 /* AIUnreadMessagesTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 766ABAB51306D1020049FFB7 /* AIUnreadMessagesTooltip.m */; };
 		766F66A51ACBDF0D002079F2 /* auth_gtalk.c in Sources */ = {isa = PBXBuildFile; fileRef = 766F66A31ACBDF0D002079F2 /* auth_gtalk.c */; };
 		766F66A61ACBDF0D002079F2 /* auth_gtalk.h in Headers */ = {isa = PBXBuildFile; fileRef = 766F66A41ACBDF0D002079F2 /* auth_gtalk.h */; };
-		76731DE415F9057F007728C3 /* libgcrypt.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 76731DE015F90538007728C3 /* libgcrypt.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		76889DEB12D3CA17007AEF00 /* get-info.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 76889DEA12D3CA17007AEF00 /* get-info.tiff */; };
 		76889DEF12D3CA40007AEF00 /* Personal.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 76889DEE12D3CA40007AEF00 /* Personal.tiff */; };
 		76C1AF9C125A906A00D269A9 /* AIAdiumURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 76C1AF9B125A906A00D269A9 /* AIAdiumURLProtocol.m */; };
 		76FBDAC91733B9CA00C9F10B /* STTwitterHTML.m in Sources */ = {isa = PBXBuildFile; fileRef = 76FBDAC61733B9C900C9F10B /* STTwitterHTML.m */; };
-		7E6F8ACD105613AD00C6D80D /* libotr.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7E6F8A93105611B700C6D80D /* libotr.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		7E824CDD06387FAF00813072 /* LinkEditor.nib in Resources */ = {isa = PBXBuildFile; fileRef = 7E824CCE06387FAF00813072 /* LinkEditor.nib */; };
 		7E824CE106387FAF00813072 /* SHAutoValidatingTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CD206387FAF00813072 /* SHAutoValidatingTextView.m */; };
 		7E824CE306387FAF00813072 /* SHLinkEditorWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CD406387FAF00813072 /* SHLinkEditorWindowController.m */; };
@@ -1121,7 +1121,6 @@
 		81DAED530C26F4F700780E4C /* AMPurpleJabberServiceDiscoveryBrowsing.m in Sources */ = {isa = PBXBuildFile; fileRef = 81DAED510C26F4F700780E4C /* AMPurpleJabberServiceDiscoveryBrowsing.m */; };
 		81E45D760C15BFF800B7381B /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34E839050583207E00F2AADB /* SystemConfiguration.framework */; };
 		9719C92E1530EE0C00217FBE /* ShortcutRecorder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9719C92D1530EE0C00217FBE /* ShortcutRecorder.framework */; };
-		9719C92F1530EE4800217FBE /* FriBidi.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9719C92B1530EDF700217FBE /* FriBidi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9719C9301530EE4800217FBE /* ShortcutRecorder.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 9719C92D1530EE0C00217FBE /* ShortcutRecorder.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9722ABC813257D7F00CAB486 /* ContactListWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9722ABC713257D7F00CAB486 /* ContactListWindow.xib */; };
 		9760D24613E49A560031FA1A /* AboutDialog_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 9760D24513E49A560031FA1A /* AboutDialog_bg.png */; };
@@ -1320,22 +1319,19 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				116E369A10B72934002EDB0F /* Growl.framework in Copy Frameworks */,
 				118A44540FEEA82E008153C0 /* libjson-glib.framework in Copy Frameworks */,
 				639DF9D80F97E678003C9A32 /* AdiumLibpurple.framework in Copy Frameworks */,
 				11EE1CD00CDD01120097F246 /* libgmodule.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000002 /* libglib.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */,
 				11EE1CD10CDD01120097F246 /* libgobject.framework in Copy Frameworks */,
 				11EE1CD20CDD01120097F246 /* libgthread.framework in Copy Frameworks */,
 				7664EAA6162E0874008CF995 /* libffi.framework in Copy Frameworks */,
 				11EE1CD30CDD01120097F246 /* libintl.framework in Copy Frameworks */,
-				11EE1CD40CDD01120097F246 /* libmeanwhile.framework in Copy Frameworks */,
 				11EE1CD50CDD01120097F246 /* libpurple.framework in Copy Frameworks */,
-				EE5754ED0B3D7A7A00100989 /* Sparkle.framework in Copy Frameworks */,
-				76731DE415F9057F007728C3 /* libgcrypt.framework in Copy Frameworks */,
-				9E1E1E270A96770C00E16DFC /* LMX.framework in Copy Frameworks */,
-				9719C92F1530EE4800217FBE /* FriBidi.framework in Copy Frameworks */,
-				9719C9301530EE4800217FBE /* ShortcutRecorder.framework in Copy Frameworks */,
-				7E6F8ACD105613AD00C6D80D /* libotr.framework in Copy Frameworks */,
+				A1D100032603150000000001 /* MMTabBarView.framework in Copy Frameworks */,
+				A1D100022603150000000001 /* AutoHyperlinks.framework in Copy Frameworks */,
+				A1D100012603150000000001 /* AIUtilities.framework in Copy Frameworks */,
 				3419FE230531586A00C68BA3 /* Adium.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
@@ -1523,6 +1519,8 @@
 		11700A430F7E8CB60078D6AB /* AISpecialPasswordPrompt.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AISpecialPasswordPrompt.nib; path = Resources/AISpecialPasswordPrompt.nib; sourceTree = "<group>"; };
 		1172FBC30CDAA8D400B8E233 /* glib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = glib.framework; path = Frameworks/glib.framework; sourceTree = "<group>"; };
 		1172FBC40CDAA8D400B8E233 /* libgmodule.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgmodule.framework; path = Frameworks/libgmodule.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000001 /* libglib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libglib.framework; path = Frameworks/libglib.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000003 /* libgio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgio.framework; path = Frameworks/libgio.framework; sourceTree = "<group>"; };
 		1172FBC50CDAA8D400B8E233 /* libgobject.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgobject.framework; path = Frameworks/libgobject.framework; sourceTree = "<group>"; };
 		1172FBC60CDAA8D400B8E233 /* libgthread.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgthread.framework; path = Frameworks/libgthread.framework; sourceTree = "<group>"; };
 		1172FBC70CDAA8D400B8E233 /* libintl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl.framework; path = Frameworks/libintl.framework; sourceTree = "<group>"; };
@@ -3541,26 +3539,26 @@
 		4D4A20A125775535008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
 		4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MMTabBarView.xcodeproj; path = Dependencies/MMTabBarView/MMTabBarView/MMTabBarView.xcodeproj; sourceTree = "<group>"; };
 		4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
-		4D4B482E25F3EFC5000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.dylib"; path = "../../../../../usr/local/lib/libglib-2.0.dylib"; sourceTree = "<group>"; };
-		4D4B483525F3F04B000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgobject-2.0.dylib"; path = "../../../../../usr/local/lib/libgobject-2.0.dylib"; sourceTree = "<group>"; };
-		4D4B483725F3F058000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgthread-2.0.dylib"; path = "../../../../../usr/local/lib/libgthread-2.0.dylib"; sourceTree = "<group>"; };
-		4D4B483925F3F064000CEF01 /* libgmodule-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgmodule-2.0.dylib"; path = "../../../../../usr/local/lib/libgmodule-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B482E25F3EFC5000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libglib-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B483525F3F04B000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgobject-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libgobject-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B483725F3F058000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgthread-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libgthread-2.0.dylib"; sourceTree = "<group>"; };
+		4D4B483925F3F064000CEF01 /* libgmodule-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgmodule-2.0.dylib"; path = "../../../../../opt/homebrew/lib/libgmodule-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B483D25F3F204000CEF01 /* adium-dependencies.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "adium-dependencies.xcodeproj"; path = "Dependencies/adium-dependencies.xcodeproj"; sourceTree = "<group>"; };
-		4D4B484025F3F575000CEF01 /* libjson-glib-1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libjson-glib-1.0.dylib"; path = "../../../../../usr/local/lib/libjson-glib-1.0.dylib"; sourceTree = "<group>"; };
-		4D4B484225F3F5EC000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libintl.8.dylib; path = ../../../../../usr/local/lib/libintl.8.dylib; sourceTree = "<group>"; };
+		4D4B484025F3F575000CEF01 /* libjson-glib-1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libjson-glib-1.0.dylib"; path = "../../../../../opt/homebrew/lib/libjson-glib-1.0.dylib"; sourceTree = "<group>"; };
+		4D4B484225F3F5EC000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libintl.8.dylib; path = ../../../../../opt/homebrew/lib/libintl.8.dylib; sourceTree = "<group>"; };
 		4D4B484825F3F6AB000CEF01 /* libjson-glib-1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libjson-glib-1.0.dylib"; sourceTree = "<group>"; };
 		4D4B484D25F3F6EB000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libgthread-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B484E25F3F6EC000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libglib-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B484F25F3F6EC000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libgobject-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B485025F3F6EC000CEF01 /* libgmodule-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "libgmodule-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B485225F3F70B000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libintl.8.dylib; sourceTree = "<group>"; };
-		4D4B485425F3F79E000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libotr.5.dylib; path = ../../../../../usr/local/lib/libotr.5.dylib; sourceTree = "<group>"; };
+		4D4B485425F3F79E000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libotr.5.dylib; path = ../../../../../opt/homebrew/lib/libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B485625F3F7A3000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libffi.7.dylib; path = ../../../../../usr/local/Cellar/libffi/3.3_2/lib/libffi.7.dylib; sourceTree = "<group>"; };
-		4D4B486825F3F932000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../usr/local/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
-		4D4B486B25F3F949000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../usr/local/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
-		4D4B486E25F3F981000CEF01 /* libfribidi.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfribidi.0.dylib; path = ../../../../../usr/local/lib/libfribidi.0.dylib; sourceTree = "<group>"; };
-		4D4B487025F3F995000CEF01 /* libfribidi.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfribidi.0.dylib; path = ../../../../../usr/local/lib/libfribidi.0.dylib; sourceTree = "<group>"; };
+		4D4B486825F3F932000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../opt/homebrew/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
+		4D4B486B25F3F949000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../opt/homebrew/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
+		4D4B486E25F3F981000CEF01 /* libfribidi.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfribidi.0.dylib; path = ../../../../../opt/homebrew/lib/libfribidi.0.dylib; sourceTree = "<group>"; };
+		4D4B487025F3F995000CEF01 /* libfribidi.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfribidi.0.dylib; path = ../../../../../opt/homebrew/lib/libfribidi.0.dylib; sourceTree = "<group>"; };
 		4D4B487625F3FA35000CEF01 /* libexpat.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.1.dylib; path = ../../../../../usr/local/Cellar/expat/2.2.10/lib/libexpat.1.dylib; sourceTree = "<group>"; };
 		4D6040C823A4612A00181BC9 /* Source */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Source; sourceTree = "<group>"; };
 		4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AIUtilities.xcodeproj; path = Frameworks/AIUtilities/AIUtilities.xcodeproj; sourceTree = "<group>"; };
@@ -4135,12 +4133,10 @@
 				4D4B483A25F3F064000CEF01 /* libgmodule-2.0.dylib in Frameworks */,
 				4D4B483825F3F058000CEF01 /* libgthread-2.0.dylib in Frameworks */,
 				4D4B484125F3F575000CEF01 /* libjson-glib-1.0.dylib in Frameworks */,
-				4D4B484325F3F5EC000CEF01 /* libintl.8.dylib in Frameworks */,
 				811034050CDE216F00EC6038 /* Security.framework in Frameworks */,
 				81E45D760C15BFF800B7381B /* SystemConfiguration.framework in Frameworks */,
 				3485D8EA09EB446900232CC4 /* Cocoa.framework in Frameworks */,
 				811035180CDE783800EC6038 /* SecurityInterface.framework in Frameworks */,
-				1172FBD00CDAA8D400B8E233 /* libmeanwhile.framework in Frameworks */,
 				1172FBD10CDAA8D400B8E233 /* libpurple.framework in Frameworks */,
 				4D9162602577EDA600930BC8 /* AIUtilities.framework in Frameworks */,
 				3485D8EB09EB446900232CC4 /* Adium.framework in Frameworks */,
@@ -4158,25 +4154,17 @@
 				4D4B486525F3F8DF000CEF01 /* libjson-glib-1.0.dylib in Frameworks */,
 				4D4B485525F3F79E000CEF01 /* libotr.5.dylib in Frameworks */,
 				4D4B485825F3F7D6000CEF01 /* libintl.8.dylib in Frameworks */,
-				4D4B486725F3F8FE000CEF01 /* libffi.7.dylib in Frameworks */,
 				4D4B486C25F3F949000CEF01 /* libgcrypt.20.dylib in Frameworks */,
 				4D4B486F25F3F981000CEF01 /* libfribidi.0.dylib in Frameworks */,
-				4D4B487725F3FA35000CEF01 /* libexpat.1.dylib in Frameworks */,
-				116E373310B729E9002EDB0F /* Growl.framework in Frameworks */,
 				3448758E06D1EBDF00DA778C /* Cocoa.framework in Frameworks */,
 				6318DBC20F8D943A00C5E584 /* WebKit.framework in Frameworks */,
 				636D92CD0E4E990500E5F558 /* AddressBook.framework in Frameworks */,
 				34BD9D5A053146CC000AB133 /* Carbon.framework in Frameworks */,
 				34B588A1058D833A00E7EF0D /* ExceptionHandling.framework in Frameworks */,
 				34C18B0D06CAC95400FF5FF9 /* SystemConfiguration.framework in Frameworks */,
-				638392F809D4D67A0067B9B7 /* Sparkle.framework in Frameworks */,
-				9E1E1DFD0A96741500E16DFC /* LMX.framework in Frameworks */,
 				11AA1EFA0BCAE9C3003DDA66 /* Quartz.framework in Frameworks */,
 				340C1ABF0BD58FAB00D09235 /* Security.framework in Frameworks */,
 				31E0CD810C5EEF5200271DB1 /* CoreAudio.framework in Frameworks */,
-				34C846AF101E515900140B4B /* QTKit.framework in Frameworks */,
-				9719C92E1530EE0C00217FBE /* ShortcutRecorder.framework in Frameworks */,
-				639DF91A0F97E639003C9A32 /* libmeanwhile.framework in Frameworks */,
 				639DF91B0F97E639003C9A32 /* libpurple.framework in Frameworks */,
 				4D91645E2577F7C800930BC8 /* AutoHyperlinks.framework in Frameworks */,
 				4D4A2105257758F5008BB8E3 /* MMTabBarView.framework in Frameworks */,
@@ -4276,6 +4264,8 @@
 				118A444F0FEEA828008153C0 /* libjson-glib.framework */,
 				1172FBC30CDAA8D400B8E233 /* glib.framework */,
 				1172FBC40CDAA8D400B8E233 /* libgmodule.framework */,
+				ADD1E5C0DE00000000000001 /* libglib.framework */,
+				ADD1E5C0DE00000000000003 /* libgio.framework */,
 				1172FBC50CDAA8D400B8E233 /* libgobject.framework */,
 				1172FBC60CDAA8D400B8E233 /* libgthread.framework */,
 				1172FBC70CDAA8D400B8E233 /* libintl.framework */,
@@ -8707,8 +8697,6 @@
 				4B08399507D2350D0034A001 /* AIDockIconSelectionSheet.m in Sources */,
 				3428328907D2643F004F01C9 /* ESStatusPreferences.m in Sources */,
 				3428328B07D2643F004F01C9 /* ESStatusPreferencesPlugin.m in Sources */,
-				9E124DEC07D34C7300AA91C5 /* CBGrowlAlertDetailPane.m in Sources */,
-				9E124DEE07D34C7400AA91C5 /* NEHGrowlPlugin.m in Sources */,
 				9E125C6607D3571400AA91C5 /* ESBlockingPlugin.m in Sources */,
 				34A6FAD907D6F3AA00972830 /* AIEventSoundsPlugin.m in Sources */,
 				34A6FADB07D6F3AA00972830 /* ESEventSoundAlertDetailPane.m in Sources */,
@@ -8763,7 +8751,6 @@
 				3456232C0A3771F400E7FC97 /* AILogFromGroup.m in Sources */,
 				3456233F0A3773D100E7FC97 /* AILoggerPlugin.m in Sources */,
 				34F849590A4AF04D0002A017 /* AILogFileUpgradeWindowController.m in Sources */,
-				34382CEA0A50386C004BF6A2 /* DCMessageContextDisplayPlugin.m in Sources */,
 				348B250D0A50A1C900B2B972 /* ESSourceListBackgroundView.m in Sources */,
 				340670A90A55A4B4004E22AC /* ESGlassSplitView.m in Sources */,
 				345AFAEE0A5D9A5F00D7DA6F /* AINoisyTableColumn.m in Sources */,
@@ -10584,7 +10571,6 @@
 			baseConfigurationReference = 63C7E2060FAFAA4700B310AC /* AdiumLibpurple.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Frameworks",
@@ -10599,8 +10585,7 @@
 			baseConfigurationReference = 63C7E2060FAFAA4700B310AC /* AdiumLibpurple.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Frameworks",
@@ -10615,8 +10600,7 @@
 			baseConfigurationReference = 63C7E2060FAFAA4700B310AC /* AdiumLibpurple.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Frameworks",
@@ -10631,7 +10615,6 @@
 			baseConfigurationReference = 63C7E2070FAFAA4700B310AC /* Adium.framework.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
 				INFOPLIST_FILE = Frameworks/Adium/Resources/Info.plist;
 				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AdiumFramework;
@@ -10644,8 +10627,7 @@
 			baseConfigurationReference = 63C7E2070FAFAA4700B310AC /* Adium.framework.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
+				CODE_SIGN_IDENTITY = "-";
 				INFOPLIST_FILE = Frameworks/Adium/Resources/Info.plist;
 				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AdiumFramework;
@@ -10658,8 +10640,7 @@
 			baseConfigurationReference = 63C7E2070FAFAA4700B310AC /* Adium.framework.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
+				CODE_SIGN_IDENTITY = "-";
 				INFOPLIST_FILE = Frameworks/Adium/Resources/Info.plist;
 				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AdiumFramework;
@@ -10672,9 +10653,8 @@
 			baseConfigurationReference = 63C7E2040FAFAA4700B310AC /* Adium.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/Frameworks\"",
@@ -10686,8 +10666,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					/usr/local/Cellar/libffi/3.3_2/lib,
-					/usr/local/Cellar/expat/2.2.10/lib,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.adiumX;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -10699,9 +10677,8 @@
 			baseConfigurationReference = 63C7E2040FAFAA4700B310AC /* Adium.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/Frameworks\"",
@@ -10714,8 +10691,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					/usr/local/Cellar/libffi/3.3_2/lib,
-					/usr/local/Cellar/expat/2.2.10/lib,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.adiumX;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -10727,9 +10702,8 @@
 			baseConfigurationReference = 63C7E2040FAFAA4700B310AC /* Adium.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VQ6ZEL8UD3;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/Frameworks\"",
@@ -10745,8 +10719,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
-					/usr/local/Cellar/libffi/3.3_2/lib,
-					/usr/local/Cellar/expat/2.2.10/lib,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.adiumX;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -10757,7 +10729,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -10792,13 +10764,19 @@
 					/usr/local/opt/libffi/include,
 					/usr/local/opt/expat/include,
 					/usr/local/include,
+					/opt/homebrew/opt/libffi/include,
+					/opt/homebrew/opt/expat/include,
+					/opt/homebrew/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/opt/libffi/lib,
 					/usr/local/opt/expat/lib,
 					/usr/local/lib,
+					/opt/homebrew/opt/libffi/lib,
+					/opt/homebrew/opt/expat/lib,
+					/opt/homebrew/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "\"$(CFLAGS)\"";
 				PRODUCT_NAME = "${TARGET_NAME}";
@@ -10809,7 +10787,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -10843,13 +10821,19 @@
 					/usr/local/opt/libffi/include,
 					/usr/local/opt/expat/include,
 					/usr/local/include,
+					/opt/homebrew/opt/libffi/include,
+					/opt/homebrew/opt/expat/include,
+					/opt/homebrew/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/opt/libffi/lib,
 					/usr/local/opt/expat/lib,
 					/usr/local/lib,
+					/opt/homebrew/opt/libffi/lib,
+					/opt/homebrew/opt/expat/lib,
+					/opt/homebrew/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 			};
@@ -10859,7 +10843,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -10894,13 +10878,19 @@
 					/usr/local/opt/libffi/include,
 					/usr/local/opt/expat/include,
 					/usr/local/include,
+					/opt/homebrew/opt/libffi/include,
+					/opt/homebrew/opt/expat/include,
+					/opt/homebrew/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/opt/libffi/lib,
 					/usr/local/opt/expat/lib,
 					/usr/local/lib,
+					/opt/homebrew/opt/libffi/lib,
+					/opt/homebrew/opt/expat/lib,
+					/opt/homebrew/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 			};
