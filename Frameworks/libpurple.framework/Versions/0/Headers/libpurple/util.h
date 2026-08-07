@@ -1330,6 +1330,17 @@ GList *purple_uri_list_extract_uris(const gchar *uri_list);
  */
 GList *purple_uri_list_extract_filenames(const gchar *uri_list);
 
+/**
+ * This function escapes any characters that might be interpreted by the shell
+ * when executing a program to open a URI on some systems.
+ *
+ * @param unescaped The unescaped URI.
+ *
+ * @return A newly allocated string with any shell metacharacters replaced with
+ * their escaped equivalents.
+ */
+char *purple_uri_escape_for_open(const char *unescaped);
+
 /*@}*/
 
 /**************************************************************************
@@ -1383,7 +1394,7 @@ gchar *purple_utf8_strip_unprintables(const gchar *str);
  * @return The UTF-8 error message.
  * @since 2.4.0
  */
-G_CONST_RETURN gchar *purple_gai_strerror(gint errnum);
+const gchar *purple_gai_strerror(gint errnum);
 
 /**
  * Compares two UTF-8 strings case-insensitively.  This comparison is

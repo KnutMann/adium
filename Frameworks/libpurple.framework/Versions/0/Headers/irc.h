@@ -29,22 +29,28 @@
 #include <sasl/sasl.h>
 #endif
 
-#include "circbuffer.h"
 #include "ft.h"
 #include "roomlist.h"
 #include "sslconn.h"
 
-#define IRC_DEFAULT_SERVER "irc.freenode.net"
+#define IRC_DEFAULT_SERVER "irc.libera.chat"
 #define IRC_DEFAULT_PORT 6667
 #define IRC_DEFAULT_SSL_PORT 994
 
 #define IRC_DEFAULT_CHARSET "UTF-8"
 #define IRC_DEFAULT_AUTODETECT FALSE
-#define IRC_DEFAULT_ALIAS "purple"
 
 #define IRC_DEFAULT_QUIT "Leaving."
 
-#define IRC_INITIAL_BUFSIZE 1024
+/* By default set the command send interval to 2 seconds and allow bursting of
+ * 5 commands at once.  This means, if we haven't sent a command in 10 seconds
+ * we can send 5 commands immediately with no penalty.
+ */
+#define IRC_DEFAULT_COMMAND_INTERVAL 2
+#define IRC_DEFAULT_COMMAND_MAX_BURST 5
+
+#define IRC_BUFSIZE_INCREMENT 1024
+#define IRC_MAX_BUFSIZE 16384
 
 #define IRC_MAX_MSG_SIZE 512
 
@@ -92,10 +98,12 @@ struct irc_conn {
 
 	gboolean quitting;
 
-	PurpleCircBuffer *outbuf;
-	guint writeh;
-
 	time_t recv_time;
+
+	GQueue *send_queue;
+	time_t send_time;
+	guint send_handler;
+	gboolean sent_partial;
 
 	char *mode_chars;
 	char *reqnick;
@@ -119,8 +127,9 @@ struct irc_buddy {
 
 typedef int (*IRCCmdCallback) (struct irc_conn *irc, const char *cmd, const char *target, const char **args);
 
-int irc_send(struct irc_conn *irc, const char *buf);
-int irc_send_len(struct irc_conn *irc, const char *buf, int len);
+void irc_send(struct irc_conn *irc, const char *buf);
+void irc_send_len(struct irc_conn *irc, const char *buf, int len);
+int irc_priority_send(struct irc_conn *irc, const char *buf);
 gboolean irc_blist_timeout(struct irc_conn *irc);
 gboolean irc_who_channel_timeout(struct irc_conn *irc);
 void irc_buddy_query(struct irc_conn *irc);
@@ -186,6 +195,7 @@ void irc_msg_who(struct irc_conn *irc, const char *name, const char *from, char 
 #ifdef HAVE_CYRUS_SASL
 void irc_msg_cap(struct irc_conn *irc, const char *name, const char *from, char **args);
 void irc_msg_auth(struct irc_conn *irc, char *arg);
+void irc_msg_authenticate(struct irc_conn *irc, const char *name, const char *from, char **args);
 void irc_msg_authok(struct irc_conn *irc, const char *name, const char *from, char **args);
 void irc_msg_authtryagain(struct irc_conn *irc, const char *name, const char *from, char **args);
 void irc_msg_authfail(struct irc_conn *irc, const char *name, const char *from, char **args);

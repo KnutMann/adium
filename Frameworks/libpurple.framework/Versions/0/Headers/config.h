@@ -5,21 +5,16 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* configure arguments */
-#define CONFIG_ARGS " '--disable-dependency-tracking' '--disable-gtkui' '--disable-consoleui' '--disable-perl' '--enable-debug' '--disable-static' '--enable-shared' '--enable-cyrus-sasl' '--prefix=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build' '--with-static-prpls=bonjour,gg,irc,jabber,novell,oscar,simple,zephyr' '--disable-meanwhile' '--disable-plugins' '--disable-avahi' '--disable-dbus' '--enable-gnutls=no' '--enable-nss=no' '--enable-vv=no' '--disable-gstreamer' '--disable-idn' 'CC=/Applications/Xcode.app/Contents/Developer/usr/bin/gcc' 'CFLAGS=-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -I/usr/include/kerberosIV -DHAVE_SSL 			        -DHAVE_OPENSSL -fno-common -DHAVE_ZLIB' 'LDFLAGS=-Wl,-headerpad_max_install_names 				-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -lsasl2 -ljson-glib-1.0 -lz' 'LIBXML_CFLAGS=-I/usr/include/libxml2' 'LIBXML_LIBS=-lxml2'"
+#define CONFIG_ARGS " '--disable-dependency-tracking' '--disable-gtkui' '--disable-consoleui' '--disable-perl' '--enable-debug' '--disable-static' '--enable-shared' '--enable-cyrus-sasl' '--prefix=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build' '--with-static-prpls=bonjour,gg,irc,jabber,novell,simple,zephyr' '--disable-meanwhile' '--disable-plugins' '--disable-avahi' '--disable-dbus' '--enable-gnutls=no' '--enable-nss=no' '--enable-vv=no' '--disable-gstreamer' '--disable-idn' 'CC=/Applications/Xcode.app/Contents/Developer/usr/bin/gcc' 'CFLAGS=-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -I/usr/include/kerberosIV -DHAVE_SSL 			        -DHAVE_OPENSSL -fno-common -DHAVE_ZLIB' 'LDFLAGS=-Wl,-headerpad_max_install_names 				-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -lsasl2 -ljson-glib-1.0 -lz' 'LIBXML_CFLAGS=-I/usr/include/libxml2' 'LIBXML_LIBS=-lxml2'"
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-   */
-/* #undef CRAY_STACKSEG_END */
-
-/* Define to 1 if using `alloca.c'. */
+/* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
 
 /* Define if debugging is enabled. */
 #define DEBUG 1
 
 /* display version info */
-#define DISPLAY_VERSION "2.12.0"
+#define DISPLAY_VERSION "2.14.14"
 
 /* Define if mono enabled. */
 /* #undef ENABLE_MONO */
@@ -30,11 +25,10 @@
 /* use the given file as GnuTLS default trust store */
 #define GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE "/etc/ssl/cert.pem"
 
-/* Define to 1 if you have `alloca', as a function or macro. */
+/* Define to 1 if you have 'alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if <alloca.h> works. */
 #define HAVE_ALLOCA_H 1
 
 /* Define if you have the external 'altzone' variable. */
@@ -43,13 +37,21 @@
 /* Define to 1 if you have the <arpa/nameser_compat.h> header file. */
 #define HAVE_ARPA_NAMESER_COMPAT_H 1
 
-/* Define to 1 if you have the `atexit' function. */
+/* Define to 1 if you have the 'atexit' function. */
 #define HAVE_ATEXIT 1
 
-/* Define to 1 if you have the `bind_textdomain_codeset' function. */
+/* Define to 1 if you have the 'bind_textdomain_codeset' function. */
 /* #undef HAVE_BIND_TEXTDOMAIN_CODESET */
 
-/* Define to 1 if you have the `connect' function. */
+/* Define to 1 if you have the Mac OS X function CFLocaleCopyCurrent in the
+   CoreFoundation framework. */
+#define HAVE_CFLOCALECOPYCURRENT 1
+
+/* Define to 1 if you have the Mac OS X function CFPreferencesCopyAppValue in
+   the CoreFoundation framework. */
+#define HAVE_CFPREFERENCESCOPYAPPVALUE 1
+
+/* Define to 1 if you have the 'connect' function. */
 #define HAVE_CONNECT 1
 
 /* Define to 1 if Cyrus SASL is present */
@@ -61,10 +63,10 @@
 /* Define if we are using D-Bus. */
 /* #undef HAVE_DBUS */
 
-/* Define to 1 if you have the `dcgettext' function. */
+/* Define to 1 if you have the 'dcgettext' function. */
 /* #undef HAVE_DCGETTEXT */
 
-/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+/* Define to 1 if you have the declaration of 'tzname', and to 0 if you don't.
    */
 /* #undef HAVE_DECL_TZNAME */
 
@@ -95,17 +97,20 @@
 /* Define to 1 if you have the getaddrinfo function. */
 #define HAVE_GETADDRINFO 1
 
-/* Define to 1 if you have the `gethostid' function. */
+/* Define to 1 if you have the 'gethostid' function. */
 #define HAVE_GETHOSTID 1
 
-/* Define to 1 if you have the `getifaddrs' function. */
+/* Define to 1 if you have the 'getifaddrs' function. */
 #define HAVE_GETIFADDRS 1
 
-/* Define to 1 if you have the `getopt_long' function. */
+/* Define to 1 if you have the 'getopt_long' function. */
 #define HAVE_GETOPT_LONG 1
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 /* #undef HAVE_GETTEXT */
+
+/* Have gio-unix */
+#define HAVE_GIOUNIX 1
 
 /* Define if you have GnuTLS */
 /* #undef HAVE_GNUTLS */
@@ -125,7 +130,7 @@
 /* Define if your gnutls has gnutls_priority_set_direct and friends */
 /* #undef HAVE_GNUTLS_PRIORITY_FUNCS */
 
-/* Define to 1 if you have the `inet_ntop' function. */
+/* Define to 1 if you have the 'inet_ntop' function. */
 #define HAVE_INET_NTOP 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -137,19 +142,19 @@
 /* Define if the IPV6_V6ONLY setsockopt option exists */
 #define HAVE_IPV6_V6ONLY 1
 
-/* Define to 1 if you have the `krb_get_err_text' function. */
+/* Define to 1 if you have the 'krb_get_err_text' function. */
 /* #undef HAVE_KRB_GET_ERR_TEXT */
 
-/* Define to 1 if you have the `krb_get_lrealm' function. */
+/* Define to 1 if you have the 'krb_get_lrealm' function. */
 /* #undef HAVE_KRB_GET_LREALM */
 
-/* Define to 1 if you have the `krb_log' function. */
+/* Define to 1 if you have the 'krb_log' function. */
 /* #undef HAVE_KRB_LOG */
 
-/* Define to 1 if you have the `krb_rd_req' function. */
+/* Define to 1 if you have the 'krb_rd_req' function. */
 /* #undef HAVE_KRB_RD_REQ */
 
-/* Define to 1 if you have the `krb_set_key' function. */
+/* Define to 1 if you have the 'krb_set_key' function. */
 /* #undef HAVE_KRB_SET_KEY */
 
 /* Define if your <locale.h> file defines LC_MESSAGES. */
@@ -158,19 +163,19 @@
 /* Linked with external libgadu */
 /* #undef HAVE_LIBGADU */
 
-/* Define to 1 if you have the `nsl' library (-lnsl). */
+/* Define to 1 if you have the 'nsl' library (-lnsl). */
 /* #undef HAVE_LIBNSL */
 
-/* Define to 1 if you have the `resolv' library (-lresolv). */
+/* Define to 1 if you have the 'resolv' library (-lresolv). */
 #define HAVE_LIBRESOLV 1
 
-/* Define to 1 if you have the `socket' library (-lsocket). */
+/* Define to 1 if you have the 'socket' library (-lsocket). */
 /* #undef HAVE_LIBSOCKET */
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
 
-/* Define to 1 if you have the `lrand48' function. */
+/* Define to 1 if you have the 'lrand48' function. */
 #define HAVE_LRAND48 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -179,16 +184,13 @@
 /* Define if we have support for application media type. */
 /* #undef HAVE_MEDIA_APPLICATION */
 
-/* Define to 1 if you have the `memcpy' function. */
+/* Define to 1 if you have the 'memcpy' function. */
 #define HAVE_MEMCPY 1
 
-/* Define to 1 if you have the `memmove' function. */
+/* Define to 1 if you have the 'memmove' function. */
 #define HAVE_MEMMOVE 1
 
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
-
-/* Define to 1 if you have the `mono_jit_init' function. */
+/* Define to 1 if you have the 'mono_jit_init' function. */
 /* #undef HAVE_MONO_JIT_INIT */
 
 /* Define to 1 if you have the <mono/jit/jit.h> header file. */
@@ -218,25 +220,25 @@
 /* Compile with support for perl */
 /* #undef HAVE_PERL */
 
-/* Define to 1 if you have the `Perl_eval_pv' function. */
+/* Define to 1 if you have the 'Perl_eval_pv' function. */
 /* #undef HAVE_PERL_EVAL_PV */
 
 /* Define to 1 if you have the <perl.h> header file. */
 /* #undef HAVE_PERL_H */
 
-/* Define to 1 if you have the `perl_run' function. */
+/* Define to 1 if you have the 'perl_run' function. */
 /* #undef HAVE_PERL_RUN */
 
 /* Define to 1 if you have the <prio.h> header file. */
 /* #undef HAVE_PRIO_H */
 
-/* Define to 1 if you have the `random' function. */
+/* Define to 1 if you have the 'random' function. */
 #define HAVE_RANDOM 1
 
 /* Define to 1 if you have the <regex.h> header file. */
 #define HAVE_REGEX_H 1
 
-/* Define to 1 if you have the `setlocale' function. */
+/* Define to 1 if you have the 'setlocale' function. */
 #define HAVE_SETLOCALE 1
 
 /* Define to 1 if you have the <sgtty.h> header file. */
@@ -251,7 +253,7 @@
 /* Define to 1 if you have the <smime.h> header file. */
 /* #undef HAVE_SMIME_H */
 
-/* Define to 1 if you have the `snprintf' function. */
+/* Define to 1 if you have the 'snprintf' function. */
 #define HAVE_SNPRINTF 1
 
 /* Define if you have SSL */
@@ -266,19 +268,22 @@
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
 
+/* Define to 1 if you have the <stdio.h> header file. */
+#define HAVE_STDIO_H 1
+
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strchr' function. */
+/* Define to 1 if you have the 'strchr' function. */
 #define HAVE_STRCHR 1
 
-/* Define to 1 if you have the `strdup' function. */
+/* Define to 1 if you have the 'strdup' function. */
 #define HAVE_STRDUP 1
 
-/* Define to 1 if you have the `strerror' function. */
+/* Define to 1 if you have the 'strerror' function. */
 #define HAVE_STRERROR 1
 
-/* Define to 1 if you have the `strftime' function. */
+/* Define to 1 if you have the 'strftime' function. */
 #define HAVE_STRFTIME 1
 
 /* Define to 1 if you have a strftime() that supports the %z format string. */
@@ -290,13 +295,13 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
-/* Define to 1 if you have the `strstr' function. */
+/* Define to 1 if you have the 'strstr' function. */
 #define HAVE_STRSTR 1
 
 /* Define if struct sockaddr has an sa_len member */
 #define HAVE_STRUCT_SOCKADDR_SA_LEN 1
 
-/* Define to 1 if `tm_zone' is a member of `struct tm'. */
+/* Define to 1 if 'tm_zone' is a member of 'struct tm'. */
 #define HAVE_STRUCT_TM_TM_ZONE 1
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
@@ -350,7 +355,7 @@
 /* Define to 1 if you have the <termios.h> header file. */
 #define HAVE_TERMIOS_H 1
 
-/* Define to 1 if you have the `timegm' function. */
+/* Define to 1 if you have the 'timegm' function. */
 #define HAVE_TIMEGM 1
 
 /* Define if you have the external 'timezone' variable. */
@@ -362,18 +367,18 @@
 /* Define if you have a tm_gmtoff member in struct tm */
 #define HAVE_TM_GMTOFF 1
 
-/* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
-   `HAVE_STRUCT_TM_TM_ZONE' instead. */
+/* Define to 1 if your 'struct tm' has 'tm_zone'. Deprecated, use
+   'HAVE_STRUCT_TM_TM_ZONE' instead. */
 #define HAVE_TM_ZONE 1
 
-/* Define to 1 if you don't have `tm_zone' but do have the external array
-   `tzname'. */
+/* Define to 1 if you don't have 'tm_zone' but do have the external array
+   'tzname'. */
 /* #undef HAVE_TZNAME */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
-/* Define to 1 if you have the `vprintf' function. */
+/* Define to 1 if you have the 'vprintf' function. */
 #define HAVE_VPRINTF 1
 
 /* Define to 1 if you have X11 */
@@ -388,8 +393,7 @@
 /* Define if external libzephyr should be used. */
 /* #undef LIBZEPHYR_EXT */
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Define to 1 if you don't have wide-character support. */
@@ -408,7 +412,7 @@
 #define PACKAGE_NAME "pidgin"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "pidgin 2.12.0"
+#define PACKAGE_STRING "pidgin 2.14.14"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "pidgin"
@@ -417,15 +421,15 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.12.0"
+#define PACKAGE_VERSION "2.14.14"
 
 /* Define if plugins are enabled. */
 /* #undef PURPLE_PLUGINS */
 
-/* Define as the return type of signal handlers (`int' or `void'). */
+/* Define as the return type of signal handlers ('int' or 'void'). */
 #define RETSIGTYPE void
 
-/* The size of `time_t', as computed by sizeof. */
+/* The size of 'time_t', as computed by sizeof. */
 #define SIZEOF_TIME_T 8
 
 /* If using the C implementation of alloca, define if you know the
@@ -437,12 +441,14 @@
 /* #undef STACK_DIRECTION */
 
 /* Loads static protocol plugin module initialization functions. */
-#define STATIC_PROTO_INIT extern gboolean purple_init_gg_plugin(); extern gboolean purple_init_irc_plugin(); extern gboolean purple_init_jabber_plugin(); extern gboolean purple_init_novell_plugin(); extern gboolean purple_init_aim_plugin(); extern gboolean purple_init_icq_plugin(); extern gboolean purple_init_simple_plugin(); extern gboolean purple_init_zephyr_plugin(); static void static_proto_init(void) {  purple_init_gg_plugin(); purple_init_irc_plugin(); purple_init_jabber_plugin(); purple_init_novell_plugin(); purple_init_aim_plugin(); purple_init_icq_plugin(); purple_init_simple_plugin(); purple_init_zephyr_plugin(); }
+#define STATIC_PROTO_INIT extern gboolean purple_init_gg_plugin(); extern gboolean purple_init_irc_plugin(); extern gboolean purple_init_jabber_plugin(); extern gboolean purple_init_novell_plugin(); extern gboolean purple_init_simple_plugin(); extern gboolean purple_init_zephyr_plugin(); static void static_proto_init(void) {  purple_init_gg_plugin(); purple_init_irc_plugin(); purple_init_jabber_plugin(); purple_init_novell_plugin(); purple_init_simple_plugin(); purple_init_zephyr_plugin(); }
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
 
-/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+/* Define to 1 if your <sys/time.h> declares 'struct tm'. */
 /* #undef TM_IN_SYS_TIME */
 
 /* Use GStreamer Video Overlay support */
@@ -463,9 +469,6 @@
 /* Use GNU Libidn for stringprep and IDN */
 /* #undef USE_IDN */
 
-/* Define if python headers are available. */
-/* #undef USE_PYTHON */
-
 /* Define if we're using XScreenSaver. */
 /* #undef USE_SCREENSAVER */
 
@@ -479,7 +482,7 @@
 /* #undef VA_COPY_AS_ARRAY */
 
 /* Version number of package */
-#define VERSION "2.12.0"
+#define VERSION "2.14.14"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -502,21 +505,22 @@
 /* Define if kerberos should be used in Zephyr. */
 /* #undef ZEPHYR_USES_KERBEROS */
 
-/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
-#endif
-
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */
 
-/* Define for large files, on AIX-style hosts. */
+/* Define to 1 on platforms where this makes off_t a 64-bit type. */
 /* #undef _LARGE_FILES */
 
-/* Define to empty if `const' does not conform to ANSI C. */
+/* Number of bits in time_t, on hosts where this is settable. */
+/* #undef _TIME_BITS */
+
+/* Define to 1 on platforms where this makes time_t a 64-bit type. */
+/* #undef __MINGW_USE_VC2005_COMPAT */
+
+/* Define to empty if 'const' does not conform to ANSI C. */
 /* #undef const */
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define as 'unsigned int' if <stddef.h> doesn't define. */
 /* #undef size_t */
 
 /* socklen_t size */

@@ -49,6 +49,8 @@ typedef enum {
 	JABBER_CAP_ITEMS          = 1 << 14,
 	JABBER_CAP_ROSTER_VERSIONING = 1 << 15,
 
+	JABBER_CAP_STREAM_MANAGEMENT = 1 << 16,
+
 	JABBER_CAP_RETRIEVED      = 1 << 31
 } JabberCapabilities;
 
@@ -81,7 +83,7 @@ typedef struct _JabberStream JabberStream;
 #define CAPS0115_NODE "http://pidgin.im/"
 
 #define JABBER_DEFAULT_REQUIRE_TLS    "require_starttls"
-#define JABBER_DEFAULT_FT_PROXIES     "proxy.eu.jabber.org"
+#define JABBER_DEFAULT_FT_PROXIES     ""
 
 /* Index into attention_types list */
 #define JABBER_BUZZ 0
@@ -95,6 +97,13 @@ typedef enum {
 	JABBER_STREAM_POST_AUTH,
 	JABBER_STREAM_CONNECTED
 } JabberStreamState;
+
+typedef enum {
+	SM_DISABLED,
+	SM_PLANNED,
+	SM_REQUESTED,
+	SM_ENABLED
+} JabberStreamManagementState;
 
 struct _JabberStream
 {
@@ -282,6 +291,12 @@ struct _JabberStream
 	gchar *google_relay_host;
 	GList *google_relay_requests; /* the HTTP requests to get */
 												/* relay info */
+
+	/* XEP-0198 (stream management) state */
+	guint32 sm_outbound_count;
+	guint32 sm_inbound_count;
+	guint32 sm_outbound_confirmed;
+	JabberStreamManagementState sm_state;
 };
 
 typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);
@@ -313,6 +328,8 @@ extern GList *jabber_features;
  * so it remains sorted.
  */
 extern GList *jabber_identities;
+
+gboolean jabber_is_stanza(xmlnode *packet);
 
 void jabber_stream_features_parse(JabberStream *js, xmlnode *packet);
 void jabber_process_packet(JabberStream *js, xmlnode **packet);

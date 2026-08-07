@@ -210,6 +210,7 @@ void serv_got_chat_left(PurpleConnection *g, int id);
 void serv_got_chat_in(PurpleConnection *g, int id, const char *who,
 					  PurpleMessageFlags flags, const char *message, time_t mtime);
 void serv_send_file(PurpleConnection *gc, const char *who, const char *file);
+void serv_chat_send_file(PurpleConnection *gc, int id, const char *file);
 
 #ifdef __cplusplus
 }

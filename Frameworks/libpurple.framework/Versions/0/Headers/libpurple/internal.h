@@ -124,14 +124,7 @@
 
 #include <glib.h>
 
-/* This wasn't introduced until Glib 2.14 :( */
-#ifndef G_MAXSSIZE
-#	if GLIB_SIZEOF_LONG == 8
-#		define G_MAXSSIZE ((gssize) 0x7fffffffffffffff)
-#	else
-#		define G_MAXSSIZE ((gssize) 0x7fffffff)
-#	endif
-#endif
+#include "glibcompat.h"
 
 #include <glib/gstdio.h>
 
@@ -150,26 +143,6 @@
 #endif
 
 #include <glib-object.h>
-
-#if !GLIB_CHECK_VERSION(2, 32, 0)
-
-#define G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-#define G_GNUC_END_IGNORE_DEPRECATIONS
-
-#endif /* 2.32.0 */
-
-#ifdef __clang__
-
-#undef G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-#define G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
-	_Pragma ("clang diagnostic push") \
-	_Pragma ("clang diagnostic ignored \"-Wdeprecated-declarations\"")
-
-#undef G_GNUC_END_IGNORE_DEPRECATIONS
-#define G_GNUC_END_IGNORE_DEPRECATIONS \
-	_Pragma ("clang diagnostic pop")
-
-#endif /* __clang__ */
 
 #ifdef __COVERITY__
 
@@ -193,8 +166,8 @@ typedef union
 	struct sockaddr_storage storage;
 } common_sockaddr_t;
 
-#define PURPLE_WEBSITE "http://pidgin.im/"
-#define PURPLE_DEVEL_WEBSITE "http://developer.pidgin.im/"
+#define PURPLE_WEBSITE "https://pidgin.im/"
+#define PURPLE_DEVEL_WEBSITE "https://pidgin.im/development/"
 
 
 /* INTERNAL FUNCTIONS */

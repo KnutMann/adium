@@ -209,7 +209,14 @@ typedef enum
 	 * along with an invitation.
 	 * @since 2.8.0
 	 */
-	OPT_PROTO_INVITE_MESSAGE = 0x00000800
+	OPT_PROTO_INVITE_MESSAGE = 0x00000800,
+
+	/**
+	 * Indicates that this protocol supports creating invisible buddies for
+	 * reporting presence/alias of IM peers.
+	 * @since 2.14.0
+	 */
+	OPT_PROTO_TRANSIENT_BUDDIES = 0x00001000,
 
 } PurpleProtocolOptions;
 
@@ -646,6 +653,44 @@ struct _PurplePluginProtocolInfo
 	 */
 	void (*add_buddy_with_invite)(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup *group, const char *message);
 	void (*add_buddies_with_invite)(PurpleConnection *pc, GList *buddies, GList *groups, const char *message);
+
+	/**
+	 *  Get the display alias of a participant in a chat.
+	 *
+	 *  @param gc  the connection on which the room is.
+	 *  @param id  the ID of the chat room.
+	 *  @param who the nickname of the chat participant.
+	 *  @return    the display alias of the participant.  This string must be
+	 *             freed by the caller.
+	 *
+	 * @since 2.14.0
+	 */
+	char *(*get_cb_alias)(PurpleConnection *gc, int id, const char *who);
+
+
+	/**
+	 *  Determine whether a chat can receive a file
+	 *
+	 *  @param gc  the connection on which the room is.
+	 *  @param id  the ID of the chat room.
+	 *  @return    whether it is OK to use chat_send_file() to send a
+	 *             file to this chat.
+	 *
+	 * @since 2.14.0
+	 */
+	gboolean (*chat_can_receive_file)(PurpleConnection *, int id);
+
+	/**
+	 *  Send a file to a chat room
+	 *
+	 *  @param gc  the connection on which the room is.
+	 *  @param id  the ID of the chat room.
+	 *  @param filename the file to be sent.
+	 *
+	 * @since 2.14.0
+	 */
+	void (*chat_send_file)(PurpleConnection *, int id, const char *filename);
+
 };
 
 #define PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl, member) \

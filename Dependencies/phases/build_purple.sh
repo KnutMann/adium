@@ -21,7 +21,7 @@ sniff_libpurple_version() {
 # fetch_libpurple
 #
 fetch_libpurple() {
-	local libpurple_url="${LIBPURPLE_URL:-https://downloads.sourceforge.net/project/pidgin/Pidgin/2.12.0/pidgin-2.12.0.tar.bz2}"
+	local libpurple_url="${LIBPURPLE_URL:-https://downloads.sourceforge.net/project/pidgin/Pidgin/2.14.14/pidgin-2.14.14.tar.bz2}"
 
 	if [ -d "$ROOTDIR/source/libpurple" ]; then
 		status "Using existing libpurple checkout in $ROOTDIR/source/libpurple"
@@ -53,7 +53,7 @@ build_libpurple() {
 	
 	quiet pushd "$ROOTDIR/source/libpurple"
 	
-	PROTOCOLS="bonjour,gg,irc,jabber,novell,oscar,"
+	PROTOCOLS="bonjour,gg,irc,jabber,novell,"
 	PROTOCOLS+="simple,zephyr"
 	
 	# Leopard's 64-bit Kerberos library is missing symbols, as evidenced by
@@ -118,10 +118,7 @@ build_libpurple() {
 	log make install
 	
 	status "Copying internal libpurple headers"
-	log cp -f "$ROOTDIR/source/libpurple/libpurple/protocols/oscar/oscar.h" \
-		  "$ROOTDIR/source/libpurple/libpurple/protocols/oscar/snactypes.h" \
-		  "$ROOTDIR/source/libpurple/libpurple/protocols/oscar/peer.h" \
-		  "$ROOTDIR/source/libpurple/libpurple/cmds.h" \
+	log cp -f "$ROOTDIR/source/libpurple/libpurple/cmds.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/internal.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/gg/buddylist.h" \
 		  "$ROOTDIR/source/libpurple/libpurple/protocols/gg/gg.h" \
