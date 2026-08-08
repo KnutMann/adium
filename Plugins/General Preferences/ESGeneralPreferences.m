@@ -109,21 +109,24 @@
 	[popUp_tabPositionMenu selectItemWithTag:[[adium.preferenceController preferenceForKey:KEY_TABBAR_POSITION
 																								 group:PREF_GROUP_DUAL_WINDOW_INTERFACE] intValue]];
 
-    NSTextField *shortcutNotice = [[[NSTextField alloc] initWithFrame:placeholder_shortcutRecorder.bounds] autorelease];
-    [shortcutNotice setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-    [shortcutNotice setBezeled:NO];
-    [shortcutNotice setBordered:NO];
-    [shortcutNotice setDrawsBackground:NO];
-    [shortcutNotice setEditable:NO];
-    [shortcutNotice setSelectable:NO];
-    [shortcutNotice setAlignment:NSTextAlignmentLeft];
-    [shortcutNotice setLineBreakMode:NSLineBreakByWordWrapping];
-    [shortcutNotice setUsesSingleLineMode:NO];
-    [shortcutNotice setStringValue:AILocalizedString(@"Global shortcut recording is disabled in this modernized build.", nil)];
-    [placeholder_shortcutRecorder addSubview:shortcutNotice];
-    self.shortcutRecorder = shortcutNotice;
-
-    [label_shortcutRecorder setLocalizedString:AILocalizedString(@"Global shortcut configuration is currently unavailable on this build.", nil)];
+    /* Sparkle updates and the global shortcut recorder are gone from this build.
+     * Their controls (and the nib-only section labels sharing their rows) get hidden. */
+    NSArray *removedControls = [NSArray arrayWithObjects:checkBox_updatesAutomatic, checkBox_updatesProfileInfo,
+                                checkBox_updatesIncludeBetas, label_shortcutRecorder, placeholder_shortcutRecorder, nil];
+    for (NSView *control in removedControls) {
+        [control setHidden:YES];
+    }
+    for (NSView *sibling in [[checkBox_updatesAutomatic superview] subviews]) {
+        if ([sibling isHidden] ||
+            ![sibling isKindOfClass:[NSTextField class]] || [(NSTextField *)sibling isEditable]) continue;
+        for (NSView *control in removedControls) {
+            if ([control superview] == [sibling superview] &&
+                NSMinY([sibling frame]) < NSMaxY([control frame]) && NSMaxY([sibling frame]) > NSMinY([control frame])) {
+                [sibling setHidden:YES];
+                break;
+            }
+        }
+    }
 
     [self configureControlDimming];
 }
