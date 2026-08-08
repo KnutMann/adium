@@ -1,65 +1,69 @@
-[Adium](https://adium.im)
-========================
+# Adium — Apple Silicon fork
 
-[![Adiumy](https://adium.im/images/logo.png)](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg)
+This is a community fork of [Adium](https://adium.im), the classic
+instant messaging client for macOS, ported to run natively on Apple
+Silicon Macs.
 
-[Download Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg)
+**Adium was created and developed by the Adium team.** All credit for
+the application itself belongs to the original developers — see
+[Copyright.txt](Copyright.txt). This fork is not affiliated with or
+endorsed by them; it exists because the upstream project has been
+inactive since 2021 and the last official release is an Intel-only
+binary whose days are numbered with Rosetta 2 being phased out.
 
-## About Adium ##
+## Original project
 
-Adium is a free and open source instant messaging application for [OS X](https://www.apple.com/osx/), written using OS X's Cocoa API, released under the [GNU GPL](https://www.gnu.org/licenses/licenses.html#GPL) and developed by the Adium team. Based on the [libpurple](https://developer.pidgin.im/wiki/WhatIsLibpurple) protocol library, Adium can connect you to any number of messaging accounts on any combination of supported messaging services and then chat with other people using those services.
+* Website: <https://adium.im>
+* Source: <https://github.com/adium/adium>
+* Last official release (Intel, runs on Apple Silicon via Rosetta 2):
+  [Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg)
 
-## Notable Features ##
-* Open Source, so everyone can see how Adium works and help improve it.
-* Support for a wide range of different Instant Messaging services (see the [full list](https://adium.im/help/pgs/Accounts-ListOfServices.html))
-* A delightful UI
-  * [Tabbed chat windows](https://adium.im/help/pgs/Messaging-TabbedMessaging.html)
-* Mac OS X integration
-	* [Address Book integration](https://adium.im/help/pgs/AdvancedFeatures-AddressBookIntegration.html)
-	* [WebKit Message View](https://adium.im/help/pgs/Messaging-MessageView.html):  Theme your chat windows
-* [Combined Contacts](https://adium.im/help/pgs/ContactList-CombiningContacts.html): Merge your contacts so that each one represents a person, not an account
-* A sophisticated events system (including [Growl notifications](https://adium.im/help/pgs/AdvancedFeatures-GrowlSupport.html))
-* [OTR Encryption](https://adium.im/help/pgs/AdvancedFeatures-OTREncryption.html)
-* [File Transfer](https://adium.im/help/pgs/AdvancedFeatures-FileTransfer.html)
-* [Xtras](https://adium.im/help/pgs/AdvancedFeatures-AdiumXtras.html) and many, many other customization options
-* A beautiful icon, the "Adiumy" duck
-* Translations: Adium speaks 27 different languages
+## What this fork changes
 
-## System requirements ##
-- **Adium 1.5 or later**: Mac OS X 10.6.8 or newer, an Apple-branded Macintosh computer
-- [Adium 1.4.5](https://adiumx.cachefly.net/Adium_1.4.5.dmg): Mac OS X 10.5.8
-- [Adium 1.3.10](https://adiumx.cachefly.net/Adium_1.3.10.dmg): Mac OS X 10.4
-- [Adium 1.0.6](https://adiumx.cachefly.net/Adium_1.0.6.dmg): Mac OS X 10.3.9
-- [Adium X 0.89.1](https://adiumx.cachefly.net/AdiumX_0.89.1.dmg): Mac OS X 10.2.x and older
+* Native arm64 build; the app bundle is self-contained (no Homebrew or
+  other third-party runtime dependencies)
+* Bundled libpurple upgraded from 2.12.0 (2017) to 2.14.14 (2025)
+* Notifications via the macOS Notification Center (replaces Growl)
+* Many fixes for current AppKit/WebKit behavior (message styles,
+  contact list, tabs, tooltips)
+* Removed services whose networks no longer exist: AIM, ICQ, MSN,
+  Yahoo, Google Talk, MobileMe, LiveJournal, Sametime and Twitter
+* Removed Sparkle auto-update (the update feed is long dead); update
+  by pulling and rebuilding
 
-Adium X 0.88 up to Adium 1.4.5 are Universal applications which run natively on both PowerPC- and Intel-based Macintosh computers. Adium 1.5 and up require an Intel based computer.
+Still supported services: **XMPP/Jabber, IRC, Gadu-Gadu, Bonjour
+(local network), Novell GroupWise and SIMPLE**, plus OTR encryption,
+tabbed chats, message styles, contact list themes and Xtras.
 
-## Building this fork (Apple Silicon) ##
+This is a work in progress; expect rough edges. See the commit history
+for details on what has been touched.
 
-This fork builds natively on Apple Silicon Macs (macOS 11+, tested with
-Xcode 26 on macOS 26). All libraries (libpurple 2.14.14, glib, libotr,
-libgcrypt, ...) are vendored as arm64 frameworks in the repository —
-no Homebrew or other package manager is required to build or run:
+## System requirements
+
+* Apple Silicon Mac, macOS 11 or later
+* Xcode (for building — there are no binary releases at this time)
+
+For Intel Macs and older systems, use the original
+[Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg).
+
+## Building
 
 	git clone --recursive https://github.com/KnutMann/adium.git
 	cd adium
 	./bootstrap.sh
 
 The app lands in `build/Release/Adium.app` (ad-hoc signed, so it runs
-locally; distributing to others requires your own signing identity).
-`bootstrap.sh` builds the AIUtilities and MMTabBarView subprojects first
-and stages their products, then builds the main project.
+on the machine that built it; distributing binaries to others would
+require a proper signing identity). `bootstrap.sh` builds the
+AIUtilities and MMTabBarView subprojects first and stages their
+products, then builds the main project.
 
-To rebuild the vendored dependencies from source instead, see
-`Dependencies/build.sh` (requires Homebrew for the toolchain).
+All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
+vendored as prebuilt arm64 frameworks in the repository. Rebuilding
+them from source is only necessary when upgrading a dependency; see
+`Dependencies/build.sh` (this does require a Homebrew toolchain).
 
-## Contributing ##
-* [Development information](https://web.archive.org/web/20200915230142/https://trac.adium.im/wiki/Development)  
-* [Contribute code](https://web.archive.org/web/20200923043011/https://trac.adium.im/wiki/ContributingCode)
-* [User Interface Guidelines](https://web.archive.org/web/20200923043702/https://trac.adium.im/wiki/UIDesignGuidelines)
-* [Coding Style Guidelines](https://web.archive.org/web/20170306235100/https://trac.adium.im/wiki/CodingStyle)
-* [Coding Tips and Tricks](https://web.archive.org/web/20200923044150/https://trac.adium.im/wiki/DevelopmentTipsAndTricks)
+## License
 
-## Adium Contact information ##
- * https://adium.im/
- * feedback@adium.im
+GNU GPL v2 — see [License.txt](License.txt). Original code copyright
+the Adium team and contributors ([Copyright.txt](Copyright.txt)).
