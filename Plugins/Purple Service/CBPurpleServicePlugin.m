@@ -41,6 +41,8 @@
     //Install the services
 	[ESGaduGaduService registerService];
 	[ESIRCService registerService];
+	[AITelegramService registerService];
+	[AIWhatsAppService registerService];
 	/* TODO for release of 1.5: At the very least, present to users who had a QQ account
 	 * a message that it's no longer supported.
 	 */

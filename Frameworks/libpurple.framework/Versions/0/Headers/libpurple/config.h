@@ -5,7 +5,7 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* configure arguments */
-#define CONFIG_ARGS " '--disable-dependency-tracking' '--disable-gtkui' '--disable-consoleui' '--disable-perl' '--enable-debug' '--disable-static' '--enable-shared' '--enable-cyrus-sasl' '--prefix=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build' '--with-static-prpls=bonjour,gg,irc,jabber,novell,simple,zephyr' '--disable-meanwhile' '--disable-plugins' '--disable-avahi' '--disable-dbus' '--enable-gnutls=no' '--enable-nss=no' '--enable-vv=no' '--disable-gstreamer' '--disable-idn' 'CC=/Applications/Xcode.app/Contents/Developer/usr/bin/gcc' 'CFLAGS=-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -I/usr/include/kerberosIV -DHAVE_SSL 			        -DHAVE_OPENSSL -fno-common -DHAVE_ZLIB' 'LDFLAGS=-Wl,-headerpad_max_install_names 				-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -lsasl2 -ljson-glib-1.0 -lz' 'LIBXML_CFLAGS=-I/usr/include/libxml2' 'LIBXML_LIBS=-lxml2'"
+#define CONFIG_ARGS " '--disable-dependency-tracking' '--disable-gtkui' '--disable-consoleui' '--disable-perl' '--disable-tcl' '--enable-debug' '--disable-static' '--enable-shared' '--enable-cyrus-sasl' '--prefix=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build' '--with-static-prpls=bonjour,gg,irc,jabber,novell,simple,zephyr' '--disable-meanwhile' '--disable-avahi' '--disable-dbus' '--enable-gnutls=no' '--enable-nss=no' '--enable-vv=no' '--disable-gstreamer' '--disable-idn' 'CC=/Applications/Xcode.app/Contents/Developer/usr/bin/gcc' 'CFLAGS=-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -I/usr/include/kerberosIV -DHAVE_SSL 			        -DHAVE_OPENSSL -fno-common -DHAVE_ZLIB' 'LDFLAGS=-Wl,-headerpad_max_install_names 				-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -lsasl2 -ljson-glib-1.0 -lz' 'LIBXML_CFLAGS=-I/usr/include/libxml2' 'LIBXML_LIBS=-lxml2'"
 
 /* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
@@ -424,7 +424,7 @@
 #define PACKAGE_VERSION "2.14.14"
 
 /* Define if plugins are enabled. */
-/* #undef PURPLE_PLUGINS */
+#define PURPLE_PLUGINS 1
 
 /* Define as the return type of signal handlers ('int' or 'void'). */
 #define RETSIGTYPE void

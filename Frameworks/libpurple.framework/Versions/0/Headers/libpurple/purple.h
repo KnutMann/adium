@@ -43,7 +43,7 @@
 #	endif
 #endif
 
-#undef PURPLE_PLUGINS
+#define PURPLE_PLUGINS 1
 
 #include <account.h>
 #include <accountopt.h>

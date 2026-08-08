@@ -35,9 +35,15 @@ Rosetta 2 being phased out.
 * Removed Sparkle auto-update (the update feed is long dead); update
   by pulling and rebuilding
 
-Still supported services: **XMPP/Jabber, IRC, Gadu-Gadu, Bonjour
-(local network), Novell GroupWise and SIMPLE**, plus OTR encryption,
-tabbed chats, message styles, contact list themes and Xtras.
+**New services: Telegram** (via the bundled
+[tdlib-purple](https://github.com/BenWiederhake/tdlib-purple) plugin)
+**and WhatsApp** (via
+[purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)).
+
+Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
+Bonjour (local network), Novell GroupWise and SIMPLE**, plus OTR
+encryption, tabbed chats, message styles, contact list themes and
+Xtras.
 
 This is a work in progress; expect rough edges. See the commit history
 for details on what has been touched.

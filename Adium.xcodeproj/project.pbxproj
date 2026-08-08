@@ -123,6 +123,11 @@
 		ADD1E5C0DE00000000000014 /* libgcrypt.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000013 /* libgcrypt.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000016 /* libgpgerror.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000015 /* libgpgerror.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000018 /* libintl8.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000017 /* libintl8.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000202 /* libwebp.7.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000201 /* libwebp.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000212 /* libsharpyuv.0.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000222 /* libpng16.16.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000221 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000232 /* libssl.3.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000231 /* libssl.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000242 /* libcrypto.3.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000241 /* libcrypto.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000003 /* libgio.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD10CDD01120097F246 /* libgobject.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC50CDAA8D400B8E233 /* libgobject.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		11EE1CD20CDD01120097F246 /* libgthread.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC60CDAA8D400B8E233 /* libgthread.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -342,6 +347,10 @@
 		3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 348FF83E09128BEB00A942A8 /* CBPurpleAccount.m */; };
 		3485DB5909EBCE7400232CC4 /* ESGaduGaduService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416159059FC5330019246B /* ESGaduGaduService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB5A09EBCE7400232CC4 /* ESGaduGaduService.m in Sources */ = {isa = PBXBuildFile; fileRef = 3441615A059FC5340019246B /* ESGaduGaduService.m */; };
+		ADD1E5C0DE00000000000102 /* AITelegramService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000101 /* AITelegramService.m */; };
+		ADD1E5C0DE00000000000112 /* AIPurpleTelegramAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */; };
+		ADD1E5C0DE00000000000122 /* AIWhatsAppService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000121 /* AIWhatsAppService.m */; };
+		ADD1E5C0DE00000000000132 /* AIPurpleWhatsAppAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000131 /* AIPurpleWhatsAppAccount.m */; };
 		3485DB5B09EBCE7400232CC4 /* ESPurpleGaduGaduAccount.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416070059FC27D0019246B /* ESPurpleGaduGaduAccount.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB5C09EBCE7400232CC4 /* ESPurpleGaduGaduAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 34416071059FC27D0019246B /* ESPurpleGaduGaduAccount.m */; };
 		3485DB5D09EBCE7400232CC4 /* DCPurpleGaduGaduJoinChatViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E4D961C06B73B38005235E9 /* DCPurpleGaduGaduJoinChatViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1217,6 +1226,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		ADD1E5C0DE00000000000305 /* Copy Purple Plugins */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "purple-2";
+			dstSubfolderSpec = 13;
+			files = (
+				ADD1E5C0DE00000000000303 /* libtelegram-tdlib.dylib in Copy Purple Plugins */,
+				ADD1E5C0DE00000000000304 /* libwhatsmeow.dylib in Copy Purple Plugins */,
+			);
+			name = "Copy Purple Plugins";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		34BD9D5F053146CC000AB133 /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -1232,6 +1253,11 @@
 				ADD1E5C0DE00000000000014 /* libgcrypt.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000016 /* libgpgerror.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000018 /* libintl8.framework in Copy Frameworks */,
+				ADD1E5C0DE00000000000202 /* libwebp.7.dylib in Copy Frameworks */,
+				ADD1E5C0DE00000000000212 /* libsharpyuv.0.dylib in Copy Frameworks */,
+				ADD1E5C0DE00000000000222 /* libpng16.16.dylib in Copy Frameworks */,
+				ADD1E5C0DE00000000000232 /* libssl.3.dylib in Copy Frameworks */,
+				ADD1E5C0DE00000000000242 /* libcrypto.3.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */,
 				11EE1CD10CDD01120097F246 /* libgobject.framework in Copy Frameworks */,
 				11EE1CD20CDD01120097F246 /* libgthread.framework in Copy Frameworks */,
@@ -1415,7 +1441,16 @@
 		ADD1E5C0DE00000000000011 /* libotr.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libotr.framework; path = Frameworks/libotr.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000013 /* libgcrypt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgcrypt.framework; path = Frameworks/libgcrypt.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000015 /* libgpgerror.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgpgerror.framework; path = Frameworks/libgpgerror.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000303 /* libtelegram-tdlib.dylib in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000301 /* libtelegram-tdlib.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000304 /* libwhatsmeow.dylib in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000302 /* libwhatsmeow.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000017 /* libintl8.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl8.framework; path = Frameworks/libintl8.framework; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000301 /* libtelegram-tdlib.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libtelegram-tdlib.dylib"; path = "PurplePlugins/libtelegram-tdlib.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000302 /* libwhatsmeow.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwhatsmeow.dylib"; path = "PurplePlugins/libwhatsmeow.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000201 /* libwebp.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwebp.7.dylib"; path = "Frameworks/libwebp.7.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsharpyuv.0.dylib"; path = "Frameworks/libsharpyuv.0.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000221 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libpng16.16.dylib"; path = "Frameworks/libpng16.16.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000231 /* libssl.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libssl.3.dylib"; path = "Frameworks/libssl.3.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000241 /* libcrypto.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libcrypto.3.dylib"; path = "Frameworks/libcrypto.3.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000003 /* libgio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgio.framework; path = Frameworks/libgio.framework; sourceTree = "<group>"; };
 		1172FBC50CDAA8D400B8E233 /* libgobject.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgobject.framework; path = Frameworks/libgobject.framework; sourceTree = "<group>"; };
 		1172FBC60CDAA8D400B8E233 /* libgthread.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgthread.framework; path = Frameworks/libgthread.framework; sourceTree = "<group>"; };
@@ -1897,6 +1932,14 @@
 		344160C4059FC3080019246B /* ESPurpleJabberAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleJabberAccount.m; path = "Plugins/Purple Service/ESPurpleJabberAccount.m"; sourceTree = "<group>"; };
 		34416159059FC5330019246B /* ESGaduGaduService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGaduGaduService.h; path = "Plugins/Purple Service/ESGaduGaduService.h"; sourceTree = "<group>"; };
 		3441615A059FC5340019246B /* ESGaduGaduService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGaduGaduService.m; path = "Plugins/Purple Service/ESGaduGaduService.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000101 /* AITelegramService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITelegramService.m; path = "Plugins/Purple Service/AITelegramService.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000103 /* AITelegramService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITelegramService.h; path = "Plugins/Purple Service/AITelegramService.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleTelegramAccount.m; path = "Plugins/Purple Service/AIPurpleTelegramAccount.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000113 /* AIPurpleTelegramAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleTelegramAccount.h; path = "Plugins/Purple Service/AIPurpleTelegramAccount.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000121 /* AIWhatsAppService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWhatsAppService.m; path = "Plugins/Purple Service/AIWhatsAppService.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000123 /* AIWhatsAppService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWhatsAppService.h; path = "Plugins/Purple Service/AIWhatsAppService.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000131 /* AIPurpleWhatsAppAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleWhatsAppAccount.m; path = "Plugins/Purple Service/AIPurpleWhatsAppAccount.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000133 /* AIPurpleWhatsAppAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleWhatsAppAccount.h; path = "Plugins/Purple Service/AIPurpleWhatsAppAccount.h"; sourceTree = "<group>"; };
 		34416171059FC55A0019246B /* ESJabberService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESJabberService.h; path = "Plugins/Purple Service/ESJabberService.h"; sourceTree = "<group>"; };
 		34416172059FC55A0019246B /* ESJabberService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESJabberService.m; path = "Plugins/Purple Service/ESJabberService.m"; sourceTree = "<group>"; };
 		344161BB0943E0D800BC26ED /* AdiumSetupWizard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumSetupWizard.h; path = Source/AdiumSetupWizard.h; sourceTree = "<group>"; };
@@ -3885,6 +3928,13 @@
 				ADD1E5C0DE00000000000013 /* libgcrypt.framework */,
 				ADD1E5C0DE00000000000015 /* libgpgerror.framework */,
 				ADD1E5C0DE00000000000017 /* libintl8.framework */,
+				ADD1E5C0DE00000000000301 /* libtelegram-tdlib.dylib */,
+				ADD1E5C0DE00000000000302 /* libwhatsmeow.dylib */,
+				ADD1E5C0DE00000000000201 /* libwebp.7.dylib */,
+				ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */,
+				ADD1E5C0DE00000000000221 /* libpng16.16.dylib */,
+				ADD1E5C0DE00000000000231 /* libssl.3.dylib */,
+				ADD1E5C0DE00000000000241 /* libcrypto.3.dylib */,
 				ADD1E5C0DE00000000000003 /* libgio.framework */,
 				1172FBC50CDAA8D400B8E233 /* libgobject.framework */,
 				1172FBC60CDAA8D400B8E233 /* libgthread.framework */,
@@ -4255,6 +4305,14 @@
 			children = (
 				34416159059FC5330019246B /* ESGaduGaduService.h */,
 				3441615A059FC5340019246B /* ESGaduGaduService.m */,
+				ADD1E5C0DE00000000000103 /* AITelegramService.h */,
+				ADD1E5C0DE00000000000101 /* AITelegramService.m */,
+				ADD1E5C0DE00000000000113 /* AIPurpleTelegramAccount.h */,
+				ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */,
+				ADD1E5C0DE00000000000123 /* AIWhatsAppService.h */,
+				ADD1E5C0DE00000000000121 /* AIWhatsAppService.m */,
+				ADD1E5C0DE00000000000133 /* AIPurpleWhatsAppAccount.h */,
+				ADD1E5C0DE00000000000131 /* AIPurpleWhatsAppAccount.m */,
 				34416070059FC27D0019246B /* ESPurpleGaduGaduAccount.h */,
 				34416071059FC27D0019246B /* ESPurpleGaduGaduAccount.m */,
 				6E4D961C06B73B38005235E9 /* DCPurpleGaduGaduJoinChatViewController.h */,
@@ -7277,6 +7335,7 @@
 				34BD9D57053146CC000AB133 /* Frameworks */,
 				F51BCD3E0A156281000FDC06 /* Copy Spotlight Importer */,
 				34BD9D5F053146CC000AB133 /* Copy Frameworks */,
+				ADD1E5C0DE00000000000305 /* Copy Purple Plugins */,
 				4BF2E91F067CB76300743318 /* Copy Built-in Xtras */,
 				34BD9D6A053146CC000AB133 /* Copy AdiumPlugins */,
 				345DFF4A05564DB200CEE7B3 /* Run Generate Buildnum File Script */,
@@ -7917,6 +7976,10 @@
 				3485DB3809EBCE7400232CC4 /* PurpleService.m in Sources */,
 				3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */,
 				3485DB5A09EBCE7400232CC4 /* ESGaduGaduService.m in Sources */,
+				ADD1E5C0DE00000000000102 /* AITelegramService.m in Sources */,
+				ADD1E5C0DE00000000000112 /* AIPurpleTelegramAccount.m in Sources */,
+				ADD1E5C0DE00000000000122 /* AIWhatsAppService.m in Sources */,
+				ADD1E5C0DE00000000000132 /* AIPurpleWhatsAppAccount.m in Sources */,
 				3485DB5C09EBCE7400232CC4 /* ESPurpleGaduGaduAccount.m in Sources */,
 				3485DB5E09EBCE7400232CC4 /* DCPurpleGaduGaduJoinChatViewController.m in Sources */,
 				3485DB6109EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.m in Sources */,

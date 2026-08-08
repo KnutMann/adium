@@ -258,6 +258,14 @@ void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *
 	purple_core_set_ui_ops(adium_purple_core_get_ops());
 	purple_eventloop_set_ui_ops(adium_purple_eventloop_get_ui_ops());
 
+	/* Load third-party protocol plugins (e.g. Telegram, WhatsApp) from the
+	 * app bundle and from the user's Adium application support folder. */
+	purple_plugins_add_search_path([[[[NSBundle mainBundle] builtInPlugInsPath]
+									 stringByAppendingPathComponent:@"purple-2"] fileSystemRepresentation]);
+	purple_plugins_add_search_path([[[[adium.loginController userDirectory]
+									 stringByAppendingPathComponent:@"PlugIns/purple-2"]
+									 stringByExpandingTildeInPath] fileSystemRepresentation]);
+
 	//Initialize the libpurple core; this will call back on the function specified in our core UI ops for us to finish configuring libpurple
 	if (!purple_core_init("Adium")) {
 		NSLog(@"*** FATAL ***: Failed to initialize purple core");

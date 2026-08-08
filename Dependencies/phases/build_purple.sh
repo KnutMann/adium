@@ -88,6 +88,7 @@ build_libpurple() {
 				--disable-gtkui \
 				--disable-consoleui \
 				--disable-perl \
+				--disable-tcl \
 				--enable-debug \
 				--disable-static \
 				--enable-shared \
@@ -95,7 +96,6 @@ build_libpurple() {
 				--prefix=$ROOTDIR/build \
 				--with-static-prpls=$PROTOCOLS \
 				--disable-meanwhile \
-				--disable-plugins \
 				--disable-avahi \
 				--disable-dbus \
 				--enable-gnutls=no \
