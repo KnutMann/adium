@@ -62,7 +62,21 @@
 			securityInterfaceFramework = [NSBundle bundleWithPath:@"/System/Library/Frameworks/SecurityInterface.framework"];
 		}
 
-		SSLIcon = [[NSImage alloc] initByReferencingFile:[securityInterfaceFramework pathForImageResource:@"CertSmallStd"]];
+		NSString *iconPath = [securityInterfaceFramework pathForImageResource:@"CertSmallStd"];
+		if (iconPath) {
+			SSLIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
+		}
+		if (!SSLIcon || ![SSLIcon isValid]) {
+			[SSLIcon release];
+			SSLIcon = [[NSImage imageNamed:NSImageNameLockLockedTemplate] retain];
+		}
+
+		/* Current systems ship this resource far larger than the 16pt of
+		 * old; cap the drawing size so menu titles and labels stay intact. */
+		NSSize iconSize = [SSLIcon size];
+		if (iconSize.height > 16.0f && iconSize.height > 0) {
+			[SSLIcon setSize:NSMakeSize(iconSize.width * (16.0f / iconSize.height), 16.0f)];
+		}
 	}
 	
 	return SSLIcon;

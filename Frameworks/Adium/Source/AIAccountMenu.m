@@ -349,16 +349,15 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 
 		//Add an SSL icon if the account is encrypted.
 		if ([account encrypted]) {
-			NSBundle *securityInterfaceFramework = [NSBundle bundleWithIdentifier:@"com.apple.securityinterface"];
-			if (!securityInterfaceFramework) securityInterfaceFramework = [NSBundle bundleWithPath:@"/System/Library/Frameworks/SecurityInterface.framework"];
-
-			NSString					*path = [securityInterfaceFramework pathForImageResource:@"CertSmallStd"];
-			NSFileWrapper				*fileWrapper = nil;
-			NSTextAttachment			*textAttachment = nil;
+			/* Use an image attachment cell with the size-capped SSL icon;
+			 * attaching the raw resource file rendered it at full size on
+			 * current systems, blowing up the menu row. */
+			NSTextAttachmentCell		*iconCell = [[NSTextAttachmentCell alloc] initImageCell:[NSImage imageForSSL]];
+			NSTextAttachment			*textAttachment = [[NSTextAttachment alloc] init];
 			NSMutableAttributedString	*title = nil;
-			
-			fileWrapper = [[NSFileWrapper alloc] initWithPath:path];
-			textAttachment = [[NSTextAttachment alloc] initWithFileWrapper:fileWrapper];
+
+			[textAttachment setAttachmentCell:iconCell];
+			[iconCell release];
 
 			title = [plainTitle mutableCopy];
 
@@ -376,7 +375,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 			
 			[title release];
 			[textAttachment release];
-			[fileWrapper release];
 		} else {
 			[menuItem setAttributedTitle:plainTitle];
 		}
