@@ -9,9 +9,11 @@ Apple retires Rosetta 2.
 **Adium was created and developed by the Adium team.** All credit for
 the application itself belongs to the original developers — see
 [Copyright.txt](Copyright.txt). This fork is not affiliated with or
-endorsed by them; it exists because the upstream project has been
-inactive since 2021 and the last official release is an Intel-only
-binary whose days are numbered with Rosetta 2 being phased out.
+endorsed by them — it is maintained by a long-time Adium user who
+simply wants to keep the app he has been using for many years alive.
+The upstream project has been inactive since 2021, and its last
+official release is an Intel-only binary whose days are numbered with
+Rosetta 2 being phased out.
 
 ## Original project
 
