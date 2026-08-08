@@ -1,15 +1,15 @@
-# Adium — Apple Silicon fork
+# Adium (Apple Silicon fork)
 
 **This is a fork of the original [Adium](https://adium.im)
 ([source](https://github.com/adium/adium)), rebuilt for Apple Silicon
-(arm64) so it keeps running on current Macs — including all bundled
-libraries.** The original is Intel-only and will stop working when
+(arm64), including all bundled libraries, so it keeps running on
+current Macs.** The original is Intel-only and will stop working when
 Apple retires Rosetta 2.
 
 **Adium was created and developed by the Adium team.** All credit for
-the application itself belongs to the original developers — see
+the application itself belongs to the original developers; see
 [Copyright.txt](Copyright.txt). This fork is not affiliated with or
-endorsed by them — it is maintained by a long-time Adium user who
+endorsed by them. It is maintained by a long-time Adium user who
 simply wants to keep a beloved app alive after many years of use.
 The upstream project has been inactive since 2021, and its last
 official release is an Intel-only binary whose days are numbered with
@@ -46,8 +46,8 @@ for details on what has been touched.
 
 * Apple Silicon Mac, macOS 11 or later
 * Everything is native arm64, including all bundled dependencies
-  (libpurple, glib, libotr, ...) — no Rosetta 2, no Homebrew required
-* Xcode (for building — there are no binary releases at this time)
+  (libpurple, glib, libotr, ...): no Rosetta 2, no Homebrew required
+* Xcode for building (there are no binary releases at this time)
 
 For Intel Macs and older systems, use the original
 [Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg).
@@ -71,5 +71,5 @@ them from source is only necessary when upgrading a dependency; see
 
 ## License
 
-GNU GPL v2 — see [License.txt](License.txt). Original code copyright
+GNU GPL v2, see [License.txt](License.txt). Original code copyright
 the Adium team and contributors ([Copyright.txt](Copyright.txt)).
