@@ -21,10 +21,21 @@
 #import <sys/select.h>
 
 #include <dispatch/dispatch.h>
+#include <os/lock.h>
+#include <stdatomic.h>
 
 //#define PURPLE_SOCKET_DEBUG
 
-static guint				sourceId = 0;		//The next source key; continuously incrementing
+/* Plugins such as purple-gowhatsapp and tdlib-purple call purple_timeout_add() from
+ * background threads (g_timeout_add is documented as thread-safe), so tag allocation
+ * and the tag→source map must be safe for concurrent access.
+ */
+static _Atomic guint		sourceId = 0;		//The next source key; continuously incrementing
+static os_unfair_lock		sourceDictLock = OS_UNFAIR_LOCK_INIT;
+
+static inline guint nextSourceTag(void) {
+    return atomic_fetch_add(&sourceId, 1) + 1;
+}
 
 /*
  * glib, unfortunately, identifies all sources and timers via unsigned 32 bit tags. We would like to map them to dispatch_source_t objects.
@@ -44,31 +55,44 @@ static inline CFMutableDictionaryRef sourceInfoDict() {
 }
 
 static inline dispatch_source_t sourceForTag(unsigned long tag) {
-    return (dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
+    os_unfair_lock_lock(&sourceDictLock);
+    dispatch_source_t source = (dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
+    os_unfair_lock_unlock(&sourceDictLock);
+    return source;
 }
 static inline void setSourceForTag(dispatch_source_t source, unsigned long tag) {
+    os_unfair_lock_lock(&sourceDictLock);
     CFDictionarySetValue(sourceInfoDict(), (void *)tag, source);
+    os_unfair_lock_unlock(&sourceDictLock);
 }
-static inline void removeSourceForTag(unsigned long tag) {
-    CFDictionaryRemoveValue(sourceInfoDict(), (void *)tag);
+
+/* Atomically look up and remove the source for a tag, so that no two callers can
+ * ever cancel/release the same source. Returns NULL if the tag is unknown.
+ */
+static inline dispatch_source_t claimSourceForTag(unsigned long tag) {
+    os_unfair_lock_lock(&sourceDictLock);
+    dispatch_source_t source = (dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
+    if (source) {
+        CFDictionaryRemoveValue(sourceInfoDict(), (void *)tag);
+    }
+    os_unfair_lock_unlock(&sourceDictLock);
+    return source;
 }
 
 gboolean adium_source_remove(guint tag) {
-	dispatch_source_t src = sourceForTag(tag);
-    
+	dispatch_source_t src = claimSourceForTag(tag);
+
     if (!src) {
 		AILogWithSignature(@"Source info for %i not found", tag);
 		return FALSE;
 	}
-	
+
     dispatch_source_cancel(src);
-    
+
 	BOOL success = (dispatch_source_testcancel(src) != 0);
-	
-    removeSourceForTag(tag);
 
 	dispatch_release(src);
-	
+
 	return success;
 }
 
@@ -85,7 +109,7 @@ guint addTimer(uint64_t interval, uint64_t leeway, GSourceFunc function, gpointe
 	dispatch_source_t src;
 	guint tag;
 	
-    tag = ++sourceId;
+    tag = nextSourceTag();
     
     src = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
 	
@@ -128,15 +152,16 @@ guint adium_input_add(gint fd, PurpleInputCondition condition,
 					  PurpleInputFunction func, gpointer user_data)
 {	
 	if (fd < 0) {
-		NSLog(@"INVALID: fd was %i; returning tag %i",fd,sourceId+1);
-		return ++sourceId;
+		guint invalidTag = nextSourceTag();
+		NSLog(@"INVALID: fd was %i; returning tag %i",fd,invalidTag);
+		return invalidTag;
 	}
 
 	dispatch_source_t src;
 	guint tag;
 	dispatch_source_type_t type;
 	
-    tag = ++sourceId;
+    tag = nextSourceTag();
 	
 	if (condition == PURPLE_INPUT_READ) {
 		type = DISPATCH_SOURCE_TYPE_READ;
