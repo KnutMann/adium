@@ -77,5 +77,28 @@ them from source is only necessary when upgrading a dependency; see
 
 ## License
 
-GNU GPL v2, see [License.txt](License.txt). Original code copyright
-the Adium team and contributors ([Copyright.txt](Copyright.txt)).
+GNU GPL v2 or later, see [License.txt](License.txt). Original code
+copyright the Adium team and contributors
+([Copyright.txt](Copyright.txt)).
+
+### Bundled third-party binaries and their sources
+
+This repository ships some components as prebuilt arm64 binaries. The
+corresponding sources are publicly available at the exact revisions
+listed here:
+
+| Binary | Project | Revision | License |
+| --- | --- | --- | --- |
+| `PurplePlugins/libwhatsmeow.so` | [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp) | `5a436315caefd3b89c2b631a7b8028742e58f047` | GPL v3 |
+| `PurplePlugins/libtelegram-tdlib.so` | [tdlib-purple](https://github.com/BenWiederhake/tdlib-purple) | `43e6cc2f14ccd08171b1515f6216f4bbf84eed80` | GPL v2 |
+| (statically inside `libtelegram-tdlib.so`) | [TDLib](https://github.com/tdlib/td) | `8d08b34e22a08e58db8341839c4e18ee06c516c5` | Boost 1.0 |
+| `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL 3](https://www.openssl.org) | Homebrew build | Apache 2.0 |
+| `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) | Homebrew build | BSD 3-Clause |
+| `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) | Homebrew build | libpng/zlib |
+| `Frameworks/libotr.framework` and friends | [libotr](https://otr.cypherpunks.ca), [libgcrypt](https://gnupg.org), [libgpg-error](https://gnupg.org), [gettext](https://www.gnu.org/software/gettext/) | Homebrew builds | GPL v2 / LGPL v2.1 |
+
+libpurple, glib and the other core dependencies are not shipped as
+binaries; they are built from source by the scripts in
+`Dependencies/` (which pin the exact versions, e.g. libpurple
+2.14.14). The LGPL components are dynamically linked, so they can be
+swapped out by rebuilding the bundle.

@@ -68,7 +68,7 @@ LNAboutBoxController *sharedAboutBoxInstance = nil;
     [textField_version setStringValue:[self AI_applicationVersion:NO]];
     
 	// Set the localized values
-	[button_homepage setLocalizedString:AILocalizedString(@"Adium Homepage",nil)];
+	[button_homepage setLocalizedString:@"GitHub"];
 	[button_license setLocalizedString:AILocalizedString(@"License",nil)];
 
     [[self window] betterCenter];
@@ -85,7 +85,7 @@ LNAboutBoxController *sharedAboutBoxInstance = nil;
 // Visit the Adium homepage
 - (IBAction)visitHomepage:(id)sender
 {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.adium.im"]];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/KnutMann/adium"]];
 }
 
 // Receive the flags changed event for starting/stopping the automatic scroll via option
@@ -123,6 +123,13 @@ LNAboutBoxController *sharedAboutBoxInstance = nil;
 - (NSString *)AI_applicationDate
 {
 	NSTimeInterval date = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildDate"] doubleValue];
+	if (date <= 0) {
+		// No release script stamps AIBuildDate any more; the executable's mtime is the build date.
+		NSString *executablePath = [[NSBundle mainBundle] executablePath];
+		NSDate *modificationDate = [[[NSFileManager defaultManager] attributesOfItemAtPath:executablePath
+																					 error:NULL] fileModificationDate];
+		date = [modificationDate timeIntervalSince1970];
+	}
 	__block NSString *ret;
 	
 	[NSDateFormatter withLocalizedShortDateFormatterPerform:^(NSDateFormatter *shortDateFormatter){
