@@ -17,7 +17,6 @@
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContactObserverManager.h>
 #import "AIMenuBarIcons.h"
-#import "AIStatusItemView.h"
 #import <Adium/AIStatusMenu.h>
 #import <Adium/AIAccountMenu.h>
 #import <Adium/AIContactMenu.h>
@@ -32,7 +31,6 @@
 @interface CBStatusMenuItemController : NSObject <AIChatObserver, AIListObjectObserver, AIAccountMenuDelegate, AIStatusMenuDelegate, AIContactMenuDelegate, NSMenuDelegate>
 {
 	NSStatusItem            *statusItem;
-	AIStatusItemView		*statusItemView;
 	
 	NSMenu                  *mainMenu;
 	NSMenu					*mainAccountsMenu;

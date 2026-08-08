@@ -70,11 +70,8 @@
 {
 	if ((self = [super init])) {
 		//Create and set up the status item
-		statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:25] retain];
-		
-		statusItemView = [[AIStatusItemView alloc] initWithFrame:NSMakeRect(0,0,25,22)];
-		statusItemView.statusItem = statusItem;
-		[statusItem setView:statusItemView];
+		statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+		statusItem.button.imagePosition = NSImageLeft;
 		
 		unviewedContent = NO;
 		[self updateMenuIconsBundle];
@@ -90,7 +87,7 @@
 		[mainOptionsMenu setDelegate:self];
 
 		// Set the main menu as the status item's menu
-		statusItemView.menu = mainMenu;
+		statusItem.menu = mainMenu;
 
 		// Flag all the menus as needing updates
 		mainMenuNeedsUpdate = YES;
@@ -182,7 +179,6 @@
 	
 	//Release our objects
 	[[statusItem statusBar] removeStatusItem:statusItem];
-	[statusItemView release];
 
 	// All the temporary NSMutableArrays we store
 	[accountMenuItemsArray release];
@@ -264,9 +260,9 @@
 
 	// Only show if enabled and greater-than zero; otherwise, set to nil.
 	if (showUnreadCount && unreadCount > 0) {
-		[statusItemView setStringValue:[NSString stringWithFormat:@"%lu", unreadCount]];
+		statusItem.button.title = [NSString stringWithFormat:@"%lu", unreadCount];
 	} else {
-		[statusItemView setStringValue:nil];
+		statusItem.button.title = @"";
 	}
 }
 
@@ -375,9 +371,9 @@
 	NSImage *alternateMenuIcon = [menuIcons imageOfType:imageName alternate:YES];
 	
 	// Set our icon.
-	statusItemView.regularImage = [self badgeDuck:menuIcon withImage:badge];
+	statusItem.button.image = [self badgeDuck:menuIcon withImage:badge];
 	// Badge the highlight image and set it.
-	statusItemView.alternateImage = [self badgeDuck:alternateMenuIcon withImage:badge];
+	statusItem.button.alternateImage = [self badgeDuck:alternateMenuIcon withImage:badge];
 	// Update our unread count.
 	if (showUnreadCount) {
 		[self updateUnreadCount];
@@ -391,9 +387,7 @@
  */
 - (void)updateStatusItemLength
 {
-	[statusItem setLength:statusItemView.desiredWidth + STATUS_ITEM_MARGIN];
-	[statusItemView setFrame:NSMakeRect(0, 0, statusItemView.desiredWidth + STATUS_ITEM_MARGIN, 22)];
-	[statusItemView setNeedsDisplay:YES];
+	// NSVariableStatusItemLength sizes the item automatically.
 }
 
 /*!
@@ -502,9 +496,6 @@
 		mainMenuNeedsUpdate = YES;
 
 	currentContactMenuItemsCount = 	menu.numberOfItems;
-	
-	/* The alternate menu is what shows if you option-click the menu item */
-	statusItemView.alternateMenu = menu;
 	
 	[self.contactsMenuItem setSubmenu:menu];
 }
