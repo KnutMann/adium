@@ -40,6 +40,18 @@
 {
 	AIPurpleImageRequestController *controller = [[self alloc] init];
 
+	/* The requesting plugin supplies English strings; run them through
+	 * our strings table so known ones (QR login dialog) get localized. */
+	NSBundle *bundle = [NSBundle bundleForClass:self];
+	NSString *(^localize)(NSString *) = ^(NSString *text) {
+		return (text ? [bundle localizedStringForKey:text value:text table:nil] : (NSString *)nil);
+	};
+	title = localize(title);
+	primary = localize(primary);
+	secondary = localize(secondary);
+	okText = localize(okText);
+	cancelText = localize(cancelText);
+
 	controller->fields = inFields;
 	controller->okCb = inOkCb;
 	controller->cancelCb = inCancelCb;
@@ -55,8 +67,12 @@
 - (void)buildPanelWithTitle:(NSString *)title primary:(NSString *)primary secondary:(NSString *)secondary
 					 okText:(NSString *)okText cancelText:(NSString *)cancelText
 {
-	//Collect the string values (e.g. a pairing code) and the image from the fields
+	/* Field roles (as used by purple-gowhatsapp's login request):
+	 * "pairing_code" gets displayed prominently, "qr_data" only as a
+	 * tooltip on the image, everything else joins the info text. */
 	NSMutableString	*infoText = [NSMutableString string];
+	NSString		*pairingCode = nil;
+	NSString		*imageTooltip = nil;
 	NSImage			*image = nil;
 
 	if (primary) [infoText appendString:primary];
@@ -65,11 +81,18 @@
 		PurpleRequestFieldGroup *group = groupIter->data;
 		for (GList *fieldIter = purple_request_field_group_get_fields(group); fieldIter; fieldIter = fieldIter->next) {
 			PurpleRequestField *field = fieldIter->data;
+			const char *fieldID = purple_request_field_get_id(field);
 			switch (purple_request_field_get_type(field)) {
 				case PURPLE_REQUEST_FIELD_STRING: {
-					const char *label = purple_request_field_get_label(field);
 					const char *value = purple_request_field_string_get_default_value(field);
-					if (value && *value) {
+					if (!value || !*value) break;
+
+					if (fieldID && !strcmp(fieldID, "pairing_code")) {
+						pairingCode = [NSString stringWithUTF8String:value];
+					} else if (fieldID && !strcmp(fieldID, "qr_data")) {
+						imageTooltip = [NSString stringWithUTF8String:value];
+					} else {
+						const char *label = purple_request_field_get_label(field);
 						[infoText appendFormat:@"\n\n%s:\n%s", (label ? label : ""), value];
 					}
 					break;
@@ -91,7 +114,7 @@
 		}
 	}
 
-	//Layout, bottom-up: buttons, image, text
+	//Layout, bottom-up: buttons, pairing code, image, text
 	CGFloat y = MARGIN;
 
 	NSButton *cancelButton = [[[NSButton alloc] initWithFrame:NSMakeRect(MARGIN, y, 120, 32)] autorelease];
@@ -109,18 +132,32 @@
 
 	y += 32 + MARGIN;
 
+	NSTextField *codeField = nil;
+	if (pairingCode) {
+		codeField = [[[NSTextField alloc] initWithFrame:NSMakeRect(MARGIN, y, PANEL_WIDTH - 2 * MARGIN, 40)] autorelease];
+		[codeField setStringValue:pairingCode];
+		[codeField setFont:[NSFont monospacedSystemFontOfSize:28.0f weight:NSFontWeightBold]];
+		[codeField setAlignment:NSTextAlignmentCenter];
+		[codeField setEditable:NO];
+		[codeField setSelectable:YES];	//So the code can be copied
+		[codeField setBezeled:NO];
+		[codeField setDrawsBackground:NO];
+		y += 40 + MARGIN;
+	}
+
 	NSImageView *imageView = nil;
 	if (image) {
 		imageView = [[[NSImageView alloc] initWithFrame:NSMakeRect((PANEL_WIDTH - IMAGE_SIDE) / 2.0f, y, IMAGE_SIDE, IMAGE_SIDE)] autorelease];
 		[imageView setImage:image];
 		[imageView setImageScaling:NSImageScaleProportionallyUpOrDown];
+		if (imageTooltip) [imageView setToolTip:imageTooltip];
 		y += IMAGE_SIDE + MARGIN;
 	}
 
 	NSTextField *textField = [[[NSTextField alloc] initWithFrame:NSMakeRect(MARGIN, y, PANEL_WIDTH - 2 * MARGIN, 10)] autorelease];
 	[textField setStringValue:infoText];
 	[textField setEditable:NO];
-	[textField setSelectable:YES];	//So a pairing code can be copied
+	[textField setSelectable:YES];
 	[textField setBezeled:NO];
 	[textField setDrawsBackground:NO];
 	[[textField cell] setWraps:YES];
@@ -139,6 +176,7 @@
 
 	[[panel contentView] addSubview:textField];
 	if (imageView) [[panel contentView] addSubview:imageView];
+	if (codeField) [[panel contentView] addSubview:codeField];
 	[[panel contentView] addSubview:okButton];
 	[[panel contentView] addSubview:cancelButton];
 

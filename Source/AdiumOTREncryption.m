@@ -666,6 +666,10 @@ int max_message_size_cb(void *opdata, ConnContext *context)
 	return ret;
 }
 
+/* AILocalizedString needs self; these run in C callbacks */
+#define OTRLocalizedString(key, comment) \
+	NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleForClass:[AdiumOTREncryption class]], (comment))
+
 /* Forward declaration; defined with the other SMP helpers below */
 static void otrg_plugin_abort_smp(ConnContext *context);
 
@@ -717,31 +721,31 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 
 	switch (msg_event) {
 		case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
-			text = [NSString stringWithFormat:@"Your message was not sent: your policy requires encryption, but you are not currently in a private conversation with %@. Attempting to start one...", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: your policy requires encryption, but you are not currently in a private conversation with %@. Attempting to start one...", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_ENCRYPTION_ERROR:
-			text = @"An error occurred while encrypting your message. The message was not sent.";
+			text = OTRLocalizedString(@"An error occurred while encrypting your message. The message was not sent.", nil);
 			break;
 		case OTRL_MSGEVENT_CONNECTION_ENDED:
-			text = [NSString stringWithFormat:@"Your message was not sent: %@ has already closed the private connection. End or restart your private conversation.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: %@ has already closed the private connection. End or restart your private conversation.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_SETUP_ERROR:
-			text = [NSString stringWithFormat:@"Error setting up the private conversation with %@.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"Error setting up the private conversation with %@.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_MSG_REFLECTED:
-			text = @"You are receiving your own OTR messages: either you are trying to talk to yourself, or someone is reflecting your messages back at you.";
+			text = OTRLocalizedString(@"You are receiving your own OTR messages: either you are trying to talk to yourself, or someone is reflecting your messages back at you.", nil);
 			break;
 		case OTRL_MSGEVENT_MSG_RESENT:
-			text = [NSString stringWithFormat:@"The last message to %@ was resent.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"The last message to %@ was resent.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
-			text = [NSString stringWithFormat:@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
-			text = [NSString stringWithFormat:@"An unreadable encrypted message from %@ was received.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"An unreadable encrypted message from %@ was received.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
-			text = [NSString stringWithFormat:@"A malformed message from %@ was received.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"A malformed message from %@ was received.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
 			if (message) text = [NSString stringWithUTF8String:message];
@@ -759,7 +763,7 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 			}
 			break;
 		case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
-			text = [NSString stringWithFormat:@"An unrecognized OTR message from %@ was received.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"An unrecognized OTR message from %@ was received.", nil), displayName];
 			break;
 		case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
 		case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
@@ -790,19 +794,19 @@ static void handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_event, ConnContex
 		case OTRL_SMPEVENT_ASK_FOR_SECRET:
 		case OTRL_SMPEVENT_ASK_FOR_ANSWER:
 			otrg_plugin_abort_smp(context);
-			text = [NSString stringWithFormat:@"%@ requested identity verification via a shared secret, which Adium does not support. The request was cancelled; please verify the fingerprint instead.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"%@ requested identity verification via a shared secret, which Adium does not support. The request was cancelled; please verify the fingerprint instead.", nil), displayName];
 			break;
 		case OTRL_SMPEVENT_SUCCESS:
-			text = [NSString stringWithFormat:@"Identity verification with %@ succeeded.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"Identity verification with %@ succeeded.", nil), displayName];
 			break;
 		case OTRL_SMPEVENT_FAILURE:
 		case OTRL_SMPEVENT_CHEATED:
 		case OTRL_SMPEVENT_ERROR:
 			if (smp_event != OTRL_SMPEVENT_FAILURE) otrg_plugin_abort_smp(context);
-			text = [NSString stringWithFormat:@"Identity verification with %@ failed.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"Identity verification with %@ failed.", nil), displayName];
 			break;
 		case OTRL_SMPEVENT_ABORT:
-			text = [NSString stringWithFormat:@"%@ aborted identity verification.", displayName];
+			text = [NSString stringWithFormat:OTRLocalizedString(@"%@ aborted identity verification.", nil), displayName];
 			break;
 		case OTRL_SMPEVENT_IN_PROGRESS:
 		case OTRL_SMPEVENT_NONE:
