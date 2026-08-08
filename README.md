@@ -1,8 +1,10 @@
 # Adium — Apple Silicon fork
 
-This is a community fork of [Adium](https://adium.im), the classic
-instant messaging client for macOS, ported to run natively on Apple
-Silicon Macs.
+**This is a fork of the original [Adium](https://adium.im)
+([source](https://github.com/adium/adium)), rebuilt for Apple Silicon
+(arm64) so it keeps running on current Macs — including all bundled
+libraries.** The original is Intel-only and will stop working when
+Apple retires Rosetta 2.
 
 **Adium was created and developed by the Adium team.** All credit for
 the application itself belongs to the original developers — see
@@ -41,6 +43,8 @@ for details on what has been touched.
 ## System requirements
 
 * Apple Silicon Mac, macOS 11 or later
+* Everything is native arm64, including all bundled dependencies
+  (libpurple, glib, libotr, ...) — no Rosetta 2, no Homebrew required
 * Xcode (for building — there are no binary releases at this time)
 
 For Intel Macs and older systems, use the original
