@@ -104,7 +104,8 @@ static NSDictionary			*serviceIconNames[NUMBER_OF_SERVICE_ICON_TYPES];
 		}
 
 		if (serviceIcon) {
-			if (iconDirection == AIIconFlipped) [serviceIcon setFlipped:YES];
+			/* AIIconFlipped used to pre-flip the icon to compensate for flipped views.
+			 * Drawing now respects flipped contexts, so the content must stay upright. */
 			[serviceIcons[iconType][iconDirection] setObject:serviceIcon forKey:serviceID];
 			[serviceIcon release];
 		} else {

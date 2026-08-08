@@ -61,8 +61,6 @@
 		}
 	}
 
-	[image setFlipped:YES];
-
 	return image;
 }
 

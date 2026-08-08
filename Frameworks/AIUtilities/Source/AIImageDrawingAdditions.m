@@ -357,16 +357,18 @@
 	[self drawInRect:drawRect
 			fromRect:NSMakeRect(0, 0, ownSize.width, ownSize.height)
 		   operation:NSCompositeSourceOver
-			fraction:inFraction];
-	
+			fraction:inFraction
+	  respectFlipped:YES
+			   hints:nil];
+
 	// Shift the origin if needed, and decrease the available destination rect width, by the passed size
 	// (which may exceed the actual image dimensions)
 	if (position == IMAGE_POSITION_LEFT) {
 		rect.origin.x += size.width;
 	}
-	
+
 	rect.size.width -= size.width;
-	
+
 	return rect;
 }
 
@@ -459,8 +461,10 @@
 	[self drawInRect:drawRect
 			fromRect:NSMakeRect(0, 0, ownSize.width, ownSize.height)
 		   operation:NSCompositeSourceOver
-			fraction:inFraction];
-	
+			fraction:inFraction
+	  respectFlipped:YES
+			   hints:nil];
+
 	[NSGraphicsContext restoreGraphicsState];
 	
 	// Shift the origin if needed, and decrease the available destination rect width, by the passed size
