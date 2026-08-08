@@ -766,6 +766,8 @@
 		34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = F5793923033E74C301A8010A /* AIPreferencePane.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */ = {isa = PBXBuildFile; fileRef = F5793913033E748F01A8010A /* AIPreferencePane.m */; };
 		34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000701 /* NSView+AILegacyButtonNormalization.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000703 /* NSView+AILegacyButtonNormalization.m */; };
 		34DC8AF60A7EEEF7003E1636 /* AIModularPaneCategoryView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAD188D066A83550002008E /* AIModularPaneCategoryView.m */; };
 		34DC8AF70A7EEEF7003E1636 /* AIHTMLDecoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E81007C2CD5E007EAAAB /* AIHTMLDecoder.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AF80A7EEEF7003E1636 /* AIHTMLDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F2E80F07C2CD5E007EAAAB /* AIHTMLDecoder.m */; };
@@ -3188,6 +3190,8 @@
 		4BACB70103C8CB5E00A8010A /* AIMessageTabViewItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageTabViewItem.h; path = "Plugins/Dual Window Interface/AIMessageTabViewItem.h"; sourceTree = "<group>"; };
 		4BACB70203C8CB5E00A8010A /* AIMessageTabViewItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageTabViewItem.m; path = "Plugins/Dual Window Interface/AIMessageTabViewItem.m"; sourceTree = "<group>"; };
 		4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIModularPaneCategoryView.h; path = Frameworks/Adium/Source/AIModularPaneCategoryView.h; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000701 /* NSView+AILegacyButtonNormalization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSView+AILegacyButtonNormalization.h"; path = "Frameworks/Adium/Source/NSView+AILegacyButtonNormalization.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000703 /* NSView+AILegacyButtonNormalization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSView+AILegacyButtonNormalization.m"; path = "Frameworks/Adium/Source/NSView+AILegacyButtonNormalization.m"; sourceTree = "<group>"; };
 		4BAD188D066A83550002008E /* AIModularPaneCategoryView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIModularPaneCategoryView.m; path = Frameworks/Adium/Source/AIModularPaneCategoryView.m; sourceTree = "<group>"; };
 		4BAE6C0B07CF9374007E2820 /* ESAnnouncerAbstractDetailPane.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESAnnouncerAbstractDetailPane.h; path = Source/ESAnnouncerAbstractDetailPane.h; sourceTree = "<group>"; };
 		4BAE6C0C07CF9374007E2820 /* ESAnnouncerAbstractDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAnnouncerAbstractDetailPane.m; path = Source/ESAnnouncerAbstractDetailPane.m; sourceTree = "<group>"; };
@@ -7047,6 +7051,8 @@
 				343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */,
 				4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */,
 				4BAD188D066A83550002008E /* AIModularPaneCategoryView.m */,
+				ADD1E5C0DE00000000000701 /* NSView+AILegacyButtonNormalization.h */,
+				ADD1E5C0DE00000000000703 /* NSView+AILegacyButtonNormalization.m */,
 			);
 			name = Panes;
 			sourceTree = "<group>";
@@ -7274,6 +7280,7 @@
 				34DC8AF10A7EEEF7003E1636 /* AIActionDetailsPane.h in Headers */,
 				34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */,
 				34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */,
+				ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */,
 				34DC8AF70A7EEEF7003E1636 /* AIHTMLDecoder.h in Headers */,
 				34DC8AF90A7EEEF7003E1636 /* AIIconState.h in Headers */,
 				34DC8AFB0A7EEEF7003E1636 /* AIPlugin.h in Headers */,
@@ -8453,6 +8460,7 @@
 				34DC8AF20A7EEEF7003E1636 /* AIActionDetailsPane.m in Sources */,
 				34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */,
 				34DC8AF60A7EEEF7003E1636 /* AIModularPaneCategoryView.m in Sources */,
+				ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */,
 				34DC8AF80A7EEEF7003E1636 /* AIHTMLDecoder.m in Sources */,
 				ADD1E5C0DE00000000000022 /* NSString+AIBidi.m in Sources */,
 				34DC8AFA0A7EEEF7003E1636 /* AIIconState.m in Sources */,

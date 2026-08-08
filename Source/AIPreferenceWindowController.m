@@ -15,6 +15,7 @@
  */
 
 #import "AIPreferenceWindowController.h"
+#import <Adium/NSView+AILegacyButtonNormalization.h>
 #import "AIPreferencePane.h"
 #import <Adium/SS_PrefsController.h>
 

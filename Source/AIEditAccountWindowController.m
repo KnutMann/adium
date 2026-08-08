@@ -15,6 +15,7 @@
  */
 
 #import <Adium/AIAccountControllerProtocol.h>
+#import <Adium/NSView+AILegacyButtonNormalization.h>
 #import "AIAccountProxySettings.h"
 #import <Adium/AIContactControllerProtocol.h>
 #import "AIEditAccountWindowController.h"
@@ -341,6 +342,7 @@
 												   NSHeight([setupView frame]) - NSHeight([customView frame]))];
 
 		[customView setAutoresizingMask:(NSViewMinYMargin | NSViewMinXMargin | NSViewMaxXMargin)];
+		[customView ai_normalizeLegacyButtonStyles];
 		[setupView addSubview:customView];
 
 	} else {

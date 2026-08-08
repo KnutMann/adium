@@ -1,4 +1,5 @@
 #import "SS_PrefsController.h"
+#import <Adium/NSView+AILegacyButtonNormalization.h>
 #import "SS_PreferencePaneProtocol.h"
 
 #import <AIUtilities/AIWindowAdditions.h>
@@ -371,6 +372,7 @@
     
     [prefsWindow setFrame:newFrame display:disp animate:disp];
     
+    [prefsView ai_normalizeLegacyButtonStyles];
     [prefsWindow setContentView:prefsView];
     
     // Set appropriate resizing on window.

@@ -15,6 +15,7 @@
  */
 
 #import <Adium/AIModularPaneCategoryView.h>
+#import <Adium/NSView+AILegacyButtonNormalization.h>
 #import <Adium/AIPreferencePane.h>
 
 #define FRAME_PADDING_OFFSET					2
@@ -52,6 +53,7 @@
 
         //Add the view
         if (![paneView superview]) {
+			[paneView ai_normalizeLegacyButtonStyles];
             [self addSubview:paneView];
             [paneView setFrameOrigin:NSMakePoint(0,yPos)];
 			if ([pane resizable]) {
