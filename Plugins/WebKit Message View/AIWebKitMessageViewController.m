@@ -654,6 +654,19 @@ static NSArray *draggedTypes = nil;
 			}
 		}
 		
+		// AIDBG: report horizontal overflow and the widest element (temporary diagnostics)
+		if (objectsAdded > 0) {
+			NSString *overflowProbe =
+				@"(function(){var b=document.body,d=document.documentElement;"
+				@"if(b.scrollWidth<=d.clientWidth+1)return '';"
+				@"var w=b,all=document.getElementsByTagName('*');"
+				@"for(var i=0;i<all.length;i++){if(all[i].scrollWidth>w.scrollWidth)w=all[i];}"
+				@"var e=w,path=[];while(e&&e!==b){path.unshift(e.tagName+(e.className?('.'+e.className):''));e=e.parentNode;}"
+				@"return 'clientWidth='+d.clientWidth+' bodyScrollWidth='+b.scrollWidth+' widest='+path.join('>')+' snippet='+(w.outerHTML||'').substring(0,300);})()";
+			NSString *overflowInfo = [webView stringByEvaluatingJavaScriptFromString:overflowProbe];
+			if (overflowInfo.length) NSLog(@"AIDBG overflow %@", overflowInfo);
+		}
+
 		/* If we added two or more objects, we may want to scroll to the bottom now, having not done it as each object
 		 * was added.
 		 */
