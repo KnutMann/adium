@@ -116,6 +116,13 @@ build_libpurple() {
 	status "Building and installing libpurple"
 	log make -j $NUMBER_OF_CORES
 	log make install
+
+	# Loadable-plugin support is enabled for third-party prpls, but the
+	# stock pidgin convenience plugins installed into lib/purple-2 must
+	# not exist: libpurple probes this baked-in path at startup and would
+	# load a second copy of the entire library stack into Adium.
+	status "Removing stock libpurple plugins"
+	log rm -rf "$ROOTDIR/build/lib/purple-2"
 	
 	status "Copying internal libpurple headers"
 	log cp -f "$ROOTDIR/source/libpurple/libpurple/cmds.h" \

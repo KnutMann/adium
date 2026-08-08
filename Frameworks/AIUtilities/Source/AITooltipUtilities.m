@@ -45,7 +45,8 @@ static  NSWindow				*onWindow = nil;
 static	NSAttributedString      *tooltipBody;
 static	NSAttributedString      *tooltipTitle;
 static  NSImage                 *tooltipImage;
-static	NSViewAnimation			*fadeOutAnimation;
+static	BOOL					tooltipFadingOut = NO;
+static	NSUInteger				tooltipFadeGeneration = 0;
 static  NSSize                  imageSize;
 static  BOOL                    imageOnRight;
 static	NSPoint					tooltipPoint;
@@ -93,8 +94,12 @@ static	AITooltipOrientation	tooltipOrientation;
    if ((inTitle && [inTitle length]) || (inBody && [inBody length]) || inImage) { //If passed something to display
        BOOL		newLocation = (!NSEqualPoints(inPoint,tooltipPoint) || (tooltipOrientation != inOrientation));
 	   
-	   BOOL fadingOut = (fadeOutAnimation != nil && [fadeOutAnimation isAnimating]);
-	   if (fadingOut) [fadeOutAnimation stopAnimation];
+	   BOOL fadingOut = tooltipFadingOut;
+	   if (fadingOut) {
+		   //Cancel the pending close; the completion handler checks the generation
+		   tooltipFadingOut = NO;
+		   ++tooltipFadeGeneration;
+	   }
 	   
 	   //Update point and orientation
         tooltipPoint = inPoint;
@@ -241,33 +246,28 @@ static	AITooltipOrientation	tooltipOrientation;
 
 + (void)_closeTooltip
 {
-	if (fadeOutAnimation) {
-		/* A fade-out is already in progress; let it finish. The old
-		 * NSAssert here raised on rapid hover changes, and the swallowed
-		 * exception left the tooltip window on screen forever. */
-		return;
-	}
-	fadeOutAnimation = [[NSViewAnimation alloc] initWithViewAnimations:[NSArray arrayWithObject:[NSDictionary dictionaryWithObjectsAndKeys:
-		tooltipWindow, NSViewAnimationTargetKey,
-		NSViewAnimationFadeOutEffect, NSViewAnimationEffectKey,
-	nil]]];
-	[fadeOutAnimation setDelegate:(id<NSAnimationDelegate>)self];
-	[fadeOutAnimation setDuration:0.25f];
-	[fadeOutAnimation setAnimationCurve:NSAnimationLinear];
-	[fadeOutAnimation startAnimation];
-}
+	/* NSViewAnimation's delegate callbacks stopped firing reliably on
+	 * current AppKit, which left the tooltip window on screen forever.
+	 * Fade via NSAnimationContext instead; the generation counter lets a
+	 * new tooltip cancel a pending close. */
+	if (tooltipFadingOut || !tooltipWindow) return;
 
-//This is called when we send stopAnimation to the animation from the showTooltipWithTitle:body:image:imageOnRight:onWindow:atPoint:orientation: method.
-+ (void)animationDidStop:(NSAnimation *)animation
-{
-	if (animation != nil && animation == fadeOutAnimation)
-		[self _reallyCloseTooltip];
-}
-//This is called when the animation ends naturally.
-+ (void)animationDidEnd:(NSAnimation *)animation
-{
-	if (animation != nil && animation == fadeOutAnimation)
-		[self _reallyCloseTooltip];
+	tooltipFadingOut = YES;
+	NSUInteger generation = ++tooltipFadeGeneration;
+
+	[NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+		[context setDuration:0.25];
+		[[tooltipWindow animator] setAlphaValue:0.0f];
+	} completionHandler:^{
+		if (generation == tooltipFadeGeneration && tooltipFadingOut) {
+			tooltipFadingOut = NO;
+			[self _reallyCloseTooltip];
+		} else if (tooltipWindow) {
+			//The fade was cancelled by a newly shown tooltip; make sure the
+			//window is fully visible again
+			[tooltipWindow setAlphaValue:TOOLTIP_OPACITY];
+		}
+	}];
 }
 
 + (void)_reallyCloseTooltip
@@ -283,7 +283,6 @@ static	AITooltipOrientation	tooltipOrientation;
     [tooltipImage release];          tooltipImage = nil;
     tooltipPoint = NSZeroPoint;
 	
-	[fadeOutAnimation release]; fadeOutAnimation = nil;
 }
 
 + (void)_sizeTooltip

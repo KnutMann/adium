@@ -17,13 +17,15 @@
 #import <Adium/AIStatusControllerProtocol.h>
 #import "AIWhatsAppService.h"
 #import "AIPurpleWhatsAppAccount.h"
-#import "PurpleAccountViewController.h"
+#import "AIWhatsAppAccountViewController.h"
+#import <AIUtilities/AIImageAdditions.h>
 
 /*!
  * @brief WhatsApp service, provided by the bundled purple-gowhatsapp plugin
  *
- * The account name is the phone number in international format without
- * the leading plus (e.g. 4917012345678). The account is linked to the
+ * The account name is the phone number in international format
+ * (e.g. +4917012345678); the leading plus and the JID domain are
+ * handled automatically. The account is linked to the
  * phone via QR code / pairing code on first login; no password is used.
  */
 @implementation AIWhatsAppService
@@ -34,7 +36,7 @@
 }
 
 - (AIAccountViewController *)accountViewController{
-	return [PurpleAccountViewController accountViewController];
+	return [AIWhatsAppAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{
@@ -61,7 +63,7 @@
 	return AILocalizedString(@"Phone Number", "Used as a label for the account name field for WhatsApp (international format without +, e.g. 4917012345678)");
 }
 - (NSCharacterSet *)allowedCharacters{
-	return [NSCharacterSet characterSetWithCharactersInString:@"+0123456789"];
+	return [NSCharacterSet characterSetWithCharactersInString:@"+0123456789@.abcdefghijklmnopqrstuvwxyz"];
 }
 - (NSUInteger)allowedLength{
 	return 20;
@@ -80,6 +82,21 @@
 }
 - (AIServiceImportance)serviceImportance{
 	return AIServiceSecondary;
+}
+
+- (NSImage *)defaultServiceIconOfType:(AIServiceIconType)iconType
+{
+	return [NSImage imageNamed:((iconType == AIServiceIconSmall || iconType == AIServiceIconList) ? @"WhatsApp-small" : @"WhatsApp-large")
+					  forClass:[self class] loadLazily:YES];
+}
+
+- (NSString *)pathForDefaultServiceIconOfType:(AIServiceIconType)iconType
+{
+	if ((iconType == AIServiceIconSmall) || (iconType == AIServiceIconList)) {
+		return [[NSBundle bundleForClass:[self class]] pathForImageResource:@"WhatsApp-small"];
+	} else {
+		return [[NSBundle bundleForClass:[self class]] pathForImageResource:@"WhatsApp-large"];
+	}
 }
 
 - (void)registerStatuses{

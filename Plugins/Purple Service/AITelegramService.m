@@ -18,6 +18,7 @@
 #import "AITelegramService.h"
 #import "AIPurpleTelegramAccount.h"
 #import "PurpleAccountViewController.h"
+#import <AIUtilities/AIImageAdditions.h>
 
 /*!
  * @brief Telegram service, provided by the bundled tdlib-purple plugin
@@ -81,6 +82,21 @@
 }
 - (AIServiceImportance)serviceImportance{
 	return AIServiceSecondary;
+}
+
+- (NSImage *)defaultServiceIconOfType:(AIServiceIconType)iconType
+{
+	return [NSImage imageNamed:((iconType == AIServiceIconSmall || iconType == AIServiceIconList) ? @"Telegram-small" : @"Telegram-large")
+					  forClass:[self class] loadLazily:YES];
+}
+
+- (NSString *)pathForDefaultServiceIconOfType:(AIServiceIconType)iconType
+{
+	if ((iconType == AIServiceIconSmall) || (iconType == AIServiceIconList)) {
+		return [[NSBundle bundleForClass:[self class]] pathForImageResource:@"Telegram-small"];
+	} else {
+		return [[NSBundle bundleForClass:[self class]] pathForImageResource:@"Telegram-large"];
+	}
 }
 
 - (void)registerStatuses{

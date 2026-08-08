@@ -21,6 +21,7 @@
 #import "ESPurpleFileReceiveRequestController.h"
 #import "AILibpurplePlugin.h"
 #import "AMPurpleRequestFieldsController.h"
+#import "AIPurpleImageRequestController.h"
 
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIContactAlertsControllerProtocol.h>
@@ -314,6 +315,30 @@ static void *adiumPurpleRequestFields(const char *title, const char *primary,
 													 [NSValue valueWithPointer:userData], @"userData",
 													 nil]];
 		
+	} else if (({
+		//Requests containing an image field (e.g. the WhatsApp login QR
+		//code) get a dedicated panel; the generic HTML form controller
+		//cannot handle image fields.
+		BOOL hasImageField = NO;
+		for (GList *groupIter = purple_request_fields_get_groups(fields); groupIter && !hasImageField; groupIter = groupIter->next) {
+			for (GList *fieldIter = purple_request_field_group_get_fields(groupIter->data); fieldIter; fieldIter = fieldIter->next) {
+				if (purple_request_field_get_type(fieldIter->data) == PURPLE_REQUEST_FIELD_IMAGE) {
+					hasImageField = YES;
+					break;
+				}
+			}
+		}
+		hasImageField;
+	})) {
+		requestController = [AIPurpleImageRequestController showImageRequestWithTitle:(title ? [NSString stringWithUTF8String:title] : nil)
+																			  primary:(primary ? [NSString stringWithUTF8String:primary] : nil)
+																			secondary:(secondary ? [NSString stringWithUTF8String:secondary] : nil)
+																			   fields:fields
+																			   okText:(okText ? [NSString stringWithUTF8String:okText] : nil)
+																				 okCb:okCb
+																		   cancelText:(cancelText ? [NSString stringWithUTF8String:cancelText] : nil)
+																			 cancelCb:cancelCb
+																			 userData:userData];
 	} else {
 		AILog(@"adiumPurpleRequestFields: %s\n%s\n%s ",
 			  (title ? title : ""),

@@ -14,21 +14,12 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import "AIPurpleTelegramAccount.h"
+#import "PurpleAccountViewController.h"
 
-@implementation AIPurpleTelegramAccount
+#define KEY_WHATSAPP_IGNORE_STATUS	@"WhatsApp:Ignore Status Broadcasts"
 
-- (const char *)protocolPlugin
-{
-	return "telegram-tdlib";
-}
-
-/* There is no fixed server host whose reachability could be probed;
- * the plugin manages its own connectivity. Without this, the network
- * connectivity plugin keeps the account greyed out as "network offline". */
-- (BOOL)connectivityBasedOnNetworkReachability
-{
-	return NO;
+@interface AIWhatsAppAccountViewController : PurpleAccountViewController {
+	NSButton	*checkBox_ignoreStatusBroadcasts;
 }
 
 @end

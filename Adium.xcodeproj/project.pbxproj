@@ -261,6 +261,10 @@
 		346196F20D31607500763051 /* SRSnapback.png in Resources */ = {isa = PBXBuildFile; fileRef = 346196F10D31607500763051 /* SRSnapback.png */; };
 		346371080BCA0A5400AD57AD /* AIMessageTabSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346371060BCA0A5400AD57AD /* AIMessageTabSplitView.m */; };
 		346544DB0C8F686B0046ED68 /* AMPurpleJabberXMLConsole.nib in Resources */ = {isa = PBXBuildFile; fileRef = 346544D90C8F686B0046ED68 /* AMPurpleJabberXMLConsole.nib */; };
+		ADD1E5C0DE00000000000402 /* Telegram-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000401 /* Telegram-small.png */; };
+		ADD1E5C0DE00000000000412 /* Telegram-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000411 /* Telegram-large.png */; };
+		ADD1E5C0DE00000000000422 /* WhatsApp-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000421 /* WhatsApp-small.png */; };
+		ADD1E5C0DE00000000000432 /* WhatsApp-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000431 /* WhatsApp-large.png */; };
 		346544DC0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.nib in Resources */ = {isa = PBXBuildFile; fileRef = 346544DA0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.nib */; };
 		3465451C0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.h in Headers */ = {isa = PBXBuildFile; fileRef = 3465451A0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.h */; };
 		3465451D0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3465451B0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.m */; };
@@ -358,6 +362,7 @@
 		3485DB5F09EBCE7400232CC4 /* DCPurpleGaduGaduJoinChatView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 6E4D961B06B73B38005235E9 /* DCPurpleGaduGaduJoinChatView.nib */; };
 		3485DB6009EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416085059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB6109EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */; };
+		ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */; };
 		3485DB6209EBCE7400232CC4 /* ESPurpleGaduGaduAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB40308086D9000E27095 /* ESPurpleGaduGaduAccountView.nib */; };
 		3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */; };
 		3485DB6409EBCE7400232CC4 /* ESJabberService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416171059FC55A0019246B /* ESJabberService.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -408,6 +413,7 @@
 		3485DBC009EBCE7400232CC4 /* ESPurpleRequestAbstractWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34AEE7E908E35A5800AE1C78 /* ESPurpleRequestAbstractWindowController.m */; };
 		3485DBC109EBCE7400232CC4 /* ESPurpleRequestWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 3499F4A706309AF60035B468 /* ESPurpleRequestWindowController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DBC209EBCE7400232CC4 /* ESPurpleRequestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3499F4A606309AF60035B468 /* ESPurpleRequestWindowController.m */; };
+		ADD1E5C0DE00000000000502 /* AIPurpleImageRequestController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000501 /* AIPurpleImageRequestController.m */; };
 		3485DBC309EBCE7400232CC4 /* PurpleMultilineRequestWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34C2CF85063340540018E5D2 /* PurpleMultilineRequestWindow.nib */; };
 		3485DBC409EBCE7400232CC4 /* PurpleSinglelineRequestWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34C2CF86063340540018E5D2 /* PurpleSinglelineRequestWindow.nib */; };
 		3485DBC809EBCE7400232CC4 /* ESPurpleFileReceiveRequestController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34AEE7DC08E3546F00AE1C78 /* ESPurpleFileReceiveRequestController.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1232,8 +1238,8 @@
 			dstPath = "purple-2";
 			dstSubfolderSpec = 13;
 			files = (
-				ADD1E5C0DE00000000000303 /* libtelegram-tdlib.dylib in Copy Purple Plugins */,
-				ADD1E5C0DE00000000000304 /* libwhatsmeow.dylib in Copy Purple Plugins */,
+				ADD1E5C0DE00000000000303 /* libtelegram-tdlib.so in Copy Purple Plugins */,
+				ADD1E5C0DE00000000000304 /* libwhatsmeow.so in Copy Purple Plugins */,
 			);
 			name = "Copy Purple Plugins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1441,11 +1447,11 @@
 		ADD1E5C0DE00000000000011 /* libotr.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libotr.framework; path = Frameworks/libotr.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000013 /* libgcrypt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgcrypt.framework; path = Frameworks/libgcrypt.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000015 /* libgpgerror.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgpgerror.framework; path = Frameworks/libgpgerror.framework; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000303 /* libtelegram-tdlib.dylib in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000301 /* libtelegram-tdlib.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		ADD1E5C0DE00000000000304 /* libwhatsmeow.dylib in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000302 /* libwhatsmeow.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000303 /* libtelegram-tdlib.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000304 /* libwhatsmeow.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000302 /* libwhatsmeow.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000017 /* libintl8.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl8.framework; path = Frameworks/libintl8.framework; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000301 /* libtelegram-tdlib.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libtelegram-tdlib.dylib"; path = "PurplePlugins/libtelegram-tdlib.dylib"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000302 /* libwhatsmeow.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwhatsmeow.dylib"; path = "PurplePlugins/libwhatsmeow.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libtelegram-tdlib.so"; path = "PurplePlugins/libtelegram-tdlib.so"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000302 /* libwhatsmeow.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwhatsmeow.so"; path = "PurplePlugins/libwhatsmeow.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000201 /* libwebp.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwebp.7.dylib"; path = "Frameworks/libwebp.7.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsharpyuv.0.dylib"; path = "Frameworks/libsharpyuv.0.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000221 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libpng16.16.dylib"; path = "Frameworks/libpng16.16.dylib"; sourceTree = "<group>"; };
@@ -1926,6 +1932,8 @@
 		34416071059FC27D0019246B /* ESPurpleGaduGaduAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleGaduGaduAccount.m; path = "Plugins/Purple Service/ESPurpleGaduGaduAccount.m"; sourceTree = "<group>"; };
 		34416085059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleGaduGaduAccountViewController.h; path = "Plugins/Purple Service/ESPurpleGaduGaduAccountViewController.h"; sourceTree = "<group>"; };
 		34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleGaduGaduAccountViewController.m; path = "Plugins/Purple Service/ESPurpleGaduGaduAccountViewController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWhatsAppAccountViewController.m; path = "Plugins/Purple Service/AIWhatsAppAccountViewController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000603 /* AIWhatsAppAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWhatsAppAccountViewController.h; path = "Plugins/Purple Service/AIWhatsAppAccountViewController.h"; sourceTree = "<group>"; };
 		344160B4059FC2F50019246B /* ESPurpleJabberAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleJabberAccountViewController.h; path = "Plugins/Purple Service/ESPurpleJabberAccountViewController.h"; sourceTree = "<group>"; };
 		344160B5059FC2F50019246B /* ESPurpleJabberAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleJabberAccountViewController.m; path = "Plugins/Purple Service/ESPurpleJabberAccountViewController.m"; sourceTree = "<group>"; };
 		344160C3059FC3080019246B /* ESPurpleJabberAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleJabberAccount.h; path = "Plugins/Purple Service/ESPurpleJabberAccount.h"; sourceTree = "<group>"; };
@@ -2276,6 +2284,10 @@
 		3465236508371A64009565FE /* cs */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		3465236808371A65009565FE /* cs */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = cs; path = Resources/cs.lproj/Localizable.strings; sourceTree = "<group>"; };
 		346544D90C8F686B0046ED68 /* AMPurpleJabberXMLConsole.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AMPurpleJabberXMLConsole.nib; path = "Plugins/Purple Service/AMPurpleJabberXMLConsole.nib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000401 /* Telegram-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Telegram-small.png"; path = "Plugins/Purple Service/Telegram-small.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000411 /* Telegram-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Telegram-large.png"; path = "Plugins/Purple Service/Telegram-large.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000421 /* WhatsApp-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "WhatsApp-small.png"; path = "Plugins/Purple Service/WhatsApp-small.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000431 /* WhatsApp-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "WhatsApp-large.png"; path = "Plugins/Purple Service/WhatsApp-large.png"; sourceTree = "<group>"; };
 		346544DA0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AMPurpleJabberDiscoveryBrowser.nib; path = "Plugins/Purple Service/AMPurpleJabberDiscoveryBrowser.nib"; sourceTree = "<group>"; };
 		3465451A0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberServiceDiscoveryBrowserController.h; path = "Plugins/Purple Service/AMPurpleJabberServiceDiscoveryBrowserController.h"; sourceTree = "<group>"; };
 		3465451B0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberServiceDiscoveryBrowserController.m; path = "Plugins/Purple Service/AMPurpleJabberServiceDiscoveryBrowserController.m"; sourceTree = "<group>"; };
@@ -2483,6 +2495,8 @@
 		3498FE9907F4890A0004B79A /* ja */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		3498FE9A07F489100004B79A /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = "Plugins/Purple Service/Resources/de.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		3499F4A606309AF60035B468 /* ESPurpleRequestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESPurpleRequestWindowController.m; path = "Plugins/Purple Service/ESPurpleRequestWindowController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000501 /* AIPurpleImageRequestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleImageRequestController.m; path = "Plugins/Purple Service/AIPurpleImageRequestController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000503 /* AIPurpleImageRequestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleImageRequestController.h; path = "Plugins/Purple Service/AIPurpleImageRequestController.h"; sourceTree = "<group>"; };
 		3499F4A706309AF60035B468 /* ESPurpleRequestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESPurpleRequestWindowController.h; path = "Plugins/Purple Service/ESPurpleRequestWindowController.h"; sourceTree = "<group>"; };
 		349B39290A5FB150008BE092 /* AIContentEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentEvent.h; path = Frameworks/Adium/Source/AIContentEvent.h; sourceTree = "<group>"; };
 		349B392A0A5FB150008BE092 /* AIContentEvent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentEvent.m; path = Frameworks/Adium/Source/AIContentEvent.m; sourceTree = "<group>"; };
@@ -3928,8 +3942,8 @@
 				ADD1E5C0DE00000000000013 /* libgcrypt.framework */,
 				ADD1E5C0DE00000000000015 /* libgpgerror.framework */,
 				ADD1E5C0DE00000000000017 /* libintl8.framework */,
-				ADD1E5C0DE00000000000301 /* libtelegram-tdlib.dylib */,
-				ADD1E5C0DE00000000000302 /* libwhatsmeow.dylib */,
+				ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */,
+				ADD1E5C0DE00000000000302 /* libwhatsmeow.so */,
 				ADD1E5C0DE00000000000201 /* libwebp.7.dylib */,
 				ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */,
 				ADD1E5C0DE00000000000221 /* libpng16.16.dylib */,
@@ -4306,6 +4320,10 @@
 				34416159059FC5330019246B /* ESGaduGaduService.h */,
 				3441615A059FC5340019246B /* ESGaduGaduService.m */,
 				ADD1E5C0DE00000000000103 /* AITelegramService.h */,
+				ADD1E5C0DE00000000000401 /* Telegram-small.png */,
+				ADD1E5C0DE00000000000411 /* Telegram-large.png */,
+				ADD1E5C0DE00000000000421 /* WhatsApp-small.png */,
+				ADD1E5C0DE00000000000431 /* WhatsApp-large.png */,
 				ADD1E5C0DE00000000000101 /* AITelegramService.m */,
 				ADD1E5C0DE00000000000113 /* AIPurpleTelegramAccount.h */,
 				ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */,
@@ -4320,6 +4338,8 @@
 				6E4D961B06B73B38005235E9 /* DCPurpleGaduGaduJoinChatView.nib */,
 				34416085059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.h */,
 				34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */,
+				ADD1E5C0DE00000000000603 /* AIWhatsAppAccountViewController.h */,
+				ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */,
 				343EB40308086D9000E27095 /* ESPurpleGaduGaduAccountView.nib */,
 				4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */,
 			);
@@ -4897,6 +4917,8 @@
 				34AEE7E908E35A5800AE1C78 /* ESPurpleRequestAbstractWindowController.m */,
 				3499F4A706309AF60035B468 /* ESPurpleRequestWindowController.h */,
 				3499F4A606309AF60035B468 /* ESPurpleRequestWindowController.m */,
+				ADD1E5C0DE00000000000503 /* AIPurpleImageRequestController.h */,
+				ADD1E5C0DE00000000000501 /* AIPurpleImageRequestController.m */,
 				34C2CF85063340540018E5D2 /* PurpleMultilineRequestWindow.nib */,
 				34C2CF86063340540018E5D2 /* PurpleSinglelineRequestWindow.nib */,
 				34AEE7DC08E3546F00AE1C78 /* ESPurpleFileReceiveRequestController.h */,
@@ -7597,6 +7619,10 @@
 				8181EEBE0C30673E00E802F7 /* AMPurpleSearchResultsWindow.nib in Resources */,
 				8173C5760C4C3DB800C9E64E /* downloadprogress.png in Resources */,
 				346544DB0C8F686B0046ED68 /* AMPurpleJabberXMLConsole.nib in Resources */,
+				ADD1E5C0DE00000000000402 /* Telegram-small.png in Resources */,
+				ADD1E5C0DE00000000000412 /* Telegram-large.png in Resources */,
+				ADD1E5C0DE00000000000422 /* WhatsApp-small.png in Resources */,
+				ADD1E5C0DE00000000000432 /* WhatsApp-large.png in Resources */,
 				346544DC0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.nib in Resources */,
 				34E4CD5B0E68277D00D1B0DC /* ESIRCJoinChatView.nib in Resources */,
 				34E4CD660E68279C00D1B0DC /* irc.png in Resources */,
@@ -7983,6 +8009,7 @@
 				3485DB5C09EBCE7400232CC4 /* ESPurpleGaduGaduAccount.m in Sources */,
 				3485DB5E09EBCE7400232CC4 /* DCPurpleGaduGaduJoinChatViewController.m in Sources */,
 				3485DB6109EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.m in Sources */,
+				ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */,
 				3485DB6509EBCE7400232CC4 /* ESJabberService.m in Sources */,
 				3485DB6709EBCE7400232CC4 /* ESPurpleJabberAccount.m in Sources */,
 				3485DB6909EBCE7400232CC4 /* DCPurpleJabberJoinChatViewController.m in Sources */,
@@ -8001,6 +8028,7 @@
 				3485DBBE09EBCE7400232CC4 /* ESPurpleNotifyEmailController.m in Sources */,
 				3485DBC009EBCE7400232CC4 /* ESPurpleRequestAbstractWindowController.m in Sources */,
 				3485DBC209EBCE7400232CC4 /* ESPurpleRequestWindowController.m in Sources */,
+				ADD1E5C0DE00000000000502 /* AIPurpleImageRequestController.m in Sources */,
 				3485DBC909EBCE7400232CC4 /* ESPurpleFileReceiveRequestController.m in Sources */,
 				3485DBCB09EBCE7400232CC4 /* ESPurpleRequestActionController.m in Sources */,
 				344499EA0B23CA5D0054B761 /* adiumPurpleAccounts.m in Sources */,

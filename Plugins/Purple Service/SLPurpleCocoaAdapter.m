@@ -272,6 +272,12 @@ void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *
 		AILog(@"*** FATAL ***: Failed to initialize purple core");
 	}
 
+	//Log the available protocol plugins once, for diagnosing plugin loading
+	for (GList *prplIter = purple_plugins_get_protocols(); prplIter; prplIter = prplIter->next) {
+		PurplePlugin *prpl = prplIter->data;
+		NSLog(@"libpurple protocol available: %s", (prpl->info && prpl->info->id) ? prpl->info->id : "(null)");
+	}
+
 	//Libpurple's async DNS lookup tends to create zombies.
 	{
 		struct sigaction act;
