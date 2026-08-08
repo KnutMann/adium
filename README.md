@@ -34,6 +34,25 @@ Adium is a free and open source instant messaging application for [OS X](https:/
 
 Adium X 0.88 up to Adium 1.4.5 are Universal applications which run natively on both PowerPC- and Intel-based Macintosh computers. Adium 1.5 and up require an Intel based computer.
 
+## Building this fork (Apple Silicon) ##
+
+This fork builds natively on Apple Silicon Macs (macOS 11+, tested with
+Xcode 26 on macOS 26). All libraries (libpurple 2.14.14, glib, libotr,
+libgcrypt, ...) are vendored as arm64 frameworks in the repository —
+no Homebrew or other package manager is required to build or run:
+
+	git clone --recursive https://github.com/KnutMann/adium.git
+	cd adium
+	./bootstrap.sh
+
+The app lands in `build/Release/Adium.app` (ad-hoc signed, so it runs
+locally; distributing to others requires your own signing identity).
+`bootstrap.sh` builds the AIUtilities and MMTabBarView subprojects first
+and stages their products, then builds the main project.
+
+To rebuild the vendored dependencies from source instead, see
+`Dependencies/build.sh` (requires Homebrew for the toolchain).
+
 ## Contributing ##
 * [Development information](https://web.archive.org/web/20200915230142/https://trac.adium.im/wiki/Development)  
 * [Contribute code](https://web.archive.org/web/20200923043011/https://trac.adium.im/wiki/ContributingCode)

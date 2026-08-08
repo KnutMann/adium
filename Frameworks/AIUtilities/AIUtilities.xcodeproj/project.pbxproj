@@ -2528,7 +2528,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#############################################################################################\n# Set framework bundles to have their executables' dates, thereby letting Xcode suck less.  #\n#############################################################################################\ntouch \"$SRCROOT/../libpurple.framework\"\ntouch \"$SRCROOT/../Growl.framework\"\ntouch \"$SRCROOT/../LMX.framework\"\ntouch \"$SRCROOT/../Sparkle.framework\"\n";
+			shellScript = "#############################################################################################\n# Set framework bundles to have their executables' dates, thereby letting Xcode suck less.  #\n#############################################################################################\ntouch -c \"$SRCROOT/../libpurple.framework\"\ntouch -c \"$SRCROOT/../Growl.framework\"\ntouch -c \"$SRCROOT/../LMX.framework\"\ntouch -c \"$SRCROOT/../Sparkle.framework\"\n";
 		};
 		F53C25AD0A2F95F100F7B73D /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
