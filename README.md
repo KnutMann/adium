@@ -10,7 +10,7 @@ Apple retires Rosetta 2.
 the application itself belongs to the original developers — see
 [Copyright.txt](Copyright.txt). This fork is not affiliated with or
 endorsed by them — it is maintained by a long-time Adium user who
-simply wants to keep the app he has been using for many years alive.
+simply wants to keep a beloved app alive after many years of use.
 The upstream project has been inactive since 2021, and its last
 official release is an Intel-only binary whose days are numbered with
 Rosetta 2 being phased out.
