@@ -107,6 +107,7 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"CBStatusMenuItemPlugin",
 		@"DCInviteToChatPlugin",
 		@"DCJoinChatPanelPlugin",
+		@"DCMessageContextDisplayPlugin",
 		@"AIAddBookmarkPlugin",
 		@"ESAccountEvents",
 		@"ESAccountNetworkConnectivityPlugin",
