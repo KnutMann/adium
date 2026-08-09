@@ -277,7 +277,7 @@
 		346935D60BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346935D40BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m */; };
 		346BA33F0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 346BA33D0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m */; };
 		346BA3450774C2D200628F06 /* ESGlobalEventsPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 346BA3430774C2D200628F06 /* ESGlobalEventsPreferences.m */; };
-		346BA3640774C35500628F06 /* GlobalEventsPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 346BA3630774C35400628F06 /* GlobalEventsPreferences.nib */; };
+		346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */; };
 		346F5D3208A43E7B0055C610 /* CurrentTunes.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 346F5CB308A418FB0055C610 /* CurrentTunes.scpt */; };
 		3474E000082550FD00BF30F0 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 3474DFFF082550FD00BF30F0 /* Credits.rtf */; };
 		3474E0910825634300BF30F0 /* StatusPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3474E0900825634300BF30F0 /* StatusPreferences.nib */; };
@@ -696,8 +696,8 @@
 		34DC8AA70A7EEEF7003E1636 /* ESContactAlertsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34B7033D076EDB370016E8BA /* ESContactAlertsViewController.m */; };
 		34DC8AA80A7EEEF7003E1636 /* CSNewContactAlertWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B70340076EDB370016E8BA /* CSNewContactAlertWindowController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AA90A7EEEF7003E1636 /* CSNewContactAlertWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34B7033F076EDB370016E8BA /* CSNewContactAlertWindowController.m */; };
-		34DC8AAA0A7EEEF7003E1636 /* NewAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34B70341076EDB370016E8BA /* NewAlert.nib */; };
-		34DC8AAB0A7EEEF7003E1636 /* NewAlertNoEvents.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.nib */; };
+		34DC8AAA0A7EEEF7003E1636 /* NewAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34B70341076EDB370016E8BA /* NewAlert.xib */; };
+		34DC8AAB0A7EEEF7003E1636 /* NewAlertNoEvents.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.xib */; };
 		34DC8AAC0A7EEEF7003E1636 /* AIAbstractListController.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F440306D8202A0072E2FA /* AIAbstractListController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AAD0A7EEEF7003E1636 /* AIAbstractListController.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F440406D8202A0072E2FA /* AIAbstractListController.m */; };
 		34DC8AAE0A7EEEF7003E1636 /* AIListOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A48AD206F647FD002C7C5F /* AIListOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -2263,7 +2263,7 @@
 		346BA33D0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGlobalEventsPreferencesPlugin.m; path = Source/ESGlobalEventsPreferencesPlugin.m; sourceTree = "<group>"; };
 		346BA3420774C2D200628F06 /* ESGlobalEventsPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGlobalEventsPreferences.h; path = Source/ESGlobalEventsPreferences.h; sourceTree = "<group>"; };
 		346BA3430774C2D200628F06 /* ESGlobalEventsPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGlobalEventsPreferences.m; path = Source/ESGlobalEventsPreferences.m; sourceTree = "<group>"; };
-		346BA3630774C35400628F06 /* GlobalEventsPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = GlobalEventsPreferences.nib; path = Resources/GlobalEventsPreferences.nib; sourceTree = "<group>"; };
+		346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GlobalEventsPreferences.xib; path = Resources/GlobalEventsPreferences.xib; sourceTree = "<group>"; };
 		346C9A2305FFE3DE000F5A8A /* ESWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebView.h; path = "Plugins/WebKit Message View/ESWebView.h"; sourceTree = "<group>"; };
 		346C9A2405FFE3DF000F5A8A /* ESWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESWebView.m; path = "Plugins/WebKit Message View/ESWebView.m"; sourceTree = "<group>"; };
 		346C9BF70E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/AccountProxy.nib; sourceTree = "<group>"; };
@@ -2673,7 +2673,7 @@
 		34B7033E076EDB370016E8BA /* ESContactAlertsViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESContactAlertsViewController.h; path = Frameworks/Adium/Source/ESContactAlertsViewController.h; sourceTree = "<group>"; };
 		34B7033F076EDB370016E8BA /* CSNewContactAlertWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CSNewContactAlertWindowController.m; path = Frameworks/Adium/Source/CSNewContactAlertWindowController.m; sourceTree = "<group>"; };
 		34B70340076EDB370016E8BA /* CSNewContactAlertWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CSNewContactAlertWindowController.h; path = Frameworks/Adium/Source/CSNewContactAlertWindowController.h; sourceTree = "<group>"; };
-		34B70341076EDB370016E8BA /* NewAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = NewAlert.nib; path = Frameworks/Adium/Resources/NewAlert.nib; sourceTree = "<group>"; };
+		34B70341076EDB370016E8BA /* NewAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = NewAlert.xib; path = "Frameworks/Adium/Resources/NewAlert.xib"; sourceTree = "<group>"; };
 		34B82C7F085A85D800864531 /* AIChatController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIChatController.h; path = Source/AIChatController.h; sourceTree = "<group>"; };
 		34B82C80085A85D800864531 /* AIChatController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIChatController.m; path = Source/AIChatController.m; sourceTree = "<group>"; };
 		34B82C89085A87B000864531 /* AdiumMessageEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumMessageEvents.h; path = Source/AdiumMessageEvents.h; sourceTree = "<group>"; };
@@ -3224,7 +3224,7 @@
 		4BFC3413058D48A8008F7FA2 /* AIWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWindowController.m; path = Frameworks/Adium/Source/AIWindowController.m; sourceTree = "<group>"; };
 		4BFC5407043E509A00A8010A /* AIContentStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentStatus.h; path = Frameworks/Adium/Source/AIContentStatus.h; sourceTree = "<group>"; };
 		4BFC5408043E509A00A8010A /* AIContentStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentStatus.m; path = Frameworks/Adium/Source/AIContentStatus.m; sourceTree = "<group>"; };
-		4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = NewAlertNoEvents.nib; path = Frameworks/Adium/Resources/NewAlertNoEvents.nib; sourceTree = "<group>"; };
+		4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = NewAlertNoEvents.xib; path = "Frameworks/Adium/Resources/NewAlertNoEvents.xib"; sourceTree = "<group>"; };
 		4D4A20A125775535008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
 		4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MMTabBarView.xcodeproj; path = Dependencies/MMTabBarView/MMTabBarView/MMTabBarView.xcodeproj; sourceTree = "<group>"; };
 		4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
@@ -4472,7 +4472,7 @@
 				34C899AB07E51B18009357F6 /* BuiltInEventPresets.plist */,
 				34BFDF1607E8977D00AD984D /* SoundHigh.png */,
 				34BFDF1707E8977D00AD984D /* SoundLow.png */,
-				346BA3630774C35400628F06 /* GlobalEventsPreferences.nib */,
+				346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */,
 			);
 			name = "Global Events Preferences";
 			sourceTree = "<group>";
@@ -4805,8 +4805,8 @@
 				34B7033D076EDB370016E8BA /* ESContactAlertsViewController.m */,
 				34B70340076EDB370016E8BA /* CSNewContactAlertWindowController.h */,
 				34B7033F076EDB370016E8BA /* CSNewContactAlertWindowController.m */,
-				34B70341076EDB370016E8BA /* NewAlert.nib */,
-				4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.nib */,
+				34B70341076EDB370016E8BA /* NewAlert.xib */,
+				4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.xib */,
 			);
 			name = "Contact Alerts";
 			sourceTree = "<group>";
@@ -7628,7 +7628,7 @@
 				4BF98DCD06D149EE00E8781D /* ContactStatusColoringDefaults.plist in Resources */,
 				3461621406FB482D009181D8 /* UserList Theme.plist in Resources */,
 				3461621706FB482D009181D8 /* UserList Layout.plist in Resources */,
-				346BA3640774C35500628F06 /* GlobalEventsPreferences.nib in Resources */,
+				346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */,
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
 				34C14D5107A8BA00003CC138 /* EmoticonPackPreview.nib in Resources */,
 				343EB3FE08086D2F00E27095 /* AccountProxy.nib in Resources */,
@@ -7826,8 +7826,8 @@
 				34DC8A690A7EEEF7003E1636 /* AccountDefaults.plist in Resources */,
 				34DC8A770A7EEEF7003E1636 /* EditStateSheet.nib in Resources */,
 				34DC8A850A7EEEF7003E1636 /* TextAndButtonsWindow.nib in Resources */,
-				34DC8AAA0A7EEEF7003E1636 /* NewAlert.nib in Resources */,
-				34DC8AAB0A7EEEF7003E1636 /* NewAlertNoEvents.nib in Resources */,
+				34DC8AAA0A7EEEF7003E1636 /* NewAlert.xib in Resources */,
+				34DC8AAB0A7EEEF7003E1636 /* NewAlertNoEvents.xib in Resources */,
 				34DC8AB40A7EEEF7003E1636 /* DefaultBlockedStatusIcon.png in Resources */,
 				34DC8AD90A7EEEF7003E1636 /* JoinChatWindow.nib in Resources */,
 				34DC8AE40A7EEEF7003E1636 /* stackImage.png in Resources */,

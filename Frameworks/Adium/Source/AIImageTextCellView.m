@@ -62,21 +62,25 @@
 //Drawing
 - (void)drawRect:(NSRect)inRect
 {
-	NSSize	cellSize = [cell cellSizeForBounds:inRect];
-	
-	if (cellSize.width < inRect.size.width) {
-		CGFloat difference = (inRect.size.width - cellSize.width)/2.0f;
-		inRect.size.width -= difference;
-		inRect.origin.x += difference;
-	}
-	
-	if (cellSize.height < inRect.size.height) {
-		CGFloat difference = (inRect.size.height - cellSize.height)/2.0f;
-		inRect.size.height -= difference;
-		inRect.origin.y += difference;		
+	/* Lay the cell out in our bounds, never in the dirty rect: since macOS 14
+	 * views no longer clip to their bounds by default, and the dirty rect can
+	 * exceed them, using inRect painted the content far outside this view. */
+	NSRect	layoutRect = [self bounds];
+	NSSize	cellSize = [cell cellSizeForBounds:layoutRect];
+
+	if (cellSize.width < layoutRect.size.width) {
+		CGFloat difference = (layoutRect.size.width - cellSize.width)/2.0f;
+		layoutRect.size.width -= difference;
+		layoutRect.origin.x += difference;
 	}
 
-	[cell drawInteriorWithFrame:inRect inView:self];
+	if (cellSize.height < layoutRect.size.height) {
+		CGFloat difference = (layoutRect.size.height - cellSize.height)/2.0f;
+		layoutRect.size.height -= difference;
+		layoutRect.origin.y += difference;
+	}
+
+	[cell drawInteriorWithFrame:layoutRect inView:self];
 }
 
 //Cell setting methods

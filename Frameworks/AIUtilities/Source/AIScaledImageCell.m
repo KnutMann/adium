@@ -81,28 +81,16 @@
 		
 		//Centering
 		targetRect = NSOffsetRect(targetRect, AIround((cellFrame.size.width - targetRect.size.width) / 2), AIround((cellFrame.size.height - targetRect.size.height) / 2));
-		
-		//Flip & reposition image
-		[NSGraphicsContext saveGraphicsState];
-		
-		long cellPosition = AIfloor(cellFrame.origin.y / cellFrame.size.height) + 1;
-		long yOffset = fmodl(cellFrame.origin.y, cellFrame.size.height);
-		
-		NSAffineTransform *xform = [NSAffineTransform transform];
-		[xform translateXBy: 0.f yBy: cellPosition * cellFrame.size.height + yOffset];
-		[xform scaleXBy: 1.f yBy: -1.f];
-		[xform concat];
-		
-		//y offset already handled by translation
-		targetRect.origin.y = 0.f;
-		
-		//Draw Image
+
+		/* Draw the image centered in the cell. respectFlipped handles the flipped
+		 * coordinates of table/outline views; the old manual transform assumed
+		 * uniform row heights and misplaced the image in variable-height lists. */
 		[img drawInRect:targetRect
 			   fromRect:imgRect
-			  operation:NSCompositeSourceOver 
-			   fraction:([self isEnabled] ? 1.0f : 0.5f)];
-		
-		[NSGraphicsContext restoreGraphicsState];				
+			  operation:NSCompositeSourceOver
+			   fraction:([self isEnabled] ? 1.0f : 0.5f)
+		 respectFlipped:YES
+				  hints:nil];
 	}
 }
 

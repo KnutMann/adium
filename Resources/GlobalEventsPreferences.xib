@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESGlobalEventsPreferences">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="contactAlertsViewController" destination="alertsVC" id="oAlertsVC"/>
+                <outlet property="popUp_eventPreset" destination="pPreset" id="oPPreset"/>
+                <outlet property="popUp_soundSet" destination="pSound" id="oPSound"/>
+                <outlet property="label_eventPreset" destination="lPreset" id="oLPreset"/>
+                <outlet property="label_soundSet" destination="lSound" id="oLSound"/>
+                <outlet property="slider_volume" destination="sVol" id="oSVol"/>
+                <outlet property="button_minvolume" destination="bVolMin" id="oBVolMin"/>
+                <outlet property="button_maxvolume" destination="bVolMax" id="oBVolMax"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customObject id="alertsVC" customClass="ESContactAlertsViewController">
+            <connections>
+                <outlet property="view" destination="alertsView" id="oAView"/>
+                <outlet property="outlineView_summary" destination="alertsOutline" id="oAOutline"/>
+                <outlet property="button_edit" destination="bEdit" id="oBEdit"/>
+                <outlet property="button_addOrRemoveAlert" destination="segAddRemove" id="oSegAR"/>
+            </connections>
+        </customObject>
+        <customView id="paneView">
+            <rect key="frame" x="0.0" y="0.0" width="558" height="433"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lPreset">
+                    <rect key="frame" x="20" y="399" width="148" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Event Preset:" id="lPresetC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pPreset">
+                    <rect key="frame" x="176" y="395" width="298" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pPresetC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pPresetM"/>
+                    </popUpButtonCell>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSound">
+                    <rect key="frame" x="20" y="371" width="148" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Sound set:" id="lSoundC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pSound">
+                    <rect key="frame" x="176" y="367" width="298" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pSoundC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pSoundM"/>
+                    </popUpButtonCell>
+                </popUpButton>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bVolMin">
+                    <rect key="frame" x="176" y="332" width="32" height="32"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="SoundLow" imagePosition="only" alignment="center" transparent="YES" imageScaling="proportionallyDown" inset="2" id="bVolMinC">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="selectVolume:" target="-2" id="aVolMin"/></connections>
+                </button>
+                <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sVol">
+                    <rect key="frame" x="214" y="337" width="233" height="21"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <sliderCell key="cell" continuous="YES" alignment="left" minValue="0.0" maxValue="1" doubleValue="0.5" tickMarkPosition="above" sliderType="linear" id="sVolC"/>
+                    <connections><action selector="selectVolume:" target="-2" id="aVolSlider"/></connections>
+                </slider>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bVolMax">
+                    <rect key="frame" x="453" y="332" width="32" height="32"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="SoundHigh" imagePosition="only" alignment="center" transparent="YES" imageScaling="proportionallyDown" inset="2" id="bVolMaxC">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="selectVolume:" target="-2" id="aVolMax"/></connections>
+                </button>
+                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="alertsView">
+                    <rect key="frame" x="20" y="20" width="518" height="301"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <subviews>
+                        <scrollView fixedFrame="YES" borderType="bezel" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="alertsScroll">
+                            <rect key="frame" x="0.0" y="30" width="518" height="271"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                            <clipView key="contentView" id="alertsClip">
+                                <rect key="frame" x="1" y="1" width="516" height="269"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" rowHeight="40" headerView="NO" indentationPerLevel="14" autoresizesOutlineColumn="YES" outlineTableColumn="colEvent" id="alertsOutline" customClass="AIVariableHeightFlexibleColumnsOutlineView">
+                                        <rect key="frame" x="0.0" y="0.0" width="516" height="269"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <size key="intercellSpacing" width="3" height="2"/>
+                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                        <tableColumns>
+                                            <tableColumn identifier="image" editable="NO" width="46" minWidth="16" maxWidth="100" id="colImage">
+                                                <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Image"/>
+                                                <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="colImageCell">
+                                                    <font key="font" metaFont="system"/>
+                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                </textFieldCell>
+                                                <tableColumnResizingMask key="resizingMask" resizeWithTable="YES"/>
+                                            </tableColumn>
+                                            <tableColumn identifier="event" editable="NO" width="146" minWidth="40" maxWidth="1000" id="colEvent">
+                                                <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Event"/>
+                                                <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="colEventCell">
+                                                    <font key="font" metaFont="system"/>
+                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                </textFieldCell>
+                                                <tableColumnResizingMask key="resizingMask" resizeWithTable="YES"/>
+                                            </tableColumn>
+                                            <tableColumn identifier="action" editable="NO" width="277" minWidth="40" maxWidth="1000" id="colAction">
+                                                <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Actions"/>
+                                                <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="colActionCell">
+                                                    <font key="font" metaFont="system"/>
+                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                </textFieldCell>
+                                                <tableColumnResizingMask key="resizingMask" resizeWithTable="YES"/>
+                                            </tableColumn>
+                                        </tableColumns>
+                                    </outlineView>
+                                </subviews>
+                            </clipView>
+                            <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="alertsHScroller">
+                                <rect key="frame" x="1" y="255" width="516" height="15"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </scroller>
+                            <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="alertsVScroller">
+                                <rect key="frame" x="502" y="1" width="15" height="254"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </scroller>
+                        </scrollView>
+                        <segmentedControl verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="segAddRemove">
+                            <rect key="frame" x="0.0" y="0.0" width="49" height="23"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                            <segmentedCell key="cell" borderStyle="border" alignment="left" style="smallSquare" trackingMode="momentary" id="segAddRemoveC">
+                                <font key="font" metaFont="system"/>
+                                <segments>
+                                    <segment image="NSAddTemplate" width="23"/>
+                                    <segment image="NSRemoveTemplate" width="23" tag="1"/>
+                                </segments>
+                            </segmentedCell>
+                            <connections><action selector="addOrRemoveAlert:" target="alertsVC" id="aSegAR"/></connections>
+                        </segmentedControl>
+                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bEdit">
+                            <rect key="frame" x="448" y="-3" width="70" height="28"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                            <buttonCell key="cell" type="push" title="Edit" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bEditC">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="smallSystem"/>
+                            </buttonCell>
+                            <connections><action selector="editAlert:" target="alertsVC" id="aBEdit"/></connections>
+                        </button>
+                    </subviews>
+                </customView>
+            </subviews>
+        </customView>
+    </objects>
+    <resources>
+        <image name="SoundLow" width="32" height="32"/>
+        <image name="SoundHigh" width="32" height="32"/>
+        <image name="NSAddTemplate" width="20" height="20"/>
+        <image name="NSRemoveTemplate" width="20" height="20"/>
+    </resources>
+</document>
