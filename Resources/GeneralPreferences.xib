@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESGeneralPreferences">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="label_logging" destination="lLog" id="oLLog"/>
+                <outlet property="checkBox_logMessages" destination="cbLog" id="oCbLog"/>
+                <outlet property="checkBox_showChatHistory" destination="cbHis" id="oCbHis"/>
+                <outlet property="label_recentMessages" destination="lRec" id="oLRec"/>
+                <outlet property="checkBox_logOTR" destination="cbOtr" id="oCbOtr"/>
+                <outlet property="checkBox_logCertainAccounts" destination="cbCrt" id="oCbCrt"/>
+                <outlet property="button_customizeLogAccounts" destination="bCus" id="oBCus"/>
+                <outlet property="checkBox_reopenChats" destination="cbReo" id="oCbReo"/>
+                <outlet property="checkBox_messagesInTabs" destination="cbTab" id="oCbTab"/>
+                <outlet property="label_tabPosition" destination="lPos" id="oLPos"/>
+                <outlet property="popUp_tabPositionMenu" destination="pPos" id="oPPos"/>
+                <outlet property="checkBox_arrangeByGroup" destination="cbGrp" id="oCbGrp"/>
+                <outlet property="label_messagesSendOn" destination="lSnd" id="oLSnd"/>
+                <outlet property="popUp_sendKeys" destination="pSnd" id="oPSnd"/>
+                <outlet property="label_switchTabsWith" destination="lKey" id="oLKey"/>
+                <outlet property="popUp_tabKeys" destination="pKey" id="oPKey"/>
+                <outlet property="label_status" destination="lSta" id="oLSta"/>
+                <outlet property="checkBox_showMenuBarStatus" destination="cbMbs" id="oCbMbs"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="paneView">
+            <rect key="frame" x="0.0" y="0.0" width="540" height="330"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lLog">
+                    <rect key="frame" x="7" y="298" width="150" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Messages:" id="lLogC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbLog">
+                    <rect key="frame" x="165" y="298" width="345" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Log messages" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbLogC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aCbLog"/>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Logging.Enable Logging" id="bCbLog1">
+                            <dictionary key="options">
+                                <bool key="NSConditionallySetsEnabled" value="NO"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbHis">
+                    <rect key="frame" x="183" y="270" width="60" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Show" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbHisC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Logging.Enable Logging" id="bCbHis1"/>
+                        <binding destination="-2" name="value" keyPath="chatHistoryDisplayActive" id="bCbHis2"/>
+                    </connections>
+                </button>
+                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tHis">
+                    <rect key="frame" x="247" y="268" width="32" height="22"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="right" title="5" drawsBackground="YES" id="tHisC">
+                        <numberFormatter key="formatter" formatterBehavior="default10_4" positiveFormat="0" negativeFormat="-0" id="fHis">
+                            <real key="minimum" value="1"/>
+                            <real key="maximum" value="400"/>
+                        </numberFormatter>
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <action selector="takeIntValueFrom:" target="stHis" id="aTHis"/>
+                        <outlet property="nextKeyView" destination="stHis" id="oTHisK"/>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Logging.Enable Logging" id="bTHis1"/>
+                        <binding destination="-2" name="enabled2" keyPath="adium.preferenceController.Message Context Display.Display Message Context" previousBinding="bTHis1" id="bTHis2">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="-1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="-1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="-1"/>
+                                <integer key="NSNullPlaceholder" value="-1"/>
+                            </dictionary>
+                        </binding>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Message Context Display.Lines to Display" id="bTHis3">
+                            <dictionary key="options">
+                                <bool key="NSContinuouslyUpdatesValue" value="YES"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </textField>
+                <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="stHis">
+                    <rect key="frame" x="281" y="265" width="19" height="27"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <stepperCell key="cell" continuous="YES" alignment="left" increment="1" maxValue="999" doubleValue="10" valueWraps="YES" autorepeat="YES" id="stHisC"/>
+                    <connections>
+                        <action selector="takeIntValueFrom:" target="tHis" id="aStHis"/>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Logging.Enable Logging" id="bStHis1"/>
+                        <binding destination="-2" name="enabled2" keyPath="adium.preferenceController.Message Context Display.Display Message Context" previousBinding="bStHis1" id="bStHis2">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="-1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="-1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="-1"/>
+                                <integer key="NSNullPlaceholder" value="-1"/>
+                            </dictionary>
+                        </binding>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Message Context Display.Lines to Display" id="bStHis3"/>
+                    </connections>
+                </stepper>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lRec">
+                    <rect key="frame" x="302" y="271" width="222" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title=" recent messages in new chats" id="lRecC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <binding destination="-2" name="textColor" keyPath="chatHistoryDisplayActive" id="bLRec1">
+                            <dictionary key="options">
+                                <string key="NSValueTransformerName">AIBoolToControlTextColorTransformer</string>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbOtr">
+                    <rect key="frame" x="183" y="242" width="328" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Log OTR-secured chats" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbOtrC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="bCus" id="oCbOtrK"/>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Logging.Enable Logging" id="bCbOtr1"/>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Logging.LogSecureChats" id="bCbOtr2"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbCrt">
+                    <rect key="frame" x="183" y="214" width="210" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Log only certain accounts" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbCrtC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="bCus" id="oCbCrtK"/>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Logging.Enable Logging" id="bCbCrt1"/>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Logging.LogCertainAccounts" id="bCbCrt2"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bCus">
+                    <rect key="frame" x="403" y="206" width="130" height="32"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="push" title="Customize" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bCusC">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="configureLogCertainAccounts:" target="-2" id="aBCus"/>
+                        <outlet property="nextKeyView" destination="cbReo" id="oBCusK"/>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Logging.LogCertainAccounts" id="bBCus1"/>
+                        <binding destination="-2" name="enabled2" keyPath="adium.preferenceController.Logging.Enable Logging" previousBinding="bBCus1" id="bBCus2">
+                            <dictionary key="options">
+                                <integer key="NSMultipleValuesPlaceholder" value="-1"/>
+                                <integer key="NSNoSelectionPlaceholder" value="-1"/>
+                                <integer key="NSNotApplicablePlaceholder" value="-1"/>
+                                <integer key="NSNullPlaceholder" value="-1"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbReo">
+                    <rect key="frame" x="165" y="186" width="345" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Reopen chats from last time on startup" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbReoC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Interface.Save Containers On Quit" id="bCbReo1"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbTab">
+                    <rect key="frame" x="165" y="158" width="345" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Create new chats in tabs" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbTabC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Interface.Tabbed Chatting" id="bCbTab1"/>
+                    </connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lPos">
+                    <rect key="frame" x="183" y="130" width="125" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Show tabs on the:" id="lPosC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pPos">
+                    <rect key="frame" x="312" y="126" width="147" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pPosC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pPosM"/>
+                    </popUpButtonCell>
+                    <connections>
+                        <binding destination="-2" name="selectedTag" keyPath="adium.preferenceController.Dual Window Interface.Tab Bar Position" id="bPPos1">
+                            <dictionary key="options">
+                                <bool key="NSValidatesImmediately" value="YES"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </popUpButton>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGrp">
+                    <rect key="frame" x="183" y="102" width="328" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Organize tabs into new windows by group" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbGrpC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Interface.Group Chats By Group" id="bCbGrp1"/>
+                        <binding destination="-2" name="enabled" keyPath="adium.preferenceController.Interface.Tabbed Chatting" id="bCbGrp2"/>
+                    </connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSnd">
+                    <rect key="frame" x="7" y="74" width="150" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Send messages with:" id="lSndC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pSnd">
+                    <rect key="frame" x="165" y="70" width="232" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pSndC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pSndM"/>
+                    </popUpButtonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aPSnd"/>
+                    </connections>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lKey">
+                    <rect key="frame" x="7" y="46" width="150" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Switch tabs with:" id="lKeyC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pKey">
+                    <rect key="frame" x="165" y="42" width="232" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pKeyC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pKeyM"/>
+                    </popUpButtonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aPKey"/>
+                    </connections>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSta">
+                    <rect key="frame" x="7" y="18" width="150" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Status:" id="lStaC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbMbs">
+                    <rect key="frame" x="165" y="18" width="345" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Show Adium status in menu bar" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbMbsC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Status Menu Item.Status Menu Item Enabled" id="bCbMbs1">
+                            <dictionary key="options">
+                                <bool key="NSConditionallySetsEnabled" value="NO"/>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </button>
+            </subviews>
+        </customView>
+    </objects>
+</document>

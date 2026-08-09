@@ -57,6 +57,13 @@
  */
 - (void)viewDidLoad
 {
+	//Localized text for the single-nib pane
+	[label_remoteAlias setStringValue:AILocalizedString(@"Name:",nil)];
+	[label_profile setStringValue:AILocalizedString(@"Profile:",nil)];
+	[button_chooseIcon setTitle:AILocalizedString(@"Choose Icon...",nil)];
+	[[matrix_userIcon cellWithTag:0] setTitle:AILocalizedString(@"Use no icon",nil)];
+	[[matrix_userIcon cellWithTag:1] setTitle:AILocalizedString(@"Use this icon:",nil)];
+
 	NSString *displayName = [[[adium.preferenceController preferenceForKey:KEY_ACCOUNT_DISPLAY_NAME
 																	   group:GROUP_ACCOUNT_STATUS] attributedString] string];
 	[textField_displayName setStringValue:(displayName ? displayName : @"")];

@@ -19,9 +19,6 @@
 #import "AISoundController.h"
 #import "ESGeneralPreferences.h"
 #import "ESGeneralPreferencesPlugin.h"
-#import "SGHotKeyCenter.h"
-#import "SGHotKey.h"
-#import "SGHotKey.h"
 #import "AIMessageWindowController.h"
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIStatusIcons.h>
@@ -43,8 +40,6 @@
 @end
 
 @implementation ESGeneralPreferences
-
-@synthesize shortcutRecorder;
 
 + (NSSet *)keyPathsForValuesAffectingChatHistoryDisplayActive
 {
@@ -74,17 +69,29 @@
 {
 	BOOL			sendOnEnter, sendOnReturn;
 
+	//Localized text for the single-nib pane
+	[label_logging setStringValue:AILocalizedString(@"Messages:",nil)];
+	[label_messagesSendOn setStringValue:AILocalizedString(@"Send messages with:",nil)];
+	[label_switchTabsWith setStringValue:AILocalizedString(@"Switch tabs with:",nil)];
+	[label_status setStringValue:AILocalizedString(@"Status:",nil)];
+	[label_tabPosition setStringValue:AILocalizedString(@"Show tabs on the:",nil)];
+	[label_recentMessages setStringValue:AILocalizedString(@" recent messages in new chats",nil)];
+	[checkBox_logMessages setTitle:AILocalizedString(@"Log messages",nil)];
+	[checkBox_showChatHistory setTitle:AILocalizedString(@"Show","Beginning of 'Show [x] recent messages in new chats'")];
+	[checkBox_logOTR setTitle:AILocalizedString(@"Log OTR-secured chats",nil)];
+	[checkBox_logCertainAccounts setTitle:AILocalizedString(@"Log only certain accounts",nil)];
+	[button_customizeLogAccounts setTitle:AILocalizedString(@"Customize",nil)];
+	[checkBox_reopenChats setTitle:AILocalizedString(@"Reopen chats from last time on startup",nil)];
+	[checkBox_messagesInTabs setTitle:AILocalizedString(@"Create new chats in tabs",nil)];
+	[checkBox_arrangeByGroup setTitle:AILocalizedString(@"Organize tabs into new windows by group",nil)];
+	[checkBox_showMenuBarStatus setTitle:AILocalizedString(@"Show Adium status in menu bar",nil)];
+
 	//Interface
     [checkBox_messagesInTabs setState:[[adium.preferenceController preferenceForKey:KEY_TABBED_CHATTING
 																				group:PREF_GROUP_INTERFACE] boolValue]];
 	[checkBox_arrangeByGroup setState:[[adium.preferenceController preferenceForKey:KEY_GROUP_CHATS_BY_GROUP
 																				group:PREF_GROUP_INTERFACE] boolValue]];
 	
-	// Update Checking
-	[checkBox_updatesAutomatic setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"SUEnableAutomaticChecks"]];
-	[checkBox_updatesProfileInfo setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"SUSendProfileInfo"]];
-	[checkBox_updatesIncludeBetas setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"AIAlwaysUpdateToBetas"]];
-
 	//Chat Cycling
 	[popUp_tabKeys setMenu:[self tabChangeKeysMenu]];
 	[popUp_tabKeys selectItemWithTag:[[adium.preferenceController preferenceForKey:KEY_TAB_SWITCH_KEYS
@@ -109,81 +116,7 @@
 	[popUp_tabPositionMenu selectItemWithTag:[[adium.preferenceController preferenceForKey:KEY_TABBAR_POSITION
 																								 group:PREF_GROUP_DUAL_WINDOW_INTERFACE] intValue]];
 
-    /* Sparkle updates and the global shortcut recorder are gone from this build.
-     * Their controls (and the nib-only section labels sharing their rows) get hidden,
-     * then the freed vertical space collapses so the window shrinks accordingly. */
-    NSArray *removedControls = [NSArray arrayWithObjects:checkBox_updatesAutomatic, checkBox_updatesProfileInfo,
-                                checkBox_updatesIncludeBetas, label_shortcutRecorder, placeholder_shortcutRecorder, nil];
-    NSMutableArray *hiddenViews = [NSMutableArray arrayWithArray:removedControls];
-    for (NSView *control in removedControls) {
-        [control setHidden:YES];
-    }
-    for (NSView *sibling in [[checkBox_updatesAutomatic superview] subviews]) {
-        if ([sibling isHidden] ||
-            ![sibling isKindOfClass:[NSTextField class]] || [(NSTextField *)sibling isEditable]) continue;
-        for (NSView *control in removedControls) {
-            if ([control superview] == [sibling superview] &&
-                NSMinY([sibling frame]) < NSMaxY([control frame]) && NSMaxY([sibling frame]) > NSMinY([control frame])) {
-                [sibling setHidden:YES];
-                [hiddenViews addObject:sibling];
-                break;
-            }
-        }
-    }
-
-    /* Merge the hidden controls' frames into vertical bands (rows may repeat until stable) */
-    NSView *paneView = [checkBox_updatesAutomatic superview];
-    NSMutableArray *bands = [NSMutableArray array];
-    for (NSView *hidden in hiddenViews) {
-        if ([hidden superview] != paneView) continue;
-        [bands addObject:[NSValue valueWithRect:[hidden frame]]];
-    }
-    BOOL mergedAny;
-    do {
-        mergedAny = NO;
-        for (NSUInteger i = 0; i < [bands count] && !mergedAny; i++) {
-            for (NSUInteger j = i + 1; j < [bands count] && !mergedAny; j++) {
-                NSRect a = [[bands objectAtIndex:i] rectValue];
-                NSRect b = [[bands objectAtIndex:j] rectValue];
-                if (NSMinY(a) <= NSMaxY(b) + 6.0f && NSMaxY(a) >= NSMinY(b) - 6.0f) {
-                    [bands replaceObjectAtIndex:i withObject:[NSValue valueWithRect:NSUnionRect(a, b)]];
-                    [bands removeObjectAtIndex:j];
-                    mergedAny = YES;
-                }
-            }
-        }
-    } while (mergedAny);
-
-    /* Collapse each band, topmost first, then shrink the pane so the prefs window follows */
-    [bands sortUsingComparator:^NSComparisonResult(NSValue *a, NSValue *b) {
-        return NSMinY([b rectValue]) < NSMinY([a rectValue]) ? NSOrderedAscending : NSOrderedDescending;
-    }];
-    [paneView setAutoresizesSubviews:NO];
-    CGFloat removedHeight = 0;
-    for (NSValue *bandValue in bands) {
-        NSRect band = [bandValue rectValue];
-        for (NSView *subview in [paneView subviews]) {
-            NSRect frame = [subview frame];
-            if (NSMinY(frame) >= NSMaxY(band) - 1.0f) {
-                frame.origin.y -= NSHeight(band);
-                [subview setFrame:frame];
-            }
-        }
-        removedHeight += NSHeight(band);
-    }
-    NSRect paneFrame = [paneView frame];
-    paneFrame.size.height -= removedHeight;
-    [paneView setFrame:paneFrame];
-    [paneView setAutoresizesSubviews:YES];
-
     [self configureControlDimming];
-}
-
-- (void)dealloc
-{
-    self.shortcutRecorder = nil;
-
-    [super dealloc];
 }
 
 //Called in response to all preference controls, applies new settings
@@ -207,13 +140,6 @@
 		[adium.preferenceController setPreference:[NSNumber numberWithInt:sendOnReturn]
 											 forKey:SEND_ON_RETURN
                                               group:PREF_GROUP_GENERAL];
-	} else if (sender == checkBox_updatesAutomatic) {
-		[[NSUserDefaults standardUserDefaults] setBool:[sender state] forKey:@"SUEnableAutomaticChecks"];
-		[self configureControlDimming];
-	} else if (sender == checkBox_updatesProfileInfo) {
-		[[NSUserDefaults standardUserDefaults] setBool:[sender state] forKey:@"SUSendProfileInfo"];
-	} else if (sender == checkBox_updatesIncludeBetas) {
-		[[NSUserDefaults standardUserDefaults] setBool:[sender state] forKey:@"AIAlwaysUpdateToBetas"];
 	}
 }
 
@@ -221,13 +147,6 @@
 - (void)configureControlDimming
 {
 	[checkBox_arrangeByGroup setEnabled:[checkBox_messagesInTabs state]];
-	[checkBox_updatesProfileInfo setEnabled:[checkBox_updatesAutomatic state]];
-#ifdef BETA_RELEASE
-	[checkBox_updatesIncludeBetas setEnabled:NO];
-	[checkBox_updatesIncludeBetas setState:NSOnState];
-#else
-	[checkBox_updatesIncludeBetas setEnabled:[checkBox_updatesAutomatic state]];
-#endif
 }
 
 /*!

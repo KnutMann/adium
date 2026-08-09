@@ -16,21 +16,18 @@
 
 #import "AIPreferencePane.h"
 
-@class AILocalizationButton, AILocalizationTextField;
-
 @interface ESFileTransferPreferences : AIPreferencePane {
-	IBOutlet	NSPopUpButton			*popUp_downloadLocation;
-	IBOutlet	AILocalizationButton	*checkBox_autoAcceptFiles;
-	IBOutlet	AILocalizationButton	*checkBox_autoAcceptOnlyFromCLList;
+	IBOutlet	NSPopUpButton	*popUp_downloadLocation;
+	IBOutlet	NSButton		*checkBox_autoAcceptFiles;
+	IBOutlet	NSButton		*checkBox_autoAcceptOnlyFromCLList;
 
-	IBOutlet	AILocalizationButton	*checkBox_autoOpenFiles;
-	IBOutlet	AILocalizationButton	*checkBox_autoClearCompleted;
-	IBOutlet	AILocalizationButton	*checkBox_showProgress;
-	
-	IBOutlet	AILocalizationTextField	*label_whenReceivingFiles;
-	IBOutlet	AILocalizationTextField	*label_defaultReceivingFolder;
-	IBOutlet	AILocalizationTextField	*label_safeFilesDescription;
-	IBOutlet	AILocalizationTextField	*label_transferProgress;
+	IBOutlet	NSButton		*checkBox_autoOpenFiles;
+	IBOutlet	NSButton		*checkBox_showProgress;
+
+	IBOutlet	NSTextField		*label_whenReceivingFiles;
+	IBOutlet	NSTextField		*label_defaultReceivingFolder;
+	IBOutlet	NSTextField		*label_safeFilesDescription;
+	IBOutlet	NSTextField		*label_transferProgress;
 }
 
 @end

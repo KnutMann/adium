@@ -15,6 +15,7 @@
  */
 
 #import "AIPurpleWhatsAppAccount.h"
+#import <Adium/ESFileTransfer.h>
 #import "AIWhatsAppAccountViewController.h"
 
 @implementation AIPurpleWhatsAppAccount
@@ -63,6 +64,19 @@
 	if (![computerName length]) computerName = [[NSProcessInfo processInfo] hostName];
 	purple_account_set_string(account, "device-name",
 							  [[NSString stringWithFormat:@"Adium on %@", computerName] UTF8String]);
+}
+
+/* WhatsApp is store-and-forward: files can be sent regardless of the contact's
+ * apparent presence. Presence data is sparse on this network, so most contacts
+ * look offline even though they can receive media just fine. */
+- (BOOL)availableForSendingContentType:(NSString *)inType toContact:(AIListContact *)inContact
+{
+	if ([inType isEqualToString:CONTENT_FILE_TRANSFER_TYPE]) {
+		return (self.online &&
+				[self conformsToProtocol:@protocol(AIAccount_Files)] &&
+				(!inContact || [self allowFileTransferWithListObject:inContact]));
+	}
+	return [super availableForSendingContentType:inType toContact:inContact];
 }
 
 @end

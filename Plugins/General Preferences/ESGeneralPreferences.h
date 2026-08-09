@@ -19,27 +19,27 @@
 @interface ESGeneralPreferences : AIPreferencePane {
     IBOutlet	NSButton		*checkBox_messagesInTabs;
     IBOutlet	NSButton		*checkBox_arrangeByGroup;
-	IBOutlet	NSButton		*checkBox_updatesAutomatic;
-	IBOutlet	NSButton		*checkBox_updatesProfileInfo;	
-	IBOutlet	NSButton		*checkBox_updatesIncludeBetas;
-	
+	IBOutlet	NSButton		*checkBox_logMessages;
+	IBOutlet	NSButton		*checkBox_showChatHistory;
+	IBOutlet	NSButton		*checkBox_logOTR;
+	IBOutlet	NSButton		*checkBox_logCertainAccounts;
+	IBOutlet	NSButton		*checkBox_reopenChats;
+	IBOutlet	NSButton		*checkBox_showMenuBarStatus;
+
+	IBOutlet	NSButton		*button_customizeLogAccounts;
+
 	IBOutlet	NSPopUpButton	*popUp_tabKeys;
 	IBOutlet	NSPopUpButton	*popUp_sendKeys;
 	IBOutlet	NSPopUpButton	*popUp_tabPositionMenu;
 
 	IBOutlet	NSTextField		*label_logging;
 	IBOutlet	NSTextField		*label_messagesSendOn;
-	IBOutlet	NSTextField		*label_messagesTabs;
-	IBOutlet	NSTextField		*label_switchTabsWith;	
-	
-	IBOutlet	NSTextField		*label_shortcutRecorder;
-
-    IBOutlet    NSView          *placeholder_shortcutRecorder;
-    NSView                      *shortcutRecorder;		
+	IBOutlet	NSTextField		*label_switchTabsWith;
+	IBOutlet	NSTextField		*label_status;
+	IBOutlet	NSTextField		*label_tabPosition;
+	IBOutlet	NSTextField		*label_recentMessages;
 }
 
 - (IBAction)configureLogCertainAccounts:(id)sender;
-
-@property (nonatomic, retain) NSView *shortcutRecorder;
 
 @end
