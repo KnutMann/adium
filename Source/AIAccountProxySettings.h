@@ -26,6 +26,12 @@
 	IBOutlet	NSTextField				*textField_proxyPortNumber;
 	IBOutlet	NSTextField				*textField_proxyUserName;
 	IBOutlet	NSSecureTextField		*textField_proxyPassword;
+
+	IBOutlet	NSTextField				*label_proxyType;
+	IBOutlet	NSTextField				*label_server;
+	IBOutlet	NSTextField				*label_port;
+	IBOutlet	NSTextField				*label_userName;
+	IBOutlet	NSTextField				*label_password;
 	
 	AIAccount			*account;
 }

@@ -167,4 +167,22 @@
 	[self updateControlAvailability];
 }
 
+#pragma mark Localization
+//The xib is monolingual (English); set all visible strings from code
+- (void)localizeStrings
+{
+	[super localizeStrings];
+
+	[label_kerberosInfo setStringValue:AILocalizedString(@"Zephyr requires a proper Kerberos configuration.  Zephyr uses your UNIX UID or your Kerberos name; the user name above is solely for internal Adium use.  Only one simultaneous Zephyr connection is recommended.  Using the internal host manager will conflict with any other 'zhm' instances running on this machine.", nil)];
+	[label_exposure setStringValue:AILocalizedString(@"Exposure:", nil)];
+	[label_encoding setStringValue:AILocalizedString(@"Encoding:", nil)];
+	[label_export setStringValue:AILocalizedString(@"Export:", nil)];
+	[checkBox_exportAnyone setTitle:AILocalizedString(@"Export to .anyone", nil)];
+	[checkBox_exportSubs setTitle:AILocalizedString(@"Export to .zephyr.subs", nil)];
+	[label_servers setStringValue:AILocalizedString(@"Servers:", nil)];
+	[[[[tableView_servers tableColumns] objectAtIndex:0] headerCell] setStringValue:AILocalizedString(@"Server", "Header of the Zephyr server list column in the account preferences")];
+	[label_hostManager setStringValue:AILocalizedString(@"Host Manager:", nil)];
+	[checkBox_launchZhm setTitle:AILocalizedString(@"Use internal host manager", nil)];
+}
+
 @end

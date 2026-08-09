@@ -17,7 +17,7 @@
 #import "PurpleAccountViewController.h"
 
 @interface ESPurpleGaduGaduAccountViewController : PurpleAccountViewController {
-    
+	IBOutlet	NSButton	*button_register;
 }
 
 - (IBAction)registerNewAccount:(id)sender;

@@ -364,4 +364,59 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 	[self didBeginRegistration];
 }
 
+#pragma mark Localization
+//The xib is monolingual (English); set all visible strings from code
+- (void)localizeStrings
+{
+	[super localizeStrings];
+
+	NSBundle *adiumFrameworkBundle = [NSBundle bundleForClass:[AIAccountViewController class]];
+
+	//Setup
+	[label_password setStringValue:AILocalizedStringFromTableInBundle(@"Password:", nil, adiumFrameworkBundle, "Label for the password field in the account preferences")];
+	[button_register setTitle:AILocalizedString(@"Register New Account", nil)];
+	[textField_registering setStringValue:AILocalizedString(@"Registering…", nil)];
+
+	//Options
+	[label_connectServer setStringValue:AILocalizedString(@"Connect Server:", nil)];
+	[label_BOSHserver setStringValue:AILocalizedString(@"BOSH Server:", nil)];
+	[label_ftProxies setStringValue:AILocalizedString(@"File Transfer Proxies:", nil)];
+	[label_resource setStringValue:AILocalizedString(@"Resource:", nil)];
+	[label_port setStringValue:AILocalizedStringFromTableInBundle(@"Port:", nil, adiumFrameworkBundle, "Label for the port field in the account preferences")];
+	[label_priorityAvailable setStringValue:AILocalizedString(@"Available Priority:", nil)];
+	[label_priorityAway setStringValue:AILocalizedString(@"Away Priority:", nil)];
+	[label_mail setStringValue:AILocalizedString(@"Mail:", nil)];
+	[checkBox_checkMail setTitle:AILocalizedString(@"Display new mail notifications", nil)];
+	[label_security setStringValue:AILocalizedString(@"Security:", nil)];
+	[checkBox_requireTLS setTitle:AILocalizedString(@"Require SSL/TLS", nil)];
+	[checkBox_forceOldSSL setTitle:AILocalizedString(@"Force old-style SSL", nil)];
+	[checkBox_allowPlaintext setTitle:AILocalizedString(@"Allow plaintext authentication", nil)];
+	[checkBox_checkCertificates setTitle:AILocalizedString(@"Do strict certificate checks", nil)];
+	[label_emoticons setStringValue:AILocalizedString(@"Emoticons:", nil)];
+	[checkBox_displayCustomEmoticons setTitle:AILocalizedString(@"Display custom emoticons", nil)];
+	[label_subscriptions setStringValue:AILocalizedString(@"Presence Subscriptions:", nil)];
+	[[[popup_subscriptionBehavior menu] itemWithTag:0] setTitle:AILocalizedString(@"Ask What To Do", nil)];
+	[[[popup_subscriptionBehavior menu] itemWithTag:1] setTitle:AILocalizedString(@"Accept", nil)];
+	[[[popup_subscriptionBehavior menu] itemWithTag:2] setTitle:AILocalizedString(@"Accept and Add To List", nil)];
+	[[[popup_subscriptionBehavior menu] itemWithTag:3] setTitle:AILocalizedString(@"Deny", nil)];
+	[textField_subscriptionModeLabel setStringValue:AILocalizedString(@"...add to list in group:", nil)];
+
+	//Privacy
+	[label_encryption setStringValue:AILocalizedStringFromTableInBundle(@"Encryption:", nil, adiumFrameworkBundle, "Label besides the encryption preference menu")];
+	[label_typing setStringValue:AILocalizedStringFromTableInBundle(@"Typing:", nil, adiumFrameworkBundle, "Label beside the 'let others know when you are typing' checkbox in the account preferences")];
+	[checkBox_sendTyping setTitle:AILocalizedStringFromTableInBundle(@"Let others know when you are typing", nil, adiumFrameworkBundle, "Text of the typing preference checkbox in the account preferences")];
+	[label_music setStringValue:AILocalizedString(@"Music:", nil)];
+	[checkBox_broadcastMusic setTitle:AILocalizedString(@"Let others know what iTunes is playing", nil)];
+
+	//Registration server sheet
+	[label_registerAddress setStringValue:AILocalizedString(@"Either enter your XMPP server address here:", nil)];
+	[label_registerServer setStringValue:AILocalizedString(@"Server:", nil)];
+	[label_registerPort setStringValue:AILocalizedStringFromTableInBundle(@"Port:", nil, adiumFrameworkBundle, "Label for the port field in the account preferences")];
+	[label_registerSelect setStringValue:AILocalizedString(@"or select a public server from the list:", nil)];
+	[[[tableview_servers tableColumnWithIdentifier:@"servername"] headerCell] setStringValue:AILocalizedString(@"Server Name", nil)];
+	[button_registerRequest setTitle:AILocalizedString(@"Request New Account", nil)];
+	[button_registerCancel setTitle:AILocalizedStringFromTableInBundle(@"Cancel", nil, adiumFrameworkBundle, nil)];
+	[button_serverHomepage setTitle:AILocalizedString(@"Visit Server Homepage", nil)];
+}
+
 @end

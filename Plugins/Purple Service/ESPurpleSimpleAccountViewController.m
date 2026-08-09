@@ -61,8 +61,30 @@ static NSSet *bindings;
 		KEY_SIMPLE_AUTH_DOMAIN, @"authDomain",
 		nil];
 	[keyToKeyDict addEntriesFromDictionary:[super keyToKeyDict]];
-	
+
 	return keyToKeyDict;
+}
+
+#pragma mark Localization
+//The xib is monolingual (English); set all visible strings from code
+- (void)localizeStrings
+{
+	[super localizeStrings];
+
+	NSBundle *adiumFrameworkBundle = [NSBundle bundleForClass:[AIAccountViewController class]];
+
+	//Setup
+	[label_password setStringValue:AILocalizedStringFromTableInBundle(@"Password:", nil, adiumFrameworkBundle, "Label for the password field in the account preferences")];
+	[label_server setStringValue:AILocalizedString(@"Server:", nil)];
+
+	//Options
+	[label_connection setStringValue:AILocalizedString(@"Connection:", nil)];
+	[checkBox_useSIPProxy setTitle:AILocalizedString(@"Use SIP proxy:", nil)];
+	[checkBox_useUDP setTitle:AILocalizedString(@"Use UDP", nil)];
+	[label_authUser setStringValue:AILocalizedString(@"Authorization User:", nil)];
+	[label_authDomain setStringValue:AILocalizedString(@"Authorization Domain:", nil)];
+	[label_status setStringValue:AILocalizedString(@"Status:", nil)];
+	[checkBox_publishStatus setTitle:AILocalizedString(@"Publish Status to Everyone", nil)];
 }
 
 @end

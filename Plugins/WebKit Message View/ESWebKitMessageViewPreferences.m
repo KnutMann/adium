@@ -91,6 +91,26 @@
 	viewIsOpen = YES;
 	previewListObjectsDict = nil;
 
+	//Localized text for the single-xib pane
+	[tabViewItem_regularChat setLabel:AILocalizedString(@"Regular Chats", "Tab in the messages preferences: settings for one-on-one chats")];
+	[tabViewItem_groupChat setLabel:AILocalizedString(@"Group Chat", "Tab in the messages preferences: settings for group chats")];
+	[checkBox_useRegularChatForGroup setTitle:AILocalizedString(@"Use regular chat style settings", nil)];
+	[label_messageStyle setStringValue:AILocalizedString(@"Message Style:", nil)];
+	[label_variant setStringValue:AILocalizedString(@"Variant:", nil)];
+	[checkBox_showUserIcons setTitle:AILocalizedString(@"Show user icons", nil)];
+	[checkBox_showHeader setTitle:AILocalizedString(@"Show header", nil)];
+	[label_textDisplay setStringValue:AILocalizedString(@"Text Display:", nil)];
+	[button_setFont setTitle:AILocalizedString(@"Set Font…", nil)];
+	[button_defaultFont setTitle:AILocalizedString(@"Default", nil)];
+	[checkBox_showMessageFonts setTitle:AILocalizedString(@"Show received message fonts", nil)];
+	[checkBox_showMessageColors setTitle:AILocalizedString(@"Show received message colors", nil)];
+	[label_backgroundColorsNote setStringValue:AILocalizedString(@"Message background colors are not supported by all styles", nil)];
+	[label_background setStringValue:AILocalizedString(@"Background:", nil)];
+	[checkBox_useCustomBackground setTitle:AILocalizedString(@"Use custom background", nil)];
+	[label_backgroundImage setStringValue:AILocalizedString(@"Image:", nil)];
+	[label_backgroundColor setStringValue:AILocalizedString(@"Color:", nil)];
+	[label_newWindowsNote setStringValue:AILocalizedString(@"Style changes take effect for new message windows.", nil)];
+
 	//Configure our menus
 	[popUp_backgroundImageType setMenu:[self _backgroundImageTypeMenu]];
 	[popUp_styles setMenu:[self _stylesMenu]];
@@ -550,17 +570,6 @@
 	@try {
 		[preview setValue:[NSNumber numberWithBool:NO] forKey:@"fillsContainerOnAttach"];
 	} @catch (NSException *exception) {}
-	/* The nib placeholder lacks a width-sizable mask, so it kept its nib width
-	 * while the pane grew. Stretch it across the pane (same side margins) and
-	 * make it track future resizes. */
-	{
-		NSRect placeholderFrame = [view_previewLocation frame];
-		NSView *paneRoot = [view_previewLocation superview];
-		CGFloat sideMargin = NSMinX(placeholderFrame);
-		placeholderFrame.size.width = NSWidth([paneRoot bounds]) - 2 * sideMargin;
-		[view_previewLocation setFrame:placeholderFrame];
-		[view_previewLocation setAutoresizingMask:([view_previewLocation autoresizingMask] | NSViewWidthSizable)];
-	}
 	[preview setFrame:[view_previewLocation bounds]];
 	[preview setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	if ([view_previewLocation respondsToSelector:@selector(setClipsToBounds:)])

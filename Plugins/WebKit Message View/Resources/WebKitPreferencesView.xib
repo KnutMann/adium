@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESWebKitMessageViewPreferences">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="view_previewLocation" destination="vPrev" id="oVPrev"/>
+                <outlet property="tabView_messageType" destination="tvMsg" id="oTvMsg"/>
+                <outlet property="tabViewItem_regularChat" destination="tviReg" id="oTviReg"/>
+                <outlet property="tabViewItem_groupChat" destination="tviGrp" id="oTviGrp"/>
+                <outlet property="checkBox_useRegularChatForGroup" destination="cbReg" id="oCbReg"/>
+                <outlet property="label_messageStyle" destination="lSty" id="oLSty"/>
+                <outlet property="popUp_styles" destination="pSty" id="oPSty"/>
+                <outlet property="label_variant" destination="lVar" id="oLVar"/>
+                <outlet property="popUp_variants" destination="pVar" id="oPVar"/>
+                <outlet property="checkBox_showUserIcons" destination="cbIco" id="oCbIco"/>
+                <outlet property="checkBox_showHeader" destination="cbHdr" id="oCbHdr"/>
+                <outlet property="label_textDisplay" destination="lTxt" id="oLTxt"/>
+                <outlet property="fontPreviewField_currentFont" destination="tFnt" id="oTFnt"/>
+                <outlet property="button_setFont" destination="bSet" id="oBSet"/>
+                <outlet property="button_defaultFont" destination="bDef" id="oBDef"/>
+                <outlet property="checkBox_showMessageFonts" destination="cbFnt" id="oCbFnt"/>
+                <outlet property="checkBox_showMessageColors" destination="cbCol" id="oCbCol"/>
+                <outlet property="label_backgroundColorsNote" destination="lBcn" id="oLBcn"/>
+                <outlet property="label_background" destination="lBgr" id="oLBgr"/>
+                <outlet property="checkBox_useCustomBackground" destination="cbBgr" id="oCbBgr"/>
+                <outlet property="label_backgroundImage" destination="lImg" id="oLImg"/>
+                <outlet property="popUp_backgroundImageType" destination="pImg" id="oPImg"/>
+                <outlet property="imageView_backgroundImage" destination="iBgr" id="oIBgr"/>
+                <outlet property="label_backgroundColor" destination="lCol" id="oLCol"/>
+                <outlet property="colorWell_customBackgroundColor" destination="cwCol" id="oCwCol"/>
+                <outlet property="label_newWindowsNote" destination="lNwn" id="oLNwn"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="paneView">
+            <rect key="frame" x="0.0" y="0.0" width="560" height="560"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <tabView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tvMsg">
+                    <rect key="frame" x="12" y="32" width="535" height="362"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <font key="font" metaFont="system"/>
+                    <tabViewItems>
+                        <tabViewItem label="Regular Chats" identifier="1" id="tviReg">
+                            <view key="view" id="tviRegV">
+                                <rect key="frame" x="10" y="33" width="515" height="316"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            </view>
+                        </tabViewItem>
+                        <tabViewItem label="Group Chats" identifier="2" id="tviGrp">
+                            <view key="view" id="tviGrpV">
+                                <rect key="frame" x="10" y="33" width="515" height="316"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbReg">
+                                        <rect key="frame" x="121" y="288" width="374" height="18"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="check" title="Use regular chat style settings" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbRegC">
+                                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections><action selector="changePreference:" target="-2" id="aCbReg"/></connections>
+                                    </button>
+                                </subviews>
+                            </view>
+                        </tabViewItem>
+                    </tabViewItems>
+                    <connections><outlet property="delegate" destination="-2" id="oTvDel"/></connections>
+                </tabView>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSty">
+                    <rect key="frame" x="17" y="301" width="129" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Message Style:" id="lStyC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pSty">
+                    <rect key="frame" x="151" y="297" width="260" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pStyC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pStyM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPSty"/></connections>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lVar">
+                    <rect key="frame" x="17" y="272" width="129" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Variant:" id="lVarC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pVar">
+                    <rect key="frame" x="151" y="268" width="260" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pVarC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pVarM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPVar"/></connections>
+                </popUpButton>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIco">
+                    <rect key="frame" x="152" y="246" width="360" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Show user icons" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbIcoC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbIco"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbHdr">
+                    <rect key="frame" x="152" y="224" width="360" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Show header" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbHdrC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbHdr"/></connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTxt">
+                    <rect key="frame" x="16" y="196" width="130" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Text Display:" id="lTxtC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tFnt" customClass="JVFontPreviewField">
+                    <rect key="frame" x="151" y="196" width="160" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="left" title="Lucida Grande, 12pt" id="tFntC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections><outlet property="delegate" destination="-2" id="oTFntD"/></connections>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bSet">
+                    <rect key="frame" x="314" y="190" width="118" height="28"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="push" title="Set Font…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bSetC">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections><action selector="chooseFontWithFontPanel:" target="tFnt" id="aBSet"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bDef">
+                    <rect key="frame" x="432" y="190" width="100" height="28"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="push" title="Default" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bDefC">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections><action selector="resetDisplayFontToDefault:" target="-2" id="aBDef"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbFnt">
+                    <rect key="frame" x="152" y="166" width="360" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Show received message fonts" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbFntC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbFnt"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbCol">
+                    <rect key="frame" x="152" y="144" width="360" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Show received message colors" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbColC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbCol"/></connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lBcn">
+                    <rect key="frame" x="170" y="112" width="360" height="28"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="Message background colors are not supported by all styles" id="lBcnC">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lBgr">
+                    <rect key="frame" x="16" y="94" width="130" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Background:" id="lBgrC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbBgr">
+                    <rect key="frame" x="152" y="94" width="240" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Use custom background" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbBgrC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbBgr"/></connections>
+                </button>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iBgr" customClass="AIImageViewWithImagePicker">
+                    <rect key="frame" x="170" y="40" width="70" height="54"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" imageFrameStyle="grayBezel" id="iBgrC"/>
+                    <connections><outlet property="delegate" destination="-2" id="oIBgrD"/></connections>
+                </imageView>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lImg">
+                    <rect key="frame" x="245" y="72" width="60" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Image:" id="lImgC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pImg">
+                    <rect key="frame" x="310" y="68" width="180" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pImgC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pImgM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPImg"/></connections>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lCol">
+                    <rect key="frame" x="245" y="44" width="60" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Color:" id="lColC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwCol">
+                    <rect key="frame" x="310" y="41" width="44" height="23"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <connections><action selector="changePreference:" target="-2" id="aCwCol"/></connections>
+                </colorWell>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNwn">
+                    <rect key="frame" x="17" y="10" width="526" height="14"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Style changes take effect for new message windows." id="lNwnC">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vPrev">
+                    <rect key="frame" x="16" y="402" width="528" height="148"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+                    <connections><outlet property="nextKeyView" destination="bSet" id="oVPrevNkv"/></connections>
+                </customView>
+            </subviews>
+        </customView>
+    </objects>
+</document>

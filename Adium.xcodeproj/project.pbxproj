@@ -27,7 +27,7 @@
 		11077B6F0DE647C100A4DD25 /* AIStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = 11077B6E0DE647C100A4DD25 /* AIStatusItemView.m */; };
 		1111B2300F8478500068CE51 /* Filter Bar.nib in Resources */ = {isa = PBXBuildFile; fileRef = 1111B22F0F8478500068CE51 /* Filter Bar.nib */; };
 		1111B2680F847CAD0068CE51 /* AIFilterBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1111B2670F847CAD0068CE51 /* AIFilterBarView.m */; };
-		111256060F8DA2B200E76177 /* ESBonjourAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34F4675B080F46AC007800AB /* ESBonjourAccountView.nib */; };
+		111256060F8DA2B200E76177 /* ESBonjourAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34F4675B080F46AC007800AB /* ESBonjourAccountView.xib */; };
 		111256070F8DA2BF00E76177 /* AWEzv.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5D30655E90C00B791E5 /* AWEzv.m */; };
 		111256080F8DA2BF00E76177 /* AWEzvContact.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5D50655E90C00B791E5 /* AWEzvContact.m */; };
 		111256090F8DA2BF00E76177 /* AWEzvSupportRoutines.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5EF0655E90D00B791E5 /* AWEzvSupportRoutines.m */; };
@@ -75,7 +75,7 @@
 		114849B90F7841C600EA5264 /* AIAuthorizationRequestsWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 114849B70F7841C600EA5264 /* AIAuthorizationRequestsWindowController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		114849BA0F7841C600EA5264 /* AIAuthorizationRequestsWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 114849B80F7841C600EA5264 /* AIAuthorizationRequestsWindowController.m */; };
 		114849BC0F78420300EA5264 /* AIAuthorizationRequestsWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 114849BB0F78420300EA5264 /* AIAuthorizationRequestsWindow.nib */; };
-		1150A9960FBE48D600E0BD31 /* ESIRCAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 1150A9950FBE48D600E0BD31 /* ESIRCAccountView.nib */; };
+		ADD1E5C0DE00000000001004 /* ESIRCAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001003 /* ESIRCAccountView.xib */; };
 		1154F50A12E1476900B8CA27 /* AILogByAccountWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 1154F50712E1476900B8CA27 /* AILogByAccountWindow.nib */; };
 		1154F50B12E1476900B8CA27 /* AILogByAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1154F50912E1476900B8CA27 /* AILogByAccountWindowController.m */; };
 		1163F0EC0F6C7A8300F12F5D /* AIURLShortenerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1163F0EB0F6C7A8300F12F5D /* AIURLShortenerPlugin.m */; };
@@ -212,7 +212,7 @@
 		343700A90A9C1E170028604E /* AIAdvancedPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = 343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */; };
 		34382CEF0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */; };
 		343BB5020C96CB2000506F9B /* AINewBookmarkWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A970670C965F6900F46006 /* AINewBookmarkWindowController.m */; };
-		343EB3FE08086D2F00E27095 /* AccountProxy.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB3FD08086D2F00E27095 /* AccountProxy.nib */; };
+		ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F01 /* AccountProxy.xib */; };
 		ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */; };
 		343EB41708086D9100E27095 /* StatusSortConfiguration.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB41608086D9100E27095 /* StatusSortConfiguration.nib */; };
 		343EC6920809DD3400E27095 /* ListLayoutSheet.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EC6910809DD3400E27095 /* ListLayoutSheet.nib */; };
@@ -363,7 +363,7 @@
 		3485DB6009EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416085059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB6109EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */; };
 		ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */; };
-		3485DB6209EBCE7400232CC4 /* ESPurpleGaduGaduAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB40308086D9000E27095 /* ESPurpleGaduGaduAccountView.nib */; };
+		ADD1E5C0DE00000000001006 /* ESPurpleGaduGaduAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */; };
 		3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */; };
 		3485DB6409EBCE7400232CC4 /* ESJabberService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416171059FC55A0019246B /* ESJabberService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB6509EBCE7400232CC4 /* ESJabberService.m in Sources */ = {isa = PBXBuildFile; fileRef = 34416172059FC55A0019246B /* ESJabberService.m */; };
@@ -374,9 +374,8 @@
 		3485DB6A09EBCE7400232CC4 /* DCPurpleJabberJoinChatView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB41808086D9100E27095 /* DCPurpleJabberJoinChatView.nib */; };
 		3485DB6B09EBCE7400232CC4 /* ESPurpleJabberAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 344160B4059FC2F50019246B /* ESPurpleJabberAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB6C09EBCE7400232CC4 /* ESPurpleJabberAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 344160B5059FC2F50019246B /* ESPurpleJabberAccountViewController.m */; };
-		3485DB6D09EBCE7400232CC4 /* ESPurpleJabberAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB42208086D9200E27095 /* ESPurpleJabberAccountView.nib */; };
+		ADD1E5C0DE00000000001002 /* ESPurpleJabberAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001001 /* ESPurpleJabberAccountView.xib */; };
 		3485DB6E09EBCE7400232CC4 /* PurpleDefaultsJabber.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BB19298079EE90900DAA523 /* PurpleDefaultsJabber.plist */; };
-		3485DB7C09EBCE7400232CC4 /* DCPurpleMeanwhileJoinChatView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB41408086D9100E27095 /* DCPurpleMeanwhileJoinChatView.nib */; };
 		3485DB8F09EBCE7400232CC4 /* ESNovellService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C2EA180634DB5E0018E5D2 /* ESNovellService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB9009EBCE7400232CC4 /* ESNovellService.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C2EA190634DB5E0018E5D2 /* ESNovellService.m */; };
 		3485DB9109EBCE7400232CC4 /* ESPurpleNovellAccount.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C2E66F0634CF5F0018E5D2 /* ESPurpleNovellAccount.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -386,7 +385,7 @@
 		3485DB9509EBCE7400232CC4 /* DCPurpleNovellJoinChatView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 6EA3688206B73E7D009CA81A /* DCPurpleNovellJoinChatView.nib */; };
 		3485DB9609EBCE7400232CC4 /* ESPurpleNovellAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C2E6870634CF940018E5D2 /* ESPurpleNovellAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB9709EBCE7400232CC4 /* ESPurpleNovellAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C2E6880634CF940018E5D2 /* ESPurpleNovellAccountViewController.m */; };
-		3485DB9809EBCE7400232CC4 /* ESPurpleNovellAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB3FF08086D9000E27095 /* ESPurpleNovellAccountView.nib */; };
+		ADD1E5C0DE00000000001008 /* ESPurpleNovellAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001007 /* ESPurpleNovellAccountView.xib */; };
 		3485DB9909EBCE7400232CC4 /* PurpleDefaultsGroupWise.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76476007A07BC90021CCD7 /* PurpleDefaultsGroupWise.plist */; };
 		3485DB9A09EBCE7400232CC4 /* ESSimpleService.h in Headers */ = {isa = PBXBuildFile; fileRef = 345A7B590954AD1400FF3113 /* ESSimpleService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB9B09EBCE7400232CC4 /* ESSimpleService.m in Sources */ = {isa = PBXBuildFile; fileRef = 345A7B5A0954AD1400FF3113 /* ESSimpleService.m */; };
@@ -394,7 +393,7 @@
 		3485DB9D09EBCE7400232CC4 /* ESPurpleSimpleAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 345A7B660954AD2800FF3113 /* ESPurpleSimpleAccount.m */; };
 		3485DB9E09EBCE7400232CC4 /* ESPurpleSimpleAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 345A7B6B0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB9F09EBCE7400232CC4 /* ESPurpleSimpleAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 345A7B6C0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.m */; };
-		3485DBA009EBCE7400232CC4 /* ESPurpleSimpleAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 345A7B830954AEF400FF3113 /* ESPurpleSimpleAccountView.nib */; };
+		ADD1E5C0DE0000000000100A /* ESPurpleSimpleAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001009 /* ESPurpleSimpleAccountView.xib */; };
 		3485DBA109EBCE7400232CC4 /* PurpleDefaultsSimple.plist in Resources */ = {isa = PBXBuildFile; fileRef = 345A7B710954AD4D00FF3113 /* PurpleDefaultsSimple.plist */; };
 		3485DBB209EBCE7400232CC4 /* ESZephyrService.h in Headers */ = {isa = PBXBuildFile; fileRef = 348D8D1B06CC079F00449EBB /* ESZephyrService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DBB309EBCE7400232CC4 /* ESZephyrService.m in Sources */ = {isa = PBXBuildFile; fileRef = 348D8D1A06CC079F00449EBB /* ESZephyrService.m */; };
@@ -405,7 +404,7 @@
 		3485DBB809EBCE7400232CC4 /* DCPurpleZephyrJoinChatView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB40908086D9100E27095 /* DCPurpleZephyrJoinChatView.nib */; };
 		3485DBB909EBCE7400232CC4 /* ESPurpleZephyrAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 348D8D2406CC07BD00449EBB /* ESPurpleZephyrAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DBBA09EBCE7400232CC4 /* ESPurpleZephyrAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 348D8D2206CC07BC00449EBB /* ESPurpleZephyrAccountViewController.m */; };
-		3485DBBB09EBCE7400232CC4 /* ESPurpleZephyrAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB41208086D9100E27095 /* ESPurpleZephyrAccountView.nib */; };
+		ADD1E5C0DE0000000000100C /* ESPurpleZephyrAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000100B /* ESPurpleZephyrAccountView.xib */; };
 		3485DBBC09EBCE7400232CC4 /* PurpleDefaultsZephyr.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B7646CE07A078E60021CCD7 /* PurpleDefaultsZephyr.plist */; };
 		3485DBBD09EBCE7400232CC4 /* ESPurpleNotifyEmailController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E0103307B956F6000DF265 /* ESPurpleNotifyEmailController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DBBE09EBCE7400232CC4 /* ESPurpleNotifyEmailController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34E0103207B956F6000DF265 /* ESPurpleNotifyEmailController.m */; };
@@ -631,9 +630,9 @@
 		34DC8A630A7EEEF7003E1636 /* AIAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B28DDAB0599FED200343093 /* AIAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8A640A7EEEF7003E1636 /* AIAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B28DDAC0599FED200343093 /* AIAccountViewController.m */; };
 		34DC8A650A7EEEF7003E1636 /* AccountSetup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E907A0B6D30057DB2C /* AccountSetup.nib */; };
-		34DC8A660A7EEEF7003E1636 /* AccountProfile.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E807A0B6D30057DB2C /* AccountProfile.nib */; };
-		34DC8A670A7EEEF7003E1636 /* AccountOptions.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E707A0B6D30057DB2C /* AccountOptions.nib */; };
-		34DC8A680A7EEEF7003E1636 /* AccountPrivacy.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34943DEE07BAD918000F2A03 /* AccountPrivacy.nib */; };
+		34DC8A660A7EEEF7003E1636 /* AccountProfile.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E807A0B6D30057DB2C /* AccountProfile.xib */; };
+		34DC8A670A7EEEF7003E1636 /* AccountOptions.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E707A0B6D30057DB2C /* AccountOptions.xib */; };
+		34DC8A680A7EEEF7003E1636 /* AccountPrivacy.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34943DEE07BAD918000F2A03 /* AccountPrivacy.xib */; };
 		34DC8A690A7EEEF7003E1636 /* AccountDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 348FF84909128D6300A942A8 /* AccountDefaults.plist */; };
 		34DC8A6A0A7EEEF7003E1636 /* AIEmoticon.h in Headers */ = {isa = PBXBuildFile; fileRef = 34503C7F058F96C400FB7AD1 /* AIEmoticon.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8A6B0A7EEEF7003E1636 /* AIEmoticon.m in Sources */ = {isa = PBXBuildFile; fileRef = 34503C7E058F96C400FB7AD1 /* AIEmoticon.m */; };
@@ -786,7 +785,6 @@
 		34DC8B090A7EEEF7003E1636 /* JVFontPreviewField.m in Sources */ = {isa = PBXBuildFile; fileRef = 34D8344C07CBE6E2006466F2 /* JVFontPreviewField.m */; };
 		34DC8B0A0A7EEEF7003E1636 /* JVFontPreviewField.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D8344D07CBE6E2006466F2 /* JVFontPreviewField.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DFF5FD07A63DB400B92233 /* ESSecureMessagingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34DFF46107A5EABF00B92233 /* ESSecureMessagingPlugin.m */; };
-		34E036780A75AA4F00394F11 /* DCPurpleOscarJoinChatView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 343EB40C08086D9100E27095 /* DCPurpleOscarJoinChatView.nib */; };
 		34E0EA0807CC53ED00A82198 /* NewMessagePrompt.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34E0EA0707CC53EC00A82198 /* NewMessagePrompt.nib */; };
 		34E0EA0F07CC53FE00A82198 /* AINewMessagePanelPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34E0EA0B07CC53FE00A82198 /* AINewMessagePanelPlugin.m */; };
 		34E0EA1007CC53FE00A82198 /* AINewMessagePromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34E0EA0C07CC53FE00A82198 /* AINewMessagePromptController.m */; };
@@ -858,7 +856,7 @@
 		4BB9972B083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB99727083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m */; };
 		4BB9972D083D1A5F006ACD6F /* SMContactListShowDetailsPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB99729083D1A5F006ACD6F /* SMContactListShowDetailsPane.m */; };
 		4BB9972F083D1A74006ACD6F /* ContactListShowBehavior.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BB9972E083D1A74006ACD6F /* ContactListShowBehavior.nib */; };
-		4BCAB5F307B59967006641B9 /* EditAccountSheet.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAB5F007B59967006641B9 /* EditAccountSheet.nib */; };
+		4BCAB5F307B59967006641B9 /* EditAccountSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */; };
 		4BCAC4CF07B59AFE006641B9 /* AddressBookPrefs.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.nib */; };
 		4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */; };
 		4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E307B59B65006641B9 /* Alias Defaults.plist */; };
@@ -952,7 +950,7 @@
 		6311F4710E340DD2004234B8 /* AISharedAdium.h in Headers */ = {isa = PBXBuildFile; fileRef = 6311F46F0E340DD2004234B8 /* AISharedAdium.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6311F4720E340DD2004234B8 /* AISharedAdium.m in Sources */ = {isa = PBXBuildFile; fileRef = 6311F4700E340DD2004234B8 /* AISharedAdium.m */; };
 		6318DBA10F8D93F200C5E584 /* WebKit Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 347065E406015DC5004F0D20 /* WebKit Defaults.plist */; };
-		6318DBA20F8D93F200C5E584 /* WebKitPreferencesView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 348EE1B3080A57480015E0FC /* WebKitPreferencesView.nib */; };
+		ADD1E5C0DE00000000000E02 /* WebKitPreferencesView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */; };
 		6318DBA30F8D93F200C5E584 /* Preview.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DBE5063449AF0018E5D2 /* Preview.plist */; };
 		6318DBA40F8D93F200C5E584 /* SoulEdge.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF00063498ED0018E5D2 /* SoulEdge.png */; };
 		6318DBA50F8D93F200C5E584 /* terminator.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF01063498ED0018E5D2 /* terminator.png */; };
@@ -1015,7 +1013,6 @@
 		6EC1684D06C170A000F9FAD3 /* DCInviteToChatPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684806C170A000F9FAD3 /* DCInviteToChatPlugin.m */; };
 		6EC1684F06C170A000F9FAD3 /* DCInviteToChatWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684A06C170A000F9FAD3 /* DCInviteToChatWindowController.m */; };
 		6EC1685006C170A000F9FAD3 /* InviteToChatWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 6EC1684B06C170A000F9FAD3 /* InviteToChatWindow.nib */; };
-		761D6A251ACC5F0B002079F2 /* ESPurpleGTalkAccountView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 761D6A231ACC5F0B002079F2 /* ESPurpleGTalkAccountView.nib */; };
 		7664EAA6162E0874008CF995 /* libffi.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7664EAA4162E086A008CF995 /* libffi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		766ABAB61306D1020049FFB7 /* AIUnreadMessagesTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 766ABAB51306D1020049FFB7 /* AIUnreadMessagesTooltip.m */; };
 		76889DEB12D3CA17007AEF00 /* get-info.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 76889DEA12D3CA17007AEF00 /* get-info.tiff */; };
@@ -1557,7 +1554,6 @@
 		3403F56A0D2F0BDE006B08FB /* AIServersideUserIconSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIServersideUserIconSource.m; path = Frameworks/Adium/Source/AIServersideUserIconSource.m; sourceTree = "<group>"; };
 		34048AC50617CB4C004D0B7E /* SLPurpleCocoaAdapter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SLPurpleCocoaAdapter.h; path = "Plugins/Purple Service/SLPurpleCocoaAdapter.h"; sourceTree = "<group>"; };
 		34048AC60617CB4C004D0B7E /* SLPurpleCocoaAdapter.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SLPurpleCocoaAdapter.m; path = "Plugins/Purple Service/SLPurpleCocoaAdapter.m"; sourceTree = "<group>"; };
-		3405808E087EEFA000664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34058090087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34058091087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		34058092087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
@@ -1576,7 +1572,6 @@
 		340580A9087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		340580AA087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		340580AC087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		340580AD087EEFA300664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/WebKit Message View/Resources/ru.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		340670790A55A044004E22AC /* sourceListBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sourceListBackground.png; path = Resources/sourceListBackground.png; sourceTree = "<group>"; };
 		340670A60A55A4B4004E22AC /* ESGlassSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGlassSplitView.h; path = Source/ESGlassSplitView.h; sourceTree = "<group>"; };
 		340670A70A55A4B4004E22AC /* ESGlassSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGlassSplitView.m; path = Source/ESGlassSplitView.m; sourceTree = "<group>"; };
@@ -1698,7 +1693,6 @@
 		341E88680648FF1B00E0C828 /* ESPurpleRequestActionController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESPurpleRequestActionController.h; path = "Plugins/Purple Service/ESPurpleRequestActionController.h"; sourceTree = "<group>"; };
 		341E88690648FF1B00E0C828 /* ESPurpleRequestActionController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESPurpleRequestActionController.m; path = "Plugins/Purple Service/ESPurpleRequestActionController.m"; sourceTree = "<group>"; };
 		341EC8A60D3C2B9B007216A2 /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = Frameworks/Adium/Resources/sl.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
-		341EC8B40D3C2BA6007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Resources/sl.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		341EC8B60D3C2BA6007216A2 /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = Resources/sl.lproj/Buttons.strings; sourceTree = "<group>"; };
 		341EC8B70D3C2BA7007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Resources/sl.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
 		341EC8B80D3C2BA7007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Frameworks/Adium/Resources/sl.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
@@ -1714,7 +1708,6 @@
 		341EC8C50D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sl; path = "Resources/sl.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		341EC8C70D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = Resources/sl.lproj/Statuses.strings; sourceTree = "<group>"; };
 		341EC8C90D3C2BAB007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Resources/sl.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		34208CFB0D502D3E003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34208CFD0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = Resources/fr_CA.lproj/Buttons.strings; sourceTree = "<group>"; };
 		34208CFE0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34208CFF0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
@@ -1740,13 +1733,11 @@
 		34208D1D0D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34208D1E0D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fr_CA; path = "Resources/fr_CA.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34208D210D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		34208D220D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/WebKit Message View/Resources/fr_CA.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3420E65B0611D80000AE67E3 /* ESAccountPasswordPromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESAccountPasswordPromptController.h; path = Source/ESAccountPasswordPromptController.h; sourceTree = "<group>"; };
 		3420E65C0611D80000AE67E3 /* ESAccountPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAccountPasswordPromptController.m; path = Source/ESAccountPasswordPromptController.m; sourceTree = "<group>"; };
 		3420E65D0611D80000AE67E3 /* ESProxyPasswordPromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESProxyPasswordPromptController.h; path = Source/ESProxyPasswordPromptController.h; sourceTree = "<group>"; };
 		3420E65E0611D80000AE67E3 /* ESProxyPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESProxyPasswordPromptController.m; path = Source/ESProxyPasswordPromptController.m; sourceTree = "<group>"; };
 		3421137C08261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
-		3421137E08261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		3421137F08261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		3421138008261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
 		3421138108261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
@@ -1776,7 +1767,6 @@
 		342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewTableView.m; path = Plugins/Emoticons/AIEmoticonPackPreviewTableView.m; sourceTree = "<group>"; };
 		3429BB03070378F700EED705 /* ESFileTransferMessagesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESFileTransferMessagesPlugin.h; path = Source/ESFileTransferMessagesPlugin.h; sourceTree = "<group>"; };
 		3429BB04070378F700EED705 /* ESFileTransferMessagesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferMessagesPlugin.m; path = Source/ESFileTransferMessagesPlugin.m; sourceTree = "<group>"; };
-		342CE12B085A089D00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		342CE12D085A089E00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		342CE12E085A089E00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		342CE12F085A089E00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
@@ -1795,8 +1785,6 @@
 		342CE146085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		342CE147085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		342CE149085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		342CE14A085A08A300005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/WebKit Message View/Resources/sv.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		342CE159085A08C400005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		342CE15B085A08C500005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		342CE15C085A08C500005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		342CE15D085A08C500005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
@@ -1815,7 +1803,6 @@
 		342CE174085A08C700005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		342CE175085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		342CE177085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		342CE178085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/WebKit Message View/Resources/ca.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		342DC49B05783BE8000E1D83 /* ESSendMessageAlertDetailPane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESSendMessageAlertDetailPane.h; path = "Plugins/Send Message Contact Alert/ESSendMessageAlertDetailPane.h"; sourceTree = "<group>"; };
 		342DC49C05783BE8000E1D83 /* ESSendMessageAlertDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESSendMessageAlertDetailPane.m; path = "Plugins/Send Message Contact Alert/ESSendMessageAlertDetailPane.m"; sourceTree = "<group>"; };
 		342DC5BF05783DE7000E1D83 /* ESSendMessageContactAlertPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESSendMessageContactAlertPlugin.m; path = "Plugins/Send Message Contact Alert/ESSendMessageContactAlertPlugin.m"; sourceTree = "<group>"; };
@@ -1828,7 +1815,6 @@
 		342F88CC0A2A74EA0001DB29 /* SGHotKeyCenter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SGHotKeyCenter.h; path = Source/SGHotKeyCenter.h; sourceTree = "<group>"; };
 		342F88CD0A2A74EB0001DB29 /* SGHotKey.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SGHotKey.m; path = Source/SGHotKey.m; sourceTree = "<group>"; };
 		342F88CE0A2A74EB0001DB29 /* SGHotKey.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SGHotKey.h; path = Source/SGHotKey.h; sourceTree = "<group>"; };
-		342F9E520B552627000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/WebKit Message View/Resources/fi.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		342F9E530B552627000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		342F9E560B552628000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fi; path = "Resources/fi.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		342F9E580B552628000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
@@ -1853,14 +1839,12 @@
 		342F9E790B552632000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		342F9E7A0B552632000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		342F9E7B0B552632000D5FC2 /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = Resources/fi.lproj/Buttons.strings; sourceTree = "<group>"; };
-		342F9E7D0B552632000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		343022270AB4766E0082CF7C /* AINulRemovalPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINulRemovalPlugin.h; path = Source/AINulRemovalPlugin.h; sourceTree = "<group>"; };
 		343022280AB4766E0082CF7C /* AINulRemovalPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AINulRemovalPlugin.m; path = Source/AINulRemovalPlugin.m; sourceTree = "<group>"; };
 		34327BD6060D2FE6003D7AD9 /* PurpleServiceDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = PurpleServiceDefaults.plist; path = "Plugins/Purple Service/PurpleServiceDefaults.plist"; sourceTree = "<group>"; };
 		34333FF2127F6E77007050E8 /* TemporaryIRCAccountWindow.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = TemporaryIRCAccountWindow.nib; path = Resources/TemporaryIRCAccountWindow.nib; sourceTree = "<group>"; };
 		343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdvancedPreferencePane.h; path = Frameworks/Adium/Source/AIAdvancedPreferencePane.h; sourceTree = "<group>"; };
 		343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferencePane.m; path = Frameworks/Adium/Source/AIAdvancedPreferencePane.m; sourceTree = "<group>"; };
-		3437FF410A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/WebKit Message View/Resources/tr.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3437FF420A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		3437FF440A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		3437FF450A9BF0A60028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
@@ -1879,14 +1863,19 @@
 		3437FF590A9BF0A70028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		3437FF5A0A9BF0A70028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		3437FF5B0A9BF0A70028604E /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = Resources/tr.lproj/Buttons.strings; sourceTree = "<group>"; };
-		3437FF5D0A9BF0A70028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = MessageContextDisplayDefaults.plist; path = Resources/MessageContextDisplayDefaults.plist; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AppearancePrefs.xib; path = Resources/AppearancePrefs.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000A01 /* PersonalPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PersonalPreferences.xib; path = Resources/PersonalPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GeneralPreferences.xib; path = Resources/GeneralPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferences.xib; path = Resources/StatusPreferences.xib; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001001 /* ESPurpleJabberAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESPurpleJabberAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESPurpleJabberAccountView.xib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001003 /* ESIRCAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESIRCAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESIRCAccountView.xib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESPurpleGaduGaduAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESPurpleGaduGaduAccountView.xib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001007 /* ESPurpleNovellAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESPurpleNovellAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESPurpleNovellAccountView.xib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001009 /* ESPurpleSimpleAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESPurpleSimpleAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESPurpleSimpleAccountView.xib"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000100B /* ESPurpleZephyrAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESPurpleZephyrAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESPurpleZephyrAccountView.xib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000F01 /* AccountProxy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountProxy.xib; path = Resources/AccountProxy.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
-		343C45E20816C0FE00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/WebKit Message View/Resources/it.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		343C46040816CC6800FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
 		343C46070816CC8000FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/DCPurpleZephyrJoinChatView.nib"; sourceTree = "<group>"; };
@@ -1896,7 +1885,6 @@
 		343C46170816CCE300FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		343C46180816CCEC00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		343C461F0816CD0400FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
-		343C47760816FBDA00FF5FA7 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/WebKit Message View/Resources/de.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		343EB4270808709E00E27095 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = Resources/en.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
 		343EC68F0809DD2900E27095 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = Resources/en.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = StatusPreferencesAdvanced.nib; path = Resources/StatusPreferencesAdvanced.nib; sourceTree = "<group>"; };
@@ -1975,7 +1963,6 @@
 		345074C00E106BF000BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Frameworks/Adium/Resources/pt_PT.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		345074C10E106BF000BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Frameworks/Adium/Resources/pt_PT.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		345074C20E106BF000BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Frameworks/Adium/Resources/pt_PT.lproj/Localizable.strings; sourceTree = "<group>"; };
-		345076950E106F5C00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = Resources/en_GB.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		345076960E106F5C00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = Resources/en_GB.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		345076980E106F5C00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/Buttons.strings; sourceTree = "<group>"; };
 		345076990E106F5C00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2000,8 +1987,6 @@
 		345076B60E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en_GB; path = "Resources/en_GB.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		345076B80E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/Statuses.strings; sourceTree = "<group>"; };
 		345076BA0E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = Resources/en_GB.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		345076BB0E106F6000BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/WebKit Message View/Resources/en_GB.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		345076D40E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		345076D50E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		345076D70E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Resources/pt_PT.lproj/Buttons.strings; sourceTree = "<group>"; };
 		345076D80E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2025,7 +2010,6 @@
 		345076F40E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pt_PT; path = "Resources/pt_PT.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		345076F60E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Resources/pt_PT.lproj/Statuses.strings; sourceTree = "<group>"; };
 		345076F80E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		345076F90E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/WebKit Message View/Resources/pt_PT.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3452A9F607891C8A00C3C494 /* ESFileTransferRequestPromptController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESFileTransferRequestPromptController.h; path = Source/ESFileTransferRequestPromptController.h; sourceTree = "<group>"; };
 		3452A9F707891C8A00C3C494 /* ESFileTransferRequestPromptController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferRequestPromptController.m; path = Source/ESFileTransferRequestPromptController.m; sourceTree = "<group>"; };
 		34555C5E0DB6BCE500649CD4 /* AIContactObserverManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactObserverManager.h; path = Frameworks/Adium/Source/AIContactObserverManager.h; sourceTree = "<group>"; };
@@ -2050,17 +2034,13 @@
 		34575E3607CBA874004A4FFF /* DebugWindow.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = DebugWindow.nib; path = Resources/DebugWindow.nib; sourceTree = "<group>"; };
 		34575E3807CBA88E004A4FFF /* MainMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainMenu.xib; path = Resources/MainMenu.xib; sourceTree = "<group>"; };
 		3458B4FF081DD44B0005BCF6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = Resources/ja.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
-		3458B500081DD44B0005BCF6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = Resources/ja.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		3458B501081DD44B0005BCF6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = Resources/ja.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
 		3458B502081DD44B0005BCF6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = Resources/ja.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		3458B882081FF7CA0005BCF6 /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Resources/zh_TW.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
-		3458B9540820D8EC0005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/WebKit Message View/Resources/fr.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		3458B96E0820DAC40005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Resources/fr.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		3458B9960820DAE10005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Resources/fr.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
 		3458B9AC0820DAF50005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Resources/fr.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
 		3458B9AD0820DAF50005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Resources/fr.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		3458B9C10820DB000005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Resources/fr.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		3458BA120821741A0005BCF6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/WebKit Message View/Resources/nl.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3458BA19082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		3458BA1A082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		3458BA1B082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
@@ -2078,7 +2058,6 @@
 		3458BA90082178420005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		3458BA93082178420005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		3458BA95082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
-		3458BA97082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = Resources/da.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		3458BA99082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = Resources/da.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
 		3458BA9A082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = Resources/da.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		3458BA9B082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = Resources/da.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
@@ -2127,14 +2106,11 @@
 		345F566A08178356001F733C /* AdiumServiceIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = AdiumServiceIcons.icns; path = Resources/AdiumServiceIcons.icns; sourceTree = "<group>"; };
 		345F573F0817FF80001F733C /* pref-contactList.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "pref-contactList.tiff"; path = "Resources/pref-contactList.tiff"; sourceTree = "<group>"; };
 		345F583D08197E74001F733C /* AdiumStatusIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = AdiumStatusIcons.icns; path = Resources/AdiumStatusIcons.icns; sourceTree = "<group>"; };
-		345F586308198E7F001F733C /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = Resources/nl.lproj/AccountProxy.nib; sourceTree = "<group>"; };
-		345F586408198E87001F733C /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = Resources/de.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		345F589908198F15001F733C /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = Resources/de.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		345F589A08198F15001F733C /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = Resources/de.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
 		345F589C08198F15001F733C /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = Resources/de.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		345F58C6081990FF001F733C /* msg-log-viewer.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-log-viewer.tiff"; path = "Resources/msg-log-viewer.tiff"; sourceTree = "<group>"; };
 		345F590608199746001F733C /* emoticon32_transparent.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = emoticon32_transparent.tiff; path = Resources/emoticon32_transparent.tiff; sourceTree = "<group>"; };
-		345F5B97081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Resources/zh_TW.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		345F5B99081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		345F5B9A081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		345F5B9B081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2151,7 +2127,6 @@
 		345F5BB1081AC4F2001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Resources/zh_TW.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		345F5BB2081AC4F3001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Resources/zh_TW.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		345F5BB3081AC4F3001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Resources/zh_TW.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		345F5BB4081AC4F3001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/WebKit Message View/Resources/zh_TW.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34607EE609B228FE000DB3D2 /* AIContactListNameButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactListNameButton.h; path = Source/AIContactListNameButton.h; sourceTree = "<group>"; };
 		34607EE709B228FE000DB3D2 /* AIContactListNameButton.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactListNameButton.m; path = Source/AIContactListNameButton.m; sourceTree = "<group>"; };
 		34607F0C09B2296A000DB3D2 /* AIHoveringPopUpButtonCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIHoveringPopUpButtonCell.m; path = Source/AIHoveringPopUpButtonCell.m; sourceTree = "<group>"; };
@@ -2171,8 +2146,6 @@
 		3465229208371922009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		3465229608371922009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		3465229808371922009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
-		3465229908371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/WebKit Message View/Resources/zh_CN.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		3465229A08371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		3465229B08371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		3465229C08371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Frameworks/Adium/Resources/zh_CN.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		3465229E08371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
@@ -2186,14 +2159,12 @@
 		346522BA08371996009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		346522BB08371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
 		346522BC08371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
-		346522BE08371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		346522BF08371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleZephyrJoinChatView.nib"; sourceTree = "<group>"; };
 		346522C008371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		346522C208371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
 		346522C408371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		346522C608371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		346522C708371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
-		346522C808371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/WebKit Message View/Resources/cs.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		346522CC08371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/ESFileTransferProgressView.nib; sourceTree = "<group>"; };
 		346522CD08371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Frameworks/Adium/Resources/cs.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		346522CE08371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
@@ -2206,14 +2177,12 @@
 		346522FD083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		346522FF083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/ESFileTransferProgressView.nib; sourceTree = "<group>"; };
 		34652300083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
-		34652302083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34652305083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34652306083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		34652308083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34652309083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		3465230A083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
 		3465230C083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		3465230D083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/WebKit Message View/Resources/nb.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3465230F083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/DCPurpleZephyrJoinChatView.nib"; sourceTree = "<group>"; };
 		34652310083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Frameworks/Adium/Resources/nb.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		34652311083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
@@ -2250,7 +2219,6 @@
 		346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GlobalEventsPreferences.xib; path = Resources/GlobalEventsPreferences.xib; sourceTree = "<group>"; };
 		346C9A2305FFE3DE000F5A8A /* ESWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebView.h; path = "Plugins/WebKit Message View/ESWebView.h"; sourceTree = "<group>"; };
 		346C9A2405FFE3DF000F5A8A /* ESWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESWebView.m; path = "Plugins/WebKit Message View/ESWebView.m"; sourceTree = "<group>"; };
-		346C9BF70E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		346C9BF80E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		346C9BFA0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Buttons.strings; sourceTree = "<group>"; };
 		346C9BFB0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2278,7 +2246,6 @@
 		346C9C1B0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = hu; path = "Resources/hu.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		346C9C1D0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Statuses.strings; sourceTree = "<group>"; };
 		346C9C1F0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		346C9C200E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/WebKit Message View/Resources/hu.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		346CFDC4087B7836009711C8 /* AdiumIdleManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumIdleManager.h; path = Source/AdiumIdleManager.h; sourceTree = "<group>"; };
 		346CFDC5087B7836009711C8 /* AdiumIdleManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumIdleManager.m; path = Source/AdiumIdleManager.m; sourceTree = "<group>"; };
 		346F5CB308A418FB0055C610 /* CurrentTunes.scpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.scpt; name = CurrentTunes.scpt; path = Resources/CurrentTunes.scpt; sourceTree = "<group>"; };
@@ -2406,7 +2373,7 @@
 		349062A1127F7E6900FC313F /* AITemporaryIRCAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITemporaryIRCAccountWindowController.m; path = Source/AITemporaryIRCAccountWindowController.m; sourceTree = "<group>"; };
 		349195640C9662AA00595A04 /* AIListBookmark.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIListBookmark.m; path = Frameworks/Adium/Source/AIListBookmark.m; sourceTree = "<group>"; };
 		349195650C9662AA00595A04 /* AIListBookmark.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIListBookmark.h; path = Frameworks/Adium/Source/AIListBookmark.h; sourceTree = "<group>"; };
-		34943DEE07BAD918000F2A03 /* AccountPrivacy.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AccountPrivacy.nib; path = Frameworks/Adium/Resources/AccountPrivacy.nib; sourceTree = "<group>"; };
+		34943DEE07BAD918000F2A03 /* AccountPrivacy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountPrivacy.xib; path = "Frameworks/Adium/Resources/AccountPrivacy.xib"; sourceTree = "<group>"; };
 		349448C207BB29B2000F2A03 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		3496A8BF07CE6B3D0055BBAB /* en */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en; path = Resources/en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		349710DC096C4C7700699948 /* en */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en; path = Resources/en.lproj/Buttons.strings; sourceTree = "<group>"; };
@@ -2494,7 +2461,6 @@
 		34A1B59F0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitPreviewMessageViewController.m; path = "Plugins/WebKit Message View/AIWebKitPreviewMessageViewController.m"; sourceTree = "<group>"; };
 		34A250B507E0F822009854E1 /* StatusDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = StatusDefaults.plist; path = Resources/StatusDefaults.plist; sourceTree = "<group>"; };
 		34A29D9406ED68BF00E1366C /* Contact List */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = folder; name = "Contact List"; path = "Resources/Contact List"; sourceTree = "<group>"; };
-		34A30E7508D8EE7800697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34A30E7808D8EE7800697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34A30E7908D8EE7800697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		34A30E7A08D8EE7800697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2514,7 +2480,6 @@
 		34A30EA108D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34A30EA208D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = folder; name = es; path = "Resources/es.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34A30EA408D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		34A30EA508D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/WebKit Message View/Resources/es.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34A489F106F64359002C7C5F /* AISCLViewPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISCLViewPlugin.m; path = Source/AISCLViewPlugin.m; sourceTree = "<group>"; };
 		34A489F206F64359002C7C5F /* AISCLViewPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AISCLViewPlugin.h; path = Source/AISCLViewPlugin.h; sourceTree = "<group>"; };
 		34A489FB06F6436D002C7C5F /* AIStandardListWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIStandardListWindowController.m; path = Source/AIStandardListWindowController.m; sourceTree = "<group>"; };
@@ -2547,7 +2512,6 @@
 		34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-sound-alert.tiff"; path = "Resources/events-sound-alert.tiff"; sourceTree = "<group>"; };
 		34A6FB2C07D6F98600972830 /* SoundFileIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoundFileIcon.png; path = Resources/SoundFileIcon.png; sourceTree = "<group>"; };
 		34A6FB8007D6FDCC00972830 /* FormattingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = FormattingDefaults.plist; path = Resources/FormattingDefaults.plist; sourceTree = "<group>"; };
-		34A81DB2093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/WebKit Message View/Resources/pl.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34A81DB3093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34A81DB5093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34A81DB6093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
@@ -2567,7 +2531,6 @@
 		34A81DD0093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		34A81DD1093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		34A81DD2093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34A81DD5093CE92400B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34A970580C965F2400F46006 /* AISideSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISideSplitView.h; path = "Plugins/Dual Window Interface/AISideSplitView.h"; sourceTree = "<group>"; };
 		34A970590C965F2400F46006 /* AISideSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISideSplitView.m; path = "Plugins/Dual Window Interface/AISideSplitView.m"; sourceTree = "<group>"; };
 		34A970660C965F6900F46006 /* AINewBookmarkWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINewBookmarkWindowController.h; path = Source/AINewBookmarkWindowController.h; sourceTree = "<group>"; };
@@ -2594,7 +2557,6 @@
 		34B1FB600F112AC800C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Frameworks/Adium/Resources/el_GR.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		34B1FB610F112AC800C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Frameworks/Adium/Resources/el_GR.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		34B1FB620F112AC800C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Frameworks/Adium/Resources/el_GR.lproj/Localizable.strings; sourceTree = "<group>"; };
-		34B1FCC40F112BF400C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Resources/el_GR.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34B1FCC50F112BF400C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Resources/el_GR.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		34B1FCC70F112BF400C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/Buttons.strings; sourceTree = "<group>"; };
 		34B1FCC80F112BF400C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2619,7 +2581,6 @@
 		34B1FCE50F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = folder; name = el_GR; path = "Resources/el_GR.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34B1FCE70F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/Statuses.strings; sourceTree = "<group>"; };
 		34B1FCE90F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Resources/el_GR.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		34B1FCEA0F112BF800C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/WebKit Message View/Resources/el_GR.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34B271EB0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		34B271EC0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Frameworks/Adium/Resources/is.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		34B271ED0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
@@ -2636,8 +2597,6 @@
 		34B272000839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34B272010839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/DCPurpleZephyrJoinChatView.nib"; sourceTree = "<group>"; };
 		34B272030839E8E50092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
-		34B272050839E8E50092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/WebKit Message View/Resources/is.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		34B272060839E8E50092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34B272160839E8FB0092A5A0 /* is */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = is; path = "Plugins/Purple Service/Resources/is.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34B272180839E8FB0092A5A0 /* is */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = is; path = Resources/is.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34B3244309BA003C00029361 /* AILibpurplePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AILibpurplePlugin.h; path = "Plugins/Purple Service/AILibpurplePlugin.h"; sourceTree = "<group>"; };
@@ -2712,8 +2671,6 @@
 		34C14CD007A8B1AB003CC138 /* AIEmoticonPackPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewView.h; sourceTree = "<group>"; };
 		34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewView.m; path = Plugins/Emoticons/AIEmoticonPackPreviewView.m; sourceTree = "<group>"; };
 		34C14D5007A8BA00003CC138 /* EmoticonPackPreview.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = EmoticonPackPreview.nib; path = Plugins/Emoticons/EmoticonPackPreview.nib; sourceTree = "<group>"; };
-		34C2A463082183E100F3363F /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/WebKit Message View/Resources/da.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		34C2A4860821859700F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/WebKit Message View/Resources/ja.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34C2A48A0821859700F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		34C2A48B0821859700F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		34C2A48C0821859700F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
@@ -2727,7 +2684,6 @@
 		34C2CF86063340540018E5D2 /* PurpleSinglelineRequestWindow.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = PurpleSinglelineRequestWindow.nib; path = "Plugins/Purple Service/PurpleSinglelineRequestWindow.nib"; sourceTree = "<group>"; };
 		34C2D70306338E2E0018E5D2 /* ESWebKitMessageViewPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebKitMessageViewPreferences.h; path = "Plugins/WebKit Message View/ESWebKitMessageViewPreferences.h"; sourceTree = "<group>"; };
 		34C2D70406338E2E0018E5D2 /* ESWebKitMessageViewPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESWebKitMessageViewPreferences.m; path = "Plugins/WebKit Message View/ESWebKitMessageViewPreferences.m"; sourceTree = "<group>"; };
-		34C2D8C00633BBA80018E5D2 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/WebKit Message View/Resources/en.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34C2DBE5063449AF0018E5D2 /* Preview.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = Preview.plist; path = "Plugins/WebKit Message View/Preview.plist"; sourceTree = "<group>"; };
 		34C2DF00063498ED0018E5D2 /* SoulEdge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoulEdge.png; path = "Plugins/WebKit Message View/SoulEdge.png"; sourceTree = "<group>"; };
 		34C2DF01063498ED0018E5D2 /* terminator.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = terminator.png; path = "Plugins/WebKit Message View/terminator.png"; sourceTree = "<group>"; };
@@ -2913,7 +2869,6 @@
 		34F1022A0734499600890D3B /* XtraProgressWindow.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = XtraProgressWindow.nib; path = Resources/XtraProgressWindow.nib; sourceTree = "<group>"; };
 		34F10239073449D500890D3B /* XtrasInstaller.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = XtrasInstaller.m; path = Source/XtrasInstaller.m; sourceTree = "<group>"; };
 		34F1023A073449D500890D3B /* XtrasInstaller.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = XtrasInstaller.h; path = Source/XtrasInstaller.h; sourceTree = "<group>"; };
-		34F13F300BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34F13F320BA6D56D000473DE /* pt */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt; path = Resources/pt.lproj/Buttons.strings; sourceTree = "<group>"; };
 		34F13F330BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34F13F340BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
@@ -2934,7 +2889,6 @@
 		34F13F4C0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		34F13F4D0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34F13F500BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		34F13F510BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/WebKit Message View/Resources/pt.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34F144460BA8FF46000473DE /* en */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en; path = Frameworks/Adium/Resources/en.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		34F17FCC0F8EAC34009C5A39 /* AIListOutlineView+Drawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "AIListOutlineView+Drawing.h"; path = "Frameworks/Adium/Source/AIListOutlineView+Drawing.h"; sourceTree = "<group>"; };
 		34F17FCD0F8EAC34009C5A39 /* AIListOutlineView+Drawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "AIListOutlineView+Drawing.m"; path = "Frameworks/Adium/Source/AIListOutlineView+Drawing.m"; sourceTree = "<group>"; };
@@ -2955,7 +2909,7 @@
 		34F46758080F46AB007800AB /* AWBonjourPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AWBonjourPlugin.h; sourceTree = "<group>"; };
 		34F46759080F46AB007800AB /* AWBonjourAccount.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AWBonjourAccount.m; sourceTree = "<group>"; };
 		34F4675A080F46AB007800AB /* AWBonjourAccount.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AWBonjourAccount.h; sourceTree = "<group>"; };
-		34F4675B080F46AC007800AB /* ESBonjourAccountView.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = ESBonjourAccountView.nib; sourceTree = "<group>"; };
+		34F4675B080F46AC007800AB /* ESBonjourAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESBonjourAccountView.xib; path = ESBonjourAccountView.xib; sourceTree = "<group>"; };
 		34F4675C080F46AC007800AB /* AWBonjourService.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AWBonjourService.m; sourceTree = "<group>"; };
 		34F4675D080F46AC007800AB /* AWBonjourService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AWBonjourService.h; sourceTree = "<group>"; };
 		34F46778080F49C5007800AB /* Safari.scpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.scpt; name = Safari.scpt; path = Resources/Safari.scpt; sourceTree = "<group>"; };
@@ -3055,6 +3009,7 @@
 		ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdiumURLSchemeHandler.m; path = "Plugins/WebKit Message View/AIAdiumURLSchemeHandler.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D07 /* AIWebKitMessageViewWKContextMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewWKContextMenu.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewWKContextMenu.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = WebKitPreferencesView.xib; path = "Plugins/WebKit Message View/Resources/WebKitPreferencesView.xib"; sourceTree = "<group>"; };
 		4B5827E80613CE9D0004BD25 /* AIMessageEntryTextView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMessageEntryTextView.h; path = Frameworks/Adium/Source/AIMessageEntryTextView.h; sourceTree = "<group>"; };
 		4B5827E90613CE9D0004BD25 /* AIMessageEntryTextView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIMessageEntryTextView.m; path = Frameworks/Adium/Source/AIMessageEntryTextView.m; sourceTree = "<group>"; };
 		4B588C9807AC23A9001832A9 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = Frameworks/Adium/Resources/en.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
@@ -3162,8 +3117,7 @@
 		4BC5A5D80764F75B0080ECF7 /* AIVideoChatInterfacePlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIVideoChatInterfacePlugin.h; path = "Plugins/Video Chat Interface/AIVideoChatInterfacePlugin.h"; sourceTree = "<group>"; };
 		4BC5A5D90764F75B0080ECF7 /* AIVideoChatInterfacePlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIVideoChatInterfacePlugin.m; path = "Plugins/Video Chat Interface/AIVideoChatInterfacePlugin.m"; sourceTree = "<group>"; };
 		4BC5A5DA0764F75B0080ECF7 /* LocalVideoWindow.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = LocalVideoWindow.nib; path = "Plugins/Video Chat Interface/LocalVideoWindow.nib"; sourceTree = "<group>"; };
-		4BCAB5EF07B59967006641B9 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = Resources/en.lproj/AccountProxy.nib; sourceTree = "<group>"; };
-		4BCAB5F007B59967006641B9 /* EditAccountSheet.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = EditAccountSheet.nib; path = Resources/EditAccountSheet.nib; sourceTree = "<group>"; };
+		4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EditAccountSheet.xib; path = Resources/EditAccountSheet.xib; sourceTree = "<group>"; };
 		4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AddressBookPrefs.nib; path = Resources/AddressBookPrefs.nib; sourceTree = "<group>"; };
 		4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = AddressBook.tiff; path = Resources/AddressBook.tiff; sourceTree = "<group>"; };
 		4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "AB Display Format Defaults.plist"; path = "Frameworks/Adium/Resources/AB Display Format Defaults.plist"; sourceTree = "<group>"; };
@@ -3180,8 +3134,8 @@
 		4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountProxySettings.m; path = Source/AIAccountProxySettings.m; sourceTree = "<group>"; };
 		4BDC17720493C90E00A8010A /* AIContentTyping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentTyping.h; path = Frameworks/Adium/Source/AIContentTyping.h; sourceTree = "<group>"; };
 		4BDC17730493C90E00A8010A /* AIContentTyping.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentTyping.m; path = Frameworks/Adium/Source/AIContentTyping.m; sourceTree = "<group>"; };
-		4BDD81E707A0B6D30057DB2C /* AccountOptions.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AccountOptions.nib; path = Frameworks/Adium/Resources/AccountOptions.nib; sourceTree = "<group>"; };
-		4BDD81E807A0B6D30057DB2C /* AccountProfile.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AccountProfile.nib; path = Frameworks/Adium/Resources/AccountProfile.nib; sourceTree = "<group>"; };
+		4BDD81E707A0B6D30057DB2C /* AccountOptions.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountOptions.xib; path = "Frameworks/Adium/Resources/AccountOptions.xib"; sourceTree = "<group>"; };
+		4BDD81E807A0B6D30057DB2C /* AccountProfile.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountProfile.xib; path = "Frameworks/Adium/Resources/AccountProfile.xib"; sourceTree = "<group>"; };
 		4BDD81E907A0B6D30057DB2C /* AccountSetup.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AccountSetup.nib; path = Frameworks/Adium/Resources/AccountSetup.nib; sourceTree = "<group>"; };
 		4BE3AD1C085F3EDD005919E7 /* AdiumPreferredAccounts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumPreferredAccounts.h; path = Source/AdiumPreferredAccounts.h; sourceTree = "<group>"; };
 		4BE3AD1D085F3EDD005919E7 /* AdiumPreferredAccounts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumPreferredAccounts.m; path = Source/AdiumPreferredAccounts.m; sourceTree = "<group>"; };
@@ -3260,7 +3214,6 @@
 		5A1FEA601334549300C14951 /* MessageView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = MessageView.xib; path = "Plugins/Dual Window Interface/MessageView.xib"; sourceTree = "<group>"; };
 		5A5F8BBB12D560E400019727 /* AIDockNameOverlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIDockNameOverlay.h; path = "Plugins/Dock Icon Badging/AIDockNameOverlay.h"; sourceTree = "<group>"; };
 		5A5F8BBC12D560E400019727 /* AIDockNameOverlay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIDockNameOverlay.m; path = "Plugins/Dock Icon Badging/AIDockNameOverlay.m"; sourceTree = "<group>"; };
-		5A7642A811E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Resources/sk_SK.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		5A7642A911E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Resources/sk_SK.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		5A7642AB11E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/Buttons.strings; sourceTree = "<group>"; };
 		5A7642AC11E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -3288,9 +3241,7 @@
 		5A7642CB11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sk_SK; path = "Resources/sk_SK.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		5A7642CD11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/Statuses.strings; sourceTree = "<group>"; };
 		5A7642CF11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Resources/sk_SK.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		5A7642D011E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/WebKit Message View/Resources/sk_SK.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		5A76477F11E04B8400E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Frameworks/Adium/Resources/sk_SK.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
-		5A80CC83121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = Resources/uk.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		5A80CC84121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = Resources/uk.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		5A80CC87121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Resources/uk.lproj/Buttons.strings; sourceTree = "<group>"; };
 		5A80CC88121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -3319,7 +3270,6 @@
 		5A80CCA9121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = uk; path = "Resources/uk.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		5A80CCAB121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Resources/uk.lproj/Statuses.strings; sourceTree = "<group>"; };
 		5A80CCAD121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = Resources/uk.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		5A80CCAE121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/WebKit Message View/Resources/uk.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		5A9439791279ECB800FDD81D /* AIImgurImageUploader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIImgurImageUploader.h; path = "Plugins/Image Uploading Plugin/AIImgurImageUploader.h"; sourceTree = "<group>"; };
 		5A94397A1279ECB800FDD81D /* AIImgurImageUploader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIImgurImageUploader.m; path = "Plugins/Image Uploading Plugin/AIImgurImageUploader.m"; sourceTree = "<group>"; };
 		5A9A9F8711F2951400328DF9 /* AIDoNothingContactAlertPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIDoNothingContactAlertPlugin.h; sourceTree = "<group>"; };
@@ -3602,8 +3552,6 @@
 		D182F1B611DFF23700E33AE2 /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = sk_SK.lproj/schema.strings; sourceTree = "<group>"; };
 		D1B9BFFE14C3ADAE00D03244 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
 		D1B9C00814C3ADF600D03244 /* sl */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; fileEncoding = 10; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		D1B9C01C14C3AEC300D03244 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/WebKit Message View/Resources/sl.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
-		D1C1FA2514995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = Resources/en_AU.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		D1C1FA2614995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = Resources/en_AU.lproj/AIAdvancedInspectorPane.nib; sourceTree = "<group>"; };
 		D1C1FA2A14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/Buttons.strings; sourceTree = "<group>"; };
 		D1C1FA2B14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -3632,7 +3580,6 @@
 		D1C1FA4A14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en_AU; path = "Resources/en_AU.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		D1C1FA4C14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/Statuses.strings; sourceTree = "<group>"; };
 		D1C1FA4E14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = Resources/en_AU.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		D1C1FA4F14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/WebKit Message View/Resources/en_AU.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		D1ED4B9E14A0DB8B00EBD8EB /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/OTRPrefs.nib; sourceTree = "<group>"; };
 		D1ED4BA214A0DB9000EBD8EB /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/OTRPrefs.nib; sourceTree = "<group>"; };
 		D1F92AE214C3A6F6009D7B34 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -4115,7 +4062,6 @@
 		343A7F2206935DAF00150CEC /* Meanwhile */ = {
 			isa = PBXGroup;
 			children = (
-				343EB41408086D9100E27095 /* DCPurpleMeanwhileJoinChatView.nib */,
 			);
 			name = Meanwhile;
 			sourceTree = "<group>";
@@ -4181,7 +4127,6 @@
 		34415960059F94F80019246B /* Oscar */ = {
 			isa = PBXGroup;
 			children = (
-				343EB40C08086D9100E27095 /* DCPurpleOscarJoinChatView.nib */,
 				4B76459307A06CB60021CCD7 /* AIM */,
 				34F52BD506E2B22800887BE2 /* ICQ */,
 			);
@@ -4200,7 +4145,7 @@
 				343EB41808086D9100E27095 /* DCPurpleJabberJoinChatView.nib */,
 				344160B4059FC2F50019246B /* ESPurpleJabberAccountViewController.h */,
 				344160B5059FC2F50019246B /* ESPurpleJabberAccountViewController.m */,
-				343EB42208086D9200E27095 /* ESPurpleJabberAccountView.nib */,
+				ADD1E5C0DE00000000001001 /* ESPurpleJabberAccountView.xib */,
 				4BB19298079EE90900DAA523 /* PurpleDefaultsJabber.plist */,
 				63125D7A0A75EBBE00303EE9 /* LiveJournal */,
 				A3C0405808D744B200B48CE1 /* Google Talk */,
@@ -4244,7 +4189,7 @@
 				34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */,
 				ADD1E5C0DE00000000000603 /* AIWhatsAppAccountViewController.h */,
 				ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */,
-				343EB40308086D9000E27095 /* ESPurpleGaduGaduAccountView.nib */,
+				ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */,
 				4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */,
 			);
 			name = "Gadu-Gadu";
@@ -4381,7 +4326,7 @@
 				345A7B660954AD2800FF3113 /* ESPurpleSimpleAccount.m */,
 				345A7B6B0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.h */,
 				345A7B6C0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.m */,
-				345A7B830954AEF400FF3113 /* ESPurpleSimpleAccountView.nib */,
+				ADD1E5C0DE00000000001009 /* ESPurpleSimpleAccountView.xib */,
 				345A7B710954AD4D00FF3113 /* PurpleDefaultsSimple.plist */,
 			);
 			name = SIMPLE;
@@ -4682,7 +4627,7 @@
 				343EB40908086D9100E27095 /* DCPurpleZephyrJoinChatView.nib */,
 				348D8D2406CC07BD00449EBB /* ESPurpleZephyrAccountViewController.h */,
 				348D8D2206CC07BC00449EBB /* ESPurpleZephyrAccountViewController.m */,
-				343EB41208086D9100E27095 /* ESPurpleZephyrAccountView.nib */,
+				ADD1E5C0DE0000000000100B /* ESPurpleZephyrAccountView.xib */,
 				4B7646CE07A078E60021CCD7 /* PurpleDefaultsZephyr.plist */,
 			);
 			name = Zephyr;
@@ -4744,7 +4689,7 @@
 			children = (
 				1192E6B10FD30307003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.h */,
 				1192E6B20FD30307003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.m */,
-				1150A9950FBE48D600E0BD31 /* ESIRCAccountView.nib */,
+				ADD1E5C0DE00000000001003 /* ESIRCAccountView.xib */,
 				1139FFA80F85260E0081A418 /* AIIRCChannelLinker.h */,
 				1139FFA90F85260E0081A418 /* AIIRCChannelLinker.m */,
 				117009A00F7E7D3A0078D6AB /* AIIRCServicesPasswordPlugin.h */,
@@ -4910,7 +4855,7 @@
 				6EA3688206B73E7D009CA81A /* DCPurpleNovellJoinChatView.nib */,
 				34C2E6870634CF940018E5D2 /* ESPurpleNovellAccountViewController.h */,
 				34C2E6880634CF940018E5D2 /* ESPurpleNovellAccountViewController.m */,
-				343EB3FF08086D9000E27095 /* ESPurpleNovellAccountView.nib */,
+				ADD1E5C0DE00000000001007 /* ESPurpleNovellAccountView.xib */,
 				4B76476007A07BC90021CCD7 /* PurpleDefaultsGroupWise.plist */,
 			);
 			name = "Novell GroupWise";
@@ -5261,7 +5206,7 @@
 				34F46757080F46AB007800AB /* AWBonjourPlugin.m */,
 				34F4675D080F46AC007800AB /* AWBonjourService.h */,
 				34F4675C080F46AC007800AB /* AWBonjourService.m */,
-				34F4675B080F46AC007800AB /* ESBonjourAccountView.nib */,
+				34F4675B080F46AC007800AB /* ESBonjourAccountView.xib */,
 				34F46756080F46AB007800AB /* ESBonjourAccountViewController.h */,
 				34F46755080F46AB007800AB /* ESBonjourAccountViewController.m */,
 				4947F5D00655E90C00B791E5 /* libezv */,
@@ -5435,9 +5380,9 @@
 				4B28DDAB0599FED200343093 /* AIAccountViewController.h */,
 				4B28DDAC0599FED200343093 /* AIAccountViewController.m */,
 				4BDD81E907A0B6D30057DB2C /* AccountSetup.nib */,
-				4BDD81E807A0B6D30057DB2C /* AccountProfile.nib */,
-				4BDD81E707A0B6D30057DB2C /* AccountOptions.nib */,
-				34943DEE07BAD918000F2A03 /* AccountPrivacy.nib */,
+				4BDD81E807A0B6D30057DB2C /* AccountProfile.xib */,
+				4BDD81E707A0B6D30057DB2C /* AccountOptions.xib */,
+				34943DEE07BAD918000F2A03 /* AccountPrivacy.xib */,
 				348FF84909128D6300A942A8 /* AccountDefaults.plist */,
 			);
 			name = "Accounts & Services";
@@ -6502,7 +6447,7 @@
 				34C2DF01063498ED0018E5D2 /* terminator.png */,
 				3470663806015FB6004F0D20 /* WebKit Additions */,
 				347065E406015DC5004F0D20 /* WebKit Defaults.plist */,
-				348EE1B3080A57480015E0FC /* WebKitPreferencesView.nib */,
+				ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */,
 			);
 			name = "WebKit Message View";
 			sourceTree = "<group>";
@@ -6579,7 +6524,6 @@
 		A3C0405808D744B200B48CE1 /* Google Talk */ = {
 			isa = PBXGroup;
 			children = (
-				761D6A231ACC5F0B002079F2 /* ESPurpleGTalkAccountView.nib */,
 			);
 			name = "Google Talk";
 			sourceTree = "<group>";
@@ -6933,10 +6877,10 @@
 				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */,
 				4B7A567707A1754400BDC540 /* AIEditAccountWindowController.h */,
 				4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */,
-				4BCAB5F007B59967006641B9 /* EditAccountSheet.nib */,
+				4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */,
 				4BDAF69507A1560F00276D68 /* AIAccountProxySettings.h */,
 				4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */,
-				343EB3FD08086D2F00E27095 /* AccountProxy.nib */,
+				ADD1E5C0DE00000000000F01 /* AccountProxy.xib */,
 			);
 			name = "Accounts Preferences";
 			sourceTree = "<group>";
@@ -7510,25 +7454,22 @@
 			files = (
 				11AE5587109CCCC30074BDC2 /* irc-small.png in Resources */,
 				3485DB5F09EBCE7400232CC4 /* DCPurpleGaduGaduJoinChatView.nib in Resources */,
-				3485DB6209EBCE7400232CC4 /* ESPurpleGaduGaduAccountView.nib in Resources */,
+				ADD1E5C0DE00000000001006 /* ESPurpleGaduGaduAccountView.xib in Resources */,
 				3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */,
 				3485DB6A09EBCE7400232CC4 /* DCPurpleJabberJoinChatView.nib in Resources */,
-				3485DB6D09EBCE7400232CC4 /* ESPurpleJabberAccountView.nib in Resources */,
+				ADD1E5C0DE00000000001002 /* ESPurpleJabberAccountView.xib in Resources */,
 				3485DB6E09EBCE7400232CC4 /* PurpleDefaultsJabber.plist in Resources */,
-				3485DB7C09EBCE7400232CC4 /* DCPurpleMeanwhileJoinChatView.nib in Resources */,
 				3485DB9509EBCE7400232CC4 /* DCPurpleNovellJoinChatView.nib in Resources */,
-				3485DB9809EBCE7400232CC4 /* ESPurpleNovellAccountView.nib in Resources */,
+				ADD1E5C0DE00000000001008 /* ESPurpleNovellAccountView.xib in Resources */,
 				3485DB9909EBCE7400232CC4 /* PurpleDefaultsGroupWise.plist in Resources */,
-				3485DBA009EBCE7400232CC4 /* ESPurpleSimpleAccountView.nib in Resources */,
+				ADD1E5C0DE0000000000100A /* ESPurpleSimpleAccountView.xib in Resources */,
 				3485DBA109EBCE7400232CC4 /* PurpleDefaultsSimple.plist in Resources */,
 				3485DBB809EBCE7400232CC4 /* DCPurpleZephyrJoinChatView.nib in Resources */,
-				3485DBBB09EBCE7400232CC4 /* ESPurpleZephyrAccountView.nib in Resources */,
+				ADD1E5C0DE0000000000100C /* ESPurpleZephyrAccountView.xib in Resources */,
 				3485DBBC09EBCE7400232CC4 /* PurpleDefaultsZephyr.plist in Resources */,
 				3485DBC309EBCE7400232CC4 /* PurpleMultilineRequestWindow.nib in Resources */,
-				761D6A251ACC5F0B002079F2 /* ESPurpleGTalkAccountView.nib in Resources */,
 				3485DBC409EBCE7400232CC4 /* PurpleSinglelineRequestWindow.nib in Resources */,
 				3485DBD009EBCE8200232CC4 /* Localizable.strings in Resources */,
-				34E036780A75AA4F00394F11 /* DCPurpleOscarJoinChatView.nib in Resources */,
 				347E39DC0A98AA4A00961B0E /* missing_image.png in Resources */,
 				8184C5B80C1B812500CB53E7 /* AMPurpleRequestFieldsWindow.nib in Resources */,
 				8181EEBE0C30673E00E802F7 /* AMPurpleSearchResultsWindow.nib in Resources */,
@@ -7542,7 +7483,7 @@
 				34E4CD5B0E68277D00D1B0DC /* ESIRCJoinChatView.nib in Resources */,
 				34E4CD660E68279C00D1B0DC /* irc.png in Resources */,
 				34E4CD670E68279C00D1B0DC /* PurpleDefaultsIRC.plist in Resources */,
-				1150A9960FBE48D600E0BD31 /* ESIRCAccountView.nib in Resources */,
+				ADD1E5C0DE00000000001004 /* ESIRCAccountView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7550,9 +7491,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				111256060F8DA2B200E76177 /* ESBonjourAccountView.nib in Resources */,
+				111256060F8DA2B200E76177 /* ESBonjourAccountView.xib in Resources */,
 				6318DBA10F8D93F200C5E584 /* WebKit Defaults.plist in Resources */,
-				6318DBA20F8D93F200C5E584 /* WebKitPreferencesView.nib in Resources */,
+				ADD1E5C0DE00000000000E02 /* WebKitPreferencesView.xib in Resources */,
 				6318DBA30F8D93F200C5E584 /* Preview.plist in Resources */,
 				6318DBA40F8D93F200C5E584 /* SoulEdge.png in Resources */,
 				6318DBA50F8D93F200C5E584 /* terminator.png in Resources */,
@@ -7618,8 +7559,8 @@
 				346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */,
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
 				34C14D5107A8BA00003CC138 /* EmoticonPackPreview.nib in Resources */,
-				343EB3FE08086D2F00E27095 /* AccountProxy.nib in Resources */,
-				4BCAB5F307B59967006641B9 /* EditAccountSheet.nib in Resources */,
+				ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */,
+				4BCAB5F307B59967006641B9 /* EditAccountSheet.xib in Resources */,
 				4BCAC4CF07B59AFE006641B9 /* AddressBookPrefs.nib in Resources */,
 				4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */,
 				4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */,
@@ -7807,9 +7748,9 @@
 				34DC8A590A7EEEF7003E1636 /* PresetManagement.nib in Resources */,
 				34DC8A5C0A7EEEF7003E1636 /* PresetNameSheet.nib in Resources */,
 				34DC8A650A7EEEF7003E1636 /* AccountSetup.nib in Resources */,
-				34DC8A660A7EEEF7003E1636 /* AccountProfile.nib in Resources */,
-				34DC8A670A7EEEF7003E1636 /* AccountOptions.nib in Resources */,
-				34DC8A680A7EEEF7003E1636 /* AccountPrivacy.nib in Resources */,
+				34DC8A660A7EEEF7003E1636 /* AccountProfile.xib in Resources */,
+				34DC8A670A7EEEF7003E1636 /* AccountOptions.xib in Resources */,
+				34DC8A680A7EEEF7003E1636 /* AccountPrivacy.xib in Resources */,
 				34DC8A690A7EEEF7003E1636 /* AccountDefaults.plist in Resources */,
 				34DC8A770A7EEEF7003E1636 /* EditStateSheet.nib in Resources */,
 				34DC8A850A7EEEF7003E1636 /* TextAndButtonsWindow.nib in Resources */,
@@ -8490,42 +8431,6 @@
 			name = "Shared Dock Icon Images";
 			sourceTree = "<group>";
 		};
-		1150A9950FBE48D600E0BD31 /* ESIRCAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				1150A9970FBE48DE00E0BD31 /* ca */,
-				1150A9980FBE48E000E0BD31 /* cs */,
-				1150A9990FBE48E500E0BD31 /* da */,
-				1150A99A0FBE48E700E0BD31 /* de */,
-				1150A99B0FBE48E900E0BD31 /* el_GR */,
-				1150A99C0FBE48EC00E0BD31 /* en_GB */,
-				1150A99D0FBE48EE00E0BD31 /* en */,
-				1150A99E0FBE48F200E0BD31 /* es */,
-				1150A99F0FBE48F400E0BD31 /* fi */,
-				1150A9A00FBE48F600E0BD31 /* fr */,
-				1150A9A10FBE48F800E0BD31 /* fr_CA */,
-				1150A9A20FBE48FB00E0BD31 /* hu */,
-				1150A9A30FBE48FD00E0BD31 /* is */,
-				1150A9A40FBE48FF00E0BD31 /* it */,
-				1150A9A50FBE490100E0BD31 /* ja */,
-				1150A9A60FBE490300E0BD31 /* nb */,
-				1150A9A70FBE490500E0BD31 /* nl */,
-				1150A9A80FBE490700E0BD31 /* pl */,
-				1150A9A90FBE490900E0BD31 /* pt_PT */,
-				1150A9AA0FBE490B00E0BD31 /* pt */,
-				1150A9AB0FBE490D00E0BD31 /* ru */,
-				1150A9AC0FBE490F00E0BD31 /* sl */,
-				1150A9AD0FBE491100E0BD31 /* sv */,
-				1150A9AE0FBE491300E0BD31 /* tr */,
-				1150A9AF0FBE491500E0BD31 /* zh_CN */,
-				1150A9B00FBE491700E0BD31 /* zh_TW */,
-				5A7642B411E044B900E5E0AF /* sk_SK */,
-				5A80CC91121F5A7A00D0670A /* uk */,
-				D1C1FA3414995D98008C94EB /* en_AU */,
-			);
-			name = ESIRCAccountView.nib;
-			sourceTree = "<group>";
-		};
 		3402E01A07CB0CEC0044F818 /* ESFileTransferProgressView.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -8850,114 +8755,6 @@
 			name = EditStateSheet.nib;
 			sourceTree = "<group>";
 		};
-		343EB3FD08086D2F00E27095 /* AccountProxy.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				4BCAB5EF07B59967006641B9 /* en */,
-				345F586308198E7F001F733C /* nl */,
-				345F586408198E87001F733C /* de */,
-				345F5B97081AC4F1001F733C /* zh_TW */,
-				3458B500081DD44B0005BCF6 /* ja */,
-				3458B96E0820DAC40005BCF6 /* fr */,
-				3458BA97082178430005BCF6 /* da */,
-				3421137E08261B2E00A3B0FB /* it */,
-				3465229A08371923009565FE /* zh_CN */,
-				346522BE08371997009565FE /* cs */,
-				34652302083719EE009565FE /* nb */,
-				34B272060839E8E50092A5A0 /* is */,
-				342CE12B085A089D00005C63 /* sv */,
-				342CE159085A08C400005C63 /* ca */,
-				3405808E087EEFA000664D64 /* ru */,
-				34A30E7508D8EE7800697644 /* es */,
-				34A81DD5093CE92400B0E93D /* pl */,
-				3437FF5D0A9BF0A70028604E /* tr */,
-				342F9E7D0B552632000D5FC2 /* fi */,
-				34F13F300BA6D56D000473DE /* pt */,
-				341EC8B40D3C2BA6007216A2 /* sl */,
-				34208CFB0D502D3E003138D1 /* fr_CA */,
-				345076950E106F5C00BF0883 /* en_GB */,
-				345076D40E106FD500BF0883 /* pt_PT */,
-				346C9BF70E70E1F7002314EE /* hu */,
-				34B1FCC40F112BF400C7E952 /* el_GR */,
-				5A7642A811E044B900E5E0AF /* sk_SK */,
-				5A80CC83121F5A7A00D0670A /* uk */,
-				D1C1FA2514995D98008C94EB /* en_AU */,
-			);
-			name = AccountProxy.nib;
-			sourceTree = "<group>";
-		};
-		343EB3FF08086D9000E27095 /* ESPurpleNovellAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				4B7A565A07A1742900BDC540 /* en */,
-				34F468E9080FA987007800AB /* de */,
-				343C460C0816CCAE00FF5FA7 /* it */,
-				345F5BA4081AC4F1001F733C /* zh_TW */,
-				3458BA19082174540005BCF6 /* fr */,
-				3458BA9D082178430005BCF6 /* da */,
-				34C2A4950821859800F3363F /* ja */,
-				342118100827D86700A3B0FB /* nl */,
-				346522A108371923009565FE /* zh_CN */,
-				346522D408371998009565FE /* cs */,
-				34652306083719EE009565FE /* nb */,
-				34B271FB0839E8E40092A5A0 /* is */,
-				342CE13A085A08A000005C63 /* sv */,
-				342CE168085A08C600005C63 /* ca */,
-				3405809D087EEFA100664D64 /* ru */,
-				34A30E8508D8EE7900697644 /* es */,
-				34A81DC5093CE92300B0E93D /* pl */,
-				3437FF4D0A9BF0A60028604E /* tr */,
-				342F9E6D0B55262E000D5FC2 /* fi */,
-				34F13F400BA6D56D000473DE /* pt */,
-				34208D0C0D502D3F003138D1 /* fr_CA */,
-				345076A50E106F5E00BF0883 /* en_GB */,
-				345076E40E106FD600BF0883 /* pt_PT */,
-				346C9C090E70E1F7002314EE /* hu */,
-				34B1FCD40F112BF500C7E952 /* el_GR */,
-				5A7642BB11E044BA00E5E0AF /* sk_SK */,
-				5A80CC98121F5A7B00D0670A /* uk */,
-				D1C1FA3B14995D98008C94EB /* en_AU */,
-				D1F92B1D14C3A7E6009D7B34 /* sl */,
-			);
-			name = ESPurpleNovellAccountView.nib;
-			sourceTree = "<group>";
-		};
-		343EB40308086D9000E27095 /* ESPurpleGaduGaduAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				349448C207BB29B2000F2A03 /* en */,
-				34F468E3080FA987007800AB /* de */,
-				343C46180816CCEC00FF5FA7 /* it */,
-				345F5B9F081AC4F1001F733C /* zh_TW */,
-				3458BA1A082174540005BCF6 /* fr */,
-				3458BA90082178420005BCF6 /* da */,
-				34C2A48A0821859700F3363F /* ja */,
-				342118150827D86800A3B0FB /* nl */,
-				3465229208371922009565FE /* zh_CN */,
-				346522C008371997009565FE /* cs */,
-				346522FB083719EE009565FE /* nb */,
-				34B271EB0839E8E30092A5A0 /* is */,
-				342CE135085A089F00005C63 /* sv */,
-				342CE163085A08C600005C63 /* ca */,
-				34058098087EEFA100664D64 /* ru */,
-				34A30E8008D8EE7900697644 /* es */,
-				34A81DCA093CE92300B0E93D /* pl */,
-				3437FF520A9BF0A60028604E /* tr */,
-				342F9E720B552630000D5FC2 /* fi */,
-				34F13F3B0BA6D56D000473DE /* pt */,
-				34208D070D502D3F003138D1 /* fr_CA */,
-				345076A00E106F5D00BF0883 /* en_GB */,
-				345076DF0E106FD600BF0883 /* pt_PT */,
-				346C9C040E70E1F7002314EE /* hu */,
-				34B1FCCF0F112BF500C7E952 /* el_GR */,
-				5A7642B611E044B900E5E0AF /* sk_SK */,
-				5A80CC93121F5A7A00D0670A /* uk */,
-				D1C1FA3614995D98008C94EB /* en_AU */,
-				D1F92B1114C3A7B4009D7B34 /* sl */,
-			);
-			name = ESPurpleGaduGaduAccountView.nib;
-			sourceTree = "<group>";
-		};
 		343EB40908086D9100E27095 /* DCPurpleZephyrJoinChatView.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -8992,114 +8789,6 @@
 				D1F92B0714C3A79A009D7B34 /* sl */,
 			);
 			name = DCPurpleZephyrJoinChatView.nib;
-			sourceTree = "<group>";
-		};
-		343EB40C08086D9100E27095 /* DCPurpleOscarJoinChatView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				6E4D961506B73A96005235E9 /* en */,
-				34F468E0080FA987007800AB /* de */,
-				343C461F0816CD0400FF5FA7 /* it */,
-				345F5B9B081AC4F1001F733C /* zh_TW */,
-				3458BA21082174540005BCF6 /* fr */,
-				3458BA93082178420005BCF6 /* da */,
-				34C2A48B0821859700F3363F /* ja */,
-				342118180827D86800A3B0FB /* nl */,
-				346522A808371924009565FE /* zh_CN */,
-				346522D308371998009565FE /* cs */,
-				346522FD083719EE009565FE /* nb */,
-				34B271F80839E8E40092A5A0 /* is */,
-				342CE12F085A089E00005C63 /* sv */,
-				342CE15D085A08C500005C63 /* ca */,
-				34058092087EEFA100664D64 /* ru */,
-				34A30E7A08D8EE7800697644 /* es */,
-				34A81DD0093CE92300B0E93D /* pl */,
-				3437FF580A9BF0A70028604E /* tr */,
-				342F9E780B552632000D5FC2 /* fi */,
-				34F13F350BA6D56D000473DE /* pt */,
-				34208D000D502D3F003138D1 /* fr_CA */,
-				3450769B0E106F5C00BF0883 /* en_GB */,
-				345076DA0E106FD500BF0883 /* pt_PT */,
-				346C9BFD0E70E1F7002314EE /* hu */,
-				34B1FCCA0F112BF400C7E952 /* el_GR */,
-				5A7642AE11E044B900E5E0AF /* sk_SK */,
-				5A80CC8A121F5A7A00D0670A /* uk */,
-				D1C1FA2D14995D98008C94EB /* en_AU */,
-				D1F92AF014C3A735009D7B34 /* sl */,
-			);
-			name = DCPurpleOscarJoinChatView.nib;
-			sourceTree = "<group>";
-		};
-		343EB41208086D9100E27095 /* ESPurpleZephyrAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				348D8D2306CC07BC00449EBB /* en */,
-				34F468ED080FA988007800AB /* de */,
-				343C46040816CC6800FF5FA7 /* it */,
-				345F5BA7081AC4F2001F733C /* zh_TW */,
-				3458BA1C082174540005BCF6 /* fr */,
-				3458BA89082178420005BCF6 /* da */,
-				34C2A48C0821859700F3363F /* ja */,
-				3421180D0827D86700A3B0FB /* nl */,
-				346522A008371923009565FE /* zh_CN */,
-				346522BC08371997009565FE /* cs */,
-				3465230A083719EF009565FE /* nb */,
-				34B271F70839E8E40092A5A0 /* is */,
-				342CE13D085A08A000005C63 /* sv */,
-				342CE16B085A08C600005C63 /* ca */,
-				340580A0087EEFA200664D64 /* ru */,
-				34A30E8E08D8EE7A00697644 /* es */,
-				34A81DC2093CE92300B0E93D /* pl */,
-				3437FF4A0A9BF0A60028604E /* tr */,
-				342F9E690B55262D000D5FC2 /* fi */,
-				34F13F430BA6D56D000473DE /* pt */,
-				34208D100D502D3F003138D1 /* fr_CA */,
-				345076A90E106F5E00BF0883 /* en_GB */,
-				345076E80E106FD600BF0883 /* pt_PT */,
-				346C9C0D0E70E1F7002314EE /* hu */,
-				34B1FCD80F112BF600C7E952 /* el_GR */,
-				5A7642BE11E044BA00E5E0AF /* sk_SK */,
-				5A80CC9B121F5A7B00D0670A /* uk */,
-				D1C1FA3E14995D98008C94EB /* en_AU */,
-				D1B9BFFE14C3ADAE00D03244 /* sl */,
-			);
-			name = ESPurpleZephyrAccountView.nib;
-			sourceTree = "<group>";
-		};
-		343EB41408086D9100E27095 /* DCPurpleMeanwhileJoinChatView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				6E4D962706B73C18005235E9 /* en */,
-				34F468E6080FA987007800AB /* de */,
-				343C46130816CCD100FF5FA7 /* it */,
-				345F5B9A081AC4F1001F733C /* zh_TW */,
-				3458BA1D082174540005BCF6 /* fr */,
-				3458BA95082178430005BCF6 /* da */,
-				34C2A4900821859800F3363F /* ja */,
-				342118190827D86800A3B0FB /* nl */,
-				3465229608371922009565FE /* zh_CN */,
-				346522C708371998009565FE /* cs */,
-				34652312083719EF009565FE /* nb */,
-				34B272030839E8E50092A5A0 /* is */,
-				342CE12E085A089E00005C63 /* sv */,
-				342CE15C085A08C500005C63 /* ca */,
-				34058091087EEFA100664D64 /* ru */,
-				34A30E7908D8EE7800697644 /* es */,
-				34A81DD1093CE92300B0E93D /* pl */,
-				3437FF590A9BF0A70028604E /* tr */,
-				342F9E790B552632000D5FC2 /* fi */,
-				34F13F340BA6D56D000473DE /* pt */,
-				34208CFF0D502D3F003138D1 /* fr_CA */,
-				3450769A0E106F5C00BF0883 /* en_GB */,
-				345076D90E106FD500BF0883 /* pt_PT */,
-				346C9BFC0E70E1F7002314EE /* hu */,
-				34B1FCC90F112BF400C7E952 /* el_GR */,
-				5A7642AD11E044B900E5E0AF /* sk_SK */,
-				5A80CC89121F5A7A00D0670A /* uk */,
-				D1C1FA2C14995D98008C94EB /* en_AU */,
-				D1F92B2B14C3A819009D7B34 /* sl */,
-			);
-			name = DCPurpleMeanwhileJoinChatView.nib;
 			sourceTree = "<group>";
 		};
 		343EB41608086D9100E27095 /* StatusSortConfiguration.nib */ = {
@@ -9171,42 +8860,6 @@
 				D1F92AE214C3A6F6009D7B34 /* sl */,
 			);
 			name = DCPurpleJabberJoinChatView.nib;
-			sourceTree = "<group>";
-		};
-		343EB42208086D9200E27095 /* ESPurpleJabberAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				348A8A190629A68C00FC6E03 /* en */,
-				34F468E5080FA987007800AB /* de */,
-				343C46140816CCDA00FF5FA7 /* it */,
-				345F5BA1081AC4F1001F733C /* zh_TW */,
-				3458BA1B082174540005BCF6 /* fr */,
-				3458BAA0082178430005BCF6 /* da */,
-				34C2A48D0821859700F3363F /* ja */,
-				342118170827D86800A3B0FB /* nl */,
-				3465229108371921009565FE /* zh_CN */,
-				346522BB08371997009565FE /* cs */,
-				346522F9083719ED009565FE /* nb */,
-				34B271F40839E8E40092A5A0 /* is */,
-				342CE137085A089F00005C63 /* sv */,
-				342CE165085A08C600005C63 /* ca */,
-				3405809A087EEFA100664D64 /* ru */,
-				34A30E8208D8EE7900697644 /* es */,
-				34A81DC8093CE92300B0E93D /* pl */,
-				3437FF500A9BF0A60028604E /* tr */,
-				342F9E700B552630000D5FC2 /* fi */,
-				34F13F3D0BA6D56D000473DE /* pt */,
-				34208D090D502D3F003138D1 /* fr_CA */,
-				345076A20E106F5D00BF0883 /* en_GB */,
-				345076E10E106FD600BF0883 /* pt_PT */,
-				346C9C060E70E1F7002314EE /* hu */,
-				34B1FCD10F112BF500C7E952 /* el_GR */,
-				5A7642B811E044B900E5E0AF /* sk_SK */,
-				5A80CC95121F5A7B00D0670A /* uk */,
-				D1C1FA3814995D98008C94EB /* en_AU */,
-				D1F92AE414C3A70E009D7B34 /* sl */,
-			);
-			name = ESPurpleJabberAccountView.nib;
 			sourceTree = "<group>";
 		};
 		343EB42B080870A200E27095 /* ListThemeSheet.nib */ = {
@@ -9281,42 +8934,6 @@
 			name = ListLayoutSheet.nib;
 			sourceTree = "<group>";
 		};
-		345A7B830954AEF400FF3113 /* ESPurpleSimpleAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				345A7B840954AEF400FF3113 /* en */,
-				342F9E6B0B55262D000D5FC2 /* fi */,
-				34CAA4B00BD3A75B00AE92DC /* fr */,
-				34CAA4B40BD3A76C00AE92DC /* ca */,
-				34CAA4B50BD3A76E00AE92DC /* cs */,
-				34CAA4B60BD3A77200AE92DC /* da */,
-				34CAA4B70BD3A77500AE92DC /* de */,
-				34CAA4B80BD3A77700AE92DC /* es */,
-				34CAA4B90BD3A77D00AE92DC /* is */,
-				34CAA4BA0BD3A77F00AE92DC /* it */,
-				34CAA4BB0BD3A78200AE92DC /* ja */,
-				34CAA4BC0BD3A78400AE92DC /* nb */,
-				34CAA4BD0BD3A78800AE92DC /* nl */,
-				34CAA4BE0BD3A78C00AE92DC /* pl */,
-				34CAA4BF0BD3A78E00AE92DC /* pt */,
-				34CAA4C00BD3A79100AE92DC /* ru */,
-				34CAA4C10BD3A79300AE92DC /* sv */,
-				34CAA4C20BD3A79600AE92DC /* tr */,
-				34CAA4C30BD3A79A00AE92DC /* zh_CN */,
-				34CAA4C40BD3A79D00AE92DC /* zh_TW */,
-				34208D0E0D502D3F003138D1 /* fr_CA */,
-				345076A70E106F5E00BF0883 /* en_GB */,
-				345076E60E106FD600BF0883 /* pt_PT */,
-				346C9C0B0E70E1F7002314EE /* hu */,
-				34B1FCD60F112BF500C7E952 /* el_GR */,
-				5A7642BC11E044BA00E5E0AF /* sk_SK */,
-				5A80CC99121F5A7B00D0670A /* uk */,
-				D1C1FA3C14995D98008C94EB /* en_AU */,
-				D1F92B2814C3A80B009D7B34 /* sl */,
-			);
-			name = ESPurpleSimpleAccountView.nib;
-			sourceTree = "<group>";
-		};
 		345DA0660CA09AD0009F1989 /* Statuses.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -9351,42 +8968,6 @@
 				D1C1FA4C14995D98008C94EB /* en_AU */,
 			);
 			name = Statuses.strings;
-			sourceTree = "<group>";
-		};
-		348EE1B3080A57480015E0FC /* WebKitPreferencesView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				34C2D8C00633BBA80018E5D2 /* en */,
-				343C45E20816C0FE00FF5FA7 /* it */,
-				343C47760816FBDA00FF5FA7 /* de */,
-				345F5BB4081AC4F3001F733C /* zh_TW */,
-				3458B9540820D8EC0005BCF6 /* fr */,
-				3458BA120821741A0005BCF6 /* nl */,
-				34C2A463082183E100F3363F /* da */,
-				34C2A4860821859700F3363F /* ja */,
-				3465229908371923009565FE /* zh_CN */,
-				346522C808371998009565FE /* cs */,
-				3465230D083719EF009565FE /* nb */,
-				34B272050839E8E50092A5A0 /* is */,
-				342CE14A085A08A300005C63 /* sv */,
-				342CE178085A08C800005C63 /* ca */,
-				340580AD087EEFA300664D64 /* ru */,
-				34A30EA508D8EE7B00697644 /* es */,
-				34A81DB2093CE92200B0E93D /* pl */,
-				3437FF410A9BF0A50028604E /* tr */,
-				342F9E520B552627000D5FC2 /* fi */,
-				34F13F510BA6D56E000473DE /* pt */,
-				34208D220D502D40003138D1 /* fr_CA */,
-				345076BB0E106F6000BF0883 /* en_GB */,
-				345076F90E106FD600BF0883 /* pt_PT */,
-				346C9C200E70E1F8002314EE /* hu */,
-				34B1FCEA0F112BF800C7E952 /* el_GR */,
-				5A7642D011E044BA00E5E0AF /* sk_SK */,
-				5A80CCAE121F5A7B00D0670A /* uk */,
-				D1C1FA4F14995D98008C94EB /* en_AU */,
-				D1B9C01C14C3AEC300D03244 /* sl */,
-			);
-			name = WebKitPreferencesView.nib;
 			sourceTree = "<group>";
 		};
 		3496A8C107CE6B880055BBAB /* InfoPlist.strings */ = {
@@ -9587,41 +9168,6 @@
 			);
 			name = schema.strings;
 			path = "Other/Adium Spotlight Importer";
-			sourceTree = "<group>";
-		};
-		761D6A231ACC5F0B002079F2 /* ESPurpleGTalkAccountView.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				761D6A241ACC5F0B002079F2 /* en */,
-				761D6A261ACC5F0F002079F2 /* sl */,
-				767A13EC1ACC5F7B002079F2 /* sv */,
-				767A13F01ACC5F94002079F2 /* es */,
-				767A13F11ACC5FA8002079F2 /* hu */,
-				767A13F21ACC5FB0002079F2 /* it */,
-				767A13F31ACC5FB8002079F2 /* nl */,
-				767A13F41ACC5FC3002079F2 /* da */,
-				767A13F51ACC5FCB002079F2 /* nb */,
-				767A13F61ACC5FD0002079F2 /* fi */,
-				767A13F71ACC5FD7002079F2 /* ru */,
-				767A13F81ACC5FDE002079F2 /* is */,
-				767A13F91ACC5FE9002079F2 /* ca */,
-				767A13FA1ACC5FEE002079F2 /* tr */,
-				767A13FB1ACC5FF3002079F2 /* de */,
-				767A13FC1ACC5FF8002079F2 /* fr */,
-				767A13FD1ACC5FFD002079F2 /* uk */,
-				767A13FE1ACC6003002079F2 /* cs */,
-				767A13FF1ACC6009002079F2 /* pl */,
-				767A140C1ACC61BA002079F2 /* el_GR */,
-				767A140D1ACC61C2002079F2 /* en_AU */,
-				767A140E1ACC61C8002079F2 /* en_CA */,
-				767A140F1ACC61D1002079F2 /* en_GB */,
-				767A14101ACC6223002079F2 /* fr_CA */,
-				767A14111ACC622C002079F2 /* pt_PT */,
-				767A14121ACC6235002079F2 /* pt */,
-				767A14131ACC623B002079F2 /* sk_SK */,
-				767A14141ACC6254002079F2 /* ja */,
-			);
-			name = ESPurpleGTalkAccountView.nib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

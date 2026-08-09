@@ -48,6 +48,14 @@
 		//Load our view
 		[NSBundle loadNibNamed:@"AccountProxy" owner:self];
 
+		//Localized text for the single-nib pane
+		[checkBox_useProxy setTitle:AILocalizedString(@"Connect using proxy", nil)];
+		[label_proxyType setStringValue:AILocalizedString(@"Type:", nil)];
+		[label_server setStringValue:AILocalizedString(@"Server:", nil)];
+		[label_port setStringValue:AILocalizedString(@"Port:", nil)];
+		[label_userName setStringValue:AILocalizedString(@"Username:", nil)];
+		[label_password setStringValue:AILocalizedString(@"Password:", nil)];
+
 		//Setup our menu
 		[popUpButton_proxy setMenu:[self _proxyMenu]];
 	}

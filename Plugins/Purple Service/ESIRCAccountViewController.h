@@ -23,8 +23,14 @@
 	
 	IBOutlet	NSTextField	*textField_username;
 	IBOutlet	NSTextField *textField_realname;
-	
+
 	IBOutlet	NSTextView	*textView_commands;
+
+	IBOutlet	NSTextField	*label_encoding;
+	IBOutlet	NSTextField	*label_commandsHint;
+	IBOutlet	NSTextField	*label_realname;
+	IBOutlet	NSTextField	*label_username;
+	IBOutlet	NSBox		*box_commands;
 }
 
 @end

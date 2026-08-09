@@ -42,6 +42,24 @@
 	IBOutlet	NSTextView		*textView_serverDescription;
 	IBOutlet	NSButton		*button_serverHomepage;
 
+	IBOutlet	NSTextField		*label_connectServer;
+	IBOutlet	NSTextField		*label_BOSHserver;
+	IBOutlet	NSTextField		*label_ftProxies;
+	IBOutlet	NSTextField		*label_resource;
+	IBOutlet	NSTextField		*label_priorityAvailable;
+	IBOutlet	NSTextField		*label_priorityAway;
+	IBOutlet	NSTextField		*label_mail;
+	IBOutlet	NSTextField		*label_security;
+	IBOutlet	NSTextField		*label_emoticons;
+	IBOutlet	NSTextField		*label_music;
+	IBOutlet	NSTextField		*label_subscriptions;
+	IBOutlet	NSTextField		*label_registerAddress;
+	IBOutlet	NSTextField		*label_registerServer;
+	IBOutlet	NSTextField		*label_registerPort;
+	IBOutlet	NSTextField		*label_registerSelect;
+	IBOutlet	NSButton		*button_registerRequest;
+	IBOutlet	NSButton		*button_registerCancel;
+
 	NSArray *servers;
 }
 

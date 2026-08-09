@@ -27,4 +27,15 @@
     return nil;
 }
 
+#pragma mark Localization
+//The xib is monolingual (English) and uses plain controls; set all visible strings from code
+- (void)localizeStrings
+{
+	[super localizeStrings];
+
+	NSBundle *adiumFrameworkBundle = [NSBundle bundleForClass:[AIAccountViewController class]];
+	[label_typing setStringValue:AILocalizedStringFromTableInBundle(@"Typing:", nil, adiumFrameworkBundle, "Label beside the 'let others know when you are typing' checkbox in the account preferences")];
+	[checkBox_sendTyping setTitle:AILocalizedStringFromTableInBundle(@"Let others know when you are typing", nil, adiumFrameworkBundle, "Text of the typing preference checkbox in the account preferences")];
+}
+
 @end

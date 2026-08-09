@@ -38,6 +38,17 @@
 	IBOutlet	NSPopUpButton   	*popUp_styles;
 	IBOutlet	NSPopUpButton   	*popUp_variants;
 	IBOutlet	NSPopUpButton   	*popUp_backgroundImageType;
+
+	//Localized labels of the single-xib pane
+	IBOutlet	NSTextField			*label_messageStyle;
+	IBOutlet	NSTextField			*label_variant;
+	IBOutlet	NSTextField			*label_textDisplay;
+	IBOutlet	NSTextField			*label_background;
+	IBOutlet	NSTextField			*label_backgroundImage;
+	IBOutlet	NSTextField			*label_backgroundColor;
+	IBOutlet	NSTextField			*label_backgroundColorsNote;
+	IBOutlet	NSTextField			*label_newWindowsNote;
+
 	IBOutlet	NSColorWell			*colorWell_customBackgroundColor;
 	IBOutlet	AIImageViewWithImagePicker	*imageView_backgroundImage;
 	IBOutlet    NSButton        	*checkBox_showUserIcons;

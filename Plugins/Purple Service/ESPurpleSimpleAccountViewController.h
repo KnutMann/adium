@@ -17,7 +17,14 @@
 #import "PurpleAccountViewController.h"
 
 @interface ESPurpleSimpleAccountViewController : PurpleAccountViewController {
+	IBOutlet	NSButton	*checkBox_publishStatus;
+	IBOutlet	NSButton	*checkBox_useUDP;
+	IBOutlet	NSButton	*checkBox_useSIPProxy;
 
+	IBOutlet	NSTextField	*label_connection;
+	IBOutlet	NSTextField	*label_status;
+	IBOutlet	NSTextField	*label_authUser;
+	IBOutlet	NSTextField	*label_authDomain;
 }
 
 @end

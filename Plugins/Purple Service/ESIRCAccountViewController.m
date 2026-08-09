@@ -89,6 +89,31 @@
 	[account setPreference:(textField_realname.stringValue.length ? textField_realname.stringValue : nil)
 					forKey:KEY_IRC_REALNAME
 					 group:GROUP_ACCOUNT_STATUS];
-}	
+}
+
+#pragma mark Localization
+//The xib is monolingual (English); set all visible strings from code
+- (void)localizeStrings
+{
+	[super localizeStrings];
+
+	NSBundle *adiumFrameworkBundle = [NSBundle bundleForClass:[AIAccountViewController class]];
+
+	//Setup
+	[label_password setStringValue:AILocalizedStringFromTableInBundle(@"Password:", nil, adiumFrameworkBundle, "Label for the password field in the account preferences")];
+	[[textField_password cell] setPlaceholderString:AILocalizedString(@"(optional)", "Placeholder for the optional IRC server password field")];
+	[label_server setStringValue:AILocalizedString(@"Hostname:", "Label for the IRC server field in the account preferences")];
+
+	//Options
+	[label_port setStringValue:AILocalizedStringFromTableInBundle(@"Port:", nil, adiumFrameworkBundle, "Label for the port field in the account preferences")];
+	[checkbox_useSSL setTitle:AILocalizedString(@"Encrypt connection using SSL", nil)];
+	[label_encoding setStringValue:AILocalizedString(@"Encoding:", nil)];
+	[box_commands setTitle:AILocalizedString(@"Execute commands on connect:", nil)];
+	[label_commandsHint setStringValue:AILocalizedString(@"One per line, / is optional. $me will be replaced with your current nickname.", nil)];
+
+	//Personal
+	[label_realname setStringValue:AILocalizedString(@"Realname:", nil)];
+	[label_username setStringValue:AILocalizedString(@"Username (Ident):", nil)];
+}
 
 @end

@@ -24,6 +24,13 @@
 	IBOutlet	NSTextField	*textField_encoding;
 	IBOutlet	NSTableView	*tableView_servers;
 	IBOutlet	NSSegmentedControl *button_addOrRemoveServer;
+
+	IBOutlet	NSTextField	*label_kerberosInfo;
+	IBOutlet	NSTextField	*label_exposure;
+	IBOutlet	NSTextField	*label_encoding;
+	IBOutlet	NSTextField	*label_export;
+	IBOutlet	NSTextField	*label_servers;
+	IBOutlet	NSTextField	*label_hostManager;
 }
 
 - (IBAction)addOrRemoveRowToServerList:(id)sender;

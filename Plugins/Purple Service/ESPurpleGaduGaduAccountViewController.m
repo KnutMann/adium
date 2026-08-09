@@ -32,4 +32,16 @@
 	[account performRegisterWithPassword:nil];
 }
 
+#pragma mark Localization
+//The xib is monolingual (English); set all visible strings from code
+- (void)localizeStrings
+{
+	[super localizeStrings];
+
+	NSBundle *adiumFrameworkBundle = [NSBundle bundleForClass:[AIAccountViewController class]];
+	[label_password setStringValue:AILocalizedStringFromTableInBundle(@"Password:", nil, adiumFrameworkBundle, "Label for the password field in the account preferences")];
+	[label_encryption setStringValue:AILocalizedStringFromTableInBundle(@"Encryption:", nil, adiumFrameworkBundle, "Label besides the encryption preference menu")];
+	[button_register setTitle:AILocalizedString(@"Register New Account", nil)];
+}
+
 @end
