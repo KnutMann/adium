@@ -25,6 +25,10 @@
 	IBOutlet	NSTableView		*tableView_fingerprints;
 	IBOutlet	NSButton		*button_showFingerprint;
 	IBOutlet	NSButton		*button_forgetFingerprint;
+
+	IBOutlet	NSTextField		*label_privateKeys;
+	IBOutlet	NSTextField		*label_account;
+	IBOutlet	NSTextField		*label_knownFingerprints;
 	
 	BOOL						viewIsOpen;
 	

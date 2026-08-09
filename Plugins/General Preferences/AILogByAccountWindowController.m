@@ -37,6 +37,14 @@
 	[super dealloc];
 }
 
+- (void)windowDidLoad
+{
+	[super windowDidLoad];
+
+	//The xib ships without localized strings; localize the only visible title here
+	[button_done setTitle:AILocalizedString(@"Close", nil)];
+}
+
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
 {
 	return [accounts count];

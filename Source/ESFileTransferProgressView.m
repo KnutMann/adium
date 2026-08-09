@@ -41,6 +41,12 @@
 	[progressIndicator setUsesThreadedAnimation:YES];
 	[progressIndicator setIndeterminate:YES];
 	progressVisible = YES;
+
+	//Localize the labels; the xib is unlocalized
+	[textField_detailsLabel setStringValue:AILocalizedString(@"Details:", "Label on the details disclosure in the file transfer window")];
+	[label_rate setStringValue:AILocalizedString(@"Rate:", "Label for the transfer rate in the file transfer window's details view")];
+	[label_from setStringValue:AILocalizedString(@"From:", "Label for the sender in the file transfer window's details view")];
+	[label_to setStringValue:AILocalizedString(@"To:", "Label for the recipient in the file transfer window's details view")];
 		
 	showingDetails = NO;
 	[view_details retain];

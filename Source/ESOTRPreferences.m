@@ -18,6 +18,7 @@
 #import <Adium/AIAccountControllerProtocol.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
+#import <AIUtilities/AIStringAdditions.h>
 #import <Adium/AIAccount.h>
 #import <Adium/AIService.h>
 
@@ -51,6 +52,15 @@
 - (void)viewDidLoad
 {
 	viewIsOpen = YES;
+
+	//Localize the interface; the xib is unlocalized
+	[label_privateKeys setStringValue:AILocalizedString(@"Private Keys", nil)];
+	[label_account setStringValue:AILocalizedString(@"Account:", nil)];
+	[label_knownFingerprints setStringValue:AILocalizedString(@"Known Fingerprints", nil)];
+	[button_showFingerprint setTitle:[AILocalizedString(@"Show Fingerprint", nil) stringByAppendingEllipsis]];
+	[button_forgetFingerprint setTitle:AILocalizedString(@"Forget Fingerprint", nil)];
+	[[[tableView_fingerprints tableColumnWithIdentifier:@"UID"] headerCell] setStringValue:AILocalizedString(@"Name", nil)];
+	[[[tableView_fingerprints tableColumnWithIdentifier:@"Status"] headerCell] setStringValue:AILocalizedString(@"Status", "Column header for the fingerprint status in the Encryption preferences")];
 
 	//Account Menu
 	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self

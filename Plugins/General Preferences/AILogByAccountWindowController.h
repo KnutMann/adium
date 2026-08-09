@@ -16,6 +16,9 @@
 
 @interface AILogByAccountWindowController : NSWindowController {
 	NSArray *accounts;
+
+	IBOutlet NSTableView	*tableView_accounts;
+	IBOutlet NSButton		*button_done;
 }
 
 - (IBAction)done:(id)sender;

@@ -100,10 +100,10 @@
 		[textField_name setStringValue:chat.name];
 	}
 	
-	[label_name setLocalizedString:AILocalizedString(@"Name:", nil)];
-	[label_group setLocalizedString:AILocalizedString(@"Group:", nil)];
-	[button_add setLocalizedString:AILocalizedStringFromTable(@"Add", @"Buttons", nil)];
-	[button_cancel setLocalizedString:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];
+	[label_name setStringValue:AILocalizedString(@"Name:", nil)];
+	[label_group setStringValue:AILocalizedString(@"Group:", nil)];
+	[button_add setTitle:AILocalizedStringFromTable(@"Add", @"Buttons", nil)];
+	[button_cancel setTitle:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];
 }
 
 /*!

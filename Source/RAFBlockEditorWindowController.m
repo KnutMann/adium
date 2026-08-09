@@ -54,27 +54,13 @@ static RAFBlockEditorWindowController *sharedInstance = nil;
 - (void)windowDidLoad
 {
 	[[self window] setTitle:AILocalizedString(@"Privacy Settings", nil)];
-	[cancelButton setLocalizedString:AILocalizedString(@"Cancel","Cancel button for Privacy Settings")];
-	[blockButton setLocalizedString:AILocalizedString(@"Add","Add button for Privacy Settings")];
+	[cancelButton setTitle:AILocalizedString(@"Cancel","Cancel button for Privacy Settings")];
+	[blockButton setTitle:AILocalizedString(@"Add","Add button for Privacy Settings")];
 	[[buddyCol headerCell] setTitle:AILocalizedString(@"Contact","Title of column containing user IDs of blocked contacts")];
 	[[accountCol headerCell] setTitle:AILocalizedString(@"Account","Title of column containing blocking accounts")];
-	[accountText setLocalizedString:AILocalizedString(@"Account:",nil)];
-
-	{
-		//Let the min X margin be resizeable while label_account and label_privacyLevel localize in case the window moves
-		[stateChooser setAutoresizingMask:(NSViewMinYMargin | NSViewMinXMargin)];
-		[popUp_accounts setAutoresizingMask:(NSViewMinYMargin | NSViewMinXMargin)];
-
-		//Keep label_privacyLevel in place, too, while label_account potentially resizes the window
-		[label_privacyLevel setAutoresizingMask:(NSViewMinYMargin | NSViewMinXMargin)];
-		[label_account setLocalizedString:AILocalizedString(@"Account:",nil)];
-		[label_privacyLevel setAutoresizingMask:(NSViewMinYMargin | NSViewMaxXMargin)];
-		//Account is in place; popUp_accounts can width-resize again
-		[popUp_accounts setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
-
-		[label_privacyLevel setLocalizedString:AILocalizedString(@"Privacy level:", nil)];		
-		[stateChooser setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
-	}
+	[accountText setStringValue:AILocalizedString(@"Account:",nil)];
+	[label_account setStringValue:AILocalizedString(@"Account:",nil)];
+	[label_privacyLevel setStringValue:AILocalizedString(@"Privacy level:", nil)];
 
 	accountColumnsVisible = YES;
 	[accountCol retain];
@@ -165,10 +151,8 @@ static RAFBlockEditorWindowController *sharedInstance = nil;
 	
 	NSString	*userNameLabel = [inAccount.service userNameLabel];
 	
-	[accountText setAutoresizingMask:NSViewMinXMargin];
-	[buddyText setLocalizedString:[(userNameLabel ?
-									userNameLabel : AILocalizedString(@"Contact ID",nil)) stringByAppendingString:AILocalizedString(@":", "Colon which will be appended after a label such as 'User Name', before an input field")]];
-	[accountText setAutoresizingMask:NSViewMaxXMargin];
+	[buddyText setStringValue:[(userNameLabel ?
+								userNameLabel : AILocalizedString(@"Contact ID",nil)) stringByAppendingString:AILocalizedString(@":", "Colon which will be appended after a label such as 'User Name', before an input field")]];
 }
 
 - (void)runBlockSheet

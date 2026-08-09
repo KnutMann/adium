@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESFileTransferProgressRow">
+            <connections>
+                <outlet property="view" destination="pv" id="oView"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="pv" userLabel="Progress View" customClass="ESFileTransferProgressView">
+            <rect key="frame" x="0.0" y="0.0" width="280" height="52"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+            <subviews>
+                <box fixedFrame="YES" boxType="custom" borderType="none" title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="boxPrimary">
+                    <rect key="frame" x="0.0" y="0.0" width="280" height="52"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+                    <view key="contentView" id="boxPrimaryCV">
+                        <rect key="frame" x="0.0" y="0.0" width="280" height="52"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnStop" customClass="AIRolloverButton">
+                                <rect key="frame" x="232" y="14" width="22" height="24"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                                <buttonCell key="cell" type="square" title="Stop" bezelStyle="shadowlessSquare" image="FTProgressStop" imagePosition="only" alignment="center" alternateImage="FTProgressStopPressed" imageScaling="proportionallyDown" inset="2" id="btnStopC">
+                                    <behavior key="behavior" pushIn="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="stopResumeAction:" target="-2" id="aStop"/>
+                                </connections>
+                            </button>
+                            <progressIndicator verticalHuggingPriority="750" fixedFrame="YES" maxValue="1" bezeled="YES" indeterminate="YES" controlSize="small" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="pvBar">
+                                <rect key="frame" x="40" y="20" width="187" height="12"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+                            </progressIndicator>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnReveal" customClass="AIRolloverButton">
+                                <rect key="frame" x="251" y="14" width="22" height="24"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                                <buttonCell key="cell" type="square" title="Reveal" bezelStyle="shadowlessSquare" image="FTProgressReveal" imagePosition="only" alignment="center" alternateImage="FTProgressRevealPressed" imageScaling="proportionallyDown" inset="2" id="btnRevealC">
+                                    <behavior key="behavior" pushIn="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="revealAction:" target="-2" id="aReveal"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tfDetailsLabel">
+                                <rect key="frame" x="52" y="6" width="37" height="11"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"/>
+                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Details:" id="tfDetailsLabelC">
+                                    <font key="font" metaFont="miniSystem"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnIcon">
+                                <rect key="frame" x="2" y="11" width="32" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"/>
+                                <buttonCell key="cell" type="square" title="" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="btnIconC">
+                                    <behavior key="behavior" pushIn="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="miniSystem"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="openFileAction:" target="-2" id="aOpenFile"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnTwiddle">
+                                <rect key="frame" x="38" y="5" width="15" height="13"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"/>
+                                <buttonCell key="cell" type="disclosureTriangle" bezelStyle="disclosure" imagePosition="above" alignment="left" borderStyle="border" inset="2" id="btnTwiddleC">
+                                    <behavior key="behavior" pushIn="YES" changeBackground="YES" changeGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="toggleDetails:" target="pv" id="aTwiddle"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tfFileName">
+                                <rect key="frame" x="38" y="34" width="236" height="14"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="AdiumX_0.80.dmg" id="tfFileNameC">
+                                    <font key="font" metaFont="smallSystem"/>
+                                    <color key="textColor" red="0.2" green="0.2" blue="0.2" alpha="1" colorSpace="calibratedRGB"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <box fixedFrame="YES" boxType="custom" borderType="none" title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="boxStatus">
+                                <rect key="frame" x="91" y="6" width="180" height="11"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES"/>
+                                <view key="contentView" id="boxStatusCV">
+                                    <rect key="frame" x="0.0" y="0.0" width="180" height="11"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                </view>
+                            </box>
+                        </subviews>
+                    </view>
+                </box>
+            </subviews>
+            <connections>
+                <outlet property="owner" destination="-2" id="oOwner"/>
+                <outlet property="box_primaryControls" destination="boxPrimary" id="oBoxPrimary"/>
+                <outlet property="textField_fileName" destination="tfFileName" id="oTfFileName"/>
+                <outlet property="button_icon" destination="btnIcon" id="oBtnIcon"/>
+                <outlet property="progressIndicator" destination="pvBar" id="oPvBar"/>
+                <outlet property="button_stopResume" destination="btnStop" id="oBtnStop"/>
+                <outlet property="button_reveal" destination="btnReveal" id="oBtnReveal"/>
+                <outlet property="twiddle_details" destination="btnTwiddle" id="oBtnTwiddle"/>
+                <outlet property="textField_detailsLabel" destination="tfDetailsLabel" id="oTfDetailsLabel"/>
+                <outlet property="box_transferStatusFrame" destination="boxStatus" id="oBoxStatus"/>
+                <outlet property="view_details" destination="dv" id="oDv"/>
+                <outlet property="textField_rate" destination="tfRate" id="oTfRate"/>
+                <outlet property="textField_source" destination="tfSource" id="oTfSource"/>
+                <outlet property="textField_destination" destination="tfDest" id="oTfDest"/>
+                <outlet property="imageView_source" destination="btnSource" id="oBtnSource"/>
+                <outlet property="imageView_destination" destination="btnDest" id="oBtnDest"/>
+                <outlet property="label_rate" destination="lRate" id="oLRate"/>
+                <outlet property="label_from" destination="lFrom" id="oLFrom"/>
+                <outlet property="label_to" destination="lTo" id="oLTo"/>
+            </connections>
+        </customView>
+        <customView id="dv" userLabel="Details View">
+            <rect key="frame" x="0.0" y="0.0" width="275" height="52"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lRate">
+                    <rect key="frame" x="2" y="40" width="49" height="11"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="Rate:" id="lRateC">
+                        <font key="font" metaFont="miniSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lFrom">
+                    <rect key="frame" x="2" y="23" width="49" height="11"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="From:" id="lFromC">
+                        <font key="font" metaFont="miniSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTo">
+                    <rect key="frame" x="2" y="5" width="49" height="11"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="To:" id="lToC">
+                        <font key="font" metaFont="miniSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tfRate">
+                    <rect key="frame" x="53" y="40" width="225" height="11"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="768 KB/sec" id="tfRateC">
+                        <font key="font" metaFont="miniSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tfSource">
+                    <rect key="frame" x="77" y="23" width="201" height="11"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="" id="tfSourceC">
+                        <font key="font" metaFont="miniSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tfDest">
+                    <rect key="frame" x="77" y="5" width="201" height="11"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="" id="tfDestC">
+                        <font key="font" metaFont="miniSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnSource">
+                    <rect key="frame" x="54" y="16" width="20" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                    <buttonCell key="cell" type="square" title="" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="btnSourceC">
+                        <behavior key="behavior" pushIn="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnDest">
+                    <rect key="frame" x="54" y="-1" width="20" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                    <buttonCell key="cell" type="square" title="" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="btnDestC">
+                        <behavior key="behavior" pushIn="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+            </subviews>
+        </customView>
+    </objects>
+    <resources>
+        <image name="FTProgressStop" width="14" height="14"/>
+        <image name="FTProgressStopPressed" width="14" height="14"/>
+        <image name="FTProgressReveal" width="14" height="14"/>
+        <image name="FTProgressRevealPressed" width="14" height="14"/>
+    </resources>
+</document>
