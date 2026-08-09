@@ -17,7 +17,6 @@
 #import "ESAddressBookIntegrationAdvancedPreferences.h"
 #import <Adium/AIAddressBookController.h>
 #import <Adium/AIContactControllerProtocol.h>
-#import <Adium/AILocalizationTextField.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
@@ -78,17 +77,17 @@
  */
 - (void)viewDidLoad
 {
-	[label_instructions setLocalizedString:AILocalizedString(@"Type text and drag name elements to create a custom name format.", nil)];
-	[label_names setLocalizedString:AILocalizedString(@"Names",nil)];
-	[label_images setLocalizedString:AILocalizedString(@"Images",nil)];
-	[label_contacts setLocalizedString:AILocalizedString(@"Contacts",nil)];
+	[label_instructions setStringValue:AILocalizedString(@"Type text and drag name elements to create a custom name format.", nil)];
+	[label_names setStringValue:AILocalizedString(@"Names",nil)];
+	[label_images setStringValue:AILocalizedString(@"Images",nil)];
+	[label_contacts setStringValue:AILocalizedString(@"Contacts",nil)];
 	
 	[box_nameElements setTitle:AILocalizedString(@"Name elements", "Contains name format tokens")];
 	
-	[label_firstToken setLocalizedString:AILocalizedString(@"First", "First name token")];
-	[label_middleToken setLocalizedString:AILocalizedString(@"Middle", "Middle name token")];
-	[label_lastToken setLocalizedString:AILocalizedString(@"Last", "Last name token")];
-	[label_nickToken setLocalizedString:AILocalizedString(@"Nick", "Nickname token")];
+	[label_firstToken setStringValue:AILocalizedString(@"First", "First name token")];
+	[label_middleToken setStringValue:AILocalizedString(@"Middle", "Middle name token")];
+	[label_lastToken setStringValue:AILocalizedString(@"Last", "Last name token")];
+	[label_nickToken setStringValue:AILocalizedString(@"Nick", "Nickname token")];
 	
 	NSString *displayFormat = [adium.preferenceController preferenceForKey:KEY_AB_DISPLAYFORMAT group:PREF_GROUP_ADDRESSBOOK];
 	[tokenField_format setDelegate:self];
@@ -104,13 +103,13 @@
 	[tokenField_nickToken setDelegate:self];
 	[tokenField_nickToken setStringValue:FORMAT_NICK_FULL];
 	
-	[checkBox_enableImport setLocalizedString:AILocalizedString(@"Import my contacts' names from the Address Book",nil)];
-	[checkBox_useFirstName setLocalizedString:AILocalizedString(@"Replace Nick with First if not available", nil)];
-	[checkBox_useNickName setLocalizedString:AILocalizedString(@"Use Nick exclusively if available",nil)];
-	[checkBox_useABImages setLocalizedString:AILocalizedString(@"Use Address Book images as contacts' icons",nil)];
-	[checkBox_preferABImages setLocalizedString:AILocalizedString(@"Even if the contact already has a contact icon",nil)];
-	[checkBox_syncAutomatic setLocalizedString:AILocalizedString(@"Overwrite Address Book images with contacts' icons",nil)];
-	[checkBox_metaContacts setLocalizedString:AILocalizedString(@"Combine contacts listed on a single card",nil)];	
+	[checkBox_enableImport setTitle:AILocalizedString(@"Import my contacts' names from the Address Book",nil)];
+	[checkBox_useFirstName setTitle:AILocalizedString(@"Replace Nick with First if not available", nil)];
+	[checkBox_useNickName setTitle:AILocalizedString(@"Use Nick exclusively if available",nil)];
+	[checkBox_useABImages setTitle:AILocalizedString(@"Use Address Book images as contacts' icons",nil)];
+	[checkBox_preferABImages setTitle:AILocalizedString(@"Even if the contact already has a contact icon",nil)];
+	[checkBox_syncAutomatic setTitle:AILocalizedString(@"Overwrite Address Book images with contacts' icons",nil)];
+	[checkBox_metaContacts setTitle:AILocalizedString(@"Combine contacts listed on a single card",nil)];	
 
 	[checkBox_enableImport setState:[[adium.preferenceController preferenceForKey:KEY_AB_ENABLE_IMPORT
 																			  group:PREF_GROUP_ADDRESSBOOK] boolValue]];

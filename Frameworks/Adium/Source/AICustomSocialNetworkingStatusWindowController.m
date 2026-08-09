@@ -39,9 +39,9 @@ static	AICustomSocialNetworkingStatusWindowController	*sharedController = nil;
 
 - (void)windowDidLoad
 {
-	[label_socialNetworkingStatus setLocalizedString:AILocalizedString(@"Social Networking Status:", nil)];
-	[button_okay setLocalizedString:AILocalizedString(@"OK", nil)];
-	[button_cancel setLocalizedString:AILocalizedString(@"Cancel", nil)];
+	[label_socialNetworkingStatus setStringValue:AILocalizedString(@"Social Networking Status:", nil)];
+	[button_okay setTitle:AILocalizedString(@"OK", nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
 	[[self window] setTitle:AILocalizedString(@"Social Networking Status", nil)];
 
 	[super windowDidLoad];

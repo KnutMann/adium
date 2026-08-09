@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AIListWindowController">
+            <connections>
+                <outlet property="filterBarView" destination="barView" id="oBar"/>
+                <outlet property="searchField" destination="sfFilter" id="oSearch"/>
+                <outlet property="button_cancelFilterBar" destination="btnCancel" id="oCancel"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="barView" userLabel="Filter Bar" customClass="AIFilterBarView">
+            <rect key="frame" x="0.0" y="0.0" width="188" height="30"/>
+            <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <searchField verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sfFilter">
+                    <rect key="frame" x="6" y="5" width="162" height="19"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                    <searchFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" alignment="left" bezelStyle="round" sendsSearchStringImmediately="YES" id="sfFilterCell">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </searchFieldCell>
+                    <connections>
+                        <action selector="filterContacts:" target="-2" id="aFilter"/>
+                    </connections>
+                </searchField>
+                <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnCancel" customClass="AIRolloverButton">
+                    <rect key="frame" x="167" y="3" width="22" height="24"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                    <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="FTProgressStop" imagePosition="only" alignment="center" alternateImage="FTProgressStopPressed" imageScaling="proportionallyDown" inset="2" id="btnCancelCell">
+                        <behavior key="behavior" pushIn="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="hideFilterBar:" target="-2" id="aHide"/>
+                        <outlet property="delegate" destination="-2" id="oBtnDel"/>
+                    </connections>
+                </button>
+            </subviews>
+        </customView>
+    </objects>
+    <resources>
+        <image name="FTProgressStop" width="14" height="14"/>
+        <image name="FTProgressStopPressed" width="14" height="14"/>
+    </resources>
+</document>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AIEmoticonPackPreviewController">
+            <connections>
+                <outlet property="previewView" destination="packView" id="oPreviewView"/>
+                <outlet property="checkBox_enablePack" destination="chkEnable" id="oChkEnable"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="packView" userLabel="View" customClass="AIEmoticonPackPreviewView">
+            <rect key="frame" x="0.0" y="0.0" width="160" height="42"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <subviews>
+                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="viewPreview" userLabel="Preview">
+                    <rect key="frame" x="22" y="0.0" width="129" height="22"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES"/>
+                </customView>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="chkEnable">
+                    <rect key="frame" x="0.0" y="24" width="22" height="18"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES"/>
+                    <buttonCell key="cell" type="check" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="chkEnableCell">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="systemBold"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="togglePack:" target="-2" id="aTogglePack"/>
+                    </connections>
+                </button>
+                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="viewName" userLabel="Name">
+                    <rect key="frame" x="22" y="24" width="129" height="17"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES"/>
+                </customView>
+            </subviews>
+            <connections>
+                <outlet property="view_preview" destination="viewPreview" id="oViewPreview"/>
+                <outlet property="view_name" destination="viewName" id="oViewName"/>
+            </connections>
+        </customView>
+    </objects>
+</document>

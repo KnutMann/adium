@@ -89,7 +89,7 @@
 		downloadSize = 0;
 		
 		[progressBar setDoubleValue:0];
-		[cancelButton setLocalizedString:AILocalizedString(@"Cancel",nil)];
+		[cancelButton setTitle:AILocalizedString(@"Cancel",nil)];
 		[window setTitle:AILocalizedString(@"Xtra Download",nil)];
 
 		[self updateInfoText];
