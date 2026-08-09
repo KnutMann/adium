@@ -7,7 +7,41 @@
 		// NOTE:
 		// Any percent signs in this file must be escaped!
 		// Use two escape signs (%%) to display it, this is passed through a format call!
-		
+
+		// Adium bridge shim — replaces WebScriptObject (WebView) window.client with
+		// a pure-JS / postMessage variant for WKWebView.
+		// On legacy WebView the native bridge is set before this script runs, so the
+		// guard below skips the shim and the old ObjC bridge continues to work.
+		(function() {
+			var adiumBridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adium;
+			if (window.client) return;
+
+			window.client = {
+				zoomImage: function(node) {
+					/* Emoticon-sized images keep the legacy click-to-text behavior */
+					if (node.width <= 64 && node.height <= 64)
+						return false;
+					/* Content images: ask the native side to toggle a Quick Look preview */
+					if (adiumBridge)
+						adiumBridge.postMessage({type: 'zoomImage', imageURL: node.currentSrc || node.getAttribute('src') || ''});
+					return true;
+				},
+				handleFileTransfer: function(action, fileTransferID) {
+					if (adiumBridge) adiumBridge.postMessage({type: 'fileTransfer', action: action, fileTransferID: fileTransferID});
+				},
+				debugLog: function(message) {
+					console.log('Adium:', message);
+				},
+				_setDocumentReady: function() {
+					if (adiumBridge) adiumBridge.postMessage({type: 'ready'});
+				}
+			};
+
+			document.addEventListener('DOMContentLoaded', function() {
+				if (adiumBridge) adiumBridge.postMessage({type: 'ready'});
+			});
+		})();
+
 		function appendHTML(html) {
 			var node = document.getElementById("Chat");
 			var range = document.createRange();
@@ -308,6 +342,15 @@
 			alignChat(true/*nearBottom()*/); //nearBottom buggy with inactive tabs
 		}
 
+		// XEP-0308 Message Correction: replace existing message in-place
+		function correctMessage(domId, html) {
+			var el = document.getElementById(domId);
+			if (!el) return false;
+			el.innerHTML = html;
+			el.classList.add("corrected");
+			return true;
+		}
+
 		function initStyle() {
 			alignChat(true);
 			if(!coalescedHTML)
@@ -321,6 +364,7 @@
 		.actionMessageBody:after { content:"*"; }
 		* { word-wrap:break-word; text-rendering: optimizelegibility; }
 		img.scaledToFitImage { height: auto; max-width: 100%%; }
+		.corrected::after { content: " (edited)"; font-size: smaller; opacity: 0.7; }
 	</style>
 
 	<!-- This style is shared by all variants. !-->

@@ -958,6 +958,9 @@
 		6318DBA50F8D93F200C5E584 /* terminator.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF01063498ED0018E5D2 /* terminator.png */; };
 		6318DBA60F8D93F200C5E584 /* Template.html in Resources */ = {isa = PBXBuildFile; fileRef = 4B03711506595A70008F5981 /* Template.html */; };
 		6318DBB40F8D940A00C5E584 /* AIWebKitMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B539C5205EFD6FB00E5921A /* AIWebKitMessageViewController.m */; };
+		ADD1E5C0DE00000000000D03 /* AIWebKitMessageViewWKController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000D02 /* AIWebKitMessageViewWKController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000000D06 /* AIAdiumURLSchemeHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000000D09 /* AIWebKitMessageViewWKContextMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6318DBB50F8D940A00C5E584 /* AIWebKitMessageViewPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B539C4C05EFD6CD00E5921A /* AIWebKitMessageViewPlugin.m */; };
 		6318DBB60F8D940A00C5E584 /* ESWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346C9A2405FFE3DF000F5A8A /* ESWebView.m */; };
 		6318DBB70F8D940A00C5E584 /* ESWebKitMessageViewPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C2D70406338E2E0018E5D2 /* ESWebKitMessageViewPreferences.m */; };
@@ -3046,6 +3049,12 @@
 		4B539C4C05EFD6CD00E5921A /* AIWebKitMessageViewPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewPlugin.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewPlugin.m"; sourceTree = "<group>"; };
 		4B539C5105EFD6FA00E5921A /* AIWebKitMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewController.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewController.h"; sourceTree = "<group>"; };
 		4B539C5205EFD6FB00E5921A /* AIWebKitMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewController.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000D01 /* AIWebKitMessageViewWKController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewWKController.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKController.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000D02 /* AIWebKitMessageViewWKController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewWKController.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000D04 /* AIAdiumURLSchemeHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdiumURLSchemeHandler.h; path = "Plugins/WebKit Message View/AIAdiumURLSchemeHandler.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdiumURLSchemeHandler.m; path = "Plugins/WebKit Message View/AIAdiumURLSchemeHandler.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000D07 /* AIWebKitMessageViewWKContextMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewWKContextMenu.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewWKContextMenu.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.m"; sourceTree = "<group>"; };
 		4B5827E80613CE9D0004BD25 /* AIMessageEntryTextView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMessageEntryTextView.h; path = Frameworks/Adium/Source/AIMessageEntryTextView.h; sourceTree = "<group>"; };
 		4B5827E90613CE9D0004BD25 /* AIMessageEntryTextView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIMessageEntryTextView.m; path = Frameworks/Adium/Source/AIMessageEntryTextView.m; sourceTree = "<group>"; };
 		4B588C9807AC23A9001832A9 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = Frameworks/Adium/Resources/en.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
@@ -6473,6 +6482,12 @@
 				6360B2590BF2EB93004CD99B /* AIWebKitDelegate.m */,
 				4B539C5105EFD6FA00E5921A /* AIWebKitMessageViewController.h */,
 				4B539C5205EFD6FB00E5921A /* AIWebKitMessageViewController.m */,
+				ADD1E5C0DE00000000000D01 /* AIWebKitMessageViewWKController.h */,
+				ADD1E5C0DE00000000000D02 /* AIWebKitMessageViewWKController.m */,
+				ADD1E5C0DE00000000000D04 /* AIAdiumURLSchemeHandler.h */,
+				ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */,
+				ADD1E5C0DE00000000000D07 /* AIWebKitMessageViewWKContextMenu.h */,
+				ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */,
 				34A1B59E0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.h */,
 				34A1B59F0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.m */,
 				4B539C4B05EFD6CD00E5921A /* AIWebKitMessageViewPlugin.h */,
@@ -7988,6 +8003,9 @@
 				1112561A0F8DA2BF00E76177 /* EKEzvIncomingFileTransfer.m in Sources */,
 				1112561B0F8DA2BF00E76177 /* EKEzvOutgoingFileTransfer.m in Sources */,
 				6318DBB40F8D940A00C5E584 /* AIWebKitMessageViewController.m in Sources */,
+				ADD1E5C0DE00000000000D03 /* AIWebKitMessageViewWKController.m in Sources */,
+				ADD1E5C0DE00000000000D06 /* AIAdiumURLSchemeHandler.m in Sources */,
+				ADD1E5C0DE00000000000D09 /* AIWebKitMessageViewWKContextMenu.m in Sources */,
 				6318DBB50F8D940A00C5E584 /* AIWebKitMessageViewPlugin.m in Sources */,
 				6318DBB60F8D940A00C5E584 /* ESWebView.m in Sources */,
 				6318DBB70F8D940A00C5E584 /* ESWebKitMessageViewPreferences.m in Sources */,

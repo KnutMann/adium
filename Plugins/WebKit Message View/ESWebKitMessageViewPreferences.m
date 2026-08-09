@@ -123,8 +123,7 @@
 
 	[previewController messageViewIsClosing];
 	[previewController release]; previewController = nil;
-	[view_previewLocation setFrame:[preview frame]];
-	[[preview superview] replaceSubview:preview with:view_previewLocation];	
+	[preview removeFromSuperview];
 	[preview release]; preview = nil;
 	//Matches the retain performed in -[ESWebKitMessageViewPreferences _configureChatPreview]
 	[view_previewLocation release];
@@ -546,12 +545,28 @@
 	[self _fillContentOfChat:previewChat withDictionary:previewDict fromPath:previewPath listObjects:listObjects];
 	[previewDict release];
 	
-	//Place the preview chat in our view
+	//Place the preview chat in our view: fill the placeholder and track its size
 	preview = [[previewController messageView] retain];
-	[preview setFrame:[view_previewLocation frame]];
-	//Will be released in viewWillClose
-	[view_previewLocation retain];
-	[[view_previewLocation superview] replaceSubview:view_previewLocation with:preview];
+	@try {
+		[preview setValue:[NSNumber numberWithBool:NO] forKey:@"fillsContainerOnAttach"];
+	} @catch (NSException *exception) {}
+	/* The nib placeholder lacks a width-sizable mask, so it kept its nib width
+	 * while the pane grew. Stretch it across the pane (same side margins) and
+	 * make it track future resizes. */
+	{
+		NSRect placeholderFrame = [view_previewLocation frame];
+		NSView *paneRoot = [view_previewLocation superview];
+		CGFloat sideMargin = NSMinX(placeholderFrame);
+		placeholderFrame.size.width = NSWidth([paneRoot bounds]) - 2 * sideMargin;
+		[view_previewLocation setFrame:placeholderFrame];
+		[view_previewLocation setAutoresizingMask:([view_previewLocation autoresizingMask] | NSViewWidthSizable)];
+	}
+	[preview setFrame:[view_previewLocation bounds]];
+	[preview setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+	if ([view_previewLocation respondsToSelector:@selector(setClipsToBounds:)])
+		[view_previewLocation setClipsToBounds:YES];
+	[view_previewLocation addSubview:preview];
+	[view_previewLocation retain]; //matched in viewWillClose
 
 	//Disable drag and drop onto the preview chat - Jeff doesn't need your porn :)
 	if ([preview respondsToSelector:@selector(setAllowsDragAndDrop:)]) {

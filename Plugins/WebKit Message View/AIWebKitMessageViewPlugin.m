@@ -16,6 +16,7 @@
 
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import "AIWebKitMessageViewController.h"
+#import "AIWebKitMessageViewWKController.h"
 #import "AIWebKitMessageViewPlugin.h"
 #import "ESWebKitMessageViewPreferences.h"
 #import <AIUtilities/AIDictionaryAdditions.h>
@@ -91,7 +92,9 @@
 
 - (id <AIMessageDisplayController>)messageDisplayControllerForChat:(AIChat *)inChat
 {
-    return [AIWebKitMessageViewController messageDisplayControllerForChat:inChat withPlugin:self];
+    /* WKWebView-based controller (AdiumY port). The legacy WebKit1 controller
+     * (AIWebKitMessageViewController) remains compiled in the tree as a fallback. */
+    return [AIWebKitMessageViewWKController messageDisplayControllerForChat:inChat withPlugin:self];
 }
 
 - (void)preferencesChangedForGroup:(NSString *)group
