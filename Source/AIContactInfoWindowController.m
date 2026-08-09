@@ -174,6 +174,20 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 {
 	[super windowDidLoad];
 
+	/* The nib-decoded inspectorContent view never composites on modern
+	 * AppKit: its subtree stays hit-testable but is never drawn, even with
+	 * forced display or direct layer coloring. A freshly created view at
+	 * the same position renders fine, so swap it out. */
+	{
+		NSView *fresh = [[[NSView alloc] initWithFrame:[inspectorContent frame]] autorelease];
+		[fresh setAutoresizingMask:[inspectorContent autoresizingMask]];
+		NSView *host = [inspectorContent superview];
+		[inspectorContent removeFromSuperview];
+		[host addSubview:fresh];
+		/* The outlet reference is not ours to release. */
+		inspectorContent = [fresh retain];
+	}
+
 	//Localization
 	[self setupToolbarSegments];
 	
@@ -312,7 +326,6 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 	
 	if (currentPane) {		
 		// Remove the old pane		
-		[self animateViewOut:currentPane];
 		[currentPane removeFromSuperview];
 	}
 	
@@ -325,10 +338,14 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
         
     [newPane setFrame:paneFrame];
     
+	/* The NSViewAnimation fade that used to run here is unreliable on
+	 * modern AppKit (the blocking fade-in can leave alphaValue at 0,
+	 * showing an empty window); insert the pane directly. */
+	[newPane setHidden:NO];
+	[newPane setAlphaValue:1.0];
 	[inspectorContent addSubview:newPane];
 	
 	currentPane = newPane;
-	[self animateViewIn:currentPane];
 }
 
 -(void)animateViewIn:(NSView *)aView;
