@@ -110,9 +110,11 @@
 																								 group:PREF_GROUP_DUAL_WINDOW_INTERFACE] intValue]];
 
     /* Sparkle updates and the global shortcut recorder are gone from this build.
-     * Their controls (and the nib-only section labels sharing their rows) get hidden. */
+     * Their controls (and the nib-only section labels sharing their rows) get hidden,
+     * then the freed vertical space collapses so the window shrinks accordingly. */
     NSArray *removedControls = [NSArray arrayWithObjects:checkBox_updatesAutomatic, checkBox_updatesProfileInfo,
                                 checkBox_updatesIncludeBetas, label_shortcutRecorder, placeholder_shortcutRecorder, nil];
+    NSMutableArray *hiddenViews = [NSMutableArray arrayWithArray:removedControls];
     for (NSView *control in removedControls) {
         [control setHidden:YES];
     }
@@ -123,10 +125,56 @@
             if ([control superview] == [sibling superview] &&
                 NSMinY([sibling frame]) < NSMaxY([control frame]) && NSMaxY([sibling frame]) > NSMinY([control frame])) {
                 [sibling setHidden:YES];
+                [hiddenViews addObject:sibling];
                 break;
             }
         }
     }
+
+    /* Merge the hidden controls' frames into vertical bands (rows may repeat until stable) */
+    NSView *paneView = [checkBox_updatesAutomatic superview];
+    NSMutableArray *bands = [NSMutableArray array];
+    for (NSView *hidden in hiddenViews) {
+        if ([hidden superview] != paneView) continue;
+        [bands addObject:[NSValue valueWithRect:[hidden frame]]];
+    }
+    BOOL mergedAny;
+    do {
+        mergedAny = NO;
+        for (NSUInteger i = 0; i < [bands count] && !mergedAny; i++) {
+            for (NSUInteger j = i + 1; j < [bands count] && !mergedAny; j++) {
+                NSRect a = [[bands objectAtIndex:i] rectValue];
+                NSRect b = [[bands objectAtIndex:j] rectValue];
+                if (NSMinY(a) <= NSMaxY(b) + 6.0f && NSMaxY(a) >= NSMinY(b) - 6.0f) {
+                    [bands replaceObjectAtIndex:i withObject:[NSValue valueWithRect:NSUnionRect(a, b)]];
+                    [bands removeObjectAtIndex:j];
+                    mergedAny = YES;
+                }
+            }
+        }
+    } while (mergedAny);
+
+    /* Collapse each band, topmost first, then shrink the pane so the prefs window follows */
+    [bands sortUsingComparator:^NSComparisonResult(NSValue *a, NSValue *b) {
+        return NSMinY([b rectValue]) < NSMinY([a rectValue]) ? NSOrderedAscending : NSOrderedDescending;
+    }];
+    [paneView setAutoresizesSubviews:NO];
+    CGFloat removedHeight = 0;
+    for (NSValue *bandValue in bands) {
+        NSRect band = [bandValue rectValue];
+        for (NSView *subview in [paneView subviews]) {
+            NSRect frame = [subview frame];
+            if (NSMinY(frame) >= NSMaxY(band) - 1.0f) {
+                frame.origin.y -= NSHeight(band);
+                [subview setFrame:frame];
+            }
+        }
+        removedHeight += NSHeight(band);
+    }
+    NSRect paneFrame = [paneView frame];
+    paneFrame.size.height -= removedHeight;
+    [paneView setFrame:paneFrame];
+    [paneView setAutoresizesSubviews:YES];
 
     [self configureControlDimming];
 }

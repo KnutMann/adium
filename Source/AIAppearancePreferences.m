@@ -84,6 +84,26 @@ typedef enum {
  */
 - (void)viewDidLoad
 {
+	//Localized text for the single-nib pane
+	[label_serviceIcons setStringValue:AILocalizedString(@"Service Icons:",nil)];
+	[label_statusIcons setStringValue:AILocalizedString(@"Status Icons:",nil)];
+	[label_menuBarIcons setStringValue:AILocalizedString(@"Menu Bar Icons:",nil)];
+	[label_emoticons setStringValue:AILocalizedString(@"Emoticons:",nil)];
+	[label_dockIcons setStringValue:AILocalizedString(@"Dock Icon:",nil)];
+	[label_contactListSection setStringValue:AILocalizedString(@"Contact List","Section header in appearance preferences")];
+	[label_colorTheme setStringValue:AILocalizedString(@"Color Theme:",nil)];
+	[label_listLayout setStringValue:AILocalizedString(@"List Layout:",nil)];
+	[label_windowStyle setStringValue:AILocalizedString(@"Window Style:",nil)];
+	[label_opacity setStringValue:AILocalizedString(@"Opacity:",nil)];
+	[label_autosizing setStringValue:AILocalizedString(@"Automatic Sizing:",nil)];
+	[textField_horizontalWidthText setStringValue:AILocalizedString(@"Maximum Width:",nil)];
+	[button_customizeEmoticons setTitle:AILocalizedString(@"Customize…",nil)];
+	[button_customizeColorTheme setTitle:AILocalizedString(@"Customize…",nil)];
+	[button_customizeListLayout setTitle:AILocalizedString(@"Customize…",nil)];
+	[button_showAllDockIcons setTitle:AILocalizedString(@"Show All…",nil)];
+	[checkBox_verticalAutosizing setTitle:AILocalizedString(@"Size to fit vertically",nil)];
+	[checkBox_horizontalAutosizing setTitle:AILocalizedString(@"Size to fit horizontally",nil)];
+
 	[slider_windowOpacity setMinValue:0.0];
 	[slider_windowOpacity setMaxValue:100.0];
 

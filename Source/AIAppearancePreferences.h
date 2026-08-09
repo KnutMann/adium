@@ -40,6 +40,17 @@
 	IBOutlet	NSTextField		*label_statusIcons;
 	IBOutlet	NSTextField		*label_dockIcons;
 	IBOutlet	NSTextField		*label_menuBarIcons;
+	IBOutlet	NSTextField		*label_emoticons;
+	IBOutlet	NSTextField		*label_colorTheme;
+	IBOutlet	NSTextField		*label_listLayout;
+	IBOutlet	NSTextField		*label_windowStyle;
+	IBOutlet	NSTextField		*label_opacity;
+	IBOutlet	NSTextField		*label_autosizing;
+	IBOutlet	NSTextField		*label_contactListSection;
+	IBOutlet	NSButton		*button_customizeEmoticons;
+	IBOutlet	NSButton		*button_showAllDockIcons;
+	IBOutlet	NSButton		*button_customizeColorTheme;
+	IBOutlet	NSButton		*button_customizeListLayout;
 
 	//
 	NSArray		*_listLayouts;	//Will NOT always be a valid reference.  Do not use as one!
