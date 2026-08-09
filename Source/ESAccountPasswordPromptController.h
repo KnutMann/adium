@@ -20,6 +20,11 @@
 	IBOutlet	NSTextField		*textField_account;
 	IBOutlet	NSImageView		*imageView_service;
 
+	IBOutlet	NSTextField		*label_pleaseEnter;
+	IBOutlet	NSTextField		*label_account;
+	IBOutlet	NSTextField		*label_password;
+	IBOutlet	NSButton		*button_cancel;
+
     AIAccount					*account;
 }
 

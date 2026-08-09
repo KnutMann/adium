@@ -81,9 +81,43 @@
 {
 	// We'll be adding/removing this from our view
 	[tabViewItem_advancedContactBubbles retain];
-	
+
+	// Localized text for the single-nib editor
+	[button_okay setTitle:AILocalizedString(@"OK", nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
+
+	[tabViewItem_contacts setLabel:AILocalizedString(@"Contacts", nil)];
+	[tabViewItem_groups setLabel:AILocalizedString(@"Groups", nil)];
+	[tabViewItem_spacing setLabel:AILocalizedString(@"Spacing", nil)];
+	[tabViewItem_advancedContactBubbles setLabel:AILocalizedString(@"Bubbles", nil)];
+
+	[label_contactAlignment setStringValue:AILocalizedString(@"Alignment:", nil)];
+	[label_contactFont setStringValue:AILocalizedString(@"Contact Font:", nil)];
+	[label_statusFont setStringValue:AILocalizedString(@"Status Font:", nil)];
+	[button_setContactFont setTitle:AILocalizedString(@"Set Font…", nil)];
+	[button_setStatusFont setTitle:AILocalizedString(@"Set Font…", nil)];
+	[checkBox_extendedStatusVisible setTitle:AILocalizedString(@"Show", "Checkbox before the two extended status popups in the contact list layout editor")];
+	[checkBox_userIconVisible setTitle:AILocalizedString(@"Show user icon", nil)];
+	[label_userIconSize setStringValue:AILocalizedString(@"Icon size:", nil)];
+	[checkBox_statusIconsVisible setTitle:AILocalizedString(@"Show status icons", nil)];
+	[checkBox_serviceIconsVisible setTitle:AILocalizedString(@"Show service icons", nil)];
+
+	[label_groupAlignment setStringValue:AILocalizedString(@"Alignment:", nil)];
+	[label_groupFont setStringValue:AILocalizedString(@"Group Font:", nil)];
+	[button_setGroupFont setTitle:AILocalizedString(@"Set Font…", nil)];
+
+	[label_contactSpacing setStringValue:AILocalizedString(@"Spacing:", nil)];
+	[label_contactLeftIndent setStringValue:AILocalizedString(@"Left Margin:", nil)];
+	[label_contactRightIndent setStringValue:AILocalizedString(@"Right Margin:", nil)];
+	[label_groupTopSpacing setStringValue:AILocalizedString(@"Mockie Spacing:", nil)];
+
+	[checkBox_outlineBubbles setTitle:AILocalizedString(@"Outline bubbles with width:", nil)];
+	[checkBox_showGroupBubbles setTitle:AILocalizedString(@"Show group bubbles", nil)];
+	[checkBox_drawContactBubblesWithGraadient setTitle:AILocalizedString(@"Draw contact bubbles with a gradient", nil)];
+	[label_gradientNote setStringValue:AILocalizedString(@"Note: Gradient drawing is significantly slower", nil)];
+
 	// Allow alpha in our color pickers
-	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];	
+	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
 
 	// Setup
 	[fontField_contact setShowPointSize:YES];

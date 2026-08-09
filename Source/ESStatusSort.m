@@ -18,7 +18,6 @@
 #import "ESStatusSort.h"
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <Adium/AIListObject.h>
-#import <Adium/AILocalizationTextField.h>
 #import <Adium/AIContactList.h>
 
 #define STATUS_SORT_DEFAULT_PREFS   @"StatusSortDefaults"
@@ -260,6 +259,22 @@ static NSInteger  sizeOfSortOrder;
  */
 - (void)viewDidLoad
 {
+	//Localize the configuration view (these strings previously lived in the localized nibs)
+	[checkBox_groupAvailable setTitle:AILocalizedString(@"Group available contacts",nil)];
+	[checkBox_groupMobileSeparately setTitle:AILocalizedString(@"Group mobile contacts separately",nil)];
+	[buttonCell_allUnavailable setTitle:AILocalizedString(@"Group all unavailable contacts together",nil)];
+	[buttonCell_separateUnavailable setTitle:AILocalizedString(@"Group unavailable contacts separately:",nil)];
+	[checkBox_groupAway setTitle:AILocalizedString(@"Group all away contacts",nil)];
+	[checkBox_groupIdle setTitle:AILocalizedString(@"Group all idle contacts",nil)];
+	[checkBox_groupIdleAndAway setTitle:AILocalizedString(@"Group all idle+away contacts",nil)];
+	[checkBox_sortIdleTime setTitle:AILocalizedString(@"Sort idle contacts by ascending idle time",nil)];
+	[checkBox_sortGroupsAlphabetically setTitle:AILocalizedString(@"Sort groups alphabetically",nil)];
+	[label_sortWithinEachStatusGrouping setStringValue:AILocalizedString(@"Sort within each status grouping:",nil)];
+	[buttonCell_manually setTitle:AILocalizedString(@"Manually",nil)];
+	[buttonCell_alphabetically setTitle:AILocalizedString(@"Alphabetically",nil)];
+	[checkBox_alphabeticallyByLastName setTitle:AILocalizedString(@"...by last name",nil)];
+	[label_statusGroupOrdering setStringValue:AILocalizedString(@"Status group ordering:",nil)];
+
 	[checkBox_groupAvailable setState:groupAvailable];
 	[checkBox_groupMobileSeparately setState:groupMobile];
 	[checkBox_groupAway setState:groupAway];

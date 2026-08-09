@@ -1148,8 +1148,9 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
 
 - (void)updateTitle:(NSString *)inTitle forChat:(AIChat *)chat
 {
-	[[chat displayArrayForKey:@"Display Name"] setObject:inTitle
-											   withOwner:self];
+	/* -setDisplayName: also fires the chatStatusChanged notification; writing
+	 * the display array directly would leave the tab and window title stale. */
+	[chat setDisplayName:inTitle];
 }
 
 - (void)updateForChat:(AIChat *)chat type:(NSNumber *)type

@@ -333,13 +333,25 @@ static void adiumPurpleConvChatAddUsers(PurpleConversation *conv, GList *cbuddie
 		for (GList *l = cbuddies; l; l = l->next) {
 			PurpleConvChatBuddy *cb = (PurpleConvChatBuddy *)l->data;
 			
-			// We use cb->name for the alias field, since libpurple sets the one we're after (the chat name) formatted correctly inside.
+			/* Prefer the protocol-provided alias (e.g. the WhatsApp address book
+			 * name); fall back to cb->name, which XMPP formats as the nick. */
 			NSMutableDictionary *user = [NSMutableDictionary dictionary];
 			[user setObject:get_real_name_for_account_conv_buddy(account, conv, cb->name) forKey:@"UID"];
 			[user setObject:[NSNumber numberWithInteger:cb->flags] forKey:@"Flags"];
-			[user setObject:[NSString stringWithUTF8String:cb->name] forKey:@"Alias"];
+			[user setObject:[NSString stringWithUTF8String:((cb->alias && *cb->alias) ? cb->alias : cb->name)] forKey:@"Alias"];
 			
 			[users addObject:user];
+		}
+
+		/* The conversation title (e.g. the WhatsApp group name) may have been set
+		 * before this chat existed on the Adium side; sync it now. */
+		{
+			const char *convTitle = purple_conversation_get_title(conv);
+			const char *convName = purple_conversation_get_name(conv);
+			if (convTitle && convName && !purple_strequal(convTitle, convName)) {
+				[accountLookup(account) updateTitle:[NSString stringWithUTF8String:convTitle]
+											forChat:groupChatLookupFromConv(conv)];
+			}
 		}
 
 		[accountLookup(account) updateUserListForChat:groupChatLookupFromConv(conv)

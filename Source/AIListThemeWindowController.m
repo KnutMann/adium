@@ -71,11 +71,50 @@
 
 - (void)windowDidLoad
 {
+	// Localized text for the single-nib editor
+	[button_okay setTitle:AILocalizedString(@"OK", nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
+
+	[tabViewItem_window setLabel:AILocalizedString(@"Window", nil)];
+	[tabViewItem_status setLabel:AILocalizedString(@"Status", nil)];
+	[tabViewItem_events setLabel:AILocalizedString(@"Events", nil)];
+	[tabViewItem_groups setLabel:AILocalizedString(@"Groups", nil)];
+
+	[checkBox_useBackgroundImage setTitle:AILocalizedString(@"Background Image", nil)];
+	[button_setBackgroundImage setTitle:AILocalizedString(@"Choose…", nil)];
+	[label_fadeImage setStringValue:AILocalizedString(@"Fade Image:", nil)];
+	[checkBox_drawGrid setTitle:AILocalizedString(@"Alternating grid", nil)];
+	[checkBox_drawCustomHighlight setTitle:AILocalizedString(@"Highlight", nil)];
+	[label_background setStringValue:AILocalizedString(@"Background", "Label of the contact list background color well")];
+	[label_style setStringValue:AILocalizedString(@"Style:", nil)];
+
+	[checkBox_online setTitle:AILocalizedString(@"Online", nil)];
+	[checkBox_offline setTitle:AILocalizedString(@"Offline", nil)];
+	[checkBox_idle setTitle:AILocalizedString(@"Idle", nil)];
+	[checkBox_away setTitle:AILocalizedString(@"Away", nil)];
+	[checkBox_idleAndAway setTitle:AILocalizedString(@"Idle & away", nil)];
+	[checkBox_mobile setTitle:AILocalizedString(@"Mobile", nil)];
+	[checkBox_backgroundAsStatus setTitle:AILocalizedString(@"Color backgrounds", nil)];
+	[label_detailedStatusText setStringValue:AILocalizedString(@"Detailed status text:", nil)];
+	[label_offlineContacts setStringValue:AILocalizedString(@"Offline Contacts:", nil)];
+	[checkBox_fadeOfflineImages setTitle:AILocalizedString(@"Dim icons of offline contacts", nil)];
+
+	[checkBox_signedOn setTitle:AILocalizedString(@"Come online", nil)];
+	[checkBox_signedOff setTitle:AILocalizedString(@"Gone offline", nil)];
+	[checkBox_typing setTitle:AILocalizedString(@"Typing", nil)];
+	[checkBox_unviewedContent setTitle:AILocalizedString(@"Unviewed content", nil)];
+	[checkBox_backgroundAsEvents setTitle:AILocalizedString(@"Color backgrounds", nil)];
+
+	[label_textColor setStringValue:AILocalizedString(@"Text color", nil)];
+	[checkBox_groupShadow setTitle:AILocalizedString(@"Text Shadow", nil)];
+	[checkBox_groupGradient setTitle:AILocalizedString(@"Background gradient", "Checkbox for the group background gradient in the contact list theme editor")];
+	[label_to setStringValue:AILocalizedString(@"to", "Between the two color wells of the group background gradient")];
+
 	// Allow alpha in our color pickers
-	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];	
+	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
 
 	[self configureControls];
-	
+
 	[textField_themeName setStringValue:(themeName ? themeName : @"")];
 }
 

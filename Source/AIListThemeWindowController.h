@@ -20,7 +20,15 @@
 
 @interface AIListThemeWindowController : AIWindowController {
 	IBOutlet	NSTextField				*textField_themeName;
-	
+
+	IBOutlet	NSButton				*button_okay;
+	IBOutlet	NSButton				*button_cancel;
+
+	IBOutlet	NSTabViewItem			*tabViewItem_window;
+	IBOutlet	NSTabViewItem			*tabViewItem_status;
+	IBOutlet	NSTabViewItem			*tabViewItem_events;
+	IBOutlet	NSTabViewItem			*tabViewItem_groups;
+
     IBOutlet	NSButton				*checkBox_signedOff;
     IBOutlet	NSColorWell				*colorWell_signedOff;
     IBOutlet	NSColorWell				*colorWell_signedOffLabel;
@@ -71,9 +79,12 @@
 	IBOutlet	NSTextField				*textField_backgroundImagePath;
 	IBOutlet	NSSlider				*slider_backgroundFade;
 	IBOutlet	NSTextField				*textField_backgroundFade;
+	IBOutlet	NSTextField				*label_fadeImage;
 	IBOutlet	NSPopUpButton			*popUp_displayImageStyle;
-	
+	IBOutlet	NSTextField				*label_style;
+
 	IBOutlet	NSColorWell				*colorWell_background;
+	IBOutlet	NSTextField				*label_background;
 	IBOutlet	AITextColorPreviewView	*preview_background;
 	IBOutlet	NSColorWell				*colorWell_customHighlight;
 	IBOutlet	AITextColorPreviewView	*preview_customHighlight;
@@ -84,7 +95,10 @@
 	IBOutlet	NSButton				*checkBox_backgroundAsStatus;
 	IBOutlet	NSButton				*checkBox_backgroundAsEvents;
 	IBOutlet	NSColorWell				*colorWell_statusText;
+	IBOutlet	NSTextField				*label_detailedStatusText;
 	IBOutlet	NSButton				*checkBox_fadeOfflineImages;
+	IBOutlet	NSTextField				*label_offlineContacts;
+	IBOutlet	NSButton				*checkBox_mobile;
 
 	IBOutlet	NSButton				*checkBox_groupGradient;
 	IBOutlet	NSButton				*checkBox_groupShadow;
@@ -93,7 +107,9 @@
 	IBOutlet	NSColorWell				*colorWell_groupBackground;
 	IBOutlet	NSColorWell				*colorWell_groupBackgroundGradient;
 	IBOutlet	AITextColorPreviewView	*preview_group;
-	
+	IBOutlet	NSTextField				*label_textColor;
+	IBOutlet	NSTextField				*label_to;
+
 	id				target;
 	NSString		*themeName;
 }

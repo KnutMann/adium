@@ -97,6 +97,15 @@ static NSMutableDictionary	*proxyPasswordPromptControllerDict = nil;
 {
 	[[self window] setTitle:PROXY_PASSWORD_REQUIRED];
 
+	//Localized text for the single-nib prompt
+	[label_pleaseEnter setStringValue:AILocalizedString(@"Please enter your proxy password.", nil)];
+	[label_server setStringValue:AILocalizedString(@"Server:", nil)];
+	[label_username setStringValue:AILocalizedString(@"Username:", nil)];
+	[label_password setStringValue:AILocalizedString(@"Password:", nil)];
+	[checkBox_savePassword setTitle:AILocalizedString(@"Remember Password", nil)];
+	[button_OK setTitle:AILocalizedString(@"OK", nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
+
 	[textField_server setStringValue:([server length] ? server : NONE)];
 	[textField_userName setStringValue:([userName length] ? userName : NONE)];
 	

@@ -111,7 +111,15 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 - (void)windowDidLoad
 {
 	[[self window] setTitle:ACCOUNT_PASSWORD_REQUIRED];
-	
+
+	//Localized text for the single-nib prompt
+	[label_pleaseEnter setStringValue:AILocalizedString(@"Please enter your account password.", nil)];
+	[label_account setStringValue:AILocalizedString(@"Account:", nil)];
+	[label_password setStringValue:AILocalizedString(@"Password:", nil)];
+	[checkBox_savePassword setTitle:AILocalizedString(@"Remember Password", nil)];
+	[button_OK setTitle:AILocalizedString(@"OK", nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
+
     [textField_account setStringValue:account.formattedUID];
 	[imageView_service setImage:[AIServiceIcons serviceIconForService:account.service
 																 type:AIServiceIconLarge

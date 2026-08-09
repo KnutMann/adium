@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESStatusSort">
+            <connections>
+                <outlet property="configureView" destination="sortView" id="oView"/>
+                <outlet property="checkBox_groupAvailable" destination="cbAvailable" id="oCbAvailable"/>
+                <outlet property="checkBox_groupMobileSeparately" destination="cbMobile" id="oCbMobile"/>
+                <outlet property="matrix_unavailableGrouping" destination="mtxUnavail" id="oMtxUnavail"/>
+                <outlet property="buttonCell_allUnavailable" destination="cellAllUnavail" id="oCellAllUnavail"/>
+                <outlet property="buttonCell_separateUnavailable" destination="cellSepUnavail" id="oCellSepUnavail"/>
+                <outlet property="checkBox_groupAway" destination="cbAway" id="oCbAway"/>
+                <outlet property="checkBox_groupIdle" destination="cbIdle" id="oCbIdle"/>
+                <outlet property="checkBox_groupIdleAndAway" destination="cbIdleAway" id="oCbIdleAway"/>
+                <outlet property="checkBox_sortIdleTime" destination="cbIdleTime" id="oCbIdleTime"/>
+                <outlet property="checkBox_sortGroupsAlphabetically" destination="cbGroupsAlpha" id="oCbGroupsAlpha"/>
+                <outlet property="label_sortWithinEachStatusGrouping" destination="lblSortWithin" id="oLblSortWithin"/>
+                <outlet property="matrix_resolution" destination="mtxRes" id="oMtxRes"/>
+                <outlet property="buttonCell_alphabetically" destination="cellAlpha" id="oCellAlpha"/>
+                <outlet property="checkBox_alphabeticallyByLastName" destination="cbLastName" id="oCbLastName"/>
+                <outlet property="buttonCell_manually" destination="cellManual" id="oCellManual"/>
+                <outlet property="label_statusGroupOrdering" destination="lblOrdering" id="oLblOrdering"/>
+                <outlet property="tableView_sortOrder" destination="tblOrder" id="oTblOrder"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="sortView" userLabel="View">
+            <rect key="frame" x="0.0" y="0.0" width="316" height="429"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbAvailable">
+                    <rect key="frame" x="18" y="393" width="278" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Group available contacts" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbAvailableC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aAvailable"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbMobile">
+                    <rect key="frame" x="37" y="371" width="259" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Group mobile contacts separately" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbMobileC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aMobile"/>
+                    </connections>
+                </button>
+                <box boxType="separator" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sepUnavail">
+                    <rect key="frame" x="20" y="362" width="274" height="5"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                </box>
+                <matrix verticalHuggingPriority="750" fixedFrame="YES" allowsEmptySelection="NO" autosizesCells="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mtxUnavail">
+                    <rect key="frame" x="18" y="320" width="278" height="38"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    <size key="cellSize" width="278" height="18"/>
+                    <size key="intercellSpacing" width="4" height="2"/>
+                    <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="mtxUnavailProto">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <cells>
+                        <column>
+                            <buttonCell type="radio" title="Group all unavailable contacts together" imagePosition="left" alignment="left" state="on" inset="2" id="cellAllUnavail">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <buttonCell type="radio" title="Group unavailable contacts separately:" imagePosition="left" alignment="left" inset="2" id="cellSepUnavail">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </column>
+                    </cells>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aMtxUnavail"/>
+                    </connections>
+                </matrix>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbAway">
+                    <rect key="frame" x="37" y="298" width="259" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Group all away contacts" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbAwayC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aAway"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIdle">
+                    <rect key="frame" x="37" y="276" width="259" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Group all idle contacts" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbIdleC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aIdle"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIdleAway">
+                    <rect key="frame" x="37" y="254" width="259" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Group all idle+away contacts" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbIdleAwayC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aIdleAway"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIdleTime">
+                    <rect key="frame" x="18" y="231" width="278" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Sort idle contacts by ascending idle time" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbIdleTimeC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aIdleTime"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGroupsAlpha">
+                    <rect key="frame" x="18" y="211" width="278" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Sort groups alphabetically" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbGroupsAlphaC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aGroupsAlpha"/>
+                    </connections>
+                </button>
+                <box boxType="separator" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sepResolution">
+                    <rect key="frame" x="20" y="202" width="274" height="5"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                </box>
+                <box boxType="separator" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sepResolution2">
+                    <rect key="frame" x="20" y="202" width="274" height="5"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                </box>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lblSortWithin">
+                    <rect key="frame" x="17" y="179" width="280" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" title="Sort within each status grouping:" id="lblSortWithinC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <matrix verticalHuggingPriority="750" fixedFrame="YES" allowsEmptySelection="NO" autosizesCells="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mtxRes">
+                    <rect key="frame" x="37" y="135" width="259" height="38"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    <size key="cellSize" width="259" height="18"/>
+                    <size key="intercellSpacing" width="4" height="2"/>
+                    <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="mtxResProto">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <cells>
+                        <column>
+                            <buttonCell type="radio" title="Manually" imagePosition="left" alignment="left" state="on" inset="2" id="cellManual">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <buttonCell type="radio" title="Alphabetically" imagePosition="left" alignment="left" inset="2" id="cellAlpha">
+                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </column>
+                    </cells>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aMtxRes"/>
+                    </connections>
+                </matrix>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbLastName">
+                    <rect key="frame" x="55" y="113" width="241" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="...by last name" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbLastNameC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aLastName"/>
+                    </connections>
+                </button>
+                <box boxType="separator" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sepOrdering">
+                    <rect key="frame" x="20" y="104" width="274" height="5"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                </box>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lblOrdering">
+                    <rect key="frame" x="17" y="81" width="147" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="Status group ordering:" id="lblOrderingC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <scrollView fixedFrame="YES" borderType="bezel" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="scrOrder">
+                    <rect key="frame" x="169" y="20" width="125" height="78"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <clipView key="contentView" id="clipOrder">
+                        <rect key="frame" x="1" y="1" width="123" height="76"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" autosaveColumns="NO" rowHeight="17" headerView="NO" id="tblOrder">
+                                <rect key="frame" x="0.0" y="0.0" width="123" height="76"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <size key="intercellSpacing" width="3" height="2"/>
+                                <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                <tableColumns>
+                                    <tableColumn width="120" minWidth="8" maxWidth="1000" id="colOrder">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left"/>
+                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" alignment="left" title="Text Cell" id="colOrderCell">
+                                            <font key="font" metaFont="system"/>
+                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </textFieldCell>
+                                        <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                    </tableColumn>
+                                </tableColumns>
+                            </tableView>
+                        </subviews>
+                    </clipView>
+                    <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="scrOrderH">
+                        <rect key="frame" x="-100" y="-100" width="69" height="15"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="scrOrderV">
+                        <rect key="frame" x="-30" y="1" width="15" height="76"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                </scrollView>
+            </subviews>
+        </customView>
+    </objects>
+</document>

@@ -19,7 +19,13 @@
 @interface ESProxyPasswordPromptController : AIPasswordPromptController {
 	IBOutlet	NSTextField	*textField_server;
 	IBOutlet	NSTextField	*textField_userName;
-	
+
+	IBOutlet	NSTextField	*label_pleaseEnter;
+	IBOutlet	NSTextField	*label_server;
+	IBOutlet	NSTextField	*label_username;
+	IBOutlet	NSTextField	*label_password;
+	IBOutlet	NSButton	*button_cancel;
+
     NSString	*server;
 	NSString	*userName;
 }

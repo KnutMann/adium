@@ -92,6 +92,14 @@
 	[self setDisplayName:[NSString stringWithUTF8String:selfName]];
 }
 
+/* The plugin echoes every outgoing group message back (including those sent
+ * from other devices such as the phone). Returning NO makes Adium display the
+ * echoes instead of its local copy, so phone-sent messages appear too. */
+- (BOOL)shouldDisplayOutgoingMUCMessages
+{
+	return NO;
+}
+
 /* Localize the plugin's fixed English system messages before display */
 - (void)receivedEventForChat:(AIChat *)chat
 					 message:(NSString *)message

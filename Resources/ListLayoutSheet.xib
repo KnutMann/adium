@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AIListLayoutWindowController">
+            <connections>
+                <outlet property="window" destination="win" id="oWin"/>
+                <outlet property="button_okay" destination="bOK" id="oBOK"/>
+                <outlet property="button_cancel" destination="bCancel" id="oBCancel"/>
+                <outlet property="tabView_preferences" destination="tabView" id="oTabView"/>
+                <outlet property="tabViewItem_contacts" destination="tviContacts" id="oTviContacts"/>
+                <outlet property="tabViewItem_groups" destination="tviGroups" id="oTviGroups"/>
+                <outlet property="tabViewItem_spacing" destination="tviSpacing" id="oTviSpacing"/>
+                <outlet property="tabViewItem_advancedContactBubbles" destination="tviBubbles" id="oTviBubbles"/>
+                <outlet property="label_contactAlignment" destination="lContactAlign" id="oLContactAlign"/>
+                <outlet property="popUp_contactTextAlignment" destination="pContactAlign" id="oPContactAlign"/>
+                <outlet property="popUp_extendedStatusStyle" destination="pExtStatusStyle" id="oPExtStatusStyle"/>
+                <outlet property="popUp_extendedStatusPosition" destination="pExtStatusPos" id="oPExtStatusPos"/>
+                <outlet property="popUp_userIconPosition" destination="pUserIconPos" id="oPUserIconPos"/>
+                <outlet property="popUp_statusIconPosition" destination="pStatusIconPos" id="oPStatusIconPos"/>
+                <outlet property="popUp_serviceIconPosition" destination="pServiceIconPos" id="oPServiceIconPos"/>
+                <outlet property="checkBox_userIconVisible" destination="cbUserIcon" id="oCbUserIcon"/>
+                <outlet property="checkBox_extendedStatusVisible" destination="cbExtStatus" id="oCbExtStatus"/>
+                <outlet property="checkBox_statusIconsVisible" destination="cbStatusIcons" id="oCbStatusIcons"/>
+                <outlet property="checkBox_serviceIconsVisible" destination="cbServiceIcons" id="oCbServiceIcons"/>
+                <outlet property="label_userIconSize" destination="lIconSize" id="oLIconSize"/>
+                <outlet property="slider_userIconSize" destination="slIconSize" id="oSlIconSize"/>
+                <outlet property="textField_userIconSize" destination="fIconSize" id="oFIconSize"/>
+                <outlet property="label_contactFont" destination="lContactFont" id="oLContactFont"/>
+                <outlet property="fontField_contact" destination="ffContact" id="oFfContact"/>
+                <outlet property="button_setContactFont" destination="bContactFont" id="oBContactFont"/>
+                <outlet property="label_statusFont" destination="lStatusFont" id="oLStatusFont"/>
+                <outlet property="fontField_status" destination="ffStatus" id="oFfStatus"/>
+                <outlet property="button_setStatusFont" destination="bStatusFont" id="oBStatusFont"/>
+                <outlet property="label_groupAlignment" destination="lGroupAlign" id="oLGroupAlign"/>
+                <outlet property="popUp_groupTextAlignment" destination="pGroupAlign" id="oPGroupAlign"/>
+                <outlet property="label_groupFont" destination="lGroupFont" id="oLGroupFont"/>
+                <outlet property="fontField_group" destination="ffGroup" id="oFfGroup"/>
+                <outlet property="button_setGroupFont" destination="bGroupFont" id="oBGroupFont"/>
+                <outlet property="label_contactSpacing" destination="lSpacing" id="oLSpacing"/>
+                <outlet property="slider_contactSpacing" destination="slSpacing" id="oSlSpacing"/>
+                <outlet property="textField_contactSpacing" destination="fSpacingPx" id="oFSpacingPx"/>
+                <outlet property="label_contactLeftIndent" destination="lLeftMargin" id="oLLeftMargin"/>
+                <outlet property="slider_contactLeftIndent" destination="slLeftIndent" id="oSlLeftIndent"/>
+                <outlet property="textField_contactLeftIndent" destination="fLeftPx" id="oFLeftPx"/>
+                <outlet property="label_contactRightIndent" destination="lRightMargin" id="oLRightMargin"/>
+                <outlet property="slider_contactRightIndent" destination="slRightIndent" id="oSlRightIndent"/>
+                <outlet property="textField_contactRightIndent" destination="fRightPx" id="oFRightPx"/>
+                <outlet property="label_groupTopSpacing" destination="lMockieSpacing" id="oLMockieSpacing"/>
+                <outlet property="slider_groupTopSpacing" destination="slGroupTop" id="oSlGroupTop"/>
+                <outlet property="textField_groupTopSpacing" destination="fGroupTopPx" id="oFGroupTopPx"/>
+                <outlet property="checkBox_outlineBubbles" destination="cbOutline" id="oCbOutline"/>
+                <outlet property="checkBox_drawContactBubblesWithGraadient" destination="cbGradient" id="oCbGradient"/>
+                <outlet property="checkBox_showGroupBubbles" destination="cbGroupBubbles" id="oCbGroupBubbles"/>
+                <outlet property="label_gradientNote" destination="lGradientNote" id="oLGradientNote"/>
+                <outlet property="slider_outlineWidth" destination="slOutlineWidth" id="oSlOutlineWidth"/>
+                <outlet property="textField_outlineWidthIndicator" destination="fOutlinePx" id="oFOutlinePx"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Panel" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="win" userLabel="List Layout Sheet">
+            <windowStyleMask key="styleMask" titled="YES"/>
+            <rect key="contentRect" x="272" y="377" width="400" height="347"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1400" height="1050"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="winContent">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="347"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <tabView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tabView">
+                        <rect key="frame" x="-17" y="46" width="434" height="295"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                        <font key="font" metaFont="system"/>
+                        <tabViewItems>
+                            <tabViewItem label="Contacts" identifier="contacts" id="tviContacts">
+                                <view key="view" id="tvContacts">
+                                    <rect key="frame" x="10" y="33" width="414" height="249"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fIconSize">
+                                            <rect key="frame" x="317" y="79" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="##x##" id="fIconSizeC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbServiceIcons">
+                                            <rect key="frame" x="39" y="21" width="163" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Show service icons" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbServiceIconsC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbServiceIcons"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbExtStatus">
+                                            <rect key="frame" x="39" y="130" width="59" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Show" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbExtStatusC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbExtStatus"/>
+                                            </connections>
+                                        </button>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pUserIconPos">
+                                            <rect key="frame" x="231" y="100" width="151" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pUserIconPosC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pUserIconPosM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPUserIconPos"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbStatusIcons">
+                                            <rect key="frame" x="39" y="46" width="163" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Show status icons" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbStatusIconsC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbStatusIcons"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbUserIcon">
+                                            <rect key="frame" x="39" y="105" width="163" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Show user icon" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbUserIconC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbUserIcon"/>
+                                            </connections>
+                                        </button>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lIconSize">
+                                            <rect key="frame" x="58" y="79" width="64" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Icon size:" id="lIconSizeC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pServiceIconPos">
+                                            <rect key="frame" x="231" y="16" width="151" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pServiceIconPosC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pServiceIconPosM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPServiceIconPos"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slIconSize">
+                                            <rect key="frame" x="125" y="75" width="174" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" minValue="12" maxValue="96" doubleValue="30" tickMarkPosition="below" sliderType="linear" id="slIconSizeC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlIconSize"/>
+                                            </connections>
+                                        </slider>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lContactAlign">
+                                            <rect key="frame" x="38" y="217" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Alignment:" id="lContactAlignC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pContactAlign">
+                                            <rect key="frame" x="150" y="211" width="150" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pContactAlignC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pContactAlignM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPContactAlign"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pStatusIconPos">
+                                            <rect key="frame" x="231" y="41" width="151" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pStatusIconPosC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pStatusIconPosM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPStatusIconPos"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ffStatus" customClass="JVFontPreviewField">
+                                            <rect key="frame" x="150" y="167" width="161" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" borderStyle="bezel" drawsBackground="YES" id="ffStatusC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <outlet property="delegate" destination="-2" id="ffStatusDelegate"/>
+                                            </connections>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bStatusFont">
+                                            <rect key="frame" x="315" y="159" width="81" height="28"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="push" title="Set Font…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bStatusFontC">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="smallSystem"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="chooseFontWithFontPanel:" target="ffStatus" id="aBStatusFont"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bContactFont">
+                                            <rect key="frame" x="315" y="184" width="81" height="28"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="push" title="Set Font…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bContactFontC">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="smallSystem"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="chooseFontWithFontPanel:" target="ffContact" id="aBContactFont"/>
+                                            </connections>
+                                        </button>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lStatusFont">
+                                            <rect key="frame" x="38" y="167" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Status Font:" id="lStatusFontC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ffContact" customClass="JVFontPreviewField">
+                                            <rect key="frame" x="150" y="192" width="161" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" borderStyle="bezel" drawsBackground="YES" id="ffContactC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <outlet property="delegate" destination="-2" id="ffContactDelegate"/>
+                                            </connections>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lContactFont">
+                                            <rect key="frame" x="38" y="192" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Contact Font:" id="lContactFontC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pExtStatusPos">
+                                            <rect key="frame" x="231" y="125" width="151" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pExtStatusPosC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pExtStatusPosM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPExtStatusPos"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pExtStatusStyle">
+                                            <rect key="frame" x="94" y="125" width="135" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pExtStatusStyleC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pExtStatusStyleM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPExtStatusStyle"/>
+                                            </connections>
+                                        </popUpButton>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Groups" identifier="groups" id="tviGroups">
+                                <view key="view" id="tvGroups">
+                                    <rect key="frame" x="10" y="33" width="414" height="249"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pGroupAlign">
+                                            <rect key="frame" x="150" y="211" width="150" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pGroupAlignC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pGroupAlignM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPGroupAlign"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lGroupAlign">
+                                            <rect key="frame" x="38" y="217" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Alignment:" id="lGroupAlignC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lGroupFont">
+                                            <rect key="frame" x="38" y="192" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Group Font:" id="lGroupFontC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ffGroup" customClass="JVFontPreviewField">
+                                            <rect key="frame" x="150" y="192" width="161" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" borderStyle="bezel" drawsBackground="YES" id="ffGroupC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <outlet property="delegate" destination="-2" id="ffGroupDelegate"/>
+                                            </connections>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bGroupFont">
+                                            <rect key="frame" x="315" y="184" width="81" height="28"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="push" title="Set Font…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bGroupFontC">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="smallSystem"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="chooseFontWithFontPanel:" target="ffGroup" id="aBGroupFont"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Spacing" identifier="spacing" id="tviSpacing">
+                                <view key="view" id="tvSpacing">
+                                    <rect key="frame" x="10" y="33" width="414" height="249"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slSpacing">
+                                            <rect key="frame" x="151" y="213" width="148" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" maxValue="10" doubleValue="2.7637794613838196" tickMarkPosition="below" sliderType="linear" id="slSpacingC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlSpacing"/>
+                                            </connections>
+                                        </slider>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lLeftMargin">
+                                            <rect key="frame" x="38" y="192" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Left Margin:" id="lLeftMarginC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slLeftIndent">
+                                            <rect key="frame" x="151" y="188" width="148" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" maxValue="24" doubleValue="2.7637794613838196" tickMarkPosition="below" sliderType="linear" id="slLeftIndentC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlLeftIndent"/>
+                                            </connections>
+                                        </slider>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fSpacingPx">
+                                            <rect key="frame" x="302" y="217" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="#px" id="fSpacingPxC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fLeftPx">
+                                            <rect key="frame" x="302" y="192" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="#px" id="fLeftPxC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSpacing">
+                                            <rect key="frame" x="38" y="217" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Spacing:" id="lSpacingC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slGroupTop">
+                                            <rect key="frame" x="151" y="125" width="148" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" maxValue="8" doubleValue="4" tickMarkPosition="below" sliderType="linear" id="slGroupTopC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlGroupTop"/>
+                                            </connections>
+                                        </slider>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lMockieSpacing">
+                                            <rect key="frame" x="38" y="129" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Mockie Spacing:" id="lMockieSpacingC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fGroupTopPx">
+                                            <rect key="frame" x="302" y="129" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="#px" id="fGroupTopPxC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slRightIndent">
+                                            <rect key="frame" x="151" y="163" width="148" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" maxValue="24" doubleValue="2.7637794613838196" tickMarkPosition="below" sliderType="linear" id="slRightIndentC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlRightIndent"/>
+                                            </connections>
+                                        </slider>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fRightPx">
+                                            <rect key="frame" x="302" y="167" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="#px" id="fRightPxC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lRightMargin">
+                                            <rect key="frame" x="38" y="167" width="110" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Right Margin:" id="lRightMarginC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Bubbles" identifier="bubbles" id="tviBubbles">
+                                <view key="view" id="tvBubbles">
+                                    <rect key="frame" x="10" y="33" width="414" height="249"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lGradientNote">
+                                            <rect key="frame" x="62" y="146" width="291" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Note: Gradient drawing is significantly slower" id="lGradientNoteC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGradient">
+                                            <rect key="frame" x="41" y="169" width="320" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Draw contact bubbles with a gradient" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbGradientC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbGradient"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbOutline">
+                                            <rect key="frame" x="41" y="213" width="197" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Outline bubbles with width:" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbOutlineC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbOutline"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGroupBubbles">
+                                            <rect key="frame" x="41" y="191" width="152" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Show group bubbles" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbGroupBubblesC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbGroupBubbles"/>
+                                            </connections>
+                                        </button>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slOutlineWidth">
+                                            <rect key="frame" x="242" y="210" width="88" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="4" doubleValue="2.6666666666666665" tickMarkPosition="above" sliderType="linear" id="slOutlineWidthC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlOutlineWidth"/>
+                                            </connections>
+                                        </slider>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fOutlinePx">
+                                            <rect key="frame" x="333" y="214" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="#px" id="fOutlinePxC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                        </tabViewItems>
+                    </tabView>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bOK">
+                        <rect key="frame" x="304" y="12" width="82" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bOKC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">DQ</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="okay:" target="-2" id="aOK"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bCancel">
+                        <rect key="frame" x="222" y="12" width="82" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bCancelC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">Gw</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="cancel:" target="-2" id="aCancel"/>
+                        </connections>
+                    </button>
+                </subviews>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="oWinDelegate"/>
+            </connections>
+        </window>
+    </objects>
+</document>

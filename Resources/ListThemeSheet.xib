@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AIListThemeWindowController">
+            <connections>
+                <outlet property="window" destination="win" id="oWin"/>
+                <outlet property="button_okay" destination="bOK" id="oBOK"/>
+                <outlet property="button_cancel" destination="bCancel" id="oBCancel"/>
+                <outlet property="tabViewItem_window" destination="tviWindow" id="oTviWindow"/>
+                <outlet property="tabViewItem_status" destination="tviStatus" id="oTviStatus"/>
+                <outlet property="tabViewItem_events" destination="tviEvents" id="oTviEvents"/>
+                <outlet property="tabViewItem_groups" destination="tviGroups" id="oTviGroups"/>
+                <outlet property="button_setBackgroundImage" destination="bChoose" id="oBChoose"/>
+                <outlet property="textField_backgroundImagePath" destination="fImagePath" id="oFImagePath"/>
+                <outlet property="checkBox_useBackgroundImage" destination="cbUseBgImage" id="oCbUseBgImage"/>
+                <outlet property="textField_backgroundFade" destination="fFadePct" id="oFFadePct"/>
+                <outlet property="label_fadeImage" destination="lFadeImage" id="oLFadeImage"/>
+                <outlet property="slider_backgroundFade" destination="slFade" id="oSlFade"/>
+                <outlet property="preview_grid" destination="pvGrid" id="oPvGrid"/>
+                <outlet property="colorWell_grid" destination="cwGrid" id="oCwGrid"/>
+                <outlet property="checkBox_drawGrid" destination="cbGrid" id="oCbGrid"/>
+                <outlet property="preview_background" destination="pvBackground" id="oPvBackground"/>
+                <outlet property="colorWell_background" destination="cwBackground" id="oCwBackground"/>
+                <outlet property="label_background" destination="lBackground" id="oLBackground"/>
+                <outlet property="popUp_displayImageStyle" destination="pStyle" id="oPStyle"/>
+                <outlet property="label_style" destination="lStyle" id="oLStyle"/>
+                <outlet property="preview_customHighlight" destination="pvHighlight" id="oPvHighlight"/>
+                <outlet property="colorWell_customHighlight" destination="cwHighlight" id="oCwHighlight"/>
+                <outlet property="checkBox_drawCustomHighlight" destination="cbHighlight" id="oCbHighlight"/>
+                <outlet property="checkBox_away" destination="cbAway" id="oCbAway"/>
+                <outlet property="colorWell_away" destination="cwAway" id="oCwAway"/>
+                <outlet property="colorWell_awayLabel" destination="cwAwayLabel" id="oCwAwayLabel"/>
+                <outlet property="preview_away" destination="pvAway" id="oPvAway"/>
+                <outlet property="checkBox_offline" destination="cbOffline" id="oCbOffline"/>
+                <outlet property="colorWell_offline" destination="cwOffline" id="oCwOffline"/>
+                <outlet property="colorWell_offlineLabel" destination="cwOfflineLabel" id="oCwOfflineLabel"/>
+                <outlet property="preview_offline" destination="pvOffline" id="oPvOffline"/>
+                <outlet property="checkBox_online" destination="cbOnline" id="oCbOnline"/>
+                <outlet property="colorWell_online" destination="cwOnline" id="oCwOnline"/>
+                <outlet property="colorWell_onlineLabel" destination="cwOnlineLabel" id="oCwOnlineLabel"/>
+                <outlet property="preview_online" destination="pvOnline" id="oPvOnline"/>
+                <outlet property="checkBox_idle" destination="cbIdle" id="oCbIdle"/>
+                <outlet property="colorWell_idle" destination="cwIdle" id="oCwIdle"/>
+                <outlet property="colorWell_idleLabel" destination="cwIdleLabel" id="oCwIdleLabel"/>
+                <outlet property="preview_idle" destination="pvIdle" id="oPvIdle"/>
+                <outlet property="checkBox_idleAndAway" destination="cbIdleAway" id="oCbIdleAway"/>
+                <outlet property="colorWell_idleAndAway" destination="cwIdleAway" id="oCwIdleAway"/>
+                <outlet property="colorWell_idleAndAwayLabel" destination="cwIdleAwayLabel" id="oCwIdleAwayLabel"/>
+                <outlet property="preview_idleAndAway" destination="pvIdleAway" id="oPvIdleAway"/>
+                <outlet property="checkBox_backgroundAsStatus" destination="cbBgAsStatus" id="oCbBgAsStatus"/>
+                <outlet property="label_detailedStatusText" destination="lDetailedStatus" id="oLDetailedStatus"/>
+                <outlet property="colorWell_statusText" destination="cwStatusText" id="oCwStatusText"/>
+                <outlet property="checkBox_fadeOfflineImages" destination="cbFadeOffline" id="oCbFadeOffline"/>
+                <outlet property="label_offlineContacts" destination="lOfflineContacts" id="oLOfflineContacts"/>
+                <outlet property="checkBox_mobile" destination="cbMobile" id="oCbMobile"/>
+                <outlet property="checkBox_signedOn" destination="cbSignedOn" id="oCbSignedOn"/>
+                <outlet property="colorWell_signedOn" destination="cwSignedOn" id="oCwSignedOn"/>
+                <outlet property="colorWell_signedOnLabel" destination="cwSignedOnLabel" id="oCwSignedOnLabel"/>
+                <outlet property="preview_signedOn" destination="pvSignedOn" id="oPvSignedOn"/>
+                <outlet property="checkBox_signedOff" destination="cbSignedOff" id="oCbSignedOff"/>
+                <outlet property="colorWell_signedOff" destination="cwSignedOff" id="oCwSignedOff"/>
+                <outlet property="colorWell_signedOffLabel" destination="cwSignedOffLabel" id="oCwSignedOffLabel"/>
+                <outlet property="preview_signedOff" destination="pvSignedOff" id="oPvSignedOff"/>
+                <outlet property="checkBox_typing" destination="cbTyping" id="oCbTyping"/>
+                <outlet property="colorWell_typing" destination="cwTyping" id="oCwTyping"/>
+                <outlet property="colorWell_typingLabel" destination="cwTypingLabel" id="oCwTypingLabel"/>
+                <outlet property="preview_typing" destination="pvTyping" id="oPvTyping"/>
+                <outlet property="checkBox_unviewedContent" destination="cbUnviewed" id="oCbUnviewed"/>
+                <outlet property="colorWell_unviewedContent" destination="cwUnviewed" id="oCwUnviewed"/>
+                <outlet property="colorWell_unviewedContentLabel" destination="cwUnviewedLabel" id="oCwUnviewedLabel"/>
+                <outlet property="preview_unviewedContent" destination="pvUnviewed" id="oPvUnviewed"/>
+                <outlet property="checkBox_backgroundAsEvents" destination="cbBgAsEvents" id="oCbBgAsEvents"/>
+                <outlet property="colorWell_groupBackgroundGradient" destination="cwGroupGradient" id="oCwGroupGradient"/>
+                <outlet property="colorWell_groupBackground" destination="cwGroupBackground" id="oCwGroupBackground"/>
+                <outlet property="colorWell_groupText" destination="cwGroupText" id="oCwGroupText"/>
+                <outlet property="label_textColor" destination="lTextColor" id="oLTextColor"/>
+                <outlet property="preview_group" destination="pvGroup" id="oPvGroup"/>
+                <outlet property="checkBox_groupShadow" destination="cbGroupShadow" id="oCbGroupShadow"/>
+                <outlet property="checkBox_groupGradient" destination="cbGroupGradient" id="oCbGroupGradient"/>
+                <outlet property="colorWell_groupShadow" destination="cwGroupShadow" id="oCwGroupShadow"/>
+                <outlet property="label_to" destination="lTo" id="oLTo"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Panel" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="win" userLabel="List Theme Sheet">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
+            <rect key="contentRect" x="525" y="358" width="400" height="345"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1400" height="1050"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="winContent">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="345"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bCancel">
+                        <rect key="frame" x="222" y="12" width="82" height="32"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bCancelC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">Gw</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="cancel:" target="-2" id="aCancel"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bOK">
+                        <rect key="frame" x="304" y="12" width="82" height="32"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bOKC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">DQ</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="okay:" target="-2" id="aOK"/>
+                        </connections>
+                    </button>
+                    <tabView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tabView">
+                        <rect key="frame" x="-17" y="46" width="434" height="285"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <font key="font" metaFont="system"/>
+                        <tabViewItems>
+                            <tabViewItem label="Window" identifier="window" id="tviWindow">
+                                <view key="view" id="tvWindow">
+                                    <rect key="frame" x="10" y="33" width="414" height="239"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bChoose">
+                                            <rect key="frame" x="309" y="68" width="79" height="28"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="push" title="Choose…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bChooseC">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="smallSystem"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="selectBackgroundImage:" target="-2" id="aChoose"/>
+                                            </connections>
+                                        </button>
+                                        <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fImagePath">
+                                            <rect key="frame" x="43" y="74" width="263" height="19"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" borderStyle="bezel" drawsBackground="YES" id="fImagePathC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbUseBgImage">
+                                            <rect key="frame" x="21" y="99" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Background Image" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbUseBgImageC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbUseBgImage"/>
+                                            </connections>
+                                        </button>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fFadePct">
+                                            <rect key="frame" x="276" y="49" width="42" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="##%" id="fFadePctC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lFadeImage">
+                                            <rect key="frame" x="36" y="49" width="86" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Fade Image:" id="lFadeImageC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slFade">
+                                            <rect key="frame" x="125" y="45" width="148" height="21"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <sliderCell key="cell" continuous="YES" alignment="left" minValue="0.10000000000000001" maxValue="1" doubleValue="1" tickMarkPosition="below" sliderType="linear" id="slFadeC"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aSlFade"/>
+                                            </connections>
+                                        </slider>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvGrid" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="143" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwOnline" id="pvGridTc"/>
+                                                <outlet property="textColorEnabled" destination="cbOnline" id="pvGridTce"/>
+                                                <outlet property="backgroundColor" destination="cwGrid" id="pvGridBg"/>
+                                            </connections>
+                                        </customView>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwGrid">
+                                            <rect key="frame" x="174" y="144" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwGrid"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwBackground">
+                                            <rect key="frame" x="174" y="198" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwBackground"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGrid">
+                                            <rect key="frame" x="21" y="144" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Alternating grid" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbGridC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbGrid"/>
+                                            </connections>
+                                        </button>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvBackground" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="197" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwOnline" id="pvBackgroundTc"/>
+                                                <outlet property="textColorEnabled" destination="cbOnline" id="pvBackgroundTce"/>
+                                                <outlet property="backgroundColor" destination="cwBackground" id="pvBackgroundBg"/>
+                                            </connections>
+                                        </customView>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lBackground">
+                                            <rect key="frame" x="39" y="200" width="107" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Background" id="lBackgroundC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pStyle">
+                                            <rect key="frame" x="124" y="17" width="150" height="26"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pStyleC">
+                                                <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                                <menu key="menu" id="pStyleM"/>
+                                            </popUpButtonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aPStyle"/>
+                                            </connections>
+                                        </popUpButton>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lStyle">
+                                            <rect key="frame" x="84" y="24" width="38" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Style:" id="lStyleC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvHighlight" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="170" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwOnline" id="pvHighlightTc"/>
+                                                <outlet property="textColorEnabled" destination="cbOnline" id="pvHighlightTce"/>
+                                                <outlet property="backgroundColor" destination="cwHighlight" id="pvHighlightBg"/>
+                                            </connections>
+                                        </customView>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwHighlight">
+                                            <rect key="frame" x="174" y="171" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwHighlight"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbHighlight">
+                                            <rect key="frame" x="21" y="171" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Highlight" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbHighlightC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbHighlight"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Status" identifier="status" id="tviStatus">
+                                <view key="view" id="tvStatus">
+                                    <rect key="frame" x="10" y="33" width="414" height="239"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbAway">
+                                            <rect key="frame" x="21" y="132" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Away" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbAwayC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbAway"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbOffline">
+                                            <rect key="frame" x="21" y="176" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Offline" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbOfflineC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbOffline"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbOnline">
+                                            <rect key="frame" x="21" y="198" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Online" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbOnlineC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbOnline"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwIdle">
+                                            <rect key="frame" x="174" y="154" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwIdle"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwIdleLabel">
+                                            <rect key="frame" x="212" y="154" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwIdleLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwAwayLabel">
+                                            <rect key="frame" x="212" y="132" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwAwayLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwOfflineLabel">
+                                            <rect key="frame" x="212" y="176" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwOfflineLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwOnline">
+                                            <rect key="frame" x="174" y="198" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwOnline"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIdle">
+                                            <rect key="frame" x="21" y="154" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Idle" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbIdleC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbIdle"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwOnlineLabel">
+                                            <rect key="frame" x="212" y="198" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwOnlineLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwIdleAway">
+                                            <rect key="frame" x="174" y="110" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwIdleAway"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwOffline">
+                                            <rect key="frame" x="174" y="176" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwOffline"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwIdleAwayLabel">
+                                            <rect key="frame" x="212" y="110" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwIdleAwayLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwAway">
+                                            <rect key="frame" x="174" y="132" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwAway"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIdleAway">
+                                            <rect key="frame" x="21" y="110" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Idle &amp; away" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbIdleAwayC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbIdleAway"/>
+                                            </connections>
+                                        </button>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvOnline" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="197" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwOnline" id="pvOnlineTc"/>
+                                                <outlet property="backgroundColor" destination="cwOnlineLabel" id="pvOnlineBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvOffline" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="175" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwOffline" id="pvOfflineTc"/>
+                                                <outlet property="backgroundColor" destination="cwOfflineLabel" id="pvOfflineBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvIdle" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="153" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwIdle" id="pvIdleTc"/>
+                                                <outlet property="backgroundColor" destination="cwIdleLabel" id="pvIdleBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvAway" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="131" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwAway" id="pvAwayTc"/>
+                                                <outlet property="backgroundColor" destination="cwAwayLabel" id="pvAwayBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvIdleAway" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="109" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwIdleAway" id="pvIdleAwayTc"/>
+                                                <outlet property="backgroundColor" destination="cwIdleAwayLabel" id="pvIdleAwayBg"/>
+                                            </connections>
+                                        </customView>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbBgAsStatus">
+                                            <rect key="frame" x="218" y="61" width="143" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Color backgrounds" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbBgAsStatusC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbBgAsStatus"/>
+                                            </connections>
+                                        </button>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lDetailedStatus">
+                                            <rect key="frame" x="20" y="31" width="132" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Detailed status text:" id="lDetailedStatusC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwStatusText">
+                                            <rect key="frame" x="157" y="29" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwStatusText"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbFadeOffline">
+                                            <rect key="frame" x="155" y="5" width="203" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Dim icons of offline contacts" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbFadeOfflineC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbFadeOffline"/>
+                                            </connections>
+                                        </button>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lOfflineContacts">
+                                            <rect key="frame" x="20" y="6" width="132" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Offline Contacts:" id="lOfflineContactsC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvMobile" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="87" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwMobile" id="pvMobileTc"/>
+                                                <outlet property="backgroundColor" destination="cwMobileLabel" id="pvMobileBg"/>
+                                            </connections>
+                                        </customView>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwMobileLabel">
+                                            <rect key="frame" x="212" y="88" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <binding destination="-2" name="value" keyPath="adium.preferenceController.List Theme.Mobile Label Color" id="bCwMobileLabelV">
+                                                    <dictionary key="options">
+                                                        <string key="NSValueTransformerName">AIColorStringTransformer</string>
+                                                    </dictionary>
+                                                </binding>
+                                                <binding destination="-2" name="enabled" keyPath="adium.preferenceController.List Theme.Background As Status" id="bCwMobileLabelE"/>
+                                                <binding destination="-2" name="enabled2" keyPath="adium.preferenceController.List Theme.Mobile Enabled" previousBinding="bCwMobileLabelE" id="bCwMobileLabelE2"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwMobile">
+                                            <rect key="frame" x="174" y="88" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <binding destination="-2" name="value" keyPath="adium.preferenceController.List Theme.Mobile Color" id="bCwMobileV">
+                                                    <dictionary key="options">
+                                                        <string key="NSValueTransformerName">AIColorStringTransformer</string>
+                                                    </dictionary>
+                                                </binding>
+                                                <binding destination="-2" name="enabled" keyPath="adium.preferenceController.List Theme.Mobile Enabled" id="bCwMobileE"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbMobile">
+                                            <rect key="frame" x="21" y="88" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Mobile" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbMobileC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <binding destination="-2" name="value" keyPath="adium.preferenceController.List Theme.Mobile Enabled" id="bCbMobileV"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Events" identifier="events" id="tviEvents">
+                                <view key="view" id="tvEvents">
+                                    <rect key="frame" x="10" y="33" width="414" height="239"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwSignedOffLabel">
+                                            <rect key="frame" x="212" y="176" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwSignedOffLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbSignedOn">
+                                            <rect key="frame" x="21" y="198" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Come online" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbSignedOnC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbSignedOn"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwSignedOnLabel">
+                                            <rect key="frame" x="212" y="198" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwSignedOnLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbUnviewed">
+                                            <rect key="frame" x="21" y="132" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Unviewed content" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbUnviewedC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbUnviewed"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwSignedOff">
+                                            <rect key="frame" x="174" y="176" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwSignedOff"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwTyping">
+                                            <rect key="frame" x="174" y="154" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwTyping"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbSignedOff">
+                                            <rect key="frame" x="21" y="176" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Gone offline" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbSignedOffC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbSignedOff"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwUnviewedLabel">
+                                            <rect key="frame" x="212" y="132" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwUnviewedLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwTypingLabel">
+                                            <rect key="frame" x="212" y="154" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwTypingLabel"/>
+                                            </connections>
+                                        </colorWell>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbTyping">
+                                            <rect key="frame" x="21" y="154" width="141" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Typing" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbTypingC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbTyping"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwUnviewed">
+                                            <rect key="frame" x="174" y="132" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwUnviewed"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwSignedOn">
+                                            <rect key="frame" x="174" y="198" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwSignedOn"/>
+                                            </connections>
+                                        </colorWell>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvSignedOn" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="197" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwSignedOn" id="pvSignedOnTc"/>
+                                                <outlet property="backgroundColor" destination="cwSignedOnLabel" id="pvSignedOnBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvSignedOff" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="175" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwSignedOff" id="pvSignedOffTc"/>
+                                                <outlet property="backgroundColor" destination="cwSignedOffLabel" id="pvSignedOffBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvTyping" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="153" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwTyping" id="pvTypingTc"/>
+                                                <outlet property="backgroundColor" destination="cwTypingLabel" id="pvTypingBg"/>
+                                            </connections>
+                                        </customView>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvUnviewed" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="131" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwUnviewed" id="pvUnviewedTc"/>
+                                                <outlet property="backgroundColor" destination="cwUnviewedLabel" id="pvUnviewedBg"/>
+                                            </connections>
+                                        </customView>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbBgAsEvents">
+                                            <rect key="frame" x="219" y="107" width="143" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Color backgrounds" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbBgAsEventsC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbBgAsEvents"/>
+                                            </connections>
+                                        </button>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Groups" identifier="groups" id="tviGroups">
+                                <view key="view" id="tvGroups">
+                                    <rect key="frame" x="10" y="33" width="414" height="239"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwGroupGradient">
+                                            <rect key="frame" x="229" y="154" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwGroupGradient"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwGroupBackground">
+                                            <rect key="frame" x="174" y="154" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwGroupBackground"/>
+                                            </connections>
+                                        </colorWell>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwGroupText">
+                                            <rect key="frame" x="174" y="198" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwGroupText"/>
+                                            </connections>
+                                        </colorWell>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTextColor">
+                                            <rect key="frame" x="39" y="199" width="118" height="17"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Text color" id="lTextColorC">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pvGroup" customClass="AITextColorPreviewView">
+                                            <rect key="frame" x="258" y="197" width="133" height="22"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <connections>
+                                                <outlet property="textColor" destination="cwGroupText" id="pvGroupTc"/>
+                                                <outlet property="backgroundColor" destination="cwGroupBackground" id="pvGroupBg"/>
+                                                <outlet property="backgroundGradientColor" destination="cwGroupGradient" id="pvGroupBgg"/>
+                                                <outlet property="backgroundEnabled" destination="cbGroupGradient" id="pvGroupBge"/>
+                                                <outlet property="textShadowColor" destination="cwGroupShadow" id="pvGroupTsc"/>
+                                                <outlet property="textShadowColorEnabled" destination="cbGroupShadow" id="pvGroupTsce"/>
+                                            </connections>
+                                        </customView>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGroupShadow">
+                                            <rect key="frame" x="21" y="176" width="153" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Text Shadow" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbGroupShadowC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbGroupShadow"/>
+                                            </connections>
+                                        </button>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbGroupGradient">
+                                            <rect key="frame" x="21" y="154" width="154" height="18"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <buttonCell key="cell" type="check" title="Background" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbGroupGradientC">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCbGroupGradient"/>
+                                            </connections>
+                                        </button>
+                                        <colorWell fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cwGroupShadow">
+                                            <rect key="frame" x="174" y="176" width="30" height="20"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <connections>
+                                                <action selector="preferenceChanged:" target="-2" id="aCwGroupShadow"/>
+                                            </connections>
+                                        </colorWell>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTo">
+                                            <rect key="frame" x="209" y="157" width="15" height="14"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="to" id="lToC">
+                                                <font key="font" metaFont="smallSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                        </tabViewItems>
+                    </tabView>
+                </subviews>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="oWinDelegate"/>
+            </connections>
+        </window>
+    </objects>
+</document>

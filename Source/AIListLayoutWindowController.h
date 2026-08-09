@@ -19,8 +19,17 @@
 
 @interface AIListLayoutWindowController : AIWindowController <JVFontPreviewFieldDelegate> {
 
+	IBOutlet		NSButton			*button_okay;
+	IBOutlet		NSButton			*button_cancel;
+
+	IBOutlet		NSTabViewItem		*tabViewItem_contacts;
+	IBOutlet		NSTabViewItem		*tabViewItem_groups;
+	IBOutlet		NSTabViewItem		*tabViewItem_spacing;
+
 	IBOutlet		NSPopUpButton		*popUp_contactTextAlignment;
+	IBOutlet		NSTextField			*label_contactAlignment;
 	IBOutlet		NSPopUpButton		*popUp_groupTextAlignment;
+	IBOutlet		NSTextField			*label_groupAlignment;
 	IBOutlet		NSPopUpButton		*popUp_extendedStatusStyle;
 	IBOutlet		NSPopUpButton		*popUp_extendedStatusPosition;
 	IBOutlet		NSPopUpButton		*popUp_userIconPosition;
@@ -34,19 +43,30 @@
 
 	IBOutlet		NSSlider			*slider_userIconSize;
 	IBOutlet		NSTextField			*textField_userIconSize;
+	IBOutlet		NSTextField			*label_userIconSize;
 	IBOutlet		NSSlider			*slider_contactSpacing;
 	IBOutlet		NSTextField			*textField_contactSpacing;
+	IBOutlet		NSTextField			*label_contactSpacing;
 	IBOutlet		NSSlider			*slider_groupTopSpacing;
 	IBOutlet		NSTextField			*textField_groupTopSpacing;
+	IBOutlet		NSTextField			*label_groupTopSpacing;
 	IBOutlet		NSSlider			*slider_contactLeftIndent;
 	IBOutlet		NSTextField			*textField_contactLeftIndent;
+	IBOutlet		NSTextField			*label_contactLeftIndent;
 	IBOutlet		NSSlider			*slider_contactRightIndent;
 	IBOutlet		NSTextField			*textField_contactRightIndent;
-	
-	IBOutlet		JVFontPreviewField	*fontField_contact;	
-	IBOutlet		JVFontPreviewField	*fontField_status;	
-	IBOutlet		JVFontPreviewField	*fontField_group;	
-	
+	IBOutlet		NSTextField			*label_contactRightIndent;
+
+	IBOutlet		JVFontPreviewField	*fontField_contact;
+	IBOutlet		NSTextField			*label_contactFont;
+	IBOutlet		NSButton			*button_setContactFont;
+	IBOutlet		JVFontPreviewField	*fontField_status;
+	IBOutlet		NSTextField			*label_statusFont;
+	IBOutlet		NSButton			*button_setStatusFont;
+	IBOutlet		JVFontPreviewField	*fontField_group;
+	IBOutlet		NSTextField			*label_groupFont;
+	IBOutlet		NSButton			*button_setGroupFont;
+
 	IBOutlet		NSTabView			*tabView_preferences;
 	
 	// Advanced contact bubble options
@@ -56,6 +76,7 @@
 	IBOutlet		NSButton			*checkBox_showGroupBubbles;
 	IBOutlet		NSSlider			*slider_outlineWidth;
 	IBOutlet		NSTextField			*textField_outlineWidthIndicator;
+	IBOutlet		NSTextField			*label_gradientNote;
 	
 	id				target;
 	NSString		*layoutName;	
