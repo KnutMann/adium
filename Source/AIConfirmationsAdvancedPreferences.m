@@ -44,16 +44,16 @@
  */
 - (void)viewDidLoad
 {
-	[label_quitConfirmation setLocalizedString:AILocalizedString(@"Quit Confirmation", "Preference")];
-	[checkBox_confirmBeforeQuitting setLocalizedString:AILocalizedString(@"Confirm before quitting Adium", "Quit Confirmation preference")];
-	[checkBox_quitConfirmFT setLocalizedString:AILocalizedString(@"File transfers are in progress", "Quit Confirmation preference")];
-	[checkBox_quitConfirmUnread setLocalizedString:AILocalizedString(@"There are unread messages", "Quit Confirmation preference")];
-	[checkBox_quitConfirmOpenChats setLocalizedString:AILocalizedString(@"There are open chat windows", "Quit Confirmation preference")];
+	[label_quitConfirmation setStringValue:AILocalizedString(@"Quit Confirmation", "Preference")];
+	[checkBox_confirmBeforeQuitting setTitle:AILocalizedString(@"Confirm before quitting Adium", "Quit Confirmation preference")];
+	[checkBox_quitConfirmFT setTitle:AILocalizedString(@"File transfers are in progress", "Quit Confirmation preference")];
+	[checkBox_quitConfirmUnread setTitle:AILocalizedString(@"There are unread messages", "Quit Confirmation preference")];
+	[checkBox_quitConfirmOpenChats setTitle:AILocalizedString(@"There are open chat windows", "Quit Confirmation preference")];
 	[[matrix_quitConfirmType cellWithTag:AIQuitConfirmAlways] setTitle:AILocalizedString(@"Always","Confirmation preference")];
 	[[matrix_quitConfirmType cellWithTag:AIQuitConfirmSelective] setTitle:[AILocalizedString(@"Only when","Quit Confirmation preference") stringByAppendingEllipsis]];
 	
-	[label_messageCloseConfirmation setLocalizedString:AILocalizedString(@"Window Close Confirmation", "Preference")];
-	[checkBox_confirmBeforeClosing setLocalizedString:AILocalizedString(@"Confirm before closing multiple chat windows", "Message close confirmation preference")];
+	[label_messageCloseConfirmation setStringValue:AILocalizedString(@"Window Close Confirmation", "Preference")];
+	[checkBox_confirmBeforeClosing setTitle:AILocalizedString(@"Confirm before closing multiple chat windows", "Message close confirmation preference")];
 	[[matrix_closeConfirmType cellWithTag:AIMessageCloseAlways] setTitle:AILocalizedString(@"Always", "Confirmation preference")];
 	[[matrix_closeConfirmType cellWithTag:AIMessageCloseUnread] setTitle:AILocalizedString(@"Only when there are unread messages", "Message close confirmation preference")];
 	

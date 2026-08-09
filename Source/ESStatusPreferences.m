@@ -78,6 +78,17 @@
  */
 - (void)viewDidLoad
 {
+	//Localize the controls, which the xib no longer localizes
+	[button_addGroup setTitle:AILocalizedString(@"Add Group",nil)];
+	[button_editState setTitle:AILocalizedString(@"Edit",nil)];
+	[checkBox_idle setTitle:AILocalizedString(@"Set idle after",nil)];
+	[label_idleMinutes setStringValue:AILocalizedString(@"minutes of inactivity",nil)];
+	[checkBox_autoAway setTitle:AILocalizedString(@"After",nil)];
+	[label_autoAwayMinutes setStringValue:AILocalizedString(@"minutes of inactivity, set:",nil)];
+	[checkBox_fastUserSwitching setTitle:AILocalizedString(@"When Fast User Switching is activated, set:",nil)];
+	[checkBox_screenSaver setTitle:AILocalizedString(@"When Screen Saver is activated, set:",nil)];
+	[checkBox_showStatusWindow setTitle:AILocalizedString(@"Display status window when away",nil)];
+
 	//Configure the controls
 	[self configureStateList];
 

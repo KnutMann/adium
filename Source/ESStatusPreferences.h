@@ -33,11 +33,13 @@
 	IBOutlet	NSButton		*checkBox_idle;
 	IBOutlet	NSTextField		*textField_idleMinutes;
 	IBOutlet    NSStepper       *stepper_idleMinutes;
+	IBOutlet	NSTextField		*label_idleMinutes;
 
 	IBOutlet	NSButton		*checkBox_autoAway;
 	IBOutlet	NSPopUpButton	*popUp_autoAwayStatusState;
 	IBOutlet	NSTextField		*textField_autoAwayMinutes;
 	IBOutlet    NSStepper       *stepper_autoAwayMinutes;
+	IBOutlet	NSTextField		*label_autoAwayMinutes;
 	BOOL						showingSubmenuItemInAutoAway;
 
 	IBOutlet	NSButton		*checkBox_fastUserSwitching;

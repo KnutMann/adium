@@ -61,8 +61,8 @@
 	[self configureTableView];
 	[self initializeServiceInformationForSchemes:servicesList];
 	
-	[button_setDefault setLocalizedString:AILocalizedString(@"Set Default for All", nil)];
-	[checkBox_enforceDefault setLocalizedString:AILocalizedString(@"Always set Adium as the default", nil)];
+	[button_setDefault setTitle:AILocalizedString(@"Set Default for All", nil)];
+	[checkBox_enforceDefault setTitle:AILocalizedString(@"Always set Adium as the default", nil)];
 	
 	[checkBox_enforceDefault setState:[[adium.preferenceController preferenceForKey:PREF_KEY_ENFORCE_DEFAULT
 																			  group:GROUP_URL_HANDLING] boolValue]];

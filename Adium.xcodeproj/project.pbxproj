@@ -55,7 +55,7 @@
 		111E89010F93FE3900A5F18B /* AIRealNameTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 111E88FE0F93FE3900A5F18B /* AIRealNameTooltip.m */; };
 		111E89020F93FE3900A5F18B /* AIUserHostTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 111E89000F93FE3900A5F18B /* AIUserHostTooltip.m */; };
 		1121B29A0F896A720047EC66 /* AIContactVisibilityControlPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1121B2990F896A720047EC66 /* AIContactVisibilityControlPlugin.m */; };
-		112939020FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 112939010FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.nib */; };
+		112939020FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 112939010FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.xib */; };
 		112939100FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 1129390F0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m */; };
 		112B47240F82DC2300690E84 /* AIGroupChatStatusIcons.h in Headers */ = {isa = PBXBuildFile; fileRef = 112B47220F82DC2300690E84 /* AIGroupChatStatusIcons.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		112B47250F82DC2300690E84 /* AIGroupChatStatusIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 112B47230F82DC2300690E84 /* AIGroupChatStatusIcons.m */; };
@@ -64,11 +64,11 @@
 		112B483F0F82E91200690E84 /* Group Chat Status Icons in Resources */ = {isa = PBXBuildFile; fileRef = 112B483E0F82E91200690E84 /* Group Chat Status Icons */; };
 		112B490A0F82FB1700690E84 /* AIGroupChatStatusTooltipPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 112B49090F82FB1700690E84 /* AIGroupChatStatusTooltipPlugin.m */; };
 		112B4A250F83194700690E84 /* AIMentionAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 112B4A240F83194700690E84 /* AIMentionAdvancedPreferences.m */; };
-		112B4A3E0F831A4400690E84 /* AIMentionAdvancedPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 112B4A3D0F831A4400690E84 /* AIMentionAdvancedPreferences.nib */; };
+		112B4A3E0F831A4400690E84 /* AIMentionAdvancedPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 112B4A3D0F831A4400690E84 /* AIMentionAdvancedPreferences.xib */; };
 		1130EA99109B445500FB3454 /* pref-defaultclient.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1130EA98109B445500FB3454 /* pref-defaultclient.tiff */; };
 		1130EA9D109B445D00FB3454 /* pref-mention.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1130EA9B109B445D00FB3454 /* pref-mention.tiff */; };
 		1130EA9E109B445D00FB3454 /* pref-messagealerts.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1130EA9C109B445D00FB3454 /* pref-messagealerts.tiff */; };
-		113900B10F85BEF60081A418 /* AIURLHandlerPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 113900B00F85BEF60081A418 /* AIURLHandlerPreferences.nib */; };
+		113900B10F85BEF60081A418 /* AIURLHandlerPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 113900B00F85BEF60081A418 /* AIURLHandlerPreferences.xib */; };
 		113900B40F85BF880081A418 /* AIURLHandlerAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 113900B30F85BF880081A418 /* AIURLHandlerAdvancedPreferences.m */; };
 		1139011C0F85C9450081A418 /* AIURLHandlerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1139011B0F85C9450081A418 /* AIURLHandlerPlugin.m */; };
 		1139FFAA0F85260E0081A418 /* AIIRCChannelLinker.m in Sources */ = {isa = PBXBuildFile; fileRef = 1139FFA90F85260E0081A418 /* AIIRCChannelLinker.m */; };
@@ -99,7 +99,7 @@
 		1199AB0610BE13E600646322 /* Authorize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1199AB0310BE13E600646322 /* Authorize.tiff */; };
 		1199AB0710BE13E600646322 /* Deny.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1199AB0410BE13E600646322 /* Deny.tiff */; };
 		1199AB0810BE13E600646322 /* Ignore.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1199AB0510BE13E600646322 /* Ignore.tiff */; };
-		11A2F10A0FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 11A2F1090FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.nib */; };
+		11A2F10A0FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 11A2F1090FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.xib */; };
 		11A2F1220FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 11A2F1210FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.m */; };
 		11AA1EFA0BCAE9C3003DDA66 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11AA1EF90BCAE9C3003DDA66 /* Quartz.framework */; };
 		11AE5555109CC88C0074BDC2 /* pref-confirmations.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 11AE5554109CC88C0074BDC2 /* pref-confirmations.tiff */; };
@@ -225,12 +225,12 @@
 		344458F0070B5BEF00D8E932 /* ESDebugWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 344458EE070B5BEF00D8E932 /* ESDebugWindowController.m */; };
 		344499E90B23CA5D0054B761 /* adiumPurpleAccounts.h in Headers */ = {isa = PBXBuildFile; fileRef = 344499E70B23CA5D0054B761 /* adiumPurpleAccounts.h */; };
 		344499EA0B23CA5D0054B761 /* adiumPurpleAccounts.m in Sources */ = {isa = PBXBuildFile; fileRef = 344499E80B23CA5D0054B761 /* adiumPurpleAccounts.m */; };
-		344838690BC85EF70083723B /* AccountListPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4B8C3CE80825F60B004B9F45 /* AccountListPreferences.nib */; };
+		344838690BC85EF70083723B /* AccountListPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */; };
 		344838B50BC860770083723B /* AIAccountListPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */; };
 		344839380BC862780083723B /* pref-messages.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34D8336707CBD807006466F2 /* pref-messages.tiff */; };
 		3448399A0BC8644C0083723B /* AIAdvancedPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */; };
 		344839A00BC864610083723B /* AIAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 3448399E0BC864610083723B /* AIAdvancedPreferences.m */; };
-		34483A990BC869680083723B /* AdvancedPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34483A980BC869680083723B /* AdvancedPreferences.nib */; };
+		34483A990BC869680083723B /* AdvancedPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34483A980BC869680083723B /* AdvancedPreferences.xib */; };
 		3448758E06D1EBDF00DA778C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3448758D06D1EBDF00DA778C /* Cocoa.framework */; };
 		3448761406D1EC0C00DA778C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3448758D06D1EBDF00DA778C /* Cocoa.framework */; };
 		344D974F0C3C442600498CA1 /* InstantMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 344D97410C3C442500498CA1 /* InstantMessage.m */; };
@@ -280,7 +280,7 @@
 		346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */; };
 		346F5D3208A43E7B0055C610 /* CurrentTunes.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 346F5CB308A418FB0055C610 /* CurrentTunes.scpt */; };
 		3474E000082550FD00BF30F0 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 3474DFFF082550FD00BF30F0 /* Credits.rtf */; };
-		3474E0910825634300BF30F0 /* StatusPreferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3474E0900825634300BF30F0 /* StatusPreferences.nib */; };
+		ADD1E5C0DE00000000000C02 /* StatusPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */; };
 		347933F30C861017007ADCAA /* AIColorStringTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 347933F10C861017007ADCAA /* AIColorStringTransformer.h */; };
 		347933F40C861017007ADCAA /* AIColorStringTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 347933F20C861017007ADCAA /* AIColorStringTransformer.m */; };
 		347C6943080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347C6941080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m */; };
@@ -1375,7 +1375,7 @@
 		111E89000F93FE3900A5F18B /* AIUserHostTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIUserHostTooltip.m; path = Source/AIUserHostTooltip.m; sourceTree = "<group>"; };
 		1121B2980F896A720047EC66 /* AIContactVisibilityControlPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactVisibilityControlPlugin.h; path = Source/AIContactVisibilityControlPlugin.h; sourceTree = "<group>"; };
 		1121B2990F896A720047EC66 /* AIContactVisibilityControlPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactVisibilityControlPlugin.m; path = Source/AIContactVisibilityControlPlugin.m; sourceTree = "<group>"; };
-		112939010FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AIConfirmationsAdvancedPreferences.nib; path = Resources/AIConfirmationsAdvancedPreferences.nib; sourceTree = "<group>"; };
+		112939010FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIConfirmationsAdvancedPreferences.xib; path = Resources/AIConfirmationsAdvancedPreferences.xib; sourceTree = "<group>"; };
 		1129390E0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIConfirmationsAdvancedPreferences.h; path = Source/AIConfirmationsAdvancedPreferences.h; sourceTree = "<group>"; };
 		1129390F0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIConfirmationsAdvancedPreferences.m; path = Source/AIConfirmationsAdvancedPreferences.m; sourceTree = "<group>"; };
 		112B47220F82DC2300690E84 /* AIGroupChatStatusIcons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIGroupChatStatusIcons.h; path = Frameworks/Adium/Source/AIGroupChatStatusIcons.h; sourceTree = "<group>"; };
@@ -1387,11 +1387,11 @@
 		112B49090F82FB1700690E84 /* AIGroupChatStatusTooltipPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIGroupChatStatusTooltipPlugin.m; path = Source/AIGroupChatStatusTooltipPlugin.m; sourceTree = "<group>"; };
 		112B4A230F83194700690E84 /* AIMentionAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMentionAdvancedPreferences.h; path = Source/AIMentionAdvancedPreferences.h; sourceTree = "<group>"; };
 		112B4A240F83194700690E84 /* AIMentionAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMentionAdvancedPreferences.m; path = Source/AIMentionAdvancedPreferences.m; sourceTree = "<group>"; };
-		112B4A3D0F831A4400690E84 /* AIMentionAdvancedPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AIMentionAdvancedPreferences.nib; path = Resources/AIMentionAdvancedPreferences.nib; sourceTree = "<group>"; };
+		112B4A3D0F831A4400690E84 /* AIMentionAdvancedPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIMentionAdvancedPreferences.xib; path = Resources/AIMentionAdvancedPreferences.xib; sourceTree = "<group>"; };
 		1130EA98109B445500FB3454 /* pref-defaultclient.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "pref-defaultclient.tiff"; path = "Resources/pref-defaultclient.tiff"; sourceTree = "<group>"; };
 		1130EA9B109B445D00FB3454 /* pref-mention.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "pref-mention.tiff"; path = "Resources/pref-mention.tiff"; sourceTree = "<group>"; };
 		1130EA9C109B445D00FB3454 /* pref-messagealerts.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "pref-messagealerts.tiff"; path = "Resources/pref-messagealerts.tiff"; sourceTree = "<group>"; };
-		113900B00F85BEF60081A418 /* AIURLHandlerPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AIURLHandlerPreferences.nib; path = Resources/AIURLHandlerPreferences.nib; sourceTree = "<group>"; };
+		113900B00F85BEF60081A418 /* AIURLHandlerPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIURLHandlerPreferences.xib; path = Resources/AIURLHandlerPreferences.xib; sourceTree = "<group>"; };
 		113900B20F85BF880081A418 /* AIURLHandlerAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIURLHandlerAdvancedPreferences.h; path = Source/AIURLHandlerAdvancedPreferences.h; sourceTree = "<group>"; };
 		113900B30F85BF880081A418 /* AIURLHandlerAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIURLHandlerAdvancedPreferences.m; path = Source/AIURLHandlerAdvancedPreferences.m; sourceTree = "<group>"; };
 		1139011A0F85C9450081A418 /* AIURLHandlerPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIURLHandlerPlugin.h; path = Source/AIURLHandlerPlugin.h; sourceTree = "<group>"; };
@@ -1484,7 +1484,7 @@
 		1199AB0310BE13E600646322 /* Authorize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Authorize.tiff; path = Frameworks/Adium/Resources/Authorize.tiff; sourceTree = "<group>"; };
 		1199AB0410BE13E600646322 /* Deny.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Deny.tiff; path = Frameworks/Adium/Resources/Deny.tiff; sourceTree = "<group>"; };
 		1199AB0510BE13E600646322 /* Ignore.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Ignore.tiff; path = Frameworks/Adium/Resources/Ignore.tiff; sourceTree = "<group>"; };
-		11A2F1090FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AIMessageAlertsAdvancedPreferences.nib; path = Resources/AIMessageAlertsAdvancedPreferences.nib; sourceTree = "<group>"; };
+		11A2F1090FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIMessageAlertsAdvancedPreferences.xib; path = Resources/AIMessageAlertsAdvancedPreferences.xib; sourceTree = "<group>"; };
 		11A2F1200FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageAlertsAdvancedPreferences.h; path = Source/AIMessageAlertsAdvancedPreferences.h; sourceTree = "<group>"; };
 		11A2F1210FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageAlertsAdvancedPreferences.m; path = Source/AIMessageAlertsAdvancedPreferences.m; sourceTree = "<group>"; };
 		11AA1EF90BCAE9C3003DDA66 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = /System/Library/Frameworks/Quartz.framework; sourceTree = "<absolute>"; };
@@ -1572,7 +1572,6 @@
 		340580A6087EEFA200664D64 /* ru */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		340580A9087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		340580AA087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
-		340580AB087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		340580AC087EEFA200664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = Resources/ru.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		340580AD087EEFA300664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/WebKit Message View/Resources/ru.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		340670790A55A044004E22AC /* sourceListBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sourceListBackground.png; path = Resources/sourceListBackground.png; sourceTree = "<group>"; };
@@ -1711,7 +1710,6 @@
 		341EC8C40D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Resources/sl.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		341EC8C50D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sl; path = "Resources/sl.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		341EC8C70D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = Resources/sl.lproj/Statuses.strings; sourceTree = "<group>"; };
-		341EC8C80D3C2BAB007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Resources/sl.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		341EC8C90D3C2BAB007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = Resources/sl.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34208CFB0D502D3E003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		34208CFD0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = Resources/fr_CA.lproj/Buttons.strings; sourceTree = "<group>"; };
@@ -1738,16 +1736,12 @@
 		34208D1B0D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		34208D1D0D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34208D1E0D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fr_CA; path = "Resources/fr_CA.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
-		34208D200D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		34208D210D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = Resources/fr_CA.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34208D220D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/WebKit Message View/Resources/fr_CA.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3420E65B0611D80000AE67E3 /* ESAccountPasswordPromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESAccountPasswordPromptController.h; path = Source/ESAccountPasswordPromptController.h; sourceTree = "<group>"; };
 		3420E65C0611D80000AE67E3 /* ESAccountPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAccountPasswordPromptController.m; path = Source/ESAccountPasswordPromptController.m; sourceTree = "<group>"; };
 		3420E65D0611D80000AE67E3 /* ESProxyPasswordPromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESProxyPasswordPromptController.h; path = Source/ESProxyPasswordPromptController.h; sourceTree = "<group>"; };
 		3420E65E0611D80000AE67E3 /* ESProxyPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESProxyPasswordPromptController.m; path = Source/ESProxyPasswordPromptController.m; sourceTree = "<group>"; };
-		34210FC0082601AE00A3B0FB /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Resources/fr.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
-		34210FCF082601B900A3B0FB /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Resources/zh_TW.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
-		342110720826044E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		3421137C08261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		3421137E08261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/AccountProxy.nib; sourceTree = "<group>"; };
 		3421137F08261B2E00A3B0FB /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = Resources/it.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
@@ -1757,8 +1751,6 @@
 		342114D30826D38500A3B0FB /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = Frameworks/Adium/Resources/de.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		342114E20826D38E00A3B0FB /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = Frameworks/Adium/Resources/zh_TW.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		342114F10826D39900A3B0FB /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = Frameworks/Adium/Resources/da.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
-		342115050826D3A800A3B0FB /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = Resources/de.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
-		342115140826D3FB00A3B0FB /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = Resources/da.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		342116D50827529000A3B0FB /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = Frameworks/Adium/Resources/fr.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
 		3421180D0827D86700A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
 		3421180E0827D86700A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
@@ -1769,14 +1761,12 @@
 		342118180827D86800A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		342118190827D86800A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		3421186C0827D8B100A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = Frameworks/Adium/Resources/nl.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
-		342118800827D8C300A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = Resources/nl.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		342353D409D45725009FF634 /* AILogViewerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AILogViewerWindowController.h; path = Source/AILogViewerWindowController.h; sourceTree = "<group>"; };
 		342353D509D45725009FF634 /* AILogViewerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AILogViewerWindowController.m; path = Source/AILogViewerWindowController.m; sourceTree = "<group>"; };
 		3428328407D2643E004F01C9 /* ESStatusPreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusPreferencesPlugin.h; path = Source/ESStatusPreferencesPlugin.h; sourceTree = "<group>"; };
 		3428328507D2643F004F01C9 /* ESStatusPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusPreferences.m; path = Source/ESStatusPreferences.m; sourceTree = "<group>"; };
 		3428328607D2643F004F01C9 /* ESStatusPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusPreferences.h; path = Source/ESStatusPreferences.h; sourceTree = "<group>"; };
 		3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusPreferencesPlugin.m; path = Source/ESStatusPreferencesPlugin.m; sourceTree = "<group>"; };
-		3428328C07D2644F004F01C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = Resources/en.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		342838ED07D2D004004F01C9 /* Shared Dock Icon Images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Shared Dock Icon Images"; path = "Resources/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		3428B33E0815E1FB00C0D3DC /* emoticon32.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = emoticon32.tiff; path = Resources/emoticon32.tiff; sourceTree = "<group>"; };
 		342910CA07AE228600C815F6 /* AIEmoticonPackPreviewTableView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewTableView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewTableView.h; sourceTree = "<group>"; };
@@ -1801,7 +1791,6 @@
 		342CE143085A08A100005C63 /* sv */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		342CE146085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		342CE147085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
-		342CE148085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		342CE149085A08A200005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = Resources/sv.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		342CE14A085A08A300005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/WebKit Message View/Resources/sv.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		342CE159085A08C400005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/AccountProxy.nib; sourceTree = "<group>"; };
@@ -1822,7 +1811,6 @@
 		342CE171085A08C700005C63 /* ca */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ca; path = Resources/ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		342CE174085A08C700005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		342CE175085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
-		342CE176085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		342CE177085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = Resources/ca.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		342CE178085A08C800005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/WebKit Message View/Resources/ca.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		342DC49B05783BE8000E1D83 /* ESSendMessageAlertDetailPane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESSendMessageAlertDetailPane.h; path = "Plugins/Send Message Contact Alert/ESSendMessageAlertDetailPane.h"; sourceTree = "<group>"; };
@@ -1839,7 +1827,6 @@
 		342F88CE0A2A74EB0001DB29 /* SGHotKey.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SGHotKey.h; path = Source/SGHotKey.h; sourceTree = "<group>"; };
 		342F9E520B552627000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/WebKit Message View/Resources/fi.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		342F9E530B552627000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		342F9E540B552627000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		342F9E560B552628000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fi; path = "Resources/fi.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		342F9E580B552628000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		342F9E5A0B552629000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = Resources/fi.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
@@ -1872,7 +1859,6 @@
 		343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferencePane.m; path = Frameworks/Adium/Source/AIAdvancedPreferencePane.m; sourceTree = "<group>"; };
 		3437FF410A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/WebKit Message View/Resources/tr.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3437FF420A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		3437FF430A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		3437FF440A9BF0A50028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		3437FF450A9BF0A60028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		3437FF460A9BF0A60028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = Resources/tr.lproj/OTRPrefs.nib; sourceTree = "<group>"; };
@@ -1895,6 +1881,7 @@
 		ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AppearancePrefs.xib; path = Resources/AppearancePrefs.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000A01 /* PersonalPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PersonalPreferences.xib; path = Resources/PersonalPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GeneralPreferences.xib; path = Resources/GeneralPreferences.xib; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferences.xib; path = Resources/StatusPreferences.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AlertMessageContactAlert.nib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.nib"; sourceTree = "<group>"; };
 		343C45E20816C0FE00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/WebKit Message View/Resources/it.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -1962,7 +1949,7 @@
 		344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferencesPlugin.m; path = Source/AIAdvancedPreferencesPlugin.m; sourceTree = "<group>"; };
 		3448399D0BC864610083723B /* AIAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdvancedPreferences.h; path = Source/AIAdvancedPreferences.h; sourceTree = "<group>"; };
 		3448399E0BC864610083723B /* AIAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferences.m; path = Source/AIAdvancedPreferences.m; sourceTree = "<group>"; };
-		34483A980BC869680083723B /* AdvancedPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AdvancedPreferences.nib; path = Resources/AdvancedPreferences.nib; sourceTree = "<group>"; };
+		34483A980BC869680083723B /* AdvancedPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AdvancedPreferences.xib; path = Resources/AdvancedPreferences.xib; sourceTree = "<group>"; };
 		3448758D06D1EBDF00DA778C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		3449485508E9FCCD0054FF57 /* AIContactMenu.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactMenu.m; path = Frameworks/Adium/Source/AIContactMenu.m; sourceTree = "<group>"; };
 		3449485608E9FCCD0054FF57 /* AIContactMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactMenu.h; path = Frameworks/Adium/Source/AIContactMenu.h; sourceTree = "<group>"; };
@@ -2009,7 +1996,6 @@
 		345076B50E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = Resources/en_GB.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		345076B60E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en_GB; path = "Resources/en_GB.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		345076B80E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/Statuses.strings; sourceTree = "<group>"; };
-		345076B90E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = Resources/en_GB.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		345076BA0E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = Resources/en_GB.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		345076BB0E106F6000BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/WebKit Message View/Resources/en_GB.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		345076D40E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/AccountProxy.nib; sourceTree = "<group>"; };
@@ -2035,7 +2021,6 @@
 		345076F30E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		345076F40E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pt_PT; path = "Resources/pt_PT.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		345076F60E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Resources/pt_PT.lproj/Statuses.strings; sourceTree = "<group>"; };
-		345076F70E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		345076F80E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = Resources/pt_PT.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		345076F90E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/WebKit Message View/Resources/pt_PT.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		3452A9F607891C8A00C3C494 /* ESFileTransferRequestPromptController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESFileTransferRequestPromptController.h; path = Source/ESFileTransferRequestPromptController.h; sourceTree = "<group>"; };
@@ -2193,7 +2178,6 @@
 		346522A208371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/ESFileTransferProgressView.nib; sourceTree = "<group>"; };
 		346522A308371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		346522A408371924009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
-		346522A508371924009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = Resources/zh_CN.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		346522A608371924009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		346522A808371924009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		346522BA08371996009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
@@ -2204,7 +2188,6 @@
 		346522C008371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		346522C208371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/ListThemeSheet.nib; sourceTree = "<group>"; };
 		346522C408371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		346522C508371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		346522C608371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = Resources/cs.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		346522C708371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleMeanwhileJoinChatView.nib"; sourceTree = "<group>"; };
 		346522C808371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/WebKit Message View/Resources/cs.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
@@ -2216,7 +2199,6 @@
 		346522D308371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		346522D408371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		346522F9083719ED009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		346522FA083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		346522FB083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		346522FD083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/DCPurpleOscarJoinChatView.nib"; sourceTree = "<group>"; };
 		346522FF083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = Resources/nb.lproj/ESFileTransferProgressView.nib; sourceTree = "<group>"; };
@@ -2238,7 +2220,6 @@
 		34652316083719F0009565FE /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = Resources/nb.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		34652319083719F0009565FE /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = Resources/nb.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3465232C083719FF009565FE /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = Frameworks/Adium/Resources/ja.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
-		3465233E08371A0C009565FE /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = Resources/ja.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		3465235208371A3F009565FE /* zh_CN */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_CN; path = Resources/zh_CN.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3465235308371A3F009565FE /* zh_CN */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		3465236508371A64009565FE /* cs */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -2293,7 +2274,6 @@
 		346C9C1A0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		346C9C1B0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = hu; path = "Resources/hu.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		346C9C1D0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Statuses.strings; sourceTree = "<group>"; };
-		346C9C1E0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		346C9C1F0E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = Resources/hu.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		346C9C200E70E1F8002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/WebKit Message View/Resources/hu.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		346CFDC4087B7836009711C8 /* AdiumIdleManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumIdleManager.h; path = Source/AdiumIdleManager.h; sourceTree = "<group>"; };
@@ -2530,7 +2510,6 @@
 		34A30EA008D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		34A30EA108D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34A30EA208D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = folder; name = es; path = "Resources/es.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
-		34A30EA308D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		34A30EA408D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = Resources/es.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34A30EA508D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/WebKit Message View/Resources/es.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34A489F106F64359002C7C5F /* AISCLViewPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISCLViewPlugin.m; path = Source/AISCLViewPlugin.m; sourceTree = "<group>"; };
@@ -2567,7 +2546,6 @@
 		34A6FB8007D6FDCC00972830 /* FormattingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = FormattingDefaults.plist; path = Resources/FormattingDefaults.plist; sourceTree = "<group>"; };
 		34A81DB2093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/WebKit Message View/Resources/pl.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34A81DB3093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
-		34A81DB4093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		34A81DB5093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34A81DB6093CE92200B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = Resources/pl.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		34A81DBB093CE92200B0E93D /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = Resources/pl.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2637,7 +2615,6 @@
 		34B1FCE40F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Resources/el_GR.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		34B1FCE50F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = folder; name = el_GR; path = "Resources/el_GR.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34B1FCE70F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/Statuses.strings; sourceTree = "<group>"; };
-		34B1FCE80F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Resources/el_GR.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		34B1FCE90F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = Resources/el_GR.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34B1FCEA0F112BF800C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/WebKit Message View/Resources/el_GR.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34B271EB0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
@@ -2645,7 +2622,6 @@
 		34B271ED0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/ListLayoutSheet.nib; sourceTree = "<group>"; };
 		34B271EE0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34B271F00839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
-		34B271F30839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		34B271F40839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
 		34B271F50839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/ESFileTransferProgressView.nib; sourceTree = "<group>"; };
 		34B271F60839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = Resources/is.lproj/DualWindowMessageAdvanced.nib; sourceTree = "<group>"; };
@@ -2954,7 +2930,6 @@
 		34F13F4A0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt; path = Frameworks/Adium/Resources/pt.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34F13F4C0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/PasswordPrompt.nib; sourceTree = "<group>"; };
 		34F13F4D0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
-		34F13F4F0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		34F13F500BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		34F13F510BA6D56E000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/WebKit Message View/Resources/pt.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		34F144460BA8FF46000473DE /* en */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en; path = Frameworks/Adium/Resources/en.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
@@ -3095,7 +3070,7 @@
 		4B8742490840E3D800738987 /* AdiumPasswords.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumPasswords.m; path = Source/AdiumPasswords.m; sourceTree = "<group>"; };
 		4B8C3C970825EAF9004B9F45 /* AIAccountListPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountListPreferences.h; path = Source/AIAccountListPreferences.h; sourceTree = "<group>"; };
 		4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountListPreferences.m; path = Source/AIAccountListPreferences.m; sourceTree = "<group>"; };
-		4B8C3CE80825F60B004B9F45 /* AccountListPreferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AccountListPreferences.nib; path = Resources/AccountListPreferences.nib; sourceTree = "<group>"; };
+		4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountListPreferences.xib; path = Resources/AccountListPreferences.xib; sourceTree = "<group>"; };
 		4B93588A06DBC71B007977AA /* AIUserIcons.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIUserIcons.h; path = Frameworks/Adium/Source/AIUserIcons.h; sourceTree = "<group>"; };
 		4B93588B06DBC71B007977AA /* AIStatusIcons.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIStatusIcons.m; path = Frameworks/Adium/Source/AIStatusIcons.m; sourceTree = "<group>"; };
 		4B93588C06DBC71B007977AA /* AIServiceIcons.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIServiceIcons.m; path = Frameworks/Adium/Source/AIServiceIcons.m; sourceTree = "<group>"; };
@@ -3303,7 +3278,6 @@
 		5A7642CA11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Resources/sk_SK.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		5A7642CB11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sk_SK; path = "Resources/sk_SK.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		5A7642CD11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/Statuses.strings; sourceTree = "<group>"; };
-		5A7642CE11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Resources/sk_SK.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		5A7642CF11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Resources/sk_SK.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		5A7642D011E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/WebKit Message View/Resources/sk_SK.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		5A76477F11E04B8400E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = Frameworks/Adium/Resources/sk_SK.lproj/EditStateSheet.nib; sourceTree = "<group>"; };
@@ -3335,7 +3309,6 @@
 		5A80CCA8121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = Resources/uk.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		5A80CCA9121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = uk; path = "Resources/uk.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		5A80CCAB121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Resources/uk.lproj/Statuses.strings; sourceTree = "<group>"; };
-		5A80CCAC121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = Resources/uk.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		5A80CCAD121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = Resources/uk.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		5A80CCAE121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/WebKit Message View/Resources/uk.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		5A9439791279ECB800FDD81D /* AIImgurImageUploader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIImgurImageUploader.h; path = "Plugins/Image Uploading Plugin/AIImgurImageUploader.h"; sourceTree = "<group>"; };
@@ -3649,7 +3622,6 @@
 		D1C1FA4914995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = Resources/en_AU.lproj/ProxyPasswordPrompt.nib; sourceTree = "<group>"; };
 		D1C1FA4A14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en_AU; path = "Resources/en_AU.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		D1C1FA4C14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/Statuses.strings; sourceTree = "<group>"; };
-		D1C1FA4D14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = Resources/en_AU.lproj/StatusPreferences.nib; sourceTree = "<group>"; };
 		D1C1FA4E14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = Resources/en_AU.lproj/StatusSortConfiguration.nib; sourceTree = "<group>"; };
 		D1C1FA4F14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/WebKit Message View/Resources/en_AU.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		D1ED4B9E14A0DB8B00EBD8EB /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = Resources/pt.lproj/OTRPrefs.nib; sourceTree = "<group>"; };
@@ -3834,7 +3806,7 @@
 		112B4A0B0F83192500690E84 /* Mentions */ = {
 			isa = PBXGroup;
 			children = (
-				112B4A3D0F831A4400690E84 /* AIMentionAdvancedPreferences.nib */,
+				112B4A3D0F831A4400690E84 /* AIMentionAdvancedPreferences.xib */,
 				632D859C0DB70FC800040EC7 /* AIMentionEventPlugin.h */,
 				632D859D0DB70FC800040EC7 /* AIMentionEventPlugin.m */,
 				112B4A230F83194700690E84 /* AIMentionAdvancedPreferences.h */,
@@ -4067,12 +4039,12 @@
 		3428328307D263F0004F01C9 /* Status Preferences */ = {
 			isa = PBXGroup;
 			children = (
-				112939010FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.nib */,
+				112939010FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.xib */,
 				1129390E0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.h */,
 				1129390F0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m */,
 				11A2F1200FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.h */,
 				11A2F1210FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.m */,
-				11A2F1090FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.nib */,
+				11A2F1090FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.xib */,
 				3428328407D2643E004F01C9 /* ESStatusPreferencesPlugin.h */,
 				3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */,
 				3428328607D2643F004F01C9 /* ESStatusPreferences.h */,
@@ -4084,7 +4056,7 @@
 				343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */,
 				343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.nib */,
 				348F579D0936FA6D00288E41 /* EditStatusGroup.nib */,
-				3474E0900825634300BF30F0 /* StatusPreferences.nib */,
+				ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */,
 			);
 			name = "Status Preferences";
 			sourceTree = "<group>";
@@ -5189,7 +5161,7 @@
 			children = (
 				1139011A0F85C9450081A418 /* AIURLHandlerPlugin.h */,
 				1139011B0F85C9450081A418 /* AIURLHandlerPlugin.m */,
-				113900B00F85BEF60081A418 /* AIURLHandlerPreferences.nib */,
+				113900B00F85BEF60081A418 /* AIURLHandlerPreferences.xib */,
 				113900B20F85BF880081A418 /* AIURLHandlerAdvancedPreferences.h */,
 				113900B30F85BF880081A418 /* AIURLHandlerAdvancedPreferences.m */,
 				34F1023A073449D500890D3B /* XtrasInstaller.h */,
@@ -6652,7 +6624,7 @@
 				3474DFFF082550FD00BF30F0 /* Credits.rtf */,
 				34107B5509E992DA001CC042 /* GuestAccountWindow.nib */,
 				34F849520A4AEFA00002A017 /* LogFileUpgrade.nib */,
-				34483A980BC869680083723B /* AdvancedPreferences.nib */,
+				34483A980BC869680083723B /* AdvancedPreferences.xib */,
 			);
 			name = "About Box";
 			sourceTree = "<group>";
@@ -6943,7 +6915,7 @@
 				F55B413C03AB895501A8010A /* AIAccountListPreferencesPlugin.m */,
 				4B8C3C970825EAF9004B9F45 /* AIAccountListPreferences.h */,
 				4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */,
-				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.nib */,
+				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */,
 				4B7A567707A1754400BDC540 /* AIEditAccountWindowController.h */,
 				4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */,
 				4BCAB5F007B59967006641B9 /* EditAccountSheet.nib */,
@@ -7650,7 +7622,7 @@
 				4BF3CB4207D1771E00A8112A /* pref-appearance.tiff in Resources */,
 				4BF3CBED07D192F500A8112A /* pref-accounts.tiff in Resources */,
 				4B08399C07D235190034A001 /* DockIconSelectionSheet.xib in Resources */,
-				3474E0910825634300BF30F0 /* StatusPreferences.nib in Resources */,
+				ADD1E5C0DE00000000000C02 /* StatusPreferences.xib in Resources */,
 				342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */,
 				4BB5B78207D2DC4900CFE06F /* pref-status.tiff in Resources */,
 				ADD1E5C0DE00000000000B02 /* GeneralPreferences.xib in Resources */,
@@ -7742,9 +7714,9 @@
 				34DC13050A81417700D710F3 /* LoginSelect.nib in Resources */,
 				34F312BD0ADC43CA00A4310E /* xtras_duck.png in Resources */,
 				117D6DC00BC5F0C40080D02B /* msg-request-attention.tiff in Resources */,
-				344838690BC85EF70083723B /* AccountListPreferences.nib in Resources */,
+				344838690BC85EF70083723B /* AccountListPreferences.xib in Resources */,
 				344839380BC862780083723B /* pref-messages.tiff in Resources */,
-				34483A990BC869680083723B /* AdvancedPreferences.nib in Resources */,
+				34483A990BC869680083723B /* AdvancedPreferences.xib in Resources */,
 				07C6EA890C06676400B79CBD /* AdiumHelp in Resources */,
 				0CAC6A140C0C657A0090AE95 /* Adium.sdef in Resources */,
 				C4D29CC80C3C2E49001545A2 /* ICImport.nib in Resources */,
@@ -7774,12 +7746,12 @@
 				11C97DFD0F7D26C200E8DD37 /* dsa_pub.pem in Resources */,
 				11700A440F7E8CB60078D6AB /* AISpecialPasswordPrompt.nib in Resources */,
 				112B483F0F82E91200690E84 /* Group Chat Status Icons in Resources */,
-				112B4A3E0F831A4400690E84 /* AIMentionAdvancedPreferences.nib in Resources */,
+				112B4A3E0F831A4400690E84 /* AIMentionAdvancedPreferences.xib in Resources */,
 				1111B2300F8478500068CE51 /* Filter Bar.nib in Resources */,
-				113900B10F85BEF60081A418 /* AIURLHandlerPreferences.nib in Resources */,
-				11A2F10A0FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.nib in Resources */,
+				113900B10F85BEF60081A418 /* AIURLHandlerPreferences.xib in Resources */,
+				11A2F10A0FC8FC1A00C3F05C /* AIMessageAlertsAdvancedPreferences.xib in Resources */,
 				11BE29640FCCA8DA000E6A10 /* ImageUploaderProgress.nib in Resources */,
-				112939020FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.nib in Resources */,
+				112939020FD5AC1B00FA8F53 /* AIConfirmationsAdvancedPreferences.xib in Resources */,
 				1130EA99109B445500FB3454 /* pref-defaultclient.tiff in Resources */,
 				1130EA9D109B445D00FB3454 /* pref-mention.tiff in Resources */,
 				1130EA9E109B445D00FB3454 /* pref-messagealerts.tiff in Resources */,
@@ -9361,42 +9333,6 @@
 				D1C1FA4C14995D98008C94EB /* en_AU */,
 			);
 			name = Statuses.strings;
-			sourceTree = "<group>";
-		};
-		3474E0900825634300BF30F0 /* StatusPreferences.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3428328C07D2644F004F01C9 /* en */,
-				34210FC0082601AE00A3B0FB /* fr */,
-				34210FCF082601B900A3B0FB /* zh_TW */,
-				342110720826044E00A3B0FB /* it */,
-				342115050826D3A800A3B0FB /* de */,
-				342115140826D3FB00A3B0FB /* da */,
-				342118800827D8C300A3B0FB /* nl */,
-				346522A508371924009565FE /* zh_CN */,
-				346522C508371997009565FE /* cs */,
-				346522FA083719EE009565FE /* nb */,
-				3465233E08371A0C009565FE /* ja */,
-				34B271F30839E8E30092A5A0 /* is */,
-				342CE148085A08A200005C63 /* sv */,
-				342CE176085A08C800005C63 /* ca */,
-				340580AB087EEFA200664D64 /* ru */,
-				34A30EA308D8EE7B00697644 /* es */,
-				34A81DB4093CE92200B0E93D /* pl */,
-				3437FF430A9BF0A50028604E /* tr */,
-				342F9E540B552627000D5FC2 /* fi */,
-				34F13F4F0BA6D56E000473DE /* pt */,
-				341EC8C80D3C2BAB007216A2 /* sl */,
-				34208D200D502D40003138D1 /* fr_CA */,
-				345076B90E106F5F00BF0883 /* en_GB */,
-				345076F70E106FD600BF0883 /* pt_PT */,
-				346C9C1E0E70E1F8002314EE /* hu */,
-				34B1FCE80F112BF700C7E952 /* el_GR */,
-				5A7642CE11E044BA00E5E0AF /* sk_SK */,
-				5A80CCAC121F5A7B00D0670A /* uk */,
-				D1C1FA4D14995D98008C94EB /* en_AU */,
-			);
-			name = StatusPreferences.nib;
 			sourceTree = "<group>";
 		};
 		348EE1B3080A57480015E0FC /* WebKitPreferencesView.nib */ = {

@@ -15,6 +15,7 @@
  */
 
 #import "adiumPurpleSignals.h"
+#import "CBPurpleAccount.h"
 #import <AIUtilities/AIObjectAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <Adium/AIChatControllerProtocol.h>
@@ -413,6 +414,42 @@ file_recv_request_cb(PurpleXfer *xfer)
 	[pool release];
 }
 
+#pragma mark XEP-0184 / XEP-0333 (patched jabber plugin)
+
+/* These hooks come from Adium's libpurple jabber patches (Dependencies/patches);
+ * there is no include path from this target to the protocol sources. */
+typedef void (*jabber_receipt_cb)(PurpleConnection *gc, const char *from, const char *message_id);
+void jabber_set_receipt_cb(jabber_receipt_cb cb);
+typedef void (*jabber_chat_marker_cb)(PurpleConnection *gc, const char *from, const char *message_id,
+									  const char *marker_type);
+void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
+void jabber_add_feature(const char *xmlns, void *enabled_cb);
+
+static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from, const char *message_id,
+										  const char *marker_type)
+{
+	@autoreleasepool {
+		/* Only "displayed" is worth a visible status line; "received"/"active" would be noise */
+		if (!marker_type || strcmp(marker_type, "displayed") != 0) return;
+
+		PurpleAccount *purpleAccount = purple_connection_get_account(gc);
+		CBPurpleAccount *cbaccount = accountLookup(purpleAccount);
+		PurpleBuddy *buddy = purple_find_buddy(purpleAccount, from);
+		AIListContact *contact = buddy ? contactLookupFromBuddy(buddy) : nil;
+		AIChat *chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
+
+		if (chat && cbaccount) {
+			NSString *message = NSLocalizedStringFromTableInBundle(@"Read", nil,
+																   [NSBundle bundleForClass:[CBPurpleAccount class]],
+																   "Status line shown when the contact has read your messages");
+			[cbaccount receivedEventForChat:chat
+									message:[NSString stringWithFormat:@"\u2713\u2713 %@", message]
+									   date:[NSDate date]
+									  flags:[NSNumber numberWithInt:PURPLE_MESSAGE_NO_LINKIFY]];
+		}
+	}
+}
+
 void configureAdiumPurpleSignals(void)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -488,4 +525,10 @@ void configureAdiumPurpleSignals(void)
 						  handle, PURPLE_CALLBACK(file_recv_request_cb), NULL);
 	
 	[pool release];
+	/* XEP-0333 chat markers: surface "displayed" markers, and advertise
+	 * receipts + markers support so peers request/send them */
+	jabber_set_chat_marker_cb(adiumJabberChatMarkerReceived);
+	jabber_add_feature("urn:xmpp:receipts", NULL);
+	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
+
 }
