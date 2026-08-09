@@ -68,6 +68,30 @@
 							  [[NSString stringWithFormat:@"Adium on %@", computerName] UTF8String]);
 }
 
+/* Adopt the WhatsApp profile name as this account's display name, so outgoing
+ * messages show it instead of the bare phone number. The plugin stores it as an
+ * account string once the contact sync delivers it; the user's own display-name
+ * preference always wins. */
+- (void)didConnect
+{
+	[super didConnect];
+	[self performSelector:@selector(ai_adoptWhatsAppProfileName) withObject:nil afterDelay:8.0];
+	[self performSelector:@selector(ai_adoptWhatsAppProfileName) withObject:nil afterDelay:25.0];
+}
+
+- (void)ai_adoptWhatsAppProfileName
+{
+	if (!account) return;
+
+	const char *selfName = purple_account_get_string(account, "self-display-name", NULL);
+	if (!selfName || !*selfName) return;
+
+	NSData *existingPreference = [self preferenceForKey:KEY_ACCOUNT_DISPLAY_NAME group:GROUP_ACCOUNT_STATUS];
+	if (existingPreference) return;
+
+	[self setDisplayName:[NSString stringWithUTF8String:selfName]];
+}
+
 /* WhatsApp channels ("Updates" tab) arrive from JIDs ending in @newsletter.
  * Drop their posts when the account option asks for it, like status broadcasts. */
 - (void)receivedIMChatMessage:(NSDictionary *)messageDict inChat:(AIChat *)chat
