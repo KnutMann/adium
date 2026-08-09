@@ -35,6 +35,15 @@ void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
 
 gboolean jabber_chat_marker_parse(JabberStream *js, const char *from, xmlnode *child);
 
+/* Remember the id of an incoming markable message so a "displayed" marker
+ * can be sent for it once the user actually reads the conversation. */
+void jabber_chat_marker_note_markable(PurpleConnection *gc, const char *from,
+                                      const char *message_id);
+
+/* Send a "displayed" marker for the last markable message from this contact,
+ * if any. Returns TRUE when a marker was sent. */
+gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who);
+
 void jabber_chat_marker_send(JabberStream *js, const char *to, const char *message_id, const char *marker_type);
 
 #endif /* PURPLE_JABBER_CHATMARKER_H_ */

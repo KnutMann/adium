@@ -380,6 +380,19 @@
 			(footerHTML ? footerHTML : @"")];
 	}
 
+	/* Modern services deliver large inline images; the classic styles never
+	 * bounded them, so a photo wider than the view pushed the whole page out
+	 * of the window. Cap every image at the view width. */
+	{
+		NSString *imageFitCSS = @"<style type=\"text/css\">img { max-width: min(100%, calc(100vw - 90px)); height: auto; } </style>";
+		NSRange headEnd = [templateHTML rangeOfString:@"</head>" options:NSCaseInsensitiveSearch];
+		if (headEnd.location != NSNotFound) {
+			[templateHTML insertString:imageFitCSS atIndex:headEnd.location];
+		} else {
+			[templateHTML appendString:imageFitCSS];
+		}
+	}
+
 	return [self fillKeywordsForBaseTemplate:templateHTML chat:chat];
 }
 

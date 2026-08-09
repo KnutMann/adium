@@ -23,6 +23,7 @@
 
 #include "internal.h"
 
+#include "jutil.h"
 #include "chatmarker.h"
 
 static jabber_chat_marker_cb chat_marker_cb = NULL;
@@ -69,4 +70,58 @@ void jabber_chat_marker_send(JabberStream *js, const char *to,
 
 	jabber_send(js, marker_msg);
 	xmlnode_free(marker_msg);
+}
+
+/* gc pointer + bare JID -> id of the newest markable message not yet marked displayed */
+static GHashTable *pending_markables = NULL;
+
+static char *jabber_chat_marker_key(PurpleConnection *gc, const char *jid)
+{
+	char *bare = jabber_get_bare_jid(jid);
+	char *key = g_strdup_printf("%p|%s", (void *)gc, bare ? bare : jid);
+	g_free(bare);
+	return key;
+}
+
+void jabber_chat_marker_note_markable(PurpleConnection *gc, const char *from,
+                                      const char *message_id)
+{
+	char *key;
+
+	if (!gc || !from || !message_id)
+		return;
+
+	if (!pending_markables)
+		pending_markables = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+	key = jabber_chat_marker_key(gc, from);
+	g_hash_table_replace(pending_markables, key, g_strdup(message_id));
+}
+
+gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who)
+{
+	JabberStream *js;
+	char *key, *bare;
+	const char *id;
+	gboolean sent = FALSE;
+
+	if (!gc || !who || !pending_markables)
+		return FALSE;
+
+	js = purple_connection_get_protocol_data(gc);
+	if (!js)
+		return FALSE;
+
+	key = jabber_chat_marker_key(gc, who);
+	id = g_hash_table_lookup(pending_markables, key);
+	if (id) {
+		bare = jabber_get_bare_jid(who);
+		jabber_chat_marker_send(js, bare ? bare : who, id, "displayed");
+		g_free(bare);
+		g_hash_table_remove(pending_markables, key);
+		sent = TRUE;
+	}
+	g_free(key);
+
+	return sent;
 }

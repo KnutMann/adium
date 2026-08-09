@@ -905,6 +905,9 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 }
 
 
+/* From Adium's jabber chatmarker patch (Dependencies/patches) */
+gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who);
+
 - (NSSet *)updateChat:(AIChat *)inChat keys:(NSSet *)inModifiedKeys silent:(BOOL)silent
 {
 	if (inModifiedKeys && [inModifiedKeys containsObject:KEY_UNVIEWED_CONTENT]) {
@@ -913,6 +916,15 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 			purple_conversation_set_data(conv, "unseen-count",
 										 GINT_TO_POINTER((int)inChat.unviewedContentCount));
 			purple_conversation_update(conv, PURPLE_CONV_UPDATE_UNSEEN);
+
+			/* XEP-0333: the user just read this conversation; let the contact know */
+			if (inChat.unviewedContentCount == 0 && !inChat.isGroupChat) {
+				PurpleConnection *gc = purple_conversation_get_gc(conv);
+				PurplePlugin *prpl = gc ? purple_connection_get_prpl(gc) : NULL;
+				if (prpl && purple_strequal(purple_plugin_get_id(prpl), "prpl-jabber")) {
+					jabber_chat_marker_send_displayed(gc, purple_conversation_get_name(conv));
+				}
+			}
 		}
 	}
 	return nil;

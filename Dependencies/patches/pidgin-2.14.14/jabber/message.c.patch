@@ -6,10 +6,10 @@
  #include "iq.h"
 +#include "receipt.h"
 +#include "chatmarker.h"
-
+ 
  #include <string.h>
-
-@@ -719,6 +721,23 @@
+ 
+@@ -719,6 +721,26 @@
  			jm->chat_state = JM_STATE_INACTIVE;
  		} else if(purple_strequal(child->name, "gone") && purple_strequal(xmlns,"http://jabber.org/protocol/chatstates")) {
  			jm->chat_state = JM_STATE_GONE;
@@ -30,26 +30,29 @@
 +			}
 +		} else if(jabber_chat_marker_parse(js, from, child)) {
 +			/* XEP-0333: chat marker consumed */
++		} else if(purple_strequal(child->name, "markable") && purple_strequal(xmlns, NS_CHAT_MARKERS)) {
++			/* XEP-0333: sender allows chat markers; remember the id for "displayed" */
++			jabber_chat_marker_note_markable(js->gc, jm->from, jm->id);
  		} else if(purple_strequal(child->name, "event") && purple_strequal(xmlns,"http://jabber.org/protocol/pubsub#event")) {
  			xmlnode *items;
  			jm->type = JABBER_MESSAGE_EVENT;
-@@ -1096,6 +1115,9 @@
- 					jm->xhtml);
+@@ -1097,6 +1119,9 @@
  		}
  	}
-+
+ 
 +	if(jm->add_receipt_request)
 +		jabber_receipt_add_request(message);
-
- 	jabber_send(jm->js, message);
-
-@@ -1206,6 +1228,9 @@
- 	}
-
- 	g_free(xhtml);
 +
+ 	jabber_send(jm->js, message);
+ 
+ 	xmlnode_free(message);
+@@ -1208,6 +1233,9 @@
+ 
+ 	g_free(xhtml);
+ 
 +	jm->add_receipt_request = !jbr || !jbr->caps.info ||
 +		jabber_resource_has_capability(jbr, NS_RECEIPTS);
-
++
  	jabber_message_send(jm);
  	jabber_message_free(jm);
+ 	return 1;
