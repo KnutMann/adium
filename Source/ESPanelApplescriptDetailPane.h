@@ -16,14 +16,12 @@
 
 #import <Adium/AIActionDetailsPane.h>
 
-@class AILocalizationTextField, AILocalizationButton;
-
 @interface ESPanelApplescriptDetailPane : AIActionDetailsPane {
 	IBOutlet	NSTextField		*textField_scriptName;
 	NSString					*scriptPath;
-	
-	IBOutlet	AILocalizationTextField	*label_applescript;
-	IBOutlet	AILocalizationButton	*button_browse;
+
+	IBOutlet	NSTextField		*label_applescript;
+	IBOutlet	NSButton		*button_browse;
 }
 
 - (IBAction)chooseFile:(id)sender;

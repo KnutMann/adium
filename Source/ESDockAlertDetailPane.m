@@ -18,7 +18,6 @@
 #import "AIDockController.h"
 #import "ESDockAlertDetailPane.h"
 #import <AIUtilities/AIMenuAdditions.h>
-#import <Adium/AILocalizationTextField.h>
 
 @interface ESDockAlertDetailPane ()
 - (NSMenuItem *)menuItemForBehavior:(AIDockBehavior)behavior withName:(NSString *)name;
@@ -45,7 +44,7 @@
 {
 	[super viewDidLoad];
 
-	[label_behavior setLocalizedString:AILocalizedString(@"Behavior","Dock behavior contact alert label")];
+	[label_behavior setStringValue:AILocalizedString(@"Behavior","Dock behavior contact alert label")];
 
     [popUp_actionDetails setMenu:[self behaviorListMenu]];
 }

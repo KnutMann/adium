@@ -210,6 +210,10 @@ void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *
 	// Redirect every possible glib error message to AILog
 	g_set_print_handler(adium_glib_print);
 	g_set_printerr_handler(adium_glib_print);
+
+	/* Mirror Adium's unviewed state into purple conversations (Pidgin sets the same
+	 * data); purple-gowhatsapp marks WhatsApp chats read when it drops to zero. */
+	[adium.chatController registerChatObserver:(id)self];
 	
 	for (NSString *domain in [NSArray arrayWithObjects:@"GLib", @"GModule", @"GLib-GObject", @"GThread", @"Gnt", @"GStreamer", @"stderr", nil]) {
 		g_log_set_handler([domain UTF8String], G_LOG_LEVEL_MASK | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION, adium_glib_log, NULL);
@@ -900,6 +904,19 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 	return NULL;
 }
 
+
+- (NSSet *)updateChat:(AIChat *)inChat keys:(NSSet *)inModifiedKeys silent:(BOOL)silent
+{
+	if (inModifiedKeys && [inModifiedKeys containsObject:KEY_UNVIEWED_CONTENT]) {
+		PurpleConversation *conv = existingConvLookupFromChat(inChat);
+		if (conv) {
+			purple_conversation_set_data(conv, "unseen-count",
+										 GINT_TO_POINTER((int)inChat.unviewedContentCount));
+			purple_conversation_update(conv, PURPLE_CONV_UPDATE_UNSEEN);
+		}
+	}
+	return nil;
+}
 
 - (void)sendFile:(NSString *)path toGroupChat:(AIChat *)chat onAccount:(id)adiumAccount
 {

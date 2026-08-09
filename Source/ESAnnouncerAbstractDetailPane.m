@@ -18,7 +18,6 @@
 #import "ESAnnouncerAbstractDetailPane.h"
 #import "ESAnnouncerPlugin.h"
 #import <Adium/AIContactAlertsControllerProtocol.h>
-#import <Adium/AILocalizationButton.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 
@@ -40,10 +39,10 @@
 	[super viewDidLoad];
 	
 	[checkBox_speakEventTime setTitle:SPEAK_EVENT_TIME];
-	[checkBox_speakContactName setLocalizedString:AILocalizedString(@"Speak Name",nil)];
-	[checkBox_customPitch setLocalizedString:AILocalizedString(@"Use custom pitch:",nil)];
-	[checkBox_customRate setLocalizedString:AILocalizedString(@"Use custom rate:",nil)];
-	[label_voice setLocalizedString:AILocalizedString(@"Voice:", nil)];
+	[checkBox_speakContactName setTitle:AILocalizedString(@"Speak Name",nil)];
+	[checkBox_customPitch setTitle:AILocalizedString(@"Use custom pitch:",nil)];
+	[checkBox_customRate setTitle:AILocalizedString(@"Use custom rate:",nil)];
+	[label_voice setStringValue:AILocalizedString(@"Voice:", nil)];
 	
 	[popUp_voices setMenu:[self voicesMenu]];
 }

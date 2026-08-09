@@ -16,14 +16,12 @@
 
 #import "ESAnnouncerAbstractDetailPane.h"
 
-@class AILocalizationTextField;
-
-@interface ESAnnouncerSpeakTextAlertDetailPane : ESAnnouncerAbstractDetailPane {    
+@interface ESAnnouncerSpeakTextAlertDetailPane : ESAnnouncerAbstractDetailPane {
 	IBOutlet	NSTextView				*textView_textToSpeak;
-	
-	IBOutlet	AILocalizationTextField	*textView_textToSpeakLabel;
 
-	IBOutlet	AILocalizationTextField	*textView_substitutions;
+	IBOutlet	NSTextField				*textView_textToSpeakLabel;
+
+	IBOutlet	NSTextField				*textView_substitutions;
 	IBOutlet	NSBox					*box_substitutions;
 }
 

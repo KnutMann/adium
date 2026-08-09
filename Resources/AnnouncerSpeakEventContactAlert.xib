@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESAnnouncerSpeakEventAlertDetailPane">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="checkBox_speakEventTime" destination="cbTime" id="oCbTime"/>
+                <outlet property="checkBox_speakContactName" destination="cbName" id="oCbName"/>
+                <outlet property="popUp_voices" destination="pVoi" id="oPVoi"/>
+                <outlet property="label_voice" destination="lVoi" id="oLVoi"/>
+                <outlet property="checkBox_customPitch" destination="cbPit" id="oCbPit"/>
+                <outlet property="checkBox_customRate" destination="cbRat" id="oCbRat"/>
+                <outlet property="slider_pitch" destination="sPit" id="oSPit"/>
+                <outlet property="slider_rate" destination="sRat" id="oSRat"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="paneView" userLabel="View">
+            <rect key="frame" x="0.0" y="0.0" width="538" height="175"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbTime">
+                    <rect key="frame" x="160" y="159" width="324" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Speak Event Time" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbTimeC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbTime"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbName">
+                    <rect key="frame" x="160" y="139" width="324" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Speak Name" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbNameC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbName"/></connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lVoi">
+                    <rect key="frame" x="17" y="115" width="140" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Voice:" id="lVoiC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pVoi">
+                    <rect key="frame" x="159" y="111" width="270" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pVoiC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pVoiM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPVoi"/></connections>
+                </popUpButton>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbPit">
+                    <rect key="frame" x="69" y="86" width="136" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Use custom pitch:" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbPitC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbPit"/></connections>
+                </button>
+                <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sPit">
+                    <rect key="frame" x="160" y="61" width="268" height="21"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <sliderCell key="cell" alignment="left" minValue="0.01" maxValue="100" doubleValue="43.347659999999998" allowsTickMarkValuesOnly="YES" tickMarkPosition="above" sliderType="linear" id="sPitC"/>
+                    <connections><action selector="changePreference:" target="-2" id="aSPit"/></connections>
+                </slider>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbRat">
+                    <rect key="frame" x="69" y="41" width="131" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Use custom rate:" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbRatC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbRat"/></connections>
+                </button>
+                <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sRat">
+                    <rect key="frame" x="160" y="16" width="268" height="21"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <sliderCell key="cell" alignment="left" minValue="90" maxValue="300" doubleValue="195" allowsTickMarkValuesOnly="YES" tickMarkPosition="above" sliderType="linear" id="sRatC"/>
+                    <connections><action selector="changePreference:" target="-2" id="aSRat"/></connections>
+                </slider>
+            </subviews>
+        </customView>
+    </objects>
+</document>

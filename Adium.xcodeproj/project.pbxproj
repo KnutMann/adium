@@ -461,7 +461,7 @@
 		ADD1E5C0DE00000000000B02 /* GeneralPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */; };
 		34A6FAD907D6F3AA00972830 /* AIEventSoundsPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A6FAD507D6F3A600972830 /* AIEventSoundsPlugin.m */; };
 		34A6FADB07D6F3AA00972830 /* ESEventSoundAlertDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A6FAD707D6F3A700972830 /* ESEventSoundAlertDetailPane.m */; };
-		34A6FB2607D6F97B00972830 /* EventSoundContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2507D6F97B00972830 /* EventSoundContactAlert.nib */; };
+		34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */; };
 		34A6FB2D07D6F98600972830 /* events-sound-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */; };
 		34A6FB2E07D6F98600972830 /* SoundFileIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2C07D6F98600972830 /* SoundFileIcon.png */; };
 		34A88E180C7A26E0006EB7D4 /* AIPasswordPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = F55B416603AB8BFC01A8010A /* AIPasswordPromptController.m */; };
@@ -523,7 +523,7 @@
 		34D832B507CBD62C006466F2 /* AdiumPlugin.icns in Resources */ = {isa = PBXBuildFile; fileRef = 34D832AC07CBD62C006466F2 /* AdiumPlugin.icns */; };
 		34D832B607CBD62C006466F2 /* Adium.icns in Resources */ = {isa = PBXBuildFile; fileRef = 34D832AD07CBD62C006466F2 /* Adium.icns */; };
 		34D8332B07CBD72A006466F2 /* ContactCountingDisplayDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8332A07CBD72A006466F2 /* ContactCountingDisplayDefaults.plist */; };
-		34D8333207CBD741006466F2 /* ApplescriptContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34D8333007CBD741006466F2 /* ApplescriptContactAlert.nib */; };
+		34D8333207CBD741006466F2 /* ApplescriptContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34D8333007CBD741006466F2 /* ApplescriptContactAlert.xib */; };
 		34D8333307CBD741006466F2 /* events-applescript-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34D8333107CBD741006466F2 /* events-applescript-alert.tiff */; };
 		34D8333B07CBD758006466F2 /* ESApplescriptContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34D8333707CBD758006466F2 /* ESApplescriptContactAlertPlugin.m */; };
 		34D8333C07CBD758006466F2 /* ESPanelApplescriptDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 34D8333807CBD758006466F2 /* ESPanelApplescriptDetailPane.m */; };
@@ -838,13 +838,13 @@
 		4BAE6C1A07CF9374007E2820 /* ESAnnouncerSpeakTextAlertDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1207CF9374007E2820 /* ESAnnouncerSpeakTextAlertDetailPane.m */; };
 		4BAE6C1F07CF9389007E2820 /* events-announcer-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1B07CF9389007E2820 /* events-announcer-alert.tiff */; };
 		4BAE6C2007CF9389007E2820 /* AnnouncerDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1C07CF9389007E2820 /* AnnouncerDefaults.plist */; };
-		4BAE6C2107CF9389007E2820 /* AnnouncerSpeakEventContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1D07CF9389007E2820 /* AnnouncerSpeakEventContactAlert.nib */; };
-		4BAE6C2207CF9389007E2820 /* AnnouncerSpeakTextContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1E07CF9389007E2820 /* AnnouncerSpeakTextContactAlert.nib */; };
+		4BAE6C2107CF9389007E2820 /* AnnouncerSpeakEventContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1D07CF9389007E2820 /* AnnouncerSpeakEventContactAlert.xib */; };
+		4BAE6C2207CF9389007E2820 /* AnnouncerSpeakTextContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C1E07CF9389007E2820 /* AnnouncerSpeakTextContactAlert.xib */; };
 		4BAE6C3607CF93CB007E2820 /* AIContactStatusEventsPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C3407CF93CB007E2820 /* AIContactStatusEventsPlugin.m */; };
 		4BAE6C4707CF9411007E2820 /* AIDockBehaviorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C4307CF9410007E2820 /* AIDockBehaviorPlugin.m */; };
 		4BAE6C4907CF9411007E2820 /* ESDockAlertDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C4507CF9410007E2820 /* ESDockAlertDetailPane.m */; };
 		4BAE6C4C07CF941C007E2820 /* events-dock-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C4A07CF941C007E2820 /* events-dock-alert.tiff */; };
-		4BAE6C4D07CF941C007E2820 /* DockBehaviorContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C4B07CF941C007E2820 /* DockBehaviorContactAlert.nib */; };
+		4BAE6C4D07CF941C007E2820 /* DockBehaviorContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C4B07CF941C007E2820 /* DockBehaviorContactAlert.xib */; };
 		4BAE6C8E07CF94BA007E2820 /* AIStandardToolbarItemsPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C8807CF94BA007E2820 /* AIStandardToolbarItemsPlugin.m */; };
 		4BAE6C9007CF94BA007E2820 /* AIStatusChangedMessagesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C8A07CF94BA007E2820 /* AIStatusChangedMessagesPlugin.m */; };
 		4BAE6C9207CF94BA007E2820 /* AITabStatusIconsPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C8C07CF94BA007E2820 /* AITabStatusIconsPlugin.m */; };
@@ -872,7 +872,7 @@
 		4BD6743106001D1E0049CAF7 /* EmoticonDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = F5F0FEA204B133AB01A80106 /* EmoticonDefaults.plist */; };
 		4BD6745E06001D740049CAF7 /* ESOpenMessageWindowContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 344AB2C40579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.m */; };
 		4BD6746306001D760049CAF7 /* ESSendMessageContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 342DC5BF05783DE7000E1D83 /* ESSendMessageContactAlertPlugin.m */; };
-		4BD6746606001D770049CAF7 /* SendMessageContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 342DC7FE05784463000E1D83 /* SendMessageContactAlert.nib */; };
+		4BD6746606001D770049CAF7 /* SendMessageContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 342DC7FE05784463000E1D83 /* SendMessageContactAlert.xib */; };
 		4BD6753006001E0D0049CAF7 /* AIDualWindowInterfacePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F5793980033E756E01A8010A /* AIDualWindowInterfacePlugin.m */; };
 		4BD6753606001E0F0049CAF7 /* AIMessageTabViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BACB70203C8CB5E00A8010A /* AIMessageTabViewItem.m */; };
 		4BD6753806001E100049CAF7 /* AIMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F570A5CE03704D3D01A8010A /* AIMessageViewController.m */; };
@@ -884,7 +884,7 @@
 		4BD6758206001E430049CAF7 /* ErrorMessageHandlerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0EEC03B5BF1000A80202 /* ErrorMessageHandlerPlugin.m */; };
 		4BD6758406001E440049CAF7 /* ErrorMessageWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0F1003B5C29E00A80202 /* ErrorMessageWindowController.m */; };
 		4BD6758506001E450049CAF7 /* ErrorWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 40AC0F1303B5C34800A80202 /* ErrorWindow.nib */; };
-		4BD6758806001E460049CAF7 /* AlertMessageContactAlert.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.nib */; };
+		4BD6758806001E460049CAF7 /* AlertMessageContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */; };
 		4BDAF69907A1561000276D68 /* AIAccountProxySettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */; };
 		4BE6175807AC67EE0049C87D /* AIAutoReplyPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6174E07AC67ED0049C87D /* AIAutoReplyPlugin.m */; };
 		4BE6175E07AC67EE0049C87D /* AIStateMenuPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6175407AC67EE0049C87D /* AIStateMenuPlugin.m */; };
@@ -1817,7 +1817,7 @@
 		342DC49C05783BE8000E1D83 /* ESSendMessageAlertDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESSendMessageAlertDetailPane.m; path = "Plugins/Send Message Contact Alert/ESSendMessageAlertDetailPane.m"; sourceTree = "<group>"; };
 		342DC5BF05783DE7000E1D83 /* ESSendMessageContactAlertPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESSendMessageContactAlertPlugin.m; path = "Plugins/Send Message Contact Alert/ESSendMessageContactAlertPlugin.m"; sourceTree = "<group>"; };
 		342DC5C005783DE7000E1D83 /* ESSendMessageContactAlertPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESSendMessageContactAlertPlugin.h; path = "Plugins/Send Message Contact Alert/ESSendMessageContactAlertPlugin.h"; sourceTree = "<group>"; };
-		342DC7FE05784463000E1D83 /* SendMessageContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = SendMessageContactAlert.nib; path = "Plugins/Send Message Contact Alert/SendMessageContactAlert.nib"; sourceTree = "<group>"; };
+		342DC7FE05784463000E1D83 /* SendMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = SendMessageContactAlert.xib; path = "Plugins/Send Message Contact Alert/SendMessageContactAlert.xib"; sourceTree = "<group>"; };
 		342E2B1A072976060054D77A /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/DCPurpleZephyrJoinChatView.nib"; sourceTree = "<group>"; };
 		342F88C90A2A74EA0001DB29 /* SGKeyCombo.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SGKeyCombo.m; path = Source/SGKeyCombo.m; sourceTree = "<group>"; };
 		342F88CA0A2A74EA0001DB29 /* SGKeyCombo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SGKeyCombo.h; path = Source/SGKeyCombo.h; sourceTree = "<group>"; };
@@ -1882,7 +1882,7 @@
 		ADD1E5C0DE00000000000A01 /* PersonalPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PersonalPreferences.xib; path = Resources/PersonalPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GeneralPreferences.xib; path = Resources/GeneralPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferences.xib; path = Resources/StatusPreferences.xib; sourceTree = "<group>"; };
-		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AlertMessageContactAlert.nib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.nib"; sourceTree = "<group>"; };
+		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
 		343C45E20816C0FE00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/WebKit Message View/Resources/it.lproj/WebKitPreferencesView.nib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		343C46040816CC6800FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleZephyrAccountView.nib"; sourceTree = "<group>"; };
@@ -2540,7 +2540,7 @@
 		34A6FAD507D6F3A600972830 /* AIEventSoundsPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEventSoundsPlugin.m; path = Source/AIEventSoundsPlugin.m; sourceTree = "<group>"; };
 		34A6FAD607D6F3A600972830 /* AIEventSoundsPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEventSoundsPlugin.h; path = Source/AIEventSoundsPlugin.h; sourceTree = "<group>"; };
 		34A6FAD707D6F3A700972830 /* ESEventSoundAlertDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESEventSoundAlertDetailPane.m; path = Source/ESEventSoundAlertDetailPane.m; sourceTree = "<group>"; };
-		34A6FB2507D6F97B00972830 /* EventSoundContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = EventSoundContactAlert.nib; path = Resources/EventSoundContactAlert.nib; sourceTree = "<group>"; };
+		34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EventSoundContactAlert.xib; path = Resources/EventSoundContactAlert.xib; sourceTree = "<group>"; };
 		34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-sound-alert.tiff"; path = "Resources/events-sound-alert.tiff"; sourceTree = "<group>"; };
 		34A6FB2C07D6F98600972830 /* SoundFileIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoundFileIcon.png; path = Resources/SoundFileIcon.png; sourceTree = "<group>"; };
 		34A6FB8007D6FDCC00972830 /* FormattingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = FormattingDefaults.plist; path = Resources/FormattingDefaults.plist; sourceTree = "<group>"; };
@@ -2821,7 +2821,7 @@
 		34D832AC07CBD62C006466F2 /* AdiumPlugin.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = AdiumPlugin.icns; path = Resources/AdiumPlugin.icns; sourceTree = "<group>"; };
 		34D832AD07CBD62C006466F2 /* Adium.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Adium.icns; path = Resources/Adium.icns; sourceTree = "<group>"; };
 		34D8332A07CBD72A006466F2 /* ContactCountingDisplayDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = ContactCountingDisplayDefaults.plist; path = Resources/ContactCountingDisplayDefaults.plist; sourceTree = "<group>"; };
-		34D8333007CBD741006466F2 /* ApplescriptContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ApplescriptContactAlert.nib; path = Resources/ApplescriptContactAlert.nib; sourceTree = "<group>"; };
+		34D8333007CBD741006466F2 /* ApplescriptContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ApplescriptContactAlert.xib; path = Resources/ApplescriptContactAlert.xib; sourceTree = "<group>"; };
 		34D8333107CBD741006466F2 /* events-applescript-alert.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-applescript-alert.tiff"; path = "Resources/events-applescript-alert.tiff"; sourceTree = "<group>"; };
 		34D8333707CBD758006466F2 /* ESApplescriptContactAlertPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESApplescriptContactAlertPlugin.m; path = Source/ESApplescriptContactAlertPlugin.m; sourceTree = "<group>"; };
 		34D8333807CBD758006466F2 /* ESPanelApplescriptDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESPanelApplescriptDetailPane.m; path = Source/ESPanelApplescriptDetailPane.m; sourceTree = "<group>"; };
@@ -3106,8 +3106,8 @@
 		4BAE6C1207CF9374007E2820 /* ESAnnouncerSpeakTextAlertDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAnnouncerSpeakTextAlertDetailPane.m; path = Source/ESAnnouncerSpeakTextAlertDetailPane.m; sourceTree = "<group>"; };
 		4BAE6C1B07CF9389007E2820 /* events-announcer-alert.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-announcer-alert.tiff"; path = "Resources/events-announcer-alert.tiff"; sourceTree = "<group>"; };
 		4BAE6C1C07CF9389007E2820 /* AnnouncerDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = AnnouncerDefaults.plist; path = Resources/AnnouncerDefaults.plist; sourceTree = "<group>"; };
-		4BAE6C1D07CF9389007E2820 /* AnnouncerSpeakEventContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AnnouncerSpeakEventContactAlert.nib; path = Resources/AnnouncerSpeakEventContactAlert.nib; sourceTree = "<group>"; };
-		4BAE6C1E07CF9389007E2820 /* AnnouncerSpeakTextContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AnnouncerSpeakTextContactAlert.nib; path = Resources/AnnouncerSpeakTextContactAlert.nib; sourceTree = "<group>"; };
+		4BAE6C1D07CF9389007E2820 /* AnnouncerSpeakEventContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AnnouncerSpeakEventContactAlert.xib; path = Resources/AnnouncerSpeakEventContactAlert.xib; sourceTree = "<group>"; };
+		4BAE6C1E07CF9389007E2820 /* AnnouncerSpeakTextContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AnnouncerSpeakTextContactAlert.xib; path = Resources/AnnouncerSpeakTextContactAlert.xib; sourceTree = "<group>"; };
 		4BAE6C3307CF93CB007E2820 /* AIContactStatusEventsPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactStatusEventsPlugin.h; path = Source/AIContactStatusEventsPlugin.h; sourceTree = "<group>"; };
 		4BAE6C3407CF93CB007E2820 /* AIContactStatusEventsPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactStatusEventsPlugin.m; path = Source/AIContactStatusEventsPlugin.m; sourceTree = "<group>"; };
 		4BAE6C4207CF9410007E2820 /* AIDockBehaviorPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIDockBehaviorPlugin.h; path = Source/AIDockBehaviorPlugin.h; sourceTree = "<group>"; };
@@ -3115,7 +3115,7 @@
 		4BAE6C4407CF9410007E2820 /* ESDockAlertDetailPane.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESDockAlertDetailPane.h; path = Source/ESDockAlertDetailPane.h; sourceTree = "<group>"; };
 		4BAE6C4507CF9410007E2820 /* ESDockAlertDetailPane.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESDockAlertDetailPane.m; path = Source/ESDockAlertDetailPane.m; sourceTree = "<group>"; };
 		4BAE6C4A07CF941C007E2820 /* events-dock-alert.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-dock-alert.tiff"; path = "Resources/events-dock-alert.tiff"; sourceTree = "<group>"; };
-		4BAE6C4B07CF941C007E2820 /* DockBehaviorContactAlert.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = DockBehaviorContactAlert.nib; path = Resources/DockBehaviorContactAlert.nib; sourceTree = "<group>"; };
+		4BAE6C4B07CF941C007E2820 /* DockBehaviorContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DockBehaviorContactAlert.xib; path = Resources/DockBehaviorContactAlert.xib; sourceTree = "<group>"; };
 		4BAE6C8707CF94BA007E2820 /* AIStandardToolbarItemsPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIStandardToolbarItemsPlugin.h; path = Source/AIStandardToolbarItemsPlugin.h; sourceTree = "<group>"; };
 		4BAE6C8807CF94BA007E2820 /* AIStandardToolbarItemsPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIStandardToolbarItemsPlugin.m; path = Source/AIStandardToolbarItemsPlugin.m; sourceTree = "<group>"; };
 		4BAE6C8907CF94BA007E2820 /* AIStatusChangedMessagesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIStatusChangedMessagesPlugin.h; path = Source/AIStatusChangedMessagesPlugin.h; sourceTree = "<group>"; };
@@ -4077,7 +4077,7 @@
 				342DC5BF05783DE7000E1D83 /* ESSendMessageContactAlertPlugin.m */,
 				342DC49B05783BE8000E1D83 /* ESSendMessageAlertDetailPane.h */,
 				342DC49C05783BE8000E1D83 /* ESSendMessageAlertDetailPane.m */,
-				342DC7FE05784463000E1D83 /* SendMessageContactAlert.nib */,
+				342DC7FE05784463000E1D83 /* SendMessageContactAlert.xib */,
 			);
 			name = "Send Message Contact Alert";
 			sourceTree = "<group>";
@@ -4129,7 +4129,7 @@
 				34D8333807CBD758006466F2 /* ESPanelApplescriptDetailPane.m */,
 				34D8333A07CBD758006466F2 /* ESApplescriptContactAlertPlugin.h */,
 				34D8333707CBD758006466F2 /* ESApplescriptContactAlertPlugin.m */,
-				34D8333007CBD741006466F2 /* ApplescriptContactAlert.nib */,
+				34D8333007CBD741006466F2 /* ApplescriptContactAlert.xib */,
 				34D8333107CBD741006466F2 /* events-applescript-alert.tiff */,
 			);
 			name = "Applescript Contact Alert";
@@ -4467,10 +4467,10 @@
 				4BAE6C0C07CF9374007E2820 /* ESAnnouncerAbstractDetailPane.m */,
 				4BAE6C1107CF9374007E2820 /* ESAnnouncerSpeakTextAlertDetailPane.h */,
 				4BAE6C1207CF9374007E2820 /* ESAnnouncerSpeakTextAlertDetailPane.m */,
-				4BAE6C1E07CF9389007E2820 /* AnnouncerSpeakTextContactAlert.nib */,
+				4BAE6C1E07CF9389007E2820 /* AnnouncerSpeakTextContactAlert.xib */,
 				4BAE6C0F07CF9374007E2820 /* ESAnnouncerSpeakEventAlertDetailPane.h */,
 				4BAE6C1007CF9374007E2820 /* ESAnnouncerSpeakEventAlertDetailPane.m */,
-				4BAE6C1D07CF9389007E2820 /* AnnouncerSpeakEventContactAlert.nib */,
+				4BAE6C1D07CF9389007E2820 /* AnnouncerSpeakEventContactAlert.xib */,
 				4BAE6C1B07CF9389007E2820 /* events-announcer-alert.tiff */,
 				4BAE6C1C07CF9389007E2820 /* AnnouncerDefaults.plist */,
 			);
@@ -5236,7 +5236,7 @@
 				40AC0F1303B5C34800A80202 /* ErrorWindow.nib */,
 				4BAA1B510632EF0000D8B92C /* ESPanelAlertDetailPane.h */,
 				4BAA1B520632EF0000D8B92C /* ESPanelAlertDetailPane.m */,
-				3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.nib */,
+				3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */,
 				4BAA1B500632EF0000D8B92C /* events-error-alert.tiff */,
 			);
 			name = "Error Message Handler";
@@ -6542,7 +6542,7 @@
 				4BAE6C4307CF9410007E2820 /* AIDockBehaviorPlugin.m */,
 				4BAE6C4407CF9410007E2820 /* ESDockAlertDetailPane.h */,
 				4BAE6C4507CF9410007E2820 /* ESDockAlertDetailPane.m */,
-				4BAE6C4B07CF941C007E2820 /* DockBehaviorContactAlert.nib */,
+				4BAE6C4B07CF941C007E2820 /* DockBehaviorContactAlert.xib */,
 				4BAE6C4A07CF941C007E2820 /* events-dock-alert.tiff */,
 			);
 			name = "Dock Behavior Contact Alert";
@@ -6901,7 +6901,7 @@
 				34A6FAD707D6F3A700972830 /* ESEventSoundAlertDetailPane.m */,
 				34A6FAD607D6F3A600972830 /* AIEventSoundsPlugin.h */,
 				34A6FAD507D6F3A600972830 /* AIEventSoundsPlugin.m */,
-				34A6FB2507D6F97B00972830 /* EventSoundContactAlert.nib */,
+				34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */,
 				34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */,
 				34A6FB2C07D6F98600972830 /* SoundFileIcon.png */,
 			);
@@ -7575,16 +7575,16 @@
 				34D832B507CBD62C006466F2 /* AdiumPlugin.icns in Resources */,
 				34D832B607CBD62C006466F2 /* Adium.icns in Resources */,
 				34D8332B07CBD72A006466F2 /* ContactCountingDisplayDefaults.plist in Resources */,
-				34D8333207CBD741006466F2 /* ApplescriptContactAlert.nib in Resources */,
+				34D8333207CBD741006466F2 /* ApplescriptContactAlert.xib in Resources */,
 				34D8333307CBD741006466F2 /* events-applescript-alert.tiff in Resources */,
 				34D8337107CBD808006466F2 /* pref-general.tif in Resources */,
 				34D8337407CBD808006466F2 /* pref-file-transfer.tiff in Resources */,
 				34D8337507CBD808006466F2 /* pref-events.tiff in Resources */,
 				34D8337707CBD808006466F2 /* pref-advanced.tiff in Resources */,
 				4BD6742F06001D1D0049CAF7 /* EmoticonPrefs.nib in Resources */,
-				4BD6746606001D770049CAF7 /* SendMessageContactAlert.nib in Resources */,
+				4BD6746606001D770049CAF7 /* SendMessageContactAlert.xib in Resources */,
 				4BD6758506001E450049CAF7 /* ErrorWindow.nib in Resources */,
-				4BD6758806001E460049CAF7 /* AlertMessageContactAlert.nib in Resources */,
+				4BD6758806001E460049CAF7 /* AlertMessageContactAlert.xib in Resources */,
 				7E824CDD06387FAF00813072 /* LinkEditor.nib in Resources */,
 				6EC1685006C170A000F9FAD3 /* InviteToChatWindow.nib in Resources */,
 				34A48A1006F64382002C7C5F /* ContactListWindowBorderless.nib in Resources */,
@@ -7613,10 +7613,10 @@
 				3496A8C207CE6B880055BBAB /* InfoPlist.strings in Resources */,
 				4BAE6C1F07CF9389007E2820 /* events-announcer-alert.tiff in Resources */,
 				4BAE6C2007CF9389007E2820 /* AnnouncerDefaults.plist in Resources */,
-				4BAE6C2107CF9389007E2820 /* AnnouncerSpeakEventContactAlert.nib in Resources */,
-				4BAE6C2207CF9389007E2820 /* AnnouncerSpeakTextContactAlert.nib in Resources */,
+				4BAE6C2107CF9389007E2820 /* AnnouncerSpeakEventContactAlert.xib in Resources */,
+				4BAE6C2207CF9389007E2820 /* AnnouncerSpeakTextContactAlert.xib in Resources */,
 				4BAE6C4C07CF941C007E2820 /* events-dock-alert.tiff in Resources */,
-				4BAE6C4D07CF941C007E2820 /* DockBehaviorContactAlert.nib in Resources */,
+				4BAE6C4D07CF941C007E2820 /* DockBehaviorContactAlert.xib in Resources */,
 				4BAE6C9507CF94C4007E2820 /* events-message.tiff in Resources */,
 				ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */,
 				4BF3CB4207D1771E00A8112A /* pref-appearance.tiff in Resources */,
@@ -7626,7 +7626,7 @@
 				342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */,
 				4BB5B78207D2DC4900CFE06F /* pref-status.tiff in Resources */,
 				ADD1E5C0DE00000000000B02 /* GeneralPreferences.xib in Resources */,
-				34A6FB2607D6F97B00972830 /* EventSoundContactAlert.nib in Resources */,
+				34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */,
 				34A6FB2D07D6F98600972830 /* events-sound-alert.tiff in Resources */,
 				34A6FB2E07D6F98600972830 /* SoundFileIcon.png in Resources */,
 				34A250B607E0F822009854E1 /* StatusDefaults.plist in Resources */,

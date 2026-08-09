@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESAnnouncerSpeakTextAlertDetailPane">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="textView_textToSpeakLabel" destination="lTxt" id="oLTxt"/>
+                <outlet property="textView_textToSpeak" destination="tvTxt" id="oTvTxt"/>
+                <outlet property="popUp_voices" destination="pVoi" id="oPVoi"/>
+                <outlet property="label_voice" destination="lVoi" id="oLVoi"/>
+                <outlet property="checkBox_customPitch" destination="cbPit" id="oCbPit"/>
+                <outlet property="checkBox_customRate" destination="cbRat" id="oCbRat"/>
+                <outlet property="slider_pitch" destination="sPit" id="oSPit"/>
+                <outlet property="slider_rate" destination="sRat" id="oSRat"/>
+                <outlet property="textView_substitutions" destination="lSub" id="oLSub"/>
+                <outlet property="box_substitutions" destination="boxSub" id="oBoxSub"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="paneView" userLabel="View">
+            <rect key="frame" x="0.0" y="0.0" width="561" height="234"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTxt">
+                    <rect key="frame" x="-3" y="217" width="160" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Text To Speak:" id="lTxtC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <scrollView fixedFrame="YES" borderType="bezel" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="scrTxt" customClass="AIAutoScrollView">
+                    <rect key="frame" x="162" y="152" width="321" height="82"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <clipView key="contentView" id="clipTxt">
+                        <rect key="frame" x="1" y="1" width="319" height="80"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textView editable="YES" richText="NO" importsGraphics="NO" verticallyResizable="YES" id="tvTxt">
+                                <rect key="frame" x="0.0" y="0.0" width="319" height="80"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                <size key="minSize" width="319" height="80"/>
+                                <size key="maxSize" width="353" height="10000000"/>
+                                <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                <connections>
+                                    <outlet property="delegate" destination="-2" id="oTvDel"/>
+                                </connections>
+                            </textView>
+                        </subviews>
+                    </clipView>
+                    <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="scrTxtH">
+                        <rect key="frame" x="-100" y="-100" width="87" height="18"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                    <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="scrTxtV">
+                        <rect key="frame" x="305" y="1" width="15" height="80"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                </scrollView>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lVoi">
+                    <rect key="frame" x="-3" y="126" width="160" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Voice:" id="lVoiC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pVoi">
+                    <rect key="frame" x="159" y="122" width="214" height="25"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pVoiC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="pVoiM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPVoi"/></connections>
+                </popUpButton>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbPit">
+                    <rect key="frame" x="67" y="98" width="305" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Use custom pitch:" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbPitC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbPit"/></connections>
+                </button>
+                <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sPit">
+                    <rect key="frame" x="160" y="73" width="212" height="21"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <sliderCell key="cell" alignment="left" minValue="0.001" maxValue="100" doubleValue="43.347659999999998" allowsTickMarkValuesOnly="YES" tickMarkPosition="above" sliderType="linear" id="sPitC"/>
+                    <connections><action selector="changePreference:" target="-2" id="aSPit"/></connections>
+                </slider>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbRat">
+                    <rect key="frame" x="67" y="53" width="305" height="18"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <buttonCell key="cell" type="check" title="Use custom rate:" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbRatC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbRat"/></connections>
+                </button>
+                <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sRat">
+                    <rect key="frame" x="160" y="28" width="212" height="21"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <sliderCell key="cell" alignment="left" minValue="120" maxValue="300" doubleValue="210" allowsTickMarkValuesOnly="YES" tickMarkPosition="above" sliderType="linear" id="sRatC"/>
+                    <connections><action selector="changePreference:" target="-2" id="aSRat"/></connections>
+                </slider>
+                <box fixedFrame="YES" title="Substitutions:" translatesAutoresizingMaskIntoConstraints="NO" id="boxSub">
+                    <rect key="frame" x="391" y="16" width="153" height="128"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <view key="contentView" id="boxSubCV">
+                        <rect key="frame" x="2" y="2" width="149" height="111"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSub">
+                                <rect key="frame" x="13" y="11" width="123" height="89"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="%n - User name&#10;%a - User alias&#10;%m - Message&#10;%t - Time" id="lSubC">
+                                    <font key="font" metaFont="smallSystem"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                    </view>
+                    <font key="titleFont" metaFont="smallSystem"/>
+                </box>
+            </subviews>
+            <connections>
+                <outlet property="nextKeyView" destination="tvTxt" id="oNextKey"/>
+            </connections>
+        </customView>
+    </objects>
+</document>

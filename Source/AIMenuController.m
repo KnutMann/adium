@@ -417,6 +417,10 @@
 	//Adium menu
 	[menuItem_aboutAdium setTitle:AILocalizedString(@"About Adium",nil)];
 	[menuItem_adiumXtras setTitle:[AILocalizedString(@"Xtras Manager",nil) stringByAppendingEllipsis]];
+	if (@available(macOS 11.0, *)) {
+		[menuItem_adiumXtras setImage:[NSImage imageWithSystemSymbolName:@"face.smiling"
+													accessibilityDescription:nil]];
+	}
 	[menuItem_preferences setTitle:[AILocalizedString(@"Preferences",nil) stringByAppendingEllipsis]];
 	// The fork accepts no donations for the original project; drop the menu item
 	[[menuItem_donate menu] removeItem:menuItem_donate];
