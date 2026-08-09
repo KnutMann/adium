@@ -384,7 +384,22 @@
 	 * bounded them, so a photo wider than the view pushed the whole page out
 	 * of the window. Cap every image at the view width. */
 	{
-		NSString *imageFitCSS = @"<style type=\"text/css\">img { max-width: min(100%, calc(100vw - 90px)); height: auto; } </style>";
+		NSString *imageFitCSS = @"<style type=\"text/css\">img { max-width: 100%; height: auto; }</style>"@"<script type=\"text/javascript\">"
+			@"function adiumFitImages() {"
+			@"  var limit = document.documentElement.clientWidth;"
+			@"  var imgs = document.images;"
+			@"  for (var i = 0; i < imgs.length; i++) {"
+			@"    var img = imgs[i];"
+			@"    if ((img.naturalWidth || 0) <= 64 && (img.naturalHeight || 0) <= 64) continue;"
+			@"    img.style.maxWidth = '';"
+			@"    var avail = limit - img.getBoundingClientRect().left - 12;"
+			@"    if (avail > 40 && img.naturalWidth > avail) img.style.maxWidth = avail + 'px';"
+			@"    img.style.height = 'auto';"
+			@"  }"
+			@"}"
+			@"window.addEventListener('resize', adiumFitImages, false);"
+			@"document.addEventListener('load', function(e){ var t = e.target; if (t && t.tagName && t.tagName.toLowerCase() == 'img') adiumFitImages(); }, true);"
+			@"</script>";
 		NSRange headEnd = [templateHTML rangeOfString:@"</head>" options:NSCaseInsensitiveSearch];
 		if (headEnd.location != NSNotFound) {
 			[templateHTML insertString:imageFitCSS atIndex:headEnd.location];

@@ -15,6 +15,7 @@
  */
 
 #import "AIWebKitMessageViewController.h"
+#import <Quartz/Quartz.h>
 #import "AIWebkitMessageViewStyle.h"
 #import "AIWebKitMessageViewPlugin.h"
 #import "ESWebKitMessageViewPreferences.h"
@@ -654,17 +655,10 @@ static NSArray *draggedTypes = nil;
 			}
 		}
 		
-		// AIDBG: report horizontal overflow and the widest element (temporary diagnostics)
+		/* Re-fit oversized images now and after their (async) loads settle */
 		if (objectsAdded > 0) {
-			NSString *overflowProbe =
-				@"(function(){var b=document.body,d=document.documentElement;"
-				@"if(b.scrollWidth<=d.clientWidth+1)return '';"
-				@"var w=b,all=document.getElementsByTagName('*');"
-				@"for(var i=0;i<all.length;i++){if(all[i].scrollWidth>w.scrollWidth)w=all[i];}"
-				@"var e=w,path=[];while(e&&e!==b){path.unshift(e.tagName+(e.className?('.'+e.className):''));e=e.parentNode;}"
-				@"return 'clientWidth='+d.clientWidth+' bodyScrollWidth='+b.scrollWidth+' widest='+path.join('>')+' snippet='+(w.outerHTML||'').substring(0,300);})()";
-			NSString *overflowInfo = [webView stringByEvaluatingJavaScriptFromString:overflowProbe];
-			if (overflowInfo.length) NSLog(@"AIDBG overflow %@", overflowInfo);
+			[webView stringByEvaluatingJavaScriptFromString:
+				@"if (window.adiumFitImages) { adiumFitImages(); setTimeout(adiumFitImages, 250); setTimeout(adiumFitImages, 1000); setTimeout(adiumFitImages, 3000); }"];
 		}
 
 		/* If we added two or more objects, we may want to scroll to the bottom now, having not done it as each object
@@ -1691,24 +1685,39 @@ static NSArray *draggedTypes = nil;
 
 - (BOOL)zoomImage:(DOMHTMLImageElement *)img
 {
-	NSMutableString *className = [[[img className] mutableCopy] autorelease];
-	if ([className rangeOfString:@"fullSizeImage"].location != NSNotFound)
-		[className replaceOccurrencesOfString:@"fullSizeImage"
-								   withString:@"scaledToFitImage"
-									  options:NSLiteralSearch
-										range:NSMakeRange(0, [className length])];
-	else if ([className rangeOfString:@"scaledToFitImage"].location != NSNotFound)
-		[className replaceOccurrencesOfString:@"scaledToFitImage"
-								   withString:@"fullSizeImage"
-									  options:NSLiteralSearch
-										range:NSMakeRange(0, [className length])];
-	else 
+	/* Emoticon-sized images keep the legacy click-to-text behavior */
+	if ([img width] <= 64 && [img height] <= 64)
 		return NO;
-	
-	[img setClassName:className];
-	[[webView windowScriptObject] callWebScriptMethod:@"alignChat" withArguments:[NSArray arrayWithObject:[NSNumber numberWithBool:YES]]];
+
+	/* Content images: clicking toggles a Quick Look preview, Finder-style */
+	QLPreviewPanel *panel = [QLPreviewPanel sharedPreviewPanel];
+	if ([QLPreviewPanel sharedPreviewPanelExists] && [panel isVisible]) {
+		[panel orderOut:nil];
+		return YES;
+	}
+
+	NSURL *sourceURL = [NSURL URLWithString:[img src]];
+	if (![sourceURL isFileURL])
+		return YES;
+
+	[previewImageURL release];
+	previewImageURL = [sourceURL retain];
+	[webView setQuickLookDataSource:self];
+	[panel makeKeyAndOrderFront:nil];
+	[panel reloadData];
 
 	return YES;
+}
+
+#pragma mark Quick Look
+- (NSInteger)numberOfPreviewItemsInPreviewPanel:(QLPreviewPanel *)panel
+{
+	return previewImageURL ? 1 : 0;
+}
+
+- (id <QLPreviewItem>)previewPanel:(QLPreviewPanel *)panel previewItemAtIndex:(NSInteger)idx
+{
+	return (id <QLPreviewItem>)previewImageURL;
 }
 
 - (void)debugLog:(NSString *)message { NSLog(@"%@", message); }

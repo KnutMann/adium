@@ -21,6 +21,7 @@
 	BOOL	allowsDragAndDrop;
 	BOOL	shouldForwardEvents;
 	BOOL	transparentBackground;
+	id				quickLookDataSource;
 }
 
 /*!
@@ -53,6 +54,9 @@
  */
 - (void)setShouldForwardEvents:(BOOL)flag;
 
+
+//Weak reference: supplies the Quick Look preview items for clicked images
+@property (readwrite, assign, nonatomic) id quickLookDataSource;
 @end
 
 @interface NSObject (ESWebViewDragDelegate)
@@ -63,4 +67,5 @@
 - (BOOL)webView:(ESWebView *)sender prepareForDragOperation:(id <NSDraggingInfo>)info;
 - (void)webView:(ESWebView *)sender concludeDragOperation:(id <NSDraggingInfo>)info;
 - (BOOL)webView:(ESWebView *)sender shouldHandleDragWithPasteboard:(NSPasteboard *)pasteboard;
+
 @end

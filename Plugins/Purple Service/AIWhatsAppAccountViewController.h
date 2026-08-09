@@ -17,9 +17,11 @@
 #import "PurpleAccountViewController.h"
 
 #define KEY_WHATSAPP_IGNORE_STATUS	@"WhatsApp:Ignore Status Broadcasts"
+#define KEY_WHATSAPP_IGNORE_NEWSLETTERS	@"WhatsApp:Ignore Newsletters"
 
 @interface AIWhatsAppAccountViewController : PurpleAccountViewController {
 	NSButton	*checkBox_ignoreStatusBroadcasts;
+	NSButton	*checkBox_ignoreNewsletters;
 }
 
 @end

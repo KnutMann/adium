@@ -15,6 +15,8 @@
  */
 
 #import "AIPurpleWhatsAppAccount.h"
+#import <Adium/AIChat.h>
+#import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
 #import "AIWhatsAppAccountViewController.h"
 
@@ -64,6 +66,19 @@
 	if (![computerName length]) computerName = [[NSProcessInfo processInfo] hostName];
 	purple_account_set_string(account, "device-name",
 							  [[NSString stringWithFormat:@"Adium on %@", computerName] UTF8String]);
+}
+
+/* WhatsApp channels ("Updates" tab) arrive from JIDs ending in @newsletter.
+ * Drop their posts when the account option asks for it, like status broadcasts. */
+- (void)receivedIMChatMessage:(NSDictionary *)messageDict inChat:(AIChat *)chat
+{
+	if ([chat.listObject.UID hasSuffix:@"@newsletter"]) {
+		NSNumber *ignoreNewsletters = [self preferenceForKey:@"WhatsApp:Ignore Newsletters"
+													   group:GROUP_ACCOUNT_STATUS];
+		if (!ignoreNewsletters || [ignoreNewsletters boolValue])
+			return;
+	}
+	[super receivedIMChatMessage:messageDict inChat:chat];
 }
 
 /* WhatsApp is store-and-forward: files can be sent regardless of the contact's

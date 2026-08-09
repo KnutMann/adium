@@ -55,8 +55,25 @@
 		[checkBox_ignoreStatusBroadcasts release];
 	}
 
+	//Checkbox: suppress WhatsApp channel posts ("Updates" tab, JIDs ending in @newsletter)
+	if (!checkBox_ignoreNewsletters && checkBox_ignoreStatusBroadcasts) {
+		NSView *optionsContainer = [checkBox_ignoreStatusBroadcasts superview];
+		NSRect statusFrame = [checkBox_ignoreStatusBroadcasts frame];
+
+		checkBox_ignoreNewsletters = [[NSButton alloc] initWithFrame:NSMakeRect(NSMinX(statusFrame), NSMinY(statusFrame) - 26, NSWidth(statusFrame), 24)];
+		[checkBox_ignoreNewsletters setButtonType:NSButtonTypeSwitch];
+		[checkBox_ignoreNewsletters setTitle:AILocalizedString(@"Don't show channel posts as messages", "WhatsApp account option")];
+		[[checkBox_ignoreNewsletters cell] setControlSize:NSControlSizeSmall];
+		[checkBox_ignoreNewsletters setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeSmall]]];
+		[optionsContainer addSubview:checkBox_ignoreNewsletters];
+		[checkBox_ignoreNewsletters release];
+	}
+
 	NSNumber *ignoreStatus = [inAccount preferenceForKey:KEY_WHATSAPP_IGNORE_STATUS group:GROUP_ACCOUNT_STATUS];
 	[checkBox_ignoreStatusBroadcasts setState:((!ignoreStatus || [ignoreStatus boolValue]) ? NSControlStateValueOn : NSControlStateValueOff)];
+
+	NSNumber *ignoreNewsletters = [inAccount preferenceForKey:KEY_WHATSAPP_IGNORE_NEWSLETTERS group:GROUP_ACCOUNT_STATUS];
+	[checkBox_ignoreNewsletters setState:((!ignoreNewsletters || [ignoreNewsletters boolValue]) ? NSControlStateValueOn : NSControlStateValueOff)];
 }
 
 - (void)saveConfiguration
@@ -65,6 +82,9 @@
 
 	[account setPreference:[NSNumber numberWithBool:([checkBox_ignoreStatusBroadcasts state] == NSControlStateValueOn)]
 					forKey:KEY_WHATSAPP_IGNORE_STATUS
+					 group:GROUP_ACCOUNT_STATUS];
+	[account setPreference:[NSNumber numberWithBool:([checkBox_ignoreNewsletters state] == NSControlStateValueOn)]
+					forKey:KEY_WHATSAPP_IGNORE_NEWSLETTERS
 					 group:GROUP_ACCOUNT_STATUS];
 }
 

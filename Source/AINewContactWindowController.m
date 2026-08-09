@@ -27,7 +27,6 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListGroup.h>
-#import <Adium/AILocalizationTextField.h>
 #import <Adium/AIService.h>
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIServiceMenu.h>
@@ -126,16 +125,15 @@
 
 	//Localized Strings
 	[[self window] setTitle:AILocalizedString(@"Add Contact",nil)];
-	[textField_type setLocalizedString:AILocalizedString(@"Contact Type:","Contact type service dropdown label in Add Contact")];
-	[textField_alias setLocalizedString:AILocalizedString(@"Alias:",nil)];
-	[textField_inGroup setLocalizedString:AILocalizedString(@"In Group:",nil)];
-	[textField_addToAccounts setLocalizedString:AILocalizedString(@"On Accounts:",nil)];
-	
-	[textField_searchInAB setAlwaysMoveRightAnchoredWindow:YES];
-	[textField_searchInAB setLocalizedString:AILocalizedString(@"Search In Address Book",nil)];
+	[textField_type setStringValue:AILocalizedString(@"Contact Type:","Contact type service dropdown label in Add Contact")];
+	[textField_alias setStringValue:AILocalizedString(@"Alias:",nil)];
+	[textField_inGroup setStringValue:AILocalizedString(@"In Group:",nil)];
+	[textField_addToAccounts setStringValue:AILocalizedString(@"On Accounts:",nil)];
 
-	[button_add setLocalizedString:AILocalizedString(@"Add",nil)];
-	[button_cancel setLocalizedString:AILocalizedString(@"Cancel",nil)];
+	[textField_searchInAB setStringValue:AILocalizedString(@"Search In Address Book",nil)];
+
+	[button_add setTitle:AILocalizedString(@"Add",nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel",nil)];
 
 	//Configure the rest of the window
 	[self buildGroupMenu];
@@ -345,8 +343,8 @@
 	[imageView_service setImage:[AIServiceIcons serviceIconForService:service
 																 type:AIServiceIconLarge
 															direction:AIIconNormal]];
-	[textField_contactNameLabel setLocalizedString:[(userNameLabel ? userNameLabel :
-													 AILocalizedString(@"Contact ID",nil)) stringByAppendingString:AILocalizedString(@":", "Colon which will be appended after a label such as 'User Name', before an input field")]];
+	[textField_contactNameLabel setStringValue:[(userNameLabel ? userNameLabel :
+												 AILocalizedString(@"Contact ID",nil)) stringByAppendingString:AILocalizedString(@":", "Colon which will be appended after a label such as 'User Name', before an input field")]];
 
 	//And the list of accounts
 	[self updateAccountList];

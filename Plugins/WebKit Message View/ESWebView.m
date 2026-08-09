@@ -15,6 +15,7 @@
  */
 
 #import "ESWebView.h"
+#import <Quartz/Quartz.h>
 #import <Adium/AILoginControllerProtocol.h>
 
 @interface WebView ()
@@ -73,6 +74,31 @@
 		[win _setContentHasShadow:NO];
 	}
 	[super viewDidMoveToWindow];
+
+	if (win && [self superview]) {
+		[self setFrame:[[self superview] bounds]];
+		/* Tabs and windows built from the old nibs can end up with ancestors that
+		 * are larger than their containers (modern AppKit no longer forces a
+		 * layout pass on insertion), which clips the chat at the right edge.
+		 * Walk the chain shortly after attaching and shrink any oversized level. */
+		void (^healAncestorFrames)(void) = ^{
+			NSView *v = [self superview];
+			while (v && [v superview]) {
+				NSRect bounds = [[v superview] bounds];
+				NSRect frame = [v frame];
+				if (NSWidth(frame) > NSWidth(bounds) + 0.5 || NSHeight(frame) > NSHeight(bounds) + 0.5) {
+					[v setFrame:bounds];
+				}
+				v = [v superview];
+			}
+		};
+		healAncestorFrames();
+		dispatch_async(dispatch_get_main_queue(), healAncestorFrames);
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), healAncestorFrames);
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), healAncestorFrames);
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), healAncestorFrames);
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), healAncestorFrames);
+	}
 }
 
 //Font Family ----------------------------------------------------------------------------------------------------------
@@ -244,5 +270,37 @@
 	return [super accessibilityAttributeValue:attribute];
 }
 */
+
+
+#pragma mark Quick Look
+@synthesize quickLookDataSource;
+
+- (BOOL)acceptsPreviewPanelControl:(QLPreviewPanel *)panel
+{
+	return (quickLookDataSource != nil);
+}
+
+- (void)beginPreviewPanelControl:(QLPreviewPanel *)panel
+{
+	[panel setDataSource:quickLookDataSource];
+}
+
+- (void)endPreviewPanelControl:(QLPreviewPanel *)panel
+{
+	[panel setDataSource:nil];
+}
+
+
+#pragma mark Frame sanity
+/* On first display the tab machinery can insert us before the container has its
+ * final size; the autoresizing chain then never corrects the initial mismatch
+ * until a tab switch forces a layout. Fill the superview whenever we are (re)attached. */
+- (void)viewDidMoveToSuperview
+{
+	[super viewDidMoveToSuperview];
+	if ([self superview])
+		[self setFrame:[[self superview] bounds]];
+}
+
 
 @end

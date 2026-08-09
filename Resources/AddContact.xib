@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AINewContactWindowController">
+            <connections>
+                <outlet property="window" destination="win" id="oWin"/>
+                <outlet property="popUp_contactType" destination="pType" id="oPType"/>
+                <outlet property="popUp_targetGroup" destination="pGroup" id="oPGroup"/>
+                <outlet property="textField_contactName" destination="fName" id="oFName"/>
+                <outlet property="textField_contactAlias" destination="fAlias" id="oFAlias"/>
+                <outlet property="tableView_accounts" destination="tAccounts" id="oTAccounts"/>
+                <outlet property="imageView_service" destination="imgService" id="oImgService"/>
+                <outlet property="button_add" destination="bAdd" id="oBAdd"/>
+                <outlet property="button_cancel" destination="bCancel" id="oBCancel"/>
+                <outlet property="textField_type" destination="lType" id="oLType"/>
+                <outlet property="textField_contactNameLabel" destination="lContactID" id="oLContactID"/>
+                <outlet property="textField_alias" destination="lAlias" id="oLAlias"/>
+                <outlet property="textField_inGroup" destination="lInGroup" id="oLInGroup"/>
+                <outlet property="textField_addToAccounts" destination="lOnAccounts" id="oLOnAccounts"/>
+                <outlet property="textField_searchInAB" destination="lSearchAB" id="oLSearchAB"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Add Contact" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="win" userLabel="Add Contact" customClass="NSPanel">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
+            <rect key="contentRect" x="432" y="59" width="422" height="302"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1400" height="1050"/>
+            <view key="contentView" id="winContent">
+                <rect key="frame" x="0.0" y="0.0" width="422" height="302"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lType">
+                        <rect key="frame" x="19" y="268" width="112" height="17"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Contact Type:" id="lTypeC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pType">
+                        <rect key="frame" x="133" y="262" width="210" height="26"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pTypeC">
+                            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="menu"/>
+                            <menu key="menu" id="pTypeM"/>
+                        </popUpButtonCell>
+                        <connections><outlet property="nextKeyView" destination="fName" id="nkvPType"/></connections>
+                    </popUpButton>
+                    <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="imgService">
+                        <rect key="frame" x="354" y="238" width="48" height="48"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="imgServiceC"/>
+                    </imageView>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lContactID">
+                        <rect key="frame" x="19" y="239" width="112" height="17"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Contact ID:" id="lContactIDC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fName">
+                        <rect key="frame" x="136" y="237" width="204" height="22"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="fNameC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <connections>
+                            <outlet property="delegate" destination="-2" id="oFNameDel"/>
+                            <outlet property="nextKeyView" destination="fAlias" id="nkvFName"/>
+                        </connections>
+                    </textField>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lAlias">
+                        <rect key="frame" x="19" y="212" width="112" height="17"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Alias:" id="lAliasC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fAlias">
+                        <rect key="frame" x="136" y="210" width="204" height="22"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="fAliasC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                        <connections><outlet property="nextKeyView" destination="pGroup" id="nkvFAlias"/></connections>
+                    </textField>
+                    <box boxType="separator" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sepBox">
+                        <rect key="frame" x="20" y="192" width="382" height="5"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </box>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lInGroup">
+                        <rect key="frame" x="21" y="164" width="112" height="17"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="In Group:" id="lInGroupC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pGroup">
+                        <rect key="frame" x="135" y="158" width="208" height="26"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pGroupC">
+                            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="menu"/>
+                            <menu key="menu" id="pGroupM"/>
+                        </popUpButtonCell>
+                        <connections><outlet property="nextKeyView" destination="tAccounts" id="nkvPGroup"/></connections>
+                    </popUpButton>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lOnAccounts">
+                        <rect key="frame" x="19" y="139" width="114" height="17"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="On Accounts:" id="lOnAccountsC">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <scrollView fixedFrame="YES" borderType="bezel" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="svAccounts">
+                        <rect key="frame" x="138" y="63" width="202" height="93"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <clipView key="contentView" id="svAccountsClip">
+                            <rect key="frame" x="1" y="1" width="200" height="91"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" rowHeight="16" headerView="NO" id="tAccounts">
+                                    <rect key="frame" x="0.0" y="0.0" width="200" height="91"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <size key="intercellSpacing" width="3" height="2"/>
+                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                    <tableColumns>
+                                        <tableColumn identifier="check" width="16" minWidth="16" maxWidth="1000" id="colCheck">
+                                            <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left"/>
+                                            <buttonCell key="dataCell" type="check" title="" bezelStyle="regularSquare" imagePosition="only" alignment="center" inset="2" id="colCheckCell">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="message" size="12"/>
+                                            </buttonCell>
+                                            <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                        </tableColumn>
+                                        <tableColumn identifier="account" width="178" minWidth="40" maxWidth="1000" id="colAccount">
+                                            <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left"/>
+                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" alignment="left" title="Text Cell" id="colAccountCell">
+                                                <font key="font" metaFont="message" size="12"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                        </tableColumn>
+                                    </tableColumns>
+                                    <connections>
+                                        <outlet property="dataSource" destination="-2" id="oTblDS"/>
+                                        <outlet property="delegate" destination="-2" id="oTblDel"/>
+                                    </connections>
+                                </tableView>
+                            </subviews>
+                        </clipView>
+                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="svAccountsHS">
+                            <rect key="frame" x="-100" y="-100" width="281" height="15"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                        <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="svAccountsVS">
+                            <rect key="frame" x="-30" y="1" width="15" height="91"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                        <connections><outlet property="nextKeyView" destination="bCancel" id="nkvSvAccounts"/></connections>
+                    </scrollView>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bSearch">
+                        <rect key="frame" x="13" y="13" width="37" height="31"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <buttonCell key="cell" type="push" bezelStyle="shadowlessSquare" image="ABSearch" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bSearchC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="smallSystem"/>
+                        </buttonCell>
+                        <connections><action selector="searchInAB:" target="-2" id="aSearch"/></connections>
+                    </button>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSearchAB">
+                        <rect key="frame" x="47" y="23" width="194" height="14"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Search In Address Book" id="lSearchABC">
+                            <font key="font" metaFont="smallSystem"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bCancel">
+                        <rect key="frame" x="240" y="12" width="84" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bCancelC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">Gw</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="cancel:" target="-2" id="aCancel"/>
+                            <outlet property="nextKeyView" destination="bAdd" id="nkvBCancel"/>
+                        </connections>
+                    </button>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bAdd">
+                        <rect key="frame" x="324" y="12" width="84" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
+                        <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bAddC">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">DQ</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="addContact:" target="-2" id="aAddContact"/>
+                            <outlet property="nextKeyView" destination="pType" id="nkvBAdd"/>
+                        </connections>
+                    </button>
+                </subviews>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="oDelegate"/>
+                <outlet property="initialFirstResponder" destination="pType" id="oIFR"/>
+            </connections>
+        </window>
+    </objects>
+    <resources>
+        <image name="ABSearch" width="24" height="12"/>
+    </resources>
+</document>

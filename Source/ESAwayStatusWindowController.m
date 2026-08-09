@@ -117,9 +117,10 @@ static BOOL							hideInBackground = NO;
 	[[self window] setHidesOnDeactivate:hideInBackground];
 
 	/* Set a more reasonable minimum size after the window is sized using our nib's specification.
-	 * NSPanel behaves oddly with minimum size... it seems to increase the nib-specified minimum by 11.
+	 * The xib no longer carries a content minimum size, so set both dimensions explicitly
+	 * (230 was the old nib's minimum content width).
 	 */
-	[[self window] setMinSize:NSMakeSize([[self window] minSize].width, 80)];
+	[[self window] setMinSize:NSMakeSize(230, 80)];
 	
 	//Setup the textviews
     [textView_singleStatus setHorizontallyResizable:NO];
@@ -381,10 +382,10 @@ static BOOL							hideInBackground = NO;
 
 - (void)localizeButtons
 {
-	[button_return setLocalizedString:AILocalizedStringFromTableInBundle(@"Return", 
-																		 @"Buttons",
-																		 [NSBundle bundleForClass:[self class]],
-																		 "Button to return from away in the away status window")];
+	[button_return setTitle:AILocalizedStringFromTableInBundle(@"Return",
+															   @"Buttons",
+															   [NSBundle bundleForClass:[self class]],
+															   "Button to return from away in the away status window")];
 }
 
 - (void)statusIconSetChanged:(NSNotification *)inNotification

@@ -244,7 +244,7 @@
 		3456233F0A3773D100E7FC97 /* AILoggerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3456233D0A3773D000E7FC97 /* AILoggerPlugin.m */; };
 		34575E3707CBA874004A4FFF /* DebugWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E3607CBA874004A4FFF /* DebugWindow.nib */; };
 		34575E3907CBA88E004A4FFF /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E3807CBA88E004A4FFF /* MainMenu.xib */; };
-		345ACC970811C20F008E4D22 /* AwayStatusWindow.nib in Resources */ = {isa = PBXBuildFile; fileRef = 345ACC960811C20F008E4D22 /* AwayStatusWindow.nib */; };
+		345ACC970811C20F008E4D22 /* AwayStatusWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */; };
 		345AFAEE0A5D9A5F00D7DA6F /* AINoisyTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 345AFAEC0A5D9A5F00D7DA6F /* AINoisyTableColumn.m */; };
 		345DA0680CA09AD0009F1989 /* Statuses.strings in Resources */ = {isa = PBXBuildFile; fileRef = 345DA0660CA09AD0009F1989 /* Statuses.strings */; };
 		345EE2DF0AD057FA003F396A /* AIContactInfoImageViewWithImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 345EE2DD0AD057FA003F396A /* AIContactInfoImageViewWithImagePicker.m */; };
@@ -295,8 +295,8 @@
 		347E784C07CA96D700350507 /* AIContactListEditorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E784A07CA96D600350507 /* AIContactListEditorPlugin.m */; };
 		347E785407CA96E200350507 /* AINewContactWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E785207CA96E200350507 /* AINewContactWindowController.m */; };
 		347E786007CA970500350507 /* AINewGroupWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E785E07CA970500350507 /* AINewGroupWindowController.m */; };
-		347E786B07CA972100350507 /* AddContact.nib in Resources */ = {isa = PBXBuildFile; fileRef = 347E786907CA972100350507 /* AddContact.nib */; };
-		347E786C07CA972100350507 /* AddGroup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 347E786A07CA972100350507 /* AddGroup.nib */; };
+		347E786B07CA972100350507 /* AddContact.xib in Resources */ = {isa = PBXBuildFile; fileRef = 347E786907CA972100350507 /* AddContact.xib */; };
+		347E786C07CA972100350507 /* AddGroup.xib in Resources */ = {isa = PBXBuildFile; fileRef = 347E786A07CA972100350507 /* AddGroup.xib */; };
 		347E787807CA975900350507 /* msg-add-contact.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 347E787207CA975900350507 /* msg-add-contact.tiff */; };
 		347E788907CA978E00350507 /* CBActionSupportPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E788707CA978D00350507 /* CBActionSupportPlugin.m */; };
 		347E791307CAA51500350507 /* AIManualSort.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E790D07CAA51400350507 /* AIManualSort.m */; };
@@ -425,7 +425,7 @@
 		348B250D0A50A1C900B2B972 /* ESSourceListBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 348B250B0A50A1C900B2B972 /* ESSourceListBackgroundView.m */; };
 		348C47170D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 348C47160D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.m */; };
 		348F57940936F3CC00288E41 /* ESEditStatusGroupWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 348F57920936F3CC00288E41 /* ESEditStatusGroupWindowController.m */; };
-		348F579E0936FA6D00288E41 /* EditStatusGroup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 348F579D0936FA6D00288E41 /* EditStatusGroup.nib */; };
+		348F579E0936FA6D00288E41 /* EditStatusGroup.xib in Resources */ = {isa = PBXBuildFile; fileRef = 348F579D0936FA6D00288E41 /* EditStatusGroup.xib */; };
 		349062A2127F7E6900FC313F /* AITemporaryIRCAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 349062A1127F7E6900FC313F /* AITemporaryIRCAccountWindowController.m */; };
 		349195660C9662AA00595A04 /* AIListBookmark.m in Sources */ = {isa = PBXBuildFile; fileRef = 349195640C9662AA00595A04 /* AIListBookmark.m */; };
 		349195670C9662AA00595A04 /* AIListBookmark.h in Headers */ = {isa = PBXBuildFile; fileRef = 349195650C9662AA00595A04 /* AIListBookmark.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -2096,7 +2096,7 @@
 		345A7B6C0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleSimpleAccountViewController.m; path = "Plugins/Purple Service/ESPurpleSimpleAccountViewController.m"; sourceTree = "<group>"; };
 		345A7B710954AD4D00FF3113 /* PurpleDefaultsSimple.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = PurpleDefaultsSimple.plist; path = "Plugins/Purple Service/PurpleDefaultsSimple.plist"; sourceTree = "<group>"; };
 		345A7B840954AEF400FF3113 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		345ACC960811C20F008E4D22 /* AwayStatusWindow.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AwayStatusWindow.nib; path = Resources/AwayStatusWindow.nib; sourceTree = "<group>"; };
+		345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AwayStatusWindow.xib; path = Resources/AwayStatusWindow.xib; sourceTree = "<group>"; };
 		345AFAEB0A5D9A5F00D7DA6F /* AINoisyTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINoisyTableColumn.h; path = Source/AINoisyTableColumn.h; sourceTree = "<group>"; };
 		345AFAEC0A5D9A5F00D7DA6F /* AINoisyTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AINoisyTableColumn.m; path = Source/AINoisyTableColumn.m; sourceTree = "<group>"; };
 		345DA0690CA09AD6009F1989 /* fr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr; path = Resources/fr.lproj/Statuses.strings; sourceTree = "<group>"; };
@@ -2307,8 +2307,8 @@
 		347E785307CA96E200350507 /* AINewContactWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AINewContactWindowController.h; path = Source/AINewContactWindowController.h; sourceTree = "<group>"; };
 		347E785E07CA970500350507 /* AINewGroupWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AINewGroupWindowController.m; path = Source/AINewGroupWindowController.m; sourceTree = "<group>"; };
 		347E785F07CA970500350507 /* AINewGroupWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AINewGroupWindowController.h; path = Source/AINewGroupWindowController.h; sourceTree = "<group>"; };
-		347E786907CA972100350507 /* AddContact.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AddContact.nib; path = Resources/AddContact.nib; sourceTree = "<group>"; };
-		347E786A07CA972100350507 /* AddGroup.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AddGroup.nib; path = Resources/AddGroup.nib; sourceTree = "<group>"; };
+		347E786907CA972100350507 /* AddContact.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AddContact.xib; path = Resources/AddContact.xib; sourceTree = "<group>"; };
+		347E786A07CA972100350507 /* AddGroup.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AddGroup.xib; path = Resources/AddGroup.xib; sourceTree = "<group>"; };
 		347E787207CA975900350507 /* msg-add-contact.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-add-contact.tiff"; path = "Resources/msg-add-contact.tiff"; sourceTree = "<group>"; };
 		347E787507CA975900350507 /* remove.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = remove.tiff; path = Resources/remove.tiff; sourceTree = "<group>"; };
 		347E787607CA975900350507 /* importContacts.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = importContacts.png; path = Resources/importContacts.png; sourceTree = "<group>"; };
@@ -2396,7 +2396,7 @@
 		348F50C10935317C00288E41 /* AIStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStatusItem.m; path = Frameworks/Adium/Source/AIStatusItem.m; sourceTree = "<group>"; };
 		348F57910936F3CC00288E41 /* ESEditStatusGroupWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESEditStatusGroupWindowController.h; path = Source/ESEditStatusGroupWindowController.h; sourceTree = "<group>"; };
 		348F57920936F3CC00288E41 /* ESEditStatusGroupWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESEditStatusGroupWindowController.m; path = Source/ESEditStatusGroupWindowController.m; sourceTree = "<group>"; };
-		348F579D0936FA6D00288E41 /* EditStatusGroup.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = EditStatusGroup.nib; path = Resources/EditStatusGroup.nib; sourceTree = "<group>"; };
+		348F579D0936FA6D00288E41 /* EditStatusGroup.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EditStatusGroup.xib; path = Resources/EditStatusGroup.xib; sourceTree = "<group>"; };
 		348FF83E09128BEB00A942A8 /* CBPurpleAccount.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CBPurpleAccount.m; path = "Plugins/Purple Service/CBPurpleAccount.m"; sourceTree = "<group>"; };
 		348FF84909128D6300A942A8 /* AccountDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AccountDefaults.plist; path = Frameworks/Adium/AccountDefaults.plist; sourceTree = "<group>"; };
 		349062A0127F7E6900FC313F /* AITemporaryIRCAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITemporaryIRCAccountWindowController.h; path = Source/AITemporaryIRCAccountWindowController.h; sourceTree = "<group>"; };
@@ -4055,7 +4055,7 @@
 				343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */,
 				343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */,
 				343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.nib */,
-				348F579D0936FA6D00288E41 /* EditStatusGroup.nib */,
+				348F579D0936FA6D00288E41 /* EditStatusGroup.xib */,
 				ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */,
 			);
 			name = "Status Preferences";
@@ -4567,7 +4567,7 @@
 				347C6941080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m */,
 				347C6946080C8F3A00E69674 /* ESAwayStatusWindowController.h */,
 				347C6947080C8F3A00E69674 /* ESAwayStatusWindowController.m */,
-				345ACC960811C20F008E4D22 /* AwayStatusWindow.nib */,
+				345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */,
 			);
 			name = "Away Status Window";
 			sourceTree = "<group>";
@@ -6698,8 +6698,8 @@
 				EE147A7F0896B33400A21377 /* OWABSearchWindowController.h */,
 				EE147A7E0896B33400A21377 /* OWABSearchWindowController.m */,
 				EE147A780896B32400A21377 /* ABSearch.nib */,
-				347E786907CA972100350507 /* AddContact.nib */,
-				347E786A07CA972100350507 /* AddGroup.nib */,
+				347E786907CA972100350507 /* AddContact.xib */,
+				347E786A07CA972100350507 /* AddGroup.xib */,
 				F5361E3103058E2A01A8010A /* Images */,
 			);
 			name = "Contact List Editor";
@@ -7549,7 +7549,7 @@
 				34E0EA0807CC53ED00A82198 /* NewMessagePrompt.nib in Resources */,
 				347E781A07CA962100350507 /* events-contact.png in Resources */,
 				347E783407CA967100350507 /* SortingDefaults.plist in Resources */,
-				347E786C07CA972100350507 /* AddGroup.nib in Resources */,
+				347E786C07CA972100350507 /* AddGroup.xib in Resources */,
 				347E787807CA975900350507 /* msg-add-contact.tiff in Resources */,
 				347E792307CAA52300350507 /* StatusSortDefaults.plist in Resources */,
 				343EB41708086D9100E27095 /* StatusSortConfiguration.nib in Resources */,
@@ -7559,7 +7559,7 @@
 				3402E02407CB0D1B0044F818 /* ProxyPasswordPrompt.nib in Resources */,
 				3402E02607CB0D1B0044F818 /* PasswordPrompt.nib in Resources */,
 				3402E02E07CB0DBB0044F818 /* AboutBox.xib in Resources */,
-				347E786B07CA972100350507 /* AddContact.nib in Resources */,
+				347E786B07CA972100350507 /* AddContact.xib in Resources */,
 				3402E04207CB0E4D0044F818 /* Localizable.strings in Resources */,
 				34575E3707CBA874004A4FFF /* DebugWindow.nib in Resources */,
 				34575E3907CBA88E004A4FFF /* MainMenu.xib in Resources */,
@@ -7641,7 +7641,7 @@
 				3402D5A5080DBC91004E50B4 /* SortConfiguration.nib in Resources */,
 				34F4677A080F49C5007800AB /* Safari.scpt in Resources */,
 				34F4677B080F49C5007800AB /* Safari.png in Resources */,
-				345ACC970811C20F008E4D22 /* AwayStatusWindow.nib in Resources */,
+				345ACC970811C20F008E4D22 /* AwayStatusWindow.xib in Resources */,
 				345F566B08178356001F733C /* AdiumServiceIcons.icns in Resources */,
 				345F57400817FF80001F733C /* pref-contactList.tiff in Resources */,
 				345F583E08197E74001F733C /* AdiumStatusIcons.icns in Resources */,
@@ -7656,7 +7656,7 @@
 				EE147A790896B32400A21377 /* ABSearch.nib in Resources */,
 				632D801708E7E0A40032C187 /* XtrasManager.nib in Resources */,
 				63C120750910A0DD00C9DB57 /* DefaultXtraReadme.rtf in Resources */,
-				348F579E0936FA6D00288E41 /* EditStatusGroup.nib in Resources */,
+				348F579E0936FA6D00288E41 /* EditStatusGroup.xib in Resources */,
 				6333699409497DB000970871 /* EmoticonPreviewView.nib in Resources */,
 				63336B060949908300970871 /* DockIconPreviewView.nib in Resources */,
 				07632BF30949E10B00FFABD8 /* ListThemeSheet.nib in Resources */,

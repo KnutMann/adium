@@ -35,6 +35,7 @@
 	//Content processing
 	AIContentObject				*previousContent;
 	NSMutableArray				*contentQueue;
+	NSURL				*previewImageURL;
 	NSMutableArray				*storedContentObjects;
 	BOOL						webViewIsReady;
 	BOOL						documentIsReady;	// Is DOM ready?
