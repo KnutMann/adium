@@ -1,0 +1,9 @@
+--- a/libpurple/protocols/jabber/message.h
++++ b/libpurple/protocols/jabber/message.h
+@@ -62,6 +62,7 @@ typedef struct _JabberMessage {
+ 	GList *etc;
+ 	GList *eventitems;
++	gboolean add_receipt_request;
+ } JabberMessage;
+
+ void jabber_message_free(JabberMessage *jm);

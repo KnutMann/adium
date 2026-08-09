@@ -1,0 +1,13 @@
+--- a/libpurple/protocols/jabber/namespaces.h
++++ b/libpurple/protocols/jabber/namespaces.h
+@@ -113,4 +113,10 @@
+ #define NS_GOOGLE_SESSION_PHONE "http://www.google.com/session/phone"
+ #define NS_GOOGLE_SESSION_VIDEO "http://www.google.com/session/video"
+
++/* XEP-0184 Message Delivery Receipts */
++#define NS_RECEIPTS "urn:xmpp:receipts"
++
++/* XEP-0333 Chat Markers */
++#define NS_CHAT_MARKERS "urn:xmpp:chat-markers:0"
++
+ #endif /* PURPLE_JABBER_NAMESPACES_H_ */

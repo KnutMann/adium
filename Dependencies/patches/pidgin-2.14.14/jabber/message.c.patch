@@ -1,0 +1,55 @@
+--- a/libpurple/protocols/jabber/message.c
++++ b/libpurple/protocols/jabber/message.c
+@@ -36,6 +36,8 @@
+ #include "pep.h"
+ #include "smiley.h"
+ #include "iq.h"
++#include "receipt.h"
++#include "chatmarker.h"
+
+ #include <string.h>
+
+@@ -719,6 +721,23 @@
+ 			jm->chat_state = JM_STATE_INACTIVE;
+ 		} else if(purple_strequal(child->name, "gone") && purple_strequal(xmlns,"http://jabber.org/protocol/chatstates")) {
+ 			jm->chat_state = JM_STATE_GONE;
++		} else if(jabber_receipt_parse(js, from, child)) {
++			/* XEP-0184: delivery receipt consumed */
++		} else if(purple_strequal(child->name, "request") && purple_strequal(xmlns, NS_RECEIPTS)) {
++			/* XEP-0184: auto-send delivery receipt */
++			if (jm->id) {
++				xmlnode *recv_msg, *recv;
++				recv_msg = xmlnode_new("message");
++				xmlnode_set_attrib(recv_msg, "to", jm->from);
++				xmlnode_set_attrib(recv_msg, "id", jabber_get_next_id(js));
++				recv = xmlnode_new_child(recv_msg, "received");
++				xmlnode_set_namespace(recv, NS_RECEIPTS);
++				xmlnode_set_attrib(recv, "id", jm->id);
++				jabber_send(js, recv_msg);
++				xmlnode_free(recv_msg);
++			}
++		} else if(jabber_chat_marker_parse(js, from, child)) {
++			/* XEP-0333: chat marker consumed */
+ 		} else if(purple_strequal(child->name, "event") && purple_strequal(xmlns,"http://jabber.org/protocol/pubsub#event")) {
+ 			xmlnode *items;
+ 			jm->type = JABBER_MESSAGE_EVENT;
+@@ -1096,6 +1115,9 @@
+ 					jm->xhtml);
+ 		}
+ 	}
++
++	if(jm->add_receipt_request)
++		jabber_receipt_add_request(message);
+
+ 	jabber_send(jm->js, message);
+
+@@ -1206,6 +1228,9 @@
+ 	}
+
+ 	g_free(xhtml);
++
++	jm->add_receipt_request = !jbr || !jbr->caps.info ||
++		jabber_resource_has_capability(jbr, NS_RECEIPTS);
+
+ 	jabber_message_send(jm);
+ 	jabber_message_free(jm);

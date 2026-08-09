@@ -42,6 +42,20 @@ build_libpurple() {
 	  error "libpurple checkout not found; use --download-libpurple"
 	  exit 1;
 	fi
+
+	# Apply Adium patches (XEP-0184 receipts, XEP-0333 chat markers, XEP-0280 carbons)
+	if [ -d "$ROOTDIR/patches/pidgin-2.14.14/jabber" ] && [ ! -f "$ROOTDIR/source/libpurple/.adium-patches-applied" ]; then
+		status "Applying Adium jabber patches"
+		cp -f "$ROOTDIR/patches/pidgin-2.14.14/jabber/chatmarker.c" \
+		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/chatmarker.h" \
+		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/receipt.c" \
+		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/receipt.h" \
+		      "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/"
+		for jabber_patch in "$ROOTDIR/patches/pidgin-2.14.14/jabber/"*.patch; do
+			patch -d "$ROOTDIR/source/libpurple" -p1 -N < "$jabber_patch"
+		done
+		touch "$ROOTDIR/source/libpurple/.adium-patches-applied"
+	fi
 	
 	prereq "cyrus-sasl" \
 		"https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz"

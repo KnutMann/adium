@@ -50,6 +50,8 @@ typedef enum {
 	JABBER_CAP_ROSTER_VERSIONING = 1 << 15,
 
 	JABBER_CAP_STREAM_MANAGEMENT = 1 << 16,
+	JABBER_CAP_RECEIPTS      = 1 << 17,
+	JABBER_CAP_CHAT_MARKERS  = 1 << 18,
 
 	JABBER_CAP_RETRIEVED      = 1 << 31
 } JabberCapabilities;
