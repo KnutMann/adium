@@ -92,6 +92,25 @@
 	[self setDisplayName:[NSString stringWithUTF8String:selfName]];
 }
 
+/* Localize the plugin's fixed English system messages before display */
+- (void)receivedEventForChat:(AIChat *)chat
+					 message:(NSString *)message
+						date:(NSDate *)date
+					   flags:(NSNumber *)flagsNumber
+{
+	static NSDictionary *localizedPluginMessages = nil;
+	if (!localizedPluginMessages) {
+		localizedPluginMessages = [[NSDictionary alloc] initWithObjectsAndKeys:
+			AILocalizedString(@"This contact is trying to call you. Adium does not support WhatsApp calls.", "WhatsApp call event"),
+			@"This contact is trying to call you. Adium does not support WhatsApp calls.",
+			AILocalizedString(@"This contact is calling you. Adium does not support WhatsApp calls.", "WhatsApp call event"),
+			@"This contact is calling you. Adium does not support WhatsApp calls.",
+			nil];
+	}
+	NSString *localized = [localizedPluginMessages objectForKey:message];
+	[super receivedEventForChat:chat message:(localized ? localized : message) date:date flags:flagsNumber];
+}
+
 /* WhatsApp channels ("Updates" tab) arrive from JIDs ending in @newsletter.
  * Drop their posts when the account option asks for it, like status broadcasts. */
 - (void)receivedIMChatMessage:(NSDictionary *)messageDict inChat:(AIChat *)chat

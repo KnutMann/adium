@@ -28,6 +28,14 @@
 	
 	IBOutlet		NSTextField					*textField_inviteMessage;
 	IBOutlet		AICompletingTextField		*textField_inviteUsers;
+
+	IBOutlet		NSTextField		*label_roomName;
+	IBOutlet		NSTextField		*label_server;
+	IBOutlet		NSTextField		*label_handle;
+	IBOutlet		NSTextField		*label_password;
+	IBOutlet		NSTextField		*label_inviteContacts;
+	IBOutlet		NSTextField		*label_inviteHint;
+	IBOutlet		NSTextField		*label_inviteMessage;
 }
 
 - (void)setRoomName:(NSString*)roomName;

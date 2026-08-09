@@ -45,8 +45,10 @@
 	IBOutlet	NSBox				*box_idle;
 	IBOutlet	NSTextField			*textField_idleMinutes;
 	IBOutlet	NSStepper			*stepper_idleMinutes;
+	IBOutlet	NSTextField			*label_minutes;
 	IBOutlet	NSTextField			*textField_idleHours;
 	IBOutlet	NSStepper			*stepper_idleHours;
+	IBOutlet	NSTextField			*label_hours;
 
 	IBOutlet	NSButton			*checkBox_save;
 	IBOutlet	NSButton			*checkBox_muteSounds;

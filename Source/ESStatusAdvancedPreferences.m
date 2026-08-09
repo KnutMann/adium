@@ -47,21 +47,21 @@
 //Configure the preference view
 - (void)viewDidLoad
 {
-	[label_statusWindow setLocalizedString:AILocalizedString(@"Away Status Window", nil)];
-	[checkBox_statusWindowHideInBackground setLocalizedString:AILocalizedString(@"Hide the status window when Adium is not active", nil)];
-	[checkBox_statusWindowAlwaysOnTop setLocalizedString:AILocalizedString(@"Show the status window above other windows", nil)];
+	[label_statusWindow setStringValue:AILocalizedString(@"Away Status Window", nil)];
+	[checkBox_statusWindowHideInBackground setTitle:AILocalizedString(@"Hide the status window when Adium is not active", nil)];
+	[checkBox_statusWindowAlwaysOnTop setTitle:AILocalizedString(@"Show the status window above other windows", nil)];
 
-	[label_itunesStatusFormat setLocalizedString:AILocalizedString(@"iTunes Status Format", nil)];
+	[label_itunesStatusFormat setStringValue:AILocalizedString(@"iTunes Status Format", nil)];
 	[box_itunesElements setTitle:AILocalizedString(@"iTunes Elements", nil)];
 
-	[label_instructions setLocalizedString:AILocalizedString(@"Type text and drag iTunes elements to create a custom format.", nil)];
-	[label_album setLocalizedString:AILocalizedString(@"Album", nil)];
-	[label_artist setLocalizedString:AILocalizedString(@"Artist", nil)];
-	[label_composer setLocalizedString:AILocalizedString(@"Composer", nil)];
-	[label_genre setLocalizedString:AILocalizedString(@"Genre", nil)];
-	[label_status setLocalizedString:AILocalizedString(@"Player State", nil)];
-	[label_title setLocalizedString:AILocalizedString(@"Title", nil)];
-	[label_year setLocalizedString:AILocalizedString(@"Year", nil)];
+	[label_instructions setStringValue:AILocalizedString(@"Type text and drag iTunes elements to create a custom format.", nil)];
+	[label_album setStringValue:AILocalizedString(@"Album", nil)];
+	[label_artist setStringValue:AILocalizedString(@"Artist", nil)];
+	[label_composer setStringValue:AILocalizedString(@"Composer", nil)];
+	[label_genre setStringValue:AILocalizedString(@"Genre", nil)];
+	[label_status setStringValue:AILocalizedString(@"Player State", nil)];
+	[label_title setStringValue:AILocalizedString(@"Title", nil)];
+	[label_year setStringValue:AILocalizedString(@"Year", nil)];
 
 	NSString *displayFormat = [adium.preferenceController preferenceForKey:KEY_ITUNES_TRACK_FORMAT
 																	 group:PREF_GROUP_STATUS_PREFERENCES];

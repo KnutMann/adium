@@ -134,6 +134,18 @@
 	return @"DCPurpleJabberJoinChatView";
 }
 
+//The xib is monolingual (English); set all visible strings from code
+- (void)awakeFromNib
+{
+	[label_roomName setStringValue:AILocalizedString(@"Chat Room Name:", nil)];
+	[label_server setStringValue:AILocalizedString(@"Server:", nil)];
+	[label_handle setStringValue:AILocalizedString(@"Handle:", nil)];
+	[label_password setStringValue:AILocalizedString(@"Password:", nil)];
+	[label_inviteContacts setStringValue:AILocalizedString(@"Invite Contacts:", nil)];
+	[label_inviteHint setStringValue:AILocalizedString(@"Separate contacts’ names with commas.", nil)];
+	[label_inviteMessage setStringValue:AILocalizedString(@"With Message:", nil)];
+}
+
 //Entered text is changing
 - (void)controlTextDidChange:(NSNotification *)notification
 {

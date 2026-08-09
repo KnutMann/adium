@@ -409,7 +409,7 @@
 #pragma mark Localization
 - (void)localizeStrings
 {
-	[label_password setLocalizedString:AILocalizedStringFromTableInBundle(@"Password:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label for the password field in the account preferences")];
+	[label_password setStringValue:AILocalizedStringFromTableInBundle(@"Password:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label for the password field in the account preferences")];
 	[label_typing setStringValue:AILocalizedStringFromTableInBundle(@"Typing:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label beside the 'let others know when you are typing' checkbox in the account preferences")];
 	[checkBox_sendTyping setTitle:AILocalizedStringFromTableInBundle(@"Let others know when you are typing", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Text of the typing preference checkbox in the account preferences")];
 	[label_encryption setStringValue:AILocalizedStringFromTableInBundle(@"Encryption:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label besides the encryption preference menu")];

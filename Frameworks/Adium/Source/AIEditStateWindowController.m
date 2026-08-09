@@ -183,6 +183,22 @@ static	NSMutableDictionary	*controllerDict = nil;
 //	NSNumberFormatter	*intFormatter;
 	BOOL				sendOnEnter;
 
+	//Localized text for the single-nib editor
+	[[self window] setTitle:AILocalizedString(@"Custom Status", nil)];
+	[label_title setStringValue:AILocalizedString(@"Title:", nil)];
+	[label_state setStringValue:AILocalizedString(@"State:", nil)];
+	[label_statusMessage setStringValue:AILocalizedString(@"Status Message:", nil)];
+	[checkbox_autoReply setTitle:AILocalizedString(@"Auto-reply", nil)];
+	[checkbox_customAutoReply setTitle:AILocalizedString(@"With a custom auto-reply message:", nil)];
+	[checkbox_idle setTitle:AILocalizedString(@"Appear Idle Immediately", nil)];
+	[label_hours setStringValue:AILocalizedString(@"Hours", nil)];
+	[label_minutes setStringValue:AILocalizedString(@"Minutes", nil)];
+	[checkBox_muteSounds setTitle:AILocalizedString(@"Mute Sounds", nil)];
+	[checkBox_silenceGrowl setTitle:AILocalizedString(@"Silence Notifications", nil)];
+	[checkBox_save setTitle:AILocalizedString(@"Save Custom Status", nil)];
+	[checkBox_okay setTitle:AILocalizedString(@"OK", nil)];
+	[checkBox_cancel setTitle:AILocalizedString(@"Cancel", nil)];
+
 	sendOnEnter = [[adium.preferenceController preferenceForKey:SEND_ON_ENTER
 															group:PREF_GROUP_GENERAL] boolValue];
 	

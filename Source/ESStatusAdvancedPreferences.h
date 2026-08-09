@@ -16,24 +16,22 @@
 
 #import <Adium/AIAdvancedPreferencePane.h>
 
-@class AILocalizationTextField;
-
-@interface ESStatusAdvancedPreferences : AIAdvancedPreferencePane <NSTokenFieldDelegate> {	
-	IBOutlet	AILocalizationTextField		*label_statusWindow;
+@interface ESStatusAdvancedPreferences : AIAdvancedPreferencePane <NSTokenFieldDelegate> {
+	IBOutlet	NSTextField					*label_statusWindow;
 	IBOutlet	NSButton					*checkBox_statusWindowHideInBackground;
-	IBOutlet	NSButton					*checkBox_statusWindowAlwaysOnTop;	
+	IBOutlet	NSButton					*checkBox_statusWindowAlwaysOnTop;
 
 	IBOutlet	NSBox						*box_itunesElements;
 
-	IBOutlet	AILocalizationTextField		*label_itunesStatusFormat;
-	IBOutlet	AILocalizationTextField		*label_instructions;
-	IBOutlet	AILocalizationTextField		*label_album;
-	IBOutlet	AILocalizationTextField		*label_artist;
-	IBOutlet	AILocalizationTextField		*label_composer;
-	IBOutlet	AILocalizationTextField		*label_genre;
-	IBOutlet	AILocalizationTextField		*label_status;
-	IBOutlet	AILocalizationTextField		*label_title;
-	IBOutlet	AILocalizationTextField		*label_year;
+	IBOutlet	NSTextField					*label_itunesStatusFormat;
+	IBOutlet	NSTextField					*label_instructions;
+	IBOutlet	NSTextField					*label_album;
+	IBOutlet	NSTextField					*label_artist;
+	IBOutlet	NSTextField					*label_composer;
+	IBOutlet	NSTextField					*label_genre;
+	IBOutlet	NSTextField					*label_status;
+	IBOutlet	NSTextField					*label_title;
+	IBOutlet	NSTextField					*label_year;
 
 	IBOutlet	NSTokenField				*tokenField_format;
 	IBOutlet	NSTokenField				*tokenField_album;

@@ -29,6 +29,14 @@
 	return @"DCPurpleZephyrJoinChatView";
 }
 
+//The xib is monolingual (English); set all visible strings from code
+- (void)awakeFromNib
+{
+	[label_class setStringValue:AILocalizedString(@"Class:", nil)];
+	[label_instance setStringValue:AILocalizedString(@"Instance:", nil)];
+	[label_recipient setStringValue:AILocalizedString(@"Recipient:", nil)];
+}
+
 - (void)configureForAccount:(AIAccount *)inAccount
 {
 	[self validateEnteredText];

@@ -64,10 +64,10 @@ static AINewMessagePromptController *sharedNewMessageInstance = nil;
 {
 	[super windowDidLoad];
 	
-	[label_from setLocalizedString:AILocalizedString(@"From:",nil)];
-	[label_to setLocalizedString:AILocalizedString(@"To:",nil)];
-	
-	[button_okay setLocalizedString:AILocalizedStringFromTable(@"Message", @"Buttons", "Button title to open a message window the specific contact from the 'New Chat' window")];
+	[label_from setStringValue:AILocalizedString(@"From:",nil)];
+	[label_to setStringValue:AILocalizedString(@"To:",nil)];
+
+	[button_okay setTitle:AILocalizedStringFromTable(@"Message", @"Buttons", "Button title to open a message window the specific contact from the 'New Chat' window")];
 	
 	[[self window] setTitle:AILocalizedString(@"New Message",nil)];
 }

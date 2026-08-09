@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ESDualWindowMessageAdvancedPreferences">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="tabView_messageType" destination="tabMsg" id="oTabMsg"/>
+                <outlet property="tabViewItem_regular" destination="tviRegular" id="oTviRegular"/>
+                <outlet property="tabViewItem_group" destination="tviGroup" id="oTviGroup"/>
+                <outlet property="checkBox_customNameFormatting" destination="cbNameFmt" id="oCbNameFmt"/>
+                <outlet property="popUp_nameFormat" destination="pNameFmt" id="oPNameFmt"/>
+                <outlet property="popUp_timeStampFormat" destination="pTime" id="oPTime"/>
+                <outlet property="popUp_minimumFontSize" destination="pFont" id="oPFont"/>
+                <outlet property="checkBox_showTabCount" destination="cbTabCount" id="oCbTabCount"/>
+                <outlet property="checkBox_unreadMentionCount" destination="cbMention" id="oCbMention"/>
+                <outlet property="autohide_tabBar" destination="cbAutohide" id="oCbAutohide"/>
+                <outlet property="checkBox_hide" destination="cbHide" id="oCbHide"/>
+                <outlet property="checkBox_psychicOpen" destination="cbPsychic" id="oCbPsychic"/>
+                <outlet property="popUp_windowPosition" destination="pWinPos" id="oPWinPos"/>
+                <outlet property="label_tabs" destination="lTabs" id="oLTabs"/>
+                <outlet property="label_windowHandling" destination="lWinHandling" id="oLWinHandling"/>
+                <outlet property="label_orderWindows" destination="lOrder" id="oLOrder"/>
+                <outlet property="label_timeStampFormat" destination="lTime" id="oLTime"/>
+                <outlet property="label_minimumFontSize" destination="lFont" id="oLFont"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="paneView" userLabel="Messages">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="289"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbAutohide">
+                    <rect key="frame" x="2" y="107" width="310" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Always show tab bar" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbAutohideC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changePreference:" target="-2" id="aCbAutohide"/>
+                        <binding destination="-2" name="value" keyPath="adium.preferenceController.Dual Window Interface.Autohide Tab Bar" id="bCbAutohide">
+                            <dictionary key="options">
+                                <string key="NSValueTransformerName">NSNegateBoolean</string>
+                            </dictionary>
+                        </binding>
+                    </connections>
+                </button>
+                <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="sepTabs">
+                    <rect key="frame" x="5" y="128" width="395" height="5"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                </box>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTabs">
+                    <rect key="frame" x="2" y="130" width="344" height="14"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="Tabs" id="lTabsC">
+                        <font key="font" metaFont="smallSystemBold"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="sepWin">
+                    <rect key="frame" x="5" y="85" width="395" height="5"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                </box>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lWinHandling">
+                    <rect key="frame" x="2" y="84" width="344" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="Window Handling" id="lWinHandlingC">
+                        <font key="font" metaFont="smallSystemBold"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pWinPos">
+                    <rect key="frame" x="160" y="16" width="163" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pWinPosC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                        <menu key="menu" id="pWinPosM"/>
+                    </popUpButtonCell>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lOrder">
+                    <rect key="frame" x="2" y="21" width="156" height="14"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" controlSize="small" title="Order message windows:" id="lOrderC">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbHide">
+                    <rect key="frame" x="2" y="63" width="310" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Hide while Adium is in the background" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbHideC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbHide"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbTabCount">
+                    <rect key="frame" x="42" y="176" width="305" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Show unread message count in tabs" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbTabCountC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbTabCount"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbPsychic">
+                    <rect key="frame" x="2" y="43" width="310" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Open chats as soon as contacts begin typing" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbPsychicC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbPsychic"/></connections>
+                </button>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbNameFmt">
+                    <rect key="frame" x="42" y="246" width="160" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Use custom name format:" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbNameFmtC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aCbNameFmt"/></connections>
+                </button>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pNameFmt">
+                    <rect key="frame" x="200" y="242" width="158" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <popUpButtonCell key="cell" type="push" title="User Name" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" tag="4" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" selectedItem="miUserName" id="pNameFmtC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                        <menu key="menu" title="OtherViews" id="pNameFmtM">
+                            <items>
+                                <menuItem title="Alias" tag="1" id="miAlias"/>
+                                <menuItem title="Alias (User Name)" tag="2" id="miAliasUser"/>
+                                <menuItem title="User Name (Alias)" tag="3" id="miUserAlias"/>
+                                <menuItem title="User Name" state="on" tag="4" id="miUserName"/>
+                            </items>
+                        </menu>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPNameFmt"/></connections>
+                </popUpButton>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pTime">
+                    <rect key="frame" x="200" y="218" width="135" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pTimeC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                        <menu key="menu" id="pTimeM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPTime"/></connections>
+                </popUpButton>
+                <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pFont">
+                    <rect key="frame" x="200" y="195" width="70" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pFontC">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                        <menu key="menu" id="pFontM"/>
+                    </popUpButtonCell>
+                    <connections><action selector="changePreference:" target="-2" id="aPFont"/></connections>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTime">
+                    <rect key="frame" x="92" y="223" width="111" height="14"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="Time stamp format:" id="lTimeC">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lFont">
+                    <rect key="frame" x="92" y="200" width="115" height="14"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="Minimum Font Size:" id="lFontC">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <tabView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tabMsg">
+                    <rect key="frame" x="-2" y="142" width="404" height="153"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                    <font key="font" metaFont="system"/>
+                    <tabViewItems>
+                        <tabViewItem label="Regular Chats" identifier="1" id="tviRegular">
+                            <view key="view" id="tvRegular">
+                                <rect key="frame" x="10" y="33" width="384" height="107"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </view>
+                        </tabViewItem>
+                        <tabViewItem label="Group Chats" identifier="2" id="tviGroup">
+                            <view key="view" id="tvGroup">
+                                <rect key="frame" x="10" y="33" width="384" height="107"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <subviews>
+                                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbMention">
+                                        <rect key="frame" x="49" y="2" width="285" height="18"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="check" title="…only count number of unread mentions" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbMentionC">
+                                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                            <font key="font" metaFont="smallSystem"/>
+                                        </buttonCell>
+                                        <connections><action selector="changePreference:" target="-2" id="aCbMention"/></connections>
+                                    </button>
+                                </subviews>
+                            </view>
+                        </tabViewItem>
+                    </tabViewItems>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="oTabDelegate"/>
+                    </connections>
+                </tabView>
+            </subviews>
+        </customView>
+    </objects>
+</document>

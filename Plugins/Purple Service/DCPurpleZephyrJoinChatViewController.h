@@ -20,6 +20,10 @@
 	IBOutlet	NSTextField		*textField_class;
 	IBOutlet	NSTextField		*textField_instance;
 	IBOutlet	NSTextField		*textField_recipient;
+
+	IBOutlet	NSTextField		*label_class;
+	IBOutlet	NSTextField		*label_instance;
+	IBOutlet	NSTextField		*label_recipient;
 }
 
 @end

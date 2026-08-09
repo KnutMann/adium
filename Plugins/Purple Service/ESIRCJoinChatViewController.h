@@ -19,6 +19,9 @@
 @interface ESIRCJoinChatViewController : DCJoinChatViewController {
 	IBOutlet	NSTextField	*textField_channel;
 	IBOutlet	NSTextField	*textField_password;
+
+	IBOutlet	NSTextField	*label_channel;
+	IBOutlet	NSTextField	*label_password;
 }
 
 @end

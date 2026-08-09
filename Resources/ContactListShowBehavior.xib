@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="SMContactListShowDetailsPane">
+            <connections>
+                <outlet property="view" destination="paneView" id="oView"/>
+                <outlet property="label_secondsToShow" destination="lSeconds" id="oLSeconds"/>
+                <outlet property="label_note" destination="lNote" id="oLNote"/>
+                <outlet property="slider_secondsToShow" destination="slSeconds" id="oSlSeconds"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="paneView" userLabel="View">
+            <rect key="frame" x="0.0" y="0.0" width="544" height="75"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSeconds">
+                    <rect key="frame" x="-3" y="58" width="160" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Seconds To Show:" id="lSecondsC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNote">
+                    <rect key="frame" x="17" y="1" width="374" height="21"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" controlSize="small" title="Note: This behavior is only available if the contact list is set to hide." id="lNoteC">
+                        <font key="font" metaFont="smallSystem"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sliderBox" userLabel="Slider Group">
+                    <rect key="frame" x="162" y="29" width="138" height="41"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <subviews>
+                        <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="slSeconds">
+                            <rect key="frame" x="-2" y="17" width="133" height="25"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                            <sliderCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="5" doubleValue="5" tickMarkPosition="below" numberOfTickMarks="5" sliderType="linear" id="slSecondsC"/>
+                            <connections><action selector="changePreference:" target="-2" id="aSlSeconds"/></connections>
+                        </slider>
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lMin">
+                            <rect key="frame" x="2" y="0.0" width="11" height="13"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="1" id="lMinC">
+                                <font key="font" metaFont="system" size="10"/>
+                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lMax">
+                            <rect key="frame" x="116" y="0.0" width="11" height="13"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="5" id="lMaxC">
+                                <font key="font" metaFont="system" size="10"/>
+                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                    </subviews>
+                </customView>
+            </subviews>
+        </customView>
+    </objects>
+</document>

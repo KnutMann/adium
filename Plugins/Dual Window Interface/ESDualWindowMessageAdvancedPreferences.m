@@ -167,6 +167,25 @@
     NSDictionary	*prefDict;
 	NSInteger				menuIndex;
 
+	//Localize the controls, which the xib no longer localizes
+	[tabViewItem_regular setLabel:AILocalizedString(@"Regular Chats", nil)];
+	[tabViewItem_group setLabel:AILocalizedString(@"Group Chats", nil)];
+	[checkBox_customNameFormatting setTitle:AILocalizedString(@"Use custom name format:", nil)];
+	[[[popUp_nameFormat menu] itemWithTag:1] setTitle:AILocalizedString(@"Alias", nil)];
+	[[[popUp_nameFormat menu] itemWithTag:2] setTitle:AILocalizedString(@"Alias (User Name)", nil)];
+	[[[popUp_nameFormat menu] itemWithTag:3] setTitle:AILocalizedString(@"User Name (Alias)", nil)];
+	[[[popUp_nameFormat menu] itemWithTag:4] setTitle:AILocalizedString(@"User Name", nil)];
+	[label_timeStampFormat setStringValue:AILocalizedString(@"Time stamp format:", nil)];
+	[label_minimumFontSize setStringValue:AILocalizedString(@"Minimum Font Size:", nil)];
+	[checkBox_showTabCount setTitle:AILocalizedString(@"Show unread message count in tabs", nil)];
+	[checkBox_unreadMentionCount setTitle:AILocalizedString(@"…only count number of unread mentions", nil)];
+	[label_tabs setStringValue:AILocalizedString(@"Tabs", nil)];
+	[autohide_tabBar setTitle:AILocalizedString(@"Always show tab bar", nil)];
+	[label_windowHandling setStringValue:AILocalizedString(@"Window Handling", nil)];
+	[checkBox_hide setTitle:AILocalizedString(@"Hide while Adium is in the background", nil)];
+	[checkBox_psychicOpen setTitle:AILocalizedString(@"Open chats as soon as contacts begin typing", nil)];
+	[label_orderWindows setStringValue:AILocalizedString(@"Order message windows:", nil)];
+
 	prefDict = [adium.preferenceController preferencesForGroup:PREF_GROUP_DUAL_WINDOW_INTERFACE];
     [autohide_tabBar setState:![[prefDict objectForKey:KEY_AUTOHIDE_TABBAR] boolValue]];
 

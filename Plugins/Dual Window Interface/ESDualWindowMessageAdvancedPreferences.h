@@ -40,6 +40,13 @@
 	IBOutlet	NSButton		*checkBox_hide;
 	IBOutlet	NSButton		*checkBox_psychicOpen;
 	IBOutlet	NSPopUpButton	*popUp_windowPosition;
+
+	// Labels
+	IBOutlet	NSTextField		*label_tabs;
+	IBOutlet	NSTextField		*label_windowHandling;
+	IBOutlet	NSTextField		*label_orderWindows;
+	IBOutlet	NSTextField		*label_timeStampFormat;
+	IBOutlet	NSTextField		*label_minimumFontSize;
 }
 
 @property (readonly, nonatomic) NSString *preferenceGroupForCurrentTab;

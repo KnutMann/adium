@@ -30,6 +30,13 @@
 	return @"ESIRCJoinChatView";
 }
 
+//The xib is monolingual (English); set all visible strings from code
+- (void)awakeFromNib
+{
+	[label_channel setStringValue:AILocalizedString(@"Channel:", nil)];
+	[label_password setStringValue:AILocalizedString(@"Password:", nil)];
+}
+
 - (void)configureForAccount:(AIAccount *)inAccount
 {
 	[super configureForAccount:inAccount];

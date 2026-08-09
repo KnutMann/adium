@@ -174,7 +174,7 @@
 - (void)windowDidLoad
 {
 	// Controls
-	[button_cancel setLocalizedString:
+	[button_cancel setTitle:
 	 AILocalizedStringFromTableInBundle(@"Cancel",
 										nil,
 										[NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],

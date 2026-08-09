@@ -71,21 +71,21 @@
 	[[matrix_hiding cellWithTag:AIContactListWindowHidingStyleNone] setTitle:AILocalizedString(@"Never", nil)];
 	[[matrix_hiding cellWithTag:AIContactListWindowHidingStyleBackground] setTitle:WHILE_ADIUM_IS_IN_BACKGROUND];
 	[[matrix_hiding cellWithTag:AIContactListWindowHidingStyleSliding] setTitle:AILocalizedString(@"On screen edges", "Advanced contact list: hide the contact list: On screen edges")];
-	[checkBox_hideOnScreenEdgesOnlyInBackground setLocalizedString:AILocalizedString(@"...only while Adium is in the background", "Checkbox under 'on screen edges' in the advanced contact list preferences")];
+	[checkBox_hideOnScreenEdgesOnlyInBackground setTitle:AILocalizedString(@"...only while Adium is in the background", "Checkbox under 'on screen edges' in the advanced contact list preferences")];
 		
-	[checkBox_flash setLocalizedString:AILocalizedString(@"Flash names with unviewed messages",nil)];
-	[checkBox_animateChanges setLocalizedString:AILocalizedString(@"Animate changes","This string is under the heading 'Contact List' and refers to changes such as sort order in the contact list being animated rather than occurring instantenously")];
-	[checkBox_showTooltips setLocalizedString:AILocalizedString(@"Show contact information tooltips",nil)];
-	[checkBox_showTooltipsInBackground setLocalizedString:WHILE_ADIUM_IS_IN_BACKGROUND];
-	[checkBox_windowHasShadow setLocalizedString:AILocalizedString(@"Show window shadow",nil)];
+	[checkBox_flash setTitle:AILocalizedString(@"Flash names with unviewed messages",nil)];
+	[checkBox_animateChanges setTitle:AILocalizedString(@"Animate changes","This string is under the heading 'Contact List' and refers to changes such as sort order in the contact list being animated rather than occurring instantenously")];
+	[checkBox_showTooltips setTitle:AILocalizedString(@"Show contact information tooltips",nil)];
+	[checkBox_showTooltipsInBackground setTitle:WHILE_ADIUM_IS_IN_BACKGROUND];
+	[checkBox_windowHasShadow setTitle:AILocalizedString(@"Show window shadow",nil)];
 	[checkBox_windowHasShadow setToolTip:@"Stay close to the Vorlon."];
-	[checkBox_showOnAllSpaces setLocalizedString:AILocalizedString(@"Show on all spaces", nil)];
+	[checkBox_showOnAllSpaces setTitle:AILocalizedString(@"Show on all spaces", nil)];
 
-	[label_appearance setLocalizedString:AILocalizedString(@"Appearance",nil)];
-	[label_tooltips setLocalizedString:AILocalizedString(@"Tooltips",nil)];
-	[label_windowHandling setLocalizedString:AILocalizedString(@"Window Handling",nil)];
-	[label_hide setLocalizedString:AILocalizedString(@"Automatically hide the contact list:",nil)];
-	[label_orderTheContactList setLocalizedString:AILocalizedString(@"Show the contact list:",nil)];
+	[label_appearance setStringValue:AILocalizedString(@"Appearance",nil)];
+	[label_tooltips setStringValue:AILocalizedString(@"Tooltips",nil)];
+	[label_windowHandling setStringValue:AILocalizedString(@"Window Handling",nil)];
+	[label_hide setStringValue:AILocalizedString(@"Automatically hide the contact list:",nil)];
+	[label_orderTheContactList setStringValue:AILocalizedString(@"Show the contact list:",nil)];
 	
 	[self configureControlDimming];
 }
