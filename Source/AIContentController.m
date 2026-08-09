@@ -590,10 +590,15 @@
  */
 - (void)handleFileSendsForContentMessage:(AIContentMessage *)inContentMessage
 {
-	if (!inContentMessage.destination ||
-		![inContentMessage.destination isKindOfClass:[AIListContact class]] ||
-		![inContentMessage.chat.account availableForSendingContentType:CONTENT_FILE_TRANSFER_TYPE
-															 toContact:(AIListContact *)inContentMessage.destination]) {
+	AIChat *messageChat = inContentMessage.chat;
+	BOOL groupChatFileSend = (messageChat.isGroupChat &&
+							  [messageChat.account canSendFilesToGroupChat:messageChat]);
+
+	if (!groupChatFileSend &&
+		(!inContentMessage.destination ||
+		 ![inContentMessage.destination isKindOfClass:[AIListContact class]] ||
+		 ![messageChat.account availableForSendingContentType:CONTENT_FILE_TRANSFER_TYPE
+													toContact:(AIListContact *)inContentMessage.destination])) {
 		//Simply return if we can't do anything about file sends for this message.
 		return;
 	}
@@ -661,8 +666,12 @@
 						}
 					}
 					if (path) {
-						[adium.fileTransferController sendFile:path
-												   toListContact:(AIListContact *)inContentMessage.destination];
+						if (groupChatFileSend) {
+							[messageChat.account sendFilePath:path toGroupChat:messageChat];
+						} else {
+							[adium.fileTransferController sendFile:path
+													 toListContact:(AIListContact *)inContentMessage.destination];
+						}
 					} else {
 						NSLog(@"-[AIContentController handleFileSendsForContentMessage:]: Warning: Failed to have a path for sending an inline file!");
 						AILog(@"-[AIContentController handleFileSendsForContentMessage:]: Warning: Failed to have a path for sending an inline file for content message %@!",

@@ -119,4 +119,5 @@ NSString* processPurpleImages(NSString* inString, AIAccount* adiumAccount);
 
 - (void)purpleAccountRegistered:(BOOL)success;
 
+- (void)sendFile:(NSString *)path toGroupChat:(AIChat *)chat onAccount:(id)adiumAccount;
 @end

@@ -418,8 +418,10 @@
 	[menuItem_aboutAdium setTitle:AILocalizedString(@"About Adium",nil)];
 	[menuItem_adiumXtras setTitle:[AILocalizedString(@"Xtras Manager",nil) stringByAppendingEllipsis]];
 	[menuItem_preferences setTitle:[AILocalizedString(@"Preferences",nil) stringByAppendingEllipsis]];
-	[menuItem_donate setTitle:[AILocalizedString(@"Donate",nil) stringByAppendingEllipsis]];
-	[menuItem_helpOut setTitle:[AILocalizedString(@"Contributing to Adium",nil) stringByAppendingEllipsis]];
+	// The fork accepts no donations for the original project; drop the menu item
+	[[menuItem_donate menu] removeItem:menuItem_donate];
+	// The upstream "help out" page is dead; drop the menu item
+	[[menuItem_helpOut menu] removeItem:menuItem_helpOut];
 
 	[menuItem_services setTitle:AILocalizedString(@"Services","Services menu item in the Adium menu")];
 	[menuItem_hideAdium setTitle:AILocalizedString(@"Hide Adium",nil)];
@@ -488,7 +490,8 @@
 	//Help menu
 	[menuItem_adiumHelp setTitle:AILocalizedString(@"Adium Help",nil)];
 	[menuItem_releaseNotes setTitle:AILocalizedString(@"View Release Notes",nil)];
-	[menuItem_contribute setTitle:AILocalizedString(@"Contribute",nil)];
+	// The upstream contribution page is dead; drop the menu item
+	[[menuItem_contribute menu] removeItem:menuItem_contribute];
 	[menuItem_reportABug setTitle:AILocalizedString(@"Report a Bug",nil)];
 	[menuItem_sendFeedback setTitle:AILocalizedString(@"Send Feedback",nil)];
 	[menuItem_adiumForums setTitle:AILocalizedString(@"Adium Forums",nil)];

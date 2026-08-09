@@ -901,6 +901,26 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 }
 
 
+- (void)sendFile:(NSString *)path toGroupChat:(AIChat *)chat onAccount:(id)adiumAccount
+{
+	PurpleConversation *conv = convLookupFromChat(chat, adiumAccount);
+	if (!conv || purple_conversation_get_type(conv) != PURPLE_CONV_TYPE_CHAT) return;
+
+	PurpleConnection *gc = purple_conversation_get_gc(conv);
+	PurplePlugin *prpl = gc ? purple_connection_get_prpl(gc) : NULL;
+	PurplePluginProtocolInfo *prpl_info = prpl ? PURPLE_PLUGIN_PROTOCOL_INFO(prpl) : NULL;
+
+	if (prpl_info &&
+		PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl_info, chat_send_file) && prpl_info->chat_send_file) {
+		int chatId = purple_conv_chat_get_id(PURPLE_CONV_CHAT(conv));
+		if (!PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl_info, chat_can_receive_file) ||
+			!prpl_info->chat_can_receive_file ||
+			prpl_info->chat_can_receive_file(gc, chatId)) {
+			prpl_info->chat_send_file(gc, chatId, [path fileSystemRepresentation]);
+		}
+	}
+}
+
 #pragma mark File transfers
 - (void)displayFileSendError
 {

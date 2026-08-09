@@ -286,6 +286,8 @@ typedef enum {
  * @brief Can the account send images inline within a chat?
  */
 - (BOOL)canSendImagesForChat:(AIChat *)inChat;
+- (BOOL)canSendFilesToGroupChat:(AIChat *)inChat;
+- (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat;
 
 /*!
  * @brief Should the chat autocomplete the UID instead of the Display Name?

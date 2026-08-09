@@ -949,6 +949,21 @@ typedef enum
 	return NO;
 }
 
+/*!
+ * @brief Can the account send files into a group chat?
+ */
+- (BOOL)canSendFilesToGroupChat:(AIChat *)inChat
+{
+	return NO;
+}
+
+/*!
+ * @brief Send a file into a group chat (only called when canSendFilesToGroupChat: returns YES)
+ */
+- (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat
+{
+}
+
 #pragma mark Authorization
 /*!
  * @brief An authorization prompt closed, granting or denying a contact's request for authorization

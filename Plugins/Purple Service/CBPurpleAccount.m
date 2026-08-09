@@ -1357,6 +1357,20 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
     return [super availableForSendingContentType:inType toContact:inContact];
 }
 
+- (BOOL)canSendFilesToGroupChat:(AIChat *)inChat
+{
+	PurplePluginProtocolInfo *prpl_info = self.protocolInfo;
+	return (self.online &&
+			prpl_info &&
+			PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl_info, chat_send_file) &&
+			prpl_info->chat_send_file != NULL);
+}
+
+- (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat
+{
+	[[self purpleAdapter] sendFile:inPath toGroupChat:inChat onAccount:self];
+}
+
 - (BOOL)allowFileTransferWithListObject:(AIListObject *)inListObject
 {
 	PurplePluginProtocolInfo *prpl_info = self.protocolInfo;
