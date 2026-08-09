@@ -36,8 +36,10 @@
 	
 	IBOutlet	NSTextField						*label_encryption;
 	IBOutlet	NSPopUpButton					*popUp_encryption;
-	
+
+	IBOutlet	NSTextField						*label_visibility;
 	IBOutlet	NSButton						*checkBox_alwaysShow;
+	IBOutlet	NSTextField						*label_bookmark;
 	IBOutlet	NSButton						*checkBox_autoJoin;
 	
 	BOOL										switchingContacts;

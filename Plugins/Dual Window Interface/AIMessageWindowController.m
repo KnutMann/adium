@@ -35,6 +35,7 @@
 #import <MMTabBarView/MMTabBarView.h>
 #import <MMTabBarView/MMOverflowPopUpButton.h>
 #import <MMTabBarView/MMAdiumTabStyle.h>
+#import <MMTabBarView/MMTahoeTabStyle.h>
 #import <MMTabBarView/MMTabStyle.h>
 #import "AIMessageTabSplitView.h"
 #import <Adium/AIStatusIcons.h>
@@ -49,7 +50,7 @@
 #define TAB_BAR_STEP                            0.6
 #define TOOLBAR_MESSAGE_WINDOW					@"AdiumMessageWindow"			//Toolbar identifier
 
-#define HORIZONTAL_TAB_BAR_TO_VIEW_SPACING		7
+#define HORIZONTAL_TAB_BAR_TO_VIEW_SPACING		1
 
 #define KEY_VERTICAL_TABS_WIDTH					@"Vertical Tabs Width"
 #define VERTICAL_DIVIDER_THICKNESS				4
@@ -205,7 +206,7 @@
 	[self _configureToolbar];
 
 	//Setup the tab bar
-	tabView_tabStyle = [[[MMAdiumTabStyle alloc] init] autorelease];
+	tabView_tabStyle = [[[MMTahoeTabStyle alloc] init] autorelease];
 	[tabView_tabBar setStyle:tabView_tabStyle];
 	[tabView_tabBar setCanCloseOnlyTab:YES];
 	[tabView_tabBar setUseOverflowMenu:NO];
@@ -216,7 +217,12 @@
 	[tabView_tabBar setAutomaticallyAnimates:NO];
 	
 	[tabView_tabBar setAllowsScrubbing:![[NSUserDefaults standardUserDefaults] boolForKey:@"AIDisableScrubbing"]];
-	[tabView_tabBar setAllowsBackgroundTabClosing:[[NSUserDefaults standardUserDefaults] boolForKey:@"AIAllowBackgroundTabClosing"]];
+	/* Default ON (the absent-key default of boolForKey: is NO, which makes the
+	 * layout pass suppress the hover close button on every background tab);
+	 * the hidden AIAllowBackgroundTabClosing default can still turn it off. */
+	[tabView_tabBar setAllowsBackgroundTabClosing:
+		([[NSUserDefaults standardUserDefaults] objectForKey:@"AIAllowBackgroundTabClosing"] ?
+		 [[NSUserDefaults standardUserDefaults] boolForKey:@"AIAllowBackgroundTabClosing"] : YES)];
 	[tabView_tabBar setTearOffStyle:MMTabBarTearOffAlphaWindow];
 }
 
@@ -401,9 +407,11 @@
 			[self _relayoutWindow];
 		}
 		
-		//set tab style drawing attributes
-		[tabView_tabStyle setDrawsRight:(tabPosition == AdiumTabPositionRight)];
-		[tabView_tabStyle setDrawsUnified:(tabPosition == AdiumTabPositionTop)];
+		//set tab style drawing attributes (only the Adium style knows these)
+		if ([tabView_tabStyle respondsToSelector:@selector(setDrawsRight:)])
+			[tabView_tabStyle setDrawsRight:(tabPosition == AdiumTabPositionRight)];
+		if ([tabView_tabStyle respondsToSelector:@selector(setDrawsUnified:)])
+			[tabView_tabStyle setDrawsUnified:(tabPosition == AdiumTabPositionTop)];
 		//[[[self window] toolbar] setShowsBaselineSeparator:(tabPosition != AdiumTabPositionTop)];
 		
 		[self _updateWindowTitleAndIcon];
@@ -461,7 +469,13 @@
 	switch (orientation) {
 		case MMTabBarHorizontalOrientation:
 		{
-			tabBarFrame.size.height = isTabBarHidden? 0 : kMMTabBarViewHeight;
+			CGFloat barHeight = kMMTabBarViewHeight;
+			if ([tabView_tabStyle respondsToSelector:@selector(intrinsicContentSizeOfTabBarView:)]) {
+				NSSize intrinsicSize = [tabView_tabStyle intrinsicContentSizeOfTabBarView:tabView_tabBar];
+				if (intrinsicSize.height > 0)
+					barHeight = intrinsicSize.height;
+			}
+			tabBarFrame.size.height = isTabBarHidden? 0 : barHeight;
 			tabBarFrame.size.width = contentRect.size.width;
 			tabViewMessagesFrame.size.width = contentRect.size.width;
 			

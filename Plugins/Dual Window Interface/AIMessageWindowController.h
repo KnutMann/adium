@@ -37,7 +37,7 @@ typedef enum
 	IBOutlet	NSTabView			*tabView_messages;
 	IBOutlet	MMTabBarView	*tabView_tabBar;
 	NSBox							*tabView_horzLine;
-	MMAdiumTabStyle				*tabView_tabStyle;
+	id							tabView_tabStyle;
 	AIMessageTabSplitView			*tabView_splitView;
 	AIDualWindowInterfacePlugin 	*interface;
 	NSString						*containerName;

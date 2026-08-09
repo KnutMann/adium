@@ -292,6 +292,13 @@
 	//method does nothing; force the tab bindings to reload -icon
 }
 
+/* MMTabBarView disables close buttons unless the tab item provides this
+ * property; the Tahoe style shows the X over the status icon on hover. */
+- (BOOL)hasCloseButton
+{
+	return YES;
+}
+
 //Return the icon to be used for our tabs.  State gets first priority, then status.
 - (NSImage *)icon
 {

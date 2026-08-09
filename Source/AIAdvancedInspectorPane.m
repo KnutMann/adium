@@ -55,7 +55,16 @@
 	self = [super init];
 	if (self != nil) {
 		[NSBundle loadNibNamed:[self nibName] owner:self];
-		
+
+		//The xib is monolingual (English) and uses plain controls; set all visible strings from code
+		[label_account setStringValue:AILocalizedString(@"Account:", "Label beside the account popup in the Advanced tab of the Get Info window")];
+		[label_contact setStringValue:AILocalizedString(@"Contact:", "Label beside the contact popup in the Advanced tab of the Get Info window")];
+		[label_encryption setStringValue:AILocalizedString(@"Encryption:", "Label beside the encryption preference popup in the Advanced tab of the Get Info window")];
+		[label_visibility setStringValue:AILocalizedString(@"Visibility:", "Label beside the 'Always show this contact' checkbox in the Advanced tab of the Get Info window")];
+		[label_bookmark setStringValue:AILocalizedString(@"Bookmark:", "Label beside the 'Automatically join on connect' checkbox in the Advanced tab of the Get Info window")];
+		[checkBox_alwaysShow setTitle:AILocalizedString(@"Always show this contact", nil)];
+		[checkBox_autoJoin setTitle:AILocalizedString(@"Automatically join on connect", nil)];
+
 		//Load Encryption menus
 		[popUp_encryption setMenu:[adium.contentController encryptionMenuNotifyingTarget:self withDefault:YES]];
 		[[popUp_encryption menu] setAutoenablesItems:NO];

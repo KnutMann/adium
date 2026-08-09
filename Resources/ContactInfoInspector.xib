@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="AIContactInfoWindowController">
+            <connections>
+                <outlet property="window" destination="infoPanel" id="oWin"/>
+                <outlet property="inspectorContent" destination="contentArea" id="oContent"/>
+                <outlet property="inspectorToolbar" destination="segMatrix" id="oToolbar"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Get Info" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="infoPanel" userLabel="Panel" customClass="NSPanel">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" resizable="YES" utility="YES"/>
+            <rect key="contentRect" x="692" y="583" width="300" height="432"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1028"/>
+            <value key="minSize" type="size" width="300" height="260"/>
+            <value key="maxSize" type="size" width="300" height="432"/>
+            <view key="contentView" id="winContent">
+                <rect key="frame" x="0.0" y="0.0" width="300" height="432"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="contentArea" userLabel="Inspector Content">
+                        <rect key="frame" x="-1" y="1" width="301" height="412"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                    </customView>
+                    <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="toolbarArea" userLabel="Toolbar Area">
+                        <rect key="frame" x="0.0" y="410" width="300" height="22"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                        <subviews>
+                            <matrix verticalHuggingPriority="750" fixedFrame="YES" mode="highlight" autosizesCells="YES" drawsBackground="YES" translatesAutoresizingMaskIntoConstraints="NO" id="segMatrix" userLabel="Inspector Toolbar">
+                                <rect key="frame" x="-1" y="1" width="305" height="23"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                <size key="cellSize" width="77" height="23"/>
+                                <size key="intercellSpacing" width="-1" height="0.0"/>
+                                <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="segProto">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <cells>
+                                    <column>
+                                        <buttonCell type="onOff" bezelStyle="regularSquare" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" tag="1" id="segC1">
+                                            <behavior key="behavior" changeBackground="YES" changeGray="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                            <connections>
+                                                <action selector="segmentSelected:" target="-2" id="aSeg1"/>
+                                            </connections>
+                                        </buttonCell>
+                                    </column>
+                                    <column>
+                                        <buttonCell type="onOff" bezelStyle="regularSquare" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" tag="2" id="segC2">
+                                            <behavior key="behavior" changeBackground="YES" changeGray="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                            <connections>
+                                                <action selector="segmentSelected:" target="-2" id="aSeg2"/>
+                                            </connections>
+                                        </buttonCell>
+                                    </column>
+                                    <column>
+                                        <buttonCell type="onOff" bezelStyle="regularSquare" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" tag="3" id="segC3">
+                                            <behavior key="behavior" changeBackground="YES" changeGray="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                            <connections>
+                                                <action selector="segmentSelected:" target="-2" id="aSeg3"/>
+                                            </connections>
+                                        </buttonCell>
+                                    </column>
+                                    <column>
+                                        <buttonCell type="onOff" bezelStyle="regularSquare" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" tag="4" id="segC4">
+                                            <behavior key="behavior" changeBackground="YES" changeGray="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                            <connections>
+                                                <action selector="segmentSelected:" target="-2" id="aSeg4"/>
+                                            </connections>
+                                        </buttonCell>
+                                    </column>
+                                </cells>
+                            </matrix>
+                        </subviews>
+                    </customView>
+                </subviews>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="oDelegate"/>
+            </connections>
+        </window>
+    </objects>
+</document>
