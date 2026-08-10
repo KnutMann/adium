@@ -60,6 +60,10 @@
 	purple_account_set_bool(account, "ignore-status-broadcast",
 							(!ignoreStatus || [ignoreStatus boolValue]));
 
+	NSString *pictures = [self preferenceForKey:KEY_WHATSAPP_PROFILE_PICTURES group:GROUP_ACCOUNT_STATUS];
+	purple_account_set_string(account, "get-icons",
+							  [(pictures ?: @"original") UTF8String]);
+
 	/* Shown in WhatsApp's linked-devices list on the phone; the plugin's
 	 * default is "purple-whatsmeow on <hostname>". */
 	NSString *computerName = [[NSHost currentHost] localizedName];

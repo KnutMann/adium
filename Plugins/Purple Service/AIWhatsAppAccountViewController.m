@@ -69,6 +69,42 @@
 		[checkBox_ignoreNewsletters release];
 	}
 
+	//Popup: profile picture download quality
+	if (!popUp_profilePictures && checkBox_ignoreNewsletters) {
+		NSView *optionsContainer = [checkBox_ignoreNewsletters superview];
+		NSRect newsletterFrame = [checkBox_ignoreNewsletters frame];
+
+		label_profilePictures = [[NSTextField alloc] initWithFrame:NSMakeRect(NSMinX(newsletterFrame), NSMinY(newsletterFrame) - 26, 110, 17)];
+		[label_profilePictures setStringValue:AILocalizedString(@"Profile pictures:", "WhatsApp account option")];
+		[label_profilePictures setEditable:NO];
+		[label_profilePictures setBordered:NO];
+		[label_profilePictures setDrawsBackground:NO];
+		[label_profilePictures setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeSmall]]];
+		[optionsContainer addSubview:label_profilePictures];
+		[label_profilePictures release];
+
+		popUp_profilePictures = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(NSMaxX([label_profilePictures frame]) + 6, NSMinY(newsletterFrame) - 28, 180, 25) pullsDown:NO];
+		[[popUp_profilePictures cell] setControlSize:NSControlSizeSmall];
+		[popUp_profilePictures setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeSmall]]];
+		[popUp_profilePictures addItemWithTitle:AILocalizedString(@"Full resolution", "WhatsApp profile picture quality")];
+		[[popUp_profilePictures lastItem] setRepresentedObject:@"original"];
+		[popUp_profilePictures addItemWithTitle:AILocalizedString(@"Small (preview)", "WhatsApp profile picture quality")];
+		[[popUp_profilePictures lastItem] setRepresentedObject:@"preview"];
+		[popUp_profilePictures addItemWithTitle:AILocalizedString(@"Don't download", "WhatsApp profile picture quality")];
+		[[popUp_profilePictures lastItem] setRepresentedObject:@"no"];
+		[optionsContainer addSubview:popUp_profilePictures];
+		[popUp_profilePictures release];
+	}
+
+	NSString *pictures = [inAccount preferenceForKey:KEY_WHATSAPP_PROFILE_PICTURES group:GROUP_ACCOUNT_STATUS];
+	if (!pictures) pictures = @"original";
+	for (NSMenuItem *item in [popUp_profilePictures itemArray]) {
+		if ([[item representedObject] isEqualToString:pictures]) {
+			[popUp_profilePictures selectItem:item];
+			break;
+		}
+	}
+
 	NSNumber *ignoreStatus = [inAccount preferenceForKey:KEY_WHATSAPP_IGNORE_STATUS group:GROUP_ACCOUNT_STATUS];
 	[checkBox_ignoreStatusBroadcasts setState:((!ignoreStatus || [ignoreStatus boolValue]) ? NSControlStateValueOn : NSControlStateValueOff)];
 
@@ -85,6 +121,9 @@
 					 group:GROUP_ACCOUNT_STATUS];
 	[account setPreference:[NSNumber numberWithBool:([checkBox_ignoreNewsletters state] == NSControlStateValueOn)]
 					forKey:KEY_WHATSAPP_IGNORE_NEWSLETTERS
+					 group:GROUP_ACCOUNT_STATUS];
+	[account setPreference:([[popUp_profilePictures selectedItem] representedObject] ?: @"original")
+					forKey:KEY_WHATSAPP_PROFILE_PICTURES
 					 group:GROUP_ACCOUNT_STATUS];
 }
 

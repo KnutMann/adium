@@ -18,10 +18,13 @@
 
 #define KEY_WHATSAPP_IGNORE_STATUS	@"WhatsApp:Ignore Status Broadcasts"
 #define KEY_WHATSAPP_IGNORE_NEWSLETTERS	@"WhatsApp:Ignore Newsletters"
+#define KEY_WHATSAPP_PROFILE_PICTURES	@"WhatsApp:Profile Pictures"
 
 @interface AIWhatsAppAccountViewController : PurpleAccountViewController {
 	NSButton	*checkBox_ignoreStatusBroadcasts;
 	NSButton	*checkBox_ignoreNewsletters;
+	NSTextField	*label_profilePictures;
+	NSPopUpButton	*popUp_profilePictures;
 }
 
 @end
