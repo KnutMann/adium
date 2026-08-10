@@ -18,6 +18,8 @@
 #import "AIAdiumURLSchemeHandler.h"
 #import "AIWebKitMessageViewPlugin.h"
 #import "AIWebKitMessageViewWKContextMenu.h"
+#import <Adium/AIMessageEntryTextView.h>
+#import <Adium/AIService.h>
 #import "AIWebkitMessageViewStyle.h"
 #import "ESFileTransferRequestPromptController.h"
 #import "ESWebKitMessageViewPreferences.h"
@@ -88,11 +90,31 @@ static NSString *const AIWKContextMenuScript =
 	@"            }\n"
 	@"            node = node.parentNode;\n"
 	@"        }\n"
+	@"        var messageText = null;\n"
+	@"        var textNode = event.target;\n"
+	@"        if (textNode && textNode.nodeType === 3) textNode = textNode.parentNode;\n"
+	@"        if (textNode && textNode.closest && !textNode.closest('.history')) {\n"
+	@"            /* Prefer the clicked element's own text: the enclosing block also contains */\n"
+	@"            /* the sender name and timestamp, which are useless as reply lookup tokens. */\n"
+	@"            if (!textNode.closest('.sender, .time, .timestamp, .username, .buddyname')) {\n"
+	@"                messageText = (textNode.textContent || '').trim().substring(0, 400) || null;\n"
+	@"            }\n"
+	@"            if (!messageText) {\n"
+	@"                var block = textNode.closest('.message, .messageBody') || textNode.closest('div, p, td, ins');\n"
+	@"                if (block && block !== document.body) {\n"
+	@"                    var clone = block.cloneNode(true);\n"
+	@"                    var meta = clone.querySelectorAll('.sender, .time, .timestamp, .username, .buddyname');\n"
+	@"                    for (var m = 0; m < meta.length; m++) meta[m].parentNode.removeChild(meta[m]);\n"
+	@"                    messageText = (clone.textContent || '').trim().substring(0, 400) || null;\n"
+	@"                }\n"
+	@"            }\n"
+	@"        }\n"
 	@"        window.webkit.messageHandlers.adium.postMessage({\n"
 	@"            type: 'contextMenu',\n"
 	@"            x: event.clientX,\n"
 	@"            y: event.clientY,\n"
-	@"            imageURL: imageURL\n"
+	@"            imageURL: imageURL,\n"
+	@"            messageText: messageText\n"
 	@"        });\n"
 	@"    }, false);\n"
 	@"})();\n";
@@ -202,8 +224,11 @@ static NSString *const AIWKContextMenuScript =
 - (void)_appendContentWithScript:(NSString *)js shouldScroll:(BOOL)shouldScroll;
 - (void)_drainStoredContentObjects;
 - (void)_handleFileTransferAction:(NSString *)action fileTransferID:(NSString *)fileTransferID;
-- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString;
-- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString;
+- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText;
+- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText;
+- (NSString *)_replyTokenForMessageText:(NSString *)messageText;
+- (void)replyToMessage:(id)sender;
+- (AIMessageEntryTextView *)_messageEntryTextViewInView:(NSView *)view;
 - (void)openImage:(id)sender;
 - (void)saveImageAs:(id)sender;
 - (void)_saveImageAtURL:(NSURL *)sourceURL toURL:(NSURL *)destinationURL window:(NSWindow *)window;
@@ -476,8 +501,65 @@ static NSString *const AIWKContextMenuScript =
 		}
 
 		[self _presentContextMenuAtClientPoint:NSMakePoint(contextMenuMessage.x, contextMenuMessage.y)
-								imageURLString:contextMenuMessage.imageURLString];
+								imageURLString:contextMenuMessage.imageURLString
+								   messageText:contextMenuMessage.messageText];
 	}
+}
+
+#pragma mark - Reply (quote)
+
+/*!
+ * @brief Pick a lookup token from the clicked message's text.
+ *
+ * The prpl resolves the token by substring search over its recent message
+ * cache (most recent first, same chat), so a single distinctive word is
+ * enough. Prefer the longest alphanumeric word.
+ */
+- (NSString *)_replyTokenForMessageText:(NSString *)messageText
+{
+	if (![messageText length]) {
+		return nil;
+	}
+
+	NSString *best = nil;
+	for (NSString *word in [messageText componentsSeparatedByCharactersInSet:
+							[[NSCharacterSet alphanumericCharacterSet] invertedSet]]) {
+		if ([word length] >= 3 && [word length] > [best length]) {
+			best = word;
+		}
+	}
+	return best;
+}
+
+- (void)replyToMessage:(id)sender
+{
+	NSString *token = [sender representedObject];
+	if (![token length]) {
+		return;
+	}
+
+	AIMessageEntryTextView *entryView = [self _messageEntryTextViewInView:[[_webView window] contentView]];
+	if (!entryView) {
+		return;
+	}
+
+	[entryView setString:[NSString stringWithFormat:@"?reply %@ ", token]];
+	[[entryView window] makeFirstResponder:entryView];
+	[entryView setSelectedRange:NSMakeRange([[entryView string] length], 0)];
+}
+
+- (AIMessageEntryTextView *)_messageEntryTextViewInView:(NSView *)view
+{
+	if ([view isKindOfClass:[AIMessageEntryTextView class]]) {
+		return (AIMessageEntryTextView *)view;
+	}
+	for (NSView *subview in [view subviews]) {
+		AIMessageEntryTextView *found = [self _messageEntryTextViewInView:subview];
+		if (found) {
+			return found;
+		}
+	}
+	return nil;
 }
 
 #pragma mark - Quick Look image preview
@@ -551,7 +633,7 @@ static NSString *const AIWKContextMenuScript =
 
 #pragma mark - Context Menu
 
-- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString
+- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText
 {
 	NSWindow *window = [_webView window];
 	if (window == nil) {
@@ -564,14 +646,30 @@ static NSString *const AIWKContextMenuScript =
 	NSView *contentView = [window contentView];
 	NSPoint location = [_webView convertPoint:NSMakePoint(clientPoint.x, flippedY) toView:contentView];
 
-	NSMenu *menu = [self _contextMenuForImageURLString:imageURLString];
+	NSMenu *menu = [self _contextMenuForImageURLString:imageURLString messageText:messageText];
 	[menu popUpMenuPositioningItem:nil atLocation:location inView:contentView];
 }
 
-- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString
+- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText
 {
 	NSMenu *menu = [[NSMenu alloc] init];
 	NSMenuItem *menuItem;
+
+	/* WhatsApp can reply to (quote) a specific message: the prpl accepts
+	 * "?reply <token> <text>" and resolves the token against its recent
+	 * message cache. Offer that on right-clicked messages. */
+	if ([_chat.account.service.serviceID isEqualToString:@"WhatsApp"]) {
+		NSString *replyToken = [self _replyTokenForMessageText:messageText];
+		if (replyToken) {
+			menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Reply", nil)
+												  action:@selector(replyToMessage:)
+										   keyEquivalent:@""];
+			[menuItem setTarget:self];
+			[menuItem setRepresentedObject:replyToken];
+			[menu addItem:menuItem];
+			[menu addItem:[NSMenuItem separatorItem]];
+		}
+	}
 
 	NSURL *imageURL = AIWKImageURLFromString(imageURLString);
 
@@ -624,7 +722,11 @@ static NSString *const AIWKContextMenuScript =
 	}
 
 	if (originalMenu != nil) {
+		/* The items still belong to originalMenu; adding them directly throws
+		 * "Item to be inserted into menu already is in another menu". Detach
+		 * them first (itemArray is copied, so mutation while iterating is safe). */
 		for (menuItem in [originalMenu itemArray]) {
+			[originalMenu removeItem:menuItem];
 			[menu addItem:menuItem];
 		}
 	}

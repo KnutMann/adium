@@ -85,6 +85,19 @@ AIWKContextMenuMessage AIWKContextMenuMessageFromBody(id body)
 		return message;
 	}
 
+	NSString *messageText = [dict objectForKey:@"messageText"];
+	if (![messageText isKindOfClass:[NSString class]]) {
+		messageText = nil;
+	} else {
+		messageText = [messageText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+		if ([messageText length] == 0) {
+			messageText = nil;
+		} else if ([messageText length] > 400) {
+			messageText = [messageText substringToIndex:400];
+		}
+	}
+	message.messageText = messageText;
+
 	NSString *imageURLString = [dict objectForKey:@"imageURL"];
 	if (![imageURLString isKindOfClass:[NSString class]] || [imageURLString length] == 0) {
 		imageURLString = nil;

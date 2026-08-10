@@ -26,6 +26,8 @@ typedef struct {
 	double y;
 	/// The image URL string from the body, or nil when absent or empty.
 	NSString *imageURLString;
+	/// Plain text of the message block that was right-clicked, or nil; capped at 400 characters.
+	NSString *messageText;
 	/// YES when the body is a well-formed contextMenu message; see AIWKContextMenuMessageFromBody.
 	BOOL valid;
 } AIWKContextMenuMessage;
