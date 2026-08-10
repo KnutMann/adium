@@ -955,7 +955,9 @@ static NSString *const AIWKContextMenuScript =
 
 	/* Re-fit oversized images now and after their (async) loads settle — same pattern as the
 	 * legacy controller after adding content objects. */
-	[_webView evaluateJavaScript:@"if (window.adiumFitImages) { adiumFitImages(); setTimeout(adiumFitImages, 250); "
+	[_webView evaluateJavaScript:@"if (window.adiumInlineAudio) { adiumInlineAudio(); setTimeout(adiumInlineAudio, 250); "
+								 @"setTimeout(adiumInlineAudio, 1000); } "
+								 @"if (window.adiumFitImages) { adiumFitImages(); setTimeout(adiumFitImages, 250); "
 								 @"setTimeout(adiumFitImages, 1000); setTimeout(adiumFitImages, 3000); }"
 			   completionHandler:nil];
 }

@@ -1075,8 +1075,31 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
 
 - (NSDictionary *)extractChatCreationDictionaryFromConversation:(PurpleConversation *)conv
 {
-	AILog(@"%@ needs an implementation of extractChatCreationDictionaryFromConversation to handle rejoins, bookmarks, and invitations properly", NSStringFromClass([self class]));
-	return nil;
+	/* Generic fallback: ask the prpl for its default join components for
+	 * this conversation name. Without this, bookmarks and rejoins fail for
+	 * every service lacking a custom implementation. */
+	PurpleConnection *gc = purple_conversation_get_gc(conv);
+	PurplePluginProtocolInfo *prpl_info = (gc ? PURPLE_PLUGIN_PROTOCOL_INFO(purple_connection_get_prpl(gc)) : NULL);
+	if (!prpl_info || !prpl_info->chat_info_defaults)
+		return nil;
+
+	GHashTable *components = prpl_info->chat_info_defaults(gc, purple_conversation_get_name(conv));
+	if (!components)
+		return nil;
+
+	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+	GHashTableIter iter;
+	gpointer key, value;
+	g_hash_table_iter_init(&iter, components);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		if (key && value) {
+			[dict setObject:[NSString stringWithUTF8String:(const char *)value]
+					 forKey:[NSString stringWithUTF8String:(const char *)key]];
+		}
+	}
+	g_hash_table_destroy(components);
+
+	return (dict.count ? dict : nil);
 }
 
 - (AIChat *)chatWithContact:(AIListContact *)contact identifier:(id)identifier
