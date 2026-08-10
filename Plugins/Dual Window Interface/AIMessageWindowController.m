@@ -821,14 +821,18 @@
 	
 	if (title) [window setTitle:title];
 	
-	//Window Icon (We display state in the window title if tabs are not visible)
-	button = [window standardWindowButton:NSWindowDocumentIconButton];
-	[window setRepresentedURL:[NSURL URLWithString:@"StatusIcon"]];
-	
-	if ([tabView_tabBar isTabBarHidden] || [tabView_tabBar numberOfVisibleTabViewItems] < [m_containedChats count])
+	/* Window icon: the titlebar proxy icon carries the chat's state, but only
+	 * while the tabs do not show it themselves. A represented URL is what makes
+	 * AppKit reserve the icon's space, so clear it when there is no icon to draw
+	 * — otherwise the title is pushed aside for an empty placeholder whenever
+	 * the system's "show window title icons" setting is on. */
+	if ([tabView_tabBar isTabBarHidden] || [tabView_tabBar numberOfVisibleTabViewItems] < [m_containedChats count]) {
+		[window setRepresentedURL:[NSURL URLWithString:@"StatusIcon"]];
+		button = [window standardWindowButton:NSWindowDocumentIconButton];
 		[button setImage:[(AIMessageTabViewItem *)[tabView_messages selectedTabViewItem] icon]];
-	else
-		[button setImage:nil];
+	} else {
+		[window setRepresentedURL:nil];
+	}
 }
 
 - (AIChat *)activeChat
