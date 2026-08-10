@@ -20,8 +20,6 @@
 #import "AIStatusController.h"
 #import "AIEditAccountWindowController.h"
 #import <AIUtilities/AIAutoScrollView.h>
-#import <AIUtilities/AIImageTextCell.h>
-#import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
@@ -39,14 +37,58 @@
 #import <Adium/AIStatusIcons.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 
-#define MINIMUM_ROW_HEIGHT				34
+#define MINIMUM_ROW_HEIGHT				44
 #define MINIMUM_CELL_SPACING			 4
 
 #define	ACCOUNT_DRAG_TYPE				@"AIAccount"	    			//ID for an account drag
 
 #define NEW_ACCOUNT_DISPLAY_TEXT		AILocalizedString(@"<New Account>", "Placeholder displayed as the name of a new account")
 
+//Identifier of the single, full width column of the modern account list
+#define ACCOUNT_COLUMN_IDENTIFIER		@"account"
+#define ACCOUNT_CELL_IDENTIFIER			@"AIAccountListCell"
+
+//Metrics of a single account row, System Settings style
+#define ROW_V_PADDING					 6.0f		//Space above the name and below the status line
+#define NAME_STATUS_SPACING				 1.0f		//Space between the name and the status line
+#define NAME_FONT_SIZE					13.0f
+#define STATUS_FONT_SIZE				11.0f
+#define CELL_H_PADDING					10.0f		//Leading/trailing padding inside a row
+#define SERVICE_ICON_SIZE				32.0f
+#define SERVICE_ICON_GAP				10.0f		//Space between the service icon and the text
+#define STATUS_DOT_SIZE					 8.0f
+#define STATUS_DOT_GAP					 6.0f		//Space between the status dot and the status text
+#define STATUS_DOT_TOP_INSET			 4.0f		//Keeps the dot optically centered on the status line
+#define INFO_BUTTON_SIZE				22.0f
+#define CONTROL_GAP						10.0f		//Space around the switch
+#define LOCK_ICON_SIZE					12.0f
+#define INSET_STYLE_MARGIN				32.0f		//Horizontal room claimed by NSTableViewStyleInset (16pt per side), fallback only
+#define STATUS_WIDTH_SAFETY				 4.0f		//Deliberately underestimate the text width so rows are never too short
+#define CARD_CORNER_RADIUS				10.0f
+
+/*!
+ * @class AIAccountListCellView
+ * @brief View based row of the account list
+ *
+ * Layout: [service icon] [name / status line] [switch] [info button], with a hairline separator
+ * along the bottom edge. All subviews are owned by the view hierarchy; the properties below are
+ * non-retaining references for convenience (manual retain/release).
+ */
+@interface AIAccountListCellView : NSTableCellView
+@property (nonatomic, assign) NSTextField		*statusField;
+@property (nonatomic, assign) NSImageView		*statusDot;
+@property (nonatomic, assign) NSImageView		*lockView;
+@property (nonatomic, assign) NSSwitch			*enabledSwitch;
+@property (nonatomic, assign) NSButton			*infoButton;
+@property (nonatomic, assign) NSBox				*separator;
+@property (nonatomic, retain) NSLayoutConstraint *lockWidthConstraint;
+@property (nonatomic, assign) BOOL				 dimmed;
+@end
+
 @interface AIAccountListPreferences ()
+{
+	CGFloat		cachedLayoutWidth;
+}
 - (void)configureAccountList;
 - (void)accountListChanged:(NSNotification *)notification;
 
@@ -59,6 +101,318 @@
 - (void)updateAccountsForStatus:(id)sender;
 - (void)toggleOnlineForAccounts:(id)sender;
 - (void)toggleEnabledForAccounts:(id)sender;
+
+- (void)configureCellView:(AIAccountListCellView *)cellView forRow:(NSInteger)row;
+- (void)refreshRow:(NSInteger)row;
+- (CGFloat)statusTextWidth;
+- (NSString *)statusTitleForAccount:(AIAccount *)account;
+- (NSString *)statusLineForAccount:(AIAccount *)account;
+- (NSColor *)statusColorForAccount:(AIAccount *)account;
+- (void)setAccountEnabled:(BOOL)inEnabled atRow:(NSInteger)row;
+- (void)accountListFrameChanged:(NSNotification *)notification;
+- (void)recalculateRowHeights;
+- (BOOL)separatorHiddenForRow:(NSInteger)row;
+- (void)updateSeparators;
+- (void)tearDown;
+@end
+
+/*!
+ * @brief Width of an NSSwitch, determined once
+ */
+static CGFloat AIAccountSwitchWidth(void)
+{
+	static CGFloat switchWidth = 0.0f;
+
+	if (switchWidth <= 0.0f) {
+		NSSwitch *sizingSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
+		switchWidth = [sizingSwitch intrinsicContentSize].width;
+		[sizingSwitch release];
+
+		if (switchWidth <= 0.0f) switchWidth = 38.0f;
+	}
+
+	return switchWidth;
+}
+
+/*!
+ * @brief A filled circle used as the status indicator of a row
+ *
+ * This is a template image which is colored by the image view's contentTintColor. Keeping the color
+ * out of the image matters: an NSImage caches its rasterization, so a color baked into a drawing
+ * handler would keep the appearance it was first drawn in when the user switches between light and
+ * dark mode. A tint color is resolved against the view's effective appearance on every draw.
+ */
+static NSImage *AIStatusDotImage(void)
+{
+	static NSImage *dotImage = nil;
+
+	if (!dotImage) {
+		NSImage *image = [NSImage imageWithSystemSymbolName:@"circle.fill" accessibilityDescription:nil];
+
+		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:STATUS_DOT_SIZE
+																									weight:NSFontWeightRegular]];
+
+		if (!image) {
+			//Fall back to a plain drawn circle; as a template image it is tinted just the same
+			image = [NSImage imageWithSize:NSMakeSize(STATUS_DOT_SIZE, STATUS_DOT_SIZE)
+								   flipped:NO
+							drawingHandler:^BOOL(NSRect dstRect) {
+								[[NSColor blackColor] set];
+								[[NSBezierPath bezierPathWithOvalInRect:NSInsetRect(dstRect, 0.5f, 0.5f)] fill];
+								return YES;
+							}];
+			[image setTemplate:YES];
+		}
+
+		dotImage = [image retain];
+	}
+
+	return dotImage;
+}
+
+/*!
+ * @brief Create a non-editable, non-bordered label
+ */
+static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
+{
+	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+
+	[label setTranslatesAutoresizingMaskIntoConstraints:NO];
+	[label setEditable:NO];
+	[label setSelectable:NO];
+	[label setBezeled:NO];
+	[label setBordered:NO];
+	[label setDrawsBackground:NO];
+	[label setRefusesFirstResponder:YES];
+	[label setFont:[NSFont systemFontOfSize:fontSize]];
+	[label setTextColor:textColor];
+	[label setStringValue:@""];
+
+	return label;
+}
+
+@implementation AIAccountListCellView
+
+- (id)initWithFrame:(NSRect)frameRect
+{
+	if ((self = [super initWithFrame:frameRect])) {
+		[self setIdentifier:ACCOUNT_CELL_IDENTIFIER];
+
+		//Service icon
+		NSImageView *serviceIcon = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		[serviceIcon setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[serviceIcon setImageScaling:NSImageScaleProportionallyUpOrDown];
+		[serviceIcon setEditable:NO];
+		//The service is named in the accessibility label of the whole row; don't read it twice
+		[serviceIcon setAccessibilityElement:NO];
+		[self addSubview:serviceIcon];
+		[self setImageView:serviceIcon];
+
+		//Container holding the two lines of text, vertically centered as a block
+		NSView *textContainer = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+		[textContainer setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:textContainer];
+
+		//Account name
+		NSTextField *nameField = AIAccountListLabel(NAME_FONT_SIZE, [NSColor labelColor]);
+		[[nameField cell] setLineBreakMode:NSLineBreakByTruncatingTail];
+		[nameField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+											forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[textContainer addSubview:nameField];
+		[self setTextField:nameField];
+
+		//Encryption indicator, shown right after the name
+		NSImageView *lockView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		[lockView setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[lockView setImageScaling:NSImageScaleProportionallyDown];
+		[lockView setEditable:NO];
+		[textContainer addSubview:lockView];
+		[self setLockView:lockView];
+
+		//Colored status dot; its meaning is spelled out by the status line right next to it
+		NSImageView *statusDot = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		[statusDot setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[statusDot setImageScaling:NSImageScaleProportionallyDown];
+		[statusDot setEditable:NO];
+		[statusDot setImage:AIStatusDotImage()];
+		[statusDot setAccessibilityElement:NO];
+		[textContainer addSubview:statusDot];
+		[self setStatusDot:statusDot];
+
+		//Status line
+		NSTextField *statusField = AIAccountListLabel(STATUS_FONT_SIZE, [NSColor secondaryLabelColor]);
+		[[statusField cell] setLineBreakMode:NSLineBreakByWordWrapping];
+		[[statusField cell] setWraps:YES];
+		[statusField setMaximumNumberOfLines:0];
+		[statusField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+											  forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[textContainer addSubview:statusField];
+		[self setStatusField:statusField];
+
+		//Enabled switch
+		NSSwitch *enabledSwitch = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+		[enabledSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:enabledSwitch];
+		[self setEnabledSwitch:enabledSwitch];
+
+		//Info button, opens the account editor
+		NSImage *infoImage = [NSImage imageWithSystemSymbolName:@"info.circle"
+									   accessibilityDescription:AILocalizedString(@"Account Information", "Accessibility description of the button which opens an account's settings")];
+		infoImage = [infoImage imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:16.0f
+																										   weight:NSFontWeightRegular]];
+		if (!infoImage) infoImage = [NSImage imageNamed:NSImageNameRevealFreestandingTemplate];
+
+		NSButton *infoButton = [NSButton buttonWithImage:infoImage target:nil action:NULL];
+		[infoButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[infoButton setBordered:NO];
+		[infoButton setImagePosition:NSImageOnly];
+		[infoButton setContentTintColor:[NSColor secondaryLabelColor]];
+		[self addSubview:infoButton];
+		[self setInfoButton:infoButton];
+
+		//Hairline separating this row from the next one
+		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[separator setBoxType:NSBoxSeparator];
+		[self addSubview:separator];
+		[self setSeparator:separator];
+
+		NSLayoutConstraint *lockWidth = [[lockView widthAnchor] constraintEqualToConstant:0.0f];
+		[self setLockWidthConstraint:lockWidth];
+
+		[NSLayoutConstraint activateConstraints:[NSArray arrayWithObjects:
+			//Service icon
+			[[serviceIcon leadingAnchor] constraintEqualToAnchor:[self leadingAnchor] constant:CELL_H_PADDING],
+			[[serviceIcon centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+			[[serviceIcon widthAnchor] constraintEqualToConstant:SERVICE_ICON_SIZE],
+			[[serviceIcon heightAnchor] constraintEqualToConstant:SERVICE_ICON_SIZE],
+
+			//Info button
+			[[infoButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
+			[[infoButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+			[[infoButton widthAnchor] constraintEqualToConstant:INFO_BUTTON_SIZE],
+			[[infoButton heightAnchor] constraintEqualToConstant:INFO_BUTTON_SIZE],
+
+			//Switch
+			[[enabledSwitch trailingAnchor] constraintEqualToAnchor:[infoButton leadingAnchor] constant:-CONTROL_GAP],
+			[[enabledSwitch centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+
+			//Text block
+			[[textContainer leadingAnchor] constraintEqualToAnchor:[serviceIcon trailingAnchor] constant:SERVICE_ICON_GAP],
+			[[textContainer trailingAnchor] constraintEqualToAnchor:[enabledSwitch leadingAnchor] constant:-CONTROL_GAP],
+			[[textContainer centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+
+			//Name and encryption indicator
+			[[nameField topAnchor] constraintEqualToAnchor:[textContainer topAnchor]],
+			[[nameField leadingAnchor] constraintEqualToAnchor:[textContainer leadingAnchor]],
+			[[lockView leadingAnchor] constraintEqualToAnchor:[nameField trailingAnchor] constant:4.0f],
+			[[lockView centerYAnchor] constraintEqualToAnchor:[nameField centerYAnchor]],
+			[[lockView trailingAnchor] constraintLessThanOrEqualToAnchor:[textContainer trailingAnchor]],
+			[[lockView heightAnchor] constraintEqualToConstant:LOCK_ICON_SIZE],
+			lockWidth,
+
+			//Status dot and status line
+			[[statusDot leadingAnchor] constraintEqualToAnchor:[textContainer leadingAnchor]],
+			[[statusDot topAnchor] constraintEqualToAnchor:[nameField bottomAnchor] constant:(NAME_STATUS_SPACING + STATUS_DOT_TOP_INSET)],
+			[[statusDot widthAnchor] constraintEqualToConstant:STATUS_DOT_SIZE],
+			[[statusDot heightAnchor] constraintEqualToConstant:STATUS_DOT_SIZE],
+			[[statusField topAnchor] constraintEqualToAnchor:[nameField bottomAnchor] constant:NAME_STATUS_SPACING],
+			[[statusField leadingAnchor] constraintEqualToAnchor:[statusDot trailingAnchor] constant:STATUS_DOT_GAP],
+			[[statusField trailingAnchor] constraintEqualToAnchor:[textContainer trailingAnchor]],
+			[[statusField bottomAnchor] constraintEqualToAnchor:[textContainer bottomAnchor]],
+
+			//Separator
+			[[separator leadingAnchor] constraintEqualToAnchor:[textContainer leadingAnchor]],
+			[[separator trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]],
+			[[separator bottomAnchor] constraintEqualToAnchor:[self bottomAnchor]],
+			[[separator heightAnchor] constraintEqualToConstant:1.0f],
+			nil]];
+	}
+
+	return self;
+}
+
+- (void)dealloc
+{
+	[_lockWidthConstraint release];
+	[super dealloc];
+}
+
+/*!
+ * @brief Only the switch and the info button swallow clicks
+ *
+ * Everything else is handed to the table view so that row selection, double clicks, drags and
+ * context menus keep working exactly as they did with the old cell based list.
+ *
+ * Right clicks (and control clicks) always go to the row itself: neither NSSwitch nor NSButton
+ * supplies a context menu, so a right click landing on one of them would otherwise be swallowed
+ * and the account's context menu would be unreachable in that corner of the row.
+ */
+- (NSView *)hitTest:(NSPoint)aPoint
+{
+	NSView *hitView = [super hitTest:aPoint];
+
+	if (!hitView) return nil;
+
+	NSEvent		*currentEvent = [NSApp currentEvent];
+	NSEventType	 eventType = [currentEvent type];
+	BOOL		 contextClick = ((eventType == NSEventTypeRightMouseDown) ||
+								 (eventType == NSEventTypeRightMouseUp) ||
+								 (((eventType == NSEventTypeLeftMouseDown) || (eventType == NSEventTypeLeftMouseUp)) &&
+								  (([currentEvent modifierFlags] & NSEventModifierFlagControl) != 0)));
+
+	if (!contextClick &&
+		(hitView == [self enabledSwitch] || [hitView isDescendantOf:[self enabledSwitch]] ||
+		 hitView == [self infoButton] || [hitView isDescendantOf:[self infoButton]])) {
+		return hitView;
+	}
+
+	return self;
+}
+
+/*!
+ * @brief Let the table view (and therefore our delegate) supply the context menu
+ */
+- (NSMenu *)menuForEvent:(NSEvent *)theEvent
+{
+	NSView *view = [self superview];
+
+	while (view && ![view isKindOfClass:[NSTableView class]]) {
+		view = [view superview];
+	}
+
+	if (view) return [view menuForEvent:theEvent];
+
+	return [super menuForEvent:theEvent];
+}
+
+- (void)setDimmed:(BOOL)inDimmed
+{
+	_dimmed = inDimmed;
+	[self updateTextColors];
+}
+
+- (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle
+{
+	[super setBackgroundStyle:backgroundStyle];
+	[self updateTextColors];
+}
+
+- (void)updateTextColors
+{
+	BOOL emphasized = ([self backgroundStyle] == NSBackgroundStyleEmphasized);
+
+	[[self textField] setTextColor:(emphasized ?
+									[NSColor alternateSelectedControlTextColor] :
+									(_dimmed ? [NSColor secondaryLabelColor] : [NSColor labelColor]))];
+	[[self statusField] setTextColor:(emphasized ?
+									  [NSColor alternateSelectedControlTextColor] :
+									  [NSColor secondaryLabelColor])];
+	[[self infoButton] setContentTintColor:(emphasized ?
+											[NSColor alternateSelectedControlTextColor] :
+											[NSColor secondaryLabelColor])];
+}
+
 @end
 
 /*!
@@ -137,8 +491,7 @@
 									   name:AIServiceIconSetDidChangeNotification
 									 object:nil];
 	
-	[tableView_accountList accessibilitySetOverrideValue:AILocalizedString(@"Accounts", nil)
-											forAttribute:NSAccessibilityTitleAttribute];
+	[tableView_accountList setAccessibilityLabel:AILocalizedString(@"Accounts", nil)];
 
 	// Start updating the reconnect time if an account is already reconnecting.	
 	[self updateReconnectTime:nil];
@@ -149,14 +502,29 @@
  */
 - (void)viewWillClose
 {
+	[self tearDown];
+}
+
+/*!
+ * @brief Undo everything -viewDidLoad and -configureAccountList set up
+ *
+ * Idempotent, so that it is safe to run it from both -viewWillClose and -dealloc. Running it from
+ * -dealloc matters: AIContactObserverManager keeps observers in non-retaining, non-zeroing
+ * NSValues, so an instance which is released without -viewWillClose ever having run would leave a
+ * dangling pointer behind and the next status change of any account would message freed memory.
+ */
+- (void)tearDown
+{
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(recalculateRowHeights) object:nil];
+
 	[accountArray release]; accountArray = nil;
+	[tempDragAccounts release]; tempDragAccounts = nil;
 	[requiredHeightDict release]; requiredHeightDict = nil;
 	[accountMenu_options release]; accountMenu_options = nil;
 	[accountMenu_status release]; accountMenu_status = nil;
-	
+
 	// Cancel our auto-refreshing reconnect countdown.
 	[reconnectTimeUpdater invalidate];
 	[reconnectTimeUpdater release]; reconnectTimeUpdater = nil;
@@ -164,7 +532,7 @@
 
 - (void)dealloc
 {
-	[accountArray release];
+	[self tearDown];
 	[super dealloc];
 }
 
@@ -187,13 +555,17 @@
 		   [inModifiedKeys containsObject:@"idleSince"] ||
 		   [inModifiedKeys containsObject:@"accountStatus"]) {
 
-			//Refresh this account in our list
-			NSInteger accountRow = [accountArray indexOfObject:inObject];
-			if (accountRow >= 0 && accountRow < [accountArray count]) {
-				[tableView_accountList setNeedsDisplayInRect:[tableView_accountList rectOfRow:accountRow]];
+			/* Refresh this account in our list. The table may not know about every account yet:
+			 * accountArray is the account controller's own array, so it grows and shrinks the
+			 * moment an account is added or removed - before Account_ListChanged reaches us and we
+			 * reload. Telling the table about a row it does not have raises an exception. */
+			NSUInteger accountRow = [accountArray indexOfObject:inObject];
+			if (accountRow != NSNotFound && accountRow < (NSUInteger)[tableView_accountList numberOfRows]) {
 				// Update the height of the row.
 				[self calculateHeightForRow:accountRow];
 				[tableView_accountList noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndex:accountRow]];
+				// Reconfigure the row's view with the new status.
+				[self refreshRow:accountRow];
 
 				// If necessary, update our reconnection display time.
 				if (!reconnectTimeUpdater) {
@@ -262,13 +634,49 @@
 /*!
  * @brief Handle a double click within our table
  *
- * Ignore double clicks on the enable/disable checkbox
+ * Clicks on the switch and on the info button never reach the table view, so any double click
+ * which arrives here is meant to open the account editor.
  */
 - (void)doubleClickInTableView:(id)sender
 {
-	if (!(NSPointInRect([tableView_accountList convertPoint:[[NSApp currentEvent] locationInWindow] fromView:nil],
-						[tableView_accountList rectOfColumn:[tableView_accountList columnWithIdentifier:@"enabled"]]))) {
-		[self editSelectedAccount:sender];
+	[self editSelectedAccount:sender];
+}
+
+/*!
+ * @brief The switch of a row was toggled
+ *
+ * Takes exactly the same path the "enabled" checkbox column used to take.
+ */
+- (IBAction)toggleAccountEnabled:(id)sender
+{
+	NSInteger	row = [tableView_accountList rowForView:(NSView *)sender];
+
+	[self setAccountEnabled:([(NSSwitch *)sender state] == NSControlStateValueOn) atRow:row];
+}
+
+/*!
+ * @brief Enable or disable the account in a given row
+ *
+ * This is the code path formerly used by -tableView:setObjectValue:forTableColumn:row: for the
+ * "enabled" checkbox column.
+ */
+- (void)setAccountEnabled:(BOOL)inEnabled atRow:(NSInteger)row
+{
+	if (row >= 0 && row < (NSInteger)[accountArray count]) {
+		[(AIAccount *)[accountArray objectAtIndex:row] setEnabled:inEnabled];
+	}
+}
+
+/*!
+ * @brief The info button of a row was clicked; edit that account
+ */
+- (IBAction)editAccountFromRowButton:(id)sender
+{
+	NSInteger	row = [tableView_accountList rowForView:(NSView *)sender];
+
+	if (row >= 0 && row < (NSInteger)[accountArray count]) {
+		[tableView_accountList selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO];
+		[self editAccount:[accountArray objectAtIndex:row]];
 	}
 }
 
@@ -353,8 +761,6 @@
  */
 - (void)configureAccountList
 {
-    AIImageTextCell		*cell;
-	
 	{
 		NSRect newFrame, oldFrame;
 		oldFrame = [button_editAccount frame];
@@ -366,31 +772,64 @@
 		[button_editAccount setFrame:newFrame];
 	}
 	
-	//Configure our table view
+	//Configure our table view for a view based, System Settings style list
 	[tableView_accountList setTarget:self];
 	[tableView_accountList setDoubleAction:@selector(doubleClickInTableView:)];
-	[tableView_accountList setIntercellSpacing:NSMakeSize(MINIMUM_CELL_SPACING, MINIMUM_CELL_SPACING)];
+	[tableView_accountList setIntercellSpacing:NSZeroSize];
+	[tableView_accountList setHeaderView:nil];
+	[tableView_accountList setCornerView:nil];
+	[tableView_accountList setGridStyleMask:NSTableViewGridNone];
+	[tableView_accountList setUsesAlternatingRowBackgroundColors:NO];
+	[tableView_accountList setBackgroundColor:[NSColor clearColor]];
+	[tableView_accountList setRowSizeStyle:NSTableViewRowSizeStyleCustom];
+	[tableView_accountList setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
+	[tableView_accountList setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
+	[tableView_accountList setAllowsMultipleSelection:YES];
+	[tableView_accountList setAllowsColumnReordering:NO];
+	//The single column has to follow the width of the table; without a header the user can't drag it anyway
+	[tableView_accountList setAllowsColumnResizing:YES];
+	[tableView_accountList setFocusRingType:NSFocusRingTypeNone];
+	if (@available(macOS 11.0, *)) {
+		[tableView_accountList setStyle:NSTableViewStyleInset];
+	}
+
+	//Replace the legacy cell based columns with a single, full width column
+	for (NSTableColumn *tableColumn in [[[tableView_accountList tableColumns] copy] autorelease]) {
+		[tableView_accountList removeTableColumn:tableColumn];
+	}
+
+	NSTableColumn *accountColumn = [[[NSTableColumn alloc] initWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER] autorelease];
+	[accountColumn setResizingMask:NSTableColumnAutoresizingMask];
+	[accountColumn setEditable:NO];
+	[accountColumn setMinWidth:80.0f];
+	[accountColumn setMaxWidth:10000.0f];
+	//The table tiles the column to the width the inset style leaves over; start out with that width
+	//so the first row heights are not calculated against a column which is 32pt too wide
+	[accountColumn setWidth:(NSWidth([tableView_accountList bounds]) - INSET_STYLE_MARGIN)];
+	[tableView_accountList addTableColumn:accountColumn];
+
+	//Present the list as a rounded, borderless card
+	[scrollView_accountList setBorderType:NSNoBorder];
+	[scrollView_accountList setDrawsBackground:YES];
+	[scrollView_accountList setBackgroundColor:[NSColor controlBackgroundColor]];
+	[scrollView_accountList setAutomaticallyAdjustsContentInsets:NO];
+	[scrollView_accountList setContentInsets:NSEdgeInsetsMake(4.0f, 0.0f, 4.0f, 0.0f)];
+	//The scroller style is left alone on purpose: it follows +[NSScroller preferredScrollerStyle],
+	//so "Show scroll bars: Always" in System Settings keeps working
+	[scrollView_accountList setWantsLayer:YES];
+	[[scrollView_accountList layer] setCornerRadius:CARD_CORNER_RADIUS];
+	[[scrollView_accountList layer] setMasksToBounds:YES];
+
+	//Row heights depend on the available width, so recalculate them when it changes
+	cachedLayoutWidth = NSWidth([tableView_accountList bounds]);
+	[tableView_accountList setPostsFrameChangedNotifications:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(accountListFrameChanged:)
+												 name:NSViewFrameDidChangeNotification
+											   object:tableView_accountList];
 
 	//Enable dragging of accounts
 	[tableView_accountList registerForDraggedTypes:[NSArray arrayWithObjects:ACCOUNT_DRAG_TYPE,nil]];
-	
-    cell = [[AIImageTextCell alloc] init];
-    [cell setFont:[NSFont boldSystemFontOfSize:13]];
-	[cell setDrawsImageAfterMainString:YES];
-    [[tableView_accountList tableColumnWithIdentifier:@"name"] setDataCell:cell];
-	[cell setLineBreakMode:NSLineBreakByWordWrapping];
-	[cell release];
-
-    cell = [[AIImageTextCell alloc] init];
-    [cell setFont:[NSFont systemFontOfSize:13]];
-    [cell setAlignment:NSTextAlignmentRight];
-	[cell setLineBreakMode:NSLineBreakByWordWrapping];
-    [[tableView_accountList tableColumnWithIdentifier:@"status"] setDataCell:cell];
-	[cell accessibilitySetOverrideValue:[NSNumber numberWithBool:YES]
-						   forAttribute:NSAccessibilityEnabledAttribute];
-	[cell release];
-    
-	[tableView_accountList sizeToFit];
 
 	//Observe changes to the account list
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -408,15 +847,19 @@
  */
 - (void)accountListChanged:(NSNotification *)notification
 {
-    //Update our list of accounts
+    /* Update our list of accounts. This has to be a snapshot: the account controller hands out its
+	 * own mutable array, which would change underneath the table between a change to the account
+	 * list and the reload below. */
     [accountArray release];
-	accountArray = [adium.accountController.accounts retain];
+	accountArray = [adium.accountController.accounts copy];
+
+	//Row heights have to be known before the table asks for them
+	[self calculateAllHeights];
 
 	//Refresh the account table
 	[tableView_accountList reloadData];
 	[self updateControlAvailability];
 	[self updateAccountOverview];
-	[self calculateAllHeights];
 }
 
 /*!
@@ -616,7 +1059,7 @@
 
 	for (accountRow = 0; accountRow < [accountArray count]; accountRow++) {
 		if ([[accountArray objectAtIndex:accountRow] valueForProperty:@"waitingToReconnect"] != nil) {
-			[tableView_accountList setNeedsDisplayInRect:[tableView_accountList rectOfRow:accountRow]];
+			[self refreshRow:accountRow];
 			moreUpdatesNeeded = YES;
 		}
 	}
@@ -638,7 +1081,16 @@
  */
 - (void)iconPackDidChange:(NSNotification *)notification
 {
+	//A view based table forgets its selection in -reloadData, and does so silently
+	NSIndexSet	*selectedIndexes = [[[tableView_accountList selectedRowIndexes] copy] autorelease];
+
 	[tableView_accountList reloadData];
+
+	if ([selectedIndexes count]) {
+		[tableView_accountList selectRowIndexes:selectedIndexes byExtendingSelection:NO];
+	}
+
+	[self updateControlAvailability];
 }
 
 /*!
@@ -677,7 +1129,8 @@
 					online];			
 			}
 		} else {
-			accountOverview = AILocalizedString(@"Check a box to enable an account","Instructions for enabling an account");
+			//There is no checkbox any more; each row carries a switch
+			accountOverview = AILocalizedString(@"Turn on a switch to enable an account","Instructions for enabling an account");
 		}
 	}
 
@@ -738,49 +1191,223 @@
 }
 
 /*!
+ * @brief The width available to the status line of a row
+ *
+ * The same value is used to lay out the status label and to calculate the height of a row, so the
+ * calculated height and the height the label actually needs always agree.
+ *
+ * The width of a row is the width of our column, not the width of the table: NSTableViewStyleInset
+ * takes 16pt off each side. Rather than assuming that constant we ask the column, which is what the
+ * table really lays the cell out with; the constant is only a fallback for the time before the
+ * table has tiled. A few points are shaved off on top of that, so the label is laid out slightly
+ * narrower than it really is and a row therefore never ends up too short for its text.
+ */
+- (CGFloat)statusTextWidth
+{
+	NSTableColumn	*accountColumn = [tableView_accountList tableColumnWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER];
+	CGFloat			 cellWidth = (accountColumn ? [accountColumn width] : 0.0f);
+
+	if (cellWidth <= 0.0f) {
+		CGFloat		tableWidth = NSWidth([tableView_accountList bounds]);
+
+		if (tableWidth <= 0.0f) tableWidth = NSWidth([scrollView_accountList bounds]);
+		if (tableWidth <= 0.0f) tableWidth = 500.0f;
+
+		cellWidth = tableWidth - INSET_STYLE_MARGIN;
+	}
+
+	CGFloat		width = (cellWidth
+						 - (CELL_H_PADDING + SERVICE_ICON_SIZE + SERVICE_ICON_GAP)
+						 - (CONTROL_GAP + AIAccountSwitchWidth() + CONTROL_GAP + INFO_BUTTON_SIZE + CELL_H_PADDING)
+						 - (STATUS_DOT_SIZE + STATUS_DOT_GAP)
+						 - STATUS_WIDTH_SAFETY);
+
+	return (width < 80.0f ? 80.0f : width);
+}
+
+/*!
+ * @brief The one-word description of an account's state
+ */
+- (NSString *)statusTitleForAccount:(AIAccount *)account
+{
+	if (!account.enabled)
+		return AILocalizedString(@"Disabled",nil);
+
+	if ([account boolValueForProperty:@"isConnecting"])
+		return AILocalizedString(@"Connecting",nil);
+
+	if ([account boolValueForProperty:@"isDisconnecting"])
+		return AILocalizedString(@"Disconnecting",nil);
+
+	if ([account boolValueForProperty:@"isOnline"]) {
+		/* Name the status the account is actually in - away, invisible, a custom state - the way the
+		 * status icon column of the old list did. Without this every connected account would read
+		 * "Online" and away or invisible accounts would be indistinguishable. */
+		AIStatus	*statusState = [account statusState];
+		NSString	*title = (statusState ? [adium.statusController descriptionForStateOfStatus:statusState] : nil);
+
+		if (![title length]) title = AILocalizedString(@"Online",nil);
+
+		if ([account valueForProperty:@"idleSince"]) {
+			title = [NSString stringWithFormat:@"%@ (%@)", title, AILocalizedString(@"Idle", nil)];
+		}
+
+		return title;
+	}
+
+	if ([account valueForProperty:@"waitingToReconnect"])
+		return AILocalizedString(@"Reconnecting", @"Used when the account will perform an automatic reconnection after a certain period of time.");
+
+	if ([account boolValueForProperty:@"isWaitingForNetwork"])
+		return AILocalizedString(@"Network Offline", @"Used when the account will connect once the network returns.");
+
+	return [adium.statusController localizedDescriptionForCoreStatusName:STATUS_NAME_OFFLINE];
+}
+
+/*!
+ * @brief The complete status line of an account
+ *
+ * Combines the state, the reconnection countdown and the connection progress or error message
+ * which the cell based list used to draw as separate sub strings.
+ */
+- (NSString *)statusLineForAccount:(AIAccount *)account
+{
+	NSString	*statusLine = [self statusTitleForAccount:account];
+	NSString	*statusMessage = [self statusMessageForAccount:account];
+
+	//Countdown until the automatic reconnection happens
+	if (account.enabled &&
+		![account boolValueForProperty:@"isConnecting"] &&
+		[account valueForProperty:@"waitingToReconnect"]) {
+		NSString *format = [NSDateFormatter stringForTimeInterval:[[account valueForProperty:@"waitingToReconnect"] timeIntervalSinceNow]
+												   showingSeconds:YES
+													  abbreviated:YES
+													 approximated:NO];
+
+		statusLine = [statusLine stringByAppendingFormat:@" %@",
+					  [NSString stringWithFormat:AILocalizedString(@"...in %@", @"The amount of time until a reconnect occurs. %@ is the formatted time remaining."), format]];
+	}
+
+	if ([statusMessage length]) {
+		if ([account boolValueForProperty:@"isConnecting"]) {
+			//The connection progress string already describes what is going on
+			statusLine = statusMessage;
+		} else {
+			statusLine = [NSString stringWithFormat:@"%@ — %@", statusLine, statusMessage];
+		}
+	}
+
+	return statusLine;
+}
+
+/*!
+ * @brief The color of the status dot of an account
+ */
+- (NSColor *)statusColorForAccount:(AIAccount *)account
+{
+	if (!account.enabled)
+		return [NSColor systemGrayColor];
+
+	if ([account boolValueForProperty:@"isOnline"])
+		return [NSColor systemGreenColor];
+
+	if ([account boolValueForProperty:@"isConnecting"] ||
+		[account boolValueForProperty:@"isDisconnecting"] ||
+		[account valueForProperty:@"waitingToReconnect"] ||
+		[account boolValueForProperty:@"isWaitingForNetwork"])
+		return [NSColor systemOrangeColor];
+
+	if ([account lastDisconnectionError])
+		return [NSColor systemRedColor];
+
+	return [NSColor systemGrayColor];
+}
+
+/*!
 * @brief Calculates the height of a given row and stores it
  */
 - (void)calculateHeightForRow:(NSInteger)row
-{	
+{
 	// Make sure this is a valid row.
 	if (row < 0 || row >= [accountArray count]) {
 		return;
 	}
-	
+
 	AIAccount		*account = [accountArray objectAtIndex:row];
-	CGFloat			necessaryHeight = MINIMUM_ROW_HEIGHT;
-	
-	// If there's a status message, let's try size to fit it.
-	if ([self statusMessageForAccount:account]) {
-		NSTableColumn		*tableColumn = [tableView_accountList tableColumnWithIdentifier:@"name"];
-		
-		[self tableView:tableView_accountList willDisplayCell:[tableColumn dataCell] forTableColumn:tableColumn row:row];
-		
-		// Main string (account name)
-		NSDictionary		*mainStringAttributes	= [NSDictionary dictionaryWithObjectsAndKeys:[NSFont boldSystemFontOfSize:13], NSFontAttributeName, nil];
-		NSAttributedString	*mainTitle = [[NSAttributedString alloc] initWithString:([account.formattedUID length] ? account.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)
-																		 attributes:mainStringAttributes];
-		
-		// Substring (the status message)
-		NSDictionary		*subStringAttributes	= [NSDictionary dictionaryWithObjectsAndKeys:[NSFont systemFontOfSize:10], NSFontAttributeName, nil];
-		NSAttributedString	*subStringTitle = [[NSAttributedString alloc] initWithString:[self statusMessageForAccount:account]
-																			  attributes:subStringAttributes];
-		
-		// Both heights combined, with spacing in-between
-		CGFloat combinedHeight = [mainTitle heightWithWidth:[tableColumn width]] + [subStringTitle heightWithWidth:[tableColumn width]] + MINIMUM_CELL_SPACING;
-		
-		// Make sure we're not down-sizing
-		if (combinedHeight > necessaryHeight) {
-			necessaryHeight = combinedHeight;
-		}
-		
-		[subStringTitle release];
-		[mainTitle release];
+	NSString		*statusLine = [self statusLineForAccount:account];
+
+	/* Measure with the very cells which draw the two lines later on. NSTextField lays its text out
+	 * differently from a bare NSLayoutManager (14pt versus 13pt per line at this font size), so
+	 * measuring any other way makes rows come out too short for multi-line error messages. */
+	static NSTextField	*nameSizingField = nil;
+	static NSTextField	*statusSizingField = nil;
+
+	if (!nameSizingField) {
+		nameSizingField = [AIAccountListLabel(NAME_FONT_SIZE, [NSColor labelColor]) retain];
+		[[nameSizingField cell] setLineBreakMode:NSLineBreakByTruncatingTail];
+
+		statusSizingField = [AIAccountListLabel(STATUS_FONT_SIZE, [NSColor secondaryLabelColor]) retain];
+		[[statusSizingField cell] setLineBreakMode:NSLineBreakByWordWrapping];
+		[[statusSizingField cell] setWraps:YES];
+		[statusSizingField setMaximumNumberOfLines:0];
 	}
-	
+
+	// The name is always a single line
+	[nameSizingField setStringValue:@"Xy"];
+
+	// The status line wraps; it grows for connection errors and reconnection countdowns
+	[statusSizingField setStringValue:([statusLine length] ? statusLine : @"Xy")];
+
+	CGFloat			necessaryHeight = ((ROW_V_PADDING * 2.0f) +
+									   [[nameSizingField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, 100000.0f, 100000.0f)].height +
+									   NAME_STATUS_SPACING +
+									   [[statusSizingField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, [self statusTextWidth], 100000.0f)].height);
+
+	// Never go below the minimum row height
+	if (necessaryHeight < MINIMUM_ROW_HEIGHT) {
+		necessaryHeight = MINIMUM_ROW_HEIGHT;
+	}
+
 	// Cache the height value
 	[requiredHeightDict setObject:[NSNumber numberWithDouble:necessaryHeight]
 						   forKey:[NSNumber numberWithInteger:row]];
+}
+
+/*!
+ * @brief The available width changed; row heights and text wrapping depend on it
+ */
+- (void)accountListFrameChanged:(NSNotification *)notification
+{
+	CGFloat		width = NSWidth([tableView_accountList bounds]);
+
+	if (fabs(width - cachedLayoutWidth) < 1.0f) return;
+
+	cachedLayoutWidth = width;
+
+	//We may be inside the table's own layout pass, so reload once the run loop comes back around
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(recalculateRowHeights) object:nil];
+	[self performSelector:@selector(recalculateRowHeights) withObject:nil afterDelay:0.0];
+}
+
+/*!
+ * @brief Recalculate every row height and rebuild the visible rows for the new width
+ *
+ * Deliberately without -reloadData: a view based table drops its selection there without posting a
+ * selection notification, which would leave "Edit" and "-" enabled with nothing selected.
+ * -noteHeightOfRowsWithIndexesChanged: keeps the selection, and the rows on screen are simply
+ * reconfigured in place.
+ */
+- (void)recalculateRowHeights
+{
+	[self calculateAllHeights];
+
+	NSUInteger	rowCount = MIN((NSUInteger)[tableView_accountList numberOfRows], [accountArray count]);
+
+	[tableView_accountList noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, rowCount)]];
+
+	[tableView_accountList enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
+		[self refreshRow:row];
+	}];
 }
 
 /*!
@@ -824,55 +1451,142 @@
 	if (row < 0 || row >= [accountArray count]) {
 		return nil;
 	}
-	
-	NSString 	*identifier = [tableColumn identifier];
-	AIAccount	*account = [accountArray objectAtIndex:row];
-	
-	if ([identifier isEqualToString:@"service"]) {
-		return [[AIServiceIcons serviceIconForObject:account
-												type:AIServiceIconLarge
-										   direction:AIIconNormal] imageByScalingToSize:NSMakeSize(MINIMUM_ROW_HEIGHT-2, MINIMUM_ROW_HEIGHT-2)
-																			   fraction:(account.enabled ?
-																						 1.0f :
-																						 0.75f)];
 
-	} else if ([identifier isEqualToString:@"name"]) {
-		return [[account explicitFormattedUID] length] ? [account explicitFormattedUID] : NEW_ACCOUNT_DISPLAY_TEXT;
-		
-	} else if ([identifier isEqualToString:@"status"]) {
-		NSString	*title;
-		
-		if (account.enabled) {
-			if ([account boolValueForProperty:@"isConnecting"]) {
-				title = AILocalizedString(@"Connecting",nil);
-			} else if ([account boolValueForProperty:@"isDisconnecting"]) {
-				title = AILocalizedString(@"Disconnecting",nil);
-			} else if ([account boolValueForProperty:@"isOnline"]) {
-				title = AILocalizedString(@"Online",nil);
-			} else if ([account valueForProperty:@"waitingToReconnect"]) {
-				title = AILocalizedString(@"Reconnecting", @"Used when the account will perform an automatic reconnection after a certain period of time.");
-			} else if ([account boolValueForProperty:@"isWaitingForNetwork"]) {
-				title = AILocalizedString(@"Network Offline", @"Used when the account will connect once the network returns.");
-			} else {
-				title = [adium.statusController localizedDescriptionForCoreStatusName:STATUS_NAME_OFFLINE];
-			}
+	return [accountArray objectAtIndex:row];
+}
 
-		} else {
-			title = AILocalizedString(@"Disabled",nil);
-		}
-
-		return title;
-		
-	} else if ([identifier isEqualToString:@"statusicon"]) {
-
-		return [AIStatusIcons statusIconForListObject:account type:AIStatusIconList direction:AIIconNormal];
-		
-	} else if ([identifier isEqualToString:@"enabled"]) {
+/*!
+ * @brief Supply the view of a row
+ */
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+{
+	if (row < 0 || row >= [accountArray count]) {
 		return nil;
-
 	}
 
-	return nil;
+	AIAccountListCellView	*cellView = (AIAccountListCellView *)[tableView makeViewWithIdentifier:ACCOUNT_CELL_IDENTIFIER
+																						    owner:self];
+
+	if (![cellView isKindOfClass:[AIAccountListCellView class]]) {
+		cellView = [[[AIAccountListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																			NSWidth([tableView bounds]),
+																			MINIMUM_ROW_HEIGHT)] autorelease];
+	}
+
+	[self configureCellView:cellView forRow:row];
+
+	return cellView;
+}
+
+/*!
+ * @brief Fill a row's view with the current state of its account
+ */
+- (void)configureCellView:(AIAccountListCellView *)cellView forRow:(NSInteger)row
+{
+	if (row < 0 || row >= [accountArray count]) {
+		return;
+	}
+
+	AIAccount	*account = [accountArray objectAtIndex:row];
+	BOOL		accountEnabled = account.enabled;
+
+	//Service icon; dimmed for disabled accounts
+	[[cellView imageView] setImage:[[AIServiceIcons serviceIconForObject:account
+																   type:AIServiceIconLarge
+															  direction:AIIconNormal] imageByScalingToSize:NSMakeSize(SERVICE_ICON_SIZE, SERVICE_ICON_SIZE)
+																								  fraction:(accountEnabled ? 1.0f : 0.5f)]];
+
+	//Account name
+	NSString	*accountName = ([[account explicitFormattedUID] length] ?
+								[account explicitFormattedUID] :
+								NEW_ACCOUNT_DISPLAY_TEXT);
+	[[cellView textField] setStringValue:accountName];
+
+	//Encryption indicator
+	if ([account encrypted]) {
+		[[cellView lockView] setImage:[NSImage imageForSSL]];
+		[[cellView lockWidthConstraint] setConstant:LOCK_ICON_SIZE];
+	} else {
+		[[cellView lockView] setImage:nil];
+		[[cellView lockWidthConstraint] setConstant:0.0f];
+	}
+
+	//Status line and status dot
+	NSString	*statusLine = [self statusLineForAccount:account];
+
+	[[cellView statusField] setPreferredMaxLayoutWidth:[self statusTextWidth]];
+	[[cellView statusField] setStringValue:statusLine];
+	[[cellView statusDot] setContentTintColor:[self statusColorForAccount:account]];
+
+	/* Enable/disable switch. Setting the state unconditionally would interfere with the switch's own
+	 * click handling: -setEnabled: on the account notifies observers synchronously, so this method
+	 * runs again while the switch the user just hit is still tracking. */
+	NSControlStateValue	switchState = (accountEnabled ? NSControlStateValueOn : NSControlStateValueOff);
+
+	if ([[cellView enabledSwitch] state] != switchState) {
+		[[cellView enabledSwitch] setState:switchState];
+	}
+
+	[[cellView enabledSwitch] setTarget:self];
+	[[cellView enabledSwitch] setAction:@selector(toggleAccountEnabled:)];
+	[[cellView enabledSwitch] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"Enable %@", "Accessibility label of the switch which enables an account. %@ is the account name."), accountName]];
+
+	//Info button
+	[[cellView infoButton] setTarget:self];
+	[[cellView infoButton] setAction:@selector(editAccountFromRowButton:)];
+	[[cellView infoButton] setToolTip:AILocalizedStringFromTable(@"Edit", @"Buttons", "Verb 'edit' on a button")];
+
+	//The separator sits between two rows, so it goes away below the last row and around the selection
+	[[cellView separator] setHidden:[self separatorHiddenForRow:row]];
+
+	[cellView setDimmed:!accountEnabled];
+	[cellView setAccessibilityLabel:[NSString stringWithFormat:@"%@, %@, %@",
+									 accountName, [account.service longDescription], statusLine]];
+}
+
+/*!
+ * @brief Whether the hairline below a row has to be hidden
+ *
+ * There is no separator below the last row, and - as in System Settings - none directly above or
+ * below the selection, where it would be drawn across the selection capsule.
+ */
+- (BOOL)separatorHiddenForRow:(NSInteger)row
+{
+	if (row >= ((NSInteger)[accountArray count] - 1)) return YES;
+
+	NSIndexSet	*selectedIndexes = [tableView_accountList selectedRowIndexes];
+
+	return ([selectedIndexes containsIndex:row] || [selectedIndexes containsIndex:(row + 1)]);
+}
+
+/*!
+ * @brief Update the separators of the rows on screen after a selection change
+ */
+- (void)updateSeparators
+{
+	[tableView_accountList enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
+		id	cellView = [tableView_accountList viewAtColumn:0 row:row makeIfNecessary:NO];
+
+		if ([cellView isKindOfClass:[AIAccountListCellView class]] && row < (NSInteger)[accountArray count]) {
+			[[(AIAccountListCellView *)cellView separator] setHidden:[self separatorHiddenForRow:row]];
+		}
+	}];
+}
+
+/*!
+ * @brief Reconfigure a row which is currently on screen
+ */
+- (void)refreshRow:(NSInteger)row
+{
+	if (row < 0 || row >= [accountArray count] || row >= [tableView_accountList numberOfRows]) {
+		return;
+	}
+
+	id	cellView = [tableView_accountList viewAtColumn:0 row:row makeIfNecessary:NO];
+
+	if ([cellView isKindOfClass:[AIAccountListCellView class]]) {
+		[self configureCellView:(AIAccountListCellView *)cellView forRow:row];
+	}
 }
 /*!
  * @brief Configure the height of each account for error messages if necessary
@@ -891,91 +1605,12 @@
 }
 
 /*!
- * @brief Configure cells before display
- */
-- (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
-{
-	// Make sure this row actually exists
-	if (row < 0 || row >= [accountArray count]) {
-		return;
-	}
-
-	NSString 	*identifier = [tableColumn identifier];
-	AIAccount	*account = [accountArray objectAtIndex:row];
-	
-	if ([identifier isEqualToString:@"enabled"]) {
-		[cell setState:(account.enabled ? NSControlStateValueOn : NSControlStateValueOff)];
-
-	} else if ([identifier isEqualToString:@"name"]) {
-		if ([account encrypted]) {
-			[cell setImage:[NSImage imageForSSL]];
-		} else {
-			[cell setImage:nil];
-		}
-
-		[cell setImageTextPadding:MINIMUM_CELL_SPACING/2.0f];
-		
-		[cell setEnabled:account.enabled];
-
-		// Update the subString with our current status message (if it exists);
-		[cell setSubString:[self statusMessageForAccount:account]];
-		
-	} else if ([identifier isEqualToString:@"service"]) {
-		[cell accessibilitySetOverrideValue:[account.service longDescription]
-							   forAttribute:NSAccessibilityTitleAttribute];		 
-		[cell accessibilitySetOverrideValue:@" "
-							   forAttribute:NSAccessibilityRoleDescriptionAttribute];		 
- 
-
-	} else if ([identifier isEqualToString:@"status"]) {
-		if (account.enabled && ![account boolValueForProperty:@"isConnecting"] && [account valueForProperty:@"waitingToReconnect"]) {
-			NSString *format = [NSDateFormatter stringForTimeInterval:[[account valueForProperty:@"waitingToReconnect"] timeIntervalSinceNow]
-													   showingSeconds:YES
-														  abbreviated:YES
-														 approximated:NO];
-			
-			[cell setSubString:[NSString stringWithFormat:AILocalizedString(@"...in %@", @"The amount of time until a reconnect occurs. %@ is the formatted time remaining."), format]];
-		} else {
-			[cell setSubString:nil];
-		}
-		
-		[cell setEnabled:([account boolValueForProperty:@"isConnecting"] ||
-						  [account valueForProperty:@"waitingToReconnect"] ||
-						  [account boolValueForProperty:@"isDisconnecting"] ||
-						  [account boolValueForProperty:@"isOnline"])];
-
-	} else if ([identifier isEqualToString:@"statusicon"]) {
-		[cell accessibilitySetOverrideValue:@" "
-							   forAttribute:NSAccessibilityTitleAttribute];
-		[cell accessibilitySetOverrideValue:@" "
-							   forAttribute:NSAccessibilityRoleDescriptionAttribute];
-
-	} else if ([identifier isEqualToString:@"blank1"] || [identifier isEqualToString:@"blank2"]) {
-		[cell accessibilitySetOverrideValue:@" "
-							   forAttribute:NSAccessibilityTitleAttribute];		
-		[cell accessibilitySetOverrideValue:@" "
-							   forAttribute:NSAccessibilityRoleDescriptionAttribute];		
-	}
-}
-
-/*!
- * @brief Handle a clicked active/inactive checkbox
- *
- * Checking the box both takes the account online and sets it to autoconnect. Unchecking it does the opposite.
- */
-- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
-{
-	if (row >= 0 && row < [accountArray count] && [[tableColumn identifier] isEqualToString:@"enabled"]) {
-		[[accountArray objectAtIndex:row] setEnabled:[(NSNumber *)object boolValue]];
-	}
-}
-
-/*!
  * @brief Drag start
  */
 - (BOOL)tableView:(NSTableView *)tv writeRowsWithIndexes:(NSIndexSet*)rows toPasteboard:(NSPasteboard*)pboard
 {
-    tempDragAccounts = [accountArray objectsAtIndexes:rows];
+	[tempDragAccounts release];
+    tempDragAccounts = [[accountArray objectsAtIndexes:rows] retain];
 
     [pboard declareTypes:[NSArray arrayWithObject:ACCOUNT_DRAG_TYPE] owner:self];
     [pboard setString:@"Account" forType:ACCOUNT_DRAG_TYPE];
@@ -1034,13 +1669,18 @@
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
 	[self updateControlAvailability];
+	[self updateSeparators];
 }
 
 - (NSMenu *)tableView:(NSTableView *)inTableView menuForEvent:(NSEvent *)theEvent
 {
 	NSIndexSet	*selectedIndexes	= [inTableView selectedRowIndexes];
-	NSInteger			mouseRow			= [inTableView rowAtPoint:[inTableView convertPoint:[theEvent locationInWindow] toView:nil]];
-	
+	NSInteger			mouseRow			= [inTableView rowAtPoint:[inTableView convertPoint:[theEvent locationInWindow] fromView:nil]];
+
+	if (mouseRow < 0 || mouseRow >= (NSInteger)[accountArray count]) {
+		return nil;
+	}
+
 	//Multiple rows selected where the right-clicked row is in the selection
 	if ([selectedIndexes count] > 1 && [selectedIndexes containsIndex:mouseRow]) {
 		//Display a multi-selection menu
