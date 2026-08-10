@@ -16,6 +16,8 @@
 
 #import <Adium/AIDebugControllerProtocol.h>
 #import <stdarg.h>
+#import <stdlib.h>
+#import <stdio.h>
 #import <execinfo.h>
 
 #ifdef DEBUG_BUILD
@@ -47,6 +49,11 @@ BOOL AIDebugLoggingIsEnabled()
  */
 void AIAddDebugMessage(NSString *debugMessage)
 {
+	/* Session debugging aid: mirror to stderr when ADIUM_PURPLE_DEBUG is set. */
+	static int mirrorToStderr = -1;
+	if (mirrorToStderr == -1) mirrorToStderr = (getenv("ADIUM_PURPLE_DEBUG") != NULL);
+	if (mirrorToStderr) fprintf(stderr, "[AILog] %s\n", [debugMessage UTF8String]);
+
 	NSString *actualMessage = [[[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S: "
 																   timeZone:nil
 																	 locale:nil] stringByAppendingString:debugMessage];

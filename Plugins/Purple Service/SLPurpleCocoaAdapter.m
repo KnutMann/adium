@@ -660,6 +660,23 @@ PurpleConversation* convLookupFromChat(AIChat *chat, id adiumAccount)
 					AILog(@"In the event of an emergency, your GHashTable may be used as a flotation device...");
 					serv_join_chat(gc, components);
 					g_hash_table_unref(components);
+				} else {
+					/* The chat is in the buddy list (e.g. because a bookmark or the
+					 * protocol put it there). Finding it there does NOT mean we are
+					 * joined — join using the stored components. */
+					PurpleConnection *gc = purple_account_get_connection(account);
+					if (gc) {
+						AILog(@"Joining blist chat %s via its stored components", name);
+						serv_join_chat(gc, purple_chat_get_components(purpleChat));
+					}
+				}
+
+				/* If the prpl processed the join synchronously (gowhatsapp does),
+				 * the conversation exists now; bind it so the pending message is
+				 * not silently dropped. */
+				conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, name, account);
+				if (conv) {
+					groupChatLookupFromConv(conv);
 				}
 			}
 		}
