@@ -71,6 +71,57 @@ static NSImage *AIPrefPaneIcon(id pane)
 }
 @end
 
+/*!
+ * @brief Sidebar row that mirrors the System Settings text colors.
+ *
+ * AppKit's automatic label coloring tints the selected row with the accent
+ * color, while System Settings dims every label — including the selected
+ * one — as soon as the window is no longer key. Take the colors over.
+ */
+@interface AIPrefsSidebarCellView : NSTableCellView {
+	BOOL isGroupRow;
+}
+@property (assign) BOOL isGroupRow;
+- (void)updateTextColors;
+@end
+
+@implementation AIPrefsSidebarCellView
+
+@synthesize isGroupRow;
+
+- (void)setBackgroundStyle:(NSBackgroundStyle)style
+{
+	[super setBackgroundStyle:style];
+	[self updateTextColors];
+}
+
+- (void)viewDidMoveToWindow
+{
+	[super viewDidMoveToWindow];
+	[self updateTextColors];
+}
+
+- (void)updateTextColors
+{
+	BOOL windowActive = [[self window] isKeyWindow] || [[self window] isMainWindow];
+	NSColor *color;
+
+	if (isGroupRow) {
+		color = (windowActive ? [NSColor secondaryLabelColor] : [NSColor tertiaryLabelColor]);
+	} else if (!windowActive) {
+		//Inactive window: everything dims, the selected row included
+		color = [NSColor secondaryLabelColor];
+	} else if ([self backgroundStyle] == NSBackgroundStyleEmphasized) {
+		color = [NSColor alternateSelectedControlTextColor];
+	} else {
+		color = [NSColor labelColor];
+	}
+
+	[[self textField] setTextColor:color];
+}
+
+@end
+
 @interface AIModernPreferencesWindowController ()
 - (void)buildSidebarEntries;
 - (void)buildWindow;
@@ -78,6 +129,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)selectPane:(AIPreferencePane *)pane;
 - (void)layoutCurrentPane;
 - (void)updateNavigationControl;
+- (void)refreshSidebarColors:(NSNotification *)notification;
 - (void)navigate:(id)sender;
 - (NSString *)mainPaneOrderIdentifiers;
 @end
@@ -265,6 +317,15 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[self setWindow:window];
 	[window setDelegate:(id<NSWindowDelegate>)self];
 
+	//System Settings dims the whole sidebar while the window is not key
+	for (NSString *name in [NSArray arrayWithObjects:NSWindowDidBecomeKeyNotification, NSWindowDidResignKeyNotification,
+													 NSWindowDidBecomeMainNotification, NSWindowDidResignMainNotification, nil]) {
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(refreshSidebarColors:)
+													 name:name
+												   object:window];
+	}
+
 	[outlineView reloadData];
 	for (id entry in sidebarEntries) {
 		if ([entry isKindOfClass:[NSString class]]) {
@@ -369,6 +430,16 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)windowDidResize:(NSNotification *)notification
 {
 	[self layoutCurrentPane];
+}
+
+- (void)refreshSidebarColors:(NSNotification *)notification
+{
+	for (NSInteger row = 0; row < [outlineView numberOfRows]; row++) {
+		id view = [outlineView viewAtColumn:0 row:row makeIfNecessary:NO];
+		if ([view isKindOfClass:[AIPrefsSidebarCellView class]]) {
+			[(AIPrefsSidebarCellView *)view updateTextColors];
+		}
+	}
 }
 
 #pragma mark - Back/forward navigation
@@ -546,7 +617,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSTableCellView *cell = [aView makeViewWithIdentifier:reuseIdentifier owner:self];
 
 	if (!cell) {
-		cell = [[[NSTableCellView alloc] initWithFrame:NSMakeRect(0, 0, 180, 24)] autorelease];
+		cell = [[[AIPrefsSidebarCellView alloc] initWithFrame:NSMakeRect(0, 0, 180, 24)] autorelease];
 		[cell setIdentifier:reuseIdentifier];
 
 		NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
@@ -592,19 +663,20 @@ static NSImage *AIPrefPaneIcon(id pane)
 		}
 	}
 
+	[(AIPrefsSidebarCellView *)cell setIsGroupRow:isGroup];
+
 	if (isGroup) {
 		[[cell textField] setStringValue:(NSString *)item];
 		[[cell textField] setFont:[NSFont systemFontOfSize:11 weight:NSFontWeightSemibold]];
-		[[cell textField] setTextColor:[NSColor secondaryLabelColor]];
 	} else {
 		id pane = item;
 		[[cell textField] setStringValue:(AIPrefPaneName(pane) ?: @"")];
 		[[cell textField] setFont:[NSFont systemFontOfSize:13]];
-		[[cell textField] setTextColor:[NSColor labelColor]];
 		NSImage *icon = AIPrefPaneIcon(pane);
 		[icon setSize:NSMakeSize(18, 18)];
 		[[cell imageView] setImage:icon];
 	}
+	[(AIPrefsSidebarCellView *)cell updateTextColors];
 
 	return cell;
 }
