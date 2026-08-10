@@ -335,12 +335,12 @@ static NSArray *draggedTypes = nil;
 		draggedTypes = [[NSArray alloc] initWithObjects:
 			NSFilenamesPboardType,
 			AIiTunesTrackPboardType,
-			NSTIFFPboardType,
-			NSPDFPboardType,
-			NSHTMLPboardType,
+			NSPasteboardTypeTIFF,
+			NSPasteboardTypePDF,
+			NSPasteboardTypeHTML,
 			NSFileContentsPboardType,
-			NSRTFPboardType,
-			NSStringPboardType,
+			NSPasteboardTypeRTF,
+			NSPasteboardTypeString,
 			NSPostScriptPboardType,
 			nil];
 	}
@@ -866,7 +866,7 @@ static NSArray *draggedTypes = nil;
 	NSSavePanel *savePanel = [NSSavePanel savePanel];
 	savePanel.nameFieldStringValue = [path lastPathComponent];
 	[savePanel beginSheetModalForWindow:[webView window] completionHandler:^(NSInteger result) {
-		if (result ==  NSFileHandlingPanelOKButton) {
+		if (result ==  NSModalResponseOK) {
 			[[NSFileManager defaultManager] copyItemAtURL:imageURL
 													toURL:savePanel.URL
 													error:nil];
@@ -1124,7 +1124,7 @@ static NSArray *draggedTypes = nil;
 - (BOOL)shouldHandleDragWithPasteboard:(NSPasteboard *)pasteboard
 {
 	/*
-	return (![pasteboard availableTypeFromArray:[NSArray arrayWithObjects:NSTIFFPboardType,NSPDFPboardType,nil]] &&
+	return (![pasteboard availableTypeFromArray:[NSArray arrayWithObjects:NSPasteboardTypeTIFF,NSPasteboardTypePDF,nil]] &&
 			[pasteboard availableTypeFromArray:[NSArray arrayWithObject:NSFilenamesPboardType]]);
 	 */
 	return NO;
@@ -1338,7 +1338,7 @@ static NSArray *draggedTypes = nil;
 			[webKitUserIcon lockFocus];
 			[userIcon drawInRect:NSMakeRect(0,0,[webKitUserIcon size].width,[webKitUserIcon size].height)
 						fromRect:NSMakeRect(0,0,[userIcon size].width,[userIcon size].height)
-					   operation:NSCompositeSourceIn
+					   operation:NSCompositingOperationSourceIn
 						fraction:1.0f];
 			[webKitUserIcon unlockFocus];
 		} else {

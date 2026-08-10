@@ -98,7 +98,7 @@
 											 xRadius:[self cornerRadius]
 											 yRadius:[self cornerRadius]] addClip];
 
-			[bigImage drawInRect:imageFrame fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0f];
+			[bigImage drawInRect:imageFrame fromRect:NSZeroRect operation:NSCompositingOperationCopy fraction:1.0f];
 			
 			[roundedImage unlockFocus];
 			
@@ -114,7 +114,7 @@
 			point.x = maxXOrigin;
 		}
 
-		imageFloater = [[AIFloater newFloaterWithImage:bigImage styleMask:NSBorderlessWindowMask] retain];
+		imageFloater = [[AIFloater newFloaterWithImage:bigImage styleMask:NSWindowStyleMaskBorderless] retain];
 		[imageFloater setMaxOpacity:1.0f];
 		[imageFloater moveFloaterToPoint:point];
 		[imageFloater setVisible:YES animate:NO];

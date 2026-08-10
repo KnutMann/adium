@@ -197,7 +197,7 @@ static	NSMutableDictionary		*globalOnlyEventHandlersByGroup[EVENT_HANDLER_GROUP_
 	for (NSString *eventID in inEventHandlers) {
 		id <AIEventHandler>	eventHandler = [inEventHandlers objectForKey:eventID];		
 		
-        menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:(global ?
+        menuItem = [[NSMenuItem alloc] initWithTitle:(global ?
 																				[eventHandler globalShortDescriptionForEventID:eventID] :
 																				[eventHandler shortDescriptionForEventID:eventID])
 																		target:target 
@@ -533,7 +533,7 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 		id <AIActionHandler> actionHandler = [actionHandlers objectForKey:actionID];		
 		NSMenuItem			 *menuItem;
 
-        menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[actionHandler shortDescriptionForActionID:actionID]
+        menuItem = [[NSMenuItem alloc] initWithTitle:[actionHandler shortDescriptionForActionID:actionID]
 																		target:target 
 																		action:@selector(selectAction:) 
 																 keyEquivalent:@""];

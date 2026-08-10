@@ -38,7 +38,7 @@
 	hovered = NO;
 	hoveredFraction = 0.0f;
 
-	statusParagraphStyle = [[NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+	statusParagraphStyle = [[NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 														  lineBreakMode:NSLineBreakByTruncatingTail] retain];
 	
 	statusAttributes = [[NSMutableDictionary dictionaryWithObjectsAndKeys:

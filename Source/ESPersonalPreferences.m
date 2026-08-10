@@ -129,7 +129,7 @@
 											 forKey:KEY_USE_USER_ICON
 											  group:GROUP_ACCOUNT_STATUS];	
 	}else if (sender == button_enableMusicProfile) {
-		BOOL enableUserIcon = ([button_enableMusicProfile state] == NSOnState);
+		BOOL enableUserIcon = ([button_enableMusicProfile state] == NSControlStateValueOn);
 		
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:enableUserIcon]
 											 forKey:KEY_USE_USER_ICON

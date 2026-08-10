@@ -109,12 +109,12 @@
 
 - (NSArray *)tokenField:(NSTokenField *)tokenField readFromPasteboard:(NSPasteboard *)pboard
 {
-	return [self separateStringIntoTokens:[pboard stringForType:NSStringPboardType]];
+	return [self separateStringIntoTokens:[pboard stringForType:NSPasteboardTypeString]];
 }
 
 - (BOOL)tokenField:(NSTokenField *)tokenField writeRepresentedObjects:(NSArray *)objects toPasteboard:(NSPasteboard *)pboard
 {
-	[pboard setString:[objects componentsJoinedByString:@""] forType:NSStringPboardType];
+	[pboard setString:[objects componentsJoinedByString:@""] forType:NSPasteboardTypeString];
 	return YES;
 }
 

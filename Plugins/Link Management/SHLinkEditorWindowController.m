@@ -104,14 +104,14 @@
 		} else {
 			// Fill the URL field from the pasteboard if possible
 			NSPasteboard 	*pboard = [NSPasteboard generalPasteboard];
-			NSString 		*availableType = [pboard availableTypeFromArray:[NSArray arrayWithObjects:NSURLPboardType, NSStringPboardType, nil]];
+			NSString 		*availableType = [pboard availableTypeFromArray:[NSArray arrayWithObjects:NSURLPboardType, NSPasteboardTypeString, nil]];
 			
 			if (availableType) {
 				if ([availableType isEqualToString:NSURLPboardType]) {
 					linkURL = [[NSURL URLFromPasteboard:pboard] absoluteString];
 
-				} else { /* NSStringPboardType */
-					linkURL = [pboard stringForType:NSStringPboardType];
+				} else { /* NSPasteboardTypeString */
+					linkURL = [pboard stringForType:NSPasteboardTypeString];
 				}
 			}
 

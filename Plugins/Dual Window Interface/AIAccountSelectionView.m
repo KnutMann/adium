@@ -321,7 +321,7 @@
 }
 - (NSControlSize)controlSizeForAccountMenu:(AIAccountMenu *)inAccountMenu;
 {
-	return NSRegularControlSize;
+	return NSControlSizeRegular;
 }
 
 /*!
@@ -460,7 +460,7 @@
 	[label setBordered:NO];
 	[label setDrawsBackground:NO];
 	[label setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
-	[label setAlignment:NSRightTextAlignment];
+	[label setAlignment:NSTextAlignmentRight];
 
 	return [label autorelease];
 }

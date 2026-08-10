@@ -200,7 +200,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
  */
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
-	if (delegate && returnCode == NSOKButton)
+	if (delegate && returnCode == NSModalResponseOK)
 		[delegate absearchWindowControllerDidSelectPerson:self];
 	
 	[sheet orderOut:nil];
@@ -213,7 +213,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
 {
 	if ([self windowShouldClose:self.window]) {
 		if ([[self window] isSheet]) {
-			[NSApp endSheet:[self window] returnCode:NSCancelButton];
+			[NSApp endSheet:[self window] returnCode:NSModalResponseCancel];
 		} else {
 			[[self window] close];
 		}
@@ -238,7 +238,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
 	//Close our window
 	if ([self windowShouldClose:self.window]) {
 		if ([[self window] isSheet]) {
-			[NSApp endSheet:[self window] returnCode:NSOKButton];
+			[NSApp endSheet:[self window] returnCode:NSModalResponseOK];
 		} else {
 			[[self window] close];
 			if (delegate)
@@ -334,7 +334,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
 				//Close our window
 				if ([self windowShouldClose:self.window]) {
 					if ([[self window] isSheet]) {
-						[NSApp endSheet:[self window] returnCode:NSOKButton];
+						[NSApp endSheet:[self window] returnCode:NSModalResponseOK];
 					} else {
 						[[self window] close];
 						if (delegate)

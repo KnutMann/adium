@@ -223,7 +223,7 @@
 	
 	// Not all themes have the draw-custom-highlight setting
 	NSNumber *number = [prefDict objectForKey:KEY_LIST_THEME_HIGHLIGHT_ENABLED];
-	[checkBox_drawCustomHighlight setState:number ? [number boolValue] : NSOffState];
+	[checkBox_drawCustomHighlight setState:number ? [number boolValue] : NSControlStateValueOff];
 	[checkBox_drawGrid setState:[[prefDict objectForKey:KEY_LIST_THEME_GRID_ENABLED] boolValue]];
 	[checkBox_backgroundAsStatus setState:[[prefDict objectForKey:KEY_LIST_THEME_BACKGROUND_AS_STATUS] boolValue]];
 	[checkBox_backgroundAsEvents setState:[[prefDict objectForKey:KEY_LIST_THEME_BACKGROUND_AS_EVENTS] boolValue]];
@@ -507,7 +507,7 @@
 	[openPanel setTitle:@"Background Image"];
 	[openPanel setAllowedFileTypes:[NSImage imageFileTypes]];
 	 
-	if ([openPanel runModal] == NSOKButton) {
+	if ([openPanel runModal] == NSModalResponseOK) {
 		NSString *filename = [[openPanel URL] path];
 		[adium.preferenceController setPreference:filename
 											 forKey:KEY_LIST_THEME_BACKGROUND_IMAGE_PATH
@@ -591,31 +591,31 @@
 
 - (NSMenu *)displayImageStyleMenu
 {
-	NSMenu		*displayImageStyleMenu = [[[NSMenu allocWithZone:[NSMenu menuZone]] init] autorelease];
+	NSMenu		*displayImageStyleMenu = [[[NSMenu alloc] init] autorelease];
     NSMenuItem	*menuItem;
 	
-	menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Normal",nil)
+	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Normal",nil)
 																	 target:nil
 																	 action:nil
 															  keyEquivalent:@""] autorelease];
 	[menuItem setTag:AINormalBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Tile",nil)
+	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Tile",nil)
 																	 target:nil
 																	 action:nil
 															  keyEquivalent:@""] autorelease];
 	[menuItem setTag:AITileBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Fill",nil)
+	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Fill",nil)
 																	 target:nil
 																	 action:nil
 															  keyEquivalent:@""] autorelease];
 	[menuItem setTag:AIFillProportionatelyBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Stretch to fill",nil)
+	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Stretch to fill",nil)
 																	 target:nil
 																	 action:nil
 															  keyEquivalent:@""] autorelease];

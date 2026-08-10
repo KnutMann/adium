@@ -383,7 +383,7 @@
 
     cell = [[AIImageTextCell alloc] init];
     [cell setFont:[NSFont systemFontOfSize:13]];
-    [cell setAlignment:NSRightTextAlignment];
+    [cell setAlignment:NSTextAlignmentRight];
 	[cell setLineBreakMode:NSLineBreakByWordWrapping];
     [[tableView_accountList tableColumnWithIdentifier:@"status"] setDataCell:cell];
 	[cell accessibilitySetOverrideValue:[NSNumber numberWithBool:YES]
@@ -541,10 +541,10 @@
 {
 	NSPasteboard		*generalPasteboard = [NSPasteboard generalPasteboard];
 	
-	[generalPasteboard declareTypes:[NSArray arrayWithObject:NSStringPboardType]
+	[generalPasteboard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString]
 							  owner:nil];
 	[generalPasteboard setString:[self statusMessageForAccount:[sender representedObject]]
-						 forType:NSStringPboardType];
+						 forType:NSPasteboardTypeString];
 }
 
 /*!
@@ -904,7 +904,7 @@
 	AIAccount	*account = [accountArray objectAtIndex:row];
 	
 	if ([identifier isEqualToString:@"enabled"]) {
-		[cell setState:(account.enabled ? NSOnState : NSOffState)];
+		[cell setState:(account.enabled ? NSControlStateValueOn : NSControlStateValueOff)];
 
 	} else if ([identifier isEqualToString:@"name"]) {
 		if ([account encrypted]) {

@@ -239,7 +239,7 @@
 	AIStatusGroup *availableGroup = nil;
 	
 	// optionally create a status group for collecting them together
-	if ([createStatusGroupsButton state] == NSOnState) {
+	if ([createStatusGroupsButton state] == NSControlStateValueOn) {
 		availableGroup = [AIStatusGroup statusGroup];
 		[availableGroup setTitle:AILocalizedString(@"iChat Available Messages", nil)];
 		[availableGroup setStatusType:AIAvailableStatusType];
@@ -254,7 +254,7 @@
 	AIStatusGroup *awayGroup = nil;
 	
 	// optionally create a status group for collecting them together
-	if ([createStatusGroupsButton state] == NSOnState) {
+	if ([createStatusGroupsButton state] == NSControlStateValueOn) {
 		awayGroup = [AIStatusGroup statusGroup];
 		[awayGroup setTitle:AILocalizedString(@"iChat Away Messages", nil)];
 		[awayGroup setStatusType:AIAwayStatusType];
@@ -312,10 +312,10 @@
 	tabViewFrame.origin.y -= backgroundViewFrame.origin.y;
 	[backgroundView setTransparentRect:tabViewFrame];	
 
-	[importAccountsButton setState:NSOnState];
-	[importStatusButton setState:NSOnState];
-	[createStatusGroupsButton setState:NSOnState];
-	[importLogsButton setState:NSOnState];
+	[importAccountsButton setState:NSControlStateValueOn];
+	[importStatusButton setState:NSControlStateValueOn];
+	[createStatusGroupsButton setState:NSControlStateValueOn];
+	[importLogsButton setState:NSControlStateValueOn];
 
 	[[self window] center];
 	
@@ -339,10 +339,10 @@
 	[proceedButton setEnabled:YES];
 	[proceedButton setTitle:AILocalizedStringFromTable(@"Continue", @"Buttons", nil)]; // in case we are on the last step
 	
-	[importAccountsButton setState:NSOffState];
-	[importStatusButton setState:NSOffState];
-	[importLogsButton setState:NSOffState];
-	[createStatusGroupsButton setState:NSOffState];
+	[importAccountsButton setState:NSControlStateValueOff];
+	[importStatusButton setState:NSControlStateValueOff];
+	[importLogsButton setState:NSControlStateValueOff];
+	[createStatusGroupsButton setState:NSControlStateValueOff];
 	
 	[assistantPanes selectTabViewItemWithIdentifier:@"start"];
 }
@@ -354,11 +354,11 @@
 	// when first clicked we'll determine how the workflow proceeds
 	if ([[[assistantPanes selectedTabViewItem] identifier] isEqual:@"start"]) {
 		// we want to increase the number of steps for each option selected
-		if ([importAccountsButton state] == NSOnState)
+		if ([importAccountsButton state] == NSControlStateValueOn)
 			currentStep++;
-		if ([importStatusButton state] == NSOnState)
+		if ([importStatusButton state] == NSControlStateValueOn)
 			currentStep++;
-		if ([importLogsButton state] == NSOnState)
+		if ([importLogsButton state] == NSControlStateValueOn)
 			currentStep++;
 	}
 	
@@ -368,14 +368,14 @@
 		[self closeWindow:self];
 	}
 
-	if ([importAccountsButton state] == NSOnState && currentStep > 0 && !doneSomething) {
+	if ([importAccountsButton state] == NSControlStateValueOn && currentStep > 0 && !doneSomething) {
 		doneSomething = YES;
 		[backButton setEnabled:NO];
 		[importAccountsProgress startAnimation:importAccountsProgress];
 		[importAccountsDetails setStringValue:[AILocalizedString(@"Now importing all your accounts from iChat", nil) stringByAppendingEllipsis]];
 		[titleField setStringValue:[AILocalizedString(@"Importing Accounts and Settings",nil) stringByAppendingEllipsis]];
 		[assistantPanes selectTabViewItemWithIdentifier:@"accounts"];
-		[importAccountsButton setState:NSOffState]; // reset so we don't do this again
+		[importAccountsButton setState:NSControlStateValueOff]; // reset so we don't do this again
 		currentStep--;
 		// do what's necessary to import here
 		[self importAccountsForService:@"AIM"];
@@ -388,25 +388,25 @@
 		}
 	}
 
-	if ([importStatusButton state] == NSOnState && currentStep > 0 && !doneSomething) {
+	if ([importStatusButton state] == NSControlStateValueOn && currentStep > 0 && !doneSomething) {
 		doneSomething = YES;
 		[backButton setEnabled:NO];
 		[importStatusProgress startAnimation:importStatusProgress];
 		[importStatusDetails setStringValue:[AILocalizedString(@"Preparing to import your custom status messages", nil)  stringByAppendingEllipsis]];
 		[titleField setStringValue:[AILocalizedString(@"Importing Statuses", nil) stringByAppendingEllipsis]];
 		[assistantPanes selectTabViewItemWithIdentifier:@"statuses"];
-		[importStatusButton setState:NSOffState]; // reset so we don't do this again
+		[importStatusButton setState:NSControlStateValueOff]; // reset so we don't do this again
 		currentStep--;
 		[self performSelector:@selector(importStatuses) withObject:nil afterDelay:0.3];
 	}
 	
-	if ([importLogsButton state] == NSOnState && currentStep > 0  && !doneSomething) {
+	if ([importLogsButton state] == NSControlStateValueOn && currentStep > 0  && !doneSomething) {
 		[proceedButton setEnabled:NO];
 		[self populateAccountPicker];
 		[titleField	setStringValue:[AILocalizedString(@"Importing iChat Transcripts", nil) stringByAppendingEllipsis]];
 		[loggingPanes selectTabViewItemWithIdentifier:@"select"];
 		[assistantPanes selectTabViewItemWithIdentifier:@"logs"];
-		[importLogsButton setState:NSOffState]; // reset so we don't do this again
+		[importLogsButton setState:NSControlStateValueOff]; // reset so we don't do this again
 	} else if (currentStep == 0  && !doneSomething) {
 		[backButton setEnabled:YES];
 		[titleField	setStringValue:AILocalizedString(@"Import Finished", nil)];

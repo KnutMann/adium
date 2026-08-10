@@ -211,7 +211,7 @@
     AIListObject    *listObject = [proxyObject listObject];
 
 	if (!_statusAttributes) {
-		NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+		NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 																				lineBreakMode:NSLineBreakByTruncatingTail];
 		[paragraphStyle setMaximumLineHeight:(float)labelFontHeight];
 		
@@ -575,7 +575,7 @@
 //User Extended Status
 - (NSRect)drawUserExtendedStatusInRect:(NSRect)rect withMessage:(NSString *)string drawUnder:(BOOL)drawUnder
 {
-	if (extendedStatusVisible && (drawUnder || [self textAlignment] != NSCenterTextAlignment)) {
+	if (extendedStatusVisible && (drawUnder || [self textAlignment] != NSTextAlignmentCenter)) {
 		if (string) {
 			CGFloat	halfHeight = rect.size.height / 2;
 
@@ -584,7 +584,7 @@
 				rect.origin.y += halfHeight;
 				rect.size.height -= halfHeight;
 			} else {
-				if ([self textAlignment] == NSLeftTextAlignment) rect.origin.x += NAME_STATUS_PAD;
+				if ([self textAlignment] == NSTextAlignmentLeft) rect.origin.x += NAME_STATUS_PAD;
 				rect.size.width -= NAME_STATUS_PAD;
 			}
 			
@@ -600,10 +600,10 @@
 			if (nameSize.width > drawRect.size.width) nameSize = rect.size;
 			
 			switch ([self textAlignment]) {
-				case NSCenterTextAlignment:
+				case NSTextAlignmentCenter:
 					drawRect.origin.x += (drawRect.size.width - nameSize.width) / 2.0f;
 				break;
-				case NSRightTextAlignment:
+				case NSTextAlignmentRight:
 					drawRect.origin.x += (drawRect.size.width - nameSize.width);
 				break;
 				default:

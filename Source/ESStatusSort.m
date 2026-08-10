@@ -285,11 +285,11 @@ static NSInteger  sizeOfSortOrder;
 	
 	[checkBox_alphabeticallyByLastName setState:resolveAlphabeticallyByLastName];
 	
-	[buttonCell_alphabetically setState:(resolveAlphabetically ? NSOnState : NSOffState)];
-	[buttonCell_manually setState:(resolveAlphabetically ? NSOffState : NSOnState)];
+	[buttonCell_alphabetically setState:(resolveAlphabetically ? NSControlStateValueOn : NSControlStateValueOff)];
+	[buttonCell_manually setState:(resolveAlphabetically ? NSControlStateValueOff : NSControlStateValueOn)];
 
-	[buttonCell_allUnavailable setState:(groupUnavailable ? NSOnState : NSOffState)];
-	[buttonCell_separateUnavailable	setState:(groupUnavailable ? NSOffState : NSOnState)];
+	[buttonCell_allUnavailable setState:(groupUnavailable ? NSControlStateValueOn : NSControlStateValueOff)];
+	[buttonCell_separateUnavailable	setState:(groupUnavailable ? NSControlStateValueOff : NSControlStateValueOn)];
 	
 	[self configureControlDimming];
 	

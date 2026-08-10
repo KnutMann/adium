@@ -172,7 +172,7 @@
 				//Show on an independent window.
 #define TRUST_PANEL_WIDTH 535
 				NSWindow *fakeWindow = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TRUST_PANEL_WIDTH, 1)
-																	styleMask:(NSTitledWindowMask | NSMiniaturizableWindowMask)
+																	styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskMiniaturizable)
 																	  backing:NSBackingStoreBuffered
 																		defer:NO] autorelease];
 				[fakeWindow center];
@@ -249,7 +249,7 @@
 }
 
 - (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)trustpanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
-	BOOL didTrustCerficate = (returnCode == NSOKButton);
+	BOOL didTrustCerficate = (returnCode == NSModalResponseOK);
 	NSWindow *parentWindow = (NSWindow *)contextInfo;
 
 	query_cert_cb(didTrustCerficate, userdata);

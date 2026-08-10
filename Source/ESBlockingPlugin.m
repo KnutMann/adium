@@ -78,7 +78,7 @@
 													  action:@selector(blockContact:)
 											   keyEquivalent:@"b"];
 	
-	[blockContactMenuItem setKeyEquivalentModifierMask:(NSCommandKeyMask|NSAlternateKeyMask)];
+	[blockContactMenuItem setKeyEquivalentModifierMask:(NSEventModifierFlagCommand|NSEventModifierFlagOption)];
 	
 	[adium.menuController addMenuItem:blockContactMenuItem toLocation:LOC_Contact_NegativeAction];
 

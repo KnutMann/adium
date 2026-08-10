@@ -91,7 +91,7 @@
 		}
 		
 		[[NSBezierPath bezierPathWithOvalInRect:snapBackRect] fill];
-		[snapbackImage drawAtPoint:snapBackRect.origin fromRect:[self bounds] operation:NSCompositeSourceOver fraction:1.0f];
+		[snapbackImage drawAtPoint:snapBackRect.origin fromRect:[self bounds] operation:NSCompositingOperationSourceOver fraction:1.0f];
 	}
 
 	[NSGraphicsContext restoreGraphicsState];

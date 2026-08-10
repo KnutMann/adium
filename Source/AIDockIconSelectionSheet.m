@@ -302,7 +302,7 @@
 
 - (void)trashConfirmSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(NSString *)selectedIconPath
 {
-    if (returnCode == NSOKButton) {
+    if (returnCode == NSModalResponseOK) {
 		NSInteger deletedIndex = [[[self imageCollectionView] selectionIndexes] firstIndex];
 		
 		// Deselect and stop animating

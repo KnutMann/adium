@@ -97,7 +97,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 			[self setUseSystemFont:YES];
 
 		} else {
-			controlSize = NSRegularControlSize;
+			controlSize = NSControlSizeRegular;
 		}
 		
 		//Rebuild our account menu when accounts or icon sets change
@@ -232,7 +232,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	for (AIAccount *account in accounts) {
 		if ((account.enabled && !delegateRespondsToShouldIncludeAccount) ||
 			(delegateRespondsToShouldIncludeAccount && [delegate accountMenu:self shouldIncludeAccount:account])) {
-			NSMenuItem *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@""
+			NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@""
 																						target:self
 																						action:@selector(selectAccountMenuItem:)
 																				 keyEquivalent:@""
@@ -252,7 +252,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 		for (AIAccount *account in accounts) {
 			if (!account.enabled &&
 				(!delegateRespondsToShouldIncludeAccount || [delegate accountMenu:self shouldIncludeAccount:account])) {
-				NSMenuItem *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@""
+				NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@""
 																							target:self
 																							action:@selector(toggleAccountEnabled:)
 																					 keyEquivalent:@""
@@ -275,7 +275,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 																	format:AILocalizedString(@"%@",nil)];
 			
 			
-			NSMenuItem *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Add Account", nil)
+			NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Add Account", nil)
 																						target:self
 																						action:@selector(dummyAction:)
 																				 keyEquivalent:@""
@@ -286,7 +286,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
         }
 
 		if ([disabledAccountMenu numberOfItems]) {
-			NSMenuItem *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Disabled Accounts", nil)
+			NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Disabled Accounts", nil)
                                                                             target:self
                                                                             action:@selector(dummyAction:)
                                                                      keyEquivalent:@""
@@ -340,7 +340,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 		 */
 		NSDictionary *titleAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
 			[NSFont menuFontOfSize:(useSystemFont ? [NSFont systemFontSizeForControlSize:controlSize] : 14.0f)], NSFontAttributeName,
-			[NSParagraphStyle styleWithAlignment:NSLeftTextAlignment
+			[NSParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 								   lineBreakMode:NSLineBreakByTruncatingTail], NSParagraphStyleAttributeName,
 			nil];	
 
@@ -559,7 +559,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 - (void)rebuildActionsSubmenu:(NSMenu*)actionsSubmenu withAccount:(AIAccount*)inAccount {
 	NSArray		*accountActionMenuItems = (inAccount.online ? [inAccount accountActionMenuItems] : nil);
 	NSMenuItem	*menuItem;
-	menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Edit Account", nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Edit Account", nil)
 																	target:self
 																	action:@selector(editAccount:)
 															 keyEquivalent:@""
@@ -583,13 +583,13 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	}
 	
 	if ([inAccount enabled]) {
-		menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Disable", nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Disable", nil)
 																	target:self
 																	action:@selector(toggleAccountEnabled:)
 															 keyEquivalent:@""
 														 representedObject:inAccount];
 	} else {
-		menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Enable", nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Enable", nil)
 																		target:self
 																		action:@selector(toggleAccountEnabled:)
 																 keyEquivalent:@""
@@ -666,7 +666,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	 * By copying the accountMenuItem's target and action, it gains the action of toggling conncectivity,
 	 * which is exactly what we want.
 	 */
-	onlineOfflineItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:(account.online ?
+	onlineOfflineItem = [[NSMenuItem alloc] initWithTitle:(account.online ?
 																					 AILocalizedString(@"Disconnect", nil) :
 																					 AILocalizedString(@"Connect", nil))
 																			 target:target
@@ -739,13 +739,13 @@ NSMenu *statusMenuForAccountMenuItem(NSArray *menuItemArray, NSMenuItem *account
 	NSMenuItem *enableDisableItem;
 	
 	if (account.enabled) {
-		enableDisableItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Disable", nil)
+		enableDisableItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Disable", nil)
 																						target:self
 																						action:@selector(toggleAccountEnabled:)
 																				 keyEquivalent:@""
 																			 representedObject:account];
 	} else {
-		enableDisableItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Enable", nil)
+		enableDisableItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Enable", nil)
 																						target:self
 																						action:@selector(toggleAccountEnabled:)
 																				 keyEquivalent:@""

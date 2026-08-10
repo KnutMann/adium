@@ -144,19 +144,19 @@
     while (idx < numEvents) {
 		NSEvent		*theEvent = [eventArray objectAtIndex:idx];
 		
-        if ([theEvent type] == NSKeyDown) {
+        if ([theEvent type] == NSEventTypeKeyDown) {
 			unichar lastChar = [[theEvent charactersIgnoringModifiers] lastCharacter];
             if (lastChar == NSCarriageReturnCharacter) {
                 nextIsEnter = NO;
 				nextIsReturn = YES;
 
-				optionPressedWithNext = ([theEvent modifierFlags] & NSAlternateKeyMask) != 0;
+				optionPressedWithNext = ([theEvent modifierFlags] & NSEventModifierFlagOption) != 0;
 				
             } else if (lastChar == NSEnterCharacter) {
                 nextIsReturn = NO;
                 nextIsEnter = YES;
 				
-                optionPressedWithNext = ([theEvent modifierFlags] & NSAlternateKeyMask) != 0;
+                optionPressedWithNext = ([theEvent modifierFlags] & NSEventModifierFlagOption) != 0;
             }
         }
 		

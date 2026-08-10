@@ -97,7 +97,7 @@
 		//Draw that image in the proper place
 		[subImage drawInRect:subFrame
 					fromRect:subUsableFrame
-				   operation:NSCompositeSourceOver
+				   operation:NSCompositingOperationSourceOver
 					fraction:1.0f];
 	}
 	[image unlockFocus];
@@ -105,7 +105,7 @@
 	//Draw the composited image in our current context
 	[image drawInRect:cellFrame
 			 fromRect:usableFrame
-			operation:NSCompositeSourceOver
+			operation:NSCompositingOperationSourceOver
 			 fraction:1.0f];	
 }
 

@@ -230,7 +230,7 @@
 		[view_details setFrame:detailsFrame];
 	
 		//Update the twiddle
-		[twiddle_details setState:NSOnState];
+		[twiddle_details setState:NSControlStateValueOn];
 	} else {
 		newFrame.size.height -= detailsFrame.size.height;
 		newFrame.origin.y += detailsFrame.size.height;
@@ -244,7 +244,7 @@
 		[view_details removeFromSuperview];
 		
 		//Update the twiddle
-		[twiddle_details setState:NSOffState];
+		[twiddle_details setState:NSControlStateValueOff];
 	}
 	
 	//Let the owner know our height changed so other rows can be adjusted accordingly
@@ -344,7 +344,7 @@
 	} else {	
 		if (isSelected) {
 			[button_stopResume setKeyEquivalent:@"."];
-			[button_stopResume setKeyEquivalentModifierMask:NSCommandKeyMask];
+			[button_stopResume setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
 			
 			[button_stopResume setImage:[NSImage imageNamed:(buttonStopResumeIsHovered ? @"FTProgressStopRollover_Selected" : @"FTProgressStop_Selected")
 													forClass:[self class]]];
@@ -410,7 +410,7 @@ static NSDictionary	*transferStatusSelectedAttributes = nil;
 
 	if (isSelected && [[self window] isKeyWindow]) {
 		if (!transferStatusSelectedAttributes) {
-			NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+			NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 																					lineBreakMode:NSLineBreakByTruncatingTail];
 			[paragraphStyle setMaximumLineHeight:[box_transferStatusFrame frame].size.height];
 			
@@ -423,7 +423,7 @@ static NSDictionary	*transferStatusSelectedAttributes = nil;
 		attributes = transferStatusSelectedAttributes;
 	} else {
 		if (!transferStatusAttributes) {
-			NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+			NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 																					lineBreakMode:NSLineBreakByTruncatingTail];
 			[paragraphStyle setMaximumLineHeight:[box_transferStatusFrame frame].size.height];
 			

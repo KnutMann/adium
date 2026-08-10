@@ -44,7 +44,7 @@
 	NSMutableAttributedString   *message;
 	
 	centeredParagraphStyle = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
-	[centeredParagraphStyle setAlignment:NSCenterTextAlignment];
+	[centeredParagraphStyle setAlignment:NSTextAlignmentCenter];
 	message = [[NSMutableAttributedString alloc] init];
 	
 	//Title

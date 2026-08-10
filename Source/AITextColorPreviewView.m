@@ -65,7 +65,7 @@
 	NSSize				sampleSize;
 	
 	// Background
-	if (([backgroundEnabled state] != NSOffState) && backgroundGradientColor) {
+	if (([backgroundEnabled state] != NSControlStateValueOff) && backgroundGradientColor) {
 		[[[[NSGradient alloc] initWithStartingColor:[backgroundGradientColor color] endingColor:[backgroundColor color]] autorelease] drawInRect:rect angle:90.0f];
 	} else {
 		NSColor *backColor = (backColorOverride ? backColorOverride : [backgroundColor color]);
@@ -77,7 +77,7 @@
 	}
 
 	// Shadow
-	if (([textShadowColorEnabled state] != NSOffState) && [textShadowColor color]) {
+	if (([textShadowColorEnabled state] != NSControlStateValueOff) && [textShadowColor color]) {
 		textShadow = [[[NSShadow alloc] init] autorelease];
 		[textShadow setShadowOffset:NSMakeSize(0.0f, -1.0f)];
 		[textShadow setShadowBlurRadius:2.0f];
@@ -89,13 +89,13 @@
 	
 	if (colorForText) {
 		// If we have a checkbox and it's unchecked, change to black.
-		if (textColorEnabled && ([textColorEnabled state] == NSOffState)) {
+		if (textColorEnabled && ([textColorEnabled state] == NSControlStateValueOff)) {
 			colorForText = [NSColor blackColor];
 		}
 	}
 	
 	attributes = [NSMutableDictionary dictionaryWithObjectsAndKeys: [NSFont systemFontOfSize:12], NSFontAttributeName,
-																	[NSParagraphStyle styleWithAlignment:NSCenterTextAlignment], NSParagraphStyleAttributeName,
+																	[NSParagraphStyle styleWithAlignment:NSTextAlignmentCenter], NSParagraphStyleAttributeName,
 																	colorForText, NSForegroundColorAttributeName,
 																	textShadow, NSShadowAttributeName,
 																	nil];

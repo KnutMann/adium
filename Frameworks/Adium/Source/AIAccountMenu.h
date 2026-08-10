@@ -70,7 +70,7 @@ typedef enum {
 /*!
  * @brief At what size will this menu be used?
  *
- * If not implemented, the default is NSRegularControlSize. NSMiniControlSize is not supported.
+ * If not implemented, the default is NSControlSizeRegular. NSControlSizeMini is not supported.
  */
 - (NSControlSize)controlSizeForAccountMenu:(AIAccountMenu *)inAccountMenu; 
 

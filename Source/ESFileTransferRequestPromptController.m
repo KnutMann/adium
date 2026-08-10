@@ -105,7 +105,7 @@
 			savePanel.nameFieldStringValue = [localFilename lastPathComponent];
 			NSInteger returnCode = [savePanel runModal];
 			//Only need to take action if the user pressed OK; if she pressed cancel, just return to our window.
-			if (returnCode == NSFileHandlingPanelOKButton) {
+			if (returnCode == NSModalResponseOK) {
 				localFilename = savePanel.URL.path;
 				finished = YES;
 			}

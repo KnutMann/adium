@@ -235,7 +235,7 @@
 		
 		if (rectNumber > 0) {
 			[[self alternatingRowColor] set];
-			NSRectFillListUsingOperation(gridRects, rectNumber, NSCompositeSourceOver);
+			NSRectFillListUsingOperation(gridRects, rectNumber, NSCompositingOperationSourceOver);
 		}		
 	}
 }
@@ -492,7 +492,7 @@
 				[[NSColor alternateSelectedControlColor] set];
 			}
 
-			NSRectFillListUsingOperation(selectionRects, j, NSCompositeSourceOver);
+			NSRectFillListUsingOperation(selectionRects, j, NSCompositingOperationSourceOver);
 
 			free(buf);
 			free(selectionRects);

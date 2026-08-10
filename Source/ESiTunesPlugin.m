@@ -597,7 +597,7 @@
 	[button setToolbarItem:iTunesItem];
 	
 	//Add menu to toolbar item (for text mode)
-	NSMenuItem	*mItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] init] autorelease];
+	NSMenuItem	*mItem = [[[NSMenuItem alloc] init] autorelease];
 	[mItem setSubmenu:menu];
 	[mItem setTitle:STRING_TRIGGERS_TOOLBAR];
 	[iTunesItem setMenuFormRepresentation:mItem];

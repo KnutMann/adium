@@ -484,7 +484,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 			}
 				
 			while( stillMouseDown ){
-				anEvent = [[self window] nextEventMatchingMask: NSLeftMouseUpMask | NSLeftMouseDraggedMask];
+				anEvent = [[self window] nextEventMatchingMask: NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged];
 				currentLocation = [self convertPoint: [anEvent locationInWindow] fromView: nil];
 				shouldHilite = NO;
 				
@@ -495,7 +495,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 				}
 				
 				switch( [anEvent type] ){
-					case NSLeftMouseDragged:
+					case NSEventTypeLeftMouseDragged:
 						if( (activeControlPart == CONTROL_PART_RESIZE_THUMB) || (activeControlPart == CONTROL_PART_RESIZE_BAR) ){
 							CGFloat width;
 							
@@ -511,7 +511,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 						}
 						break;
 						
-					case NSLeftMouseUp:
+					case NSEventTypeLeftMouseUp:
 						shouldHilite = NO;
 						[self setNeedsDisplayInRect: controlRect];
 						
@@ -575,11 +575,11 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 
         [actionButtonImage compositeToPoint:NSMakePoint(actionButtonRect.origin.x,
                                                         actionButtonRect.origin.y)
-                                  operation:NSCompositeDestinationAtop];
+                                  operation:NSCompositingOperationDestinationAtop];
 // FIX - replacement for deprecation; reverted for 10.11 fix.
 //        [actionButtonImage drawAtPoint:NSMakePoint(actionButtonRect.origin.x, actionButtonRect.origin.y)
 //                              fromRect:NSZeroRect
-//                             operation:NSCompositeDestinationAtop
+//                             operation:NSCompositingOperationDestinationAtop
 //                              fraction:1.0f];
 			}
 		}
@@ -616,7 +616,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 				
 				[contextButtonImage drawInRect:targetRect
 									  fromRect:NSMakeRect( 0, 0, [contextButtonImage size].width, [contextButtonImage size].height )
-									 operation:NSCompositeSourceOver
+									 operation:NSCompositingOperationSourceOver
 									  fraction:1.0f];
 			}
 		}
@@ -701,7 +701,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 		
         [background drawInRect:destRect
 					  fromRect:sourceRect
-					 operation:(isActive ? NSCompositeSourceIn : NSCompositeSourceOver)
+					 operation:(isActive ? NSCompositingOperationSourceIn : NSCompositingOperationSourceOver)
 					  fraction:(isActive ? 0.75f : 1.0f)];
 		
         destRect.origin.x += destRect.size.width;
@@ -720,7 +720,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 		if(attributedStringValue) [attributedStringValue release];
 		if (inString) {
 			NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-				[NSParagraphStyle styleWithAlignment:NSLeftTextAlignment
+				[NSParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 									   lineBreakMode:NSLineBreakByTruncatingTail], NSParagraphStyleAttributeName,
 				[NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, 
 				nil];

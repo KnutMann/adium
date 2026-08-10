@@ -139,7 +139,7 @@
 	
 	[account filterAndSetUID:self.UID];
 	
-	[theAccount setIsTemporary:([button_remember state] == NSOffState)];
+	[theAccount setIsTemporary:([button_remember state] == NSControlStateValueOff)];
 	
 	[theAccount setPreference:self.host
 					   forKey:KEY_CONNECT_HOST

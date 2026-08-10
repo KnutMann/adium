@@ -29,7 +29,7 @@
 													  target:self
 													  action:@selector(showEditor:)
 											   keyEquivalent:@"p"];
-	[blockEditorMenuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
+	[blockEditorMenuItem setKeyEquivalentModifierMask:(NSEventModifierFlagOption | NSEventModifierFlagCommand)];
 	[adium.menuController addMenuItem:blockEditorMenuItem toLocation:LOC_Adium_Preferences];
 }
 

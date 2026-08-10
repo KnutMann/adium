@@ -24,12 +24,12 @@ typedef enum {
 
 typedef enum {
 	AIUnknownFileType = -9999,
-	AITIFFFileType = NSTIFFFileType,
-    AIBMPFileType = NSBMPFileType,
-    AIGIFFileType = NSGIFFileType,
-    AIJPEGFileType = NSJPEGFileType,
-    AIPNGFileType = NSPNGFileType,
-    AIJPEG2000FileType = NSJPEG2000FileType
+	AITIFFFileType = NSBitmapImageFileTypeTIFF,
+    AIBMPFileType = NSBitmapImageFileTypeBMP,
+    AIGIFFileType = NSBitmapImageFileTypeGIF,
+    AIJPEGFileType = NSBitmapImageFileTypeJPEG,
+    AIPNGFileType = NSBitmapImageFileTypePNG,
+    AIJPEG2000FileType = NSBitmapImageFileTypeJPEG2000
 } AIBitmapImageFileType;
 
 

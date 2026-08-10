@@ -242,7 +242,7 @@
 	}
 
 	// Save our single-fire option
-	[alert setObject:[NSNumber numberWithBool:([checkbox_oneTime state] == NSOnState)] forKey:KEY_ONE_TIME_ALERT];
+	[alert setObject:[NSNumber numberWithBool:([checkbox_oneTime state] == NSControlStateValueOn)] forKey:KEY_ONE_TIME_ALERT];
 }
 
 // Remove details view/pane

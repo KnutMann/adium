@@ -186,7 +186,7 @@
 		NSEvent *nextEvent;
 		
 		//Wait for the next event
-		nextEvent = [[self window] nextEventMatchingMask:(NSLeftMouseUpMask | NSLeftMouseDraggedMask | NSPeriodicMask)
+		nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
 											   untilDate:[NSDate distantFuture]
 												  inMode:NSEventTrackingRunLoopMode
 												 dequeue:NO];
@@ -197,7 +197,7 @@
 			* NSImageView does some sort of event loop modification in response to a click. We didn't dequeue the event, so
 			* we don't have to handle it ourselves -- instead, the event loop will handle it after this invocation is complete. 
 			*/
-		if ([nextEvent type] != NSLeftMouseDragged) {
+		if ([nextEvent type] != NSEventTypeLeftMouseDragged) {
 			[super mouseDown:theEvent];   
 		}
 		
@@ -257,13 +257,13 @@
 
 - (void)dragImage:(NSImage *)anImage at:(NSPoint)imageLoc offset:(NSSize)mouseOffset event:(NSEvent *)theEvent pasteboard:(NSPasteboard *)pboard source:(id)sourceObject slideBack:(BOOL)slideBack
 {
-	[pboard addTypes:[NSArray arrayWithObjects:NSTIFFPboardType,NSPDFPboardType,nil] owner:self];
+	[pboard addTypes:[NSArray arrayWithObjects:NSPasteboardTypeTIFF,NSPasteboardTypePDF,nil] owner:self];
 	
 	NSImage *dragImage = [[NSImage alloc] initWithSize:[[self image] size]];
 	
 	//Draw our original image as 50% transparent
 	[dragImage lockFocus];
-	[[self image] drawAtPoint:NSZeroPoint fromRect:NSMakeRect(0, 0, self.image.size.width, self.image.size.height) operation:NSCompositeCopy fraction:0.5f];
+	[[self image] drawAtPoint:NSZeroPoint fromRect:NSMakeRect(0, 0, self.image.size.width, self.image.size.height) operation:NSCompositingOperationCopy fraction:0.5f];
 	[dragImage unlockFocus];
 	
 	//Change to the size we are displaying
@@ -293,14 +293,14 @@
 - (void)pasteboard:(NSPasteboard *)sender provideDataForType:(NSString *)type
 {
     //sender has accepted the drag and now we need to send the data for the type we promised
-    if ([type isEqualToString:NSTIFFPboardType]) {
+    if ([type isEqualToString:NSPasteboardTypeTIFF]) {
 		//set data for TIFF type on the pasteboard as requested
 		[sender setData:[[self image] TIFFRepresentation] 
-				forType:NSTIFFPboardType];
+				forType:NSPasteboardTypeTIFF];
 		
-    } else if ([type isEqualToString:NSPDFPboardType]) {
+    } else if ([type isEqualToString:NSPasteboardTypePDF]) {
 		[sender setData:[self dataWithPDFInsideRect:[self bounds]] 
-				forType:NSPDFPboardType];
+				forType:NSPasteboardTypePDF];
     }
 }
 
@@ -428,8 +428,8 @@
 {
 	NSImage *image = [self image];
 	if (image) {
-		[[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSTIFFPboardType] owner:nil];
-		[[NSPasteboard generalPasteboard] setData:[image TIFFRepresentation] forType:NSTIFFPboardType];
+		[[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSPasteboardTypeTIFF] owner:nil];
+		[[NSPasteboard generalPasteboard] setData:[image TIFFRepresentation] forType:NSPasteboardTypeTIFF];
 	}
 }
 
@@ -440,7 +440,7 @@
 {
 	NSPasteboard	*pb = [NSPasteboard generalPasteboard];
 	NSString		*type = [pb availableTypeFromArray:
-		[NSArray arrayWithObjects:NSTIFFPboardType, NSPDFPboardType,nil]];
+		[NSArray arrayWithObjects:NSPasteboardTypeTIFF, NSPasteboardTypePDF,nil]];
 	BOOL			success = NO;
 
     NSData			*imageData = (type ? [pb dataForType:type] : nil);
@@ -515,7 +515,7 @@
 
 - (void)pictureTakerDidEnd:(IKPictureTaker *)inPictureTaker returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 {
-	if (returnCode == NSOKButton) {
+	if (returnCode == NSModalResponseOK) {
 		NSImage *image = [inPictureTaker outputImage];
 		
 		//Update the NSImageView
@@ -598,7 +598,7 @@
 		[openPanel setTitle:AILocalizedStringFromTableInBundle(@"Select Image", nil, [NSBundle bundleWithIdentifier:AIUTILITIES_BUNDLE_ID], nil)];
         [openPanel setAllowedFileTypes:[NSImage imageFileTypes]];
 		
-		if ([openPanel runModal] == NSOKButton) {
+		if ([openPanel runModal] == NSModalResponseOK) {
 			NSData	*imageData;
 			NSImage *image;
 			NSSize	imageSize;

@@ -51,7 +51,7 @@ static  CGFloat   distanceBetweenEmoticons = 0;
 	
 	if (NSIntersectsRect(rect,nameFrame)) {
 		//Display the title, truncating as necessary
-		NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+		NSMutableParagraphStyle	*paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 																				lineBreakMode:NSLineBreakByTruncatingTail];
 		[paragraphStyle setMaximumLineHeight:nameFrame.size.height];
 
@@ -94,7 +94,7 @@ static  CGFloat   distanceBetweenEmoticons = 0;
 			if ((destRect.origin.x + destRect.size.width) < (cellFrame.origin.x + cellFrame.size.width)) {
 				[image drawInRect:destRect
 						 fromRect:NSMakeRect(0, 0, imageSize.width, imageSize.height)
-						operation:NSCompositeSourceOver
+						operation:NSCompositingOperationSourceOver
 						 fraction:1.0f];
 			}
 			

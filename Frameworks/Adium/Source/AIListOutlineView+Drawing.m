@@ -59,7 +59,7 @@
 					//Background image normal
 					[backgroundImage drawInRect:NSMakeRect(visRect.origin.x, visRect.origin.y, imageSize.width, imageSize.height)
 									   fromRect:imageRect
-									  operation:NSCompositeSourceOver
+									  operation:NSCompositingOperationSourceOver
 									   fraction:imageFade];
 					break;
 				}
@@ -77,7 +77,7 @@
 					//Background image stretch
 					[backgroundImage drawInRect:visRect
 									   fromRect:imageRect
-									  operation:NSCompositeSourceOver
+									  operation:NSCompositingOperationSourceOver
 									   fraction:imageFade];
 					break;
 				}
@@ -85,7 +85,7 @@
 					//Background image stretch
 					[backgroundImage drawInRect:visRect
 									   fromRect:imageRect
-									  operation:NSCompositeSourceOver
+									  operation:NSCompositingOperationSourceOver
 									   fraction:imageFade];
 					break;
 				}
@@ -106,7 +106,7 @@
 								//Draw at the current x and y at least once with the original size
 								[backgroundImage drawInRect:drawingRect
 												   fromRect:imageRect
-												  operation:NSCompositeSourceOver
+												  operation:NSCompositingOperationSourceOver
 												   fraction:imageFade];
 							}
 							
@@ -377,7 +377,7 @@
 	 item:item];
 	
 	switch ([cell textAlignment]) {
-		case NSRightTextAlignment:
+		case NSTextAlignmentRight:
 			//Right alignment indents on the right
 			aHighlightRect.size.width -= [cell indentation];
 			break;

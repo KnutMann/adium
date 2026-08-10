@@ -150,7 +150,7 @@ NSRectArray _copyRectArray(NSRectArray someRects, NSUInteger arraySize);
 				
 				//Setup Tracking Info
 				distantFuture = [NSDate distantFuture];
-				eventMask = NSLeftMouseUpMask | NSRightMouseUpMask | NSLeftMouseDraggedMask | NSRightMouseDraggedMask;
+				eventMask = NSEventMaskLeftMouseUp | NSEventMaskRightMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskRightMouseDragged;
 				
 				//Find region of clicked link
 				linkRects = [layoutManager rectArrayForCharacterRange:linkRange
@@ -173,8 +173,8 @@ NSRectArray _copyRectArray(NSRectArray someRects, NSUInteger arraySize);
 						mouseLoc.y -= offset.y;
 						
 						switch ([theEvent type]) {
-							case NSRightMouseUp:		//Done Tracking Clickscr
-							case NSLeftMouseUp:
+							case NSEventTypeRightMouseUp:		//Done Tracking Clickscr
+							case NSEventTypeLeftMouseUp:
 								//If we were still inside the link, draw unclicked and open link
 								if (_mouseInRects(mouseLoc, linkRects, linkCount, NO)) {
 									[[NSWorkspace sharedWorkspace] openURL:linkURL];
@@ -183,8 +183,8 @@ NSRectArray _copyRectArray(NSRectArray someRects, NSUInteger arraySize);
 								[controlView setNeedsDisplay:YES];
 								done = YES;
 								break;
-							case NSLeftMouseDragged:	//Mouse Moved
-							case NSRightMouseDragged:
+							case NSEventTypeLeftMouseDragged:	//Mouse Moved
+							case NSEventTypeRightMouseDragged:
 								//Check if we crossed the link region edge
 								if (_mouseInRects(mouseLoc, linkRects, linkCount, NO) && inRects == NO) {
 									[textStorage addAttribute:NSForegroundColorAttributeName value:[NSColor orangeColor] range:linkRange];
@@ -414,8 +414,8 @@ NSRectArray _copyRectArray(NSRectArray someRects, NSUInteger arraySize)
 - (void)copyLink:(id)sender
 {
     NSAttributedString *copyString = [[[NSAttributedString alloc] initWithString:[(NSURL *)[sender representedObject] absoluteString] attributes:nil] autorelease];
-    [[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSRTFPboardType] owner:nil];
+    [[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSPasteboardTypeRTF] owner:nil];
     [[NSPasteboard generalPasteboard] setData:[copyString RTFFromRange:NSMakeRange(0,[copyString length])
-                                                    documentAttributes:[NSDictionary dictionary]] forType:NSRTFPboardType];
+                                                    documentAttributes:[NSDictionary dictionary]] forType:NSPasteboardTypeRTF];
 }
 @end

@@ -98,11 +98,11 @@
 
 - (NSMenuItem *)accountMenuSpecialMenuItem:(AIAccountMenu *)inAccountMenu
 {
-	NSMenuItem *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Connect All Accounts",nil)
+	NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Connect All Accounts",nil)
 																				target:self
 																				action:@selector(connectAllAccounts:)
 																		 keyEquivalent:@"R"];
-	[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+	[menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
 	return [menuItem autorelease];
 }
 

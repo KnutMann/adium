@@ -335,7 +335,7 @@
 - (void)closeAlertDidEnd:(NSAlert *)alert returnCode:(int)result contextInfo:(void *)contextInfo;
 {
 	
-	if ([alert suppressionButton].state == NSOnState) {
+	if ([alert suppressionButton].state == NSControlStateValueOn) {
 		[adium.preferenceController setPreference:nil
 										   forKey:KEY_CONFIRM_MSG_CLOSE
 											group:PREF_GROUP_CONFIRMATIONS];
@@ -1047,7 +1047,7 @@
 //Allow dragging of text
 - (NSArray *)allowedDraggedTypesForTabView:(NSTabView *)aTabView
 {
-	return [NSArray arrayWithObjects:NSRTFPboardType, NSStringPboardType, NSFilenamesPboardType, NSTIFFPboardType, NSPDFPboardType, nil];
+	return [NSArray arrayWithObjects:NSPasteboardTypeRTF, NSPasteboardTypeString, NSFilenamesPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil];
 }
 
 //Accept dragged text
@@ -1079,7 +1079,7 @@
 	NSPoint tabOrigin = [tabView frame].origin;
 	tabOrigin.x += 10;
 	tabOrigin.y += 13;
-	[tabViewImage drawAtPoint:tabOrigin fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
+	[tabViewImage drawAtPoint:tabOrigin fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0];
 	[viewImage unlockFocus];
 	
 	//draw over where the tab bar would usually be
@@ -1118,7 +1118,7 @@
 			break;
 	}
 	
-	*styleMask = NSTitledWindowMask;
+	*styleMask = NSWindowStyleMaskTitled;
 	
 	return viewImage;
 }
@@ -1459,7 +1459,7 @@
 		[chatImage drawInRect:NSMakeRect((128 - newChatImageSize.width)/2, (128 - newChatImageSize.height)/2,
 										 newChatImageSize.width, newChatImageSize.height)
 					 fromRect:NSMakeRect(0, 0, chatImageSize.width, chatImageSize.height)
-					operation:NSCompositeSourceOver
+					operation:NSCompositingOperationSourceOver
 					 fraction:1.0f];
 		
 		//Draw the Adium icon as a badge in the bottom right
@@ -1468,7 +1468,7 @@
 										badgeSize.width,
 										badgeSize.height)
 					fromRect:NSMakeRect(0, 0, appImageSize.width, appImageSize.height)
-				   operation:NSCompositeSourceOver
+				   operation:NSCompositingOperationSourceOver
 					fraction:1.0f];
 	}
 	[miniwindowImage unlockFocus];

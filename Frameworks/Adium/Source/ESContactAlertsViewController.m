@@ -342,7 +342,7 @@ int globalAlertAlphabeticalSort(id objectA, id objectB, void *context);
 	AIVerticallyCenteredTextCell	*verticallyCenteredTextCell;
 	
 	imageCell = [[AIScaledImageCell alloc] init];
-	[imageCell setAlignment:NSCenterTextAlignment];
+	[imageCell setAlignment:NSTextAlignmentCenter];
 	[imageCell setMaxSize:NSMakeSize(MINIMUM_IMAGE_HEIGHT, MINIMUM_IMAGE_HEIGHT)];
 	[[outlineView_summary tableColumnWithIdentifier:@"image"] setDataCell:imageCell];
 	[imageCell release];

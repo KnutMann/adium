@@ -240,14 +240,14 @@ struct _mark {
 									   action:@selector( jumpToPreviousMark: ) 
 								keyEquivalent:@"["] autorelease];
 	[item setTarget:self];
-	[item setKeyEquivalentModifierMask:NSAlternateKeyMask | NSCommandKeyMask];
+	[item setKeyEquivalentModifierMask:NSEventModifierFlagOption | NSEventModifierFlagCommand];
 	[menu addItem:item];
 	
 	item = [[[NSMenuItem alloc] initWithTitle:AILocalizedStringFromTableInBundle( @"Jump to Next Mark", nil, [NSBundle bundleWithIdentifier:AIUTILITIES_BUNDLE_ID], "jump to next mark contextual menu")
 									   action:@selector( jumpToNextMark: )
 								keyEquivalent:@"]"] autorelease];
 	[item setTarget:self];
-	[item setKeyEquivalentModifierMask:NSAlternateKeyMask | NSCommandKeyMask];
+	[item setKeyEquivalentModifierMask:NSEventModifierFlagOption | NSEventModifierFlagCommand];
 	[menu addItem:item];
 	
 	item = [[[NSMenuItem alloc] initWithTitle:AILocalizedStringFromTableInBundle( @"Jump to Focus Mark", nil, [NSBundle bundleWithIdentifier:AIUTILITIES_BUNDLE_ID], "jump to the mark where the last content the user saw ends")

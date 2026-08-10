@@ -265,7 +265,7 @@
 		NSSize size = [overlayImage size];
 		[overlayImage drawAtPoint:NSMakePoint(0,0)
 						 fromRect:NSMakeRect(0,0,size.width,size.height)
-						operation:NSCompositeSourceOver
+						operation:NSCompositingOperationSourceOver
 						 fraction:1.0f];
 	}
 	[workingImage unlockFocus];

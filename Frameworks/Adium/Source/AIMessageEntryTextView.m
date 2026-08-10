@@ -63,10 +63,10 @@
 #define KEY_MAX_NUMBER_OF_CHARACTERS			@"Maximum Number Of Characters"
 
 #define FILES_AND_IMAGES_TYPES [NSArray arrayWithObjects: \
-	NSFilenamesPboardType, AIiTunesTrackPboardType, NSTIFFPboardType, NSPDFPboardType, nil]
+	NSFilenamesPboardType, AIiTunesTrackPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil]
 
 #define PASS_TO_SUPERCLASS_DRAG_TYPE_ARRAY [NSArray arrayWithObjects: \
-	NSRTFPboardType, NSStringPboardType, nil]
+	NSPasteboardTypeRTF, NSPasteboardTypeString, nil]
 
 /**
  * @class AISimpleTextView
@@ -227,7 +227,7 @@
 		
 		//We have to test ctrl before option, because otherwise we'd miss ctrl-option-* events
 		if (pushPopEnabled &&
-			(flags & NSControlKeyMask) && !(flags & NSShiftKeyMask)) {
+			(flags & NSEventModifierFlagControl) && !(flags & NSEventModifierFlagShift)) {
 			if (inChar == NSUpArrowFunctionKey) {
 				[self popContent];
 			} else if (inChar == NSDownArrowFunctionKey) {
@@ -239,7 +239,7 @@
 			}
 			
 		} else if (historyEnabled && 
-				   (flags & NSAlternateKeyMask) && !(flags & NSShiftKeyMask)) {
+				   (flags & NSEventModifierFlagOption) && !(flags & NSEventModifierFlagShift)) {
 			if (inChar == NSUpArrowFunctionKey) {
 				[self historyUp];
 			} else if (inChar == NSDownArrowFunctionKey) {
@@ -249,7 +249,7 @@
 			}
 			
 		} else if (associatedView &&
-				   (flags & NSCommandKeyMask) && !(flags & NSShiftKeyMask)) {
+				   (flags & NSEventModifierFlagCommand) && !(flags & NSEventModifierFlagShift)) {
 			if ((inChar == NSUpArrowFunctionKey || inChar == NSDownArrowFunctionKey) ||
 			   (inChar == NSHomeFunctionKey || inChar == NSEndFunctionKey) ||
 			   (inChar == NSPageUpFunctionKey || inChar == NSPageDownFunctionKey)) {
@@ -276,7 +276,7 @@
 			if (homeToStartOfLine) {
 				NSRange	newRange;
 				
-				if (flags & NSShiftKeyMask) {
+				if (flags & NSEventModifierFlagShift) {
 					//With shift, select to the beginning/end of the line
 					NSRange	selectedRange = [self selectedRange];
 					if (inChar == NSHomeFunctionKey) {
@@ -515,8 +515,8 @@
 	
 	//Types is ordered by the preference for handling of the data; enumerating it lets us allow the sending application's hints to be followed.
 	for (NSString *type in generalPasteboard.types) {
-		if ([type isEqualToString:NSRTFDPboardType]) {
-			NSData *data = [generalPasteboard dataForType:NSRTFDPboardType];
+		if ([type isEqualToString:NSPasteboardTypeRTFD]) {
+			NSData *data = [generalPasteboard dataForType:NSPasteboardTypeRTFD];
 			[self insertText:[self attributedStringWithAITextAttachmentExtensionsFromRTFDData:data]];
 			handledPaste = YES;
 			
@@ -527,8 +527,8 @@
 		} else if ([FILES_AND_IMAGES_TYPES containsObject:type]) {
 			[self addAttachmentsFromPasteboard:generalPasteboard];
 			handledPaste = YES;
-		} else if ([type isEqualToString:NSHTMLPboardType]) {
-			NSData *htmlData = [generalPasteboard dataForType:NSHTMLPboardType];
+		} else if ([type isEqualToString:NSPasteboardTypeHTML]) {
+			NSData *htmlData = [generalPasteboard dataForType:NSPasteboardTypeHTML];
 			[self insertText:[[[NSAttributedString alloc] initWithData:htmlData
 															   options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
 																		 NSCharacterEncodingDocumentAttribute: @(NSUTF8StringEncoding),
@@ -570,15 +570,15 @@
 	NSString		*type;
 
 	NSArray *supportedTypes =
-		[NSArray arrayWithObjects:NSURLPboardType, NSRTFDPboardType, NSRTFPboardType, NSHTMLPboardType, NSStringPboardType, 
-			NSFilenamesPboardType, NSTIFFPboardType, NSPDFPboardType, nil];
+		[NSArray arrayWithObjects:NSURLPboardType, NSPasteboardTypeRTFD, NSPasteboardTypeRTF, NSPasteboardTypeHTML, NSPasteboardTypeString, 
+			NSFilenamesPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil];
 
 	type = [[NSPasteboard generalPasteboard] availableTypeFromArray:supportedTypes];
 	
-	if ([type isEqualToString:NSRTFPboardType] ||
-		[type isEqualToString:NSRTFDPboardType] ||
-		[type isEqualToString:NSHTMLPboardType] ||
-		[type isEqualToString:NSStringPboardType]) {
+	if ([type isEqualToString:NSPasteboardTypeRTF] ||
+		[type isEqualToString:NSPasteboardTypeRTFD] ||
+		[type isEqualToString:NSPasteboardTypeHTML] ||
+		[type isEqualToString:NSPasteboardTypeString]) {
 		NSData *data;
 		
 		@try {
@@ -588,9 +588,9 @@
 		}
 		
 		//Failed. Try again with the string type.
-		if (!data && ![type isEqualToString:NSStringPboardType]) {
-			if ([[[NSPasteboard generalPasteboard] types] containsObject:NSStringPboardType]) {
-				type = NSStringPboardType;
+		if (!data && ![type isEqualToString:NSPasteboardTypeString]) {
+			if ([[[NSPasteboard generalPasteboard] types] containsObject:NSPasteboardTypeString]) {
+				type = NSPasteboardTypeString;
 				@try {
 					data = [generalPasteboard dataForType:type];
 				} @catch (NSException *localException) {
@@ -611,7 +611,7 @@
 		
 		NSMutableAttributedString *attributedString;
 		
-		if ([type isEqualToString:NSStringPboardType]) {
+		if ([type isEqualToString:NSPasteboardTypeString]) {
 			NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 			attributedString = [[NSMutableAttributedString alloc] initWithString:string
 																	  attributes:[self typingAttributes]];
@@ -619,20 +619,20 @@
 			
 		} else {
 			@try {
-				if ([type isEqualToString:NSRTFPboardType]) {
+				if ([type isEqualToString:NSPasteboardTypeRTF]) {
 					attributedString = [[NSMutableAttributedString alloc] initWithRTF:data
 																   documentAttributes:NULL];
-				} else if ([type isEqualToString:NSRTFDPboardType]) {
+				} else if ([type isEqualToString:NSPasteboardTypeRTFD]) {
 					attributedString = [[NSMutableAttributedString alloc] initWithRTFD:data
 																	documentAttributes:NULL];
-				} else /* NSHTMLPboardType */ {
+				} else /* NSPasteboardTypeHTML */ {
 					attributedString = [[NSMutableAttributedString alloc] initWithHTML:data
 																	documentAttributes:NULL];
 				}
 			} @catch (NSException *localException) {
 				//Error while reading the RTF or HTML data, which can happen. Fall back on plain text
-				if ([[[NSPasteboard generalPasteboard] types] containsObject:NSStringPboardType]) {
-					data = [generalPasteboard dataForType:NSStringPboardType];
+				if ([[[NSPasteboard generalPasteboard] types] containsObject:NSPasteboardTypeString]) {
+					data = [generalPasteboard dataForType:NSPasteboardTypeString];
 					NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 					attributedString = [[NSMutableAttributedString alloc] initWithString:string
 																			  attributes:[self typingAttributes]];
@@ -1286,7 +1286,7 @@
  WebURLsWithTitlesPboardType,
  "CorePasteboardFlavorType 0x75726C20",
  "Apple URL pasteboard type",
- NSStringPboardType,
+ NSPasteboardTypeString,
  "NSColor pasteboard type",
  "NeXT font pasteboard type",
  "NeXT ruler pasteboard type",

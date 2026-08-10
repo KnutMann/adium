@@ -38,7 +38,7 @@
 		editingFrame = [self frame];
 		editingFrame.origin = NSMakePoint(3, 1);
 
-		NSMutableParagraphStyle *paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+		NSMutableParagraphStyle *paragraphStyle = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 																				lineBreakMode:NSLineBreakByTruncatingMiddle];
 		[paragraphStyle setMaximumLineHeight:editingFrame.size.height];
 		NSAttributedString		*attributedString = [[NSAttributedString alloc] initWithString:(startingString ? startingString : @"")

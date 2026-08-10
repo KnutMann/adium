@@ -327,7 +327,7 @@ static NSImage *det_triangle_closed = nil;
 		[img lockFocus];
 		[transform set];
 		[downloadprogress drawInRect:NSMakeRect(0.0f,0.0f,imgsize.width,imgsize.height) fromRect:NSMakeRect(0.0f,0.0f,imgsize.width,imgsize.height)
-						   operation:NSCompositeSourceOver fraction:1.0f];
+						   operation:NSCompositingOperationSourceOver fraction:1.0f];
 		[[NSAffineTransform transform] set];
 		[img unlockFocus];
 		[cell setImage:img];
@@ -345,7 +345,7 @@ static NSImage *det_triangle_closed = nil;
 				NSButtonCell *triangleCell = [[NSButtonCell alloc] initImageCell:nil];
 				[triangleCell setButtonType:NSOnOffButton];
 				[triangleCell setBezelStyle:NSDisclosureBezelStyle];
-				[triangleCell setState:NSOnState];
+				[triangleCell setState:NSControlStateValueOn];
 				
 				[det_triangle_opened lockFocus];
 				[triangleCell drawWithFrame:NSMakeRect(0.0f,0.0f,13.0f,13.0f) inView:outlineView];
@@ -361,7 +361,7 @@ static NSImage *det_triangle_closed = nil;
 				NSButtonCell *triangleCell = [[NSButtonCell alloc] initImageCell:nil];
 				[triangleCell setButtonType:NSOnOffButton];
 				[triangleCell setBezelStyle:NSDisclosureBezelStyle];
-				[triangleCell setIntegerValue:NSOffState];
+				[triangleCell setIntegerValue:NSControlStateValueOff];
 				
 				[det_triangle_closed lockFocus];
 				[triangleCell drawWithFrame:NSMakeRect(0.0f,0.0f,13.0f,13.0f) inView:outlineView];

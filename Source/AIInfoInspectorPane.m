@@ -461,7 +461,7 @@
 									  colspan:1
 									   header:NO
 										color:[NSColor grayColor]
-									alignment:NSRightTextAlignment
+									alignment:NSTextAlignmentRight
 						   toAttributedString:result];
 				}
 				
@@ -473,7 +473,7 @@
 									  colspan:(key ? 1 : 2) /* If there's no key, we need to fill both columns. */
 									   header:NO
 										color:nil
-									alignment:NSLeftTextAlignment
+									alignment:NSTextAlignmentLeft
 						   toAttributedString:result];
 				}
 				break;
@@ -486,7 +486,7 @@
 								  colspan:2
 								   header:YES
 									color:[NSColor darkGrayColor]
-								alignment:NSLeftTextAlignment
+								alignment:NSTextAlignmentLeft
 					   toAttributedString:result];
 				break;
 				
@@ -499,7 +499,7 @@
 								  colspan:2
 								   header:NO
 									color:[NSColor controlTextColor]
-								alignment:NSLeftTextAlignment
+								alignment:NSTextAlignmentLeft
 					   toAttributedString:result];
 				break;
 		}

@@ -122,7 +122,7 @@
 
 #ifndef DEBUG_BUILD
 	// If we're not in a debug build, activate debug logging if checked.
-	if (checkBox_debugMode.state == NSOnState) {
+	if (checkBox_debugMode.state == NSControlStateValueOn) {
 		AIEnableDebugLogging();
 	}
 #endif
@@ -247,10 +247,10 @@
 	//Setup the 'start in debug mode' checkbox
 #ifdef DEBUG_BUILD
 	//Disabled, checked for debug builds
-	checkBox_debugMode.state = NSOnState;
+	checkBox_debugMode.state = NSControlStateValueOn;
 	[checkBox_debugMode setEnabled:NO];	
 #else
-	checkBox_debugMode.state = NSOffState;
+	checkBox_debugMode.state = NSControlStateValueOff;
 #endif
 
     //Select the login they used last

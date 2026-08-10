@@ -362,7 +362,7 @@
 		NSData				*imageTIFFData = [image TIFFRepresentation];
 		NSBitmapImageRep	*bitmapRep = [NSBitmapImageRep imageRepWithData:imageTIFFData];
 		
-		data = [bitmapRep representationUsingType:NSPNGFileType properties:[NSDictionary dictionaryWithValuesForKeys:[NSArray array]]];
+		data = [bitmapRep representationUsingType:NSBitmapImageFileTypePNG properties:[NSDictionary dictionaryWithValuesForKeys:[NSArray array]]];
 		extension = @"png";
 		[image release];
 	}

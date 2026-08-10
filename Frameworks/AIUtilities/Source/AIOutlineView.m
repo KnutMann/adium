@@ -74,7 +74,7 @@
 //Navigate outline view with the keyboard, send select actions to delegate
 - (void)keyDown:(NSEvent *)theEvent
 {
-	if (!([theEvent modifierFlags] & NSCommandKeyMask)) {
+	if (!([theEvent modifierFlags] & NSEventModifierFlagCommand)) {
 
 		NSString	*charString = [theEvent charactersIgnoringModifiers];
 		unichar		pressedChar = 0;
@@ -140,8 +140,8 @@
 			[self findNext:self];
 
 		} else if ([[self delegate] respondsToSelector:@selector(outlineView:forwardKeyEventToFindPanel:)] && 
-				   !([theEvent modifierFlags] & NSCommandKeyMask) && 
-				   !([theEvent modifierFlags] & NSControlKeyMask)) {
+				   !([theEvent modifierFlags] & NSEventModifierFlagCommand) && 
+				   !([theEvent modifierFlags] & NSEventModifierFlagControl)) {
 			//handle any key we have not alredy handled that is a visable character and likely not to be a shortcut key (no command or control key modifiers) by asking the delegate to add it to the search string
 			if (![(id<AIOutlineViewDelegate>)[self delegate] outlineView:self forwardKeyEventToFindPanel:theEvent]) {
 				//the delegate's find panel could not handle the event, so we just pass it to super

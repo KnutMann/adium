@@ -598,7 +598,7 @@
 		[menuItem setImage:[AIServiceIcons serviceIconForObject:account type:AIServiceIconSmall direction:AIIconNormal]];
 		
 		if (activeAccount == account) {
-			[menuItem setState:NSOnState];
+			[menuItem setState:NSControlStateValueOn];
 		}
 		[menuItem setIndentationLevel:1];
 		[menu addItem:menuItem];
@@ -613,7 +613,7 @@
 											  action:@selector(nameViewSelectedAccount:)
 									   keyEquivalent:@""];
 		if (!activeAccount) {
-			[menuItem setState:NSOnState];
+			[menuItem setState:NSControlStateValueOn];
 		}
 		[menuItem setIndentationLevel:1];
 		[menu addItem:menuItem];

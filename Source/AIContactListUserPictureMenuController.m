@@ -199,7 +199,7 @@
 			
 			//Put a checkmark if it is the active account
 			if (activeAccount == account) {
-				[menuItem setState:NSOnState];
+				[menuItem setState:NSControlStateValueOn];
 			}
 			
 			[menuItem setIndentationLevel:1];
@@ -215,7 +215,7 @@
 												  action:@selector(selectedAccount:)
 										   keyEquivalent:@""];
 			if (!activeAccount) {
-				[menuItem setState:NSOnState];
+				[menuItem setState:NSControlStateValueOn];
 			}
 			
 			[menuItem setIndentationLevel:1];

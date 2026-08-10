@@ -103,7 +103,7 @@
 	selectedEmoticonPack = nil;
 	checkCell = [[NSButtonCell alloc] init];
 	[checkCell setButtonType:NSSwitchButton];
-	[checkCell setControlSize:NSSmallControlSize];
+	[checkCell setControlSize:NSControlSizeSmall];
 	[checkCell setTitle:@""];
 	[checkCell setRefusesFirstResponder:YES];
 	[[table_emoticons tableColumnWithIdentifier:@"Enabled"] setDataCell:checkCell];
@@ -256,7 +256,7 @@
     NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithObject:[NSColor grayColor] forKey:NSForegroundColorAttributeName];
     
     if (center) {
-        [attributes setObject:[NSParagraphStyle styleWithAlignment:NSCenterTextAlignment]
+        [attributes setObject:[NSParagraphStyle styleWithAlignment:NSTextAlignmentCenter]
 		       forKey:NSParagraphStyleAttributeName];
     }
 
@@ -429,7 +429,7 @@
 
 - (void)trashConfirmSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
-	if (returnCode != NSOKButton)
+	if (returnCode != NSModalResponseOK)
 		return;
 	
 	for (AIEmoticonPackPreviewController *previewController in [table_emoticonPacks selectedItemsFromArray:emoticonPackPreviewControllers]) {

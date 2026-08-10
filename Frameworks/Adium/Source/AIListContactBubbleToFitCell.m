@@ -35,10 +35,10 @@
 	
 	//Alignment
 	switch ([self textAlignment]) {
-		case NSCenterTextAlignment:
+		case NSTextAlignmentCenter:
 			rect.origin.x += ((rect.size.width - nameSize.width) / 2.0f) - [self leftPadding];
 			break;
-		case NSRightTextAlignment:
+		case NSTextAlignmentRight:
 			rect.origin.x += (rect.size.width - nameSize.width) - [self leftPadding] - [self rightPadding];
 			break;
 		default:

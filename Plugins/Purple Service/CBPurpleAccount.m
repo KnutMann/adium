@@ -2793,7 +2793,7 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 		act->label &&
 		(title = [self titleForContactMenuLabel:act->label
 									 forContact:inContact])) { 
-		menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:title
+		menuItem = [[NSMenuItem alloc] initWithTitle:title
 																		target:self
 																		action:@selector(performContactMenuAction:)
 																 keyEquivalent:@""];
@@ -2937,7 +2937,7 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 						action->plugin = plugin;
 						action->context = purple_account_get_connection(account);
 
-						menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:title
+						menuItem = [[[NSMenuItem alloc] initWithTitle:title
 																						 target:self
 																						 action:@selector(performAccountMenuAction:)
 																				  keyEquivalent:@""] autorelease];

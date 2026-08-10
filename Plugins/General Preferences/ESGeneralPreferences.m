@@ -154,7 +154,7 @@
  */
 - (NSMenu *)tabChangeKeysMenu
 {
-	NSMenu		*menu = [[NSMenu allocWithZone:[NSMenu menuZone]] init];
+	NSMenu		*menu = [[NSMenu alloc] init];
 #define PLACE_OF_INTEREST_SIGN	"\u2318"
 #define LEFTWARDS_ARROW			"\u2190"
 #define RIGHTWARDS_ARROW		"\u2192"
@@ -218,7 +218,7 @@
  */
 - (NSMenu *)sendKeysMenu
 {
-	NSMenu		*menu = [[NSMenu allocWithZone:[NSMenu menuZone]] init];
+	NSMenu		*menu = [[NSMenu alloc] init];
 
 	[menu addItemWithTitle:AILocalizedString(@"Enter","Enter key for sending messages")
 					target:nil
@@ -260,7 +260,7 @@
 								
 - (NSMenu *)tabPositionMenu
 {
-	NSMenu		*menu = [[NSMenu allocWithZone:[NSMenu menuZone]] init];
+	NSMenu		*menu = [[NSMenu alloc] init];
 	
 	[menu addItemWithTitle:AILocalizedString(@"Top","Position menu item for tabs at the top of the message window")
 					target:nil

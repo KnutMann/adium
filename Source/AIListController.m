@@ -640,9 +640,9 @@
 		}
 
 	} else if ([types containsObject:NSFilenamesPboardType] ||
-			   [types containsObject:NSRTFPboardType] ||
+			   [types containsObject:NSPasteboardTypeRTF] ||
 			   [types containsObject:NSURLPboardType] ||
-			   [types containsObject:NSStringPboardType] ||
+			   [types containsObject:NSPasteboardTypeString] ||
 			   [types containsObject:AIiTunesTrackPboardType]) {
 		retVal = ((proposedListObject && [proposedListObject isKindOfClass:[AIListContact class]]) ? NSDragOperationLink : NSDragOperationNone);
 
@@ -845,24 +845,24 @@
 			NSBeep();
 		}
 
-	} else if ((availableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObjects:NSRTFPboardType,
-																				   NSURLPboardType, NSStringPboardType, nil]])) {
+	} else if ((availableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObjects:NSPasteboardTypeRTF,
+																				   NSURLPboardType, NSPasteboardTypeString, nil]])) {
 		//Drag and drop text sending via the contact list.
 		if ([item isKindOfClass:[AIListContact class]]) {
 			/* This will send the message. Alternately, we could just insert it into the text view... */
 			NSAttributedString				*messageAttributedString = nil;
 			
-			if ([availableType isEqualToString:NSRTFPboardType]) {
+			if ([availableType isEqualToString:NSPasteboardTypeRTF]) {
 				//for RTF data, we want to preserve the formatting, so use dataForType:
-				messageAttributedString = [NSAttributedString stringWithData:[[info draggingPasteboard] dataForType:NSRTFPboardType]];
+				messageAttributedString = [NSAttributedString stringWithData:[[info draggingPasteboard] dataForType:NSPasteboardTypeRTF]];
 			}
 			else if ([availableType isEqualToString:NSURLPboardType]) {
 				//NSURLPboardType contains an NSURL object
 				messageAttributedString = [NSAttributedString stringWithString:[[NSURL URLFromPasteboard:[info draggingPasteboard]] absoluteString]];
 			}
-			else if ([availableType isEqualToString:NSStringPboardType]) {
+			else if ([availableType isEqualToString:NSPasteboardTypeString]) {
 				//this is just plain text, so stringForType: works fine
-				messageAttributedString = [NSAttributedString stringWithString:[[info draggingPasteboard] stringForType:NSStringPboardType]];
+				messageAttributedString = [NSAttributedString stringWithString:[[info draggingPasteboard] stringForType:NSPasteboardTypeString]];
 			}
 			
 			if(messageAttributedString && [messageAttributedString length] !=0) {

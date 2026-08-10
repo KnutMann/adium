@@ -263,7 +263,7 @@
 
 - (NSControlSize)controlSizeForAccountMenu:(AIAccountMenu *)inAccountMenu
 {
-	return NSSmallControlSize;
+	return NSControlSizeSmall;
 }
 
 #pragma mark Group control

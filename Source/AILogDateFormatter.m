@@ -28,7 +28,7 @@
 		
 		NSDate *dateToday = [NSDate date];
 		NSCalendar *calendar = [NSCalendar currentCalendar];
-		NSDateComponents *comps = [calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit)
+		NSDateComponents *comps = [calendar components:(NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay)
 											  fromDate:dateToday];
 		comps.day--;
 		BOOL today = [NSDate isDate:dateToday sameDayAsDate:date];

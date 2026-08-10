@@ -235,7 +235,7 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	[contactListView registerForDraggedTypes:
 	 [NSArray arrayWithObjects:@"AIListObject", @"AIListObjectUniqueIDs",
 	  NSFilenamesPboardType, NSURLPboardType,
-	  AIiTunesTrackPboardType, NSStringPboardType, nil]];
+	  AIiTunesTrackPboardType, NSPasteboardTypeString, nil]];
 	
 	[contactListView reloadData];
 
@@ -361,7 +361,7 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		break;
 		case AIContactListWindowStyleContactBubbles_Fitted:
 			//Right-aligned groups need to be full-width, not fitted
-			if (groupCellAlignment == NSLeftTextAlignment)
+			if (groupCellAlignment == NSTextAlignmentLeft)
 				groupCell = [[AIListGroupBubbleToFitCell alloc] init];
 			else
 				groupCell = [[AIListGroupBubbleCell alloc] init];
@@ -419,7 +419,7 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		}
 	} else {
 		//Fitted pillows + centered text = no icons
-		BOOL allowIcons = (contentCellAlignment != NSCenterTextAlignment);
+		BOOL allowIcons = (contentCellAlignment != NSTextAlignmentCenter);
 		
 		[contentCell setUserIconVisible:(allowIcons ? [[prefDict objectForKey:KEY_LIST_LAYOUT_SHOW_ICON] boolValue] : NO)];
 		[contentCell setStatusIconsVisible:(allowIcons ? [[prefDict objectForKey:KEY_LIST_LAYOUT_SHOW_STATUS_ICONS] boolValue] : NO)];
@@ -551,11 +551,11 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 //aligned left means the iconPosition must be on the left, and aligned right means on the right
 - (LIST_POSITION)pillowsFittedIconPositionForIconPosition:(LIST_POSITION)iconPosition contentCellAlignment:(NSTextAlignment)contentCellAlignment
 {
-	if ((contentCellAlignment == NSLeftTextAlignment) && ((iconPosition == LIST_POSITION_RIGHT) ||
+	if ((contentCellAlignment == NSTextAlignmentLeft) && ((iconPosition == LIST_POSITION_RIGHT) ||
 														  (iconPosition == LIST_POSITION_FAR_RIGHT))) {
 		iconPosition = LIST_POSITION_LEFT;
 		
-	} else if ((contentCellAlignment == NSRightTextAlignment) && ((iconPosition == LIST_POSITION_LEFT) ||
+	} else if ((contentCellAlignment == NSTextAlignmentRight) && ((iconPosition == LIST_POSITION_LEFT) ||
 																 (iconPosition == LIST_POSITION_FAR_LEFT))) {
 		iconPosition = LIST_POSITION_RIGHT;
 	}
@@ -869,9 +869,9 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		if ([URLStrings count]) {
 			[pboard setPropertyList:URLStrings forType:NSURLPboardType];
 			[pboard setPropertyList:[NSArray arrayWithObjects:URLStrings, linkTitles, nil] forType:AIWebURLsWithTitlesPboardType];
-			[pboard setString:[URLStrings componentsJoinedByString:@"\n"] forType:NSStringPboardType];
+			[pboard setString:[URLStrings componentsJoinedByString:@"\n"] forType:NSPasteboardTypeString];
 			
-			[pboard addTypes:[NSArray arrayWithObjects:NSURLPboardType, NSStringPboardType, AIWebURLsWithTitlesPboardType, nil] owner:self];
+			[pboard addTypes:[NSArray arrayWithObjects:NSURLPboardType, NSPasteboardTypeString, AIWebURLsWithTitlesPboardType, nil] owner:self];
 		}
 	}
 

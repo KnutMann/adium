@@ -263,7 +263,7 @@
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 	[image drawInRect:destRect
 			 fromRect:NSMakeRect(0,0,size.width,size.height)
-			operation:NSCompositeSourceOver
+			operation:NSCompositingOperationSourceOver
 			 fraction:1.0f
 	   respectFlipped:YES
 				hints:nil];

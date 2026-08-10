@@ -283,14 +283,14 @@
 	}
 	
 	// Wait for the next event
-	NSEvent *nextEvent = [[self window] nextEventMatchingMask:(NSLeftMouseUpMask | NSLeftMouseDraggedMask | NSPeriodicMask)
+	NSEvent *nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
 													untilDate:[NSDate distantFuture]
 													   inMode:NSEventTrackingRunLoopMode
 													  dequeue:NO];
 	
 	// Only expand/contract if they release the mouse. Otherwise pass on the goods.
 	switch ([nextEvent type]) {
-		case NSLeftMouseUp:
+		case NSEventTypeLeftMouseUp:
 			if ([self isItemExpanded:item]) {
 				[self collapseItem:item]; 
 			} else {
@@ -305,7 +305,7 @@
 			 if (viewPoint.x >= NSHeight([self frameOfCellAtColumn:0 row:row]))
 				 [self selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO]; 
 			 break;
-		case NSLeftMouseDragged:
+		case NSEventTypeLeftMouseDragged:
 			[super mouseDown:theEvent];
 			[super mouseDragged:nextEvent];
 			break;

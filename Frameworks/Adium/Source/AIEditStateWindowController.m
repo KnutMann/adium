@@ -666,7 +666,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 {
 	double		idleStart = [textField_idleHours intValue]*3600 + [textField_idleMinutes intValue]*60;
 	
-	[workingStatusState setMutabilityType:((!showSaveCheckbox || ([checkBox_save state] == NSOnState)) ?
+	[workingStatusState setMutabilityType:((!showSaveCheckbox || ([checkBox_save state] == NSControlStateValueOn)) ?
 										   AIEditableStatusState :
 										   AITemporaryEditableStatusState)];
 

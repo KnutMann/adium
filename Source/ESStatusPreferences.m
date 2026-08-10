@@ -667,17 +667,17 @@
 {
 	BOOL	idleControlsEnabled, autoAwayControlsEnabled;
 
-	idleControlsEnabled = ([checkBox_idle state] == NSOnState);
+	idleControlsEnabled = ([checkBox_idle state] == NSControlStateValueOn);
 	[textField_idleMinutes setEnabled:idleControlsEnabled];
 	[stepper_idleMinutes setEnabled:idleControlsEnabled];
 	
-	autoAwayControlsEnabled = ([checkBox_autoAway state] == NSOnState);
+	autoAwayControlsEnabled = ([checkBox_autoAway state] == NSControlStateValueOn);
 	[popUp_autoAwayStatusState setEnabled:autoAwayControlsEnabled];
 	[textField_autoAwayMinutes setEnabled:autoAwayControlsEnabled];
 	[stepper_autoAwayMinutes setEnabled:autoAwayControlsEnabled];
 	
-	[popUp_fastUserSwitchingStatusState setEnabled:([checkBox_fastUserSwitching state] == NSOnState)];
-	[popUp_screenSaverStatusState setEnabled:([checkBox_screenSaver state] == NSOnState)];
+	[popUp_fastUserSwitchingStatusState setEnabled:([checkBox_fastUserSwitching state] == NSControlStateValueOn)];
+	[popUp_screenSaverStatusState setEnabled:([checkBox_screenSaver state] == NSControlStateValueOn)];
 }
 
 /*!

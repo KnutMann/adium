@@ -182,22 +182,22 @@
     [self showContactList:nil];
 	
 	//Userlist show/hide item
-	menuItem_toggleUserlist = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Toggle User List", nil)
+	menuItem_toggleUserlist = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Toggle User List", nil)
 																							 target:self
 																							 action:@selector(toggleUserlist:)
 																					  keyEquivalent:@"/"];
-	[menuItem_toggleUserlist setKeyEquivalentModifierMask:(NSCommandKeyMask | NSAlternateKeyMask)];
+	[menuItem_toggleUserlist setKeyEquivalentModifierMask:(NSEventModifierFlagCommand | NSEventModifierFlagOption)];
 	
 	[adium.menuController addMenuItem:menuItem_toggleUserlist toLocation:LOC_Display_General];
 	
-	menuItem_toggleUserlistSide = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Toggle User List Side", nil)
+	menuItem_toggleUserlistSide = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Toggle User List Side", nil)
 																				   target:self
 																				   action:@selector(toggleUserlistSide:)
 																			keyEquivalent:@""];
 	
 	[adium.menuController addMenuItem:menuItem_toggleUserlistSide toLocation:LOC_Display_General];
 
-	NSMenuItem *menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Toggle User List", nil)
+	NSMenuItem *menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Toggle User List", nil)
 																				target:self
 																				action:@selector(toggleUserlist:)
 																		 keyEquivalent:@""] autorelease];
@@ -205,14 +205,14 @@
 	[adium.menuController addContextualMenuItem:menuItem toLocation:Context_GroupChat_Action];
 	
 	// Clear display
-	menuItem_clearDisplay = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Clear Display", nil)
+	menuItem_clearDisplay = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Clear Display", nil)
 																				 target:self
 																				 action:@selector(clearDisplay:)
 																		  keyEquivalent:@""];
 	[adium.menuController addMenuItem:menuItem_clearDisplay toLocation:LOC_Display_MessageControl];
 																			  
 	//Contact list menu item
-	menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Contact List","Name of the window which lists contacts")
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Contact List","Name of the window which lists contacts")
 																				target:self
 																				action:@selector(toggleContactList:)
 																		 keyEquivalent:@"/"];
@@ -220,7 +220,7 @@
 	[adium.menuController addMenuItem:[[menuItem copy] autorelease] toLocation:LOC_Dock_Status];
 	[menuItem release];
 	
-	menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Close Chat","Title for the close chat menu item")
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Close Chat","Title for the close chat menu item")
 																	target:self
 																	action:@selector(closeContextualChat:)
 															 keyEquivalent:@""];
@@ -356,7 +356,7 @@
 			//If there was no unviewed content, ensure that atleast one of Adium's windows is unminimized
 			for (NSWindow *window in [NSApp windows]) {
 				//Check stylemask to rule out the system menu's window (Which reports itself as visible like a real window)
-				if (([window styleMask] & (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask))) {
+				if (([window styleMask] & (NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable))) {
 					if (!targetWindow) targetWindow = window;
 					if (![window isMiniaturized]) unMinimizedWindows++;
 				}
@@ -1094,7 +1094,7 @@
     NSMenuItem		*item;
 
     for (item in windowMenuArray) {
-		if ([item representedObject]) [item setState:([item representedObject] == activeChat ? NSOnState : NSOffState)];
+		if ([item representedObject]) [item setState:([item representedObject] == activeChat ? NSControlStateValueOn : NSControlStateValueOff)];
     }
 }
 
@@ -1122,7 +1122,7 @@
 		
 		//Add a menu item for the container
 		if (contentArray.count > 1) {
-			item = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:([containerName length] ? containerName : AILocalizedString(@"Chats", nil))
+			item = [[NSMenuItem alloc] initWithTitle:([containerName length] ? containerName : AILocalizedString(@"Chats", nil))
 																		target:nil
 																		action:nil
 																 keyEquivalent:@""];
@@ -1143,7 +1143,7 @@
 				windowKeyString = @"";
 			}
 			
-			item = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:chat.displayName
+			item = [[NSMenuItem alloc] initWithTitle:chat.displayName
 																		target:self
 																		action:@selector(showChatWindow:)
 																 keyEquivalent:windowKeyString];
@@ -1940,12 +1940,12 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 		//The user can paste if the pasteboard contains an image, some text, one or more files, or one or more URLs.
 		NSPasteboard *pboard = [NSPasteboard generalPasteboard];
 		NSArray *nonImageTypes = [NSArray arrayWithObjects:
-			NSStringPboardType,
-			NSRTFPboardType,
+			NSPasteboardTypeString,
+			NSPasteboardTypeRTF,
 			NSURLPboardType,
 			NSFilenamesPboardType,
 			NSFilesPromisePboardType,
-			NSRTFDPboardType,
+			NSPasteboardTypeRTFD,
 			nil];
 		return ([pboard availableTypeFromArray:nonImageTypes] != nil) || [NSImage canInitWithPasteboard:pboard];
 	
@@ -1996,7 +1996,7 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 	NSMenu		*windowPositionMenu = [[NSMenu allocWithZone:[NSMenu zone]] init];
 	NSMenuItem	*menuItem;
 	
-	menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Above other windows",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Above other windows",nil)
 																	target:target
 																	action:@selector(selectedWindowLevel:)
 															 keyEquivalent:@""];
@@ -2005,7 +2005,7 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 	[windowPositionMenu addItem:menuItem];
 	[menuItem release];
 	
-	menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Normally",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Normally",nil)
 																	target:target
 																	action:@selector(selectedWindowLevel:)
 															 keyEquivalent:@""];
@@ -2014,7 +2014,7 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 	[windowPositionMenu addItem:menuItem];
 	[menuItem release];
 	
-	menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Below other windows",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Below other windows",nil)
 																	target:target
 																	action:@selector(selectedWindowLevel:)
 															 keyEquivalent:@""];

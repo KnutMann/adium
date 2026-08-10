@@ -233,13 +233,13 @@
 	
 	//Set up the string details
 	font = [NSFont boldSystemFontOfSize:24.0f];
-	paragraphStyle = [NSParagraphStyle styleWithAlignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByClipping];
+	paragraphStyle = [NSParagraphStyle styleWithAlignment:NSTextAlignmentCenter lineBreakMode:NSLineBreakByClipping];
 	
 	[image lockFocus];
 	
 	//Clear our image
 	[[NSColor clearColor] set];
-	NSRectFillUsingOperation(NSMakeRect(0, 0, 128, 128), NSCompositeCopy);
+	NSRectFillUsingOperation(NSMakeRect(0, 0, 128, 128), NSCompositingOperationCopy);
 	
 	//Draw overlays for each contact
 	for (ESObjectWithProperties *object in [overlayObjectsArray reverseObjectEnumerator]) {

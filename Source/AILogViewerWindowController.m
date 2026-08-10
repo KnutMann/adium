@@ -1377,7 +1377,7 @@ NSInteger compareRectLocation(id obj1, id obj2, void *context)
 //Build the search mode menu
 - (void)buildSearchMenu
 {
-    NSMenu  *cellMenu = [[[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:SEARCH_MENU] autorelease];
+    NSMenu  *cellMenu = [[[NSMenu alloc] initWithTitle:SEARCH_MENU] autorelease];
     [cellMenu addItem:[self _menuItemWithTitle:FROM forSearchMode:LOG_SEARCH_FROM]];
     [cellMenu addItem:[self _menuItemWithTitle:TO forSearchMode:LOG_SEARCH_TO]];
     [cellMenu addItem:[self _menuItemWithTitle:DATE forSearchMode:LOG_SEARCH_DATE]];
@@ -1456,11 +1456,11 @@ NSInteger compareRectLocation(id obj1, id obj2, void *context)
  */
 - (NSMenuItem *)_menuItemWithTitle:(NSString *)title forSearchMode:(LogSearchMode)mode
 {
-    NSMenuItem  *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:title 
+    NSMenuItem  *menuItem = [[NSMenuItem alloc] initWithTitle:title 
 																				 action:@selector(selectSearchType:) 
 																		  keyEquivalent:@""];
     [menuItem setTag:mode];
-    [menuItem setState:(mode == searchMode ? NSOnState : NSOffState)];
+    [menuItem setState:(mode == searchMode ? NSControlStateValueOn : NSControlStateValueOff)];
     
     return [menuItem autorelease];
 }
@@ -2422,7 +2422,7 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
  */
 - (NSMenuItem *)_menuItemForDateType:(AIDateType)dateType dict:(NSDictionary *)dateTypeTitleDict
 {
-    NSMenuItem  *menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[dateTypeTitleDict objectForKey:[NSNumber numberWithInteger:dateType]] 
+    NSMenuItem  *menuItem = [[NSMenuItem alloc] initWithTitle:[dateTypeTitleDict objectForKey:[NSNumber numberWithInteger:dateType]] 
 																				 action:@selector(selectDateType:) 
 																		  keyEquivalent:@""];
     [menuItem setTag:dateType];
@@ -2432,7 +2432,7 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 
 - (NSInteger)daysSinceStartOfWeekGivenToday:(NSDate *)today
 {
-	NSInteger todayDayOfWeek = [[[NSCalendar currentCalendar] components:NSWeekdayCalendarUnit
+	NSInteger todayDayOfWeek = [[[NSCalendar currentCalendar] components:NSCalendarUnitWeekday
 																fromDate:today] weekday];
 	NSInteger firstDayOfWeek = [[NSCalendar currentCalendar] firstWeekday];
 
@@ -3011,7 +3011,7 @@ NSString *handleSpecialCasesForUIDAndServiceClass(NSString *contactUID, NSString
 	
 	NSDate	*today = [NSDate date];
 	NSCalendar *calendar = [NSCalendar currentCalendar];
-	NSDateComponents *comps = [calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit) fromDate:today];
+	NSDateComponents *comps = [calendar components:(NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond) fromDate:today];
 	
 	[filterDate release]; filterDate = nil;
 	

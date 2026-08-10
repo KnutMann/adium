@@ -143,7 +143,7 @@
 
 				[anIcon drawInRect:targetRect
 							fromRect:NSMakeRect(0,0,anIconSize.width,anIconSize.height)
-						   operation:NSCompositeCopy
+						   operation:NSCompositingOperationCopy
 							fraction:1.0f];
 
 				//Shift right in preparation for next image

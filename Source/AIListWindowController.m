@@ -889,9 +889,9 @@ NSInteger levelForAIWindowLevel(AIWindowLevel windowLevel)
 	 * This method is hacky and does not completely work.  is there a way to detect if the mouse is down?
 	 */
 	NSEventType currentEventType = [[NSApp currentEvent] type];
-	if (currentEventType == NSLeftMouseDragged ||
-		currentEventType == NSRightMouseDragged ||
-		currentEventType == NSOtherMouseDragged ||
+	if (currentEventType == NSEventTypeLeftMouseDragged ||
+		currentEventType == NSEventTypeRightMouseDragged ||
+		currentEventType == NSEventTypeOtherMouseDragged ||
 		currentEventType == NSPeriodic) {
 		shouldSlideOffScreen = NO;
 	}	
@@ -1649,7 +1649,7 @@ static BOOL canSnap(CGFloat a, CGFloat b)
 	 * Home and End should be passed to the find panel only  if it is already visible.
 	 */
 	if (((pressedChar == NSEscapeFunctionKey) && ([contactListView selectedRow] != -1 || !filterBarIsVisible)) ||
-		(([theEvent modifierFlags] & NSCommandKeyMask) || ([theEvent modifierFlags] & NSAlternateKeyMask) || ([theEvent modifierFlags] & NSControlKeyMask)) ||
+		(([theEvent modifierFlags] & NSEventModifierFlagCommand) || ([theEvent modifierFlags] & NSEventModifierFlagOption) || ([theEvent modifierFlags] & NSEventModifierFlagControl)) ||
 		((pressedChar == NSPageUpFunctionKey) || (pressedChar == NSPageDownFunctionKey) || (pressedChar == NSMenuFunctionKey)) ||
 		(!filterBarIsVisible && ((pressedChar == NSHomeFunctionKey) || (pressedChar == NSEndFunctionKey)))) {
 		return NO;

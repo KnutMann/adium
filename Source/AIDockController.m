@@ -648,7 +648,7 @@
 	NSImage *image = [[[currentIconState image] copy] autorelease];
 	if (overlay) {
 		[image lockFocus];
-		[overlay drawInRect:[view frame] fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0f];
+		[overlay drawInRect:[view frame] fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0f];
 		[image unlockFocus];
 	}
 	

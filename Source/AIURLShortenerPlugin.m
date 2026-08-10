@@ -51,7 +51,7 @@
 										   target:self
 										   action:@selector(shortenLink)
 									keyEquivalent:@"K"
-										  keyMask:NSCommandKeyMask] autorelease];
+										  keyMask:NSEventModifierFlagCommand] autorelease];
 	
 	[menuItem setSubmenu:shortenerSubMenu];
 	

@@ -95,7 +95,7 @@
 		accountsMenuNeedsUpdate = YES;
 		optionsMenuNeedsUpdate = YES;
 		
-		self.contactsMenuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Contacts",nil)
+		self.contactsMenuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Contacts",nil)
 																					  target:self
 																					  action:nil
 																			   keyEquivalent:@""] autorelease];
@@ -437,7 +437,7 @@
 		
 		[badgeImage drawInRect:destRect
 					  fromRect:srcRect
-					 operation:NSCompositeSourceOver
+					 operation:NSCompositingOperationSourceOver
 					  fraction:1.0f];
 		[image unlockFocus];
 	}
@@ -686,7 +686,7 @@
 		
 		// If there's more than one account, show the accounts menu
 		if ([accountMenuItemsArray count] > 1) {
-			menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Accounts",nil)
+			menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Accounts",nil)
 																			target:self
 																			action:nil
 																	 keyEquivalent:@""];
@@ -696,7 +696,7 @@
 			[menuItem release];
 		}
 		
-		menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Options",nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Options",nil)
 																		target:self
 																		action:nil
 																 keyEquivalent:@""];
@@ -726,7 +726,7 @@
 			for (AIChat *chat in openChatsArray) {
 				NSImage *image = nil;
 				//Create a menu item from the chat
-				menuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:chat.displayName
+				menuItem = [[NSMenuItem alloc] initWithTitle:chat.displayName
 																				target:self
 																				action:@selector(switchToChat:)
 																		 keyEquivalent:@""];

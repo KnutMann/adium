@@ -118,13 +118,13 @@
 - (void)_configureSortSelectionMenuItems
 {
     //Create the menu
-    [[[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@""] autorelease];
+    [[[NSMenu alloc] initWithTitle:@""] autorelease];
 	
 	//Add each sort controller
 	for (AISortController *controller in [AISortController availableSortControllers]) {
 		NSMenuItem			*menuItem;
 
-		menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:controller.displayName
+		menuItem = [[[NSMenuItem alloc] initWithTitle:controller.displayName
 																		 target:self
 																		 action:@selector(changedSortSelection:)
 																  keyEquivalent:@""] autorelease];
@@ -135,7 +135,7 @@
 	}
 	
 	//Add the menu item for configuring the sort
-	menuItem_configureSort = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:CONFIGURE_SORT_MENU_TITLE
+	menuItem_configureSort = [[NSMenuItem alloc] initWithTitle:CONFIGURE_SORT_MENU_TITLE
 																				  target:self
 																				  action:@selector(configureSort:)
 																		   keyEquivalent:@""];
@@ -149,7 +149,7 @@
 	
 	idx = [[menuItem_configureSort menu] indexOfItemWithRepresentedObject:activeSortController];
 	if (idx != NSNotFound) {
-		[[[menuItem_configureSort menu] itemAtIndex:idx] setState:NSOnState];
+		[[[menuItem_configureSort menu] itemAtIndex:idx] setState:NSControlStateValueOn];
 	}
 	
 	///...and set the Configure Sort menu title appropriately
@@ -177,7 +177,7 @@
 	//Uncheck the old active sort controller
 	NSInteger idx = [[menuItem_configureSort menu] indexOfItemWithRepresentedObject:[AISortController activeSortController]];
 	if (idx != NSNotFound) {
-		[[[menuItem_configureSort menu] itemAtIndex:idx] setState:NSOffState];
+		[[[menuItem_configureSort menu] itemAtIndex:idx] setState:NSControlStateValueOff];
 	}
 	
 	//Save the new preference
@@ -187,7 +187,7 @@
 	[AISortController setActiveSortController:controller];
 	
 	//Check the menu item and update the configure sort menu item title
-	[sender setState:NSOnState];
+	[sender setState:NSControlStateValueOn];
 	[self _setConfigureSortMenuItemTitleForController:controller];
 	
 	if ([ESContactSortConfigurationWindowController sortConfigurationIsOpen]) {

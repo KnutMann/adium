@@ -32,9 +32,9 @@
 		toolbarItem = nil;
 		arrowPath   = nil;
 		drawsArrow  = YES;
-		controlSize = NSRegularControlSize;
+		controlSize = NSControlSizeRegular;
 		[self setBordered:NO];
-		[self setButtonType:NSMomentaryChangeButton];
+		[self setButtonType:NSButtonTypeMomentaryChange];
 	}
 
 	return self;
@@ -76,13 +76,13 @@
 
 	//Update our containing toolbar item's size so it will scale with us
 	switch (controlSize) {
-		case NSSmallControlSize:
+		case NSControlSizeSmall:
 			targetSize = NSMakeSize(24, 24);
 			break;
-		case NSMiniControlSize:
+		case NSControlSizeMini:
 			targetSize = NSMakeSize(16, 16); /*XXX Numbers right?*/
 			break;
-		case NSRegularControlSize:
+		case NSControlSizeRegular:
 		default:
 			/* Includes NSControlSizeLarge (macOS 11+), which toolbars now
 			 * use; a zero target size would raise when scaling the image. */
@@ -173,11 +173,11 @@
 		
 		arrowPath = [[NSBezierPath bezierPath] retain];
 		
-		if (controlSize == NSRegularControlSize) {
+		if (controlSize == NSControlSizeRegular) {
 			[arrowPath moveToPoint:NSMakePoint(NSWidth(frame)-9, NSHeight(frame)-5)];
 			[arrowPath relativeLineToPoint:NSMakePoint( 8, 0)];
 			[arrowPath relativeLineToPoint:NSMakePoint(-4, 5)];
-		} else if (controlSize == NSSmallControlSize) {
+		} else if (controlSize == NSControlSizeSmall) {
 			[arrowPath moveToPoint:NSMakePoint(NSWidth(frame)-7, NSHeight(frame)-5)];
 			[arrowPath relativeLineToPoint:NSMakePoint( 6, 0)];
 			[arrowPath relativeLineToPoint:NSMakePoint(-3, 4)];

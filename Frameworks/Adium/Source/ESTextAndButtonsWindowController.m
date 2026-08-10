@@ -376,7 +376,7 @@
 		
 		[checkbox_suppression setFrame:optionFrame];
 		[checkbox_suppression setTitle:suppression];
-		[checkbox_suppression setState:NSOffState];
+		[checkbox_suppression setState:NSControlStateValueOff];
 	} else {
 		[checkbox_suppression setHidden:YES];
 	}

@@ -167,7 +167,7 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 																 type:AIServiceIconLarge
 															direction:AIIconNormal]];
 	
-	[checkBox_savePassword setState:NSOnState];
+	[checkBox_savePassword setState:NSControlStateValueOn];
 	
 	[super windowDidLoad];
 }

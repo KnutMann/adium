@@ -57,7 +57,7 @@
 										   target:self
 										   action:@selector(uploadImage)
 									keyEquivalent:@"k"
-										  keyMask:NSCommandKeyMask | NSAlternateKeyMask] autorelease];
+										  keyMask:NSEventModifierFlagCommand | NSEventModifierFlagOption] autorelease];
 	
 	[menuItem setSubmenu:subMenu];
 	

@@ -109,7 +109,7 @@
 		[checkBox_speakContactName setEnabled:YES];
 	} else {
 		[checkBox_speakContactName setEnabled:NO];
-		[checkBox_speakContactName setState:NSOnState];
+		[checkBox_speakContactName setState:NSControlStateValueOn];
 	}
 }
 
@@ -141,8 +141,8 @@
 
 	if (!actionDetails) actionDetails = [NSMutableDictionary dictionary];
 
-	speakTime = [NSNumber numberWithBool:([checkBox_speakEventTime state] == NSOnState)];
-	speakContactName = [NSNumber numberWithBool:([checkBox_speakContactName state] == NSOnState)];
+	speakTime = [NSNumber numberWithBool:([checkBox_speakEventTime state] == NSControlStateValueOn)];
+	speakContactName = [NSNumber numberWithBool:([checkBox_speakContactName state] == NSControlStateValueOn)];
 
 	voice = [[popUp_voices selectedItem] representedObject];	
 	pitch = [NSNumber numberWithFloat:[slider_pitch floatValue]];
@@ -190,9 +190,9 @@
  */
 - (NSMenu *)voicesMenu
 {
-	NSMenu			*voicesMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] init];
+	NSMenu			*voicesMenu = [[NSMenu alloc] init];
 	
-	NSMenuItem *menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Use System Default",nil)
+	NSMenuItem *menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Use System Default",nil)
 																	 target:nil
 																	 action:nil
 															  keyEquivalent:@""] autorelease];
@@ -205,7 +205,7 @@
 		[voices setObject:[[NSSpeechSynthesizer attributesForVoice:voiceID] objectForKey:NSVoiceName] forKey:voiceID];
 	}
 	for (NSString *voiceID in rawVoices) {
-		menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[voices objectForKey:voiceID]
+		menuItem = [[[NSMenuItem alloc] initWithTitle:[voices objectForKey:voiceID]
 																					  target:nil
 																					  action:nil
 																			   keyEquivalent:@""] autorelease];

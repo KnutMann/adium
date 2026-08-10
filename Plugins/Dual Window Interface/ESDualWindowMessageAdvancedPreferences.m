@@ -108,12 +108,12 @@
 											  group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
 
 	} else if (sender == checkBox_hide) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSOnState)]
+		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSControlStateValueOn)]
 											 forKey:KEY_WINDOW_HIDE
 											  group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
 		
 	} else if (sender == checkBox_psychicOpen) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSOnState)]
+		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 											 forKey:KEY_PSYCHIC
 											  group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
 	
@@ -143,7 +143,7 @@
 											group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
 
 	} else if (sender == checkBox_unreadMentionCount) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSOnState)]
+		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 										   forKey:KEY_TABBAR_SHOW_UNREAD_MENTION_ONLYGROUP
 											group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
 	}
@@ -217,7 +217,7 @@
  */
 - (NSMenu *)_timeStampMenu
 {
-	NSMenu	*menu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@""];
+	NSMenu	*menu = [[NSMenu alloc] initWithTitle:@""];
 	
 	//Generate all the available time stamp formats
 	//If there is no difference between the time stamp with AM/PM and the one without, the localized time stamp must
@@ -270,14 +270,14 @@
  */
 - (NSMenu *)_fontSizeMenu
 {
-	NSMenu		*menu = [[[NSMenu allocWithZone:[NSMenu menuZone]] init] autorelease];
+	NSMenu		*menu = [[[NSMenu alloc] init] autorelease];
 	NSMenuItem	*menuItem;
 
 	NSUInteger sizes[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,18,20,22,24,36,48,64,72,96};
 	NSUInteger loopCounter;
 
 	for (loopCounter = 0; loopCounter < 23; loopCounter++) {
-		menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[[NSNumber numberWithInteger:sizes[loopCounter]] stringValue]
+		menuItem = [[[NSMenuItem alloc] initWithTitle:[[NSNumber numberWithInteger:sizes[loopCounter]] stringValue]
 																		 target:nil
 																		 action:nil
 																  keyEquivalent:@""] autorelease];

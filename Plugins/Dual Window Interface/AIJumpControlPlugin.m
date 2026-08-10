@@ -40,7 +40,7 @@
 															   target:self
 															   action:@selector(jumpToPrevious)
 														keyEquivalent:@"["
-															  keyMask:NSAlternateKeyMask | NSCommandKeyMask];
+															  keyMask:NSEventModifierFlagOption | NSEventModifierFlagCommand];
 	
 	[adium.menuController addMenuItem:menuItem_previous toLocation:LOC_Display_Jump];
 	
@@ -48,7 +48,7 @@
 														   target:self
 														   action:@selector(jumpToNext)
 													keyEquivalent:@"]"
-														  keyMask:NSAlternateKeyMask | NSCommandKeyMask];
+														  keyMask:NSEventModifierFlagOption | NSEventModifierFlagCommand];
 	
 	[adium.menuController addMenuItem:menuItem_next toLocation:LOC_Display_Jump];
 	

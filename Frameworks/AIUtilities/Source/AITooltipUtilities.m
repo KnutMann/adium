@@ -183,7 +183,7 @@ static	AITooltipOrientation	tooltipOrientation;
 	if (!tooltipWindow) {
 		//Create the window
 		tooltipWindow = [[NSPanel alloc] initWithContentRect:NSZeroRect 
-												   styleMask:NSBorderlessWindowMask
+												   styleMask:NSWindowStyleMaskBorderless
 													 backing:NSBackingStoreBuffered
 													   defer:NO];
 		[tooltipWindow setHidesOnDeactivate:NO];

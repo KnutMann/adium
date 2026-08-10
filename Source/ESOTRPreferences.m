@@ -314,7 +314,7 @@
 
 - (NSControlSize)controlSizeForAccountMenu:(AIAccountMenu *)inAccountMenu
 {
-	return NSSmallControlSize;
+	return NSControlSizeSmall;
 }
 
 @end

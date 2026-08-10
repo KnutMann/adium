@@ -51,10 +51,10 @@
 		(sender == checkBox_autoAcceptOnlyFromCLList)) {
 		AIFileTransferAutoAcceptType autoAcceptType;
 		
-		if ([checkBox_autoAcceptFiles state] == NSOffState) {
+		if ([checkBox_autoAcceptFiles state] == NSControlStateValueOff) {
 			autoAcceptType = AutoAccept_None;
 		} else {
-			if ([checkBox_autoAcceptOnlyFromCLList state] == NSOnState) {
+			if ([checkBox_autoAcceptOnlyFromCLList state] == NSControlStateValueOn) {
 				autoAcceptType = AutoAccept_FromContactList;
 			} else {
 				autoAcceptType = AutoAccept_All;
@@ -88,18 +88,18 @@
 	
 	switch (autoAcceptType) {
 		case AutoAccept_None:
-			[checkBox_autoAcceptFiles setState:NSOffState];
-			[checkBox_autoAcceptOnlyFromCLList setState:NSOffState];			
+			[checkBox_autoAcceptFiles setState:NSControlStateValueOff];
+			[checkBox_autoAcceptOnlyFromCLList setState:NSControlStateValueOff];			
 			break;
 			
 		case AutoAccept_FromContactList:
-			[checkBox_autoAcceptFiles setState:NSOnState];
-			[checkBox_autoAcceptOnlyFromCLList setState:NSOnState];
+			[checkBox_autoAcceptFiles setState:NSControlStateValueOn];
+			[checkBox_autoAcceptOnlyFromCLList setState:NSControlStateValueOn];
 			break;
 
 		case AutoAccept_All:
-			[checkBox_autoAcceptFiles setState:NSOnState];
-			[checkBox_autoAcceptOnlyFromCLList setState:NSOffState];
+			[checkBox_autoAcceptFiles setState:NSControlStateValueOn];
+			[checkBox_autoAcceptOnlyFromCLList setState:NSControlStateValueOff];
 			break;
 	}	
 }
@@ -116,12 +116,12 @@
 	NSMenuItem	*menuItem;
 	NSString	*userPreferredDownloadFolder;
 
-	menu = [[[NSMenu allocWithZone:[NSMenu menuZone]] init] autorelease];
+	menu = [[[NSMenu alloc] init] autorelease];
 	[menu setAutoenablesItems:NO];
 	
 	//Create the menu item for the current download folder
 	userPreferredDownloadFolder = [adium.preferenceController userPreferredDownloadFolder];
-	menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[[NSFileManager defaultManager] displayNameAtPath:userPreferredDownloadFolder]
+	menuItem = [[[NSMenuItem alloc] initWithTitle:[[NSFileManager defaultManager] displayNameAtPath:userPreferredDownloadFolder]
 																	 target:nil
 																	 action:nil
 															  keyEquivalent:@""] autorelease];
@@ -132,7 +132,7 @@
 	[menu addItem:[NSMenuItem separatorItem]];
 	
 	//Create the menu item for changing the current download folder
-	menuItem = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[AILocalizedString(@"Other",nil) stringByAppendingEllipsis]
+	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Other",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(selectOtherDownloadFolder:)
 															  keyEquivalent:@""] autorelease];
@@ -151,7 +151,7 @@
 	[openPanel setCanChooseDirectories:YES];
 	openPanel.directoryURL = [NSURL fileURLWithPath:userPreferredDownloadFolder];
 	[openPanel beginSheetModalForWindow:[[self view] window] completionHandler:^(NSInteger result) {
-		if (result == NSFileHandlingPanelOKButton) {
+		if (result == NSModalResponseOK) {
 			[adium.preferenceController setUserPreferredDownloadFolder:openPanel.URL. path];
 		}
 		

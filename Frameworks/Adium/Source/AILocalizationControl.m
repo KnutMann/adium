@@ -128,11 +128,11 @@
 
 	textAlignment = [self alignment];
 	switch (textAlignment) {
-		case NSRightTextAlignment:
+		case NSTextAlignmentRight:
 			//Keep the right edge in the same place at all times if we are right aligned
 			newFrame.origin.x = NSMaxX(oldFrame) - NSWidth(newFrame);
 			break;
-		case NSCenterTextAlignment:
+		case NSTextAlignmentCenter:
 		{
 			//Keep the center in the same place
 			CGFloat windowMaxX = NSMaxX([[TARGET_CONTROL superview] frame]);
@@ -148,7 +148,7 @@
 			newFrame.origin.x = AIround(newFrame.origin.x + 0.5f);			
 			break;
 		}
-		case NSLeftTextAlignment:
+		case NSTextAlignmentLeft:
 		default:
 			break;
 	}

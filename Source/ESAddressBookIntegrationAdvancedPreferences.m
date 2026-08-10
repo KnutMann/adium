@@ -166,7 +166,7 @@
 	//dchoby98: why are image import and export linked?
 	//[checkBox_syncAutomatic setEnabled:!preferABImages];
 	//if (preferABImages)
-	//	[checkBox_syncAutomatic setState:NSOffState];
+	//	[checkBox_syncAutomatic setState:NSControlStateValueOff];
 	
 	//Disable the image priority checkbox if we aren't using images
 	[checkBox_preferABImages setEnabled:useImages];
@@ -188,39 +188,39 @@
 - (IBAction)changePreference:(id)sender
 {
     if (sender == checkBox_syncAutomatic) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSOnState)]
+        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSControlStateValueOn)]
                                              forKey:KEY_AB_IMAGE_SYNC
                                               group:PREF_GROUP_ADDRESSBOOK];
 		
     } else if (sender == checkBox_useABImages) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSOnState)]
+        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSControlStateValueOn)]
                                              forKey:KEY_AB_USE_IMAGES
                                               group:PREF_GROUP_ADDRESSBOOK];
 	} else if (sender == checkBox_useFirstName) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSOnState)]
+		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSControlStateValueOn)]
 										   forKey:KEY_AB_USE_FIRSTNAME
 											group:PREF_GROUP_ADDRESSBOOK];
     } else if (sender == checkBox_useNickName) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSOnState)]
+        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state]==NSControlStateValueOn)]
 										   forKey:KEY_AB_USE_NICKNAME
                                             group:PREF_GROUP_ADDRESSBOOK];
     } else if (sender == checkBox_enableImport) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSOnState)]
+        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
                                              forKey:KEY_AB_ENABLE_IMPORT
                                               group:PREF_GROUP_ADDRESSBOOK];
 		
     } else if (sender == checkBox_preferABImages) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSOnState)]
+        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
                                              forKey:KEY_AB_PREFER_ADDRESS_BOOK_IMAGES
                                               group:PREF_GROUP_ADDRESSBOOK];
 		
     } else if (sender == checkBox_enableNoteSync) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSOnState)]
+        [adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
                                              forKey:KEY_AB_NOTE_SYNC
                                               group:PREF_GROUP_ADDRESSBOOK];
 		
     } else if (sender == checkBox_metaContacts) {
-		BOOL shouldCreateMetaContacts = ([sender state] == NSOnState);
+		BOOL shouldCreateMetaContacts = ([sender state] == NSControlStateValueOn);
 		
 		if (shouldCreateMetaContacts) {
 			[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
@@ -272,13 +272,13 @@
 
 - (BOOL)tokenField:(NSTokenField *)tokenField writeRepresentedObjects:(NSArray *)objects toPasteboard:(NSPasteboard *)pboard
 {
-	[pboard setString:[objects componentsJoinedByString:@""] forType:NSStringPboardType];
+	[pboard setString:[objects componentsJoinedByString:@""] forType:NSPasteboardTypeString];
 	return YES;
 }
 
 - (NSArray *)tokenField:(NSTokenField *)tokenField readFromPasteboard:(NSPasteboard *)pboard
 {
-	return [self separateStringIntoTokens:[pboard stringForType:NSStringPboardType]];
+	return [self separateStringIntoTokens:[pboard stringForType:NSPasteboardTypeString]];
 }
 
 - (NSTokenStyle)tokenField:(NSTokenField *)tokenField styleForRepresentedObject:(id)representedObject

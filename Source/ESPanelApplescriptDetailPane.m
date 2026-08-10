@@ -86,7 +86,7 @@
 	[openPanel setTitle:AILocalizedString(@"Select an AppleScript",nil)];
 	[openPanel setAllowedFileTypes:[NSArray arrayWithObjects:@"applescript",@"scptd",@"scpt",nil]];
 	
-	if ([openPanel runModal] == NSOKButton) {
+	if ([openPanel runModal] == NSModalResponseOK) {
 		[self setScriptPath:[[openPanel URL] path]];
 	}
 }

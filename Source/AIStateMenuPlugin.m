@@ -60,7 +60,7 @@
 {
 	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self submenuType:AIAccountStatusSubmenu showTitleVerbs:NO] retain];
 
-	dockStatusMenuRoot = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:AILocalizedString(@"Status",nil)
+	dockStatusMenuRoot = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Status",nil)
 																			  target:self
 																			  action:@selector(dummyAction:)
 																	   keyEquivalent:@""];
@@ -178,15 +178,15 @@
 		if ((tag == targetStatusType) && 
 		   (representedStatus == targetStatusState)) {			
 			[menuItem setKeyEquivalent:@"y"];
-			[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+			[menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
 
 		} else if (assignCmdOptionY && ((tag == AIAwayStatusType) && (representedStatus == nil))) {
 			[menuItem setKeyEquivalent:@"y"];
-			[menuItem setKeyEquivalentModifierMask:(NSCommandKeyMask | NSAlternateKeyMask)];
+			[menuItem setKeyEquivalentModifierMask:(NSEventModifierFlagCommand | NSEventModifierFlagOption)];
 			
 		} else if ((tag == AIAvailableStatusType) && (representedStatus == nil)) {
 			[menuItem setKeyEquivalent:@"Y"];
-			[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+			[menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
 			
 		} else {
 			[menuItem setKeyEquivalent:@""];

@@ -57,7 +57,7 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		useAliasesAsRequested = YES;
 
 		if (!leftParagraphStyleWithTruncatingTail) {
-			leftParagraphStyleWithTruncatingTail = [[NSMutableParagraphStyle styleWithAlignment:NSLeftTextAlignment
+			leftParagraphStyleWithTruncatingTail = [[NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
 																				  lineBreakMode:NSLineBreakByTruncatingTail] retain];
 		}
 		
@@ -186,7 +186,7 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		cellFrame.size.width -= [self rightPadding] + [self leftPadding];
 
 		switch ([self textAlignment]) {
-			case NSRightTextAlignment:
+			case NSTextAlignmentRight:
 				//Right alignment indents on the right
 				cellFrame.size.width -= [self indentation];
 				break;
@@ -293,10 +293,10 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 
 	//Alignment
 	switch ([self textAlignment]) {
-		case NSCenterTextAlignment:
+		case NSTextAlignmentCenter:
 			rect.origin.x += (rect.size.width - nameSize.width) / 2.0f;
 		break;
-		case NSRightTextAlignment:
+		case NSTextAlignmentRight:
 			rect.origin.x += (rect.size.width - nameSize.width);
 		break;
 		default:
@@ -312,10 +312,10 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 
 	//Adjust the drawing rect
 	switch ([self textAlignment]) {
-		case NSRightTextAlignment:
+		case NSTextAlignmentRight:
 			inRect.size.width -= nameSize.width;
 		break;
-		case NSLeftTextAlignment:
+		case NSTextAlignmentLeft:
 			inRect.origin.x += nameSize.width;
 			inRect.size.width -= nameSize.width;
 		break;

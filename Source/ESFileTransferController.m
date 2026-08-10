@@ -97,7 +97,7 @@ static ESFileTransferPreferences *preferences;
 	menuItem_sendFile = [[NSMenuItem alloc] initWithTitle:SEND_FILE_WITH_ELLIPSIS
 												   target:self action:@selector(sendFileToSelectedContact:)
 											keyEquivalent:@"F"];
-	[menuItem_sendFile setKeyEquivalentModifierMask:(NSCommandKeyMask | NSShiftKeyMask)];
+	[menuItem_sendFile setKeyEquivalentModifierMask:(NSEventModifierFlagCommand | NSEventModifierFlagShift)];
 	[adium.menuController addMenuItem:menuItem_sendFile toLocation:LOC_Contact_Action];
 	
 	//Add our "Send File" toolbar item
@@ -280,7 +280,7 @@ static ESFileTransferPreferences *preferences;
 {
 	NSOpenPanel *openPanel = [self sendFilePanelForListContact:listContact];
 	id handler = ^(NSInteger result) {
-		if (result == NSFileHandlingPanelOKButton) {
+		if (result == NSModalResponseOK) {
 			for (NSURL *url in openPanel.URLs) {
 				[self sendFile:url.path toListContact:listContact];
 			}
@@ -572,7 +572,7 @@ static ESFileTransferPreferences *preferences;
 																   target:self 
 																   action:@selector(showProgressWindow:)
 															keyEquivalent:@"l"];
-	[menuItem_showFileTransferProgress setKeyEquivalentModifierMask:(NSCommandKeyMask | NSAlternateKeyMask)];
+	[menuItem_showFileTransferProgress setKeyEquivalentModifierMask:(NSEventModifierFlagCommand | NSEventModifierFlagOption)];
 	[adium.menuController addMenuItem:menuItem_showFileTransferProgress toLocation:LOC_Window_Auxiliary];
 }
 
