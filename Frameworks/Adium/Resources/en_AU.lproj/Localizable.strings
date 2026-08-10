@@ -369,3 +369,15 @@
 
 /* No comment provided by engineer. */
 "Your attention is requested!" = "Your attention is requested!";
+/* Restored from historic nib translations (arm64 revival) */
+"Appear Idle Immediately" = "Appear Idle Immediately";
+"Auto-reply" = "Auto-reply";
+"Custom Status" = "Custom Status";
+"Hours" = "Hours";
+"Minutes" = "Minutes";
+"Mute Sounds" = "Mute Sounds";
+"Save Custom Status" = "Save Custom Status";
+"Silence Notifications" = "Silence Growl";
+"State:" = "State:";
+"Status Message:" = "Status Message:";
+"With a custom auto-reply message:" = "With a custom auto-reply message:";
