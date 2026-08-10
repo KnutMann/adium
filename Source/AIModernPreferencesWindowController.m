@@ -77,6 +77,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (AIPreferencePane *)paneWithIdentifier:(NSString *)identifier;
 - (void)selectPane:(AIPreferencePane *)pane;
 - (void)layoutCurrentPane;
+- (void)updateNavigationControl;
+- (void)navigate:(id)sender;
 - (NSString *)mainPaneOrderIdentifiers;
 @end
 
@@ -102,6 +104,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 	if ((self = [super initWithWindow:nil])) {
 		sidebarEntries = [[NSMutableArray alloc] init];
 		openedPanes = [[NSMutableSet alloc] init];
+		history = [[NSMutableArray alloc] init];
+		historyIndex = -1;
 		[self buildSidebarEntries];
 		[self buildWindow];
 	}
@@ -113,6 +117,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[sidebarEntries release];
 	[openedPanes release];
+	[history release];
+	[navigationControl release];
 	[super dealloc];
 }
 
@@ -191,10 +197,14 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[window setTitlebarAppearsTransparent:NO];
 	if (@available(macOS 11.0, *)) {
 		[window setToolbarStyle:NSWindowToolbarStyleUnified];
-		[window setTitlebarSeparatorStyle:NSTitlebarSeparatorStyleAutomatic];
+		/* No hairline under the titlebar: the content scrolls underneath the
+		 * titlebar material, which blurs it — the way System Settings behaves. */
+		[window setTitlebarSeparatorStyle:NSTitlebarSeparatorStyleNone];
 	}
 	NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"AIModernPreferencesToolbar"] autorelease];
 	[toolbar setShowsBaselineSeparator:NO];
+	[toolbar setDelegate:self];
+	[toolbar setAllowsUserCustomization:NO];
 	[window setToolbar:toolbar];
 	[window setContentMinSize:NSMakeSize(AIPrefsSidebarMinWidth + AIPrefsContentWidth, AIPrefsContentMinHeight)];
 	[window setContentSize:NSMakeSize(AIPrefsSidebarMinWidth + AIPrefsContentWidth, 620)];
@@ -305,6 +315,16 @@ static NSImage *AIPrefPaneIcon(id pane)
 	currentPane = pane;
 	[openedPanes addObject:pane];
 
+	if (!navigatingHistory) {
+		//A fresh selection truncates whatever was ahead in the history
+		if (historyIndex >= 0 && historyIndex + 1 < (NSInteger)[history count]) {
+			[history removeObjectsInRange:NSMakeRange(historyIndex + 1, [history count] - historyIndex - 1)];
+		}
+		[history addObject:pane];
+		historyIndex = (NSInteger)[history count] - 1;
+	}
+	[self updateNavigationControl];
+
 	[paneView setAutoresizingMask:NSViewWidthSizable];
 	[contentHost addSubview:paneView];
 	[self layoutCurrentPane];
@@ -349,6 +369,83 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)windowDidResize:(NSNotification *)notification
 {
 	[self layoutCurrentPane];
+}
+
+#pragma mark - Back/forward navigation
+
+- (void)updateNavigationControl
+{
+	if (!navigationControl) {
+		return;
+	}
+	[navigationControl setEnabled:(historyIndex > 0) forSegment:0];
+	[navigationControl setEnabled:(historyIndex >= 0 && historyIndex + 1 < (NSInteger)[history count]) forSegment:1];
+}
+
+- (void)navigate:(id)sender
+{
+	NSInteger target = historyIndex + ([sender selectedSegment] == 0 ? -1 : 1);
+	if (target < 0 || target >= (NSInteger)[history count]) {
+		return;
+	}
+
+	historyIndex = target;
+	navigatingHistory = YES;
+	[self selectPane:[history objectAtIndex:(NSUInteger)target]];
+	navigatingHistory = NO;
+}
+
+#pragma mark - Toolbar delegate
+
+- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
+{
+	if (@available(macOS 11.0, *)) {
+		//The tracking separator keeps our items aligned with the content column
+		return [NSArray arrayWithObjects:NSToolbarSidebarTrackingSeparatorItemIdentifier, @"navigation", nil];
+	}
+	return [NSArray arrayWithObject:@"navigation"];
+}
+
+- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
+{
+	return [self toolbarDefaultItemIdentifiers:toolbar];
+}
+
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
+	 itemForItemIdentifier:(NSString *)identifier
+ willBeInsertedIntoToolbar:(BOOL)flag
+{
+	if (![identifier isEqualToString:@"navigation"]) {
+		return nil;
+	}
+
+	if (!navigationControl) {
+		NSImage *back = nil, *forward = nil;
+		if (@available(macOS 11.0, *)) {
+			back = [NSImage imageWithSystemSymbolName:@"chevron.backward"
+							 accessibilityDescription:AILocalizedString(@"Back", nil)];
+			forward = [NSImage imageWithSystemSymbolName:@"chevron.forward"
+								accessibilityDescription:AILocalizedString(@"Forward", nil)];
+		}
+		if (!back) back = [NSImage imageNamed:NSImageNameGoLeftTemplate];
+		if (!forward) forward = [NSImage imageNamed:NSImageNameGoRightTemplate];
+
+		navigationControl = [[NSSegmentedControl alloc] initWithFrame:NSMakeRect(0, 0, 72, 24)];
+		[navigationControl setSegmentCount:2];
+		[navigationControl setSegmentStyle:NSSegmentStyleSeparated];
+		[navigationControl setTrackingMode:NSSegmentSwitchTrackingMomentary];
+		[navigationControl setImage:back forSegment:0];
+		[navigationControl setImage:forward forSegment:1];
+		[navigationControl setTarget:self];
+		[navigationControl setAction:@selector(navigate:)];
+		[self updateNavigationControl];
+	}
+
+	NSToolbarItem *item = [[[NSToolbarItem alloc] initWithItemIdentifier:identifier] autorelease];
+	[item setView:navigationControl];
+	[item setLabel:AILocalizedString(@"Navigation", nil)];
+	[item setVisibilityPriority:NSToolbarItemVisibilityPriorityHigh];
+	return item;
 }
 
 #pragma mark - Outline view data source

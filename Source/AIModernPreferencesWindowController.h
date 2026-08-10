@@ -28,12 +28,18 @@
  * The advanced panes appear as their own sidebar entries under an
  * "Advanced" group instead of a nested container pane.
  */
-@interface AIModernPreferencesWindowController : NSWindowController <NSOutlineViewDataSource, NSOutlineViewDelegate> {
+@interface AIModernPreferencesWindowController : NSWindowController <NSOutlineViewDataSource, NSOutlineViewDelegate, NSToolbarDelegate> {
 	NSMutableArray		*sidebarEntries;	//Group headers (NSString) and panes (AIPreferencePane)
 	NSOutlineView		*outlineView;
 	NSView				*contentHost;
 	AIPreferencePane	*currentPane;
 	NSMutableSet		*openedPanes;		//Panes whose view was shown at least once (closeView on window close)
+
+	//Back/forward navigation through visited panes
+	NSMutableArray		*history;
+	NSInteger			historyIndex;
+	BOOL				navigatingHistory;
+	NSSegmentedControl	*navigationControl;
 }
 
 + (AIModernPreferencesWindowController *)sharedController;
