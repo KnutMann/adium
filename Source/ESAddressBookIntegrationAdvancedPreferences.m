@@ -41,7 +41,6 @@
 
 @interface ESAddressBookIntegrationAdvancedPreferences ()
 - (IBAction)changeFormat:(id)sender;
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 - (NSArray *)separateStringIntoTokens:(NSString *)string;
 - (void)changeFormatToFullName:(id)representedObject;
 - (void)changeFormatToInitialCharacter:(id)representedObject;
@@ -228,37 +227,31 @@
 												  group:PREF_GROUP_ADDRESSBOOK];		
 			
 		} else {
-			NSBeginAlertSheet(nil,
-							  AILocalizedString(@"Unconsolidate all metacontacts",nil),
-							  AILocalizedString(@"Cancel",nil), nil,
-							  [[self view] window], self,
-							  @selector(sheetDidEnd:returnCode:contextInfo:), NULL,
-							  NULL,
-							  AILocalizedString(@"Disabling automatic contact consolidation will also unconsolidate all existing metacontacts, including any created manually.  You will need to recreate any manually-created metacontacts if you proceed.",nil));
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setMessageText:AILocalizedString(@"Disabling automatic contact consolidation will also unconsolidate all existing metacontacts, including any created manually.  You will need to recreate any manually-created metacontacts if you proceed.",nil)];
+			[alert addButtonWithTitle:AILocalizedString(@"Unconsolidate all metacontacts",nil)];	//NSAlertFirstButtonReturn, was the default button
+			[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+			[alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
+				if (returnCode == NSAlertFirstButtonReturn) {
+					//If we now shouldn't create metaContacts, clear 'em all... not pretty, but effective.
+
+					//Delay to the next run loop to give better UI responsiveness
+					[adium.contactController performSelector:@selector(clearAllMetaContactData)
+												  withObject:nil
+												  afterDelay:0];
+
+					[adium.preferenceController setPreference:[NSNumber numberWithBool:NO]
+														forKey:KEY_AB_CREATE_METACONTACTS
+														 group:PREF_GROUP_ADDRESSBOOK];
+				} else {
+					//Put the checkbox back
+					[checkBox_metaContacts setState:![checkBox_metaContacts state]];
+				}
+			}];
 		}
 	}
 
     [self configureControlDimming];
-}
-
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	if (returnCode == NSAlertDefaultReturn) {
-		//If we now shouldn't create metaContacts, clear 'em all... not pretty, but effective.
-
-		//Delay to the next run loop to give better UI responsiveness
-		[adium.contactController performSelector:@selector(clearAllMetaContactData)
-										withObject:nil
-										afterDelay:0];
-		
-		
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:NO]
-                                             forKey:KEY_AB_CREATE_METACONTACTS
-                                              group:PREF_GROUP_ADDRESSBOOK];		
-	} else {
-		//Put the checkbox back
-		[checkBox_metaContacts setState:![checkBox_metaContacts state]];
-	}
 }
 
 

@@ -205,13 +205,11 @@
 		
 		return YES;
 	} else {
-		NSRunAlertPanel(AILocalizedString(@"Error Saving Theme",nil),
-						AILocalizedString(@"Unable to write file %@ to %@",nil),
-						AILocalizedString(@"OK",nil),
-						nil,
-						nil,
-						fileName,
-						path);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Error Saving Theme",nil)];
+		[alert setInformativeText:[NSString stringWithFormat:AILocalizedString(@"Unable to write file %@ to %@",nil), fileName, path]];
+		[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
+		[alert runModal];
 		return NO;
 	}
 }

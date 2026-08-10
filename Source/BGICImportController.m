@@ -451,25 +451,19 @@
 
 -(IBAction)deleteLogs:(id)sender
 {
-	NSAlert *warningBeforehand = [NSAlert alertWithMessageText:AILocalizedString(@"Are you sure you want to delete all of your iChat Transcripts?", nil)
-												 defaultButton:AILocalizedStringFromTable(@"Delete", @"Buttons", nil)
-											   alternateButton:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)
-												   otherButton:nil 
-									 informativeTextWithFormat:AILocalizedString(@"All of the iChat transcripts that were imported into Adium will be moved to the Trash.", nil)];
-	[warningBeforehand beginSheetModalForWindow:[self window] 
-								  modalDelegate:self
-								 didEndSelector:@selector(deleteAlertDidEnd:returnCode:contextInfo:) 
-									contextInfo:nil];
-}
-
-- (void)deleteAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	if (returnCode == NSAlertDefaultReturn) {
-		[importDetails setStringValue:[AILocalizedString(@"Deleting iChat Transcripts", nil) stringByAppendingEllipsis]];
-		[deleteLogsButton setHidden:YES];
-		[proceedButton setEnabled:NO];
-		[self performSelector:@selector(deleteAllFromiChat) withObject:nil afterDelay:0.3];
-	}
+	NSAlert *warningBeforehand = [[[NSAlert alloc] init] autorelease];
+	[warningBeforehand setMessageText:AILocalizedString(@"Are you sure you want to delete all of your iChat Transcripts?", nil)];
+	[warningBeforehand setInformativeText:AILocalizedString(@"All of the iChat transcripts that were imported into Adium will be moved to the Trash.", nil)];
+	[warningBeforehand addButtonWithTitle:AILocalizedStringFromTable(@"Delete", @"Buttons", nil)];	//NSAlertFirstButtonReturn, was the default button
+	[warningBeforehand addButtonWithTitle:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];
+	[warningBeforehand beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
+		if (returnCode == NSAlertFirstButtonReturn) {
+			[importDetails setStringValue:[AILocalizedString(@"Deleting iChat Transcripts", nil) stringByAppendingEllipsis]];
+			[deleteLogsButton setHidden:YES];
+			[proceedButton setEnabled:NO];
+			[self performSelector:@selector(deleteAllFromiChat) withObject:nil afterDelay:0.3];
+		}
+	}];
 }
 
 -(void)dealloc

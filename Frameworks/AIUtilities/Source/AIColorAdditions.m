@@ -196,8 +196,8 @@ end:
 //Returns YES if the colors are equal
 - (BOOL)equalToRGBColor:(NSColor *)inColor
 {
-    NSColor	*convertedA = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
-    NSColor	*convertedB = [inColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+    NSColor	*convertedA = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+    NSColor	*convertedB = [inColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
     
     return (([convertedA redComponent]   == [convertedB redComponent])   &&
             ([convertedA blueComponent]  == [convertedB blueComponent])  &&
@@ -212,19 +212,19 @@ end:
 //Returns YES if this color is dark
 - (BOOL)colorIsDark
 {
-    return ([[self colorUsingColorSpaceName:NSCalibratedRGBColorSpace] brightnessComponent] < 0.5f);
+    return ([[self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]] brightnessComponent] < 0.5f);
 }
 
 - (BOOL)colorIsMedium
 {
-	CGFloat brightness = [[self colorUsingColorSpaceName:NSCalibratedRGBColorSpace] brightnessComponent];
+	CGFloat brightness = [[self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]] brightnessComponent];
 	return (0.35f < brightness && brightness < 0.65f);
 }
 
 //Percent should be -1.0 to 1.0 (negatives will make the color brighter)
 - (NSColor *)darkenBy:(CGFloat)amount
 {
-    NSColor	*convertedColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+    NSColor	*convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
     
     return [NSColor colorWithCalibratedHue:[convertedColor hueComponent]
                                 saturation:[convertedColor saturationComponent]
@@ -234,7 +234,7 @@ end:
 
 - (NSColor *)darkenAndAdjustSaturationBy:(CGFloat)amount
 {
-    NSColor	*convertedColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+    NSColor	*convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
     
     return [NSColor colorWithCalibratedHue:[convertedColor hueComponent]
                                 saturation:(([convertedColor saturationComponent] == 0.0f) ? [convertedColor saturationComponent] : ([convertedColor saturationComponent] + amount))
@@ -247,7 +247,7 @@ end:
 {
     CGFloat h,l,s;
 
-	NSColor *convertedColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+	NSColor *convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
 
     //Get our HLS
     [convertedColor getHue:&h saturation:&s brightness:&l alpha:NULL];
@@ -269,7 +269,7 @@ end:
 			return [NSColor blackColor];
 
 	} else {
-		NSColor *rgbColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+		NSColor *rgbColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
 		return [NSColor colorWithCalibratedRed:(1.0f - [rgbColor redComponent])
 										 green:(1.0f - [rgbColor greenComponent])
 										  blue:(1.0f - [rgbColor blueComponent])
@@ -313,7 +313,7 @@ end:
     NSInteger		tempNum;
     NSColor	*convertedColor;
 
-    convertedColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+    convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
     [convertedColor getRed:&red green:&green blue:&blue alpha:NULL];
     
     tempNum = (red * 255.0f);
@@ -335,7 +335,7 @@ end:
 //String representation: R,G,B[,A].
 - (NSString *)stringRepresentation
 {
-    NSColor	*tempColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+    NSColor	*tempColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
 	CGFloat alphaComponent = [tempColor alphaComponent];
 
 	if (alphaComponent == 1.0) {
@@ -357,7 +357,7 @@ end:
 {
 	CGFloat alpha = [self alphaComponent];
 	if ((1.0 - alpha) >= 0.000001) {
-		NSColor *rgb = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+		NSColor *rgb = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
 		//CSS3 defines rgba() to take 0..255 for the color components, but 0..1 for the alpha component. Thus, we must multiply by 255 for the color components, but not for the alpha component.
 		return [NSString stringWithFormat:@"rgba(%@,%@,%@,%@)",
 			[NSString stringWithCGFloat:[rgb redComponent]   * 255.0f maxDigits:6],

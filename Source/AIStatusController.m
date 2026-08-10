@@ -23,6 +23,7 @@
 #import "AdiumIdleManager.h"
 
 #import <AIUtilities/AIMenuAdditions.h>
+#import <AIUtilities/AIDataAdditions.h>
 #import <AIUtilities/AIArrayAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIEventAdditions.h>
@@ -107,7 +108,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 														  group:GROUP_ACCOUNT_STATUS];
 		AIStatus	*lastStatus = nil;
 		if (lastStatusData)
-			lastStatus = [NSKeyedUnarchiver unarchiveObjectWithData:lastStatusData];
+			lastStatus = [NSKeyedUnarchiver objectWithArchivedData:lastStatusData];
 
 		if (lastStatus && [lastStatus isKindOfClass:[AIStatus class]]) {
 			AIStatus	*existingStatus;
@@ -163,13 +164,13 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		 */
 		AIStatus	*currentStatus = [account valueForProperty:@"accountStatus"];
 		[account setPreference:((currentStatus && (currentStatus != offlineStatusState)) ?
-								[NSKeyedArchiver archivedDataWithRootObject:currentStatus] :
+								[NSKeyedArchiver archivedDataWithObject:currentStatus] :
 								nil)
 						forKey:@"LastStatus"
 						 group:GROUP_ACCOUNT_STATUS];
 	}
 	
-	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithRootObject:[[self rootStateGroup] containedStatusItems]]
+	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithObject:[[self rootStateGroup] containedStatusItems]]
 										 forKey:KEY_SAVED_STATUS
 										  group:PREF_GROUP_SAVED_STATUS];
 
@@ -662,7 +663,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		NSData	*savedStateData = [adium.preferenceController preferenceForKey:KEY_SAVED_STATUS
 																		   group:PREF_GROUP_SAVED_STATUS];
 		if (savedStateData) {
-			id archivedObject = [NSKeyedUnarchiver unarchiveObjectWithData:savedStateData];
+			id archivedObject = [NSKeyedUnarchiver objectWithArchivedData:savedStateData];
 
 			if ([archivedObject isKindOfClass:[AIStatusGroup class]]) {
 				//Adium 1.0 archives an AIStatusGroup
@@ -1083,7 +1084,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
  */
 - (void)savedStatusesChanged
 {
-	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithRootObject:[[self rootStateGroup] containedStatusItems]]
+	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithObject:[[self rootStateGroup] containedStatusItems]]
 										 forKey:KEY_SAVED_STATUS
 										  group:PREF_GROUP_SAVED_STATUS];
 	[self notifyOfChangedStatusArray];
@@ -1091,7 +1092,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 - (void)statusStateDidSetUniqueStatusID
 {
-	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithRootObject:[[self rootStateGroup] containedStatusItems]]
+	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithObject:[[self rootStateGroup] containedStatusItems]]
 										 forKey:KEY_SAVED_STATUS
 										  group:PREF_GROUP_SAVED_STATUS];
 }
@@ -1142,7 +1143,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 																  group:PREF_GROUP_STATUS_PREFERENCES] mutableCopy] autorelease];
 	if (!lastStatusStates) lastStatusStates = [NSMutableDictionary dictionary];
 	
-	[lastStatusStates setObject:[NSKeyedArchiver archivedDataWithRootObject:statusState]
+	[lastStatusStates setObject:[NSKeyedArchiver archivedDataWithObject:statusState]
 						 forKey:[[NSNumber numberWithInteger:statusState.statusType] stringValue]];
 
 	[adium.preferenceController setPreference:lastStatusStates

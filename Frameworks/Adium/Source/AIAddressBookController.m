@@ -1447,12 +1447,14 @@ NSString* serviceIDForJabberUID(NSString *UID)
 							 group:PREF_GROUP_ADDRESSBOOK];
 			
 			//Ask the user whether it would like to edit the new contact
-			NSInteger result = NSRunAlertPanel(CONTACT_ADDED_SUCCESS_TITLE,
-											   CONTACT_ADDED_SUCCESS_Message,
-											   AILocalizedString(@"Yes", nil),
-											   AILocalizedString(@"No", nil), nil, contact.displayName);
-			
-			if (result == NSModalResponseOK) {
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setMessageText:CONTACT_ADDED_SUCCESS_TITLE];
+			[alert setInformativeText:[NSString stringWithFormat:CONTACT_ADDED_SUCCESS_Message, contact.displayName]];
+			[alert addButtonWithTitle:AILocalizedString(@"Yes", nil)];	//NSAlertFirstButtonReturn, was the default button (old return value 1 == NSModalResponseOK)
+			[alert addButtonWithTitle:AILocalizedString(@"No", nil)];
+			NSInteger result = [alert runModal];
+
+			if (result == NSAlertFirstButtonReturn) {
 				NSString *url = [[NSString alloc] initWithFormat:@"addressbook://%@?edit", [person uniqueId]];
 				[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
 				[url release];
@@ -1463,8 +1465,12 @@ NSString* serviceIDForJabberUID(NSString *UID)
 	}
 	
 	
-	if (!success)
-		NSRunAlertPanel(CONTACT_ADDED_ERROR_TITLE, CONTACT_ADDED_ERROR_Message, nil, nil, nil, contact.displayName);
+	if (!success) {
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:CONTACT_ADDED_ERROR_TITLE];
+		[alert setInformativeText:[NSString stringWithFormat:CONTACT_ADDED_ERROR_Message, contact.displayName]];
+		[alert runModal];
+	}
 
 	//Clean up
 	[person release];

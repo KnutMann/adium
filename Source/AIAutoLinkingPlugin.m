@@ -53,18 +53,24 @@
 	NSUInteger					stringLength = [replacementMessage length];
 
 	if([AHHyperlinkScanner isStringValidURI:[replacementMessage string] usingStrict:YES fromIndex:NULL withStatus:NULL schemeLength:NULL]){
-		NSString *linkString = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-													(CFStringRef)[replacementMessage string],
-													(CFStringRef)@"#%",
-													NULL,
-													kCFStringEncodingUTF8);
-		NSURL *linkURL = [NSURL URLWithString:linkString];
+		/* Replacement for CFURLCreateStringByAddingPercentEscapes(..., leaveUnescaped:"#%", ...):
+		 * the legacy call left exactly the URLQueryAllowedCharacterSet plus "#" and "%" unescaped
+		 * (verified empirically against the old API), so we rebuild that exact set here.
+		 */
+		static NSCharacterSet *allowedCharacters = nil;
+		if (!allowedCharacters) {
+			NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
+			[set addCharactersInString:@"#%"];
+			allowedCharacters = [set copy];
+			[set release];
+		}
+		NSString *linkString = [[replacementMessage string] stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];
+		NSURL *linkURL = (linkString ? [NSURL URLWithString:linkString] : nil);
 		if(nil != linkURL) {
 			[replacementMessage addAttribute:NSLinkAttributeName
 									value:linkURL
 									range:NSMakeRange(0, [replacementMessage length])];
 		}
-		[linkString release];
 	}
 	
 	for (NSInteger i = 0; i < stringLength; i += linkRange.length) {

@@ -22,6 +22,7 @@
 #import <Adium/AIHTMLDecoder.h>
 #import <Adium/AILoginControllerProtocol.h>
 #import <AIUtilities/ISO8601DateFormatter.h>
+#import <AIUtilities/AIDataAdditions.h>
 #import <AIUtilities/AIFileManagerAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 
@@ -74,7 +75,7 @@
 	@try 
 	{
 		rawChat =  ([[fullPath pathExtension] isEqual:@"ichat"] ?
-					[NSKeyedUnarchiver unarchiveObjectWithFile:fullPath] :
+					[NSKeyedUnarchiver objectWithArchivedData:[NSData dataWithContentsOfFile:fullPath]] :
 					[NSUnarchiver unarchiveObjectWithFile:fullPath]);
 	}
 	@catch (NSException *releaseException)

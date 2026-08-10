@@ -78,7 +78,7 @@
 	
 	//Draw a border line at the top
 	NSRect lineRect = NSMakeRect(0, frame.size.height-1, NSWidth(frame), 1);
-	[[NSColor windowFrameColor] set];
+	[[NSColor separatorColor] set];
 	NSRectFill(lineRect);
 }
 

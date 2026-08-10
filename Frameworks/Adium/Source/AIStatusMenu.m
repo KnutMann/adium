@@ -25,6 +25,7 @@
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIMenuControllerProtocol.h>
 #import <AIUtilities/AIArrayAdditions.h>
+#import <AIUtilities/AIDataAdditions.h>
 #import <AIUtilities/AIEventAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
@@ -423,7 +424,7 @@
 																				  group:PREF_GROUP_STATUS_PREFERENCES];
 		NSData		*lastStatusStateData = [lastStatusStates objectForKey:[[NSNumber numberWithInt:statusType] stringValue]];
 		AIStatus	*lastStatusStateOfThisType = (lastStatusStateData ?
-												  [NSKeyedUnarchiver unarchiveObjectWithData:lastStatusStateData] :
+												  [NSKeyedUnarchiver objectWithArchivedData:lastStatusStateData] :
 												  nil);
 		if (lastStatusStateOfThisType) {
 			// Restore the current status message into this last-saved variety, since users tend want to keep them.

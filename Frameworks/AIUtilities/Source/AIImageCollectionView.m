@@ -106,7 +106,7 @@
 {
 	// Draw selection
 	if ([[self selectionIndexes] count] > 0) {
-		[[NSColor selectedMenuItemColor] set];
+		[[NSColor selectedContentBackgroundColor] set];
 		
 		[[self selectionIndexes] enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL *stop) {
 			NSRect highlightRect = [self frameForItemAtIndex:anIndex];
@@ -144,7 +144,7 @@
 	if ([self highlightedIndex] != NSNotFound) {
 		NSRect highlightRect = [[[self subviews] objectAtIndex:[self highlightedIndex]] frame];
 		
-		[[NSColor selectedMenuItemColor] set];
+		[[NSColor selectedContentBackgroundColor] set];
 		
 		// Adjust Pattern
 		[[NSGraphicsContext currentContext] setPatternPhase:NSMakePoint(0.0f, NSMaxY([self convertRect:highlightRect toView:nil]))];

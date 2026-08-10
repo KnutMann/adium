@@ -298,12 +298,14 @@
 - (AIChat *)openChatWithoutActivating
 {
 	if (self.account.joiningGroupChatRequiresCreationDictionary && !self.chatCreationDictionary) {
-		if (NSRunAlertPanel(AILocalizedString(@"Unable to join bookmarked chat", nil),
-                            AILocalizedString(@"The bookmark %@ does not contain enough information and can not be used. Please recreate it next time you join the chat.\nWould you like to remove this bookmark?", nil),
-                            AILocalizedStringFromTable(@"Delete", @"Buttons", nil), 
-                            AILocalizedStringFromTable(@"Cancel", @"Buttons", nil), 
-                            nil,
-                            [self displayName]) == NSAlertDefaultReturn) {
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Unable to join bookmarked chat", nil)];
+		[alert setInformativeText:[NSString stringWithFormat:
+								   AILocalizedString(@"The bookmark %@ does not contain enough information and can not be used. Please recreate it next time you join the chat.\nWould you like to remove this bookmark?", nil),
+								   [self displayName]]];
+		[alert addButtonWithTitle:AILocalizedStringFromTable(@"Delete", @"Buttons", nil)];	//NSAlertFirstButtonReturn, was the default button
+		[alert addButtonWithTitle:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];
+		if ([alert runModal] == NSAlertFirstButtonReturn) {
 			AILogWithSignature(@"Removing %@", self);
 			[adium.contactController removeBookmark:self];
 		}

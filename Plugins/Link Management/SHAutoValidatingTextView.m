@@ -102,8 +102,19 @@
 - (NSString *)linkURL
 {
 	NSString	*linkURL = [[self textStorage] string];
-	CFStringRef preprocessedString, escapedURLString;
-	CFStringRef charactersToLeaveUnescaped = CFSTR("#");
+	NSString	*preprocessedString, *escapedURLString;
+
+	/* Replacement for CFURLCreateStringByAddingPercentEscapes(..., leaveUnescaped:"#", ...):
+	 * the legacy call left exactly the URLQueryAllowedCharacterSet plus "#" unescaped
+	 * (verified empirically against the old API), so we rebuild that exact set here.
+	 */
+	static NSCharacterSet *allowedCharacters = nil;
+	if (!allowedCharacters) {
+		NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
+		[set addCharactersInString:@"#"];
+		allowedCharacters = [set copy];
+		[set release];
+	}
 
 	if ([linkURL rangeOfString:@"%n"].location != NSNotFound) {
 		NSMutableString	*newLinkURL = [linkURL mutableCopy];
@@ -112,27 +123,19 @@
 									   options:NSLiteralSearch
 										 range:NSMakeRange(0, [newLinkURL length])];
 		linkURL = [newLinkURL autorelease];
-		
+
 	}
 
 	//Replace all existing percent escapes (in case the user actually escaped the URL properly or it was copy/pasted)
-	preprocessedString = CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault,
-																				 (CFStringRef)linkURL,
-																				 CFSTR(""),
-																				 kCFStringEncodingUTF8);
+	preprocessedString = [linkURL stringByRemovingPercentEncoding];
 	//Now escape it the way NSURL demands
 	if (preprocessedString) {
-		escapedURLString = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-																   preprocessedString,
-																   charactersToLeaveUnescaped,
-																   /* legalURLCharactersToBeEscaped */ NULL,
-																   kCFStringEncodingUTF8);
-		CFRelease(preprocessedString);
+		escapedURLString = [preprocessedString stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];
 	} else {
 		escapedURLString = nil;
 	}
 
-	return (escapedURLString ? [(NSString *)escapedURLString autorelease] : linkURL);
+	return (escapedURLString ? escapedURLString : linkURL);
 }
 
 @end

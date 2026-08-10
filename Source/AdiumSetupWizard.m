@@ -111,25 +111,19 @@ enum{
 {
 	// Since we have multiple dedicated importers in 1.1+ it's better to direct the user as needed
     
-	NSAlert *multipleImportPrompt = [NSAlert alertWithMessageText:AILocalizedString(@"Have you used other chat clients?", "Title which introduces import assistants during setup")
-													defaultButton:AILocalizedStringFromTable(@"Continue", @"Buttons", nil)
-												  alternateButton:AILocalizedString(@"Import from iChat", "iChat is the OS X instant messaging client which ships with OS X; the name probably should not be localized")
-													  otherButton:nil
-										informativeTextWithFormat:AILocalizedString(@"Adium includes assistants to import your accounts, settings, and transcripts from other clients. Choose a client below to open its assistant, or press Continue to skip importing.", nil)];
-	[multipleImportPrompt beginSheetModalForWindow:[self window] 
-									 modalDelegate:self 
-									didEndSelector:@selector(multipleImportAlertDidEnd:returnCode:contextInfo:) 
-									   contextInfo:nil];	
-}
-
-- (void)multipleImportAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	if(returnCode == NSAlertAlternateReturn) {
-		[BGICImportController performSelector:@selector(importIChatConfiguration)
-								   withObject:nil
-								   afterDelay:0.5];
-		[[self window] close];
-	}
+	NSAlert *multipleImportPrompt = [[[NSAlert alloc] init] autorelease];
+	[multipleImportPrompt setMessageText:AILocalizedString(@"Have you used other chat clients?", "Title which introduces import assistants during setup")];
+	[multipleImportPrompt setInformativeText:AILocalizedString(@"Adium includes assistants to import your accounts, settings, and transcripts from other clients. Choose a client below to open its assistant, or press Continue to skip importing.", nil)];
+	[multipleImportPrompt addButtonWithTitle:AILocalizedStringFromTable(@"Continue", @"Buttons", nil)];	//NSAlertFirstButtonReturn, was the default button
+	[multipleImportPrompt addButtonWithTitle:AILocalizedString(@"Import from iChat", "iChat is the OS X instant messaging client which ships with OS X; the name probably should not be localized")];	//NSAlertSecondButtonReturn, was the alternate button
+	[multipleImportPrompt beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
+		if(returnCode == NSAlertSecondButtonReturn) {
+			[BGICImportController performSelector:@selector(importIChatConfiguration)
+									   withObject:nil
+									   afterDelay:0.5];
+			[[self window] close];
+		}
+	}];
 }
 
 /*!

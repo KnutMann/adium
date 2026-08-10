@@ -158,9 +158,14 @@ gboolean purple_init_zephyr_plugin(void);
 			//zhm returned an error (why is -1 also not an error???)
             NSString *tempString = [[NSString alloc] initWithData:inData encoding:NSASCIIStringEncoding];
 
-            NSRunCriticalAlertPanel(AILocalizedString(@"zhm Failure", "zhm is the Zephyr Host Manager and should not be a localized word"),
-									AILocalizedString(@"The Zephyr Host Manager reported an error #%li: %@", "Be careful to keep the % parts the same in this string. %@ will be replaced by an error message."),
-                                    AILocalizedString(@"OK", nil), nil, nil, (long)status, tempString);
+            NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+            [alert setAlertStyle:NSAlertStyleCritical];
+            [alert setMessageText:AILocalizedString(@"zhm Failure", "zhm is the Zephyr Host Manager and should not be a localized word")];
+            [alert setInformativeText:[NSString stringWithFormat:
+                                       AILocalizedString(@"The Zephyr Host Manager reported an error #%li: %@", "Be careful to keep the % parts the same in this string. %@ will be replaced by an error message."),
+                                       (long)status, tempString]];
+            [alert addButtonWithTitle:AILocalizedString(@"OK", nil)];
+            [alert runModal];
 
             [tempString release];
             //Should we stop here, or keep going, knowing we'll get another error message when we try to connect via libpurple?

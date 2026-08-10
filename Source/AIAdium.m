@@ -726,10 +726,17 @@ static NSString	*prefsCategory;
 		[[NSNotificationCenter defaultCenter] postNotificationName:AIXtrasDidChangeNotification
 												 object:[[filename lastPathComponent] pathExtension]];
 		
-        buttonPressed = NSRunInformationalAlertPanel(alertTitle, @"%@",nil,prefsButton,nil, alertMsg);
-		
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setAlertStyle:NSAlertStyleInformational];
+		[alert setMessageText:alertTitle];
+		[alert setInformativeText:alertMsg];
+		[alert addButtonWithTitle:AILocalizedString(@"OK", nil)];	//was the (implicit) default button
+		if (prefsButton)
+			[alert addButtonWithTitle:prefsButton];					//NSAlertSecondButtonReturn, was the alternate button
+		buttonPressed = [alert runModal];
+
 		// User clicked the "open prefs" button
-		if (buttonPressed == NSAlertAlternateReturn) {
+		if (buttonPressed == NSAlertSecondButtonReturn) {
 			//If we're done loading the app, open the prefs now; if not, it'll be done once the load is finished
 			//so the controllers and plugins have had a chance to initialize
 			if (completedApplicationLoad) {
@@ -746,9 +753,10 @@ static NSString	*prefsCategory;
 			errorMessage = AILocalizedString(@"An error occurred while installing the X(tra).",nil);
 		}
 		
-		NSRunAlertPanel(AILocalizedString(@"Installation Failed","Title of installation failed window"),
-						@"%@",
-						nil,nil,nil, errorMessage);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Installation Failed","Title of installation failed window")];
+		[alert setInformativeText:errorMessage];
+		[alert runModal];
 	}
 
     return success;
@@ -829,13 +837,21 @@ static NSString	*prefsCategory;
 			if (error) {
 				targetPath = nil;
 				
-				NSInteger result = NSRunCriticalAlertPanel([NSString stringWithFormat:AILocalizedString(@"Could not create the %@ folder.",nil), name],
-												 AILocalizedString(@"Try running Repair Permissions from Disk Utility.",nil),
-												 AILocalizedString(@"OK",nil), 
-												 AILocalizedString(@"Launch Disk Utility",nil), 
-												 nil);
-				if (result == NSAlertAlternateReturn) {
-					[[NSWorkspace sharedWorkspace] launchApplication:@"Disk Utility"];
+				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				[alert setAlertStyle:NSAlertStyleCritical];
+				[alert setMessageText:[NSString stringWithFormat:AILocalizedString(@"Could not create the %@ folder.",nil), name]];
+				[alert setInformativeText:AILocalizedString(@"Try running Repair Permissions from Disk Utility.",nil)];
+				[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];					//NSAlertFirstButtonReturn, was the default button
+				[alert addButtonWithTitle:AILocalizedString(@"Launch Disk Utility",nil)];	//NSAlertSecondButtonReturn, was the alternate button
+				NSInteger result = [alert runModal];
+				if (result == NSAlertSecondButtonReturn) {
+					//Replaces the deprecated -launchApplication: (name-based lookup) with the bundle-identifier variant
+					NSURL *diskUtilityURL = [[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:@"com.apple.DiskUtility"];
+					if (diskUtilityURL) {
+						[[NSWorkspace sharedWorkspace] openApplicationAtURL:diskUtilityURL
+															  configuration:[NSWorkspaceOpenConfiguration configuration]
+														  completionHandler:nil];
+					}
 				}
 			}
 		}

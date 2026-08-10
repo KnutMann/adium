@@ -243,12 +243,11 @@
     
     // Show alert dialog.
     NSString *appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
-    NSRunAlertPanel(@"Preferences",
-                    @"Preferences are not available for %@.",
-                    @"OK",
-                    nil,
-                    nil,
-                    appName);
+    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    [alert setMessageText:@"Preferences"];
+    [alert setInformativeText:[NSString stringWithFormat:@"Preferences are not available for %@.", appName]];
+    [alert addButtonWithTitle:@"OK"];
+    [alert runModal];
     [prefsWindow close];
     prefsWindow = nil;
 }

@@ -423,7 +423,7 @@
 - (NSData *)dataForURI:(NSString *)path appleSingle:(BOOL)isAppleSingle
 {
 	// AWEzvLog(@"%s",  __PRETTY_FUNCTION__);
-	path = [path stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+	path = [path stringByRemovingPercentEncoding];
 
 	NSMutableData *data = [NSMutableData data];
 

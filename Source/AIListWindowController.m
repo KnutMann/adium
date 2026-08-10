@@ -23,6 +23,7 @@
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIDockControllerProtocol.h>
 #import <AIUtilities/AIWindowAdditions.h>
+#import <AIUtilities/AIDataAdditions.h>
 #import <AIUtilities/AIFunctions.h>
 #import <AIUtilities/AIWindowControllerAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
@@ -229,7 +230,7 @@ static NSMutableDictionary *screenSlideBoundaryRectDictionary = nil;
 
 	//Substitute an otherwise identical copy of the search field for one of our class. We don't want to globally pose as class; we just want it here.
 	[NSKeyedArchiver setClassName:@"AISearchFieldCell" forClass:[NSSearchFieldCell class]];
-	[searchField setCell:[NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:[searchField cell]]]];	
+	[searchField setCell:[NSKeyedUnarchiver objectWithArchivedData:[NSKeyedArchiver archivedDataWithObject:[searchField cell]]]];	
 	[NSKeyedArchiver setClassName:@"NSSearchFieldCell" forClass:[NSSearchFieldCell class]];
 	
 	/* Get rid of the "x" button in the search field that would clear the search.

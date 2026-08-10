@@ -545,7 +545,7 @@
 	/*Let's get the name out of the url */
 	NSString *fileName = nil;
 	fileName = [url lastPathComponent];
-	fileName = [fileName stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+	fileName = [fileName stringByRemovingPercentEncoding];
 	
 	/* Parse type information */
 	

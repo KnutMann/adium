@@ -65,11 +65,6 @@
 	[self closeInstaller];
 }
 
-- (void)sheetDidDismiss:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	[self cancel:nil];
-}
-
 - (void)closeInstaller
 {
 	if (window) [window close];
@@ -109,10 +104,11 @@
 		[urlToDownload release];
 
 	} else {
-		NSRunAlertPanel(AILocalizedString(@"Nontrusted Xtra", nil),
-						AILocalizedString(@"This Xtra is not hosted on the Adium Xtras website. Automatic installation is not allowed.", nil),
-						AILocalizedString(@"Cancel", nil),
-						nil, nil);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Nontrusted Xtra", nil)];
+		[alert setInformativeText:AILocalizedString(@"This Xtra is not hosted on the Adium Xtras website. Automatic installation is not allowed.", nil)];
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+		[alert runModal];
 		[self closeInstaller];
 	}
 }
@@ -165,34 +161,34 @@
 
 	errorMsg = [NSString stringWithFormat:AILocalizedString(@"An error occurred while downloading this Xtra: %@.",nil),[error localizedDescription]];
 	
-	NSBeginAlertSheet(AILocalizedString(@"Xtra Downloading Error",nil), AILocalizedString(@"Cancel",nil), nil, nil, window, self,
-					 NULL, @selector(sheetDidDismiss:returnCode:contextInfo:), nil, @"%@", errorMsg);
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setMessageText:AILocalizedString(@"Xtra Downloading Error",nil)];
+	[alert setInformativeText:errorMsg];
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+	/* The former didDismissSelector cancelled the download regardless of the button pressed;
+	 * the completion handler runs after the sheet is dismissed, preserving that behavior. */
+	[alert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
+		[self cancel:nil];
+	}];
 }
 
-- (void)setQuarantineProperties:(NSDictionary *)dict forDirectory:(FSRef *)dir
+/* Applies the quarantine properties to everything inside the directory. Replaces the
+ * former FSIterator/LSSetItemAttribute implementation with the NSURL resource-value
+ * API (AdiumY pattern); the deep NSDirectoryEnumerator covers the same set of items
+ * the old flat-iterate-plus-recurse loop did.
+ */
+- (void)setQuarantineProperties:(NSDictionary *)dict forDirectory:(NSURL *)dir
 {
-	FSIterator iterator;
-	
-	if (FSOpenIterator(dir, kFSIterateFlat, &iterator) != noErr) {
-		AILogWithSignature(@"Error quarantining %p", dir);
-	}
-	
-	FSRef ref;
-	ItemCount num;
-	
-	while (FSGetCatalogInfoBulk(iterator, 1, &num, NULL, kFSCatInfoNone, NULL, &ref, NULL, NULL) == noErr)
-	{
-		LSSetItemAttribute(&ref, kLSRolesAll, kLSItemQuarantineProperties, dict);
-		
-		FSCatalogInfo catinfo;
-		FSGetCatalogInfo(&ref, kFSCatInfoNodeFlags, &catinfo, NULL, NULL, NULL);
-		
-		if(catinfo.nodeFlags & kFSNodeIsDirectoryMask) {
-			[self setQuarantineProperties:dict forDirectory:&ref];
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:dir
+															 includingPropertiesForKeys:nil
+																				options:0
+																		   errorHandler:nil];
+	for (NSURL *url in enumerator) {
+		NSError *error = nil;
+		if (![url setResourceValue:dict forKey:NSURLQuarantinePropertiesKey error:&error]) {
+			AILogWithSignature(@"Error quarantining %@: %@", url, error);
 		}
 	}
-	
-	FSCloseIterator(iterator);
 }
 
 - (void)downloadDidFinish:(NSURLDownload *)inDownload {
@@ -288,49 +284,33 @@
 	
 	self.dest = [self.dest stringByDeletingLastPathComponent];
 	
-	FSRef fsRef;
-	OSStatus err;
-	
-	if (FSPathMakeRef((const UInt8 *)[self.dest fileSystemRepresentation], &fsRef, NULL) == noErr) {
-		
-		NSMutableDictionary *quarantineProperties = nil;
-		CFTypeRef cfOldQuarantineProperties = NULL;
-		
-		err = LSCopyItemAttribute(&fsRef, kLSRolesAll, kLSItemQuarantineProperties, &cfOldQuarantineProperties);
-		
-		if (err == noErr) {
-			
-			if (CFGetTypeID(cfOldQuarantineProperties) == CFDictionaryGetTypeID()) {
-				quarantineProperties = [[(NSDictionary *)cfOldQuarantineProperties mutableCopy] autorelease];
-			} else {
-				AILogWithSignature(@"Getting quarantine data failed for %@ (%@)", self, self.dest);
-				[self closeInstaller];
-				return;
-			}
-			
-			CFRelease(cfOldQuarantineProperties);
-			
-			if (!quarantineProperties) {
-				[self closeInstaller];
-				return;
-			}
-			
+	/* NSURLQuarantinePropertiesKey replaces LSCopyItemAttribute/LSSetItemAttribute
+	 * (AdiumY pattern). Error semantics: an item that is not quarantined returns YES
+	 * with a nil value (the old kLSAttributeNotFoundErr case); NO means the item could
+	 * not be inspected at all.
+	 */
+	NSURL *destURL = [NSURL fileURLWithPath:self.dest];
+	NSMutableDictionary *quarantineProperties = nil;
+	NSDictionary *oldQuarantineProperties = nil;
+
+	if ([destURL getResourceValue:&oldQuarantineProperties forKey:NSURLQuarantinePropertiesKey error:NULL]) {
+		if (oldQuarantineProperties) {
+			quarantineProperties = [[oldQuarantineProperties mutableCopy] autorelease];
 			AILogWithSignature(@"Old quarantine data: %@", quarantineProperties);
-			
-		} else if (err == kLSAttributeNotFoundErr) {
+		} else {
 			quarantineProperties = [NSMutableDictionary dictionaryWithCapacity:2];
 		}
-		
+
 		[quarantineProperties setObject:(NSString *)kLSQuarantineTypeWebDownload
 								 forKey:(NSString *)kLSQuarantineTypeKey];
-		
+
 		[quarantineProperties setObject:[[self.download request] URL]
 								 forKey:(NSString *)kLSQuarantineDataURLKey];
-		
-		[self setQuarantineProperties:quarantineProperties forDirectory:&fsRef];
-		
+
+		[self setQuarantineProperties:quarantineProperties forDirectory:destURL];
+
 		AILogWithSignature(@"Quarantined %@ with %@", self.dest, quarantineProperties);
-		
+
 	} else {
 		AILogWithSignature(@"Danger! Could not find file to quarantine: %@!", self.dest);
 	}

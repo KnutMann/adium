@@ -889,14 +889,18 @@ return nil; \
 {
 	// RFC 2396:
 	//       reserved    = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" |	"$" | ","
-	
-	NSString *string = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
-																		   (CFStringRef)self, 
-																		   NULL,
-																		   (CFStringRef)@";/?:@&=+$",
-																		   kCFStringEncodingUTF8);
 
-	return [string autorelease];
+	/* Replacement for CFURLCreateStringByAddingPercentEscapes(..., legalURLCharactersToBeEscaped:";/?:@&=+$", ...):
+	 * the legacy call left exactly this character set unescaped (verified empirically against
+	 * the old API): RFC 2396 unreserved characters minus the reserved ones listed above.
+	 */
+	static NSCharacterSet *allowedCharacters = nil;
+	if (!allowedCharacters) {
+		allowedCharacters = [[NSCharacterSet characterSetWithCharactersInString:
+							  @"!'()*,-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"] retain];
+	}
+
+	return [self stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];
 }
 
 @end

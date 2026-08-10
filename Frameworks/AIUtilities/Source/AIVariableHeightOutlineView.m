@@ -489,7 +489,7 @@
 			if ([[self window] firstResponder] != self || ![[self window] isKeyWindow]) {
 				[[NSColor secondarySelectedControlColor] set];
 			} else {
-				[[NSColor alternateSelectedControlColor] set];
+				[[NSColor selectedContentBackgroundColor] set];
 			}
 
 			NSRectFillListUsingOperation(selectionRects, j, NSCompositingOperationSourceOver);

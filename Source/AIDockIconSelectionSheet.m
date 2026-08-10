@@ -30,7 +30,6 @@
 - (void)xtrasChanged:(NSNotification *)notification;
 
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
-- (void)trashConfirmSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(NSString *)selectedIconPath;
 
 @end
 
@@ -287,36 +286,33 @@
 	
 	// We need at least one icon installed, so prevent the user from deleting the default icon
 	if (![name isEqualToString:DEFAULT_DOCK_ICON_NAME]) {
-		NSBeginAlertSheet(AILocalizedString(@"Delete Dock Icon",nil),
-						  AILocalizedString(@"Delete",nil),
-						  AILocalizedString(@"Cancel",nil),
-						  @"",
-						  [self window], 
-						  self, 
-						  @selector(trashConfirmSheetDidEnd:returnCode:contextInfo:),
-						  nil,
-						  selectedIconPath,
-						  AILocalizedString(@"Are you sure you want to delete the %@ Dock Icon? It will be moved to the Trash.", nil), name);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Delete Dock Icon",nil)];
+		[alert setInformativeText:[NSString stringWithFormat:
+								   AILocalizedString(@"Are you sure you want to delete the %@ Dock Icon? It will be moved to the Trash.", nil), name]];
+		[alert addButtonWithTitle:AILocalizedString(@"Delete",nil)];	//NSAlertFirstButtonReturn, was the default button (old return value 1 == NSModalResponseOK)
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+		/* The former didEndSelector's contextInfo (selectedIconPath) is captured and retained
+		 * by the completion block. */
+		[alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
+			if (returnCode == NSAlertFirstButtonReturn) {
+				NSInteger deletedIndex = [[[self imageCollectionView] selectionIndexes] firstIndex];
+
+				// Deselect and stop animating
+				[self setAnimatedDockIconAtIndex:NSNotFound];
+				[[self imageCollectionView] setSelectionIndexes:[NSIndexSet indexSet]];
+
+				// Trash the file & Rebuild our icons
+				[[NSFileManager defaultManager] trashFileAtPath:selectedIconPath];
+				[self xtrasChanged:nil];
+
+				// Select the next available icon (prevent empty selection)
+				NSUInteger deletedIdx = deletedIndex;
+				NSUInteger newIndex = (deletedIdx == [[self icons] count]) ? --deletedIdx : deletedIdx;
+				[[self imageCollectionView] setSelectionIndexes:[NSIndexSet indexSetWithIndex:newIndex]];
+			}
+		}];
 	}
-}
-
-- (void)trashConfirmSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(NSString *)selectedIconPath
-{
-    if (returnCode == NSModalResponseOK) {
-		NSInteger deletedIndex = [[[self imageCollectionView] selectionIndexes] firstIndex];
-		
-		// Deselect and stop animating
-		[self setAnimatedDockIconAtIndex:NSNotFound];
-		[[self imageCollectionView] setSelectionIndexes:[NSIndexSet indexSet]];
-		
-		// Trash the file & Rebuild our icons
-		[[NSFileManager defaultManager] trashFileAtPath:selectedIconPath];
-		[self xtrasChanged:nil];
-
-		// Select the next available icon (prevent empty selection)
-		NSUInteger newIndex = (deletedIndex == [[self icons] count]) ? --deletedIndex : deletedIndex;
-		[[self imageCollectionView] setSelectionIndexes:[NSIndexSet indexSetWithIndex:newIndex]];
-    }
 }
 
 @end

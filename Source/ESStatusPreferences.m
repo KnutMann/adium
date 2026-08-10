@@ -45,7 +45,6 @@
 
 - (BOOL)addItemIfNeeded:(NSMenuItem *)menuItem toPopUpButton:(NSPopUpButton *)popUpButton alreadyShowingAnItem:(BOOL)alreadyShowing;
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 
 - (void)newState;
 - (void)deleteState;
@@ -291,31 +290,21 @@
 							 numberOfItems];
 		
 		//Warn if deleting a group containing status items
-		NSBeginAlertSheet(AILocalizedString(@"Status Deletion Confirmation",nil),
-						  AILocalizedString(@"Delete", nil),
-						  AILocalizedString(@"Cancel", nil), nil,
-						  [[self view] window], self,
-						  @selector(sheetDidEnd:returnCode:contextInfo:), NULL,
-						  [selectedItems retain],
-						  @"%@", message);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Status Deletion Confirmation",nil)];
+		[alert setInformativeText:message];
+		[alert addButtonWithTitle:AILocalizedString(@"Delete", nil)];	//NSAlertFirstButtonReturn, was the default button
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];	//NSAlertSecondButtonReturn, was the alternate button
+		/* The former didEndSelector's contextInfo is now captured by the completion block,
+		 * which retains selectedItems for us (blocks retain captured objects). */
+		[alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
+			if (returnCode == NSAlertFirstButtonReturn) {
+				for (AIStatusItem *statusItem in selectedItems) {
+					[[statusItem containingStatusGroup] removeStatusItem:statusItem];
+				}
+			}
+		}];
 	}
-}
-
-/*!
- * @brief Confirmed a status item deletion operation
- */
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	NSArray *selectedItems = (NSArray *)contextInfo;
-	if (returnCode == NSAlertDefaultReturn) {
-		AIStatusItem *statusItem;
-
-		for (statusItem in selectedItems) {
-			[[statusItem containingStatusGroup] removeStatusItem:statusItem];
-		}
-	}	
-	
-	[selectedItems release];
 }
 
 /*!

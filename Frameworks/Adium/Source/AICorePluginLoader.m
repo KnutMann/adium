@@ -160,12 +160,13 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 #endif	
 	// Confirm plugins can load on this arch
 	if(![self confirmPluginArchitectureAtPath:pluginPath]) {
-		NSRunInformationalAlertPanel([NSString stringWithFormat:AILocalizedString(@"Plugin %@ Will be Disabled", "%@ will be the name of a plugin. This is the title of the dialogue shown when an plugin is loaded on an unsupported architecture."),
-									  [[pluginPath lastPathComponent] stringByDeletingPathExtension]],
-									 AILocalizedString(@"This plugin does not support your native architecture.", nil),
-									 AILocalizedString(@"Disable", nil),
-									 nil,
-									 nil);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setAlertStyle:NSAlertStyleInformational];
+		[alert setMessageText:[NSString stringWithFormat:AILocalizedString(@"Plugin %@ Will be Disabled", "%@ will be the name of a plugin. This is the title of the dialogue shown when an plugin is loaded on an unsupported architecture."),
+							   [[pluginPath lastPathComponent] stringByDeletingPathExtension]]];
+		[alert setInformativeText:AILocalizedString(@"This plugin does not support your native architecture.", nil)];
+		[alert addButtonWithTitle:AILocalizedString(@"Disable", nil)];
+		[alert runModal];
 		[self disablePlugin:pluginPath];
 		return;
 	}
@@ -192,15 +193,16 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 		if ((pluginBundle = [NSBundle bundleWithPath:pluginPath])) {
 			
 			if ([self pluginIsBlacklisted:pluginBundle]) {
-				NSRunInformationalAlertPanel([NSString stringWithFormat:
-											  AILocalizedString(@"Plugin %@ Will be Disabled", "%@ will be the name of a plugin. This is the title of the dialogue shown when an plugin is blacklisted."),
-											  [[pluginPath lastPathComponent] stringByDeletingPathExtension]],
-                        AILocalizedString(@"This plugin is known to be incompatible with Adium %@.", "%@ will be a version number of Adium"),
-											  AILocalizedString(@"Disable", nil),
-											  nil,
-											  nil,
-                        [NSApp applicationVersion]
-                       );
+				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				[alert setAlertStyle:NSAlertStyleInformational];
+				[alert setMessageText:[NSString stringWithFormat:
+									   AILocalizedString(@"Plugin %@ Will be Disabled", "%@ will be the name of a plugin. This is the title of the dialogue shown when an plugin is blacklisted."),
+									   [[pluginPath lastPathComponent] stringByDeletingPathExtension]]];
+				[alert setInformativeText:[NSString stringWithFormat:
+										   AILocalizedString(@"This plugin is known to be incompatible with Adium %@.", "%@ will be a version number of Adium"),
+										   [NSApp applicationVersion]]];
+				[alert addButtonWithTitle:AILocalizedString(@"Disable", nil)];
+				[alert runModal];
 				[self disablePlugin:pluginPath];
 				return;
 			}
@@ -236,11 +238,12 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 			//or poorly coded plugin enabled so that it can cause more problems, so disable it and inform
 			//the user that they'll need to restart.
 			[self disablePlugin:pluginPath];
-			NSRunCriticalAlertPanel([NSString stringWithFormat:@"Error loading %@",[[pluginPath lastPathComponent] stringByDeletingPathExtension]],
-									@"An external plugin failed to load and has been disabled.  Please relaunch Adium",
-									@"Quit",
-									nil,
-									nil);
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setAlertStyle:NSAlertStyleCritical];
+			[alert setMessageText:[NSString stringWithFormat:@"Error loading %@",[[pluginPath lastPathComponent] stringByDeletingPathExtension]]];
+			[alert setInformativeText:@"An external plugin failed to load and has been disabled.  Please relaunch Adium"];
+			[alert addButtonWithTitle:@"Quit"];
+			[alert runModal];
 			[NSApp terminate:nil];					
 		}
 	}
@@ -259,11 +262,13 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"AIAutoConfirmExternalPlugins"]  &&
 		(!confirmed || ![confirmed containsObject:[pluginPath lastPathComponent]])) {
-		if (NSRunInformationalAlertPanel([NSString stringWithFormat:AILocalizedString(@"Disable %@?", "%@ will be the name of a plugin. This is the title of the dialogue shown when an unknown plugin is loaded"),[[pluginPath lastPathComponent] stringByDeletingPathExtension]],
-										AILocalizedString(@"External plugins may cause crashes and odd behavior after updating Adium.  Disable this plugin if you experience any issues.", nil),
-										AILocalizedString(@"Disable", nil),
-										AILocalizedString(@"Continue", nil),
-										nil) == NSAlertDefaultReturn) {
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setAlertStyle:NSAlertStyleInformational];
+		[alert setMessageText:[NSString stringWithFormat:AILocalizedString(@"Disable %@?", "%@ will be the name of a plugin. This is the title of the dialogue shown when an unknown plugin is loaded"),[[pluginPath lastPathComponent] stringByDeletingPathExtension]]];
+		[alert setInformativeText:AILocalizedString(@"External plugins may cause crashes and odd behavior after updating Adium.  Disable this plugin if you experience any issues.", nil)];
+		[alert addButtonWithTitle:AILocalizedString(@"Disable", nil)];	//NSAlertFirstButtonReturn, was the default button
+		[alert addButtonWithTitle:AILocalizedString(@"Continue", nil)];
+		if ([alert runModal] == NSAlertFirstButtonReturn) {
 			//Disable this plugin
 			[self disablePlugin:pluginPath];
 			loadPlugin = NO;
@@ -305,9 +310,12 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 		NSLog(@"The %@ plugin is not compatible with Adium %@. Please check xtras.adium.im to see if an update is available.",
 			  pluginName, [NSApp applicationVersion]);
 
-		NSRunAlertPanel([NSString stringWithFormat:@"Could not load %@", pluginName],
-						@"The %@ plugin is not compatible with Adium %@. Please check xtras.adium.im to see if an update is available.",
-						AILocalizedString(@"Disable", nil), nil, nil, pluginName, [NSApp applicationVersion]);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:[NSString stringWithFormat:@"Could not load %@", pluginName]];
+		[alert setInformativeText:[NSString stringWithFormat:@"The %@ plugin is not compatible with Adium %@. Please check xtras.adium.im to see if an update is available.",
+								   pluginName, [NSApp applicationVersion]]];
+		[alert addButtonWithTitle:AILocalizedString(@"Disable", nil)];
+		[alert runModal];
 		[self disablePlugin:pluginPath];
 		return NO;
 	}
@@ -325,10 +333,12 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 	if (versionComparison == NSOrderedAscending) {
 		NSString *pluginName = [[pluginPath lastPathComponent] stringByDeletingPathExtension];
 
-		NSRunAlertPanel([NSString stringWithFormat:@"Could not load %@", pluginName],
-						@"%@ requires Adium %@ or later, but you have Adium %@. Please upgrade Adium to use %@",
-						AILocalizedString(@"Disable", nil), nil, nil, 
-						pluginName, minimumVersionOfPlugin, appVersion, pluginName);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:[NSString stringWithFormat:@"Could not load %@", pluginName]];
+		[alert setInformativeText:[NSString stringWithFormat:@"%@ requires Adium %@ or later, but you have Adium %@. Please upgrade Adium to use %@",
+								   pluginName, minimumVersionOfPlugin, appVersion, pluginName]];
+		[alert addButtonWithTitle:AILocalizedString(@"Disable", nil)];
+		[alert runModal];
 		[self disablePlugin:pluginPath];
 		return NO;
 	}

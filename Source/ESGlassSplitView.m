@@ -72,7 +72,7 @@
     }
 	
 	//Draw the borders
-	[[NSColor windowFrameColor] set];
+	[[NSColor separatorColor] set];
 	NSRectFill(NSMakeRect(aRect.origin.x, aRect.origin.y, aRect.size.width, 1.0f));
 	NSRectFill(NSMakeRect(aRect.origin.x, aRect.origin.y + aRect.size.height - 1, aRect.size.width, 1.0f));
 	
@@ -87,7 +87,7 @@
 	[ovalPath fill];
 
 	[ovalPath setLineWidth:0];
-	[[NSColor windowFrameColor] set];
+	[[NSColor separatorColor] set];
 	[ovalPath stroke];
 }
 

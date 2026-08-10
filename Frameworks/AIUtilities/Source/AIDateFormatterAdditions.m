@@ -63,6 +63,18 @@ typedef enum {
 
 static AIDateFormatterCache *sharedFormatterCache = nil;
 
+/* Queue-specific key used to answer "are we running on the localized formatter queue?".
+ * This replaces the deprecated dispatch_get_current_queue() == queue comparison; unlike
+ * that pattern, dispatch_get_specific() is also correct when the queue is part of a
+ * target-queue hierarchy.
+ */
+static const void *AILocalizedFormatterQueueSpecific = &AILocalizedFormatterQueueSpecific;
+
+static BOOL AIIsOnLocalizedFormatterQueue(void)
+{
+	return (dispatch_get_specific(AILocalizedFormatterQueueSpecific) != NULL);
+}
+
 @implementation AIDateFormatterCache
 - (id) init {
 	if ((self = [super init])) {
@@ -79,7 +91,7 @@ static AIDateFormatterCache *sharedFormatterCache = nil;
 
 + (AIDateFormatterCache *)sharedInstance
 {
-	NSAssert(dispatch_get_current_queue() == [NSDateFormatter localizedFormatterQueue], @"Wrong queue");
+	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
 	if (!sharedFormatterCache)
 		sharedFormatterCache = [[AIDateFormatterCache alloc] init];
@@ -129,8 +141,9 @@ static AIDateFormatterCache *sharedFormatterCache = nil;
 	static dispatch_queue_t localizedFormatterQueue;
 	dispatch_once(&onceToken, ^{
 		localizedFormatterQueue = dispatch_queue_create("im.adium.LocalizedDateFormatterQueue", NULL);
+		dispatch_queue_set_specific(localizedFormatterQueue, AILocalizedFormatterQueueSpecific, (void *)1, NULL);
 	});
-	
+
 	return localizedFormatterQueue;
 }
 
@@ -164,7 +177,7 @@ static AIDateFormatterCache *sharedFormatterCache = nil;
 
 + (NSDateFormatter *)localizedDateFormatter
 {
-	NSAssert(dispatch_get_current_queue() == [self localizedFormatterQueue], @"Wrong queue");
+	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
 	// Thursday, July 31, 2008
 	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] formatter];
@@ -180,7 +193,7 @@ static AIDateFormatterCache *sharedFormatterCache = nil;
 
 + (NSDateFormatter *)localizedShortDateFormatter
 {
-	NSAssert(dispatch_get_current_queue() == [self localizedFormatterQueue], @"Wrong queue");
+	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
 	// 7/31/08
 	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] shortFormatter];
@@ -196,7 +209,7 @@ static AIDateFormatterCache *sharedFormatterCache = nil;
 
 + (NSDateFormatter *)localizedDateFormatterShowingSeconds:(BOOL)seconds showingAMorPM:(BOOL)showAmPm
 {
-	NSAssert(dispatch_get_current_queue() == [self localizedFormatterQueue], @"Wrong queue");
+	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
 	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] formatterShowingSeconds:seconds showingAMorPM:showAmPm];
 
@@ -212,7 +225,7 @@ static AIDateFormatterCache *sharedFormatterCache = nil;
 	dispatch_queue_t localizedFormatterQueue = [self localizedFormatterQueue];
 	__block NSString *formatString;
 	
-	if (dispatch_get_current_queue() != localizedFormatterQueue) {
+	if (!AIIsOnLocalizedFormatterQueue()) {
 		dispatch_sync(localizedFormatterQueue, ^{
 			formatString = [[self localizedDateFormatStringShowingSeconds:seconds showingAMorPM:showAmPm] retain];
 		});

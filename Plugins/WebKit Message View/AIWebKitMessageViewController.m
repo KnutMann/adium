@@ -333,7 +333,7 @@ static NSArray *draggedTypes = nil;
 
 	if (!draggedTypes) {
 		draggedTypes = [[NSArray alloc] initWithObjects:
-			NSFilenamesPboardType,
+			AINSPasteboardTypeFilenames,
 			AIiTunesTrackPboardType,
 			NSPasteboardTypeTIFF,
 			NSPasteboardTypePDF,
@@ -855,7 +855,8 @@ static NSArray *draggedTypes = nil;
 - (void)openImage:(id)sender
 {
 	NSURL	*imageURL = [sender representedObject];
-	[[NSWorkspace sharedWorkspace] openFile:[imageURL path]];
+	//-openURL: replaces the deprecated -openFile: (imageURL is a file URL)
+	[[NSWorkspace sharedWorkspace] openURL:imageURL];
 }
 
 - (void)saveImageAs:(id)sender
@@ -1064,7 +1065,7 @@ static NSArray *draggedTypes = nil;
 	if ([self shouldHandleDragWithPasteboard:pasteboard]) {
 		
 		//Not an image but it is a file - send it immediately as a file transfer
-		NSArray			*files = [pasteboard propertyListForType:NSFilenamesPboardType];
+		NSArray			*files = [pasteboard propertyListForType:AINSPasteboardTypeFilenames];
 		NSString		*path;
 		for (path in files) {
 			AIListObject *listObject = chat.listObject;
@@ -1125,7 +1126,7 @@ static NSArray *draggedTypes = nil;
 {
 	/*
 	return (![pasteboard availableTypeFromArray:[NSArray arrayWithObjects:NSPasteboardTypeTIFF,NSPasteboardTypePDF,nil]] &&
-			[pasteboard availableTypeFromArray:[NSArray arrayWithObject:NSFilenamesPboardType]]);
+			[pasteboard availableTypeFromArray:[NSArray arrayWithObject:AINSPasteboardTypeFilenames]]);
 	 */
 	return NO;
 }

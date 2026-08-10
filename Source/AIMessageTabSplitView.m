@@ -57,7 +57,7 @@
 		if (position == AIMessageSplitTabPositionLeft) {
 			line = [NSBezierPath bezierPathWithRect:NSMakeRect(NSMaxX(aRect) - 1, aRect.origin.y, 1, aRect.size.height)];
 		}
-		[[NSColor windowFrameColor] set];
+		[[NSColor separatorColor] set];
 		[line fill];
 	} else {
 		[super drawDividerInRect:aRect];

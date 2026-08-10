@@ -406,10 +406,10 @@
 		[[NSWorkspace sharedWorkspace] setIcon:image
 									   forFile:[[NSBundle mainBundle] bundlePath]
 									   options:0];
-		
-		//Finder won't update Adium's icon to match the new one until it is restarted if we don't
-		//tell NSWorkspace to note the change.
-		[[NSWorkspace sharedWorkspace] noteFileSystemChanged:[[NSBundle mainBundle] bundlePath]];
+
+		/* The deprecated -noteFileSystemChanged: call that used to follow has been
+		 * removed without replacement: it has been a no-op for a long time, and
+		 * -setIcon:forFile:options: itself notifies the system of the change. */
 	}
 }
 

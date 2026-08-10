@@ -202,7 +202,7 @@
 			i++;		
 		}
 
-		[[NSColor alternateSelectedControlColor] set];
+		[[NSColor selectedContentBackgroundColor] set];
 		NSRectFillListUsingOperation(selectionLineRects, j, NSCompositingOperationSourceOver);
 		
 		free(buf);

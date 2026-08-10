@@ -179,7 +179,7 @@ typedef struct AppleSingleFinderInfo AppleSingleFinderInfo;
 		}
 		NSString *name = [[nameChildren objectAtIndex:0] stringValue];
 		NSString *newPath = [rootPath stringByAppendingPathComponent:name];
-		NSString *newURL = [rootURL stringByAppendingPathComponent:[name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+		NSString *newURL = [rootURL stringByAppendingPathComponent:[name stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 
 		/*Download file to newPath from newURL*/
 		[itemsToDownload setValue:[NSURL URLWithString:newURL] forKey:newPath];
@@ -216,7 +216,7 @@ typedef struct AppleSingleFinderInfo AppleSingleFinderInfo;
 		bool folderSuccess = YES;
 		bool fileSuccess = YES;
 		/* Now call downloadFolder for dir and file children */
-		NSString *newURL = [rootURL stringByAppendingPathComponent:[name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+		NSString *newURL = [rootURL stringByAppendingPathComponent:[name stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 
 		for (NSXMLElement *nextElement in [root elementsForName:@"dir"]) {
 			folderSuccess = [self downloadFolder:nextElement path:newPath url:newURL];
@@ -368,7 +368,7 @@ typedef struct AppleSingleFinderInfo AppleSingleFinderInfo;
 		/*Remove the base url from the string*/
 		NSRange range = [urlString rangeOfString:url];
 		NSString *path = [urlString substringFromIndex:(range.location + range.length)];
-		path = [path stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+		path = [path stringByRemovingPercentEncoding];
 		if (localFilename) {
 			path = [localFilename stringByAppendingPathComponent:path];
 			return path;

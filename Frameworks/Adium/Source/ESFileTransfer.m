@@ -263,47 +263,36 @@ static NSMutableDictionary *fileTransferDict = nil;
 				[[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.apple.DownloadFileFinished"
 																			   object:localFilename];
 				
-				FSRef fsRef;
-				OSErr err;
-				
-				if (FSPathMakeRef((const UInt8 *)[localFilename fileSystemRepresentation], &fsRef, NULL) == noErr) {
-					
-					NSMutableDictionary *quarantineProperties = nil;
-					CFTypeRef cfOldQuarantineProperties = NULL;
-					
-					err = LSCopyItemAttribute(&fsRef, kLSRolesAll, kLSItemQuarantineProperties, &cfOldQuarantineProperties);
-					
-					if (err == noErr) {
-						
-						if (CFGetTypeID(cfOldQuarantineProperties) == CFDictionaryGetTypeID()) {
-							quarantineProperties = [[(NSDictionary *)cfOldQuarantineProperties mutableCopy] autorelease];
-						} else {
-							AILogWithSignature(@"Getting quarantine data failed for %@ (%@)", self, localFilename);
-							return;
-						}
-						
-						CFRelease(cfOldQuarantineProperties);
-						
-						if (!quarantineProperties) {
-							return;
-						}
-						
-					} else if (err == kLSAttributeNotFoundErr) {
+				/* NSURLQuarantinePropertiesKey replaces LSCopyItemAttribute/LSSetItemAttribute
+				 * (AdiumY pattern). Error semantics: a file that is not quarantined returns
+				 * YES with a nil value (the old kLSAttributeNotFoundErr case); NO means the
+				 * file could not be inspected at all.
+				 */
+				NSURL *localFileURL = [NSURL fileURLWithPath:localFilename];
+				NSMutableDictionary *quarantineProperties = nil;
+				NSDictionary *oldQuarantineProperties = nil;
+
+				if ([localFileURL getResourceValue:&oldQuarantineProperties forKey:NSURLQuarantinePropertiesKey error:NULL]) {
+
+					if (oldQuarantineProperties) {
+						quarantineProperties = [[oldQuarantineProperties mutableCopy] autorelease];
+					} else {
 						quarantineProperties = [NSMutableDictionary dictionaryWithCapacity:2];
 					}
-					
+
 					[quarantineProperties setObject:(NSString *)kLSQuarantineTypeInstantMessageAttachment
 											 forKey:(NSString *)kLSQuarantineTypeKey];
 					// TODO Figure out the file URL to the transcript
 //					[quarantineProperties setObject:[NSURL URLWithString:@"file:///dev/null"]
 //											 forKey:(NSString *)kLSQuarantineOriginURLKey];
-					
-					if (LSSetItemAttribute(&fsRef, kLSRolesAll, kLSItemQuarantineProperties, quarantineProperties) != noErr) {
-						AILogWithSignature(@"Danger! Quarantining file %@ failed!", localFilename);
+
+					NSError *quarantineError = nil;
+					if (![localFileURL setResourceValue:quarantineProperties forKey:NSURLQuarantinePropertiesKey error:&quarantineError]) {
+						AILogWithSignature(@"Danger! Quarantining file %@ failed: %@", localFilename, quarantineError);
 					}
-					
+
 					AILogWithSignature(@"Quarantined %@ with %@", localFilename, quarantineProperties);
-					
+
 				} else {
 					AILogWithSignature(@"Danger! Could not find file to quarantine: %@!", localFilename);
 				}
@@ -339,7 +328,8 @@ static NSMutableDictionary *fileTransferDict = nil;
 
 - (void)openFile
 {
-	[[NSWorkspace sharedWorkspace] openFile:localFilename];
+	//-openURL: with a file URL replaces the deprecated -openFile:
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:localFilename]];
 }
 
 - (NSImage *)iconImage
@@ -389,7 +379,7 @@ static NSMutableDictionary *fileTransferDict = nil;
 	//draw our circle background...
 	NSBezierPath *circle = [NSBezierPath bezierPathWithOvalInRect:circleRect];
 	[circle setLineWidth:line];
-	[[[NSColor alternateSelectedControlColor] colorWithAlphaComponent:0.75f] setStroke];
+	[[[NSColor selectedContentBackgroundColor] colorWithAlphaComponent:0.75f] setStroke];
 	[[[NSColor alternateSelectedControlTextColor] colorWithAlphaComponent:0.75f] setFill];
 	[circle fill];
 	[circle stroke];
@@ -416,7 +406,7 @@ static NSMutableDictionary *fileTransferDict = nil;
 		[arrow transformUsingAffineTransform:transform];
 		
 		[circle addClip];
-		[[NSColor alternateSelectedControlColor] setFill];
+		[[NSColor selectedContentBackgroundColor] setFill];
 		[arrow fill];
 	}
 	

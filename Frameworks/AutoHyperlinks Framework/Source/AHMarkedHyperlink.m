@@ -85,44 +85,39 @@ withValidationStatus:(AH_URI_VERIFICATION_STATUS)status
 
 - (void)setURLFromString:(NSString *)inString
 {
+	/* Replacement for CFURLCreateStringByReplacingPercentEscapesUsingEncoding/
+	 * CFURLCreateStringByAddingPercentEscapes: the legacy "add escapes" call with a NULL
+	 * legal-set left exactly the URLQueryAllowedCharacterSet unescaped (verified empirically
+	 * against the old API); the charactersToLeaveUnescaped arguments ("#[]" resp. "[]")
+	 * are added on top of that set to reproduce the old byte-for-byte behavior.
+	 */
+	static NSCharacterSet *allowedWithHash = nil, *allowedWithoutHash = nil;
+	if (!allowedWithHash) {
+		NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
+		[set addCharactersInString:@"[]"];
+		allowedWithoutHash = [set copy];
+		[set addCharactersInString:@"#"];
+		allowedWithHash = [set copy];
+		[set release];
+	}
+
 	NSString	*linkString, *preString;
-	
-	preString = (NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault, 
-																					(CFStringRef)inString, 
-																					CFSTR(""), 
-																					kCFStringEncodingUTF8);
-	
-	linkString = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-																	 preString? (CFStringRef)preString : (CFStringRef)inString,
-																	 (CFStringRef)@"#[]",
-																	 NULL,
-																	 kCFStringEncodingUTF8);
-	self.URL = [NSURL URLWithString:linkString];
+
+	preString = [inString stringByRemovingPercentEncoding];
+
+	linkString = [(preString ? preString : inString) stringByAddingPercentEncodingWithAllowedCharacters:allowedWithHash];
+	self.URL = (linkString ? [NSURL URLWithString:linkString] : nil);
 	// Because -[NSURL URLWithString:(NSString*)inString] fails creating a link with 2 fragment hashes, but we don't want to escape the first one, we esape all '#' to "%23" then unescape the first back to '#'.  rdar://9927055
 	if(!self.URL) {
-		[preString release]; preString = nil;
-		preString = (NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault, 
-																						(CFStringRef)preString, 
-																						CFSTR(""), 
-																						kCFStringEncodingUTF8);
-		[linkString release]; linkString = nil;
-		linkString = (NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-																		 preString? (CFStringRef)preString : (CFStringRef)inString,
-																		 (CFStringRef)@"[]",
-																		 NULL,
-																		 kCFStringEncodingUTF8);
+		linkString = [(preString ? preString : inString) stringByAddingPercentEncodingWithAllowedCharacters:allowedWithoutHash];
 		NSRange fragmentRange = [linkString rangeOfString:@"%23"];
 		NSMutableString *mutaLinkString = nil;
 		if (fragmentRange.location != NSNotFound) {
-			mutaLinkString = [linkString mutableCopy];
+			mutaLinkString = [[linkString mutableCopy] autorelease];
 			[mutaLinkString replaceOccurrencesOfString:@"%23" withString:@"#" options:0 range:fragmentRange];
 		}
 		self.URL = [NSURL URLWithString:mutaLinkString];
-		[mutaLinkString release];
 	}
-	
-	[linkString release];
-	if(preString) [preString release];
 }
 
 #pragma mark NSCopying

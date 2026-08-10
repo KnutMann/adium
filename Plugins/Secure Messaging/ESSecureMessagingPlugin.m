@@ -307,12 +307,14 @@
 
 - (IBAction)showDetails:(id)sender
 {
-	NSRunInformationalAlertPanel(AILocalizedString(@"Details",nil),
-								 [[adium.interfaceController.activeChat securityDetails] objectForKey:@"Description"],
-								 @"%@",
-								 nil,
-								 nil,
-                 AILocalizedString(@"OK",nil) );
+	/* Unlike the old panel, the details string is no longer run through a format-string
+	 * expansion, so any "%" characters it contains are displayed literally. */
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setAlertStyle:NSAlertStyleInformational];
+	[alert setMessageText:AILocalizedString(@"Details",nil)];
+	[alert setInformativeText:([[adium.interfaceController.activeChat securityDetails] objectForKey:@"Description"] ?: @"")];
+	[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
+	[alert runModal];
 }
 
 - (IBAction)verify:(id)sender
@@ -329,12 +331,12 @@
 	aboutEncryption = adium.interfaceController.activeChat.account.aboutEncryption;
 	
 	if (aboutEncryption) {
-		NSRunInformationalAlertPanel(AILocalizedString(@"About Encryption",nil),
-                   @"%@",
-									 AILocalizedString(@"OK",nil),
-									 nil,
-									 nil,
-                   aboutEncryption);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setAlertStyle:NSAlertStyleInformational];
+		[alert setMessageText:AILocalizedString(@"About Encryption",nil)];
+		[alert setInformativeText:aboutEncryption];
+		[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
+		[alert runModal];
 	}
 }
 

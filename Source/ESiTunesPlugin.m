@@ -689,20 +689,20 @@
 			
 			//if there is a name given to this song put it in the url
 			if ([trackName length]) {
-				[url appendFormat:@"n=%@", [trackName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+				[url appendFormat:@"n=%@", [trackName stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 			} else {
 				trackName = @"";
 			}
 			
 			//if there is a name and an artist, we'll use both to refine our search
 			if ([artist length] && [trackName length]) {
-				//[url appendFormat:@"?artistTerm=%@", [artist stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-				[url appendFormat:@"&an=%@", [artist stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+				//[url appendFormat:@"?artistTerm=%@", [artist stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+				[url appendFormat:@"&an=%@", [artist stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 				
 			} else if ([artist length]) {
 				//no proper track name but we have a decent artist name to include in the url
-				//[url appendFormat:@"artistTerm=%@", [trackName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-				[url appendFormat:@"an=%@", [trackName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+				//[url appendFormat:@"artistTerm=%@", [trackName stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+				[url appendFormat:@"an=%@", [trackName stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 			} else {
 				artist = @"";
 			}
@@ -737,7 +737,7 @@
 - (void)searchMusicStoreWithSelection:(NSString *)selectedText
 {
 	//Create a general search request
-	NSString *url = [NSString stringWithFormat:@"itms://phobos.apple.com/WebObjects/MZSearch.woa/wa/search?term=%@", [selectedText stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+	NSString *url = [NSString stringWithFormat:@"itms://phobos.apple.com/WebObjects/MZSearch.woa/wa/search?term=%@", [selectedText stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
 }
 

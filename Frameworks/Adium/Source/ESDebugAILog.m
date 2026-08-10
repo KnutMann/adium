@@ -19,6 +19,7 @@
 #import <stdlib.h>
 #import <stdio.h>
 #import <execinfo.h>
+#import <pthread.h>
 
 #ifdef DEBUG_BUILD
 BOOL AIDebugLoggingEnabled = YES;
@@ -88,8 +89,13 @@ void AILogWithSignature_impl(const char *name, int line, NSString *format, ...) 
 	NSString	*debugMessage, *actualMessage;
 	const char	*queue = NULL;
 	
-	if (dispatch_get_current_queue() != dispatch_get_main_queue()) {
-		queue = dispatch_queue_get_label(dispatch_get_current_queue());
+	/* Purely diagnostic queue label for the log line. dispatch_get_current_queue() is
+	 * deprecated; DISPATCH_CURRENT_QUEUE_LABEL is the supported way to get the current
+	 * queue's label, and pthread_main_np() approximates the old "not on the main queue"
+	 * check (the main queue only ever runs on the main thread).
+	 */
+	if (!pthread_main_np()) {
+		queue = dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL);
 	}
 	
 	va_start(ap, format); /* Make ap point to the first unnamed argument */

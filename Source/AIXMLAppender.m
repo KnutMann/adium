@@ -245,16 +245,15 @@ enum {
 	
 	// Make sure the log file is *not* quarantined. We created it ourself.
 	// Trust me, it's safe. (Really.)
-	FSRef fsRef;
-	
+	// Setting NSURLQuarantinePropertiesKey to nil removes the quarantine, replacing the
+	// former LSSetItemAttribute(..., kLSItemQuarantineProperties, NULL) call (AdiumY pattern).
 	// The properties have to be unset on the .chatlog itself, not the .xml in it
-	if (FSPathMakeRef((UInt8 const *)[[self.path stringByDeletingLastPathComponent] fileSystemRepresentation], &fsRef, NULL) == noErr) {
-		if (LSSetItemAttribute(&fsRef, kLSRolesAll, kLSItemQuarantineProperties, NULL) != noErr) {
-			AILogWithSignature(@"Un-quarantining file %@ failed!", [self.path stringByDeletingLastPathComponent]);
-		}
+	NSURL *chatlogURL = [NSURL fileURLWithPath:[self.path stringByDeletingLastPathComponent]];
+	NSError *quarantineError = nil;
+	if ([chatlogURL setResourceValue:nil forKey:NSURLQuarantinePropertiesKey error:&quarantineError]) {
 		AILogWithSignature(@"Un-quarantining file %@ succeeded!", [self.path stringByDeletingLastPathComponent]);
 	} else {
-		AILogWithSignature(@"Could not find file to quarantine: %@!", [self.path stringByDeletingLastPathComponent]);
+		AILogWithSignature(@"Un-quarantining file %@ failed: %@", [self.path stringByDeletingLastPathComponent], quarantineError);
 	}
 }
 

@@ -20,3 +20,17 @@
 - (NSData *)subdataToIndex:(NSUInteger)stop;
 
 @end
+
+/* Replacements for the deprecated +[NSKeyedArchiver archivedDataWithRootObject:] and
+ * +[NSKeyedUnarchiver unarchiveObjectWithData:]. They deliberately archive/decode
+ * WITHOUT secure coding: the produced archives stay byte-compatible with existing user
+ * archives (saved statuses, bookmarks, window states), and requiring secure coding would
+ * mean whitelisting every archived class — a migration break for old preference files.
+ */
+@interface NSKeyedArchiver (AIDataAdditions)
++ (NSData *)archivedDataWithObject:(id)object;
+@end
+
+@interface NSKeyedUnarchiver (AIDataAdditions)
++ (id)objectWithArchivedData:(NSData *)data;
+@end

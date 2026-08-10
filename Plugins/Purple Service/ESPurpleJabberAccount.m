@@ -976,11 +976,14 @@
 	if(![gateway isKindOfClass:[AIListContact class]])
 		return;
 	// since this is a potentially dangerous operation, get a confirmation from the user first
-	if([[NSAlert alertWithMessageText:AILocalizedString(@"Really remove gateway?",nil)
-					 defaultButton:AILocalizedString(@"Remove","alert default button")
-				   alternateButton:AILocalizedString(@"Cancel",nil)
-					   otherButton:nil
-					 informativeTextWithFormat:AILocalizedString(@"This operation would remove the gateway %@ itself and all contacts belonging to the gateway on your contact list. It cannot be undone.",nil), gateway.UID] runModal] == NSAlertDefaultReturn) {
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setMessageText:AILocalizedString(@"Really remove gateway?",nil)];
+	[alert setInformativeText:[NSString stringWithFormat:
+							   AILocalizedString(@"This operation would remove the gateway %@ itself and all contacts belonging to the gateway on your contact list. It cannot be undone.",nil),
+							   gateway.UID]];
+	[alert addButtonWithTitle:AILocalizedString(@"Remove","alert default button")];	//NSAlertFirstButtonReturn, was the default button
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+	if([alert runModal] == NSAlertFirstButtonReturn) {
 		// first, locate all contacts on the roster that belong to this gateway
 		NSString *jid = gateway.UID;
 		NSString *pattern = [@"@" stringByAppendingString:jid];

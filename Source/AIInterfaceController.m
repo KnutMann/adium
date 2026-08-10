@@ -24,6 +24,8 @@
 #import <Adium/AIMenuControllerProtocol.h>
 #import <Adium/AIAuthorizationRequestsWindowController.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
+#import <AIUtilities/AIDataAdditions.h>
+#import <AIUtilities/AIPasteboardAdditions.h>
 #import <AIUtilities/AIColorAdditions.h>
 #import <AIUtilities/AIFontAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
@@ -455,7 +457,7 @@
 
 	[[AIContactObserverManager sharedManager] delayListObjectNotifications];
 
-	for (NSDictionary *dict in [NSKeyedUnarchiver unarchiveObjectWithData:savedData]) {
+	for (NSDictionary *dict in [NSKeyedUnarchiver objectWithArchivedData:savedData]) {
 		AIMessageWindowController *windowController = [self openContainerWithID:[dict objectForKey:@"ID"]
 																		   name:[dict objectForKey:@"Name"]];
 		AIChat *containerActiveChat = nil;
@@ -564,7 +566,7 @@
 		[savedContainers addObject:saveDict];
 	}
 	
-	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithRootObject:savedContainers]
+	[adium.preferenceController setPreference:[NSKeyedArchiver archivedDataWithObject:savedContainers]
 										 forKey:KEY_CONTAINERS
 										  group:PREF_GROUP_INTERFACE];
 }
@@ -844,11 +846,11 @@
 	}
 	
 	if (!chat) {
-		NSRunAlertPanel(AILocalizedString(@"Restoring chat failed", nil),
-						AILocalizedString(@"Restoring the last closed tab failed. Perhaps the account not exist anymore?", nil),
-						AILocalizedString(@"OK", nil),
-						nil,
-						nil);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Restoring chat failed", nil)];
+		[alert setInformativeText:AILocalizedString(@"Restoring the last closed tab failed. Perhaps the account not exist anymore?", nil)];
+		[alert addButtonWithTitle:AILocalizedString(@"OK", nil)];
+		[alert runModal];
 		return;
 	}
 	
@@ -1942,8 +1944,8 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 		NSArray *nonImageTypes = [NSArray arrayWithObjects:
 			NSPasteboardTypeString,
 			NSPasteboardTypeRTF,
-			NSURLPboardType,
-			NSFilenamesPboardType,
+			NSPasteboardTypeURL,
+			AINSPasteboardTypeFilenames,
 			NSFilesPromisePboardType,
 			NSPasteboardTypeRTFD,
 			nil];

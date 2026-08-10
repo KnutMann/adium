@@ -80,7 +80,7 @@
 
 		//Now clip to everywhere that isn't our content view and draw non-faded
 		[path appendBezierPathWithRect:NSInsetRect([self bounds], -1, -1)];
-		[path setWindingRule:NSEvenOddWindingRule];
+		[path setWindingRule:NSWindingRuleEvenOdd];
 
 		[NSGraphicsContext saveGraphicsState];
 		[path addClip];

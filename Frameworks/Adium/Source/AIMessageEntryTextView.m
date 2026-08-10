@@ -63,7 +63,7 @@
 #define KEY_MAX_NUMBER_OF_CHARACTERS			@"Maximum Number Of Characters"
 
 #define FILES_AND_IMAGES_TYPES [NSArray arrayWithObjects: \
-	NSFilenamesPboardType, AIiTunesTrackPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil]
+	AINSPasteboardTypeFilenames, AIiTunesTrackPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil]
 
 #define PASS_TO_SUPERCLASS_DRAG_TYPE_ARRAY [NSArray arrayWithObjects: \
 	NSPasteboardTypeRTF, NSPasteboardTypeString, nil]
@@ -570,8 +570,8 @@
 	NSString		*type;
 
 	NSArray *supportedTypes =
-		[NSArray arrayWithObjects:NSURLPboardType, NSPasteboardTypeRTFD, NSPasteboardTypeRTF, NSPasteboardTypeHTML, NSPasteboardTypeString, 
-			NSFilenamesPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil];
+		[NSArray arrayWithObjects:NSPasteboardTypeURL, NSPasteboardTypeRTFD, NSPasteboardTypeRTF, NSPasteboardTypeHTML, NSPasteboardTypeString, 
+			AINSPasteboardTypeFilenames, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil];
 
 	type = [[NSPasteboard generalPasteboard] availableTypeFromArray:supportedTypes];
 	
@@ -672,7 +672,7 @@
 		[attributedString release];
 
 	} else if ([FILES_AND_IMAGES_TYPES containsObject:type] ||
-			   [type isEqualToString:NSURLPboardType]) {
+			   [type isEqualToString:NSPasteboardTypeURL]) {
 		if (![self handlePasteAsRichText]) {
 			[self paste:sender];
 		}
@@ -1276,7 +1276,7 @@
  "NeXT RTFD pasteboard type",
  "NeXT Rich Text Format v1.0 pasteboard type",
  "Apple HTML pasteboard type",
- NSFilenamesPboardType,
+ AINSPasteboardTypeFilenames,
  "CorePasteboardFlavorType 0x6D6F6F76",
  "Apple PDF pasteboard type",
  "NeXT TIFF v4.0 pasteboard type",
@@ -1357,11 +1357,11 @@
 - (void)addAttachmentsFromPasteboard:(NSPasteboard *)pasteboard
 {
 	NSString *availableType;
-	if ((availableType = [pasteboard availableTypeFromArray:[NSArray arrayWithObjects:NSFilenamesPboardType, AIiTunesTrackPboardType, nil]])) {
+	if ((availableType = [pasteboard availableTypeFromArray:[NSArray arrayWithObjects:AINSPasteboardTypeFilenames, AIiTunesTrackPboardType, nil]])) {
 		//The pasteboard points to one or more files on disc.  Use them directly.
 		NSArray			*files = nil;
-		if ([availableType isEqualToString:NSFilenamesPboardType]) {
-			files = [pasteboard propertyListForType:NSFilenamesPboardType];
+		if ([availableType isEqualToString:AINSPasteboardTypeFilenames]) {
+			files = [pasteboard propertyListForType:AINSPasteboardTypeFilenames];
 			
 		} else if ([availableType isEqualToString:AIiTunesTrackPboardType]) {
 			files = [pasteboard filesFromITunesDragPasteboard];

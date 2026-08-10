@@ -440,7 +440,7 @@
 				host = @"";
 			}
 			
-			channelName = [channelName stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+			channelName = [channelName stringByRemovingPercentEncoding];
 			
 			[self _openIRCGroupChat:channelName onServer:host withPort:port andPassword:[url query]];
 		} else if ([scheme caseInsensitiveCompare:@"msim"] == NSOrderedSame) {

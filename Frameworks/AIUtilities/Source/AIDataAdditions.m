@@ -26,3 +26,43 @@
 }
 
 @end
+
+@implementation NSKeyedArchiver (AIDataAdditions)
+
+/* Archives without secure coding so the output stays byte-compatible with the archives
+ * the deprecated +archivedDataWithRootObject: produced (existing user statuses,
+ * bookmarks, etc. must remain readable by this and older Adium versions).
+ */
++ (NSData *)archivedDataWithObject:(id)object
+{
+	NSError *error = nil;
+	NSData *data = [self archivedDataWithRootObject:object requiringSecureCoding:NO error:&error];
+	if (!data) {
+		NSLog(@"AIDataAdditions: Failed to archive %@: %@", object, error);
+	}
+	return data;
+}
+
+@end
+
+@implementation NSKeyedUnarchiver (AIDataAdditions)
+
+/* Decodes the root object without secure coding, matching the behavior of the deprecated
+ * +unarchiveObjectWithData: — requiring secure coding would break loading of existing
+ * user archives whose classes are not whitelisted.
+ */
++ (id)objectWithArchivedData:(NSData *)data
+{
+	if (!data) return nil;
+
+	NSError *error = nil;
+	NSKeyedUnarchiver *unarchiver = [[[self alloc] initForReadingFromData:data error:&error] autorelease];
+	if (!unarchiver) {
+		NSLog(@"AIDataAdditions: Failed to create unarchiver: %@", error);
+		return nil;
+	}
+	[unarchiver setRequiresSecureCoding:NO];
+	return [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+}
+
+@end

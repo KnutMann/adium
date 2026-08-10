@@ -29,6 +29,7 @@
 #import <AIUtilities/AIToolbarUtilities.h>
 #import <AIUtilities/AIArrayAdditions.h>
 #import <AIUtilities/AIWindowAdditions.h>
+#import <AIUtilities/AIPasteboardAdditions.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListObject.h>
@@ -311,20 +312,19 @@
 		}
 		
 		if (suppressionText) {
-			NSAlert *alert = [NSAlert alertWithMessageText:AILocalizedString(@"Are you sure you want to close this window?", nil)
-											 defaultButton:AILocalizedString(@"Close", nil)
-										   alternateButton:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)
-											   otherButton:nil
-								 informativeTextWithFormat:@"%@", question];
-			
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setMessageText:AILocalizedString(@"Are you sure you want to close this window?", nil)];
+			[alert setInformativeText:question];
+			[alert addButtonWithTitle:AILocalizedString(@"Close", nil)];	//NSAlertFirstButtonReturn, was the default button
+			[alert addButtonWithTitle:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];
+
 			[alert setShowsSuppressionButton:YES];
 			[[alert suppressionButton] setTitle:suppressionText];
-			
-			[alert beginSheetModalForWindow:self.window 
-							  modalDelegate:self 
-							 didEndSelector:@selector(closeAlertDidEnd:returnCode:contextInfo:) 
-								contextInfo:nil];
-			
+
+			[alert beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse returnCode) {
+				[self closeAlertDidEnd:alert returnCode:returnCode contextInfo:nil];
+			}];
+
 			return NO;
 		}
 	}
@@ -341,7 +341,7 @@
 											group:PREF_GROUP_CONFIRMATIONS];
 	}
 
-	if (result == NSAlertDefaultReturn) {
+	if (result == NSAlertFirstButtonReturn) {	//"Close", was the default button
 		// Dismiss the alert sheet.
 		[self.window orderOut:nil];
 		// Don't prompt again.
@@ -517,7 +517,7 @@
 				NSRect horzLineFrame = NSMakeRect(tabBarFrame.origin.x, (tabPosition == AdiumTabPositionBottom)? NSMinY(tabViewMessagesFrame)-1 : NSMaxY(tabViewMessagesFrame)-2, NSWidth(tabViewMessagesFrame), 1);
 				NSUInteger mask = (tabPosition == AdiumTabPositionBottom)? (NSViewMaxYMargin|NSViewWidthSizable) : (NSViewMinYMargin|NSViewWidthSizable);
 				tabView_horzLine = [[[NSBox alloc] initWithFrame:horzLineFrame] autorelease];
-				[tabView_horzLine setBorderColor:[NSColor windowFrameColor]];
+				[tabView_horzLine setBorderColor:[NSColor separatorColor]];
 				[tabView_horzLine setBorderWidth:1];
 				[tabView_horzLine setBorderType:NSLineBorder];
 				[tabView_horzLine setBoxType:NSBoxCustom];
@@ -1047,7 +1047,7 @@
 //Allow dragging of text
 - (NSArray *)allowedDraggedTypesForTabView:(NSTabView *)aTabView
 {
-	return [NSArray arrayWithObjects:NSPasteboardTypeRTF, NSPasteboardTypeString, NSFilenamesPboardType, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil];
+	return [NSArray arrayWithObjects:NSPasteboardTypeRTF, NSPasteboardTypeString, AINSPasteboardTypeFilenames, NSPasteboardTypeTIFF, NSPasteboardTypePDF, nil];
 }
 
 //Accept dragged text

@@ -725,24 +725,20 @@
 														   options:NSLiteralSearch 
 															 range:NSMakeRange(0,[key length])];
                 
-                key = (NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault,
-                                                                                          (CFStringRef)key,
-                                                                                          (CFStringRef)@"", kCFStringEncodingUTF8);
-                
+                /* -stringByRemovingPercentEncoding replaces the deprecated
+                 * CFURLCreateStringByReplacingPercentEscapesUsingEncoding (same UTF-8
+                 * decoding; returns an autoreleased string, so no releases below). */
+                key = [key stringByRemovingPercentEncoding];
+
                 NSString *value = [[[keyvalue objectAtIndex:1] mutableCopy] autorelease];
-                [(NSMutableString *)value replaceOccurrencesOfString:@"+" 
-														  withString:@" " 
-															 options:NSLiteralSearch 
+                [(NSMutableString *)value replaceOccurrencesOfString:@"+"
+														  withString:@" "
+															 options:NSLiteralSearch
 															   range:NSMakeRange(0,[value length])];
-                
-                value = (NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault,
-                                                                                            (CFStringRef)value,
-                                                                                            (CFStringRef)@"", kCFStringEncodingUTF8);
-                
+
+                value = [value stringByRemovingPercentEncoding];
+
 				[[fieldobjects objectForKey:key] applyValue:value];
-                
-                [key release];
-                [value release];
             }
             
 			wasSubmitted = YES;

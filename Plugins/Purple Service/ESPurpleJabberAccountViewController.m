@@ -231,11 +231,12 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 			
 			if(!root || !items || ![[root name] isEqualToString:@"query"]) {
 				
-				[[NSAlert alertWithMessageText:AILocalizedString(@"Parse Error.",nil)
-								 defaultButton:AILocalizedString(@"OK",nil)
-							   alternateButton:nil
-								   otherButton:nil
-					 informativeTextWithFormat:AILocalizedString(@"Unable to parse the server list at %@. Please try again later.",nil), SERVERFEEDRSSURL] runModal];
+				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				[alert setMessageText:AILocalizedString(@"Parse Error.",nil)];
+				[alert setInformativeText:[NSString stringWithFormat:
+										   AILocalizedString(@"Unable to parse the server list at %@. Please try again later.",nil), SERVERFEEDRSSURL]];
+				[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
+				[alert runModal];
 			} else {				
 				MachineLocation loc;
 				ReadLocation(&loc);

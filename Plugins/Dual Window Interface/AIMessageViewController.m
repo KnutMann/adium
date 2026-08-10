@@ -439,7 +439,7 @@
 																										direction:AIIconNormal]);
 			icon = [[icon copy] autorelease];
 			[alert setIcon:icon];
-			[alert setAlertStyle:NSInformationalAlertStyle];
+			[alert setAlertStyle:NSAlertStyleInformational];
 			
 			[alert setMessageText:[NSString stringWithFormat:AILocalizedString(@"%@ appears to be offline. How do you want to send this message?", nil),
 								   formattedUID]];

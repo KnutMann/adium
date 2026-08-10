@@ -39,7 +39,6 @@
 - (void)configurePreviewControllers;
 
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
-- (void)trashConfirmSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
 
 @implementation AIEmoticonPreferences
@@ -417,28 +416,24 @@
 -(void)moveSelectedPacksToTrash
 {
 	NSString	*name = [[selectedEmoticonPack.name copy] autorelease];
-    NSBeginAlertSheet(AILocalizedString(@"Delete Emoticon Pack",nil),
-					  AILocalizedString(@"Delete",nil),
-					  AILocalizedString(@"Cancel",nil),
-					  @"",
-					  [self window],
-					  self, 
-                      @selector(trashConfirmSheetDidEnd:returnCode:contextInfo:), nil, nil, 
-                      AILocalizedString(@"Are you sure you want to delete the %@ Emoticon Pack? It will be moved to the Trash.",nil), name);
-}
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setMessageText:AILocalizedString(@"Delete Emoticon Pack",nil)];
+	[alert setInformativeText:[NSString stringWithFormat:
+							   AILocalizedString(@"Are you sure you want to delete the %@ Emoticon Pack? It will be moved to the Trash.",nil), name]];
+	[alert addButtonWithTitle:AILocalizedString(@"Delete",nil)];	//NSAlertFirstButtonReturn, was the default button (old return value 1 == NSModalResponseOK)
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+	[alert beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
+		if (returnCode != NSAlertFirstButtonReturn)
+			return;
 
-- (void)trashConfirmSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	if (returnCode != NSModalResponseOK)
-		return;
-	
-	for (AIEmoticonPackPreviewController *previewController in [table_emoticonPacks selectedItemsFromArray:emoticonPackPreviewControllers]) {
-		[[NSFileManager defaultManager] trashFileAtPath:previewController.emoticonPack.path];
-	}
+		for (AIEmoticonPackPreviewController *previewController in [table_emoticonPacks selectedItemsFromArray:emoticonPackPreviewControllers]) {
+			[[NSFileManager defaultManager] trashFileAtPath:previewController.emoticonPack.path];
+		}
 
-	[table_emoticonPacks deselectAll:nil];
-	//Note the changed packs
-	[adium.emoticonController xtrasChanged:nil];
+		[table_emoticonPacks deselectAll:nil];
+		//Note the changed packs
+		[adium.emoticonController xtrasChanged:nil];
+	}];
 }
 
 #pragma mark Selection changes

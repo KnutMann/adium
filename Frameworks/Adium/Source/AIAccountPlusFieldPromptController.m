@@ -75,23 +75,23 @@
 														  account:account 
 															  UID:UID];
 		} else {			
-			NSRunAlertPanel(AILocalizedStringFromTableInBundle(@"Contact not found",
-															   nil,
-															   [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
-															   nil),
-                                 AILocalizedStringFromTableInBundle(@"%@ is not on any account. Please select a specific account or add this contact first.",
-                                   nil,
-                                   [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
-                                   nil
-                                 ),
-							AILocalizedStringFromTableInBundle(@"OK",
-															   nil,
-															   [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
-															   nil),
-							nil,
-							nil,
-              impliedValue );
-			
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setMessageText:AILocalizedStringFromTableInBundle(@"Contact not found",
+																	 nil,
+																	 [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
+																	 nil)];
+			[alert setInformativeText:[NSString stringWithFormat:
+									   AILocalizedStringFromTableInBundle(@"%@ is not on any account. Please select a specific account or add this contact first.",
+																		  nil,
+																		  [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
+																		  nil),
+									   impliedValue]];
+			[alert addButtonWithTitle:AILocalizedStringFromTableInBundle(@"OK",
+																		 nil,
+																		 [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
+																		 nil)];
+			[alert runModal];
+
 			return nil;
 		}
 	} else {

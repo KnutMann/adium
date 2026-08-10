@@ -549,7 +549,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 			[self drawControlBackgroundInRect:actionButtonRect
 									   active:(activeControlPart == CONTROL_PART_ACTION_BUTTON) && shouldHilite];
 			
-			[[NSColor windowFrameColor] set];
+			[[NSColor separatorColor] set];
 
 			if(actionButtonImage) {				
 				NSRect			targetRect = NSMakeRect(actionButtonRect.origin.x,
@@ -589,7 +589,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 			[self drawControlBackgroundInRect:contextButtonRect
 									   active:(activeControlPart == CONTROL_PART_CONTEXT_BUTTON ) && shouldHilite];
 			
-			[[NSColor windowFrameColor] set];
+			[[NSColor separatorColor] set];
 			NSRectFill( NSMakeRect( (contextButtonRect.origin.x + contextButtonRect.size.width) - 1, 0, 1, controlRect.size.height ) );
 			
 			if(contextButtonImage) {		
@@ -621,7 +621,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 			}
 		}
 
-		[[NSColor windowFrameColor] set];
+		[[NSColor separatorColor] set];
 		NSRectFill( NSMakeRect( leftShelfX, CONTROL_HEIGHT, currentShelfWidth, 1 ) );
 		
 		if (!drawLine) {
@@ -630,7 +630,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 		
 		// Draw our split line
 		if (self.drawShelfLine) {
-			[[NSColor windowFrameColor] set];
+			[[NSColor separatorColor] set];
 			if (shelfOnRight) {
 				NSRectFill( NSMakeRect( leftShelfX - 1, 0, 1, [self frame].size.height ) );
 			} else {
@@ -658,7 +658,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 		}
 		
 		if (shelfOnRight) {
-			[[NSColor windowFrameColor] set];
+			[[NSColor separatorColor] set];
 			NSRectFill( NSMakeRect( resizeThumbRect.origin.x + resizeThumbRect.size.width + 1, 0, 1, resizeThumbRect.size.height ) );
 		}
 		

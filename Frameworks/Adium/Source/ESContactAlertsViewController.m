@@ -44,7 +44,6 @@
 - (void)calculateAllHeights;
 - (void)calculateHeightForItem:(id)item;
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (IBAction)didDoubleClick:(id)sender;
 
 - (void)addAlert;
@@ -258,16 +257,19 @@ int globalAlertAlphabeticalSort(id objectA, id objectB, void *context);
 			
 			if (contactEventsCount > 1) {
 				//Warn before deleting more than one event simultaneously
-				NSBeginAlertSheet(AILocalizedString(@"Delete Event?", nil),
-								  AILocalizedString(@"OK", nil),
-								  AILocalizedString(@"Cancel", nil),
-								  nil, /*otherButton*/
-								  [view window],
-								  self,
-								  @selector(sheetDidEnd:returnCode:contextInfo:),
-								  NULL, /* didDismissSelector */
-								  contactEvents,
-								  AILocalizedString(@"Remove the %lu actions associated with this event?", nil), (unsigned long)contactEventsCount);
+				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				[alert setMessageText:AILocalizedString(@"Delete Event?", nil)];
+				[alert setInformativeText:[NSString stringWithFormat:
+										   AILocalizedString(@"Remove the %lu actions associated with this event?", nil), (unsigned long)contactEventsCount]];
+				[alert addButtonWithTitle:AILocalizedString(@"OK", nil)];		//NSAlertFirstButtonReturn, was the default button
+				[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+				/* The former didEndSelector's contextInfo (contactEvents) is captured and
+				 * retained by the completion block. */
+				[alert beginSheetModalForWindow:[view window] completionHandler:^(NSModalResponse returnCode) {
+					if (returnCode == NSAlertFirstButtonReturn) {
+						[self deleteContactActionsInArray:contactEvents];
+					}
+				}];
 			} else {
 				//Delete a single event immediately
 				[self deleteContactActionsInArray:contactEvents];
@@ -298,12 +300,6 @@ int globalAlertAlphabeticalSort(id objectA, id objectB, void *context);
  *
  * If the user pressed OK, go ahead with deleting the events.
  */
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-	if (returnCode == NSAlertDefaultReturn) {
-		[self deleteContactActionsInArray:(NSArray *)contextInfo];
-	}
-}
 
 //Callback from 'new alert' panel.  (Add the alert, or update existing alert)
 - (void)alertUpdated:(NSDictionary *)newAlert oldAlert:(NSDictionary *)oldAlert

@@ -345,14 +345,17 @@
 	//Make sure we're in the front so our prompt is visible
 	[NSApp activateIgnoringOtherApps:YES];
 	
-	//Guard deletion with a warning prompt		
-	NSInteger result = NSRunAlertPanel(AILocalizedString(@"Remove from list?",nil),
-								 AILocalizedString(@"Removing any contacts from their last group will permanently remove them from your contact list.\n\n%@", nil),
-								 AILocalizedString(@"Remove",nil),
-								 AILocalizedString(@"Cancel",nil),
-								 nil, message);
+	//Guard deletion with a warning prompt
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setMessageText:AILocalizedString(@"Remove from list?",nil)];
+	[alert setInformativeText:[NSString stringWithFormat:
+							   AILocalizedString(@"Removing any contacts from their last group will permanently remove them from your contact list.\n\n%@", nil),
+							   message]];
+	[alert addButtonWithTitle:AILocalizedString(@"Remove",nil)];	//NSAlertFirstButtonReturn, was the default button
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];	//NSAlertSecondButtonReturn, was the alternate button
+	NSInteger result = [alert runModal];
 
-	if (result == NSAlertDefaultReturn) {
+	if (result == NSAlertFirstButtonReturn) {
 		for (NSDictionary *dict in array) {
 			[[dict objectForKey:@"ListObject"] removeFromGroup:[dict objectForKey:@"ContainingObject"]];
 		}

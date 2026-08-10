@@ -338,7 +338,7 @@ typedef struct AppleSingleFinderInfo AppleSingleFinderInfo;
 
 	randomString = [[URI stringByAppendingString:@"/"] retain];
 
-	URI = [URI stringByAppendingPathComponent:[[[self localFilename] lastPathComponent] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+	URI = [URI stringByAppendingPathComponent:[[[self localFilename] lastPathComponent] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
 	if (isDirectory)
 		URI = [URI stringByAppendingString:@"/"];
 

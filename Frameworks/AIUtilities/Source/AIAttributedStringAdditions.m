@@ -100,7 +100,7 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
     CGFloat	backgroundBrightness, backgroundSum;
     
     //--get the brightness of our background--
-    backgroundColor = [backgroundColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+    backgroundColor = [backgroundColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
     backgroundBrightness = [backgroundColor brightnessComponent];
     backgroundSum = [backgroundColor redComponent] + [backgroundColor greenComponent] + [backgroundColor blueComponent];
     //we need to scan each colored "chunk" of the message - and check to make sure it is a "visible" color
@@ -114,7 +114,7 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
         //--get the font color--
         fontColor = [self attribute:NSForegroundColorAttributeName atIndex:idx effectiveRange:&effectiveRange];                
         if (fontColor == nil) fontColor = [NSColor blackColor];
-        fontColor = [fontColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+        fontColor = [fontColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
         
         //--check brightness--
         brightness = [fontColor brightnessComponent];
@@ -122,13 +122,13 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
         if (deltaBrightness >= 0 && deltaBrightness < 0.4f) { //too close                    
                                                            //change the color
             fontColor = [NSColor colorWithCalibratedHue:[fontColor hueComponent] saturation:[fontColor saturationComponent] brightness:backgroundBrightness - 0.4f alpha:[fontColor alphaComponent]];
-            fontColor = [fontColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+            fontColor = [fontColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
                 colorChanged = YES;
             
         } else if (deltaBrightness < 0 && deltaBrightness > -0.4f) { //too close
                                                                  //change the color
             fontColor = [NSColor colorWithCalibratedHue:[fontColor hueComponent] saturation:[fontColor saturationComponent] brightness:backgroundBrightness + 0.4f alpha:[fontColor alphaComponent]];
-            fontColor = [fontColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+            fontColor = [fontColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             
             colorChanged = YES;
         }
@@ -139,9 +139,9 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
         if (deltaSum < 1.0f && deltaSum > -1.0f) { //still too similar                    
                                                //just give up and make the color black or white
             if (backgroundBrightness <= 0.5f) {
-                fontColor = [[NSColor whiteColor] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+                fontColor = [[NSColor whiteColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             } else {
-                fontColor = [[NSColor blackColor] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+                fontColor = [[NSColor blackColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             }
             colorChanged = YES;
         }
@@ -163,7 +163,7 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
     NSColor         *backColor=nil;
     //--get the brightness of our background--
     if (backgroundColor) {
-        backColor = [backgroundColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+        backColor = [backgroundColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
         backgroundBrightness = [backColor brightnessComponent];
     }
     
@@ -186,7 +186,7 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
             fontBackColor = [self attribute:AIBodyColorAttributeName atIndex:idx effectiveRange:&backgroundRange];
             if (!fontBackColor) {
                 fontBackColor = [NSColor whiteColor];
-                fontBackColor = [fontBackColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+                fontBackColor = [fontBackColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             }
         }
         
@@ -195,7 +195,7 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
             effectiveRange.length = backgroundRange.length;
         
         if (!fontColor) fontColor = [NSColor blackColor];
-        fontColor = [fontColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+        fontColor = [fontColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
         
         brightness = [fontColor brightnessComponent];
         
@@ -221,7 +221,7 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
             
             if (colorChanged) {
                 fontColor = [NSColor colorWithCalibratedHue:[fontColor hueComponent] saturation:[fontColor saturationComponent] brightness:newBrightness alpha:[fontColor alphaComponent]];
-                fontColor = [fontColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+                fontColor = [fontColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             }
         }
                  
@@ -251,9 +251,9 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
         
         if (deltaSum >= -0.3f && deltaSum <= 0.3f) { //still too similar     
             if (backgroundBrightness <= 0.5f) {
-               fontColor = [[NSColor whiteColor] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+               fontColor = [[NSColor whiteColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             } else {
-                fontColor = [[NSColor blackColor] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+                fontColor = [[NSColor blackColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
             }
 
             colorChanged = YES;

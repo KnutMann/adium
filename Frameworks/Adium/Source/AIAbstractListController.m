@@ -231,10 +231,11 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
     [scrollView_contactList setAutoScrollToBottom:NO];
     [scrollView_contactList setAutohidesScrollers:YES];
 
-	//Dragging
+	//Dragging (both the modern and the legacy URL flavor are registered so drags
+	//offering only one of them keep working)
 	[contactListView registerForDraggedTypes:
 	 [NSArray arrayWithObjects:@"AIListObject", @"AIListObjectUniqueIDs",
-	  NSFilenamesPboardType, NSURLPboardType,
+	  AINSPasteboardTypeFilenames, NSPasteboardTypeURL, AINSPasteboardTypeLegacyURL,
 	  AIiTunesTrackPboardType, NSPasteboardTypeString, nil]];
 	
 	[contactListView reloadData];
@@ -867,11 +868,15 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		}
 
 		if ([URLStrings count]) {
-			[pboard setPropertyList:URLStrings forType:NSURLPboardType];
+			/* This writes an ARRAY of URL strings as one property list, which only the
+			 * legacy "Apple URL pasteboard type" flavor can represent; the modern
+			 * NSPasteboardTypeURL holds a single URL per item, so the legacy literal
+			 * (AINSPasteboardTypeLegacyURL) keeps the written data byte-identical. */
+			[pboard setPropertyList:URLStrings forType:AINSPasteboardTypeLegacyURL];
 			[pboard setPropertyList:[NSArray arrayWithObjects:URLStrings, linkTitles, nil] forType:AIWebURLsWithTitlesPboardType];
 			[pboard setString:[URLStrings componentsJoinedByString:@"\n"] forType:NSPasteboardTypeString];
-			
-			[pboard addTypes:[NSArray arrayWithObjects:NSURLPboardType, NSPasteboardTypeString, AIWebURLsWithTitlesPboardType, nil] owner:self];
+
+			[pboard addTypes:[NSArray arrayWithObjects:AINSPasteboardTypeLegacyURL, NSPasteboardTypeString, AIWebURLsWithTitlesPboardType, nil] owner:self];
 		}
 	}
 

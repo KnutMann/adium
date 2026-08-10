@@ -47,9 +47,8 @@
 	if (!inLeftMouseEvent) {
 		//Grab the mouse location in global coordinates
     
-      originalMouseLocation = [window convertBaseToScreen:[theEvent locationInWindow]];
-// FIX - replacement for deprecation; reverted for 10.11 fix.
-//		originalMouseLocation = [window convertPointFromScreen:[theEvent locationInWindow]];
+	//convertPointToScreen: is the direct modern equivalent of convertBaseToScreen: (window base -> screen)
+	originalMouseLocation = [window convertPointToScreen:[theEvent locationInWindow]];
 
 		windowFrame = [window frame];
 		inLeftMouseEvent = YES;		
@@ -82,9 +81,8 @@
 
 	//grab the mouse location in global coordinates
 
-      originalMouseLocation = [window convertBaseToScreen:[theEvent locationInWindow]];
-// FIX - replacement for deprecation; reverted for 10.11 fix.
-//	originalMouseLocation = [window convertPointFromScreen:[theEvent locationInWindow]];
+	//convertPointToScreen: is the direct modern equivalent of convertBaseToScreen: (window base -> screen)
+	originalMouseLocation = [window convertPointToScreen:[theEvent locationInWindow]];
 
 	windowFrame = [window frame];
 	inLeftMouseEvent = YES;

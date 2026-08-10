@@ -315,7 +315,7 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 
 - (void)deleteXtrasAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
-	if (returnCode == NSAlertDefaultReturn) {
+	if (returnCode == NSAlertFirstButtonReturn) {	//"Delete", was the default button
 		NSFileManager * fileManager = [NSFileManager defaultManager];
 		NSIndexSet * indices = [xtraList selectedRowIndexes];
 		NSMutableSet * pathExtensions = [NSMutableSet set];
@@ -344,19 +344,18 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 {
 	NSUInteger selectionCount = [[xtraList selectedRowIndexes] count];
 
-	NSAlert * warning = [NSAlert alertWithMessageText:((selectionCount > 1) ?
-													   [NSString stringWithFormat:AILocalizedString(@"Delete %lu Xtras?", nil), selectionCount] :
-													   AILocalizedString(@"Delete Xtra?", nil))
-										defaultButton:AILocalizedString(@"Delete", nil)
-									  alternateButton:AILocalizedString(@"Cancel", nil)
-										  otherButton:nil
-							informativeTextWithFormat:((selectionCount > 1) ?
-													   AILocalizedString(@"The selected Xtras will be moved to the Trash.", nil) :
-													   AILocalizedString(@"The selected Xtra will be moved to the Trash.", nil))];
-	[warning beginSheetModalForWindow:window
-						modalDelegate:self
-					   didEndSelector:@selector(deleteXtrasAlertDidEnd:returnCode:contextInfo:)
-						  contextInfo:nil];
+	NSAlert * warning = [[[NSAlert alloc] init] autorelease];
+	[warning setMessageText:((selectionCount > 1) ?
+							 [NSString stringWithFormat:AILocalizedString(@"Delete %lu Xtras?", nil), selectionCount] :
+							 AILocalizedString(@"Delete Xtra?", nil))];
+	[warning setInformativeText:((selectionCount > 1) ?
+								 AILocalizedString(@"The selected Xtras will be moved to the Trash.", nil) :
+								 AILocalizedString(@"The selected Xtra will be moved to the Trash.", nil))];
+	[warning addButtonWithTitle:AILocalizedString(@"Delete", nil)];	//NSAlertFirstButtonReturn, was the default button
+	[warning addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+	[warning beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
+		[self deleteXtrasAlertDidEnd:warning returnCode:returnCode contextInfo:nil];
+	}];
 }
 
 - (IBAction)browseXtras:(id)sender

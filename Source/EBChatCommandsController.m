@@ -76,7 +76,12 @@
 		[NSBundle loadNibNamed:@"BanPrompt" owner:self];
 		[label_target setStringValue:@"Join room:"];
 	} else {
-		NSRunAlertPanel(@"Command not supported", @"This command is not supported at this time",@"Cancel",@"OK",nil);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:@"Command not supported"];
+		[alert setInformativeText:@"This command is not supported at this time"];
+		[alert addButtonWithTitle:@"Cancel"];	//was the default button
+		[alert addButtonWithTitle:@"OK"];		//was the alternate button (return value unused)
+		[alert runModal];
 	}
 	
 	//show sheet

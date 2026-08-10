@@ -78,7 +78,9 @@
 }
 
 - (void)beginSheetModalForWindow:(NSWindow*)window {
-	[alert beginSheetModalForWindow:window modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:NULL];
+	[alert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
+		[self alertDidEnd:alert returnCode:returnCode contextInfo:NULL];
+	}];
 }
 
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
@@ -280,11 +282,16 @@ typedef enum
  */
 - (NSAlert*)alertForAccountDeletion
 {
-	return [NSAlert alertWithMessageText:AILocalizedString(@"Delete Account",nil)
-						   defaultButton:AILocalizedString(@"Delete",nil)
-						 alternateButton:AILocalizedString(@"Cancel",nil)
-							 otherButton:nil
-			   informativeTextWithFormat:AILocalizedString(@"Delete the account %@?",nil), ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)];
+	/* Buttons are added in the old default/alternate/other order, so the returnCode
+	 * mapping is: NSAlertFirstButtonReturn = Delete (was NSAlertDefaultReturn),
+	 * NSAlertSecondButtonReturn = Cancel (was NSAlertAlternateReturn). */
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setMessageText:AILocalizedString(@"Delete Account",nil)];
+	[alert setInformativeText:[NSString stringWithFormat:AILocalizedString(@"Delete the account %@?",nil),
+							   ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)]];
+	[alert addButtonWithTitle:AILocalizedString(@"Delete",nil)];
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+	return alert;
 }
 
 /*!
@@ -294,13 +301,13 @@ typedef enum
  * @param returnCode One of the regular NSAlert return codes
  *
  * This method should be overridden when alertForAccountDeletion: was overridden, and/or asynchronous behavior is required.
- * This implementation disconnects and deletes the account from the accounts list when returnCode == NSAlertDefaultReturn.
+ * This implementation disconnects and deletes the account from the accounts list when returnCode == NSAlertFirstButtonReturn ("Delete").
  *
  * If this implementation is not called, dialog should be released by the subclass.
  */
 - (void)alertForAccountDeletion:(id<AIAccountControllerRemoveConfirmationDialog>)dialog didReturn:(NSInteger)returnCode
 {
-	if(returnCode == NSAlertDefaultReturn) {
+	if(returnCode == NSAlertFirstButtonReturn) {
 		[self performDelete];
 	}
 

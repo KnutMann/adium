@@ -104,10 +104,10 @@
 		} else {
 			// Fill the URL field from the pasteboard if possible
 			NSPasteboard 	*pboard = [NSPasteboard generalPasteboard];
-			NSString 		*availableType = [pboard availableTypeFromArray:[NSArray arrayWithObjects:NSURLPboardType, NSPasteboardTypeString, nil]];
+			NSString 		*availableType = [pboard availableTypeFromArray:[NSArray arrayWithObjects:NSPasteboardTypeURL, NSPasteboardTypeString, nil]];
 			
 			if (availableType) {
-				if ([availableType isEqualToString:NSURLPboardType]) {
+				if ([availableType isEqualToString:NSPasteboardTypeURL]) {
 					linkURL = [[NSURL URLFromPasteboard:pboard] absoluteString];
 
 				} else { /* NSPasteboardTypeString */
@@ -132,19 +132,16 @@
 									  (NSString *)linkURL : 
 									  [(NSURL *)linkURL absoluteString]);
 			
-			tmpString = (NSString *)CFURLCreateStringByReplacingPercentEscapes(kCFAllocatorDefault,
-																			   (CFStringRef)tmpString,
-																			   CFSTR(""));
-			
+			//-stringByRemovingPercentEncoding replaces CFURLCreateStringByReplacingPercentEscapes (same UTF-8 decoding, autoreleased result)
+			tmpString = [tmpString stringByRemovingPercentEncoding];
+
 			if (tmpString) {
 				NSAttributedString	*initialURL;
-				
+
 				initialURL = [[NSAttributedString alloc] initWithString:tmpString];
 				[[textView_URL textStorage] setAttributedString:initialURL];
 				[textView_URL setSelectedRange:NSMakeRange(0,[initialURL length])];
 				[initialURL release];
-				
-				[tmpString release];
 			}
 
 		} else if ([linkText length]) {

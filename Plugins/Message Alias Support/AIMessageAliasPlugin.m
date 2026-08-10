@@ -62,11 +62,8 @@
 			NSString	*linkURLString;
 			
 			if ([linkURL isKindOfClass:[NSURL class]]) {
-				linkURLString = (NSString *)CFURLCreateStringByReplacingPercentEscapes(kCFAllocatorDefault,
-																					   (CFStringRef)[(NSURL *)linkURL absoluteString],
-																					   /* characters to leave escaped */ CFSTR(""));
-				[linkURLString autorelease];
-				
+				linkURLString = [[(NSURL *)linkURL absoluteString] stringByRemovingPercentEncoding];
+
 			} else {
 				linkURLString = (NSString *)linkURL;
 			}
@@ -79,22 +76,28 @@
 				if (result) {
 					NSURL		*newURL;
 					NSString	*escapedLinkURLString;
-					NSString	*charactersToLeaveUnescaped = @"#";
-					
+
+					/* Replacement for CFURLCreateStringByAddingPercentEscapes(..., leaveUnescaped:"#", ...):
+					 * the legacy call left exactly the URLQueryAllowedCharacterSet plus "#" unescaped
+					 * (verified empirically against the old API), so we rebuild that exact set here.
+					 */
+					static NSCharacterSet *allowedCharacters = nil;
+					if (!allowedCharacters) {
+						NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
+						[set addCharactersInString:@"#"];
+						allowedCharacters = [set copy];
+						[set release];
+					}
+
 					if (!filteredMessage) filteredMessage = [[inAttributedString mutableCopy] autorelease];
-					escapedLinkURLString = (NSString *)CFURLCreateStringByAddingPercentEscapes(/* allocator */ kCFAllocatorDefault,
-																							   (CFStringRef)result,
-																							   (CFStringRef)charactersToLeaveUnescaped,
-																							   /* legal characters to escape */ NULL,
-																							   kCFStringEncodingUTF8);
-					newURL = [NSURL URLWithString:escapedLinkURLString];
-					
+					escapedLinkURLString = [result stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];
+					newURL = (escapedLinkURLString ? [NSURL URLWithString:escapedLinkURLString] : nil);
+
 					if (newURL) {
 						[filteredMessage addAttribute:NSLinkAttributeName
 												value:newURL
 												range:scanRange];
 					}
-					[escapedLinkURLString release];
 				}
 			}
 		}

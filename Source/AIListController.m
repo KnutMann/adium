@@ -58,7 +58,6 @@
 
 @interface AIListController ()
 - (void)promptToCombineItems:(NSArray *)items withContact:(AIListContact *)inContact;
-- (void)mergeContactSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
 
 @implementation AIListController
@@ -639,9 +638,9 @@
 			retVal = NSDragOperationPrivate;
 		}
 
-	} else if ([types containsObject:NSFilenamesPboardType] ||
+	} else if ([types containsObject:AINSPasteboardTypeFilenames] ||
 			   [types containsObject:NSPasteboardTypeRTF] ||
-			   [types containsObject:NSURLPboardType] ||
+			   [types containsObject:NSPasteboardTypeURL] ||
 			   [types containsObject:NSPasteboardTypeString] ||
 			   [types containsObject:AIiTunesTrackPboardType]) {
 		retVal = ((proposedListObject && [proposedListObject isKindOfClass:[AIListContact class]]) ? NSDragOperationLink : NSDragOperationNone);
@@ -802,14 +801,14 @@
 
 		
 	} else if ((availableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObjects:
-																				   NSFilenamesPboardType, AIiTunesTrackPboardType, nil]])) {
+																				   AINSPasteboardTypeFilenames, AIiTunesTrackPboardType, nil]])) {
 		//Drag and Drop file transfer for the contact list.
 		if ([item isKindOfClass:[AIListContact class]]) {
 			NSArray			*files = nil;
 			NSString		*file;
 			
-			if ([availableType isEqualToString:NSFilenamesPboardType]) {
-				files = [[info draggingPasteboard] propertyListForType:NSFilenamesPboardType];
+			if ([availableType isEqualToString:AINSPasteboardTypeFilenames]) {
+				files = [[info draggingPasteboard] propertyListForType:AINSPasteboardTypeFilenames];
 				
 			} else if ([availableType isEqualToString:AIiTunesTrackPboardType]) {
 				files = [[info draggingPasteboard] filesFromITunesDragPasteboard];
@@ -846,7 +845,7 @@
 		}
 
 	} else if ((availableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObjects:NSPasteboardTypeRTF,
-																				   NSURLPboardType, NSPasteboardTypeString, nil]])) {
+																				   NSPasteboardTypeURL, NSPasteboardTypeString, nil]])) {
 		//Drag and drop text sending via the contact list.
 		if ([item isKindOfClass:[AIListContact class]]) {
 			/* This will send the message. Alternately, we could just insert it into the text view... */
@@ -856,8 +855,8 @@
 				//for RTF data, we want to preserve the formatting, so use dataForType:
 				messageAttributedString = [NSAttributedString stringWithData:[[info draggingPasteboard] dataForType:NSPasteboardTypeRTF]];
 			}
-			else if ([availableType isEqualToString:NSURLPboardType]) {
-				//NSURLPboardType contains an NSURL object
+			else if ([availableType isEqualToString:NSPasteboardTypeURL]) {
+				//NSPasteboardTypeURL contains an NSURL object
 				messageAttributedString = [NSAttributedString stringWithString:[[NSURL URLFromPasteboard:[info draggingPasteboard]] absoluteString]];
 			}
 			else if ([availableType isEqualToString:NSPasteboardTypeString]) {
@@ -894,12 +893,13 @@
 	for (AIListContact *listContact in [items arrayByAddingObject:inContact]) {
 		// Make sure all of the items can join the contact.
 		if (!listContact.canJoinMetaContacts) {
-			NSRunAlertPanel(AILocalizedString(@"Unable to Combine", nil),
-							AILocalizedString(@"%@ is not able to be combined into a meta contact.", nil),
-							AILocalizedStringFromTable(@"OK", @"Buttons", "Verb 'OK' on a button"),
-							nil,
-							nil,
-							listContact.displayName);
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setMessageText:AILocalizedString(@"Unable to Combine", nil)];
+			[alert setInformativeText:[NSString stringWithFormat:
+									   AILocalizedString(@"%@ is not able to be combined into a meta contact.", nil),
+									   listContact.displayName]];
+			[alert addButtonWithTitle:AILocalizedStringFromTable(@"OK", @"Buttons", "Verb 'OK' on a button")];
+			[alert runModal];
 			return;
 		}
 	}
@@ -920,23 +920,17 @@
 								inContact, @"destinationListContact",
 								items, @"dragitems", nil];
 	
-	NSBeginInformationalAlertSheet(promptTitle,
-								   AILocalizedString(@"Combine","Button title for accepting the action of combining multiple contacts into a metacontact"),
-								   AILocalizedString(@"Cancel",nil),
-								   nil,
-								   nil,
-								   self,
-								   @selector(mergeContactSheetDidEnd:returnCode:contextInfo:),
-								   nil,
-								   [context retain], //we're responsible for retaining the content object
-								   AILocalizedString(@"Once combined, Adium will treat these contacts as a single individual both on your contact list and when sending messages.\n\nYou may un-combine these contacts by getting info on the combined contact.","Explanation of metacontact creation"));
-}	
-
-- (void)mergeContactSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
-{
-	NSDictionary	*context = (NSDictionary *)contextInfo;
-
-	if (returnCode == 1) {
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setAlertStyle:NSAlertStyleInformational];
+	[alert setMessageText:promptTitle];
+	[alert setInformativeText:AILocalizedString(@"Once combined, Adium will treat these contacts as a single individual both on your contact list and when sending messages.\n\nYou may un-combine these contacts by getting info on the combined contact.","Explanation of metacontact creation")];
+	[alert addButtonWithTitle:AILocalizedString(@"Combine","Button title for accepting the action of combining multiple contacts into a metacontact")];	//NSAlertFirstButtonReturn, was the default button
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+	/* The old NSBeginInformationalAlertSheet call passed a nil docWindow, so there was no
+	 * real parent window to attach to; run app-modally instead. The context dictionary
+	 * lives on the autorelease pool for the duration of the modal loop, so the manual
+	 * retain/release pair of the old didEndSelector is no longer needed. */
+	if ([alert runModal] == NSAlertFirstButtonReturn) {
 		AIListObject	*destinationListContact = [context objectForKey:@"destinationListContact"];
 		NSArray			*draggedItems = [context objectForKey:@"dragitems"];
 
@@ -945,11 +939,9 @@
 								arrayByAddingObjectsFromArray:[self arrayOfAllContactsFromArray:draggedItems]]];
 
 		//XXX multiple containers: we need to make sure that the metacontacts respect manual ordering correctly
-		
+
 		[[NSNotificationCenter defaultCenter] postNotificationName:Contact_OrderChanged object:nil];
 	}
-
-	[context release]; //We are responsible for retaining & releasing the context dict
 }
 
 #pragma mark KVO

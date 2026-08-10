@@ -27,6 +27,7 @@
 #import <Adium/AIContactAlertsControllerProtocol.h>
 
 #import <AIUtilities/AIArrayAdditions.h>
+#import <AIUtilities/AIDataAdditions.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <AIUtilities/AIFileManagerAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
@@ -239,7 +240,7 @@
 	
 	NSMutableArray *bookmarks = [NSMutableArray array];
 	for (AIListBookmark *bookmark in self.allBookmarks) {
-		[bookmarks addObject:[NSKeyedArchiver archivedDataWithRootObject:bookmark]];
+		[bookmarks addObject:[NSKeyedArchiver archivedDataWithObject:bookmark]];
 	}
 	
 	[adium.preferenceController setPreference:bookmarks
@@ -251,7 +252,7 @@
 {
 	for (NSData *data in [adium.preferenceController preferenceForKey:KEY_BOOKMARKS group:PREF_GROUP_CONTACT_LIST]) {
 		//As a bookmark is initialized, it will add itself to the contact list in the right place
-		AIListBookmark	*bookmark = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+		AIListBookmark	*bookmark = [NSKeyedUnarchiver objectWithArchivedData:data];
 
 		if(bookmark) {
 			if ([bookmarkDict objectForKey:bookmark.internalObjectID]) {

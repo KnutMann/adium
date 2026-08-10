@@ -3070,11 +3070,19 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	if (prpl_info && 
 		prpl_info->unregister_user &&
 		[self allowAccountUnregistrationIfSupportedByLibpurple]) {
-		return [NSAlert alertWithMessageText:AILocalizedString(@"Delete Account",nil)
-							   defaultButton:AILocalizedString(@"Delete",nil)
-							 alternateButton:AILocalizedString(@"Cancel",nil)
-								 otherButton:AILocalizedString(@"Delete & Unregister",nil)
-				   informativeTextWithFormat:AILocalizedString(@"Delete the account %@? You can also optionally unregister the account on the server if possible.",nil), ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)];		
+		/* Buttons are added in the old default/alternate/other order, so the returnCode
+		 * mapping is: NSAlertFirstButtonReturn = Delete (was NSAlertDefaultReturn),
+		 * NSAlertSecondButtonReturn = Cancel, NSAlertThirdButtonReturn = Delete & Unregister
+		 * (was NSAlertOtherReturn). */
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Delete Account",nil)];
+		[alert setInformativeText:[NSString stringWithFormat:
+								   AILocalizedString(@"Delete the account %@? You can also optionally unregister the account on the server if possible.",nil),
+								   ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)]];
+		[alert addButtonWithTitle:AILocalizedString(@"Delete",nil)];
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+		[alert addButtonWithTitle:AILocalizedString(@"Delete & Unregister",nil)];
+		return alert;
 
 	} else {
 		return [super alertForAccountDeletion];
@@ -3088,14 +3096,22 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	if (prpl_info && 
 		prpl_info->unregister_user) {
 		switch (returnCode) {
-			case NSAlertOtherReturn:
-				// delete & unregister
-				if (NSRunAlertPanel(AILocalizedString(@"Delete Account from Server", nil),
-									AILocalizedString(@"WARNING! This will delete the account %@ from the Jabber server, and can not be undone.\nAre you sure you want to proceed?", nil),
-									AILocalizedString(@"Cancel", nil), AILocalizedString(@"Delete & Unregister", nil), nil, ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT))
-					== NSAlertFirstButtonReturn) {	
-					if (self.online){									
-						[self unregister];													
+			case NSAlertThirdButtonReturn: {
+				// delete & unregister ("Delete & Unregister" is the third button of alertForAccountDeletion)
+				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				[alert setMessageText:AILocalizedString(@"Delete Account from Server", nil)];
+				[alert setInformativeText:[NSString stringWithFormat:
+										   AILocalizedString(@"WARNING! This will delete the account %@ from the Jabber server, and can not be undone.\nAre you sure you want to proceed?", nil),
+										   ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)]];
+				[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+				[alert addButtonWithTitle:AILocalizedString(@"Delete & Unregister", nil)];
+				/* Note: the old code compared the legacy NSRunAlertPanel() result (1/0/-1) against
+				 * NSAlertFirstButtonReturn (1000), which could never match, so confirming this
+				 * dialog silently did nothing. Proceeding on the "Delete & Unregister" button
+				 * restores the intended behavior. */
+				if ([alert runModal] == NSAlertSecondButtonReturn) {
+					if (self.online){
+						[self unregister];
 					}else {
 						unregisterAfterConnecting = YES;
 						[self setShouldBeOnline:YES];
@@ -3103,18 +3119,19 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 				}
 				// further progress happens in -unregisteredAccount:
 				break;
-			case NSAlertDefaultReturn:
-				// delete without unregistering
+			}
+			case NSAlertFirstButtonReturn:
+				// delete without unregistering ("Delete" is the first button)
 				[self performDelete];
 				break;
 			default:
 				// cancel
 				break;
 		}
-		
+
 	} else {
 		switch(returnCode) {
-			case NSAlertDefaultReturn:
+			case NSAlertFirstButtonReturn:
 				[self performDelete];
 				break;
 			default:

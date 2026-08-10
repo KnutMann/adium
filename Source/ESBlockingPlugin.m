@@ -170,11 +170,11 @@
 				  AILocalizedString(@"Are you sure you want to block all contacts in the group %@?",nil) :
 				  AILocalizedString(@"Are you sure you want to unblock all contacts in the group %@?",nil));
 		
-		if (NSRunAlertPanel([NSString stringWithFormat:format, [group displayName]],
-							@"",
-							(shouldBlock ? BLOCK_GROUP : UNBLOCK_GROUP),
-							AILocalizedString(@"Cancel", nil),
-							nil) == NSAlertDefaultReturn) {
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:[NSString stringWithFormat:format, [group displayName]]];
+		[alert addButtonWithTitle:(shouldBlock ? BLOCK_GROUP : UNBLOCK_GROUP)];	//NSAlertFirstButtonReturn, was the default button
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+		if ([alert runModal] == NSAlertFirstButtonReturn) {
 			
 			//iterate over all contacts in the group
 			AIListContact *curContact = nil;
@@ -195,11 +195,11 @@
 				  AILocalizedString(@"Are you sure you want to block %@?",nil) :
 				  AILocalizedString(@"Are you sure you want to unblock %@?",nil));
 
-		if (NSRunAlertPanel([NSString stringWithFormat:format, contact.displayName],
-							@"",
-							(shouldBlock ? BLOCK : UNBLOCK),
-							AILocalizedString(@"Cancel", nil),
-							nil) == NSAlertDefaultReturn) {
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:[NSString stringWithFormat:format, contact.displayName]];
+		[alert addButtonWithTitle:(shouldBlock ? BLOCK : UNBLOCK)];	//NSAlertFirstButtonReturn, was the default button
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+		if ([alert runModal] == NSAlertFirstButtonReturn) {
 			
 			//Handle metas
 			if ([object isKindOfClass:[AIMetaContact class]]) {
@@ -637,12 +637,12 @@
 					questionQualifier = [[activeChatInWindow.containedObjects objectAtIndex:0] displayName];
 				}
 				
-				if (NSRunAlertPanel([NSString stringWithFormat:format, questionQualifier],
-									@"",
-									(shouldBlock ? BLOCK : UNBLOCK),
-									AILocalizedString(@"Cancel", nil),
-									nil) == NSAlertDefaultReturn) {
-				
+				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				[alert setMessageText:[NSString stringWithFormat:format, questionQualifier]];
+				[alert addButtonWithTitle:(shouldBlock ? BLOCK : UNBLOCK)];	//NSAlertFirstButtonReturn, was the default button
+				[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+				if ([alert runModal] == NSAlertFirstButtonReturn) {
+
 					[self setPrivacy:shouldBlock forContacts:participants];
 					[self updateToolbarItem:senderItem forChat:activeChatInWindow];
 				}

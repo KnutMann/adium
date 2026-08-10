@@ -68,12 +68,12 @@
 	
 	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:inRect radius:3];
 	
-	[[NSColor windowFrameColor] set];
+	[[NSColor separatorColor] set];
 	[clipPath setLineWidth:1];
 	[clipPath stroke];
 	
 	//Ensure we have an even/odd winding rule in effect
-	[clipPath setWindingRule:NSEvenOddWindingRule];
+	[clipPath setWindingRule:NSWindingRuleEvenOdd];
 	[clipPath addClip];
 	
 	[NSGraphicsContext saveGraphicsState];

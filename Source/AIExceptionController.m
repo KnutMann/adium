@@ -147,7 +147,17 @@ static NSSet *safeExceptionReasons = nil, *safeExceptionNames = nil;
 			[[NSString stringWithFormat:@"OS Version:\t%@\nLanguage:\t%@\nException:\t%@\nReason:\t%@\nStack trace:\n%@",
 				versionString,preferredLocalization,theName,theReason,backtrace] writeToFile:EXCEPTIONS_PATH atomically:YES];
 
-			[[NSWorkspace sharedWorkspace] openFile:bundlePath withApplication:crashReporterPath];
+			/* Replaces the deprecated -openFile:withApplication:. The modern API is
+			 * asynchronous and we exit(-1) right below, so wait (bounded) for the
+			 * launch to be handed off before exiting. */
+			dispatch_semaphore_t launchSemaphore = dispatch_semaphore_create(0);
+			[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:[NSURL fileURLWithPath:bundlePath]]
+							   withApplicationAtURL:[NSURL fileURLWithPath:crashReporterPath]
+									  configuration:[NSWorkspaceOpenConfiguration configuration]
+								  completionHandler:^(NSRunningApplication *app, NSError *openError) {
+								  	dispatch_semaphore_signal(launchSemaphore);
+								  }];
+			dispatch_semaphore_wait(launchSemaphore, dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC));
 
 			exit(-1);
 		} else {

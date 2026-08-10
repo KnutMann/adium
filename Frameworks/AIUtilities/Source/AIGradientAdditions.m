@@ -23,7 +23,7 @@
 {	
 	static NSGradient *grad;
 	if (!grad) {
-		NSColor *selectedColor = [NSColor alternateSelectedControlColor];
+		NSColor *selectedColor = [NSColor selectedContentBackgroundColor];
 		grad = [[NSGradient alloc] initWithStartingColor:[selectedColor darkenAndAdjustSaturationBy:-0.1f] endingColor:[selectedColor darkenAndAdjustSaturationBy:0.1f]];
 	}
 	
