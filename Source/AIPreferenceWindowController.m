@@ -18,6 +18,7 @@
 #import <Adium/NSView+AILegacyButtonNormalization.h>
 #import "AIPreferencePane.h"
 #import <Adium/SS_PrefsController.h>
+#import "AIModernPreferencesWindowController.h"
 
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIModularPaneCategoryView.h>
@@ -71,10 +72,18 @@ static SS_PrefsController			*prefsController = nil;
 /*!
  * @brief Open the preference window
  */
++ (BOOL)useLegacyWindow
+{
+	return [[NSUserDefaults standardUserDefaults] boolForKey:@"AIUseLegacyPreferencesWindow"];
+}
+
 + (void)openPreferenceWindow
 {
-	// Show the preferences window.
-	[[self sharedPrefsController] showPreferencesWindow];
+	if ([self useLegacyWindow]) {
+		[[self sharedPrefsController] showPreferencesWindow];
+	} else {
+		[[AIModernPreferencesWindowController sharedController] showWindowAndSelectPaneWithIdentifier:nil];
+	}
 }
 
 /*!
@@ -82,9 +91,13 @@ static SS_PrefsController			*prefsController = nil;
  */
 + (void)openPreferenceWindowToCategoryWithIdentifier:(NSString *)identifier
 {	
-	[[self sharedPrefsController] createPreferencesWindowAndDisplay:NO];
-	[[self sharedPrefsController] loadPreferencePaneNamed:identifier];
-	[[self sharedPrefsController] showPreferencesWindow];
+	if ([self useLegacyWindow]) {
+		[[self sharedPrefsController] createPreferencesWindowAndDisplay:NO];
+		[[self sharedPrefsController] loadPreferencePaneNamed:identifier];
+		[[self sharedPrefsController] showPreferencesWindow];
+	} else {
+		[[AIModernPreferencesWindowController sharedController] showWindowAndSelectPaneWithIdentifier:identifier];
+	}
 }
 
 /*!
@@ -92,6 +105,7 @@ static SS_PrefsController			*prefsController = nil;
  */
 + (void)closePreferenceWindow
 {
+	[AIModernPreferencesWindowController closeSharedController];
 	[prefsController destroyPreferencesWindow];
 	[prefsController release]; prefsController = nil;
 }

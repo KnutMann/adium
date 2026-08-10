@@ -585,6 +585,7 @@
 		34DC886F0A7EEE2F003E1636 /* FTProgressStopPressed.tif in Resources */ = {isa = PBXBuildFile; fileRef = 34D8325207CBD53B006466F2 /* FTProgressStopPressed.tif */; };
 		34DC88700A7EEE2F003E1636 /* FTProgressRevealPressed_Selected.tif in Resources */ = {isa = PBXBuildFile; fileRef = 34D8325307CBD53B006466F2 /* FTProgressRevealPressed_Selected.tif */; };
 		34DC88740A7EEE2F003E1636 /* AIPreferenceWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = F57938BB033E739101A8010A /* AIPreferenceWindowController.m */; };
+		ADD1E5C0DE00000000001903 /* AIModernPreferencesWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001902 /* AIModernPreferencesWindowController.m */; };
 		34DC88770A7EEE2F003E1636 /* AdiumSetupWizard.m in Sources */ = {isa = PBXBuildFile; fileRef = 344161BC0943E0D800BC26ED /* AdiumSetupWizard.m */; };
 		34DC88780A7EEE2F003E1636 /* AdiumyButler.png in Resources */ = {isa = PBXBuildFile; fileRef = 344161CF0943E20D00BC26ED /* AdiumyButler.png */; };
 		34DC88790A7EEE2F003E1636 /* SetupWizard.xib in Resources */ = {isa = PBXBuildFile; fileRef = 344161D30943E22F00BC26ED /* SetupWizard.xib */; };
@@ -3342,6 +3343,8 @@
 		F57938AF033E737001A8010A /* AIPreferenceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPreferenceController.m; path = Source/AIPreferenceController.m; sourceTree = "<group>"; };
 		F57938B0033E737001A8010A /* AISoundController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISoundController.m; path = Source/AISoundController.m; sourceTree = "<group>"; };
 		F57938BB033E739101A8010A /* AIPreferenceWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIPreferenceWindowController.m; path = Source/AIPreferenceWindowController.m; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001901 /* AIModernPreferencesWindowController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AIModernPreferencesWindowController.h; path = Source/AIModernPreferencesWindowController.h; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001902 /* AIModernPreferencesWindowController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AIModernPreferencesWindowController.m; path = Source/AIModernPreferencesWindowController.m; sourceTree = "<group>"; };
 		F57938C2033E73AC01A8010A /* AILoginWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AILoginWindowController.m; path = Source/AILoginWindowController.m; sourceTree = "<group>"; };
 		F57938ED033E745F01A8010A /* AIPreferenceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPreferenceController.h; path = Source/AIPreferenceController.h; sourceTree = "<group>"; };
 		F57938EF033E745F01A8010A /* AIAccountController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountController.h; path = Source/AIAccountController.h; sourceTree = "<group>"; };
@@ -4819,6 +4822,8 @@
 			children = (
 				F57938F0033E745F01A8010A /* AIPreferenceWindowController.h */,
 				F57938BB033E739101A8010A /* AIPreferenceWindowController.m */,
+				ADD1E5C0DE00000000001901 /* AIModernPreferencesWindowController.h */,
+				ADD1E5C0DE00000000001902 /* AIModernPreferencesWindowController.m */,
 				344839970BC8644C0083723B /* AIAdvancedPreferencesPlugin.h */,
 				344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */,
 				3448399D0BC864610083723B /* AIAdvancedPreferences.h */,
@@ -7866,6 +7871,7 @@
 				34DC88620A7EEE2F003E1636 /* ESFileTransferProgressWindowController.m in Sources */,
 				34DC88640A7EEE2F003E1636 /* ESFileTransferPreferences.m in Sources */,
 				34DC88740A7EEE2F003E1636 /* AIPreferenceWindowController.m in Sources */,
+				ADD1E5C0DE00000000001903 /* AIModernPreferencesWindowController.m in Sources */,
 				34DC88770A7EEE2F003E1636 /* AdiumSetupWizard.m in Sources */,
 				34DC887B0A7EEE2F003E1636 /* SetupWizardBackgroundView.m in Sources */,
 				34DC887D0A7EEE2F003E1636 /* AdiumSound.m in Sources */,
