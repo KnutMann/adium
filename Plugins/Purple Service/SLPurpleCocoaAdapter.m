@@ -726,7 +726,8 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 			//Skip past a quote or apostrophe
 			[scanner scanCharactersFromSet:quoteApostropheCharacterSet intoString:NULL];
 
-			//Scan past a >
+			//Scan past a > (tolerating an XHTML-style self-closing "/>")
+			[scanner scanString:@"/" intoString:nil];
 			[scanner scanString:@">" intoString:nil];
 			
 			//Get the image, then write it out as a png

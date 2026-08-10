@@ -204,11 +204,9 @@
     [theWindow setExcludedFromWindowsMenu:YES];
 	[theWindow useOptimizedDrawing:YES];
 
-	//Modern chrome: content extends underneath the (material) titlebar,
-	//which blurs whatever scrolls beneath it — plus a vibrancy backdrop
-	//behind the horizontal tab bar. Vibrancy needs a layer-backed hierarchy.
+	//Vibrancy backdrop behind the horizontal tab bar (the effect view only
+	//composites in a layer-backed hierarchy).
 	[[theWindow contentView] setWantsLayer:YES];
-	[theWindow setStyleMask:([theWindow styleMask] | NSFullSizeContentViewWindowMask)];
 	tabView_tabBarBackdrop = [[NSVisualEffectView alloc] initWithFrame:NSZeroRect];
 	[tabView_tabBarBackdrop setMaterial:NSVisualEffectMaterialSidebar];
 	[tabView_tabBarBackdrop setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
@@ -612,6 +610,7 @@
 	[[tabView_tabBar superview] addSubview:tabView_tabBarBackdrop
 								positioned:NSWindowBelow
 								relativeTo:tabView_tabBar];
+
 }
 
 - (void)updateOverflowMenuUnviewedContentIcon

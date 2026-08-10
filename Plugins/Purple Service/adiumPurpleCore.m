@@ -48,6 +48,11 @@ static void adiumPurpleDebugPrint(PurpleDebugLevel level, const char *category, 
 	//Log error
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	if (!category) category = "general"; //Category can be nil
+	/* Session debugging aid: mirror libpurple debug output to stderr when
+	 * ADIUM_PURPLE_DEBUG is set in the environment. */
+	static int mirrorToStderr = -1;
+	if (mirrorToStderr == -1) mirrorToStderr = (getenv("ADIUM_PURPLE_DEBUG") != NULL);
+	if (mirrorToStderr) fprintf(stderr, "[purple:%s] %s", category, debug_msg);
 	AILog(@"(Libpurple: %s) %s",category, debug_msg);
     [pool drain];
 }
