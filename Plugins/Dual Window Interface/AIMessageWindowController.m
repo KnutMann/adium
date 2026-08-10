@@ -132,6 +132,7 @@
 //dealloc
 - (void)dealloc
 {
+	[tabView_tabBarBackdrop release]; tabView_tabBarBackdrop = nil;
 	AILogWithSignature(@"");
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -202,6 +203,16 @@
     //Exclude this window from the window menu (since we add it manually)
     [theWindow setExcludedFromWindowsMenu:YES];
 	[theWindow useOptimizedDrawing:YES];
+
+	//Modern chrome: content extends underneath the (material) titlebar,
+	//which blurs whatever scrolls beneath it — plus a vibrancy backdrop
+	//behind the horizontal tab bar. Vibrancy needs a layer-backed hierarchy.
+	[[theWindow contentView] setWantsLayer:YES];
+	[theWindow setStyleMask:([theWindow styleMask] | NSFullSizeContentViewWindowMask)];
+	tabView_tabBarBackdrop = [[NSVisualEffectView alloc] initWithFrame:NSZeroRect];
+	[tabView_tabBarBackdrop setMaterial:NSVisualEffectMaterialSidebar];
+	[tabView_tabBarBackdrop setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
+	[tabView_tabBarBackdrop setState:NSVisualEffectStateActive];
 
 	[self _configureToolbar];
 
@@ -575,9 +586,32 @@
 	
 	[tabView_messages setFrame:tabViewMessagesFrame];
 	[tabView_tabBar setFrame:tabBarFrame];
+	[self _syncTabBarBackdrop];
 	
 	//update the tab bar and tab view frame
 	[[[self window] contentView] setNeedsDisplay:YES];
+}
+
+/* Keep the vibrancy backdrop glued to the horizontal tab bar. In vertical
+ * orientation the bar lives inside the split view (whose subviews are its
+ * panes), so the backdrop stays out of the hierarchy there. */
+- (void)_syncTabBarBackdrop
+{
+	if (!tabView_tabBarBackdrop)
+		return;
+
+	BOOL horizontal = ([tabView_tabBar orientation] == MMTabBarHorizontalOrientation);
+	if (!horizontal || [tabView_tabBar isTabBarHidden] || ![tabView_tabBar superview]) {
+		[tabView_tabBarBackdrop removeFromSuperview];
+		return;
+	}
+
+	[tabView_tabBarBackdrop removeFromSuperview];
+	[tabView_tabBarBackdrop setFrame:[tabView_tabBar frame]];
+	[tabView_tabBarBackdrop setAutoresizingMask:[tabView_tabBar autoresizingMask]];
+	[[tabView_tabBar superview] addSubview:tabView_tabBarBackdrop
+								positioned:NSWindowBelow
+								relativeTo:tabView_tabBar];
 }
 
 - (void)updateOverflowMenuUnviewedContentIcon
@@ -891,6 +925,7 @@
 	
 	[tabView_messages setFrame:messageFrame];
 	[tabView_tabBar setFrame:tabBarFrame];
+	[self _syncTabBarBackdrop];
 }
 
 
@@ -1159,6 +1194,7 @@
 
 	[tabView setFrame:frame];
 	[tabBarView setHidden:YES];
+	[self _syncTabBarBackdrop];
 	[tabView setNeedsDisplay:YES];
 
 	[[tabView_messages tabViewItems] makeObjectsPerformSelector:@selector(tabViewDidChangeVisibility)];
