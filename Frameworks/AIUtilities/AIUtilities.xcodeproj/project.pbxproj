@@ -45,8 +45,6 @@
 /* Begin PBXBuildFile section */
 		11AA10130FCE0969003908B6 /* AIProgressDataUploader.h in Headers */ = {isa = PBXBuildFile; fileRef = 11AA10110FCE0969003908B6 /* AIProgressDataUploader.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11AA10140FCE0969003908B6 /* AIProgressDataUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 11AA10120FCE0969003908B6 /* AIProgressDataUploader.m */; };
-		4D91623C2577EB7500930BC8 /* JSONKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 4D91623B2577EB5800930BC8 /* JSONKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		4D9162432577EB7A00930BC8 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D9162382577EB5800930BC8 /* JSONKit.m */; };
 		4D9162682577EEB100930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6334FBFC0F9C11DC003C77A9 /* AIUtilities.framework */; };
 		4D9162702577EFE700930BC8 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D91626F2577EFE700930BC8 /* CoreFoundation.framework */; };
 		4D9162712577EFEB00930BC8 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA95B12577AF5F0000D3F7 /* CoreServices.framework */; };
@@ -365,10 +363,8 @@
 		34C846E5101E518F00140B4B /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
 		34E839050583207E00F2AADB /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 		4D9162372577EB5800930BC8 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
-		4D9162382577EB5800930BC8 /* JSONKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JSONKit.m; sourceTree = "<group>"; };
 		4D9162392577EB5800930BC8 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4D91623A2577EB5800930BC8 /* .github_commit_id */ = {isa = PBXFileReference; lastKnownFileType = text; path = .github_commit_id; sourceTree = "<group>"; };
-		4D91623B2577EB5800930BC8 /* JSONKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSONKit.h; sourceTree = "<group>"; };
 		4D91626F2577EFE700930BC8 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4D91627B2577F0D700930BC8 /* GetMetadataForHTMLLog-Additions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "GetMetadataForHTMLLog-Additions.m"; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog-Additions.m"; sourceTree = "<group>"; };
 		4D91627C2577F0D700930BC8 /* GetMetadataForHTMLLog.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = GetMetadataForHTMLLog.m; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog.m"; sourceTree = "<group>"; };
@@ -859,7 +855,6 @@
 				4D91627B2577F0D700930BC8 /* GetMetadataForHTMLLog-Additions.m */,
 				4D91627C2577F0D700930BC8 /* GetMetadataForHTMLLog.m */,
 				4D9163682577F1B200930BC8 /* Adium Spotlight Importer */,
-				4D9162362577EB5800930BC8 /* JSONKit */,
 				4DAA96242577B0F60000D3F7 /* AdiumApplescriptRunner */,
 				634DC5560F9C3B2F007B6479 /* AIStringUtilities.h */,
 				633400D10F9C1501003C77A9 /* External Frameworks and Libraries */,
@@ -901,19 +896,6 @@
 				3407A2FF0E0449E800DCE4B1 /* AHThreadedStressTester */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		4D9162362577EB5800930BC8 /* JSONKit */ = {
-			isa = PBXGroup;
-			children = (
-				4D9162372577EB5800930BC8 /* CHANGELOG.md */,
-				4D9162382577EB5800930BC8 /* JSONKit.m */,
-				4D9162392577EB5800930BC8 /* README.md */,
-				4D91623A2577EB5800930BC8 /* .github_commit_id */,
-				4D91623B2577EB5800930BC8 /* JSONKit.h */,
-			);
-			name = JSONKit;
-			path = "AIUtilities Framework/JSONKit";
 			sourceTree = "<group>";
 		};
 		4D91628F2577F16F00930BC8 /* nb.lproj */ = {
@@ -2162,7 +2144,6 @@
 				4D9163FC2577F42000930BC8 /* AdiumSpotlightImporter.h in Headers */,
 				4D9163D62577F28400930BC8 /* AdiumApplescriptRunner.h in Headers */,
 				4D9163E82577F3BC00930BC8 /* IKRecentPicture.h in Headers */,
-				4D91623C2577EB7500930BC8 /* JSONKit.h in Headers */,
 				6334FFFF0F9C14C2003C77A9 /* AIFunctions.h in Headers */,
 				633400010F9C14C2003C77A9 /* JVMarkedScroller.h in Headers */,
 				633400030F9C14C2003C77A9 /* AIMutableOwnerArray.h in Headers */,
@@ -2575,7 +2556,6 @@
 				4D91642A2577F70D00930BC8 /* GetMetadataForFile.m in Sources */,
 				4D9164312577F70F00930BC8 /* GetMetadataForHTMLLog-Additions.m in Sources */,
 				4D9164232577F70B00930BC8 /* GetMetadataForHTMLLog.m in Sources */,
-				4D9162432577EB7A00930BC8 /* JSONKit.m in Sources */,
 				633400000F9C14C2003C77A9 /* AIFunctions.m in Sources */,
 				633400020F9C14C2003C77A9 /* JVMarkedScroller.m in Sources */,
 				633400040F9C14C2003C77A9 /* AIMutableOwnerArray.m in Sources */,
