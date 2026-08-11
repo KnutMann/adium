@@ -16,17 +16,19 @@ fi
 
 TARGET_BASE="apple-darwin19.6."
 
-# ARCHITECTURE WARNING: this script does not build what Adium ships.
+# BUILDING ON APPLE SILICON: pass --build-native.
 #
-# ARCHS holds one entry while HOSTS holds two, and the configure loop in
-# phases/utility.sh indexes ARCHS by the HOSTS index, so a run dies on the second
-# pass with "ARCHS[i]: unbound variable". Even repaired it would produce x86_64 and
-# i686, while every framework under ../Frameworks is arm64. Those were built by a
-# pipeline that is not in this repository - the commit that added them says as much
-# and contains nothing but the binaries and their headers.
+# Without it the script takes the cross-compile path, which still carries the Intel-era
+# ARCHS/HOSTS pair below: one arch, two hosts, indexed against each other, so the run
+# dies on the second pass with "ARCHS[i]: unbound variable". --build-native clears both
+# and configures for the current architecture, which is how the arm64 frameworks under
+# ../Frameworks were produced.
 #
-# Until this is ported, changes made here have no effect on the application: the
-# libraries it links are the ones already checked in.
+# Note also that --libpurple-only alone will not pick up a changed protocol list:
+# needsconfigure() skips configure when config.status exists, and the run then merely
+# re-wraps the existing binary. Add --configure to force it.
+#
+#   ./build.sh --build-native --libpurple-only --configure
 
 # Arrays for archs and host systems, sometimes an -arch just isnt enough!
 ARCHS=( "x86_64" )
