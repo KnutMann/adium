@@ -902,8 +902,6 @@
 		4D4B485E25F3F87C000CEF01 /* libgobject-2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B484F25F3F6EC000CEF01 /* libgobject-2.0.dylib */; };
 		4D4B485F25F3F87C000CEF01 /* libgthread-2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B484D25F3F6EB000CEF01 /* libgthread-2.0.dylib */; };
 		4D4B486525F3F8DF000CEF01 /* libjson-glib-1.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B484825F3F6AB000CEF01 /* libjson-glib-1.0.dylib */; };
-		4D4B486725F3F8FE000CEF01 /* libffi.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */; };
-		4D4B487725F3FA35000CEF01 /* libexpat.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B487625F3FA35000CEF01 /* libexpat.1.dylib */; };
 		4D9162602577EDA600930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
 		4D9162642577EDC600930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
 		4D91645E2577F7C800930BC8 /* AutoHyperlinks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; };
@@ -1394,32 +1392,6 @@
 		114849B70F7841C600EA5264 /* AIAuthorizationRequestsWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAuthorizationRequestsWindowController.h; path = Frameworks/Adium/Source/AIAuthorizationRequestsWindowController.h; sourceTree = "<group>"; };
 		114849B80F7841C600EA5264 /* AIAuthorizationRequestsWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAuthorizationRequestsWindowController.m; path = Frameworks/Adium/Source/AIAuthorizationRequestsWindowController.m; sourceTree = "<group>"; };
 		114849BB0F78420300EA5264 /* AIAuthorizationRequestsWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIAuthorizationRequestsWindow.xib; path = Frameworks/Adium/Resources/AIAuthorizationRequestsWindow.xib; sourceTree = "<group>"; };
-		1150A9970FBE48DE00E0BD31 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9980FBE48E000E0BD31 /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9990FBE48E500E0BD31 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A99A0FBE48E700E0BD31 /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/Purple Service/Resources/de.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A99B0FBE48E900E0BD31 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A99C0FBE48EC00E0BD31 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A99D0FBE48EE00E0BD31 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A99E0FBE48F200E0BD31 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A99F0FBE48F400E0BD31 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A00FBE48F600E0BD31 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A10FBE48F800E0BD31 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A20FBE48FB00E0BD31 /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A30FBE48FD00E0BD31 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A40FBE48FF00E0BD31 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A50FBE490100E0BD31 /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A60FBE490300E0BD31 /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A70FBE490500E0BD31 /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A80FBE490700E0BD31 /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9A90FBE490900E0BD31 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9AA0FBE490B00E0BD31 /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9AB0FBE490D00E0BD31 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9AC0FBE490F00E0BD31 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9AD0FBE491100E0BD31 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9AE0FBE491300E0BD31 /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9AF0FBE491500E0BD31 /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		1150A9B00FBE491700E0BD31 /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
 		1154F50712E1476900B8CA27 /* AILogByAccountWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AILogByAccountWindow.xib; sourceTree = "<group>"; };
 		1154F50812E1476900B8CA27 /* AILogByAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AILogByAccountWindowController.h; sourceTree = "<group>"; };
 		1154F50912E1476900B8CA27 /* AILogByAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AILogByAccountWindowController.m; sourceTree = "<group>"; };
@@ -1508,7 +1480,6 @@
 		3107D5230F63134F0051DDD5 /* TestAttributedStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestAttributedStringAdditions.h; path = UnitTests/TestAttributedStringAdditions.h; sourceTree = "<group>"; };
 		3107D5240F63134F0051DDD5 /* TestAttributedStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestAttributedStringAdditions.m; path = UnitTests/TestAttributedStringAdditions.m; sourceTree = "<group>"; };
 		312ED3CA0C7E875B00A6BDA9 /* Unit tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Unit tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		312ED3CB0C7E875B00A6BDA9 /* UnitTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "UnitTests-Info.plist"; path = "Plists/UnitTests-Info.plist"; sourceTree = "<group>"; };
 		312ED3D40C7E878300A6BDA9 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		312ED3E00C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestDateFormatterStringRepWithInterval.h; path = UnitTests/TestDateFormatterStringRepWithInterval.h; sourceTree = "<group>"; };
 		312ED3E10C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestDateFormatterStringRepWithInterval.m; path = UnitTests/TestDateFormatterStringRepWithInterval.m; sourceTree = "<group>"; };
@@ -1522,7 +1493,6 @@
 		318EA69B0D7A659900EDB105 /* TestColorAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestColorAdditions.m; path = UnitTests/TestColorAdditions.m; sourceTree = "<group>"; };
 		319B29420CE8D28300C65398 /* TestDateAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestDateAdditions.h; path = UnitTests/TestDateAdditions.h; sourceTree = "<group>"; };
 		319B297F0CE8EC6E00C65398 /* TestDateAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestDateAdditions.m; path = UnitTests/TestDateAdditions.m; sourceTree = "<group>"; };
-		31DDDAF112BDE54B0048F6C0 /* Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Prefix.pch; path = "Other/Adium Spotlight Importer/Prefix.pch"; sourceTree = "<group>"; };
 		31E0CD800C5EEF5200271DB1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		31E84DF10C7F387800674BCA /* AIUnitTestUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIUnitTestUtilities.h; path = UnitTests/AIUnitTestUtilities.h; sourceTree = "<group>"; };
 		31FA7F0F0D4A75D000ABE634 /* TestRichTextCoercion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestRichTextCoercion.h; path = UnitTests/TestRichTextCoercion.h; sourceTree = "<group>"; };
@@ -1540,10 +1510,6 @@
 		3403F56A0D2F0BDE006B08FB /* AIServersideUserIconSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIServersideUserIconSource.m; path = Frameworks/Adium/Source/AIServersideUserIconSource.m; sourceTree = "<group>"; };
 		34048AC50617CB4C004D0B7E /* SLPurpleCocoaAdapter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SLPurpleCocoaAdapter.h; path = "Plugins/Purple Service/SLPurpleCocoaAdapter.h"; sourceTree = "<group>"; };
 		34048AC60617CB4C004D0B7E /* SLPurpleCocoaAdapter.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SLPurpleCocoaAdapter.m; path = "Plugins/Purple Service/SLPurpleCocoaAdapter.m"; sourceTree = "<group>"; };
-		34058090087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34058098087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		3405809A087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		3405809D087EEFA100664D64 /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		340580A4087EEFA200664D64 /* ru */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ru; path = Resources/ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		340580A6087EEFA200664D64 /* ru */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		340670790A55A044004E22AC /* sourceListBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sourceListBackground.png; path = Resources/sourceListBackground.png; sourceTree = "<group>"; };
@@ -1624,7 +1590,6 @@
 		3419E2F40A81452400C3FC68 /* zh_TW */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_TW; path = Frameworks/Adium/Resources/zh_TW.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3419E5960A86996200C3FC68 /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = Resources/tr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3419E5970A86996300C3FC68 /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		341BCF800961354D00CF83F5 /* AIMessageWindow.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMessageWindow.h; path = Source/AIMessageWindow.h; sourceTree = "<group>"; };
 		341BCF810961354D00CF83F5 /* AIMessageWindow.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIMessageWindow.m; path = Source/AIMessageWindow.m; sourceTree = "<group>"; };
 		341BCF820961354D00CF83F5 /* AIClickThroughThemeDocumentButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIClickThroughThemeDocumentButton.h; path = Source/AIClickThroughThemeDocumentButton.h; sourceTree = "<group>"; };
 		341BCF830961354D00CF83F5 /* AIClickThroughThemeDocumentButton.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIClickThroughThemeDocumentButton.m; path = Source/AIClickThroughThemeDocumentButton.m; sourceTree = "<group>"; };
@@ -1652,12 +1617,7 @@
 		341EC8C50D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sl; path = "Resources/sl.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		341EC8C70D3C2BAA007216A2 /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = Resources/sl.lproj/Statuses.strings; sourceTree = "<group>"; };
 		34208CFD0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = Resources/fr_CA.lproj/Buttons.strings; sourceTree = "<group>"; };
-		34208CFE0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34208D050D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = Frameworks/Adium/Resources/fr_CA.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
-		34208D070D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34208D090D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34208D0C0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		34208D0E0D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		34208D120D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = Resources/fr_CA.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		34208D150D502D3F003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = "Plugins/Purple Service/Resources/fr_CA.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34208D160D502D40003138D1 /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = Frameworks/Adium/Resources/fr_CA.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -1667,10 +1627,6 @@
 		3420E65C0611D80000AE67E3 /* ESAccountPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAccountPasswordPromptController.m; path = Source/ESAccountPasswordPromptController.m; sourceTree = "<group>"; };
 		3420E65D0611D80000AE67E3 /* ESProxyPasswordPromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESProxyPasswordPromptController.h; path = Source/ESProxyPasswordPromptController.h; sourceTree = "<group>"; };
 		3420E65E0611D80000AE67E3 /* ESProxyPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESProxyPasswordPromptController.m; path = Source/ESProxyPasswordPromptController.m; sourceTree = "<group>"; };
-		3421180E0827D86700A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		342118100827D86700A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		342118150827D86800A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		342118170827D86800A3B0FB /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
 		342353D409D45725009FF634 /* AILogViewerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AILogViewerWindowController.h; path = Source/AILogViewerWindowController.h; sourceTree = "<group>"; };
 		342353D509D45725009FF634 /* AILogViewerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AILogViewerWindowController.m; path = Source/AILogViewerWindowController.m; sourceTree = "<group>"; };
 		3428328407D2643E004F01C9 /* ESStatusPreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusPreferencesPlugin.h; path = Source/ESStatusPreferencesPlugin.h; sourceTree = "<group>"; };
@@ -1683,16 +1639,8 @@
 		342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewTableView.m; path = Plugins/Emoticons/AIEmoticonPackPreviewTableView.m; sourceTree = "<group>"; };
 		3429BB03070378F700EED705 /* ESFileTransferMessagesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESFileTransferMessagesPlugin.h; path = Source/ESFileTransferMessagesPlugin.h; sourceTree = "<group>"; };
 		3429BB04070378F700EED705 /* ESFileTransferMessagesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferMessagesPlugin.m; path = Source/ESFileTransferMessagesPlugin.m; sourceTree = "<group>"; };
-		342CE12D085A089E00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		342CE135085A089F00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		342CE137085A089F00005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		342CE13A085A08A000005C63 /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		342CE141085A08A100005C63 /* sv */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sv; path = Resources/sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		342CE143085A08A100005C63 /* sv */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		342CE15B085A08C500005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		342CE163085A08C600005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		342CE165085A08C600005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		342CE168085A08C600005C63 /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		342CE170085A08C700005C63 /* ca */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		342CE171085A08C700005C63 /* ca */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ca; path = Resources/ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		342DC49B05783BE8000E1D83 /* ESSendMessageAlertDetailPane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESSendMessageAlertDetailPane.h; path = "Plugins/Send Message Contact Alert/ESSendMessageAlertDetailPane.h"; sourceTree = "<group>"; };
@@ -1711,11 +1659,6 @@
 		342F9E600B55262B000D5FC2 /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		342F9E630B55262B000D5FC2 /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = Frameworks/Adium/Resources/fi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		342F9E670B55262C000D5FC2 /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = Resources/fi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		342F9E6B0B55262D000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		342F9E6D0B55262E000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		342F9E700B552630000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		342F9E720B552630000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		342F9E7A0B552632000D5FC2 /* fi */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fi; path = "Plugins/Purple Service/Resources/fi.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		342F9E7B0B552632000D5FC2 /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = Resources/fi.lproj/Buttons.strings; sourceTree = "<group>"; };
 		343022270AB4766E0082CF7C /* AINulRemovalPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINulRemovalPlugin.h; path = Source/AINulRemovalPlugin.h; sourceTree = "<group>"; };
 		343022280AB4766E0082CF7C /* AINulRemovalPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AINulRemovalPlugin.m; path = Source/AINulRemovalPlugin.m; sourceTree = "<group>"; };
@@ -1723,10 +1666,6 @@
 		34333FF2127F6E77007050E8 /* TemporaryIRCAccountWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = TemporaryIRCAccountWindow.xib; path = Resources/TemporaryIRCAccountWindow.xib; sourceTree = "<group>"; };
 		343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdvancedPreferencePane.h; path = Frameworks/Adium/Source/AIAdvancedPreferencePane.h; sourceTree = "<group>"; };
 		343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferencePane.m; path = Frameworks/Adium/Source/AIAdvancedPreferencePane.m; sourceTree = "<group>"; };
-		3437FF4D0A9BF0A60028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		3437FF500A9BF0A60028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		3437FF520A9BF0A60028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		3437FF5A0A9BF0A70028604E /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		3437FF5B0A9BF0A70028604E /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = Resources/tr.lproj/Buttons.strings; sourceTree = "<group>"; };
 		34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = MessageContextDisplayDefaults.plist; path = Resources/MessageContextDisplayDefaults.plist; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AppearancePrefs.xib; path = Resources/AppearancePrefs.xib; sourceTree = "<group>"; };
@@ -1751,10 +1690,6 @@
 		ADD1E5C0DE00000000000F01 /* AccountProxy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountProxy.xib; path = Resources/AccountProxy.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		343C460C0816CCAE00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		343C46140816CCDA00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		343C46170816CCE300FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		343C46180816CCEC00FF5FA7 /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferencesAdvanced.xib; path = Resources/StatusPreferencesAdvanced.xib; sourceTree = "<group>"; };
 		343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusAdvancedPreferences.h; path = Source/ESStatusAdvancedPreferences.h; sourceTree = "<group>"; };
 		343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusAdvancedPreferences.m; path = Source/ESStatusAdvancedPreferences.m; sourceTree = "<group>"; };
@@ -1829,22 +1764,12 @@
 		345074C10E106BF000BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Frameworks/Adium/Resources/pt_PT.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		345074C20E106BF000BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Frameworks/Adium/Resources/pt_PT.lproj/Localizable.strings; sourceTree = "<group>"; };
 		345076980E106F5C00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/Buttons.strings; sourceTree = "<group>"; };
-		345076990E106F5C00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		345076A00E106F5D00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		345076A20E106F5D00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		345076A50E106F5E00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		345076A70E106F5E00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		345076AB0E106F5E00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		345076AF0E106F5E00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = "Plugins/Purple Service/Resources/en_GB.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		345076B00E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/Localizable.strings; sourceTree = "<group>"; };
 		345076B60E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en_GB; path = "Resources/en_GB.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		345076B80E106F5F00BF0883 /* en_GB */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en_GB; path = Resources/en_GB.lproj/Statuses.strings; sourceTree = "<group>"; };
 		345076D70E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Resources/pt_PT.lproj/Buttons.strings; sourceTree = "<group>"; };
-		345076D80E106FD500BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		345076DF0E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		345076E10E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		345076E40E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		345076E60E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		345076EA0E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Resources/pt_PT.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		345076ED0E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = "Plugins/Purple Service/Resources/pt_PT.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		345076EE0E106FD600BF0883 /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = Resources/pt_PT.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -1872,20 +1797,8 @@
 		34575E3407CBA7DF004A4FFF /* LoginSelect.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LoginSelect.xib; path = Resources/LoginSelect.xib; sourceTree = "<group>"; };
 		34575E3607CBA874004A4FFF /* DebugWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DebugWindow.xib; path = Resources/DebugWindow.xib; sourceTree = "<group>"; };
 		34575E3807CBA88E004A4FFF /* MainMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainMenu.xib; path = Resources/MainMenu.xib; sourceTree = "<group>"; };
-		3458BA19082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		3458BA1A082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		3458BA1B082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		3458BA20082174540005BCF6 /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		3458BA74082178280005BCF6 /* da */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = da; path = "Plugins/Purple Service/Resources/da.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		3458BA75082178280005BCF6 /* da */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = da; path = Resources/da.lproj/Localizable.strings; sourceTree = "<group>"; };
-		3458BA90082178420005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		3458BA9D082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		3458BA9F082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		3458BAA0082178430005BCF6 /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		3459CBE90A25FFBE00ECC256 /* GetMetadataForHTMLLog.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GetMetadataForHTMLLog.m; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog.m"; sourceTree = "<group>"; };
-		3459CBEA0A25FFBE00ECC256 /* GetMetadataForHTMLLog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GetMetadataForHTMLLog.h; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog.h"; sourceTree = "<group>"; };
-		3459CBEB0A25FFBE00ECC256 /* GetMetadataForFile.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GetMetadataForFile.m; path = "Other/Adium Spotlight Importer/GetMetadataForFile.m"; sourceTree = "<group>"; };
-		3459CBEC0A25FFBF00ECC256 /* AdiumSpotlightImporter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AdiumSpotlightImporter.h; path = "Other/Adium Spotlight Importer/AdiumSpotlightImporter.h"; sourceTree = "<group>"; };
 		345A7B590954AD1400FF3113 /* ESSimpleService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESSimpleService.h; path = "Plugins/Purple Service/ESSimpleService.h"; sourceTree = "<group>"; };
 		345A7B5A0954AD1400FF3113 /* ESSimpleService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESSimpleService.m; path = "Plugins/Purple Service/ESSimpleService.m"; sourceTree = "<group>"; };
 		345A7B650954AD2800FF3113 /* ESPurpleSimpleAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleSimpleAccount.h; path = "Plugins/Purple Service/ESPurpleSimpleAccount.h"; sourceTree = "<group>"; };
@@ -1893,7 +1806,6 @@
 		345A7B6B0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleSimpleAccountViewController.h; path = "Plugins/Purple Service/ESPurpleSimpleAccountViewController.h"; sourceTree = "<group>"; };
 		345A7B6C0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleSimpleAccountViewController.m; path = "Plugins/Purple Service/ESPurpleSimpleAccountViewController.m"; sourceTree = "<group>"; };
 		345A7B710954AD4D00FF3113 /* PurpleDefaultsSimple.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = PurpleDefaultsSimple.plist; path = "Plugins/Purple Service/PurpleDefaultsSimple.plist"; sourceTree = "<group>"; };
-		345A7B840954AEF400FF3113 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AwayStatusWindow.xib; path = Resources/AwayStatusWindow.xib; sourceTree = "<group>"; };
 		345AFAEB0A5D9A5F00D7DA6F /* AINoisyTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINoisyTableColumn.h; path = Source/AINoisyTableColumn.h; sourceTree = "<group>"; };
 		345AFAEC0A5D9A5F00D7DA6F /* AINoisyTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AINoisyTableColumn.m; path = Source/AINoisyTableColumn.m; sourceTree = "<group>"; };
@@ -1924,10 +1836,6 @@
 		345F583D08197E74001F733C /* AdiumStatusIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = AdiumStatusIcons.icns; path = Resources/AdiumStatusIcons.icns; sourceTree = "<group>"; };
 		345F58C6081990FF001F733C /* msg-log-viewer.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-log-viewer.tiff"; path = "Resources/msg-log-viewer.tiff"; sourceTree = "<group>"; };
 		345F590608199746001F733C /* emoticon32_transparent.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = emoticon32_transparent.tiff; path = Resources/emoticon32_transparent.tiff; sourceTree = "<group>"; };
-		345F5B99081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		345F5B9F081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		345F5BA1081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		345F5BA4081AC4F1001F733C /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		345F5BAB081AC4F2001F733C /* zh_TW */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_TW; path = Resources/zh_TW.lproj/Localizable.strings; sourceTree = "<group>"; };
 		345F5BAF081AC4F2001F733C /* zh_TW */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34607EE609B228FE000DB3D2 /* AIContactListNameButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactListNameButton.h; path = Source/AIContactListNameButton.h; sourceTree = "<group>"; };
@@ -1943,18 +1851,6 @@
 		346196F10D31607500763051 /* SRSnapback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SRSnapback.png; path = Resources/SRSnapback.png; sourceTree = "<group>"; };
 		346371050BCA0A5400AD57AD /* AIMessageTabSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageTabSplitView.h; path = Source/AIMessageTabSplitView.h; sourceTree = "<group>"; };
 		346371060BCA0A5400AD57AD /* AIMessageTabSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageTabSplitView.m; path = Source/AIMessageTabSplitView.m; sourceTree = "<group>"; };
-		3465229108371921009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		3465229208371922009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		346522A108371923009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		346522A608371924009565FE /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		346522BB08371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		346522C008371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		346522C408371997009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		346522D408371998009565FE /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		346522F9083719ED009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		346522FB083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34652306083719EE009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		3465230C083719EF009565FE /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34652315083719EF009565FE /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34652316083719F0009565FE /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = Resources/nb.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		34652319083719F0009565FE /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = Resources/nb.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -1986,12 +1882,7 @@
 		346C9A2305FFE3DE000F5A8A /* ESWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebView.h; path = "Plugins/WebKit Message View/ESWebView.h"; sourceTree = "<group>"; };
 		346C9A2405FFE3DF000F5A8A /* ESWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESWebView.m; path = "Plugins/WebKit Message View/ESWebView.m"; sourceTree = "<group>"; };
 		346C9BFA0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Buttons.strings; sourceTree = "<group>"; };
-		346C9BFB0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		346C9C020E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Frameworks/Adium/Resources/hu.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
-		346C9C040E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		346C9C060E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		346C9C090E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		346C9C0B0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = hu; path = "Plugins/Purple Service/Resources/hu.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		346C9C0F0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		346C9C120E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Frameworks/Adium/Resources/hu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		346C9C130E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2093,8 +1984,6 @@
 		348862CE05645E95003C9627 /* ESFileTransfer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESFileTransfer.m; path = Frameworks/Adium/Source/ESFileTransfer.m; sourceTree = "<group>"; };
 		34891C120D4B75EE00AEF48C /* AIStandardListScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStandardListScrollView.h; path = Source/AIStandardListScrollView.h; sourceTree = "<group>"; };
 		34891C130D4B75EE00AEF48C /* AIStandardListScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStandardListScrollView.m; path = Source/AIStandardListScrollView.m; sourceTree = "<group>"; };
-		3489506A0CDE0CC5002FEB4D /* IKRecentPicture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IKRecentPicture.h; path = Source/IKRecentPicture.h; sourceTree = "<group>"; };
-		348A8A190629A68C00FC6E03 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
 		348B250A0A50A1C900B2B972 /* ESSourceListBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESSourceListBackgroundView.h; path = Source/ESSourceListBackgroundView.h; sourceTree = "<group>"; };
 		348B250B0A50A1C900B2B972 /* ESSourceListBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESSourceListBackgroundView.m; path = Source/ESSourceListBackgroundView.m; sourceTree = "<group>"; };
 		348B25C60A50FBF300B2B972 /* KNShelfSplitView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = KNShelfSplitView.m; path = Source/KNShelfSplitView.m; sourceTree = "<group>"; };
@@ -2114,7 +2003,6 @@
 		349195640C9662AA00595A04 /* AIListBookmark.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIListBookmark.m; path = Frameworks/Adium/Source/AIListBookmark.m; sourceTree = "<group>"; };
 		349195650C9662AA00595A04 /* AIListBookmark.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIListBookmark.h; path = Frameworks/Adium/Source/AIListBookmark.h; sourceTree = "<group>"; };
 		34943DEE07BAD918000F2A03 /* AccountPrivacy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountPrivacy.xib; path = "Frameworks/Adium/Resources/AccountPrivacy.xib"; sourceTree = "<group>"; };
-		349448C207BB29B2000F2A03 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
 		3496A8BF07CE6B3D0055BBAB /* en */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en; path = Resources/en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		349710DC096C4C7700699948 /* en */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = en; path = Resources/en.lproj/Buttons.strings; sourceTree = "<group>"; };
 		349710E1096C4C9000699948 /* ca */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ca; path = Resources/ca.lproj/Buttons.strings; sourceTree = "<group>"; };
@@ -2144,7 +2032,6 @@
 		3499F4A706309AF60035B468 /* ESPurpleRequestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESPurpleRequestWindowController.h; path = "Plugins/Purple Service/ESPurpleRequestWindowController.h"; sourceTree = "<group>"; };
 		349B39290A5FB150008BE092 /* AIContentEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentEvent.h; path = Frameworks/Adium/Source/AIContentEvent.h; sourceTree = "<group>"; };
 		349B392A0A5FB150008BE092 /* AIContentEvent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentEvent.m; path = Frameworks/Adium/Source/AIContentEvent.m; sourceTree = "<group>"; };
-		349C2F460867AD16000BF883 /* ApplescriptRunner.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ApplescriptRunner.m; path = Source/ApplescriptRunner.m; sourceTree = "<group>"; };
 		349C2FEF0867AD65000BF883 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		349C6E4607C96D44005EB896 /* CBContactCountingDisplayPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CBContactCountingDisplayPlugin.m; path = Source/CBContactCountingDisplayPlugin.m; sourceTree = "<group>"; };
 		349C6E4707C96D45005EB896 /* CBContactCountingDisplayPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CBContactCountingDisplayPlugin.h; path = Source/CBContactCountingDisplayPlugin.h; sourceTree = "<group>"; };
@@ -2179,10 +2066,6 @@
 		34A1B59F0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitPreviewMessageViewController.m; path = "Plugins/WebKit Message View/AIWebKitPreviewMessageViewController.m"; sourceTree = "<group>"; };
 		34A250B507E0F822009854E1 /* StatusDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = StatusDefaults.plist; path = Resources/StatusDefaults.plist; sourceTree = "<group>"; };
 		34A29D9406ED68BF00E1366C /* Contact List */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = folder; name = "Contact List"; path = "Resources/Contact List"; sourceTree = "<group>"; };
-		34A30E7808D8EE7800697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34A30E8008D8EE7900697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34A30E8208D8EE7900697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34A30E8508D8EE7900697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		34A30E9B08D8EE7B00697644 /* es */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = es; path = "Plugins/Purple Service/Resources/es.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34A30E9C08D8EE7B00697644 /* es */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = es; path = Resources/es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34A30EA208D8EE7B00697644 /* es */ = {isa = PBXFileReference; lastKnownFileType = folder; name = es; path = "Resources/es.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
@@ -2219,10 +2102,6 @@
 		34A81DBB093CE92200B0E93D /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = Resources/pl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34A81DBD093CE92200B0E93D /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34A81DC0093CE92200B0E93D /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = Resources/pl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		34A81DC5093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		34A81DC8093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34A81DCA093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34A81DD2093CE92300B0E93D /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34A970580C965F2400F46006 /* AISideSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISideSplitView.h; path = "Plugins/Dual Window Interface/AISideSplitView.h"; sourceTree = "<group>"; };
 		34A970590C965F2400F46006 /* AISideSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISideSplitView.m; path = "Plugins/Dual Window Interface/AISideSplitView.m"; sourceTree = "<group>"; };
 		34A970660C965F6900F46006 /* AINewBookmarkWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINewBookmarkWindowController.h; path = Source/AINewBookmarkWindowController.h; sourceTree = "<group>"; };
@@ -2249,20 +2128,11 @@
 		34B1FB610F112AC800C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Frameworks/Adium/Resources/el_GR.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		34B1FB620F112AC800C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Frameworks/Adium/Resources/el_GR.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34B1FCC70F112BF400C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/Buttons.strings; sourceTree = "<group>"; };
-		34B1FCC80F112BF400C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34B1FCCF0F112BF500C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34B1FCD10F112BF500C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34B1FCD40F112BF500C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		34B1FCD60F112BF500C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		34B1FCDA0F112BF600C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		34B1FCDE0F112BF600C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = "Plugins/Purple Service/Resources/el_GR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34B1FCDF0F112BF600C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34B1FCE50F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; lastKnownFileType = folder; name = el_GR; path = "Resources/el_GR.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34B1FCE70F112BF700C7E952 /* el_GR */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = el_GR; path = Resources/el_GR.lproj/Statuses.strings; sourceTree = "<group>"; };
-		34B271EB0839E8E30092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34B271F40839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34B271FB0839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		34B271FC0839E8E40092A5A0 /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		34B272160839E8FB0092A5A0 /* is */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = is; path = "Plugins/Purple Service/Resources/is.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34B272180839E8FB0092A5A0 /* is */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = is; path = Resources/is.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34B3244309BA003C00029361 /* AILibpurplePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AILibpurplePlugin.h; path = "Plugins/Purple Service/AILibpurplePlugin.h"; sourceTree = "<group>"; };
@@ -2337,10 +2207,6 @@
 		34C14CD007A8B1AB003CC138 /* AIEmoticonPackPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewView.h; sourceTree = "<group>"; };
 		34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewView.m; path = Plugins/Emoticons/AIEmoticonPackPreviewView.m; sourceTree = "<group>"; };
 		34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EmoticonPackPreview.xib; path = Plugins/Emoticons/EmoticonPackPreview.xib; sourceTree = "<group>"; };
-		34C2A48A0821859700F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34C2A48D0821859700F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34C2A4920821859800F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34C2A4950821859800F3363F /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		34C2CF85063340540018E5D2 /* PurpleMultilineRequestWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PurpleMultilineRequestWindow.xib; path = "Plugins/Purple Service/PurpleMultilineRequestWindow.xib"; sourceTree = "<group>"; };
 		34C2CF86063340540018E5D2 /* PurpleSinglelineRequestWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PurpleSinglelineRequestWindow.xib; path = "Plugins/Purple Service/PurpleSinglelineRequestWindow.xib"; sourceTree = "<group>"; };
 		34C2D70306338E2E0018E5D2 /* ESWebKitMessageViewPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebKitMessageViewPreferences.h; path = "Plugins/WebKit Message View/ESWebKitMessageViewPreferences.h"; sourceTree = "<group>"; };
@@ -2370,24 +2236,6 @@
 		34C91BBA0CA8909700740974 /* AIContentNotification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentNotification.m; path = Frameworks/Adium/Source/AIContentNotification.m; sourceTree = "<group>"; };
 		34C9EC40099FA2A8007ECAB3 /* DefaultBlockedStatusIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = DefaultBlockedStatusIcon.png; path = Frameworks/Adium/DefaultBlockedStatusIcon.png; sourceTree = "<group>"; };
 		34CA15520CAFDFB2009AA5E3 /* sidebarActionWidget.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sidebarActionWidget.png; path = Resources/sidebarActionWidget.png; sourceTree = "<group>"; };
-		34CAA4B00BD3A75B00AE92DC /* fr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = fr; path = "Plugins/Purple Service/Resources/fr.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4B40BD3A76C00AE92DC /* ca */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ca; path = "Plugins/Purple Service/Resources/ca.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4B50BD3A76E00AE92DC /* cs */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = cs; path = "Plugins/Purple Service/Resources/cs.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4B60BD3A77200AE92DC /* da */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = da; path = "Plugins/Purple Service/Resources/da.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4B70BD3A77500AE92DC /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/Purple Service/Resources/de.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4B80BD3A77700AE92DC /* es */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = es; path = "Plugins/Purple Service/Resources/es.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4B90BD3A77D00AE92DC /* is */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = is; path = "Plugins/Purple Service/Resources/is.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4BA0BD3A77F00AE92DC /* it */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = it; path = "Plugins/Purple Service/Resources/it.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4BB0BD3A78200AE92DC /* ja */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ja; path = "Plugins/Purple Service/Resources/ja.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4BC0BD3A78400AE92DC /* nb */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nb; path = "Plugins/Purple Service/Resources/nb.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4BD0BD3A78800AE92DC /* nl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = nl; path = "Plugins/Purple Service/Resources/nl.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4BE0BD3A78C00AE92DC /* pl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4BF0BD3A78E00AE92DC /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4C00BD3A79100AE92DC /* ru */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = ru; path = "Plugins/Purple Service/Resources/ru.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4C10BD3A79300AE92DC /* sv */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sv; path = "Plugins/Purple Service/Resources/sv.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4C20BD3A79600AE92DC /* tr */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = tr; path = "Plugins/Purple Service/Resources/tr.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4C30BD3A79A00AE92DC /* zh_CN */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_CN; path = "Plugins/Purple Service/Resources/zh_CN.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
-		34CAA4C40BD3A79D00AE92DC /* zh_TW */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = zh_TW; path = "Plugins/Purple Service/Resources/zh_TW.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		34CF9DF2085B8B7900D87E37 /* ESiTunesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESiTunesPlugin.h; path = Source/ESiTunesPlugin.h; sourceTree = "<group>"; };
 		34CF9DF3085B8B7900D87E37 /* ESiTunesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESiTunesPlugin.m; path = Source/ESiTunesPlugin.m; sourceTree = "<group>"; };
 		34D0F9C80954E70100DCB678 /* AIContactListImagePicker.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactListImagePicker.h; path = Source/AIContactListImagePicker.h; sourceTree = "<group>"; };
@@ -2468,8 +2316,6 @@
 		34E0EA0C07CC53FE00A82198 /* AINewMessagePromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AINewMessagePromptController.m; path = Source/AINewMessagePromptController.m; sourceTree = "<group>"; };
 		34E0EA0D07CC53FE00A82198 /* AINewMessagePanelPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AINewMessagePanelPlugin.h; path = Source/AINewMessagePanelPlugin.h; sourceTree = "<group>"; };
 		34E0EA0E07CC53FE00A82198 /* AINewMessagePromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AINewMessagePromptController.h; path = Source/AINewMessagePromptController.h; sourceTree = "<group>"; };
-		34E1EDF30A045AA2003C14F1 /* AdiumApplescriptRunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumApplescriptRunner.h; path = Source/AdiumApplescriptRunner.h; sourceTree = "<group>"; };
-		34E1EDF40A045AA2003C14F1 /* AdiumApplescriptRunner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumApplescriptRunner.m; path = Source/AdiumApplescriptRunner.m; sourceTree = "<group>"; };
 		34E2A0B907AF5924006735BC /* ESAccountNetworkConnectivityPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESAccountNetworkConnectivityPlugin.h; path = Source/ESAccountNetworkConnectivityPlugin.h; sourceTree = "<group>"; };
 		34E2A0BA07AF5924006735BC /* ESAccountNetworkConnectivityPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAccountNetworkConnectivityPlugin.m; path = Source/ESAccountNetworkConnectivityPlugin.m; sourceTree = "<group>"; };
 		34E2A0C107AF593B006735BC /* AIAccountMenuAccessPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountMenuAccessPlugin.m; path = Source/AIAccountMenuAccessPlugin.m; sourceTree = "<group>"; };
@@ -2526,10 +2372,6 @@
 		34F10239073449D500890D3B /* XtrasInstaller.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = XtrasInstaller.m; path = Source/XtrasInstaller.m; sourceTree = "<group>"; };
 		34F1023A073449D500890D3B /* XtrasInstaller.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = XtrasInstaller.h; path = Source/XtrasInstaller.h; sourceTree = "<group>"; };
 		34F13F320BA6D56D000473DE /* pt */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt; path = Resources/pt.lproj/Buttons.strings; sourceTree = "<group>"; };
-		34F13F330BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34F13F3B0BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34F13F3D0BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34F13F400BA6D56D000473DE /* pt */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		34F13F470BA6D56E000473DE /* pt */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt; path = "Plugins/Purple Service/Resources/pt.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		34F13F490BA6D56E000473DE /* pt */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt; path = Resources/pt.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34F13F4A0BA6D56E000473DE /* pt */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt; path = Frameworks/Adium/Resources/pt.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2558,10 +2400,6 @@
 		34F46779080F49C5007800AB /* Safari.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Safari.png; path = Resources/Safari.png; sourceTree = "<group>"; };
 		34F46783080F7FFB007800AB /* ESSafariLinkToolbarItemPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESSafariLinkToolbarItemPlugin.m; path = Source/ESSafariLinkToolbarItemPlugin.m; sourceTree = "<group>"; };
 		34F46784080F7FFB007800AB /* ESSafariLinkToolbarItemPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESSafariLinkToolbarItemPlugin.h; path = Source/ESSafariLinkToolbarItemPlugin.h; sourceTree = "<group>"; };
-		34F468E3080FA987007800AB /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/Purple Service/Resources/de.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		34F468E4080FA987007800AB /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/Purple Service/Resources/de.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		34F468E5080FA987007800AB /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/Purple Service/Resources/de.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		34F468E9080FA987007800AB /* de */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = de; path = "Plugins/Purple Service/Resources/de.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		34F849520A4AEFA00002A017 /* LogFileUpgrade.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LogFileUpgrade.xib; path = Resources/LogFileUpgrade.xib; sourceTree = "<group>"; };
 		34F849560A4AF04D0002A017 /* AILogFileUpgradeWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AILogFileUpgradeWindowController.h; path = Source/AILogFileUpgradeWindowController.h; sourceTree = "<group>"; };
 		34F849570A4AF04D0002A017 /* AILogFileUpgradeWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AILogFileUpgradeWindowController.m; path = Source/AILogFileUpgradeWindowController.m; sourceTree = "<group>"; };
@@ -2650,7 +2488,6 @@
 		4B588C9C07AC23B2001832A9 /* AIEditStateWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEditStateWindowController.m; path = Frameworks/Adium/Source/AIEditStateWindowController.m; sourceTree = "<group>"; };
 		4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "PurpleDefaultsGadu-Gadu.plist"; path = "Plugins/Purple Service/PurpleDefaultsGadu-Gadu.plist"; sourceTree = "<group>"; };
 		4B76476007A07BC90021CCD7 /* PurpleDefaultsGroupWise.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = PurpleDefaultsGroupWise.plist; path = "Plugins/Purple Service/PurpleDefaultsGroupWise.plist"; sourceTree = "<group>"; };
-		4B7A565A07A1742900BDC540 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
 		4B7A567707A1754400BDC540 /* AIEditAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEditAccountWindowController.h; path = Source/AIEditAccountWindowController.h; sourceTree = "<group>"; };
 		4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEditAccountWindowController.m; path = Source/AIEditAccountWindowController.m; sourceTree = "<group>"; };
 		4B7F278705440C8D00CDFC90 /* CBPurpleAccount.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CBPurpleAccount.h; path = "Plugins/Purple Service/CBPurpleAccount.h"; sourceTree = "<group>"; };
@@ -2808,8 +2645,6 @@
 		4D4B485225F3F70B000CEF01 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libintl.8.dylib; sourceTree = "<group>"; };
 		4D4B485425F3F79E000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libotr.5.dylib; path = libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B485625F3F7A3000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libotr.5.dylib; sourceTree = "<group>"; };
-		4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libffi.7.dylib; path = ../../../../../usr/local/Cellar/libffi/3.3_2/lib/libffi.7.dylib; sourceTree = "<group>"; };
-		4D4B487625F3FA35000CEF01 /* libexpat.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.1.dylib; path = ../../../../../usr/local/Cellar/expat/2.2.10/lib/libexpat.1.dylib; sourceTree = "<group>"; };
 		4D6040C823A4612A00181BC9 /* Source */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Source; sourceTree = "<group>"; };
 		4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AIUtilities.xcodeproj; path = Frameworks/AIUtilities/AIUtilities.xcodeproj; sourceTree = "<group>"; };
 		4DAA96852577B48D0000D3F7 /* AutoHyperlinks.framework.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AutoHyperlinks.framework.xcodeproj; path = "Frameworks/AutoHyperlinks Framework/AutoHyperlinks.framework.xcodeproj"; sourceTree = "<group>"; };
@@ -2838,13 +2673,7 @@
 		5A5F8BBB12D560E400019727 /* AIDockNameOverlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIDockNameOverlay.h; path = "Plugins/Dock Icon Badging/AIDockNameOverlay.h"; sourceTree = "<group>"; };
 		5A5F8BBC12D560E400019727 /* AIDockNameOverlay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIDockNameOverlay.m; path = "Plugins/Dock Icon Badging/AIDockNameOverlay.m"; sourceTree = "<group>"; };
 		5A7642AB11E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/Buttons.strings; sourceTree = "<group>"; };
-		5A7642AC11E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		5A7642B211E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Frameworks/Adium/Resources/sk_SK.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
-		5A7642B411E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		5A7642B611E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		5A7642B811E044B900E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		5A7642BB11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		5A7642BC11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sk_SK; path = "Plugins/Purple Service/Resources/sk_SK.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		5A7642C011E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5A7642C311E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5A7642C411E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Frameworks/Adium/Resources/sk_SK.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2852,13 +2681,7 @@
 		5A7642CB11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sk_SK; path = "Resources/sk_SK.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		5A7642CD11E044BA00E5E0AF /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = Resources/sk_SK.lproj/Statuses.strings; sourceTree = "<group>"; };
 		5A80CC87121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Resources/uk.lproj/Buttons.strings; sourceTree = "<group>"; };
-		5A80CC88121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		5A80CC8F121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Frameworks/Adium/Resources/uk.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
-		5A80CC91121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		5A80CC93121F5A7A00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		5A80CC95121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		5A80CC98121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		5A80CC99121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = uk; path = "Plugins/Purple Service/Resources/uk.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		5A80CC9D121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Resources/uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5A80CCA0121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Resources/uk.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5A80CCA1121F5A7B00D0670A /* uk */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = uk; path = Frameworks/Adium/Resources/uk.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2888,56 +2711,6 @@
 		63336B050949908300970871 /* DockIconPreviewView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DockIconPreviewView.xib; path = Resources/DockIconPreviewView.xib; sourceTree = "<group>"; };
 		63336B3F094994A800970871 /* StatusIconPreviewView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusIconPreviewView.xib; path = Resources/StatusIconPreviewView.xib; sourceTree = "<group>"; };
 		63336E14094AB81300970871 /* XtraInfoView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = XtraInfoView.xib; path = Resources/XtraInfoView.xib; sourceTree = "<group>"; };
-		633D4FAD0F9D30E3004F491E /* GetMetadataForHTMLLog-Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GetMetadataForHTMLLog-Additions.h"; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog-Additions.h"; sourceTree = "<group>"; };
-		633D4FAE0F9D30E3004F491E /* GetMetadataForHTMLLog-Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "GetMetadataForHTMLLog-Additions.m"; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog-Additions.m"; sourceTree = "<group>"; };
-		633D4FB00F9D30E3004F491E /* AdiumSpotlightImporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumSpotlightImporter.h; path = "Other/Adium Spotlight Importer/AdiumSpotlightImporter.h"; sourceTree = "<group>"; };
-		633D4FB10F9D30E3004F491E /* GetMetadataForFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GetMetadataForFile.m; path = "Other/Adium Spotlight Importer/GetMetadataForFile.m"; sourceTree = "<group>"; };
-		633D4FB20F9D30E3004F491E /* GetMetadataForHTMLLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GetMetadataForHTMLLog.h; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog.h"; sourceTree = "<group>"; };
-		633D4FB30F9D30E3004F491E /* GetMetadataForHTMLLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GetMetadataForHTMLLog.m; path = "Other/Adium Spotlight Importer/GetMetadataForHTMLLog.m"; sourceTree = "<group>"; };
-		633D4FB40F9D30E3004F491E /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = "Other/Adium Spotlight Importer/main.c"; sourceTree = "<group>"; };
-		633D4FB50F9D30E3004F491E /* maintest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = maintest.m; path = "Other/Adium Spotlight Importer/maintest.m"; sourceTree = "<group>"; };
-		633D4FC00F9D3116004F491E /* schema.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = schema.xml; path = "Other/Adium Spotlight Importer/schema.xml"; sourceTree = "<group>"; };
-		633D4FC10F9D3116004F491E /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Other/Adium Spotlight Importer/Info.plist"; sourceTree = "<group>"; };
-		633D50550F9D31B8004F491E /* AdiumSpotlightImporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumSpotlightImporter.h; path = "Other/Adium Spotlight Importer/AdiumSpotlightImporter.h"; sourceTree = "<group>"; };
-		633D50EE0F9D31BD004F491E /* cs */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50F00F9D31BD004F491E /* cs */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/schema.strings; sourceTree = "<group>"; };
-		633D50F10F9D31BD004F491E /* da */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50F20F9D31BD004F491E /* da */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/schema.strings; sourceTree = "<group>"; };
-		633D50F30F9D31BD004F491E /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50F40F9D31BD004F491E /* de */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/schema.strings; sourceTree = "<group>"; };
-		633D50F50F9D31BD004F491E /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50F60F9D31BD004F491E /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/schema.strings; sourceTree = "<group>"; };
-		633D50F70F9D31BD004F491E /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = fi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50F80F9D31BD004F491E /* fi */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fi; path = fi.lproj/schema.strings; sourceTree = "<group>"; };
-		633D50F90F9D31BD004F491E /* fr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50FA0F9D31BD004F491E /* fr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/schema.strings; sourceTree = "<group>"; };
-		633D50FB0F9D31BD004F491E /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = fr_CA.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D50FC0F9D31BD004F491E /* fr_CA */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr_CA; path = fr_CA.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51020F9D31BD004F491E /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Other/Adium Spotlight Importer/Info.plist"; sourceTree = "<group>"; };
-		633D51030F9D31BD004F491E /* is */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = is; path = is.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51040F9D31BD004F491E /* is */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = is; path = is.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51050F9D31BD004F491E /* it */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51060F9D31BD004F491E /* it */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51070F9D31BD004F491E /* ja */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51080F9D31BD004F491E /* ja */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/schema.strings; sourceTree = "<group>"; };
-		633D510B0F9D31BD004F491E /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = nb.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D510C0F9D31BD004F491E /* nb */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nb; path = nb.lproj/schema.strings; sourceTree = "<group>"; };
-		633D510D0F9D31BD004F491E /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D510E0F9D31BD004F491E /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/schema.strings; sourceTree = "<group>"; };
-		633D510F0F9D31BD004F491E /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51100F9D31BD004F491E /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51110F9D31BD004F491E /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = pt_PT.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51120F9D31BD004F491E /* pt_PT */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pt_PT; path = pt_PT.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51130F9D31BD004F491E /* ru */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51140F9D31BD004F491E /* ru */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51160F9D31BD004F491E /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = sl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51170F9D31BD004F491E /* sl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sl; path = sl.lproj/schema.strings; sourceTree = "<group>"; };
-		633D51180F9D31BD004F491E /* sv */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D51190F9D31BD004F491E /* sv */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/schema.strings; sourceTree = "<group>"; };
-		633D511A0F9D31BD004F491E /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D511B0F9D31BD004F491E /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/schema.strings; sourceTree = "<group>"; };
-		633D511E0F9D31BE004F491E /* zh_CN */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_CN; path = zh_CN.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		633D511F0F9D31BE004F491E /* zh_CN */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_CN; path = zh_CN.lproj/schema.strings; sourceTree = "<group>"; };
 		633F175808F905A700C76383 /* AIXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtrasManager.h; path = Source/AIXtrasManager.h; sourceTree = "<group>"; };
 		633F175908F905A700C76383 /* AIXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIXtrasManager.m; path = Source/AIXtrasManager.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000001 /* AIXtraListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtraListView.h; path = Source/AIXtraListView.h; sourceTree = "<group>"; };
@@ -2976,8 +2749,6 @@
 		63C7E2060FAFAA4700B310AC /* AdiumLibpurple.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = AdiumLibpurple.xcconfig; sourceTree = "<group>"; };
 		63C7E2070FAFAA4700B310AC /* Adium.framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Adium.framework.xcconfig; sourceTree = "<group>"; };
 		63C7E2080FAFAA4700B310AC /* Spotlight Importer.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "Spotlight Importer.xcconfig"; sourceTree = "<group>"; };
-		63DEB88D09BD3FEC0026DC69 /* AIXtraPreviewImageController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtraPreviewImageController.h; path = Source/AIXtraPreviewImageController.h; sourceTree = "<group>"; };
-		63DEB88E09BD3FEC0026DC69 /* AIXtraPreviewImageController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIXtraPreviewImageController.m; path = Source/AIXtraPreviewImageController.m; sourceTree = "<group>"; };
 		63DF5B200E52D77F00010E99 /* AIContactList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactList.m; path = Frameworks/Adium/Source/AIContactList.m; sourceTree = "<group>"; };
 		63DF5B210E52D77F00010E99 /* AIContactList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactList.h; path = Frameworks/Adium/Source/AIContactList.h; sourceTree = "<group>"; };
 		63EA62C7094B832D009C8453 /* AIEmoticonPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPreviewController.h; path = Source/AIEmoticonPreviewController.h; sourceTree = "<group>"; };
@@ -3000,7 +2771,6 @@
 		6E4D961B06B73B38005235E9 /* DCPurpleGaduGaduJoinChatView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DCPurpleGaduGaduJoinChatView.xib; path = "Plugins/Purple Service/DCPurpleGaduGaduJoinChatView.xib"; sourceTree = "<group>"; };
 		6E4D961C06B73B38005235E9 /* DCPurpleGaduGaduJoinChatViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DCPurpleGaduGaduJoinChatViewController.h; path = "Plugins/Purple Service/DCPurpleGaduGaduJoinChatViewController.h"; sourceTree = "<group>"; };
 		6E4D961D06B73B38005235E9 /* DCPurpleGaduGaduJoinChatViewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = DCPurpleGaduGaduJoinChatViewController.m; path = "Plugins/Purple Service/DCPurpleGaduGaduJoinChatViewController.m"; sourceTree = "<group>"; };
-		6E4D962106B73BDF005235E9 /* en */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en; path = "Plugins/Purple Service/Resources/en.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		6E4D962206B73BE0005235E9 /* DCPurpleJabberJoinChatViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DCPurpleJabberJoinChatViewController.h; path = "Plugins/Purple Service/DCPurpleJabberJoinChatViewController.h"; sourceTree = "<group>"; };
 		6E4D962306B73BE0005235E9 /* DCPurpleJabberJoinChatViewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = DCPurpleJabberJoinChatViewController.m; path = "Plugins/Purple Service/DCPurpleJabberJoinChatViewController.m"; sourceTree = "<group>"; };
 		6EA3688206B73E7D009CA81A /* DCPurpleNovellJoinChatView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DCPurpleNovellJoinChatView.xib; path = "Plugins/Purple Service/DCPurpleNovellJoinChatView.xib"; sourceTree = "<group>"; };
@@ -3116,28 +2886,15 @@
 		C4D29CC70C3C2E49001545A2 /* ICImport.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ICImport.xib; path = Resources/ICImport.xib; sourceTree = SOURCE_ROOT; };
 		C6BC7F9A15DD666600C5FF52 /* events-notification.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-notification.tiff"; path = "Resources/events-notification.tiff"; sourceTree = "<group>"; };
 		D10A3A2A122C61EF003B5A7E /* msg-source-destination.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-source-destination.tiff"; path = "Resources/msg-source-destination.tiff"; sourceTree = "<group>"; };
-		D182F1B411DFF23700E33AE2 /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = sk_SK.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		D182F1B611DFF23700E33AE2 /* sk_SK */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sk_SK; path = sk_SK.lproj/schema.strings; sourceTree = "<group>"; };
 		D1B9C00814C3ADF600D03244 /* sl */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; fileEncoding = 10; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		D1C1FA2A14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/Buttons.strings; sourceTree = "<group>"; };
-		D1C1FA2B14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
 		D1C1FA3214995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Frameworks/Adium/Resources/en_AU.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
-		D1C1FA3414995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/ESIRCAccountView.nib"; sourceTree = "<group>"; };
-		D1C1FA3614995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		D1C1FA3814995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		D1C1FA3B14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		D1C1FA3C14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		D1C1FA4014995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D1C1FA4314995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = "Plugins/Purple Service/Resources/en_AU.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		D1C1FA4414995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D1C1FA4514995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Frameworks/Adium/Resources/en_AU.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D1C1FA4A14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en_AU; path = "Resources/en_AU.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		D1C1FA4C14995D98008C94EB /* en_AU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en_AU; path = Resources/en_AU.lproj/Statuses.strings; sourceTree = "<group>"; };
-		D1F92AE214C3A6F6009D7B34 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/DCPurpleJabberJoinChatView.nib"; sourceTree = "<group>"; };
-		D1F92AE414C3A70E009D7B34 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/ESPurpleJabberAccountView.nib"; sourceTree = "<group>"; };
-		D1F92B1114C3A7B4009D7B34 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/ESPurpleGaduGaduAccountView.nib"; sourceTree = "<group>"; };
-		D1F92B1D14C3A7E6009D7B34 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/ESPurpleNovellAccountView.nib"; sourceTree = "<group>"; };
-		D1F92B2814C3A80B009D7B34 /* sl */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/ESPurpleSimpleAccountView.nib"; sourceTree = "<group>"; };
 		D3DA2E3E052E65DE00A8010B /* LNAboutBoxController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = LNAboutBoxController.m; path = Source/LNAboutBoxController.m; sourceTree = "<group>"; };
 		D3DA2E40052E65E400A8010B /* LNAboutBoxController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LNAboutBoxController.h; path = Source/LNAboutBoxController.h; sourceTree = "<group>"; };
 		DA9CF854080F9784000C5249 /* AIPathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPathUtilities.h; path = Frameworks/Adium/Source/AIPathUtilities.h; sourceTree = "<group>"; };
@@ -3474,7 +3231,6 @@
 			isa = PBXGroup;
 			children = (
 				312ED3E30C7E8A4A00A6BDA9 /* UnitTests_Prefix.pch */,
-				312ED3CB0C7E875B00A6BDA9 /* UnitTests-Info.plist */,
 				31E84DF10C7F387800674BCA /* AIUnitTestUtilities.h */,
 				3107D5230F63134F0051DDD5 /* TestAttributedStringAdditions.h */,
 				3107D5240F63134F0051DDD5 /* TestAttributedStringAdditions.m */,
@@ -3860,10 +3616,6 @@
 		3459CBE00A25FFA100ECC256 /* Log Indexing */ = {
 			isa = PBXGroup;
 			children = (
-				3459CBEA0A25FFBE00ECC256 /* GetMetadataForHTMLLog.h */,
-				3459CBE90A25FFBE00ECC256 /* GetMetadataForHTMLLog.m */,
-				3459CBEC0A25FFBF00ECC256 /* AdiumSpotlightImporter.h */,
-				3459CBEB0A25FFBE00ECC256 /* GetMetadataForFile.m */,
 			);
 			name = "Log Indexing";
 			sourceTree = "<group>";
@@ -3886,7 +3638,6 @@
 		34607EF209B22933000DB3D2 /* User Icon Changing */ = {
 			isa = PBXGroup;
 			children = (
-				3489506A0CDE0CC5002FEB4D /* IKRecentPicture.h */,
 				34D0F9C80954E70100DCB678 /* AIContactListImagePicker.h */,
 				34D0F9C90954E70100DCB678 /* AIContactListImagePicker.m */,
 				97AF5CD913191DE200550C41 /* AIContactListUserPictureMenuController.h */,
@@ -4185,7 +3936,6 @@
 		349C2F310867ACF7000BF883 /* ApplescriptRunner */ = {
 			isa = PBXGroup;
 			children = (
-				349C2F460867AD16000BF883 /* ApplescriptRunner.m */,
 			);
 			name = ApplescriptRunner;
 			sourceTree = "<group>";
@@ -4567,8 +4317,6 @@
 		34E1EDEF0A045A50003C14F1 /* Applescript Asynchronous Running */ = {
 			isa = PBXGroup;
 			children = (
-				34E1EDF30A045AA2003C14F1 /* AdiumApplescriptRunner.h */,
-				34E1EDF40A045AA2003C14F1 /* AdiumApplescriptRunner.m */,
 			);
 			name = "Applescript Asynchronous Running";
 			sourceTree = "<group>";
@@ -5491,7 +5239,6 @@
 		4D4B486025F3F88D000CEF01 /* libffi */ = {
 			isa = PBXGroup;
 			children = (
-				4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */,
 			);
 			name = libffi;
 			sourceTree = "<group>";
@@ -5513,7 +5260,6 @@
 		4D4B487125F3F9B1000CEF01 /* expat */ = {
 			isa = PBXGroup;
 			children = (
-				4D4B487625F3FA35000CEF01 /* libexpat.1.dylib */,
 			);
 			name = expat;
 			sourceTree = "<group>";
@@ -5615,7 +5361,6 @@
 		633D4F950F9D2F62004F491E /* Spotlight Importer */ = {
 			isa = PBXGroup;
 			children = (
-				633D51020F9D31BD004F491E /* Info.plist */,
 				633D4FBF0F9D3116004F491E /* Resources */,
 				633D4FBB0F9D30FA004F491E /* External Sources */,
 				633D4FAB0F9D30E3004F491E /* Source */,
@@ -5627,10 +5372,6 @@
 		633D4FAB0F9D30E3004F491E /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				633D50550F9D31B8004F491E /* AdiumSpotlightImporter.h */,
-				633D4FB40F9D30E3004F491E /* main.c */,
-				633D4FB50F9D30E3004F491E /* maintest.m */,
-				31DDDAF112BDE54B0048F6C0 /* Prefix.pch */,
 				633D4FAF0F9D30E3004F491E /* Log Importing */,
 				633D4FAC0F9D30E3004F491E /* Additions */,
 			);
@@ -5640,8 +5381,6 @@
 		633D4FAC0F9D30E3004F491E /* Additions */ = {
 			isa = PBXGroup;
 			children = (
-				633D4FAD0F9D30E3004F491E /* GetMetadataForHTMLLog-Additions.h */,
-				633D4FAE0F9D30E3004F491E /* GetMetadataForHTMLLog-Additions.m */,
 			);
 			name = Additions;
 			sourceTree = "<group>";
@@ -5649,10 +5388,6 @@
 		633D4FAF0F9D30E3004F491E /* Log Importing */ = {
 			isa = PBXGroup;
 			children = (
-				633D4FB00F9D30E3004F491E /* AdiumSpotlightImporter.h */,
-				633D4FB10F9D30E3004F491E /* GetMetadataForFile.m */,
-				633D4FB20F9D30E3004F491E /* GetMetadataForHTMLLog.h */,
-				633D4FB30F9D30E3004F491E /* GetMetadataForHTMLLog.m */,
 			);
 			name = "Log Importing";
 			sourceTree = "<group>";
@@ -5669,8 +5404,6 @@
 			children = (
 				633D50ED0F9D31BD004F491E /* InfoPlist.strings */,
 				633D50EF0F9D31BD004F491E /* schema.strings */,
-				633D4FC00F9D3116004F491E /* schema.xml */,
-				633D4FC10F9D3116004F491E /* Info.plist */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -5685,8 +5418,6 @@
 				63EA62C8094B832D009C8453 /* AIEmoticonPreviewController.m */,
 				632D60BE094B81AB003A9786 /* AIDockIconPreviewController.h */,
 				632D60BF094B81AB003A9786 /* AIDockIconPreviewController.m */,
-				63DEB88D09BD3FEC0026DC69 /* AIXtraPreviewImageController.h */,
-				63DEB88E09BD3FEC0026DC69 /* AIXtraPreviewImageController.m */,
 				63336E14094AB81300970871 /* XtraInfoView.xib */,
 				6333699309497DB000970871 /* EmoticonPreviewView.xib */,
 				63336B050949908300970871 /* DockIconPreviewView.xib */,
@@ -5828,16 +5559,6 @@
 				342F88C90A2A74EA0001DB29 /* SGKeyCombo.m */,
 				632ADC140E9EDDCA00AB6817 /* SGKeyCodeTranslator.h */,
 				632ADC130E9EDDCA00AB6817 /* SGKeyCodeTranslator.m */,
-				342F88B30A2A74D40001DB29 /* SRCommon.h */,
-				342F88B60A2A74D40001DB29 /* SRCommon.m */,
-				342F88B70A2A74D40001DB29 /* SRKeyCodeTransformer.h */,
-				342F88B00A2A74D30001DB29 /* SRKeyCodeTransformer.m */,
-				342F88B90A2A74D40001DB29 /* SRRecorderCell.h */,
-				342F88B80A2A74D40001DB29 /* SRRecorderCell.m */,
-				342F88B50A2A74D40001DB29 /* SRRecorderControl.h */,
-				342F88B40A2A74D40001DB29 /* SRRecorderControl.m */,
-				342F88B20A2A74D40001DB29 /* SRValidator.h */,
-				342F88B10A2A74D40001DB29 /* SRValidator.m */,
 			);
 			name = "Hot Key";
 			sourceTree = "<group>";
@@ -6306,7 +6027,6 @@
 				F570A5CE03704D3D01A8010A /* AIMessageViewController.m */,
 				3461621106FB482C009181D8 /* ESChatUserListController.h */,
 				3461621206FB482C009181D8 /* ESChatUserListController.m */,
-				341BCF800961354D00CF83F5 /* AIMessageWindow.h */,
 				341BCF810961354D00CF83F5 /* AIMessageWindow.m */,
 				341BCF820961354D00CF83F5 /* AIClickThroughThemeDocumentButton.h */,
 				341BCF830961354D00CF83F5 /* AIClickThroughThemeDocumentButton.m */,
@@ -8184,26 +7904,6 @@
 		633D50ED0F9D31BD004F491E /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				633D50EE0F9D31BD004F491E /* cs */,
-				633D50F10F9D31BD004F491E /* da */,
-				633D50F30F9D31BD004F491E /* de */,
-				633D50F50F9D31BD004F491E /* English */,
-				633D50F70F9D31BD004F491E /* fi */,
-				633D50F90F9D31BD004F491E /* fr */,
-				633D50FB0F9D31BD004F491E /* fr_CA */,
-				633D51030F9D31BD004F491E /* is */,
-				633D51050F9D31BD004F491E /* it */,
-				633D51070F9D31BD004F491E /* ja */,
-				633D510B0F9D31BD004F491E /* nb */,
-				633D510D0F9D31BD004F491E /* nl */,
-				633D510F0F9D31BD004F491E /* pl */,
-				633D51110F9D31BD004F491E /* pt_PT */,
-				633D51130F9D31BD004F491E /* ru */,
-				633D51160F9D31BD004F491E /* sl */,
-				633D51180F9D31BD004F491E /* sv */,
-				633D511A0F9D31BD004F491E /* tr */,
-				633D511E0F9D31BE004F491E /* zh_CN */,
-				D182F1B411DFF23700E33AE2 /* sk_SK */,
 			);
 			name = InfoPlist.strings;
 			path = "Other/Adium Spotlight Importer";
@@ -8212,26 +7912,6 @@
 		633D50EF0F9D31BD004F491E /* schema.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				633D50F00F9D31BD004F491E /* cs */,
-				633D50F20F9D31BD004F491E /* da */,
-				633D50F40F9D31BD004F491E /* de */,
-				633D50F60F9D31BD004F491E /* English */,
-				633D50F80F9D31BD004F491E /* fi */,
-				633D50FA0F9D31BD004F491E /* fr */,
-				633D50FC0F9D31BD004F491E /* fr_CA */,
-				633D51040F9D31BD004F491E /* is */,
-				633D51060F9D31BD004F491E /* it */,
-				633D51080F9D31BD004F491E /* ja */,
-				633D510C0F9D31BD004F491E /* nb */,
-				633D510E0F9D31BD004F491E /* nl */,
-				633D51100F9D31BD004F491E /* pl */,
-				633D51120F9D31BD004F491E /* pt_PT */,
-				633D51140F9D31BD004F491E /* ru */,
-				633D51170F9D31BD004F491E /* sl */,
-				633D51190F9D31BD004F491E /* sv */,
-				633D511B0F9D31BD004F491E /* tr */,
-				633D511F0F9D31BE004F491E /* zh_CN */,
-				D182F1B611DFF23700E33AE2 /* sk_SK */,
 			);
 			name = schema.strings;
 			path = "Other/Adium Spotlight Importer";
