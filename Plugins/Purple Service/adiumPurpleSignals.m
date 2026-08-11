@@ -425,6 +425,32 @@ typedef void (*jabber_chat_marker_cb)(PurpleConnection *gc, const char *from, co
 void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
 void jabber_add_feature(const char *xmlns, void *enabled_cb);
 
+/*!
+ * @brief A contact's client confirmed it received one of our messages (XEP-0184)
+ *
+ * Nothing is shown yet, deliberately. A delivery receipt names one message by its id, and
+ * saying "delivered" in the conversation the way the read marker says "read" would be wrong:
+ * it would arrive once per message rather than once per conversation, and it says less than
+ * the read marker already says whenever both are in play.
+ *
+ * Showing it properly means marking the one message it refers to, and for that Adium would
+ * first need to remember which displayed message carries which id - the message view keeps no
+ * such map today. That is the work this hook is waiting for; until then it logs, so the
+ * exchange can be watched in the debug window and the ids seen to line up.
+ */
+static void adiumJabberReceiptReceived(PurpleConnection *gc, const char *from, const char *message_id)
+{
+	@autoreleasepool {
+		PurpleAccount	*purpleAccount = purple_connection_get_account(gc);
+		CBPurpleAccount	*cbaccount = accountLookup(purpleAccount);
+
+		AILog(@"XEP-0184: %@ confirmed delivery of message %s from %@",
+			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
+			  message_id ? message_id : "(no id)",
+			  cbaccount);
+	}
+}
+
 static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from, const char *message_id,
 										  const char *marker_type)
 {
@@ -527,6 +553,7 @@ void configureAdiumPurpleSignals(void)
 	[pool release];
 	/* XEP-0333 chat markers: surface "displayed" markers, and advertise
 	 * receipts + markers support so peers request/send them */
+	jabber_set_receipt_cb(adiumJabberReceiptReceived);
 	jabber_set_chat_marker_cb(adiumJabberChatMarkerReceived);
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
