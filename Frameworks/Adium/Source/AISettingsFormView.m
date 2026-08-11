@@ -41,6 +41,11 @@ static const CGFloat AISettingsSliderLabelMax	= 0.45;		//Share of a slider row i
 static const CGFloat AISettingsValueLabelSlack	= 2.0;		//Keeps a readout from clipping its own text
 static const CGFloat AISettingsLabelFontSize	= 13.0;
 static const CGFloat AISettingsDetailFontSize	= 11.0;
+/* One point above a detail line. An info row carries a paragraph a user is meant to read
+ * rather than a remark under a setting, and at 11 pt beside a 40 pt picture it reads as
+ * small print. Its own constant, so raising it here cannot shrink or grow the detail
+ * lines the other panes are built from. */
+static const CGFloat AISettingsInfoFontSize	= 12.0;
 static const CGFloat AISettingsHeaderFontSize	= 13.0;
 static const CGFloat AISettingsFallbackWidth	= 480.0;	//Used when a host gives us no usable width
 static const CGFloat AISettingsInlineButtonSize	= 22.0;		//Edge length of a row's trailing symbol button
@@ -804,15 +809,44 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 - (void)addInfoRow:(NSString *)text withImage:(NSImage *)image
 {
+	[self addInfoRow:text withImage:image title:nil control:nil];
+}
+
+- (void)addInfoRow:(NSString *)text withImage:(NSImage *)image title:(NSString *)title control:(NSView *)control
+{
 	NSImage *symbol = [AISettingsMakeInfoImage(image) autorelease];
 
-	//Neither a picture nor a sentence: an empty field still measures a blank line
-	if (!text.length && !symbol) return;
+	//Nothing to show at all: an empty field still measures a blank line
+	if (!text.length && !title.length && !symbol && !control) return;
 
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
 
+	AISettingsAdoptView(control);
+
 	row->type = AISettingsRowTypeInfo;
-	if (text.length) row->detailField = AISettingsMakeDetailLabel(text);
+	/* The heading takes the row label's font rather than a section header's bold:
+	 * this row usually shares its card with plain label/control rows, and a
+	 * heavier heading inside the card would read as a heading for those rows
+	 * instead of as the name of this one. */
+	if (title.length) {
+		row->labelField = AISettingsMakeLabel(title,
+											  [NSFont systemFontOfSize:AISettingsLabelFontSize],
+											  [NSColor labelColor]);
+	}
+	if (text.length) {
+		row->detailField = AISettingsMakeLabel(text,
+											   [NSFont systemFontOfSize:AISettingsInfoFontSize],
+											   [NSColor secondaryLabelColor]);
+		//Selectable for the same reason a detail line is: an explanation is text worth copying
+		[row->detailField setSelectable:YES];
+	}
+	row->control = [control retain];
+
+	/* A control showing a title of its own keeps it as its accessibility label and
+	 * only takes the heading as its help text, the way a pop up row's accessory
+	 * button does: a button announcing nothing but "Open" says nothing about what
+	 * it opens. One without a title — a switch — is named by the heading instead. */
+	AISettingsApplyAccessibility(control, title, title);
 
 	if (symbol) {
 		NSSize symbolSize = [symbol size];
@@ -834,9 +868,10 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	 * fullWidthView, for the reason -addDetailRow: spells out: those two are where
 	 * -layoutRow:atY:inCardOfWidth: takes a row's natural size from, and a row
 	 * measured from a hosted view keeps the height it was first given and never
-	 * folds its text again. Here the height still comes from measuring the text at
-	 * the width the picture leaves it, every layout — the image view only ever
-	 * receives a frame, it never decides one. */
+	 * folds its text again. Here the height still comes from measuring heading and
+	 * paragraph at the width the picture and the control leave them, every layout —
+	 * the image view only ever receives a frame, it never decides one, and the
+	 * control contributes nothing but its own height, which no width can change. */
 	[self appendRow:row];
 }
 
@@ -1148,15 +1183,17 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		}
 
 		case AISettingsRowTypeInfo: {
-			/* A picture at the leading edge and the paragraph it illustrates beside
-			 * it, both centred against whichever of the two is taller.
+			/* A picture at the leading edge, the heading and the paragraph it
+			 * illustrates beside it and a control at the trailing edge, all three
+			 * centred against whichever of them is tallest.
 			 *
-			 * Measured exactly the way a detail row is: the text height is asked for
-			 * afresh at every layout, at the width that is actually left next to the
-			 * picture, so the sentence refolds as the window narrows. Nothing here
-			 * reads a frame back — the image view is given the size its (already
-			 * scaled) picture has and never reports one — so no measurement of a
-			 * wide card can survive into a narrow one. */
+			 * Measured exactly the way a detail row is: both text heights are asked
+			 * for afresh at every layout, at the width that is actually left between
+			 * the picture and the control, so the block refolds as the window
+			 * narrows. Nothing here reads a text frame back — the image view is given
+			 * the size its (already scaled) picture has and never reports one, and the
+			 * control's remembered size has no width in it that a layout could shrink
+			 * — so no measurement of a wide card can survive into a narrow one. */
 			NSImage	*symbol = [row->imageView image];
 			NSSize	 symbolSize = (symbol ? [symbol size] : NSZeroSize);
 			/* The text begins at the far side of the whole square, not at the far side of
@@ -1167,10 +1204,28 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 			 * picture is centred in that column, so a narrow one does not hang off its
 			 * leading edge. */
 			CGFloat	 leading = (symbolSize.width > 0.0 ? AISettingsInfoImageSize + AISettingsLabelControlGap : 0.0);
-			CGFloat	 textWidth = MAX(innerWidth - leading, 1.0);
-			CGFloat	 textHeight = AISettingsFieldHeight(row->detailField, textWidth);
+
+			/* Everything the picture did not take. The control is capped against this
+			 * rather than against the whole card, the way a control row caps itself
+			 * against the card's inner width: a button wider than what is left would
+			 * squeeze the paragraph into a column of syllables. */
+			CGFloat	 available = MAX(innerWidth - leading, 1.0);
+			NSSize	 controlSize = (row->control ? row->naturalControlSize : NSZeroSize);
+			CGFloat	 maxControlWidth = MAX(MIN(available - AISettingsMinLabelWidth - AISettingsLabelControlGap,
+											   available - 1.0),
+										   MIN(60.0, available - 1.0));
+			CGFloat	 controlWidth = (row->control ? MAX(MIN(controlSize.width, maxControlWidth), 0.0) : 0.0);
+			CGFloat	 trailing = (controlWidth > 0.0 ? controlWidth + AISettingsLabelControlGap : 0.0);
+			CGFloat	 textWidth = MAX(available - trailing, 1.0);
+
+			CGFloat	 titleHeight = (row->labelField ? AISettingsFieldHeight(row->labelField, textWidth) : 0.0);
+			CGFloat	 textHeight = (row->detailField ? AISettingsFieldHeight(row->detailField, textWidth) : 0.0);
+			//The gap only exists where there are two lines to keep apart
+			CGFloat	 titleGap = ((titleHeight > 0.0 && textHeight > 0.0) ? AISettingsDetailGap : 0.0);
+			CGFloat	 blockHeight = titleHeight + titleGap + textHeight;
 			CGFloat	 rowHeight = MAX(AISettingsRowMinHeight,
-									 MAX(textHeight, symbolSize.height) + 2.0 * AISettingsRowInsetV);
+									 MAX(MAX(blockHeight, symbolSize.height), controlSize.height) + 2.0 * AISettingsRowInsetV);
+			CGFloat	 textY = rowY + floor((rowHeight - blockHeight) / 2.0);
 
 			if (row->imageView) {
 				[row->imageView setFrame:NSMakeRect(AISettingsCardInsetH + floor((AISettingsInfoImageSize - symbolSize.width) / 2.0),
@@ -1178,11 +1233,23 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 													symbolSize.width,
 													symbolSize.height)];
 			}
+			if (row->labelField) {
+				[row->labelField setFrame:NSMakeRect(AISettingsCardInsetH + leading,
+													 textY,
+													 textWidth,
+													 titleHeight)];
+			}
 			if (row->detailField) {
 				[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH + leading,
-													  rowY + floor((rowHeight - textHeight) / 2.0),
+													  textY + titleHeight + titleGap,
 													  textWidth,
 													  textHeight)];
+			}
+			if (row->control) {
+				[row->control setFrame:NSMakeRect(cardWidth - AISettingsCardInsetH - controlWidth,
+												  rowY + floor((rowHeight - controlSize.height) / 2.0),
+												  MAX(controlWidth, 1.0),
+												  controlSize.height)];
 			}
 
 			return rowHeight;

@@ -115,7 +115,7 @@
 }
 
 /*!
- * @brief Fill @a form with one card per non-empty category, plus the closing "More Xtras" card
+ * @brief Fill @a form with the "where Xtras come from" card, then one card per non-empty category
  *
  * Reads the set of installed Xtras afresh: -loadXtras throws away the manager's cache, so this is
  * also what makes an Xtra which appeared or disappeared while the pane was open show up correctly.
@@ -127,10 +127,39 @@
 {
 	AIXtrasManager	*manager = [AIXtrasManager sharedManager];
 	BOOL			 foundAny = NO;
+	/* The host on its own is what the sentence names, not the whole URL - and it comes from the
+	 * address the "Open" button actually opens, so a translation which points at a page of its own
+	 * (ADIUM_XTRAS_PAGE is localizable) cannot end up telling the user one address while sending
+	 * them to another. Whole URL if it will not parse: a hole in the sentence would be worse. */
+	NSString		*website = ([[NSURL URLWithString:ADIUM_XTRAS_PAGE] host] ?: ADIUM_XTRAS_PAGE);
 
 	if (!listViews) listViews = [[NSMutableArray alloc] init];
 
 	[manager loadXtras];
+
+	/* Where to get more, and where the ones you already have live - above the lists rather than
+	 * below them. This is the one thing the pane can say to somebody who has installed nothing at
+	 * all, and on a fresh installation that is everybody; making them scroll past the lists to
+	 * find it would be backwards. No heading over this card: the two rows name themselves, and a
+	 * heading on the very first card would only repeat the pane's own title.
+	 *
+	 * The duck is the one the old Xtras window carried in its toolbar for exactly this errand -
+	 * fetching what is not there yet. */
+	[form addInfoRow:[NSString stringWithFormat:
+												AILocalizedString(@"More Xtras for Adium can be downloaded from the website %@. Double-click a downloaded Xtra to install it.",
+																  "Paragraph at the top of the Xtras pane. %@ is the host name of the Xtras website."),
+												website]
+		   withImage:[NSImage imageNamed:@"xtras_duck" forClass:[self class]]
+			   title:AILocalizedString(@"Xtras Website", "Heading of the paragraph pointing at xtras.adium.im")
+			 control:[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Open", nil)
+													  target:self
+													  action:@selector(browseXtras:)]];
+
+	[form addRowWithLabel:AILocalizedString(@"Xtras Folder", "Row leading to the folder installed Xtras are kept in")
+				  control:[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Show in Finder", nil)
+														   target:self
+														   action:@selector(revealXtrasFolder:)]
+				   detail:[[adium applicationSupportDirectory] stringByAbbreviatingWithTildeInPath]];
 
 	for (NSInteger index = 0; index < (NSInteger)[manager numberOfCategories]; index++) {
 		NSArray	*xtras = [manager xtrasForCategoryAtIndex:index];
@@ -159,44 +188,11 @@
 
 	if (!foundAny) {
 		/* Not a card per empty category, and not nothing either: a single card saying so, the shape
-		 * System Settings gives a list which has nothing in it yet. */
+		 * System Settings gives a list which has nothing in it yet. It stands exactly where the
+		 * categories would - under the card above, which has already said where Xtras come from. */
 		[form addSectionHeader:AILocalizedString(@"Installed Xtras", "Section title above the list of installed Xtras")];
 		[form addEmptyStateRow:AILocalizedString(@"No Xtras Installed", "Shown instead of the list when no Xtras are installed")];
 	}
-
-	//Where to get more, and where the ones you have live
-	[form addSectionHeader:AILocalizedString(@"More Xtras", "Section title above the link to the Xtras website")];
-
-	[form addRowWithLabel:AILocalizedString(@"Xtras Website", "Row leading to xtras.adium.im")
-				  control:[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Open", nil)
-														   target:self
-														   action:@selector(browseXtras:)]
-				   detail:[[NSURL URLWithString:ADIUM_XTRAS_PAGE] host]];
-
-	[form addRowWithLabel:AILocalizedString(@"Xtras Folder", "Row leading to the folder installed Xtras are kept in")
-				  control:[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Show in Finder", nil)
-														   target:self
-														   action:@selector(revealXtrasFolder:)]
-				   detail:[[adium applicationSupportDirectory] stringByAbbreviatingWithTildeInPath]];
-
-	[form addDetailRow:AILocalizedString(@"Double-click a downloaded Xtra to install it.",
-										 "Explanation below the Xtras website and folder rows")];
-
-	/* Without this nobody understands why a fresh installation shows no Xtras at all: the ones
-	 * inside the application bundle are deliberately invisible here, because they cannot be
-	 * switched off or thrown away.
-	 *
-	 * A card of its own rather than another row or a footnote of "More Xtras": the sentence is
-	 * not a remark about the website and folder rows, it answers what the lists further up
-	 * raise ("where is everything?"), and hanging it under those two rows would make it read
-	 * as belonging to them. A card without a heading still stands in the group above it, so
-	 * this one closes the pane where it always did - only the footnote's small print has
-	 * become a block of its own. The duck is the one the old Xtras window carried in its
-	 * toolbar for exactly this errand - fetching what is not there yet. */
-	[form endCard];
-	[form addInfoRow:AILocalizedString(@"Xtras included with Adium are not listed here.",
-									   "Explanation shown beside the duck at the end of the Xtras pane")
-		   withImage:[NSImage imageNamed:@"xtras_duck" forClass:[self class]]];
 }
 
 /*!

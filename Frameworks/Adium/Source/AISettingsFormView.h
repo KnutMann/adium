@@ -260,18 +260,25 @@
 - (void)addEmptyStateRow:(NSString *)text;
 
 /*!
- * @brief Append a row: @a image at the leading edge, @a text wrapped beside it.
+ * @brief Append a row: @a image at the leading edge, @a title over @a text
+ *        beside it, @a control at the trailing edge.
  *
- * The shape System Settings uses for an explanation worth a picture — the
- * paragraph standing next to the Mac in Bluetooth: a symbol at the leading edge
- * and the same small secondary text @c addDetailRow: carries beside it, the two
- * of them centred against whichever is taller.
+ * The shape System Settings uses for an explanation worth a picture and a way
+ * to act on it — the paragraph standing next to the Mac in Bluetooth, the
+ * software update block with its "Update Now": a symbol at the leading edge, a
+ * heading with the same small secondary text @c addDetailRow: carries under it,
+ * and a button at the far end. Picture, text block and control are centred
+ * against whichever of the three is taller.
  *
  * Use it where a sentence carries the weight of a whole card rather than of the
  * row above it; a line which only qualifies its neighbour stays an
  * @c addDetailRow:. Because it reads as a block of its own, it usually wants a
  * card of its own — open one with @c endCard or @c addSectionHeader: — unless
  * it really is about the rows it is sitting with.
+ *
+ * @a title is set in the font of an ordinary row label, not in a section
+ * header's bold: it names this row, and a heavier heading inside a card would
+ * read as a heading for every row below it.
  *
  * @a image is scaled proportionally into a square of at most 40 points, and a
  * <em>copy</em> is what gets scaled: a named image is shared with everything
@@ -283,9 +290,26 @@
  * accessibility tree, since it illustrates @a text and says nothing @a text does
  * not.
  *
- * The text wraps at whatever width the image leaves it and is re-measured at
- * every layout, so it refolds when the window is resized. Either argument may be
- * nil; with neither, nothing is added at all.
+ * @a control keeps its natural width — narrowed only when the card cannot spare
+ * it — and is given @a title as its help text, so a button reading nothing but
+ * "Open" still says what it opens. Hand over a single control; for a bar of
+ * them, wrap it in @c rowOfViews:.
+ *
+ * Both @a title and @a text wrap at whatever width the picture and the control
+ * leave them, and both are re-measured at every layout, so they refold when the
+ * window is resized. Every argument may be nil; with nothing at all, nothing is
+ * added.
+ */
+- (void)addInfoRow:(NSString *)text
+		 withImage:(NSImage *)image
+			 title:(NSString *)title
+		   control:(NSView *)control;
+
+/*!
+ * @brief As above: a picture and the paragraph it illustrates, nothing else.
+ *
+ * The plain shape, for a sentence which wants no heading over it and offers
+ * nothing to press. Everything else is @c addInfoRow:withImage:title:control:.
  */
 - (void)addInfoRow:(NSString *)text withImage:(NSImage *)image;
 
