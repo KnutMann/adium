@@ -17,9 +17,11 @@
                 <outlet property="checkBox_displayCustomEmoticons" destination="528" id="531"/>
                 <outlet property="checkBox_forceOldSSL" destination="167" id="192"/>
                 <outlet property="checkBox_requireTLS" destination="285" id="286"/>
+                <outlet property="checkBox_sendReadReceipts" destination="RR02" id="RR04"/>
                 <outlet property="checkBox_sendTyping" destination="333" id="345"/>
                 <outlet property="comboBox_subscriptionGroup" destination="280" id="281"/>
                 <outlet property="label_encryption" destination="335" id="346"/>
+                <outlet property="label_readReceipts" destination="RR01" id="RR03"/>
                 <outlet property="label_typing" destination="334" id="347"/>
                 <outlet property="popUp_encryption" destination="336" id="344"/>
                 <outlet property="popup_subscriptionBehavior" destination="270" id="277"/>
@@ -412,11 +414,11 @@
             </subviews>
         </customView>
         <customView id="332" userLabel="Privacy">
-            <rect key="frame" x="0.0" y="0.0" width="393" height="75"/>
+            <rect key="frame" x="0.0" y="0.0" width="540" height="100"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
                 <button id="351">
-                    <rect key="frame" x="90" y="-1" width="312" height="18"/>
+                    <rect key="frame" x="139" y="24" width="312" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <buttonCell key="cell" type="check" title="Let others know what iTunes is playing" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="626">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -424,10 +426,11 @@
                     </buttonCell>
                     <connections>
                         <action selector="changedPreference:" target="-2" id="353"/>
+                        <outlet property="nextKeyView" destination="RR01" id="RR09"/>
                     </connections>
                 </button>
                 <textField verticalHuggingPriority="750" id="350">
-                    <rect key="frame" x="42" y="0.0" width="45" height="17"/>
+                    <rect key="frame" x="91" y="25" width="45" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="Music:" id="625">
                         <font key="font" metaFont="system"/>
@@ -439,7 +442,7 @@
                     </connections>
                 </textField>
                 <popUpButton verticalHuggingPriority="750" id="336">
-                    <rect key="frame" x="89" y="48" width="307" height="26"/>
+                    <rect key="frame" x="138" y="73" width="307" height="26"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <popUpButtonCell key="cell" type="push" title="Item1" bezelStyle="rounded" alignment="left" lineBreakMode="clipping" state="on" borderStyle="border" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" selectedItem="338" id="624">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -456,7 +459,7 @@
                     </connections>
                 </popUpButton>
                 <textField verticalHuggingPriority="750" id="335">
-                    <rect key="frame" x="12" y="54" width="75" height="17"/>
+                    <rect key="frame" x="61" y="79" width="75" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="Encryption:" id="623">
                         <font key="font" metaFont="system"/>
@@ -468,7 +471,7 @@
                     </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="334">
-                    <rect key="frame" x="35" y="25" width="52" height="17"/>
+                    <rect key="frame" x="84" y="50" width="52" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="Typing:" id="622">
                         <font key="font" metaFont="system"/>
@@ -480,7 +483,7 @@
                     </connections>
                 </textField>
                 <button id="333">
-                    <rect key="frame" x="90" y="24" width="309" height="18"/>
+                    <rect key="frame" x="139" y="49" width="309" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <buttonCell key="cell" type="check" title="Let others know when you are typing" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="621">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -489,6 +492,29 @@
                     <connections>
                         <action selector="changedPreference:" target="-2" id="342"/>
                         <outlet property="nextKeyView" destination="350" id="358"/>
+                    </connections>
+                </button>
+                <textField verticalHuggingPriority="750" id="RR01">
+                    <rect key="frame" x="6" y="0.0" width="130" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="right" title="Read receipts:" id="RR05">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="RR02" id="RR07"/>
+                    </connections>
+                </textField>
+                <button id="RR02">
+                    <rect key="frame" x="139" y="-1" width="398" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Let others know when you have read their messages" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="RR06">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changedPreference:" target="-2" id="RR08"/>
                     </connections>
                 </button>
             </subviews>

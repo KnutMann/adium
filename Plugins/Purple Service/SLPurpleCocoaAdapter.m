@@ -933,8 +933,13 @@ gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who
 										 GINT_TO_POINTER((int)inChat.unviewedContentCount));
 			purple_conversation_update(conv, PURPLE_CONV_UPDATE_UNSEEN);
 
-			/* XEP-0333: the user just read this conversation; let the contact know */
-			if (inChat.unviewedContentCount == 0 && !inChat.isGroupChat) {
+			/* XEP-0333: the user just read this conversation; let the contact know.
+			 * The marker reveals that - and when - the user read a message, so the account
+			 * it belongs to may switch it off; an account which never touched the setting
+			 * keeps sending markers. */
+			if (inChat.unviewedContentCount == 0 && !inChat.isGroupChat &&
+				![[inChat.account preferenceForKey:KEY_DISABLE_READ_RECEIPTS
+											 group:GROUP_ACCOUNT_STATUS] boolValue]) {
 				PurpleConnection *gc = purple_conversation_get_gc(conv);
 				PurplePlugin *prpl = gc ? purple_connection_get_prpl(gc) : NULL;
 				if (prpl && purple_strequal(purple_plugin_get_id(prpl), "prpl-jabber")) {

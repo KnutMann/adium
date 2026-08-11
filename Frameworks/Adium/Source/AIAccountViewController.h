@@ -46,6 +46,9 @@
 	IBOutlet	NSTextField		*label_typing;					//Label for the typing preference
 	IBOutlet	NSButton		*checkBox_sendTyping;			//Send the user's typing state
 	
+	IBOutlet	NSTextField		*label_readReceipts;			//Label for the read receipt preference
+	IBOutlet	NSButton		*checkBox_sendReadReceipts;		//Send read markers once the user read a message
+	
 	IBOutlet	NSTextField		*label_encryption;				//Label for the encryption preference
 	IBOutlet	NSPopUpButton	*popUp_encryption;				//Encryption preference
 	

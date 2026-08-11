@@ -13,16 +13,18 @@
                 <outlet property="popUp_encryption" destination="pEnc" id="oPEnc"/>
                 <outlet property="label_typing" destination="lTyp" id="oLTyp"/>
                 <outlet property="checkBox_sendTyping" destination="cbTyp" id="oCbTyp"/>
+                <outlet property="label_readReceipts" destination="lRcpt" id="oLRcpt"/>
+                <outlet property="checkBox_sendReadReceipts" destination="cbRcpt" id="oCbRcpt"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="paneView" userLabel="Privacy">
-            <rect key="frame" x="0.0" y="0.0" width="500" height="48"/>
+            <rect key="frame" x="0.0" y="0.0" width="540" height="77"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
             <subviews>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lEnc">
-                    <rect key="frame" x="61" y="29" width="75" height="17"/>
+                    <rect key="frame" x="61" y="58" width="75" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Encryption:" id="lEncC">
                         <font key="font" metaFont="system"/>
@@ -31,7 +33,7 @@
                     </textFieldCell>
                 </textField>
                 <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pEnc">
-                    <rect key="frame" x="138" y="23" width="307" height="26"/>
+                    <rect key="frame" x="138" y="52" width="307" height="26"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="pEncC">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -43,7 +45,7 @@
                     </connections>
                 </popUpButton>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lTyp">
-                    <rect key="frame" x="61" y="0.0" width="75" height="17"/>
+                    <rect key="frame" x="61" y="29" width="75" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Typing:" id="lTypC">
                         <font key="font" metaFont="system"/>
@@ -52,7 +54,7 @@
                     </textFieldCell>
                 </textField>
                 <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbTyp">
-                    <rect key="frame" x="139" y="-1" width="256" height="18"/>
+                    <rect key="frame" x="139" y="28" width="256" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                     <buttonCell key="cell" type="check" title="Let others know when you are typing" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbTypC">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -60,6 +62,26 @@
                     </buttonCell>
                     <connections>
                         <action selector="changedPreference:" target="-2" id="aCbTyp"/>
+                    </connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lRcpt">
+                    <rect key="frame" x="6" y="0.0" width="130" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Read receipts:" id="lRcptC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbRcpt">
+                    <rect key="frame" x="139" y="-1" width="398" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Let others know when you have read their messages" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbRcptC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="changedPreference:" target="-2" id="aCbRcpt"/>
                     </connections>
                 </button>
             </subviews>

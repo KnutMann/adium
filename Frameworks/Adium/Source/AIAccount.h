@@ -31,6 +31,14 @@
 #define KEY_ENABLED					@"Enabled"
 #define KEY_AUTOCONNECT				@"AutoConnect"
 
+/* Read receipts (XEP-0333 "displayed" markers) tell the other side that - and when - we read
+ * their message, so they are opt-out per account.  The preference is stored inverted on purpose:
+ * an account which has never seen this setting has no value stored, reads as NO, and keeps
+ * sending markers exactly as it did before the setting existed.
+ * Both the account preference view and the libpurple send path need this key, hence it lives
+ * here rather than being redefined in each implementation file. */
+#define KEY_DISABLE_READ_RECEIPTS	@"Disable Read Receipts"
+
 //NSData archive of an NSAttributedString
 #define KEY_ACCOUNT_DISPLAY_NAME	@"FullNameAttr"
 

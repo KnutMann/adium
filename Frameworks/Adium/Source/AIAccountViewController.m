@@ -241,6 +241,10 @@
 		[checkBox_sendTyping setState:![[inAccount preferenceForKey:KEY_DISABLE_TYPING_NOTIFICATIONS
 															  group:GROUP_ACCOUNT_STATUS] boolValue]];
 
+		//Read receipts (inverse preference)
+		[checkBox_sendReadReceipts setState:![[inAccount preferenceForKey:KEY_DISABLE_READ_RECEIPTS
+																	group:GROUP_ACCOUNT_STATUS] boolValue]];
+
 		//Encryption
 		[popUp_encryption selectItemWithTag:[[account preferenceForKey:KEY_ENCRYPTED_CHAT_PREFERENCE
 																		   group:GROUP_ENCRYPTION] intValue]];
@@ -315,6 +319,15 @@
 	[account setPreference:[NSNumber numberWithBool:![checkBox_sendTyping state]]
 					forKey:KEY_DISABLE_TYPING_NOTIFICATIONS
 					 group:GROUP_ACCOUNT_STATUS];
+
+	/* Read receipts (preference is the inverse of the displayed checkbox).  Services which supply
+	 * their own privacy view have no such checkbox; writing the inverse of a nil outlet would store
+	 * "disabled" for a setting the user was never shown. */
+	if (checkBox_sendReadReceipts) {
+		[account setPreference:[NSNumber numberWithBool:![checkBox_sendReadReceipts state]]
+						forKey:KEY_DISABLE_READ_RECEIPTS
+						 group:GROUP_ACCOUNT_STATUS];
+	}
 
 	//Encryption
 	[account setPreference:[NSNumber numberWithInteger:[[popUp_encryption selectedItem] tag]]
@@ -412,6 +425,8 @@
 	[label_password setStringValue:AILocalizedStringFromTableInBundle(@"Password:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label for the password field in the account preferences")];
 	[label_typing setStringValue:AILocalizedStringFromTableInBundle(@"Typing:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label beside the 'let others know when you are typing' checkbox in the account preferences")];
 	[checkBox_sendTyping setTitle:AILocalizedStringFromTableInBundle(@"Let others know when you are typing", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Text of the typing preference checkbox in the account preferences")];
+	[label_readReceipts setStringValue:AILocalizedStringFromTableInBundle(@"Read receipts:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label beside the 'let others know when you have read their messages' checkbox in the account preferences")];
+	[checkBox_sendReadReceipts setTitle:AILocalizedStringFromTableInBundle(@"Let others know when you have read their messages", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Text of the read receipt preference checkbox in the account preferences")];
 	[label_encryption setStringValue:AILocalizedStringFromTableInBundle(@"Encryption:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label besides the encryption preference menu")];
 	[label_alias setStringValue:AILocalizedStringFromTableInBundle(@"Alias:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], nil)];
 	[label_port setStringValue:AILocalizedStringFromTableInBundle(@"Port:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label for the port field in the account preferences")];
