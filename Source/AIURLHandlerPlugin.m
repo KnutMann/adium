@@ -40,7 +40,6 @@
 - (void)handleURL:(NSNotification *)notification;
 
 - (void)_openChatToContactWithName:(NSString *)name onService:(NSString *)serviceIdentifier withMessage:(NSString *)body;
-- (void)_openAIMGroupChat:(NSString *)roomname onExchange:(NSInteger)exchange;
 - (void)_openXMPPGroupChat:(NSString *)name onServer:(NSString *)server withPassword:(NSString *)inPassword;
 - (void)_openIRCGroupChat:(NSString *)name onServer:(NSString *)server withPort:(NSInteger)port andPassword:(NSString *)password;
 @end
@@ -50,11 +49,11 @@
  *
  * The URL handler plugin handles URL events sent to us.
  *
- * For example, it will convert aim://goim?sn=fuark to open a chat window with
- * the user "fuark" on the first available AIM account.
+ * For example, it will convert xmpp:fuark@jabber.org?message to open a chat window with
+ * the user "fuark" on the first available Jabber account.
  *
- * This plugin is also responsible for managing the default application settings
- * for the schemes we support, and enforcing if necessary our ownership.
+ * This plugin also manages the default application settings for the schemes we support.
+ * Note that we never claim a service scheme unless the user asks us to.
  */
 @implementation AIURLHandlerPlugin
 /*!
@@ -100,21 +99,18 @@
 /*!
  * @brief Check our handled schemes
  *
- * If this is the first launch, or the user has "enforce Adium as default" set, set ourself
- * as the default for all available service schemes.
+ * We do not claim a service scheme on our own initiative. Adium used to grab every scheme it
+ * knew on the very first launch, which silently took xmpp: and irc: away from whatever the user
+ * had chosen before. A service scheme is now only claimed when the user asks for it: either one
+ * at a time in the Default Client preferences, or through the "Always set Adium as the default"
+ * checkbox, which we re-apply on every launch.
  *
  * Always set ourself as the default for our helper schemes (such as adiumxtra).
  */
 - (void)checkHandledSchemes
 {
-	if (![[adium.preferenceController preferenceForKey:PREF_KEY_SET_DEFAULT_FIRST_TIME
-												 group:GROUP_URL_HANDLING] boolValue]) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
-										   forKey:PREF_KEY_SET_DEFAULT_FIRST_TIME
-											group:GROUP_URL_HANDLING];
-		[self setAdiumAsDefault];
-	} else if ([[adium.preferenceController preferenceForKey:PREF_KEY_ENFORCE_DEFAULT
-													   group:GROUP_URL_HANDLING] boolValue]) {
+	if ([[adium.preferenceController preferenceForKey:PREF_KEY_ENFORCE_DEFAULT
+												group:GROUP_URL_HANDLING] boolValue]) {
 		[self setAdiumAsDefault];
 	}
 	
@@ -137,7 +133,6 @@
 	static NSDictionary	*schemeToServiceDict = nil;
 	if (!schemeToServiceDict) {
 		schemeToServiceDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-							   @"AIM",     @"aim",
 							   @"Jabber",  @"xmpp",
 							   @"Jabber",  @"jabber",
 							   @"GTalk",   @"gtalk",
@@ -174,21 +169,26 @@
  */
 - (NSArray *)uniqueSchemes
 {
-	return [NSArray arrayWithObjects:@"aim", @"irc", @"xmpp", nil];
+	//aim: is gone: AOL shut the service down in December 2017 and the AIM service has been
+	//removed from Adium, so there is no longer anything to hand an aim: URL to.
+	return [NSArray arrayWithObjects:@"irc", @"xmpp", nil];
 }
 
 /*!
  * @brief Helper schemes
  *
  * Helper schemes are schemes which we should always be registered as the default application
- * for. This includes things like the adiumxtra:// installer, and twitterreply:// for the Twitter
- * service.
+ * for. adiumxtra:// is the installer for Adium Xtras; nothing else handles it, so claiming it
+ * takes nothing away from anybody.
+ *
+ * (twitterreply:// used to live here. The Twitter plugin is gone, so we were claiming a scheme
+ * we could no longer act upon.)
  *
  * @returns An NSArray of all of the helper schemes we support.
  */
 - (NSArray *)helperSchemes
 {
-	return [NSArray arrayWithObjects:@"twitterreply", @"adiumxtra", nil];
+	return [NSArray arrayWithObject:@"adiumxtra"];
 }
 
 #pragma mark Default Bundle
@@ -262,81 +262,7 @@
 		NSString *host = [url host];
 		NSString *query = [url query];
 		
-		if ([scheme isEqualToString:@"aim"]) {
-			if ([host caseInsensitiveCompare:@"goim"] == NSOrderedSame) {
-				// aim://goim?screenname=tekjew
-				NSString	*name = [[[url queryArgumentForKey:@"screenname"] stringByDecodingURLEscapes] compactedString];
-				
-				if (name) {
-					[self _openChatToContactWithName:name
-										   onService:serviceID 
-										 withMessage:[[url queryArgumentForKey:@"message"] stringByDecodingURLEscapes]];
-				}
-				
-			} else if ([host caseInsensitiveCompare:@"addbuddy"] == NSOrderedSame) {
-				// aim://addbuddy?screenname=tekjew
-				// aim://addbuddy?listofscreennames=screen+name1,screen+name+2&groupname=buddies
-				NSString	*name = [[[url queryArgumentForKey:@"screenname"] stringByDecodingURLEscapes] compactedString];
-				AIService	*service = [adium.accountController firstServiceWithServiceID:serviceID];
-				
-				if (name) {
-					[adium.contactController requestAddContactWithUID:name
-					 service:service
-					 account:nil];
-					
-				} else {
-					NSString		*listOfNames = [url queryArgumentForKey:@"listofscreennames"];
-					NSArray			*names = [listOfNames componentsSeparatedByString:@","];
-					
-					for (name in names) {
-						NSString	*decodedName = [[name stringByDecodingURLEscapes] compactedString];
-						[adium.contactController requestAddContactWithUID:decodedName
-						 service:service
-						 account:nil];
-					}
-				}
-			} else if ([host caseInsensitiveCompare:@"gochat"]  == NSOrderedSame) {
-				// aim://gochat?RoomName=AdiumRocks
-				NSString	*roomname = [[url queryArgumentForKey:@"roomname"] stringByDecodingURLEscapes];
-				NSString	*exchangeString = [url queryArgumentForKey:@"exchange"];
-				if (roomname) {
-					NSInteger exchange = 0;
-					if (exchangeString) {
-						exchange = [exchangeString integerValue];	
-					}
-					
-					[self _openAIMGroupChat:roomname onExchange:(exchange ? exchange : 4)];
-				}
-				
-			} else if ([url queryArgumentForKey:@"openChatToScreenName"]) {
-				// aim://openChatToScreenname?tekjew  [?]
-				NSString *name = [[[url queryArgumentForKey:@"openChatToScreenname"] stringByDecodingURLEscapes] compactedString];
-				
-				if (name) {
-					[self _openChatToContactWithName:name
-										   onService:serviceID
-										 withMessage:nil];
-				}
-				
-			} else if ([host caseInsensitiveCompare:@"BuddyIcon"] == NSOrderedSame) {
-				//aim:BuddyIcon?src=http://www.nbc.com//Heroes/images/wallpapers/heroes-downloads-icon-single-48x48-07.gif
-				NSString *iconURLString = [url queryArgumentForKey:@"src"];
-				if ([iconURLString length]) {
-					NSURL *urlToDownload = [[NSURL alloc] initWithString:iconURLString];
-					NSData *imageData = (urlToDownload ? [NSData dataWithContentsOfURL:urlToDownload] : nil);
-					[urlToDownload release];
-					
-					//Should prompt for where to apply the icon?
-					if (imageData &&
-						[[[NSImage alloc] initWithData:imageData] autorelease]) {
-						//If we successfully got image data, and that data makes a valid NSImage, set it as our global buddy icon
-						[adium.preferenceController setPreference:imageData
-						 forKey:KEY_USER_ICON
-						 group:GROUP_ACCOUNT_STATUS];
-					}
-				}
-			}
-		} else if ([scheme isEqualToString:@"ymsgr"]) {
+		if ([scheme isEqualToString:@"ymsgr"]) {
 			if ([host caseInsensitiveCompare:@"sendim"] == NSOrderedSame) {
 				// ymsgr://sendim?tekjew
 				NSString *name = [[[url query] stringByDecodingURLEscapes] compactedString];
@@ -557,32 +483,6 @@
 											account.displayName, @"handle",
 											password, @"password", /* may be nil, so should be last */
 											nil]];
-	} else {
-		NSBeep();
-	}
-}
-
-- (void)_openAIMGroupChat:(NSString *)roomname onExchange:(NSInteger)exchange
-{
-	AIAccount		*account;
-	
-	//Find an AIM-compatible online account which can create group chats
-	for (account in adium.accountController.accounts) {
-		if (account.online &&
-			[account.service.serviceClass isEqualToString:@"AIM-compatible"] &&
-			[account.service canCreateGroupChats]) {
-			break;
-		}
-	}
-	
-	if (roomname && account) {
-		[adium.chatController chatWithName:roomname
-		 identifier:nil
-		 onAccount:account
-		 chatCreationInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-						   roomname, @"room",
-						   [NSNumber numberWithInteger:exchange], @"exchange",
-						   nil]];
 	} else {
 		NSBeep();
 	}

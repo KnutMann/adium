@@ -379,16 +379,6 @@
 			<key>CFBundleURLIconFile</key>
 			<string>generic</string>
 			<key>CFBundleURLName</key>
-			<string>AIM URL</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>aim</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLIconFile</key>
-			<string>generic</string>
-			<key>CFBundleURLName</key>
 			<string>Yahoo! Messenger URL</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
@@ -425,16 +415,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>msn</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLIconFile</key>
-			<string>generic</string>
-			<key>CFBundleURLName</key>
-			<string>Twitter Reply URL</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>twitterreply</string>
 			</array>
 		</dict>
 		<dict>
