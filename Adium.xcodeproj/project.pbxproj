@@ -126,6 +126,8 @@
 		ADD1E5C0DE00000000000202 /* libwebp.7.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000201 /* libwebp.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000212 /* libsharpyuv.0.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000222 /* libpng16.16.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000221 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000505 /* libgdk_pixbuf-2.0.0.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000504 /* libgdk_pixbuf-2.0.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000507 /* libjpeg.8.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000506 /* libjpeg.8.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000232 /* libssl.3.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000231 /* libssl.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000242 /* libcrypto.3.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000241 /* libcrypto.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000003 /* libgio.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1250,6 +1252,8 @@
 				ADD1E5C0DE00000000000202 /* libwebp.7.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000212 /* libsharpyuv.0.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000222 /* libpng16.16.dylib in Copy Frameworks */,
+				ADD1E5C0DE00000000000505 /* libgdk_pixbuf-2.0.0.dylib in Copy Frameworks */,
+				ADD1E5C0DE00000000000507 /* libjpeg.8.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000232 /* libssl.3.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000242 /* libcrypto.3.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000004 /* libgio.framework in Copy Frameworks */,
@@ -1441,6 +1445,8 @@
 		ADD1E5C0DE00000000000201 /* libwebp.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwebp.7.dylib"; path = "Frameworks/libwebp.7.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsharpyuv.0.dylib"; path = "Frameworks/libsharpyuv.0.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000221 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libpng16.16.dylib"; path = "Frameworks/libpng16.16.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000504 /* libgdk_pixbuf-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgdk_pixbuf-2.0.0.dylib"; path = "Frameworks/libgdk_pixbuf-2.0.0.dylib"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000506 /* libjpeg.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libjpeg.8.dylib"; path = "Frameworks/libjpeg.8.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000231 /* libssl.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libssl.3.dylib"; path = "Frameworks/libssl.3.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000241 /* libcrypto.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libcrypto.3.dylib"; path = "Frameworks/libcrypto.3.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000003 /* libgio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgio.framework; path = Frameworks/libgio.framework; sourceTree = "<group>"; };
@@ -3339,6 +3345,8 @@
 				ADD1E5C0DE00000000000201 /* libwebp.7.dylib */,
 				ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */,
 				ADD1E5C0DE00000000000221 /* libpng16.16.dylib */,
+				ADD1E5C0DE00000000000504 /* libgdk_pixbuf-2.0.0.dylib */,
+				ADD1E5C0DE00000000000506 /* libjpeg.8.dylib */,
 				ADD1E5C0DE00000000000231 /* libssl.3.dylib */,
 				ADD1E5C0DE00000000000241 /* libcrypto.3.dylib */,
 				ADD1E5C0DE00000000000003 /* libgio.framework */,
