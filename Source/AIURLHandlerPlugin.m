@@ -135,7 +135,6 @@
 		schemeToServiceDict = [[NSDictionary alloc] initWithObjectsAndKeys:
 							   @"Jabber",  @"xmpp",
 							   @"Jabber",  @"jabber",
-							   @"GTalk",   @"gtalk",
 							   @"IRC",	   @"irc",
 							   nil];
 	}
@@ -156,7 +155,9 @@
 - (NSArray *)allSchemesLikeScheme:(NSString *)scheme
 {
 	if ([scheme isEqualToString:@"xmpp"]) {
-		return [NSArray arrayWithObjects:@"xmpp", @"jabber", @"gtalk", nil];
+		//gtalk: used to ride along with xmpp: here. There is no GTalk service anymore, so claiming
+		//the scheme alongside xmpp: only took it away from clients which can still act on it.
+		return [NSArray arrayWithObjects:@"xmpp", @"jabber", nil];
 	} else {
 		return [NSArray arrayWithObject:scheme];
 	}
@@ -262,39 +263,7 @@
 		NSString *host = [url host];
 		NSString *query = [url query];
 		
-		if ([scheme isEqualToString:@"ymsgr"]) {
-			if ([host caseInsensitiveCompare:@"sendim"] == NSOrderedSame) {
-				// ymsgr://sendim?tekjew
-				NSString *name = [[[url query] stringByDecodingURLEscapes] compactedString];
-				
-				if (name) {
-					[self _openChatToContactWithName:name
-										   onService:serviceID
-										 withMessage:nil];
-				}
-				
-			} else if ([host caseInsensitiveCompare:@"im"] == NSOrderedSame) {
-				// ymsgr://im?to=tekjew
-				NSString *name = [[[url queryArgumentForKey:@"to"] stringByDecodingURLEscapes] compactedString];
-				
-				if (name) {
-					[self _openChatToContactWithName:name
-										   onService:serviceID
-										 withMessage:nil];
-				}
-			}
-		} else if ([scheme isEqualToString:@"gtalk"]) {
-			if ([url queryArgumentForKey:@"openChatToScreenName"]) {
-				// gtalk:chat?jid=foo@gmail.com&from_jid=bar@gmail.com
-				NSString *name = [[[url queryArgumentForKey:@"jid"] stringByDecodingURLEscapes] compactedString];
-				
-				if (name) {
-					[self _openChatToContactWithName:name
-										   onService:serviceID
-										 withMessage:nil];
-				}
-			}
-		} else if ([scheme isEqualToString:@"xmpp"]) {
+		if ([scheme isEqualToString:@"xmpp"]) {
 			if ([query rangeOfString:@"message"].location == 0) {
 				//xmpp:johndoe@jabber.org?message;subject=Subject;body=Body
 				//xmpp:jabber.org?message;subject=Subject;body=Body
@@ -369,34 +338,18 @@
 			channelName = [channelName stringByRemovingPercentEncoding];
 			
 			[self _openIRCGroupChat:channelName onServer:host withPort:port andPassword:[url query]];
-		} else if ([scheme caseInsensitiveCompare:@"msim"] == NSOrderedSame) {
-			NSString *contactName = [url queryArgumentForKey:@"cID"];
-			
-			if (contactName.length) {
-				if ([host isEqualToString:@"addContact"]) {
-					AINewContactWindowController *newContactWindowController = [[AINewContactWindowController alloc] initWithContactName:contactName
-																																 service:[adium.accountController firstServiceWithServiceID:serviceID]
-																																 account:nil];
-					[newContactWindowController showOnWindow:nil];
-				} else if ([host isEqualToString:@"sendIM"]) {
-					[self _openChatToContactWithName:contactName
-										   onService:serviceID
-										 withMessage:nil];
-				}
-			}
 		} else {
-			//Default to opening the host as a name.
+			//Fallback for any scheme in -serviceIDForScheme: which has no branch of its own:
+			//open the host as a contact name.
 			NSString	*user = [url user];
-			NSString	*ircHost = [url host];
 			NSString	*name;
 			if (user && [user length]) {
 				//jabber://tekjew@jabber.org
 				name = [NSString stringWithFormat:@"%@@%@",[url user],[url host]];
 			} else {
-				//aim://tekjew
-				name = ircHost;
+				name = [url host];
 			}
-			
+
 			[self _openChatToContactWithName:[name compactedString]
 								   onService:serviceID
 								 withMessage:nil];
