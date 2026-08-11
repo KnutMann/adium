@@ -131,6 +131,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)updateNavigationControl;
 - (void)refreshSidebarColors:(NSNotification *)notification;
 - (void)paneViewFrameChanged:(NSNotification *)notification;
+- (CGFloat)contentTopInset;
 - (void)navigate:(id)sender;
 - (NSString *)mainPaneOrderIdentifiers;
 @end
@@ -304,7 +305,10 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[contentScroll setHasVerticalScroller:YES];
 	[contentScroll setAutohidesScrollers:YES];
 	[contentScroll setDrawsBackground:NO];
-	[contentScroll setAutomaticallyAdjustsContentInsets:YES];
+	//Inset is applied explicitly in -layoutCurrentPane; the automatic one does
+	//not engage for a scroll view nested in a split view item, which left the
+	//first rows hidden underneath the titlebar even when scrolled to the top.
+	[contentScroll setAutomaticallyAdjustsContentInsets:NO];
 
 	/* The column can change width without the window resizing — dragging the
 	 * sidebar divider, or a scroller appearing — and the document view does not
@@ -326,6 +330,12 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[sidebarItem setCanCollapse:NO];
 	NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:contentVC];
 	[contentItem setMinimumThickness:AIPrefsContentWidth];
+	if (@available(macOS 11.0, *)) {
+		/* Each split view item decides on its own titlebar separator and
+		 * overrides the window's setting, so the hairline has to go here. */
+		[sidebarItem setTitlebarSeparatorStyle:NSTitlebarSeparatorStyleNone];
+		[contentItem setTitlebarSeparatorStyle:NSTitlebarSeparatorStyleNone];
+	}
 	[splitVC addSplitViewItem:sidebarItem];
 	[splitVC addSplitViewItem:contentItem];
 
@@ -413,7 +423,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 											   object:paneView];
 	[contentHost addSubview:paneView];
 	[self layoutCurrentPane];
-	[[[contentHost enclosingScrollView] contentView] scrollToPoint:NSZeroPoint];
+	[[[contentHost enclosingScrollView] contentView] scrollToPoint:NSMakePoint(0, -[self contentTopInset])];
 
 	NSString *paneTitle = (AIPrefPaneName(pane) ?: @"");
 	[[self window] setTitle:paneTitle];
@@ -445,6 +455,14 @@ static NSImage *AIPrefPaneIcon(id pane)
 
 	NSScrollView *scrollView = [contentHost enclosingScrollView];
 	NSClipView *clipView = [scrollView contentView];
+
+	//Keep the content clear of the titlebar it scrolls underneath
+	CGFloat topInset = [self contentTopInset];
+	NSEdgeInsets insets = [scrollView contentInsets];
+	if (insets.top != topInset) {
+		[scrollView setContentInsets:NSEdgeInsetsMake(topInset, 0, 0, 0)];
+		[scrollView setScrollerInsets:NSEdgeInsetsMake(topInset, 0, 0, 0)];
+	}
 	/* The clip view's own bounds, not -contentSize: with autohiding scrollers
 	 * -contentSize still reports the width the column had before the vertical
 	 * scroller appeared, which would push the card's right edge out of sight.
@@ -491,6 +509,16 @@ static NSImage *AIPrefPaneIcon(id pane)
 	layingOutPane = YES;
 	[self layoutCurrentPane];
 	layingOutPane = NO;
+}
+
+/*!
+ * @brief Height of the titlebar area the content scrolls underneath
+ */
+- (CGFloat)contentTopInset
+{
+	NSWindow *window = [self window];
+	CGFloat inset = NSHeight([[window contentView] frame]) - NSHeight([window contentLayoutRect]);
+	return (inset > 0 ? inset : 0);
 }
 
 - (void)windowDidResize:(NSNotification *)notification
