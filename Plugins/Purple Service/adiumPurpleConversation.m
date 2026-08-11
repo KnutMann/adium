@@ -163,6 +163,21 @@ static void adiumPurpleConvWriteIm(PurpleConversation *conv, const char *who,
 			[adiumAccount receivedIMChatMessage:messageDict
 										 inChat:chat];
 		}
+	} else if ((flags & PURPLE_MESSAGE_REMOTE_SEND) == PURPLE_MESSAGE_REMOTE_SEND) {
+		/* Our own message, written on another device and echoed back to us.
+		 * It carries PURPLE_MESSAGE_SEND like the local echo of a message sent
+		 * from here — which is why it used to be dropped above — but the
+		 * protocol marks it as remote, so display it as our outgoing message. */
+		CBPurpleAccount	*adiumAccount = accountLookup(purple_conversation_get_account(conv));
+		AIChat			*chat = chatLookupFromConv(conv);
+		NSString		*messageString = processPurpleImages([NSString stringWithUTF8String:message], adiumAccount);
+
+		NSDictionary *messageDict = [NSDictionary dictionaryWithObjectsAndKeys:
+									 messageString, @"Message",
+									 [NSNumber numberWithInteger:flags], @"PurpleMessageFlags",
+									 [NSDate dateWithTimeIntervalSince1970:mtime], @"Date", nil];
+
+		[adiumAccount receivedIMChatMessageSentRemotely:messageDict inChat:chat];
 	}
     [pool drain];
 }

@@ -1221,6 +1221,29 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
 					  date:[messageDict objectForKey:@"Date"]];
 }
 
+/*!
+ * @brief A message of ours that was written on another device
+ *
+ * Multi-device protocols echo back what the user typed elsewhere (the phone,
+ * say). It has to be displayed as our own outgoing message, so the source is
+ * this account rather than the contact whose chat it appears in — the same
+ * mapping -_receivedMessage: already performs for group chats.
+ */
+- (void)receivedIMChatMessageSentRemotely:(NSDictionary *)messageDict inChat:(AIChat *)chat
+{
+	PurpleMessageFlags	flags = [(NSNumber *)[messageDict objectForKey:@"PurpleMessageFlags"] intValue];
+
+	NSAttributedString	*attributedMessage = [adium.contentController decodedIncomingMessage:[messageDict objectForKey:@"Message"]
+																				fromContact:chat.listObject
+																				  onAccount:self];
+
+	[self _receivedMessage:attributedMessage
+					inChat:chat
+		   fromListContact:[self contactWithUID:self.UID]
+					 flags:flags
+					  date:[messageDict objectForKey:@"Date"]];
+}
+
 - (void)receivedEventForChat:(AIChat *)chat
 					 message:(NSString *)message
 						date:(NSDate *)date

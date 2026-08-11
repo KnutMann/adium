@@ -149,6 +149,7 @@
 						date:(NSDate *)date
 					   flags:(NSNumber *)flagsNumber;
 - (void)receivedIMChatMessage:(NSDictionary *)messageDict inChat:(AIChat *)chat;
+- (void)receivedIMChatMessageSentRemotely:(NSDictionary *)messageDict inChat:(AIChat *)chat;
 - (void)receivedMultiChatMessage:(NSDictionary *)messageDict inChat:(AIChat *)chat;
 - (void)leftChat:(AIChat *)chat;
 
