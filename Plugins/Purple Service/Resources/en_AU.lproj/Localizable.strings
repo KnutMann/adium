@@ -487,9 +487,6 @@
 /* Invalid name on AIM */
 "The screen name you entered is not registered. Check to ensure you typed it correctly. If it is a new name, you must register it at www.aim.com before you can use it." = "The screen name you entered is not registered. Check to ensure you typed it correctly. If it is a new name, you must register it at www.aim.com before you can use it.";
 
-/* Be careful to keep the % parts the same in this string. %@ will be replaced by an error message. */
-"The Zephyr Host Manager reported an error #%d: %@" = "The Zephyr Host Manager reported an error #%1$d: %2$@";
-
 /* Description for the MSN display name setting dialogue. */
 "This is the name that other MSN buddies will see you as." = "This is the name that other MSN buddies will see you as.";
 
@@ -583,8 +580,6 @@
 /* No comment provided by engineer. */
 "Your message was too big." = "Your message was too big.";
 
-/* zhm is the Zephyr Host Manager and should not be a localized word */
-"zhm Failure" = "zhm Failure";
 /* Restored from historic nib translations (arm64 revival) */
 "(optional)" = "(optional)";
 "Accept" = "Accept";
@@ -597,7 +592,6 @@
 "Away Priority:" = "Away Priority:";
 "BOSH Server:" = "BOSH Server:";
 "Chat Room Name:" = "Chat Room Name:";
-"Class:" = "Class:";
 "Connect Server:" = "Connect Server:";
 "Connection:" = "Connection:";
 "Deny" = "Deny";
@@ -607,16 +601,10 @@
 "Encoding:" = "Encoding:";
 "Encrypt connection using SSL" = "Encrypt connection using SSL";
 "Execute commands on connect:" = "Execute commands on connect:";
-"Export to .anyone" = "Export to .anyone";
-"Export to .zephyr.subs" = "Export to .zephyr.subs";
-"Export:" = "Export:";
-"Exposure:" = "Exposure:";
 "File Transfer Proxies:" = "File Transfer Proxies:";
 "Force old-style SSL" = "Force old-style SSL";
 "Handle:" = "Handle:";
-"Host Manager:" = "Host Manager:";
 "Hostname:" = "Hostname:";
-"Instance:" = "Instance:";
 "Invite Contacts:" = "Invite Contacts:";
 "Let others know what iTunes is playing" = "Let others know what iTunes is playing";
 "Mail:" = "Mail:";
@@ -625,20 +613,16 @@
 "Presence Subscriptions:" = "Presence Subscriptions:";
 "Publish Status to Everyone" = "Publish Status to Everyone";
 "Realname:" = "Realname:";
-"Recipient:" = "Recipient:";
 "Register New Account" = "Register New Account";
 "Registering…" = "Registering…";
 "Request New Account" = "Request New Account";
 "Require SSL/TLS" = "Require SSL/TLS";
 "Resource:" = "Resource:";
 "Security:" = "Security:";
-"Server" = "Server";
 "Server Name" = "Server Name";
 "Server:" = "Server:";
-"Servers:" = "Servers:";
 "Use SIP proxy:" = "Use SIP proxy:";
 "Use UDP" = "Use UDP";
-"Use internal host manager" = "Use internal host manager";
 "Username (Ident):" = "Username (Ident):";
 "Visit Server Homepage" = "Visit Server Homepage";
 "With Message:" = "With Message:";

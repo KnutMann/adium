@@ -1245,13 +1245,7 @@ OtrlUserState otrg_get_userstate(void)
 		@"libpurple-Jabber", @"prpl-jabber",
 		@"libpurple-MSN", @"prpl-msn",
 		@"libpurple-GroupWise", @"prpl-novell",
-		@"libpurple-Yahoo!", @"prpl-yahoo",
-		/* TODO ADIUM-UNUSED: Zephyr fingerprints can no longer be upgraded to anything - the
-		 * service isn't registered (see CBPurpleServicePlugin.m) and is scheduled for removal;
-		 * inventory in Other/ADIUM-UNUSED.txt. Same is true of prpl-oscar, prpl-msn and
-		 * prpl-yahoo above.
-		 */
-		@"libpurple-zephyr", @"prpl-zephyr", nil];
+		@"libpurple-Yahoo!", @"prpl-yahoo", nil];
 }
 
 - (NSString *)upgradedFingerprintsFromFile:(NSString *)inPath
