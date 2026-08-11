@@ -750,9 +750,11 @@ static CGFloat AIXtraRowHeight(void)
 	[[cellView textField] setStringValue:(name ?: @"")];
 	[[cellView detailField] setStringValue:detail];
 
-	/* The name is truncated in a narrow card and the path is nowhere else on screen; both belong in
-	 * the tool tip, on the row as a whole so that pointing anywhere in it says which Xtra it is. */
-	[cellView setToolTip:[NSString stringWithFormat:@"%@\n%@", (name ?: @""), [xtraInfo path]]];
+	/* No tool tip on the row. One covering the whole row swallows scroll events for as long as it
+	 * is showing, so the pane cannot be scrolled while the pointer rests on a list - and it said
+	 * little worth that: the folder has a button of its own in the card above, and the name is
+	 * already in the accessibility label. The switch and the remove button keep theirs; those
+	 * appear only over a small control and explain something not written anywhere else. */
 
 	/* Setting the state unconditionally would interfere with the switch's own click handling, which
 	 * is still tracking while the list is rebuilt underneath it. */
