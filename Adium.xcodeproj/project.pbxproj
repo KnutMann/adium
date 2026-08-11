@@ -457,7 +457,6 @@
 		34A48A5006F64692002C7C5F /* AITextColorPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A48A4F06F64692002C7C5F /* AITextColorPreviewView.m */; };
 		34A48B3A06F64B27002C7C5F /* AIBorderlessListOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A48B3806F64B27002C7C5F /* AIBorderlessListOutlineView.m */; };
 		34A663920BF66D96008637BB /* PurpleCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 340915F105C0A5DF00CDE3DD /* PurpleCommon.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		ADD1E5C0DE00000000000B02 /* GeneralPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */; };
 		34A6FAD907D6F3AA00972830 /* AIEventSoundsPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A6FAD507D6F3A600972830 /* AIEventSoundsPlugin.m */; };
 		34A6FADB07D6F3AA00972830 /* ESEventSoundAlertDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A6FAD707D6F3A700972830 /* ESEventSoundAlertDetailPane.m */; };
 		34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */; };
@@ -765,6 +764,8 @@
 		34DC8AF20A7EEEF7003E1636 /* AIActionDetailsPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAA1B360632ED8B00D8B92C /* AIActionDetailsPane.m */; };
 		34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = F5793923033E74C301A8010A /* AIPreferencePane.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */ = {isa = PBXBuildFile; fileRef = F5793913033E748F01A8010A /* AIPreferencePane.m */; };
+		ADD1E5C0DE00000000001A12 /* AISettingsFormView.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000001A13 /* AISettingsFormView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */; };
 		34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000701 /* NSView+AILegacyButtonNormalization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000703 /* NSView+AILegacyButtonNormalization.m */; };
@@ -1770,7 +1771,6 @@
 		34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = MessageContextDisplayDefaults.plist; path = Resources/MessageContextDisplayDefaults.plist; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AppearancePrefs.xib; path = Resources/AppearancePrefs.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000A01 /* PersonalPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PersonalPreferences.xib; path = Resources/PersonalPreferences.xib; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GeneralPreferences.xib; path = Resources/GeneralPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferences.xib; path = Resources/StatusPreferences.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001001 /* ESPurpleJabberAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESPurpleJabberAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESPurpleJabberAccountView.xib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001003 /* ESIRCAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESIRCAccountView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/ESIRCAccountView.xib"; sourceTree = "<group>"; };
@@ -3360,6 +3360,8 @@
 		F5793913033E748F01A8010A /* AIPreferencePane.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIPreferencePane.m; path = Frameworks/Adium/Source/AIPreferencePane.m; sourceTree = "<group>"; };
 		F5793922033E74C301A8010A /* AIAccount.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccount.h; path = Frameworks/Adium/Source/AIAccount.h; sourceTree = "<group>"; };
 		F5793923033E74C301A8010A /* AIPreferencePane.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPreferencePane.h; path = Frameworks/Adium/Source/AIPreferencePane.h; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AISettingsFormView.h; path = Frameworks/Adium/Source/AISettingsFormView.h; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISettingsFormView.m; path = Frameworks/Adium/Source/AISettingsFormView.m; sourceTree = "<group>"; };
 		F5793924033E74C301A8010A /* AIPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPlugin.h; path = Frameworks/Adium/Source/AIPlugin.h; sourceTree = "<group>"; };
 		F579392B033E74C401A8010A /* AIContentMessage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContentMessage.h; path = Frameworks/Adium/Source/AIContentMessage.h; sourceTree = "<group>"; };
 		F579397F033E756E01A8010A /* AIDualWindowInterfacePlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIDualWindowInterfacePlugin.h; path = "Plugins/Dual Window Interface/AIDualWindowInterfacePlugin.h"; sourceTree = "<group>"; };
@@ -4591,7 +4593,6 @@
 				34C68B240778FA1300EB423C /* ESGeneralPreferencesPlugin.m */,
 				34C68B290778FA5C00EB423C /* ESGeneralPreferences.h */,
 				34C68B2A0778FA5C00EB423C /* ESGeneralPreferences.m */,
-				ADD1E5C0DE00000000000B01 /* GeneralPreferences.xib */,
 				34BFDF1E07E8978900AD984D /* SendingKeyDefaults.plist */,
 				34BFDF1F07E8978900AD984D /* TabDefaults.plist */,
 			);
@@ -6619,6 +6620,8 @@
 				4BAA1B360632ED8B00D8B92C /* AIActionDetailsPane.m */,
 				F5793923033E74C301A8010A /* AIPreferencePane.h */,
 				F5793913033E748F01A8010A /* AIPreferencePane.m */,
+				ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */,
+				ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */,
 				343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */,
 				343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */,
 				4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */,
@@ -6851,6 +6854,7 @@
 				34DC8AEF0A7EEEF7003E1636 /* AIContactInfoPane.h in Headers */,
 				34DC8AF10A7EEEF7003E1636 /* AIActionDetailsPane.h in Headers */,
 				34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */,
+				ADD1E5C0DE00000000001A12 /* AISettingsFormView.h in Headers */,
 				34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */,
 				ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */,
 				34DC8AF70A7EEEF7003E1636 /* AIHTMLDecoder.h in Headers */,
@@ -7301,7 +7305,6 @@
 				ADD1E5C0DE00000000000C02 /* StatusPreferences.xib in Resources */,
 				342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */,
 				4BB5B78207D2DC4900CFE06F /* pref-status.tiff in Resources */,
-				ADD1E5C0DE00000000000B02 /* GeneralPreferences.xib in Resources */,
 				34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */,
 				34A6FB2D07D6F98600972830 /* events-sound-alert.tiff in Resources */,
 				34A6FB2E07D6F98600972830 /* SoundFileIcon.png in Resources */,
@@ -8032,6 +8035,7 @@
 				34DC8AF00A7EEEF7003E1636 /* AIContactInfoPane.m in Sources */,
 				34DC8AF20A7EEEF7003E1636 /* AIActionDetailsPane.m in Sources */,
 				34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */,
+				ADD1E5C0DE00000000001A13 /* AISettingsFormView.m in Sources */,
 				34DC8AF60A7EEEF7003E1636 /* AIModularPaneCategoryView.m in Sources */,
 				ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */,
 				34DC8AF80A7EEEF7003E1636 /* AIHTMLDecoder.m in Sources */,

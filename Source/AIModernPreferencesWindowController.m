@@ -300,6 +300,16 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[contentScroll setDrawsBackground:NO];
 	[contentScroll setAutomaticallyAdjustsContentInsets:YES];
 
+	/* The column can change width without the window resizing — dragging the
+	 * sidebar divider, or a scroller appearing — and the document view does not
+	 * follow the clip view on its own. Re-lay out whenever the clip view moves.
+	 */
+	[[contentScroll contentView] setPostsFrameChangedNotifications:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(contentClipViewFrameChanged:)
+												 name:NSViewFrameDidChangeNotification
+											   object:[contentScroll contentView]];
+
 	NSViewController *contentVC = [[[NSViewController alloc] init] autorelease];
 	[contentVC setView:contentScroll];
 
@@ -418,13 +428,45 @@ static NSImage *AIPrefPaneIcon(id pane)
 	}
 
 	NSScrollView *scrollView = [contentHost enclosingScrollView];
-	NSSize visibleSize = [scrollView contentSize];
+	NSClipView *clipView = [scrollView contentView];
+	/* The clip view's own bounds, not -contentSize: with autohiding scrollers
+	 * -contentSize still reports the width the column had before the vertical
+	 * scroller appeared, which would push the card's right edge out of sight.
+	 */
+	NSSize visibleSize = (clipView ? [clipView bounds].size : [scrollView contentSize]);
 	CGFloat paneHeight = NSHeight([paneView frame]);
 	CGFloat documentHeight = MAX(paneHeight + 2 * AIPrefsContentPadding, visibleSize.height);
 
 	[contentHost setFrame:NSMakeRect(0, 0, visibleSize.width, documentHeight)];
 	//Flipped container: y grows downwards, so the padding puts the pane on top.
 	[paneView setFrame:NSMakeRect(0, AIPrefsContentPadding, visibleSize.width, paneHeight)];
+
+	/* The pane may have grown or shrunk to fit its new width (AISettingsFormView
+	 * reflows), so the document view height above can already be stale.
+	 */
+	CGFloat settledHeight = NSHeight([paneView frame]);
+	if (fabs(settledHeight - paneHeight) > 0.5) {
+		[contentHost setFrame:NSMakeRect(0, 0, visibleSize.width,
+										 MAX(settledHeight + 2 * AIPrefsContentPadding, visibleSize.height))];
+	}
+}
+
+/*!
+ * @brief The scrolling column changed width without the window resizing.
+ *
+ * Dragging the sidebar divider and a vertical scroller appearing both do that;
+ * neither sends -windowDidResize:, and the document view has no autoresizing
+ * mask that would follow the clip view.
+ */
+- (void)contentClipViewFrameChanged:(NSNotification *)notification
+{
+	if (layingOutPane) {
+		return;
+	}
+
+	layingOutPane = YES;
+	[self layoutCurrentPane];
+	layingOutPane = NO;
 }
 
 - (void)windowDidResize:(NSNotification *)notification

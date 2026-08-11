@@ -34,6 +34,7 @@
 	NSView				*contentHost;
 	AIPreferencePane	*currentPane;
 	NSMutableSet		*openedPanes;		//Panes whose view was shown at least once (closeView on window close)
+	BOOL				layingOutPane;		//Guards the clip view frame observer against re-entering itself
 
 	//Back/forward navigation through visited panes
 	NSMutableArray		*history;
