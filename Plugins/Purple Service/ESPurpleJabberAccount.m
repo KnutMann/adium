@@ -298,42 +298,28 @@
 	return YES;
 }
 
+/*!
+ * @brief Retrieve a contact on this account by UID
+ *
+ * Google Talk and LiveJournal once had their own Adium services; both went away with the dead
+ * protocols. Their JIDs are ordinary XMPP addresses, so every contact here belongs to the
+ * Jabber service — asking for a service by UID would only hand back nil and silently
+ * swallow the contact.
+ */
 - (AIListContact *)contactWithUID:(NSString *)sourceUID
 {
 	AIListContact	*contact;
-	
+
 	contact = [adium.contactController existingContactWithService:service
 															account:self
 																UID:sourceUID];
-	if (!contact) {		
+	if (!contact) {
 		contact = [adium.contactController contactWithService:[self _serviceForUID:sourceUID]
 														account:self
 															UID:sourceUID];
 	}
-	
+
 	return contact;
-}
-
-- (AIService *)_serviceForUID:(NSString *)contactUID
-{
-	AIService	*contactService;
-	NSString	*contactServiceID = nil;
-
-	if ([contactUID hasSuffix:@"@gmail.com"] ||
-		[contactUID hasSuffix:@"@googlemail.com"] ||
-        [contactUID hasSuffix:@"@public.talk.google.com"]) {
-		contactServiceID = @"libpurple-jabber-gtalk";
-
-	} else if([contactUID hasSuffix:@"@livejournal.com"]){
-		contactServiceID = @"libpurple-jabber-livejournal";
-		
-	} else {
-		contactServiceID = @"libpurple-Jabber";
-	}
-
-	contactService = [adium.accountController serviceWithUniqueID:contactServiceID];
-	
-	return contactService;
 }
 
 - (id)authorizationRequestWithDict:(NSDictionary*)dict {
