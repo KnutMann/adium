@@ -23,6 +23,17 @@
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* NOT A COMPILED SOURCE FILE - and it must stay that way.
+ *
+ * This file is #imported verbatim by AILocalizationButton.m, AILocalizationButtonCell.m and
+ * AILocalizationTextField.m, which share its implementation because their real superclasses
+ * (NSButton, NSButtonCell, NSTextField) have no common ancestor to inherit it from.
+ *
+ * It therefore appears in no target's compile phase, which makes it look dead to any sweep
+ * that goes by project membership. Adding it to a target gives duplicate symbols; deleting
+ * it breaks the build outright.
+ */
+
 /* 
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.

@@ -25,6 +25,9 @@
 #define NEXT_MESSAGE_MENU_TITLE			AILocalizedString(@"Next Chat",nil)
 
 #define DEFAULT_CHAT_CYCLING_PREFS		@"ChatCyclingDefaults"
+/* ChatCyclingDefaults-Old.plist is live despite the name: it is in the copy-resources
+ * phase and loaded right below. The "-Old" refers to the key layout it restores, not to
+ * the file being obsolete. */
 #define OLD_DEFAULT_CHAT_CYCLING_PREFS	@"ChatCyclingDefaults-Old"
 
 /*!

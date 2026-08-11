@@ -2741,10 +2741,6 @@
 		4BC540B708648322003CD69E /* AdiumFormatting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumFormatting.m; path = Source/AdiumFormatting.m; sourceTree = "<group>"; };
 		4BC5418E08649CC6003CD69E /* AdiumContentFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumContentFiltering.h; path = Source/AdiumContentFiltering.h; sourceTree = "<group>"; };
 		4BC5418F08649CC6003CD69E /* AdiumContentFiltering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumContentFiltering.m; path = Source/AdiumContentFiltering.m; sourceTree = "<group>"; };
-		4BC5A5D60764F75B0080ECF7 /* AILocalVideoWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AILocalVideoWindowController.h; path = "Plugins/Video Chat Interface/AILocalVideoWindowController.h"; sourceTree = "<group>"; };
-		4BC5A5D70764F75B0080ECF7 /* AILocalVideoWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AILocalVideoWindowController.m; path = "Plugins/Video Chat Interface/AILocalVideoWindowController.m"; sourceTree = "<group>"; };
-		4BC5A5D80764F75B0080ECF7 /* AIVideoChatInterfacePlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIVideoChatInterfacePlugin.h; path = "Plugins/Video Chat Interface/AIVideoChatInterfacePlugin.h"; sourceTree = "<group>"; };
-		4BC5A5D90764F75B0080ECF7 /* AIVideoChatInterfacePlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIVideoChatInterfacePlugin.m; path = "Plugins/Video Chat Interface/AIVideoChatInterfacePlugin.m"; sourceTree = "<group>"; };
 		4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EditAccountSheet.xib; path = Resources/EditAccountSheet.xib; sourceTree = "<group>"; };
 		4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AddressBookPrefs.xib; path = Resources/AddressBookPrefs.xib; sourceTree = "<group>"; };
 		4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = AddressBook.tiff; path = Resources/AddressBook.tiff; sourceTree = "<group>"; };
@@ -4545,7 +4541,6 @@
 				9E791D8505768A3000547562 /* Status Menu Item */,
 				4BF303160687466D000DCA65 /* Tab Status Icons */,
 				F5F8CA450A1A9BC500154550 /* User Questions */,
-				4BC5A5C90764F70E0080ECF7 /* Video Chat Interface */,
 				632D800908E7DE2C0032C187 /* Xtras Management */,
 			);
 			name = Interface;
@@ -5182,17 +5177,6 @@
 				34BD0DB408D31479000BE2C0 /* AdiumChatEvents.m */,
 			);
 			name = Content;
-			sourceTree = "<group>";
-		};
-		4BC5A5C90764F70E0080ECF7 /* Video Chat Interface */ = {
-			isa = PBXGroup;
-			children = (
-				4BC5A5D80764F75B0080ECF7 /* AIVideoChatInterfacePlugin.h */,
-				4BC5A5D90764F75B0080ECF7 /* AIVideoChatInterfacePlugin.m */,
-				4BC5A5D60764F75B0080ECF7 /* AILocalVideoWindowController.h */,
-				4BC5A5D70764F75B0080ECF7 /* AILocalVideoWindowController.m */,
-			);
-			name = "Video Chat Interface";
 			sourceTree = "<group>";
 		};
 		4BCAC53407B59F9C006641B9 /* Other */ = {
