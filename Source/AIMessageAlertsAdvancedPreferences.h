@@ -28,7 +28,6 @@
 	IBOutlet	NSButton	*checkBox_unreadContentMention;
 	
 	IBOutlet	NSTextField *label_statusMenuItem;
-	IBOutlet	NSButton	*checkBox_statusMenuItemBadge;
 	IBOutlet	NSButton	*checkBox_statusMenuItemFlash;
 	IBOutlet	NSButton	*checkBox_statusMenuItemCount;
 	

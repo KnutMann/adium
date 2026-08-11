@@ -303,39 +303,22 @@
 /*!
  * @brief Update the menu icons
  *
- * Updates the menu icon with the appropriate icon and badge icon.
+ * Updates the menu icon for the current status.
  */
 - (void)updateMenuIcons
 {
-	NSImage			*badge = nil;
 	NSString		*imageName;
 
-	// If there's content, set our badge to the "content" icon.
 	if (unviewedContent && !currentlyIgnoringUnviewed) {
-		if (showBadge) {
-			badge = [AIStatusIcons statusIconForStatusName:@"content"
-												statusType:AIAvailableStatusType
-											      iconType:AIStatusIconList
-												 direction:AIIconNormal];
-		}
-		
 		imageName = IMAGE_TYPE_CONTENT;
 	} else {
 		// Get the correct icon for our current state.
 		switch([adium.statusController.activeStatusState statusType]) {
 			case AIAwayStatusType:
-				if (showBadge) {
-					badge = [adium.statusController.activeStatusState icon];
-				}
-				
 				imageName = IMAGE_TYPE_AWAY;
 				break;
 			
 			case AIInvisibleStatusType:
-				if (showBadge) {
-					badge = [adium.statusController.activeStatusState icon];
-				}
-				
 				imageName = IMAGE_TYPE_INVISIBLE;
 				break;
 				
@@ -350,15 +333,7 @@
 				// Check idle here, since it has less precedence than offline, invisible, or away.
 				for (AIAccount *account in adium.accountController.accounts) {
 					if (account.online && [account valueForProperty:@"idleSince"]) {
-						if (showBadge) {
-							badge = [AIStatusIcons statusIconForStatusName:@"Idle"
-																statusType:AIAvailableStatusType
-																  iconType:AIStatusIconList
-																 direction:AIIconNormal];
-						}
-						
 						imageName = IMAGE_TYPE_IDLE;
-						
 						break;
 					}
 				}
@@ -367,13 +342,21 @@
 		}
 	}
 	
-	NSImage *menuIcon = [menuIcons imageOfType:imageName alternate:NO];
-	NSImage *alternateMenuIcon = [menuIcons imageOfType:imageName alternate:YES];
-	
-	// Set our icon.
-	statusItem.button.image = [self badgeDuck:menuIcon withImage:badge];
-	// Badge the highlight image and set it.
-	statusItem.button.alternateImage = [self badgeDuck:alternateMenuIcon withImage:badge];
+	/* No badge: a template image is single-coloured by definition, so a badge
+	 * composited into it would flatten to a silhouette. The status is in the
+	 * icon's own shape and unread messages are the count beside it. */
+	NSImage *statusImage = [[[menuIcons imageOfType:imageName alternate:NO] copy] autorelease];
+
+	/* A template image carries only a shape — its alpha channel — and the system
+	 * paints it: dark on a light menu bar, light on a dark one, light while the
+	 * menu is open, and correct again when the appearance or "reduce
+	 * transparency" changes. That replaces the second, inverted image this used
+	 * to keep around for the highlighted state, which never covered anything
+	 * but that one case. */
+	[statusImage setTemplate:YES];
+
+	statusItem.button.image = statusImage;
+	statusItem.button.alternateImage = nil;
 	// Update our unread count.
 	if (showUnreadCount) {
 		[self updateUnreadCount];
@@ -885,7 +868,6 @@
 	
 	if ([group isEqualToString:PREF_GROUP_STATUS_MENU_ITEM]) {
 		showUnreadCount = [[prefDict objectForKey:KEY_STATUS_MENU_ITEM_COUNT] boolValue];
-		showBadge = [[prefDict objectForKey:KEY_STATUS_MENU_ITEM_BADGE] boolValue];
 		flashUnviewed = [[prefDict objectForKey:KEY_STATUS_MENU_ITEM_FLASH] boolValue];
 		
 		[self updateMenuIcons];

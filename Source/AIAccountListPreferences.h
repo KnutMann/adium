@@ -16,16 +16,17 @@
 
 #import <Adium/AIPreferencePane.h>
 #import <Adium/AIContactObserverManager.h>
-#import <Adium/AIAccountMenu.h>
 #import <AIUtilities/AISegmentedControl.h>
 
 @class AIAccountController, AIAccount, AIAutoScrollView, AIImageViewWithImagePicker;
 
-@interface AIAccountListPreferences : AIPreferencePane <AIListObjectObserver, AIAccountMenuDelegate, NSTableViewDelegate> {
+@interface AIAccountListPreferences : AIPreferencePane <AIListObjectObserver, NSTableViewDelegate> {
 	//Account list
     IBOutlet		NSScrollView			*scrollView_accountList;
     IBOutlet		NSTableView				*tableView_accountList;
 	IBOutlet		AISegmentedControl		*button_addOrRemoveAccount;
+	/* Unused: the (i) button of a row opens the account editor now. The outlet has to stay for as
+	 * long as the nib connects it, or loading the nib raises NSUnknownKeyException. */
 	IBOutlet		NSButton				*button_editAccount;
 	/* Unused: the pane no longer shows an overview line below the list. The outlet has to stay
 	 * for as long as the nib connects it, or loading the nib raises NSUnknownKeyException. */
@@ -38,10 +39,6 @@
 
     //Account List
     NSArray							*accountArray;
-    NSArray							*tempDragAccounts;
-
-	AIAccountMenu					*accountMenu_options;
-	AIAccountMenu					*accountMenu_status;
 
 	NSMutableDictionary				*requiredHeightDict;
 
@@ -49,12 +46,10 @@
 }
 
 - (IBAction)addOrRemoveAccount:(id)sender;
-- (void)deleteAccount;
+- (void)deleteAccount:(AIAccount *)inAccount;
 - (void)editAccount:(AIAccount *)inAccount;
 - (IBAction)editSelectedAccount:(id)sender;
-- (void)updateControlAvailability;
 - (NSString *)statusMessageForAccount:(AIAccount *)account;
 - (NSMenu *)menuForRow:(NSInteger) row;
-- (NSMenu *)menuForRowIndexes:(NSIndexSet *)indexes;
 
 @end

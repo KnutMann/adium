@@ -51,11 +51,6 @@
 											group:PREF_GROUP_STATUS_PREFERENCES];
 	}
 	
-	if (sender == checkBox_statusMenuItemBadge) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
-								   forKey:KEY_STATUS_MENU_ITEM_BADGE
-									group:PREF_GROUP_STATUS_MENU_ITEM];
-	}
 
 	if (sender == checkBox_statusMenuItemFlash) {
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
@@ -97,13 +92,11 @@
 	[checkBox_unreadContentMention setState:[[statusPreferences objectForKey:KEY_STATUS_MENTION_COUNT] boolValue]];
 
 	[label_statusMenuItem setStringValue:AILocalizedString(@"Status Menu Item", nil)];
-	[checkBox_statusMenuItemBadge setTitle:AILocalizedString(@"Badge the menu item with current status", nil)];
 	[checkBox_statusMenuItemFlash setTitle:AILocalizedString(@"Flash when there are unread messages", nil)];
 	[checkBox_statusMenuItemCount setTitle:AILocalizedString(@"Show unread message count in the menu bar", nil)];	
 	
 	NSDictionary *menuItemPreferences = [adium.preferenceController preferencesForGroup:PREF_GROUP_STATUS_MENU_ITEM];
 	
-	[checkBox_statusMenuItemBadge setState:[[menuItemPreferences objectForKey:KEY_STATUS_MENU_ITEM_BADGE] boolValue]];
 	[checkBox_statusMenuItemFlash setState:[[menuItemPreferences objectForKey:KEY_STATUS_MENU_ITEM_FLASH] boolValue]];
 	[checkBox_statusMenuItemCount setState:[[menuItemPreferences objectForKey:KEY_STATUS_MENU_ITEM_COUNT] boolValue]];	
 	

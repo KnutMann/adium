@@ -10,7 +10,6 @@
             <connections>
                 <outlet property="view" destination="paneView" id="oView"/>
                 <outlet property="label_statusMenuItem" destination="lMenu" id="oLMenu"/>
-                <outlet property="checkBox_statusMenuItemBadge" destination="cbBadge" id="oCbBadge"/>
                 <outlet property="checkBox_statusMenuItemFlash" destination="cbFlash" id="oCbFlash"/>
                 <outlet property="checkBox_statusMenuItemCount" destination="cbCount" id="oCbCount"/>
                 <outlet property="label_dockIcon" destination="lDock" id="oLDock"/>
@@ -41,15 +40,6 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbBadge">
-                    <rect key="frame" x="0.0" y="235" width="380" height="16"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="Badge the menu item with current status" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="cbBadgeC">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
-                    </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbBadge"/></connections>
-                </button>
                 <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbFlash">
                     <rect key="frame" x="0.0" y="215" width="380" height="16"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>

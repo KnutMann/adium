@@ -124,10 +124,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 	if (isGroupRow) {
 		color = (windowActive ? [NSColor secondaryLabelColor] : [NSColor tertiaryLabelColor]);
 	} else if (!windowActive) {
-		/* Inactive window: everything dims, the selected row included. Not
-		 * secondaryLabelColor — that is noticeably paler than what System
-		 * Settings shows next to it. */
-		color = [[NSColor labelColor] colorWithAlphaComponent:0.75];
+		//Inactive window: everything dims, the selected row included
+		color = [NSColor secondaryLabelColor];
 	} else if ([self backgroundStyle] == NSBackgroundStyleEmphasized) {
 		color = [NSColor alternateSelectedControlTextColor];
 	} else {
@@ -135,6 +133,40 @@ static NSImage *AIPrefPaneIcon(id pane)
 	}
 
 	[[self textField] setTextColor:color];
+}
+
+@end
+
+/*!
+ * @brief Sidebar row drawing its own selection.
+ *
+ * The unemphasized selection AppKit draws while the window is inactive is
+ * paler than the one System Settings shows, so the pill is drawn here.
+ */
+@interface AIPrefsSidebarRowView : NSTableRowView
+@end
+
+@implementation AIPrefsSidebarRowView
+
+- (void)drawSelectionInRect:(NSRect)dirtyRect
+{
+	if (![self isSelected]) {
+		return;
+	}
+
+	BOOL windowActive = [[self window] isKeyWindow];
+	NSColor *fill;
+	if ([self isEmphasized] && windowActive) {
+		fill = [NSColor selectedContentBackgroundColor];
+	} else {
+		//Noticeably deeper than +unemphasizedSelectedContentBackgroundColor
+		fill = [[NSColor labelColor] colorWithAlphaComponent:0.14];
+	}
+
+	NSRect pill = NSInsetRect([self bounds], 5.0, 1.0);
+	NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:pill xRadius:6.0 yRadius:6.0];
+	[fill set];
+	[path fill];
 }
 
 @end
@@ -486,8 +518,10 @@ static NSImage *AIPrefPaneIcon(id pane)
 	CGFloat topInset = [self contentTopInset];
 	NSEdgeInsets insets = [scrollView contentInsets];
 	if (insets.top != topInset) {
+		/* Only the content is inset. The scroller keeps the full height and its
+		 * top runs underneath the frosted strip, as it does in System Settings;
+		 * insetting it too would start it a titlebar's height further down. */
 		[scrollView setContentInsets:NSEdgeInsetsMake(topInset, 0, 0, 0)];
-		[scrollView setScrollerInsets:NSEdgeInsetsMake(topInset, 0, 0, 0)];
 	}
 	/* The clip view's own bounds, not -contentSize: with autohiding scrollers
 	 * -contentSize still reports the width the column had before the vertical
@@ -572,6 +606,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 			[(AIPrefsSidebarCellView *)view updateTextColors];
 			[(NSView *)view setNeedsDisplay:YES];
 		}
+		[[outlineView rowViewAtRow:row makeIfNecessary:NO] setNeedsDisplay:YES];
 	}
 }
 
@@ -831,6 +866,17 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[(AIPrefsSidebarCellView *)cell updateTextColors];
 
 	return cell;
+}
+
+- (NSTableRowView *)outlineView:(NSOutlineView *)aView rowViewForItem:(id)item
+{
+	NSString *identifier = @"sidebarRow";
+	NSTableRowView *rowView = [aView makeViewWithIdentifier:identifier owner:self];
+	if (!rowView) {
+		rowView = [[[AIPrefsSidebarRowView alloc] initWithFrame:NSZeroRect] autorelease];
+		[rowView setIdentifier:identifier];
+	}
+	return rowView;
 }
 
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification

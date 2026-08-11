@@ -246,16 +246,15 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[[NSColor quaternarySystemFillColor] setFill];
 	[card fill];
 
-	[[NSColor separatorColor] setStroke];
-	[card setLineWidth:thickness];
-	[card stroke];
+	/* No outline: System Settings cards are a plain fill, the dividers inside
+	 * are the only lines. */
 
 	[[NSColor separatorColor] setFill];
 	for (NSNumber *position in separatorPositions) {
-		//Indented to the label on the left, flush to the card edge on the right
+		//Indented on both sides, the way System Settings insets its dividers
 		NSRect line = NSMakeRect(AISettingsCardInsetH,
 								 floor([position doubleValue]),
-								 NSWidth(bounds) - AISettingsCardInsetH,
+								 NSWidth(bounds) - 2.0 * AISettingsCardInsetH,
 								 thickness);
 		/* separatorColor is only ~10% opaque: NSRectFill() would composite with
 		 * Copy and punch a transparent slit through the card instead of drawing
@@ -351,6 +350,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	AISettingsCardView	*cardView;
 	NSMutableArray		*rows;
 	NSView				*accessoryView;	//Sits below the card, outside of it; nil for most sections
+	BOOL				 accessoryTrailing;	//NO: aligned with the card's leading edge, the default
 }
 @end
 
@@ -376,6 +376,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 #pragma mark -
 
 @interface AISettingsFormView ()
+- (void)addAccessoryView:(NSView *)view trailing:(BOOL)trailing;
 - (AISettingsFormSection *)currentSection;
 - (void)appendRow:(AISettingsFormRow *)row;
 - (CGFloat)layoutRow:(AISettingsFormRow *)row atY:(CGFloat)rowY inCardOfWidth:(CGFloat)cardWidth;
@@ -581,6 +582,16 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 - (void)addAccessoryView:(NSView *)view
 {
+	[self addAccessoryView:view trailing:NO];
+}
+
+- (void)addTrailingAccessoryView:(NSView *)view
+{
+	[self addAccessoryView:view trailing:YES];
+}
+
+- (void)addAccessoryView:(NSView *)view trailing:(BOOL)trailing
+{
 	AISettingsFormSection *section = [self currentSection];
 
 	AISettingsAdoptView(view);
@@ -592,6 +603,8 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		//Below the card, so a subview of the form itself rather than of the card
 		if (view) [self addSubview:view];
 	}
+
+	section->accessoryTrailing = trailing;
 
 	[self layoutForWidth:NSWidth([self frame])];
 }
@@ -673,12 +686,15 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		y += rowY;
 
 		if (section->accessoryView) {
-			/* Left aligned with the card and never resized: it keeps the size its
-			 * builder gave it, so reading the frame back cannot ratchet it down. */
-			NSSize size = AISettingsControlSize(section->accessoryView);
+			/* Aligned with one edge of the card and never resized: it keeps the size
+			 * its builder gave it, so reading the frame back cannot ratchet it down. */
+			NSSize	size = AISettingsControlSize(section->accessoryView);
+			CGFloat	accessoryX = (section->accessoryTrailing ?
+								  AISettingsOuterMargin + MAX(cardWidth - size.width, 0.0) :
+								  AISettingsOuterMargin);
 
 			y += AISettingsAccessoryGap;
-			[section->accessoryView setFrame:NSMakeRect(AISettingsOuterMargin, y, size.width, size.height)];
+			[section->accessoryView setFrame:NSMakeRect(accessoryX, y, size.width, size.height)];
 			y += size.height;
 		}
 	}
@@ -842,6 +858,8 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	NSSwitch *control = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
 
+	//System Settings uses the small switch, not the regular one
+	[control setControlSize:NSControlSizeSmall];
 	[control setTarget:target];
 	[control setAction:action];
 	[control setFrameSize:[control fittingSize]];

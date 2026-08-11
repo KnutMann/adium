@@ -52,7 +52,6 @@
 	
 	BOOL					showConversationCount;
 	
-	BOOL					showBadge;
 	BOOL					showUnreadCount;
 	BOOL					flashUnviewed;
 	BOOL					currentlyIgnoringUnviewed;

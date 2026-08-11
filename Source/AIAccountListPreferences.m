@@ -32,16 +32,29 @@
 #import <Adium/AIService.h>
 #import <Adium/AIStatusMenu.h>
 #import <Adium/AIStatus.h>
+#import <Adium/AIStatusGroup.h>
+#import <Adium/AIEditStateWindowController.h>
+#import <Adium/AIStatusControllerProtocol.h>
+#import <Adium/AIPreferenceControllerProtocol.h>
+#import <AIUtilities/AIDataAdditions.h>
+#import <AIUtilities/AIEventAdditions.h>
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIServiceMenu.h>
 #import <Adium/AIStatusIcons.h>
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 
+/* Horizontal margin the settings form leaves inside its cards, mirrored here
+ * so the account rows line their dividers up with every other pane. */
+#define SEPARATOR_CARD_MARGIN		16.0f
+
+/* Extra room around the "+" and its chevron, and the gap between button and menu */
+#define ADD_BUTTON_PADDING		22.0f
+#define ADD_MENU_GAP			9.0f
+
 #define MINIMUM_ROW_HEIGHT				44
 #define MINIMUM_CELL_SPACING			 4
 
-#define	ACCOUNT_DRAG_TYPE				@"AIAccount"	    			//ID for an account drag
 
 #define NEW_ACCOUNT_DISPLAY_TEXT		AILocalizedString(@"<New Account>", "Placeholder displayed as the name of a new account")
 
@@ -64,6 +77,7 @@
 #define CONTROL_GAP						10.0f		//Space around the switch
 #define LOCK_ICON_SIZE					12.0f
 #define INSET_STYLE_MARGIN				32.0f		//Horizontal room claimed by NSTableViewStyleInset (16pt per side), fallback only
+#define INSET_STYLE_PADDING				10.0f		//Vertical room NSTableViewStyleInset keeps above the first and below the last row, fallback only
 #define STATUS_WIDTH_SAFETY				 4.0f		//Deliberately underestimate the text width so rows are never too short
 
 /*!
@@ -84,11 +98,22 @@
 @property (nonatomic, retain) NSLayoutConstraint *lockWidthConstraint;
 @property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
 @property (nonatomic, assign) BOOL				 dimmed;
+/* Drawn behind the row while its context menu is open: with no selection, this is the only thing
+ * which says which account "Remove Account..." is about to ask about. */
+@property (nonatomic, assign) BOOL				 contextHighlighted;
 @end
 
-@interface AIAccountListPreferences ()
+@interface AIAccountListPreferences () <NSMenuDelegate>
 {
 	CGFloat		cachedLayoutWidth;
+	/* Room the table keeps between its own edge and its column; measured off the table itself,
+	 * INSET_STYLE_MARGIN only until it has tiled once. */
+	CGFloat		columnMargin;
+	/* The row whose context menu is open, or -1. It is the row every context menu action works on,
+	 * so it is also the row which is drawn highlighted while the menu is up. */
+	NSInteger	contextMenuRow;
+	/* Whether a row height recalculation is already on its way; see -accountListFrameChanged: */
+	BOOL		heightRecalcScheduled;
 }
 - (AISettingsFormView *)buildSettingsForm;
 - (AISettingsFormView *)settingsForm;
@@ -103,13 +128,16 @@
 - (void)updateReconnectTime:(NSTimer *)timer;
 
 - (void)iconPackDidChange:(NSNotification *)notification;
-- (void)updateAccountsForStatus:(id)sender;
-- (void)toggleOnlineForAccounts:(id)sender;
-- (void)toggleEnabledForAccounts:(id)sender;
+- (void)setStatusFromMenu:(id)sender;
+- (void)setCustomStatusFromMenu:(id)sender;
+- (void)removeAccountFromMenu:(id)sender;
+- (NSMenu *)statusMenuForAccount:(AIAccount *)account;
 
 - (void)configureCellView:(AIAccountListCellView *)cellView forRow:(NSInteger)row;
 - (void)refreshRow:(NSInteger)row;
+- (void)configureAddAccountControl;
 - (void)showAddAccountMenuFromControl:(id)control segment:(NSInteger)segment;
+- (AIAccount *)accountAtRow:(NSInteger)row;
 - (CGFloat)statusTextWidth;
 - (CGFloat)rowInsetPerSide;
 - (NSString *)statusTitleForAccount:(AIAccount *)account;
@@ -118,10 +146,146 @@
 - (void)setAccountEnabled:(BOOL)inEnabled atRow:(NSInteger)row;
 - (void)accountListFrameChanged:(NSNotification *)notification;
 - (void)recalculateRowHeights;
+- (void)synchronizeAccountColumnWidth;
+- (void)setContextMenuRow:(NSInteger)row;
 - (BOOL)separatorHiddenForRow:(NSInteger)row;
-- (void)updateSeparators;
 - (void)tearDown;
 @end
+
+/*!
+ * @brief Name @a account as the account a status menu and all of its submenus apply to
+ *
+ * +[AIStatusMenu staticStatusStatesMenuNotifyingTarget:selector:] builds a menu of the status
+ * states alone: every item carries an "AIStatus" but no account, and status groups bring submenus
+ * built the same way. Adding the account to each represented object turns that generic menu into
+ * one for a single account - the same shape -[AIAccountMenu] hands out, but without depending on
+ * the state that menu happens to be in.
+ */
+static void AIAddAccountToStatusMenu(NSMenu *menu, AIAccount *account)
+{
+	for (NSMenuItem *menuItem in [menu itemArray]) {
+		if ([menuItem isSeparatorItem]) continue;
+
+		NSMutableDictionary	*info = [[[menuItem representedObject] mutableCopy] autorelease];
+
+		if (!info) info = [NSMutableDictionary dictionary];
+		[info setObject:account forKey:@"AIAccount"];
+		[menuItem setRepresentedObject:info];
+
+		if ([menuItem submenu]) AIAddAccountToStatusMenu([menuItem submenu], account);
+	}
+}
+
+/*!
+ * @brief A "Custom..." item for one status type and one account
+ *
+ * The same item -[AIStatusMenu customMenuItemForStatusType:] puts into every status menu: no
+ * status of its own (which is what marks it as the custom item), the type in its tag and an icon
+ * for that type. The account rides along in the represented object, exactly as it does on the
+ * items which carry a saved state.
+ */
+static NSMenuItem *AICustomStatusMenuItem(AIStatusType statusType, AIAccount *account, id target, SEL action)
+{
+	/* The very string AIStatusMenu titles its custom items with. Spelled out rather than written
+	 * as AILocalizedString(), which needs a "self" to take its bundle from. */
+	NSString	*customTitle = NSLocalizedStringFromTableInBundle(@"Custom", nil,
+																  [NSBundle bundleForClass:[AIAccountListPreferences class]],
+																  "Title of the menu item which writes a status message of one's own");
+
+	NSMenuItem	*menuItem = [[NSMenuItem alloc] initWithTitle:[customTitle stringByAppendingEllipsis]
+													   target:target
+													   action:action
+												keyEquivalent:@""];
+
+	[menuItem setImage:[AIStatusIcons statusIconForStatusName:nil
+												   statusType:statusType
+													 iconType:AIStatusIconMenu
+													direction:AIIconNormal]];
+	[menuItem setTag:statusType];
+	[menuItem setRepresentedObject:[NSDictionary dictionaryWithObject:account forKey:@"AIAccount"]];
+
+	return [menuItem autorelease];
+}
+
+/*!
+ * @brief Give a status menu the "Custom..." item of every status group in it
+ *
+ * +staticStatusStatesMenuNotifyingTarget: builds the saved states and nothing else, while the
+ * status menu everywhere else in Adium ends each group of states with a "Custom..." item - the
+ * only way to give <em>this one account</em> a status message of its own. -[AIStatusMenu
+ * rebuildMenu] puts that item at the end of each group, i.e. right before the separator which
+ * starts the next one, and gives the last group (the offline states) none; this does the same to
+ * a menu which is already built.
+ */
+static void AIAddCustomStatusItemsToMenu(NSMenu *menu, AIAccount *account, id target, SEL action)
+{
+	NSInteger	index = 0;
+
+	while (index < [menu numberOfItems]) {
+		NSMenuItem	*menuItem = [menu itemAtIndex:index];
+
+		if ([menuItem isSeparatorItem] && (index > 0)) {
+			AIStatusType	statusType = (AIStatusType)[[menu itemAtIndex:(index - 1)] tag];
+
+			//Invisible states are part of the away group, and so is their custom item
+			if (statusType == AIInvisibleStatusType) statusType = AIAwayStatusType;
+
+			[menu insertItem:AICustomStatusMenuItem(statusType, account, target, action) atIndex:index];
+			index++;		//Step over the separator we just pushed down
+		}
+
+		index++;
+	}
+
+	/* ...and the group the menu ends with, which no separator follows. The offline group is the
+	 * one exception: there is no custom offline state to write a message for. */
+	NSMenuItem	*lastItem = ([menu numberOfItems] ? [menu itemAtIndex:([menu numberOfItems] - 1)] : nil);
+
+	if (lastItem && ![lastItem isSeparatorItem]) {
+		AIStatusType	statusType = (AIStatusType)[lastItem tag];
+
+		if (statusType == AIInvisibleStatusType) statusType = AIAwayStatusType;
+
+		if (statusType != AIOfflineStatusType) {
+			[menu addItem:AICustomStatusMenuItem(statusType, account, target, action)];
+		}
+	}
+}
+
+/*!
+ * @brief Check the item of the status @a account is in right now
+ *
+ * -[AIStatusMenu validateMenuItem:] does this for the menus that class owns; ours are built fresh
+ * every time the menu is asked for and are not its, so the state is set here on the spot. The rule
+ * is the one that method uses for an account specific menu: if the account is in a saved state,
+ * that state's item is on (or the group which encloses it); if it is in a state the user typed,
+ * the "Custom..." item of that type is on instead.
+ */
+static void AISetAccountStatusMenuStates(NSMenu *menu, AIAccount *account)
+{
+	AIStatus	*activeState = account.statusState;
+	BOOL		 isSavedState = (activeState && [adium.statusController.flatStatusSet containsObject:activeState]);
+
+	for (NSMenuItem *menuItem in [menu itemArray]) {
+		if ([menuItem isSeparatorItem]) continue;
+
+		AIStatusItem	*itemState = [[menuItem representedObject] objectForKey:@"AIStatus"];
+		BOOL			 isActive;
+
+		if (isSavedState) {
+			isActive = ((itemState == activeState) ||
+						([itemState isKindOfClass:[AIStatusGroup class]] &&
+						 [(AIStatusGroup *)itemState enclosesStatusState:activeState]));
+		} else {
+			//A state the user typed: the custom item of its type is the active one
+			isActive = (activeState && !itemState && ([menuItem tag] == (NSInteger)activeState.statusType));
+		}
+
+		[menuItem setState:(isActive ? NSControlStateValueOn : NSControlStateValueOff)];
+
+		if ([menuItem submenu]) AISetAccountStatusMenuStates([menuItem submenu], account);
+	}
+}
 
 /*!
  * @brief Width of an NSSwitch, determined once
@@ -132,6 +296,7 @@ static CGFloat AIAccountSwitchWidth(void)
 
 	if (switchWidth <= 0.0f) {
 		NSSwitch *sizingSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
+		[sizingSwitch setControlSize:NSControlSizeSmall];
 		switchWidth = [sizingSwitch intrinsicContentSize].width;
 		[sizingSwitch release];
 
@@ -258,6 +423,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 		//Enabled switch
 		NSSwitch *enabledSwitch = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+		//System Settings uses the small switch, not the regular one
+		[enabledSwitch setControlSize:NSControlSizeSmall];
 		[enabledSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self addSubview:enabledSwitch];
 		[self setEnabledSwitch:enabledSwitch];
@@ -355,8 +522,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 /*!
  * @brief Only the switch and the info button swallow clicks
  *
- * Everything else is handed to the table view so that row selection, double clicks, drags and
- * context menus keep working exactly as they did with the old cell based list.
+ * Everything else is handed to the table view so that double clicks, drags and context menus keep
+ * working exactly as they did with the old cell based list.
  *
  * Right clicks (and control clicks) always go to the row itself: neither NSSwitch nor NSButton
  * supplies a context menu, so a right click landing on one of them would otherwise be swallowed
@@ -404,6 +571,35 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	_dimmed = inDimmed;
 	[self updateTextColors];
+}
+
+- (void)setContextHighlighted:(BOOL)inHighlighted
+{
+	if (_contextHighlighted == inHighlighted) return;
+
+	_contextHighlighted = inHighlighted;
+	[self setNeedsDisplay:YES];
+}
+
+/*!
+ * @brief Draw the context menu highlight
+ *
+ * A row is not selectable, so nothing else ever marks one. The shape is the one a list in System
+ * Settings uses: the full width of the row, rounded, in the unemphasized selection color - the row
+ * is pointed out, not selected.
+ */
+- (void)drawRect:(NSRect)dirtyRect
+{
+	[super drawRect:dirtyRect];
+
+	if (!_contextHighlighted) return;
+
+	NSBezierPath	*highlight = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect([self bounds], 0.0f, 1.0f)
+																 xRadius:6.0f
+																 yRadius:6.0f];
+
+	[[NSColor unemphasizedSelectedContentBackgroundColor] set];
+	[highlight fill];
 }
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)backgroundStyle
@@ -504,18 +700,68 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	 * its own - no view is ever left without an owner in between. */
 	[form addEdgeToEdgeRow:scrollView_accountList];
 
-	//...and the buttons sit right below that card, the way System Settings arranges a list
-	[button_editAccount setTitle:AILocalizedStringFromTable(@"Edit", @"Buttons", "Verb 'edit' on a button")];
-	//Their natural sizes are what the form arranges them by, with the form's own gap in between
-	[button_addOrRemoveAccount sizeToFit];
-	[button_editAccount sizeToFit];
-	[form addAccessoryView:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
-														   button_addOrRemoveAccount, button_editAccount, nil]]];
+	/* ...and the "add" control hangs under the right-hand corner of that card, the way System
+	 * Settings puts one under a list. Its natural size is what the form arranges it by; nothing
+	 * here positions it. */
+	[self configureAddAccountControl];
+	[form addTrailingAccessoryView:button_addOrRemoveAccount];
 
-	/* textField_overview stays behind in the nib's view: the pane does not show an overview line
-	 * any more, and that view is never installed anywhere. */
+	/* button_editAccount and textField_overview stay behind in the nib's view: a row's (i) button
+	 * opens the account editor and the pane shows no overview line, so neither view is ever
+	 * installed anywhere. */
 
 	return form;
+}
+
+/*!
+ * @brief Turn the nib's +/- pair into the "add" control System Settings puts under a list
+ *
+ * One segment, showing a "+" and the menu chevron next to it inside a single small rounded group.
+ * The minus segment is gone: an account is removed through its row's context menu now. Clicking
+ * anywhere on the control - the "+" as much as the chevron - drops the list of services out of it,
+ * which is the whole of "add an account": an account cannot exist without a service.
+ */
+- (void)configureAddAccountControl
+{
+	NSImage		*addImage = [NSImage imageWithSystemSymbolName:@"plus"
+										  accessibilityDescription:AILocalizedString(@"Add Account", nil)];
+
+	if (!addImage) addImage = [NSImage imageNamed:NSImageNameAddTemplate];
+
+	[button_addOrRemoveAccount setSegmentCount:1];
+	[button_addOrRemoveAccount setSegmentStyle:NSSegmentStyleRounded];
+	[button_addOrRemoveAccount setTrackingMode:NSSegmentSwitchTrackingMomentary];
+	[button_addOrRemoveAccount setImage:addImage forSegment:0];
+	[button_addOrRemoveAccount setImageScaling:NSImageScaleProportionallyDown forSegment:0];
+	[button_addOrRemoveAccount setLabel:@"" forSegment:0];
+
+	/* The chevron beside the "+". -setShowsMenuIndicator:forSegment: is the standard way to say
+	 * "this button drops a menu" and it needs no menu of its own to do it: measured on macOS 26,
+	 * the segment draws the chevron and the fitted width grows from 24pt to 36pt for it whether a
+	 * segment menu is attached or not. The menu is deliberately left on the control rather than on
+	 * the segment, so that the whole control - "+" and chevron alike - opens the list of services
+	 * through -addOrRemoveAccount:; an account cannot exist without a service, so choosing one is
+	 * all that "add an account" can mean. */
+	[button_addOrRemoveAccount setShowsMenuIndicator:YES forSegment:0];
+
+	/* Zero asks the control for the width its content needs, which packs the "+" and the chevron
+	 * tightly together; System Settings gives them noticeably more room, so the fitted width gets
+	 * that padding added back. */
+	[button_addOrRemoveAccount setWidth:0.0f forSegment:0];
+	[button_addOrRemoveAccount sizeToFit];
+
+	NSSize	fittedSize = [button_addOrRemoveAccount frame].size;
+	NSSize	fittingSize = [button_addOrRemoveAccount fittingSize];
+	CGFloat	contentWidth = MAX(fittedSize.width, fittingSize.width);
+
+	[button_addOrRemoveAccount setWidth:(contentWidth + ADD_BUTTON_PADDING) forSegment:0];
+	[button_addOrRemoveAccount sizeToFit];
+	[button_addOrRemoveAccount setFrameSize:NSMakeSize(MAX(NSWidth([button_addOrRemoveAccount frame]),
+														  contentWidth + ADD_BUTTON_PADDING),
+													   MAX(fittedSize.height, fittingSize.height))];
+
+	[button_addOrRemoveAccount setToolTip:AILocalizedString(@"Add Account", nil)];
+	[button_addOrRemoveAccount setAccessibilityLabel:AILocalizedString(@"Add Account", nil)];
 }
 
 /*!
@@ -554,16 +800,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	
 	//Assign the menu
 	[button_addOrRemoveAccount setMenu:serviceMenu];
-	[button_addOrRemoveAccount setMenuIndicatorShown:YES forSegment:0];
-	
-	//Set ourselves up for Account Menus
-	accountMenu_options = [[AIAccountMenu accountMenuWithDelegate:self
-													  submenuType:AIAccountOptionsSubmenu
-												   showTitleVerbs:NO] retain];
-	
-	accountMenu_status = [[AIAccountMenu accountMenuWithDelegate:self
-													 submenuType:AIAccountStatusSubmenu
-												  showTitleVerbs:NO] retain];
 
 	//Observe status icon pack changes
 	[[NSNotificationCenter defaultCenter] addObserver:self
@@ -604,6 +840,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(recalculateRowHeights) object:nil];
+	heightRecalcScheduled = NO;
+	contextMenuRow = -1;
 
 	/* The list no longer lives in the nib's view but in the form's card, and those two are released
 	 * on different paths (-tearDown here, -[AIModularPane closeView] there). Cut the table loose
@@ -623,10 +861,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[nibView release]; nibView = nil;
 
 	[accountArray release]; accountArray = nil;
-	[tempDragAccounts release]; tempDragAccounts = nil;
 	[requiredHeightDict release]; requiredHeightDict = nil;
-	[accountMenu_options release]; accountMenu_options = nil;
-	[accountMenu_status release]; accountMenu_status = nil;
 
 	// Cancel our auto-refreshing reconnect countdown.
 	[reconnectTimeUpdater invalidate];
@@ -685,18 +920,14 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 //Actions --------------------------------------------------------------------------------------------------------------
 #pragma mark Actions
+/*!
+ * @brief The "add" control was clicked
+ *
+ * Only one segment is left; removing an account runs through the row's context menu.
+ */
 - (IBAction)addOrRemoveAccount:(id)sender
 {
-	NSInteger selectedSegment = [sender selectedSegment];
-
-	switch (selectedSegment) {
-		case 0:
-			[self showAddAccountMenuFromControl:sender segment:selectedSegment];
-			break;
-		case 1:
-			[self deleteAccount];
-			break;
-	}
+	[self showAddAccountMenuFromControl:sender segment:0];
 }
 
 /*!
@@ -715,9 +946,13 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	if (serviceMenu && [control isKindOfClass:[NSView class]]) {
 		NSView	*controlView = (NSView *)control;
 		NSRect	 bounds = [controlView bounds];
-		//The bottom edge of the control, so the menu drops out of it
-		NSPoint	 location = NSMakePoint(NSMinX(bounds),
-									    ([controlView isFlipped] ? NSMaxY(bounds) : NSMinY(bounds)));
+
+		/* The menu hangs from its top left corner, so it has to start below the
+		 * button's lower edge — which is NSMaxY in a flipped view and NSMinY in
+		 * an unflipped one. Anything else drops the menu over the button. */
+		CGFloat	 lowerEdge = ([controlView isFlipped] ? NSMaxY(bounds) : NSMinY(bounds));
+		CGFloat	 direction = ([controlView isFlipped] ? 1.0f : -1.0f);
+		NSPoint	 location = NSMakePoint(NSMinX(bounds), lowerEdge + direction * ADD_MENU_GAP);
 
 		[serviceMenu popUpMenuPositioningItem:nil atLocation:location inView:controlView];
 	} else if ([control respondsToSelector:@selector(showMenuForSegment:)]) {
@@ -749,14 +984,26 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 }
 
 /*!
- * @brief Edit the currently selected account using <tt>AIEditAccountWindowController</tt>
+ * @brief The account in @a row, or nil if there is none
+ */
+- (AIAccount *)accountAtRow:(NSInteger)row
+{
+	if (row < 0 || row >= (NSInteger)[accountArray count]) return nil;
+
+	return [accountArray objectAtIndex:row];
+}
+
+/*!
+ * @brief Edit the account the user clicked
+ *
+ * Rows are not selectable any more, so the account is the one under the pointer:
+ * -clickedRow is set for the whole time an action sent by the table is running.
  */
 - (IBAction)editSelectedAccount:(id)sender
 {
-    NSInteger	selectedRow = [tableView_accountList selectedRow];
-	if ([tableView_accountList numberOfSelectedRows] == 1 && selectedRow >= 0 && selectedRow < [accountArray count]) {
-		[self editAccount:[accountArray objectAtIndex:selectedRow]];
-    }
+	AIAccount	*account = [self accountAtRow:[tableView_accountList clickedRow]];
+
+	if (account) [self editAccount:account];
 }
 
 /*!
@@ -800,12 +1047,9 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  */
 - (IBAction)editAccountFromRowButton:(id)sender
 {
-	NSInteger	row = [tableView_accountList rowForView:(NSView *)sender];
+	AIAccount	*account = [self accountAtRow:[tableView_accountList rowForView:(NSView *)sender]];
 
-	if (row >= 0 && row < (NSInteger)[accountArray count]) {
-		[tableView_accountList selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO];
-		[self editAccount:[accountArray objectAtIndex:row]];
-	}
+	if (account) [self editAccount:account];
 }
 
 /*!
@@ -840,17 +1084,23 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 }
 
 /*!
- * @brief Delete the selected account
+ * @brief Delete an account
  *
- * Prompts for confirmation first
+ * Prompts for confirmation first. The dialog releases itself once it is done with.
  */
-- (void)deleteAccount
+- (void)deleteAccount:(AIAccount *)inAccount
 {
-	NSInteger idx = [tableView_accountList selectedRow];
-	
-	if ([tableView_accountList numberOfSelectedRows] == 1 && idx >= 0 && idx < [accountArray count]) {
-		[[(AIAccount *)[accountArray objectAtIndex:idx] confirmationDialogForAccountDeletion] beginSheetModalForWindow:[[self view] window]];
-	}
+	if (!inAccount) return;
+
+	[[inAccount confirmationDialogForAccountDeletion] beginSheetModalForWindow:[[self view] window]];
+}
+
+/*!
+ * @brief "Remove" was chosen from a row's context menu
+ */
+- (void)removeAccountFromMenu:(id)sender
+{
+	[self deleteAccount:[sender representedObject]];
 }
 
 /*!
@@ -863,23 +1113,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[account setEnabled:YES];
 	else
 		[account toggleOnline];
-}
-
-#pragma mark AIAccountMenu Delegates
-
-/*!
-* @brief AIAccountMenu delieate method
- */
-- (void)accountMenu:(AIAccountMenu *)inAccountMenu didRebuildMenuItems:(NSArray *)menuItems {
-	return;
-}
-
-/*!
-* @brief AIAccountMenu delegate method -- this allows disabled items to have menus.
- */
-- (BOOL)accountMenu:(AIAccountMenu *)inAccountMenu shouldIncludeAccount:(AIAccount *)inAccount
-{
-	return YES;
 }
 
 //Account List ---------------------------------------------------------------------------------------------------------
@@ -899,9 +1132,17 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[tableView_accountList setUsesAlternatingRowBackgroundColors:NO];
 	[tableView_accountList setBackgroundColor:[NSColor clearColor]];
 	[tableView_accountList setRowSizeStyle:NSTableViewRowSizeStyleCustom];
+	/* Rows are not selectable: selecting one used to be how an account was picked for "Edit" and
+	 * "-", and both of those are gone - the (i) button edits and the context menu removes, each of
+	 * them acting on the row the pointer is on. -tableView:shouldSelectRow: is what refuses the
+	 * selection, and with no selection there is nothing for the regular highlight style to draw.
+	 * Pointing out the row a context menu belongs to is our own job (see -setContextMenuRow:); the
+	 * style is left alone all the same, because NSTableViewSelectionHighlightStyleNone also turns
+	 * off the feedback a drag draws. */
 	[tableView_accountList setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
 	[tableView_accountList setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
-	[tableView_accountList setAllowsMultipleSelection:YES];
+	[tableView_accountList setAllowsMultipleSelection:NO];
+	[tableView_accountList setAllowsEmptySelection:YES];
 	[tableView_accountList setAllowsColumnReordering:NO];
 	//The single column has to follow the width of the table; without a header the user can't drag it anyway
 	[tableView_accountList setAllowsColumnResizing:YES];
@@ -946,6 +1187,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	 * at zero rather than at the width we happen to have right now guarantees that the first real
 	 * width the form hands us counts as a change, whatever the nib's width was. */
 	cachedLayoutWidth = 0.0f;
+	columnMargin = INSET_STYLE_MARGIN;
+	contextMenuRow = -1;
 	[tableView_accountList setPostsFrameChangedNotifications:YES];
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(accountListFrameChanged:)
@@ -953,7 +1196,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 											   object:tableView_accountList];
 
 	//Enable dragging of accounts
-	[tableView_accountList registerForDraggedTypes:[NSArray arrayWithObjects:ACCOUNT_DRAG_TYPE,nil]];
 
 	//Observe changes to the account list
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -982,7 +1224,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 	//Refresh the account table
 	[tableView_accountList reloadData];
-	[self updateControlAvailability];
 	[self updateAccountListHeight];
 }
 
@@ -992,18 +1233,55 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  * A table view lays itself out as the sum of its row heights plus its intercell spacing per row,
  * so that is what we add up here - we do set the spacing to zero in -configureAccountList, but
  * reading it rather than assuming it keeps this in step with the table even if that ever changes.
+ * Every single row height is a whole number of points (see -calculateHeightForRow:), so the sum
+ * cannot drift away from what the table lays out by a fraction per row.
+ *
+ * On top of the rows themselves a table style keeps room above the first row and below the last -
+ * NSTableViewStyleInset keeps 10pt at each end. That padding is measured off the table (the top of
+ * its first row is exactly it) rather than assumed, and it is added to the sum unconditionally:
+ * leaving it out is precisely what makes a card 20pt too short for its list, which is what the
+ * user sees as "the list scrolls inside its card".
+ *
+ * The table then gets the last word through its row rects, so that a layout we did not predict
+ * still cannot end up with less room than the table laid itself out in.
+ *
  * An empty list still gets one row's worth of height so its card does not collapse into a line.
  */
 - (CGFloat)heightOfAccountList
 {
 	CGFloat		height = 0.0f;
 	CGFloat		spacing = [tableView_accountList intercellSpacing].height;
+	NSInteger	tableRows = [tableView_accountList numberOfRows];
+
+	/* The room the style keeps at each end of the list. Only the table can say what it is, and only
+	 * once it has rows; until then the value the inset style uses is the best guess we have. */
+	CGFloat		endPadding = INSET_STYLE_PADDING;
+
+	if (tableRows > 0) {
+		CGFloat		topInset = NSMinY([tableView_accountList rectOfRow:0]);
+
+		if (topInset >= 0.0f) endPadding = topInset;
+	}
 
 	for (NSInteger row = 0; row < (NSInteger)[accountArray count]; row++) {
 		height += [self tableView:tableView_accountList heightOfRow:row] + spacing;
 	}
 
-	return ceil(height < MINIMUM_ROW_HEIGHT ? MINIMUM_ROW_HEIGHT : height);
+	height += 2.0f * endPadding;
+
+	/* ...and then let the table have the last word. -rectOfRow: is where the table says how it
+	 * really laid its rows out - it follows -noteHeightOfRowsWithIndexesChanged: immediately, so
+	 * this never reads a layout which is a run loop turn behind. The table's own frame is no use
+	 * for this, because a table never shrinks below its clip view; its row rects do not stretch. */
+	if (tableRows > 0 && tableRows == (NSInteger)[accountArray count]) {
+		CGFloat		contentHeight = NSMaxY([tableView_accountList rectOfRow:(tableRows - 1)]) + endPadding;
+
+		if (contentHeight > height) height = contentHeight;
+	}
+
+	CGFloat		minimumHeight = MINIMUM_ROW_HEIGHT + (2.0f * endPadding);
+
+	return ceil(height < minimumHeight ? minimumHeight : height);
 }
 
 /*!
@@ -1025,118 +1303,126 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 }
 
 /*!
- * @brief Returns the status menu associated with several rows
+ * @brief Set the status of a single account from a row's "Set Status" submenu
+ *
+ * The represented object carries both the status and the account, see AIAddAccountToStatusMenu().
+ *
+ * This is -[AIStatusMenu selectState:] for one account, and it has to be: a status the user typed
+ * lives in the status controller's array of temporary states, which is kept alive by the accounts
+ * using it. Leaving a temporary state without telling the status controller leaves that state in
+ * every status menu in Adium for good. The option click shortcut and status groups are handled
+ * here for the same reason - a menu which behaves differently from the same menu elsewhere is a
+ * bug of its own.
  */
-- (NSMenu *)menuForRowIndexes:(NSIndexSet *)indexes
+- (void)setStatusFromMenu:(id)sender
 {
-	NSMenu			*statusMenu = nil, *optionsMenu = [[[NSMenu alloc] init] autorelease];
-	NSMenuItem		*statusMenuItem = nil;
-	NSArray			*accounts = [accountArray objectsAtIndexes:indexes];
-	AIAccount		*account;
-	BOOL			atLeastOneDisabledAccount = NO, atLeastOneOfflineAccount = NO;
-	
-	// Check the accounts' enabled/disabled and online/offline status.
-	for (account in accounts) {
-		if (!account.enabled)
-			atLeastOneDisabledAccount = YES;
-		
-		if (!account.online && ![account boolValueForProperty:@"isConnecting"])
-			atLeastOneOfflineAccount = YES;
-		
-		if (atLeastOneOfflineAccount && atLeastOneDisabledAccount)
-			break;
-	}
-	
-	statusMenuItem = [optionsMenu addItemWithTitle:AILocalizedString(@"Set Status", "Used in the context menu for the accounts list for the sub menu to set status in.")
-											target:nil
-											action:nil
-									 keyEquivalent:@""];
+	NSDictionary	*info = [sender representedObject];
+	AIStatusItem	*statusItem = [info objectForKey:@"AIStatus"];
+	AIAccount		*account = [info objectForKey:@"AIAccount"];
 
-	statusMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self
-														selector:@selector(updateAccountsForStatus:)];
-	[statusMenuItem setSubmenu:statusMenu];
-	
-	//If any accounts are offline, present the option to connect them all.
-	if (atLeastOneOfflineAccount) {
-		[optionsMenu addItemWithTitle:AILocalizedString(@"Connect",nil)
-							   target:self
-							   action:@selector(toggleOnlineForAccounts:)
-						keyEquivalent:@""
-					representedObject:[NSDictionary dictionaryWithObjectsAndKeys:accounts,@"Accounts",
-						[NSNumber numberWithBool:YES],@"Connect",nil]];
-	}
-	[optionsMenu addItemWithTitle:AILocalizedString(@"Disconnect",nil)
-						   target:self
-						   action:@selector(toggleOnlineForAccounts:)
-					keyEquivalent:@""
-				representedObject:[NSDictionary dictionaryWithObjectsAndKeys:accounts,@"Accounts",
-					[NSNumber numberWithBool:NO],@"Connect",nil]];
-	
-	[optionsMenu addItem:[NSMenuItem separatorItem]];
-	
-	// If any accounts are disable,d show the option to enable them.
-	if (atLeastOneDisabledAccount) {
-		[optionsMenu addItemWithTitle:AILocalizedString(@"Enable",nil)
-							   target:self
-							   action:@selector(toggleEnabledForAccounts:)
-						keyEquivalent:@""
-					representedObject:[NSDictionary dictionaryWithObjectsAndKeys:accounts,@"Accounts",
-						[NSNumber numberWithBool:YES],@"Enable",nil]];
-		
-	}
-	[optionsMenu addItemWithTitle:AILocalizedString(@"Disable",nil)
-						   target:self
-						   action:@selector(toggleEnabledForAccounts:)
-					keyEquivalent:@""
-				representedObject:[NSDictionary dictionaryWithObjectsAndKeys:accounts,@"Accounts",
-					[NSNumber numberWithBool:NO],@"Enable",nil]];
-	
-	return optionsMenu;
-}
+	if (!account || !statusItem) return;
 
-/*!
- * @brief Callback for the Connect/Disconnect menu item in a multiple account selection
- */
-- (void)toggleOnlineForAccounts:(id)sender
-{
-	NSDictionary *dict = [sender representedObject];
-	BOOL		 connect = [[dict objectForKey:@"Connect"] boolValue];
+	//A group of states stands for any one of the states in it
+	if ([statusItem isKindOfClass:[AIStatusGroup class]]) {
+		statusItem = [(AIStatusGroup *)statusItem anyContainedStatus];
 
-	for (AIAccount *account in [dict objectForKey:@"Accounts"]) {
-		if (!account.enabled && connect)
-			[account setEnabled:YES];
-		[account setShouldBeOnline:connect];
+		if (!statusItem) return;
+	}
+
+	/* Holding option - or picking the status the account is already in - opens the custom status
+	 * window on that status instead of just setting it, as everywhere else in Adium. */
+	NSEventType		 eventType = [[NSApp currentEvent] type];
+	BOOL			 keyEvent = ((eventType == NSEventTypeKeyDown) || (eventType == NSEventTypeKeyUp));
+	BOOL			 isOptionClick = ([NSEvent optionKey] && !keyEvent);
+
+	if (isOptionClick ||
+		(([sender state] == NSControlStateValueOn) && (statusItem.statusType != AIOfflineStatusType))) {
+		[AIEditStateWindowController editCustomState:(AIStatus *)statusItem
+											 forType:statusItem.statusType
+										  andAccount:account
+									  withSaveOption:YES
+											onWindow:nil
+									 notifyingTarget:adium.statusController];
+		return;
+	}
+
+	//Hand the status the account is leaving back, in case it was a temporary one nobody else uses
+	BOOL			 shouldRebuild = [adium.statusController removeIfNecessaryTemporaryStatusState:account.statusState];
+
+	[account setStatusState:(AIStatus *)statusItem];
+
+	//Enable the account if it isn't currently enabled and this isn't an offline status
+	if (!account.enabled && statusItem.statusType != AIOfflineStatusType) {
+		[account setEnabled:YES];
+	}
+
+	if (shouldRebuild) {
+		//A temporary state went away; every status menu in Adium has to be rebuilt without it
+		[[NSNotificationCenter defaultCenter] postNotificationName:AIStatusStateArrayChangedNotification object:nil];
 	}
 }
 
 /*!
- * @brief Callback for the Enable/Disable menu item in a multiple account selection
+ * @brief Write a status message for a single account, from a row's "Custom..." item
+ *
+ * -[AIStatusMenu selectCustomState:] for one account, prefill and all: switching to a custom state
+ * of another type starts from the last status of that type rather than from the state the account
+ * is in right now.
  */
-- (void)toggleEnabledForAccounts:(id)sender
+- (void)setCustomStatusFromMenu:(id)sender
 {
-	NSDictionary *dict = [sender representedObject];
-	BOOL		 enable	 = [[dict objectForKey:@"Enable"] boolValue];
+	NSDictionary	*info = [sender representedObject];
+	AIAccount		*account = [info objectForKey:@"AIAccount"];
+	AIStatusType	 statusType = (AIStatusType)[sender tag];
+	AIStatus		*baseStatusState;
 
-	for (AIAccount *account in [dict objectForKey:@"Accounts"]) {
-		[account setEnabled:enable];
-	}	
-}
+	if (!account) return;
 
-/*!
- * @brief Callback for the Set Status menu item in a multiple-account selection
- */
-- (void)updateAccountsForStatus:(id)sender
-{
-	AIStatus		*status		= [[sender representedObject] objectForKey:@"AIStatus"];
-	
-	for (AIAccount *account in [accountArray objectsAtIndexes:[tableView_accountList selectedRowIndexes]]) {
-		[account setStatusState:status];
-		
-		//Enable the account if it isn't currently enabled and this isn't an offline status
-		if (!account.enabled && status.statusType != AIOfflineStatusType) {
-			[account setEnabled:YES];
+	baseStatusState = account.statusState;
+
+	if (baseStatusState.statusType != statusType) {
+		NSDictionary	*lastStatusStates = [adium.preferenceController preferenceForKey:@"LastStatusStates"
+																				   group:PREF_GROUP_STATUS_PREFERENCES];
+		NSData			*lastStatusStateData = [lastStatusStates objectForKey:[[NSNumber numberWithInt:statusType] stringValue]];
+		AIStatus		*lastStatusStateOfThisType = (lastStatusStateData ?
+													  [NSKeyedUnarchiver objectWithArchivedData:lastStatusStateData] :
+													  nil);
+
+		if (lastStatusStateOfThisType) {
+			/* Keep the message the account is showing right now: users tend to want to carry it
+			 * over rather than to get the one they last saved. */
+			if (baseStatusState.statusMessage.length) {
+				lastStatusStateOfThisType.statusMessage = baseStatusState.statusMessage;
+			}
+
+			baseStatusState = [[lastStatusStateOfThisType retain] autorelease];
 		}
 	}
+
+	[AIEditStateWindowController editCustomState:baseStatusState
+										 forType:statusType
+									  andAccount:account
+								  withSaveOption:YES
+										onWindow:nil
+								 notifyingTarget:adium.statusController];
+}
+
+/*!
+ * @brief The "Set Status" submenu of one account
+ *
+ * The same menu the rest of Adium offers for a single account: every saved state, the "Custom..."
+ * item of each group of states, and a checkmark on the state the account is in.
+ */
+- (NSMenu *)statusMenuForAccount:(AIAccount *)account
+{
+	NSMenu	*statusMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self
+																	 selector:@selector(setStatusFromMenu:)];
+
+	AIAddAccountToStatusMenu(statusMenu, account);
+	AIAddCustomStatusItemsToMenu(statusMenu, account, self, @selector(setCustomStatusFromMenu:));
+	AISetAccountStatusMenuStates(statusMenu, account);
+
+	return statusMenu;
 }
 
 /*!
@@ -1153,62 +1439,84 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 }
 
 /*!
- * @brief Returns the status menu associated with a particular row
+ * @brief The context menu of the account in @a row
+ *
+ * Everything in here acts on that one account - the row the pointer is on - since rows are not
+ * selectable any more.
+ *
+ * The menu is built from scratch rather than assembled out of an AIAccountMenu's submenus, which
+ * is where the duplicates used to come from: an AIAccountMenu created with a submenu type fills
+ * its items with the account's <em>actions</em> and then, as soon as there is more than one
+ * account, AIStatusMenu overwrites those very submenus with the <em>status</em> menu. Copying that
+ * submenu to the top level therefore produced either "Edit Account" plus "Disable" (one account)
+ * or the whole list of statuses a second time (several accounts). The two sources are used
+ * directly instead:
+ *
+ * <ul>
+ * <li>the states, as the one "Set Status" submenu (see -statusMenuForAccount:);</li>
+ * <li>the protocol's own actions from -[AIAccount accountActionMenuItems].</li>
+ * </ul>
+ *
+ * Editing is the (i) button's job and enabling is the switch's, so neither appears here; removing
+ * an account has nowhere else to live and does.
  */
 - (NSMenu *)menuForRow:(NSInteger)row
 {
-	if (row >= 0 && row < [accountArray count]) {
-		AIAccount		*account = [accountArray objectAtIndex:row];
-		NSMenu			*optionsMenu = [[[NSMenu alloc] init] autorelease];
-		NSMenu			*accountOptionsMenu = [[accountMenu_options menuItemForAccount:account] submenu];
+	AIAccount	*account = [self accountAtRow:row];
 
-		NSMenuItem	*statusMenuItem = [optionsMenu addItemWithTitle:AILocalizedString(@"Set Status", "Used in the context menu for the accounts list for the sub menu to set status in.")
-															 target:nil
-															 action:nil
-													  keyEquivalent:@""];
+	if (!account) return nil;
 
-		//We can't put the submenu into our menu directly or otherwise modify the accountMenu_status, as we may want to use it again
-		[statusMenuItem setSubmenu:[[[[accountMenu_status menuItemForAccount:account] submenu] copy] autorelease]];
-		
-		if (!account.online && ![account boolValueForProperty:@"isConnecting"] && [self statusMessageForAccount:account]) {
-			[optionsMenu addItemWithTitle:AILocalizedString(@"Copy Error Message","Menu Item for the context menu of an account in the accounts list")
-								   target:self
-								   action:@selector(copyStatusMessage:)
-							keyEquivalent:@""
-						representedObject:account];
-		}
-		
-		if ([[statusMenuItem submenu] numberOfItems] >= 2) {
-			//Remove the 'Disable' item
-			[[statusMenuItem submenu] removeItemAtIndex:([[statusMenuItem submenu] numberOfItems] - 1)];
-			
-			//And remove the separator above it
-			[[statusMenuItem submenu] removeItemAtIndex:([[statusMenuItem submenu] numberOfItems] - 1)];
-		}
-		
-		//Connect or disconnect the account. Enabling a disabled account will connect it, so this is only valid for non-disabled accounts.
-		//Only online & connecting can be "Disconnected"; those offline or waiting to reconnect can be "Connected"
-		[optionsMenu addItemWithTitle:((account.online || [account boolValueForProperty:@"isConnecting"]) ?
-									   AILocalizedString(@"Disconnect",nil) :
-									   AILocalizedString(@"Connect",nil))
+	NSMenu		*optionsMenu = [[[NSMenu alloc] init] autorelease];
+
+	//Set Status: the states and their "Custom..." items, and nothing else
+	NSMenuItem	*statusMenuItem = [optionsMenu addItemWithTitle:AILocalizedString(@"Set Status", "Used in the context menu for the accounts list for the sub menu to set status in.")
+														 target:nil
+														 action:nil
+												  keyEquivalent:@""];
+	[statusMenuItem setSubmenu:[self statusMenuForAccount:account]];
+
+	if (!account.online && ![account boolValueForProperty:@"isConnecting"] && [self statusMessageForAccount:account]) {
+		[optionsMenu addItemWithTitle:AILocalizedString(@"Copy Error Message","Menu Item for the context menu of an account in the accounts list")
 							   target:self
-							   action:@selector(toggleShouldBeOnline:)
+							   action:@selector(copyStatusMessage:)
 						keyEquivalent:@""
 					representedObject:account];
-				
-		//Add a separator if we have any items shown so far
+	}
+
+	//Connect or disconnect the account. Enabling a disabled account will connect it, so this is only valid for non-disabled accounts.
+	//Only online & connecting can be "Disconnected"; those offline or waiting to reconnect can be "Connected"
+	[optionsMenu addItemWithTitle:((account.online || [account boolValueForProperty:@"isConnecting"]) ?
+								   AILocalizedString(@"Disconnect",nil) :
+								   AILocalizedString(@"Connect",nil))
+						   target:self
+						   action:@selector(toggleShouldBeOnline:)
+					keyEquivalent:@""
+				representedObject:account];
+
+	/* The actions the protocol itself offers - "Set Vanity Name", "Join Chat"... An offline
+	 * account has none. */
+	NSArray		*accountActions = (account.online ? [account accountActionMenuItems] : nil);
+
+	if ([accountActions count]) {
 		[optionsMenu addItem:[NSMenuItem separatorItem]];
-		
-		//Add account options
-		for (NSMenuItem *menuItem in [accountOptionsMenu itemArray]) {
+
+		for (NSMenuItem *menuItem in accountActions) {
 			//Use copies of the menu items rather than moving the actual items, as we may want to use them again
 			[optionsMenu addItem:[[menuItem copy] autorelease]];
 		}
-
-		return optionsMenu;
 	}
-	
-	return nil;
+
+	/* Removing the account, with the usual confirmation - hence the ellipsis. A key of its own,
+	 * not the "Remove" every other pane shares: this one is a whole account, and the contact list
+	 * is not to be renamed along with it. */
+	[optionsMenu addItem:[NSMenuItem separatorItem]];
+	[optionsMenu addItemWithTitle:[AILocalizedString(@"Remove Account", "Menu item in the context menu of the accounts list which deletes the account") stringByAppendingEllipsis]
+						   target:self
+						   action:@selector(removeAccountFromMenu:)
+					keyEquivalent:@""
+				representedObject:account];
+
+	return optionsMenu;
 }
 
 /*!
@@ -1262,27 +1570,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  */
 - (void)iconPackDidChange:(NSNotification *)notification
 {
-	//A view based table forgets its selection in -reloadData, and does so silently
-	NSIndexSet	*selectedIndexes = [[[tableView_accountList selectedRowIndexes] copy] autorelease];
-
 	[tableView_accountList reloadData];
-
-	if ([selectedIndexes count]) {
-		[tableView_accountList selectRowIndexes:selectedIndexes byExtendingSelection:NO];
-	}
-
-	[self updateControlAvailability];
-}
-
-/*!
- * @brief Update control availability based on list selection
- */
-- (void)updateControlAvailability
-{
-	BOOL	selection = ([tableView_accountList numberOfSelectedRows] == 1 && [tableView_accountList selectedRow] != -1);
-
-	[button_editAccount setEnabled:selection];
-	[button_addOrRemoveAccount setEnabled:selection forSegment:1];
 }
 
 /*!
@@ -1346,6 +1634,47 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  * rather than assuming the usual 16pt keeps us right on whatever macOS we run on. Used to run the
  * hairline between two rows out to the edge of the card, the way System Settings draws it.
  */
+/*!
+ * @brief Keep the single column as wide as the room the list has
+ *
+ * A table does not reliably re-tile its columns when it is widened - measured on macOS 26: a table
+ * grown from 505pt to 640pt left its only column at the 473pt it had before, while narrowing it
+ * and widening it again did re-tile. A column left behind like that lays every row out over 100pt
+ * narrower than the card, which puts the switch and the (i) button in the middle of the row and
+ * stops the hairline short of the card's edge; a column left <em>wider</em> than the clip view is
+ * worse still, because the list has no scrollers and the right hand end of every row is then
+ * simply unreachable.
+ *
+ * So the column is set from the width of the clip view rather than left to the table. The margin
+ * the table style wants around its column is measured off the table itself whenever the table is
+ * tiled to its clip view, and only guessed at (INSET_STYLE_MARGIN) before that ever happened.
+ */
+- (void)synchronizeAccountColumnWidth
+{
+	NSTableColumn	*accountColumn = [tableView_accountList tableColumnWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER];
+	CGFloat			 clipWidth = NSWidth([[scrollView_accountList contentView] bounds]);
+
+	if (!accountColumn || clipWidth <= 0.0f) return;
+
+	CGFloat			 tableWidth = NSWidth([tableView_accountList bounds]);
+	CGFloat			 observedMargin = tableWidth - [accountColumn width];
+
+	/* While the table is tiled to its clip view, whatever it keeps beside its column is the truth
+	 * about this table style on this system; remember it instead of assuming 16pt per side. A
+	 * margin far too large for that is the very case this method exists for: a column which was
+	 * left behind by a table that grew. */
+	if ((fabs(tableWidth - clipWidth) < 0.5f) &&
+		(observedMargin >= 0.0f) && (observedMargin <= (INSET_STYLE_MARGIN * 2.0f))) {
+		columnMargin = observedMargin;
+	}
+
+	CGFloat			 targetWidth = clipWidth - columnMargin;
+
+	if (targetWidth < [accountColumn minWidth]) targetWidth = [accountColumn minWidth];
+
+	if (fabs([accountColumn width] - targetWidth) > 0.5f) [accountColumn setWidth:targetWidth];
+}
+
 - (CGFloat)rowInsetPerSide
 {
 	NSTableColumn	*accountColumn = [tableView_accountList tableColumnWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER];
@@ -1526,6 +1855,12 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		necessaryHeight = MINIMUM_ROW_HEIGHT;
 	}
 
+	/* Whole points only. Text measures out fractional, and a table lays a row out at whatever
+	 * height it is told - but the sum of a dozen fractions is where a card ends up a few points
+	 * short of its list and the list starts scrolling inside it. Rounding here, not in the sum,
+	 * means the sum and the table agree row by row. */
+	necessaryHeight = ceil(necessaryHeight);
+
 	// Cache the height value
 	[requiredHeightDict setObject:[NSNumber numberWithDouble:necessaryHeight]
 						   forKey:[NSNumber numberWithInteger:row]];
@@ -1542,21 +1877,36 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 	cachedLayoutWidth = width;
 
-	//We may be inside the table's own layout pass, so reload once the run loop comes back around
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(recalculateRowHeights) object:nil];
-	[self performSelector:@selector(recalculateRowHeights) withObject:nil afterDelay:0.0];
+	/* We may be inside the table's own layout pass, so reload once the run loop comes back around.
+	 * In the common modes rather than the default one: a width handed to us while the window is
+	 * being resized, a menu is up or a sheet is tracking would otherwise not be acted upon until
+	 * that ends, and until then the rows are laid out for a width they no longer have - which is
+	 * what leaves a row too short for its text and the list scrolling inside its card.
+	 *
+	 * A recalculation which is already scheduled is left alone rather than cancelled and queued
+	 * again: it reads the width when it runs, so it is up to date whatever happened in between,
+	 * and rescheduling it on every single width of a window being dragged is what could push it
+	 * back for the whole length of the drag. */
+	if (heightRecalcScheduled) return;
+
+	heightRecalcScheduled = YES;
+	[self performSelector:@selector(recalculateRowHeights)
+			   withObject:nil
+			   afterDelay:0.0
+				  inModes:[NSArray arrayWithObject:(NSString *)NSRunLoopCommonModes]];
 }
 
 /*!
  * @brief Recalculate every row height and rebuild the visible rows for the new width
  *
- * Deliberately without -reloadData: a view based table drops its selection there without posting a
- * selection notification, which would leave "Edit" and "-" enabled with nothing selected.
- * -noteHeightOfRowsWithIndexesChanged: keeps the selection, and the rows on screen are simply
- * reconfigured in place.
+ * Deliberately without -reloadData: -noteHeightOfRowsWithIndexesChanged: gives the table the new
+ * heights without throwing its row views away, and the rows on screen are simply reconfigured in
+ * place afterwards.
  */
 - (void)recalculateRowHeights
 {
+	heightRecalcScheduled = NO;
+
 	[self calculateAllHeights];
 
 	NSUInteger	rowCount = MIN((NSUInteger)[tableView_accountList numberOfRows], [accountArray count]);
@@ -1578,6 +1928,10 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	NSInteger accountNumber;
 
+	/* Row heights are measured against the column, so the column has to be the width it will be
+	 * laid out at before anything is measured against it */
+	[self synchronizeAccountColumnWidth];
+
 	[requiredHeightDict release]; requiredHeightDict = [[NSMutableDictionary alloc] init];
 
 	for (accountNumber = 0; accountNumber < [accountArray count]; accountNumber++) {
@@ -1589,11 +1943,15 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 //Account List Table Delegate ------------------------------------------------------------------------------------------
 #pragma mark Account List (Table Delegate)
 /*!
- * @brief Delete the selected row
+ * @brief Rows cannot be selected
+ *
+ * Selection only ever served to point the "Edit" and "-" buttons at an account, and both of those
+ * are gone. Everything else a row does - its switch, its (i) button, a double click, a right click,
+ * dragging it to another position - works on the row itself and needs no selection.
  */
-- (void)tableViewDeleteSelectedRows:(NSTableView *)tableView
+- (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row
 {
-    [self deleteAccount];
+	return NO;
 }
 
 /*!
@@ -1700,10 +2058,13 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	/* The separator sits between two rows, so it goes away below the last row and around the
 	 * selection. It runs from the text indent out to the edge of the card - past the trailing edge
 	 * of the cell, which the inset table style keeps away from that edge. */
-	[[cellView separatorTrailingConstraint] setConstant:[self rowInsetPerSide]];
+	/* rowInsetPerSide alone would end the hairline flush with the card edge;
+	 * keep the same margin the settings form leaves inside its own cards. */
+	[[cellView separatorTrailingConstraint] setConstant:([self rowInsetPerSide] - SEPARATOR_CARD_MARGIN)];
 	[[cellView separator] setHidden:[self separatorHiddenForRow:row]];
 
 	[cellView setDimmed:!accountEnabled];
+	[cellView setContextHighlighted:(row == contextMenuRow)];
 	[cellView setAccessibilityLabel:[NSString stringWithFormat:@"%@, %@, %@",
 									 accountName, [account.service longDescription], statusLine]];
 }
@@ -1711,30 +2072,12 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 /*!
  * @brief Whether the hairline below a row has to be hidden
  *
- * There is no separator below the last row, and - as in System Settings - none directly above or
- * below the selection, where it would be drawn across the selection capsule.
+ * A separator sits between two rows, so there is none below the last one. Nothing else hides it:
+ * with no selection there is no capsule for it to be drawn across.
  */
 - (BOOL)separatorHiddenForRow:(NSInteger)row
 {
-	if (row >= ((NSInteger)[accountArray count] - 1)) return YES;
-
-	NSIndexSet	*selectedIndexes = [tableView_accountList selectedRowIndexes];
-
-	return ([selectedIndexes containsIndex:row] || [selectedIndexes containsIndex:(row + 1)]);
-}
-
-/*!
- * @brief Update the separators of the rows on screen after a selection change
- */
-- (void)updateSeparators
-{
-	[tableView_accountList enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
-		id	cellView = [tableView_accountList viewAtColumn:0 row:row makeIfNecessary:NO];
-
-		if ([cellView isKindOfClass:[AIAccountListCellView class]] && row < (NSInteger)[accountArray count]) {
-			[[(AIAccountListCellView *)cellView separator] setHidden:[self separatorHiddenForRow:row]];
-		}
-	}];
+	return (row >= ((NSInteger)[accountArray count] - 1));
 }
 
 /*!
@@ -1768,94 +2111,53 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	return necessaryHeight;
 }
 
-/*!
- * @brief Drag start
- */
-- (BOOL)tableView:(NSTableView *)tv writeRowsWithIndexes:(NSIndexSet*)rows toPasteboard:(NSPasteboard*)pboard
-{
-	[tempDragAccounts release];
-    tempDragAccounts = [[accountArray objectsAtIndexes:rows] retain];
 
-    [pboard declareTypes:[NSArray arrayWithObject:ACCOUNT_DRAG_TYPE] owner:self];
-    [pboard setString:@"Account" forType:ACCOUNT_DRAG_TYPE];
-    
-    return YES;
-}
+
 
 /*!
- * @brief Drag validate
+ * @brief The context menu of the row under the pointer
+ *
+ * There is no selection to consult and none is made: the row the user right clicked is the row the
+ * menu acts on.
  */
-- (NSDragOperation)tableView:(NSTableView*)tv validateDrop:(id <NSDraggingInfo>)info proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)op
-{
-    if (op == NSTableViewDropAbove && row != -1) {
-        return NSDragOperationPrivate;
-    } else {
-        return NSDragOperationNone;
-    }
-}
-
-/*!
- * @brief Drag complete
- */
-- (BOOL)tableView:(NSTableView*)tv acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row dropOperation:(NSTableViewDropOperation)op
-{
-    NSString		*avaliableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObject:ACCOUNT_DRAG_TYPE]];
-	
-    if ([avaliableType isEqualToString:@"AIAccount"]) {
-		NSEnumerator	*enumerator;
-
-		//Indexes are shifting as we're doing this, so we have to iterate in the right order
-		//If we're moving accounts to an earlier point in the list, we've got to insert backwards
-		if ([accountArray indexOfObject:[tempDragAccounts objectAtIndex:0]] >= row) 
-			enumerator = [tempDragAccounts reverseObjectEnumerator];
-		else //If we're inserting into a later part of the list, we've got to insert forwards
-			enumerator = [tempDragAccounts objectEnumerator];
-		
-		[tableView_accountList deselectAll:nil];
-		
-		for (AIAccount *account in enumerator) {
-			[adium.accountController moveAccount:account toIndex:row];
-		}
-		
-		//Re-select our now-moved accounts
-		[tableView_accountList selectRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange([accountArray indexOfObject:[tempDragAccounts objectAtIndex:0]], [tempDragAccounts count])]
-						   byExtendingSelection:NO];
-
-        return YES;
-    } else {
-        return NO;
-    }
-}
-
-/*!
- * @brief Selection change
- */
-- (void)tableViewSelectionDidChange:(NSNotification *)notification
-{
-	[self updateControlAvailability];
-	[self updateSeparators];
-}
-
 - (NSMenu *)tableView:(NSTableView *)inTableView menuForEvent:(NSEvent *)theEvent
 {
-	NSIndexSet	*selectedIndexes	= [inTableView selectedRowIndexes];
-	NSInteger			mouseRow			= [inTableView rowAtPoint:[inTableView convertPoint:[theEvent locationInWindow] fromView:nil]];
+	NSInteger	mouseRow = [inTableView rowAtPoint:[inTableView convertPoint:[theEvent locationInWindow] fromView:nil]];
+	NSMenu		*menu = [self menuForRow:mouseRow];
 
-	if (mouseRow < 0 || mouseRow >= (NSInteger)[accountArray count]) {
-		return nil;
-	}
+	/* Mark the row while its menu is up: with no selection there would otherwise be nothing at all
+	 * to say which account the menu - "Remove Account..." above all - is about to act on, and the
+	 * menu itself usually covers the row. */
+	[self setContextMenuRow:(menu ? mouseRow : -1)];
+	[menu setDelegate:self];
 
-	//Multiple rows selected where the right-clicked row is in the selection
-	if ([selectedIndexes count] > 1 && [selectedIndexes containsIndex:mouseRow]) {
-		//Display a multi-selection menu
-		return [self menuForRowIndexes:selectedIndexes];
-	} else {
-		// Otherwise, select our new row and provide a menu for it.
-		[inTableView selectRowIndexes:[NSIndexSet indexSetWithIndex:mouseRow] byExtendingSelection:NO];
+	return menu;
+}
 
-		// Return our delegate's menu for this row.
-		return [self menuForRow:mouseRow];
-	}	
+/*!
+ * @brief The context menu closed; the row it belonged to is nothing special again
+ *
+ * Every item of that menu carries its account in its represented object, so the action which is
+ * about to run does not need the row we are forgetting here.
+ */
+- (void)menuDidClose:(NSMenu *)menu
+{
+	[self setContextMenuRow:-1];
+}
+
+/*!
+ * @brief Move the context menu highlight to @a row (-1 for none)
+ */
+- (void)setContextMenuRow:(NSInteger)row
+{
+	if (contextMenuRow == row) return;
+
+	NSInteger	previousRow = contextMenuRow;
+
+	contextMenuRow = row;
+
+	[self refreshRow:previousRow];
+	[self refreshRow:row];
 }
 
 @end

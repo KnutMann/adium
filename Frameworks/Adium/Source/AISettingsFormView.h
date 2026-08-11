@@ -169,6 +169,18 @@
 - (void)addAccessoryView:(NSView *)view;
 
 /*!
+ * @brief As @c addAccessoryView:, but aligned with the card's trailing edge.
+ *
+ * The shape System Settings uses for an "add" control below a list (Network's
+ * VPN list, Bluetooth): the bar hangs under the right-hand corner of the card
+ * instead of the left one. Everything else — sizing, the gap above it, the fact
+ * that it lives outside the card — is exactly @c addAccessoryView:.
+ *
+ * Only one accessory per card; this and @c addAccessoryView: replace each other.
+ */
+- (void)addTrailingAccessoryView:(NSView *)view;
+
+/*!
  * @brief Drop every section and row, e.g. before rebuilding the form.
  */
 - (void)removeAllSections;
