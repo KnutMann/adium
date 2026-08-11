@@ -67,8 +67,11 @@ build_libpurple() {
 	
 	quiet pushd "$ROOTDIR/source/libpurple"
 	
+	#Only protocols Adium still offers a service class for. Anything listed here is linked
+	#into libpurple whether or not Adium can reach it, so the list is the place to keep
+	#honest: zephyr went when its service did.
 	PROTOCOLS="bonjour,gg,irc,jabber,novell,"
-	PROTOCOLS+="simple,zephyr"
+	PROTOCOLS+="simple"
 	
 	# Leopard's 64-bit Kerberos library is missing symbols, as evidenced by
 	#    $ nm -arch x86_64 /usr/lib/libkrb4.dylib | grep krb_rd_req

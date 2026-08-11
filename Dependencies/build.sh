@@ -16,6 +16,18 @@ fi
 
 TARGET_BASE="apple-darwin19.6."
 
+# ARCHITECTURE WARNING: this script does not build what Adium ships.
+#
+# ARCHS holds one entry while HOSTS holds two, and the configure loop in
+# phases/utility.sh indexes ARCHS by the HOSTS index, so a run dies on the second
+# pass with "ARCHS[i]: unbound variable". Even repaired it would produce x86_64 and
+# i686, while every framework under ../Frameworks is arm64. Those were built by a
+# pipeline that is not in this repository - the commit that added them says as much
+# and contains nothing but the binaries and their headers.
+#
+# Until this is ported, changes made here have no effect on the application: the
+# libraries it links are the ones already checked in.
+
 # Arrays for archs and host systems, sometimes an -arch just isnt enough!
 ARCHS=( "x86_64" )
 HOSTS=( "x86_64-${TARGET_BASE}" "i686-${TARGET_BASE}" )
