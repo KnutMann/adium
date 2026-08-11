@@ -21,11 +21,11 @@
  * @brief A settings pane body in the macOS System Settings style.
  *
  * The form is a stack of <em>cards</em>: rounded rectangles filled with
- * <tt>controlBackgroundColor</tt> plus a translucent system fill and a hairline
- * outline (the plain fill alone is invisible — it is the same colour as the
- * window background on current macOS), each holding one or more rows separated
- * by hairlines. A card is usually introduced by a bold section header sitting
- * above it.
+ * <tt>controlBackgroundColor</tt> plus a translucent system fill (the plain fill
+ * alone is invisible — it is the same colour as the window background on current
+ * macOS), each holding one or more rows separated by hairlines. A card carries
+ * no outline of its own; the dividers between its rows are the only lines. A
+ * card is usually introduced by a bold section header sitting above it.
  *
  * Build a form top to bottom, then hand it to a preference pane as its view:
  *
@@ -111,6 +111,50 @@
 - (void)addRowWithLabel:(NSString *)label control:(NSView *)control detail:(NSString *)detail;
 
 /*!
+ * @brief Append a row: @a label on the left, @a popUpButton and @a button on the right.
+ *
+ * The shape of a row offering a choice plus a way to edit it ("Color Theme ⟨…⟩
+ * [Customize…]"). @a button sits at the trailing edge with the menu to its left
+ * and may be nil, which leaves a plain pop up row. It keeps its own title as its
+ * accessibility label and is given @a label as its help text, so a column of
+ * buttons all reading "Customize…" still says which row it belongs to.
+ *
+ * Unlike @c addRowWithLabel:control:, the pop up is re-measured at every layout
+ * instead of being pinned to the size it had when it was added, so a menu built
+ * or rebuilt afterwards — Xtras appearing and disappearing, say — decides the
+ * width of the button by itself. Ask for a fresh layout after such a rebuild
+ * with @c noteContentSizeChanged. The menu is still narrowed to what the card
+ * can spare when it asks for more.
+ */
+- (void)addRowWithLabel:(NSString *)label popUpButton:(NSPopUpButton *)popUpButton accessoryButton:(NSButton *)button;
+
+/*!
+ * @brief Append a row: @a label on the left, @a slider filling the row, @a valueLabel at its end.
+ *
+ * The shape of a System Settings slider row ("Display brightness", "Volume"):
+ * the label keeps only the width its text needs, the readout keeps the width
+ * its factory gave it, and the slider stretches into everything in between —
+ * which is why a slider cannot be handed to @c addRowWithLabel:control:, where
+ * a control keeps its natural width.
+ *
+ * Every slider row of one card shares one label column and one readout column,
+ * both as wide as the widest of them, so the sliders of a card start and end on
+ * the same two lines. The label column never gives width back either, so
+ * retitling a row — see @c setLabel:forRowWithControl: — moves no slider at all,
+ * neither its own nor its neighbours'. A label pressed below the width its text
+ * needs is truncated rather than wrapped.
+ *
+ * @a valueLabel may be nil for a slider without a readout; otherwise build it
+ * with @c valueLabelForWidestValue: and keep a reference, because the readout's
+ * text is the caller's to update (@c setStringValue:) whenever the slider
+ * moves. It is excluded from the accessibility tree: VoiceOver reads the value
+ * off the slider itself, so a second announcement of the same number is noise.
+ *
+ * The label and the readout dim with the slider, exactly as in a control row.
+ */
+- (void)addRowWithLabel:(NSString *)label slider:(NSSlider *)slider valueLabel:(NSTextField *)valueLabel;
+
+/*!
  * @brief Append a row with @a label on top and radio buttons stacked below it.
  *
  * @a radioButtons are NSButtons (see @c radioButtonWithTitle:target:action:);
@@ -179,6 +223,24 @@
  * Only one accessory per card; this and @c addAccessoryView: replace each other.
  */
 - (void)addTrailingAccessoryView:(NSView *)view;
+
+/*!
+ * @brief Retitle the row @a control sits in.
+ *
+ * For the rare label which is not constant — one naming what a slider does
+ * depending on another setting, say. @a control is the view handed to
+ * @c addRowWithLabel:control: (or the slider of a slider row); a control nested
+ * inside the row's view works as well. The row is re-laid out, so the new text
+ * may be longer or shorter than the old one, and it becomes the control's
+ * accessibility label too.
+ *
+ * Setting the text a row already carries does nothing at all, so a caller may
+ * hand over the current label on every preference change without paying for a
+ * layout pass. Does nothing either for a row which was added without a label: a
+ * row cannot grow one afterwards, since that would change the height of a card
+ * already on screen.
+ */
+- (void)setLabel:(NSString *)label forRowWithControl:(NSView *)control;
 
 /*!
  * @brief Drop every section and row, e.g. before rebuilding the form.
@@ -251,6 +313,29 @@
  * @brief A text field of @a width points for value rows.
  */
 + (NSTextField *)valueFieldWithWidth:(CGFloat)width target:(id)target action:(SEL)action;
+
+/*!
+ * @brief A slider for @c addRowWithLabel:slider:valueLabel:, wired to @a target / @a action.
+ *
+ * Deliberately <em>not</em> continuous: the action fires once the drag ends, so
+ * a preference is written once per adjustment instead of once per pixel. Note
+ * that Interface Builder does the opposite — a slider dropped into a nib is
+ * continuous — so send @c setContinuous:YES yourself for a slider whose readout
+ * and effect should follow the knob live, and have its action skip writing when
+ * the value has not actually changed.
+ */
++ (NSSlider *)sliderWithMinValue:(double)minValue maxValue:(double)maxValue target:(id)target action:(SEL)action;
+
+/*!
+ * @brief The trailing readout of a slider row, sized to hold @a widestValue.
+ *
+ * Pass the longest string the row will ever show ("100%", "640px"), so the
+ * slider does not change length as the number does; the caller sets the actual
+ * text with @c setStringValue: whenever the value changes. The field is not
+ * editable and carries no target/action — for a number the user types into, use
+ * @c valueFieldWithWidth:target:action:.
+ */
++ (NSTextField *)valueLabelForWidestValue:(NSString *)widestValue;
 
 /*!
  * @brief Lay @a views out in a row, the standard gap apart, vertically centred.

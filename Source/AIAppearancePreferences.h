@@ -16,41 +16,38 @@
 
 #import <Adium/AIPreferencePane.h>
 
+/*!
+ * @class AIAppearancePreferences
+ * @brief The Appearance pane, built as an AISettingsFormView
+ *
+ * Three cards — the contact list window, its themes, and the icon packs. Every
+ * control below is created by -buildSettingsForm and owned by that form (which
+ * the inherited 'view' ivar retains), so the references here are non-owning and
+ * are cleared again in -viewWillClose. There is no nib.
+ */
 @interface AIAppearancePreferences : AIPreferencePane <NSMenuDelegate> {
-	IBOutlet	NSPopUpButton	*popUp_statusIcons;
-	IBOutlet	NSPopUpButton	*popUp_serviceIcons;
-	IBOutlet	NSPopUpButton	*popUp_menuBarIcons;
-	IBOutlet	NSPopUpButton	*popUp_emoticons;
-	IBOutlet	NSPopUpButton	*popUp_dockIcon;
-	IBOutlet	NSPopUpButton	*popUp_listLayout;
-	IBOutlet	NSPopUpButton	*popUp_colorTheme;
-	IBOutlet	NSPopUpButton	*popUp_windowStyle;
+	NSPopUpButton	*popUp_statusIcons;
+	NSPopUpButton	*popUp_serviceIcons;
+	NSPopUpButton	*popUp_menuBarIcons;
+	NSPopUpButton	*popUp_emoticons;
+	NSPopUpButton	*popUp_dockIcon;
+	NSPopUpButton	*popUp_listLayout;
+	NSPopUpButton	*popUp_colorTheme;
+	NSPopUpButton	*popUp_windowStyle;
 
-	IBOutlet	NSButton		*checkBox_verticalAutosizing;
-	IBOutlet	NSButton		*checkBox_horizontalAutosizing;
-	
-	IBOutlet	NSSlider		*slider_windowOpacity;
-	IBOutlet	NSTextField		*textField_windowOpacity;
-	
-	IBOutlet	NSTextField		*textField_horizontalWidthText;
-	IBOutlet	NSSlider		*slider_horizontalWidth;
-	IBOutlet	NSTextField		*textField_horizontalWidthIndicator;
-		
-	IBOutlet	NSTextField		*label_serviceIcons;
-	IBOutlet	NSTextField		*label_statusIcons;
-	IBOutlet	NSTextField		*label_dockIcons;
-	IBOutlet	NSTextField		*label_menuBarIcons;
-	IBOutlet	NSTextField		*label_emoticons;
-	IBOutlet	NSTextField		*label_colorTheme;
-	IBOutlet	NSTextField		*label_listLayout;
-	IBOutlet	NSTextField		*label_windowStyle;
-	IBOutlet	NSTextField		*label_opacity;
-	IBOutlet	NSTextField		*label_autosizing;
-	IBOutlet	NSTextField		*label_contactListSection;
-	IBOutlet	NSButton		*button_customizeEmoticons;
-	IBOutlet	NSButton		*button_showAllDockIcons;
-	IBOutlet	NSButton		*button_customizeColorTheme;
-	IBOutlet	NSButton		*button_customizeListLayout;
+	NSSwitch		*checkBox_verticalAutosizing;
+	NSSwitch		*checkBox_horizontalAutosizing;
+
+	NSSlider		*slider_windowOpacity;
+	NSTextField		*textField_windowOpacity;
+
+	NSSlider		*slider_horizontalWidth;
+	NSTextField		*textField_horizontalWidthIndicator;
+
+	NSButton		*button_customizeEmoticons;
+	NSButton		*button_showAllDockIcons;
+	NSButton		*button_customizeColorTheme;
+	NSButton		*button_customizeListLayout;
 
 	//
 	NSArray		*_listLayouts;	//Will NOT always be a valid reference.  Do not use as one!

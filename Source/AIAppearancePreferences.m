@@ -34,12 +34,23 @@
 #import <Adium/AIStatusIcons.h>
 #import <Adium/ESPresetManagementController.h>
 #import <Adium/ESPresetNameSheetController.h>
+#import <Adium/AISettingsFormView.h>
 #import "AIMenuBarIcons.h"
 
 typedef enum {
 	AIEmoticonMenuNone = 1,
 	AIEmoticonMenuMultiple
 } AIEmoticonMenuTag;
+
+//Width the form starts out at; the preferences window resizes it to its column.
+#define APPEARANCE_PANE_INITIAL_WIDTH	540.0
+
+/* The widest text each slider's readout ever shows: the opacity slider's 5-100
+ * percent and the width slider's 32-640 pixels. Sizing the readouts for these
+ * keeps the sliders from changing length as their numbers do.
+ */
+#define OPACITY_WIDEST_VALUE			@"100%"
+#define WIDTH_WIDEST_VALUE				@"640px"
 
 @interface AIAppearancePreferences ()
 - (NSMenu *)_windowStyleMenu;
@@ -57,7 +68,32 @@ typedef enum {
 - (void)configureStatusIconsMenu;
 - (void)configureServiceIconsMenu;
 - (void)configureMenuBarIconsMenu;
+
+- (AISettingsFormView *)buildSettingsForm;
+- (AISettingsFormView *)settingsForm;
+- (NSWindow *)paneWindow;
+- (void)menusChanged;
+- (void)layOutChangedMenus;
+- (void)updateHorizontalWidthLabel:(NSString *)label;
 @end
+
+/*!
+ * @brief A nib label reused as a row label: without its trailing colon.
+ *
+ * Keeps every existing translation of the old labels usable while matching the
+ * System Settings look, where row labels carry no colon.
+ */
+static NSString *AIRowLabel(NSString *label)
+{
+	NSCharacterSet	*whitespace = [NSCharacterSet whitespaceCharacterSet];
+	NSString		*trimmed = [label stringByTrimmingCharactersInSet:whitespace];
+
+	while ([trimmed hasSuffix:@":"]) {
+		trimmed = [[trimmed substringToIndex:([trimmed length] - 1)] stringByTrimmingCharactersInSet:whitespace];
+	}
+
+	return trimmed;
+}
 
 @implementation AIAppearancePreferences
 
@@ -71,45 +107,218 @@ typedef enum {
 - (NSString *)paneName{
     return AILocalizedString(@"Appearance","Appearance preferences label");
 }
-- (NSString *)nibName{
-    return @"AppearancePrefs";
-}
 - (NSImage *)paneIcon
 {
 	return [NSImage imageNamed:@"pref-appearance" forClass:[self class]];
 }
+
+#pragma mark View
+
+/*!
+ * @brief Build our view instead of loading a nib.
+ *
+ * The pane's controls are pop up buttons, sliders, switches and push buttons —
+ * nothing a nib could supply that a factory cannot — so there is nothing left
+ * for AppearancePrefs.xib to hand over; the form creates and arranges all of
+ * them. Mirrors -[AIModularPane view] so the subclass hooks fire in the same
+ * order.
+ */
+- (NSView *)view
+{
+	if (!view) {
+		AISettingsFormView	*form = [self buildSettingsForm];
+
+		view = [form retain];
+
+		[self viewDidLoad];
+		[self localizePane];
+
+		//-viewDidLoad filled the pop up menus; the rows measure the buttons in this last layout pass.
+		[form layoutForWidth:NSWidth([form frame])];
+
+		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
+	}
+
+	return view;
+}
+
+/*!
+ * @brief The settings form we live in, or nil before -view built it
+ */
+- (AISettingsFormView *)settingsForm
+{
+	return ([view isKindOfClass:[AISettingsFormView class]] ? (AISettingsFormView *)view : nil);
+}
+
+/*!
+ * @brief The window our sheets belong on, or nil once the pane has closed
+ *
+ * Deliberately not @c [[self view] window]: -view builds the whole pane when it
+ * finds none, so a stray call after -closeView would raise a second form —
+ * with a second set of preference observers — that nothing ever closes again. A
+ * sheet with no window shows as a window of its own, which is the old behaviour
+ * for a pane that has no window either.
+ */
+- (NSWindow *)paneWindow
+{
+	return [[self settingsForm] window];
+}
+
+/*!
+ * @brief Create the controls and stack them into cards
+ *
+ * Three cards: the contact list window, the themes it is drawn with, and the
+ * icon packs. Each control keeps the preference key and group its nib
+ * counterpart had; the two "Size to fit" options, which used to sit indented
+ * under an "Automatic Sizing:" label, are plain rows of the first card now, so
+ * the pane needs no indentation to express what belongs together.
+ */
+- (AISettingsFormView *)buildSettingsForm
+{
+	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:APPEARANCE_PANE_INITIAL_WIDTH] autorelease];
+
+	//Contact list window
+	[form addSectionHeader:AILocalizedString(@"Contact List","Section header in appearance preferences")];
+
+	popUp_windowStyle = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Window Style:",nil))
+			  popUpButton:popUp_windowStyle
+		  accessoryButton:nil];
+
+	/* Five percent, not zero, exactly as in the nib this pane replaced: a contact
+	 * list at zero opacity is invisible *and* clickable-through in the styles
+	 * which do not force the window to catch mouse events, so the only way back
+	 * would be this pane. */
+	slider_windowOpacity = [AISettingsFormView sliderWithMinValue:5.0
+														 maxValue:100.0
+														   target:self
+														   action:@selector(changePreference:)];
+	//As in the nib: the readout and the contact list follow the knob while dragging
+	[slider_windowOpacity setContinuous:YES];
+	textField_windowOpacity = [AISettingsFormView valueLabelForWidestValue:OPACITY_WIDEST_VALUE];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Opacity:",nil))
+				   slider:slider_windowOpacity
+			   valueLabel:textField_windowOpacity];
+
+	checkBox_horizontalAutosizing = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Size to fit horizontally",nil)
+				  control:checkBox_horizontalAutosizing];
+
+	/* Its label is the one thing here which is not constant: the borderless styles
+	 * turn this slider into a plain width slider, and -preferencesChangedForGroup:…
+	 * retitles the row accordingly. */
+	slider_horizontalWidth = [AISettingsFormView sliderWithMinValue:32.0
+														  maxValue:640.0
+															target:self
+															action:@selector(changePreference:)];
+	[slider_horizontalWidth setContinuous:YES];
+	textField_horizontalWidthIndicator = [AISettingsFormView valueLabelForWidestValue:WIDTH_WIDEST_VALUE];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Maximum Width:",nil))
+				   slider:slider_horizontalWidth
+			   valueLabel:textField_horizontalWidthIndicator];
+
+	checkBox_verticalAutosizing = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Size to fit vertically",nil)
+				  control:checkBox_verticalAutosizing];
+
+	//Themes of the contact list
+	[form addSectionHeader:AILocalizedString(@"Themes","Section header above the contact list's color theme and layout")];
+
+	popUp_colorTheme = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	button_customizeColorTheme = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize…",nil)
+																 target:self
+																 action:@selector(customizeListTheme:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Color Theme:",nil))
+			  popUpButton:popUp_colorTheme
+		  accessoryButton:button_customizeColorTheme];
+
+	popUp_listLayout = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	button_customizeListLayout = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize…",nil)
+																 target:self
+																 action:@selector(customizeListLayout:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"List Layout:",nil))
+			  popUpButton:popUp_listLayout
+		  accessoryButton:button_customizeListLayout];
+
+	//Icon packs
+	[form addSectionHeader:AILocalizedString(@"Icons","Section header above the icon pack settings")];
+
+	popUp_emoticons = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	button_customizeEmoticons = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize…",nil)
+																target:self
+																action:@selector(customizeEmoticons:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Emoticons:",nil))
+			  popUpButton:popUp_emoticons
+		  accessoryButton:button_customizeEmoticons];
+
+	popUp_dockIcon = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	button_showAllDockIcons = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Show All…",nil)
+															  target:self
+															  action:@selector(showAllDockIcons:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Dock Icon:",nil))
+			  popUpButton:popUp_dockIcon
+		  accessoryButton:button_showAllDockIcons];
+
+	popUp_statusIcons = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Status Icons:",nil))
+			  popUpButton:popUp_statusIcons
+		  accessoryButton:nil];
+
+	popUp_serviceIcons = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Service Icons:",nil))
+			  popUpButton:popUp_serviceIcons
+		  accessoryButton:nil];
+
+	popUp_menuBarIcons = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Menu Bar Icons:",nil))
+			  popUpButton:popUp_menuBarIcons
+		  accessoryButton:nil];
+
+	return form;
+}
+
+/*!
+ * @brief A pop up menu was (re)built; let the form measure the buttons again
+ *
+ * Every menu here is filled after its button was created, and refilled whenever
+ * an Xtra appears or disappears. A pop up row re-measures its button on each
+ * layout, so all this has to do is ask for one.
+ *
+ * The request is coalesced into the next pass of the run loop: -xtrasChanged:
+ * rebuilds up to six menus in a row and would otherwise pay for six layouts, and
+ * a menu which rebuilds itself while it is open (-menuNeedsUpdate:) must not be
+ * re-measured until it has closed again — the default run loop mode is not
+ * served while a menu tracks.
+ */
+- (void)menusChanged
+{
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(layOutChangedMenus) object:nil];
+	[self performSelector:@selector(layOutChangedMenus) withObject:nil afterDelay:0.0];
+}
+
+- (void)layOutChangedMenus
+{
+	[[self settingsForm] noteContentSizeChanged];
+}
+
+/*!
+ * @brief Retitle the row of the horizontal width slider
+ */
+- (void)updateHorizontalWidthLabel:(NSString *)label
+{
+	[[self settingsForm] setLabel:AIRowLabel(label) forRowWithControl:slider_horizontalWidth];
+}
+
+#pragma mark Configuration
 
 /*!
  * @brief Configure the preference view
  */
 - (void)viewDidLoad
 {
-	//Localized text for the single-nib pane
-	[label_serviceIcons setStringValue:AILocalizedString(@"Service Icons:",nil)];
-	[label_statusIcons setStringValue:AILocalizedString(@"Status Icons:",nil)];
-	[label_menuBarIcons setStringValue:AILocalizedString(@"Menu Bar Icons:",nil)];
-	[label_emoticons setStringValue:AILocalizedString(@"Emoticons:",nil)];
-	[label_dockIcons setStringValue:AILocalizedString(@"Dock Icon:",nil)];
-	[label_contactListSection setStringValue:AILocalizedString(@"Contact List","Section header in appearance preferences")];
-	[label_colorTheme setStringValue:AILocalizedString(@"Color Theme:",nil)];
-	[label_listLayout setStringValue:AILocalizedString(@"List Layout:",nil)];
-	[label_windowStyle setStringValue:AILocalizedString(@"Window Style:",nil)];
-	[label_opacity setStringValue:AILocalizedString(@"Opacity:",nil)];
-	[label_autosizing setStringValue:AILocalizedString(@"Automatic Sizing:",nil)];
-	[textField_horizontalWidthText setStringValue:AILocalizedString(@"Maximum Width:",nil)];
-	[button_customizeEmoticons setTitle:AILocalizedString(@"Customize…",nil)];
-	[button_customizeColorTheme setTitle:AILocalizedString(@"Customize…",nil)];
-	[button_customizeListLayout setTitle:AILocalizedString(@"Customize…",nil)];
-	[button_showAllDockIcons setTitle:AILocalizedString(@"Show All…",nil)];
-	[checkBox_verticalAutosizing setTitle:AILocalizedString(@"Size to fit vertically",nil)];
-	[checkBox_horizontalAutosizing setTitle:AILocalizedString(@"Size to fit horizontally",nil)];
-
-	[slider_windowOpacity setMinValue:0.0];
-	[slider_windowOpacity setMaxValue:100.0];
-
 	//Other list options
 	[popUp_windowStyle setMenu:[self _windowStyleMenu]];
-		
+
 	//Observe preference changes
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_EMOTICONS];
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_APPEARANCE];
@@ -128,8 +337,52 @@ typedef enum {
 - (void)viewWillClose
 {
 	[adium.preferenceController unregisterPreferenceObserver:self];
-	
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+	/* Only our own registration: removeObserver:self would silently take any
+	 * other one — a category's, a superclass's — with it. */
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:AIXtrasDidChangeNotification
+												  object:nil];
+
+	/* Everything we scheduled: a relayout from -menuNeedsUpdate:, but also the
+	 * theme and layout editors -presetNameSheetControllerDidEnd:… defers. A
+	 * deferred call reaching a closed pane would ask -view for a window and so
+	 * build a second form, with a second set of observers, which nothing would
+	 * ever close again. */
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+
+	/* The form owns every control; these are the pane's non-owning references to
+	 * them and must not outlive the view. */
+	popUp_statusIcons = nil;
+	popUp_serviceIcons = nil;
+	popUp_menuBarIcons = nil;
+	popUp_emoticons = nil;
+	popUp_dockIcon = nil;
+	popUp_listLayout = nil;
+	popUp_colorTheme = nil;
+	popUp_windowStyle = nil;
+	checkBox_verticalAutosizing = nil;
+	checkBox_horizontalAutosizing = nil;
+	slider_windowOpacity = nil;
+	textField_windowOpacity = nil;
+	slider_horizontalWidth = nil;
+	textField_horizontalWidthIndicator = nil;
+	button_customizeEmoticons = nil;
+	button_showAllDockIcons = nil;
+	button_customizeColorTheme = nil;
+	button_customizeListLayout = nil;
+}
+
+/*!
+ * @brief Undo everything -view built
+ *
+ * The pane registers itself as a preference and a notification observer while
+ * its view exists; -closeView is what unregisters it again, and it is idempotent.
+ */
+- (void)dealloc
+{
+	[self closeView];
+	[super dealloc];
 }
 
 /*!
@@ -175,6 +428,9 @@ typedef enum {
 		[popUp_listLayout selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
 																								   group:PREF_GROUP_APPEARANCE]];
 	}
+
+	//Menus which grew or shrank change how much room their buttons need
+	[self menusChanged];
 }
 
 /*!
@@ -211,16 +467,16 @@ typedef enum {
 			
 			if (windowStyle == AIContactListWindowStyleStandard) {
 				//In standard mode, disable the horizontal autosizing slider if horiztonal autosizing is off
-				[textField_horizontalWidthText setLocalizedString:AILocalizedString(@"Maximum Width:",nil)];
+				[self updateHorizontalWidthLabel:AILocalizedString(@"Maximum Width:",nil)];
 				[slider_horizontalWidth setEnabled:horizontalAutosize];
 				
 			} else {
 				//In all the borderless transparent modes, the horizontal autosizing slider becomes the
 				//horizontal sizing slider when autosizing is off
 				if (horizontalAutosize) {
-					[textField_horizontalWidthText setLocalizedString:AILocalizedString(@"Maximum Width:",nil)];
+					[self updateHorizontalWidthLabel:AILocalizedString(@"Maximum Width:",nil)];
 				} else {
-					[textField_horizontalWidthText setLocalizedString:AILocalizedString(@"Width:",nil)];			
+					[self updateHorizontalWidthLabel:AILocalizedString(@"Width:",nil)];
 				}
 				[slider_horizontalWidth setEnabled:YES];
 			}
@@ -309,6 +565,9 @@ typedef enum {
 	} else {
 		[popUp_emoticons selectItemWithRepresentedObject:[activeEmoticonPacks objectAtIndex:0]];
 	}
+
+	//A pack more or less changes how much room the button needs
+	[self menusChanged];
 }
 
 /*!
@@ -360,22 +619,37 @@ typedef enum {
                                               group:PREF_GROUP_APPEARANCE];
 
     } else if (sender == slider_windowOpacity) {
-        [adium.preferenceController setPreference:[NSNumber numberWithDouble:([sender doubleValue] / 100.0)]
-                                             forKey:KEY_LIST_LAYOUT_WINDOW_OPACITY
-                                              group:PREF_GROUP_APPEARANCE];
+		/* Continuous, so this arrives once per pixel of the drag: keep the readout
+		 * in step with the knob, but only write the preference — which redraws
+		 * every contact list window — when the value has really moved. The
+		 * written value is the whole percent the readout shows, so a drag costs
+		 * at most one write per percent instead of one per pixel. */
+		double	newValue = (NSInteger)[sender doubleValue] / 100.0;
+		double	oldValue = [[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_WINDOW_OPACITY
+																  group:PREF_GROUP_APPEARANCE] doubleValue];
+
 		[self _updateSliderValues];
-		
+
+		if (fabs(newValue - oldValue) > 0.0001) {
+			[adium.preferenceController setPreference:[NSNumber numberWithDouble:newValue]
+											   forKey:KEY_LIST_LAYOUT_WINDOW_OPACITY
+												group:PREF_GROUP_APPEARANCE];
+		}
+
 	} else if (sender == slider_horizontalWidth) {
 		NSInteger newValue = [sender integerValue];
 		NSInteger oldValue = [[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_HORIZONTAL_WIDTH
 																 group:PREF_GROUP_APPEARANCE] integerValue];
-		if (newValue != oldValue) { 
+
+		//Continuous as well; same rule as the opacity slider above
+		[self _updateSliderValues];
+
+		if (newValue != oldValue) {
 			[adium.preferenceController setPreference:[NSNumber numberWithInteger:newValue]
 												 forKey:KEY_LIST_LAYOUT_HORIZONTAL_WIDTH
 												  group:PREF_GROUP_APPEARANCE];
-			[self _updateSliderValues];
 		}
-		
+
 	} else if (sender == popUp_emoticons) {
 		if ([[sender selectedItem] tag] != AIEmoticonMenuMultiple) {
 			//Disable all active emoticons
@@ -415,7 +689,7 @@ typedef enum {
 - (IBAction)customizeEmoticons:(id)sender
 {
 	AIEmoticonPreferences *emoticonPreferences = [[AIEmoticonPreferences alloc] init];
-	[emoticonPreferences openOnWindow:[[self view] window]];
+	[emoticonPreferences openOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -519,7 +793,7 @@ typedef enum {
 																									  notifyingTarget:self
 																											 userInfo:@"theme"];
 	
-	[presetNameSheetController showOnWindow:[[self view] window]];
+	[presetNameSheetController showOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -531,7 +805,7 @@ typedef enum {
 	
 	AIListThemeWindowController *listThemeWindowController = [[AIListThemeWindowController alloc] initWithName:theme
 																							   notifyingTarget:self];
-	[listThemeWindowController showOnWindow:[[self view] window]];
+	[listThemeWindowController showOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -575,7 +849,7 @@ typedef enum {
 	ESPresetManagementController *presetManagementController = [[ESPresetManagementController alloc] initWithPresets:_listThemes
 																										  namedByKey:@"name"
 																										withDelegate:self];
-	[presetManagementController showOnWindow:[[self view] window]];
+	[presetManagementController showOnWindow:[self paneWindow]];
 	
 	[popUp_colorTheme selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
 																							   group:PREF_GROUP_APPEARANCE]];		
@@ -593,7 +867,7 @@ typedef enum {
 																									  notifyingTarget:self
 																											 userInfo:@"layout"];
 	
-	[presetNameSheetController showOnWindow:[[self view] window]];
+	[presetNameSheetController showOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -605,7 +879,7 @@ typedef enum {
 	
 	AIListLayoutWindowController *listLayoutWindowController = [[AIListLayoutWindowController alloc] initWithName:theme
 																								  notifyingTarget:self];
-	[listLayoutWindowController showOnWindow:[[self view] window]];
+	[listLayoutWindowController showOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -649,7 +923,7 @@ typedef enum {
 	ESPresetManagementController *presetManagementController = [[ESPresetManagementController alloc] initWithPresets:_listLayouts
 																										  namedByKey:@"name"
 																										withDelegate:self];
-	[presetManagementController showOnWindow:[[self view] window]];
+	[presetManagementController showOnWindow:[self paneWindow]];
 
 	[popUp_listLayout selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
 																							   group:PREF_GROUP_APPEARANCE]];		
@@ -710,12 +984,12 @@ typedef enum {
 - (void)_editListThemeWithName:(NSString *)name{
 	AIListThemeWindowController *listThemeWindowController = [[AIListThemeWindowController alloc] initWithName:name
 																							   notifyingTarget:self];
-	[listThemeWindowController showOnWindow:[[self view] window]];
+	[listThemeWindowController showOnWindow:[self paneWindow]];
 }
 - (void)_editListLayoutWithName:(NSString *)name{
 	AIListLayoutWindowController *listLayoutWindowController = [[AIListLayoutWindowController alloc] initWithName:name
 																								  notifyingTarget:self];
-	[listLayoutWindowController showOnWindow:[[self view] window]];
+	[listLayoutWindowController showOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -917,7 +1191,7 @@ typedef enum {
 - (IBAction)showAllDockIcons:(id)sender
 {
 	AIDockIconSelectionSheet *dockIconSelectionSheet = [[AIDockIconSelectionSheet alloc] init];
-	[dockIconSelectionSheet openOnWindow:[[self view] window]];
+	[dockIconSelectionSheet openOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -988,6 +1262,8 @@ typedef enum {
 
 	[popUp_dockIcon setMenu:tempMenu];
 	[popUp_dockIcon selectItemWithRepresentedObject:activePackName];
+
+	[self menusChanged];
 }
 
 //Status, Service and Menu Bar icons ---------------------------------------------------------------------------------------------
@@ -1050,6 +1326,8 @@ typedef enum {
 	
 	[popUp_statusIcons setMenu:tempMenu];
 	[popUp_statusIcons selectItemWithRepresentedObject:activePackName];
+
+	[self menusChanged];
 }
 
 - (void)configureServiceIconsMenu
@@ -1077,6 +1355,8 @@ typedef enum {
 	
 	[popUp_serviceIcons setMenu:tempMenu];
 	[popUp_serviceIcons selectItemWithRepresentedObject:activePackName];
+
+	[self menusChanged];
 }
 
 - (void)configureMenuBarIconsMenu
@@ -1104,6 +1384,8 @@ typedef enum {
 	
 	[popUp_menuBarIcons setMenu:tempMenu];
 	[popUp_menuBarIcons selectItemWithRepresentedObject:activePackName];
+
+	[self menusChanged];
 }
 
 #pragma mark Menu delegate
@@ -1165,6 +1447,9 @@ typedef enum {
 		
 		//Put a checkmark by the appropriate menu item
 		[popUpButton selectItemWithRepresentedObject:repObject];
+
+		//A menu of every pack instead of just the active one may need a wider button
+		[self menusChanged];
 	}	
 }
 

@@ -22,19 +22,7 @@
                 <outlet property="slider_windowOpacity" destination="sOpa" id="oSOpa"/>
                 <outlet property="textField_windowOpacity" destination="tOpa" id="oTOpa"/>
                 <outlet property="slider_horizontalWidth" destination="sWid" id="oSWid"/>
-                <outlet property="textField_horizontalWidthText" destination="lWid" id="oLWid"/>
                 <outlet property="textField_horizontalWidthIndicator" destination="tWid" id="oTWid"/>
-                <outlet property="label_serviceIcons" destination="lSvc" id="oLSvc"/>
-                <outlet property="label_statusIcons" destination="lSta" id="oLSta"/>
-                <outlet property="label_menuBarIcons" destination="lMbi" id="oLMbi"/>
-                <outlet property="label_dockIcons" destination="lDck" id="oLDck"/>
-                <outlet property="label_emoticons" destination="lEmo" id="oLEmo"/>
-                <outlet property="label_colorTheme" destination="lThm" id="oLThm"/>
-                <outlet property="label_listLayout" destination="lLay" id="oLLay"/>
-                <outlet property="label_windowStyle" destination="lWin" id="oLWin"/>
-                <outlet property="label_opacity" destination="lOpa" id="oLOpa"/>
-                <outlet property="label_autosizing" destination="lAut" id="oLAut"/>
-                <outlet property="label_contactListSection" destination="lCls" id="oLCls"/>
                 <outlet property="button_customizeEmoticons" destination="bEmo" id="oBEmo"/>
                 <outlet property="button_showAllDockIcons" destination="bDck" id="oBDck"/>
                 <outlet property="button_customizeColorTheme" destination="bThm" id="oBThm"/>
