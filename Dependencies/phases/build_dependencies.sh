@@ -49,22 +49,49 @@ build_gettext() {
 GLIB_VERSION=2.0
 build_glib() {
 	prereq "glib" \
-		"https://download.gnome.org/sources/glib/2.66/glib-2.66.7.tar.xz"
+		"https://download.gnome.org/sources/glib/2.88/glib-2.88.2.tar.xz"
 	
 	quiet pushd "$ROOTDIR/source/glib"
-	perl -0pi -e "s/build_tests = not meson\\.is_cross_build\\(\\) or \\(meson\\.is_cross_build\\(\\) and meson\\.has_exe_wrapper\\(\\)\\) or installed_tests_enabled/build_tests = false/" meson.build
 	
 	if needsconfigure $@; then
 	(
 		status "Configuring glib"
 		log ln -sf /usr/bin/python3 "$ROOTDIR/build/bin/python3"
 		export PYTHON=/usr/bin/python3
+		#Meson has to be told about our tree four times over, and missing any one of them
+		#fails in a way that looks like something else:
+		#  - cpp_args/cpp_link_args as well as the c_ ones: glib is a C *and* C++ project, and
+		#    the intl probe runs through the C++ compiler. Without them it reports
+		#    "library 'intl' not found" and quietly falls back to the proxy-libintl
+		#    subproject - a stub that answers every gettext call with the untranslated
+		#    string and, on install, overwrites the real libintl staged from Homebrew.
+		#  - PKG_CONFIG_LIBDIR, or it finds the SDK's libffi, whose include directory does
+		#    not exist on macOS 26.
+		#  - LIBRARY_PATH, which is what clang consults for -l at the final link; the meson
+		#    options only reach the probes.
+		#-Dnls=enabled makes the fallback an error rather than a silent downgrade.
+		export PKG_CONFIG_PATH="$ROOTDIR/build/lib/pkgconfig"
+		export PKG_CONFIG_LIBDIR="$ROOTDIR/build/lib/pkgconfig"
+		export LIBRARY_PATH="$ROOTDIR/build/lib"
 		quiet rm -rf _build
-    meson \
+		#meson installs the unversioned names as symlinks and refuses to replace a regular
+		#file, which is what an older build leaves behind.
+		for lib in glib-2.0 gobject-2.0 gio-2.0 gmodule-2.0 gthread-2.0 ; do
+			if [ -f "$ROOTDIR/build/lib/lib${lib}.dylib" ] && [ ! -L "$ROOTDIR/build/lib/lib${lib}.dylib" ] ; then
+				quiet rm -f "$ROOTDIR/build/lib/lib${lib}.dylib"
+			fi
+		done
+    meson setup \
         -Dprefix=$ROOTDIR/build \
-        -Dman=false \
-        -Diconv=auto \
+        -Dman-pages=disabled \
+        -Dtests=false \
         -Dinstalled_tests=false \
+        -Dintrospection=disabled \
+        -Dnls=enabled \
+        -Dc_args="-I$ROOTDIR/build/include -mmacosx-version-min=$MIN_OS_VERSION" \
+        -Dc_link_args="-L$ROOTDIR/build/lib -Wl,-headerpad_max_install_names" \
+        -Dcpp_args="-I$ROOTDIR/build/include -mmacosx-version-min=$MIN_OS_VERSION" \
+        -Dcpp_link_args="-L$ROOTDIR/build/lib -Wl,-headerpad_max_install_names" \
         _build
     status "Configured."
 
@@ -84,6 +111,9 @@ build_glib() {
 	fi
 	
 	status "Building and installing glib"
+	export LIBRARY_PATH="$ROOTDIR/build/lib"
+	export PKG_CONFIG_PATH="$ROOTDIR/build/lib/pkgconfig"
+	export PKG_CONFIG_LIBDIR="$ROOTDIR/build/lib/pkgconfig"
 	ninja -C _build install
 	
 	status "Successfully installed glib"
@@ -149,6 +179,11 @@ build_jsonglib() {
 	fi
 	
 	status "Building and installing json-glib"
+	#Same as glib: meson wants the unversioned name to be a symlink and will not
+	#replace a regular file left by an older build.
+	if [ -f "$ROOTDIR/build/lib/libjson-glib-1.0.dylib" ] && [ ! -L "$ROOTDIR/build/lib/libjson-glib-1.0.dylib" ] ; then
+		quiet rm -f "$ROOTDIR/build/lib/libjson-glib-1.0.dylib"
+	fi
 	ninja -C _build install
 	
 	# C'mon, why do you make me do this?

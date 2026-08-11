@@ -3,6 +3,8 @@
  * Copyright (C) 2008 Red Hat, Inc.
  * Copyright (C) 2018 Igalia S.L.
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -58,7 +60,7 @@ typedef enum {
   G_RESOLVER_NAME_LOOKUP_FLAGS_DEFAULT = 0,
   G_RESOLVER_NAME_LOOKUP_FLAGS_IPV4_ONLY = 1 << 0,
   G_RESOLVER_NAME_LOOKUP_FLAGS_IPV6_ONLY = 1 << 1,
-} GResolverNameLookupFlags;
+} G_GNUC_FLAG_ENUM GResolverNameLookupFlags;
 
 struct _GResolverClass {
   GObjectClass parent_class;
@@ -129,7 +131,7 @@ struct _GResolverClass {
    * @flags: extra #GResolverNameLookupFlags to modify the lookup
    * @cancellable: (nullable): a #GCancellable
    * @callback: (scope async): a #GAsyncReadyCallback to call when completed
-   * @user_data: (closure): data to pass to @callback
+   * @user_data: data to pass to @callback
    *
    * Asynchronous version of GResolverClass::lookup_by_name_with_flags
    *
@@ -181,69 +183,69 @@ struct _GResolverClass {
 
 };
 
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GType      g_resolver_get_type                         (void) G_GNUC_CONST;
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GResolver *g_resolver_get_default                      (void);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 void       g_resolver_set_default                      (GResolver                 *resolver);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GList     *g_resolver_lookup_by_name                   (GResolver                 *resolver,
                                                         const gchar               *hostname,
                                                         GCancellable              *cancellable,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 void       g_resolver_lookup_by_name_async             (GResolver                 *resolver,
                                                         const gchar               *hostname,
                                                         GCancellable              *cancellable,
                                                         GAsyncReadyCallback        callback,
                                                         gpointer                   user_data);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GList     *g_resolver_lookup_by_name_finish            (GResolver                 *resolver,
                                                         GAsyncResult              *result,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_2_60
+GIO_AVAILABLE_IN_2_60
 void       g_resolver_lookup_by_name_with_flags_async  (GResolver                 *resolver,
                                                         const gchar               *hostname,
                                                         GResolverNameLookupFlags   flags,
                                                         GCancellable              *cancellable,
                                                         GAsyncReadyCallback        callback,
                                                         gpointer                   user_data);
-GLIB_AVAILABLE_IN_2_60
+GIO_AVAILABLE_IN_2_60
 GList     *g_resolver_lookup_by_name_with_flags_finish (GResolver                 *resolver,
                                                         GAsyncResult              *result,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_2_60
+GIO_AVAILABLE_IN_2_60
 GList     *g_resolver_lookup_by_name_with_flags        (GResolver                 *resolver,
                                                         const gchar               *hostname,
                                                         GResolverNameLookupFlags   flags,
                                                         GCancellable              *cancellable,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 void       g_resolver_free_addresses                   (GList                     *addresses);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 gchar     *g_resolver_lookup_by_address                (GResolver                 *resolver,
                                                         GInetAddress              *address,
                                                         GCancellable              *cancellable,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 void       g_resolver_lookup_by_address_async          (GResolver                 *resolver,
                                                         GInetAddress              *address,
                                                         GCancellable              *cancellable,
                                                         GAsyncReadyCallback        callback,
                                                         gpointer                   user_data);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 gchar     *g_resolver_lookup_by_address_finish         (GResolver                 *resolver,
                                                         GAsyncResult              *result,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GList     *g_resolver_lookup_service                   (GResolver                 *resolver,
                                                         const gchar               *service,
                                                         const gchar               *protocol,
                                                         const gchar               *domain,
                                                         GCancellable              *cancellable,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 void       g_resolver_lookup_service_async             (GResolver                 *resolver,
                                                         const gchar               *service,
                                                         const gchar               *protocol,
@@ -251,30 +253,35 @@ void       g_resolver_lookup_service_async             (GResolver               
                                                         GCancellable              *cancellable,
                                                         GAsyncReadyCallback        callback,
                                                         gpointer                   user_data);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GList     *g_resolver_lookup_service_finish            (GResolver                 *resolver,
                                                         GAsyncResult              *result,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_2_34
+GIO_AVAILABLE_IN_2_34
 GList     *g_resolver_lookup_records                   (GResolver                 *resolver,
                                                         const gchar               *rrname,
                                                         GResolverRecordType        record_type,
                                                         GCancellable              *cancellable,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_2_34
+GIO_AVAILABLE_IN_2_34
 void       g_resolver_lookup_records_async             (GResolver                 *resolver,
                                                         const gchar               *rrname,
                                                         GResolverRecordType        record_type,
                                                         GCancellable              *cancellable,
                                                         GAsyncReadyCallback        callback,
                                                         gpointer                   user_data);
-GLIB_AVAILABLE_IN_2_34
+GIO_AVAILABLE_IN_2_34
 GList     *g_resolver_lookup_records_finish            (GResolver                 *resolver,
                                                         GAsyncResult              *result,
                                                         GError                   **error);
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 void       g_resolver_free_targets                     (GList                     *targets);
 
+GIO_AVAILABLE_IN_2_78
+unsigned   g_resolver_get_timeout                      (GResolver                 *resolver);
+GIO_AVAILABLE_IN_2_78
+void       g_resolver_set_timeout                      (GResolver                 *resolver,
+                                                        unsigned                   timeout_ms);
 
 /**
  * G_RESOLVER_ERROR:
@@ -284,7 +291,7 @@ void       g_resolver_free_targets                     (GList                   
  * error domains.
  */
 #define G_RESOLVER_ERROR (g_resolver_error_quark ())
-GLIB_AVAILABLE_IN_ALL
+GIO_AVAILABLE_IN_ALL
 GQuark g_resolver_error_quark (void);
 
 G_END_DECLS

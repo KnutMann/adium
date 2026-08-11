@@ -1,6 +1,8 @@
 /*
  * Copyright © 2015 Canonical Limited
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -20,6 +22,8 @@
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
+
+#ifndef __GI_SCANNER__
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GAction, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GActionMap, g_object_unref)
@@ -125,7 +129,6 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketAddress, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketClient, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketConnectable, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketConnection, g_object_unref)
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketControlMessage, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocket, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketListener, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GSocketService, g_object_unref)
@@ -151,3 +154,5 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GVolume, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GVolumeMonitor, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GZlibCompressor, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GZlibDecompressor, g_object_unref)
+
+#endif /* __GI_SCANNER__ */

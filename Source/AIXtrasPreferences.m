@@ -61,13 +61,13 @@
 
 - (NSImage *)paneIcon
 {
-	if (@available(macOS 11.0, *)) {
-		//The same symbol the Adium menu's Xtras item carries; a fresh image per call, so the
-		//sidebar resizing it cannot resize anybody else's copy
-		NSImage	*symbol = [NSImage imageWithSystemSymbolName:@"face.smiling" accessibilityDescription:nil];
+	/* The document icon Adium gives an .AdiumPlugin bundle, which is also what the old Xtras
+	 * window put beside the plug-in category. A copy per call, so the sidebar resizing this
+	 * one cannot resize the copy the Finder icon or the category list is holding.
+	 */
+	NSImage	*icon = [[[NSImage imageNamed:@"AdiumPlugin"] copy] autorelease];
 
-		if (symbol) return symbol;
-	}
+	if (icon) return icon;
 
 	return [[[NSImage imageNamed:@"xtras_duck" forClass:[self class]] copy] autorelease];
 }

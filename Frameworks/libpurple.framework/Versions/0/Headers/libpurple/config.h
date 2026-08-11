@@ -5,7 +5,7 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* configure arguments */
-#define CONFIG_ARGS " '--disable-dependency-tracking' '--disable-gtkui' '--disable-consoleui' '--disable-perl' '--disable-tcl' '--enable-debug' '--disable-static' '--enable-shared' '--enable-cyrus-sasl' '--prefix=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build' '--with-static-prpls=bonjour,gg,irc,jabber,novell,simple,zephyr' '--disable-meanwhile' '--disable-avahi' '--disable-dbus' '--enable-gnutls=no' '--enable-nss=no' '--enable-vv=no' '--disable-gstreamer' '--disable-idn' 'CC=/Applications/Xcode.app/Contents/Developer/usr/bin/gcc' 'CFLAGS=-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -I/usr/include/kerberosIV -DHAVE_SSL 			        -DHAVE_OPENSSL -fno-common -DHAVE_ZLIB' 'LDFLAGS=-Wl,-headerpad_max_install_names 				-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include -L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -lsasl2 -ljson-glib-1.0 -lz' 'LIBXML_CFLAGS=-I/usr/include/libxml2' 'LIBXML_LIBS=-lxml2'"
+#define CONFIG_ARGS " '--disable-dependency-tracking' '--disable-gtkui' '--disable-consoleui' '--disable-perl' '--disable-tcl' '--enable-debug' '--disable-static' '--enable-shared' '--enable-cyrus-sasl' '--prefix=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build' '--with-static-prpls=bonjour,gg,irc,jabber,novell,simple' '--disable-meanwhile' '--disable-avahi' '--disable-dbus' '--enable-gnutls=no' '--enable-nss=no' '--enable-vv=no' '--disable-gstreamer' '--disable-idn' 'CC=/Applications/Xcode.app/Contents/Developer/usr/bin/gcc' 'CFLAGS=-fstack-protector -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk 	-mmacosx-version-min=10.12 	-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include 	-L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib 	-Os -I/usr/include/kerberosIV -DHAVE_SSL 			        -DHAVE_OPENSSL -fno-common -DHAVE_ZLIB' 'LDFLAGS=-mmacosx-version-min=10.12 	-Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk 	-Wl,-headerpad_max_install_names 	-I/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/include 	-L/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib -lsasl2 -ljson-glib-1.0 -lz' 'PKG_CONFIG_PATH=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib/pkgconfig' 'PKG_CONFIG_LIBDIR=/Users/chrimuel/Documents/Code/privat/AI/adium/Dependencies/build/lib/pkgconfig' 'LIBXML_CFLAGS=-I/usr/include/libxml2' 'LIBXML_LIBS=-lxml2'"
 
 /* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
@@ -20,7 +20,7 @@
 /* #undef ENABLE_MONO */
 
 /* always defined to indicate that i18n is enabled */
-/* #undef ENABLE_NLS */
+#define ENABLE_NLS 1
 
 /* use the given file as GnuTLS default trust store */
 #define GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE "/etc/ssl/cert.pem"
@@ -41,7 +41,7 @@
 #define HAVE_ATEXIT 1
 
 /* Define to 1 if you have the 'bind_textdomain_codeset' function. */
-/* #undef HAVE_BIND_TEXTDOMAIN_CODESET */
+#define HAVE_BIND_TEXTDOMAIN_CODESET 1
 
 /* Define to 1 if you have the Mac OS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
@@ -64,7 +64,7 @@
 /* #undef HAVE_DBUS */
 
 /* Define to 1 if you have the 'dcgettext' function. */
-/* #undef HAVE_DCGETTEXT */
+#define HAVE_DCGETTEXT 1
 
 /* Define to 1 if you have the declaration of 'tzname', and to 0 if you don't.
    */
@@ -107,7 +107,7 @@
 #define HAVE_GETOPT_LONG 1
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
-/* #undef HAVE_GETTEXT */
+#define HAVE_GETTEXT 1
 
 /* Have gio-unix */
 #define HAVE_GIOUNIX 1
@@ -441,7 +441,7 @@
 /* #undef STACK_DIRECTION */
 
 /* Loads static protocol plugin module initialization functions. */
-#define STATIC_PROTO_INIT extern gboolean purple_init_gg_plugin(); extern gboolean purple_init_irc_plugin(); extern gboolean purple_init_jabber_plugin(); extern gboolean purple_init_novell_plugin(); extern gboolean purple_init_simple_plugin(); extern gboolean purple_init_zephyr_plugin(); static void static_proto_init(void) {  purple_init_gg_plugin(); purple_init_irc_plugin(); purple_init_jabber_plugin(); purple_init_novell_plugin(); purple_init_simple_plugin(); purple_init_zephyr_plugin(); }
+#define STATIC_PROTO_INIT extern gboolean purple_init_gg_plugin(); extern gboolean purple_init_irc_plugin(); extern gboolean purple_init_jabber_plugin(); extern gboolean purple_init_novell_plugin(); extern gboolean purple_init_simple_plugin(); static void static_proto_init(void) {  purple_init_gg_plugin(); purple_init_irc_plugin(); purple_init_jabber_plugin(); purple_init_novell_plugin(); purple_init_simple_plugin(); }
 
 /* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for

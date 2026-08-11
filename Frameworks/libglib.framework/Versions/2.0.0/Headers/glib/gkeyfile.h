@@ -4,6 +4,8 @@
  *
  *  Ray Strode <halfline@hawaii.rr.com>
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -52,7 +54,7 @@ typedef enum
   G_KEY_FILE_NONE              = 0,
   G_KEY_FILE_KEEP_COMMENTS     = 1 << 0,
   G_KEY_FILE_KEEP_TRANSLATIONS = 1 << 1
-} GKeyFileFlags;
+} G_GNUC_FLAG_ENUM GKeyFileFlags;
 
 GLIB_AVAILABLE_IN_ALL
 GKeyFile *g_key_file_new                    (void);

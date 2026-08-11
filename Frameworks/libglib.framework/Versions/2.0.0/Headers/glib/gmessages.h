@@ -1,6 +1,8 @@
 /* GLIB - Library of useful routines for C programming
  * Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -65,7 +67,7 @@ typedef enum
   G_LOG_LEVEL_DEBUG             = 1 << 7,
 
   G_LOG_LEVEL_MASK              = ~(G_LOG_FLAG_RECURSION | G_LOG_FLAG_FATAL)
-} GLogLevelFlags;
+} G_GNUC_FLAG_ENUM GLogLevelFlags;
 
 /* GLib log levels that are considered fatal by default */
 #define G_LOG_FATAL_MASK        (G_LOG_FLAG_RECURSION | G_LOG_LEVEL_ERROR)
@@ -114,6 +116,9 @@ GLogLevelFlags  g_log_set_fatal_mask    (const gchar    *log_domain,
                                          GLogLevelFlags  fatal_mask);
 GLIB_AVAILABLE_IN_ALL
 GLogLevelFlags  g_log_set_always_fatal  (GLogLevelFlags  fatal_mask);
+
+GLIB_AVAILABLE_IN_2_86
+GLogLevelFlags  g_log_get_always_fatal  (void);
 
 /* Structured logging mechanism. */
 
@@ -188,7 +193,8 @@ struct _GLogField
  * chained and fall back to simpler handlers in case of failure.
  *
  * Returns: %G_LOG_WRITER_HANDLED if the log entry was handled successfully;
- *    %G_LOG_WRITER_UNHANDLED otherwise
+ *   %G_LOG_WRITER_UNHANDLED otherwise
+ *
  * Since: 2.50
  */
 typedef GLogWriterOutput (*GLogWriterFunc)     (GLogLevelFlags   log_level,
@@ -226,6 +232,11 @@ gchar           *g_log_writer_format_fields    (GLogLevelFlags   log_level,
                                                 gsize            n_fields,
                                                 gboolean         use_color);
 
+GLIB_AVAILABLE_IN_2_80
+GLogWriterOutput g_log_writer_syslog           (GLogLevelFlags   log_level,
+                                                const GLogField *fields,
+                                                gsize            n_fields,
+                                                gpointer         user_data);
 GLIB_AVAILABLE_IN_2_50
 GLogWriterOutput g_log_writer_journald         (GLogLevelFlags   log_level,
                                                 const GLogField *fields,
@@ -241,6 +252,21 @@ GLogWriterOutput g_log_writer_default          (GLogLevelFlags   log_level,
                                                 const GLogField *fields,
                                                 gsize            n_fields,
                                                 gpointer         user_data);
+
+GLIB_AVAILABLE_IN_2_68
+void            g_log_writer_default_set_use_stderr (gboolean use_stderr);
+GLIB_AVAILABLE_IN_2_68
+gboolean        g_log_writer_default_would_drop (GLogLevelFlags  log_level,
+                                                 const char     *log_domain);
+GLIB_AVAILABLE_IN_2_80
+void            g_log_writer_default_set_debug_domains (const gchar * const *domains);
+
+
+/* G_MESSAGES_DEBUG enablement */
+GLIB_AVAILABLE_IN_2_72
+gboolean         g_log_get_debug_enabled       (void);
+GLIB_AVAILABLE_IN_2_72
+void             g_log_set_debug_enabled       (gboolean         enabled);
 
 /**
  * G_DEBUG_HERE:
@@ -276,12 +302,13 @@ void g_warn_message           (const char     *domain,
                                int             line,
                                const char     *func,
                                const char     *warnexpr) G_ANALYZER_NORETURN;
+G_NORETURN
 GLIB_DEPRECATED
 void g_assert_warning         (const char *log_domain,
 			       const char *file,
 			       const int   line,
 		               const char *pretty_function,
-		               const char *expression) G_GNUC_NORETURN;
+		               const char *expression);
 
 GLIB_AVAILABLE_IN_2_56
 void g_log_structured_standard (const gchar    *log_domain,
@@ -393,7 +420,7 @@ void g_log_structured_standard (const gchar    *log_domain,
                                        format)
 #endif
 #else   /* no varargs macros */
-static void g_error (const gchar *format, ...) G_GNUC_NORETURN G_ANALYZER_NORETURN;
+G_NORETURN static void g_error (const gchar *format, ...) G_ANALYZER_NORETURN;
 static void g_critical (const gchar *format, ...) G_ANALYZER_NORETURN;
 
 static inline void
@@ -472,7 +499,7 @@ g_debug (const gchar *format,
 #if defined(G_HAVE_ISO_VARARGS) && !G_ANALYZER_ANALYZING
 #define g_warning_once(...) \
   G_STMT_START { \
-    static volatile int G_PASTE (_GWarningOnceBoolean, __LINE__) = 0; \
+    static int G_PASTE (_GWarningOnceBoolean, __LINE__) = 0;  /* (atomic) */ \
     if (g_atomic_int_compare_and_exchange (&G_PASTE (_GWarningOnceBoolean, __LINE__), \
                                            0, 1)) \
       g_warning (__VA_ARGS__); \
@@ -481,7 +508,7 @@ g_debug (const gchar *format,
 #elif defined(G_HAVE_GNUC_VARARGS)  && !G_ANALYZER_ANALYZING
 #define g_warning_once(format...) \
   G_STMT_START { \
-    static volatile int G_PASTE (_GWarningOnceBoolean, __LINE__) = 0; \
+    static int G_PASTE (_GWarningOnceBoolean, __LINE__) = 0;  /* (atomic) */ \
     if (g_atomic_int_compare_and_exchange (&G_PASTE (_GWarningOnceBoolean, __LINE__), \
                                            0, 1)) \
       g_warning (format); \
@@ -528,6 +555,9 @@ GPrintFunc      g_set_printerr_handler  (GPrintFunc      func);
  *
  * Logs a warning if the expression is not true.
  *
+ * Unlike g_return_if_fail(), the expression is always evaluated, even if
+ * checks and assertions are disabled.
+ *
  * Since: 2.16
  */
 #define g_warn_if_fail(expr) \
@@ -560,7 +590,7 @@ GPrintFunc      g_set_printerr_handler  (GPrintFunc      func);
  *
  * To debug failure of a g_return_if_fail() check, run the code under a debugger
  * with `G_DEBUG=fatal-criticals` or `G_DEBUG=fatal-warnings` defined in the
- * environment (see [Running GLib Applications](glib-running.html)):
+ * environment (see [Running GLib Applications](running.html)):
  *
  * |[
  *   G_DEBUG=fatal-warnings gdb ./my-program
