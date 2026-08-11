@@ -901,8 +901,6 @@
 		4D4B485F25F3F87C000CEF01 /* libgthread-2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B484D25F3F6EB000CEF01 /* libgthread-2.0.dylib */; };
 		4D4B486525F3F8DF000CEF01 /* libjson-glib-1.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B484825F3F6AB000CEF01 /* libjson-glib-1.0.dylib */; };
 		4D4B486725F3F8FE000CEF01 /* libffi.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */; };
-		4D4B486C25F3F949000CEF01 /* libgcrypt.20.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B486B25F3F949000CEF01 /* libgcrypt.20.dylib */; };
-		4D4B486F25F3F981000CEF01 /* libfribidi.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B486E25F3F981000CEF01 /* libfribidi.0.dylib */; };
 		4D4B487725F3FA35000CEF01 /* libexpat.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4B487625F3FA35000CEF01 /* libexpat.1.dylib */; };
 		4D9162602577EDA600930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
 		4D9162642577EDC600930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
@@ -1430,7 +1428,6 @@
 		11700A330F7E8BE80078D6AB /* AISpecialPasswordPromptController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISpecialPasswordPromptController.h; path = Source/AISpecialPasswordPromptController.h; sourceTree = "<group>"; };
 		11700A340F7E8BE80078D6AB /* AISpecialPasswordPromptController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISpecialPasswordPromptController.m; path = Source/AISpecialPasswordPromptController.m; sourceTree = "<group>"; };
 		11700A430F7E8CB60078D6AB /* AISpecialPasswordPrompt.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AISpecialPasswordPrompt.xib; path = Resources/AISpecialPasswordPrompt.xib; sourceTree = "<group>"; };
-		1172FBC30CDAA8D400B8E233 /* glib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = glib.framework; path = Frameworks/glib.framework; sourceTree = "<group>"; };
 		1172FBC40CDAA8D400B8E233 /* libgmodule.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgmodule.framework; path = Frameworks/libgmodule.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000001 /* libglib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libglib.framework; path = Frameworks/libglib.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000011 /* libotr.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libotr.framework; path = Frameworks/libotr.framework; sourceTree = "<group>"; };
@@ -2806,10 +2803,6 @@
 		4D4B485425F3F79E000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libotr.5.dylib; path = libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B485625F3F7A3000CEF01 /* libotr.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libotr.5.dylib; sourceTree = "<group>"; };
 		4D4B486625F3F8FE000CEF01 /* libffi.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libffi.7.dylib; path = ../../../../../usr/local/Cellar/libffi/3.3_2/lib/libffi.7.dylib; sourceTree = "<group>"; };
-		4D4B486825F3F932000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../opt/homebrew/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
-		4D4B486B25F3F949000CEF01 /* libgcrypt.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgcrypt.20.dylib; path = ../../../../../opt/homebrew/lib/libgcrypt.20.dylib; sourceTree = "<group>"; };
-		4D4B486E25F3F981000CEF01 /* libfribidi.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfribidi.0.dylib; path = ../../../../../opt/homebrew/lib/libfribidi.0.dylib; sourceTree = "<group>"; };
-		4D4B487025F3F995000CEF01 /* libfribidi.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfribidi.0.dylib; path = ../../../../../opt/homebrew/lib/libfribidi.0.dylib; sourceTree = "<group>"; };
 		4D4B487625F3FA35000CEF01 /* libexpat.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.1.dylib; path = ../../../../../usr/local/Cellar/expat/2.2.10/lib/libexpat.1.dylib; sourceTree = "<group>"; };
 		4D6040C823A4612A00181BC9 /* Source */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Source; sourceTree = "<group>"; };
 		4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AIUtilities.xcodeproj; path = Frameworks/AIUtilities/AIUtilities.xcodeproj; sourceTree = "<group>"; };
@@ -3335,7 +3328,6 @@
 			isa = PBXGroup;
 			children = (
 				118A444F0FEEA828008153C0 /* libjson-glib.framework */,
-				1172FBC30CDAA8D400B8E233 /* glib.framework */,
 				1172FBC40CDAA8D400B8E233 /* libgmodule.framework */,
 				ADD1E5C0DE00000000000001 /* libglib.framework */,
 				ADD1E5C0DE00000000000011 /* libotr.framework */,
@@ -5495,7 +5487,6 @@
 		4D4B486A25F3F93F000CEF01 /* libgcrypt */ = {
 			isa = PBXGroup;
 			children = (
-				4D4B486B25F3F949000CEF01 /* libgcrypt.20.dylib */,
 			);
 			name = libgcrypt;
 			sourceTree = "<group>";
@@ -5503,7 +5494,6 @@
 		4D4B486D25F3F967000CEF01 /* fribidi */ = {
 			isa = PBXGroup;
 			children = (
-				4D4B487025F3F995000CEF01 /* libfribidi.0.dylib */,
 			);
 			name = fribidi;
 			sourceTree = "<group>";
@@ -5541,8 +5531,6 @@
 		4DCD68DA23A0C527001EC42A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				4D4B486E25F3F981000CEF01 /* libfribidi.0.dylib */,
-				4D4B486825F3F932000CEF01 /* libgcrypt.20.dylib */,
 				4D4B485425F3F79E000CEF01 /* libotr.5.dylib */,
 				4D4B484225F3F5EC000CEF01 /* libintl.8.dylib */,
 				4D4B484025F3F575000CEF01 /* libjson-glib-1.0.dylib */,
