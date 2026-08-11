@@ -49,12 +49,6 @@ prep_headers() {
 		log cp "${ROOTDIR}/build/include/gcrypt-module.h" "${otrDir}"
 		log cp "${ROOTDIR}/build/include/gpg-error.h" "${otrDir}"
 	else
-		#meanwhile
-		status "Staging meanwhile non-headers"
-		local meanwhileDir="${ROOTDIR}/build/lib/include/libmeanwhile-${MEANWHILE_VERSION}"
-		quiet mkdir "${meanwhileDir}" || true
-		touch "${meanwhileDir}/no_headers_here.txt"
-		
 		#json-glib
 		status "Staging json-glib headers"
 		local jsonDir="${ROOTDIR}/build/lib/include/libjson-glib-${JSON_GLIB_VERSION}.0"
