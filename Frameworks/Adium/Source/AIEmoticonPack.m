@@ -29,6 +29,7 @@
 
 #define EMOTICON_EQUIVALENTS			@"Equivalents"
 #define EMOTICON_NAME					@"Name"
+#define EMOTICON_CHARACTER				@"Character"
 
 #define	EMOTICON_SERVICE_CLASS			@"Service Class"
 
@@ -174,11 +175,15 @@
 - (NSImage *)menuPreviewImage
 {
 	NSArray		 *myEmoticons = [self emoticons];
-	AIEmoticon	 *emoticon;
+	AIEmoticon	 *emoticon = nil;
 
-	for (emoticon in myEmoticons) {
-		NSArray *equivalents = [emoticon textEquivalents];
+	/* Assign only on a match: the loop variable of a fast enumeration is not a dependable place to keep
+	 * the result, since it also holds a value when the enumeration simply ran out of emoticons.
+	 */
+	for (AIEmoticon *anEmoticon in myEmoticons) {
+		NSArray *equivalents = [anEmoticon textEquivalents];
 		if ([equivalents containsObject:@":)"] || [equivalents containsObject:@":-)"]) {
+			emoticon = anEmoticon;
 			break;
 		}
 	}
@@ -189,6 +194,25 @@
 	}
 
 	return [[emoticon image] imageByScalingForMenuItem];
+}
+
+/*!
+ * @brief Does this pack contain at least one emoticon which can be shown?
+ *
+ * A pack whose images are missing - or which pointed at the resources of another application which is no
+ * longer installed - still has emoticon definitions, but nothing to draw for them. Such a pack should not
+ * be offered to the user, since choosing it would appear to do nothing at all.
+ *
+ * @result YES if at least one emoticon of this pack is displayable
+ */
+- (BOOL)hasDisplayableEmoticons
+{
+	for (AIEmoticon *emoticon in [self emoticons]) {
+		if ([emoticon isDisplayable])
+			return YES;
+	}
+
+	return NO;
 }
 
 /*!
@@ -272,9 +296,10 @@
 
 	//Load the emoticons
 	if (infoDict) {
-		/* Handle optional location key, which allows emoticons to be loaded
-		 * from arbitrary directories. This is only used by the iChat emoticon
-		 * pack.
+		/* Handle optional location key, which allows the emoticon images to be
+		 * loaded from arbitrary directories rather than from the pack itself.
+		 * A pack can use this to draw on artwork shipped by another application,
+		 * supplying nothing but the definitions of the emoticons.
 		 */
 		id possiblePaths = [infoDict objectForKey:EMOTICON_LOCATION];
 		if (possiblePaths) {
@@ -380,10 +405,23 @@
 					emoticonName = localizedEmoticonName;
 			}
 
-			[emoticonArray addObject:[AIEmoticon emoticonWithIconPath:[bundle pathForImageResource:fileName]
-														  equivalents:[(NSDictionary *)dict objectForKey:EMOTICON_EQUIVALENTS]
-																 name:emoticonName
-																 pack:self]];
+			NSArray		*equivalents = [(NSDictionary *)dict objectForKey:EMOTICON_EQUIVALENTS];
+			NSString	*emoticonCharacter = [(NSDictionary *)dict objectForKey:EMOTICON_CHARACTER];
+
+			if ([emoticonCharacter length]) {
+				/* This emoticon displays a character - typically a system emoji - instead of an image.
+				 * Its key is then just an identifier, not the name of an image file in the pack.
+				 */
+				[emoticonArray addObject:[AIEmoticon emoticonWithCharacter:emoticonCharacter
+															   equivalents:equivalents
+																	  name:emoticonName
+																	  pack:self]];
+			} else {
+				[emoticonArray addObject:[AIEmoticon emoticonWithIconPath:[bundle pathForImageResource:fileName]
+															  equivalents:equivalents
+																	 name:emoticonName
+																	 pack:self]];
+			}
 		}
 	}
 }

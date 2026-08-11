@@ -39,6 +39,13 @@
 #define EMOTICON_PACK_PATH_EXTENSION		@"emoticonPack"
 #define PROTEUS_EMOTICON_SET_PATH_EXTENSION @"emoticons"
 
+/* Marks the characters which replaced a text equivalent. The rule "an emoticon directly to the right of
+ * an emoticon is itself an emoticon" recognized its left neighbour by the attachment an image emoticon
+ * leaves behind. An emoticon displayed as a character leaves no attachment and may be more than one
+ * character wide, so it has to mark its own full width instead.
+ */
+#define EMOTICON_REPLACEMENT_ATTRIBUTE_NAME	@"AIEmoticonReplacement"
+
 @interface AIEmoticonController ()
 - (NSDictionary *)emoticonIndex;
 - (NSCharacterSet *)emoticonHintCharacterSet;
@@ -172,7 +179,7 @@ NSInteger packSortFunction(id packA, id packB, void *packOrderingArray);
 								messageStringLength:(NSUInteger)messageStringLength
 						   originalAttributedString:(NSAttributedString *)originalAttributedString
 										 intoString:(NSMutableAttributedString **)newMessage
-								   replacementCount:(NSUInteger *)replacementCount
+								   replacementCount:(NSInteger *)replacementCount
 								 callingRecursively:(BOOL)callingRecursively
 								serviceClassContext:(id)serviceClassContext
 						  emoticonStartCharacterSet:(NSCharacterSet *)emoticonStartCharacterSet
@@ -238,7 +245,7 @@ NSInteger packSortFunction(id packA, id packB, void *packOrderingArray);
 												   context:serviceClassContext
 												equivalent:&replacementString
 										  equivalentLength:&textLength];
-			emoticonRangeInNewMessage = NSMakeRange(*currentLocation - *replacementCount, textLength);
+			emoticonRangeInNewMessage = NSMakeRange((NSUInteger)((NSInteger)*currentLocation - *replacementCount), textLength);
 			
 			/* We want to show this emoticon if there is:
 			 *		It begins or ends the string
@@ -266,9 +273,12 @@ NSInteger packSortFunction(id packA, id packB, void *packOrderingArray);
 					 (previousCharacter == '\n') || (previousCharacter == '\r') || (previousCharacter == '.') || (previousCharacter == '?') || (previousCharacter == '!') ||
 					 (previousCharacter == '\"') || (previousCharacter == '\'') ||
 					 (previousCharacter == '(') || (previousCharacter == '*') ||
-					 (*newMessage && [*newMessage attribute:NSAttachmentAttributeName
-													atIndex:(emoticonRangeInNewMessage.location - 1) 
-											 effectiveRange:NULL])) &&
+					 (*newMessage && ([*newMessage attribute:NSAttachmentAttributeName
+													 atIndex:(emoticonRangeInNewMessage.location - 1)
+											  effectiveRange:NULL] ||
+									  [*newMessage attribute:EMOTICON_REPLACEMENT_ATTRIBUTE_NAME
+													 atIndex:(emoticonRangeInNewMessage.location - 1)
+											  effectiveRange:NULL]))) &&
 
 					((nextCharacter == ' ') || (nextCharacter == '\t') || (nextCharacter == '\n') || (nextCharacter == '\r') ||
 					 (nextCharacter == '.') || (nextCharacter == ',') || (nextCharacter == '?') || (nextCharacter == '!') ||
@@ -348,24 +358,38 @@ NSInteger packSortFunction(id packA, id packB, void *packOrderingArray);
 
 			if (acceptable) {
 				replacement = [emoticon attributedStringWithTextEquivalent:replacementString attachImages:!isMessage];
-				
+
+				NSInteger	replacementLength = (NSInteger)[replacement length];
+
 				NSDictionary *originalAttributes = [originalAttributedString attributesAtIndex:originalEmoticonLocation
 																				effectiveRange:nil];
-				
+
 				originalAttributes = [originalAttributes dictionaryWithDifferenceWithSetOfKeys:[NSSet setWithObject:NSAttachmentAttributeName]];
-				
-				//grab the original attributes, to ensure that the background is not lost in a message consisting only of an emoticon
+
+				/* Grab the original attributes, to ensure that the background is not lost in a message consisting only
+				 * of an emoticon. The whole replacement has to be covered, not just its first character: an emoticon
+				 * displayed as a character can be several characters long - an emoji outside the basic plane is a
+				 * surrogate pair - and attributing only part of it would tear it into separate runs, which the HTML
+				 * encoder then cannot reassemble.
+				 */
 				[replacement addAttributes:originalAttributes
-									 range:NSMakeRange(0,1)];
-				
+									 range:NSMakeRange(0, replacementLength)];
+
+				[replacement addAttribute:EMOTICON_REPLACEMENT_ATTRIBUTE_NAME
+									value:[NSNumber numberWithBool:YES]
+									range:NSMakeRange(0, replacementLength)];
+
 				//insert the emoticon
 				if (!(*newMessage)) *newMessage = [originalAttributedString mutableCopy];
 				[*newMessage replaceCharactersInRange:emoticonRangeInNewMessage
 								 withAttributedString:replacement];
-				
-				//Update where we are in the original and replacement messages
-				*replacementCount += textLength-1;
-				
+
+				/* Update where we are in the original and replacement messages. replacementCount tracks how much
+				 * shorter the new message has become, so that a location in the original can be mapped into it; the
+				 * replacement is not necessarily one character long, and may even be longer than the text it replaced.
+				 */
+				*replacementCount += textLength - replacementLength;
+
 				if (currentLocationNeedsUpdate)
 					*currentLocation += textLength-1;
 			} else {
@@ -460,8 +484,10 @@ NSInteger packSortFunction(id packA, id packB, void *packOrderingArray);
 		serviceClassContext = ((AIListObject *)context).service.serviceClass;
 	}
 	
-    //Number of characters we've replaced so far (used to calcluate placement in the destination string)
-	NSUInteger	replacementCount = 0; 
+    /* By how many characters the new string has shrunk so far (used to calculate placement in the destination
+	 * string). Signed, because a replacement may be longer than the text equivalent it replaces.
+	 */
+	NSInteger	replacementCount = 0;
 
 	messageStringLength = [messageString length];
     while (currentLocation != NSNotFound && currentLocation < messageStringLength) {
@@ -676,8 +702,13 @@ NSInteger packSortFunction(id packA, id packB, void *packOrderingArray);
 														   PROTEUS_EMOTICON_SET_PATH_EXTENSION,
 														   nil]]) {
 			AIEmoticonPack  *pack = [AIEmoticonPack emoticonPackFromPath:path];
-			
-			if (pack.emoticons.count) {
+
+			/* Only offer packs which have something to show. Merely having emoticon definitions is not
+			 * enough: a pack whose images were removed, or which points at the resources of an application
+			 * that is no longer installed, would otherwise show up in the emoticon list as an entry which
+			 * silently replaces text equivalents with nothing when it is chosen.
+			 */
+			if (pack.hasDisplayableEmoticons) {
 				[_availableEmoticonPacks addObject:pack];
 				[pack setDisabledEmoticons:[self disabledEmoticonsInPack:pack]];
 			}

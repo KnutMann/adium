@@ -18,8 +18,20 @@
 #import <Adium/AIEmoticonPack.h>
 #import <Adium/AITextAttachmentExtension.h>
 
+/* Size of the image rendered for a character emoticon. The emoticon sets we ship draw their
+ * emoticons at 16x16, so matching that keeps character emoticons the same size as image ones
+ * everywhere and lets -imageByScalingForMenuItem pass the image through untouched.
+ */
+#define EMOTICON_CHARACTER_IMAGE_SIZE	16.0f
+
+/* Fraction of the image's edge length used as the point size of the glyph. The emoji font's line
+ * height is noticeably taller than its point size, so asking for the full edge length would clip.
+ */
+#define EMOTICON_CHARACTER_FONT_FRACTION	0.8f
+
 @interface AIEmoticon ()
-- (AIEmoticon *)initWithIconPath:(NSString *)inPath equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack;
+- (AIEmoticon *)initWithIconPath:(NSString *)inPath character:(NSString *)inCharacter equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack;
+- (NSImage *)imageOfCharacterWithSize:(NSSize)inSize;
 @end
 
 @implementation AIEmoticon
@@ -37,19 +49,38 @@
  */
 + (id)emoticonWithIconPath:(NSString *)inPath equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
 {
-    return [[[self alloc] initWithIconPath:inPath equivalents:inTextEquivalents name:inName pack:inPack] autorelease];
+    return [[[self alloc] initWithIconPath:inPath character:nil equivalents:inTextEquivalents name:inName pack:inPack] autorelease];
+}
+
+/*!
+ * @brief Create an autoreleased emoticon object which displays a character rather than an image
+ *
+ * A character emoticon carries the text it should be displayed as - typically a system emoji - instead of
+ * a path to an image file. It is shown as plain text, which means it needs no bundled artwork and follows
+ * the font size and color of the text surrounding it.
+ *
+ * @param inCharacter The text to display in place of the text equivalents, e.g. an emoji
+ * @param inTextEquivalents An <tt>NSArray</tt> of text equivalents for this emoticon
+ * @param inName A human readable name for the emoticon
+ * @param inPack The AIEmoticonPack which contains this emoticon
+ */
++ (id)emoticonWithCharacter:(NSString *)inCharacter equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
+{
+    return [[[self alloc] initWithIconPath:nil character:inCharacter equivalents:inTextEquivalents name:inName pack:inPack] autorelease];
 }
 
 //Init
-- (AIEmoticon *)initWithIconPath:(NSString *)inPath equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
+- (AIEmoticon *)initWithIconPath:(NSString *)inPath character:(NSString *)inCharacter equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
 {
     if ((self = [super init])) {
 		path = [inPath retain];
+		character = [inCharacter copy];
 		name = [inName retain];
 		textEquivalents = [inTextEquivalents retain];
 		pack = [inPack retain];
 		imageLoaded = NO;
-		_cachedAttributedString = nil;	
+		_cachedAttributedString = nil;
+		_cachedCharacterImage = nil;
     }
 
     return self;
@@ -59,10 +90,12 @@
 - (void)dealloc
 {
     [path release];
+	[character release];
 	[name release];
     [textEquivalents release];
 	[pack release];
     [_cachedAttributedString release];
+    [_cachedCharacterImage release];
 
 	[super dealloc];
 }
@@ -88,6 +121,7 @@
 {
 	imageLoaded = NO;
     [_cachedAttributedString release]; _cachedAttributedString = nil;
+    [_cachedCharacterImage release]; _cachedCharacterImage = nil;
 }
 
 /*!
@@ -124,11 +158,60 @@
 /*!
  * @brief Returns the image for this emoticon
  *
- * @result The image for this emoticon
+ * A character emoticon has no image file, so its character is drawn into an image. That way every
+ * place which previews emoticons - the emoticon menu, the preference tables, the pack previews -
+ * keeps working without having to know that character emoticons exist. Note that this image is
+ * only used for those previews: in messages a character emoticon is inserted as text.
+ *
+ * @result The image for this emoticon, or nil if it has neither an image file nor a character
  */
 - (NSImage *)image
 {
-    return [[[NSImage alloc] initWithContentsOfFile:path] autorelease];
+	if (character) {
+		if (!_cachedCharacterImage) {
+			_cachedCharacterImage = [[self imageOfCharacterWithSize:NSMakeSize(EMOTICON_CHARACTER_IMAGE_SIZE,
+																			   EMOTICON_CHARACTER_IMAGE_SIZE)] retain];
+		}
+
+		return _cachedCharacterImage;
+	}
+
+	//Packs referencing images which aren't there leave us without a path; don't hand nil to NSImage
+	return (path ? [[[NSImage alloc] initWithContentsOfFile:path] autorelease] : nil);
+}
+
+/*!
+ * @brief Draw this emoticon's character into an image
+ *
+ * Drawn through a drawing handler rather than into a bitmap of our own: the handler is re-run for
+ * whatever resolution the image is displayed at, so the glyph stays sharp on Retina displays instead
+ * of being frozen at one scale factor.
+ *
+ * @param inSize The size of the image to create
+ * @result An autoreleased <tt>NSImage</tt> showing the character, centered
+ */
+- (NSImage *)imageOfCharacterWithSize:(NSSize)inSize
+{
+	/* The drawing handler is copied and outlives this call, and the image it returns is cached in an
+	 * ivar; capture the character in a local so that the block doesn't capture (and retain) self.
+	 */
+	NSString	*emoticonCharacter = [[character copy] autorelease];
+
+	return [NSImage imageWithSize:inSize flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+		/* No font is named explicitly: the system font substitutes the color emoji font for emoji code
+		 * points, which also resolves variation selector sequences the way the rest of the system does.
+		 */
+		NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+									   [NSFont systemFontOfSize:(dstRect.size.height * EMOTICON_CHARACTER_FONT_FRACTION)], NSFontAttributeName,
+									   nil];
+		NSSize			characterSize = [emoticonCharacter sizeWithAttributes:attributes];
+
+		[emoticonCharacter drawAtPoint:NSMakePoint(NSMidX(dstRect) - (characterSize.width / 2.0f),
+												   NSMidY(dstRect) - (characterSize.height / 2.0f))
+						withAttributes:attributes];
+
+		return YES;
+	}];
 }
 
 /*!
@@ -139,7 +222,7 @@
 	if (path != inPath) {
 		[path release];
 		path = [inPath retain];
-		
+
 		[_cachedAttributedString release]; _cachedAttributedString = nil;
 	}
 }
@@ -150,14 +233,43 @@
 }
 
 /*!
+ * @brief The text this emoticon is displayed as, if it is a character emoticon
+ *
+ * @result The character (typically an emoji), or nil if this emoticon is displayed as an image
+ */
+- (NSString *)character
+{
+	return character;
+}
+
+/*!
+ * @brief Can this emoticon actually be shown to the user?
+ *
+ * An emoticon needs either an image file or a character; one without both would silently replace the
+ * text it matches with nothing at all.
+ *
+ * Deliberately does not consult -image: answering this question must not load the image of every
+ * emoticon of every installed pack.
+ *
+ * @result YES if this emoticon has something to display
+ */
+- (BOOL)isDisplayable
+{
+	return ((path != nil) || ([character length] > 0));
+}
+
+/*!
  * @brief Returns an attributed string containing this emoticon
  *
  * The attributed string contains an <tt>AITextAttachmentExtension</tt> which has both the emoticon image
  * and the passed text equivalent available.  The hard work is cached, although each call results in a new
  * NSMutableAttributedString being returned.
  *
- * @param textEquivalent The text equivalent for this attributed string 
+ * A character emoticon has no image and therefore no attachment: it returns its character as plain text.
+ *
+ * @param textEquivalent The text equivalent for this attributed string
  * @param attach If YES, an image cell is immediately attached. If NO, no attachment cell is made.
+ *               Meaningless for character emoticons, which are text in every context.
  *
  * @result The attributed string with the emoticon
  */
@@ -172,9 +284,29 @@
 	dispatch_sync(cacheQueue, ^{
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		AITextAttachmentExtension   *attachment;
-		
+
+		/* A character emoticon is simply text, so branch out before any of the attachment handling below:
+		 * it must never take the !path branch, which would build an empty image cell for it, and it has
+		 * no image whose loading the cache would have to track.
+		 *
+		 * The string intentionally carries no attributes of its own. Our caller applies the attributes of
+		 * the text being replaced, which is what makes the character follow the font size and color of the
+		 * surrounding message.
+		 */
+		if (character) {
+			if (!_cachedAttributedString) {
+				_cachedAttributedString = [[NSAttributedString alloc] initWithString:character];
+			}
+
+			//Owned, exactly as in the image case below: the pool must not be this string's last owner
+			attributedString = [_cachedAttributedString mutableCopy];
+
+			[pool release];
+			return;
+		}
+
 		//Cache this attachment for ourself if we don't already have a cache, or if our cache needs to have an image attached
-		
+
 		if (!_cachedAttributedString || (!imageLoaded && attach)) {
 			[_cachedAttributedString release]; //for the second half of the conditional
 			AITextAttachmentExtension   *emoticonAttachment = [[[AITextAttachmentExtension alloc] init] autorelease];

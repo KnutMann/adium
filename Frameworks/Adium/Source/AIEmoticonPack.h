@@ -29,6 +29,7 @@
 - (void)setDisabledEmoticons:(NSArray *)inArray;
 - (NSArray *)emoticons;
 - (NSArray *)enabledEmoticons;
+- (BOOL)hasDisplayableEmoticons;
 - (NSImage *)menuPreviewImage;
 - (NSString *)name;
 - (NSString *)path;

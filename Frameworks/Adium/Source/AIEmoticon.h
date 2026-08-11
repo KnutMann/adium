@@ -20,24 +20,29 @@
 
 @interface AIEmoticon : NSObject {
     NSString                *path;
+    NSString                *character;
     NSString                *name;
     NSArray                 *textEquivalents;
 	AIEmoticonPack			*pack;
 	NSString				*serviceClass;
-	
+
     BOOL                    enabled;
 	BOOL					imageLoaded;
-    
+
     NSAttributedString      *_cachedAttributedString;
+    NSImage                 *_cachedCharacterImage;
 }
 
 + (id)emoticonWithIconPath:(NSString *)inPath equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack;
++ (id)emoticonWithCharacter:(NSString *)inCharacter equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack;
 - (NSArray *)textEquivalents;
 - (NSMutableAttributedString *)attributedStringWithTextEquivalent:(NSString *)textEquivalent attachImages:(BOOL)attach;
 - (BOOL)isAppropriateForServiceClass:(NSString *)inServiceClass;
 - (NSImage *)image;
 - (void)setPath:(NSString *)inPath;
 - (NSString *)path;
+- (NSString *)character;
+- (BOOL)isDisplayable;
 - (NSString *)name;
 - (void)setEnabled:(BOOL)inEnabled;
 - (BOOL)isEnabled;
