@@ -22,7 +22,10 @@
 #import <AIUtilities/AIFileManagerAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 
-#define ADIUM_XTRAS_PAGE		AILocalizedString(@"http://xtras.adium.im/","Adium xtras page. Localized only if a translated version exists.")
+/* xtras.adium.im still resolves and still serves the site, but its certificate is issued for
+ * adiumxtras.com, so a browser opens it with a security warning. The paragraph shows the host
+ * of whatever stands here, so both the sentence and the button follow this one line. */
+#define ADIUM_XTRAS_PAGE		AILocalizedString(@"https://www.adiumxtras.com/","Adium xtras page. Localized only if a translated version exists.")
 
 //Sibling folder an Xtra is parked in while it is switched off
 #define DISABLED_FOLDER_SUFFIX	@" (Disabled)"
