@@ -13,8 +13,8 @@
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-// Thanks to GrowlTunes from the Growl project for demonstrating how to receive notifications when 
-// the iTunes track changes.
+// Thanks to GrowlTunes from the Growl project for demonstrating how to receive notifications when
+// the track changes.
 
 #import "ESiTunesPlugin.h"
 #import <Adium/AIContentControllerProtocol.h>
@@ -29,13 +29,12 @@
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIWindowAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
-#import <AIUtilities/AIApplicationAdditions.h>
 #import <Adium/AIHTMLDecoder.h>
 #import <Adium/AIStatus.h>
 #import <WebKit/WebKit.h>
 
-#define STRING_TRIGGERS_MENU		AILocalizedString(@"Insert iTunes Token", "Label used for edit and contextual menus of iTunes triggers")
-#define STRING_TRIGGERS_TOOLBAR		AILocalizedString(@"iTunes","Label for iTunes toolbar menu item.")
+#define STRING_TRIGGERS_MENU		AILocalizedString(@"Insert Music Token", "Label used for edit and contextual menus of Music triggers")
+#define STRING_TRIGGERS_TOOLBAR		AILocalizedString(@"Music","Label for the Music toolbar item. The name of Music.app.")
 #define STRING_ALBUM				AILocalizedString(@"Album", "Album of current song")
 #define STRING_ARTIST				AILocalizedString(@"Artist", "Artist of current song")
 #define STRING_COMPOSER				AILocalizedString(@"Composer", "Composer of current song")
@@ -43,15 +42,17 @@
 #define STRING_STATUS				AILocalizedString(@"Player State", "Playing-status of current song (e.g. paused, playing)")
 #define STRING_TRACK				AILocalizedString(@"Track", "Track name of current song")
 #define STRING_YEAR					AILocalizedString(@"Year", "Year of current song")
-#define	STRING_STORE_URL			AILocalizedString(@"iTunes Music Store Link", "iTUnes Music Store link for current song")
+#define	STRING_STORE_URL			AILocalizedString(@"Apple Music Link", "Apple Music link for the current song")
 #define STRING_MUSIC				AILocalizedString(@"Listening Status", "Listening status string (*is listening to XXX by YYY)")
-#define STRING_CURRENT_TRACK		AILocalizedString(@"iTunes Status", "Current track information (Track - Artist)")
+#define STRING_CURRENT_TRACK		AILocalizedString(@"Music Status", "Current track information (Track - Artist)")
 
 #pragma mark -
 
-#define ITUNES_MINIMUM_VERSION		4.6f
 #define ITUNES_STATUS_ID			-8000
-#define ITUNES_ITMS_SEARCH_URL		@"itms://itunes.com/link?"
+#define MUSIC_BUNDLE_IDENTIFIER		@"com.apple.Music"
+/* The store moved to the web years ago; itms://itunes.com/link? and
+ * itms://phobos.apple.com/… are both dead and answer nothing at all. */
+#define MUSIC_SEARCH_URL			@"https://music.apple.com/search?term=%@"
 
 #pragma mark -
 
@@ -61,17 +62,38 @@
 
 #pragma mark -
 
+/*!
+ * @brief @a string with the four characters an <A> tag cannot carry, escaped.
+ *
+ * Track and artist names are somebody else's text — "Sunday Bloody Sunday <Live>",
+ * "AC/DC & Friends" — and go straight into markup which AIHTMLDecoder parses back.
+ * Unescaped, the tag falls apart and the link arrives as plain text.
+ */
+static NSString *AIEscapedForHTML(NSString *string)
+{
+	NSMutableString *escaped = [[string mutableCopy] autorelease];
+
+	//Ampersand first, or it would escape the ampersands the others introduce
+	[escaped replaceOccurrencesOfString:@"&" withString:@"&amp;" options:NSLiteralSearch range:NSMakeRange(0, [escaped length])];
+	[escaped replaceOccurrencesOfString:@"<" withString:@"&lt;" options:NSLiteralSearch range:NSMakeRange(0, [escaped length])];
+	[escaped replaceOccurrencesOfString:@">" withString:@"&gt;" options:NSLiteralSearch range:NSMakeRange(0, [escaped length])];
+	[escaped replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:NSLiteralSearch range:NSMakeRange(0, [escaped length])];
+
+	return escaped;
+}
+
+#pragma mark -
+
 @interface ESiTunesPlugin ()
 - (NSMenuItem *)menuItemWithTitle:(NSString *)title action:(SEL)action representedObject:(id)representedObject kind:(KGiTunesPluginMenuItemKind)itemKind;
 - (void)createiTunesCurrentTrackStatusState;
 - (void)updateiTunesCurrentTrackFormat;
-- (void)createiTunesToolbarItemWithPath:(NSString *)path;
+- (void)createMusicToolbarItem;
 - (void)createiTunesToolbarItemMenuItems:(NSMenu *)iTunesMenu;
 - (NSMenu *)createTriggerMenu;
 - (void)insertTriggerMenu;
 - (void)insertStringIntoMessageEntryView:(NSString *)inString;
 - (void)insertAttributedStringIntoMessageEntryView:(NSAttributedString *)inString;
-- (void)loadiTunesCurrentInfoViaApplescript;
 
 - (void)insertFilteredString:(id)sender;
 - (void)filterAndInsertString:(NSString *)inString;
@@ -84,12 +106,14 @@
 - (void)insertUnfilteredString:(id)sender;
 - (void)insertiTMSLink;
 - (void)gatherSelection;
-- (void)bringiTunesToFront;
+- (void)bringMusicToFront;
+- (NSURL *)musicApplicationURL;
+- (NSString *)musicSearchURLForTerms:(NSString *)terms;
 @end
 
 /*!
  * @class ESiTunesPlugin
- * @brief Fiiltering component to provide triggers which are replaced by information from the current iTunes track
+ * @brief Filtering component to provide triggers which are replaced by information from the current Music track
  */
 @implementation ESiTunesPlugin
 
@@ -97,18 +121,18 @@
 #pragma mark Accessor Methods
 
 /*!
- * @brief Is iTunes stopped?
+ * @brief Is Music stopped?
+ *
+ * Never asks Music itself: -installPlugin starts this out as "stopped", and from
+ * then on only the broadcast changes it.
  */
 - (BOOL)iTunesIsStopped
 {
-	//Get the info if we don't already have it
-	if (!iTunesCurrentInfo) [self loadiTunesCurrentInfoViaApplescript];
-
 	return iTunesIsStopped;
 }
 
 /*!
- * @brief Set if iTunes is stopped
+ * @brief Set if Music is stopped
  */
 - (void)setiTunesIsStopped:(BOOL)yesOrNo
 {
@@ -116,18 +140,15 @@
 }
 
 /*!
-* @brief Is iTunes paused?
+ * @brief Is Music paused?
  */
 - (BOOL)iTunesIsPaused
 {
-	//Get the info if we don't already have it
-	if (!iTunesCurrentInfo) [self loadiTunesCurrentInfoViaApplescript];
-	
 	return iTunesIsPaused;
 }
 
 /*!
- * @brief Set if iTunes is paused
+ * @brief Set if Music is paused
  */
 - (void)setiTunesIsPaused:(BOOL)yesOrNo
 {
@@ -136,7 +157,7 @@
 
 
 /*!
- * @brief Get current iTunes info dictionary
+ * @brief Get current track info dictionary
  */
 - (NSDictionary *)iTunesCurrentInfo
 {
@@ -144,12 +165,33 @@
 }
 
 /*!
- * @brief Store local copy of iTunes information
- * 
- * Retains new information, requests immediate content update and lets the plugin know what iTunes is doing.
+ * @brief Store local copy of the track information
+ *
+ * Retains new information, requests immediate content update and lets the plugin know what Music is doing.
  */
 - (void)setiTunesCurrentInfo:(NSDictionary *)newInfo
 {
+	/* The broadcast is an open channel (see -installPlugin), so a sender that posts
+	 * no payload at all can get here. That would leave us with neither track
+	 * information nor a player state — which the filter reads as "playing" and sends
+	 * out as a half-empty track line — and nothing would put it right again, since
+	 * nobody ever asks Music. Fall back to what -installPlugin starts out with.
+	 */
+	if (![newInfo count]) {
+		newInfo = [NSDictionary dictionaryWithObject:KEY_ITUNES_STOPPED forKey:KEY_ITUNES_PLAYER_STATE];
+	}
+
+	/* Every change arrives twice: Music broadcasts under its own name and under
+	 * the one iTunes used, and we listen for both (see -installPlugin). The
+	 * pointer comparison below cannot tell the copies apart — they are two
+	 * separate dictionaries with equal contents — so compare the payload itself
+	 * and drop the repeat before it costs a filter run over every open chat.
+	 */
+	if (lastRawInfo && [lastRawInfo isEqualToDictionary:newInfo]) return;
+
+	[lastRawInfo release];
+	lastRawInfo = [newInfo copy];
+
  	if (newInfo != iTunesCurrentInfo) {
  		[iTunesCurrentInfo release];
  		NSMutableDictionary *mutableNewInfo = [newInfo mutableCopy];
@@ -162,7 +204,7 @@
 		NSEnumerator *enumerator = [newInfo keyEnumerator];
 		NSString *key;
 		while ((key = [enumerator nextObject])) {
-			//Some versions of iTunes may send numbers as numbers rather than strings. Change these to numbers for our use.
+			//Music sends some values as numbers rather than strings. Change these to strings for our use.
 			id value = [newInfo objectForKey:key];
 			if (![value isKindOfClass:[NSString class]]) {
 				if ([value respondsToSelector:@selector(stringValue)]) {
@@ -183,7 +225,7 @@
 
         //Cancel any requests we had to fire updates.
         [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(fireUpdateiTunesInfo) object:nil];
-        //fire an iTunes update in three seconds.
+        //fire a track update in three seconds.
         [self performSelector:@selector(fireUpdateiTunesInfo) withObject:nil afterDelay:3.0];
  	}
 }
@@ -193,7 +235,7 @@
 	/* First, note that the track changed; code elsewhere cares, promise. */
 	[[NSNotificationCenter defaultCenter] postNotificationName:Adium_iTunesTrackChangedNotification object:iTunesCurrentInfo];
 
-	/* Next, update any dynamic content which includes iTunes triggers, including the Now Playing status itself */
+	/* Next, update any dynamic content which includes our triggers, including the Now Playing status itself */
 	[[NSNotificationCenter defaultCenter] postNotificationName:Adium_RequestImmediateDynamicContentUpdate object:nil];
 }
 
@@ -202,51 +244,73 @@
 
 /*!
  * @brief Install
+ *
+ * Everything below is installed whether or not Music.app is on the disk. Three
+ * reasons: the Now Playing status is looked up by its uniqueStatusID at every
+ * launch and the user would silently come online under a different status if it
+ * were missing; the %_ triggers live in saved status messages and in the display
+ * name and would go out verbatim without a filter to replace them; and the
+ * broadcast is an open channel other players send on as well.
  */
 - (void)installPlugin
 {
-	NSString		*itunesPath = [[NSWorkspace sharedWorkspace] absolutePathForAppBundleWithIdentifier:@"com.apple.iTunes"];
+	/* Music only broadcasts when something changes, so nothing at all arrives
+	 * until the user next starts, pauses or changes a track — there is no way to
+	 * ask without an Apple event, and asking would cost an automation prompt. Start
+	 * out as "stopped" rather than as nothing: with no player state at all the
+	 * filter takes Music for playing and sends a half-empty track line.
+	 */
+	iTunesCurrentInfo = [[NSDictionary alloc] initWithObjectsAndKeys:KEY_ITUNES_STOPPED, KEY_ITUNES_PLAYER_STATE, nil];
+	[self setiTunesIsStopped:YES];
+	[self setiTunesIsPaused:NO];
 
-	iTunesCurrentInfo = nil;
+	//Perform substitutions on outgoing content
+	[adium.contentController registerContentFilter:self
+											ofType:AIFilterContent
+										 direction:AIFilterOutgoing];
 
-	//Only install our items if a copy of iTunes which meets the minimum requirements is found
-	if ([[[NSBundle bundleWithPath:itunesPath] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] doubleValue] > ITUNES_MINIMUM_VERSION) {		
-		//Perform substitutions on outgoing content
-		[adium.contentController registerContentFilter:self
-												ofType:AIFilterContent
-											 direction:AIFilterOutgoing];	
+	/* Both names. Music posts under its own and, for everything ever written for
+	 * iTunes, under the old one as well; third-party players only know the old one.
+	 * The duplicate that follows from listening for both costs nothing:
+	 * -setiTunesCurrentInfo: drops a payload it has already seen.
+	 */
+	for (NSString *notificationName in [NSArray arrayWithObjects:@"com.apple.Music.playerInfo", @"com.apple.iTunes.playerInfo", nil]) {
 		[[NSDistributedNotificationCenter defaultCenter] addObserver:self
-															selector:@selector(iTunesUpdate:)
-																name:@"com.apple.iTunes.playerInfo"
-															  object:nil];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(currentTrackFormatDidChange:)
-													 name:Adium_CurrentTrackFormatChangedNotification
-												   object:nil];
-		
-		substitutionDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-			KEY_ITUNES_ALBUM, TRIGGER_ALBUM,
-			KEY_ITUNES_ARTIST, TRIGGER_ARTIST,
-			KEY_ITUNES_COMPOSER, TRIGGER_COMPOSER,
-			KEY_ITUNES_GENRE, TRIGGER_GENRE,
-			KEY_ITUNES_PLAYER_STATE, TRIGGER_STATUS,
-			KEY_ITUNES_NAME, TRIGGER_TRACK,
-			KEY_ITUNES_YEAR, TRIGGER_YEAR,
-			KEY_ITUNES_STORE_URL, TRIGGER_STORE_URL,
-			nil];
-		
-		//Update the format for "Current iTunes Track"
-		[self updateiTunesCurrentTrackFormat];
-		
-		//Create the "Current iTunes Track" status item
-		[self createiTunesCurrentTrackStatusState];
-		
-		//Create the toolbar item
-		[self createiTunesToolbarItemWithPath:itunesPath];
-		
-		//Create the Edit > Insert and contextual menus
-		[self insertTriggerMenu];
+														   selector:@selector(iTunesUpdate:)
+															   name:notificationName
+															 object:nil];
 	}
+
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(currentTrackFormatDidChange:)
+												 name:Adium_CurrentTrackFormatChangedNotification
+											   object:nil];
+
+	/* The values are the keys Music puts into the broadcast; they are not ours to
+	 * choose. CBPurpleAccount reads six of them through the same macros.
+	 */
+	substitutionDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+		KEY_ITUNES_ALBUM, TRIGGER_ALBUM,
+		KEY_ITUNES_ARTIST, TRIGGER_ARTIST,
+		KEY_ITUNES_COMPOSER, TRIGGER_COMPOSER,
+		KEY_ITUNES_GENRE, TRIGGER_GENRE,
+		KEY_ITUNES_PLAYER_STATE, TRIGGER_STATUS,
+		KEY_ITUNES_NAME, TRIGGER_TRACK,
+		KEY_ITUNES_YEAR, TRIGGER_YEAR,
+		KEY_ITUNES_STORE_URL, TRIGGER_STORE_URL,
+		nil];
+
+	//Update the format for the current track
+	[self updateiTunesCurrentTrackFormat];
+
+	//Create the current track status item
+	[self createiTunesCurrentTrackStatusState];
+
+	//Create the toolbar item
+	[self createMusicToolbarItem];
+
+	//Create the Edit > Insert and contextual menus
+	[self insertTriggerMenu];
 }
 
 /*!
@@ -255,69 +319,10 @@
 - (void)uninstallPlugin
 {
 	[adium.contentController unregisterContentFilter:self];
-}
 
-#pragma mark -
-#pragma mark AppleScript + iTunes methods
-
-/*!
- * @brief Get current iTunes track info
- *
- * Execute an applescript located in the resources folder that obtains current iTunes track info and assembles the dictionary
- */
-- (void)loadiTunesCurrentInfoViaApplescript
-{
-	/*
-	 * 1. get a url pointing to the script in the resources folder
- 	 * 2. prepare the script for execution
-	 * 3. get results and create the dictionary based off it
-	 */
-	
-	//get the path
-	NSString				*path = [[NSBundle mainBundle] pathForResource:@"CurrentTunes" ofType:@"scpt"];
-	NSURL					*pathURL = [NSURL fileURLWithPath:path];
-	
-	//create the script complete with an error dictionary
-	NSDictionary			*errors = [NSDictionary dictionary];
-	NSAppleScript			*playingScript = [[NSAppleScript alloc] initWithContentsOfURL:pathURL error:&errors];
-	
-	//execute the script and get the results as a string
-    NSAppleEventDescriptor	*result = [playingScript executeAndReturnError:&errors];
-	NSString				*concatenatediTunesData = [result stringValue];
-
-	//if the player was playing when the script was executed
-	if (concatenatediTunesData && ![concatenatediTunesData isEqualToString:@"None"]) {
-		
-		//get the expected number of entries in the dictionary
-		NSUInteger infoCount = [substitutionDict count];
-		//get the values for the current iTunes song from the string
-		NSArray * iTunesValues = [concatenatediTunesData componentsSeparatedByString:@",$!$,"];
-		
-		//if the two are properly matched (which they always will be, but just in case)
-		if ([iTunesValues count] == infoCount) {
-			//create the dictionary
-			[self setiTunesCurrentInfo:[NSDictionary dictionaryWithObjects:iTunesValues
-																   forKeys:[NSArray arrayWithObjects:
-																			KEY_ITUNES_ALBUM,
-																			KEY_ITUNES_ARTIST,
-																			KEY_ITUNES_COMPOSER,
-																			KEY_ITUNES_GENRE,
-																			KEY_ITUNES_PLAYER_STATE,
-																			KEY_ITUNES_NAME,
-																			KEY_ITUNES_YEAR,
-																			KEY_ITUNES_STORE_URL,
-																			nil]]];
-		} else {
-			NSLog(@"iTunesValues was %@ (%lu items), but I was expecting %lu. Perhaps CurrentTunes is not updated to match ESiTunesPlugin?",
-				  iTunesValues, (unsigned long)[iTunesValues count], (unsigned long)infoCount);
-		}
-		
-	} else {
-		//create a dictionary saying that iTunes is stopped
-		[self setiTunesCurrentInfo:[NSDictionary dictionaryWithObjectsAndKeys:KEY_ITUNES_STOPPED, KEY_ITUNES_PLAYER_STATE, nil]];
-	}
-	
-	[playingScript release];
+	//Both centres: -installPlugin registered with each of them
+	[[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark -
@@ -326,11 +331,11 @@
 /*!
  * @brief Create an available status state
  *
- * Create a Status which uses the current iTunes track data as it's message
+ * Create a Status which uses the current track data as it's message
  */
 - (void)createiTunesCurrentTrackStatusState
 {
-	//create an iTunes status of state "Available" with default available status settings
+	//create a Now Playing status of state "Available" with default available status settings
 	AIStatus		   *currentiTunesStatusState = [[AIStatus statusOfType:AIAvailableStatusType] retain];
 	
 	//set status attributes
@@ -383,7 +388,12 @@
 								  @"",
 								  KEY_ITUNES_STOPPED,
 								  nil];
-	
+
+	/* The preference pane now writes while the user types, so this runs far more
+	 * often than once per launch: without the release the old dictionary leaked
+	 * on every rebuild.
+	 */
+	[phraseSubstitutionDict release];
 	phraseSubstitutionDict = [[NSDictionary alloc] initWithObjectsAndKeys:
 							  slashMusicDict,
 							  TRIGGER_MUSIC,
@@ -401,7 +411,7 @@
 #pragma mark Filter Protocol methods
 
 /*!
- * @brief Filter and insert current iTunes song display into message entry
+ * @brief Filter and insert the current song's display into message entry
  *
  * Toolbar method. Take the trigger and filter it with real values
  *
@@ -415,7 +425,7 @@
 /*!
  * @brief Filter messages for keywords to replace
  *
- * Replace any iTunes triggers with the appropriate information
+ * Replace any track triggers with the appropriate information
  */
 - (NSAttributedString *)filterAttributedString:(NSAttributedString *)inAttributedString context:(id)context
 {
@@ -442,12 +452,12 @@
 				
 				//get the format for the current trigger
 				replacementDict = [phraseSubstitutionDict objectForKey:trigger];
-				
-				//replacement of phrase should reflect iTunes player state
+
+				//replacement of phrase should reflect the player state
 				if (![self iTunesIsStopped] && ![self iTunesIsPaused]) {
 					replacement = [replacementDict objectForKey:KEY_ITUNES_PLAYING];
 
-					/* If the trigger is the trigger used for the Current iTunes Track status, we'll want to add a subtext of the store link
+					/* If the trigger is the trigger used for the Now Playing status, we'll want to add a subtext of the store link
 					 * so account code can send it out later on.
 					 */
 					if ([trigger isEqualToString:TRIGGER_CURRENT_TRACK]) {
@@ -480,9 +490,6 @@
 			
 			//Find if the current trigger is in the string
 			if (([stringMessage rangeOfString:trigger options:(NSLiteralSearch | NSCaseInsensitiveSearch)].location != NSNotFound)) {
-				//Get the info if we don't already have it
-				if (!iTunesCurrentInfo) [self loadiTunesCurrentInfoViaApplescript];
-				
 				NSString *replacement = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:trigger]];
 				if (replacement == nil) {
 					//If no replacement is found, replace the trigger with an empty string
@@ -530,7 +537,7 @@
 #pragma mark Notification Selector
 
 /*!
- * @brief The iTunes song changed
+ * @brief The song changed
  *
  * The accessor method caches the information and then requst an immediate update to dynamic content
  */
@@ -561,30 +568,35 @@
  *
  * Create toolbar item and it's menu
  */
-- (void)createiTunesToolbarItemWithPath:(NSString *)iTunesPath
+- (void)createMusicToolbarItem
 {
 	NSMenu		  *menu = [[NSMenu alloc] init];
 	MVMenuButton  *button = [[MVMenuButton alloc] initWithFrame:NSMakeRect(0,0,32,32)];
 
-	//configure the popup button and its menu
+	/* A symbol rather than Music.app's own icon, which is what the item used to
+	 * show: the item is registered whether or not Music is installed (see
+	 * -installPlugin), and -iconForFile: on a missing application yields the
+	 * generic document icon — an empty-looking hole in the toolbar. A symbol is
+	 * always there and follows the toolbar's own tint.
+	 *
+	 * MVMenuButton only ever scales an image *down* to its control size, so a
+	 * symbol left at its natural ~16 points would sit lost in a 32 point item;
+	 * ask for one drawn at 22.
+	 */
+	NSImage *icon = [NSImage imageWithSystemSymbolName:@"music.note" accessibilityDescription:STRING_TRIGGERS_TOOLBAR];
+	if (icon) {
+		icon = [icon imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:22.0
+																								  weight:NSFontWeightRegular]];
+		[icon setTemplate:YES];
+		[button setImage:icon];
+	}
 
-    /* XXX Remove after 10.6: Apparently with iTunes 10.6.3 on Mac OS X 10.6.8, the NSIconRefImageRep
-     * that is returned by -iconfForFile: for iTunes fails to encode itself for NSCopying. Make a copy
-     * here via -TIFFRepresentation to avoid this bug.
-     * rdar://11930126 http://trac.adium.im/ticket/16046
-     */
-    if ([NSApp isOnLionOrNewer]) {
-        [button setImage:[[NSWorkspace sharedWorkspace] iconForFile:iTunesPath]];
-    } else {
-        NSData *imageData = [[[NSWorkspace sharedWorkspace] iconForFile:iTunesPath] TIFFRepresentation];
-	    [button setImage:[[[NSImage alloc] initWithData:imageData] autorelease]];
-    }
 	[self createiTunesToolbarItemMenuItems:menu];
 
 	NSToolbarItem * iTunesItem = [AIToolbarUtilities toolbarItemWithIdentifier:KEY_TRIGGERS_TOOLBAR
 																		 label:STRING_TRIGGERS_TOOLBAR
 																  paletteLabel:STRING_TRIGGERS_TOOLBAR
-																	   toolTip:AILocalizedString(@"Insert current iTunes track information.","Label for iTunes toolbar menu item.")
+																	   toolTip:AILocalizedString(@"Insert current Music track information.","Tool tip of the Music toolbar item.")
 																		target:self
 															   settingSelector:@selector(setView:)
 																   itemContent:button
@@ -611,33 +623,37 @@
 /*!
  * @brief Create the toolbar item's menu
  *
- * Populate a menu with menu items that will insert appropriate values of the currently playing iTunes song.
+ * Populate a menu with menu items that will insert appropriate values of the currently playing song.
  */
 
 - (void)createiTunesToolbarItemMenuItems:(NSMenu *)iTunesMenu
-{	
+{
 
-	
+
 	//submenu of actions related to a track
-	NSMenuItem *submenuRoot = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Track Information","Submenu for iTunes toolbar item menu for inserting current track information.")
+	NSMenuItem *submenuRoot = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Track Information","Submenu for the Music toolbar item menu for inserting current track information.")
 														 action:NULL
 												  keyEquivalent:@""];
 	[iTunesMenu addItem:submenuRoot];
 	[iTunesMenu setSubmenu:[self createTriggerMenu] forItem:submenuRoot];
 	[iTunesMenu addItem:[NSMenuItem separatorItem]];
 
-	//this isn't implemented yet, need some advice on this one
+	//Searches the selected text in the store; the ellipsis promises the browser opening
 	[iTunesMenu addItem:[self menuItemWithTitle:[AILocalizedString(@"Search Selection in Music Store","iTunes toolbar menu item title to search selection in iTMS.") stringByAppendingEllipsis]
 										 action:@selector(gatherSelection)
 							  representedObject:nil
 										   kind:RESPONDER_IS_WEBVIEW]];
 	[iTunesMenu addItem:[NSMenuItem separatorItem]];
 
-	[iTunesMenu addItem:[self menuItemWithTitle:[AILocalizedString(@"Bring iTunes to Front","iTunes toolbar menu item title to make iTunes frontmost app.") stringByAppendingEllipsis]
-										 action:@selector(bringiTunesToFront)
+	/* No ellipsis: the item switches applications, it does not ask anything first.
+	 * It is the only item here that needs Music to actually be installed.
+	 */
+	[iTunesMenu addItem:[self menuItemWithTitle:AILocalizedString(@"Bring Music to Front","Music toolbar menu item title to make Music the frontmost app.")
+										 action:@selector(bringMusicToFront)
 							  representedObject:nil
-										   kind:ALWAYS_ENABLED]];
-	
+										   kind:ENABLED_IF_MUSIC_INSTALLED]];
+
+
 	[submenuRoot release];
 }
 
@@ -661,104 +677,123 @@
 #pragma mark Toolbar Item actions
 
 /*!
- * @brief Insert current song iTMS link
+ * @brief An Apple Music search for @a terms, or nil for nothing worth searching
  *
- * Get the URL from the iTunesCurrentInfo dict or create a URL if one can't be found.
+ * URLQueryAllowedCharacterSet leaves the sub-delimiters alone, so an artist like
+ * "Simon & Garfunkel" would end the query parameter halfway through the name.
  */
-- (void)insertiTMSLink
+- (NSString *)musicSearchURLForTerms:(NSString *)terms
 {
-	NSMutableString		*url = [[NSMutableString alloc] init];
-	NSString			*urlLabel = nil;
+	NSMutableCharacterSet	*allowed = [[[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy] autorelease];
 
-	//get current information
-	NSString			*artist = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_ARTIST]];
-	NSString			*trackName = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_TRACK]];
-	
-	//see if we have a URL for us
-	NSString			*storeURL = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_STORE_URL]];
-	if ([storeURL length]) {
-		[url appendString:storeURL];
-	}
-	
-	//if we have no url data from the iTunes notification to begin with - probably because we got the info using the applescript
-	if (![url length]) {
-		
-		//if iTunes is playing or paused something
-		if (![self iTunesIsStopped] || ![self iTunesIsPaused]) {
-			[url appendString:ITUNES_ITMS_SEARCH_URL];
-			
-			//if there is a name given to this song put it in the url
-			if ([trackName length]) {
-				[url appendFormat:@"n=%@", [trackName stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-			} else {
-				trackName = @"";
-			}
-			
-			//if there is a name and an artist, we'll use both to refine our search
-			if ([artist length] && [trackName length]) {
-				//[url appendFormat:@"?artistTerm=%@", [artist stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-				[url appendFormat:@"&an=%@", [artist stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-				
-			} else if ([artist length]) {
-				//no proper track name but we have a decent artist name to include in the url
-				//[url appendFormat:@"artistTerm=%@", [trackName stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-				[url appendFormat:@"an=%@", [trackName stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-			} else {
-				artist = @"";
-			}
-		}
-	}
-	
-	//if something has been added to our search request, create a lovely label for it
-	if (![url isEqualToString:ITUNES_ITMS_SEARCH_URL] && [url length]) {
-		urlLabel = [[NSString alloc] initWithFormat:@"%@ - %@", trackName, artist];
-	} else {
-		[url release]; url = nil;
-	}
-	
-	//if we have a url, give it to the user as a nice, formatted <a> tag
-	if (url) {
-		NSAttributedString *attributedLink = [[NSAttributedString alloc] initWithAttributedString:[AIHTMLDecoder decodeHTML:[NSString stringWithFormat:@"<A HREF=\"%@\">%@</A>", url, urlLabel]]];
-		[self insertAttributedStringIntoMessageEntryView:attributedLink];
-		[attributedLink release];
-		[url release];
-		[urlLabel release];
-	} else {
-		//the artist name and or the track name is literally @""
-		NSBeep();
-	}
+	terms = [terms stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	if (![terms length]) return nil;
+
+	[allowed removeCharactersInString:@"&+=?#"];
+
+	return [NSString stringWithFormat:MUSIC_SEARCH_URL, [terms stringByAddingPercentEncodingWithAllowedCharacters:allowed]];
 }
 
 /*!
- * @brief Search iTMS for inputtted data
+ * @brief Insert a link to the current song
+ *
+ * Music sends a store URL along with everything from its own catalogue. A local
+ * file or a stream has none, so all that is left is a search for what we do know
+ * about it.
+ */
+- (void)insertiTMSLink
+{
+	NSString	*artist = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_ARTIST]];
+	NSString	*trackName = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_TRACK]];
+	NSString	*storeURL = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_STORE_URL]];
+	NSString	*url = nil;
+
+	if ([storeURL length]) {
+		url = storeURL;
+
+	} else if (![self iTunesIsStopped] && ![self iTunesIsPaused]) {
+		/* Was "|| !paused", which is only false for a player both stopped and
+		 * paused at once, i.e. never: the branch ran even with nothing playing.
+		 */
+		url = [self musicSearchURLForTerms:[[NSArray arrayWithObjects:(trackName ?: @""), (artist ?: @""), nil]
+											componentsJoinedByString:@" "]];
+	}
+
+	if (!url) {
+		//Nothing is playing, or nothing about it we could even search for
+		NSBeep();
+		return;
+	}
+
+	//Whatever of the two we have; the dash only when both are there
+	NSMutableArray *labelParts = [NSMutableArray array];
+	if ([trackName length]) [labelParts addObject:trackName];
+	if ([artist length]) [labelParts addObject:artist];
+
+	NSString			*urlLabel = ([labelParts count] ? [labelParts componentsJoinedByString:@" - "] : url);
+	NSAttributedString	*attributedLink = [[NSAttributedString alloc] initWithAttributedString:
+										   [AIHTMLDecoder decodeHTML:[NSString stringWithFormat:@"<A HREF=\"%@\">%@</A>",
+																	  url, AIEscapedForHTML(urlLabel)]]];
+
+	[self insertAttributedStringIntoMessageEntryView:attributedLink];
+	[attributedLink release];
+}
+
+/*!
+ * @brief Search Apple Music for the given text
  *
  * Build the necessary url and execute it
  */
 - (void)searchMusicStoreWithSelection:(NSString *)selectedText
 {
-	//Create a general search request
-	NSString *url = [NSString stringWithFormat:@"itms://phobos.apple.com/WebObjects/MZSearch.woa/wa/search?term=%@", [selectedText stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
+	NSString *url = [self musicSearchURLForTerms:(selectedText ?: @"")];
+
+	if (url) [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
 }
 
 
 /*!
  * @brief Get the selection from the webmessageview
  *
- * Get the selected text in the messageview and run it thru the iTMS
+ * Get the selected text in the messageview and search Apple Music for it
  */
 - (void)gatherSelection
 {
 	id responder = [[[NSApplication sharedApplication] keyWindow] firstResponder];
-	[self searchMusicStoreWithSelection:[responder selectedString]];
+
+	if ([responder respondsToSelector:@selector(selectedString)]) {
+		[self searchMusicStoreWithSelection:[responder selectedString]];
+	}
 }
 
 /*!
- * @brief Bring iTunes to foreground
+ * @brief Where Music.app is, or nil when it is not installed
+ *
+ * Asked for at every use rather than looked up once at launch: Music can be
+ * removed, moved or installed while Adium runs, and -validateMenuItem: has to
+ * tell the truth about it every time the menu opens.
  */
-- (void)bringiTunesToFront
+- (NSURL *)musicApplicationURL
 {
-	[[NSWorkspace sharedWorkspace] launchApplication:@"iTunes"];
+	return [[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:MUSIC_BUNDLE_IDENTIFIER];
+}
+
+/*!
+ * @brief Bring Music to the foreground
+ */
+- (void)bringMusicToFront
+{
+	NSURL *applicationURL = [self musicApplicationURL];
+
+	//-validateMenuItem: disables the item without Music, but a key equivalent could still get here
+	if (!applicationURL) {
+		NSBeep();
+		return;
+	}
+
+	[[NSWorkspace sharedWorkspace] openApplicationAtURL:applicationURL
+										  configuration:[NSWorkspaceOpenConfiguration configuration]
+									  completionHandler:nil];
 }
 
 #pragma mark -
@@ -838,9 +873,9 @@
 #pragma mark Edit/Contextual menu methods
 
 /*!
- * @brief Create Edit and Contextual menus of iTunes triggers
+ * @brief Create Edit and Contextual menus of the track triggers
  *
- * Build the menus for the iTunes triggers that autodisables when a first responder isn't a textView
+ * Build the menus for the track triggers that autodisables when a first responder isn't a textView
  */
 
 - (NSMenu *)createTriggerMenu
@@ -895,7 +930,7 @@
 }
 
 /*!
- * @brief Create Edit and Contextual menus of iTunes triggers
+ * @brief Create Edit and Contextual menus of the track triggers
  *
  * Users can then insert %_&lt;token name&gt; into any text view
  */
@@ -917,7 +952,7 @@
 /*!
  * @brief Configure accessibility of menu items
  *
- * Depending on whether the responder is a textview and if it should be enabled when itunes isn't playing
+ * Depending on whether the responder is a textview and if it should be enabled when nothing is playing
  */
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
@@ -925,10 +960,17 @@
 	KGiTunesPluginMenuItemKind	tag = (KGiTunesPluginMenuItemKind)[menuItem tag];
 	BOOL						enable;
 
+	/* Music may not be installed at all — everything else here works off the
+	 * broadcast and off saved track information, but switching to an application
+	 * that is not there cannot. Decided before the responder is even looked at:
+	 * the item points at another application, not at the text being edited.
+	 */
+	if (tag == ENABLED_IF_MUSIC_INSTALLED) return ([self musicApplicationURL] != nil);
+
 	//we only insert things into textviews
 	if (responder && [responder isKindOfClass:[NSTextView class]]) {
-		
-		//some menu items are only enabled if itunes is playing something
+
+		//some menu items are only enabled if something is playing
 		if ((([self iTunesIsStopped] || [self iTunesIsPaused]) && (tag == ENABLED_IF_ITUNES_PLAYING)) || (tag == RESPONDER_IS_WEBVIEW)) {
 			enable = NO;
 		} else {
@@ -964,14 +1006,22 @@
 
 - (void)dealloc
 {
-	//Remove self from notifications list
+	/* Both centres: -installPlugin observes the distributed one for the player
+	 * broadcast and the local one for the format change, and only the first of
+	 * the two used to be undone here.
+	 */
 	[[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
-	
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+	//A delayed update still in flight would message a freed plugin
+	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(fireUpdateiTunesInfo) object:nil];
+
 	//Release class variables
 	if (iTunesCurrentInfo) [iTunesCurrentInfo release];
+	if (lastRawInfo) [lastRawInfo release];
 	if (substitutionDict) [substitutionDict release];
 	if (phraseSubstitutionDict) [phraseSubstitutionDict release];
-	
+
 	[super dealloc];
 }
 

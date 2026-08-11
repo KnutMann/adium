@@ -20,7 +20,8 @@ typedef enum {
 	AUTODISABLES = 0,
 	ALWAYS_ENABLED = 1,
 	ENABLED_IF_ITUNES_PLAYING = 2,
-	RESPONDER_IS_WEBVIEW = 3
+	RESPONDER_IS_WEBVIEW = 3,
+	ENABLED_IF_MUSIC_INSTALLED = 4
 } KGiTunesPluginMenuItemKind;
 
 #define Adium_iTunesTrackChangedNotification		@"Adium_iTunesTrackChangedNotification"
@@ -50,9 +51,19 @@ typedef enum {
 #define KEY_ITUNES_TOTAL_TIME		@"Total Time"
 #define KEY_ITUNES_YEAR				@"Year"
 
+/*!
+ * @class ESiTunesPlugin
+ * @brief Replaces the %_ triggers with what Music.app is playing.
+ *
+ * The class and file name still say iTunes: AICoreComponentLoader loads the class
+ * by name and two files of the Purple service import this header, so renaming it
+ * would be a rename across components for no gain. Everything the user sees says
+ * Music, and so do the identifiers introduced since the port.
+ */
 @interface ESiTunesPlugin : AIPlugin <AIContentFilter> {
 	NSDictionary *iTunesCurrentInfo;
-	
+	NSDictionary *lastRawInfo;			//Last broadcast payload, verbatim; see -setiTunesCurrentInfo:
+
 	NSDictionary *substitutionDict;
 	NSDictionary *phraseSubstitutionDict;
 	BOOL iTunesIsStopped;

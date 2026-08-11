@@ -54,6 +54,7 @@ typedef enum {
 	AISettingsRowTypeControl = 0,
 	AISettingsRowTypePopUp,
 	AISettingsRowTypeSlider,
+	AISettingsRowTypeStretch,		//Label plus a control filling the row; laid out as a slider row
 	AISettingsRowTypeRadioGroup,
 	AISettingsRowTypeFullWidth,
 	AISettingsRowTypeEdgeToEdge,
@@ -636,6 +637,29 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[self appendRow:row];
 }
 
+- (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control
+{
+	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+
+	AISettingsAdoptView(control);
+
+	/* Filled exactly like a slider row, and laid out by the slider row's case
+	 * below: the two are the same shape — a label as wide as its text, a control
+	 * taking everything left — and a stretching row is one without a readout.
+	 */
+	row->type = AISettingsRowTypeStretch;
+	if (label.length) {
+		row->labelField = AISettingsMakeLabel(label,
+											  [NSFont systemFontOfSize:AISettingsLabelFontSize],
+											  [NSColor labelColor]);
+	}
+	row->control = [control retain];
+
+	AISettingsApplyAccessibility(control, label, nil);
+
+	[self appendRow:row];
+}
+
 - (void)addRadioGroupWithLabel:(NSString *)label buttons:(NSArray *)radioButtons
 {
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
@@ -855,13 +879,15 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		/* Slider rows of one card share a label and a readout column, the way
 		 * System Settings lines its sliders up: otherwise "Opacity" and "Maximum
 		 * Width" would start their sliders at two different x, and retitling one
-		 * of them would shift its slider while the user works two rows above. */
+		 * of them would shift its slider while the user works two rows above.
+		 * Stretching rows are laid out as slider rows and share the columns with
+		 * them, so a card mixing both still has one label column. */
 		CGFloat sliderInnerWidth = cardWidth - 2.0 * AISettingsCardInsetH;
 		CGFloat sliderLabelColumn = 0.0;
 		CGFloat sliderValueColumn = 0.0;
 
 		for (AISettingsFormRow *row in section->rows) {
-			if (row->type != AISettingsRowTypeSlider) continue;
+			if (row->type != AISettingsRowTypeSlider && row->type != AISettingsRowTypeStretch) continue;
 
 			if (row->labelField) {
 				sliderLabelColumn = MAX(sliderLabelColumn, ceil([[row->labelField cell] cellSize].width));
@@ -1052,9 +1078,13 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 			return rowHeight;
 		}
 
-		case AISettingsRowTypeSlider: {
+		case AISettingsRowTypeSlider:
+		case AISettingsRowTypeStretch: {
 			/* Label, slider and readout share one line: the label and the readout
-			 * keep the width of their text, the slider takes what is left. */
+			 * keep the width of their text, the slider takes what is left. A
+			 * stretching row is the same thing without a readout — valueField is
+			 * nil, so the trailing column collapses to nothing and the control
+			 * runs to the card's inset. */
 			NSSize	valueSize = (row->valueField ? AISettingsControlSize(row->valueField) : NSZeroSize);
 			CGFloat	sliderHeight = MAX(row->naturalControlSize.height, 1.0);
 			//Both columns are shared by every slider row of this card
@@ -1276,6 +1306,25 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[field setAction:action];
 	[field sizeToFit];
 	[field setFrameSize:NSMakeSize(width, NSHeight([field frame]))];
+
+	return field;
+}
+
++ (NSTextField *)textFieldWithTarget:(id)target action:(SEL)action
+{
+	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+
+	[field setFont:[NSFont systemFontOfSize:AISettingsLabelFontSize]];
+	[field setAlignment:NSTextAlignmentLeft];
+	[field setTarget:target];
+	[field setAction:action];
+	/* Return alone is not enough: a user who types and then clicks somewhere else
+	 * expects what they typed to have been taken. */
+	[[field cell] setSendsActionOnEndEditing:YES];
+	[field sizeToFit];
+
+	//The row decides the width; only the height comes from the field itself
+	[field setFrameSize:NSMakeSize(AISettingsSliderMinWidth, ceil(NSHeight([field frame])))];
 
 	return field;
 }

@@ -155,6 +155,26 @@
 - (void)addRowWithLabel:(NSString *)label slider:(NSSlider *)slider valueLabel:(NSTextField *)valueLabel;
 
 /*!
+ * @brief Append a row: @a label on the left, @a control filling the rest of the row.
+ *
+ * The shape of a System Settings row whose control has no natural width of its
+ * own — a text field the user types a name or a format into: the label keeps
+ * only the width its text needs and the control takes everything left up to the
+ * card's trailing inset. @c addRowWithLabel:control: cannot do this, because
+ * there a control keeps the width it had when it was added and would sit as a
+ * stub at the right hand edge.
+ *
+ * Shares the label column with the slider rows of the same card — a slider row
+ * and a stretching row are the same shape — so their controls start on one line
+ * and a retitled row moves none of them. A label pressed below the width its
+ * text needs is truncated rather than wrapped, and the row is as tall as the
+ * control it was handed.
+ *
+ * The label dims with the control, exactly as in a control row.
+ */
+- (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control;
+
+/*!
  * @brief Append a row with @a label on top and radio buttons stacked below it.
  *
  * @a radioButtons are NSButtons (see @c radioButtonWithTitle:target:action:);
@@ -358,6 +378,18 @@
  * @brief A text field of @a width points for value rows.
  */
 + (NSTextField *)valueFieldWithWidth:(CGFloat)width target:(id)target action:(SEL)action;
+
+/*!
+ * @brief A text field for @c addRowWithLabel:stretchingControl:, wired to @a target / @a action.
+ *
+ * Left aligned and without a width of its own, because the row decides that.
+ * Sends its action when editing ends — on Return, on Tab and when the focus
+ * moves away — so a pane which only saves in its action still saves. A pane
+ * that must not lose the last keystroke should also take
+ * @c controlTextDidChange:, since taking a preference pane off screen does not
+ * end editing.
+ */
++ (NSTextField *)textFieldWithTarget:(id)target action:(SEL)action;
 
 /*!
  * @brief A slider for @c addRowWithLabel:slider:valueLabel:, wired to @a target / @a action.
