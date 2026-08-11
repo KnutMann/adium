@@ -379,42 +379,11 @@
 			<key>CFBundleURLIconFile</key>
 			<string>generic</string>
 			<key>CFBundleURLName</key>
-			<string>Yahoo! Messenger URL</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>ymsgr</string>
-				<string>yahoo</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLIconFile</key>
-			<string>generic</string>
-			<key>CFBundleURLName</key>
 			<string>Jabber URL</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>xmpp</string>
 				<string>jabber</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLIconFile</key>
-			<string>generic</string>
-			<key>CFBundleURLName</key>
-			<string>Google Talk URL</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>gtalk</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLIconFile</key>
-			<string>generic</string>
-			<key>CFBundleURLName</key>
-			<string>Microsoft Network URL</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>msn</string>
 			</array>
 		</dict>
 		<dict>
