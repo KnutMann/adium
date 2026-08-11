@@ -56,7 +56,8 @@ typedef enum {
 	AISettingsRowTypeSlider,
 	AISettingsRowTypeRadioGroup,
 	AISettingsRowTypeFullWidth,
-	AISettingsRowTypeEdgeToEdge
+	AISettingsRowTypeEdgeToEdge,
+	AISettingsRowTypeDetail			//Explanatory text, no control at all
 } AISettingsRowType;
 
 #pragma mark -
@@ -80,6 +81,28 @@ static NSTextField *AISettingsMakeLabel(NSString *text, NSFont *font, NSColor *c
 	[field setLineBreakMode:NSLineBreakByWordWrapping];
 	[[field cell] setWraps:YES];
 	[[field cell] setScrollable:NO];
+
+	return field;
+}
+
+/*!
+ * @brief The explanatory label both detail shapes are built from.
+ *
+ * -addDetailRow: and -addFootnote: differ only in where they put their field,
+ * not in what it looks like: same font, same colour, same wrapping as the
+ * detail line under a row's label. Building both here keeps that true.
+ *
+ * Selectable, unlike every other label of the form: an explanation is text a
+ * user may well want to copy, and System Settings lets its footnotes be
+ * selected. Caller owns the returned field.
+ */
+static NSTextField *AISettingsMakeDetailLabel(NSString *text)
+{
+	NSTextField *field = AISettingsMakeLabel(text,
+											 [NSFont systemFontOfSize:AISettingsDetailFontSize],
+											 [NSColor secondaryLabelColor]);
+
+	[field setSelectable:YES];
 
 	return field;
 }
@@ -236,6 +259,23 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[self setNeedsDisplay:YES];
 }
 
+/*!
+ * @brief The translucent fill that lifts the card off the window background
+ *
+ * quaternarySystemFillColor is what System Settings itself uses, but it only
+ * exists from macOS 14 on and we deploy back to 11. Five percent of labelColor
+ * stands in below that: labelColor is near-black in Aqua and near-white in
+ * Dark Aqua, so the tint follows the appearance the same way the system fill
+ * does, instead of baking in one colour that would vanish in the other.
+ */
+- (NSColor *)cardFillTint
+{
+	if (@available(macOS 14.0, *))
+		return [NSColor quaternarySystemFillColor];
+
+	return [[NSColor labelColor] colorWithAlphaComponent:0.05];
+}
+
 - (void)drawRect:(NSRect)rect
 {
 	NSRect bounds = [self bounds];
@@ -260,7 +300,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	 * system fill lifts it off the background in either appearance. There is no
 	 * outline: System Settings cards are a plain fill, the dividers inside are
 	 * the only lines. */
-	[[NSColor quaternarySystemFillColor] setFill];
+	[[self cardFillTint] setFill];
 	[card fill];
 
 	[[NSColor separatorColor] setFill];
@@ -377,6 +417,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	NSMutableArray		*rows;
 	NSView				*accessoryView;	//Sits below the card, outside of it; nil for most sections
 	BOOL				 accessoryTrailing;	//NO: aligned with the card's leading edge, the default
+	NSTextField			*footnoteField;	//Below the card and below the accessory; nil for most sections
 	/* Widest slider label this card has ever held, uncapped. Never shrinks, so a
 	 * row renamed to something shorter leaves the column — and with it every
 	 * slider of the card — exactly where it was. */
@@ -399,6 +440,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[cardView release];
 	[rows release];
 	[accessoryView release];
+	[footnoteField release];
 	[super dealloc];
 }
 @end
@@ -465,7 +507,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	//A card that never received a row would just add a gap
 	AISettingsFormSection *previous = [sections lastObject];
-	if (previous && ![previous->rows count] && !previous->headerField && !previous->accessoryView) {
+	if (previous && ![previous->rows count] && !previous->headerField && !previous->accessoryView && !previous->footnoteField) {
 		[previous->cardView removeFromSuperview];
 		[sections removeLastObject];
 	}
@@ -489,7 +531,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	//An empty trailing section would just add a gap; a new row creates a fresh one.
 	AISettingsFormSection *section = [sections lastObject];
-	if (section && ![section->rows count] && !section->headerField && !section->accessoryView) {
+	if (section && ![section->rows count] && !section->headerField && !section->accessoryView && !section->footnoteField) {
 		[section->cardView removeFromSuperview];
 		[sections removeLastObject];
 	} else if (section) {
@@ -655,6 +697,26 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[self appendRow:row];
 }
 
+- (void)addDetailRow:(NSString *)text
+{
+	/* An empty field is not nothing: it still measures one blank line, so a row
+	 * without text would open a gap in the card. */
+	if (!text.length) return;
+
+	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+
+	row->type = AISettingsRowTypeDetail;
+	row->detailField = AISettingsMakeDetailLabel(text);
+
+	/* Deliberately neither control nor fullWidthView: -layoutRow:atY:inCardOfWidth:
+	 * adopts the frame of either as the row's natural size, which would freeze the
+	 * height measured for a wide card and stop the text from ever folding again.
+	 * The same nil also means -appendRow: finds no control to follow, so the field
+	 * never dims and keeps the colour AISettingsMakeDetailLabel() gave it — right
+	 * for a sentence which explains a whole card rather than one setting. */
+	[self appendRow:row];
+}
+
 - (void)addAccessoryView:(NSView *)view
 {
 	[self addAccessoryView:view trailing:NO];
@@ -677,9 +739,32 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		section->accessoryView = [view retain];
 		//Below the card, so a subview of the form itself rather than of the card
 		if (view) [self addSubview:view];
+
+		/* A footnote is drawn below the accessory bar, and VoiceOver reads a
+		 * container in subview order: a footnote added before the bar has to move
+		 * behind it again, or it is announced above what it stands under. */
+		if (view && section->footnoteField) {
+			[section->footnoteField removeFromSuperview];
+			[self addSubview:section->footnoteField];
+		}
 	}
 
 	section->accessoryTrailing = trailing;
+
+	[self layoutForWidth:NSWidth([self frame])];
+}
+
+- (void)addFootnote:(NSString *)text
+{
+	AISettingsFormSection *section = [self currentSection];
+
+	[section->footnoteField removeFromSuperview];
+	[section->footnoteField release];
+	//An empty field would still measure one blank line below the card
+	section->footnoteField = (text.length ? AISettingsMakeDetailLabel(text) : nil);
+
+	//Below the card, so a subview of the form itself rather than of the card
+	if (section->footnoteField) [self addSubview:section->footnoteField];
 
 	[self layoutForWidth:NSWidth([self frame])];
 }
@@ -719,6 +804,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		[section->headerField removeFromSuperview];
 		[section->cardView removeFromSuperview];
 		[section->accessoryView removeFromSuperview];
+		[section->footnoteField removeFromSuperview];
 	}
 	[sections removeAllObjects];
 
@@ -755,7 +841,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	BOOL isFirstSection = YES;
 
 	for (AISettingsFormSection *section in sections) {
-		if (![section->rows count] && !section->headerField && !section->accessoryView) continue;
+		if (![section->rows count] && !section->headerField && !section->accessoryView && !section->footnoteField) continue;
 
 		if (!isFirstSection) y += (section->headerField ? AISettingsSectionGap : AISettingsCardGap);
 		isFirstSection = NO;
@@ -802,8 +888,11 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 			BOOL edgeToEdge = (row->type == AISettingsRowTypeEdgeToEdge);
 
 			/* An edge to edge row fills the card and brings its own separators,
-			 * so the card must not draw one against it. */
-			if (rowY > 0.0 && !edgeToEdge && !previousWasEdgeToEdge) {
+			 * so the card must not draw one against it. A detail row explains what
+			 * stands above it and has to end up on the near side of the line: it
+			 * gets no divider of its own, while the row after it draws one as
+			 * usual. */
+			if (rowY > 0.0 && !edgeToEdge && !previousWasEdgeToEdge && row->type != AISettingsRowTypeDetail) {
 				[separators addObject:[NSNumber numberWithDouble:rowY]];
 			}
 			rowY += [self layoutRow:row atY:rowY inCardOfWidth:cardWidth];
@@ -827,6 +916,18 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 			y += AISettingsAccessoryGap;
 			[section->accessoryView setFrame:NSMakeRect(accessoryX, y, size.width, size.height)];
 			y += size.height;
+		}
+
+		if (section->footnoteField) {
+			/* Aligned with the card's edge rather than with the labels inside it,
+			 * so a card carrying both a button bar and a footnote does not put two
+			 * different left edges underneath itself. Measured at exactly the width
+			 * it is given, so it refolds with the window instead of being clipped. */
+			CGFloat footnoteHeight = AISettingsFieldHeight(section->footnoteField, cardWidth);
+
+			y += AISettingsAccessoryGap;
+			[section->footnoteField setFrame:NSMakeRect(AISettingsOuterMargin, y, cardWidth, footnoteHeight)];
+			y += footnoteHeight;
 		}
 	}
 
@@ -881,6 +982,27 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 													MAX(width, 1.0),
 													size.height)];
 			return MAX(size.height + 2.0 * AISettingsRowInsetV, AISettingsRowMinHeight);
+		}
+
+		case AISettingsRowTypeDetail: {
+			/* A block of explanation, not a control row: no minimum height — a
+			 * 44 point row around one 15 point line would be a hole in the card —
+			 * and measured at exactly the width the frame is about to get, so a
+			 * word cannot fold into a line no height was reserved for. */
+			CGFloat textHeight = AISettingsFieldHeight(row->detailField, innerWidth);
+
+			/* A detail row explains the row above it, so it clings to it the way a
+			 * label's own detail line does; opening a card it needs the card's
+			 * padding instead. rowY is 0 for the first row of a card — the same
+			 * test -layoutForWidth: uses for the dividers. */
+			CGFloat topInset = (rowY > 0.0 ? AISettingsDetailGap : AISettingsRowInsetV);
+
+			[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH,
+												  rowY + topInset,
+												  innerWidth,
+												  textHeight)];
+
+			return topInset + textHeight + AISettingsRowInsetV;
 		}
 
 		case AISettingsRowTypePopUp: {

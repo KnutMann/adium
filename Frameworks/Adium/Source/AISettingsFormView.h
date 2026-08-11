@@ -201,6 +201,30 @@
 - (void)addEdgeToEdgeRow:(NSView *)view;
 
 /*!
+ * @brief Append a row holding nothing but @a text, wrapped across the card.
+ *
+ * The shape System Settings uses for a line of explanation inside a group: the
+ * same small secondary text a row's @c detail: line carries, but standing on
+ * its own instead of under a label — for a sentence which belongs to the whole
+ * card rather than to one setting ("Messages are highlighted when the following
+ * terms are spoken"), or for one which explains the row above it and would not
+ * fit beside its control.
+ *
+ * The row carries no control, so it is not stretched to the height of a control
+ * row: it is exactly as tall as its text plus the standard padding. The text
+ * wraps at the card's inner width and is re-measured at every layout, so it
+ * refolds when the window is resized. It clings to the row above it — the form
+ * draws no divider against a detail row, because the text reads as belonging to
+ * what stands above it — while the next row draws its own divider as usual, so
+ * the detail stays on the near side of the line. Opening a card, it takes the
+ * card's own top padding instead.
+ *
+ * The text is selectable but never dims: a detail row follows no control.
+ * A nil or empty @a text adds nothing at all.
+ */
+- (void)addDetailRow:(NSString *)text;
+
+/*!
  * @brief Put @a view directly below the current card, outside of any card.
  *
  * The shape of the +/− bar under a System Settings list. @a view keeps its own
@@ -223,6 +247,27 @@
  * Only one accessory per card; this and @c addAccessoryView: replace each other.
  */
 - (void)addTrailingAccessoryView:(NSView *)view;
+
+/*!
+ * @brief Put @a text directly below the current card, outside of any card.
+ *
+ * The footnote System Settings sets under a group ("Style changes take effect
+ * for new message windows."): the same small secondary text as
+ * @c addDetailRow:, but on the window background rather than on the card,
+ * aligned with the card's leading edge and as wide as the card. It sits below
+ * the card's accessory bar when the section has one, and the next section
+ * starts below it. Like a detail row it is re-measured at every layout, so it
+ * refolds with the window.
+ *
+ * Takes a string rather than a view — as @c addSectionHeader: does and unlike
+ * @c addAccessoryView: — so no pane ever builds a second, nearly identical
+ * field of its own.
+ *
+ * Only one footnote per card; a second call replaces the first, and nil or
+ * empty text removes it. For two paragraphs, hand over one string with a blank
+ * line in it.
+ */
+- (void)addFootnote:(NSString *)text;
 
 /*!
  * @brief Retitle the row @a control sits in.
