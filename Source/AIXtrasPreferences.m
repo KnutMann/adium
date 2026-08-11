@@ -184,9 +184,19 @@
 
 	/* Without this nobody understands why a fresh installation shows no Xtras at all: the ones
 	 * inside the application bundle are deliberately invisible here, because they cannot be
-	 * switched off or thrown away. */
-	[form addFootnote:AILocalizedString(@"Xtras included with Adium are not listed here.",
-										"Footnote below the Xtras website and folder rows")];
+	 * switched off or thrown away.
+	 *
+	 * A card of its own rather than another row or a footnote of "More Xtras": the sentence is
+	 * not a remark about the website and folder rows, it answers what the lists further up
+	 * raise ("where is everything?"), and hanging it under those two rows would make it read
+	 * as belonging to them. A card without a heading still stands in the group above it, so
+	 * this one closes the pane where it always did - only the footnote's small print has
+	 * become a block of its own. The duck is the one the old Xtras window carried in its
+	 * toolbar for exactly this errand - fetching what is not there yet. */
+	[form endCard];
+	[form addInfoRow:AILocalizedString(@"Xtras included with Adium are not listed here.",
+									   "Explanation shown beside the duck at the end of the Xtras pane")
+		   withImage:[NSImage imageNamed:@"xtras_duck" forClass:[self class]]];
 }
 
 /*!

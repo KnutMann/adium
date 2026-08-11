@@ -260,6 +260,36 @@
 - (void)addEmptyStateRow:(NSString *)text;
 
 /*!
+ * @brief Append a row: @a image at the leading edge, @a text wrapped beside it.
+ *
+ * The shape System Settings uses for an explanation worth a picture — the
+ * paragraph standing next to the Mac in Bluetooth: a symbol at the leading edge
+ * and the same small secondary text @c addDetailRow: carries beside it, the two
+ * of them centred against whichever is taller.
+ *
+ * Use it where a sentence carries the weight of a whole card rather than of the
+ * row above it; a line which only qualifies its neighbour stays an
+ * @c addDetailRow:. Because it reads as a block of its own, it usually wants a
+ * card of its own — open one with @c endCard or @c addSectionHeader: — unless
+ * it really is about the rows it is sitting with.
+ *
+ * @a image is scaled proportionally into a square of at most 40 points, and a
+ * <em>copy</em> is what gets scaled: a named image is shared with everything
+ * else drawing it, and resizing the original would shrink it in a toolbar or a
+ * list on the other side of the application. An image already smaller than that
+ * square keeps its own size rather than being blown up, and whatever its shape
+ * it is centred in that square: the text always begins at the same column, so
+ * two info rows of one card line their paragraphs up. It stays out of the
+ * accessibility tree, since it illustrates @a text and says nothing @a text does
+ * not.
+ *
+ * The text wraps at whatever width the image leaves it and is re-measured at
+ * every layout, so it refolds when the window is resized. Either argument may be
+ * nil; with neither, nothing is added at all.
+ */
+- (void)addInfoRow:(NSString *)text withImage:(NSImage *)image;
+
+/*!
  * @brief Put @a view directly below the current card, outside of any card.
  *
  * The shape of the +/− bar under a System Settings list. @a view keeps its own

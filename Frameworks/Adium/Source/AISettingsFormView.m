@@ -45,6 +45,7 @@ static const CGFloat AISettingsHeaderFontSize	= 13.0;
 static const CGFloat AISettingsFallbackWidth	= 480.0;	//Used when a host gives us no usable width
 static const CGFloat AISettingsInlineButtonSize	= 22.0;		//Edge length of a row's trailing symbol button
 static const CGFloat AISettingsInlineSymbolSize	= 16.0;		//Point size of the symbol drawn in it
+static const CGFloat AISettingsInfoImageSize	= 40.0;		//Longest edge of the picture in an info row
 
 /* Our own KVO context: a row must be able to tell its own notification from one
  * meant for a superclass. AISettingsFormRow inherits from NSObject, whose
@@ -61,7 +62,8 @@ typedef enum {
 	AISettingsRowTypeFullWidth,
 	AISettingsRowTypeEdgeToEdge,
 	AISettingsRowTypeDetail,		//Explanatory text, no control at all
-	AISettingsRowTypeEmptyState		//"Nothing here yet", centred in an otherwise empty card
+	AISettingsRowTypeEmptyState,	//"Nothing here yet", centred in an otherwise empty card
+	AISettingsRowTypeInfo			//A picture plus the paragraph it illustrates
 } AISettingsRowType;
 
 #pragma mark -
@@ -109,6 +111,37 @@ static NSTextField *AISettingsMakeDetailLabel(NSString *text)
 	[field setSelectable:YES];
 
 	return field;
+}
+
+/*!
+ * @brief The picture of an info row, scaled into the standard square.
+ *
+ * Scales a <em>copy</em>, never the image it was handed: a caller may hand us a
+ * picture the whole process shares — anything out of +[NSImage imageNamed:] or
+ * of a cache of its own — and -setSize: on that instance would quietly shrink it
+ * in every toolbar and list drawing it too. Proportional, so a
+ * portrait picture keeps its shape, and never enlarging: a picture already
+ * smaller than the square is left at its own size rather than blown up into a
+ * blur. Returns nil for an image with no size at all. Caller owns the result.
+ */
+static NSImage *AISettingsMakeInfoImage(NSImage *image)
+{
+	NSSize	 size = (image ? [image size] : NSZeroSize);
+	CGFloat	 scale;
+	NSImage	*scaled;
+
+	if (size.width < 1.0 || size.height < 1.0) return nil;
+
+	scale = MIN(AISettingsInfoImageSize / size.width, AISettingsInfoImageSize / size.height);
+	scaled = [image copy];
+
+	if (scale < 1.0) {
+		//Rounded rather than truncated on both axes, so the shape survives the scaling
+		[scaled setSize:NSMakeSize(MAX(round(size.width * scale), 1.0),
+								   MAX(round(size.height * scale), 1.0))];
+	}
+
+	return scaled;
 }
 
 /*!
@@ -334,6 +367,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	NSTextField			*labelField;
 	NSTextField			*detailField;
 	NSTextField			*valueField;			//Trailing readout of a slider row
+	NSImageView			*imageView;				//Leading picture of an info row
 	NSView				*accessoryControl;		//Trailing button of a pop up row
 	NSView				*control;
 	NSArray				*radioButtons;
@@ -400,6 +434,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[labelField release];
 	[detailField release];
 	[valueField release];
+	[imageView release];
 	[accessoryControl release];
 	[control release];
 	[radioButtons release];
@@ -552,6 +587,9 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[section->rows addObject:row];
 
 	if (row->labelField) [section->cardView addSubview:row->labelField];
+	/* Before its text, in the order the row is read - drawing order only, since an info
+	 * row keeps its picture out of the accessibility tree altogether. */
+	if (row->imageView) [section->cardView addSubview:row->imageView];
 	if (row->detailField) [section->cardView addSubview:row->detailField];
 	if (row->valueField) [section->cardView addSubview:row->valueField];
 	if (row->accessoryControl) [section->cardView addSubview:row->accessoryControl];
@@ -761,6 +799,44 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[row->detailField setSelectable:NO];
 
 	//Neither control nor fullWidthView, for the reason -addDetailRow: spells out
+	[self appendRow:row];
+}
+
+- (void)addInfoRow:(NSString *)text withImage:(NSImage *)image
+{
+	NSImage *symbol = [AISettingsMakeInfoImage(image) autorelease];
+
+	//Neither a picture nor a sentence: an empty field still measures a blank line
+	if (!text.length && !symbol) return;
+
+	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+
+	row->type = AISettingsRowTypeInfo;
+	if (text.length) row->detailField = AISettingsMakeDetailLabel(text);
+
+	if (symbol) {
+		NSSize symbolSize = [symbol size];
+
+		row->imageView = [[NSImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, symbolSize.width, symbolSize.height)];
+		[row->imageView setImage:symbol];
+		/* The picture was scaled to exactly this frame, so there is nothing left to
+		 * scale — but saying so means a picture whose frame is ever off by a point
+		 * shrinks in proportion instead of being stretched or cropped. */
+		[row->imageView setImageScaling:NSImageScaleProportionallyUpOrDown];
+		[row->imageView setImageAlignment:NSImageAlignCenter];
+		/* Out of the accessibility tree, as a slider's readout is: the picture
+		 * illustrates the sentence next to it and has nothing of its own to say, so
+		 * announcing it would only put an "image" between the user and the text. */
+		[row->imageView setAccessibilityElement:NO];
+	}
+
+	/* The picture goes in an ivar of its own rather than into control or
+	 * fullWidthView, for the reason -addDetailRow: spells out: those two are where
+	 * -layoutRow:atY:inCardOfWidth: takes a row's natural size from, and a row
+	 * measured from a hosted view keeps the height it was first given and never
+	 * folds its text again. Here the height still comes from measuring the text at
+	 * the width the picture leaves it, every layout — the image view only ever
+	 * receives a frame, it never decides one. */
 	[self appendRow:row];
 }
 
@@ -1067,6 +1143,47 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 												  rowY + floor((rowHeight - textHeight) / 2.0),
 												  innerWidth,
 												  textHeight)];
+
+			return rowHeight;
+		}
+
+		case AISettingsRowTypeInfo: {
+			/* A picture at the leading edge and the paragraph it illustrates beside
+			 * it, both centred against whichever of the two is taller.
+			 *
+			 * Measured exactly the way a detail row is: the text height is asked for
+			 * afresh at every layout, at the width that is actually left next to the
+			 * picture, so the sentence refolds as the window narrows. Nothing here
+			 * reads a frame back — the image view is given the size its (already
+			 * scaled) picture has and never reports one — so no measurement of a
+			 * wide card can survive into a narrow one. */
+			NSImage	*symbol = [row->imageView image];
+			NSSize	 symbolSize = (symbol ? [symbol size] : NSZeroSize);
+			/* The text begins at the far side of the whole square, not at the far side of
+			 * this particular picture: only one of the two edges of a scaled picture ends up
+			 * on the square, so a portrait one is 36 points wide and a landscape one 40, and
+			 * two info rows in a card would start their paragraphs at two different x - the
+			 * same misalignment the shared slider label column above exists to prevent. The
+			 * picture is centred in that column, so a narrow one does not hang off its
+			 * leading edge. */
+			CGFloat	 leading = (symbolSize.width > 0.0 ? AISettingsInfoImageSize + AISettingsLabelControlGap : 0.0);
+			CGFloat	 textWidth = MAX(innerWidth - leading, 1.0);
+			CGFloat	 textHeight = AISettingsFieldHeight(row->detailField, textWidth);
+			CGFloat	 rowHeight = MAX(AISettingsRowMinHeight,
+									 MAX(textHeight, symbolSize.height) + 2.0 * AISettingsRowInsetV);
+
+			if (row->imageView) {
+				[row->imageView setFrame:NSMakeRect(AISettingsCardInsetH + floor((AISettingsInfoImageSize - symbolSize.width) / 2.0),
+													rowY + floor((rowHeight - symbolSize.height) / 2.0),
+													symbolSize.width,
+													symbolSize.height)];
+			}
+			if (row->detailField) {
+				[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH + leading,
+													  rowY + floor((rowHeight - textHeight) / 2.0),
+													  textWidth,
+													  textHeight)];
+			}
 
 			return rowHeight;
 		}
