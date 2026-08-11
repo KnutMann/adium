@@ -265,12 +265,15 @@
 //Called when our tab is selected
 - (void)tabViewItemWasSelected
 {
-	/* Tabs created in the background keep the frame their view had at nib-load
-	 * time; modern AppKit no longer resizes item views on display, which left
-	 * the chat content wider than the window until a tab switch forced layout. */
+	/* Tabs created in the background keep the frame their view had at nib-load time.
+	 * The tab view's content rect is what an item view has to fill; asking the
+	 * superview instead did nothing while the view is detached, which is the state
+	 * every unselected tab is in - AppKit only installs the view of the tab in front.
+	 */
+	NSTabView *tabView = [self tabView];
 	NSView *messageView = [messageViewController view];
-	if ([messageView superview] && !NSEqualRects([messageView frame], [[messageView superview] bounds])) {
-		[messageView setFrame:[[messageView superview] bounds]];
+	if (tabView && !NSEqualRects([messageView frame], [tabView contentRect])) {
+		[messageView setFrame:[tabView contentRect]];
 	}
 
     //Ensure our entry view is first responder

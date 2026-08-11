@@ -331,8 +331,15 @@
 	messageDisplayController = [[adium.interfaceController messageDisplayControllerForChat:chat] retain];
 
 	[scrollView_messages setDocumentView:[messageDisplayController messageView]];
-	[[scrollView_messages documentView] setFrame:[scrollView_messages visibleRect]];
-	
+
+	/* The message view fills the clip view, which is the container it actually lives in.
+	 * -visibleRect used to stand in for that. It answers the portion not clipped by any
+	 * ancestor, in this view's own coordinates and with an origin that may be negative,
+	 * so it is neither the right rectangle nor the right coordinate space; it only ever
+	 * looked correct because the clip view happened to be scrolled to the top.
+	 */
+	[[scrollView_messages documentView] setFrame:[[scrollView_messages contentView] bounds]];
+
 	[scrollView_messages setAccessibilityChild:[scrollView_messages documentView]];
 	
 	[textView_outgoing setNextResponder:view_contents];
@@ -702,6 +709,14 @@
 
 /*!
  * @brief Position the account selection view, if it is present, and the messages/text entry splitview appropriately
+ *
+ * This writes the splitview's frame absolutely, which only holds while its container has
+ * already reached its final size. The container is an NSBox, and the one in the nib used
+ * to carry autoresizesSubviews = NO: it took its own new size immediately but passed
+ * nothing on, catching up only in the first layout pass. By then this method had already
+ * written the correct frame, and the box added the same difference a second time - a
+ * splitview half again as wide as the window, anchored bottom left, growing worse with
+ * every resize. The flag is back on in the nib; do not turn it off again.
  */
 - (void)updateFramesForAccountSelectionView
 {
