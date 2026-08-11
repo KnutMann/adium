@@ -35,6 +35,7 @@
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIServiceMenu.h>
 #import <Adium/AIStatusIcons.h>
+#import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 
 #define MINIMUM_ROW_HEIGHT				44
@@ -64,7 +65,6 @@
 #define LOCK_ICON_SIZE					12.0f
 #define INSET_STYLE_MARGIN				32.0f		//Horizontal room claimed by NSTableViewStyleInset (16pt per side), fallback only
 #define STATUS_WIDTH_SAFETY				 4.0f		//Deliberately underestimate the text width so rows are never too short
-#define CARD_CORNER_RADIUS				10.0f
 
 /*!
  * @class AIAccountListCellView
@@ -82,6 +82,7 @@
 @property (nonatomic, assign) NSButton			*infoButton;
 @property (nonatomic, assign) NSBox				*separator;
 @property (nonatomic, retain) NSLayoutConstraint *lockWidthConstraint;
+@property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
 @property (nonatomic, assign) BOOL				 dimmed;
 @end
 
@@ -89,8 +90,12 @@
 {
 	CGFloat		cachedLayoutWidth;
 }
+- (AISettingsFormView *)buildSettingsForm;
+- (AISettingsFormView *)settingsForm;
 - (void)configureAccountList;
 - (void)accountListChanged:(NSNotification *)notification;
+- (CGFloat)heightOfAccountList;
+- (void)updateAccountListHeight;
 
 - (void)calculateHeightForRow:(NSInteger)row;
 - (void)calculateAllHeights;
@@ -104,7 +109,9 @@
 
 - (void)configureCellView:(AIAccountListCellView *)cellView forRow:(NSInteger)row;
 - (void)refreshRow:(NSInteger)row;
+- (void)showAddAccountMenuFromControl:(id)control segment:(NSInteger)segment;
 - (CGFloat)statusTextWidth;
+- (CGFloat)rowInsetPerSide;
 - (NSString *)statusTitleForAccount:(AIAccount *)account;
 - (NSString *)statusLineForAccount:(AIAccount *)account;
 - (NSColor *)statusColorForAccount:(AIAccount *)account;
@@ -280,6 +287,12 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		NSLayoutConstraint *lockWidth = [[lockView widthAnchor] constraintEqualToConstant:0.0f];
 		[self setLockWidthConstraint:lockWidth];
 
+		/* The hairline runs past the trailing edge of the cell all the way to the card's edge, the
+		 * way System Settings draws it. How far that is depends on the table's style, so the pane
+		 * sets the constant; see -[AIAccountListPreferences rowInsetPerSide]. */
+		NSLayoutConstraint *separatorTrailing = [[separator trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]];
+		[self setSeparatorTrailingConstraint:separatorTrailing];
+
 		[NSLayoutConstraint activateConstraints:[NSArray arrayWithObjects:
 			//Service icon
 			[[serviceIcon leadingAnchor] constraintEqualToAnchor:[self leadingAnchor] constant:CELL_H_PADDING],
@@ -323,7 +336,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 			//Separator
 			[[separator leadingAnchor] constraintEqualToAnchor:[textContainer leadingAnchor]],
-			[[separator trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]],
+			separatorTrailing,
 			[[separator bottomAnchor] constraintEqualToAnchor:[self bottomAnchor]],
 			[[separator heightAnchor] constraintEqualToConstant:1.0f],
 			nil]];
@@ -335,6 +348,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 - (void)dealloc
 {
 	[_lockWidthConstraint release];
+	[_separatorTrailingConstraint release];
 	[super dealloc];
 }
 
@@ -439,6 +453,79 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	return [NSImage imageNamed:@"pref-accounts" forClass:[self class]];
 }
 
+#pragma mark View
+
+/*!
+ * @brief Our view: the nib's controls, arranged by the settings form
+ *
+ * The nib still supplies the table (with its delegate and data source connections), the +/-
+ * control and the Edit button, but no longer their arrangement: the list becomes the single,
+ * edge to edge row of a card and the buttons the accessory bar below it, both placed by
+ * AISettingsFormView. Mirrors -[AIModularPane view] so the subclass hooks fire in the same order.
+ */
+- (NSView *)view
+{
+	if (!view) {
+		[NSBundle loadNibNamed:[self nibName] owner:self];
+
+		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
+		 * that reference over rather than retaining it again; it keeps the nib alive while we use
+		 * its controls, and -tearDown releases it. */
+		[nibView release];
+		nibView = view;
+		view = [[self buildSettingsForm] retain];
+
+		[self viewDidLoad];
+		[self localizePane];
+
+		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
+	}
+
+	return view;
+}
+
+/*!
+ * @brief Stack the account list and its buttons into a settings form
+ */
+- (AISettingsFormView *)buildSettingsForm
+{
+	/* No width of our own: the form falls back to a usable one and the preferences window hands it
+	 * its column width right afterwards. */
+	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:0.0f] autorelease];
+
+	/* Row heights are measured against the table's width, so the table has to follow the width the
+	 * form gives the scroll view from the very first layout - the nib leaves it non-resizable. */
+	[tableView_accountList setAutoresizingMask:NSViewWidthSizable];
+
+	[form addSectionHeader:AILocalizedString(@"My Accounts", "Section title above the list of accounts")];
+
+	/* The list is the card: it fills it edge to edge and its height decides how tall the card is.
+	 * Adding a view which still has a superview moves it, so the nib's arrangement comes apart on
+	 * its own - no view is ever left without an owner in between. */
+	[form addEdgeToEdgeRow:scrollView_accountList];
+
+	//...and the buttons sit right below that card, the way System Settings arranges a list
+	[button_editAccount setTitle:AILocalizedStringFromTable(@"Edit", @"Buttons", "Verb 'edit' on a button")];
+	//Their natural sizes are what the form arranges them by, with the form's own gap in between
+	[button_addOrRemoveAccount sizeToFit];
+	[button_editAccount sizeToFit];
+	[form addAccessoryView:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
+														   button_addOrRemoveAccount, button_editAccount, nil]]];
+
+	/* textField_overview stays behind in the nib's view: the pane does not show an overview line
+	 * any more, and that view is never installed anywhere. */
+
+	return form;
+}
+
+/*!
+ * @brief The settings form we live in, or nil before -view built it
+ */
+- (AISettingsFormView *)settingsForm
+{
+	return ([view isKindOfClass:[AISettingsFormView class]] ? (AISettingsFormView *)view : nil);
+}
+
 /*!
  * @brief Configure the view initially
  */
@@ -446,8 +533,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	//Configure the account list
 	[self configureAccountList];
-	[self updateAccountOverview];
-	
+
 	//Build the 'add account' menu of each available service
 	NSMenu	*serviceMenu = [AIServiceMenu menuOfServicesWithTarget:self 
 												activeServicesOnly:NO
@@ -519,6 +605,23 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(recalculateRowHeights) object:nil];
 
+	/* The list no longer lives in the nib's view but in the form's card, and those two are released
+	 * on different paths (-tearDown here, -[AIModularPane closeView] there). Cut the table loose
+	 * from us here, so a table which outlives us for a moment can never ask a freed pane for its
+	 * rows - its delegate, data source and target are all non-retaining references to us. */
+	[tableView_accountList setDelegate:nil];
+	[tableView_accountList setDataSource:nil];
+	[tableView_accountList setTarget:nil];
+	[tableView_accountList setDoubleAction:NULL];
+	[scrollView_accountList removeFromSuperview];
+
+	/* Both outlets are non-retaining and the views behind them go away with the form, which may be
+	 * released after us; forget them so a second -tearDown cannot message freed memory. */
+	tableView_accountList = nil;
+	scrollView_accountList = nil;
+
+	[nibView release]; nibView = nil;
+
 	[accountArray release]; accountArray = nil;
 	[tempDragAccounts release]; tempDragAccounts = nil;
 	[requiredHeightDict release]; requiredHeightDict = nil;
@@ -564,6 +667,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 				// Update the height of the row.
 				[self calculateHeightForRow:accountRow];
 				[tableView_accountList noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndex:accountRow]];
+				// A row which grew or shrank changes the height of the whole list.
+				[self updateAccountListHeight];
 				// Reconfigure the row's view with the new status.
 				[self refreshRow:accountRow];
 
@@ -572,9 +677,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 					[self updateReconnectTime:nil];
 				}
 			}
-			
-			//Update our account overview
-			[self updateAccountOverview];
 		}
 	}
     
@@ -586,14 +688,40 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 - (IBAction)addOrRemoveAccount:(id)sender
 {
 	NSInteger selectedSegment = [sender selectedSegment];
-	
+
 	switch (selectedSegment) {
 		case 0:
-			[sender showMenuForSegment:selectedSegment];
+			[self showAddAccountMenuFromControl:sender segment:selectedSegment];
 			break;
 		case 1:
 			[self deleteAccount];
 			break;
+	}
+}
+
+/*!
+ * @brief Drop the list of services out of the "+" segment
+ *
+ * -[AISegmentedControl showMenuForSegment:] positions the menu at the control's frame origin read
+ * in its superview's coordinates but interpreted in the window's content view - a point which has
+ * nothing to do with where the control is on screen once the control is nested in a container, as
+ * it is in the form's button bar. Anchoring the menu to the control itself is right wherever the
+ * form happens to put the bar and however far the preferences column is scrolled.
+ */
+- (void)showAddAccountMenuFromControl:(id)control segment:(NSInteger)segment
+{
+	NSMenu	*serviceMenu = ([control respondsToSelector:@selector(menu)] ? [control menu] : nil);
+
+	if (serviceMenu && [control isKindOfClass:[NSView class]]) {
+		NSView	*controlView = (NSView *)control;
+		NSRect	 bounds = [controlView bounds];
+		//The bottom edge of the control, so the menu drops out of it
+		NSPoint	 location = NSMakePoint(NSMinX(bounds),
+									    ([controlView isFlipped] ? NSMaxY(bounds) : NSMinY(bounds)));
+
+		[serviceMenu popUpMenuPositioningItem:nil atLocation:location inView:controlView];
+	} else if ([control respondsToSelector:@selector(showMenuForSegment:)]) {
+		[control showMenuForSegment:segment];
 	}
 }
 
@@ -761,17 +889,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  */
 - (void)configureAccountList
 {
-	{
-		NSRect newFrame, oldFrame;
-		oldFrame = [button_editAccount frame];
-		[button_editAccount setTitle:AILocalizedStringFromTable(@"Edit", @"Buttons", "Verb 'edit' on a button")];
-		[button_editAccount sizeToFit];
-		newFrame = [button_editAccount frame];
-		if (newFrame.size.width < oldFrame.size.width) newFrame.size.width = oldFrame.size.width;
-		newFrame.origin.x = oldFrame.origin.x + oldFrame.size.width - newFrame.size.width;
-		[button_editAccount setFrame:newFrame];
-	}
-	
 	//Configure our table view for a view based, System Settings style list
 	[tableView_accountList setTarget:self];
 	[tableView_accountList setDoubleAction:@selector(doubleClickInTableView:)];
@@ -808,20 +925,27 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[accountColumn setWidth:(NSWidth([tableView_accountList bounds]) - INSET_STYLE_MARGIN)];
 	[tableView_accountList addTableColumn:accountColumn];
 
-	//Present the list as a rounded, borderless card
+	/* The list does not scroll: it is as tall as its rows and the preferences column scrolls
+	 * instead. The scroll view stays - a table view outside of one loses its tiling, its drag
+	 * autoscrolling and its enclosing clip view - but it never scrolls anything: no scrollers, no
+	 * elasticity, which also lets the scroll wheel through to the column behind us.
+	 *
+	 * The card around the list is drawn by AISettingsFormView, so nothing here draws a background
+	 * of its own; the form also rounds our corners to the card's radius. */
 	[scrollView_accountList setBorderType:NSNoBorder];
-	[scrollView_accountList setDrawsBackground:YES];
-	[scrollView_accountList setBackgroundColor:[NSColor controlBackgroundColor]];
+	[scrollView_accountList setDrawsBackground:NO];
+	[scrollView_accountList setHasVerticalScroller:NO];
+	[scrollView_accountList setHasHorizontalScroller:NO];
+	[scrollView_accountList setVerticalScrollElasticity:NSScrollElasticityNone];
+	[scrollView_accountList setHorizontalScrollElasticity:NSScrollElasticityNone];
 	[scrollView_accountList setAutomaticallyAdjustsContentInsets:NO];
-	[scrollView_accountList setContentInsets:NSEdgeInsetsMake(4.0f, 0.0f, 4.0f, 0.0f)];
-	//The scroller style is left alone on purpose: it follows +[NSScroller preferredScrollerStyle],
-	//so "Show scroll bars: Always" in System Settings keeps working
-	[scrollView_accountList setWantsLayer:YES];
-	[[scrollView_accountList layer] setCornerRadius:CARD_CORNER_RADIUS];
-	[[scrollView_accountList layer] setMasksToBounds:YES];
+	[scrollView_accountList setContentInsets:NSEdgeInsetsZero];
+	[scrollView_accountList setAutoresizingMask:NSViewNotSizable];
 
-	//Row heights depend on the available width, so recalculate them when it changes
-	cachedLayoutWidth = NSWidth([tableView_accountList bounds]);
+	/* Row heights depend on the available width, so recalculate them when it changes. Starting out
+	 * at zero rather than at the width we happen to have right now guarantees that the first real
+	 * width the form hands us counts as a change, whatever the nib's width was. */
+	cachedLayoutWidth = 0.0f;
 	[tableView_accountList setPostsFrameChangedNotifications:YES];
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(accountListFrameChanged:)
@@ -859,7 +983,45 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	//Refresh the account table
 	[tableView_accountList reloadData];
 	[self updateControlAvailability];
-	[self updateAccountOverview];
+	[self updateAccountListHeight];
+}
+
+/*!
+ * @brief The height the list needs to show every row without scrolling
+ *
+ * A table view lays itself out as the sum of its row heights plus its intercell spacing per row,
+ * so that is what we add up here - we do set the spacing to zero in -configureAccountList, but
+ * reading it rather than assuming it keeps this in step with the table even if that ever changes.
+ * An empty list still gets one row's worth of height so its card does not collapse into a line.
+ */
+- (CGFloat)heightOfAccountList
+{
+	CGFloat		height = 0.0f;
+	CGFloat		spacing = [tableView_accountList intercellSpacing].height;
+
+	for (NSInteger row = 0; row < (NSInteger)[accountArray count]; row++) {
+		height += [self tableView:tableView_accountList heightOfRow:row] + spacing;
+	}
+
+	return ceil(height < MINIMUM_ROW_HEIGHT ? MINIMUM_ROW_HEIGHT : height);
+}
+
+/*!
+ * @brief Grow or shrink the card around the list to fit its rows
+ *
+ * The list is the edge to edge row of a card, so its height is the card's height. Handing the new
+ * height to the form makes the form resize its card and itself, and the preferences window - which
+ * watches the pane's frame - resizes its scrolling column in turn. That is the whole chain: the
+ * card grows with the number of accounts and the window scrolls, not the list.
+ */
+- (void)updateAccountListHeight
+{
+	CGFloat		height = [self heightOfAccountList];
+
+	if (fabs(NSHeight([scrollView_accountList frame]) - height) < 0.5f) return;
+
+	[scrollView_accountList setFrameSize:NSMakeSize(NSWidth([scrollView_accountList frame]), height)];
+	[[self settingsForm] noteContentSizeChanged];
 }
 
 /*!
@@ -1051,17 +1213,36 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 /*!
  * @brief Updates reconnecting time where necessary.
+ *
+ * The countdown is part of the wrapping status line, so a tick can change how many lines that line
+ * needs - the row height has to follow it, exactly as it does for any other status change.
  */
 - (void)updateReconnectTime:(NSTimer *)timer
 {
 	NSInteger				accountRow;
 	BOOL			moreUpdatesNeeded = NO;
+	NSMutableIndexSet		*changedRows = [NSMutableIndexSet indexSet];
 
 	for (accountRow = 0; accountRow < [accountArray count]; accountRow++) {
 		if ([[accountArray objectAtIndex:accountRow] valueForProperty:@"waitingToReconnect"] != nil) {
+			if (accountRow < [tableView_accountList numberOfRows]) {
+				//Only tell the table about rows whose height really moved; this runs once a second
+				CGFloat		previousHeight = [self tableView:tableView_accountList heightOfRow:accountRow];
+
+				[self calculateHeightForRow:accountRow];
+
+				if (fabs([self tableView:tableView_accountList heightOfRow:accountRow] - previousHeight) >= 0.5f) {
+					[changedRows addIndex:accountRow];
+				}
+			}
 			[self refreshRow:accountRow];
 			moreUpdatesNeeded = YES;
 		}
+	}
+
+	if ([changedRows count]) {
+		[tableView_accountList noteHeightOfRowsWithIndexesChanged:changedRows];
+		[self updateAccountListHeight];
 	}
 
 	if (moreUpdatesNeeded && reconnectTimeUpdater == nil) {
@@ -1091,50 +1272,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	}
 
 	[self updateControlAvailability];
-}
-
-/*!
- * @brief Update our account overview
- *
- * The overview indicates the total number of accounts and the number which are online.
- */
-- (void)updateAccountOverview
-{
-	NSString	*accountOverview;
-	NSUInteger			accountArrayCount = [accountArray count];
-
-	if (accountArrayCount == 0) {
-		accountOverview = AILocalizedString(@"Click the + to add a new account","Instructions on how to add an account when none are present");
-
-	} else {
-		AIAccount		*account;
-		NSUInteger		online = 0, enabled = 0;
-		
-		//Count online accounts
-		for (account in accountArray) {
-			if (account.online) online++;
-			if (account.enabled) enabled++;
-		}
-		
-		if (enabled) {
-			if ((accountArrayCount == enabled) ||
-				(online == enabled)){
-				accountOverview = [NSString stringWithFormat:AILocalizedString(@"%lu accounts, %lu online","Overview of total and online accounts"),
-					accountArrayCount,
-					online];
-			} else {
-				accountOverview = [NSString stringWithFormat:AILocalizedString(@"%lu accounts, %lu enabled, %lu online","Overview of total, enabled, and online accounts"),
-					accountArrayCount,
-					enabled,
-					online];			
-			}
-		} else {
-			//There is no checkbox any more; each row carries a switch
-			accountOverview = AILocalizedString(@"Turn on a switch to enable an account","Instructions for enabling an account");
-		}
-	}
-
-	[textField_overview setStringValue:accountOverview];
 }
 
 /*!
@@ -1202,6 +1339,27 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  * table has tiled. A few points are shaved off on top of that, so the label is laid out slightly
  * narrower than it really is and a row therefore never ends up too short for its text.
  */
+/*!
+ * @brief How far the inset table style keeps a row away from the edge of the card
+ *
+ * NSTableViewStyleInset lays its rows out inside a margin whose width AppKit decides; measuring it
+ * rather than assuming the usual 16pt keeps us right on whatever macOS we run on. Used to run the
+ * hairline between two rows out to the edge of the card, the way System Settings draws it.
+ */
+- (CGFloat)rowInsetPerSide
+{
+	NSTableColumn	*accountColumn = [tableView_accountList tableColumnWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER];
+	CGFloat			 tableWidth = NSWidth([tableView_accountList bounds]);
+	CGFloat			 columnWidth = (accountColumn ? [accountColumn width] : 0.0f);
+
+	if (tableWidth <= 0.0f || columnWidth <= 0.0f) return 0.0f;
+
+	CGFloat			 inset = floor((tableWidth - columnWidth) / 2.0f);
+
+	//A column wider than the table (mid-tiling) must never push the hairline the other way
+	return (inset > 0.0f ? inset : 0.0f);
+}
+
 - (CGFloat)statusTextWidth
 {
 	NSTableColumn	*accountColumn = [tableView_accountList tableColumnWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER];
@@ -1405,6 +1563,9 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 	[tableView_accountList noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, rowCount)]];
 
+	//Rows which wrap differently at the new width make the whole list taller or shorter
+	[self updateAccountListHeight];
+
 	[tableView_accountList enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
 		[self refreshRow:row];
 	}];
@@ -1536,7 +1697,10 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[[cellView infoButton] setAction:@selector(editAccountFromRowButton:)];
 	[[cellView infoButton] setToolTip:AILocalizedStringFromTable(@"Edit", @"Buttons", "Verb 'edit' on a button")];
 
-	//The separator sits between two rows, so it goes away below the last row and around the selection
+	/* The separator sits between two rows, so it goes away below the last row and around the
+	 * selection. It runs from the text indent out to the edge of the card - past the trailing edge
+	 * of the cell, which the inset table style keeps away from that edge. */
+	[[cellView separatorTrailingConstraint] setConstant:[self rowInsetPerSide]];
 	[[cellView separator] setHidden:[self separatorHiddenForRow:row]];
 
 	[cellView setDimmed:!accountEnabled];

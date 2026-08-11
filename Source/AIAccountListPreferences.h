@@ -27,7 +27,14 @@
     IBOutlet		NSTableView				*tableView_accountList;
 	IBOutlet		AISegmentedControl		*button_addOrRemoveAccount;
 	IBOutlet		NSButton				*button_editAccount;
+	/* Unused: the pane no longer shows an overview line below the list. The outlet has to stay
+	 * for as long as the nib connects it, or loading the nib raises NSUnknownKeyException. */
 	IBOutlet		NSTextField				*textField_overview;
+
+	/* The nib is only a supplier of ready made controls now; our view is the settings form we
+	 * move them into. This keeps the nib's top level view (and with it the nib's ownership of
+	 * everything we did not move) alive for as long as we use its controls. */
+	NSView							*nibView;
 
     //Account List
     NSArray							*accountArray;
@@ -35,9 +42,9 @@
 
 	AIAccountMenu					*accountMenu_options;
 	AIAccountMenu					*accountMenu_status;
-	
+
 	NSMutableDictionary				*requiredHeightDict;
-	
+
 	NSTimer							*reconnectTimeUpdater;
 }
 
@@ -45,7 +52,6 @@
 - (void)deleteAccount;
 - (void)editAccount:(AIAccount *)inAccount;
 - (IBAction)editSelectedAccount:(id)sender;
-- (void)updateAccountOverview;
 - (void)updateControlAvailability;
 - (NSString *)statusMessageForAccount:(AIAccount *)account;
 - (NSMenu *)menuForRow:(NSInteger) row;

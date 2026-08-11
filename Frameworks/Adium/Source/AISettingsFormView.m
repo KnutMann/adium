@@ -28,6 +28,8 @@ static const CGFloat AISettingsDetailGap		= 2.0;	//Between label and its detail 
 static const CGFloat AISettingsHeaderGap		= 8.0;	//Between a section header and its card
 static const CGFloat AISettingsSectionGap		= 22.0;	//Above a section header
 static const CGFloat AISettingsCardGap			= 12.0;	//Between two cards with no header
+static const CGFloat AISettingsAccessoryGap		= 8.0;	//Between a card and the button bar below it
+static const CGFloat AISettingsControlGap		= 8.0;	//Between two adjacent controls of one bar
 static const CGFloat AISettingsRadioTopGap		= 8.0;	//Between a radio group label and its buttons
 static const CGFloat AISettingsRadioSpacing		= 6.0;
 static const CGFloat AISettingsLabelFontSize	= 13.0;
@@ -38,7 +40,8 @@ static const CGFloat AISettingsFallbackWidth	= 480.0;	//Used when a host gives u
 typedef enum {
 	AISettingsRowTypeControl = 0,
 	AISettingsRowTypeRadioGroup,
-	AISettingsRowTypeFullWidth
+	AISettingsRowTypeFullWidth,
+	AISettingsRowTypeEdgeToEdge
 } AISettingsRowType;
 
 #pragma mark -
@@ -95,6 +98,23 @@ static NSSize AISettingsControlSize(NSView *control)
 	}
 
 	return size;
+}
+
+/*!
+ * @brief Take a view over for frame based layout.
+ *
+ * The form positions everything by frame. A view whose
+ * translatesAutoresizingMaskIntoConstraints is NO — anything coming out of a
+ * XIB which was saved without Auto Layout, for instance — is owned by the
+ * layout engine instead, which would resolve it as ambiguous and collapse it
+ * the moment the constraint engine touches that part of the hierarchy. Say
+ * explicitly that its frame is the truth.
+ */
+static void AISettingsAdoptView(NSView *view)
+{
+	if (view && ![view translatesAutoresizingMaskIntoConstraints]) {
+		[view setTranslatesAutoresizingMaskIntoConstraints:YES];
+	}
 }
 
 /*!
@@ -330,6 +350,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	NSTextField			*headerField;	//nil for a header-less card
 	AISettingsCardView	*cardView;
 	NSMutableArray		*rows;
+	NSView				*accessoryView;	//Sits below the card, outside of it; nil for most sections
 }
 @end
 
@@ -347,6 +368,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[headerField release];
 	[cardView release];
 	[rows release];
+	[accessoryView release];
 	[super dealloc];
 }
 @end
@@ -412,7 +434,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	//A card that never received a row would just add a gap
 	AISettingsFormSection *previous = [sections lastObject];
-	if (previous && ![previous->rows count] && !previous->headerField) {
+	if (previous && ![previous->rows count] && !previous->headerField && !previous->accessoryView) {
 		[previous->cardView removeFromSuperview];
 		[sections removeLastObject];
 	}
@@ -436,7 +458,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	//An empty trailing section would just add a gap; a new row creates a fresh one.
 	AISettingsFormSection *section = [sections lastObject];
-	if (section && ![section->rows count] && !section->headerField) {
+	if (section && ![section->rows count] && !section->headerField && !section->accessoryView) {
 		[section->cardView removeFromSuperview];
 		[sections removeLastObject];
 	} else if (section) {
@@ -527,6 +549,8 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
 
+	AISettingsAdoptView(view);
+
 	row->type = AISettingsRowTypeFullWidth;
 	row->fullWidthView = [view retain];
 	row->stretchesFullWidthView = stretch;
@@ -534,11 +558,50 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[self appendRow:row];
 }
 
+- (void)addEdgeToEdgeRow:(NSView *)view
+{
+	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+
+	AISettingsAdoptView(view);
+
+	/* The view <em>is</em> the card, so it has to be clipped to the card's
+	 * rounded corners - a selected first or last row of a hosted list would
+	 * otherwise paint over them. Doing it here keeps the radius in one place:
+	 * no host ever repeats it. */
+	[view setWantsLayer:YES];
+	[[view layer] setCornerRadius:AISettingsCardCornerRadius];
+	[[view layer] setMasksToBounds:YES];
+
+	row->type = AISettingsRowTypeEdgeToEdge;
+	row->fullWidthView = [view retain];
+	row->stretchesFullWidthView = YES;
+
+	[self appendRow:row];
+}
+
+- (void)addAccessoryView:(NSView *)view
+{
+	AISettingsFormSection *section = [self currentSection];
+
+	AISettingsAdoptView(view);
+
+	if (section->accessoryView != view) {
+		[section->accessoryView removeFromSuperview];
+		[section->accessoryView release];
+		section->accessoryView = [view retain];
+		//Below the card, so a subview of the form itself rather than of the card
+		if (view) [self addSubview:view];
+	}
+
+	[self layoutForWidth:NSWidth([self frame])];
+}
+
 - (void)removeAllSections
 {
 	for (AISettingsFormSection *section in sections) {
 		[section->headerField removeFromSuperview];
 		[section->cardView removeFromSuperview];
+		[section->accessoryView removeFromSuperview];
 	}
 	[sections removeAllObjects];
 
@@ -551,6 +614,13 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	if (needsFormLayout) [self layoutForWidth:NSWidth([self frame])];
 	return contentHeight;
+}
+
+- (void)noteContentSizeChanged
+{
+	/* -layoutRow:atY:inCardOfWidth: adopts a height a hosted view changed on its
+	 * own, so laying out again is all it takes. */
+	[self layoutForWidth:NSWidth([self frame])];
 }
 
 - (void)layoutForWidth:(CGFloat)width
@@ -568,7 +638,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	BOOL isFirstSection = YES;
 
 	for (AISettingsFormSection *section in sections) {
-		if (![section->rows count] && !section->headerField) continue;
+		if (![section->rows count] && !section->headerField && !section->accessoryView) continue;
 
 		if (!isFirstSection) y += (section->headerField ? AISettingsSectionGap : AISettingsCardGap);
 		isFirstSection = NO;
@@ -582,10 +652,18 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		//Rows are laid out in the card's own (flipped) coordinates
 		NSMutableArray *separators = [NSMutableArray array];
 		CGFloat rowY = 0.0;
+		BOOL previousWasEdgeToEdge = NO;
 
 		for (AISettingsFormRow *row in section->rows) {
-			if (rowY > 0.0) [separators addObject:[NSNumber numberWithDouble:rowY]];
+			BOOL edgeToEdge = (row->type == AISettingsRowTypeEdgeToEdge);
+
+			/* An edge to edge row fills the card and brings its own separators,
+			 * so the card must not draw one against it. */
+			if (rowY > 0.0 && !edgeToEdge && !previousWasEdgeToEdge) {
+				[separators addObject:[NSNumber numberWithDouble:rowY]];
+			}
 			rowY += [self layoutRow:row atY:rowY inCardOfWidth:cardWidth];
+			previousWasEdgeToEdge = edgeToEdge;
 		}
 
 		[section->cardView setFrame:NSMakeRect(AISettingsOuterMargin, y, cardWidth, rowY)];
@@ -593,6 +671,16 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		[section->cardView setNeedsDisplay:YES];
 
 		y += rowY;
+
+		if (section->accessoryView) {
+			/* Left aligned with the card and never resized: it keeps the size its
+			 * builder gave it, so reading the frame back cannot ratchet it down. */
+			NSSize size = AISettingsControlSize(section->accessoryView);
+
+			y += AISettingsAccessoryGap;
+			[section->accessoryView setFrame:NSMakeRect(AISettingsOuterMargin, y, size.width, size.height)];
+			y += size.height;
+		}
 	}
 
 	contentHeight = ceil(y);
@@ -627,6 +715,16 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	}
 
 	switch (row->type) {
+		case AISettingsRowTypeEdgeToEdge: {
+			/* The view is the card: full width, no inset, and its height is the
+			 * row height, so a hosted list decides how tall the card is. */
+			CGFloat height = MAX(row->naturalControlSize.height, 1.0);
+
+			[row->fullWidthView setFrame:NSMakeRect(0.0, rowY, cardWidth, height)];
+
+			return height;
+		}
+
 		case AISettingsRowTypeFullWidth: {
 			NSSize size = row->naturalControlSize;
 			CGFloat width = (row->stretchesFullWidthView ? innerWidth : MIN(size.width, innerWidth));
@@ -806,12 +904,30 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	return field;
 }
 
++ (CGFloat)cardCornerRadius
+{
+	return AISettingsCardCornerRadius;
+}
+
++ (CGFloat)standardControlGap
+{
+	return AISettingsControlGap;
+}
+
++ (NSView *)rowOfViews:(NSArray *)views
+{
+	return [self rowOfViews:views spacing:AISettingsControlGap];
+}
+
 + (NSView *)rowOfViews:(NSArray *)views spacing:(CGFloat)spacing
 {
 	CGFloat width = 0.0, height = 0.0;
 
 	for (NSView *view in views) {
-		NSSize size = AISettingsControlSize(view);
+		NSSize size;
+
+		AISettingsAdoptView(view);
+		size = AISettingsControlSize(view);
 		[view setFrameSize:size];
 		width += size.width;
 		height = MAX(height, size.height);

@@ -42,6 +42,7 @@
 	BOOL				navigatingHistory;
 	NSSegmentedControl	*navigationControl;
 	NSTextField			*toolbarTitleField;
+	NSVisualEffectView	*titlebarBackdrop;
 }
 
 + (AIModernPreferencesWindowController *)sharedController;

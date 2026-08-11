@@ -101,16 +101,33 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[self updateTextColors];
 }
 
+/*!
+ * @brief AppKit re-tints the label right before drawing; have the last word.
+ *
+ * Without this, an unemphasized source list selection keeps the accent color
+ * AppKit applies after -setBackgroundStyle: has run.
+ */
+- (void)viewWillDraw
+{
+	[self updateTextColors];
+	[super viewWillDraw];
+}
+
 - (void)updateTextColors
 {
-	BOOL windowActive = [[self window] isKeyWindow] || [[self window] isMainWindow];
+	/* Only the focused window keeps full-strength labels: System Settings dims
+	 * its sidebar as soon as the window is no longer key — whether the app went
+	 * inactive or another window of the same app took focus. */
+	BOOL windowActive = [[self window] isKeyWindow];
 	NSColor *color;
 
 	if (isGroupRow) {
 		color = (windowActive ? [NSColor secondaryLabelColor] : [NSColor tertiaryLabelColor]);
 	} else if (!windowActive) {
-		//Inactive window: everything dims, the selected row included
-		color = [NSColor secondaryLabelColor];
+		/* Inactive window: everything dims, the selected row included. Not
+		 * secondaryLabelColor — that is noticeably paler than what System
+		 * Settings shows next to it. */
+		color = [[NSColor labelColor] colorWithAlphaComponent:0.75];
 	} else if ([self backgroundStyle] == NSBackgroundStyleEmphasized) {
 		color = [NSColor alternateSelectedControlTextColor];
 	} else {
@@ -291,6 +308,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[sidebarScroll setDocumentView:outlineView];
 	[sidebarScroll setHasVerticalScroller:YES];
 	[sidebarScroll setDrawsBackground:NO];
+	[sidebarScroll setBorderType:NSNoBorder];
 
 	NSViewController *sidebarVC = [[[NSViewController alloc] init] autorelease];
 	[sidebarVC setView:sidebarScroll];
@@ -303,6 +321,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSScrollView *contentScroll = [[[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, AIPrefsContentWidth, 560)] autorelease];
 	[contentScroll setDocumentView:contentHost];
 	[contentScroll setHasVerticalScroller:YES];
+	[contentScroll setBorderType:NSNoBorder];
 	[contentScroll setAutohidesScrollers:YES];
 	[contentScroll setDrawsBackground:NO];
 	//Inset is applied explicitly in -layoutCurrentPane; the automatic one does
@@ -350,6 +369,13 @@ static NSImage *AIPrefPaneIcon(id pane)
 												 selector:@selector(refreshSidebarColors:)
 													 name:name
 												   object:window];
+	}
+	for (NSString *name in [NSArray arrayWithObjects:NSApplicationDidBecomeActiveNotification,
+													 NSApplicationDidResignActiveNotification, nil]) {
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(refreshSidebarColors:)
+													 name:name
+												   object:NSApp];
 	}
 
 	[outlineView reloadData];
@@ -544,6 +570,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 		id view = [outlineView viewAtColumn:0 row:row makeIfNecessary:NO];
 		if ([view isKindOfClass:[AIPrefsSidebarCellView class]]) {
 			[(AIPrefsSidebarCellView *)view updateTextColors];
+			[(NSView *)view setNeedsDisplay:YES];
 		}
 	}
 }

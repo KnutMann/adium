@@ -137,6 +137,38 @@
 - (void)addFullWidthRow:(NSView *)view stretch:(BOOL)stretch;
 
 /*!
+ * @brief Append a row in which @a view <em>is</em> the card: no inset at all.
+ *
+ * Unlike @c addFullWidthRow:, @a view is laid out flush with all four edges of
+ * the card and its own height becomes the row height — no minimum height, no
+ * padding. That is the shape System Settings uses for a list (Bluetooth's "My
+ * Devices", Network's VPN list): the card <em>is</em> the list, the list brings
+ * its own rows, its own row height and its own separators.
+ *
+ * @a view is expected to size itself vertically; tell the form about a new
+ * height with @c noteContentSizeChanged. The form never draws a separator next
+ * to an edge to edge row, so a hosted list is free to draw its own.
+ *
+ * The form also rounds @a view to the card's corner radius (it gains a layer),
+ * so a selected first or last row cannot paint over the rounded corners. Hosts
+ * neither know nor repeat that radius; ask for it with @c cardCornerRadius if
+ * something has to line up with it.
+ */
+- (void)addEdgeToEdgeRow:(NSView *)view;
+
+/*!
+ * @brief Put @a view directly below the current card, outside of any card.
+ *
+ * The shape of the +/− bar under a System Settings list. @a view keeps its own
+ * size, is left aligned with the card and gets the form's standard gap above
+ * it; the next section starts below it. Build the bar itself with
+ * @c rowOfViews:spacing: so no host ever positions a button by hand.
+ *
+ * Only one accessory per card; a second call replaces the first.
+ */
+- (void)addAccessoryView:(NSView *)view;
+
+/*!
  * @brief Drop every section and row, e.g. before rebuilding the form.
  */
 - (void)removeAllSections;
@@ -149,9 +181,37 @@
 - (void)layoutForWidth:(CGFloat)width;
 
 /*!
+ * @brief A hosted view resized itself; take its new height into account.
+ *
+ * Call after growing or shrinking a view handed to @c addEdgeToEdgeRow: or
+ * @c addFullWidthRow: — a list which gained a row, say. The form re-reads the
+ * hosted heights, resizes the card around them and updates its own frame, which
+ * is what makes the enclosing preference column follow along.
+ */
+- (void)noteContentSizeChanged;
+
+/*!
  * @brief Height the form needs at its current width.
  */
 - (CGFloat)totalHeight;
+
+#pragma mark Shared metrics
+
+/*!
+ * @brief Corner radius of a card.
+ *
+ * Only needed by a host which has to line something up with a card's corners;
+ * @c addEdgeToEdgeRow: already rounds what it is given.
+ */
++ (CGFloat)cardCornerRadius;
+
+/*!
+ * @brief The standard gap between two adjacent controls of one bar.
+ *
+ * Use it instead of a hand-picked number so every pane keeps the same rhythm;
+ * @c rowOfViews: applies it by itself.
+ */
++ (CGFloat)standardControlGap;
 
 #pragma mark Control factories
 
@@ -181,10 +241,18 @@
 + (NSTextField *)valueFieldWithWidth:(CGFloat)width target:(id)target action:(SEL)action;
 
 /*!
- * @brief Lay @a views out in a row, @a spacing points apart, vertically centred.
+ * @brief Lay @a views out in a row, the standard gap apart, vertically centred.
  *
- * Handy for a text field plus stepper, or a bar of buttons handed to
- * @c addFullWidthRow:.
+ * The shape of a +/− bar plus its buttons; hand the result to
+ * @c addAccessoryView: or @c addFullWidthRow:.
+ */
++ (NSView *)rowOfViews:(NSArray *)views;
+
+/*!
+ * @brief As above with an explicit @a spacing between the views.
+ *
+ * Handy for a text field plus stepper; prefer @c rowOfViews: wherever the
+ * standard gap fits, so panes keep the same rhythm.
  */
 + (NSView *)rowOfViews:(NSArray *)views spacing:(CGFloat)spacing;
 
