@@ -592,8 +592,10 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[section->rows addObject:row];
 
 	if (row->labelField) [section->cardView addSubview:row->labelField];
-	/* Before its text, in the order the row is read - drawing order only, since an info
-	 * row keeps its picture out of the accessibility tree altogether. */
+	/* Drawing order only, and only an info row has a picture at all: it lands between
+	 * that row's heading and its paragraph, which says nothing about the order the row
+	 * is read in - an info row keeps its picture out of the accessibility tree
+	 * altogether. */
 	if (row->imageView) [section->cardView addSubview:row->imageView];
 	if (row->detailField) [section->cardView addSubview:row->detailField];
 	if (row->valueField) [section->cardView addSubview:row->valueField];
