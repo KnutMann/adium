@@ -41,6 +41,7 @@
 	NSInteger			historyIndex;
 	BOOL				navigatingHistory;
 	NSSegmentedControl	*navigationControl;
+	NSTextField			*toolbarTitleField;
 }
 
 + (AIModernPreferencesWindowController *)sharedController;

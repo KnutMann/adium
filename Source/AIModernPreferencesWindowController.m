@@ -130,6 +130,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)layoutCurrentPane;
 - (void)updateNavigationControl;
 - (void)refreshSidebarColors:(NSNotification *)notification;
+- (void)paneViewFrameChanged:(NSNotification *)notification;
 - (void)navigate:(id)sender;
 - (NSString *)mainPaneOrderIdentifiers;
 @end
@@ -171,6 +172,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[openedPanes release];
 	[history release];
 	[navigationControl release];
+	[toolbarTitleField release];
 	[super dealloc];
 }
 
@@ -247,6 +249,10 @@ static NSImage *AIPrefPaneIcon(id pane)
 														defer:NO] autorelease];
 	[window setReleasedWhenClosed:NO];
 	[window setTitlebarAppearsTransparent:NO];
+	/* The title lives in the toolbar as its own item so the navigation arrows
+	 * can sit before it, the way System Settings arranges them. -setTitle: is
+	 * still used: the Window menu and Mission Control read it. */
+	[window setTitleVisibility:NSWindowTitleHidden];
 	if (@available(macOS 11.0, *)) {
 		[window setToolbarStyle:NSWindowToolbarStyleUnified];
 		/* No hairline under the titlebar: the content scrolls underneath the
@@ -380,6 +386,9 @@ static NSImage *AIPrefPaneIcon(id pane)
 	}
 
 	for (NSView *subview in [[[contentHost subviews] copy] autorelease]) {
+		[[NSNotificationCenter defaultCenter] removeObserver:self
+														name:NSViewFrameDidChangeNotification
+													  object:subview];
 		[subview removeFromSuperview];
 	}
 
@@ -397,11 +406,18 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[self updateNavigationControl];
 
 	[paneView setAutoresizingMask:NSViewWidthSizable];
+	[paneView setPostsFrameChangedNotifications:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(paneViewFrameChanged:)
+												 name:NSViewFrameDidChangeNotification
+											   object:paneView];
 	[contentHost addSubview:paneView];
 	[self layoutCurrentPane];
 	[[[contentHost enclosingScrollView] contentView] scrollToPoint:NSZeroPoint];
 
-	[[self window] setTitle:(AIPrefPaneName(pane) ?: @"")];
+	NSString *paneTitle = (AIPrefPaneName(pane) ?: @"");
+	[[self window] setTitle:paneTitle];
+	[toolbarTitleField setStringValue:paneTitle];
 
 	NSInteger row = [outlineView rowForItem:pane];
 	if (row >= 0 && [outlineView selectedRow] != row) {
@@ -438,8 +454,16 @@ static NSImage *AIPrefPaneIcon(id pane)
 	CGFloat documentHeight = MAX(paneHeight + 2 * AIPrefsContentPadding, visibleSize.height);
 
 	[contentHost setFrame:NSMakeRect(0, 0, visibleSize.width, documentHeight)];
+	//Setting the pane's frame posts a frame-change notification of its own
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:NSViewFrameDidChangeNotification
+												  object:paneView];
 	//Flipped container: y grows downwards, so the padding puts the pane on top.
 	[paneView setFrame:NSMakeRect(0, AIPrefsContentPadding, visibleSize.width, paneHeight)];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(paneViewFrameChanged:)
+												 name:NSViewFrameDidChangeNotification
+											   object:paneView];
 
 	/* The pane may have grown or shrunk to fit its new width (AISettingsFormView
 	 * reflows), so the document view height above can already be stale.
@@ -472,6 +496,18 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)windowDidResize:(NSNotification *)notification
 {
 	[self layoutCurrentPane];
+}
+
+/*!
+ * @brief A pane grew or shrank on its own (a list gained rows, a label wrapped)
+ *
+ * Resize the scrolling column to match instead of leaving the pane clipped.
+ */
+- (void)paneViewFrameChanged:(NSNotification *)notification
+{
+	if ([notification object] == [[contentHost subviews] lastObject]) {
+		[self layoutCurrentPane];
+	}
 }
 
 - (void)refreshSidebarColors:(NSNotification *)notification
@@ -514,9 +550,10 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	if (@available(macOS 11.0, *)) {
 		//The tracking separator keeps our items aligned with the content column
-		return [NSArray arrayWithObjects:NSToolbarSidebarTrackingSeparatorItemIdentifier, @"navigation", nil];
+		return [NSArray arrayWithObjects:NSToolbarSidebarTrackingSeparatorItemIdentifier,
+										 @"navigation", @"paneTitle", nil];
 	}
-	return [NSArray arrayWithObject:@"navigation"];
+	return [NSArray arrayWithObjects:@"navigation", @"paneTitle", nil];
 }
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
@@ -528,6 +565,23 @@ static NSImage *AIPrefPaneIcon(id pane)
 	 itemForItemIdentifier:(NSString *)identifier
  willBeInsertedIntoToolbar:(BOOL)flag
 {
+	if ([identifier isEqualToString:@"paneTitle"]) {
+		if (!toolbarTitleField) {
+			toolbarTitleField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 260, 22)];
+			[toolbarTitleField setBordered:NO];
+			[toolbarTitleField setEditable:NO];
+			[toolbarTitleField setDrawsBackground:NO];
+			[toolbarTitleField setFont:[NSFont systemFontOfSize:15 weight:NSFontWeightSemibold]];
+			[toolbarTitleField setTextColor:[NSColor labelColor]];
+			[toolbarTitleField setStringValue:(currentPane ? (AIPrefPaneName(currentPane) ?: @"") : @"")];
+		}
+		NSToolbarItem *titleItem = [[[NSToolbarItem alloc] initWithItemIdentifier:identifier] autorelease];
+		[titleItem setView:toolbarTitleField];
+		[titleItem setLabel:@""];
+		[titleItem setVisibilityPriority:NSToolbarItemVisibilityPriorityHigh];
+		return titleItem;
+	}
+
 	if (![identifier isEqualToString:@"navigation"]) {
 		return nil;
 	}
@@ -556,7 +610,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 
 	NSToolbarItem *item = [[[NSToolbarItem alloc] initWithItemIdentifier:identifier] autorelease];
 	[item setView:navigationControl];
-	[item setLabel:AILocalizedString(@"Navigation", nil)];
+	[item setLabel:@""];
+	[item setPaletteLabel:AILocalizedString(@"Navigation", nil)];
 	[item setVisibilityPriority:NSToolbarItemVisibilityPriorityHigh];
 	return item;
 }
