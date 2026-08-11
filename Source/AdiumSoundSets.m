@@ -49,13 +49,32 @@
 	NSFileManager	*mgr = [NSFileManager defaultManager];
     NSMutableArray	*soundSets = [NSMutableArray array];
 	
+	/* One name, one set. Adium ships Tokyo Train Station, and installing the copy from the
+	 * Xtras site put the same name in the menu twice with no way to tell them apart.
+	 * -resourcePathsForName: hands us the user's folder first and the bundle last, so keeping
+	 * the first of a name lets the installed copy win - the right one, because it is the copy
+	 * the Xtras pane can switch off or throw away.
+	 *
+	 * Deliberately after -soundSetWithContentsOfFile: has returned something: a damaged copy in
+	 * the user's folder must not hide the working one in the bundle, which is what deciding by
+	 * file name alone would do. */
+	NSMutableSet *seenNames = [NSMutableSet set];
+
 	for (NSString *path in [adium resourcePathsForName:SOUNDSET_RESOURCE_PATH]) {
 		for (NSString *file in [mgr contentsOfDirectoryAtPath:path error:NULL]) {
 			if([[file pathExtension] caseInsensitiveCompare:SOUND_SET_PATH_EXTENSION] == NSOrderedSame){
 				NSString	*fullPath = [path stringByAppendingPathComponent:file];
 				AISoundSet	*soundSet = [AISoundSet soundSetWithContentsOfFile:fullPath];
 				if (soundSet) {
-					[soundSets addObject:soundSet];
+					/* Compared by the name the menu shows, folded and case-insensitively: the
+					 * file systems this runs on are, and a name typed on one machine may be
+					 * composed differently from the same name unpacked from an archive. */
+					NSString *key = [[soundSet name] ?: [file stringByDeletingPathExtension] precomposedStringWithCanonicalMapping].lowercaseString;
+
+					if (![seenNames containsObject:key]) {
+						[seenNames addObject:key];
+						[soundSets addObject:soundSet];
+					}
 				}
 			}
 		}
