@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- TODO ADIUM-UNUSED: part of the Zephyr set. its registration in CBPurpleServicePlugin.m is
+     commented out, and the bundled prpl-zephyr is built without Kerberos and could only
+     reach a server through zhm, which is in no copy phase and these defaults are never read: CBPurpleAccount
+     loads PurpleDefaults<serviceID>.plist only when an account instance is created. Scheduled
+     for removal - full inventory in Other/ADIUM-UNUSED.txt. -->
 <plist version="1.0">
 <dict>
 	<key>Zephyr:Export .anyone</key>

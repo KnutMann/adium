@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- TODO ADIUM-UNUSED: part of the Zephyr set. its registration in CBPurpleServicePlugin.m is
+     commented out, and the bundled prpl-zephyr is built without Kerberos and could only
+     reach a server through zhm, which is in no copy phase and this view is never loaded. Scheduled for
+     removal - full inventory in Other/ADIUM-UNUSED.txt. -->
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24765" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>

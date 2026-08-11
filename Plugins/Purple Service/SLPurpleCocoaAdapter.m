@@ -331,6 +331,11 @@ static NSString* serviceClassForPurpleProtocolID(const char *protocolID)
 			serviceClass = @"GroupWise";
 		else if (!strcmp(protocolID, "prpl-yahoo"))
 			serviceClass = @"Yahoo!";
+		/* TODO ADIUM-UNUSED: dead branch - no service with serviceClass "Zephyr" is registered
+		 * (see CBPurpleServicePlugin.m), so nothing can ever hand us prpl-zephyr. Remove with
+		 * the rest of the Zephyr set; inventory in Other/ADIUM-UNUSED.txt. The prpl-msn and
+		 * prpl-yahoo branches above are dead for the same reason.
+		 */
 		else if (!strcmp(protocolID, "prpl-zephyr"))
 			serviceClass = @"Zephyr";
 	}

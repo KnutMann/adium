@@ -14,6 +14,13 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+/* TODO ADIUM-UNUSED: part of the Zephyr set. Its registration in CBPurpleServicePlugin.m is
+ * commented out, so the service never reaches the account controller. Uncommenting it would not
+ * help: the bundled prpl-zephyr is built without Kerberos, leaving the zephyr host manager as its
+ * only route to a server, and zhm is in no copy phase - the checked-in binary is i386/ppc besides.
+ * This file is scheduled for removal - the full inventory is in Other/ADIUM-UNUSED.txt.
+ */
+
 #import "PurpleAccountViewController.h"
 
 @interface ESPurpleZephyrAccountViewController : PurpleAccountViewController {

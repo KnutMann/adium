@@ -44,6 +44,11 @@
 		[AXCIconPackEntry entryWithKey:@"Trepia"       path:nil],
 		[AXCIconPackEntry entryWithKey:@"Yahoo!"       path:nil],
 		[AXCIconPackEntry entryWithKey:@"Yahoo! Japan" path:nil],
+		/* TODO ADIUM-UNUSED: Zephyr, to be dropped with the rest of the Zephyr set (see
+		 * CBPurpleServicePlugin.m, inventory in Other/ADIUM-UNUSED.txt). This tool isn't part
+		 * of Adium.xcodeproj, so removing the entry has no effect on the app build; it only
+		 * keeps XtrasCreator from offering an icon slot for a service that no longer exists.
+		 */
 		[AXCIconPackEntry entryWithKey:@"Zephyr"       path:nil],
 		nil];
 }

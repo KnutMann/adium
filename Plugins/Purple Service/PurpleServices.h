@@ -21,4 +21,8 @@
 #import "ESJabberService.h"
 #import "ESNovellService.h"
 #import "ESSimpleService.h"
+/* TODO ADIUM-UNUSED: Zephyr is not registered (see CBPurpleServicePlugin.m) and is scheduled
+ * for removal. This import is the one reference that has to go with it, otherwise the build
+ * breaks; inventory in Other/ADIUM-UNUSED.txt.
+ */
 #import "ESZephyrService.h"

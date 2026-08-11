@@ -26,6 +26,10 @@
 		<string>yahoo.png</string>
 		<key>Yahoo! Japan</key>
 		<string>yahoo.png</string>
+		<!-- TODO ADIUM-UNUSED: Zephyr, scheduled for removal together with zephyr.png (see
+		     CBPurpleServicePlugin.m, inventory in Other/ADIUM-UNUSED.txt). "Stress Test" above
+		     points at the same image, so that key has to go in the same step or it is left
+		     dangling. -->
 		<key>Zephyr</key>
 		<string>zephyr.png</string>
 	</dict>
@@ -51,6 +55,10 @@
 		<string>yahoo-small.png</string>
 		<key>Yahoo! Japan</key>
 		<string>yahoo-small.png</string>
+		<!-- TODO ADIUM-UNUSED: Zephyr, scheduled for removal together with zephyr-small.png (see
+		     CBPurpleServicePlugin.m, inventory in Other/ADIUM-UNUSED.txt). "Stress Test" above
+		     points at the same image, so that key has to go in the same step or it is left
+		     dangling. -->
 		<key>Zephyr</key>
 		<string>zephyr-small.png</string>
 	</dict>
@@ -76,6 +84,9 @@
 		<string>yahoo-small.png</string>
 		<key>Yahoo! Japan</key>
 		<string>yahoo-small.png</string>
+		<!-- TODO ADIUM-UNUSED: Zephyr, scheduled for removal (see CBPurpleServicePlugin.m,
+		     inventory in Other/ADIUM-UNUSED.txt). "Stress Test" uses yahoo-small.png here, so
+		     unlike in the two dicts above it is not affected. -->
 		<key>Zephyr</key>
 		<string>zephyr-small.png</string>
 	</dict>
