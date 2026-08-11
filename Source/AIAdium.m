@@ -35,7 +35,6 @@
 #import "ESContactAlertsController.h"
 #import "ESFileTransferController.h"
 #import "LNAboutBoxController.h"
-#import "AIXtrasManager.h"
 #import "AdiumSetupWizard.h"
 #import "ESTextAndButtonsWindowController.h"
 #import "AIAppearancePreferences.h"
@@ -401,8 +400,14 @@ static NSString	*prefsCategory;
 - (IBAction)showForums:(id)sender{
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:ADIUM_FORUM_PAGE]];
 }
+/*!
+ * @brief Show what is installed
+ *
+ * The Xtras used to have a window of their own; they are a pane of the preferences window now, so
+ * the menu item opens that instead.
+ */
 - (IBAction)showXtras:(id)sender{
-	[[AIXtrasManager sharedManager] showXtras];
+	[preferenceController openPreferencesToCategoryWithIdentifier:@"Xtras"];
 }
 
 - (IBAction)contibutingToAdium:(id)sender
@@ -600,6 +605,10 @@ static NSString	*prefsCategory;
 	} else if ([extension caseInsensitiveCompare:@"AdiumScripts"] == NSOrderedSame) {
 		destination = [AISearchPathForDirectories(AIScriptsDirectory) objectAtIndex:0];
 		fileDescription = AILocalizedString(@"AppleScript set",nil);
+		/* Scripts have no preferences of their own, so this used to be the one kind of Xtra whose
+		 * installation ended without anywhere to look at it. The Xtras pane lists them. */
+		prefsButton = AILocalizedString(@"Show Xtras", "Button which opens the Xtras preference pane after an Xtra was installed");
+		prefsCategory = @"Xtras";
 		extension = @"AdiumScripts";
 
 	} else if ([extension caseInsensitiveCompare:@"AdiumMessageStyle"] == NSOrderedSame) {

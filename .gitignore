@@ -107,3 +107,7 @@ com.apple.DeveloperTools
 *.a
 *.la
 .libs/
+
+# Xcode per-user state
+xcuserdata/
+*.xcuserdatad/

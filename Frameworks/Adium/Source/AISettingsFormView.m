@@ -43,6 +43,8 @@ static const CGFloat AISettingsLabelFontSize	= 13.0;
 static const CGFloat AISettingsDetailFontSize	= 11.0;
 static const CGFloat AISettingsHeaderFontSize	= 13.0;
 static const CGFloat AISettingsFallbackWidth	= 480.0;	//Used when a host gives us no usable width
+static const CGFloat AISettingsInlineButtonSize	= 22.0;		//Edge length of a row's trailing symbol button
+static const CGFloat AISettingsInlineSymbolSize	= 16.0;		//Point size of the symbol drawn in it
 
 /* Our own KVO context: a row must be able to tell its own notification from one
  * meant for a superclass. AISettingsFormRow inherits from NSObject, whose
@@ -58,7 +60,8 @@ typedef enum {
 	AISettingsRowTypeRadioGroup,
 	AISettingsRowTypeFullWidth,
 	AISettingsRowTypeEdgeToEdge,
-	AISettingsRowTypeDetail			//Explanatory text, no control at all
+	AISettingsRowTypeDetail,		//Explanatory text, no control at all
+	AISettingsRowTypeEmptyState		//"Nothing here yet", centred in an otherwise empty card
 } AISettingsRowType;
 
 #pragma mark -
@@ -741,6 +744,26 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[self appendRow:row];
 }
 
+- (void)addEmptyStateRow:(NSString *)text
+{
+	/* As for a detail row: an empty field still measures one blank line, so a
+	 * row without text would open a hole in the card rather than fill it. */
+	if (!text.length) return;
+
+	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+
+	row->type = AISettingsRowTypeEmptyState;
+	row->detailField = AISettingsMakeDetailLabel(text);
+	[row->detailField setAlignment:NSTextAlignmentCenter];
+	/* Not selectable, unlike the sentence a detail row carries: this is the state
+	 * of a list, not a text about it, and a selection highlight in the middle of
+	 * an empty card reads as if something were there after all. */
+	[row->detailField setSelectable:NO];
+
+	//Neither control nor fullWidthView, for the reason -addDetailRow: spells out
+	[self appendRow:row];
+}
+
 - (void)addAccessoryView:(NSView *)view
 {
 	[self addAccessoryView:view trailing:NO];
@@ -1031,6 +1054,23 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 			return topInset + textHeight + AISettingsRowInsetV;
 		}
 
+		case AISettingsRowTypeEmptyState: {
+			/* A whole row's worth of height, unlike a detail row: this stands for
+			 * the rows which are not there, so the card has to look like a list
+			 * with nothing in it rather than like a single line of prose. The text
+			 * is centred in both directions and re-measured every time, so it
+			 * refolds with the window. */
+			CGFloat textHeight = AISettingsFieldHeight(row->detailField, innerWidth);
+			CGFloat rowHeight = MAX(AISettingsRowMinHeight, textHeight + 2.0 * AISettingsRowInsetV);
+
+			[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH,
+												  rowY + floor((rowHeight - textHeight) / 2.0),
+												  innerWidth,
+												  textHeight)];
+
+			return rowHeight;
+		}
+
 		case AISettingsRowTypePopUp: {
 			/* The menu decides how wide the button wants to be, and it may have
 			 * been rebuilt since the row was added, so ask again every time. */
@@ -1292,6 +1332,41 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[button setTarget:target];
 	[button setAction:action];
 	[button sizeToFit];
+
+	return button;
+}
+
++ (NSButton *)inlineSymbolButtonWithSymbolName:(NSString *)symbolName
+							 fallbackImageName:(NSString *)imageName
+										target:(id)target
+										action:(SEL)action
+{
+	NSImage *image = nil;
+
+	if (@available(macOS 11.0, *)) {
+		image = [NSImage imageWithSystemSymbolName:symbolName accessibilityDescription:nil];
+		/* A symbol drawn at its own point size rather than scaled to the button:
+		 * that is what makes a column of these line up whatever glyph they show. */
+		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:AISettingsInlineSymbolSize
+																									weight:NSFontWeightRegular]];
+	}
+	if (!image && imageName.length) image = [NSImage imageNamed:imageName];
+
+	NSButton *button = [[[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																   AISettingsInlineButtonSize,
+																   AISettingsInlineButtonSize)] autorelease];
+
+	[button setButtonType:NSButtonTypeMomentaryChange];
+	[button setBordered:NO];
+	[button setTitle:@""];
+	[button setImage:image];
+	[button setImagePosition:NSImageOnly];
+	//Recedes behind the row's own text, the way System Settings tints its inline controls
+	[button setContentTintColor:[NSColor secondaryLabelColor]];
+	[button setTarget:target];
+	[button setAction:action];
+	//A fixed size, not a fitted one: the frame is the column every row shares
+	[button setFrameSize:NSMakeSize(AISettingsInlineButtonSize, AISettingsInlineButtonSize)];
 
 	return button;
 }

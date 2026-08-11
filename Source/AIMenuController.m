@@ -416,7 +416,8 @@
 	
 	//Adium menu
 	[menuItem_aboutAdium setTitle:AILocalizedString(@"About Adium",nil)];
-	[menuItem_adiumXtras setTitle:[AILocalizedString(@"Xtras Manager",nil) stringByAppendingEllipsis]];
+	//The Xtras are a pane of the preferences window now, not a window of their own
+	[menuItem_adiumXtras setTitle:[AILocalizedString(@"Xtras", "Adium menu item which opens the Xtras preference pane") stringByAppendingEllipsis]];
 	if (@available(macOS 11.0, *)) {
 		[menuItem_adiumXtras setImage:[NSImage imageWithSystemSymbolName:@"face.smiling"
 													accessibilityDescription:nil]];

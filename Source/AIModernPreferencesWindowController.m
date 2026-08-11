@@ -238,7 +238,7 @@ static NSImage *AIPrefPaneIcon(id pane)
  */
 - (NSString *)mainPaneOrderIdentifiers
 {
-	return @"Accounts,General,Personal,Appearance,Messages,Status,Events,File Transfer";
+	return @"Accounts,General,Personal,Appearance,Messages,Status,Events,File Transfer,Xtras";
 }
 
 - (void)buildSidebarEntries

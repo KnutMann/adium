@@ -245,6 +245,21 @@
 - (void)addDetailRow:(NSString *)text;
 
 /*!
+ * @brief Append a row holding nothing but @a text, centred in the card.
+ *
+ * The shape System Settings uses for a list which has nothing in it yet
+ * (Bluetooth with no devices, Login Items with no items): the same small
+ * secondary text as @c addDetailRow:, but centred horizontally and given a
+ * control row's minimum height, so the card reads as an empty list rather than
+ * as a sentence. Use it instead of leaving a section without rows — a card with
+ * a header and no row is drawn as a bold header above nothing.
+ *
+ * The text wraps at the card's inner width and is re-measured at every layout.
+ * A nil or empty @a text adds nothing at all.
+ */
+- (void)addEmptyStateRow:(NSString *)text;
+
+/*!
  * @brief Put @a view directly below the current card, outside of any card.
  *
  * The shape of the +/− bar under a System Settings list. @a view keeps its own
@@ -373,6 +388,24 @@
  * @brief An ordinary push button, sized to fit.
  */
 + (NSButton *)pushButtonWithTitle:(NSString *)title target:(id)target action:(SEL)action;
+
+/*!
+ * @brief A borderless 22 by 22 point button showing nothing but a symbol.
+ *
+ * The inline control System Settings puts at the trailing edge of a list row —
+ * the (i) of an account, the ⊖ of an item which can be removed. It carries no
+ * bezel and no title, tints itself with @c secondaryLabelColor so it recedes
+ * behind the row's text, and is sized so a column of them lines up whatever
+ * symbol they show.
+ *
+ * @a symbolName is an SF Symbol name; @a imageName names a bundled image used
+ * where that symbol is not available, and may be nil. Give the button an
+ * accessibility label of its own — a symbol has no title to fall back on.
+ */
++ (NSButton *)inlineSymbolButtonWithSymbolName:(NSString *)symbolName
+							 fallbackImageName:(NSString *)imageName
+										target:(id)target
+										action:(SEL)action;
 
 /*!
  * @brief A text field of @a width points for value rows.

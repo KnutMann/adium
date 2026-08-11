@@ -959,12 +959,12 @@
 		63218C720E518A940008E0D0 /* AdiumAuthorization.h in Headers */ = {isa = PBXBuildFile; fileRef = 3486E8A4097F24A90044C496 /* AdiumAuthorization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		632ADC150E9EDDCA00AB6817 /* SGKeyCodeTranslator.m in Sources */ = {isa = PBXBuildFile; fileRef = 632ADC130E9EDDCA00AB6817 /* SGKeyCodeTranslator.m */; };
 		632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 632D60BF094B81AB003A9786 /* AIDockIconPreviewController.m */; };
-		632D801708E7E0A40032C187 /* XtrasManager.xib in Resources */ = {isa = PBXBuildFile; fileRef = 632D801608E7E0A40032C187 /* XtrasManager.xib */; };
 		632D859E0DB70FC800040EC7 /* AIMentionEventPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 632D859D0DB70FC800040EC7 /* AIMentionEventPlugin.m */; };
 		6333699409497DB000970871 /* EmoticonPreviewView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6333699309497DB000970871 /* EmoticonPreviewView.xib */; };
 		63336B060949908300970871 /* DockIconPreviewView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 63336B050949908300970871 /* DockIconPreviewView.xib */; };
-		63336E15094AB81300970871 /* XtraInfoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 63336E14094AB81300970871 /* XtraInfoView.xib */; };
 		633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 633F175908F905A700C76383 /* AIXtrasManager.m */; };
+		ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000002 /* AIXtraListView.m */; };
+		ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */; };
 		634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */; };
 		636D8C980E4E95A500E5F558 /* AIAddressBookController.m in Sources */ = {isa = PBXBuildFile; fileRef = 636D8C970E4E95A500E5F558 /* AIAddressBookController.m */; };
 		636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E2A2EE07B018B1006735BC /* AIAddressBookController.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -2940,6 +2940,10 @@
 		633D511F0F9D31BE004F491E /* zh_CN */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = zh_CN; path = zh_CN.lproj/schema.strings; sourceTree = "<group>"; };
 		633F175808F905A700C76383 /* AIXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtrasManager.h; path = Source/AIXtrasManager.h; sourceTree = "<group>"; };
 		633F175908F905A700C76383 /* AIXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIXtrasManager.m; path = Source/AIXtrasManager.m; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000001 /* AIXtraListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtraListView.h; path = Source/AIXtraListView.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000002 /* AIXtraListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtraListView.m; path = Source/AIXtraListView.m; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtrasPreferences.h; path = Source/AIXtrasPreferences.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtrasPreferences.m; path = Source/AIXtrasPreferences.m; sourceTree = "<group>"; };
 		6341AEFE0E53A09C00AE1439 /* libexpat.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.dylib; path = usr/lib/libexpat.dylib; sourceTree = SDKROOT; };
 		634BCD1D0DDC1542005AF1C2 /* TestMutableStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestMutableStringAdditions.h; path = UnitTests/TestMutableStringAdditions.h; sourceTree = "<group>"; };
 		634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMutableStringAdditions.m; path = UnitTests/TestMutableStringAdditions.m; sourceTree = "<group>"; };
@@ -5596,6 +5600,10 @@
 				635647B2093F64A400563BEE /* Xtras Preview Views */,
 				633F175808F905A700C76383 /* AIXtrasManager.h */,
 				633F175908F905A700C76383 /* AIXtrasManager.m */,
+				ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */,
+				ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */,
+				ADD1E5C0DF00000000000001 /* AIXtraListView.h */,
+				ADD1E5C0DF00000000000002 /* AIXtraListView.m */,
 				112B47650F82E0FC00690E84 /* AIXtraInfo.h */,
 				112B47660F82E0FC00690E84 /* AIXtraInfo.m */,
 				34F312BC0ADC43CA00A4310E /* xtras_duck.png */,
@@ -7105,13 +7113,11 @@
 				110763FA08676D05005987A5 /* BlockEditorWindow.xib in Resources */,
 				EE147A6D0896B18800A21377 /* ABSearch.png in Resources */,
 				EE147A790896B32400A21377 /* ABSearch.xib in Resources */,
-				632D801708E7E0A40032C187 /* XtrasManager.xib in Resources */,
 				63C120750910A0DD00C9DB57 /* DefaultXtraReadme.rtf in Resources */,
 				348F579E0936FA6D00288E41 /* EditStatusGroup.xib in Resources */,
 				6333699409497DB000970871 /* EmoticonPreviewView.xib in Resources */,
 				63336B060949908300970871 /* DockIconPreviewView.xib in Resources */,
 				ADD1E5C0DE00000000001602 /* ListThemeSheet.xib in Resources */,
-				63336E15094AB81300970871 /* XtraInfoView.xib in Resources */,
 				63EA63DD094BB79A009C8453 /* StatusIconPreviewView.xib in Resources */,
 				ADD1E5C0DE00000000000A02 /* PersonalPreferences.xib in Resources */,
 				34D0FF8509569FE500DCB678 /* PersonalPreferencesDefaults.plist in Resources */,
@@ -7564,6 +7570,8 @@
 				110763F808676CC9005987A5 /* RAFBlockEditorWindowController.m in Sources */,
 				EE147A800896B33400A21377 /* OWABSearchWindowController.m in Sources */,
 				633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */,
+				ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */,
+				ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */,
 				348F57940936F3CC00288E41 /* ESEditStatusGroupWindowController.m in Sources */,
 				632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */,
 				63EA62CA094B832D009C8453 /* AIEmoticonPreviewController.m in Sources */,

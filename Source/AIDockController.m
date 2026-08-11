@@ -105,10 +105,16 @@
 	
     //We also stop bouncing when Adium is no longer active
     [notificationCenter addObserver:self
-	                       selector:@selector(appWillChangeActive:) 
-	                           name:NSApplicationWillResignActiveNotification 
+	                       selector:@selector(appWillChangeActive:)
+	                           name:NSApplicationWillResignActiveNotification
 	                         object:nil];
-	
+
+	//...and we check that our icon pack still exists whenever the installed Xtras change
+	[notificationCenter addObserver:self
+						   selector:@selector(xtrasChanged:)
+							   name:AIXtrasDidChangeNotification
+							 object:nil];
+
 	//If Adium has been upgraded since the last time we ran re-apply the user's custom icon
 	NSString	*lastVersion = [[NSUserDefaults standardUserDefaults] objectForKey:LAST_ICON_UPDATE_VERSION];
 	if (![[NSApp applicationVersion] isEqualToString:lastVersion]) {
@@ -117,10 +123,39 @@
 	}
 }
 
+/*!
+ * @brief The installed Xtras changed; apply our icon pack preference to what is on disk now
+ *
+ * Nothing else notices when the dock icon pack in use is deleted or switched off: the pack Adium
+ * loaded stays in memory, so the icon still looks right for the rest of the session and is simply
+ * gone after the next launch. Applying the unchanged preference again loads the pack if it is there
+ * and the default if it is not - and because the preference itself is left alone, the user's choice
+ * comes back by itself as soon as the pack does. Throwing the preference away instead would turn
+ * switching a pack off in the Xtras pane, which the switch presents as reversible, into a silent
+ * and permanent loss of the choice.
+ */
+- (void)xtrasChanged:(NSNotification *)notification
+{
+	//A nil object means "something changed, work it out yourself", which is what every receiver does
+	if ([[notification object] caseInsensitiveCompare:@"AdiumIcon"] != NSOrderedSame) return;
+
+	[self preferencesChangedForGroup:PREF_GROUP_APPEARANCE
+								 key:KEY_ACTIVE_DOCK_ICON
+							  object:nil
+					  preferenceDict:[adium.preferenceController preferencesForGroup:PREF_GROUP_APPEARANCE]
+						   firstTime:NO];
+}
+
 - (void)controllerWillClose
 {
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	[adium.chatController unregisterChatObserver:self];
+
+	/* Only our own registration: the notifications this controller has taken since it loaded are
+	 * removed with it, and removeObserver:self would take them all. */
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:AIXtrasDidChangeNotification
+												  object:nil];
 
 	//Reset our icon by removing all icon states (except for the base state)
 	NSArray *stateArrayCopy = [[activeIconStateArray copy] autorelease]; //Work with a copy, since this array will change as we remove states
@@ -328,6 +363,17 @@
 			NSString *iconPath = [adium pathOfPackWithName:[prefDict objectForKey:KEY_ACTIVE_DOCK_ICON]
 												 extension:@"AdiumIcon"
 										resourceFolderName:FOLDER_DOCK_ICONS];
+
+			/* The pack the preference names can be missing: deleted, or switched off in the Xtras
+			 * pane. Use the one Adium ships instead - and leave the preference alone, so the user's
+			 * choice is still there when the pack is. */
+			if (!iconPath) {
+				iconPath = [adium pathOfPackWithName:[adium.preferenceController defaultPreferenceForKey:KEY_ACTIVE_DOCK_ICON
+																								   group:PREF_GROUP_APPEARANCE
+																								  object:nil]
+										   extension:@"AdiumIcon"
+								  resourceFolderName:FOLDER_DOCK_ICONS];
+			}
 
 			if (iconPath) {
 				NSMutableDictionary	*newAvailableIconStateDict = [self iconPackAtPath:iconPath];

@@ -62,7 +62,7 @@ static SS_PrefsController			*prefsController = nil;
 		[prefsController setPanesOrder:[NSArray arrayWithObjects:
 			@"Accounts",
 			NSToolbarSeparatorItemIdentifier,
-			@"General", @"Personal", @"Appearance", @"Messages", @"Status", @"Events", @"File Transfer", @"Advanced", nil]];
+			@"General", @"Personal", @"Appearance", @"Messages", @"Status", @"Events", @"File Transfer", @"Xtras", @"Advanced", nil]];
 		[prefsController setDebug:YES];
 	}
 	
