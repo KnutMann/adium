@@ -15,6 +15,7 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import "AIPassthroughScrollView.h"
 
 @class AIXtraInfo, AIXtraListView;
 
@@ -64,7 +65,7 @@
  * Hand it to @c -[AISettingsFormView addEdgeToEdgeRow:] and keep no other reference to its views;
  * the form owns them from then on. Call @c -tearDown before letting go of the delegate.
  */
-@interface AIXtraListView : NSScrollView <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate> {
+@interface AIXtraListView : AIPassthroughScrollView <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate> {
 	NSTableView					*tableView;			//Owned by the view hierarchy
 	NSArray						*xtras;				//AIXtraInfo, in display order
 	id<AIXtraListViewDelegate>	 listDelegate;		//Not retained

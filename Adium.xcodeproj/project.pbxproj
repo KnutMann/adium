@@ -962,6 +962,7 @@
 		63336B060949908300970871 /* DockIconPreviewView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 63336B050949908300970871 /* DockIconPreviewView.xib */; };
 		633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 633F175908F905A700C76383 /* AIXtrasManager.m */; };
 		ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000002 /* AIXtraListView.m */; };
+		ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */; };
 		ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */; };
 		634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */; };
 		636D8C980E4E95A500E5F558 /* AIAddressBookController.m in Sources */ = {isa = PBXBuildFile; fileRef = 636D8C970E4E95A500E5F558 /* AIAddressBookController.m */; };
@@ -2714,6 +2715,8 @@
 		633F175808F905A700C76383 /* AIXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtrasManager.h; path = Source/AIXtrasManager.h; sourceTree = "<group>"; };
 		633F175908F905A700C76383 /* AIXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIXtrasManager.m; path = Source/AIXtrasManager.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000001 /* AIXtraListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtraListView.h; path = Source/AIXtraListView.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000011 /* AIPassthroughScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPassthroughScrollView.h; path = Source/AIPassthroughScrollView.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPassthroughScrollView.m; path = Source/AIPassthroughScrollView.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000002 /* AIXtraListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtraListView.m; path = Source/AIXtraListView.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtrasPreferences.h; path = Source/AIXtrasPreferences.h; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtrasPreferences.m; path = Source/AIXtrasPreferences.m; sourceTree = "<group>"; };
@@ -5349,6 +5352,8 @@
 				ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */,
 				ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */,
 				ADD1E5C0DF00000000000001 /* AIXtraListView.h */,
+				ADD1E5C0DF00000000000011 /* AIPassthroughScrollView.h */,
+				ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */,
 				ADD1E5C0DF00000000000002 /* AIXtraListView.m */,
 				112B47650F82E0FC00690E84 /* AIXtraInfo.h */,
 				112B47660F82E0FC00690E84 /* AIXtraInfo.m */,
@@ -7292,6 +7297,7 @@
 				633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */,
 				ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */,
 				ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */,
+				ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */,
 				348F57940936F3CC00288E41 /* ESEditStatusGroupWindowController.m in Sources */,
 				632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */,
 				63EA62CA094B832D009C8453 /* AIEmoticonPreviewController.m in Sources */,
