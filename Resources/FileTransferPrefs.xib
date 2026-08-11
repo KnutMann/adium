@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    UNUSED. ESFileTransferPreferences builds its view in code (AISettingsFormView)
+    and no longer names this nib, so nothing loads this file - editing it changes
+    nothing in the running application. It is also no longer compatible with the
+    class: the four label outlets below do not exist any more, and the checkbox
+    outlets are NSSwitches in code, so loading it would raise.
+    It is still copied into the bundle; removing it needs a change to
+    Adium.xcodeproj (Copy Bundle Resources), which is owned elsewhere.
+-->
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="NO">
     <dependencies>
         <deployment identifier="macosx"/>
