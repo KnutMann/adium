@@ -16,23 +16,21 @@ fi
 
 TARGET_BASE="apple-darwin19.6."
 
-# BUILDING ON APPLE SILICON: pass --build-native.
+# This builds for the machine it runs on. Adium is an arm64 application on Apple
+# Silicon, and the frameworks under ../Frameworks are arm64; nothing here
+# cross-compiles any more.
 #
-# Without it the script takes the cross-compile path, which still carries the Intel-era
-# ARCHS/HOSTS pair below: one arch, two hosts, indexed against each other, so the run
-# dies on the second pass with "ARCHS[i]: unbound variable". --build-native clears both
-# and configures for the current architecture, which is how the arm64 frameworks under
-# ../Frameworks were produced.
+# One trap remains: --libpurple-only does not pick up a changed protocol list,
+# because needsconfigure() skips configure whenever config.status exists and the run
+# then only re-wraps the binary that was already there. Add --configure to force it.
 #
-# Note also that --libpurple-only alone will not pick up a changed protocol list:
-# needsconfigure() skips configure when config.status exists, and the run then merely
-# re-wraps the existing binary. Add --configure to force it.
-#
-#   ./build.sh --build-native --libpurple-only --configure
+#   ./build.sh --libpurple-only --configure
 
-# Arrays for archs and host systems, sometimes an -arch just isnt enough!
-ARCHS=( "x86_64" )
-HOSTS=( "x86_64-${TARGET_BASE}" "i686-${TARGET_BASE}" )
+#One architecture, the one we are on. Adium is arm64 on Apple Silicon and every
+#framework under ../Frameworks is arm64; there is nothing left to cross-compile for.
+ARCHS=( "$(uname -m)" )
+HOSTS=( "$(uname -m)-${TARGET_BASE}" )
+
 NUMBER_OF_CORES=`sysctl -n hw.activecpu`
 
 DEVELOPER=$(xcode-select -print-path)
@@ -50,22 +48,6 @@ BASE_LDFLAGS="-mmacosx-version-min=$MIN_OS_VERSION \
 	-I$ROOTDIR/build/include \
 	-L$ROOTDIR/build/lib"
 
-remove_arch() {
-	local offset=0
-	local tempArchs=""
-	local tempHosts=""
-	for (( i=0; i<${#ARCHS[@]}; i++ )) ; do
-		if [[ $1 == ${ARCHS[i]} ]] ; then
-			offset=$((offset + 1))
-			continue
-		fi
-		tempArchs[$((i-offset))]=${ARCHS[i]}
-		tempHosts[$((i-offset))]=${HOSTS[i]}
-	done
-	ARCHS=( ${tempArchs[@]} )
-	HOSTS=( ${tempHosts[@]} )
-}
-
 set_arch_flags() {
 	for ARCH in ${ARCHS[@]} ; do
 		ARCH_FLAGS="${ARCH_FLAGS:= } -arch ${ARCH}"
@@ -77,7 +59,7 @@ set_arch_flags() {
 
 # handle commandline options
 FORCE_CONFIGURE=false
-NATIVE_BUILD=false
+NATIVE_BUILD=true
 BUILD_OTR=false
 STRAIGHT_TO_LIBPURPLE=false
 DOWNLOAD_LIBPURPLE=false
@@ -89,18 +71,8 @@ for option in ${@:1} ; do
 			FORCE_CONFIGURE=true
 			warning "Packages will be reconfigured!"
 			;;
-		--disable-x86_64)
-			remove_arch "x86_64" 
-			warning "x86_64 target removed! Libpurple will not be universal!"
-			;;
 		--build-native)
-			unset ARCHS; ARCHS=""
-			unset HOSTS; HOSTS=""
-			NATIVE_BUILD=true
-			BASE_CFLAGS="-I$ROOTDIR/build/include -L$ROOTDIR/build/lib"
-			BASE_LDFLAGS="-Wl,-headerpad_max_install_names \
-				-I$ROOTDIR/build/include -L$ROOTDIR/build/lib"
-			warning "libpurple will be built for your native arcticture only!"
+			#Kept so old invocations keep working; this is the only mode now.
 			;;
 		--build-otr)
 			BUILD_OTR=true
