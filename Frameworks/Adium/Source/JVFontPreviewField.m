@@ -164,36 +164,40 @@
 {
 	NSResponder *resp = nil;
 	NSWindow	*window = [self window];
-	
+
 	if ([window isKeyWindow]) {
 		resp = [window firstResponder];
 		if (resp == lastResp) {
 			return [super needsDisplay];
 		}
-		
+
 	} else if (lastResp == nil) {
 		return [super needsDisplay];
-		
+
 	}
-	
+
 	shouldDrawFocusRing = (resp != nil &&
 						   [resp isKindOfClass:[NSView class]] &&
 						   [(NSView *)resp isDescendantOf:self]); // [sic]
 	lastResp = resp;
-	
-	[self setKeyboardFocusRingNeedsDisplayInRect:[self bounds]];
+
+	[self noteFocusRingMaskChanged];
 	return YES;
 }
 
-//Draw a focus ring around our view
-- (void)drawRect:(NSRect)rect
+/* The ring is AppKit's to draw, not -drawRect:'s. NSSetFocusRingStyle() + NSRectFill smears
+ * stripes across the surface while a scroll view moves us: the ring is painted outside our
+ * bounds into whatever happens to be behind us, and nothing ever invalidates those pixels.
+ * These two are the supported way since 10.7 - AppKit keeps the ring on its own overlay and
+ * moves it with the view. Same repair as AIAutoScrollView. */
+- (NSRect)focusRingMaskBounds
 {
-	[super drawRect:rect];
-	
-	if (shouldDrawFocusRing) {
-		NSSetFocusRingStyle(NSFocusRingOnly);
-		NSRectFill(rect);
-	}
-} 
-	
+	return (shouldDrawFocusRing ? [self bounds] : NSZeroRect);
+}
+
+- (void)drawFocusRingMask
+{
+	if (shouldDrawFocusRing) NSRectFill([self bounds]);
+}
+
 @end
