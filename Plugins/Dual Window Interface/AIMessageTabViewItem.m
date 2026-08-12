@@ -189,7 +189,7 @@
 		 * asks it first and skips the badge entirely while it answers NO. */
 		[self setValue:nil forKeyPath:@"objectCount"];
 		[self setValue:nil forKeyPath:@"showObjectCount"];
-		[self setValue:nil forKeyPath:@"countColor"];
+		[self setValue:nil forKeyPath:@"objectCountColor"];
 	}
 }
 
@@ -411,12 +411,21 @@
 	return 0;
 }
 
-- (void)setCountColor:(NSColor *)color
+- (void)setObjectCountColor:(NSColor *)color
 {
-	//method does nothing; force the tab bindings to reload -countColor	
+	//method does nothing; force the tab bindings to reload -objectCountColor
 }
 
-- (NSColor *)countColor
+/*!
+ * @brief Colour of the tab's unread badge
+ *
+ * Named for the binding MMTabBarView actually establishes. PSMTabBarControl called this
+ * -countColor, and that name survived the move to MMTabBarView without anybody noticing:
+ * nothing binds it, so NSTabViewItem+MMTabBarViewExtensions answered the binding with its
+ * own default and the colour below never reached a tab. Bindings are resolved by name at
+ * run time, so neither the compiler nor a crash ever mentioned it.
+ */
+- (NSColor *)objectCountColor
 {
 	return self.chat.unviewedMentionCount ? [NSColor colorWithCalibratedRed:1.0f green:0.3f blue:0.3f alpha:0.6f] : [NSColor colorWithCalibratedWhite:0.3f alpha:0.6f];
 }
