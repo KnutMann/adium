@@ -607,6 +607,26 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	if (row->radioContainer) [section->cardView addSubview:row->radioContainer];
 	if (row->fullWidthView) [section->cardView addSubview:row->fullWidthView];
 
+	/* This form places every subview itself, so nothing in a card may be placed a second time
+	 * behind its back. A control built here has no autoresizing to begin with, but one adopted
+	 * from a nib arrives with whatever the nib gave it, and the card resizes its subviews: the
+	 * status pane's pop up menus carried NSViewMinXMargin and were shifted a further two hundred
+	 * points on top of the position they had just been given, which put them past the right edge
+	 * of their card, clipped away and invisible until the window was resized by hand.
+	 *
+	 * Set one by one rather than over a collection: most rows leave most of these nil, and
+	 * +arrayWithObjects: ends at the first one it meets - which would quietly treat only the
+	 * label of a pop up row and leave the menu itself exactly as it was.
+	 */
+	[row->labelField setAutoresizingMask:NSViewNotSizable];
+	[row->imageView setAutoresizingMask:NSViewNotSizable];
+	[row->detailField setAutoresizingMask:NSViewNotSizable];
+	[row->valueField setAutoresizingMask:NSViewNotSizable];
+	[row->accessoryControl setAutoresizingMask:NSViewNotSizable];
+	[row->control setAutoresizingMask:NSViewNotSizable];
+	[row->radioContainer setAutoresizingMask:NSViewNotSizable];
+	[row->fullWidthView setAutoresizingMask:NSViewNotSizable];
+
 	//Read the natural sizes now; layout narrows the frames it would read back
 	row->naturalControlSize = AISettingsControlSize(row->control ?: row->fullWidthView);
 
