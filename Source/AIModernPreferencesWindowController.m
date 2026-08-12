@@ -80,14 +80,22 @@ static NSImage *AIPrefPaneIcon(id pane)
  */
 @interface AIPrefsSidebarCellView : NSTableCellView {
 	BOOL isGroupRow;
+	NSTextField		*sidebarLabel;	//Owned by the view hierarchy; deliberately NOT the textField outlet
+	NSImageView		*sidebarIcon;	//Same
 }
 @property (assign) BOOL isGroupRow;
+/* The built-in textField/imageView outlets stay empty on purpose: they are the handles the
+ * source list style re-tints through - the accent colour on an unemphasized selection reaches
+ * the label over exactly that connection, after everything here has run. A label AppKit has no
+ * outlet to is a label it leaves alone, and these two properties are the only way in. */
+@property (assign) NSTextField *sidebarLabel;
+@property (assign) NSImageView *sidebarIcon;
 - (void)updateTextColors;
 @end
 
 @implementation AIPrefsSidebarCellView
 
-@synthesize isGroupRow;
+@synthesize isGroupRow, sidebarLabel, sidebarIcon;
 
 - (void)setBackgroundStyle:(NSBackgroundStyle)style
 {
@@ -132,7 +140,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 		color = [NSColor labelColor];
 	}
 
-	[[self textField] setTextColor:color];
+	[sidebarLabel setTextColor:color];
 }
 
 @end
@@ -814,13 +822,13 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[label setLineBreakMode:NSLineBreakByTruncatingTail];
 		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[cell addSubview:label];
-		[cell setTextField:label];
+		[(AIPrefsSidebarCellView *)cell setSidebarLabel:label];
 
 		if (!isGroup) {
 			NSImageView *icon = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
 			[icon setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[cell addSubview:icon];
-			[cell setImageView:icon];
+			[(AIPrefsSidebarCellView *)cell setSidebarIcon:icon];
 
 			[cell addConstraints:[NSArray arrayWithObjects:
 				[NSLayoutConstraint constraintWithItem:icon attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual
@@ -852,16 +860,18 @@ static NSImage *AIPrefPaneIcon(id pane)
 
 	[(AIPrefsSidebarCellView *)cell setIsGroupRow:isGroup];
 
+	NSTextField *cellLabel = [(AIPrefsSidebarCellView *)cell sidebarLabel];
+
 	if (isGroup) {
-		[[cell textField] setStringValue:(NSString *)item];
-		[[cell textField] setFont:[NSFont systemFontOfSize:11 weight:NSFontWeightSemibold]];
+		[cellLabel setStringValue:(NSString *)item];
+		[cellLabel setFont:[NSFont systemFontOfSize:11 weight:NSFontWeightSemibold]];
 	} else {
 		id pane = item;
-		[[cell textField] setStringValue:(AIPrefPaneName(pane) ?: @"")];
-		[[cell textField] setFont:[NSFont systemFontOfSize:13]];
+		[cellLabel setStringValue:(AIPrefPaneName(pane) ?: @"")];
+		[cellLabel setFont:[NSFont systemFontOfSize:13]];
 		NSImage *icon = AIPrefPaneIcon(pane);
 		[icon setSize:NSMakeSize(18, 18)];
-		[[cell imageView] setImage:icon];
+		[[(AIPrefsSidebarCellView *)cell sidebarIcon] setImage:icon];
 	}
 	[(AIPrefsSidebarCellView *)cell updateTextColors];
 
