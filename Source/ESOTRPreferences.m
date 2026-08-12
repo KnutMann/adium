@@ -195,6 +195,13 @@ static NSString *AIRowLabel(NSString *label)
 	//...and the nib's second bold label heads the second card
 	[form addSectionHeader:AILocalizedString(@"Known Fingerprints", nil)];
 
+	/* Over the list, not under it: an explanation belongs before the thing it explains, the way
+	 * System Settings puts one. It also has to stand where it is read when the list is empty -
+	 * which is exactly when a reader has no idea what a fingerprint is doing here. */
+	[form addInfoRow:AILocalizedString(@"A fingerprint identifies a contact's key. Adium remembers one for everybody you have exchanged encrypted messages with, so it can tell you if it ever changes.",
+									   "Paragraph over the list of known fingerprints in the Encryption preferences")
+		   withImage:[NSImage imageWithSystemSymbolName:@"person.badge.key" accessibilityDescription:nil]];
+
 	if (hasFingerprints) {
 		/* The list is the card: it fills it edge to edge and its own height decides how tall the
 		 * card is. Its height is calculated rather than measured, see -heightOfFingerprintList, and
@@ -216,9 +223,6 @@ static NSString *AIRowLabel(NSString *label)
 		//Nothing known yet: an empty bordered table with no rows says less than a sentence does
 		[form addEmptyStateRow:AILocalizedString(@"No Known Fingerprints", "Shown instead of the fingerprint list in the Encryption preferences when no fingerprint is known")];
 	}
-
-	[form addFootnote:AILocalizedString(@"Fingerprints of contacts you have exchanged encrypted messages with.",
-										"Footnote below the list of known fingerprints in the Encryption preferences")];
 
 	builtWithAccountRow = hasAccounts;
 	builtWithFingerprintList = hasFingerprints;
