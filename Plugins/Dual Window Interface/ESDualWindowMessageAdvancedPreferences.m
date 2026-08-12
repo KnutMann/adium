@@ -215,16 +215,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 											"Explanation that the unread mention count is a group chat setting")];
 
 	//Tabs
-	[form addSectionHeader:AILocalizedString(@"Tabs",nil)];
-
-	/* The nib wired this checkbox twice: to a value binding on the preference and
-	 * to -changePreference:, which wrote the same key inverted a second time. Only
-	 * the code path is left — the switch is on when the tab bar is *not* hidden.
-	 */
-	autohide_tabBar = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Always show tab bar",nil)
-				  control:autohide_tabBar];
-
 	//Window handling
 	[form addSectionHeader:AILocalizedString(@"Window Handling",nil)];
 
@@ -282,7 +272,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	popUp_minimumFontSize = nil;
 	checkBox_showTabCount = nil;
 	checkBox_unreadMentionCount = nil;
-	autohide_tabBar = nil;
 	checkBox_hide = nil;
 	checkBox_psychicOpen = nil;
 	popUp_windowPosition = nil;
@@ -393,13 +382,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 //Called in response to all preference controls, applies new settings
 - (IBAction)changePreference:(id)sender
 {
-    if (sender == autohide_tabBar) {
-		//The switch says "always show", the preference says "hide when there is one tab"
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] != NSControlStateValueOn)]
-											 forKey:KEY_AUTOHIDE_TABBAR
-											  group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
-
-	} else if (sender == checkBox_hide) {
+    if (sender == checkBox_hide) {
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 											 forKey:KEY_WINDOW_HIDE
 											  group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
@@ -475,9 +458,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	[popUp_timeStampFormat setMenu:[self _timeStampMenu]];
 
 	prefDict = [adium.preferenceController preferencesForGroup:PREF_GROUP_DUAL_WINDOW_INTERFACE];
-    [autohide_tabBar setState:([[prefDict objectForKey:KEY_AUTOHIDE_TABBAR] boolValue] ?
-							   NSControlStateValueOff : NSControlStateValueOn)];
-
 	//Window position
 	[popUp_windowPosition setMenu:[adium.interfaceController menuForWindowLevelsNotifyingTarget:self]];
 	menuIndex =  [popUp_windowPosition indexOfItemWithTag:[[prefDict objectForKey:KEY_WINDOW_LEVEL] integerValue]];

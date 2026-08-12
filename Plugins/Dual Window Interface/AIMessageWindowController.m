@@ -64,7 +64,6 @@
 - (NSString *)_frameSaveKey;
 - (void)_reloadContainedChats;
 
-- (void)tabDraggingNotificationReceived:(NSNotification *)notification;
 - (void)tabBarFrameChanged:(NSNotification *)notification;
 - (void)closeAlertDidEnd:(NSAlert *)alert returnCode:(int)result contextInfo:(void *)contextInfo;
 - (void)_relayoutWindow;
@@ -100,16 +99,6 @@
 		//Load our window
 		myWindow = [self window];
 
-		[[NSNotificationCenter defaultCenter] addObserver:self
-												 selector:@selector(tabDraggingNotificationReceived:)
-													 name:MMTabDragDidBeginNotification
-												   object:nil];
-		
-		[[NSNotificationCenter defaultCenter] addObserver:self
-												 selector:@selector(tabDraggingNotificationReceived:)
-													 name:MMTabDragDidEndNotification
-												   object:nil];
-		
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(tabBarFrameChanged:)
 													 name:NSViewFrameDidChangeNotification
@@ -222,7 +211,9 @@
 	[tabView_tabBar setUseOverflowMenu:NO];
 	[tabView_tabBar setAllowsResizing:NO];
 	[tabView_tabBar setSizeButtonsToFit:YES];
-	[tabView_tabBar setHideForSingleTab:!alwaysShowTabs];
+	/* The bar always stays: without it the text field would sit right on the window's bottom
+	 * edge, whose rounding clips it. */
+	[tabView_tabBar setHideForSingleTab:NO];
 	[tabView_tabBar setSelectsTabsOnMouseDown:YES];
 	[tabView_tabBar setAutomaticallyAnimates:NO];
 	
@@ -398,8 +389,6 @@
 {
     if ([group isEqualToString:PREF_GROUP_DUAL_WINDOW_INTERFACE]) {
 		NSWindow	*window = [self window];
-		alwaysShowTabs = ![[prefDict objectForKey:KEY_AUTOHIDE_TABBAR] boolValue];
-		[tabView_tabBar setHideForSingleTab:!alwaysShowTabs];
 		NSNumber *useOverflow = [prefDict objectForKey:KEY_TABBAR_OVERFLOW];
 		[tabView_tabBar setUseOverflowMenu:(useOverflow ? [useOverflow boolValue] : YES)];
 		
@@ -474,7 +463,7 @@
 		tabView_horzLine = nil;
 	}
 	[tabView_tabBar setOrientation:orientation];
-	BOOL isTabBarHidden = [tabView_tabBar isTabBarHidden]; //!alwaysShowTabs && m_containedChats.count <= 1;
+	BOOL isTabBarHidden = [tabView_tabBar isTabBarHidden];
 	switch (orientation) {
 		case MMTabBarHorizontalOrientation:
 		{
@@ -1303,16 +1292,6 @@
 #pragma mark Tab Bar Visibility/Drag And Drop
 
 //Replaced by MMTabBarView
-
-//Make sure auto-hide suppression is off after a drag completes
-- (void)tabDraggingNotificationReceived:(NSNotification *)notification
-{
-	if ([[notification name] isEqualToString:MMTabDragDidBeginNotification]) {
-		[tabView_tabBar setHideForSingleTab:NO];
-	} else {
-		[tabView_tabBar setHideForSingleTab:!alwaysShowTabs];
-	}
-}
 
 //Save width of the vertical tabs when changed
 - (void)tabBarFrameChanged:(NSNotification *)notification {

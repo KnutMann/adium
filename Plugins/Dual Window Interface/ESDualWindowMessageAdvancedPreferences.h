@@ -39,7 +39,6 @@
 	NSSwitch			*checkBox_unreadMentionCount;
 
 	//Tabs
-	NSSwitch			*autohide_tabBar;
 
 	//Window handling
 	NSSwitch			*checkBox_hide;

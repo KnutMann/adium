@@ -45,7 +45,6 @@ typedef enum
 	NSString						*containerID;
 
 	BOOL			windowIsClosing;
-	BOOL			alwaysShowTabs;		//YES if the tabs should always be visible, even if there is only 1
 
 	AdiumTabPosition tabPosition;
 	CGFloat			 lastTabBarWidth;
