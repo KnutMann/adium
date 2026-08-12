@@ -37,9 +37,6 @@
 
 @interface ESContactListAdvancedPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
-- (NSArray *)hidingStyleButtons;
-- (void)selectTag:(NSInteger)tag inRadioGroup:(NSArray *)buttons;
-- (NSInteger)selectedTagInRadioGroup:(NSArray *)buttons;
 - (void)configureControlDimming;
 @end
 
@@ -243,27 +240,25 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	/* When the list takes itself off screen. Its own, header-less card: the choice
 	 * and the option qualifying it belong together and to neither of the two rows
 	 * above, and a card boundary is the only grouping System Settings has for that.
-	 * The radio group carries the nib's label, so it needs no header of its own.
+	 * A pop up rather than the nib's three radio buttons: every other choice on this
+	 * page is one, and three mutually exclusive options read as a menu here.
 	 */
 	[form endCard];
 
-	radio_hidingNever = [AISettingsFormView radioButtonWithTitle:AILocalizedString(@"Never", nil)
-														 target:self
-														 action:@selector(changePreference:)];
-	[radio_hidingNever setTag:AIContactListWindowHidingStyleNone];
-
-	radio_hidingBackground = [AISettingsFormView radioButtonWithTitle:WHILE_ADIUM_IS_IN_BACKGROUND
-															  target:self
-															  action:@selector(changePreference:)];
-	[radio_hidingBackground setTag:AIContactListWindowHidingStyleBackground];
-
-	radio_hidingSliding = [AISettingsFormView radioButtonWithTitle:AILocalizedString(@"On screen edges", "Advanced contact list: hide the contact list: On screen edges")
+	popUp_hidingStyle = [AISettingsFormView popUpButtonWithTitles:[NSArray arrayWithObjects:
+																   AILocalizedString(@"Never", nil),
+																   WHILE_ADIUM_IS_IN_BACKGROUND,
+																   AILocalizedString(@"On screen edges", "Advanced contact list: hide the contact list: On screen edges"),
+																   nil]
 														   target:self
 														   action:@selector(changePreference:)];
-	[radio_hidingSliding setTag:AIContactListWindowHidingStyleSliding];
+	[[popUp_hidingStyle itemAtIndex:0] setTag:AIContactListWindowHidingStyleNone];
+	[[popUp_hidingStyle itemAtIndex:1] setTag:AIContactListWindowHidingStyleBackground];
+	[[popUp_hidingStyle itemAtIndex:2] setTag:AIContactListWindowHidingStyleSliding];
 
-	[form addRadioGroupWithLabel:AIRowLabel(AILocalizedString(@"Automatically hide the contact list:",nil))
-						 buttons:[self hidingStyleButtons]];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Automatically hide the contact list:",nil))
+			  popUpButton:popUp_hidingStyle
+		  accessoryButton:nil];
 
 	/* The nib pointed this at the cell above it with a leading ellipsis and an
 	 * indent. Standing on its own it needs a sentence of its own to say which of
@@ -307,9 +302,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	 * them and must not outlive the view.
 	 */
 	popUp_windowPosition = nil;
-	radio_hidingNever = nil;
-	radio_hidingBackground = nil;
-	radio_hidingSliding = nil;
+	popUp_hidingStyle = nil;
 	checkBox_hideOnScreenEdgesOnlyInBackground = nil;
 	checkBox_flash = nil;
 	checkBox_animateChanges = nil;
@@ -371,8 +364,13 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	}
 
 	if (firstTime || [key isEqualToString:KEY_CL_WINDOW_HIDING_STYLE]) {
-		[self selectTag:[[prefDict objectForKey:KEY_CL_WINDOW_HIDING_STYLE] integerValue]
-		   inRadioGroup:[self hidingStyleButtons]];
+		/* A stored value outside the enum must not leave the menu showing whatever
+		 * happened to be selected: -selectItemWithTag: answers NO and changes nothing,
+		 * so fall back to the first item the way the nib's matrix did.
+		 */
+		if (![popUp_hidingStyle selectItemWithTag:[[prefDict objectForKey:KEY_CL_WINDOW_HIDING_STYLE] integerValue]]) {
+			[popUp_hidingStyle selectItemAtIndex:0];
+		}
 	}
 
 	if (firstTime || [key isEqualToString:KEY_CL_WINDOW_LEVEL]) {
@@ -388,52 +386,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	}
 
 	[self configureControlDimming];
-}
-
-#pragma mark The hiding style radio group
-
-/*!
- * @brief The buttons of the "automatically hide" choice, in display order
- */
-- (NSArray *)hidingStyleButtons
-{
-	return [NSArray arrayWithObjects:radio_hidingNever, radio_hidingBackground, radio_hidingSliding, nil];
-}
-
-/*!
- * @brief Select the button carrying @a tag, as -[NSMatrix selectCellWithTag:] did.
- *
- * A tag no button carries — a stored value outside the enum, say — falls back to
- * the first button. The matrix did not allow an empty selection (and the nib
- * pre-selected "Never"), so the group must never end up with nothing selected:
- * -selectedTagInRadioGroup: would report -1 and -configureControlDimming would
- * grey out a control the user has no selected option to re-enable it with.
- */
-- (void)selectTag:(NSInteger)tag inRadioGroup:(NSArray *)buttons
-{
-	NSButton *match = nil;
-
-	for (NSButton *button in buttons) {
-		if ([button tag] == tag) match = button;
-	}
-	if (!match) match = [buttons firstObject];
-	if (!match) return;
-
-	for (NSButton *button in buttons) {
-		[button setState:(button == match ? NSControlStateValueOn : NSControlStateValueOff)];
-	}
-}
-
-/*!
- * @brief The tag of the selected button, or -1 while the view is gone
- */
-- (NSInteger)selectedTagInRadioGroup:(NSArray *)buttons
-{
-	for (NSButton *button in buttons) {
-		if ([button state] == NSControlStateValueOn) return [button tag];
-	}
-
-	return -1;
 }
 
 #pragma mark Changing preferences
@@ -494,12 +446,8 @@ static NSString *AISentenceCaseLabel(NSString *label)
 											group:PREF_GROUP_CONTACT_LIST];
 	}
 
-	if (sender == radio_hidingNever || sender == radio_hidingBackground || sender == radio_hidingSliding) {
-		/* AppKit clears the other two by itself — the group has a container view of
-		 * its own — but the write below comes back through the observer, which
-		 * selects the stored tag in any case.
-		 */
-		[adium.preferenceController setPreference:[NSNumber numberWithInteger:[(NSButton *)sender tag]]
+	if (sender == popUp_hidingStyle) {
+		[adium.preferenceController setPreference:[NSNumber numberWithInteger:[[popUp_hidingStyle selectedItem] tag]]
 										   forKey:KEY_CL_WINDOW_HIDING_STYLE
 											group:PREF_GROUP_CONTACT_LIST];
 	}
@@ -512,7 +460,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (BOOL)hideOnScreenEdgesOnlyInBackgroundEnabled
 {
-	return ([self selectedTagInRadioGroup:[self hidingStyleButtons]] == AIContactListWindowHidingStyleSliding);
+	return ([[popUp_hidingStyle selectedItem] tag] == AIContactListWindowHidingStyleSliding);
 }
 
 - (void)configureControlDimming

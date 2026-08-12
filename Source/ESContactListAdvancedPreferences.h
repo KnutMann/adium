@@ -30,9 +30,7 @@
 	NSPopUpButton	*popUp_windowPosition;
 
 	//The three cells matrix_hiding used to hold, in display order
-	NSButton		*radio_hidingNever;
-	NSButton		*radio_hidingBackground;
-	NSButton		*radio_hidingSliding;
+	NSPopUpButton	*popUp_hidingStyle;
 	NSSwitch		*checkBox_hideOnScreenEdgesOnlyInBackground;
 
 	NSSwitch		*checkBox_flash;
