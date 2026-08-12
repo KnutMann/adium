@@ -31,12 +31,19 @@
  * at the caret from a pull down menu: one row instead of a third of the pane, and
  * a shape that works with the keyboard alone.
  *
+ * Under the format sits a preview of what it resolves to. The tokens were pure
+ * guesswork before: nothing anywhere showed what came out of them, and the one
+ * place the result appears — a status message on somebody else's screen — is the
+ * worst possible place to find out. The resolution is asked of ESiTunesPlugin
+ * itself rather than repeated here; see -updatePreview.
+ *
  * The controls below are owned by the view hierarchy, exactly as the nib's
  * outlets were; the ivars are unretained references to them.
  */
 @interface ESStatusAdvancedPreferences : AIAdvancedPreferencePane <NSTextFieldDelegate> {
 	NSTextField		*textField_format;
 	NSPopUpButton	*popUp_insertToken;
+	NSTextField		*textField_preview;			//Shows what the format resolves to right now; read-only
 
 	NSMutableArray	*establishedBindings;		//NSArrays of (object, binding name), unbound when the view closes
 
@@ -47,6 +54,13 @@
 	BOOL			 hasSavedSelectedRange;
 
 	BOOL			 formatChangePending;		//A coalesced format announcement is still outstanding
+
+	/* Whether the players have already been asked during this visit to the pane.
+	 * Asking is not free — it is an Apple event and possibly an automation dialog —
+	 * so it waits for the user to actually take hold of the card, and then happens
+	 * once. See -askPlayersOnFirstInteraction.
+	 */
+	BOOL			 hasAskedPlayers;
 }
 
 @end

@@ -441,8 +441,12 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	/* Everything else — noErr, or errAEEventWouldRequireUserConsent because this is
 	 * the first time — goes ahead, and the dialog, if there is one, appears now. Only
 	 * the moments in -requestPlayerQuery get this far, and every one of them is
-	 * something the user just did with the music status, so the dialog has a visible
-	 * cause. Somebody who never uses the feature never reaches this line.
+	 * something the user just did with the music status — picked the status, inserted
+	 * a track token, or started editing the format in Advanced › Status — so the dialog
+	 * has a visible cause. Somebody who never touches the feature never reaches this
+	 * line; note that merely opening a preference pane is not enough, which is why
+	 * -[ESStatusAdvancedPreferences askPlayersOnFirstInteraction] waits for the caret
+	 * or the Insert menu rather than asking from -viewDidLoad.
 	 */
 	/* Autoreleased into the worker's pool rather than released at the end: the caller
 	 * treats an exception out of here as possible and catches it, and an unwind would
@@ -483,6 +487,11 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 - (NSMenuItem *)menuItemWithTitle:(NSString *)title action:(SEL)action representedObject:(id)representedObject kind:(KGiTunesPluginMenuItemKind)itemKind;
 - (void)createiTunesCurrentTrackStatusState;
 - (void)updateiTunesCurrentTrackFormat;
+- (NSDictionary *)phraseSubstitutionDictionaryForFormat:(NSString *)format;
+- (NSMutableAttributedString *)attributedStringByReplacingMusicTriggersIn:(NSAttributedString *)inAttributedString
+													  phraseSubstitutions:(NSDictionary *)phrases
+														  sawMusicTrigger:(BOOL *)outSawMusicTrigger
+													wantsStoreLinkSubtext:(BOOL *)outWantsStoreLinkSubtext;
 - (void)createMusicToolbarItem;
 - (void)createiTunesToolbarItemMenuItems:(NSMenu *)iTunesMenu;
 - (NSMenu *)createTriggerMenu;
@@ -507,7 +516,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 
 - (void)setiTunesCurrentInfo:(NSDictionary *)newInfo fromPlayer:(NSString *)bundleIdentifier;
 - (void)requestPlayerQuery;
-- (void)requestPlayerQueryIfNothingIsKnown;
 - (void)finishPlayerQueryWithResults:(NSDictionary *)resultsByBundleIdentifier
 							refusals:(NSSet *)refusals
 				   requestGeneration:(NSUInteger)requestGeneration;
@@ -692,12 +700,22 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 /*!
  * @brief Ask the running players what they are playing, unless we already know something
  *
- * The one query moment which is not a deliberate act: the filter has just run over
- * text which really does contain a music token, and nothing has ever reached
- * -setiTunesCurrentInfo:. That is the case this whole thing exists for — after a
- * launch the Now Playing status is restored from the saved preference and filtered
- * the moment an account connects, without the user clicking anything, and until the
- * next track change the line goes out empty.
+ * The query moments which are not deliberate acts. Two of them:
+ *
+ * The filter has just run over text which really does contain a music token, and
+ * nothing has ever reached -setiTunesCurrentInfo:. That is the case this whole thing
+ * exists for — after a launch the Now Playing status is restored from the saved
+ * preference and filtered the moment an account connects, without the user clicking
+ * anything, and until the next track change the line goes out empty.
+ *
+ * Or somebody has just started working on the format in the Status pane of the Advanced
+ * preferences — the caret has gone into the field, or the Insert menu has been used —
+ * and the preview there would otherwise have nothing to show after a launch. Opening
+ * that pane is deliberately not one of these moments: the preferences window reopens on
+ * whichever pane was last used, so it can happen without an act behind it, and the
+ * answer does not stop at the preview but re-publishes every account's status message
+ * through -fireUpdateiTunesInfo. See -[ESStatusAdvancedPreferences askPlayersOnFirstInteraction],
+ * and note that it is this method it calls and never -requestPlayerQuery.
  *
  * lastRawInfo is the only honest marker for "we have never heard anything":
  * -installPlugin fills in iTunesCurrentInfo and both flags but deliberately leaves
@@ -734,7 +752,13 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  * see -requestPlayerQueryIfNothingIsKnown, -activeStatusStateDidChange:, and the two
  * insertion actions the menus actually reach, -insertUnfilteredString: and
  * -insertiTMSLink. Somebody who never touches the feature never gets here, and so
- * never sees an automation dialog.
+ * never sees an automation dialog. The preference pane is held to the same standard
+ * and does not get here by being shown; it waits for the format field or the Insert
+ * menu, which is why it calls -requestPlayerQueryIfNothingIsKnown and not this.
+ *
+ * Private, and staying that way: this asks whether or not anything is known. Callers
+ * outside this file — the preferences pane is the only one — get
+ * -requestPlayerQueryIfNothingIsKnown instead.
  */
 - (void)requestPlayerQuery
 {
@@ -1139,23 +1163,61 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	[currentiTunesStatusState release];
 }
 
-- (void)updateiTunesCurrentTrackFormat
+/*!
+ * @brief The first-stage replacement table for a given track format.
+ *
+ * Stage one of the filter turns %_music and %_iTunes into strings made of the simple
+ * triggers; stage two turns those into values. This builds stage one's table, and it
+ * takes the format rather than reading it so that the preview in the preference pane
+ * can ask about a format which is being typed and has not been stored yet. One
+ * implementation, two callers: a table built anywhere else would answer differently
+ * from the filter the moment either side was touched.
+ *
+ * Reads nothing and writes nothing; the returned dictionary is autoreleased and the
+ * caller owns nothing.
+ */
+- (NSDictionary *)phraseSubstitutionDictionaryForFormat:(NSString *)format
 {
 	NSDictionary	*slashMusicDict = nil;
 	NSDictionary	*conditionalArtistTrackDict = nil;
-	NSString		*currentITunesTrackFormat = nil;
-	
-	slashMusicDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+
+	slashMusicDict = [NSDictionary dictionaryWithObjectsAndKeys:
 					  [NSString stringWithFormat:AILocalizedString(@"*is listening to %@ by %@*","Phrase sent in response to %_music.  The first %%@ is the track; the second %%@ is the artist."), TRIGGER_TRACK, TRIGGER_ARTIST],
 					  KEY_ITUNES_PLAYING,
 					  AILocalizedString(@"*is listening to nothing*","Phrase sent in response to %_music when nothing is playing."),
 					  KEY_ITUNES_STOPPED,
 					  nil];
-	
+
+	/* An empty format is not hardcoded away in the preference (see
+	 * -updateiTunesCurrentTrackFormat) but filled in here, so that a default
+	 * installation does not have its format broken when the locale switches — the
+	 * format specifiers are themselves localized.
+	 */
+	if (![format length]) {
+		format = [NSString stringWithFormat:@"%@ - %@", TRIGGER_TRACK, TRIGGER_ARTIST];
+	}
+
+	conditionalArtistTrackDict = [NSDictionary dictionaryWithObjectsAndKeys:
+								  format,
+								  KEY_ITUNES_PLAYING,
+								  @"",
+								  KEY_ITUNES_STOPPED,
+								  nil];
+
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+			slashMusicDict,
+			TRIGGER_MUSIC,
+			conditionalArtistTrackDict,
+			TRIGGER_CURRENT_TRACK,
+			nil];
+}
+
+- (void)updateiTunesCurrentTrackFormat
+{
+	NSString	*currentITunesTrackFormat = nil;
+
 	/* Provide flexibility with the %_iTunes substitution. By default, just store @"" for this key.
-	 * But still not hardcoded to a particular format. This is done so that a default installation 
-	 * doesn't have its format broken if the locale switches...
-	 * since the format specifiers are themselves localized.
+	 * But still not hardcoded to a particular format.
 	 */
 	currentITunesTrackFormat = [adium.preferenceController preferenceForKey:KEY_ITUNES_TRACK_FORMAT
 																	  group:PREF_GROUP_STATUS_PREFERENCES];
@@ -1165,34 +1227,28 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 											group:PREF_GROUP_STATUS_PREFERENCES];
 		currentITunesTrackFormat = @"";
 	}
-	
-	if (![currentITunesTrackFormat length]) {
-		currentITunesTrackFormat  = [NSString stringWithFormat:@"%@ - %@", TRIGGER_TRACK, TRIGGER_ARTIST];
-	}
-	
-	conditionalArtistTrackDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-								  currentITunesTrackFormat,
-								  KEY_ITUNES_PLAYING,
-								  @"",
-								  KEY_ITUNES_STOPPED,
-								  nil];
 
 	/* The preference pane now writes while the user types, so this runs far more
 	 * often than once per launch: without the release the old dictionary leaked
 	 * on every rebuild.
+	 *
+	 * Built first, swapped in, and only then released — never released first. The
+	 * ivar is read without a lock by -filterAttributedString:context:, which may run
+	 * off the main thread (see the comment there), and it hands the pointer on to
+	 * -attributedStringByReplacingMusicTriggersIn:… for the whole two-stage
+	 * replacement. Releasing before building would leave the ivar pointing at freed
+	 * memory for the length of -phraseSubstitutionDictionaryForFormat: — two bundle
+	 * lookups and three dictionaries — on every burst of typing. In this order the
+	 * ivar only ever holds a live object, and the one being let go of is held by the
+	 * local until the last reader has moved on.
 	 */
-	[phraseSubstitutionDict release];
-	phraseSubstitutionDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-							  slashMusicDict,
-							  TRIGGER_MUSIC,
-							  conditionalArtistTrackDict,
-							  TRIGGER_CURRENT_TRACK,
-							  nil];
+	NSDictionary	*newPhraseSubstitutionDict = [[self phraseSubstitutionDictionaryForFormat:currentITunesTrackFormat] retain];
+	NSDictionary	*oldPhraseSubstitutionDict = phraseSubstitutionDict;
+
+	phraseSubstitutionDict = newPhraseSubstitutionDict;
+	[oldPhraseSubstitutionDict release];
 
     [self fireUpdateiTunesInfo];
-
-	[slashMusicDict release];
-	[conditionalArtistTrackDict release];
 }
 
 #pragma mark -
@@ -1211,38 +1267,56 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 }
 
 /*!
- * @brief Filter messages for keywords to replace
+ * @brief The two-stage replacement itself, without any of the filter's consequences.
  *
- * Replace any track triggers with the appropriate information
+ * Split out of -filterAttributedString:context: so that the preview in the preference
+ * pane can go through this very code rather than through an imitation of it — see
+ * -previewOfTrackFormat:state:. The phrase table is a parameter for the same reason:
+ * the preview asks about a format the user is still typing, which is not the one in
+ * phraseSubstitutionDict yet.
+ *
+ * Everything that is not replacement stays with the caller — the player query, the
+ * store link subtext — because those are things the filter may do and the preview may
+ * not.
+ *
+ * @param outSawMusicTrigger Set to YES if any music trigger was found at all; may be NULL.
+ * @param outWantsStoreLinkSubtext Set to YES if the Now Playing trigger was replaced while
+ *        something was playing, which is when the store link is worth carrying; may be NULL.
+ * @result The replaced string, autoreleased, or nil if there was nothing to replace —
+ *         the caller then keeps the string it already had rather than a copy of it.
  */
-- (NSAttributedString *)filterAttributedString:(NSAttributedString *)inAttributedString context:(id)context
+- (NSMutableAttributedString *)attributedStringByReplacingMusicTriggersIn:(NSAttributedString *)inAttributedString
+													  phraseSubstitutions:(NSDictionary *)phrases
+														  sawMusicTrigger:(BOOL *)outSawMusicTrigger
+													wantsStoreLinkSubtext:(BOOL *)outWantsStoreLinkSubtext
 {
     NSMutableAttributedString	*filteredMessage = nil;
 	NSString					*stringMessage;
-	
+
+	if (outSawMusicTrigger) *outSawMusicTrigger = NO;
+	if (outWantsStoreLinkSubtext) *outWantsStoreLinkSubtext = NO;
+
 	//get the attributed string as a regular string so we can do string processing
 	if ((stringMessage = [inAttributedString string])) {
 		NSEnumerator	*enumerator;
 		NSString		*trigger;
-		BOOL			addStoreLinkAsSubtext = NO;
-		BOOL			sawMusicTrigger = NO;
 
 		/* Replace the phrases with the string containing the triggers.
 		 * For example, /music will become *is listening to %_track by %_artist*.
 		 * This will then become the actual track information in the next while().
 		 */
-		enumerator = [phraseSubstitutionDict keyEnumerator];
-		
+		enumerator = [phrases keyEnumerator];
+
 		while ((trigger = [enumerator nextObject])) {
 			//search for phrase in the string that needs to be filtered
 			if (([stringMessage rangeOfString:trigger options:(NSLiteralSearch | NSCaseInsensitiveSearch)].location != NSNotFound)) {
 				NSDictionary	*replacementDict;
 				NSString		*replacement;
 
-				sawMusicTrigger = YES;
+				if (outSawMusicTrigger) *outSawMusicTrigger = YES;
 
 				//get the format for the current trigger
-				replacementDict = [phraseSubstitutionDict objectForKey:trigger];
+				replacementDict = [phrases objectForKey:trigger];
 
 				//replacement of phrase should reflect the player state
 				if (![self iTunesIsStopped] && ![self iTunesIsPaused]) {
@@ -1252,16 +1326,16 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 					 * so account code can send it out later on.
 					 */
 					if ([trigger isEqualToString:TRIGGER_CURRENT_TRACK]) {
-						addStoreLinkAsSubtext = YES;
+						if (outWantsStoreLinkSubtext) *outWantsStoreLinkSubtext = YES;
 					}
-					
+
 				} else {
-					replacement = [replacementDict objectForKey:KEY_ITUNES_STOPPED];					
+					replacement = [replacementDict objectForKey:KEY_ITUNES_STOPPED];
 				}
-				
+
 				//create a attributedstring if it hasn't been created already
 				if (!filteredMessage) filteredMessage = [[inAttributedString mutableCopy] autorelease];
-				
+
 				//Perform the replacement
 				[filteredMessage replaceOccurrencesOfString:trigger
 												 withString:replacement
@@ -1269,32 +1343,32 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 													  range:NSMakeRange(0, [filteredMessage length])];
 			}
 		}
-		
+
 		if (filteredMessage) {
 			//Update our string for the simple trigger replacement process so we can replace the %_ tokens
 			stringMessage = [filteredMessage string];
 		}
-		
+
 		//Substitute simple triggers as appropriate
 		enumerator = [substitutionDict keyEnumerator];
 		while ((trigger = [enumerator nextObject])) {
-			
+
 			//Find if the current trigger is in the string
 			if (([stringMessage rangeOfString:trigger options:(NSLiteralSearch | NSCaseInsensitiveSearch)].location != NSNotFound)) {
 				NSString *replacement = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:trigger]];
 
-				sawMusicTrigger = YES;
+				if (outSawMusicTrigger) *outSawMusicTrigger = YES;
 
 				if (replacement == nil) {
 					//If no replacement is found, replace the trigger with an empty string
 					replacement = @"";
 				}
-				
-				//if a mutable attributed string for the string to be filtered doesn't exist, create it. 
+
+				//if a mutable attributed string for the string to be filtered doesn't exist, create it.
 				if (filteredMessage == nil) {
-					filteredMessage = [[inAttributedString mutableCopy] autorelease];	
+					filteredMessage = [[inAttributedString mutableCopy] autorelease];
 				}
-				
+
 				//Replace the current trigger with the value we found above
 				[filteredMessage replaceOccurrencesOfString:trigger
 												 withString:replacement
@@ -1302,32 +1376,90 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 													  range:NSMakeRange(0, [filteredMessage length])];
 			}
 		}
-		
-		/* A music token really was in the text and we have never heard a thing. This
-		 * filter run is already lost — it is a plain AIContentFilter and runs
-		 * synchronously, so it cannot wait for an Apple event — but the answer puts
-		 * itself right through -setiTunesCurrentInfo: and the update it triggers, and
-		 * the user sees the empty line only once.
-		 *
-		 * Filtering can happen off the main thread (see AdiumContentFiltering), so the
-		 * two reads here are only a cheap way of not bothering; the binding decision is
-		 * taken again on the main thread, inside -requestPlayerQueryIfNothingIsKnown,
-		 * which is also where the second of them is explained.
-		 */
-		if (sawMusicTrigger && !lastRawInfo && !playerQueryLearnedNothing) [self requestPlayerQueryIfNothingIsKnown];
+	}
 
-		if (addStoreLinkAsSubtext && filteredMessage) {
-			NSString *storeLinkForSubtext = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_STORE_URL]];
-			if (storeLinkForSubtext) {
-				[filteredMessage addAttribute:@"AIMessageSubtext"
-										value:storeLinkForSubtext
-										range:NSMakeRange(0, [filteredMessage length])];
-			}
+	return filteredMessage;
+}
+
+/*!
+ * @brief Filter messages for keywords to replace
+ *
+ * Replace any track triggers with the appropriate information
+ */
+- (NSAttributedString *)filterAttributedString:(NSAttributedString *)inAttributedString context:(id)context
+{
+	BOOL						 addStoreLinkAsSubtext = NO;
+	BOOL						 sawMusicTrigger = NO;
+	NSMutableAttributedString	*filteredMessage = [self attributedStringByReplacingMusicTriggersIn:inAttributedString
+																			   phraseSubstitutions:phraseSubstitutionDict
+																				   sawMusicTrigger:&sawMusicTrigger
+																			 wantsStoreLinkSubtext:&addStoreLinkAsSubtext];
+
+	/* A music token really was in the text and we have never heard a thing. This
+	 * filter run is already lost — it is a plain AIContentFilter and runs
+	 * synchronously, so it cannot wait for an Apple event — but the answer puts
+	 * itself right through -setiTunesCurrentInfo: and the update it triggers, and
+	 * the user sees the empty line only once.
+	 *
+	 * Filtering can happen off the main thread (see AdiumContentFiltering), so the
+	 * two reads here are only a cheap way of not bothering; the binding decision is
+	 * taken again on the main thread, inside -requestPlayerQueryIfNothingIsKnown,
+	 * which is also where the second of them is explained.
+	 */
+	if (sawMusicTrigger && !lastRawInfo && !playerQueryLearnedNothing) [self requestPlayerQueryIfNothingIsKnown];
+
+	if (addStoreLinkAsSubtext && filteredMessage) {
+		NSString *storeLinkForSubtext = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_STORE_URL]];
+		if (storeLinkForSubtext) {
+			[filteredMessage addAttribute:@"AIMessageSubtext"
+									value:storeLinkForSubtext
+									range:NSMakeRange(0, [filteredMessage length])];
 		}
 	}
-	
+
 	//Give back the processed string
 	return (filteredMessage ? filteredMessage : inAttributedString);
+}
+
+/*!
+ * @brief What the Now Playing status would send with @a format; see the header.
+ */
+- (NSString *)previewOfTrackFormat:(NSString *)format state:(AIMusicPreviewState *)outState
+{
+	NSAttributedString	*trigger;
+	NSAttributedString	*resolved;
+
+	if (outState) {
+		/* lastRawInfo before the two flags, and that order is the whole point:
+		 * -installPlugin sets iTunesIsStopped without anybody having said anything,
+		 * so the flags cannot tell "stopped" from "we have never heard a word". Only
+		 * a real payload ever sets lastRawInfo.
+		 */
+		if (!lastRawInfo)			*outState = AIMusicPreviewNothingKnown;
+		else if (iTunesIsStopped)	*outState = AIMusicPreviewStopped;
+		else if (iTunesIsPaused)	*outState = AIMusicPreviewPaused;
+		else						*outState = AIMusicPreviewPlaying;
+	}
+
+	/* Exactly the string the Now Playing status carries as its message — see
+	 * -createiTunesCurrentTrackStatusState — so the question being asked is literally
+	 * "what becomes of %_iTunes?" and not some approximation of it.
+	 */
+	trigger = [NSAttributedString stringWithString:TRIGGER_CURRENT_TRACK];
+	resolved = [self attributedStringByReplacingMusicTriggersIn:trigger
+											phraseSubstitutions:[self phraseSubstitutionDictionaryForFormat:format]
+												sawMusicTrigger:NULL
+										  wantsStoreLinkSubtext:NULL];
+
+	/* nil means nothing was replaced, which for this input cannot happen; be honest
+	 * about it anyway.
+	 *
+	 * Copied, not handed straight out: -[NSMutableAttributedString string] gives back
+	 * the receiver's own backing store rather than a snapshot of it. The header promises
+	 * callers "the resolved text", so what they get has to be a string that is theirs
+	 * and cannot change underneath them.
+	 */
+	return [[[(resolved ?: trigger) string] copy] autorelease];
 }
 
 /*!
