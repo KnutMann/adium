@@ -377,6 +377,23 @@
 - (void)setLabel:(NSString *)label forRowWithControl:(NSView *)control;
 
 /*!
+ * @brief Give the whole row @a control sits in a tool tip.
+ *
+ * In a nib a checkbox carried its title, so a tool tip set on it covered the
+ * words as well as the box. Here the label is a field of its own, and a tool tip
+ * set on the control alone would only show over the switch at the trailing edge.
+ * This one goes on the label, the detail line, the value readout and any
+ * accessory button too, so hovering anywhere along the row shows it — the label
+ * column is as wide as the row leaves it, so the hot area is a little wider than
+ * the title text.
+ *
+ * @a control is the view handed to @c addRowWithLabel:control: (or a control
+ * nested inside it), as with @c setLabel:forRowWithControl:. Nothing is
+ * re-measured: a tool tip changes no size. Pass nil to take one away.
+ */
+- (void)setToolTip:(NSString *)toolTip forRowWithControl:(NSView *)control;
+
+/*!
  * @brief Drop every section and row, e.g. before rebuilding the form.
  */
 - (void)removeAllSections;

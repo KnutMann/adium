@@ -958,6 +958,29 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	}
 }
 
+- (void)setToolTip:(NSString *)toolTip forRowWithControl:(NSView *)control
+{
+	if (!control) return;
+
+	for (AISettingsFormSection *section in sections) {
+		for (AISettingsFormRow *row in section->rows) {
+			NSView *rowView = (row->control ?: row->fullWidthView);
+
+			if (!rowView || !(rowView == control || [control isDescendantOf:rowView])) continue;
+
+			/* Everything the row draws, so the hot area is the whole line as it was
+			 * in a nib, where the label was the control's own title. No layout is
+			 * needed: a tool tip changes nothing that is measured. */
+			[rowView setToolTip:toolTip];
+			[row->labelField setToolTip:toolTip];
+			[row->detailField setToolTip:toolTip];
+			[row->valueField setToolTip:toolTip];
+			[row->accessoryControl setToolTip:toolTip];
+			return;
+		}
+	}
+}
+
 - (void)removeAllSections
 {
 	for (AISettingsFormSection *section in sections) {
