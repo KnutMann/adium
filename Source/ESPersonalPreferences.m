@@ -1,15 +1,15 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
@@ -18,19 +18,95 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIMessageEntryTextView.h>
+#import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIAutoScrollView.h>
-#import <AIUtilities/AIDelayedTextField.h>
-#import <AIUtilities/AIImageViewWithImagePicker.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageViewWithImagePicker.h>
 
+//Width the form starts out at; the preferences window resizes it to its column.
+#define PERSONAL_PANE_INITIAL_WIDTH		540.0
+
+/* The key the profile is stored under. A string literal rather than a macro from
+ * a header, because that is what it has always been: CBPurpleAccount reads the
+ * very same literal out of GROUP_ACCOUNT_STATUS to answer a profile request.
+ */
+#define KEY_TEXT_PROFILE				@"textProfile"
+
+/* How tall the profile card is. A row measures its height from the view it was
+ * handed, and an AIMessageEntryTextView grows with its text (it is vertically
+ * resizable and the nib gave it a maximum height of ten million points): without
+ * a height fixed here the card would grow with every line the user types. The
+ * nib's scroll view was 167 points tall; 150 is that height less the space the
+ * nib spent on its own border.
+ */
+#define PROFILE_HEIGHT					150.0
+
+/* The profile card is an edge to edge row, which the form clips to the card's
+ * rounded corners - and a clipped layer swallows the focus ring AppKit draws
+ * *outside* a view. The scroll view therefore sits in a container with this much
+ * room around it, so the ring has somewhere to be drawn.
+ */
+#define PROFILE_RING_INSET				4.0
+
+/* The icon well. The nib drew it at 104 points and let the picker scale images
+ * down to 128; at 128 the well shows an icon at the size it is actually stored,
+ * which is also the size the contact list and every service use.
+ */
+#define USER_ICON_SIDE					128.0
+
+/* How long a text control gathers keystrokes before it stores what was typed.
+ *
+ * Not zero, and that is a deliberate exception to "every control writes at
+ * once": these two preferences are not private to this pane. Every enabled
+ * account watches GROUP_ACCOUNT_STATUS (-[AIAbstractAccount
+ * preferencesChangedForGroup:...]), and both keys are in its
+ * -supportedPropertyKeys, so *each* write runs the filter chain and pushes the
+ * result to the server - the display name as an alias, the profile as the
+ * account's info. Writing per keystroke would mean one server round trip per
+ * letter on every connected account, which is what the nib's delays were for.
+ *
+ * What the nib got wrong was not the delay but the flushing, and that is what is
+ * fixed here: the pending write is not tied to the pane staying on screen. It
+ * survives switching panes (nothing cancels it, and the preferences window keeps
+ * this pane alive), and it is forced out at every point where it could otherwise
+ * be lost - when editing ends, when the window closes and when Adium quits. The
+ * nib had only the last of those, and only for the window.
+ */
+#define SAVE_DELAY				0.4
+
+#define DISPLAY_NAME_TOOLTIP	AILocalizedString(@"Your name, which on supported services will be sent to remote contacts. Substitutions from the Edit->Scripts and Edit->iTunes menus may be used here.", nil)
+#define PROFILE_TOOLTIP			AILocalizedString(@"Profile to display when contacts request information about you (not supported by all services). Text may be formatted using the Edit and Format menus.", nil)
+
 @interface ESPersonalPreferences ()
-- (void)fireProfileChangesImmediately;
+- (AISettingsFormView *)buildSettingsForm;
 - (void)configureProfile;
 - (void)configureImageView;
-- (void)configureTooltips;
+- (void)saveDisplayName;
+- (void)saveProfile;
+- (void)flushPendingSaves:(NSNotification *)notification;
 @end
+
+/*!
+ * @brief A nib label reused as a section header: without its trailing colon.
+ *
+ * Keeps every existing translation of the old labels usable while matching the
+ * System Settings look, where neither a header nor a row label carries a colon.
+ */
+static NSString *AIRowLabel(NSString *label)
+{
+	NSCharacterSet	*whitespace = [NSCharacterSet whitespaceCharacterSet];
+	/* U+003A and the full width U+FF1A the CJK translations use ("プロフィール：") */
+	NSCharacterSet	*colons = [NSCharacterSet characterSetWithCharactersInString:@":："];
+	NSString		*trimmed = [label stringByTrimmingCharactersInSet:whitespace];
+
+	while ([trimmed length] > 0 &&
+		   [colons characterIsMember:[trimmed characterAtIndex:([trimmed length] - 1)]]) {
+		trimmed = [[trimmed substringToIndex:([trimmed length] - 1)] stringByTrimmingCharactersInSet:whitespace];
+	}
+
+	return trimmed;
+}
 
 @implementation ESPersonalPreferences
 
@@ -44,190 +120,626 @@
 - (NSString *)paneName{
     return AILocalizedString(@"Personal","Personal preferences label");
 }
-- (NSString *)nibName{
-    return @"PersonalPreferences";
-}
 - (NSImage *)paneIcon
 {
 	return [NSImage imageNamed:@"Personal" forClass:[self class]];
 }
+
+/* No -nibName: the pane builds its own view below, so AIModularPane never loads
+ * a nib for us. PersonalPreferences.xib is dead - and it must stay unloaded: it
+ * still wires outlets this class no longer has (matrix_userIcon,
+ * label_remoteAlias, label_profile), so loading it would raise
+ * NSUnknownKeyException rather than fall back to the old interface. Removing it
+ * from the target needs project file access we do not have here.
+ */
+
+#pragma mark View
+
+/*!
+ * @brief Build our view instead of loading a nib.
+ *
+ * Mirrors -[AIModularPane view] so the subclass hooks fire in the same order.
+ */
+- (NSView *)view
+{
+	if (!view) {
+		AISettingsFormView	*form = [self buildSettingsForm];
+
+		view = [form retain];
+
+		[self viewDidLoad];
+		[self localizePane];
+
+		/* -viewDidLoad fills the controls through the preference observer; the
+		 * icon may have arrived at a size of its own, so the form is measured
+		 * once more before the window ever sees it.
+		 */
+		[form layoutForWidth:NSWidth([form frame])];
+
+		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
+	}
+
+	return view;
+}
+
+/*!
+ * @brief Undo everything -view built.
+ *
+ * -closeView unregisters the preference observer, takes the pane out of the font
+ * panel, releases the view and is idempotent. Without it a deallocated pane
+ * would leave the preference controller holding a non-retained pointer to us and
+ * the font panel one to a freed text view.
+ */
+- (void)dealloc
+{
+	[self closeView];
+	[super dealloc];
+}
+
+/*!
+ * @brief Create the controls and stack them into cards.
+ *
+ * Three cards, where the nib had one view split by a vertical rule: the icon on
+ * the left, name and profile on the right. Each setting keeps the key and group
+ * its nib counterpart was bound to; only the presentation changes - and the
+ * moment at which the two text controls save (see -controlTextDidChange: and
+ * -textDidChange:).
+ */
+- (AISettingsFormView *)buildSettingsForm
+{
+	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:PERSONAL_PANE_INITIAL_WIDTH] autorelease];
+	NSString			*nameLabel = AIRowLabel(AILocalizedString(@"Name:",nil));
+
+	/* Card 1: the name */
+
+	//The nib's "Name:" label, kept as the card's section header
+	[form addSectionHeader:nameLabel];
+
+	textField_displayName = [AISettingsFormView textFieldWithTarget:self action:@selector(changePreference:)];
+	//...and as our delegate it also tells us about every keystroke, see -controlTextDidChange:
+	[textField_displayName setDelegate:self];
+
+	/* The address book name, shown in grey while the field is empty, exactly as
+	 * the nib did: it is what Adium falls back on, so it belongs in the field as
+	 * a promise rather than as text the user would have to delete.
+	 */
+	NSString	*defaultName = [[[adium.preferenceController defaultPreferenceForKey:KEY_ACCOUNT_DISPLAY_NAME
+																			   group:GROUP_ACCOUNT_STATUS
+																			  object:nil] attributedString] string];
+	[textField_displayName setPlaceholderString:(defaultName ? defaultName : @"")];
+
+	/* The card's header already says "Name", so the row carries no label of its
+	 * own - but a bare field has no title for VoiceOver to read, so it is named
+	 * here instead.
+	 */
+	[textField_displayName setAccessibilityLabel:nameLabel];
+
+	[form addRowWithLabel:nil stretchingControl:textField_displayName];
+	//The nib put this on the label and on the field; the form puts it on the whole row
+	[form setToolTip:DISPLAY_NAME_TOOLTIP forRowWithControl:textField_displayName];
+
+	/* Card 2: the profile */
+
+	//The nib's "Profile:" label, kept as the card's section header
+	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Profile:",nil))];
+
+	scrollView_profile = [[[AIAutoScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																			 PERSONAL_PANE_INITIAL_WIDTH - 2.0 * PROFILE_RING_INSET,
+																			 PROFILE_HEIGHT - 2.0 * PROFILE_RING_INSET)] autorelease];
+	/* No border of its own: the card around it is the frame now, and a bezel
+	 * inside a card would be a second one. The background stays the text
+	 * background, so the writing area is still visibly an editable field.
+	 */
+	[scrollView_profile setBorderType:NSNoBorder];
+	[scrollView_profile setDrawsBackground:YES];
+	[scrollView_profile setBackgroundColor:[NSColor textBackgroundColor]];
+	[scrollView_profile setHasVerticalScroller:YES];
+	[scrollView_profile setHasHorizontalScroller:NO];
+	[scrollView_profile setAutohidesScrollers:YES];
+	//An NSTextView draws no focus ring; the scroll view holding it draws one for it
+	[scrollView_profile setAlwaysDrawFocusRingIfFocused:YES];
+
+	/* Built to the size of the area it is about to fill rather than to a size of
+	 * its own: a document view wider than the clip view would scroll sideways, and
+	 * this one has no horizontal scroller to scroll with.
+	 */
+	NSRect					 profileFrame = [[scrollView_profile contentView] bounds];
+	AIMessageEntryTextView	*profileView = [[[AIMessageEntryTextView alloc] initWithFrame:profileFrame] autorelease];
+
+	/* Everything the nib set on the text view. It is an AIMessageEntryTextView for
+	 * the editing it brings - rich text, undo, the ruler, image pasting - but not
+	 * for its chat behaviour: nothing here is sent anywhere on Return.
+	 */
+	[profileView setSendingEnabled:NO];
+	[profileView setRichText:YES];
+	[profileView setImportsGraphics:YES];
+	[profileView setAllowsUndo:YES];
+	[profileView setUsesFontPanel:YES];
+	[profileView setUsesRuler:YES];
+	[profileView setEditable:YES];
+
+	/* Grows downwards with its text and never sideways, so the scroll view scrolls
+	 * rather than the text running off the edge. The text container follows the
+	 * view's width, which is what makes the text refold when the window is resized.
+	 */
+	[profileView setVerticallyResizable:YES];
+	[profileView setHorizontallyResizable:NO];
+	[profileView setMinSize:NSMakeSize(0.0, NSHeight(profileFrame))];
+	[profileView setMaxSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+	[profileView setAutoresizingMask:NSViewWidthSizable];
+	[[profileView textContainer] setContainerSize:NSMakeSize(NSWidth(profileFrame), CGFLOAT_MAX)];
+	[[profileView textContainer] setWidthTracksTextView:YES];
+
+	[scrollView_profile setDocumentView:profileView];
+
+	textView_profile = profileView;
+	[textView_profile setDelegate:self];
+
+	/* The font panel edits whatever its delegate is; without this, Format->Font
+	 * would have nothing to work on. It keeps the delegate without retaining it,
+	 * which is why -viewWillClose takes it back out again.
+	 */
+	[[NSFontPanel sharedFontPanel] setDelegate:(id <NSWindowDelegate>)textView_profile];
+
+	/* The card is the text area, the way a card is a list elsewhere - but with the
+	 * scroll view inside a container rather than handed over directly, because the
+	 * form clips an edge to edge row to the card's corners and would clip the
+	 * focus ring away with them.
+	 */
+	NSView	*profileContainer = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																		  PERSONAL_PANE_INITIAL_WIDTH,
+																		  PROFILE_HEIGHT)] autorelease];
+	[profileContainer setAutoresizesSubviews:YES];
+	[scrollView_profile setFrameOrigin:NSMakePoint(PROFILE_RING_INSET, PROFILE_RING_INSET)];
+	[scrollView_profile setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+	[profileContainer addSubview:scrollView_profile];
+
+	[form addEdgeToEdgeRow:profileContainer];
+
+	/* What the nib only offered as a tool tip over the label. It explains the whole
+	 * card rather than one control, and there is no row label left to hover over.
+	 */
+	[form addFootnote:PROFILE_TOOLTIP];
+
+	/* Card 3: the icon */
+
+	[form addSectionHeader:AILocalizedString(@"Icon",nil)];
+
+	/* The nib's two radio cells, with their titles and tool tips. A group rather
+	 * than a switch: both titles are already translated everywhere, and "no icon"
+	 * against "this icon" is a choice between two things rather than an option to
+	 * turn off.
+	 */
+	radio_noIcon = [AISettingsFormView radioButtonWithTitle:AILocalizedString(@"Use no icon",nil)
+													 target:self
+													 action:@selector(changePreference:)];
+	[radio_noIcon setToolTip:AILocalizedString(@"Do not use an icon to represent you.", nil)];
+
+	radio_useIcon = [AISettingsFormView radioButtonWithTitle:AIRowLabel(AILocalizedString(@"Use this icon:",nil))
+													  target:self
+													  action:@selector(changePreference:)];
+	[radio_useIcon setToolTip:AILocalizedString(@"Use the icon below to represent you.", nil)];
+
+	[form addRadioGroupWithLabel:nil
+						 buttons:[NSArray arrayWithObjects:radio_noIcon, radio_useIcon, nil]];
+
+	/* The well and the button that fills it, side by side. The well is given a
+	 * frame of its own because the row takes its height from it: an image view
+	 * has no natural size to fall back on.
+	 */
+	imageView_userIcon = [[[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																					   USER_ICON_SIDE,
+																					   USER_ICON_SIDE)] autorelease];
+	[imageView_userIcon setDelegate:self];
+	[imageView_userIcon setImageFrameStyle:NSImageFramePhoto];
+	[imageView_userIcon setImageScaling:NSImageScaleProportionallyDown];
+	[imageView_userIcon setAnimates:YES];
+	//As in the nib: the well is reached by clicking it, not by tabbing through the pane
+	[imageView_userIcon setRefusesFirstResponder:YES];
+	//The largest icon the picker hands back, not the size of the well
+	[imageView_userIcon setMaxSize:NSMakeSize(USER_ICON_SIDE, USER_ICON_SIDE)];
+	//A well shows a picture and has no title of its own for VoiceOver to read
+	[imageView_userIcon setAccessibilityLabel:AILocalizedString(@"Icon",nil)];
+
+	/* The button opens the picker on the well itself, exactly as the nib wired it:
+	 * its action belongs to the image view, and the preference is written when the
+	 * view tells us it has a new image (see the delegate methods below). Pointing
+	 * it at this pane instead would be a silent loss of function.
+	 */
+	button_chooseIcon = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Choose Icon...",nil)
+														target:imageView_userIcon
+														action:@selector(showImagePicker:)];
+
+	[form addFullWidthRow:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:imageView_userIcon, button_chooseIcon, nil]]
+				   stretch:NO];
+
+	return form;
+}
+
+#pragma mark Configuration
 
 /*!
  * @brief Configure the view initially
  */
 - (void)viewDidLoad
 {
-	//Localized text for the single-nib pane
-	[label_remoteAlias setStringValue:AILocalizedString(@"Name:",nil)];
-	[label_profile setStringValue:AILocalizedString(@"Profile:",nil)];
-	[button_chooseIcon setTitle:AILocalizedString(@"Choose Icon...",nil)];
-	[[matrix_userIcon cellWithTag:0] setTitle:AILocalizedString(@"Use no icon",nil)];
-	[[matrix_userIcon cellWithTag:1] setTitle:AILocalizedString(@"Use this icon:",nil)];
-
-	NSString *displayName = [[[adium.preferenceController preferenceForKey:KEY_ACCOUNT_DISPLAY_NAME
-																	   group:GROUP_ACCOUNT_STATUS] attributedString] string];
-	[textField_displayName setStringValue:(displayName ? displayName : @"")];
-	
-	//Set the default local alias (address book name) as the placeholder for the local alias
-	NSString *defaultAlias = [[[adium.preferenceController defaultPreferenceForKey:KEY_ACCOUNT_DISPLAY_NAME
-																			   group:GROUP_ACCOUNT_STATUS
-																			  object:nil] attributedString] string];
-	[[textField_displayName cell] setPlaceholderString:(defaultAlias ? defaultAlias : @"")];
-
+	/* The profile has no way back from the preferences (nothing else in Adium
+	 * writes it while this pane is open), so it is read once, here.
+	 */
 	[self configureProfile];
-	[self configureTooltips];
-	
-	if ([[adium.preferenceController preferenceForKey:KEY_USE_USER_ICON
-												  group:GROUP_ACCOUNT_STATUS] boolValue]) {
-		[matrix_userIcon selectCellWithTag:1];
-	} else {
-		[matrix_userIcon selectCellWithTag:0];		
-	}
 
-	[self configureControlDimming];
-
+	/* Fills the name field, the icon and the icon choice: the registration itself
+	 * calls us back with firstTime YES.
+	 */
 	[adium.preferenceController registerPreferenceObserver:self forGroup:GROUP_ACCOUNT_STATUS];
 
-	[imageView_userIcon setMaxSize:NSMakeSize(128.0f, 128.0f)];
+	/* Quitting is the one way out which reaches neither the end of an editing
+	 * session nor -viewWillClose; a keystroke made half a second before Cmd-Q
+	 * would be the one thing left that could go missing.
+	 */
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(flushPendingSaves:)
+												 name:NSApplicationWillTerminateNotification
+											   object:nil];
 
 	[super viewDidLoad];
 }
 
+/*!
+ * @brief The view is going away
+ *
+ * The window is closing (the only thing which reaches this method), so anything
+ * still waiting has to go out now and nothing may be left scheduled on a view
+ * which is about to be released. Unlike the nib's version, this is a last resort
+ * rather than the only chance: see SAVE_DELAY.
+ */
 - (void)viewWillClose
 {
+	[self flushPendingSaves:nil];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+													name:NSApplicationWillTerminateNotification
+												  object:nil];
+
+	//The controller keeps a non-retained pointer to us
 	[adium.preferenceController unregisterPreferenceObserver:self];
 
-	[textField_alias fireImmediately];
-	[textField_displayName fireImmediately];
-	[self fireProfileChangesImmediately];
+	/* The font panel keeps its delegate without retaining it and the text view is
+	 * about to be released with the form, so leaving it set points the panel at
+	 * freed memory. Only if it is still ours: another pane may have taken it over.
+	 */
+	if ([NSFontPanel sharedFontPanelExists] &&
+		[[NSFontPanel sharedFontPanel] delegate] == (id)textView_profile) {
+		[[NSFontPanel sharedFontPanel] setDelegate:nil];
+	}
 
-	[[NSFontPanel sharedFontPanel] setDelegate:nil];
+	//Non-retained delegates, all of them pointing at us
+	[textView_profile setDelegate:nil];
+	[textField_displayName setDelegate:nil];
+	[imageView_userIcon setDelegate:nil];
+
+	/* The form owns every control; these are the pane's non-owning references to
+	 * them and must not outlive the view.
+	 */
+	textField_displayName = nil;
+	scrollView_profile = nil;
+	textView_profile = nil;
+	radio_noIcon = nil;
+	radio_useIcon = nil;
+	button_chooseIcon = nil;
+	imageView_userIcon = nil;
 
 	[super viewWillClose];
 }
 
-- (void)changePreference:(id)sender
-{	
-	if (sender == textField_displayName) {
-		NSString *displayName = [textField_displayName stringValue];
-		
-		[adium.preferenceController setPreference:((displayName && [displayName length]) ?
-													 [[NSAttributedString stringWithString:displayName] dataRepresentation] :
-													 nil)
-											 forKey:KEY_ACCOUNT_DISPLAY_NAME
-											  group:GROUP_ACCOUNT_STATUS];
-
-	} else if (sender == textView_profile) {
-		[adium.preferenceController setPreference:[[textView_profile textStorage] dataRepresentation] 
-											 forKey:@"textProfile"
-											  group:GROUP_ACCOUNT_STATUS];
-
-	} else if (sender == matrix_userIcon) {
-		BOOL enableUserIcon = ([[matrix_userIcon selectedCell] tag] == 1);
-
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:enableUserIcon]
-											 forKey:KEY_USE_USER_ICON
-											  group:GROUP_ACCOUNT_STATUS];	
-	}else if (sender == button_enableMusicProfile) {
-		BOOL enableUserIcon = ([button_enableMusicProfile state] == NSControlStateValueOn);
-		
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:enableUserIcon]
-											 forKey:KEY_USE_USER_ICON
-											  group:GROUP_ACCOUNT_STATUS];	
-	}
-	
-	
-	[super changePreference:nil];
-}
-
+/*!
+ * @brief Dim what the icon choice switches off
+ *
+ * The well and its button follow the radio group, as they did in the nib. The
+ * form dims a row's label along with its control, so nothing else is needed.
+ */
 - (void)configureControlDimming
 {
-	BOOL enableUserIcon = ([[matrix_userIcon selectedCell] tag] == 1);
+	BOOL	enableUserIcon = ([radio_useIcon state] == NSControlStateValueOn);
 
 	[button_chooseIcon setEnabled:enableUserIcon];
-	[imageView_userIcon setEnabled:enableUserIcon];	
+	[imageView_userIcon setEnabled:enableUserIcon];
 }
 
+#pragma mark Reading the preferences
+
+/*!
+ * @brief A preference of our group changed: show it.
+ *
+ * Also our way in: -registerPreferenceObserver:forGroup: calls this with
+ * firstTime YES, which is what fills the controls initially.
+ */
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key
 							object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime
 {
-	if (object) return;
+	//Nothing here is set per account; an object-specific update is none of our business
+	if (object || ![group isEqualToString:GROUP_ACCOUNT_STATUS]) return;
 
-	if ([key isEqualToString:KEY_ACCOUNT_DISPLAY_NAME]) {
-		NSString *displayName = [textField_displayName stringValue];
-		NSString *newDisplayName = [[[prefDict objectForKey:KEY_ACCOUNT_DISPLAY_NAME] attributedString] string];
-		if (newDisplayName && ![displayName isEqualToString:newDisplayName]) {
+	if (firstTime || [key isEqualToString:KEY_ACCOUNT_DISPLAY_NAME]) {
+		id			 storedName = [prefDict objectForKey:KEY_ACCOUNT_DISPLAY_NAME];
+		id			 defaultName = [adium.preferenceController defaultPreferenceForKey:KEY_ACCOUNT_DISPLAY_NAME
+																				 group:GROUP_ACCOUNT_STATUS
+																				object:nil];
+		NSString	*newDisplayName;
+
+		/* prefDict is the set preferences with the defaults merged in
+		 * (-[AIPreferenceContainer dictionary]), and AIAddressBookController registers
+		 * the name of the "me" card as the default for this key. Put into the field as
+		 * text, that name would be text the user has to delete - and could not get rid
+		 * of, because an emptied field stores nothing (see -saveDisplayName), which
+		 * brings the default straight back through this very observer, on top of the
+		 * insertion point. The default belongs in the placeholder the field was built
+		 * with, so it is recognised here and the field is left empty for it.
+		 *
+		 * By comparison rather than by reading the set value on its own: there is no
+		 * public way to do the latter - -preferenceForKey:group:objectIgnoringInheritance:
+		 * ignores inheritance between list objects, not defaults. A user who types
+		 * exactly their address book name gets the placeholder instead of their text,
+		 * which reads the same and means the same.
+		 */
+		if (!storedName || (defaultName && [storedName isEqual:defaultName])) {
+			newDisplayName = @"";
+		} else {
+			newDisplayName = [[storedName attributedString] string];
+		}
+
+		/* And the promise itself is renewed here: the address book is read while Adium is already
+		 * running, so the default this field was built with may have been none at all.
+		 */
+		NSString	*defaultNameString = (defaultName ? [[defaultName attributedString] string] : nil);
+
+		[textField_displayName setPlaceholderString:(defaultNameString ? defaultNameString : @"")];
+
+		/* Only when it really differs. The field stores what was typed while the
+		 * pane is open, so this observer fires shortly after the user stops typing,
+		 * and -setStringValue: on a field still being edited would throw the
+		 * insertion point to the end of the line.
+		 */
+		if (newDisplayName && ![[textField_displayName stringValue] isEqualToString:newDisplayName]) {
 			[textField_displayName setStringValue:newDisplayName];
 		}
+	}
+
+	/* The nib had no way back for this one at all, so a change made elsewhere left
+	 * the radio group showing the wrong choice. Setting a button's state sends no
+	 * action, so writing the preference and hearing about it cannot loop.
+	 */
+	if (firstTime || [key isEqualToString:KEY_USE_USER_ICON]) {
+		BOOL	useUserIcon = [[prefDict objectForKey:KEY_USE_USER_ICON] boolValue];
+
+		[radio_noIcon setState:(useUserIcon ? NSControlStateValueOff : NSControlStateValueOn)];
+		[radio_useIcon setState:(useUserIcon ? NSControlStateValueOn : NSControlStateValueOff)];
 	}
 
 	if (firstTime || [key isEqualToString:KEY_USER_ICON] || [key isEqualToString:KEY_DEFAULT_USER_ICON]) {
 		[self configureImageView];
 	}
+
+	[self configureControlDimming];
 }
 
-#pragma mark Profile
+#pragma mark Changing preferences
+
+/*!
+ * @brief Called in response to the preference controls, applies new settings
+ *
+ * The icon choice writes the moment it is clicked. The preferences window only
+ * calls -closeView when it closes - switching to another pane takes the view out
+ * with -removeFromSuperview - so a control which waited for that would never be
+ * saved at all; what the two text controls do instead is described at SAVE_DELAY.
+ */
+- (IBAction)changePreference:(id)sender
+{
+	if (sender == textField_displayName) {
+		//Return, Tab or the focus moving away; nothing may be held back after that
+		[self saveDisplayName];
+
+	} else if (sender == radio_noIcon || sender == radio_useIcon) {
+		[adium.preferenceController setPreference:[NSNumber numberWithBool:(sender == radio_useIcon)]
+										   forKey:KEY_USE_USER_ICON
+											group:GROUP_ACCOUNT_STATUS];
+	}
+
+	[super changePreference:nil];
+}
+
+#pragma mark Saving what was typed
+
+/*!
+ * @brief Force out whatever is still waiting to be written.
+ *
+ * Every path which could end this pane's life, or Adium's, before a scheduled
+ * write comes due: the window closing (-viewWillClose) and the application
+ * quitting (NSApplicationWillTerminateNotification). Switching to another pane
+ * needs no entry here - it takes the view out of the window with
+ * -removeFromSuperview and leaves this pane, its controls and its scheduled
+ * write untouched, so the write happens by itself a moment later.
+ *
+ * Takes a notification so it can be an observer directly; it is called with nil
+ * as well.
+ */
+- (void)flushPendingSaves:(NSNotification *)notification
+{
+	if (displayNameSavePending) [self saveDisplayName];
+	if (profileSavePending) [self saveProfile];
+}
+
+#pragma mark The name
+
+/*!
+ * @brief Editing ended: Return, Tab or the focus moving away.
+ *
+ * The moment the field stops being edited nothing may be held back any more -
+ * the user is done with it, and clicking another pane in the sidebar ends the
+ * editing session before it takes the view out of the window.
+ *
+ * The field's cell sends its action on end of editing as well, so -saveDisplayName
+ * is reached twice here; it writes only once (see the pending flag there).
+ */
+- (void)controlTextDidEndEditing:(NSNotification *)notification
+{
+	if ([notification object] == textField_displayName) [self saveDisplayName];
+}
+
+/*!
+ * @brief A keystroke: write soon, and never mind whether an action follows.
+ *
+ * The field's action alone would not be enough. Adium never ends the editing
+ * session itself; it takes the pane out of the window with -removeFromSuperview
+ * and leaves it to AppKit whether an action still follows. See SAVE_DELAY for
+ * why this is not written on the spot.
+ */
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+	if ([notification object] != textField_displayName) return;
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(saveDisplayName)
+											   object:nil];
+	displayNameSavePending = YES;
+	[self performSelector:@selector(saveDisplayName) withObject:nil afterDelay:SAVE_DELAY];
+}
+
+- (void)saveDisplayName
+{
+	NSString	*displayName = [textField_displayName stringValue];
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(saveDisplayName)
+											   object:nil];
+
+	//Never without the field: an empty field means the default name, a missing one means nothing
+	if (!textField_displayName) {
+		displayNameSavePending = NO;
+		return;
+	}
+
+	/* Nothing has been typed since the last write, so there is nothing to write. The end of an
+	 * editing session reaches this method twice - once through -controlTextDidEndEditing: and once
+	 * through the field's action, which its cell sends on end of editing (AISettingsFormView's
+	 * +textFieldWithTarget:action:) - and a write which changes nothing is not free: AIPreferenceContainer
+	 * tells its observers even when the value is unchanged (deliberately, see -setValue:forKey:), so
+	 * every enabled account would run its filter chain and push the alias to its server a second
+	 * time. That is exactly the server traffic SAVE_DELAY exists to keep down.
+	 *
+	 * Safe as a test for "is there an edit to write", because the flag is set by every keystroke
+	 * (-controlTextDidChange:, which the field editor posts for pastes and drops as well) and is
+	 * cleared only here, right before the value goes out.
+	 */
+	if (!displayNameSavePending) return;
+
+	displayNameSavePending = NO;
+
+	//An empty field is not an empty name: it means "no name of my own", i.e. the default
+	[adium.preferenceController setPreference:((displayName && [displayName length]) ?
+											   [[NSAttributedString stringWithString:displayName] dataRepresentation] :
+											   nil)
+									   forKey:KEY_ACCOUNT_DISPLAY_NAME
+										group:GROUP_ACCOUNT_STATUS];
+}
+
+#pragma mark The profile
+
+/*!
+ * @brief Put the stored profile into the view.
+ *
+ * Through the text storage rather than through -setString: or
+ * -setAttributedString:, both of which post an NSTextDidChangeNotification of
+ * their own: filling the view would otherwise read as the user typing, and an
+ * empty profile would be written back over the stored one the moment the pane
+ * opens. The flag catches anything AppKit posts on top of that.
+ */
 - (void)configureProfile
 {
-	NSScrollView	*scrollView = [textView_profile enclosingScrollView];
-	if (scrollView && [scrollView isKindOfClass:[AIAutoScrollView class]]) {
-		[(AIAutoScrollView *)scrollView setAlwaysDrawFocusRingIfFocused:YES];
-	}
-	
-	if ([textView_profile isKindOfClass:[AIMessageEntryTextView class]]) {
-		/* We use the AIMessageEntryTextView to get nifty features for our text view, but we don't want to attempt
-		* to 'send' to a target on Enter or Return.
-		*/
-		[(AIMessageEntryTextView *)textView_profile setSendingEnabled:NO];
-	}
-
-	[[NSFontPanel sharedFontPanel] setDelegate:textView_profile];
-
-	NSData				*profileData = [adium.preferenceController preferenceForKey:@"textProfile"
-																				group:GROUP_ACCOUNT_STATUS];
+	NSData				*profileData = [adium.preferenceController preferenceForKey:KEY_TEXT_PROFILE
+																			  group:GROUP_ACCOUNT_STATUS];
 	NSAttributedString	*profile = (profileData ? [NSAttributedString stringWithData:profileData] : nil);
-	
-	if (profile && [profile length]) {
-		[[textView_profile textStorage] setAttributedString:profile];
-	} else {
-		[textView_profile setString:@""];
-	}	
+
+	configuringProfile = YES;
+	[[textView_profile textStorage] setAttributedString:(profile ? profile :
+														 [[[NSAttributedString alloc] initWithString:@""] autorelease])];
+	configuringProfile = NO;
 }
 
-- (void)fireProfileChangesImmediately
+/*!
+ * @brief The profile stopped being edited: write it now.
+ *
+ * A text view has no action to send, so this and -flushPendingSaves: are all
+ * there is. It fires when the focus leaves the profile - which is what clicking
+ * another pane in the sidebar does first of all.
+ */
+- (void)textDidEndEditing:(NSNotification *)aNotification
 {
-	[NSObject cancelPreviousPerformRequestsWithTarget:self
-											 selector:@selector(changePreference:)
-											   object:textView_profile];	
-	[self changePreference:textView_profile];
+	if ([aNotification object] == textView_profile) [self saveProfile];
 }
 
+/*!
+ * @brief The profile changed: write it soon.
+ *
+ * See SAVE_DELAY for why "soon" rather than "now"; unlike the nib's version, the
+ * write no longer depends on this pane still being on screen when it comes due.
+ */
 - (void)textDidChange:(NSNotification *)aNotification
 {
-	if ([aNotification object] == textView_profile) {		
-		[NSObject cancelPreviousPerformRequestsWithTarget:self
-												 selector:@selector(changePreference:)
-												   object:textView_profile];
-		[self performSelector:@selector(changePreference:)
-				   withObject:textView_profile
-				   afterDelay:1.0];
-	}
+	//The pane is filling the view itself, which is not the user typing
+	if (configuringProfile) return;
+
+	if ([aNotification object] != textView_profile) return;
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(saveProfile)
+											   object:nil];
+	profileSavePending = YES;
+	[self performSelector:@selector(saveProfile) withObject:nil afterDelay:SAVE_DELAY];
 }
 
-// AIImageViewWithImagePicker Delegate ---------------------------------------------------------------------
+- (void)saveProfile
+{
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(saveProfile)
+											   object:nil];
+
+	/* Never without the view: an empty text storage is a profile the user wrote,
+	 * a missing one is no profile at all, and the second would wipe the first.
+	 */
+	if (!textView_profile) {
+		profileSavePending = NO;
+		return;
+	}
+
+	/* Nothing written since the last save. As with the name (see -saveDisplayName), a write which
+	 * changes nothing still reaches every account's filter chain and its server, and the focus can
+	 * leave the profile long after the delayed write has already gone out.
+	 */
+	if (!profileSavePending) return;
+
+	profileSavePending = NO;
+
+	[adium.preferenceController setPreference:[[textView_profile textStorage] dataRepresentation]
+									   forKey:KEY_TEXT_PROFILE
+										group:GROUP_ACCOUNT_STATUS];
+}
+
 #pragma mark AIImageViewWithImagePicker Delegate
+
 - (void)imageViewWithImagePicker:(AIImageViewWithImagePicker *)sender didChangeToImageData:(NSData *)imageData
 {
 	[adium.preferenceController setPreference:imageData
-										 forKey:KEY_USER_ICON
-										  group:GROUP_ACCOUNT_STATUS];
+									   forKey:KEY_USER_ICON
+										group:GROUP_ACCOUNT_STATUS];
 }
 
 - (void)deleteInImageViewWithImagePicker:(AIImageViewWithImagePicker *)sender
 {
 	[adium.preferenceController setPreference:nil
-										 forKey:KEY_USER_ICON
-										  group:GROUP_ACCOUNT_STATUS];
+									   forKey:KEY_USER_ICON
+										group:GROUP_ACCOUNT_STATUS];
 
 	//User icon - restore to the default icon
 	[self configureImageView];
@@ -241,31 +753,15 @@
 - (void)configureImageView
 {
 	NSData *imageData = [adium.preferenceController preferenceForKey:KEY_USER_ICON
-																 group:GROUP_ACCOUNT_STATUS];
+															   group:GROUP_ACCOUNT_STATUS];
 	if (!imageData) {
 		imageData = [adium.preferenceController preferenceForKey:KEY_DEFAULT_USER_ICON
-															 group:GROUP_ACCOUNT_STATUS];
+														   group:GROUP_ACCOUNT_STATUS];
 	}
 
 	[imageView_userIcon setImage:(imageData ? [[[NSImage alloc] initWithData:imageData] autorelease] : nil)];
-	[imageView_userIcon setMaxSize:NSMakeSize(128.0f, 128.0f)];
+	[imageView_userIcon setMaxSize:NSMakeSize(USER_ICON_SIDE, USER_ICON_SIDE)];
 	[imageView_userIcon setShouldUpdateRecentRepository:YES];
-}
-
-- (void)configureTooltips
-{
-	[matrix_userIcon setToolTip:AILocalizedString(@"Do not use an icon to represent you.", nil)
-						forCell:[matrix_userIcon cellWithTag:0]];
-	[matrix_userIcon setToolTip:AILocalizedString(@"Use the icon below to represent you.", nil)
-						forCell:[matrix_userIcon cellWithTag:1]];
-
-#define DISPLAY_NAME_TOOLTIP AILocalizedString(@"Your name, which on supported services will be sent to remote contacts. Substitutions from the Edit->Scripts and Edit->iTunes menus may be used here.", nil)
-	[label_remoteAlias  setToolTip:DISPLAY_NAME_TOOLTIP];
-	[textField_displayName setToolTip:DISPLAY_NAME_TOOLTIP];
-
-#define PROFILE_TOOLTIP AILocalizedString(@"Profile to display when contacts request information about you (not supported by all services). Text may be formatted using the Edit and Format menus.", nil)
-	[label_profile setToolTip:PROFILE_TOOLTIP];
-	[textView_profile setToolTip:PROFILE_TOOLTIP];
 }
 
 @end

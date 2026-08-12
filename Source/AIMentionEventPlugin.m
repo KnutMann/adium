@@ -119,7 +119,22 @@
 		
 		for (NSString *mention in allMentions) {
 			if([regexPredicate evaluateWithObject:mention]) {
-				[predicates addObject:[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@", [NSString stringWithFormat:@".*%@.*", [mention substringWithRange:NSMakeRange(1, [mention length]-2)]]]];
+				NSString *pattern = [NSString stringWithFormat:@".*%@.*", [mention substringWithRange:NSMakeRange(1, [mention length]-2)]];
+				NSError *patternError = nil;
+
+				/* A term of the /.../ form is used as the user wrote it, so it can be a regular
+				 * expression which does not compile - and now more easily than before, because the
+				 * preference pane stores every keystroke (it has to: switching panes in the
+				 * preferences window would otherwise lose what was typed), so half typed states such
+				 * as "/a\/" reach us as well. NSPredicate compiles its pattern not here but at
+				 * -evaluateWithObject:, which happens below in -filterAttributedString:context: on an
+				 * incoming message: an ICU error would raise NSInvalidArgumentException there, out of
+				 * reach of anything that could handle it. Compile it here instead and leave out what
+				 * will not compile - the term simply does not match until it is finished. */
+				if (![NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&patternError])
+					continue;
+
+				[predicates addObject:[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@", pattern]];
 			} else {
 				[predicates addObject:[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@", [NSString stringWithFormat:@".*\\b%@\\b.*", [mention stringByEscapingForRegexp]]]];
 			}
