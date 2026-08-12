@@ -105,6 +105,7 @@ static const NSLayoutPriority AISettingsPriorityLabelReserve		= 700.0;
 static const NSLayoutPriority AISettingsPriorityControlFloor		= 710.0;
 static const NSLayoutPriority AISettingsPriorityNaturalCap			= 720.0;
 static const NSLayoutPriority AISettingsPriorityValueColumn		= 730.0;
+static const NSLayoutPriority AISettingsPrioritySliderCap			= 760.0;	//A capped slider holds its width until the card cannot spare it
 static const NSLayoutPriority AISettingsPriorityKeepFrame			= 900.0;	//An accessory is never resized at all
 static const NSLayoutPriority AISettingsPriorityCardWidth			= 900.0;	//Card tracks the form's width...
 static const NSLayoutPriority AISettingsPriorityCardWidthFloor		= 995.0;	//...but never collapses entirely
@@ -809,6 +810,8 @@ typedef enum {
 @end
 
 @implementation AISettingsFormView
+
+@synthesize maximumSliderWidth = maximumSliderWidth;
 
 - (instancetype)initWithWidth:(CGFloat)width
 {
@@ -1692,10 +1695,20 @@ typedef enum {
 	row->controlHost = host;
 	[rowView addSubview:host];
 
+	/* Uncapped, the slider fills the span between the label and the readout by pinning to both.
+	 * Capped, it takes a fixed width against the readout and lets the gap open on the label side,
+	 * so it sits at a moderate length on the right rather than running the whole card - the shape
+	 * a short control has. The leading pin loosens to >= so there is somewhere for that gap to go. */
+	BOOL capped = (maximumSliderWidth > 0.0);
+
 	[constraints addObjectsFromArray:
 	 @[(row->labelField ?
-		[host.leadingAnchor constraintEqualToAnchor:row->labelField.trailingAnchor constant:AISettingsLabelControlGap] :
-		[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH]),
+		(capped ?
+		 [host.leadingAnchor constraintGreaterThanOrEqualToAnchor:row->labelField.trailingAnchor constant:AISettingsLabelControlGap] :
+		 [host.leadingAnchor constraintEqualToAnchor:row->labelField.trailingAnchor constant:AISettingsLabelControlGap]) :
+		(capped ?
+		 [host.leadingAnchor constraintGreaterThanOrEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH] :
+		 [host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH])),
 	   (row->valueHost ?
 		[host.trailingAnchor constraintEqualToAnchor:row->valueHost.leadingAnchor constant:-AISettingsLabelControlGap] :
 		[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]),
@@ -1705,6 +1718,12 @@ typedef enum {
 		* the label column, so the column's equality is what breaks first. */
 	   AISettingsPrioritized([host.widthAnchor constraintGreaterThanOrEqualToConstant:AISettingsSliderMinWidth],
 							 AISettingsPrioritySliderMinWidth)]];
+
+	if (capped) {
+		//At the cap when there is room, giving way only if the card cannot even spare that much
+		[constraints addObject:AISettingsPrioritized([host.widthAnchor constraintEqualToConstant:maximumSliderWidth],
+													  AISettingsPrioritySliderCap)];
+	}
 
 	[NSLayoutConstraint activateConstraints:constraints];
 	[self constrainHeightFloorOfRow:rowView];

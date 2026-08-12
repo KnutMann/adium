@@ -64,8 +64,18 @@
 	NSStackView			*formStack;				//The one vertical stack everything hangs off
 	NSLayoutConstraint	*formWidthConstraint;	//How -layoutForWidth: hands the stack its width
 	CGFloat				 contentHeight;			//Height of the laid out content
+	CGFloat				 maximumSliderWidth;	//0: sliders fill their row; >0: capped to this and right aligned
 	BOOL				 needsFormLayout;
 }
+
+/*!
+ * @brief Cap the width of every slider row added after this, or 0 to fill.
+ *
+ * A capped slider takes a fixed width against its readout and leaves the gap on
+ * the label side, rather than running the full width of the card. Set it before
+ * adding the rows it should govern.
+ */
+@property (nonatomic) CGFloat maximumSliderWidth;
 
 /*!
  * @brief Create a form that starts out @a width points wide.

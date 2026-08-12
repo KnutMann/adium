@@ -177,6 +177,11 @@ static NSString *AIRowLabel(NSString *label)
 {
 	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:APPEARANCE_PANE_INITIAL_WIDTH] autorelease];
 
+	/* Opacity and width are settings, not a canvas: a slider running the whole card reads as the
+	 * main event of its row, which these are not. Capped to the moderate length the events pane's
+	 * volume slider has, sitting on the right by its readout. */
+	[form setMaximumSliderWidth:200.0];
+
 	//Contact list window
 	[form addSectionHeader:AILocalizedString(@"Contact List","Section header in appearance preferences")];
 
