@@ -30,15 +30,13 @@
 	
 	NSMutableDictionary				*previousStatus;
 	NSMutableSet					*accountsToReconnect;
-	
-	BOOL							fastUserSwitchEnabled;
-	BOOL							screenSaverEnabled;
-	BOOL							idleStatusEnabled;
-	BOOL							reportIdleEnabled;
-	
-	double							idleReportInterval;
-	double							idleStatusInterval;
-	
+
+	/* One switch and one duration carry both halves of being idle now: the contacts are told about
+	 * it, and if a status was chosen, that status is set. Fast user switching and the screen saver
+	 * have no switch of their own any more - their menu standing on "Do not change" is their off. */
+	BOOL							idleEnabled;
+	double							idleInterval;
+
 	unsigned						automaticStatusBitMap;
 }
 

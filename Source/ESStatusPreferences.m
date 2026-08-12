@@ -69,6 +69,8 @@
 - (void)refreshDisplayedValues;
 - (void)showMinutes:(double)minutes inField:(NSTextField *)field stepper:(NSStepper *)stepper;
 - (void)configureAutoAwayStatusStatePopUp;
+- (void)prependDoNotChangeItemToMenu:(NSMenu *)menu action:(SEL)action;
+- (NSNumber *)statusIDForSelectedMenuItem:(id)sender;
 - (void)commitMinutesFromField:(NSTextField *)field
 					   stepper:(NSStepper *)stepper
 						sender:(id)sender
@@ -217,20 +219,15 @@
 											stepper:stepper_idleMinutes
 										  unitLabel:label_idleMinutes]];
 
-	checkBox_autoAway = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Change my status when idle","Switch for setting a status automatically after a while of inactivity")
-				  control:checkBox_autoAway];
-
-	[form addRowWithLabel:AILocalizedString(@"Change my status after","Label of the field holding how many minutes of inactivity change the status")
-				  control:[self minutesRowWithField:textField_autoAwayMinutes
-											stepper:stepper_autoAwayMinutes
-										  unitLabel:label_autoAwayMinutes]];
-
 	/* A pop up row rather than a plain control row: the menu is rebuilt whenever the saved
 	 * statuses change, and the button then has to be free to grow and to shrink again. */
 	[form addRowWithLabel:AILocalizedString(@"Change my status to","Label of the menu holding the status set after a while of inactivity")
 			  popUpButton:popUp_autoAwayStatusState
 		  accessoryButton:nil];
+
+	/* Says out loud what the merged setting does: the same duration carries both halves. Without
+	 * it nothing on screen would tell the user when the status above is going to be set. */
+	[form addDetailRow:AILocalizedString(@"Adium changes to this status after the same time.","Explanation under the menu holding the status set after a while of inactivity")];
 
 	checkBox_awayReminder = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
 	[form addRowWithLabel:AILocalizedString(@"Remind me while away","Switch for being reminded now and then that one's status is still away")
@@ -244,17 +241,9 @@
 	//Card 3: the status changes Adium makes on its own
 	[form addSectionHeader:AILocalizedString(@"Automatic Status Changes","Section title above the fast user switching and screen saver status settings")];
 
-	checkBox_fastUserSwitching = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"When Fast User Switching is activated","Switch for changing the status when another user logs in")
-				  control:checkBox_fastUserSwitching];
-
 	[form addRowWithLabel:AILocalizedString(@"Status after switching users","Label of the menu holding the status set when another user logs in")
 			  popUpButton:popUp_fastUserSwitchingStatusState
 		  accessoryButton:nil];
-
-	checkBox_screenSaver = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"When the screen saver starts","Switch for changing the status while the screen saver runs")
-				  control:checkBox_screenSaver];
 
 	[form addRowWithLabel:AILocalizedString(@"Status while the screen saver runs","Label of the menu holding the status set while the screen saver runs")
 			  popUpButton:popUp_screenSaverStatusState
@@ -329,14 +318,13 @@
 	//Same for everything else we handed a target or a delegate to
 	for (NSControl *control in [NSArray arrayWithObjects:
 								button_addOrRemoveState, button_addGroup, button_editState,
-								checkBox_idle, checkBox_autoAway, checkBox_awayReminder,
-								checkBox_fastUserSwitching, checkBox_screenSaver,
-								stepper_idleMinutes, stepper_autoAwayMinutes, stepper_awayReminderMinutes,
+								checkBox_idle, checkBox_awayReminder,
+								stepper_idleMinutes, stepper_awayReminderMinutes,
 								nil]) {
 		[control setTarget:nil];
 	}
 	for (NSTextField *field in [NSArray arrayWithObjects:
-								textField_idleMinutes, textField_autoAwayMinutes, textField_awayReminderMinutes,
+								textField_idleMinutes, textField_awayReminderMinutes,
 								nil]) {
 		[field setTarget:nil];
 		[field setDelegate:nil];
@@ -360,18 +348,12 @@
 	button_addGroup = nil;
 	button_editState = nil;
 	checkBox_idle = nil;
-	checkBox_autoAway = nil;
 	checkBox_awayReminder = nil;
-	checkBox_fastUserSwitching = nil;
-	checkBox_screenSaver = nil;
 	textField_idleMinutes = nil;
-	textField_autoAwayMinutes = nil;
 	textField_awayReminderMinutes = nil;
 	stepper_idleMinutes = nil;
-	stepper_autoAwayMinutes = nil;
 	stepper_awayReminderMinutes = nil;
 	label_idleMinutes = nil;
-	label_autoAwayMinutes = nil;
 	label_awayReminderMinutes = nil;
 	popUp_autoAwayStatusState = nil;
 	popUp_fastUserSwitchingStatusState = nil;
@@ -1148,17 +1130,6 @@
 			  inField:textField_idleMinutes
 			  stepper:stepper_idleMinutes];
 
-	[checkBox_autoAway setState:([[prefDict objectForKey:KEY_STATUS_AUTO_AWAY] boolValue] ?
-								 NSControlStateValueOn : NSControlStateValueOff)];
-	[self showMinutes:([[prefDict objectForKey:KEY_STATUS_AUTO_AWAY_INTERVAL] doubleValue] / 60.0)
-			  inField:textField_autoAwayMinutes
-			  stepper:stepper_autoAwayMinutes];
-
-	[checkBox_fastUserSwitching setState:([[prefDict objectForKey:KEY_STATUS_FUS] boolValue] ?
-										  NSControlStateValueOn : NSControlStateValueOff)];
-	[checkBox_screenSaver setState:([[prefDict objectForKey:KEY_STATUS_SS] boolValue] ?
-									NSControlStateValueOn : NSControlStateValueOff)];
-
 	[checkBox_awayReminder setState:([[prefDict objectForKey:KEY_STATUS_AWAY_REMINDER] boolValue] ?
 									 NSControlStateValueOn : NSControlStateValueOff)];
 	[self showMinutes:([[prefDict objectForKey:KEY_STATUS_AWAY_REMINDER_INTERVAL] doubleValue] / 60.0)
@@ -1179,8 +1150,7 @@
 - (void)refreshDisplayedValues
 {
 	for (NSTextField *field in [NSArray arrayWithObjects:
-								textField_idleMinutes, textField_autoAwayMinutes,
-								textField_awayReminderMinutes, nil]) {
+								textField_idleMinutes, textField_awayReminderMinutes, nil]) {
 		if ([field currentEditor]) return;
 	}
 
@@ -1225,12 +1195,15 @@
 	showingSubmenuItemInScreenSaver = NO;
 
 	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedAutoAwayStatus:)];
+	[self prependDoNotChangeItemToMenu:statusStatesMenu action:@selector(changedAutoAwayStatus:)];
 	[popUp_autoAwayStatusState setMenu:statusStatesMenu];
-	
-	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedFastUserSwitchingStatus:)];	
+
+	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedFastUserSwitchingStatus:)];
+	[self prependDoNotChangeItemToMenu:statusStatesMenu action:@selector(changedFastUserSwitchingStatus:)];
 	[popUp_fastUserSwitchingStatusState setMenu:[[statusStatesMenu copy] autorelease]];
-	
-	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedScreenSaverStatus:)];	
+
+	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedScreenSaverStatus:)];
+	[self prependDoNotChangeItemToMenu:statusStatesMenu action:@selector(changedScreenSaverStatus:)];
 	[popUp_screenSaverStatusState setMenu:[[statusStatesMenu copy] autorelease]];
 
 	//Now select the proper state, or deselect all items if there is no chosen state or the chosen state doesn't exist
@@ -1249,6 +1222,26 @@
 	/* A pop up row is measured afresh at every layout, so a menu which just gained or lost a
 	 * status only needs to be told that a layout is due. */
 	[[self settingsForm] noteContentSizeChanged];
+}
+
+/*!
+ * @brief Put "Do not change" plus a separator at the top of a status menu
+ *
+ * This entry <em>is</em> the off switch of an automatic status change; the three checkboxes which
+ * used to do that job are gone, and a checkbox whose meaning lives in a menu below it said the same
+ * thing twice. Its represented object is deliberately nil, so -changed…Status: recognises it by
+ * finding no status behind it and writes STATUS_STATE_ID_NONE.
+ */
+- (void)prependDoNotChangeItemToMenu:(NSMenu *)menu action:(SEL)action
+{
+	NSMenuItem	*doNotChange = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Do not change","First entry of the menus choosing a status Adium sets on its own; it means: leave the status alone")
+														  action:action
+												   keyEquivalent:@""] autorelease];
+
+	[doNotChange setTarget:self];
+
+	[menu insertItem:[NSMenuItem separatorItem] atIndex:0];
+	[menu insertItem:doNotChange atIndex:0];
 }
 
 /*!
@@ -1281,6 +1274,11 @@
 
 /*!
  * @brief Select a status with uniqueID in inPopUpButton
+ *
+ * An ID no status answers to — STATUS_STATE_ID_NONE, or one whose status has since been deleted —
+ * selects the first entry, "Do not change". It has to select something now: the menus are the only
+ * place left where an automatic status change is switched off, and a button showing nothing at all
+ * would not say which of its entries is in force.
  */
 - (void)_selectStatusWithUniqueID:(NSNumber *)uniqueID inPopUpButton:(NSPopUpButton *)inPopUpButton
 {
@@ -1289,19 +1287,27 @@
 	if (uniqueID) {
 		NSInteger			 targetUniqueStatusID= [uniqueID integerValue];
 
-		for (menuItem in [self addItemsFromMenu:[inPopUpButton menu] toArray:nil]) {
+		for (NSMenuItem *candidate in [self addItemsFromMenu:[inPopUpButton menu] toArray:nil]) {
 			AIStatusItem	*statusState;
-			
-			statusState = [[menuItem representedObject] objectForKey:@"AIStatus"];
 
-			//Found the right status by matching its status ID to our preferred one
-			if ([statusState preexistingUniqueStatusID] == targetUniqueStatusID) {
+			statusState = [[candidate representedObject] objectForKey:@"AIStatus"];
+
+			/* Found the right status by matching its status ID to our preferred one. Only an item
+			 * with a real status behind it may match: separators and our own "Do not change" carry
+			 * no represented object, and [nil preexistingUniqueStatusID] is 0 - which would answer
+			 * to a stored ID of 0 and select a separator. */
+			if (statusState && ([statusState preexistingUniqueStatusID] == targetUniqueStatusID)) {
+				menuItem = candidate;
 				break;
 			}
 		}
 	}
 
-	if (menuItem) {
+	if (!menuItem) {
+		//Nothing to select: fall back on "Do not change", which we put at the top ourselves
+		if ([[inPopUpButton menu] numberOfItems]) [inPopUpButton selectItemAtIndex:0];
+
+	} else {
 		[inPopUpButton selectItem:menuItem];
 
 		//Add it if we weren't able to select it initially
@@ -1325,29 +1331,28 @@
 /*!
  * @brief Configure control dimming for idle, auto-away, etc., preferences.
  *
- * Unchanged in what it dims: every dependent control still follows the switch above it. The three
- * unit labels are new here — in the old layout the checkbox carried its own words, while a row of
- * the form has a label of its own which follows the enabled state of the trailing-most control of
- * the row. That is the unit label, so without these three lines the labels on the left would never
- * grey out with their row.
+ * Every dependent control still follows the switch above it. The two unit labels are here because a
+ * row of the form has a label of its own which follows the enabled state of the trailing-most
+ * control of the row — that is the unit label, so without these lines the labels on the left would
+ * never grey out with their row.
+ *
+ * Two of the three status menus are never dimmed: the ones for the fast user switch and for the
+ * screen saver carry their own off switch in their first entry, and nothing above them could take
+ * them away. The third is not like them. It hangs on the switch for being reported as idle, because
+ * AIAutomaticStatus only ever sets the idle bit inside "reporting is on and the duration has run
+ * out" — with the switch off, a status chosen here would never be set. Left black and usable it
+ * would be exactly the thing this pane was rebuilt to be rid of, only the other way round: not a
+ * setting which works while being invisible, but one which is visible while doing nothing.
  */
 - (void)configureControlDimming
 {
-	BOOL	idleControlsEnabled, autoAwayControlsEnabled, awayReminderControlsEnabled;
+	BOOL	idleControlsEnabled, awayReminderControlsEnabled;
 
 	idleControlsEnabled = ([checkBox_idle state] == NSControlStateValueOn);
 	[textField_idleMinutes setEnabled:idleControlsEnabled];
 	[stepper_idleMinutes setEnabled:idleControlsEnabled];
 	[label_idleMinutes setEnabled:idleControlsEnabled];
-
-	autoAwayControlsEnabled = ([checkBox_autoAway state] == NSControlStateValueOn);
-	[popUp_autoAwayStatusState setEnabled:autoAwayControlsEnabled];
-	[textField_autoAwayMinutes setEnabled:autoAwayControlsEnabled];
-	[stepper_autoAwayMinutes setEnabled:autoAwayControlsEnabled];
-	[label_autoAwayMinutes setEnabled:autoAwayControlsEnabled];
-
-	[popUp_fastUserSwitchingStatusState setEnabled:([checkBox_fastUserSwitching state] == NSControlStateValueOn)];
-	[popUp_screenSaverStatusState setEnabled:([checkBox_screenSaver state] == NSControlStateValueOn)];
+	[popUp_autoAwayStatusState setEnabled:idleControlsEnabled];
 
 	awayReminderControlsEnabled = ([checkBox_awayReminder state] == NSControlStateValueOn);
 	[textField_awayReminderMinutes setEnabled:awayReminderControlsEnabled];
@@ -1358,7 +1363,7 @@
 /*!
  * @brief Change preference
  *
- * Sent when one of the five switches is clicked. Each of them writes there and then: the
+ * Sent when one of the two switches is clicked. Each of them writes there and then: the
  * preferences window only calls -closeView when it closes — switching to another pane takes the
  * view out with -removeFromSuperview — so there is no later point at which anything could be
  * saved.
@@ -1372,24 +1377,9 @@
 											 forKey:KEY_STATUS_REPORT_IDLE
 											  group:PREF_GROUP_STATUS_PREFERENCES];
 
-	} else if (sender == checkBox_autoAway) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([checkBox_autoAway state] == NSControlStateValueOn)]
-											 forKey:KEY_STATUS_AUTO_AWAY
-											  group:PREF_GROUP_STATUS_PREFERENCES];
-
 	} else if (sender == checkBox_awayReminder) {
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:([checkBox_awayReminder state] == NSControlStateValueOn)]
 											 forKey:KEY_STATUS_AWAY_REMINDER
-											  group:PREF_GROUP_STATUS_PREFERENCES];
-
-	} else if (sender == checkBox_fastUserSwitching) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([checkBox_fastUserSwitching state] == NSControlStateValueOn)]
-											 forKey:KEY_STATUS_FUS
-											  group:PREF_GROUP_STATUS_PREFERENCES];
-
-	} else if (sender == checkBox_screenSaver) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:([checkBox_screenSaver state] == NSControlStateValueOn)]
-											 forKey:KEY_STATUS_SS
 											  group:PREF_GROUP_STATUS_PREFERENCES];
 
 	}
@@ -1433,11 +1423,24 @@
 	
 	return nowShowing;
 }
-- (void)changedAutoAwayStatus:(id)sender
+/*!
+ * @brief The status ID a menu item stands for, or "do not change" for the first entry
+ *
+ * The "Do not change" item carries no represented object, and STATUS_STATE_ID_NONE is what has to
+ * be written for it — not nil, which would let the default take over again.
+ */
+- (NSNumber *)statusIDForSelectedMenuItem:(id)sender
 {
 	AIStatus	*statusState = [[sender representedObject] objectForKey:@"AIStatus"];
 
-	[adium.preferenceController setPreference:[statusState uniqueStatusID]
+	return (statusState ?
+			[statusState uniqueStatusID] :
+			[NSNumber numberWithInteger:STATUS_STATE_ID_NONE]);
+}
+
+- (void)changedAutoAwayStatus:(id)sender
+{
+	[adium.preferenceController setPreference:[self statusIDForSelectedMenuItem:sender]
 										 forKey:KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID
 										  group:PREF_GROUP_STATUS_PREFERENCES];
 
@@ -1448,12 +1451,10 @@
 
 - (void)changedFastUserSwitchingStatus:(id)sender
 {
-	AIStatus	*statusState = [[sender representedObject] objectForKey:@"AIStatus"];
-
-	[adium.preferenceController setPreference:[statusState uniqueStatusID]
+	[adium.preferenceController setPreference:[self statusIDForSelectedMenuItem:sender]
 										 forKey:KEY_STATUS_FUS_STATUS_STATE_ID
 										  group:PREF_GROUP_STATUS_PREFERENCES];
-	
+
 	showingSubmenuItemInFastUserSwitching = [self addItemIfNeeded:sender
 													toPopUpButton:popUp_fastUserSwitchingStatusState
 											 alreadyShowingAnItem:showingSubmenuItemInFastUserSwitching];
@@ -1461,12 +1462,10 @@
 
 - (void)changedScreenSaverStatus:(id)sender
 {
-	AIStatus	*statusState = [[sender representedObject] objectForKey:@"AIStatus"];
-	
-	[adium.preferenceController setPreference:[statusState uniqueStatusID]
+	[adium.preferenceController setPreference:[self statusIDForSelectedMenuItem:sender]
 										 forKey:KEY_STATUS_SS_STATUS_STATE_ID
 										  group:PREF_GROUP_STATUS_PREFERENCES];
-	
+
 	showingSubmenuItemInScreenSaver = [self addItemIfNeeded:sender
 													toPopUpButton:popUp_screenSaverStatusState
 											 alreadyShowingAnItem:showingSubmenuItemInScreenSaver];
@@ -1475,7 +1474,7 @@
 /*!
  * @brief A minutes field or its stepper changed; write that interval now
  *
- * The one place all three time settings are written. Every click of a stepper and every keystroke
+ * The one place both time settings are written. Every click of a stepper and every keystroke
  * in a field lands here, and the value goes straight into the preferences: the preferences window
  * only calls -closeView when the window itself closes, so leaving this pane through the sidebar is
  * not a point at which anything could still be saved. The old pane wrote the idle and auto away
@@ -1489,12 +1488,6 @@
 							 stepper:stepper_idleMinutes
 							  sender:sender
 							  forKey:KEY_STATUS_REPORT_IDLE_INTERVAL];
-
-	} else if (sender == stepper_autoAwayMinutes || sender == textField_autoAwayMinutes) {
-		[self commitMinutesFromField:textField_autoAwayMinutes
-							 stepper:stepper_autoAwayMinutes
-							  sender:sender
-							  forKey:KEY_STATUS_AUTO_AWAY_INTERVAL];
 
 	} else if (sender == stepper_awayReminderMinutes || sender == textField_awayReminderMinutes) {
 		[self commitMinutesFromField:textField_awayReminderMinutes

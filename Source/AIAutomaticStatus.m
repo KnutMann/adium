@@ -33,6 +33,7 @@ typedef enum {
 
 @interface AIAutomaticStatus ()
 - (void)notificationHandler:(NSNotification *)notification;
+- (void)applyAutomaticStatus;
 - (void)triggerAutoAwayWithStatusID:(NSNumber *)statusID;
 - (void)returnFromAutoAway;
 @end
@@ -173,25 +174,46 @@ typedef enum {
 		return;
 	}
 
-	// Idle reporting
-	reportIdleEnabled = [[prefDict objectForKey:KEY_STATUS_REPORT_IDLE] boolValue];
-	idleReportInterval = [[prefDict objectForKey:KEY_STATUS_REPORT_IDLE_INTERVAL] doubleValue];
-	
+	/* One switch, one duration. The name of the preference is inherited and now says less than it
+	 * does: once the duration has run out we report the idleness AND, if a status was chosen for it,
+	 * we set that status. The second, separate stage which used to do the latter was, on screen,
+	 * indistinguishable from the first. */
+	idleEnabled = [[prefDict objectForKey:KEY_STATUS_REPORT_IDLE] boolValue];
+	idleInterval = [[prefDict objectForKey:KEY_STATUS_REPORT_IDLE_INTERVAL] doubleValue];
+
 	// Idle status change
 	[idleStatusID release];
 	idleStatusID = [[prefDict objectForKey:KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID] retain];
-	idleStatusEnabled = [[prefDict objectForKey:KEY_STATUS_AUTO_AWAY] boolValue];
-	idleStatusInterval = [[prefDict objectForKey:KEY_STATUS_AUTO_AWAY_INTERVAL] doubleValue];
-	
+
 	// Fast user switch
 	[fastUserSwitchID release];
 	fastUserSwitchID = [[prefDict objectForKey:KEY_STATUS_FUS_STATUS_STATE_ID] retain];
-	fastUserSwitchEnabled = [[prefDict objectForKey:KEY_STATUS_FUS] boolValue];
-	
+
 	// Screensaver
 	[screenSaverID release];
 	screenSaverID = [[prefDict objectForKey:KEY_STATUS_SS_STATUS_STATE_ID] retain];
-	screenSaverEnabled = [[prefDict objectForKey:KEY_STATUS_SS] boolValue];
+
+	/* Whoever throws the switch while already idle would otherwise stay idle until the next
+	 * keystroke: nobody clears up afterwards, since the machine is active event is what does that
+	 * and it has long since passed. */
+	if (!idleEnabled) {
+		/* Only when there is something to clear. Every keystroke in either minutes field of the
+		 * status pane writes a preference of this group and so reaches us, and a write is passed on
+		 * to the observers whether it changed anything or not (AIPreferenceContainer) - each
+		 * account would answer a clearing of an already clear idle time with another
+		 * purple_presence_set_idle out onto the network. */
+		if ([adium.preferenceController preferenceForKey:@"idleSince"
+												   group:GROUP_ACCOUNT_STATUS]) {
+			[adium.preferenceController setPreference:nil
+											   forKey:@"idleSince"
+												group:GROUP_ACCOUNT_STATUS];
+		}
+
+		if (automaticStatusBitMap & AIAwayIdle) {
+			automaticStatusBitMap &= ~AIAwayIdle;
+			[self applyAutomaticStatus];
+		}
+	}
 }
 
 /*!
@@ -214,46 +236,48 @@ typedef enum {
 	// Start events
 	if ([notificationName isEqualToString:NSWorkspaceSessionDidResignActiveNotification]) {
 		AILogWithSignature(@"Fast user switch (start) detected");
-		
-		if (fastUserSwitchEnabled) automaticStatusBitMap |= AIAwayFastUserSwitched;
-		
+
+		automaticStatusBitMap |= AIAwayFastUserSwitched;
+
 	} else if ([notificationName isEqualToString:AIScreensaverDidStartNotification]) {
 		AILogWithSignature(@"Screensaver (start) detected.");
-		
-		if (screenSaverEnabled) automaticStatusBitMap |= AIAwayScreenSaved;
-		
+
+		automaticStatusBitMap |= AIAwayScreenSaved;
+
 	} else if ([notificationName isEqualToString:AIMachineIdleUpdateNotification]) {
 		double duration = [[[notification userInfo] objectForKey:@"Duration"] doubleValue];
-		
-		if (reportIdleEnabled && duration >= idleReportInterval) {
+
+		if (idleEnabled && duration >= idleInterval) {
 			NSDate *idleSince = [[notification userInfo] objectForKey:@"idleSince"];
-			
-			
+
+
 			if ((NSInteger)[[adium.preferenceController preferenceForKey:@"idleSince"
 																   group:GROUP_ACCOUNT_STATUS] timeIntervalSince1970] !=
 				(NSInteger)[idleSince timeIntervalSince1970]) {
-				
+
 				AILogWithSignature(@"Idle (start) detected. %@ -> %@", [adium.preferenceController preferenceForKey:@"idleSince"
 																											  group:GROUP_ACCOUNT_STATUS], idleSince);
-				
+
 				// Update our idle time
 				[adium.preferenceController setPreference:[[notification userInfo] objectForKey:@"idleSince"]
 												   forKey:@"idleSince"
 													group:GROUP_ACCOUNT_STATUS];
 			}
-		}
-		
-		if (idleStatusEnabled && duration >= idleStatusInterval && !(automaticStatusBitMap & AIAwayIdle)) {
-			
-			AILogWithSignature(@"Auto-away (start) detected.");
 
-			automaticStatusBitMap |= AIAwayIdle;
+			/* The same event carries the other half. Whether a status change really comes of it is
+			 * decided further down by the chosen status ID alone: with the menu on "Do not change"
+			 * it resolves to no status at all and the idleness is merely reported. */
+			if (!(automaticStatusBitMap & AIAwayIdle)) {
+				AILogWithSignature(@"Auto-away (start) detected.");
+
+				automaticStatusBitMap |= AIAwayIdle;
+			}
 		}
-		
+
 	} if ([notificationName isEqualToString:AIScreenLockDidStartNotification]) {
 		AILogWithSignature(@"Screenlock (start) detected.");
-		
-		if (screenSaverEnabled) automaticStatusBitMap |= AIAwayScreenLocked;
+
+		automaticStatusBitMap |= AIAwayScreenLocked;
 	}
 	
 	// End events
@@ -271,17 +295,18 @@ typedef enum {
 		
 		if (automaticStatusBitMap & AIAwayIdle) {
 			AILogWithSignature(@"Auto-away (end) detected.");
-			
+
 			automaticStatusBitMap &= ~AIAwayIdle;
 		}
-		
-		if (reportIdleEnabled) {
-			AILogWithSignature(@"Idle (end) detected.");
-			[adium.preferenceController setPreference:nil
-											   forKey:@"idleSince"
-												group:GROUP_ACCOUNT_STATUS];
-		}
-		
+
+		/* Unconditionally: this used to hang on the switch being on, so whoever turned it off while
+		 * idle was reported as idle for good - nothing ever cleared it up again. */
+		AILogWithSignature(@"Idle (end) detected.");
+		[adium.preferenceController setPreference:nil
+										   forKey:@"idleSince"
+											group:GROUP_ACCOUNT_STATUS];
+
+
 	} else if ([notificationName isEqualToString:AIScreenLockDidStopNotification]) {
 		AILogWithSignature(@"Screenlock (end) detected.");
 		
@@ -290,25 +315,45 @@ typedef enum {
 	
 	// Check if a change in status is required: if so, look for the one with the highest priority
 	if (oldBitMap != automaticStatusBitMap) {
-		NSNumber *statusID = nil;
-		
-		if (automaticStatusBitMap & AIAwayFastUserSwitched)
-			statusID = fastUserSwitchID;
-
-		else if ((automaticStatusBitMap & AIAwayScreenLocked)
-				 || (automaticStatusBitMap & AIAwayScreenSaved))
-			statusID = screenSaverID;
-			
-		else if (automaticStatusBitMap & AIAwayIdle)	
-			statusID = idleStatusID;
-			
-		else
-			[self returnFromAutoAway];
-		
-		if (statusID)
-			[self triggerAutoAwayWithStatusID:statusID];
+		[self applyAutomaticStatus];
 	}
-	
+
+}
+
+/*!
+ * @brief Set the status the current reasons call for, or return from automatic away
+ *
+ * Priorities: Fast User Switch'ed > Screen(saver|lock) > Idle. A reason whose status ID resolves to
+ * no status at all — which is what "Do not change" is — is skipped rather than taken as an answer:
+ *
+ *   - Skipping is what makes "Do not change" work at all next to a reason which does change the
+ *     status. With the screen saver on "Do not change" and idleness on "Away", a starting screen
+ *     saver would otherwise take the answer away from the idle reason and clear a status the user
+ *     is still away behind.
+ *   - It also mends an old fault: a set bit with an unresolvable ID used to fall through every
+ *     branch, so neither a change nor a return happened and the account stayed on whatever status
+ *     an earlier reason had set.
+ */
+- (void)applyAutomaticStatus
+{
+	NSNumber	*statusID = nil;
+
+	if ((automaticStatusBitMap & AIAwayFastUserSwitched) &&
+		[adium.statusController statusStateWithUniqueStatusID:fastUserSwitchID])
+		statusID = fastUserSwitchID;
+
+	else if ((automaticStatusBitMap & (AIAwayScreenLocked | AIAwayScreenSaved)) &&
+			 [adium.statusController statusStateWithUniqueStatusID:screenSaverID])
+		statusID = screenSaverID;
+
+	else if ((automaticStatusBitMap & AIAwayIdle) &&
+			 [adium.statusController statusStateWithUniqueStatusID:idleStatusID])
+		statusID = idleStatusID;
+
+	if (statusID)
+		[self triggerAutoAwayWithStatusID:statusID];
+	else
+		[self returnFromAutoAway];
 }
 
 /*!
@@ -394,9 +439,11 @@ typedef enum {
 	
 	[accountsToReconnect removeAllObjects];
 	[previousStatus removeAllObjects];
-	
-	automaticStatusBitMap = 0;
-	
+
+	/* The bit map is the caller's to keep now: -applyAutomaticStatus reaches us with a reason still
+	 * standing whenever that reason's menu says "Do not change", and clearing AIAwayIdle here would
+	 * throw away a still valid reason while the user goes on being idle. */
+
 	[oldStatusID release];
 	oldStatusID = nil;
 }

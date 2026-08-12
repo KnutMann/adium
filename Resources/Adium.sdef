@@ -251,9 +251,6 @@
 			<property name="status message" code="Pasm" type="rich text" access="rw" description="The custom status message.">
 				<cocoa key="scriptingMessage"/>
 			</property>
-			<property name="autoreply" code="Paut" type="rich text" access="rw" description="The message to auto reply">
-				<cocoa key="scriptingAutoreply"/>
-			</property>
 			<property name="id" code="ID  " type="integer" access="r" description="The unique ID of the status">
 			     <cocoa key="uniqueStatusID"/>
             </property>

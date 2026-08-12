@@ -277,14 +277,12 @@
 	[backButton setEnabled:YES];
 }
 
-// the only difference between imported statuses is their type and reply behavior (optionally can be added to a group)
+// the only difference between imported statuses is their type (optionally can be added to a group)
 -(void)addStatusFromString:(NSString *)statusString isAway:(BOOL)shouldBeAway withGroup:(AIStatusGroup *)parentGroup
 {
 	AIStatus *newStatus = [AIStatus statusOfType:(shouldBeAway ? AIAwayStatusType : AIAvailableStatusType)];
 	[newStatus setTitle:statusString];
 	[newStatus setStatusMessage:[[[NSAttributedString alloc] initWithString:statusString] autorelease]];
-	[newStatus setAutoReplyIsStatusMessage:(shouldBeAway ? YES : NO)];
-	[newStatus setShouldForceInitialIdleTime:NO];
 	
 	// optionally add to a status group
 	if (parentGroup == nil) {

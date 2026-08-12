@@ -17,9 +17,6 @@
                 <outlet property="textField_idleMinutes" destination="tIdle" id="oTIdle"/>
                 <outlet property="stepper_idleMinutes" destination="stIdle" id="oStIdle"/>
                 <outlet property="label_idleMinutes" destination="lIdle" id="oLIdle"/>
-                <outlet property="textField_autoAwayMinutes" destination="tAway" id="oTAway"/>
-                <outlet property="stepper_autoAwayMinutes" destination="stAway" id="oStAway"/>
-                <outlet property="label_autoAwayMinutes" destination="lAway" id="oLAway"/>
                 <outlet property="popUp_autoAwayStatusState" destination="pAway" id="oPAway"/>
                 <outlet property="popUp_fastUserSwitchingStatusState" destination="pFus" id="oPFus"/>
                 <outlet property="popUp_screenSaverStatusState" destination="pSaver" id="oPSaver"/>
@@ -125,32 +122,6 @@
                     <rect key="frame" x="181" y="147" width="151" height="17"/>
                     <autoresizingMask key="autoresizingMask"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes" id="lIdleC">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tAway">
-                    <rect key="frame" x="77" y="112" width="32" height="22"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="center" title="10" drawsBackground="YES" id="tAwayC">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                    <connections>
-                        <outlet property="delegate" destination="-2" id="oTAwayDel"/>
-                    </connections>
-                </textField>
-                <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="stAway">
-                    <rect key="frame" x="109" y="109" width="19" height="28"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <stepperCell key="cell" continuous="YES" alignment="left" increment="1" maxValue="999" doubleValue="10" valueWraps="YES" autorepeat="YES" id="stAwayC"/>
-                </stepper>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lAway">
-                    <rect key="frame" x="131" y="116" width="204" height="17"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes" id="lAwayC">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>

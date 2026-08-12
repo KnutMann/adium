@@ -1009,19 +1009,26 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 /*!
  * @brief Find the status state with the requested uniqueStatusID
+ *
+ * An ID no status answers to gives nil, and that nil is relied upon: STATUS_STATE_ID_NONE is
+ * what the "Do not change" entry of the automatic status menus stores, and AIAutomaticStatus
+ * reads a reason whose status does not resolve as "leave the status alone". Hence the separate
+ * match variable rather than the loop variable - the answer here is worth saying out loud.
  */
 - (AIStatus *)statusStateWithUniqueStatusID:(NSNumber *)uniqueStatusID
 {
-	AIStatus		*statusState = nil;
+	AIStatus		*match = nil;
 
 	if (uniqueStatusID) {
-		for (statusState in self.flatStatusSet) {
-			if ([statusState.uniqueStatusID compare:uniqueStatusID] == NSOrderedSame)
+		for (AIStatus *statusState in self.flatStatusSet) {
+			if ([statusState.uniqueStatusID compare:uniqueStatusID] == NSOrderedSame) {
+				match = statusState;
 				break;
+			}
 		}
 	}
 
-	return statusState;
+	return match;
 }
 
 //State Editing --------------------------------------------------------------------------------------------------------
@@ -1206,7 +1213,6 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 #define OLD_GROUP_AWAY_MESSAGES		@"Away Messages"
 #define OLD_STATE_SAVED_AWAY		@"Away"
 #define OLD_STATE_AWAY				@"Message"
-#define OLD_STATE_AUTO_REPLY		@"Autoresponse"
 #define OLD_STATE_TITLE				@"Title"
 - (void)_upgradeSavedAwaysToSavedStates
 {
@@ -1227,7 +1233,6 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 				//Extract the away message information from this old record
 				NSData		*statusMessageData = [state objectForKey:OLD_STATE_AWAY];
-				NSData		*autoReplyMessageData = [state objectForKey:OLD_STATE_AUTO_REPLY];
 				NSString	*title = [state objectForKey:OLD_STATE_TITLE];
 
 				//Create an AIStatus from this information
@@ -1242,16 +1247,9 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 				//Set the status message (which is just the away message).
 				[statusState setStatusMessage:[NSAttributedString stringWithData:statusMessageData]];
 
-				//It has an auto reply.
-				[statusState setHasAutoReply:YES];
-
-				if (autoReplyMessageData) {
-					//Use the custom auto reply if it was set.
-					[statusState setAutoReply:[NSAttributedString stringWithData:autoReplyMessageData]];
-				} else {
-					//If no autoReplyMesssage, use the status message.
-					[statusState setAutoReplyIsStatusMessage:YES];
-				}
+				/* The old away message's auto reply is dropped on purpose: Adium no longer sends
+				 * auto replies at all, so the old "Autoresponse" key is read no more. The message and
+				 * the title, which is what the user recognises the status by, are kept. */
 
 				if (title) [statusState setTitle:title];
 

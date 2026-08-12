@@ -197,13 +197,6 @@
 		else
 			[status setStatusMessage:[properties objectForKey:@"scriptingMessage"]];
 	}
-	if ([properties objectForKey:@"scriptingAutoreply"]) {
-		if ([[properties objectForKey:@"scriptingAutoreply"] isKindOfClass:[NSString class]])
-			[status setAutoReplyString:[properties objectForKey:@"scriptingAutoreply"]];
-		else
-			[status setAutoReply:[properties objectForKey:@"scriptingAutoreply"]];
-	}
-	
 	if ([keyDictionary objectForKey:@"Location"]) {
 		NSPositionalSpecifier *location = [keyDictionary objectForKey:@"Location"];
 		NSUInteger idx = [location insertionIndex];

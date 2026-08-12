@@ -219,7 +219,6 @@ typedef enum {
 @property (readonly, nonatomic) BOOL useInternalObjectIDForPasswordName;
 
 //Properties
-@property (readonly, nonatomic) BOOL supportsAutoReplies;
 @property (readonly, nonatomic) BOOL disconnectOnFastUserSwitch;
 @property (readonly, nonatomic) BOOL connectivityBasedOnNetworkReachability;
 @property (readonly, nonatomic) BOOL suppressTypingNotificationChangesAfterSend;
@@ -254,14 +253,6 @@ typedef enum {
 - (BOOL)groupChatsSupportTopic;
 - (void)setTopic:(NSString *)topic forChat:(AIChat *)chat;
 - (BOOL)shouldDisplayOutgoingMUCMessages;
-/*!
- * @brief Should an autoreply be sent to this message?
- *
- * This will only be called if the generic algorithm determines that an autoreply is appropriate. The account
- * gets an opportunity to suppress sending the autoreply, e.g. on the basis of the message's content or source.
- */
-- (BOOL)shouldSendAutoreplyToMessage:(AIContentMessage *)message;
-
 //Presence Tracking
 @property (readonly, nonatomic) BOOL contactListEditable;
 - (void)addContact:(AIListContact *)contact toGroup:(AIListGroup *)group;

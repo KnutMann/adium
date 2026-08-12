@@ -16,14 +16,17 @@
 
 #import <Adium/AIStatusItem.h>
 
-//Keys used for storage and retrieval
+/* Keys used for storage and retrieval
+ *
+ * Five of them are gone with the auto-reply and with the editor's forced initial idle time: "Has
+ * AutoReply", "AutoReply is Status Message", "AutoReply Message NSAttributedString", "Should Force
+ * Initial Idle Time" and "Forced Initial Idle Time". They are not migrated away, because there is
+ * nothing to migrate them to: they stay behind in the archived statusDict of everyone who ever
+ * built a status of their own, where nothing reads them and a mutable dictionary does not mind
+ * them. Whoever brings the auto-reply back should know that it would spring straight back to life
+ * for those users - "Has AutoReply" was set for every away status by default, not by choice. */
 #define	STATUS_STATUS_MESSAGE				@"Status Message NSAttributedString"
-#define	STATUS_HAS_AUTO_REPLY				@"Has AutoReply"
-#define	STATUS_AUTO_REPLY_IS_STATUS_MESSAGE	@"AutoReply is Status Message"
-#define	STATUS_AUTO_REPLY_MESSAGE			@"AutoReply Message NSAttributedString"
 #define	STATUS_STATUS_NAME					@"Status Name"
-#define STATUS_SHOULD_FORCE_INITIAL_IDLE_TIME @"Should Force Initial Idle Time"
-#define	STATUS_FORCED_INITIAL_IDLE_TIME		@"Forced Initial Idle Time"
 #define STATUS_INVISIBLE					@"Invisible"
 #define STATUS_MUTABILITY_TYPE				@"Mutability Type"
 #define STATUS_MUTE_SOUNDS					@"Mute Sounds"
@@ -51,16 +54,7 @@ typedef enum {
 
 - (NSString *)statusMessageTooltipString;
 
-@property (readwrite, nonatomic, retain) NSAttributedString *autoReply;
-- (void)setAutoReplyString:(NSString *)autoReplyString;
-
-@property (readwrite, nonatomic) BOOL hasAutoReply;
-@property (readwrite, nonatomic) BOOL autoReplyIsStatusMessage;
-
 @property (readwrite, nonatomic, retain) NSString *statusName;
-
-@property (readwrite, nonatomic) BOOL shouldForceInitialIdleTime;
-@property (readwrite, nonatomic) double forcedInitialIdleTime;
 
 - (void)setMutabilityType:(AIStatusMutabilityType)mutabilityType;
 

@@ -71,7 +71,6 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"AIAliasSupportPlugin",
 		@"AIAppearancePreferencesPlugin",
 		@"AIAutoLinkingPlugin",
-		@"AIAutoReplyPlugin",
 		@"AIChatConsolidationPlugin",
 		@"AIChatCyclingPlugin",
 		@"AIContactAwayPlugin",

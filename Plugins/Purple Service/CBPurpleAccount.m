@@ -1428,15 +1428,6 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
 		return NO;
 }
 
-- (BOOL)supportsAutoReplies
-{
-	if (account && purple_account_get_connection(account)) {
-		return ((purple_account_get_connection(account)->flags & PURPLE_CONNECTION_AUTO_RESP) != 0);
-	}
-	
-	return NO;
-}
-
 - (BOOL)canSendOfflineMessageToContact:(AIListContact *)inContact
 {
 	PurplePluginProtocolInfo *prpl_info = self.protocolInfo;

@@ -17,52 +17,44 @@
 #import <Adium/AIWindowController.h>
 #import <Adium/AIStatus.h>
 
-@class AIAccount, AITextViewWithPlaceholder, AIService, AIAutoScrollView, AISendingTextView;
+@class AIAccount, AITextViewWithPlaceholder, AIService, AIAutoScrollView, AISendingTextView, AISettingsFormView;
 
+/*!
+ * @class AIEditStateWindowController
+ * @brief The editor for a single status: title, state, message and the two silences
+ *
+ * Everything but the message text view is built in code on an AISettingsFormView, so this window
+ * reads like the rest of the converted interface. The nib holds the window and that one control;
+ * see EditStateSheet.xib.
+ */
 @interface AIEditStateWindowController : AIWindowController <NSTextViewDelegate> {
-	IBOutlet	NSBox				*box_title;
-	IBOutlet	NSTextField			*label_title;
-	IBOutlet	NSTextField			*textField_title;
-	
-	IBOutlet	NSBox				*box_separatorLine;
-	
-	IBOutlet	NSBox				*box_state;
-	IBOutlet	NSTextField			*label_state;
-	IBOutlet	NSPopUpButton		*popUp_state;
-	BOOL		needToRebuildPopUpState;
-	
-	IBOutlet	NSTextField				*label_statusMessage;
-	IBOutlet	NSBox					*box_statusMessage;
+	//Out of the nib
 	IBOutlet	AISendingTextView		*textView_statusMessage;
 	IBOutlet	AIAutoScrollView		*scrollView_statusMessage;
 
-	IBOutlet	NSButton				*checkbox_autoReply;
-	IBOutlet	NSButton				*checkbox_customAutoReply;
-	IBOutlet	AISendingTextView		*textView_autoReply;
-	IBOutlet	AIAutoScrollView		*scrollView_autoReply;
+	//Built in -windowDidLoad; the form owns them, these references do not retain
+	AISettingsFormView	*form;
+	NSTextField			*textField_title;
+	NSPopUpButton		*popUp_state;
+	NSSwitch			*switch_muteSounds;
+	NSSwitch			*switch_silenceNotifications;
+	NSSwitch			*switch_save;
+	NSButton			*button_okay;
+	NSButton			*button_cancel;
 
-	IBOutlet	NSButton			*checkbox_idle;
-	IBOutlet	NSBox				*box_idle;
-	IBOutlet	NSTextField			*textField_idleMinutes;
-	IBOutlet	NSStepper			*stepper_idleMinutes;
-	IBOutlet	NSTextField			*label_minutes;
-	IBOutlet	NSTextField			*textField_idleHours;
-	IBOutlet	NSStepper			*stepper_idleHours;
-	IBOutlet	NSTextField			*label_hours;
-
-	IBOutlet	NSButton			*checkBox_save;
-	IBOutlet	NSButton			*checkBox_muteSounds;
-	IBOutlet	NSButton			*checkBox_silenceGrowl;
-	IBOutlet	NSButton			*checkBox_okay;
-	IBOutlet	NSButton			*checkBox_cancel;
+	BOOL		needToRebuildPopUpState;
 
 	AIStatus	*originalStatusState;
 	AIStatus	*workingStatusState;
 	AIAccount	*account;
 
 	id			target;
-	
+
 	BOOL		showSaveCheckbox;
+
+	/* A sheet is cleaned up from its completion handler, a window from -windowWillClose:. Both may
+	 * run for one and the same editor, and releasing twice would be a crash. */
+	BOOL		didFinish;
 }
 
 + (id)editCustomState:(AIStatus *)inStatusState forType:(AIStatusType)inStatusType andAccount:(AIAccount *)inAccount withSaveOption:(BOOL)allowSave onWindow:(id)parentWindow notifyingTarget:(id)inTarget;
@@ -70,7 +62,6 @@
 - (IBAction)cancel:(id)sender;
 - (IBAction)okay:(id)sender;
 - (IBAction)statusControlChanged:(id)sender;
-- (void)updateControlVisibilityAndResizeWindow;
 
 - (void)configureForState:(AIStatus *)state;
 - (AIStatus *)currentConfiguration;

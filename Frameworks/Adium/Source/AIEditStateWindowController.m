@@ -1,15 +1,15 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
@@ -19,6 +19,7 @@
 #import <Adium/AIStatus.h>
 #import <Adium/AIStatusControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
+#import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIAutoScrollView.h>
 #import <AIUtilities/AIStringFormatter.h>
@@ -26,21 +27,31 @@
 #import <AIUtilities/AIWindowAdditions.h>
 #import <Adium/AIMessageEntryTextView.h>
 
-#define CONTROL_SPACING			8
-#define WINDOW_HEIGHT_PADDING	30
-
 #define	SEND_ON_ENTER					@"Send On Enter"
+
+/* The window is not resizable, so its size is a matter of arithmetic rather than of a saved frame:
+ * the form says how tall it is, the button bar and the margins are added to that. 480 points of
+ * content leave the cards 440 wide, which is enough for a label column of the intended width. */
+#define WINDOW_CONTENT_WIDTH			480.0
+#define WINDOW_MARGIN					20.0
+//Between the form and the button bar
+#define BUTTON_BAR_GAP					20.0
+#define BUTTON_MINIMUM_WIDTH			84.0
+//Height of the status message field. Deliberately fixed: four or five lines of a status message
+#define STATUS_MESSAGE_HEIGHT			76.0
 
 @interface AIEditStateWindowController ()
 - (id)initWithWindowNibName:(NSString *)windowNibName forType:(AIStatusType)inStatusType andAccount:(AIAccount *)inAccount customState:(AIStatus *)inStatusState notifyingTarget:(id)inTarget showSaveCheckbox:(BOOL)inShowSaveCheckbox;
-- (id)_positionControl:(id)control relativeTo:(id)guide height:(CGFloat *)height;
 - (void)configureStateMenu;
+- (void)buildForm;
+- (void)layoutWindowContents;
+- (void)synchronizeStatusMessageTextViewSize;
+- (void)finishEditing;
 
 - (void)setOriginalStatusState:(AIStatus *)inState forType:(AIStatusType)inStatusType;
 - (void)setAccount:(AIAccount *)inAccount;
 - (void)configureForAccountAndWorkingStatusState;
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (void)notifyOfStateChange;
 @end
 
@@ -73,7 +84,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 	AIEditStateWindowController	*controller;
 
 	NSNumber	*targetHash = [NSNumber numberWithUnsignedInteger:[inTarget hash]];
-		
+
 	if ((controller = [controllerDict objectForKey:targetHash])) {
 		[controller setAccount:inAccount];
 
@@ -84,26 +95,37 @@ static	NSMutableDictionary	*controllerDict = nil;
 		}
 
 	} else {
-		controller = [[self alloc] initWithWindowNibName:@"EditStateSheet" 
-												 forType:inStatusType 
+		controller = [[self alloc] initWithWindowNibName:@"EditStateSheet"
+												 forType:inStatusType
 											  andAccount:inAccount
-											 customState:inStatusState 
+											 customState:inStatusState
 										 notifyingTarget:inTarget
 										showSaveCheckbox:inShowSaveCheckbox];
 		if (!controllerDict) controllerDict = [[NSMutableDictionary alloc] init];
 		[controllerDict setObject:controller forKey:targetHash];
 	}
-	
+
 	if (parentWindow) {
-		[NSApp beginSheet:[controller window]
-		   modalForWindow:parentWindow
-			modalDelegate:controller
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
+		/* The completion handler is the only place a sheet is ever cleaned up: -windowWillClose: is
+		 * not sent for a sheet which is ended rather than closed, which is why the old sheet path
+		 * leaked a whole controller every time a status was edited from the preferences. The block
+		 * holds on to the controller for us until it has run. */
+		[(NSWindow *)parentWindow beginSheet:[controller window]
+						   completionHandler:^(NSModalResponse returnCode) {
+			[[controller window] orderOut:nil];
+			[controller finishEditing];
+		}];
+
 	} else {
 		[controller showWindow:nil];
 		[[controller window] makeKeyAndOrderFront:nil];
-		[NSApp activateIgnoringOtherApps:YES];
+
+		//-activate took over from -activateIgnoringOtherApps: in macOS 14; we still run on 11
+		if (@available(macOS 14.0, *)) {
+			[NSApp activate];
+		} else {
+			[NSApp activateIgnoringOtherApps:YES];
+		}
 	}
 
 	return controller;
@@ -121,7 +143,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 		[self setOriginalStatusState:inStatusState forType:inStatusType];
 		[self setAccount:inAccount];
 	}
-	
+
 	return self;
 }
 
@@ -137,18 +159,16 @@ static	NSMutableDictionary	*controllerDict = nil;
 		[originalStatusState release];
 		originalStatusState = [inStatusState retain];
 	}
-	
+
 	[workingStatusState release];
-	workingStatusState = (originalStatusState ? 
+	workingStatusState = (originalStatusState ?
 						  [originalStatusState mutableCopy] :
 						  [[AIStatus statusOfType:inStatusType] retain]);
-	
+
 	/* Reset to the default for this status type if we're not on it already */
 	if (workingStatusState.statusType != inStatusType) {
 		[workingStatusState setStatusType:inStatusType];
 		[workingStatusState setStatusName:[[adium statusController] defaultStatusNameForType:inStatusType]];
-
-		[workingStatusState setHasAutoReply:(inStatusType == AIAwayStatusType)];
 	}
 
 	//Clear the title if the save checkbox is showing so it will autoupdate.
@@ -175,72 +195,43 @@ static	NSMutableDictionary	*controllerDict = nil;
 	[super dealloc];
 }
 
+//Window setup ---------------------------------------------------------------------------------------------------------
+#pragma mark Window setup
+
 /*!
  * @brief Configure the window after it loads
  */
 - (void)windowDidLoad
 {
-//	NSNumberFormatter	*intFormatter;
 	BOOL				sendOnEnter;
 
-	//Localized text for the single-nib editor
 	[[self window] setTitle:AILocalizedString(@"Custom Status", nil)];
-	[label_title setStringValue:AILocalizedString(@"Title:", nil)];
-	[label_state setStringValue:AILocalizedString(@"State:", nil)];
-	[label_statusMessage setStringValue:AILocalizedString(@"Status Message:", nil)];
-	[checkbox_autoReply setTitle:AILocalizedString(@"Auto-reply", nil)];
-	[checkbox_customAutoReply setTitle:AILocalizedString(@"With a custom auto-reply message:", nil)];
-	[checkbox_idle setTitle:AILocalizedString(@"Appear Idle Immediately", nil)];
-	[label_hours setStringValue:AILocalizedString(@"Hours", nil)];
-	[label_minutes setStringValue:AILocalizedString(@"Minutes", nil)];
-	[checkBox_muteSounds setTitle:AILocalizedString(@"Mute Sounds", nil)];
-	[checkBox_silenceGrowl setTitle:AILocalizedString(@"Silence Notifications", nil)];
-	[checkBox_save setTitle:AILocalizedString(@"Save Custom Status", nil)];
-	[checkBox_okay setTitle:AILocalizedString(@"OK", nil)];
-	[checkBox_cancel setTitle:AILocalizedString(@"Cancel", nil)];
 
 	sendOnEnter = [[adium.preferenceController preferenceForKey:SEND_ON_ENTER
 															group:PREF_GROUP_GENERAL] boolValue];
-	
+
 	[scrollView_statusMessage setAutohidesScrollers:YES];
 	[scrollView_statusMessage setAlwaysDrawFocusRingIfFocused:YES];
 	[textView_statusMessage setTarget:self action:@selector(okay:)];
 	[textView_statusMessage setDelegate:self];
 
 	[textView_statusMessage setAllowsDocumentBackgroundColorChange:YES];
-	[textView_autoReply setAllowsDocumentBackgroundColorChange:YES];
 
+	//Return inserts a new line; enter follows the user's preference, so by default it says OK
 	[textView_statusMessage setSendOnReturn:NO];
 	[textView_statusMessage setSendOnEnter:sendOnEnter];
-	
+
 	if ([textView_statusMessage isKindOfClass:[AIMessageEntryTextView class]]) {
 		[(AIMessageEntryTextView *)textView_statusMessage setClearOnEscape:NO];
 		[(AIMessageEntryTextView *)textView_statusMessage setPushPopEnabled:NO];
 		[(AIMessageEntryTextView *)textView_statusMessage setHistoryEnabled:NO];
 	}
-	
-	[scrollView_autoReply setAutohidesScrollers:YES];
-	[scrollView_autoReply setAlwaysDrawFocusRingIfFocused:YES];
-	[textView_autoReply setTarget:self action:@selector(okay:)];
-	[textView_autoReply setDelegate:self];
 
-	//Return inserts a new line
-	[textView_autoReply setSendOnReturn:NO];
+	[self buildForm];
 
-	/* Enter follows the user's preference. By default, then, enter will send the okay: selector.
-	 * If the user expects enter to insert a newline in a message, however, it will do that here, too. */
-	[textView_autoReply setSendOnEnter:sendOnEnter];
-
-	if ([textView_autoReply isKindOfClass:[AIMessageEntryTextView class]]) {
-		[(AIMessageEntryTextView *)textView_autoReply setClearOnEscape:NO];
-		[(AIMessageEntryTextView *)textView_autoReply setPushPopEnabled:NO];
-		[(AIMessageEntryTextView *)textView_autoReply setHistoryEnabled:NO];
-	}
-	
 	[self configureForAccountAndWorkingStatusState];
-	
+
 	[textView_statusMessage setTypingAttributes:[adium.contentController defaultFormattingAttributes]];
-	[textView_autoReply setTypingAttributes:[adium.contentController defaultFormattingAttributes]];
 
 	NSMutableCharacterSet *noNewlinesCharacterSet;
 	noNewlinesCharacterSet = [[[NSCharacterSet characterSetWithCharactersInString:@""] invertedSet] mutableCopy];
@@ -251,13 +242,155 @@ static	NSMutableDictionary	*controllerDict = nil;
 																		  errorMessage:nil]];
 	[noNewlinesCharacterSet release];
 
-	if (!showSaveCheckbox) {
-		[checkBox_save setHidden:YES];
-	}
-	
+	[self layoutWindowContents];
+
+	/* Built in code, so the key loop is worked out from where the controls actually are rather than
+	 * from a chain saved in a nib. The message is what one comes here to write - it keeps the focus
+	 * the nib used to give it, and -configureForState: selects the text already in it. */
+	[[self window] setAutorecalculatesKeyViewLoop:YES];
+	[[self window] setInitialFirstResponder:textView_statusMessage];
+
 	[super windowDidLoad];
-	
-	[self updateControlVisibilityAndResizeWindow];
+}
+
+/*!
+ * @brief Build the body of the window
+ *
+ * A settings form, the same one the rest of the converted interface is made of. It is a plain
+ * NSView with no notion of a preference pane, so a window may host it just as well - and the cards
+ * count on the window background being what it is, which is why nothing here sets a background of
+ * its own.
+ */
+- (void)buildForm
+{
+	form = [[AISettingsFormView alloc] initWithWidth:WINDOW_CONTENT_WIDTH];
+	[form autorelease];
+
+	//Card 1: what this status is called and which state it is
+	textField_title = [AISettingsFormView textFieldWithTarget:nil action:NULL];
+	[textField_title setDelegate:(id<NSTextFieldDelegate>)self];
+	[form addRowWithLabel:AILocalizedString(@"Title","Label of the field holding the name of a status")
+		stretchingControl:textField_title];
+
+	/* Says out loud what -controlTextDidEndEditing: does and what nothing else on screen would
+	 * betray: an empty field is not a status without a name, it is a status named after itself. */
+	[form addDetailRow:AILocalizedString(@"Clear the field to let Adium name this status after its message.","Explanation under the title field of the status editor")];
+
+	popUp_state = [[[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO] autorelease];
+	[popUp_state setFont:[NSFont menuFontOfSize:0.0]];
+	[form addRowWithLabel:AILocalizedString(@"Status","Label of the menu holding the kind of status - available, away and so on")
+			  popUpButton:popUp_state
+		  accessoryButton:nil];
+
+	//Card 2: the message contacts are shown. The section header is its label, so it carries none
+	[form addSectionHeader:AILocalizedString(@"Status Message",nil)];
+	[scrollView_statusMessage setFrameSize:NSMakeSize(NSWidth([scrollView_statusMessage frame]),
+													  STATUS_MESSAGE_HEIGHT)];
+	[form addFullWidthRow:scrollView_statusMessage];
+
+	/* Card 3: the two silences. They differ in more than their wording, and the two explanations
+	 * are the whole point of the card: muting sounds is a property of the accounts wearing this
+	 * status and covers alert sounds as well as spoken messages, while silencing notifications is
+	 * global and only holds back Notification Center, and only while this status is the active
+	 * one. Both belong to the status rather than to being idle: whoever picks "Do not disturb" by
+	 * hand is not idle at all, and a silence tied to idleness would not apply to them. */
+	[form addSectionHeader:AILocalizedString(@"Quiet","Section title above the mute switches of the status editor")];
+
+	switch_muteSounds = [AISettingsFormView switchWithTarget:self action:@selector(statusControlChanged:)];
+	[form addRowWithLabel:AILocalizedString(@"Mute Sounds",nil)
+				  control:switch_muteSounds
+				   detail:AILocalizedString(@"No sounds and no spoken messages for this account's contacts.","Explanation of the mute sounds switch of the status editor")];
+
+	switch_silenceNotifications = [AISettingsFormView switchWithTarget:self action:@selector(statusControlChanged:)];
+	[form addRowWithLabel:AILocalizedString(@"Silence Notifications",nil)
+				  control:switch_silenceNotifications
+				   detail:AILocalizedString(@"No notifications in Notification Center while this status is active.","Explanation of the silence notifications switch of the status editor")];
+
+	/* Card 4: only where the caller offered it. It decides between an editable and a temporary
+	 * status, and with that whether a status written from the status menu joins the saved list. */
+	if (showSaveCheckbox) {
+		[form endCard];
+
+		switch_save = [AISettingsFormView switchWithTarget:self action:@selector(statusControlChanged:)];
+		[form addRowWithLabel:AILocalizedString(@"Save Custom Status",nil)
+					  control:switch_save];
+		[form addFootnote:AILocalizedString(@"Saved statuses appear in the status menu.","Footnote under the save switch of the status editor")];
+	}
+
+	[[[self window] contentView] addSubview:form];
+
+	//The buttons live outside the form, in the window's own bottom bar
+	button_cancel = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Cancel", nil)
+													 target:self
+													 action:@selector(cancel:)];
+	button_okay = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"OK", nil)
+												   target:self
+												   action:@selector(okay:)];
+
+	[button_cancel setKeyEquivalent:@"\033"];
+	[button_okay setKeyEquivalent:@"\r"];
+
+	for (NSButton *button in [NSArray arrayWithObjects:button_cancel, button_okay, nil]) {
+		if (NSWidth([button frame]) < BUTTON_MINIMUM_WIDTH) {
+			[button setFrameSize:NSMakeSize(BUTTON_MINIMUM_WIDTH, NSHeight([button frame]))];
+		}
+
+		[[[self window] contentView] addSubview:button];
+	}
+}
+
+/*!
+ * @brief Lay the form and the button bar out, and make the window as tall as they are
+ *
+ * The window is not resizable, so this is the only place its height is decided. Called again
+ * whenever something changed the height of the form - the state menu being rebuilt, above all.
+ */
+- (void)layoutWindowContents
+{
+	NSWindow	*window = [self window];
+
+	[form layoutForWidth:WINDOW_CONTENT_WIDTH];
+
+	CGFloat		buttonHeight = NSHeight([button_okay frame]);
+	CGFloat		formHeight = [form totalHeight];
+	CGFloat		contentHeight = ceil(WINDOW_MARGIN + formHeight + BUTTON_BAR_GAP +
+									 buttonHeight + WINDOW_MARGIN);
+
+	[window setContentSize:NSMakeSize(WINDOW_CONTENT_WIDTH, contentHeight)];
+
+	//The content view is not flipped: the button bar sits at the bottom, the form above it
+	[button_okay setFrameOrigin:NSMakePoint(WINDOW_CONTENT_WIDTH - WINDOW_MARGIN - NSWidth([button_okay frame]),
+											WINDOW_MARGIN)];
+	[button_cancel setFrameOrigin:NSMakePoint(NSMinX([button_okay frame]) - [AISettingsFormView standardControlGap] - NSWidth([button_cancel frame]),
+											  WINDOW_MARGIN)];
+
+	[form setFrame:NSMakeRect(0.0, contentHeight - WINDOW_MARGIN - formHeight,
+							  WINDOW_CONTENT_WIDTH, formHeight)];
+
+	[self synchronizeStatusMessageTextViewSize];
+}
+
+/*!
+ * @brief Let the message text view fill the space the card gives its scroll view
+ *
+ * An NSTextView is never shorter than its minSize, and it is the text view rather than the scroll
+ * view which draws the white behind the message. The nib cannot know how wide the card will be, so
+ * the size is taken from the clip view once the form has laid itself out - otherwise an empty
+ * message would show a scroller, or a strip of the wrong colour under the first line.
+ */
+- (void)synchronizeStatusMessageTextViewSize
+{
+	NSSize	visibleSize = [[scrollView_statusMessage contentView] bounds].size;
+
+	if ((visibleSize.width < 1.0) || (visibleSize.height < 1.0)) return;
+
+	[textView_statusMessage setMinSize:NSMakeSize(0.0, visibleSize.height)];
+	[textView_statusMessage setMaxSize:NSMakeSize(visibleSize.width, CGFLOAT_MAX)];
+
+	if (NSHeight([textView_statusMessage frame]) < visibleSize.height) {
+		[textView_statusMessage setFrameSize:NSMakeSize(NSWidth([textView_statusMessage frame]),
+														visibleSize.height)];
+	}
 }
 
 /*!
@@ -269,53 +402,86 @@ static	NSMutableDictionary	*controllerDict = nil;
 - (void)configureForAccountAndWorkingStatusState
 {
 	[self configureStateMenu];
-	
+
 	//Configure our editor for the working state
-	[self configureForState:workingStatusState];	
+	[self configureForState:workingStatusState];
 }
 
 /*!
  * @brief Configure the state menu with a fresh menu of active statuses
+ *
+ * The layout is not optional. A pop up row is measured afresh at every layout instead of being
+ * pinned to the width it once had, so a button whose menu has just been exchanged keeps the width
+ * the old menu earned it until something lays the form out again - and this editor is reused for
+ * one account after another (see +editCustomState:…), so the menu it is given the second time may
+ * be a different service's, with longer titles than the first one had room for. -layoutWindowContents
+ * rather than -noteContentSizeChanged: the window is not resizable and its height is decided
+ * nowhere else. Before -buildForm has run there is no form to lay out; -windowDidLoad lays out once
+ * more of its own accord afterwards.
  */
 - (void)configureStateMenu
 {
 	[popUp_state setMenu:[adium.statusController menuOfStatusesForService:(account ? account.service : nil)
 																 withTarget:self]];
-	needToRebuildPopUpState = NO;	
+	needToRebuildPopUpState = NO;
+
+	if (form) [self layoutWindowContents];
 }
+
+//Closing --------------------------------------------------------------------------------------------------------------
+#pragma mark Closing
 
 /*!
  * @brief Called before the window is closed
- *
- * As our window is closing, we auto-release this window controller instance.  This allows our editor to function
- * independently without needing a separate object to retain and release it.
  */
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
 
-	//Stop tracking with the controllerDict
+	[self finishEditing];
+}
+
+/*!
+ * @brief Stop tracking this editor and give up the reference which keeps it alive
+ *
+ * Reached from the sheet's completion handler and from -windowWillClose:, and for one and the same
+ * editor both of them may run; releasing twice would be a crash, hence didFinish.
+ */
+- (void)finishEditing
+{
+	if (didFinish) return;
+	didFinish = YES;
+
 	NSNumber	*targetHash = [NSNumber numberWithUnsignedInteger:[target hash]];
-	[controllerDict removeObjectForKey:targetHash];
+
+	//Survive the dictionary letting go of us before we get to our own autorelease
+	[[self retain] autorelease];
+
+	if ([controllerDict objectForKey:targetHash] == self) {
+		[controllerDict removeObjectForKey:targetHash];
+	}
 
 	[self autorelease];
 }
 
 /*!
- * Invoked as the sheet closes, dismiss the sheet
+ * @brief Close the window, or end it if it is a sheet
+ *
+ * AIWindowController's version reaches for the long deprecated -[NSApp endSheet:], which knows
+ * nothing of the completion handler this editor is dismissed through.
  */
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (IBAction)closeWindow:(id)sender
 {
-	//Stop tracking with the controllerDict
-	NSNumber	*targetHash = [NSNumber numberWithUnsignedInteger:[target hash]];
-	[controllerDict removeObjectForKey:targetHash];
-	
-    [sheet orderOut:nil];
-}
+	if (![self windowShouldClose:nil]) return;
 
-- (NSString *)adiumFrameAutosaveName
-{
-	return @"EditStateWindow";
+	NSWindow	*window = [self window];
+	NSWindow	*parentWindow = [window sheetParent];
+
+	if (parentWindow) {
+		[parentWindow endSheet:window];
+	} else {
+		[window close];
+	}
 }
 
 //Behavior -------------------------------------------------------------------------------------------------------------
@@ -333,7 +499,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 				   withObject:nil
 				   afterDelay:0];
 	}
-	
+
 	[self closeWindow:nil];
 }
 
@@ -373,23 +539,16 @@ static	NSMutableDictionary	*controllerDict = nil;
 /*!
  * @brief Invoked when a control value is changed
  *
- * Invoked with the user changes the value of an editor control.  In response, we update control visibility and
- * resize the window.
+ * Every switch writes into the working status the moment it is touched; only the title and the
+ * mutability are gathered up at OK.
  */
 - (IBAction)statusControlChanged:(id)sender
 {
-	if (sender == checkbox_autoReply)
-		[workingStatusState setHasAutoReply:[checkbox_autoReply state]];	
-	else if (sender == checkbox_customAutoReply) 
-		[workingStatusState setAutoReplyIsStatusMessage:![checkbox_customAutoReply state]];	
-	else if (sender == checkbox_idle)
-		[workingStatusState setShouldForceInitialIdleTime:[checkbox_idle state]];
-	else if (sender == checkBox_muteSounds)
-		[workingStatusState setMutesSound:[checkBox_muteSounds state]];
-	else if (sender == checkBox_silenceGrowl)
-		[workingStatusState setSilencesGrowl:[checkBox_silenceGrowl state]];	
-	
-	[self updateControlVisibilityAndResizeWindow];
+	if (sender == switch_muteSounds)
+		[workingStatusState setMutesSound:([switch_muteSounds state] == NSControlStateValueOn)];
+	else if (sender == switch_silenceNotifications)
+		[workingStatusState setSilencesGrowl:([switch_silenceNotifications state] == NSControlStateValueOn)];
+
 	[self updateTitleDisplay];
 }
 
@@ -402,7 +561,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 
 	if (sender == textField_title) {
 		NSString	*newTitle = [textField_title stringValue];
-		
+
 		if ([newTitle length]) [workingStatusState setTitle:newTitle];
 	}
 }
@@ -416,12 +575,8 @@ static	NSMutableDictionary	*controllerDict = nil;
 
 	if (sender == textView_statusMessage) {
 		[workingStatusState setStatusMessage:[[[textView_statusMessage textStorage] copy] autorelease]];
-		
-	} else if (sender == textView_autoReply) {
-		[workingStatusState setAutoReply:[[[textView_autoReply textStorage] copy] autorelease]];
-		
 	}
-	
+
 	[self updateTitleDisplay];
 }
 
@@ -436,11 +591,11 @@ static	NSMutableDictionary	*controllerDict = nil;
 
 	if (sender == textField_title) {
 		NSString	*newTitle = [textField_title stringValue];
-		
+
 		//Set to nil if the field is cleared to get back to the automatically generated value
 		if (![newTitle length]) {
 			[workingStatusState setTitle:nil];
-			
+
 			[self updateTitleDisplay];
 		}
 	}
@@ -460,117 +615,6 @@ static	NSMutableDictionary	*controllerDict = nil;
 	[self updateTitleDisplay];
 }
 
-/*!
- * @brief Override AIWindowController's stringWithSavedFrame to provide a custom saved frame
- *
- * We want our savedframe to match the way the window will load, which means it needs to be as if all controls were visible.
- */
-- (NSString *)stringWithSavedFrame
-{
-	NSWindow *window = [self window];
-	NSString *stringWithSavedFrame;
-
-	NSRect frame = [window frame];
-	CGFloat delta  = 0;
-	delta += ([scrollView_autoReply isHidden] ? ([scrollView_autoReply frame].size.height + CONTROL_SPACING) : 0);
-	delta += ([checkbox_customAutoReply isHidden] ? ([checkbox_customAutoReply frame].size.height + CONTROL_SPACING) : 0);
-	delta += ([box_idle isHidden] ? ([box_idle frame].size.height + CONTROL_SPACING) : 0);
-
-	frame.size.height += delta;
-	frame.origin.y -= delta;
-
-	NSRect screenFrame = [[window screen] frame];
-	stringWithSavedFrame = [NSString stringWithFormat:@"%0f %0f %0f %0f %0f %0f %0f %0f",
-		frame.origin.x, frame.origin.y, frame.size.width, frame.size.height,
-		screenFrame.origin.x, screenFrame.origin.y, screenFrame.size.width, screenFrame.size.height];
-
-	return stringWithSavedFrame;
-}
-
-- (NSRect)savedFrameFromString:(NSString *)frameString
-{
-	NSRect savedFrame = [super savedFrameFromString:frameString];
-	
-	CGFloat delta  = 0;
-	delta += ([scrollView_autoReply isHidden] ? ([scrollView_autoReply frame].size.height + CONTROL_SPACING) : 0);
-	delta += ([checkbox_customAutoReply isHidden] ? ([checkbox_customAutoReply frame].size.height + CONTROL_SPACING) : 0);
-	delta += ([box_idle isHidden] ? ([box_idle frame].size.height + CONTROL_SPACING) : 0);	
-
-	savedFrame.size.height -= delta;
-	savedFrame.origin.y += delta;
-
-	//Magic? This is the amount our numbers are off from the nib... if the nib changes, this magic will probably change, too.
-	savedFrame.size.height += CONTROL_SPACING*3;
-
-	return savedFrame;
-}
-
-
-/*!
- * @brief Update control visibility and resize the editor window
- *
- * This method updates control visibility (When checkboxes are off we hide the controls below them) and resizes the
- * window to fit just the remaining visible controls.
- */
-- (void)updateControlVisibilityAndResizeWindow
-{
-	//Visibility
-	NSWindow	*window = [self window];
-		
-	[scrollView_autoReply setHidden:(![checkbox_autoReply state] || ![checkbox_customAutoReply state])];
-	[checkbox_customAutoReply setHidden:![checkbox_autoReply state]];
-	[box_idle setHidden:![checkbox_idle state]];
-		
-	//Sizing
-	//XXX - This is quick & dirty -ai
-	id	current = box_title;
-	CGFloat	height = WINDOW_HEIGHT_PADDING + [current frame].size.height;
-
-	current = [self _positionControl:box_separatorLine relativeTo:current height:&height];
-	current = [self _positionControl:box_state relativeTo:current height:&height];	
-	current = [self _positionControl:box_statusMessage relativeTo:current height:&height];
-	current = [self _positionControl:checkbox_autoReply relativeTo:current height:&height];
-	current = [self _positionControl:checkbox_customAutoReply relativeTo:current height:&height];
-	current = [self _positionControl:scrollView_autoReply relativeTo:current height:&height];
-	current = [self _positionControl:checkbox_idle relativeTo:current height:&height];
-	current = [self _positionControl:box_idle relativeTo:current height:&height];
-	current = [self _positionControl:checkBox_muteSounds relativeTo:current height:&height];
-	current = [self _positionControl:checkBox_silenceGrowl relativeTo:current height:&height];
-	[self _positionControl:checkBox_save relativeTo:current height:&height];
-
-	[window setContentSize:NSMakeSize([[window contentView] frame].size.width, height)
-				   display:YES
-				   animate:NO];
-}
-
-/*!
- * @brief Position a control
- *
- * Position the passed control relative to another control in the editor window, keeping track of total control
- * height.  If the passed control is hidden, it won't be positioned or influence the total height at all.
- * @param control The control to reposition
- * @param guide The control we're positoining relative to
- * @param height A pointer to the total control height, which will be updated to include control
- * @return Returns control if it's visible, otherwise returns guide
- */
-- (id)_positionControl:(id)control relativeTo:(id)guide height:(CGFloat *)height
-{
-	if (![control isHidden]) {
-		NSRect	frame = [control frame];
-		
-		//Position this control relative to the one above it
-		frame.origin.y = [guide frame].origin.y - CONTROL_SPACING - frame.size.height;
-		
-		[control setFrame:frame];
-		(*height) += frame.size.height + CONTROL_SPACING;
-		
-		return control;
-	} else {
-		return guide;
-	}
-}
-
-
 //Configuration --------------------------------------------------------------------------------------------------------
 #pragma mark Configuration
 /*!
@@ -584,6 +628,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 	//State menu
 	NSString	*description;
 	NSUInteger			idx;
+	BOOL				stateMenuTitleChanged = NO;
 
 	if (needToRebuildPopUpState) {
 		[self configureStateMenu];
@@ -601,56 +646,37 @@ static	NSMutableDictionary	*controllerDict = nil;
 				AILocalizedString(@"No compatible accounts connected", nil)]];
 
 		} else {
-			[popUp_state setTitle:AILocalizedString(@"Unknown", nil)];			
+			[popUp_state setTitle:AILocalizedString(@"Unknown", nil)];
 		}
 
+		/* A title set by hand is longer than any menu entry, and a pop up row is measured afresh at
+		 * every layout - so the form has to be told that a layout is due. */
+		stateMenuTitleChanged = YES;
 		needToRebuildPopUpState = YES;
 	}
 
 	//Toggles
-	[checkbox_idle setState:[statusState shouldForceInitialIdleTime]];
-	[checkbox_autoReply setState:[statusState hasAutoReply]];
-	[checkbox_customAutoReply setState:![statusState autoReplyIsStatusMessage]];
-	[checkBox_muteSounds setState:[statusState mutesSound]];
-	[checkBox_silenceGrowl setState:[statusState silencesGrowl]];
-	
+	[switch_muteSounds setState:([statusState mutesSound] ? NSControlStateValueOn : NSControlStateValueOff)];
+	[switch_silenceNotifications setState:([statusState silencesGrowl] ? NSControlStateValueOn : NSControlStateValueOff)];
+
 	//Strings
 	NSAttributedString	*statusMessage = statusState.statusMessage;
-	NSAttributedString	*autoReply = [statusState autoReply];
 
-	NSAttributedString	*blankString = [NSAttributedString stringWithString:@""];
-	
-	if (!statusMessage) statusMessage = blankString;
+	if (!statusMessage) statusMessage = [NSAttributedString stringWithString:@""];
 	[[textView_statusMessage textStorage] setAttributedString:statusMessage];
 	[textView_statusMessage setSelectedRange:NSMakeRange(0, [statusMessage length])];
 
-	if (!autoReply) autoReply = blankString;
-	[[textView_autoReply textStorage] setAttributedString:autoReply];
-	
-	//Set Background Colors
-	if([autoReply attribute:AIBodyColorAttributeName atIndex:0 effectiveRange:nil]) {
-			[textView_autoReply setBackgroundColor:[autoReply attribute:AIBodyColorAttributeName atIndex:0 effectiveRange:nil]];
-	}
-	
-	if([statusMessage attribute:AIBodyColorAttributeName atIndex:0 effectiveRange:nil]) {
+	//Set Background Colors. Asking an empty string for the attributes at index 0 is out of bounds
+	if([statusMessage length] &&
+	   [statusMessage attribute:AIBodyColorAttributeName atIndex:0 effectiveRange:nil]) {
 			[textView_statusMessage setBackgroundColor:[statusMessage attribute:AIBodyColorAttributeName atIndex:0 effectiveRange:nil]];
 	}
-	
+
 	//Disallow an undo to before this point
-	[[textView_autoReply undoManager] removeAllActions];
 	[[textView_statusMessage undoManager] removeAllActions];
 
-	//Idle start
-	double	idleStart = [statusState forcedInitialIdleTime];
-	[textField_idleMinutes setIntValue:(int)((((int)idleStart)%3600)/60)];
-	[stepper_idleMinutes setIntValue:(int)((((int)idleStart)%3600)/60)];
-	
-	[textField_idleHours setIntValue:(int)(idleStart/3600)];
-	[stepper_idleHours setIntValue:(int)(idleStart/3600)];
+	if (stateMenuTitleChanged && form) [self layoutWindowContents];
 
-	//Update visiblity and size
-	[self updateControlVisibilityAndResizeWindow];
-	
 	//Update our title
 	[self updateTitleDisplay];
 }
@@ -664,16 +690,13 @@ static	NSMutableDictionary	*controllerDict = nil;
  */
 - (AIStatus *)currentConfiguration
 {
-	double		idleStart = [textField_idleHours intValue]*3600 + [textField_idleMinutes intValue]*60;
-	
-	[workingStatusState setMutabilityType:((!showSaveCheckbox || ([checkBox_save state] == NSControlStateValueOn)) ?
+	[workingStatusState setMutabilityType:((!showSaveCheckbox || ([switch_save state] == NSControlStateValueOn)) ?
 										   AIEditableStatusState :
 										   AITemporaryEditableStatusState)];
 
-	[workingStatusState setForcedInitialIdleTime:idleStart];
-
 	//Set the title if necessary
-	if (![[workingStatusState title] isEqualToString:[textField_title stringValue]]) {
+	if (textField_title &&
+		![[workingStatusState title] isEqualToString:[textField_title stringValue]]) {
 		[workingStatusState setTitle:[textField_title stringValue]];
 	}
 

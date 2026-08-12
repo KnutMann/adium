@@ -59,26 +59,26 @@
 	//What the outline view keeps beside its column, measured while it is tiled to its clip view
 	CGFloat								 stateColumnMargin;
 
-	/* The five checkboxes are NSSwitches built by -buildSettingsForm, the way every converted
+	/* The two checkboxes are NSSwitches built by -buildSettingsForm, the way every converted
 	 * pane does it; their titles moved into the row labels. Everything else below still comes
-	 * from the nib and is owned by the form once it has been moved there. */
+	 * from the nib and is owned by the form once it has been moved there.
+	 *
+	 * There is one idleness now, not two: this switch and this duration report the idleness and,
+	 * if popUp_autoAwayStatusState names a status, set it. The three status menus carry their own
+	 * off switch in their first entry, "Do not change", so they need no checkbox of their own —
+	 * but popUp_autoAwayStatusState still dims with this switch, because everything the switch
+	 * turns off includes the status change (see -configureControlDimming). */
 	NSSwitch			*checkBox_idle;
 	IBOutlet	NSTextField		*textField_idleMinutes;
 	IBOutlet	NSStepper		*stepper_idleMinutes;
 	IBOutlet	NSTextField		*label_idleMinutes;		//The "minutes" behind the field
 
-	NSSwitch			*checkBox_autoAway;
 	IBOutlet	NSPopUpButton	*popUp_autoAwayStatusState;
-	IBOutlet	NSTextField		*textField_autoAwayMinutes;
-	IBOutlet	NSStepper		*stepper_autoAwayMinutes;
-	IBOutlet	NSTextField		*label_autoAwayMinutes;
 	BOOL						showingSubmenuItemInAutoAway;
 
-	NSSwitch			*checkBox_fastUserSwitching;
 	IBOutlet	NSPopUpButton	*popUp_fastUserSwitchingStatusState;
 	BOOL						showingSubmenuItemInFastUserSwitching;
 
-	NSSwitch			*checkBox_screenSaver;
 	IBOutlet	NSPopUpButton	*popUp_screenSaverStatusState;
 	BOOL						showingSubmenuItemInScreenSaver;
 

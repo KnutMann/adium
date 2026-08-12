@@ -350,17 +350,6 @@ typedef enum
 //Properties -----------------------------------------------------------------------------------------------------------
 #pragma mark Properties
 /*!
- * @brief Send Autoresponses while away
- *
- * Subclass to alter the behavior of this account with regards to autoresponses.  Certain services expect the client to
- * auto-respond with away messages.  Adium will provide this behavior automatically if desired.
- */
-- (BOOL)supportsAutoReplies
-{
-	return NO;
-}
-
-/*!
  * @brief Disconnect on fast user switch
  *
  * It may be required for a service to disconnect when logged in users change.  If this is the case, subclass this
@@ -723,17 +712,6 @@ typedef enum
 - (NSString *)encodedAttributedStringForSendingContentMessage:(AIContentMessage *)inContentMessage
 {
     return [self encodedAttributedString:inContentMessage.message forListObject:[inContentMessage destination]];
-}
-
-/*!
- * @brief Should an autoreply be sent to this message?
- *
- * This will only be called if the generic algorithm determines that an autoreply is appropriate. The account
- * gets an opportunity to suppress sending the autoreply, e.g. on the basis of the message's content or source.
- */
-- (BOOL)shouldSendAutoreplyToMessage:(AIContentMessage *)message
-{
-	return YES;
 }
 
 /*!

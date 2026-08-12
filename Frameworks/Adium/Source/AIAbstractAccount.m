@@ -588,15 +588,13 @@
 		 * is thereafter responsible for updating any serverside settings as needed.  All of our current services will handle
 		 * updating idle time as it changes automatically. This is a per-account preference setting; it will override
 		 * any global idle setting for this account but won't change it. */	
+		/* A status can no longer bring an idle time of its own along - the editor's "Appear Idle
+		 * Immediately" is gone. What must stay is the clearing: whoever still has a per-account
+		 * idleSince in their settings from that feature would otherwise keep it for good, and a
+		 * per-account value shadows the global idle report (see CBPurpleAccount). */
 		if ([self.supportedPropertyKeys containsObject:@"idleSince"]) {
-			NSDate	*idleSince;
-			
-			idleSince = ([statusState shouldForceInitialIdleTime] ?
-						 [NSDate dateWithTimeIntervalSinceNow:-([statusState forcedInitialIdleTime]+1)] :
-						 nil);
-
-			if ([self preferenceForKey:@"idleSince" group:GROUP_ACCOUNT_STATUS] != idleSince) {
-				[self setPreference:idleSince forKey:@"idleSince" group:GROUP_ACCOUNT_STATUS];
+			if ([self preferenceForKey:@"idleSince" group:GROUP_ACCOUNT_STATUS]) {
+				[self setPreference:nil forKey:@"idleSince" group:GROUP_ACCOUNT_STATUS];
 			}
 		}
 		
@@ -616,16 +614,11 @@
 	//Store the status state as a property so it can be easily used elsewhere
 	[self setValue:statusState forProperty:@"accountStatus" notify:NotifyNever];
 
+	//As in -setStatusState:: only the clearing is left, and it has to stay - see there
 	if ([self.supportedPropertyKeys containsObject:@"idleSince"]) {
-		NSDate	*idleSince;
-		
-		idleSince = (statusState.shouldForceInitialIdleTime ?
-					 [NSDate dateWithTimeIntervalSinceNow:-statusState.forcedInitialIdleTime] :
-					 nil);
-		
-		if ([self preferenceForKey:@"idleSince" group:GROUP_ACCOUNT_STATUS] != idleSince) {
-			[self setPreference:idleSince forKey:@"idleSince" group:GROUP_ACCOUNT_STATUS];
-		}		
+		if ([self preferenceForKey:@"idleSince" group:GROUP_ACCOUNT_STATUS]) {
+			[self setPreference:nil forKey:@"idleSince" group:GROUP_ACCOUNT_STATUS];
+		}
 	}
 }
 

@@ -39,15 +39,25 @@
 #define PREF_GROUP_STATUS_PREFERENCES			@"Status Preferences"
 #define KEY_STATUS_CONVERSATION_COUNT			@"Unread Conversations"
 #define KEY_STATUS_MENTION_COUNT				@"Unread Mentions"
+/* The one switch and the one duration of being idle. Both names are inherited and now carry more
+ * than they say: once the duration has run out Adium reports the idleness AND, if a status was
+ * chosen for it, sets that status. Renaming them would reset the duration of every existing user,
+ * which is worth far more than a tidy name. */
 #define KEY_STATUS_REPORT_IDLE					@"Report Idle"
 #define KEY_STATUS_REPORT_IDLE_INTERVAL			@"Report Idle Interval"
-#define	KEY_STATUS_AUTO_AWAY					@"Auto Away"
 #define KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID	@"Auto Away Status State ID"
-#define KEY_STATUS_FUS							@"Fast User Switching Auto Away"
 #define KEY_STATUS_FUS_STATUS_STATE_ID			@"Fast User Switching Status State ID"
-#define KEY_STATUS_SS							@"ScreenSaver Auto Away"
 #define KEY_STATUS_SS_STATUS_STATE_ID			@"ScreenSaver Status State ID"
-#define KEY_STATUS_AUTO_AWAY_INTERVAL			@"Auto Away Interval"
+
+/*!
+ * @brief The status ID which means "do not change the status at all"
+ *
+ * No real status ever carries it: unique status IDs are handed out by counting "TopStatusID" up
+ * from zero (see AIStatusItem), so -statusStateWithUniqueStatusID: resolves this one to nil. It has
+ * been the default of the three automatic status IDs all along, as a bare number in
+ * StatusDefaults.plist; now that "Do not change" is an entry the user picks, it has a name.
+ */
+#define STATUS_STATE_ID_NONE					(-1000)
 
 #define KEY_STATUS_AWAY_REMINDER					@"Away Reminder"
 #define KEY_STATUS_AWAY_REMINDER_INTERVAL			@"Away Reminder Interval"	//Seconds, like the intervals above

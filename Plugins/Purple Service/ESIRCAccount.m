@@ -324,14 +324,6 @@ static PurpleConversation *fakeConversation(PurpleAccount *account)
 	return dict;
 }
 
-/*!
- * @brief Should an autoreply be sent to this message?
- */
-- (BOOL)shouldSendAutoreplyToMessage:(AIContentMessage *)message
-{
-	return NO;
-}
-
 #pragma mark Server contacts (NickServ, ChanServ)
 /*!
  * @brief Sends a raw command to identify for the nickname
