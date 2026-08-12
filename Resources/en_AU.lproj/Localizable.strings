@@ -2075,8 +2075,6 @@
 
 "Messages" = "Messages";
 
-/* No comment provided by engineer. */
-"Messages are highlighted when the following terms are spoken. Your username is always highlighted." = "Messages are highlighted when the following terms are spoken. Your username is always highlighted.";
 
 /* Middle name token */
 "Middle" = "Middle";

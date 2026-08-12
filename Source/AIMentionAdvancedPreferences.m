@@ -455,9 +455,19 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 {
 	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:MENTION_PANE_INITIAL_WIDTH] autorelease];
 
-	/* The nib's explanation, word for word and with the key it already had, so it stays translated
-	 * in all 29 localizations. No header over this card: it would only repeat the pane's own title. */
-	[form addInfoRow:AILocalizedString(@"Messages are highlighted when the following terms are spoken. Your username is always highlighted.", nil)
+	/* The nib's explanation, with the one thing it never said: this happens in group chats and
+	 * nowhere else. The terms below and one's own name alike are looked for there only -
+	 * AIMentionEventPlugin.m leaves at once for anything that is not a group chat - so without
+	 * those two words the paragraph promised something the pane does not do, which is exactly how
+	 * it was first tried out and found wanting.
+	 *
+	 * That costs the key its old translations, all twenty-nine of them, and it is worth it: a
+	 * sentence which is wrong in every language is not an asset. The new key is translated with the
+	 * rest.
+	 *
+	 * No header over this card: it would only repeat the pane's own title. */
+	[form addInfoRow:AILocalizedString(@"Messages in group chats are highlighted when the following terms are spoken. Your username is always highlighted.",
+									   "Paragraph at the top of the mention pane")
 		   withImage:[self image]];
 
 	/* The /…/ form has never been written down anywhere, and a term is not something one experiments
