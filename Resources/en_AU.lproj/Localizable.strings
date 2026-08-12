@@ -570,12 +570,6 @@
 /* No comment provided by engineer. */
 "Adium Setup Assistant" = "Adium Setup Assistant";
 
-/* Growl installation explanation */
-"Adium uses the Growl notification system to provide a configurable interface to display status changes, incoming messages and more.\n\nIt is strongly recommended that you allow Adium to automatically install Growl; no download is required." = "Adium uses the Growl notification system to provide a configurable interface to display status changes, incoming messages and more.\n\nIt is strongly recommended that you allow Adium to automatically install Growl; no download is required.";
-
-/* Growl update explanation */
-"Adium uses the Growl notification system to provide a configurable interface to display status changes, incoming messages and more.\n\nThis release of Adium includes an updated version of Growl. It is strongly recommended that you allow Adium to automatically update Growl; no download is required." = "Adium uses the Growl notification system to provide a configurable interface to display status changes, incoming messages and more.\n\nThis release of Adium includes an updated version of Growl. It is strongly recommended that you allow Adium to automatically update Growl; no download is required.";
-
 /* Title of the messages preferences */
 "Advanced" = "Advanced";
 
@@ -1307,19 +1301,19 @@
 "Display" = "Display";
 
 /* No comment provided by engineer. */
-"Display a Growl notification" = "Display a Growl notification";
+"Display a Growl notification" = "Display a notification";
 
 /* No comment provided by engineer. */
-"Display a Growl notification with a time stamp" = "Display a Growl notification with a time stamp";
+"Display a Growl notification with a time stamp" = "Display a notification with a time stamp";
 
 /* No comment provided by engineer. */
 "Display a message count badge" = "Display a message count badge";
 
 /* No comment provided by engineer. */
-"Display a sticky Growl notification" = "Display a sticky Growl notification";
+"Display a sticky Growl notification" = "Display a sticky notification";
 
 /* No comment provided by engineer. */
-"Display a sticky Growl notification with a time stamp" = "Display a sticky Growl notification with a time stamp";
+"Display a sticky Growl notification with a time stamp" = "Display a sticky notification with a time stamp";
 
 /* No comment provided by engineer. */
 "Display an alert" = "Display an alert";
@@ -1706,12 +1700,6 @@
 
 /* No comment provided by engineer. */
 "Group:" = "Group:";
-
-/* Growl installation window title */
-"Growl Installation Recommended" = "Growl Installation Recommended";
-
-/* Growl update window title */
-"Growl Update Available" = "Growl Update Available";
 
 /* Title which introduces import assistants during setup */
 "Have you used other chat clients?" = "Have you used other chat clients?";
@@ -3553,7 +3541,7 @@
 "Xtra Downloading Error" = "Xtra Downloading Error";
 
 /* Xtras Manager window title */
-"Xtras Manager" = "Xtras Manager";
+"Xtras Manager" = "Xtras";
 
 /* singular year */
 "year" = "year";
@@ -3798,3 +3786,13 @@
 "minutes of inactivity, set:" = "minutes of inactivity, set:";
 "to" = "to";
 "…only count number of unread mentions" = "…only count number of unread mentions";
+
+/* Adium arm64 revival */
+/* Context menu item which deletes an installed Xtra */
+"Move to Trash" = "Move to Bin";
+
+/* Confirmation before deleting an Xtra. %@ is the name of the Xtra */
+"“%@” will be moved to the Trash." = "“%@” will be moved to the Bin.";
+
+/* Title of the alert shown when deleting an Xtra failed */
+"The Xtra could not be moved to the Trash." = "The Xtra could not be moved to the Bin.";
