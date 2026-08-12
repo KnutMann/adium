@@ -49,8 +49,13 @@
 	
 	AIAccount									*currentSelectedAccount;
 	AIListContact								*currentSelectedContact;
-	
+
 	AIListObject								*displayedObject;
+
+	/* The groups the table is showing right now, in the order it is showing them. An NSSet
+	 * has no order at all, so asking one twice - once for the row count, once for the row the
+	 * user selected - could well name two different groups. */
+	NSArray										*displayedGroups;
 }
 
 -(NSString *)nibName;

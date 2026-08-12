@@ -195,13 +195,54 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 }
 
 /*!
- * @brief Remove ourself
+ * @brief Leave one group - or, from our last one, leave the contact list for good
  *
- * We've been asked to be removed. Ask the contact controller to do so.
+ * Every caller passes the group the user acted on, and the confirmation the user sees says
+ * what should happen: "Removing any contacts from their last group will permanently remove
+ * them from your contact list" plus, while there is more than one group, "This will remove
+ * %@ from the group \"%@\"" (AIContactListEditorPlugin). Deleting outright in both cases -
+ * which is what this method used to do, ignoring its argument - broke the second promise and
+ * made a bookmark in two groups impossible to take out of one of them.
+ *
+ * The last group stays a deletion, deliberately: we do not exist serverside, so a bookmark
+ * that is in no group at all would be gone from the list yet still in bookmarkDict and hence
+ * still on disk, unreachable. AIMetaContact draws the same line in its -removeFromGroup:.
  */
 - (void)removeFromGroup:(AIListObject <AIContainingObject> *)group
 {
-	[adium.contactController removeBookmark:self];
+	NSSet *currentGroups = self.groups;
+
+	if (group && ![currentGroups containsObject:group]) {
+		/* A stale view asking us to leave a group we are not in must not be taken to mean
+		 * "delete me": doing nothing is the only harmless reading. */
+		AILogWithSignature(@"%@ is not in %@ - nothing to remove", self.logDescription, group.UID);
+		return;
+	}
+
+	if (!group || currentGroups.count <= 1) {
+		[adium.contactController removeBookmark:self];
+		return;
+	}
+
+	[adium.contactController moveContact:self
+							  fromGroups:[NSSet setWithObject:group]
+							  intoGroups:[NSSet set]];
+
+	/* -restoreGrouping puts us back wherever KEY_CONTAINING_OBJECT_UID points on the next
+	 * launch, and -groupWithUID: recreates that group if it has since been deleted. Pointing
+	 * at the group we just left would undo this removal - and, worse, resurrect a group the
+	 * user deleted. Point it at one of the groups we are still in. */
+	NSString *savedGroupUID = [self preferenceForKey:KEY_CONTAINING_OBJECT_UID
+											   group:PREF_GROUP_OBJECT_STATUS_CACHE];
+
+	if ([savedGroupUID isEqualToString:group.UID]) {
+		for (AIListGroup *remainingGroup in self.groups) {
+			if (remainingGroup != adium.contactController.contactList) {
+				[self setInitialGroup:remainingGroup];
+				break;
+			}
+		}
+	}
 }
 
 /*!

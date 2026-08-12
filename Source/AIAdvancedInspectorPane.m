@@ -42,6 +42,8 @@
 
 @interface AIAdvancedInspectorPane()
 - (void)reloadPopup;
+- (void)reloadGroups;
+- (AIListBookmark *)localGroupingBookmark;
 - (void)configureControlDimming;
 - (void)addNewGroup:(id)sender;
 - (void)removeGroup;
@@ -93,6 +95,7 @@
 	[accountMenu release]; accountMenu = nil;
 	[contactMenu release]; contactMenu = nil;
     [displayedObject release]; displayedObject = nil;
+	[displayedGroups release]; displayedGroups = nil;
 	[inspectorContentView release]; inspectorContentView = nil;
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self]; 
@@ -110,9 +113,48 @@
 	return inspectorContentView;
 }
 
+/*!
+ * @brief The displayed object if its grouping is purely local, i.e. if it is a bookmark
+ *
+ * A bookmark is not on any server, so it has no remote groups and this pane's account/contact
+ * popups have nothing to choose between: the only groups it has are the local ones in -groups.
+ *
+ * Deliberately a class test and not -existsServerside, which looks like the same question but
+ * is not: AIMetaContact answers NO to it as well, and metacontacts are edited here exactly as
+ * before, through the popups and their contained contacts' remote groups.
+ */
+- (AIListBookmark *)localGroupingBookmark
+{
+	return ([displayedObject isKindOfClass:[AIListBookmark class]] ? (AIListBookmark *)displayedObject : nil);
+}
+
+/*!
+ * @brief Take a fresh, ordered snapshot of the groups to show and redisplay the table
+ *
+ * Every row index the table hands back is an index into displayedGroups, so the group shown
+ * in a row and the group acted on for that row are guaranteed to be the same one.
+ */
+- (void)reloadGroups
+{
+	AIListBookmark	*bookmark = [self localGroupingBookmark];
+	NSSet			*groups = (bookmark ? bookmark.groups : currentSelectedContact.remoteGroups);
+
+	[displayedGroups release];
+	displayedGroups = [[groups.allObjects sortedArrayUsingSelector:@selector(compare:)] retain];
+
+	[tableView_groups reloadData];
+	[self configureControlDimming];
+}
+
 - (void)configureControlDimming
 {
-	[button_addOrRemoveGroup setEnabled:[tableView_groups numberOfSelectedRows] forSegment:1];
+	/* The + and - buttons act through the selected account, which is meaningless for a
+	 * bookmark: + would write a contact named "Bookmark:<chat>" into the real serverside
+	 * contact list. A bookmark's groups are shown here, but changed in the contact list -
+	 * by dragging it, or by "Remove Contact", which asks before it acts. */
+	BOOL editable = ([self localGroupingBookmark] == nil);
+
+	[button_addOrRemoveGroup setEnabled:(editable && [tableView_groups numberOfSelectedRows] > 0) forSegment:1];
 }
 
 -(void)updateForListObject:(AIListObject *)inObject
@@ -142,9 +184,14 @@
 	[checkBox_autoJoin setEnabled:[inObject isKindOfClass:[AIListBookmark class]]];
 	[checkBox_autoJoin setState:[[inObject preferenceForKey:KEY_AUTO_JOIN group:GROUP_LIST_BOOKMARK] boolValue]];
 	
-	[popUp_accounts setEnabled:![inObject isKindOfClass:[AIListGroup class]]];
-	[popUp_contact setEnabled:![inObject isKindOfClass:[AIListGroup class]]];
-	[button_addOrRemoveGroup setEnabled:![inObject isKindOfClass:[AIListGroup class]] forSegment:0];
+	/* Groups have no account or contact to pick, and a bookmark has no choice to offer: it
+	 * belongs to exactly one account and is its own only contact. */
+	BOOL canPickAccountAndContact = (![inObject isKindOfClass:[AIListGroup class]] &&
+									 ![inObject isKindOfClass:[AIListBookmark class]]);
+
+	[popUp_accounts setEnabled:canPickAccountAndContact];
+	[popUp_contact setEnabled:canPickAccountAndContact];
+	[button_addOrRemoveGroup setEnabled:canPickAccountAndContact forSegment:0];
 }
 
 #pragma mark Preference callbacks
@@ -242,15 +289,24 @@
 {
 	// Avoid triggering a full reload when this ends up creating a new contact.
 	switchingContacts = YES;
-	
-	currentSelectedContact = [adium.contactController contactWithService:inContact.service
-																  account:currentSelectedAccount
-																	  UID:inContact.UID];
-	
+
+	if ([inContact isKindOfClass:[AIListBookmark class]]) {
+		/* A bookmark has no per-account twin to look up. -contactWithService:account:UID:
+		 * would not find it - bookmarks are kept in bookmarkDict under a different key - and
+		 * would silently create an ordinary contact carrying the bookmark's "Bookmark:<chat>"
+		 * UID: an object that is on no server, cannot be one, and would be written to one the
+		 * moment somebody used the + button on it. */
+		currentSelectedContact = inContact;
+	} else {
+		currentSelectedContact = [adium.contactController contactWithService:inContact.service
+																	account:currentSelectedAccount
+																		UID:inContact.UID];
+	}
+
 	switchingContacts = NO;
-	
+
 	// Update the groups.
-	[tableView_groups reloadData];
+	[self reloadGroups];
 }
 
 - (BOOL)contactMenu:(AIContactMenu *)inContactMenu shouldIncludeContact:(AIListContact *)inContact
@@ -281,12 +337,16 @@
 
 - (void)removeGroup
 {
-	for (AIListGroup *group in [currentSelectedContact.remoteGroups.allObjects objectsAtIndexes:tableView_groups.selectedRowIndexes]) {
+	/* Also reached by the delete key, which no dimming can switch off. */
+	if ([self localGroupingBookmark])
+		return;
+
+	for (AIListGroup *group in [displayedGroups objectsAtIndexes:tableView_groups.selectedRowIndexes]) {
 		[currentSelectedContact removeFromGroup:group];
 	}
-	
+
 	[tableView_groups deselectAll:nil];
-	[tableView_groups reloadData];
+	[self reloadGroups];
 }
 
 - (void)newGroupControllerDidEnd:(NSNotification *)notification
@@ -298,9 +358,9 @@
 	
 	if (windowController.group) {
 		[currentSelectedAccount addContact:currentSelectedContact toGroup:windowController.group];
-		
+
 		[tableView_groups deselectAll:nil];
-		[tableView_groups reloadData];
+		[self reloadGroups];
 	}
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self
@@ -313,9 +373,9 @@
 	AIListGroup *group = [sender representedObject];
 	
 	[currentSelectedAccount addContact:currentSelectedContact toGroup:group];
-	
+
 	[tableView_groups deselectAll:nil];
-	[tableView_groups reloadData];
+	[self reloadGroups];
 }
 
 - (void)addOrRemoveGroup:(id)sender
@@ -338,7 +398,7 @@
  */
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	return currentSelectedContact.remoteGroups.count;
+	return displayedGroups.count;
 }
 
 /*!
@@ -349,9 +409,7 @@
 	NSString		*identifier = [tableColumn identifier];
 	
 	if ([identifier isEqualToString:@"group"]) {
-		NSArray *contactGroups = currentSelectedContact.remoteGroups.allObjects;
-		
-		return ((AIListGroup *)[contactGroups objectAtIndex:row]).displayName;
+		return ((AIListGroup *)[displayedGroups objectAtIndex:row]).displayName;
 	}
 	
 	return nil;
