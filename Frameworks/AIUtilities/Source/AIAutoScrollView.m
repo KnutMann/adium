@@ -282,8 +282,12 @@
 	[super drawRect:rect];
 	
 	if (shouldDrawFocusRing) {
+		/* Around the view, not around @a rect: that is only the part being redrawn, and a ring
+		 * drawn around a fragment is a ring in the middle of the view. Redrawn in strips - which
+		 * is what happens while text is being typed - it left blue bars lying across the window.
+		 * Drawing past the dirty rect is fine; AppKit clips to it. */
 		NSSetFocusRingStyle(NSFocusRingOnly);
-		NSRectFill(rect);
+		NSRectFill([self bounds]);
 	}
 } 
 
