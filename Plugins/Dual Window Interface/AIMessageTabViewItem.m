@@ -366,9 +366,16 @@
 	//method does nothing; force the tab bindings to reload -objectCount
 }
 
-- (void)setShowObjectCount:(BOOL)flag
+/*!
+ * @brief Does nothing; exists so the tab bindings reload -showObjectCount
+ *
+ * Takes an object rather than the BOOL the property is declared with, exactly as
+ * -setObjectCount: does: -chatStatusChanged: announces the change with -setValue:nil, and KVC
+ * cannot put nil into a scalar - it raises instead, which took the whole application down every
+ * time a message arrived for a chat that was not the active one.
+ */
+- (void)setShowObjectCount:(NSNumber *)number
 {
-	//method does nothing; force the tab bindings to reload -showObjectCount
 }
 
 /*!
