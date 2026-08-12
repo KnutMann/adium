@@ -79,4 +79,26 @@
 	}
 }
 
+/*!
+ * @brief Let the preview scroll, but show no scrollbar.
+ *
+ * The sample conversation can run past the box, so it must be scrollable; a scrollbar in a
+ * settings preview, though, reads as chrome that does not belong. The rule is injected into
+ * this one web view rather than set on the WebPreferences the controller shares with real chat
+ * windows, so only the preview loses its bar. -webViewIsReady fires again after every reload
+ * (a style or variant change reprimes the view), which is why the style is re-applied here and
+ * guarded against being added twice.
+ */
+- (void)webViewIsReady
+{
+	[super webViewIsReady];
+
+	[webView stringByEvaluatingJavaScriptFromString:
+		@"(function(){var i='adium-preview-no-scrollbar';"
+		 "if(!document.getElementById(i)){"
+		 "var s=document.createElement('style');s.id=i;"
+		 "s.textContent='::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}';"
+		 "(document.head||document.documentElement).appendChild(s);}})();"];
+}
+
 @end

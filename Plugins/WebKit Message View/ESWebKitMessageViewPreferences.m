@@ -920,14 +920,11 @@ static NSString *AIRowLabel(NSString *label)
 		[(ESWebView *)preview setShouldForwardEvents:NO];
 	}
 
-	/* The preview must not scroll itself. A legacy WebView keeps its own scroll view, and a
-	 * scroll view takes the wheel whether it has anywhere to go or not - so as soon as the
-	 * pointer crossed the preview, the settings column underneath stopped following the wheel
-	 * and the pane felt like it ended here. With scrolling off, the inner scroll view has no
-	 * range at all and passes the wheel up to the column, which is the only thing around that
-	 * can meaningfully answer it; the preview is a look at the style, not a place to read. */
+	/* The preview scrolls, so a long sample conversation can be read past the edge of the box;
+	 * its scrollbar is hidden, not its scrolling - see -[AIWebKitPreviewMessageViewController
+	 * webViewIsReady], which drops a ::-webkit-scrollbar rule into this one web view. */
 	if ([preview isKindOfClass:[WebView class]]) {
-		[[[(WebView *)preview mainFrame] frameView] setAllowsScrolling:NO];
+		[[[(WebView *)preview mainFrame] frameView] setAllowsScrolling:YES];
 	}
 }
 

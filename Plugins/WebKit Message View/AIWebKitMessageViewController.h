@@ -101,6 +101,14 @@
 - (void)editingDidComplete:(DOMRange *)range;
 
 
+/*!
+ * @brief The web view finished loading its template and can take content.
+ *
+ * A subclass may override to touch the freshly loaded document; it fires again after every
+ * reprime (a style or variant change). Declared here so an override can reach super.
+ */
+- (void)webViewIsReady;
+
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key object:(AIListObject *)object
 					preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime;
 
