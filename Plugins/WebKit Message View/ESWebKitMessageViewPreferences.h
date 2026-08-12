@@ -1,15 +1,15 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
@@ -17,7 +17,7 @@
 #import <Adium/AIPreferencePane.h>
 #import "AIWebKitMessageViewPlugin.h"
 
-@class ESWebView, AIContentObject, AIAutoScrollView, AIWebKitPreviewMessageViewController;
+@class AISettingsFormView, ESWebView, AIContentObject, AIWebKitPreviewMessageViewController;
 @class JVFontPreviewField, AIImageViewWithImagePicker;
 
 /*!
@@ -25,44 +25,39 @@
  *	@brief Handles the messages preference pane
  */
 @interface ESWebKitMessageViewPreferences : AIPreferencePane {
-	IBOutlet	NSTabView			*tabView_messageType;
-	IBOutlet	NSTabViewItem		*tabViewItem_regularChat;
-	IBOutlet	NSTabViewItem		*tabViewItem_groupChat;
-	
-	IBOutlet	NSButton			*checkBox_useRegularChatForGroup;
-	
-	IBOutlet	JVFontPreviewField  *fontPreviewField_currentFont;
-	IBOutlet	NSButton			*button_setFont;
-	IBOutlet	NSButton			*button_defaultFont;
-	
-	IBOutlet	NSPopUpButton   	*popUp_styles;
-	IBOutlet	NSPopUpButton   	*popUp_variants;
-	IBOutlet	NSPopUpButton   	*popUp_backgroundImageType;
+	AISettingsFormView	*settingsForm;			//Our view, typed; unretained (-view owns it)
 
-	//Localized labels of the single-xib pane
-	IBOutlet	NSTextField			*label_messageStyle;
-	IBOutlet	NSTextField			*label_variant;
-	IBOutlet	NSTextField			*label_textDisplay;
-	IBOutlet	NSTextField			*label_background;
-	IBOutlet	NSTextField			*label_backgroundImage;
-	IBOutlet	NSTextField			*label_backgroundColor;
-	IBOutlet	NSTextField			*label_backgroundColorsNote;
-	IBOutlet	NSTextField			*label_newWindowsNote;
+	/* Which of the two per-chat-type preference groups the rows show. The nib's
+	 * tab view did not remember its selection either: every pane starts on
+	 * regular chats.
+	 */
+	AIWebkitStyleType	 selectedChatType;
 
-	IBOutlet	NSColorWell			*colorWell_customBackgroundColor;
-	IBOutlet	AIImageViewWithImagePicker	*imageView_backgroundImage;
-	IBOutlet    NSButton        	*checkBox_showUserIcons;
-	IBOutlet    NSButton        	*checkBox_showHeader;
-	IBOutlet	NSButton			*checkBox_showMessageColors;
-	IBOutlet	NSButton			*checkBox_showMessageFonts;
-	IBOutlet	NSButton			*checkBox_useCustomBackground;
-	
+	NSSegmentedControl	*segment_chatType;
+	NSSwitch			*checkBox_useRegularChatForGroup;
+
+	NSPopUpButton		*popUp_styles;
+	NSPopUpButton		*popUp_variants;
+	NSSwitch			*checkBox_showUserIcons;
+	NSSwitch			*checkBox_showHeader;
+
+	JVFontPreviewField	*fontPreviewField_currentFont;
+	NSButton			*button_setFont;
+	NSButton			*button_defaultFont;
+	NSSwitch			*checkBox_showMessageFonts;
+	NSSwitch			*checkBox_showMessageColors;
+
+	NSSwitch			*checkBox_useCustomBackground;
+	AIImageViewWithImagePicker	*imageView_backgroundImage;
+	NSPopUpButton		*popUp_backgroundImageType;
+	NSColorWell			*colorWell_customBackgroundColor;
+
 	//Message preview
-	IBOutlet	NSView						*view_previewLocation;
+	NSView									*view_previewLocation;
 	NSMutableDictionary						*previewListObjectsDict;
 	AIWebKitPreviewMessageViewController	*previewController;
 	ESWebView								*preview;
-	
+
 	BOOL							viewIsOpen;
 }
 

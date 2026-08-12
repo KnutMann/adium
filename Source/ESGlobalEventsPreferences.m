@@ -1,31 +1,33 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #import "AISoundController.h"
+#import "AIPassthroughScrollView.h"
 #import "Adium/ESContactAlertsViewController.h"
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import "ESGlobalEventsPreferences.h"
 #import "ESGlobalEventsPreferencesPlugin.h"
+#import <Adium/AISettingsFormView.h>
 #import <Adium/ESPresetManagementController.h>
 #import <Adium/ESPresetNameSheetController.h>
 #import <Adium/AISoundSet.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
-#import <AIUtilities/AIVariableHeightOutlineView.h>
+#import <AIUtilities/AIVariableHeightFlexibleColumnsOutlineView.h>
 #import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIArrayAdditions.h>
@@ -36,6 +38,11 @@
 #define CUSTOM_TITLE				AILocalizedString(@"Custom",nil)
 #define COPY_IN_PARENTHESIS			AILocalizedString(@"(Copy)","Copy, in parenthesis, as a noun indicating that the preceding item is a duplicate")
 
+/* The events card is never empty — the list shows every event, with or without actions — but a
+ * moment can exist before the first reload. A card of no height at all would read as a missing
+ * card rather than as an empty list. */
+#define ALERTS_LIST_MINIMUM_HEIGHT	48.0f
+
 #define VOLUME_SOUND_PATH   [NSString pathWithComponents:[NSArray arrayWithObjects: \
 	@"/", @"System", @"Library", @"LoginPlugins", \
 	[@"BezelServices" stringByAppendingPathExtension:@"loginPlugin"], \
@@ -44,6 +51,15 @@
 	nil]]
 
 @interface ESGlobalEventsPreferences ()
+- (AISettingsFormView *)buildSettingsForm;
+- (AISettingsFormView *)settingsForm;
+- (NSView *)volumeRowView;
+- (void)configureAlertsList;
+- (void)alertsListFrameChanged:(NSNotification *)notification;
+- (void)deferredUpdateAlertsListHeight;
+- (void)updateAlertsListHeight;
+- (void)tearDown;
+
 - (void)popUp:(NSPopUpButton *)inPopUp shouldShowCustom:(BOOL)showCustom;
 - (void)xtrasChanged:(NSNotification *)notification;
 - (void)contactAlertsDidChangeForActionID:(NSString *)actionID;
@@ -62,12 +78,33 @@
 - (void)showPresetCopySheet:(NSString *)originalPresetName;
 @end
 
+/*!
+ * @brief A nib label reused as a row label: without its trailing colon.
+ *
+ * Keeps every existing translation of the old labels usable while matching the
+ * System Settings look, where row labels carry no colon.
+ */
+static NSString *AIRowLabel(NSString *label)
+{
+	NSCharacterSet	*whitespace = [NSCharacterSet whitespaceCharacterSet];
+	/* U+003A and the full width U+FF1A the CJK translations use */
+	NSCharacterSet	*colons = [NSCharacterSet characterSetWithCharactersInString:@":："];
+	NSString		*trimmed = [label stringByTrimmingCharactersInSet:whitespace];
+
+	while ([trimmed length] > 0 &&
+		   [colons characterIsMember:[trimmed characterAtIndex:([trimmed length] - 1)]]) {
+		trimmed = [[trimmed substringToIndex:([trimmed length] - 1)] stringByTrimmingCharactersInSet:whitespace];
+	}
+
+	return trimmed;
+}
+
 @implementation ESGlobalEventsPreferences
 - (NSString *)paneIdentifier
 {
 	return @"Events";
 }
-- (NSString *)paneName{	
+- (NSString *)paneName{
     return AILocalizedString(@"Events", "Name of preferences and tab for specifying what Adium should do when events occur - for example, display a notification when John signs on.");
 }
 /*!
@@ -86,6 +123,246 @@
 	return YES;
 }
 
+#pragma mark View
+
+/*!
+ * @brief Our view: the nib's controls, arranged by the settings form
+ *
+ * The nib still supplies the two pop ups, the volume slider with its speaker buttons and — above
+ * all — the ESContactAlertsViewController with its outline view, but no longer their arrangement.
+ * Mirrors -[AIModularPane view] so the subclass hooks fire in the same order.
+ */
+- (NSView *)view
+{
+	if (!view) {
+		[NSBundle loadNibNamed:[self nibName] owner:self];
+
+		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
+		 * that reference over rather than retaining it again; it keeps the nib alive while we use
+		 * its controls, and -tearDown releases it. */
+		[nibView release];
+		nibView = view;
+		view = nil;
+
+		/* -viewDidLoad runs before the form is built: it fills both pop up menus, and the pop up
+		 * rows measure their buttons in the layout pass below. */
+		[self viewDidLoad];
+
+		view = [[self buildSettingsForm] retain];
+
+		[self localizePane];
+
+		[(AISettingsFormView *)view layoutForWidth:NSWidth([view frame])];
+
+		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
+	}
+
+	return view;
+}
+
+/*!
+ * @brief The settings form we live in, or nil before -view built it
+ */
+- (AISettingsFormView *)settingsForm
+{
+	return ([view isKindOfClass:[AISettingsFormView class]] ? (AISettingsFormView *)view : nil);
+}
+
+/*!
+ * @brief Stack the nib's controls into cards
+ *
+ * Three of them: what the pane is about, the preset/sound set/volume controls, and the list of
+ * events with the action bar under it. The nib's two field labels became the row labels.
+ */
+- (AISettingsFormView *)buildSettingsForm
+{
+	/* No width of our own: the form falls back to a usable one and the preferences window hands it
+	 * its column width right afterwards. */
+	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:0.0f] autorelease];
+
+	/* The form lays everything out by frame, and a view out of a nib saved without Auto Layout
+	 * arrives with translatesAutoresizingMaskIntoConstraints turned off. Every way into the form
+	 * adopts the views handed to it for frame based layout, except the pop up row, so these two
+	 * have to say it for themselves. */
+	for (NSPopUpButton *popUp in [NSArray arrayWithObjects:popUp_eventPreset, popUp_soundSet, nil]) {
+		[popUp setTranslatesAutoresizingMaskIntoConstraints:YES];
+	}
+
+	//Card 1: what an event is, before any control that acts on one
+	[form addInfoRow:AILocalizedString(@"When an event occurs — a contact signs on, a message arrives, a file transfer finishes — Adium can play a sound, show a notification, or take other actions. Pick a preset, or configure each event below.",
+									   "Paragraph at the top of the Events preferences explaining what events are")
+		   withImage:[NSImage imageNamed:@"pref-events" forClass:[self class]]];
+	[form endCard];
+
+	//Card 2: the preset and the sounds it brings along
+	[form addSectionHeader:AILocalizedString(@"Notifications", "Section header above the event preset, sound set and volume settings")];
+
+	/* Pop up rows rather than plain control rows: both menus are rebuilt while the pane is open —
+	 * presets as they are added and removed, sound sets as Xtras come and go — and the buttons then
+	 * have to be free to grow and to shrink again. */
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Event preset:",nil))
+			  popUpButton:popUp_eventPreset
+		  accessoryButton:nil];
+
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Sound set:",nil))
+			  popUpButton:popUp_soundSet
+		  accessoryButton:nil];
+
+	[form addRowWithLabel:AILocalizedString(@"Volume", "Accessibility label for the sound volume slider")
+				  control:[self volumeRowView]];
+
+	/* Card 3: the list of events. The header reuses the pane name's key on purpose, so every
+	 * existing translation of "Events" applies here as well. */
+	[form addSectionHeader:AILocalizedString(@"Events", "Name of preferences and tab for specifying what Adium should do when events occur - for example, display a notification when John signs on.")];
+
+	[self configureAlertsList];
+
+	/* The list is the card: it fills it edge to edge and its own height decides how tall the card
+	 * is. The height has to be right before the row is added — the form reads the natural size of
+	 * a hosted view when it takes it in. */
+	[self updateAlertsListHeight];
+	[form addEdgeToEdgeRow:view_alertsHost];
+
+	/* ...and the buttons hang under it, the way System Settings puts a bar under a list. Both keep
+	 * the targets the nib gave them: they belong to the alerts view controller, not to us. */
+	NSSegmentedControl	*addRemoveControl = [contactAlertsViewController valueForKey:@"button_addOrRemoveAlert"];
+	NSButton			*editButton = [contactAlertsViewController valueForKey:@"button_edit"];
+
+	[addRemoveControl setSegmentStyle:NSSegmentStyleRounded];
+
+	/* The nib built the button small for the old, cramped layout; a form's accessory bar sits next
+	 * to regular sized cards. */
+	[editButton setControlSize:NSControlSizeRegular];
+	[editButton setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeRegular]]];
+	[editButton sizeToFit];
+
+	[form addAccessoryView:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
+															addRemoveControl, editButton, nil]]];
+
+	return form;
+}
+
+/*!
+ * @brief The volume row: the two speaker buttons with the slider between them
+ *
+ * All three come from the nib with their actions already wired to -selectVolume:; the buttons jump
+ * to the ends of the scale. They stay one bundle rather than becoming a form slider row, because a
+ * slider row has no place for the buttons — and losing them would lose the one-click way to mute.
+ */
+- (NSView *)volumeRowView
+{
+	return [AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
+											button_minvolume, slider_volume, button_maxvolume, nil]];
+}
+
+/*!
+ * @brief Turn the alerts controller's bordered, scrolling list into the list a card is made of
+ *
+ * The outline itself is untouched — the same columns, the same cells, the same controller behind
+ * it — but it no longer scrolls: it is laid out at the full height of its rows and the preferences
+ * column scrolls instead. Its nib scroll view is replaced by an AIPassthroughScrollView (a table
+ * view outside of any scroll view loses its tiling and its clip view), which hands the scroll
+ * wheel on to the column behind it instead of swallowing it the way the nib's bordered one did.
+ *
+ * The controller's view and outlets are reached through KVC: they are wired inside that controller
+ * by the nib, the controller is shared with the contact inspector, and giving it pane-only
+ * accessors for the benefit of one host would be the tail wagging the dog. The container keeps
+ * being the controller's 'view', so the sheets it opens keep finding their window through it.
+ */
+- (void)configureAlertsList
+{
+	if (view_alertsHost) return;
+
+	view_alertsHost = [contactAlertsViewController valueForKey:@"view"];
+	outlineView_alerts = [contactAlertsViewController valueForKey:@"outlineView_summary"];
+
+	NSScrollView			*nibScrollView = [outlineView_alerts enclosingScrollView];
+	AIPassthroughScrollView	*scrollView = [[[AIPassthroughScrollView alloc] initWithFrame:[view_alertsHost bounds]] autorelease];
+
+	/* Held across the reparenting below: leaving the nib's clip view is what would otherwise
+	 * release the outline before the new scroll view owns it. */
+	[[outlineView_alerts retain] autorelease];
+
+	[scrollView setDocumentView:outlineView_alerts];
+	[nibScrollView removeFromSuperview];
+
+	[scrollView setBorderType:NSNoBorder];
+	[scrollView setDrawsBackground:NO];
+	[scrollView setHasVerticalScroller:NO];
+	[scrollView setHasHorizontalScroller:NO];
+	[scrollView setVerticalScrollElasticity:NSScrollElasticityNone];
+	[scrollView setHorizontalScrollElasticity:NSScrollElasticityNone];
+	[scrollView setAutomaticallyAdjustsContentInsets:NO];
+	[scrollView setContentInsets:NSEdgeInsetsZero];
+	[scrollView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+
+	[view_alertsHost setAutoresizesSubviews:YES];
+	[view_alertsHost addSubview:scrollView];
+	[scrollView setFrame:[view_alertsHost bounds]];
+
+	/* Row heights are measured against the outline's width, so it has to follow the width the form
+	 * gives the card from the very first layout. */
+	[outlineView_alerts setTranslatesAutoresizingMaskIntoConstraints:YES];
+	[outlineView_alerts setAutoresizingMask:NSViewWidthSizable];
+	//A focus ring drawn inside a card would trace the list rather than the card
+	[outlineView_alerts setFocusRingType:NSFocusRingTypeNone];
+
+	/* The outline re-tiles whenever alerts change, rows expand or the width moves; its frame is
+	 * where all of those changes meet, so that is what the card's height follows. */
+	[outlineView_alerts setPostsFrameChangedNotifications:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(alertsListFrameChanged:)
+												 name:NSViewFrameDidChangeNotification
+											   object:outlineView_alerts];
+}
+
+/*!
+ * @brief The outline re-tiled; follow it with the card, but not from in here
+ *
+ * Coalesced onto the next turn of the run loop: the frame moves from inside the outline's own
+ * tiling and from inside the form's layout pass, and resizing the card right there would re-enter
+ * the very layout that is running.
+ */
+- (void)alertsListFrameChanged:(NSNotification *)notification
+{
+	if (alertsHeightUpdateScheduled) return;
+
+	alertsHeightUpdateScheduled = YES;
+	[self performSelector:@selector(deferredUpdateAlertsListHeight) withObject:nil afterDelay:0.0];
+}
+
+- (void)deferredUpdateAlertsListHeight
+{
+	alertsHeightUpdateScheduled = NO;
+	[self updateAlertsListHeight];
+}
+
+/*!
+ * @brief Grow or shrink the card around the list to fit its rows
+ *
+ * The list is the edge to edge row of a card, so its height is the card's height. The height is
+ * asked of the outline itself — -totalHeight is the sum of its variable row heights — rather than
+ * measured off a frame mid-tiling. Converges rather than loops: a width change may re-measure the
+ * rows once more, but a height already in place is left alone.
+ */
+- (void)updateAlertsListHeight
+{
+	if (!view_alertsHost || !outlineView_alerts) return;
+
+	CGFloat		height = ceil((CGFloat)[outlineView_alerts totalHeight]);
+
+	if (height < ALERTS_LIST_MINIMUM_HEIGHT) height = ALERTS_LIST_MINIMUM_HEIGHT;
+
+	if (fabs(NSHeight([view_alertsHost frame]) - height) < 0.5f) return;
+
+	[view_alertsHost setFrameSize:NSMakeSize(NSWidth([view_alertsHost frame]), height)];
+
+	//Only a card the form is actually holding asks it for a layout
+	if ([view_alertsHost superview]) [[self settingsForm] noteContentSizeChanged];
+}
+
+#pragma mark Configuration
+
 /*!
  * @brief Configure the preference view
  */
@@ -95,7 +372,7 @@
 	[contactAlertsViewController setConfigureForGlobal:YES];
 	[contactAlertsViewController setDelegate:self];
 	[contactAlertsViewController setShowEventsInEditSheet:NO];
-	
+
 	//Observe for installation of new sound sets and set up the sound set menu
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(xtrasChanged:)
@@ -103,7 +380,7 @@
 									 object:nil];
 
 	//This will build the sound set menu
-	[self xtrasChanged:nil];	
+	[self xtrasChanged:nil];
 
 	//Presets menu
 	[self setAndConfigureEventPresetsMenu];
@@ -113,10 +390,10 @@
 
 	//Ensure the correct sound set is selected
 	[self updateSoundSetSelection];
-	
+
 	//Volume
 	[slider_volume setDoubleValue:[[adium.preferenceController preferenceForKey:KEY_SOUND_CUSTOM_VOLUME_LEVEL
-																		   group:PREF_GROUP_SOUNDS] doubleValue]];	
+																		   group:PREF_GROUP_SOUNDS] doubleValue]];
 }
 
 - (void)localizePane
@@ -127,25 +404,78 @@
 									   forAttribute:NSAccessibilityDescriptionAttribute];
 	[[slider_volume cell] accessibilitySetOverrideValue:AILocalizedString(@"Volume", "Accessibility label for the sound volume slider")
 										   forAttribute:NSAccessibilityDescriptionAttribute];
-	 
-	[label_eventPreset setStringValue:AILocalizedString(@"Event preset:",nil)];
-	[label_soundSet setStringValue:AILocalizedString(@"Sound set:",nil)];
 }
 
 /*!
  * @brief Preference view is closing
+ *
+ * Nothing is saved here: every control on this pane has always written the moment it was touched,
+ * and the preferences window only gets here when the window itself closes.
  */
 - (void)viewWillClose
 {
-	[contactAlertsViewController viewWillClose];
-	[contactAlertsViewController release]; contactAlertsViewController = nil;
-
-	[adium.preferenceController unregisterPreferenceObserver:self];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+	[self tearDown];
 }
 
 /*!
- * @brief PREF_GROUP_CONTACT_ALERTS changed; update our summary data
+ * @brief Undo everything -viewDidLoad and -buildSettingsForm set up
+ *
+ * Idempotent, so that it is safe to run it from both -viewWillClose and -dealloc. Running it from
+ * -dealloc matters, because -viewWillClose is only reached when the preference window closes.
+ */
+- (void)tearDown
+{
+	//A deferred height update reaching a torn down pane would message outlets already forgotten
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+	alertsHeightUpdateScheduled = NO;
+
+	[adium.preferenceController unregisterPreferenceObserver:self];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+	[contactAlertsViewController viewWillClose];
+	[contactAlertsViewController release]; contactAlertsViewController = nil;
+
+	/* Every item of these menus carries our address as its target, so the menus go rather than
+	 * outlive us on a button the form has not released yet. */
+	for (NSPopUpButton *popUp in [NSArray arrayWithObjects:popUp_eventPreset, popUp_soundSet, nil]) {
+		[popUp setMenu:[[[NSMenu alloc] initWithTitle:@""] autorelease]];
+	}
+
+	//The nib wired these three to us; a control which outlives us must not still point at us
+	[slider_volume setTarget:nil];
+	[button_minvolume setTarget:nil];
+	[button_maxvolume setTarget:nil];
+
+	/* All of these references are non-retaining and the views behind them go away with the form or
+	 * with the nib's view, either of which may be released after us; forget them so a second
+	 * -tearDown cannot message freed memory. */
+	popUp_eventPreset = nil;
+	popUp_soundSet = nil;
+	label_eventPreset = nil;
+	label_soundSet = nil;
+	slider_volume = nil;
+	button_minvolume = nil;
+	button_maxvolume = nil;
+	view_alertsHost = nil;
+	outlineView_alerts = nil;
+
+	[nibView release]; nibView = nil;
+}
+
+/*!
+ * @brief Deallocate
+ */
+- (void)dealloc
+{
+	//Releases the form and runs -viewWillClose, but only if a view was ever built
+	[self closeView];
+	//...so tear down again for the pane which never showed itself. -tearDown is idempotent.
+	[self tearDown];
+	[super dealloc];
+}
+
+/*!
+ * @brief PREF_GROUP_EVENT_PRESETS changed; update our presets menu
  */
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key
 							object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime
@@ -179,7 +509,13 @@
 		//If it currently has a 'custom' item listed, remove it and the separator above it
 		[inPopUp removeItemAtIndex:([inPopUp numberOfItems]-1)];
 		[inPopUp removeItemAtIndex:([inPopUp numberOfItems]-1)];
+
+	} else {
+		return;
 	}
+
+	//A pop up row is measured afresh at every layout; a menu which changed its items asks for one
+	[[self settingsForm] noteContentSizeChanged];
 }
 
 /*!
@@ -187,9 +523,12 @@
  */
 - (void)xtrasChanged:(NSNotification *)notification
 {
-	if (!notification || [[notification object] caseInsensitiveCompare:@"AdiumSoundset"] == NSOrderedSame) {		
+	if (!notification || [[notification object] caseInsensitiveCompare:@"AdiumSoundset"] == NSOrderedSame) {
 		//Build the soundset menu
-		[popUp_soundSet setMenu:[self _soundSetMenu]];		
+		[popUp_soundSet setMenu:[self _soundSetMenu]];
+
+		//The rebuilt menu may need a wider or narrower button
+		[[self settingsForm] noteContentSizeChanged];
 	}
 }
 
@@ -206,12 +545,12 @@
 	NSEnumerator	*enumerator;
 	NSDictionary	*eventPreset;
 	NSMenuItem		*menuItem;
-	
+
 	//Built in event presets
 	enumerator = [[plugin builtInEventPresetsArray] objectEnumerator];
 	while ((eventPreset = [enumerator nextObject])) {
 		NSString		*name = [eventPreset objectForKey:@"Name"];
-		
+
 		//Add a menu item for the set
 		menuItem = [[[NSMenuItem alloc] initWithTitle:[self _localizedTitle:name]
 																		 target:self
@@ -220,15 +559,15 @@
 		[menuItem setRepresentedObject:eventPreset];
 		[eventPresetsMenu addItem:menuItem];
 	}
-	
+
 	NSArray	*storedEventPresetsArray = [plugin storedEventPresetsArray];
-	
+
 	if ([storedEventPresetsArray count]) {
 		[eventPresetsMenu addItem:[NSMenuItem separatorItem]];
-		
+
 		for (eventPreset in storedEventPresetsArray) {
 			NSString		*name = [eventPreset objectForKey:@"Name"];
-			
+
 			//Add a menu item for the set
 			menuItem = [[[NSMenuItem alloc] initWithTitle:name
 																			 target:self
@@ -238,7 +577,7 @@
 			[eventPresetsMenu addItem:menuItem];
 		}
 	}
-	
+
 	//Edit Presets
 	[eventPresetsMenu addItem:[NSMenuItem separatorItem]];
 
@@ -247,13 +586,13 @@
 																	 action:@selector(addNewPreset:)
 															  keyEquivalent:@""] autorelease];
 	[eventPresetsMenu addItem:menuItem];
-	
+
 	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Presets",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(editPresets:)
 															  keyEquivalent:@""] autorelease];
 	[eventPresetsMenu addItem:menuItem];
-		
+
 	return [eventPresetsMenu autorelease];
 }
 
@@ -267,13 +606,16 @@
 	//If that fails, look for one exactly matching
 	if (![popUp_eventPreset selectedItem]) [popUp_eventPreset selectItemWithTitle:activeEventSetName];
 	//And if that fails, select the first item (something went wrong, we should at least have a selection)
-	if (![popUp_eventPreset selectedItem]) [popUp_eventPreset selectItemAtIndex:0];	
+	if (![popUp_eventPreset selectedItem]) [popUp_eventPreset selectItemAtIndex:0];
 }
 
 - (void)setAndConfigureEventPresetsMenu
 {
 	[popUp_eventPreset setMenu:[self eventPresetsMenu]];
 	[self selectActiveEventInPopUp];
+
+	//A pop up row is measured afresh at every layout; a rebuilt menu asks for one
+	[[self settingsForm] noteContentSizeChanged];
 }
 
 /*!
@@ -299,7 +641,7 @@
 {
 	NSString	*defaultName;
 	NSString	*explanatoryText;
-	
+
 	defaultName = [NSString stringWithFormat:@"%@ %@",
 		[self _localizedTitle:[adium.preferenceController preferenceForKey:KEY_ACTIVE_EVENT_SET
 																	   group:PREF_GROUP_EVENT_PRESETS]],
@@ -336,7 +678,7 @@
 {
 	NSString	*name = [preset objectForKey:@"Name"];
 	NSString	*localizedTitle;
-	
+
 	localizedTitle = [self _localizedTitle:[adium.preferenceController preferenceForKey:KEY_ACTIVE_EVENT_SET
 																					group:PREF_GROUP_EVENT_PRESETS]];
 	//Don't allow the active preset to be deleted
@@ -358,11 +700,11 @@
 											 forKey:KEY_ACTIVE_EVENT_SET
 											  group:PREF_GROUP_EVENT_PRESETS];
 	}
-	
+
 	//Remove the original one from the array, and add the newly-renamed one
 	[plugin deleteEventPreset:preset];
 	[plugin saveEventPreset:newPreset];
-	
+
 	if (renamedPreset) *renamedPreset = newPreset;
 
 	//Return an updated presets array
@@ -375,16 +717,16 @@
 	NSString			*newName = [NSString stringWithFormat:@"%@ %@", [preset objectForKey:@"Name"], COPY_IN_PARENTHESIS];
 	[newEventPreset setObject:newName
 					   forKey:@"Name"];
-	
+
 	//Remove the original preset's order index
 	[newEventPreset removeObjectForKey:@"OrderIndex"];
-	
+
 	//Now save the new preset
 	[plugin saveEventPreset:newEventPreset];
 
 	//Return the created duplicate by reference
 	if (duplicatePreset != NULL) *duplicatePreset = [[newEventPreset retain] autorelease];
-	
+
 	//Cleanup
 	[newEventPreset release];
 
@@ -396,7 +738,7 @@
 {
 	//Remove the preset
 	[plugin deleteEventPreset:preset];
-	
+
 	//Return an updated presets array
 	return [plugin storedEventPresetsArray];
 }
@@ -405,7 +747,7 @@
 {
 	NSMutableDictionary	*newEventPreset = [preset mutableCopy];
 	CGFloat newOrderIndex;
-	if (idx == 0) {		
+	if (idx == 0) {
 		newOrderIndex = (CGFloat)[[[presets objectAtIndex:0] objectForKey:@"OrderIndex"] doubleValue] / 2.0f;
 
 	} else if (idx < [presets count]) {
@@ -416,10 +758,10 @@
 	} else {
 		newOrderIndex = [plugin nextOrderIndex];
 	}
-	
+
 	[newEventPreset setObject:[NSNumber numberWithDouble:newOrderIndex]
 					   forKey:@"OrderIndex"];
-			 
+
 	//Now save the new preset
 	[plugin saveEventPreset:newEventPreset];
 	if (presetAfterMove != NULL) *presetAfterMove = [[newEventPreset retain] autorelease];
@@ -433,14 +775,14 @@
 - (void)contactAlertsViewController:(ESContactAlertsViewController *)inController
 					   updatedAlert:(NSDictionary *)newAlert
 						   oldAlert:(NSDictionary *)oldAlert
-{	
+{
 	[self contactAlertsDidChangeForActionID:[newAlert objectForKey:KEY_ACTION_ID]];
 }
 
 - (void)contactAlertsViewController:(ESContactAlertsViewController *)inController
 					   deletedAlert:(NSDictionary *)deletedAlert
 {
-	[self contactAlertsDidChangeForActionID:[deletedAlert objectForKey:KEY_ACTION_ID]];	
+	[self contactAlertsDidChangeForActionID:[deletedAlert objectForKey:KEY_ACTION_ID]];
 }
 
 /*!
@@ -450,12 +792,12 @@
 {
 	if (!actionID ||
 		[actionID isEqualToString:SOUND_ALERT_IDENTIFIER]) {
-		
+
 		NSArray			*alertsArray = [adium.contactAlertsController alertsForListObject:nil
 																				withEventID:nil
 																				   actionID:SOUND_ALERT_IDENTIFIER];
 		NSMenuItem		*soundMenuItem;
-		
+
 		if (![alertsArray count]) {
 			//We can select "None" if there are no sounds
 			soundMenuItem = (NSMenuItem *)[popUp_soundSet itemWithTitle:@"None"];
@@ -486,7 +828,7 @@
 						break;
 					}
 				}
-				
+
 				//Next, see if any sounds not present within this sound set have been added
 				if (soundMenuItem) {
 					NSDictionary	*alertDict;
@@ -534,7 +876,7 @@
 	 */
 	[self updateSoundSetSelectionForSoundSet:[sender representedObject]];
 
-	/* Save the preset which is now updated to have the appropriate sounds; 
+	/* Save the preset which is now updated to have the appropriate sounds;
 	 * in saving, the name of the soundset, or @"", will also be saved.
 	 */
 	[self saveCurrentEventPreset];
@@ -551,7 +893,7 @@
 	eventPreset = [[popUp_eventPreset selectedItem] representedObject];
 
 	[plugin setEventPreset:eventPreset];
-	
+
 	//Ensure the correct sound set is selected
 	[self updateSoundSetSelection];
 }
@@ -563,7 +905,7 @@
 {
 	NSDictionary		*eventPreset = [[popUp_eventPreset selectedItem] representedObject];
 	NSMutableDictionary	*currentEventSetForSaving = [[eventPreset mutableCopy] autorelease];
-	
+
 	//Set the sound set, which is just stored here for ease of preference pane display
 	NSString			*soundSetName = [[[popUp_soundSet selectedItem] representedObject] name];
 	if (soundSetName) {
@@ -572,7 +914,7 @@
 	} else {
 		[currentEventSetForSaving removeObjectForKey:KEY_EVENT_SOUND_SET];
 	}
-	
+
 	//Get and store the alerts array
 	NSArray				*alertsArray = [adium.contactAlertsController alertsForListObject:nil
 																				withEventID:nil
@@ -581,7 +923,7 @@
 
 	//Ensure this set doesn't claim to be built in.
 	[currentEventSetForSaving removeObjectForKey:@"Built In"];
-	
+
 	return currentEventSetForSaving;
 }
 
@@ -590,7 +932,7 @@
 - (IBAction)selectVolume:(id)sender
 {
     CGFloat			volume, oldVolume;
-	
+
 	if (sender == slider_volume) {
 		volume = (CGFloat)[slider_volume doubleValue];
 	} else if (sender == button_maxvolume) {
@@ -602,17 +944,17 @@
 	} else {
 		volume = 0;
 	}
-	
+
 	NSNumber *oldVolumeValue = [adium.preferenceController preferenceForKey:KEY_SOUND_CUSTOM_VOLUME_LEVEL
 																		group:PREF_GROUP_SOUNDS];
 	oldVolume = (oldVolumeValue ? (CGFloat)[oldVolumeValue doubleValue] : -1.0f);
-	
+
     //Volume
     if (volume != oldVolume) {
         [adium.preferenceController setPreference:[NSNumber numberWithDouble:volume]
                                              forKey:KEY_SOUND_CUSTOM_VOLUME_LEVEL
                                               group:PREF_GROUP_SOUNDS];
-		
+
 		//Play a sample sound
         [adium.soundController playSoundAtPath:VOLUME_SOUND_PATH];
     }
@@ -636,10 +978,10 @@
 		[self performSelector:@selector(showPresetCopySheet:)
 				   withObject:[self _localizedTitle:[eventPreset objectForKey:@"Name"]]
 				   afterDelay:0];
-	} else {	
+	} else {
 		//Now save the current settings
 		[plugin saveEventPreset:[self currentEventSetForSaving]];
-	}		
+	}
 }
 
 /*!
@@ -651,10 +993,10 @@
 {
 	NSString	*defaultName;
 	NSString	*explanatoryText;
-	
+
 	defaultName = [NSString stringWithFormat:@"%@ %@", originalPresetName, COPY_IN_PARENTHESIS];
 	explanatoryText = AILocalizedString(@"You are editing a default event set.  Please enter a unique name for your modified set.",nil);
-	
+
 	ESPresetNameSheetController *presetNameSheetController = [[ESPresetNameSheetController alloc] initWithDefaultName:defaultName
 													explanatoryText:explanatoryText
 													notifyingTarget:self
@@ -669,8 +1011,8 @@
 	return (![[[plugin builtInEventPresets] allKeys] containsObject:newName] &&
 		   ![[[plugin storedEventPresets] allKeys] containsObject:newName]);
 }
-	
-- (void)presetNameSheetControllerDidEnd:(ESPresetNameSheetController *)controller 
+
+- (void)presetNameSheetControllerDidEnd:(ESPresetNameSheetController *)controller
 							 returnCode:(ESPresetNameSheetReturnCode)returnCode
 								newName:(NSString *)newName
 							   userInfo:(id)userInfo
@@ -682,17 +1024,20 @@
 			NSMutableDictionary	*newEventPreset = [self currentEventSetForSaving];
 			[newEventPreset setObject:newName
 							   forKey:@"Name"];
-			
+
 			//Now save the current settings
 			[plugin saveEventPreset:newEventPreset];
-			
+
 			//Presets menu
 			[adium.preferenceController setPreference:newName
 												 forKey:KEY_ACTIVE_EVENT_SET
 												  group:PREF_GROUP_EVENT_PRESETS];
 			[popUp_eventPreset setMenu:[self eventPresetsMenu]];
 			[popUp_eventPreset selectItemWithTitle:newName];
-			
+
+			//The new name may need a wider button; the pop up row re-measures at the next layout
+			[[self settingsForm] noteContentSizeChanged];
+
 			break;
 		}
 		case ESPresetNameSheetCancelReturn:
@@ -702,27 +1047,14 @@
 		}
 	}
 }
-		
-/*!
- * @brief Called when the OK button on the preset copy sheet is pressed
- *
- * Save the current event set under the name specified by [textField_name stringValue].
- * Set the name of the active event set to this new name, and ensure our menu is up to date.
- *
- * Also, close the sheet.
- */
-- (IBAction)selectedNameForPresetCopy:(id)sender
-{
-	
-}
 
 - (void)updateSoundSetSelectionForSoundSet:(AISoundSet *)soundSet
 {
 	if (soundSet) {
 		[popUp_soundSet selectItemWithRepresentedObject:soundSet];
-		
+
 		[self popUp:popUp_soundSet shouldShowCustom:NO];
-		
+
 	} else {
 		[self popUp:popUp_soundSet shouldShowCustom:YES];
 	}
@@ -764,7 +1096,7 @@
 											  action:@selector(selectSoundSet:)
 									   keyEquivalent:@""
 								   representedObject:soundSet];
-		
+
 		if ([[menuItem title] isEqualToString:NONE]) {
 			[noneMenuItem release];
 			noneMenuItem = menuItem;
@@ -774,9 +1106,9 @@
 			[menuItem release];
 		}
 	}
-	
+
 	[menuItemArray sortUsingSelector:@selector(titleCompare:)];
-	
+
 	for (menuItem in menuItemArray) {
 		[soundSetMenu addItem:menuItem];
 	}
@@ -786,7 +1118,7 @@
 		[soundSetMenu addItem:noneMenuItem];
 		[noneMenuItem release];
 	}
-	
+
     return [soundSetMenu autorelease];
 }
 
@@ -799,7 +1131,7 @@
 - (NSString *)_localizedTitle:(NSString *)englishTitle
 {
 	NSString	*localizedTitle = nil;
-	
+
 	if ([englishTitle isEqualToString:@"None"])
 		localizedTitle = NONE;
 	else if ([englishTitle isEqualToString:@"Default Notifications"])

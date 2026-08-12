@@ -1,15 +1,15 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
@@ -33,6 +33,7 @@
 #import <Adium/AIHTMLDecoder.h>
 #import <Adium/AIService.h>
 #import <Adium/JVFontPreviewField.h>
+#import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIColorAdditions.h>
 #import <AIUtilities/AIFontAdditions.h>
@@ -48,7 +49,28 @@
 #define WEBKIT_PREVIEW_CONVERSATION_FILE	@"Preview"
 #define	PREF_GROUP_DISPLAYFORMAT			@"Display Format"  //To watch when the contact name display format changes
 
+//Width the form starts out at; the preferences window resizes it to its column.
+#define MESSAGES_PANE_INITIAL_WIDTH			540.0
+
+/* Taller than the old pane's 148 point strip: the preview is a card of its own
+ * now and is what every other row on this pane is judged against.
+ */
+#define MESSAGES_PREVIEW_HEIGHT				200.0
+
+//The nib's fixed sizes for the two controls that have no natural size of their own
+#define FONT_PREVIEW_FIELD_WIDTH			160.0
+#define FONT_PREVIEW_FIELD_HEIGHT			17.0
+#define BACKGROUND_IMAGE_WELL_WIDTH			70.0
+#define BACKGROUND_IMAGE_WELL_HEIGHT		54.0
+#define COLOR_WELL_WIDTH					44.0
+#define COLOR_WELL_HEIGHT					23.0
+
 @interface ESWebKitMessageViewPreferences ()
+- (AISettingsFormView *)buildSettingsForm;
+- (NSSegmentedControl *)chatTypeSegmentedControl;
+- (void)menusChanged;
+- (void)layOutChangedMenus;
+- (IBAction)changeChatType:(id)sender;
 - (void)configurePreferencesForTab;
 - (void)_setBackgroundImage:(NSImage *)image;
 - (NSMenu *)_stylesMenu;
@@ -66,6 +88,27 @@
 
 @class AIPreviewChat;
 
+/*!
+ * @brief A nib label reused as a row label: without its trailing colon.
+ *
+ * Keeps every existing translation of the old labels usable while matching the
+ * System Settings look, where row labels carry no colon.
+ */
+static NSString *AIRowLabel(NSString *label)
+{
+	NSCharacterSet	*whitespace = [NSCharacterSet whitespaceCharacterSet];
+	/* U+003A and the full width U+FF1A the CJK translations use */
+	NSCharacterSet	*colons = [NSCharacterSet characterSetWithCharactersInString:@":："];
+	NSString		*trimmed = [label stringByTrimmingCharactersInSet:whitespace];
+
+	while ([trimmed length] > 0 &&
+		   [colons characterIsMember:[trimmed characterAtIndex:([trimmed length] - 1)]]) {
+		trimmed = [[trimmed substringToIndex:([trimmed length] - 1)] stringByTrimmingCharactersInSet:whitespace];
+	}
+
+	return trimmed;
+}
+
 @implementation ESWebKitMessageViewPreferences
 
 - (NSString *)paneIdentifier
@@ -75,12 +118,265 @@
 - (NSString *)paneName{
 	return AILocalizedString(@"Messages", "Title of the messages preferences");
 }
-- (NSString *)nibName{
-    return @"WebKitPreferencesView";
-}
 - (NSImage *)paneIcon
 {
 	return [NSImage imageNamed:@"pref-messages"];
+}
+
+/* No -nibName: the pane builds its own view below, so AIModularPane never loads
+ * a nib for us. WebKitPreferencesView.xib is dead — and it must stay unloaded:
+ * it still wires outlets this class no longer has (tabView_messageType, the
+ * label fields, …), so loading it would raise NSUnknownKeyException rather than
+ * fall back to the old interface. Removing it from the target needs project
+ * file access this plugin's sources do not carry.
+ */
+
+#pragma mark View
+
+/*!
+ * @brief Build our view instead of loading a nib.
+ *
+ * Mirrors -[AIModularPane view] so the subclass hooks fire in the same order.
+ */
+- (NSView *)view
+{
+	if (!view) {
+		AISettingsFormView	*form = [self buildSettingsForm];
+
+		settingsForm = form;
+		view = [form retain];
+
+		[self viewDidLoad];
+		[self localizePane];
+
+		/* -viewDidLoad filled the style menu and selected the stored values; the
+		 * pop up rows measure their buttons in this last layout pass.
+		 */
+		[form layoutForWidth:NSWidth([form frame])];
+
+		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
+	}
+
+	return view;
+}
+
+/*!
+ * @brief Undo everything -view built.
+ *
+ * -closeView tears the preview's WebView down (see -viewWillClose) and releases
+ * the form; it is idempotent, so a pane the plugin releases after the window
+ * already closed does not tear anything down twice.
+ */
+- (void)dealloc
+{
+	[self closeView];
+	[super dealloc];
+}
+
+/*!
+ * @brief Create the controls and stack them into cards.
+ *
+ * The live preview is the heart of this pane and gets a card of its own: an
+ * edge to edge row, so the rendered conversation *is* the card. Below it, the
+ * cards follow the nib's blocks — the style, the text display, the background —
+ * while the nib's two-tab view becomes a segmented control row: the rows below
+ * never change with the chat type, only the values in them.
+ *
+ * Each control keeps the preference key and group its nib counterpart had.
+ */
+- (AISettingsFormView *)buildSettingsForm
+{
+	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:MESSAGES_PANE_INITIAL_WIDTH] autorelease];
+
+	//What this pane is about, and the one caveat that spans all of it
+	[form addInfoRow:AILocalizedString(@"Style changes take effect for new message windows.", nil)
+		   withImage:[self paneIcon]];
+	[form endCard];
+
+	//Which of the two per-chat-type preference sets the rows below show
+	segment_chatType = [self chatTypeSegmentedControl];
+	[form addRowWithLabel:AILocalizedString(@"Settings for", "Label of the control choosing which kind of chat the message settings below apply to")
+				  control:segment_chatType];
+
+	checkBox_useRegularChatForGroup = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Use regular chat style settings", nil)
+				  control:checkBox_useRegularChatForGroup
+				   detail:AILocalizedString(@"Applies to group chats.", "Explanation that a setting only affects group chats")];
+
+	//The live preview: the card is the rendered conversation
+	[form addSectionHeader:AILocalizedString(@"Preview", "Section header above the live message style preview")];
+
+	/* A plain container rather than the WebView itself: the message view is
+	 * created later (-_configureChatPreview needs the styles loaded first) and
+	 * has been replaced wholesale by style reloads in the past, so the row hosts
+	 * a stable placeholder the WebView is dropped into, exactly as the nib did.
+	 */
+	view_previewLocation = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																	 MESSAGES_PANE_INITIAL_WIDTH,
+																	 MESSAGES_PREVIEW_HEIGHT)] autorelease];
+	[view_previewLocation setAutoresizesSubviews:YES];
+	[form addEdgeToEdgeRow:view_previewLocation];
+
+	//Message style
+	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Message Style:", nil))];
+
+	/* Pop up rows, not control rows: both menus are rebuilt at run time — the
+	 * styles when Xtras change, the variants whenever the style does — and a pop
+	 * up row re-measures its button at every layout.
+	 */
+	popUp_styles = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Style", "Label of the menu choosing the message style")
+			  popUpButton:popUp_styles
+		  accessoryButton:nil];
+
+	popUp_variants = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Variant:", nil))
+			  popUpButton:popUp_variants
+		  accessoryButton:nil];
+
+	checkBox_showUserIcons = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Show user icons", nil)
+				  control:checkBox_showUserIcons];
+
+	checkBox_showHeader = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Show header", nil)
+				  control:checkBox_showHeader];
+
+	//Text display
+	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Text Display:", nil))];
+
+	/* The font field shows the choice, the buttons change it. The field gets the
+	 * nib's fixed frame because a text field in a row of views keeps whatever
+	 * frame it brought along.
+	 */
+	fontPreviewField_currentFont = [[[JVFontPreviewField alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																						 FONT_PREVIEW_FIELD_WIDTH,
+																						 FONT_PREVIEW_FIELD_HEIGHT)] autorelease];
+	[fontPreviewField_currentFont setBezeled:NO];
+	[fontPreviewField_currentFont setDrawsBackground:NO];
+	[[fontPreviewField_currentFont cell] setLineBreakMode:NSLineBreakByTruncatingTail];
+	[fontPreviewField_currentFont setShowFontFace:YES];
+	[fontPreviewField_currentFont setShowPointSize:YES];
+	//Its text is a font name, not a title, so VoiceOver needs to be told what it is
+	[fontPreviewField_currentFont setAccessibilityLabel:AILocalizedString(@"Font", "Label of the row showing the current message display font")];
+	//As in the nib: -fontPreviewField:didChangeToFont: saves the user's choice
+	[fontPreviewField_currentFont setDelegate:(id<NSTextFieldDelegate>)self];
+
+	/* The button opens the font panel on the field itself, exactly as the nib
+	 * wired it: the field owns the panel session and hands the result to its
+	 * delegate. NSControl holds its target weakly, and the field outlives the
+	 * button — the form owns both.
+	 */
+	button_setFont = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Set Font…", nil)
+													  target:fontPreviewField_currentFont
+													  action:@selector(chooseFontWithFontPanel:)];
+	button_defaultFont = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Default", nil)
+														  target:self
+														  action:@selector(resetDisplayFontToDefault:)];
+
+	[form addRowWithLabel:AILocalizedString(@"Font", "Label of the row showing the current message display font")
+				  control:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
+														  fontPreviewField_currentFont, button_setFont, button_defaultFont, nil]]];
+
+	checkBox_showMessageFonts = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Show received message fonts", nil)
+				  control:checkBox_showMessageFonts];
+
+	checkBox_showMessageColors = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Show received message colors", nil)
+				  control:checkBox_showMessageColors
+				   detail:AILocalizedString(@"Message background colors are not supported by all styles", nil)];
+
+	//Background
+	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Background:", nil))];
+
+	checkBox_useCustomBackground = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Use custom background", nil)
+				  control:checkBox_useCustomBackground];
+
+	/* The image well keeps the nib's frame — an image view has no natural size —
+	 * and stays clickable: clicking it opens the open panel, dragging an image
+	 * in and pressing delete work as before (see the delegate methods below).
+	 */
+	imageView_backgroundImage = [[[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																							  BACKGROUND_IMAGE_WELL_WIDTH,
+																							  BACKGROUND_IMAGE_WELL_HEIGHT)] autorelease];
+	[imageView_backgroundImage setDelegate:self];
+	[imageView_backgroundImage setImageFrameStyle:NSImageFrameGrayBezel];
+	[imageView_backgroundImage setImageScaling:NSImageScaleProportionallyDown];
+	//As in the nib: the well is reached by clicking it, not by tabbing through the pane
+	[imageView_backgroundImage setRefusesFirstResponder:YES];
+	//We want to be able to obtain bigger images than the image picker will feed us
+	[imageView_backgroundImage setUsePictureTaker:NO];
+	//A well shows a picture and has no title of its own for VoiceOver to read
+	[imageView_backgroundImage setAccessibilityLabel:AIRowLabel(AILocalizedString(@"Image:", nil))];
+
+	/* This menu is fixed, so unlike the style menus it is built once, right
+	 * here: the pop up sits inside a row of views, which keeps the size a
+	 * control has when the row is created.
+	 */
+	popUp_backgroundImageType = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[popUp_backgroundImageType setMenu:[self _backgroundImageTypeMenu]];
+	[popUp_backgroundImageType sizeToFit];
+
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Image:", nil))
+				  control:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
+														  imageView_backgroundImage, popUp_backgroundImageType, nil]]];
+
+	colorWell_customBackgroundColor = [[[NSColorWell alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																					 COLOR_WELL_WIDTH,
+																					 COLOR_WELL_HEIGHT)] autorelease];
+	[colorWell_customBackgroundColor setTarget:self];
+	[colorWell_customBackgroundColor setAction:@selector(changePreference:)];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Color:", nil))
+				  control:colorWell_customBackgroundColor];
+
+	return form;
+}
+
+/*!
+ * @brief The switch between the regular chat and the group chat settings.
+ *
+ * The nib's tab view, minus the tabs: a two-segment control keeps both choices
+ * visible without putting a frame around half the pane. The titles are the ones
+ * the tabs carried, so every existing translation applies.
+ */
+- (NSSegmentedControl *)chatTypeSegmentedControl
+{
+	NSSegmentedControl	*segment = [[[NSSegmentedControl alloc] initWithFrame:NSZeroRect] autorelease];
+
+	[segment setSegmentCount:2];
+	[segment setSegmentStyle:NSSegmentStyleAutomatic];
+	[segment setTrackingMode:NSSegmentSwitchTrackingSelectOne];
+	[segment setLabel:AILocalizedString(@"Regular Chats", "Tab in the messages preferences: settings for one-on-one chats")
+		   forSegment:AIWebkitRegularChat];
+	[segment setLabel:AILocalizedString(@"Group Chat", "Tab in the messages preferences: settings for group chats")
+		   forSegment:AIWebkitGroupChat];
+	[segment setSelectedSegment:AIWebkitRegularChat];
+	[segment setTarget:self];
+	[segment setAction:@selector(changeChatType:)];
+	[segment sizeToFit];
+
+	return segment;
+}
+
+/*!
+ * @brief A pop up menu was (re)built or reselected; let the form measure again.
+ *
+ * A pop up row sizes its button to the title it shows, so a rebuilt menu or a
+ * new selection is a new button width. Coalesced into the next run loop pass:
+ * one preference change can rebuild the variant menu and reselect two buttons
+ * in a row, and a menu must not be re-measured while it is still tracking.
+ */
+- (void)menusChanged
+{
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(layOutChangedMenus) object:nil];
+	[self performSelector:@selector(layOutChangedMenus) withObject:nil afterDelay:0.0];
+}
+
+- (void)layOutChangedMenus
+{
+	[settingsForm noteContentSizeChanged];
 }
 
 /*!
@@ -91,41 +387,13 @@
 	viewIsOpen = YES;
 	previewListObjectsDict = nil;
 
-	//Localized text for the single-xib pane
-	[tabViewItem_regularChat setLabel:AILocalizedString(@"Regular Chats", "Tab in the messages preferences: settings for one-on-one chats")];
-	[tabViewItem_groupChat setLabel:AILocalizedString(@"Group Chat", "Tab in the messages preferences: settings for group chats")];
-	[checkBox_useRegularChatForGroup setTitle:AILocalizedString(@"Use regular chat style settings", nil)];
-	[label_messageStyle setStringValue:AILocalizedString(@"Message Style:", nil)];
-	[label_variant setStringValue:AILocalizedString(@"Variant:", nil)];
-	[checkBox_showUserIcons setTitle:AILocalizedString(@"Show user icons", nil)];
-	[checkBox_showHeader setTitle:AILocalizedString(@"Show header", nil)];
-	[label_textDisplay setStringValue:AILocalizedString(@"Text Display:", nil)];
-	[button_setFont setTitle:AILocalizedString(@"Set Font…", nil)];
-	[button_defaultFont setTitle:AILocalizedString(@"Default", nil)];
-	[checkBox_showMessageFonts setTitle:AILocalizedString(@"Show received message fonts", nil)];
-	[checkBox_showMessageColors setTitle:AILocalizedString(@"Show received message colors", nil)];
-	[label_backgroundColorsNote setStringValue:AILocalizedString(@"Message background colors are not supported by all styles", nil)];
-	[label_background setStringValue:AILocalizedString(@"Background:", nil)];
-	[checkBox_useCustomBackground setTitle:AILocalizedString(@"Use custom background", nil)];
-	[label_backgroundImage setStringValue:AILocalizedString(@"Image:", nil)];
-	[label_backgroundColor setStringValue:AILocalizedString(@"Color:", nil)];
-	[label_newWindowsNote setStringValue:AILocalizedString(@"Style changes take effect for new message windows.", nil)];
-
-	//Configure our menus
-	[popUp_backgroundImageType setMenu:[self _backgroundImageTypeMenu]];
 	[popUp_styles setMenu:[self _stylesMenu]];
-	
-	//Other controls
-	[fontPreviewField_currentFont setShowFontFace:YES];
-	[fontPreviewField_currentFont setShowPointSize:YES];
 
-	//We want to be able to obtain bigger images than the image picker will feed us
-	[imageView_backgroundImage setUsePictureTaker:NO];
-		
 	//Configure the chat preview
 	[self _configureChatPreview];
-	
-	[tabView_messageType selectTabViewItem:tabViewItem_regularChat];
+
+	selectedChatType = AIWebkitRegularChat;
+	[segment_chatType setSelectedSegment:AIWebkitRegularChat];
 
 	[self configurePreferencesForTab];
 }
@@ -139,6 +407,8 @@
 	[[NSColorPanel sharedColorPanel] setShowsAlpha:NO];
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	//A relayout scheduled by -menusChanged must not reach a closed pane
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	[previewListObjectsDict release]; previewListObjectsDict = nil;
 
 	[previewController messageViewIsClosing];
@@ -148,6 +418,27 @@
 	//Matches the retain performed in -[ESWebKitMessageViewPreferences _configureChatPreview]
 	[view_previewLocation release];
 
+	/* The form owns every control; these are the pane's non-owning references to
+	 * them and must not outlive the view.
+	 */
+	settingsForm = nil;
+	segment_chatType = nil;
+	checkBox_useRegularChatForGroup = nil;
+	popUp_styles = nil;
+	popUp_variants = nil;
+	checkBox_showUserIcons = nil;
+	checkBox_showHeader = nil;
+	fontPreviewField_currentFont = nil;
+	button_setFont = nil;
+	button_defaultFont = nil;
+	checkBox_showMessageFonts = nil;
+	checkBox_showMessageColors = nil;
+	checkBox_useCustomBackground = nil;
+	imageView_backgroundImage = nil;
+	popUp_backgroundImageType = nil;
+	colorWell_customBackgroundColor = nil;
+	view_previewLocation = nil;
+
 	viewIsOpen = NO;
 }
 
@@ -155,9 +446,11 @@
 {
 	if (viewIsOpen) {
 		NSDictionary *prefDict = [adium.preferenceController preferencesForGroup:self.preferenceGroupForCurrentTab];
-		
+
 		[popUp_styles setMenu:[self _stylesMenu]];
 		[popUp_styles selectItemWithRepresentedObject:[prefDict objectForKey:KEY_WEBKIT_STYLE]];
+
+		[self menusChanged];
 	}
 }
 
@@ -165,28 +458,44 @@
 #pragma mark Preferences
 - (AIWebkitStyleType)currentTab
 {
-	if (tabView_messageType.selectedTabViewItem == tabViewItem_regularChat) {
-		return AIWebkitRegularChat;
-	} else {
-		return AIWebkitGroupChat;
-	}
+	/* Read from the ivar rather than from the control: a stray action arriving
+	 * after -viewWillClose still has to know which group it was writing to.
+	 */
+	return selectedChatType;
 }
 
 - (NSString *)preferenceGroupForCurrentTab
 {
 	NSString *prefGroup = nil;
-	
+
 	switch(self.currentTab) {
 		case AIWebkitRegularChat:
 			prefGroup = PREF_GROUP_WEBKIT_REGULAR_MESSAGE_DISPLAY;
 			break;
-			
+
 		case AIWebkitGroupChat:
 			prefGroup = PREF_GROUP_WEBKIT_GROUP_MESSAGE_DISPLAY;
-			break;		
+			break;
 	}
-	
+
 	return prefGroup;
+}
+
+/*!
+ * @brief The user switched between regular and group chats.
+ *
+ * Only the values in the rows change, never the rows themselves — a card that
+ * gained or lost a row here would jump under the pointer. Nothing is written:
+ * which of the two sets is on screen is not a preference.
+ */
+- (IBAction)changeChatType:(id)sender
+{
+	selectedChatType = (([sender selectedSegment] == AIWebkitGroupChat) ? AIWebkitGroupChat : AIWebkitRegularChat);
+
+	[self configurePreferencesForTab];
+
+	//The other chat type's values may need wider or narrower pop up buttons
+	[self menusChanged];
 }
 
 - (void)configurePreferencesForTab
@@ -194,35 +503,39 @@
 	//Configure our controls to represent the global preferences
 
 	NSDictionary *prefDict = [adium.preferenceController preferencesForGroup:self.preferenceGroupForCurrentTab];
-	
+
 	[checkBox_showUserIcons setState:([[previewController messageStyle] allowsUserIcons] ?
-									  [[prefDict objectForKey:KEY_WEBKIT_SHOW_USER_ICONS] boolValue] :
+									  ([[prefDict objectForKey:KEY_WEBKIT_SHOW_USER_ICONS] boolValue] ?
+									   NSControlStateValueOn : NSControlStateValueOff) :
 									  NSControlStateValueOff)];
-	[checkBox_showHeader setState:[[prefDict objectForKey:KEY_WEBKIT_SHOW_HEADER] boolValue]];
+	[checkBox_showHeader setState:([[prefDict objectForKey:KEY_WEBKIT_SHOW_HEADER] boolValue] ?
+								   NSControlStateValueOn : NSControlStateValueOff)];
 	[checkBox_showMessageColors setState:([[previewController messageStyle] allowsColors] ?
-										  [[prefDict objectForKey:KEY_WEBKIT_SHOW_MESSAGE_COLORS] boolValue] :
+										  ([[prefDict objectForKey:KEY_WEBKIT_SHOW_MESSAGE_COLORS] boolValue] ?
+										   NSControlStateValueOn : NSControlStateValueOff) :
 										  NSControlStateValueOff)];
-	[checkBox_showMessageFonts setState:[[prefDict objectForKey:KEY_WEBKIT_SHOW_MESSAGE_FONTS] boolValue]];
-	
-	[checkBox_useRegularChatForGroup setState:[[adium.preferenceController preferenceForKey:KEY_WEBKIT_USE_REGULAR_PREFERENCES
-																					  group:self.preferenceGroupForCurrentTab] boolValue]];
-	
+	[checkBox_showMessageFonts setState:([[prefDict objectForKey:KEY_WEBKIT_SHOW_MESSAGE_FONTS] boolValue] ?
+										 NSControlStateValueOn : NSControlStateValueOff)];
+
+	/* Always the group chat group: the switch means "group chats follow the
+	 * regular settings". In the nib it lived on the group chat tab and so always
+	 * read from there; here it is visible on both, so the group is spelled out.
+	 */
+	[checkBox_useRegularChatForGroup setState:([[adium.preferenceController preferenceForKey:KEY_WEBKIT_USE_REGULAR_PREFERENCES
+																					   group:PREF_GROUP_WEBKIT_GROUP_MESSAGE_DISPLAY] boolValue] ?
+											   NSControlStateValueOn : NSControlStateValueOff)];
+
 	//Allow the alpha component to be set for our background color
 	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
-	
+
 	[previewController setIsGroupChat:(self.currentTab == AIWebkitGroupChat)];
-	
+
 	// The preview controller will send us a preferences changed message also.
 	[previewController preferencesChangedForGroup:self.preferenceGroupForCurrentTab
 											  key:nil
 										   object:nil
 								   preferenceDict:[adium.preferenceController preferencesForGroup:self.preferenceGroupForCurrentTab]
 										firstTime:NO];
-}
-
-- (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
-{
-	[self configurePreferencesForTab];
 }
 
 /*!
@@ -254,14 +567,14 @@
 			variant = [AIWebkitMessageViewStyle defaultVariantForBundle:[plugin messageStyleBundleWithIdentifier:style]];
 			[popUp_variants selectItemWithRepresentedObject:variant];
 		}
-		
+
 		[popUp_variants synchronizeTitleAndSelectedItem];
-		
+
 		//Configure our style-specific controls to represent the current style
 		NSString	*fontFamily = [prefDict objectForKey:[plugin styleSpecificKey:@"FontFamily" forStyle:style]];
 		if (!fontFamily) fontFamily = [[plugin messageStyleBundleWithIdentifier:style] objectForInfoDictionaryKey:KEY_WEBKIT_DEFAULT_FONT_FAMILY];
 		if (!fontFamily) fontFamily = [[NSFont systemFontOfSize:0] familyName];
-		
+
 		NSNumber	*fontSize = [prefDict objectForKey:[plugin styleSpecificKey:@"FontSize" forStyle:style]];
 		if (!fontSize) fontSize = [[plugin messageStyleBundleWithIdentifier:style] objectForInfoDictionaryKey:KEY_WEBKIT_DEFAULT_FONT_SIZE];
 		if (!fontSize) fontSize = [NSNumber numberWithInteger:[[NSFont systemFontOfSize:0] pointSize]];
@@ -281,12 +594,21 @@
 		NSColor	*backgroundColor = [[prefDict objectForKey:[plugin styleSpecificKey:@"BackgroundColor" forStyle:style]] representedColor];
 		[colorWell_customBackgroundColor setColor:(backgroundColor ? backgroundColor : [NSColor whiteColor])] ;
 
-		[checkBox_useCustomBackground setState:[[prefDict objectForKey:[plugin styleSpecificKey:@"UseCustomBackground" forStyle:style]] boolValue]];
+		[checkBox_useCustomBackground setState:([[prefDict objectForKey:[plugin styleSpecificKey:@"UseCustomBackground" forStyle:style]] boolValue] ?
+												NSControlStateValueOn : NSControlStateValueOff)];
 		[popUp_backgroundImageType selectItemWithTag:[[prefDict objectForKey:[plugin styleSpecificKey:@"BackgroundType" forStyle:style]] integerValue]];
-		
+
 		[self configureControlDimming];
+
+		//A rebuilt variant menu and reselected buttons are new button widths
+		[self menusChanged];
 	}
 }
+
+/* Every control writes at once. The preference window only calls -closeView when
+ * the whole window closes — switching to another pane merely takes our view out
+ * of it — so anything kept back until then would be kept back for good.
+ */
 
 /*!
  * @brief Save changed preferences
@@ -295,103 +617,114 @@
 {
 	if (viewIsOpen) {
 		if (sender == checkBox_showUserIcons) {
-			[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 												 forKey:KEY_WEBKIT_SHOW_USER_ICONS
 												  group:self.preferenceGroupForCurrentTab];
-			
+
 		} else if (sender == checkBox_showHeader) {
-			[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 												 forKey:KEY_WEBKIT_SHOW_HEADER
 												  group:self.preferenceGroupForCurrentTab];
-			
+
 		} else if (sender == checkBox_showMessageColors) {
-			[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 												 forKey:KEY_WEBKIT_SHOW_MESSAGE_COLORS
 												  group:self.preferenceGroupForCurrentTab];
-			
+
 		} else if (sender == checkBox_showMessageFonts) {
-			[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 												 forKey:KEY_WEBKIT_SHOW_MESSAGE_FONTS
 												  group:self.preferenceGroupForCurrentTab];
 		} else if (sender == checkBox_useCustomBackground) {
-			[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
-												 forKey:[plugin styleSpecificKey:@"UseCustomBackground" 
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
+												 forKey:[plugin styleSpecificKey:@"UseCustomBackground"
 																		forStyle:[[popUp_styles selectedItem] representedObject]]
 												  group:self.preferenceGroupForCurrentTab];
 		} else if (sender == checkBox_useRegularChatForGroup) {
-			[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
+			/* Dimmed unless the group chat settings are on screen, and always
+			 * written to the group chat group — see -configurePreferencesForTab.
+			 */
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 												 forKey:KEY_WEBKIT_USE_REGULAR_PREFERENCES
-												  group:self.preferenceGroupForCurrentTab];		
-			
+												  group:PREF_GROUP_WEBKIT_GROUP_MESSAGE_DISPLAY];
+
 			[self configurePreferencesForTab];
 		} else if (sender == colorWell_customBackgroundColor) {
 			[adium.preferenceController setPreference:[[colorWell_customBackgroundColor color] stringRepresentation]
 												 forKey:[plugin styleSpecificKey:@"BackgroundColor"
 																		forStyle:[[popUp_styles selectedItem] representedObject]]
 												  group:self.preferenceGroupForCurrentTab];
-			
+
 		} else if (sender == popUp_backgroundImageType) {
 			[adium.preferenceController setPreference:[NSNumber numberWithInteger:[[popUp_backgroundImageType selectedItem] tag]]
 												 forKey:[plugin styleSpecificKey:@"BackgroundType"
 																		forStyle:[[popUp_styles selectedItem] representedObject]]
-												  group:self.preferenceGroupForCurrentTab];	
-			
+												  group:self.preferenceGroupForCurrentTab];
+
 		} else if (sender == popUp_styles) {
 			[adium.preferenceController setPreference:[[sender selectedItem] representedObject]
 												 forKey:KEY_WEBKIT_STYLE
 												  group:self.preferenceGroupForCurrentTab];
-			
+
 		} else if (sender == popUp_variants) {
 			NSString *activeStyle = [adium.preferenceController preferenceForKey:KEY_WEBKIT_STYLE
 																		   group:self.preferenceGroupForCurrentTab];
-			
+
 			[adium.preferenceController setPreference:[[sender selectedItem] representedObject]
 												 forKey:[plugin styleSpecificKey:@"Variant" forStyle:activeStyle]
 												  group:self.preferenceGroupForCurrentTab];
 		}
-		
+
 		[self configureControlDimming];
+
+		//A menu selection is a new button title and therefore a new button width
+		if ([sender isKindOfClass:[NSPopUpButton class]]) [self menusChanged];
 	}
 }
 
 - (void)configureControlDimming
-{	
+{
 	// Controls are enabled if we're the regular chat tab, or we're not using regular preferences.
 	BOOL useRegularPreferences = [[adium.preferenceController preferenceForKey:KEY_WEBKIT_USE_REGULAR_PREFERENCES
 																		 group:PREF_GROUP_WEBKIT_GROUP_MESSAGE_DISPLAY] boolValue];
 	BOOL anyControlsEnabled = (self.currentTab == AIWebkitRegularChat || !useRegularPreferences);
-	
+
+	/* The nib only showed this checkbox on the group chat tab; here the row is
+	 * always visible — rows cannot come and go without the card jumping — and is
+	 * dimmed instead while the regular chat settings are on screen.
+	 */
+	[checkBox_useRegularChatForGroup setEnabled:(self.currentTab == AIWebkitGroupChat)];
+
 	// General controls with no other qualifiers.
 	[popUp_styles setEnabled:anyControlsEnabled];
 	[fontPreviewField_currentFont setEnabled:anyControlsEnabled];
 	[checkBox_showMessageFonts setEnabled:anyControlsEnabled];
-	[checkBox_showMessageColors setEnabled:anyControlsEnabled];
 	[button_setFont setEnabled:anyControlsEnabled];
 	[button_defaultFont setEnabled:anyControlsEnabled];
-	
+
 	//Only enable if there are multiple variant choices
 	[popUp_variants setEnabled:[popUp_variants numberOfItems] > 0 && anyControlsEnabled];
-	
+
 	//Disable the custom background controls if the style doesn't support them
 	AIWebkitMessageViewStyle *messageStyle = [previewController messageStyle];
 	BOOL	allowCustomBackground = [messageStyle allowsCustomBackground] && anyControlsEnabled;
 	[checkBox_useCustomBackground setEnabled:allowCustomBackground];
-	
-	allowCustomBackground = allowCustomBackground && checkBox_useCustomBackground.state;
-	
+
+	allowCustomBackground = allowCustomBackground && ([checkBox_useCustomBackground state] == NSControlStateValueOn);
+
 	[colorWell_customBackgroundColor setEnabled:allowCustomBackground];
 	[popUp_backgroundImageType setEnabled:allowCustomBackground];
 	[imageView_backgroundImage setEnabled:allowCustomBackground];
-	
+
 	//Disable the header control if this style doesn't have a header or topic
 	if (self.currentTab == AIWebkitGroupChat)
 		[checkBox_showHeader setEnabled:[messageStyle hasTopic] && anyControlsEnabled];
 	else
 		[checkBox_showHeader setEnabled:[messageStyle hasHeader] || ([messageStyle hasTopic] && useRegularPreferences)];
-	
+
 	//Disable user icon toggling if the style doesn't support them
 	[checkBox_showUserIcons setEnabled:[messageStyle allowsUserIcons] && anyControlsEnabled];
-	
+
 	[checkBox_showMessageColors setEnabled:[messageStyle allowsColors] && anyControlsEnabled];
 }
 
@@ -405,7 +738,7 @@
 
 - (IBAction)resetDisplayFontToDefault:(id)sender
 {
-	[self _setDisplayFontFace:nil size:0];
+	[self _setDisplayFontFace:nil size:nil];
 }
 
 /*!
@@ -418,14 +751,14 @@
 {
 	NSString *activeStyle = [adium.preferenceController preferenceForKey:KEY_WEBKIT_STYLE
 																	group:self.preferenceGroupForCurrentTab];
-	
+
 	[adium.preferenceController setPreference:face
 										 forKey:[plugin styleSpecificKey:@"FontFamily" forStyle:activeStyle]
 										  group:self.preferenceGroupForCurrentTab];
 	[adium.preferenceController setPreference:size
 										 forKey:[plugin styleSpecificKey:@"FontSize" forStyle:activeStyle]
 										  group:self.preferenceGroupForCurrentTab];
-	
+
 }
 
 /*!
@@ -470,7 +803,7 @@
 	NSMutableArray	*menuItemArray = [NSMutableArray array];
 	NSArray			*availableStyles = [[plugin availableMessageStyles] allValues];
 	NSMenuItem		*menuItem;
-	
+
 	for (NSBundle *style in availableStyles) {
 		menuItem = [[NSMenuItem alloc] initWithTitle:[style name]
 																		target:nil
@@ -480,17 +813,17 @@
 		[menuItemArray addObject:menuItem];
 		[menuItem release];
 	}
-	
+
 	[menuItemArray sortUsingSelector:@selector(titleCompare:)];
-	
+
 	for (menuItem in menuItemArray) {
 		[menu addItem:menuItem];
 	}
-	
+
 	return [menu autorelease];
 }
 
-/*! 
+/*!
  * @brief Build & return a menu of variants for the passed style
  */
 - (NSMenu *)_variantsMenu
@@ -514,14 +847,14 @@
  */
 - (NSMenu *)_backgroundImageTypeMenu
 {
-	NSMenu	*menu = [[NSMenu alloc] init];	
+	NSMenu	*menu = [[NSMenu alloc] init];
 
 	[self _addBackgroundImageTypeChoice:BackgroundNormal toMenu:menu withTitle:AILocalizedString(@"Normal","Background image display preference: The image will be displayed normally")];
 	[self _addBackgroundImageTypeChoice:BackgroundCenter toMenu:menu withTitle:AILocalizedString(@"Centered","Background image display preference: The image will be centered in the window")];
 	[self _addBackgroundImageTypeChoice:BackgroundTile toMenu:menu withTitle:AILocalizedString(@"Tiled","Background image display preference: The image will be tiled (repeated) in the window to fill available space")];
 	[self _addBackgroundImageTypeChoice:BackgroundTileCenter toMenu:menu withTitle:AILocalizedString(@"Tiled (Centered)","Background image display preference: The image will be tiled and centered in the window")];
 	[self _addBackgroundImageTypeChoice:BackgroundScale toMenu:menu withTitle:AILocalizedString(@"Scaled", "Background image display preference: The image will be increased or decreased in size to fit the window")];
-			
+
 	return [menu autorelease];
 }
 - (void)_addBackgroundImageTypeChoice:(NSInteger)tag toMenu:(NSMenu *)menu withTitle:(NSString *)title
@@ -551,20 +884,20 @@
 	previewFilePath = [[NSBundle bundleForClass:[self class]] pathForResource:WEBKIT_PREVIEW_CONVERSATION_FILE ofType:@"plist"];
 	previewDict = [[NSDictionary alloc] initWithContentsOfFile:previewFilePath];
 	previewPath = [previewFilePath stringByDeletingLastPathComponent];
-	
+
 	NSDictionary *listObjects;
 	previewChat = [self previewChatWithDictionary:previewDict fromPath:previewPath listObjects:&listObjects];
 	previewController = [(AIWebKitPreviewMessageViewController *)[AIWebKitPreviewMessageViewController messageDisplayControllerForChat:previewChat
 																					withPlugin:plugin] retain];
 
 	//Enable live refreshing of our preview
-	[previewController setShouldReflectPreferenceChanges:YES];	
+	[previewController setShouldReflectPreferenceChanges:YES];
 	[previewController setPreferencesChangedDelegate:self];
-	
+
 	//Add fake users and content to our chat
 	[self _fillContentOfChat:previewChat withDictionary:previewDict fromPath:previewPath listObjects:listObjects];
 	[previewDict release];
-	
+
 	//Place the preview chat in our view: fill the placeholder and track its size
 	preview = [[previewController messageView] retain];
 	@try {
@@ -584,8 +917,8 @@
 
 	//Disable forwarding of events so the preferences responder chain works properly
 	if ([preview respondsToSelector:@selector(setShouldForwardEvents:)]) {
-		[(ESWebView *)preview setShouldForwardEvents:NO];		
-	}	
+		[(ESWebView *)preview setShouldForwardEvents:NO];
+	}
 }
 
 - (AIChat *)previewChatWithDictionary:(NSDictionary *)previewDict fromPath:(NSString *)previewPath listObjects:(NSDictionary **)outListObjects
@@ -600,7 +933,7 @@
 	//Setup the chat, and its source/destination
 	[self _applySettings:[previewDict objectForKey:@"Chat"]
 				  toChat:previewChat withParticipants:*outListObjects];
-	
+
 	return previewChat;
 }
 
@@ -621,33 +954,33 @@
 {
 	NSMutableDictionary	*listObjectDict = [NSMutableDictionary dictionary];
 	AIService			*aimService = [adium.accountController firstServiceWithServiceID:@"AIM"];
-	
+
 	for (NSDictionary *participant in participants) {
 		NSString		*UID, *alias, *userIconName;
 		AIListContact	*listContact;
-		
+
 		//Create object
 		UID = [participant objectForKey:@"UID"];
 		listContact = [[AIListContact alloc] initWithUID:UID service:aimService];
-		
+
 		//Display name
 		if ((alias = [participant objectForKey:@"Display Name"])) {
 			[[NSNotificationCenter defaultCenter] postNotificationName:Contact_ApplyDisplayName
 													  object:listContact
 													userInfo:[NSDictionary dictionaryWithObject:alias forKey:@"Alias"]];
 		}
-		
+
 		//User icon
 		if ((userIconName = [participant objectForKey:@"UserIcon Name"])) {
 			[listContact setValue:[previewPath stringByAppendingPathComponent:userIconName]
 								  forProperty:@"UserIconPath"
 								  notify:YES];
 		}
-		
+
 		[listObjectDict setObject:listContact forKey:UID];
 		[listContact release];
 	}
-	
+
 	return listObjectDict;
 }
 
@@ -657,12 +990,12 @@
 - (void)_applySettings:(NSDictionary *)chatDict toChat:(AIPreviewChat *)inChat withParticipants:(NSDictionary *)participants
 {
 	NSString			*dateOpened, *type, *name, *UID;
-	
+
 	//Date opened
 	if ((dateOpened = [chatDict objectForKey:@"Date Opened"])) {
 		[inChat setDateOpened:[NSDate dateWithNaturalLanguageString:dateOpened]];
 	}
-	
+
 	//Source/Destination
 	type = [chatDict objectForKey:@"Type"];
 	if ([type isEqualToString:@"IM"]) {
@@ -677,7 +1010,7 @@
 			[inChat setName:name];
 		}
 	}
-	
+
 	//We don't want the interface controller to try to open this fake chat
 	[inChat setIsOpen:YES];
 }
@@ -688,13 +1021,13 @@
 - (void)_addContent:(NSArray *)chatArray toChat:(AIChat *)inChat withParticipants:(NSDictionary *)participants
 {
 	NSDictionary		*messageDict;
-	
+
 	for (messageDict in chatArray) {
 		AIContentObject		*content = nil;
 		AIListObject		*source;
 		NSString			*from, *msgType;
 		NSAttributedString  *message;
-		
+
 		msgType = [messageDict objectForKey:@"Type"];
 		from = [messageDict objectForKey:@"From"];
 
@@ -726,10 +1059,10 @@
 		} else if ([msgType isEqualToString:CONTENT_STATUS_TYPE]) {
 			//Create status content object
 			NSString			*statusMessageType;
-			
+
 			message = [AIHTMLDecoder decodeHTML:[messageDict objectForKey:@"Message"]];
 			statusMessageType = [messageDict objectForKey:@"Status Message Type"];
-			
+
 			//Create our content object
 			content = [AIContentEvent eventInChat:inChat
 									   withSource:source
@@ -739,11 +1072,11 @@
 										 withType:statusMessageType];
 		}
 
-		if (content) {			
+		if (content) {
 			[content setTrackContent:NO];
 			[content setPostProcessContent:NO];
 			[content setDisplayContentImmediately:NO];
-			
+
 			[adium.contentController displayContentObject:content
 										usingContentFilters:YES
 												immediately:YES];
