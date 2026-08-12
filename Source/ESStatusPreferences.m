@@ -200,8 +200,16 @@
 		  accessoryButton:nil];
 
 	checkBox_awayReminder = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Remind me while away","Switch for being reminded now and then that one's status is still away")
-				  control:checkBox_awayReminder];
+	/* Says "I set myself" because that is exactly what it now covers, and the second line says which
+	 * away it therefore leaves alone. That sentence has to be here: the row directly above this one
+	 * is the menu which picks the away Adium sets by itself, and without a word the two read as if
+	 * the reminder were about the status the row above it sets. It goes with the switch rather than
+	 * above the card, the way a System Settings row explains itself under its own label - the
+	 * exception is not about this card, it is about this switch. */
+	[form addRowWithLabel:AILocalizedString(@"Remind me when I set myself away","Switch for being reminded that an away status one chose oneself is still on; an away Adium sets on its own is left alone")
+				  control:checkBox_awayReminder
+				   detail:AILocalizedString(@"An away status Adium sets while you are idle ends at your next keystroke, so no reminder is given for it.",
+											"Second line of the away reminder switch, saying which away statuses it leaves alone")];
 
 	[form addRowWithLabel:AILocalizedString(@"Remind me every","Label of the field holding how many minutes lie between two away reminders")
 				  control:[self minutesRowWithField:textField_awayReminderMinutes

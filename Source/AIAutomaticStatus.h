@@ -21,6 +21,8 @@
 #define AIScreenLockDidStartNotification		@"com.apple.screenIsLocked"
 #define AIScreenLockDidStopNotification			@"com.apple.screenIsUnlocked"
 
+@class AIAccount;
+
 @interface AIAutomaticStatus : AIPlugin {
 	NSNumber						*fastUserSwitchID;
 	NSNumber						*screenSaverID;
@@ -39,5 +41,23 @@
 
 	unsigned						automaticStatusBitMap;
 }
+
+/*!
+ * @brief Is this account on a status which was set for it automatically?
+ *
+ * YES only while we really hold the account: we stored what it was before, and it is still on the
+ * status the automatic reason called for. Whoever picks another status by hand while automatically
+ * away has taken the account back, and the answer is NO from then on - a status one chose oneself
+ * is one you can forget you are on, and that is what the away reminder is there for.
+ *
+ * Both halves are needed. The stored status alone would go on calling an away status automatic
+ * after the user had replaced it by hand; the status comparison alone would call a hand-picked
+ * away automatic as soon as it happened to be the very status idleness is set to.
+ *
+ * One blur remains: choose by hand exactly the status the automatic reason uses, and we cannot
+ * tell the two apart - we only ever remember one status ID. No reminder then, which is bearable,
+ * because that status is cleared by the next keystroke anyway.
+ */
+- (BOOL)hasAutomaticStatusForAccount:(AIAccount *)account;
 
 @end

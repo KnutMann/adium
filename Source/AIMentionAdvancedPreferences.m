@@ -17,6 +17,11 @@
 #import "AIMentionAdvancedPreferences.h"
 #import "AIPreferenceWindowController.h"
 #import "AIPassthroughScrollView.h"
+/* For what a term means: whether it is of the /…/ form and whether it can be used as it stands.
+ * Asked rather than reproduced - a second implementation of that question would answer differently
+ * from the one the filter goes by, and the switch would then be telling the user something untrue.
+ * No cycle: AIMentionEventPlugin.h imports our header, we import its only in the implementation. */
+#import "AIMentionEventPlugin.h"
 
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIImageAdditions.h>
@@ -36,12 +41,95 @@
 //Metrics of a single term row, System Settings style
 #define MENTION_ROW_HEIGHT			36.0f
 #define CELL_H_PADDING				10.0f		//Leading/trailing padding inside a row
-#define CONTROL_GAP					 8.0f		//Space between the text and the ⊖
+#define CONTROL_GAP					 8.0f		//Space between two of a row's controls
 #define TERM_FONT_SIZE				13.0f
+#define WARNING_SYMBOL_SIZE			16.0f		//Edge length of the warning sign beside a bad term
 
 //Room the inset table style claims; measured off the table itself as soon as it has tiled once
 #define INSET_STYLE_MARGIN			32.0f
 #define INSET_STYLE_PADDING			10.0f
+
+//Point size the /…/ explanation's symbol is drawn at, before the form fits it into its square
+#define INFO_SYMBOL_POINT_SIZE		30.0f
+
+//The popover which says why a switch was refused
+#define POPOVER_TEXT_WIDTH			240.0f
+#define POPOVER_PADDING				12.0f
+
+/*!
+ * @brief What the row says about a term which is not a valid regular expression
+ *
+ * In one place because the tooltip, the switch's accessibility help and the popover all say it, and
+ * they must say the same thing. Not the NSError of NSRegularExpression: that one quotes the pattern
+ * as the plugin wrapped it, ".*…​.*" and all, which is not what the user typed and would only puzzle
+ * them.
+ */
+static NSString *AIMentionInvalidTermMessage(void)
+{
+	/* Not AILocalizedString: it reaches for [self class] to find its bundle, and a function has no
+	 * self. Name the class outright instead. */
+	return AILocalizedStringFromTableInBundle(@"This term is not a valid regular expression and has been switched off.", nil,
+											  [NSBundle bundleForClass:[AIMentionAdvancedPreferences class]],
+											  "Shown beside a term written between slashes which does not compile");
+}
+
+/*!
+ * @brief The one line of the popover which explains a refused switch
+ *
+ * Laid out by hand rather than by constraints: a popover asks for its content size before it opens
+ * anything, so the label has to know how tall it is by then. It wraps at a readable width instead of
+ * stretching the popover into a single long line.
+ */
+static NSTextField *AIMentionPopoverLabel(NSString *text)
+{
+	NSTextField	*label = [[[NSTextField alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, POPOVER_TEXT_WIDTH, 0.0f)] autorelease];
+
+	[label setFont:[NSFont systemFontOfSize:TERM_FONT_SIZE]];
+	[label setTextColor:[NSColor labelColor]];
+	[label setEditable:NO];
+	[label setSelectable:NO];
+	[label setBezeled:NO];
+	[label setBordered:NO];
+	[label setDrawsBackground:NO];
+	[label setRefusesFirstResponder:YES];
+	[[label cell] setWraps:YES];
+	[[label cell] setLineBreakMode:NSLineBreakByWordWrapping];
+	[label setStringValue:(text ? text : @"")];
+	[label setPreferredMaxLayoutWidth:POPOVER_TEXT_WIDTH];
+	[label setFrameSize:NSMakeSize(POPOVER_TEXT_WIDTH, [label fittingSize].height)];
+
+	return label;
+}
+
+/*!
+ * @brief The warning sign shown beside a term which cannot be used
+ *
+ * Its place in the row is held whether it is shown or not: a sign which took its width with it when
+ * it went would make the text field jump about while the user is typing.
+ */
+static NSImageView *AIMentionWarningView(void)
+{
+	NSImageView	*warningView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+	NSImage		*image = nil;
+
+	if (@available(macOS 11.0, *)) {
+		image = [NSImage imageWithSystemSymbolName:@"exclamationmark.triangle.fill" accessibilityDescription:nil];
+		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:WARNING_SYMBOL_SIZE
+																									weight:NSFontWeightRegular]];
+	}
+	if (!image) image = [NSImage imageNamed:NSImageNameCaution];
+
+	[warningView setTranslatesAutoresizingMaskIntoConstraints:NO];
+	[warningView setImage:image];
+	[warningView setImageScaling:NSImageScaleProportionallyDown];
+	[warningView setContentTintColor:[NSColor systemOrangeColor]];
+	[warningView setHidden:YES];
+	/* Out of the accessibility tree: it illustrates what the switch already says in its help text,
+	 * and VoiceOver does not read tooltips anyway. */
+	[warningView setAccessibilityElement:NO];
+
+	return warningView;
+}
 
 /*!
  * @brief The editable field a term is typed into
@@ -112,6 +200,21 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 }
 
 /*!
+ * @brief What VoiceOver reads out for the switch of the row holding <em>term</em>
+ *
+ * Here for the same reason as the label above it, and refreshed in the same places: a switch which
+ * went on announcing "Use chef" beside a ⊖ announcing "Remove chefin" would have the two controls of
+ * one row naming two different terms, one of which is no longer in the list at all.
+ */
+static NSString *AIMentionUseAccessibilityLabel(NSString *term)
+{
+	return [NSString stringWithFormat:AILocalizedStringFromTableInBundle(@"Use %@", nil,
+																		[NSBundle bundleForClass:[AIMentionAdvancedPreferences class]],
+																		"Accessibility label of the switch which applies a term. %@ is the term."),
+									  (term ? term : @"")];
+}
+
+/*!
  * @class AIMentionTableView
  * @brief A table whose text fields take the very first click
  *
@@ -135,13 +238,19 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 
 /*!
  * @class AIMentionCellView
- * @brief View based row of the term list: [text field] [⊖], with a hairline along the bottom edge
+ * @brief View based row of the term list: [text field] [⚠] [switch] [⊖], with a hairline along the
+ *        bottom edge
+ *
+ * The same order an Xtra row has, for the same reason: what the row is about first, what is done
+ * with it next, throwing it away last.
  *
  * All subviews are owned by the view hierarchy; the properties below are non-retaining references
  * for convenience (manual retain/release). Private to this pane on purpose.
  */
 @interface AIMentionCellView : NSTableCellView
 @property (nonatomic, assign) NSButton			*removeButton;
+@property (nonatomic, assign) NSSwitch			*enabledSwitch;
+@property (nonatomic, assign) NSImageView		*warningView;
 @property (nonatomic, assign) NSBox				*separator;
 @property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
 @end
@@ -171,6 +280,20 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 		[self addSubview:removeButton];
 		[self setRemoveButton:removeButton];
 
+		/* Whether this term is applied at all. Built by the settings form's factory, so it is the
+		 * same small switch System Settings uses in a list. */
+		NSSwitch *enabledSwitch = [AISettingsFormView switchWithTarget:nil action:NULL];
+
+		[enabledSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:enabledSwitch];
+		[self setEnabledSwitch:enabledSwitch];
+
+		//Why the switch is off, when it went off by itself
+		NSImageView *warningView = AIMentionWarningView();
+
+		[self addSubview:warningView];
+		[self setWarningView:warningView];
+
 		//Hairline separating this row from the next one
 		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
 		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -191,9 +314,20 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 			[[removeButton widthAnchor] constraintEqualToConstant:removeButtonSize.width],
 			[[removeButton heightAnchor] constraintEqualToConstant:removeButtonSize.height],
 
+			//Switch
+			[[enabledSwitch trailingAnchor] constraintEqualToAnchor:[removeButton leadingAnchor] constant:-CONTROL_GAP],
+			[[enabledSwitch centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+
+			/* Warning sign. Given its width here rather than left to the image, so that showing and
+			 * hiding it moves nothing else in the row. */
+			[[warningView trailingAnchor] constraintEqualToAnchor:[enabledSwitch leadingAnchor] constant:-CONTROL_GAP],
+			[[warningView centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+			[[warningView widthAnchor] constraintEqualToConstant:WARNING_SYMBOL_SIZE],
+			[[warningView heightAnchor] constraintEqualToConstant:WARNING_SYMBOL_SIZE],
+
 			//Term
 			[[termField leadingAnchor] constraintEqualToAnchor:[self leadingAnchor] constant:CELL_H_PADDING],
-			[[termField trailingAnchor] constraintEqualToAnchor:[removeButton leadingAnchor] constant:-CONTROL_GAP],
+			[[termField trailingAnchor] constraintEqualToAnchor:[warningView leadingAnchor] constant:-CONTROL_GAP],
 			[[termField centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
 
 			//Separator
@@ -220,10 +354,19 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 @interface AIMentionAdvancedPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
 - (void)configureList;
+- (NSImage *)regularExpressionInfoImage;
 - (NSButton *)addButton;
 - (void)saveTerms;
 - (void)configureCellView:(AIMentionCellView *)cellView forRow:(NSInteger)row;
 - (IBAction)removeTermFromRowButton:(id)sender;
+- (IBAction)toggleTermFromRowSwitch:(id)sender;
+- (BOOL)termIsEnabledAtRow:(NSInteger)row;
+- (void)setTermEnabled:(BOOL)enabled atRow:(NSInteger)row;
+- (BOOL)paneSwitchedTermOffAtRow:(NSInteger)row;
+- (void)notePaneSwitchedTermOff:(BOOL)byPane atRow:(NSInteger)row;
+- (void)showWarning:(BOOL)show inRow:(NSInteger)row;
+- (void)showWarning:(BOOL)show inCellView:(AIMentionCellView *)cellView;
+- (void)dismissInvalidTermPopover;
 - (CGFloat)requiredListHeight;
 - (void)updateListHeight;
 - (void)synchronizeColumnWidth;
@@ -317,6 +460,14 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 	[form addInfoRow:AILocalizedString(@"Messages are highlighted when the following terms are spoken. Your username is always highlighted.", nil)
 		   withImage:[self image]];
 
+	/* The /…/ form has never been written down anywhere, and a term is not something one experiments
+	 * with: it is quietly wrong until somebody says the word. So it is said here - above the heading
+	 * and above the list, the way System Settings puts an explanation before the thing it explains,
+	 * rather than as a footnote under a list one has already filled in. */
+	[form addInfoRow:AILocalizedString(@"A term written between slashes - /report.*due/ - is read as a regular expression. A term which is not a valid expression switches itself off.",
+									   "Paragraph above the list of terms, explaining the /…/ form")
+		   withImage:[self regularExpressionInfoImage]];
+
 	[form addSectionHeader:AILocalizedString(@"Highlighted Terms", "Section title above the list of terms which highlight a message")];
 
 	[self configureList];
@@ -403,6 +554,33 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 }
 
 /*!
+ * @brief The picture beside the sentence about the /…/ form
+ *
+ * The code glyph if this system has one, the plainer "textformat" if it does not, and failing both
+ * the pane's own icon - so the paragraph is never left standing without a picture while the one
+ * above it has one. +imageWithSystemSymbolName: simply answers nil for a name it does not know, so
+ * no version test is needed for the chain to work.
+ *
+ * The point size is set here on purpose: the form fits a picture into a 40pt square by shrinking it,
+ * never by enlarging it, and a symbol handed over at its natural size would arrive tiny.
+ */
+- (NSImage *)regularExpressionInfoImage
+{
+	NSImage	*image = nil;
+
+	if (@available(macOS 11.0, *)) {
+		//SF Symbols 4, so only on macOS 12 and later; nil below that, which the fallback catches
+		image = [NSImage imageWithSystemSymbolName:@"chevron.left.forwardslash.chevron.right" accessibilityDescription:nil];
+		if (!image) image = [NSImage imageWithSystemSymbolName:@"textformat" accessibilityDescription:nil];
+
+		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:INFO_SYMBOL_POINT_SIZE
+																									weight:NSFontWeightRegular]];
+	}
+
+	return (image ?: [self image]);
+}
+
+/*!
  * @brief The "+" which hangs under the trailing corner of the list's card
  */
 - (NSButton *)addButton
@@ -422,13 +600,53 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 #pragma mark Configuration
 
 /*!
- * @brief Read the terms and show them
+ * @brief Read the terms and their switches and show them
+ *
+ * The switches are brought up to the length of the terms right here, so that everything below can
+ * take the two arrays as being the same length. A list saved before there were switches has none at
+ * all, and every term of it is on - which is exactly what it did before.
+ *
+ * A term which cannot be used is switched off while we are at it, and once, before anything is drawn:
+ * a term left half typed behind a pane change - or one saved by a build which had no switches yet -
+ * would otherwise sit there switched on with a warning beside it, saying two different things at
+ * once. It was already doing nothing; now it says so. Each one we switch off is noted as ours, so
+ * that mending it later hands it back rather than leaving it off for good.
  */
 - (void)viewDidLoad
 {
 	[mentionTerms release];
 	mentionTerms = [[NSMutableArray alloc] initWithArray:[adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS
 																							   group:PREF_GROUP_GENERAL]];
+
+	NSArray		*savedEnabled = [adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS_ENABLED
+																	   group:PREF_GROUP_GENERAL];
+
+	[mentionEnabled release];
+	mentionEnabled = [[NSMutableArray alloc] initWithCapacity:[mentionTerms count]];
+
+	[mentionSwitchedOffByPane release];
+	mentionSwitchedOffByPane = [[NSMutableArray alloc] initWithCapacity:[mentionTerms count]];
+
+	BOOL		switchedAnythingOff = NO;
+
+	for (NSUInteger i = 0; i < [mentionTerms count]; i++) {
+		id		flag = ((i < [savedEnabled count]) ? [savedEnabled objectAtIndex:i] : nil);
+		BOOL	enabled = ([flag respondsToSelector:@selector(boolValue)] ? [flag boolValue] : YES);
+		BOOL	byPane = NO;
+
+		if (enabled && ![AIMentionEventPlugin termIsValid:[mentionTerms objectAtIndex:i]]) {
+			enabled = NO;
+			byPane = YES;
+			switchedAnythingOff = YES;
+		}
+
+		[mentionEnabled addObject:[NSNumber numberWithBool:enabled]];
+		//Noted so that mending such a term switches it back on: we took it away, so we give it back
+		[mentionSwitchedOffByPane addObject:[NSNumber numberWithBool:byPane]];
+	}
+
+	//Only when it really changed something: opening a pane should not write anything by itself
+	if (switchedAnythingOff) [self saveTerms];
 
 	[tableView reloadData];
 	[self updateListHeight];
@@ -449,6 +667,9 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
  */
 - (void)viewWillClose
 {
+	//A popover outlives the view it points at, and would then point into freed memory
+	[self dismissInvalidTermPopover];
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self
 													name:NSViewFrameDidChangeNotification
 												  object:tableView];
@@ -463,6 +684,7 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 		if ([cellView isKindOfClass:[AIMentionCellView class]]) {
 			[[(AIMentionCellView *)cellView textField] setDelegate:nil];
 			[[(AIMentionCellView *)cellView removeButton] setTarget:nil];
+			[[(AIMentionCellView *)cellView enabledSwitch] setTarget:nil];
 		}
 	}];
 
@@ -474,6 +696,8 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 	[scrollView release]; scrollView = nil;
 
 	[mentionTerms release]; mentionTerms = nil;
+	[mentionEnabled release]; mentionEnabled = nil;
+	[mentionSwitchedOffByPane release]; mentionSwitchedOffByPane = nil;
 
 	[super viewWillClose];
 }
@@ -481,7 +705,7 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 #pragma mark Saving
 
 /*!
- * @brief Write the terms, right now
+ * @brief Write the terms and their switches, right now
  *
  * Refuses to write once the pane has been torn down: -viewWillClose lets go of mentionTerms while
  * the form may still hold the views, and a nil value does not empty the preference - it deletes the
@@ -489,19 +713,98 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
  * would take every term with it.
  *
  * A blank term is never saved: a row which was just added, or one the user emptied while typing,
- * stays in the list until it is filled in or removed.
+ * stays in the list until it is filled in or removed. Its switch has to be left out in the same
+ * breath, which is why both arrays are built in one loop: dropping the blanks afterwards would move
+ * the terms up past their own switches and switch off whichever term happened to land on a "no".
  */
 - (void)saveTerms
 {
 	if (!mentionTerms) return;
 
-	NSMutableArray *termsCopy = [[mentionTerms mutableCopy] autorelease];
+	NSUInteger		 count = [mentionTerms count];
+	NSMutableArray	*termsCopy = [NSMutableArray arrayWithCapacity:count];
+	NSMutableArray	*enabledCopy = [NSMutableArray arrayWithCapacity:count];
 
-	[termsCopy removeObject:@""];
+	for (NSUInteger i = 0; i < count; i++) {
+		NSString	*term = [mentionTerms objectAtIndex:i];
+
+		if (![term length]) continue;
+
+		[termsCopy addObject:term];
+		[enabledCopy addObject:[NSNumber numberWithBool:[self termIsEnabledAtRow:(NSInteger)i]]];
+	}
+
+	/* Every keystroke lands here, and each key we write sends the filter round its whole list again;
+	 * the switches change far more rarely than the terms do, so they are only written when they
+	 * really did change. (The two writes are told to the observers one after the other, so for the
+	 * blink between them the filter sees one new array beside one old one. Nothing can arrive in
+	 * that gap - both writes happen in the same turn of the run loop - and the second one puts it
+	 * right.) */
+	NSArray	*storedEnabled = [adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS_ENABLED
+																   group:PREF_GROUP_GENERAL];
+
+	if (![enabledCopy isEqualToArray:storedEnabled]) {
+		[adium.preferenceController setPreference:enabledCopy
+										   forKey:PREF_KEY_MENTIONS_ENABLED
+											group:PREF_GROUP_GENERAL];
+	}
 
 	[adium.preferenceController setPreference:termsCopy
 									   forKey:PREF_KEY_MENTIONS
 										group:PREF_GROUP_GENERAL];
+}
+
+/*!
+ * @brief Is the term in @a row switched on?
+ *
+ * Anything the array cannot answer for - a row past its end, something which is not a number -
+ * counts as on. That is what a list without switches means, and it is the answer which never takes
+ * a term away from somebody by surprise.
+ */
+- (BOOL)termIsEnabledAtRow:(NSInteger)row
+{
+	if (row < 0 || row >= (NSInteger)[mentionEnabled count]) return YES;
+
+	id	flag = [mentionEnabled objectAtIndex:(NSUInteger)row];
+
+	return ([flag respondsToSelector:@selector(boolValue)] ? [flag boolValue] : YES);
+}
+
+/*!
+ * @brief Switch the term in @a row on or off and write it
+ */
+- (void)setTermEnabled:(BOOL)enabled atRow:(NSInteger)row
+{
+	if (row < 0 || row >= (NSInteger)[mentionEnabled count]) return;
+	if ([self termIsEnabledAtRow:row] == enabled) return;
+
+	[mentionEnabled replaceObjectAtIndex:(NSUInteger)row withObject:[NSNumber numberWithBool:enabled]];
+	[self saveTerms];
+}
+
+/*!
+ * @brief Was the switch of @a row thrown by this pane rather than by the user?
+ *
+ * Anything the note cannot answer for counts as the user's doing: leaving a switch where somebody
+ * put it is the answer which never turns a term on behind their back.
+ */
+- (BOOL)paneSwitchedTermOffAtRow:(NSInteger)row
+{
+	if (row < 0 || row >= (NSInteger)[mentionSwitchedOffByPane count]) return NO;
+
+	id	flag = [mentionSwitchedOffByPane objectAtIndex:(NSUInteger)row];
+
+	return ([flag respondsToSelector:@selector(boolValue)] ? [flag boolValue] : NO);
+}
+
+/*!
+ * @brief Remember - or forget - that we were the ones who switched the term in @a row off
+ */
+- (void)notePaneSwitchedTermOff:(BOOL)byPane atRow:(NSInteger)row
+{
+	if (row < 0 || row >= (NSInteger)[mentionSwitchedOffByPane count]) return;
+
+	[mentionSwitchedOffByPane replaceObjectAtIndex:(NSUInteger)row withObject:[NSNumber numberWithBool:byPane]];
 }
 
 #pragma mark Actions
@@ -521,6 +824,10 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 
 	if (row < 0 || [[mentionTerms objectAtIndex:row] length] > 0) {
 		[mentionTerms addObject:@""];
+		//A new term is on: nothing anybody wrote should have to be switched on before it works
+		[mentionEnabled addObject:[NSNumber numberWithBool:YES]];
+		//...and nobody has switched it off yet, least of all us
+		[mentionSwitchedOffByPane addObject:[NSNumber numberWithBool:NO]];
 
 		[tableView reloadData];
 		[self updateListHeight];
@@ -553,12 +860,130 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 	if (row < 0 || row >= (NSInteger)[mentionTerms count]) return;
 
 	[[tableView window] makeFirstResponder:tableView];
+	[self dismissInvalidTermPopover];
 
 	[mentionTerms removeObjectAtIndex:row];
+	//Its switch goes with it, or every switch below this row would move up onto the wrong term
+	if (row < (NSInteger)[mentionEnabled count]) [mentionEnabled removeObjectAtIndex:(NSUInteger)row];
+	//The note about who threw that switch travels with it, for exactly the same reason
+	if (row < (NSInteger)[mentionSwitchedOffByPane count]) [mentionSwitchedOffByPane removeObjectAtIndex:(NSUInteger)row];
 	[self saveTerms];
 
 	[tableView reloadData];
 	[self updateListHeight];
+}
+
+/*!
+ * @brief The switch of a row was thrown by hand
+ *
+ * Switching a term off is always allowed - it is the user saying "not this one for now". Switching
+ * one on asks whether it can be used, and a term which cannot says so: the switch goes back where it
+ * was and a popover at the warning sign says why. A popover rather than the tooltip, because the
+ * user has just clicked and would otherwise be told nothing at all; and rather than a sheet, because
+ * a mistyped bracket is not worth a window. It goes away at the next click by itself.
+ */
+- (IBAction)toggleTermFromRowSwitch:(id)sender
+{
+	if (!mentionTerms) return;
+
+	NSInteger	row = [tableView rowForView:(NSView *)sender];
+
+	if (row < 0 || row >= (NSInteger)[mentionTerms count]) return;
+
+	BOOL		wantsEnabled = ([(NSSwitch *)sender state] == NSControlStateValueOn);
+
+	[self dismissInvalidTermPopover];
+
+	if (wantsEnabled && ![AIMentionEventPlugin termIsValid:[mentionTerms objectAtIndex:row]]) {
+		[(NSSwitch *)sender setState:NSControlStateValueOff];
+		[self setTermEnabled:NO atRow:row];
+		/* The user has said what they want; it is only the term that is in the way. Noting the
+		 * refusal as ours means mending the term does what they just asked for, instead of making
+		 * them come back and ask a second time. */
+		[self notePaneSwitchedTermOff:YES atRow:row];
+		[self showWarning:YES inRow:row];
+
+		id	cellView = [tableView viewAtColumn:0 row:row makeIfNecessary:NO];
+
+		if ([cellView isKindOfClass:[AIMentionCellView class]]) {
+			NSImageView			*warningView = [(AIMentionCellView *)cellView warningView];
+			NSTextField			*label = AIMentionPopoverLabel(AIMentionInvalidTermMessage());
+			NSSize				 labelSize = [label frame].size;
+			NSView				*contentView = [[[NSView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																						 labelSize.width + 2.0f * POPOVER_PADDING,
+																						 labelSize.height + 2.0f * POPOVER_PADDING)] autorelease];
+			NSViewController	*content = [[[NSViewController alloc] init] autorelease];
+
+			[label setFrameOrigin:NSMakePoint(POPOVER_PADDING, POPOVER_PADDING)];
+			[contentView addSubview:label];
+			[content setView:contentView];
+
+			invalidTermPopover = [[NSPopover alloc] init];
+			[invalidTermPopover setContentViewController:content];
+			[invalidTermPopover setContentSize:[contentView frame].size];
+			[invalidTermPopover setBehavior:NSPopoverBehaviorTransient];
+			[invalidTermPopover showRelativeToRect:[warningView bounds]
+											ofView:warningView
+									 preferredEdge:NSMinYEdge];
+		}
+
+		//A tooltip is not read out; say it once for whoever is listening rather than looking
+		NSAccessibilityPostNotificationWithUserInfo(NSApp,
+													NSAccessibilityAnnouncementRequestedNotification,
+													[NSDictionary dictionaryWithObjectsAndKeys:
+														AIMentionInvalidTermMessage(), NSAccessibilityAnnouncementKey,
+														[NSNumber numberWithInteger:NSAccessibilityPriorityHigh], NSAccessibilityPriorityKey,
+														nil]);
+		return;
+	}
+
+	/* Thrown by hand and accepted: from here on this switch is where the user put it, and nothing
+	 * we do to a term may move it again. */
+	[self notePaneSwitchedTermOff:NO atRow:row];
+	[self setTermEnabled:wantsEnabled atRow:row];
+}
+
+/*!
+ * @brief Take the popover down, if one is up
+ */
+- (void)dismissInvalidTermPopover
+{
+	if (!invalidTermPopover) return;
+
+	[invalidTermPopover performClose:nil];
+	[invalidTermPopover release]; invalidTermPopover = nil;
+}
+
+/*!
+ * @brief Show or hide the warning sign of a row which is on screen
+ *
+ * The row may not be on screen at all, in which case there is nothing to show: it gets its sign back
+ * from -configureCellView:forRow: when it comes back.
+ */
+- (void)showWarning:(BOOL)show inRow:(NSInteger)row
+{
+	id	cellView = [tableView viewAtColumn:0 row:row makeIfNecessary:NO];
+
+	if ([cellView isKindOfClass:[AIMentionCellView class]])
+		[self showWarning:show inCellView:(AIMentionCellView *)cellView];
+}
+
+/*!
+ * @brief Show or hide the warning sign of a row we already hold the view of
+ *
+ * Told the view rather than the row, because a row which is being filled in for the first time is
+ * not yet one the table can hand back.
+ */
+- (void)showWarning:(BOOL)show inCellView:(AIMentionCellView *)cellView
+{
+	NSString	*message = (show ? AIMentionInvalidTermMessage() : nil);
+
+	[[cellView warningView] setHidden:!show];
+	[[cellView warningView] setToolTip:message];
+	//On the field as well: hovering over the term itself is the first thing anybody tries
+	[[cellView textField] setToolTip:message];
+	//VoiceOver does not read tooltips, so the switch of the row carries the sentence too
+	[[cellView enabledSwitch] setAccessibilityHelp:message];
 }
 
 /*!
@@ -592,14 +1017,80 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 	[mentionTerms replaceObjectAtIndex:row withObject:(term ?: @"")];
 	[self saveTerms];
 
-	/* The row's ⊖ is named after the term it would remove, and nothing reconfigures the row while it
-	 * is being typed in - so without this, VoiceOver would go on announcing "Remove chef" for a row
-	 * which now reads "chefin", and "Remove " for a row which was just added. The view is asked for
-	 * but never made: a row which is not on screen has no label to correct. */
+	/* The row's ⊖ and its switch are both named after the term, and nothing reconfigures the row
+	 * while it is being typed in - so without this, VoiceOver would go on announcing "Remove chef"
+	 * and "Use chef" for a row which now reads "chefin", and "Remove " for a row which was just
+	 * added. The view is asked for but never made: a row which is not on screen has no label to
+	 * correct. */
 	id	cellView = [tableView viewAtColumn:0 row:row makeIfNecessary:NO];
 
 	if ([cellView isKindOfClass:[AIMentionCellView class]]) {
 		[[(AIMentionCellView *)cellView removeButton] setAccessibilityLabel:AIMentionRemoveAccessibilityLabel(term)];
+		[[(AIMentionCellView *)cellView enabledSwitch] setAccessibilityLabel:AIMentionUseAccessibilityLabel(term)];
+	}
+
+	/* While the user types, a warning may only ever be taken away, never put up: every second
+	 * keystroke of "/[a-z]+/" is an expression which does not compile, and a sign blinking in and out
+	 * of the row would be telling them off for not having finished yet. The moment the term is right
+	 * again, though, the complaint has to go - it would otherwise stand there contradicting a term
+	 * which is now perfectly good. Putting a warning up is the business of -controlTextDidEndEditing:. */
+	if ([AIMentionEventPlugin termIsValid:term]) [self showWarning:NO inRow:row];
+}
+
+/*!
+ * @brief The user is done with a term: check it, and switch it off - or back on - accordingly
+ *
+ * Return, Tab or a click elsewhere - that is when a term is finished, and the only moment at which
+ * it is fair to judge one. A term which is not a valid regular expression is switched off rather
+ * than left standing as something the user believes is watching for them: the filter would drop it
+ * anyway, silently. A term which is right again gets its switch back, but only if it was ours to
+ * take - see @c mentionSwitchedOffByPane. Anything which is not of the /…/ form cannot be wrong and
+ * is never touched.
+ *
+ * This does not run when the user picks another pane in the sidebar - the view is taken out of the
+ * window without ending editing. A term left half typed that way stays switched on and does nothing,
+ * which is exactly what it did before there were switches; -configureCellView:forRow: puts its
+ * warning back the next time the row is shown.
+ */
+- (void)controlTextDidEndEditing:(NSNotification *)notification
+{
+	if (!mentionTerms) return;
+
+	id	object = [notification object];
+
+	if (![object isKindOfClass:[NSTextField class]]) return;
+
+	NSInteger	row = [tableView rowForView:(NSTextField *)object];
+
+	if (row < 0 || row >= (NSInteger)[mentionTerms count]) return;
+
+	BOOL	valid = [AIMentionEventPlugin termIsValid:[mentionTerms objectAtIndex:row]];
+
+	if (!valid) {
+		/* Only what was on can be switched off by us. A term the user switched off themselves is
+		 * already where they want it, and claiming it would hand it back to them later against
+		 * their word. */
+		if ([self termIsEnabledAtRow:row]) [self notePaneSwitchedTermOff:YES atRow:row];
+
+		[self setTermEnabled:NO atRow:row];
+
+	} else if ([self paneSwitchedTermOffAtRow:row]) {
+		/* Mended. A term we switched off, or refused to switch on, is handed back the moment it can
+		 * be used again - otherwise the user is left with a term that is right in every visible way
+		 * and still does nothing, which is the silence this switch was built to end. The warning
+		 * they were shown went at the keystroke that put it right (-controlTextDidChange:), so the
+		 * note is what remembers whose doing it was. */
+		[self notePaneSwitchedTermOff:NO atRow:row];
+		[self setTermEnabled:YES atRow:row];
+	}
+
+	[self showWarning:!valid inRow:row];
+
+	id	cellView = [tableView viewAtColumn:0 row:row makeIfNecessary:NO];
+
+	if ([cellView isKindOfClass:[AIMentionCellView class]]) {
+		[[(AIMentionCellView *)cellView enabledSwitch] setState:([self termIsEnabledAtRow:row] ?
+																NSControlStateValueOn : NSControlStateValueOff)];
 	}
 }
 
@@ -866,6 +1357,20 @@ static NSString *AIMentionRemoveAccessibilityLabel(NSString *term)
 	[[cellView removeButton] setAction:@selector(removeTermFromRowButton:)];
 	[[cellView removeButton] setToolTip:AILocalizedString(@"Remove", nil)];
 	[[cellView removeButton] setAccessibilityLabel:AIMentionRemoveAccessibilityLabel(term)];
+
+	BOOL	enabled = [self termIsEnabledAtRow:row];
+
+	[[cellView enabledSwitch] setState:(enabled ? NSControlStateValueOn : NSControlStateValueOff)];
+	[[cellView enabledSwitch] setTarget:self];
+	[[cellView enabledSwitch] setAction:@selector(toggleTermFromRowSwitch:)];
+	[[cellView enabledSwitch] setAccessibilityLabel:AIMentionUseAccessibilityLabel(term)];
+
+	/* A row is filled in again whenever it comes back on screen - after a pane change, after a
+	 * resize - so this is where a warning which was put up earlier finds its way back. Only ever for
+	 * a term the user is not typing in at this very moment: -controlTextDidChange: owns the row while
+	 * it holds the field editor, and it does not judge half typed terms. */
+	if (![termField currentEditor])
+		[self showWarning:![AIMentionEventPlugin termIsValid:term] inCellView:cellView];
 
 	/* The hairline sits between two rows, so there is none below the last one. It runs from the text
 	 * indent out to the card's edge - past the trailing edge of the cell, which the inset table style

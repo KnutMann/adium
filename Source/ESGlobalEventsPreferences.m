@@ -68,7 +68,7 @@
 	return @"Events";
 }
 - (NSString *)paneName{	
-    return AILocalizedString(@"Events", "Name of preferences and tab for specifying what Adium should do when events occur - for example, display a Growl alert when John signs on.");
+    return AILocalizedString(@"Events", "Name of preferences and tab for specifying what Adium should do when events occur - for example, display a notification when John signs on.");
 }
 /*!
  * @brief Nib name

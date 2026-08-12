@@ -30,7 +30,10 @@
 #define STATUS_INVISIBLE					@"Invisible"
 #define STATUS_MUTABILITY_TYPE				@"Mutability Type"
 #define STATUS_MUTE_SOUNDS					@"Mute Sounds"
-#define STATUS_SILENCE_GROWL				@"Silence Growl"
+/* The value stays "Silence Growl" although Growl itself is long gone. It is a key inside the
+ * archived statusDict of every status anyone ever built, so renaming the string would silently
+ * drop the setting for everybody who had ever switched it on. Only the symbol moved. */
+#define STATUS_SILENCE_NOTIFICATIONS		@"Silence Growl"
 #define STATUS_SPECIAL_TYPE					@"Special Type"
 
 typedef enum {
@@ -59,7 +62,7 @@ typedef enum {
 - (void)setMutabilityType:(AIStatusMutabilityType)mutabilityType;
 
 @property (readwrite, nonatomic) BOOL mutesSound;
-@property (readwrite, nonatomic) BOOL silencesGrowl;
+@property (readwrite, nonatomic) BOOL silencesNotifications;
 @property (readwrite, nonatomic) AISpecialStatusType specialStatusType;
 
 @end

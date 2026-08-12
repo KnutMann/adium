@@ -442,4 +442,24 @@ typedef enum {
 	oldStatusID = nil;
 }
 
+/*!
+ * @brief Is this account on a status which was set for it automatically?
+ *
+ * Reads what we already keep; it changes nothing. See the header for why both halves are asked.
+ * The identity comparison is sound: -statusStateWithUniqueStatusID: hands out the one shared
+ * instance from the state array, and -setStatusState: files exactly that object away without
+ * copying it.
+ */
+- (BOOL)hasAutomaticStatusForAccount:(AIAccount *)account
+{
+	if (!oldStatusID || ![previousStatus objectForKey:[account internalObjectID]])
+		return NO;
+
+	AIStatus	*automaticStatusState = [adium.statusController statusStateWithUniqueStatusID:oldStatusID];
+
+	/* -actualStatusState rather than -statusState: an account which lost its connection while
+	 * automatically away still holds the status we set, and we should go on owning it. */
+	return (automaticStatusState && (account.actualStatusState == automaticStatusState));
+}
+
 @end

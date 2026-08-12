@@ -15,6 +15,8 @@
  */
 
 #import "AIAwayReminderPlugin.h"
+#import "AIAutomaticStatus.h"
+#import "AICoreComponentLoader.h"
 #import <Adium/AIAbstractAccount.h>
 #import <Adium/AIAccount.h>
 #import <Adium/AIListObject.h>
@@ -184,14 +186,35 @@
 		}
 	}
 
-	if ([awayAccounts count]) {
-		/* Away. Start the countdown unless it is already running or this away period
+	/* Only an away status the user set is worth reminding about. An away Adium set on its own
+	 * because nobody was at the keyboard undoes itself at the next keystroke - it cannot be
+	 * forgotten, so a reminder about it would be nothing but noise. We ask the plugin which set
+	 * it rather than keeping a copy of its bookkeeping; the answer is a dictionary lookup, and
+	 * asking only when we need it saves us any assumption about the order plugins load in.
+	 *
+	 * This belongs here and not in -updateListObject:: AIAutomaticStatus notes which status it
+	 * used only after it has been through all the accounts, while -updateListObject: is called
+	 * during that very loop. By the time our delayed -processStatusUpdate runs, everything is in
+	 * place. */
+	AIAutomaticStatus	*automaticStatus = (AIAutomaticStatus *)[adium.componentLoader pluginWithClassName:@"AIAutomaticStatus"];
+	BOOL				awayByChoice = NO;
+
+	for (AIAccount *account in awayAccounts) {
+		if (![automaticStatus hasAutomaticStatusForAccount:account]) {
+			awayByChoice = YES;
+			break;
+		}
+	}
+
+	if (awayByChoice) {
+		/* Away by choice. Start the countdown unless it is already running or this away period
 		 * has had its reminder; a second account going away must not push the reminder
 		 * further out. */
 		if (!reminderTimer && !reminderPosted) [self startReminderTimer];
 
 	} else {
-		//Back on every account: this away period is over, and so is its reminder
+		/* Back on every account, or away only because Adium said so: either way this away period
+		 * is over as far as the reminder is concerned. */
 		[self cancelReminder];
 	}
 }

@@ -673,24 +673,19 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 								conjunctionIfNeeded = @"";
 							}
 							
-							/* Silly Localization hack: if Growl begins this phrase, don't make it lowercase, since it's
-							 * a proper noun.
-							 */
-							if ([thisDescription rangeOfString:@"Growl" options:(NSLiteralSearch | NSAnchoredSearch)].location == 0) {
-								[actionDescription appendString:[NSString stringWithFormat:@"%@%@ %@",
-									commaAndSpaceIfNeeded,
-									conjunctionIfNeeded,
-									thisDescription]];
-	
-							} else {
-								//Construct the string to append, then append it
-								[actionDescription appendString:[NSString stringWithFormat:@"%@%@ %@%@",
-									commaAndSpaceIfNeeded,
-									conjunctionIfNeeded,
-									[[thisDescription substringToIndex:1] lowercaseString],
-									[thisDescription substringFromIndex:1]]];
-							}
-							
+							/* There used to be a spelling exception here: a description beginning with the
+							 * proper noun "Growl" kept its capital letter. No action handler says that
+							 * any more - the notification action describes itself as "Display a
+							 * notification" - so the exception could never be taken and only pointed at
+							 * something that no longer exists. Should an action ever start with a proper
+							 * noun again, it needs its own answer; a test on the localized description was
+							 * never a reliable one, since it only ever held in English. */
+							[actionDescription appendString:[NSString stringWithFormat:@"%@%@ %@%@",
+								commaAndSpaceIfNeeded,
+								conjunctionIfNeeded,
+								[[thisDescription substringToIndex:1] lowercaseString],
+								[thisDescription substringFromIndex:1]]];
+
 						} else {
 							/* We are on the first action.
 							 *

@@ -24,4 +24,35 @@
 	NSArray							*mentionPredicates;
 }
 @property(copy, nonatomic) NSArray *mentionPredicates;
+
+/*!
+ * @brief Is @a term written in the /…/ form, and therefore a regular expression?
+ *
+ * The one place which decides that question. The preference pane asks it too, and it must get the
+ * same answer we act on: this is not "begins and ends with a slash" - "/a/b/" is the expression
+ * form to us, a bare "/" is not - and two hand written tests of that would drift apart.
+ */
++ (BOOL)termIsRegularExpression:(NSString *)term;
+
+/*!
+ * @brief The predicate @a term matches messages with, or nil if it cannot have one
+ *
+ * nil for an empty term (there is nothing to match yet) and for a /…/ term whose expression does
+ * not compile; @a outError then holds the reason, may be NULL, and is not for showing to the user -
+ * it quotes the pattern as we wrapped it, not as the user typed it.
+ *
+ * Everything the terms mean lives here so that asking and applying cannot come apart: the pane
+ * switches a term off with the very call that would otherwise have built its predicate.
+ */
++ (NSPredicate *)predicateForTerm:(NSString *)term error:(NSError **)outError;
+
+/*!
+ * @brief Can @a term be used as it stands?
+ *
+ * YES for anything which is not of the /…/ form - a plain word is escaped, never compiled, so it
+ * cannot be wrong - and for the empty term of a row which was only just added. The check must never
+ * stand in the user's way where there is nothing to be wrong about.
+ */
++ (BOOL)termIsValid:(NSString *)term;
+
 @end

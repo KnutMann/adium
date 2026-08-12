@@ -106,38 +106,103 @@
 	return LOWEST_FILTER_PRIORITY;
 }
 
+#pragma mark What a term means
+
++ (BOOL)termIsRegularExpression:(NSString *)term
+{
+	if (![term length]) return NO;
+
+	static NSPredicate *regexFormPredicate = nil;
+
+	if (!regexFormPredicate)
+		regexFormPredicate = [[NSPredicate predicateWithFormat:@"SELF MATCHES '/.*/'"] retain];
+
+	return [regexFormPredicate evaluateWithObject:term];
+}
+
++ (NSPredicate *)predicateForTerm:(NSString *)term error:(NSError **)outError
+{
+	if (outError) *outError = nil;
+
+	//A row which was only just added has nothing in it to match on yet
+	if (![term length]) return nil;
+
+	if ([self termIsRegularExpression:term]) {
+		NSString	*inner = [term substringWithRange:NSMakeRange(1, [term length]-2)];
+		NSString	*pattern = [NSString stringWithFormat:@".*%@.*", inner];
+		NSError		*patternError = nil;
+
+		/* A term of the /.../ form is used as the user wrote it, so it can be a regular
+		 * expression which does not compile - and more easily than one might think, because the
+		 * preference pane stores every keystroke (it has to: switching panes in the
+		 * preferences window would otherwise lose what was typed), so half typed states such
+		 * as "/a\/" reach us as well. NSPredicate compiles its pattern not here but at
+		 * -evaluateWithObject:, which happens in -filterAttributedString:context: on an
+		 * incoming message: an ICU error would raise NSInvalidArgumentException there, out of
+		 * reach of anything that could handle it. Compile it here instead and answer with
+		 * nothing at all - the term simply does not match until it is finished. The pane's
+		 * switch rests on this same answer, but the net stays where it is: a term left half
+		 * typed behind a pane change never reaches the switch, and it must not reach the filter
+		 * either.
+		 *
+		 * What the user wrote is compiled first, and only then what we made of it. The two are not
+		 * the same question: the ".*" we append can be eaten by whatever the term ends on, and a
+		 * term which is plainly unfinished then comes back as a good one. "/a\/" - the very state
+		 * named above - is exactly that case: wrapped it reads ".*a\.*", where the trailing
+		 * backslash escapes our own dot, so it compiles and would go on to match every message
+		 * ending in an "a". Asked about the user's own "a\" instead, ICU says what it is: a
+		 * trailing backslash. The term is refused rather than quietly turned into something nobody
+		 * asked for. */
+		if (![NSRegularExpression regularExpressionWithPattern:inner options:0 error:&patternError] ||
+			![NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&patternError]) {
+			if (outError) *outError = patternError;
+			return nil;
+		}
+
+		return [NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@", pattern];
+	}
+
+	//A plain word is matched as itself, whatever characters it is made of
+	return [NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@",
+			[NSString stringWithFormat:@".*\\b%@\\b.*", [term stringByEscapingForRegexp]]];
+}
+
++ (BOOL)termIsValid:(NSString *)term
+{
+	if (![term length] || ![self termIsRegularExpression:term]) return YES;
+
+	return ([self predicateForTerm:term error:NULL] != nil);
+}
+
 /*!
  * @brief Rebuild predicates on preference saves.
  */
 #pragma mark Preference Observing
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime
 {
-	if(firstTime || [key isEqualToString:PREF_KEY_MENTIONS]) {
+	/* The switches are a key of their own, and the preference controller tells its observers about
+	 * one key at a time - without naming it here, throwing a switch would change nothing. */
+	if(firstTime || [key isEqualToString:PREF_KEY_MENTIONS] || [key isEqualToString:PREF_KEY_MENTIONS_ENABLED]) {
 		NSArray *allMentions = [adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS group:PREF_GROUP_GENERAL];
+		/* Index for index with the terms. It is allowed to be missing or short: that is what every
+		 * list looked like before there were switches, and it has to go on meaning "all of them on". */
+		NSArray *mentionsEnabled = [adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS_ENABLED group:PREF_GROUP_GENERAL];
 		NSMutableArray *predicates = [NSMutableArray arrayWithCapacity:[allMentions count]];
-		NSPredicate *regexPredicate = [NSPredicate predicateWithFormat:@"SELF MATCHES '/.*/'"];
-		
+		NSUInteger termIndex = 0;
+
 		for (NSString *mention in allMentions) {
-			if([regexPredicate evaluateWithObject:mention]) {
-				NSString *pattern = [NSString stringWithFormat:@".*%@.*", [mention substringWithRange:NSMakeRange(1, [mention length]-2)]];
-				NSError *patternError = nil;
+			id			flag = (termIndex < [mentionsEnabled count] ? [mentionsEnabled objectAtIndex:termIndex] : nil);
+			BOOL		enabled = (([flag respondsToSelector:@selector(boolValue)]) ? [flag boolValue] : YES);
 
-				/* A term of the /.../ form is used as the user wrote it, so it can be a regular
-				 * expression which does not compile - and now more easily than before, because the
-				 * preference pane stores every keystroke (it has to: switching panes in the
-				 * preferences window would otherwise lose what was typed), so half typed states such
-				 * as "/a\/" reach us as well. NSPredicate compiles its pattern not here but at
-				 * -evaluateWithObject:, which happens below in -filterAttributedString:context: on an
-				 * incoming message: an ICU error would raise NSInvalidArgumentException there, out of
-				 * reach of anything that could handle it. Compile it here instead and leave out what
-				 * will not compile - the term simply does not match until it is finished. */
-				if (![NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&patternError])
-					continue;
+			termIndex++;
 
-				[predicates addObject:[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@", pattern]];
-			} else {
-				[predicates addObject:[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] %@", [NSString stringWithFormat:@".*\\b%@\\b.*", [mention stringByEscapingForRegexp]]]];
-			}
+			/* A term which is switched off is not applied at all: no expression and no word predicate
+			 * is built for it, so it cannot match anything anywhere. */
+			if (!enabled) continue;
+
+			NSPredicate *predicate = [AIMentionEventPlugin predicateForTerm:mention error:NULL];
+
+			if (predicate) [predicates addObject:predicate];
 		}
 		self.mentionPredicates = predicates;
 	}

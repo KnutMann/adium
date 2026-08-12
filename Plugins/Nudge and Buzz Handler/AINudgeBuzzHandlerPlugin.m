@@ -358,7 +358,7 @@
 			AILocalizedString(@"%@ wants your attention!", "Message displayed when a contact sends a buzz/nudge/other notification"),
 			listObject.displayName];
 	} else {
-		description = AILocalizedString(@"wants your attention!", "Phrase displayed when a contact sends a buzz/nudge/other notification. The contact's name will be shown above this phrase, as in a Growl notification.");
+		description = AILocalizedString(@"wants your attention!", "Phrase displayed when a contact sends a buzz/nudge/other notification. The contact's name will be shown above this phrase, as in a notification.");
 	}
 	
 	return description;

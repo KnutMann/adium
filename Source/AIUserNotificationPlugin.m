@@ -32,8 +32,13 @@
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 
-/* Keep the historical Growl action and detail keys so existing user alert
- * configurations continue to work with Notification Center. */
+/* Keep the historical Growl action and detail keys so existing user alert configurations continue
+ * to work with Notification Center. Only the symbols were renamed; the values must stay literally
+ * "Growl" and "Growl Time Stamp", because they are the ActionID and the ActionDetails key of every
+ * alert a user ever set up - in Contact Alerts.plist, in the per-contact and per-account
+ * preferences, in saved Event Presets, and nine times in the shipped
+ * Resources/BuiltInEventPresets.plist. Change them and every configured notification alert loses
+ * its handler and quietly disappears from the events list. */
 #define NOTIFICATION_EVENT_ALERT_IDENTIFIER	@"Growl"
 #define KEY_ALERT_TIME_STAMP				@"Growl Time Stamp"
 
@@ -219,7 +224,7 @@
 - (BOOL)performActionID:(NSString *)actionID forListObject:(AIListObject *)listObject withDetails:(NSDictionary *)details triggeringEventID:(NSString *)eventID userInfo:(id)userInfo
 {
 	// Don't post notifications if the active status says to silence them.
-	if ([adium.statusController.activeStatusState silencesGrowl]) {
+	if ([adium.statusController.activeStatusState silencesNotifications]) {
 		return NO;
 	}
 

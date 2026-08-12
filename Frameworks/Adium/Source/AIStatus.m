@@ -275,14 +275,14 @@
 	[statusDict setObject:[NSNumber numberWithBool:mutes] forKey:STATUS_MUTE_SOUNDS];
 }
 
-- (BOOL)silencesGrowl
+- (BOOL)silencesNotifications
 {
-	return [[statusDict objectForKey:STATUS_SILENCE_GROWL] boolValue];
+	return [[statusDict objectForKey:STATUS_SILENCE_NOTIFICATIONS] boolValue];
 }
 
-- (void)setSilencesGrowl:(BOOL)mutes
+- (void)setSilencesNotifications:(BOOL)mutes
 {
-	[statusDict setObject:[NSNumber numberWithBool:mutes] forKey:STATUS_SILENCE_GROWL];
+	[statusDict setObject:[NSNumber numberWithBool:mutes] forKey:STATUS_SILENCE_NOTIFICATIONS];
 }
 
 - (void)setSpecialStatusType:(AISpecialStatusType)inSpecialStatusType

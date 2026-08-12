@@ -547,7 +547,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 	if (sender == switch_muteSounds)
 		[workingStatusState setMutesSound:([switch_muteSounds state] == NSControlStateValueOn)];
 	else if (sender == switch_silenceNotifications)
-		[workingStatusState setSilencesGrowl:([switch_silenceNotifications state] == NSControlStateValueOn)];
+		[workingStatusState setSilencesNotifications:([switch_silenceNotifications state] == NSControlStateValueOn)];
 
 	[self updateTitleDisplay];
 }
@@ -657,7 +657,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 
 	//Toggles
 	[switch_muteSounds setState:([statusState mutesSound] ? NSControlStateValueOn : NSControlStateValueOff)];
-	[switch_silenceNotifications setState:([statusState silencesGrowl] ? NSControlStateValueOn : NSControlStateValueOff)];
+	[switch_silenceNotifications setState:([statusState silencesNotifications] ? NSControlStateValueOn : NSControlStateValueOff)];
 
 	//Strings
 	NSAttributedString	*statusMessage = statusState.statusMessage;

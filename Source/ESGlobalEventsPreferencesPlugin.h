@@ -27,10 +27,10 @@
 #define KEY_SPEECH_ACTIVE_PRESET			@"Active Speech Preset"
 #define SPEAK_EVENT_ALERT_IDENTIFIER		@"SpeakEvent"
 
-#define PREF_GROUP_GROWL					@"Growl"
-#define KEY_GROWL_ACTIVE_PRESET				@"Active Growl Preset"
-
-#define GROWL_EVENT_ALERT_IDENTIFIER		@"Growl"
+/* PREF_GROUP_GROWL, KEY_GROWL_ACTIVE_PRESET and GROWL_EVENT_ALERT_IDENTIFIER used to live here.
+ * Nobody in the tree ever read them, so no preference file carries their values and nothing is
+ * lost by dropping them. The action identifier that really does carry every configured alert is
+ * NOTIFICATION_EVENT_ALERT_IDENTIFIER in AIUserNotificationPlugin.m - do not confuse the two. */
 
 #define PREF_GROUP_EVENT_PRESETS			@"Event Presets"
 #define KEY_ACTIVE_EVENT_SET				@"Active Event Set"

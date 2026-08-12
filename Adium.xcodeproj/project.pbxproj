@@ -3850,7 +3850,7 @@
 				5AF6824311C46E6B005B3AF5 /* Do Nothing Contact Alert */,
 				9EB7C05703D52AFA00415B22 /* Dock Behavior Contact Alert */,
 				346BA3330774C21300628F06 /* Global Events Preferences */,
-				52C623DE06697AFA0006C387 /* Growl */,
+				52C623DE06697AFA0006C387 /* Notifications */,
 				344AB2B4057912C500384CEE /* Open Message Window Contact Alert */,
 				342DC48A05783B8D000E1D83 /* Send Message Contact Alert */,
 				F5AAD085039BA0D301A8010A /* Sound */,
@@ -5267,7 +5267,7 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		52C623DE06697AFA0006C387 /* Growl */ = {
+		52C623DE06697AFA0006C387 /* Notifications */ = {
 			isa = PBXGroup;
 			children = (
 				ADD1E5C0DE00000000000007 /* AIUserNotificationPlugin.h */,
@@ -5276,7 +5276,7 @@
 				ADD1E5C0DE00000000000801 /* DCMessageContextDisplayPlugin.m */,
 				C6BC7F9A15DD666600C5FF52 /* events-notification.tiff */,
 			);
-			name = Growl;
+			name = Notifications;
 			sourceTree = "<group>";
 		};
 		5AF6824311C46E6B005B3AF5 /* Do Nothing Contact Alert */ = {

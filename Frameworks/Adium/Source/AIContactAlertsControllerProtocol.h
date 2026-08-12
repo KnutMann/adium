@@ -129,7 +129,7 @@ typedef enum {
 /*!
  * @brief Return a natural language, localized description for an event
  *
- * This will be suitable for display to the user such as in a message window or a Growl notification
+ * This will be suitable for display to the user such as in a message window or a notification
  *
  * @param eventID The event
  * @param listObject The object for which the event occurred
@@ -360,7 +360,7 @@ typedef enum {
  * An action may optionally supply a details pane.  If it does, it can store information in a details dictionary
  * which will be passed back to the action when it is triggered as well as when it is queried for a  long description.
  *
- * Example Actions are Play Sound, Speak Event, Display Growl Notification
+ * Example Actions are Play Sound, Speak Event, Display a Notification
  */
 @protocol AIActionHandler <NSObject>
 /*!
