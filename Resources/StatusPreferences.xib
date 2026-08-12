@@ -27,7 +27,10 @@
                 <outlet property="popUp_fastUserSwitchingStatusState" destination="pFus" id="oPFus"/>
                 <outlet property="checkBox_screenSaver" destination="cbSaver" id="oCbSaver"/>
                 <outlet property="popUp_screenSaverStatusState" destination="pSaver" id="oPSaver"/>
-                <outlet property="checkBox_showStatusWindow" destination="cbStatusWindow" id="oCbStatusWindow"/>
+                <outlet property="checkBox_awayReminder" destination="cbRemind" id="oCbRemind"/>
+                <outlet property="textField_awayReminderMinutes" destination="tRemind" id="oTRemind"/>
+                <outlet property="stepper_awayReminderMinutes" destination="stRemind" id="oStRemind"/>
+                <outlet property="label_awayReminderMinutes" destination="lRemind" id="oLRemind"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
@@ -228,15 +231,43 @@
                     </popUpButtonCell>
                     <connections><action selector="changePreference:" target="-2" id="aPSaver"/></connections>
                 </popUpButton>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbStatusWindow">
-                    <rect key="frame" x="20" y="18" width="519" height="18"/>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbRemind">
+                    <rect key="frame" x="20" y="18" width="135" height="18"/>
                     <autoresizingMask key="autoresizingMask"/>
-                    <buttonCell key="cell" type="check" title="Display status window when away" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbStatusWindowC">
+                    <buttonCell key="cell" type="check" title="Remind me after" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbRemindC">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbStatusWindow"/></connections>
+                    <connections><action selector="changePreference:" target="-2" id="aCbRemind"/></connections>
                 </button>
+                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tRemind">
+                    <rect key="frame" x="161" y="16" width="32" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="center" title="30" drawsBackground="YES" id="tRemindC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <action selector="takeIntValueFrom:" target="stRemind" id="aTRemind"/>
+                        <outlet property="delegate" destination="-2" id="oTRemindDel"/>
+                    </connections>
+                </textField>
+                <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="stRemind">
+                    <rect key="frame" x="193" y="13" width="19" height="28"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <stepperCell key="cell" continuous="YES" alignment="left" increment="1" minValue="1" maxValue="999" doubleValue="30" autorepeat="YES" id="stRemindC"/>
+                    <connections><action selector="changeAwayReminderMinutes:" target="-2" id="aStRemind"/></connections>
+                </stepper>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lRemind">
+                    <rect key="frame" x="214" y="19" width="325" height="17"/>
+                    <autoresizingMask key="autoresizingMask"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes of being away" id="lRemindC">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
         </customView>
     </objects>

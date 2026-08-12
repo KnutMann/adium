@@ -32,10 +32,17 @@
 
 #define STATE_DRAG_TYPE	@"AIState"
 
+/* How long the away reminder's minutes may sit before they are written. Long enough
+ * that a held-down stepper or a typed-out number is one write, short enough that
+ * leaving the pane cannot outrun it. */
+#define AWAY_REMINDER_SAVE_DELAY	0.5
+
 @interface ESStatusPreferences ()
 - (void)configureOtherControls;
 - (void)configureAutoAwayStatusStatePopUp;
 - (void)saveTimeValues;
+- (void)awayReminderMinutesChanged;
+- (void)saveAwayReminderInterval;
 - (void)_selectStatusWithUniqueID:(NSNumber *)uniqueID inPopUpButton:(NSPopUpButton *)inPopUpButton;
 
 - (void)reselectDraggedItems:(NSArray *)theDraggedItems;
@@ -86,7 +93,8 @@
 	[label_autoAwayMinutes setStringValue:AILocalizedString(@"minutes of inactivity, set:",nil)];
 	[checkBox_fastUserSwitching setTitle:AILocalizedString(@"When Fast User Switching is activated, set:",nil)];
 	[checkBox_screenSaver setTitle:AILocalizedString(@"When Screen Saver is activated, set:",nil)];
-	[checkBox_showStatusWindow setTitle:AILocalizedString(@"Display status window when away",nil)];
+	[checkBox_awayReminder setTitle:AILocalizedString(@"Remind me after",nil)];
+	[label_awayReminderMinutes setStringValue:AILocalizedString(@"minutes of being away",nil)];
 
 	//Configure the controls
 	[self configureStateList];
@@ -113,6 +121,9 @@
  */
 - (void)viewWillClose
 {
+	//Anything the away reminder still had waiting goes now rather than never
+	[self saveAwayReminderInterval];
+
 	[self saveTimeValues];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
@@ -122,6 +133,9 @@
  */
 - (void)dealloc
 {
+	/* No need to cancel a pending -saveAwayReminderInterval: the scheduled perform
+	 * retains us until it has run, so we cannot get here with one outstanding — and
+	 * if the pane is let go while one waits, the value is still written. */
 	[super dealloc];
 }
 
@@ -540,8 +554,11 @@
 	[checkBox_fastUserSwitching setState:[[prefDict objectForKey:KEY_STATUS_FUS] boolValue]];
 	[checkBox_screenSaver setState:[[prefDict objectForKey:KEY_STATUS_SS] boolValue]];
 
-	[checkBox_showStatusWindow setState:[[prefDict objectForKey:KEY_STATUS_SHOW_STATUS_WINDOW] boolValue]];
-	
+	pendingAwayReminderMinutes = 0;
+	[checkBox_awayReminder setState:[[prefDict objectForKey:KEY_STATUS_AWAY_REMINDER] boolValue]];
+	[textField_awayReminderMinutes setDoubleValue:([[prefDict objectForKey:KEY_STATUS_AWAY_REMINDER_INTERVAL] doubleValue] / 60.0)];
+	[stepper_awayReminderMinutes setDoubleValue:([[prefDict objectForKey:KEY_STATUS_AWAY_REMINDER_INTERVAL] doubleValue] / 60.0)];
+
 	[self configureControlDimming];
 }
 
@@ -654,7 +671,7 @@
  */
 - (void)configureControlDimming
 {
-	BOOL	idleControlsEnabled, autoAwayControlsEnabled;
+	BOOL	idleControlsEnabled, autoAwayControlsEnabled, awayReminderControlsEnabled;
 
 	idleControlsEnabled = ([checkBox_idle state] == NSControlStateValueOn);
 	[textField_idleMinutes setEnabled:idleControlsEnabled];
@@ -667,6 +684,10 @@
 	
 	[popUp_fastUserSwitchingStatusState setEnabled:([checkBox_fastUserSwitching state] == NSControlStateValueOn)];
 	[popUp_screenSaverStatusState setEnabled:([checkBox_screenSaver state] == NSControlStateValueOn)];
+
+	awayReminderControlsEnabled = ([checkBox_awayReminder state] == NSControlStateValueOn);
+	[textField_awayReminderMinutes setEnabled:awayReminderControlsEnabled];
+	[stepper_awayReminderMinutes setEnabled:awayReminderControlsEnabled];
 }
 
 /*!
@@ -688,11 +709,12 @@
 											  group:PREF_GROUP_STATUS_PREFERENCES];
 		[self configureControlDimming];
 		
-	} else if (sender == checkBox_showStatusWindow) {
+	} else if (sender == checkBox_awayReminder) {
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
-											 forKey:KEY_STATUS_SHOW_STATUS_WINDOW
-											  group:PREF_GROUP_STATUS_PREFERENCES];		
-		
+											 forKey:KEY_STATUS_AWAY_REMINDER
+											  group:PREF_GROUP_STATUS_PREFERENCES];
+		[self configureControlDimming];
+
 	} else if (sender == checkBox_fastUserSwitching) {
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
 											 forKey:KEY_STATUS_FUS
@@ -784,6 +806,20 @@
 }
 
 /*!
+ * @brief The away reminder stepper was clicked
+ *
+ * Unlike its two neighbours, this stepper sends its action here rather than to
+ * its text field: the field is updated from here, and the value is on its way to
+ * the preferences. See -saveAwayReminderInterval for why waiting is not an option.
+ */
+- (IBAction)changeAwayReminderMinutes:(id)sender
+{
+	[textField_awayReminderMinutes setIntegerValue:[stepper_awayReminderMinutes integerValue]];
+
+	[self awayReminderMinutesChanged];
+}
+
+/*!
  * @brief Control text did end editing
  *
  * In an attempt to get closer to a live-apply of preferences, save the preference when the
@@ -791,7 +827,89 @@
  */
 - (void)controlTextDidEndEditing:(NSNotification *)notification
 {
+	if ([notification object] == textField_awayReminderMinutes) {
+		//Committed: take the final value and stop waiting
+		[self awayReminderMinutesChanged];
+		[self saveAwayReminderInterval];
+	}
+
 	[self saveTimeValues];
+}
+
+/*!
+ * @brief Control text did change
+ *
+ * Only the away reminder's minutes follow the field as it is typed; the other two
+ * fields keep their historical behaviour (see -saveTimeValues).
+ */
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+	if ([notification object] == textField_awayReminderMinutes) {
+		[self awayReminderMinutesChanged];
+	}
+}
+
+/*!
+ * @brief The away reminder's minutes were changed, by keystroke or by stepper
+ *
+ * Notes the value and asks for it to be written shortly. Writing it here and now
+ * would be a plist write plus a round of observer notifications per keystroke and
+ * per autorepeat tick of the stepper, which for a held-down stepper means dozens
+ * of them and every intermediate number on the way in the preferences; waiting a
+ * moment collapses all of that into one write of the number the user stopped on.
+ *
+ * The value is remembered rather than read again when the write happens: by then
+ * the field editor may be gone, and it is the last thing the user typed which
+ * belongs in the preferences.
+ *
+ * A blank or zero field is not remembered. It is what the user passes through
+ * while typing, and "remind me after no time at all" is not a setting; the
+ * stepper cannot produce it either.
+ */
+- (void)awayReminderMinutesChanged
+{
+	/* While a field is being edited its -stringValue is still the last committed
+	 * text; only the field editor knows what stands there now. */
+	NSText		*editor = [textField_awayReminderMinutes currentEditor];
+	NSInteger	minutes = (editor ? [[editor string] integerValue] : [textField_awayReminderMinutes integerValue]);
+
+	if (minutes < 1) return;
+
+	pendingAwayReminderMinutes = minutes;
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(saveAwayReminderInterval)
+											   object:nil];
+	[self performSelector:@selector(saveAwayReminderInterval)
+			   withObject:nil
+			   afterDelay:AWAY_REMINDER_SAVE_DELAY];
+}
+
+/*!
+ * @brief Store the away reminder interval, in seconds like its neighbours
+ *
+ * Never left to -saveTimeValues: that runs from -viewWillClose, and the preference
+ * window only closes a pane when the window itself closes
+ * (-[AIModernPreferencesWindowController windowWillClose:]). Leaving the pane
+ * through the sidebar merely takes the view out, so a value saved there would be
+ * lost. Hence the short delay in -awayReminderMinutesChanged rather than none at
+ * all, and hence this method being called outright whenever the wait might not
+ * run out in time.
+ */
+- (void)saveAwayReminderInterval
+{
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(saveAwayReminderInterval)
+											   object:nil];
+
+	if (pendingAwayReminderMinutes < 1) return;
+
+	[adium.preferenceController setPreference:[NSNumber numberWithDouble:(pendingAwayReminderMinutes * 60.0)]
+										 forKey:KEY_STATUS_AWAY_REMINDER_INTERVAL
+										  group:PREF_GROUP_STATUS_PREFERENCES];
+
+	//Written; nothing is owed until the user changes the field again
+	pendingAwayReminderMinutes = 0;
 }
 
 /*!

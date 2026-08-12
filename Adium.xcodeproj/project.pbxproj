@@ -218,7 +218,6 @@
 		ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */; };
 		ADD1E5C0DE00000000001402 /* StatusSortConfiguration.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001401 /* StatusSortConfiguration.xib */; };
 		ADD1E5C0DE00000000001604 /* ListLayoutSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001603 /* ListLayoutSheet.xib */; };
-		343EC6C1096F7DEA00349098 /* StatusPreferencesAdvanced.xib in Resources */ = {isa = PBXBuildFile; fileRef = 343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.xib */; };
 		343EC6C8096F7E1700349098 /* ESStatusAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */; };
 		343EC9810970C29400349098 /* OfflineContactHidingDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 343EC9800970C29400349098 /* OfflineContactHidingDefaults.plist */; };
 		343ECBEB0971B18200349098 /* ESShowContactInfoPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 343ECBE90971B18200349098 /* ESShowContactInfoPromptController.m */; };
@@ -246,7 +245,7 @@
 		3456233F0A3773D100E7FC97 /* AILoggerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3456233D0A3773D000E7FC97 /* AILoggerPlugin.m */; };
 		34575E3707CBA874004A4FFF /* DebugWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E3607CBA874004A4FFF /* DebugWindow.xib */; };
 		34575E3907CBA88E004A4FFF /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E3807CBA88E004A4FFF /* MainMenu.xib */; };
-		345ACC970811C20F008E4D22 /* AwayStatusWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */; };
+		AE7A5D1000000000000000A3 /* AIAwayReminderPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = AE7A5D1000000000000000A2 /* AIAwayReminderPlugin.m */; };
 		345AFAEE0A5D9A5F00D7DA6F /* AINoisyTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 345AFAEC0A5D9A5F00D7DA6F /* AINoisyTableColumn.m */; };
 		345DA0680CA09AD0009F1989 /* Statuses.strings in Resources */ = {isa = PBXBuildFile; fileRef = 345DA0660CA09AD0009F1989 /* Statuses.strings */; };
 		345EE2DF0AD057FA003F396A /* AIContactInfoImageViewWithImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 345EE2DD0AD057FA003F396A /* AIContactInfoImageViewWithImagePicker.m */; };
@@ -284,8 +283,6 @@
 		ADD1E5C0DE00000000000C02 /* StatusPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */; };
 		347933F30C861017007ADCAA /* AIColorStringTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 347933F10C861017007ADCAA /* AIColorStringTransformer.h */; };
 		347933F40C861017007ADCAA /* AIColorStringTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 347933F20C861017007ADCAA /* AIColorStringTransformer.m */; };
-		347C6943080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347C6941080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m */; };
-		347C6949080C8F3B00E69674 /* ESAwayStatusWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 347C6947080C8F3A00E69674 /* ESAwayStatusWindowController.m */; };
 		347E39DC0A98AA4A00961B0E /* missing_image.png in Resources */ = {isa = PBXBuildFile; fileRef = 347E39DB0A98AA4A00961B0E /* missing_image.png */; };
 		347E77F407CA94FF00350507 /* ESAccountEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E77F207CA94FE00350507 /* ESAccountEvents.m */; };
 		347E781407CA961300350507 /* ESUserIconHandlingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E781207CA961300350507 /* ESUserIconHandlingPlugin.m */; };
@@ -1684,7 +1681,6 @@
 		ADD1E5C0DE00000000000F01 /* AccountProxy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountProxy.xib; path = Resources/AccountProxy.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferencesAdvanced.xib; path = Resources/StatusPreferencesAdvanced.xib; sourceTree = "<group>"; };
 		343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusAdvancedPreferences.h; path = Source/ESStatusAdvancedPreferences.h; sourceTree = "<group>"; };
 		343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusAdvancedPreferences.m; path = Source/ESStatusAdvancedPreferences.m; sourceTree = "<group>"; };
 		343EC9800970C29400349098 /* OfflineContactHidingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = OfflineContactHidingDefaults.plist; path = Resources/OfflineContactHidingDefaults.plist; sourceTree = "<group>"; };
@@ -1800,8 +1796,9 @@
 		345A7B6B0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleSimpleAccountViewController.h; path = "Plugins/Purple Service/ESPurpleSimpleAccountViewController.h"; sourceTree = "<group>"; };
 		345A7B6C0954AD3A00FF3113 /* ESPurpleSimpleAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleSimpleAccountViewController.m; path = "Plugins/Purple Service/ESPurpleSimpleAccountViewController.m"; sourceTree = "<group>"; };
 		345A7B710954AD4D00FF3113 /* PurpleDefaultsSimple.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = PurpleDefaultsSimple.plist; path = "Plugins/Purple Service/PurpleDefaultsSimple.plist"; sourceTree = "<group>"; };
-		345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AwayStatusWindow.xib; path = Resources/AwayStatusWindow.xib; sourceTree = "<group>"; };
 		345AFAEB0A5D9A5F00D7DA6F /* AINoisyTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINoisyTableColumn.h; path = Source/AINoisyTableColumn.h; sourceTree = "<group>"; };
+		AE7A5D1000000000000000A1 /* AIAwayReminderPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAwayReminderPlugin.h; path = Source/AIAwayReminderPlugin.h; sourceTree = "<group>"; };
+		AE7A5D1000000000000000A2 /* AIAwayReminderPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAwayReminderPlugin.m; path = Source/AIAwayReminderPlugin.m; sourceTree = "<group>"; };
 		345AFAEC0A5D9A5F00D7DA6F /* AINoisyTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AINoisyTableColumn.m; path = Source/AINoisyTableColumn.m; sourceTree = "<group>"; };
 		345DA0690CA09AD6009F1989 /* fr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = fr; path = Resources/fr.lproj/Statuses.strings; sourceTree = "<group>"; };
 		345DA06A0CA09ADD009F1989 /* ja */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ja; path = Resources/ja.lproj/Statuses.strings; sourceTree = "<group>"; };
@@ -1891,10 +1888,6 @@
 		347933F10C861017007ADCAA /* AIColorStringTransformer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIColorStringTransformer.h; path = Frameworks/Adium/Source/AIColorStringTransformer.h; sourceTree = "<group>"; };
 		347933F20C861017007ADCAA /* AIColorStringTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIColorStringTransformer.m; path = Frameworks/Adium/Source/AIColorStringTransformer.m; sourceTree = "<group>"; };
 		347AC44608AAA7C70043FB94 /* ca */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ca; path = "Resources/ca.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
-		347C6940080C8F2B00E69674 /* ESAwayStatusWindowPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESAwayStatusWindowPlugin.h; path = Source/ESAwayStatusWindowPlugin.h; sourceTree = "<group>"; };
-		347C6941080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESAwayStatusWindowPlugin.m; path = Source/ESAwayStatusWindowPlugin.m; sourceTree = "<group>"; };
-		347C6946080C8F3A00E69674 /* ESAwayStatusWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESAwayStatusWindowController.h; path = Source/ESAwayStatusWindowController.h; sourceTree = "<group>"; };
-		347C6947080C8F3A00E69674 /* ESAwayStatusWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESAwayStatusWindowController.m; path = Source/ESAwayStatusWindowController.m; sourceTree = "<group>"; };
 		347E39DB0A98AA4A00961B0E /* missing_image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = missing_image.png; path = "Plugins/Purple Service/missing_image.png"; sourceTree = "<group>"; };
 		347E77F107CA94FE00350507 /* ESAccountEvents.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESAccountEvents.h; path = Source/ESAccountEvents.h; sourceTree = "<group>"; };
 		347E77F207CA94FE00350507 /* ESAccountEvents.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAccountEvents.m; path = Source/ESAccountEvents.m; sourceTree = "<group>"; };
@@ -3314,7 +3307,6 @@
 				34A250B507E0F822009854E1 /* StatusDefaults.plist */,
 				343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */,
 				343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */,
-				343EC6C0096F7DEA00349098 /* StatusPreferencesAdvanced.xib */,
 				348F579D0936FA6D00288E41 /* EditStatusGroup.xib */,
 				ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */,
 			);
@@ -3810,16 +3802,13 @@
 			name = "File Transfer";
 			sourceTree = "<group>";
 		};
-		347C693D080C8F0200E69674 /* Away Status Window */ = {
+		347C693D080C8F0200E69674 /* Away Reminder */ = {
 			isa = PBXGroup;
 			children = (
-				347C6940080C8F2B00E69674 /* ESAwayStatusWindowPlugin.h */,
-				347C6941080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m */,
-				347C6946080C8F3A00E69674 /* ESAwayStatusWindowController.h */,
-				347C6947080C8F3A00E69674 /* ESAwayStatusWindowController.m */,
-				345ACC960811C20F008E4D22 /* AwayStatusWindow.xib */,
+				AE7A5D1000000000000000A1 /* AIAwayReminderPlugin.h */,
+				AE7A5D1000000000000000A2 /* AIAwayReminderPlugin.m */,
 			);
-			name = "Away Status Window";
+			name = "Away Reminder";
 			sourceTree = "<group>";
 		};
 		347E778507CA825F00350507 /* Messaging */ = {
@@ -4683,7 +4672,7 @@
 			children = (
 				4B292D3007A9C8E100C5F882 /* AIStatusController.h */,
 				4B292D3107A9C8E100C5F882 /* AIStatusController.m */,
-				347C693D080C8F0200E69674 /* Away Status Window */,
+				347C693D080C8F0200E69674 /* Away Reminder */,
 				3440938707D915D300321BB3 /* Auto-Status Change */,
 				4B292D4707A9C92D00C5F882 /* Auto-Reply */,
 				4B587C6C07ABFD2E001832A9 /* Preset State Menu */,
@@ -6808,7 +6797,6 @@
 				3402D5A5080DBC91004E50B4 /* SortConfiguration.xib in Resources */,
 				34F4677A080F49C5007800AB /* Safari.scpt in Resources */,
 				34F4677B080F49C5007800AB /* Safari.png in Resources */,
-				345ACC970811C20F008E4D22 /* AwayStatusWindow.xib in Resources */,
 				345F566B08178356001F733C /* AdiumServiceIcons.icns in Resources */,
 				345F57400817FF80001F733C /* pref-contactList.tiff in Resources */,
 				345F583E08197E74001F733C /* AdiumStatusIcons.icns in Resources */,
@@ -6833,7 +6821,6 @@
 				341BD5710965EC3500CF83F5 /* OTRPrivateKeyGenerationWindow.xib in Resources */,
 				ADD1E5C0DE00000000001802 /* OTRPrefs.xib in Resources */,
 				349710DD096C4C7700699948 /* Buttons.strings in Resources */,
-				343EC6C1096F7DEA00349098 /* StatusPreferencesAdvanced.xib in Resources */,
 				343EC9810970C29400349098 /* OfflineContactHidingDefaults.plist in Resources */,
 				343ECBEE0971B18E00349098 /* ShowContactInfoPrompt.xib in Resources */,
 				34107B5609E992DA001CC042 /* GuestAccountWindow.xib in Resources */,
@@ -7268,8 +7255,7 @@
 				34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */,
 				34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */,
 				34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */,
-				347C6943080C8F2B00E69674 /* ESAwayStatusWindowPlugin.m in Sources */,
-				347C6949080C8F3B00E69674 /* ESAwayStatusWindowController.m in Sources */,
+				AE7A5D1000000000000000A3 /* AIAwayReminderPlugin.m in Sources */,
 				34F46785080F7FFB007800AB /* ESSafariLinkToolbarItemPlugin.m in Sources */,
 				4BB9972B083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m in Sources */,
 				4BB9972D083D1A5F006ACD6F /* SMContactListShowDetailsPane.m in Sources */,

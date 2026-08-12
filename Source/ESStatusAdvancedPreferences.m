@@ -53,11 +53,9 @@
 }
 
 /* No -nibName: the pane builds its own view below, so AIModularPane never loads
- * a nib for us. StatusPreferencesAdvanced.xib is dead — and it must stay
- * unloaded: it still wires twenty-two outlets this class no longer has
- * (tokenField_album, box_itunesElements, label_instructions, …), so loading it
- * would raise NSUnknownKeyException rather than fall back to the old interface.
- * Removing it from the target needs project file access we do not have here.
+ * a nib for us. StatusPreferencesAdvanced.xib, which wired twenty-two outlets
+ * this class no longer has, is gone from the target and from the tree along with
+ * the away status window it was the last thing still describing.
  */
 
 #pragma mark View
@@ -102,14 +100,13 @@
 /*!
  * @brief Create the controls and stack them into cards.
  *
- * Two cards. The first is what the Now Playing status sends; the nib gave the
- * same thing a token field, a boxed palette of seven drag sources and a line of
- * instructions, which together took two thirds of the pane. A plain field plus a
- * pull down does the same job in one row — and unlike dragging, it can be done
- * from the keyboard.
+ * One card: what the Now Playing status sends. The nib gave the same thing a
+ * token field, a boxed palette of seven drag sources and a line of instructions,
+ * which together took two thirds of the pane. A plain field plus a pull down does
+ * the same job in one row — and unlike dragging, it can be done from the keyboard.
  *
- * The second card is the away status window, whose two settings have nothing to
- * do with music and keep the titles, keys and bindings they had in the nib.
+ * A second card used to hold the two settings of the floating away status window.
+ * The window is gone; an away reminder in the main Status pane took its place.
  */
 - (AISettingsFormView *)buildSettingsForm
 {
@@ -134,25 +131,6 @@
 	 */
 	[form addFootnote:AILocalizedString(@"The Music Status and the %_iTunes token are replaced with this. Adium learns what is playing the next time Music starts, pauses or changes the track.",
 										"Explanation below the Now Playing format field. %_iTunes is a token and must not be translated.")];
-
-	[form addSectionHeader:AILocalizedString(@"Away Status Window", nil)];
-
-	//Both keep the exact binding — same key, same group — they had in the nib
-	switch_statusWindowAlwaysOnTop = [AISettingsFormView switchWithTarget:nil action:NULL];
-	[self bindObject:switch_statusWindowAlwaysOnTop
-			 binding:NSValueBinding
-			 keyPath:[self keyPathForGroup:PREF_GROUP_STATUS_PREFERENCES key:KEY_STATUS_STATUS_WINDOW_ON_TOP]
-			 options:nil];
-	[form addRowWithLabel:AILocalizedString(@"Show the status window above other windows", nil)
-				  control:switch_statusWindowAlwaysOnTop];
-
-	switch_statusWindowHideInBackground = [AISettingsFormView switchWithTarget:nil action:NULL];
-	[self bindObject:switch_statusWindowHideInBackground
-			 binding:NSValueBinding
-			 keyPath:[self keyPathForGroup:PREF_GROUP_STATUS_PREFERENCES key:KEY_STATUS_STATUS_WINDOW_HIDE_IN_BACKGROUND]
-			 options:nil];
-	[form addRowWithLabel:AILocalizedString(@"Hide the status window when Adium is not active", nil)
-				  control:switch_statusWindowHideInBackground];
 
 	return form;
 }
@@ -242,8 +220,6 @@
 
 	textField_format = nil;
 	popUp_insertToken = nil;
-	switch_statusWindowAlwaysOnTop = nil;
-	switch_statusWindowHideInBackground = nil;
 
 	[super viewWillClose];
 }

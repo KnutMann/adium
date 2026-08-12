@@ -15,6 +15,7 @@
  */
 
 #import "AIUserNotificationPlugin.h"
+#import "AIAwayReminderPlugin.h"
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
@@ -67,6 +68,7 @@
 
 - (void)adiumFinishedLaunching:(NSNotification *)notification;
 - (void)beginNotifying;
+- (void)registerNotificationCategories:(UNUserNotificationCenter *)center;
 - (void)clearQueue:(NSDictionary *)callDict;
 - (void)handleNotificationClickWithContext:(NSDictionary *)clickContext;
 @end
@@ -88,6 +90,17 @@
  */
 - (void)installPlugin
 {
+	/* The delegate and the categories must be in place before the application has
+	 * finished launching: if the user presses a button on a notification which is
+	 * still lying in Notification Center, the system delivers that response as we
+	 * come up, and a response arriving before there is a delegate is simply dropped.
+	 * We run inside -applicationDidFinishLaunching:, which is early enough;
+	 * everything that may wait (asking for permission) waits in -beginNotifying.
+	 */
+	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+	center.delegate = self;
+	[self registerNotificationCategories:center];
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(adiumFinishedLaunching:)
 												 name:AIApplicationDidFinishLoadingNotification
@@ -125,7 +138,9 @@
 - (void)beginNotifying
 {
 	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-	center.delegate = self;
+
+	/* The delegate and our categories are already in place; see -installPlugin.
+	 * What is left here is what may safely wait until the events exist. */
 	[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound)
 						  completionHandler:^(BOOL granted, NSError *error) {
 		if (!granted) {
@@ -135,6 +150,35 @@
 
 	//Install our contact alert
 	[adium.contactAlertsController registerActionID:NOTIFICATION_EVENT_ALERT_IDENTIFIER withHandler:self];
+}
+
+/*!
+ * @brief Register every notification category Adium uses
+ *
+ * There is exactly one place for this, and this is it: -setNotificationCategories:
+ * replaces the whole set, so a second caller elsewhere would silently drop
+ * whatever the first one registered. Anything that wants a button on a
+ * notification adds its category here and stamps the identifier onto its own
+ * content.
+ */
+- (void)registerNotificationCategories:(UNUserNotificationCenter *)center
+{
+	/* UNNotificationActionOptionNone: the button does its work in the background.
+	 * Coming back from away is not a reason to pull Adium in front of whatever the
+	 * user is doing — the old window's button did not do that either. */
+	UNNotificationAction *returnAction = [UNNotificationAction actionWithIdentifier:AWAY_REMINDER_ACTION_RETURN
+																			 title:AILocalizedStringFromTableInBundle(@"Return",
+																													  @"Buttons",
+																													  [NSBundle bundleForClass:[self class]],
+																													  "Button on the away reminder notification which sets every account back to available")
+																		   options:UNNotificationActionOptionNone];
+
+	UNNotificationCategory *awayReminderCategory = [UNNotificationCategory categoryWithIdentifier:AWAY_REMINDER_CATEGORY_IDENTIFIER
+																						 actions:[NSArray arrayWithObject:returnAction]
+																			   intentIdentifiers:[NSArray array]
+																						 options:UNNotificationCategoryOptionNone];
+
+	[center setNotificationCategories:[NSSet setWithObject:awayReminderCategory]];
 }
 
 #pragma mark AIActionHandler
@@ -526,19 +570,33 @@
 }
 
 /*!
- * @brief Called when a notification is clicked
+ * @brief Called when a notification is clicked or one of its buttons is pressed
  *
- * Opens the chat or reveals the file the notification was about.
+ * A click opens the chat or reveals the file the notification was about; an
+ * action button does its own thing and nothing else. The distinction matters:
+ * -handleNotificationClickWithContext: ends by pulling Adium to the front, which
+ * is right for a message and wrong for a button that merely changes the status.
  */
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
 didReceiveNotificationResponse:(UNNotificationResponse *)response
 		 withCompletionHandler:(void (^)(void))completionHandler
 {
-	NSDictionary *clickContext = response.notification.request.content.userInfo;
+	NSString		*actionIdentifier = response.actionIdentifier;
+	NSDictionary	*clickContext = response.notification.request.content.userInfo;
 
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[self handleNotificationClickWithContext:clickContext];
-	});
+	if ([actionIdentifier isEqualToString:AWAY_REMINDER_ACTION_RETURN]) {
+		//The away reminder's "Return" button; AIAwayReminderPlugin knows what to do with it
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[[NSNotificationCenter defaultCenter] postNotificationName:AIAwayReminderReturnRequestedNotification
+																object:nil];
+		});
+
+	} else if ([actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self handleNotificationClickWithContext:clickContext];
+		});
+	}
+	//UNNotificationDismissActionIdentifier and any future action: nothing to do
 
 	completionHandler();
 }

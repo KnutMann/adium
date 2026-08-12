@@ -754,9 +754,6 @@
 "Away Message: %@" = "Away Message: %@";
 
 /* No comment provided by engineer. */
-"Away Status Window" = "Away Status Window";
-
-/* No comment provided by engineer. */
 "Background images are only applicable to normal and borderless window styles" = "Background images are only applicable to normal and borderless window styles";
 
 /* No comment provided by engineer. */
@@ -1757,9 +1754,6 @@
 
 /* No comment provided by engineer. */
 "Hide Status Item" = "Hide Status Item";
-
-/* No comment provided by engineer. */
-"Hide the status window when Adium is not active" = "Hide the status window when Adium is not active";
 
 /* No comment provided by engineer. */
 "Hide Timestamps" = "Hide Timestamps";
@@ -2830,9 +2824,6 @@
 "Show the File Transfers window automatically" = "Show the File Transfers window automatically";
 
 /* No comment provided by engineer. */
-"Show the status window above other windows" = "Show the status window above other windows";
-
-/* No comment provided by engineer. */
 "Show this contact's icon" = "Show this contact's icon";
 
 /* Growl contact alert label */
@@ -3705,7 +3696,6 @@
 "Detailed status text:" = "Detailed status text:";
 "Details:" = "Details:";
 "Dim icons of offline contacts" = "Dim icons of offline contacts";
-"Display status window when away" = "Display status window when away";
 "Dock Icon:" = "Dock Icon:";
 "Draw contact bubbles with a gradient" = "Draw contact bubbles with a gradient";
 "Emoticons:" = "Emoticons:";

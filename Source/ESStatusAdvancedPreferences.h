@@ -37,8 +37,6 @@
 @interface ESStatusAdvancedPreferences : AIAdvancedPreferencePane <NSTextFieldDelegate> {
 	NSTextField		*textField_format;
 	NSPopUpButton	*popUp_insertToken;
-	NSSwitch		*switch_statusWindowAlwaysOnTop;
-	NSSwitch		*switch_statusWindowHideInBackground;
 
 	NSMutableArray	*establishedBindings;		//NSArrays of (object, binding name), unbound when the view closes
 

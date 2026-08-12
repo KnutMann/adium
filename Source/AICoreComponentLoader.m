@@ -131,7 +131,7 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"ESSecureMessagingPlugin",
 		@"ESStatusPreferencesPlugin",
 		@"AIAutomaticStatus",
-		@"ESAwayStatusWindowPlugin",
+		@"AIAwayReminderPlugin",
 		@"RAFBlockEditorPlugin",
 		@"SMContactListShowBehaviorPlugin",
 		@"ESiTunesPlugin",

@@ -49,9 +49,8 @@
 #define KEY_STATUS_SS_STATUS_STATE_ID			@"ScreenSaver Status State ID"
 #define KEY_STATUS_AUTO_AWAY_INTERVAL			@"Auto Away Interval"
 
-#define KEY_STATUS_SHOW_STATUS_WINDOW				@"Show Status Window"
-#define KEY_STATUS_STATUS_WINDOW_ON_TOP				@"Status Window Always On Top"
-#define KEY_STATUS_STATUS_WINDOW_HIDE_IN_BACKGROUND	@"Status Window Hide in Background"
+#define KEY_STATUS_AWAY_REMINDER					@"Away Reminder"
+#define KEY_STATUS_AWAY_REMINDER_INTERVAL			@"Away Reminder Interval"	//Seconds, like the intervals above
 
 //Built-in names and descriptions, which services should use when they support identical or approximately identical states
 #define	STATUS_NAME_AVAILABLE				@"Generic Available"

@@ -37,7 +37,7 @@
 /* Verb 'OK' on a button */
 "OK" = "OK";
 
-/* Button to return from away in the away status window */
+/* Button on the away reminder notification which sets every account back to available */
 "Return" = "Return";
 
 /* No comment provided by engineer. */

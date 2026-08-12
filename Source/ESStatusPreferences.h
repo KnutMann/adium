@@ -50,7 +50,11 @@
 	IBOutlet	NSPopUpButton	*popUp_screenSaverStatusState;
 	BOOL						showingSubmenuItemInScreenSaver;
 	
-	IBOutlet	NSButton		*checkBox_showStatusWindow;
+	IBOutlet	NSButton		*checkBox_awayReminder;
+	IBOutlet	NSTextField		*textField_awayReminderMinutes;
+	IBOutlet    NSStepper       *stepper_awayReminderMinutes;
+	IBOutlet	NSTextField		*label_awayReminderMinutes;
+	NSInteger					pendingAwayReminderMinutes;		//The value a scheduled -saveAwayReminderInterval will write
 }
 
 - (void)configureStateList;
@@ -58,6 +62,7 @@
 - (IBAction)addOrRemoveState:(id)sender;
 - (IBAction)editState:(id)sender;
 - (IBAction)addGroup:(id)sender;
+- (IBAction)changeAwayReminderMinutes:(id)sender;
 
 - (void)stateArrayChanged:(NSNotification *)notification;
 
