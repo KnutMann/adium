@@ -537,7 +537,11 @@ static NSImage *AIPrefPaneIcon(id pane)
 	 */
 	NSSize visibleSize = (clipView ? [clipView bounds].size : [scrollView contentSize]);
 	CGFloat paneHeight = NSHeight([paneView frame]);
-	CGFloat documentHeight = MAX(paneHeight + 2 * AIPrefsContentPadding, visibleSize.height);
+	/* The top inset is part of the scrollable range: a document as tall as the clip view can
+	 * still travel by exactly the inset, which lets a pane that fits be pushed up under the
+	 * title bar with blank space following it. A short pane's document therefore stops at the
+	 * visible height minus the inset - travel zero - and a tall pane is unaffected. */
+	CGFloat documentHeight = MAX(paneHeight + 2 * AIPrefsContentPadding, visibleSize.height - topInset);
 
 	[contentHost setFrame:NSMakeRect(0, 0, visibleSize.width, documentHeight)];
 	//Setting the pane's frame posts a frame-change notification of its own
@@ -557,7 +561,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	CGFloat settledHeight = NSHeight([paneView frame]);
 	if (fabs(settledHeight - paneHeight) > 0.5) {
 		[contentHost setFrame:NSMakeRect(0, 0, visibleSize.width,
-										 MAX(settledHeight + 2 * AIPrefsContentPadding, visibleSize.height))];
+										 MAX(settledHeight + 2 * AIPrefsContentPadding, visibleSize.height - topInset))];
 	}
 }
 

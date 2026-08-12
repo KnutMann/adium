@@ -1496,7 +1496,13 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	if (!scrollView || !documentView || documentView != [self superview] || ![documentView isFlipped]) return;
 
 	CGFloat padding = MAX(NSMinY([self frame]), 0.0);
-	CGFloat needed = MAX(NSHeight([self frame]) + 2.0 * padding, [scrollView contentSize].height);
+	/* Minus the top inset, or a form that fits could still travel by exactly that inset: the
+	 * inset is part of the scrollable range, and a document as tall as the clip view scrolls
+	 * up under the title bar with blank space following it. Same arithmetic as
+	 * -[AIModernPreferencesWindowController layoutCurrentPane]; they take turns setting this
+	 * height and must agree, or every pass undoes the other's. */
+	CGFloat needed = MAX(NSHeight([self frame]) + 2.0 * padding,
+						 [scrollView contentSize].height - [scrollView contentInsets].top);
 
 	if (fabs(needed - NSHeight([documentView frame])) > 0.5) {
 		[documentView setFrameSize:NSMakeSize(NSWidth([documentView frame]), needed)];
