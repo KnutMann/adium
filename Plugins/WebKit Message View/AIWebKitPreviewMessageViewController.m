@@ -80,14 +80,19 @@
 }
 
 /*!
- * @brief Let the preview scroll, but show no scrollbar.
+ * @brief Let the preview scroll, but keep its scrollbar out of the way.
  *
  * The sample conversation can run past the box, so it must be scrollable; a scrollbar in a
- * settings preview, though, reads as chrome that does not belong. The rule is injected into
- * this one web view rather than set on the WebPreferences the controller shares with real chat
- * windows, so only the preview loses its bar. -webViewIsReady fires again after every reload
- * (a style or variant change reprimes the view), which is why the style is re-applied here and
- * guarded against being added twice.
+ * settings preview, though, reads as chrome that does not belong, and drawn beside the content
+ * it clips the card's rounded corners.
+ *
+ * Two scrollbars can appear, and each needs its own handle. One is CSS: any overflow element in
+ * the page draws a ::-webkit-scrollbar, hidden here with a rule dropped into this one web view -
+ * not onto the WebPreferences the controller shares with real chat windows, so their bars are
+ * untouched. The other is the main frame's, which WebKit1 draws as an AppKit scroller, not from
+ * CSS; made an overlay it sits over the content inside the corners and fades when the pointer is
+ * not scrolling. -webViewIsReady fires again after every reprime (a style or variant change), so
+ * both are reapplied here, the CSS guarded against being added twice.
  */
 - (void)webViewIsReady
 {
@@ -99,6 +104,10 @@
 		 "var s=document.createElement('style');s.id=i;"
 		 "s.textContent='::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}';"
 		 "(document.head||document.documentElement).appendChild(s);}})();"];
+
+	NSScrollView *frameScroll = [[[[webView mainFrame] frameView] documentView] enclosingScrollView];
+	[frameScroll setScrollerStyle:NSScrollerStyleOverlay];
+	[frameScroll setAutohidesScrollers:YES];
 }
 
 @end
