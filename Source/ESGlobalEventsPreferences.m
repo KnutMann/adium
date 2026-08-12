@@ -271,6 +271,10 @@ static NSString *AIRowLabel(NSString *label)
 		if (symbol) {
 			[speakers[i].button setImage:symbol];
 			[speakers[i].button setBordered:NO];
+			/* The nib marks both buttons transparent, and a transparent button draws nothing
+			 * at all - bezel and image alike. They were bare click targets in the old layout;
+			 * here the glyph is the whole point. */
+			[speakers[i].button setTransparent:NO];
 			[speakers[i].button setImagePosition:NSImageOnly];
 			[speakers[i].button sizeToFit];
 		}
