@@ -700,4 +700,15 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 			self.account.service.serviceID, AIRedactedRoomID(self.account.UID)];
 }
 
+- (void)removeStoredPreferences
+{
+	/* The alias is what the contact list shows, the adopted name decides whether a later
+	 * protocol title may overrule it, and the containing group is where -restoreGrouping
+	 * puts us. All three are keyed by internalObjectID, which a bookmark for the same room
+	 * gets again - so a deletion which leaves them behind is only half a deletion. */
+	[self setPreference:nil forKey:@"Alias" group:PREF_GROUP_ALIASES];
+	[self setPreference:nil forKey:KEY_ADOPTED_DISPLAY_NAME group:GROUP_LIST_BOOKMARK];
+	[self setPreference:nil forKey:KEY_CONTAINING_OBJECT_UID group:PREF_GROUP_OBJECT_STATUS_CACHE];
+}
+
 @end

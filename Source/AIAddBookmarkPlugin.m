@@ -112,25 +112,28 @@
 }
 
 /*!
- * @brief The chat can be bookmarked if it is a group chat and not already a bookmark.
+ * @brief Any group chat can be bookmarked.
+ *
+ * An existing bookmark used to disable this, which made the one command that could have put a
+ * misfiled bookmark back where the user expects it unreachable for exactly the chats that
+ * needed it - greyed out, with nothing said about why. -bookmarkForChat:inGroup: reuses what
+ * is already there, so running this on a bookmarked chat regroups it rather than duplicating it.
  */
 - (BOOL)validateToolbarItem:(NSToolbarItem *)inToolbarItem
 {
-	return (adium.interfaceController.activeChat.isGroupChat &&
-			![adium.contactController existingBookmarkForChat:adium.interfaceController.activeChat]);
+	return adium.interfaceController.activeChat.isGroupChat;
 }
 
 /*!
- * @brief The chat can be bookmarked if it is a group chat and not already a bookmark.
+ * @brief Any group chat can be bookmarked. See -validateToolbarItem:.
  */
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
 	if ([menuItem.title isEqualToString:ADD_BOOKMARK_CONTEXT_MENU]) {
 		// WKMV's context menu makes a copy of menu items; check against title.
-		return (![adium.contactController existingBookmarkForChat:adium.menuController.currentContextMenuChat]);
+		return adium.menuController.currentContextMenuChat.isGroupChat;
 	} else {
-		return (adium.interfaceController.activeChat.isGroupChat &&
-				![adium.contactController existingBookmarkForChat:adium.interfaceController.activeChat]);
+		return adium.interfaceController.activeChat.isGroupChat;
 	}
 }
 

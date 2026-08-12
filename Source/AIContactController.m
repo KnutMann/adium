@@ -97,6 +97,7 @@
 @property (readwrite, nonatomic) BOOL useOfflineGroup;
 - (void)saveContactList;
 - (void)_loadBookmarks;
+- (void)removeBookmark:(AIListBookmark *)listBookmark discardingPreferences:(BOOL)discardPreferences;
 - (void)_didChangeContainer:(id <AIContainingObject>)inContainingObject object:(AIListObject *)object;
 - (void)prepareShowHideGroups;
 - (void)_performChangeOfUseContactListGroups;
@@ -314,7 +315,8 @@
 		if(bookmark) {
 			if ([bookmarkDict objectForKey:bookmark.internalObjectID]) {
 				// In case we end up with two bookmarks with the same internalObjectID; this should be almost impossible.
-				[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]];
+				[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]
+			   discardingPreferences:NO];
 			}
 
 			[bookmarkDict setObject:bookmark forKey:bookmark.internalObjectID];
@@ -1366,24 +1368,35 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 - (AIListBookmark *)bookmarkForChat:(AIChat *)inChat inGroup:(AIListGroup *)group
 {
 	AIListBookmark *bookmark = [self existingBookmarkForChat:inChat];
-	
-	if (!bookmark) {
+
+	if (bookmark) {
+		/* A bookmark which is still here but not where it is looked for is indistinguishable
+		 * from a lost one, and there is no other command which could fetch it back. So this
+		 * one does both jobs: asking for a bookmark that already exists moves it to the group
+		 * that was asked for instead of quietly doing nothing. */
+		AILogWithSignature(@"Reusing %@, currently in %@", bookmark.logDescription, bookmark.groups);
+
+	} else {
 		bookmark = [[[AIListBookmark alloc] initWithChat:inChat] autorelease];
-		
+
 		if ([bookmarkDict objectForKey:bookmark.internalObjectID]) {
 			// In case we end up with two bookmarks with the same internalObjectID; this should be almost impossible.
-			[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]];
+			[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]
+		   discardingPreferences:NO];
 		}
-		
+
 		[bookmarkDict setObject:bookmark forKey:bookmark.internalObjectID];
-		
-		[bookmark setInitialGroup:group];
-		
-		[self saveContactList];
 	}
-	
+
+	/* No group means the caller had none to offer, not "the root list" - leave whatever we
+	 * are grouped under alone in that case. */
+	if (group)
+		[bookmark setInitialGroup:group];
+
 	[bookmark restoreGrouping];
-	
+
+	[self saveContactList];
+
 	//Do the update thing
 	[contactPropertiesObserverManager _updateAllAttributesOfObject:bookmark];
 	
@@ -1394,6 +1407,18 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
  * @brief Remove a bookmark
  */
 - (void)removeBookmark:(AIListBookmark *)listBookmark
+{
+	[self removeBookmark:listBookmark discardingPreferences:YES];
+}
+
+/*!
+ * @brief Remove a bookmark, optionally keeping what it stored about itself
+ *
+ * Replacing a bookmark by another one with the same internalObjectID is not a deletion: both
+ * share one set of preferences, so throwing them away would strip the survivor of its name and
+ * its group. Only a removal the user asked for takes the preferences with it.
+ */
+- (void)removeBookmark:(AIListBookmark *)listBookmark discardingPreferences:(BOOL)discardPreferences
 {
 	/* Bookmarks have gone missing without anyone being able to say who removed them. There
 	 * are four candidates - the "Unable to join bookmarked chat" alert, the contact list
@@ -1409,10 +1434,33 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 					   (unsigned long)bookmarkDict.count);
 	AILogBacktrace();
 
-	[self moveContact:listBookmark fromGroups:listBookmark.groups intoGroups:[NSSet set]];
-	[bookmarkDict removeObjectForKey:listBookmark.internalObjectID];
+	[[listBookmark retain] autorelease];
 
-	[self saveContactList];
+	/* Out of the dictionary first, and by identity rather than by key: the dictionary is what
+	 * -saveContactList writes, so a bookmark which survives here survives on disk - and then
+	 * it blocks its own recreation while being nowhere to be seen. Looking the key up on the
+	 * object we are about to drop would trust the very thing we cannot check. */
+	NSArray *keys = [bookmarkDict allKeysForObject:listBookmark];
+
+	if (![keys containsObject:listBookmark.internalObjectID]) {
+		AILogWithSignature(@"%@ was filed under %@, not under its own internalObjectID",
+						   listBookmark.logDescription, keys);
+	}
+
+	[bookmarkDict removeObjectsForKeys:keys];
+
+	@try {
+		/* Removing us from a group runs through the observers and the contact list views;
+		 * anything raising in there used to abandon the removal half done, leaving a bookmark
+		 * out of the list but still in the dictionary and hence still on disk. */
+		[self moveContact:listBookmark fromGroups:listBookmark.groups intoGroups:[NSSet set]];
+
+	} @finally {
+		if (discardPreferences)
+			[listBookmark removeStoredPreferences];
+
+		[self saveContactList];
+	}
 }
 
 - (AIListContact *)existingContactWithService:(AIService *)inService account:(AIAccount *)inAccount UID:(NSString *)inUID

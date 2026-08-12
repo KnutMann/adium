@@ -152,9 +152,15 @@ static AIContactHidingController *sharedControllerInstance = nil;
 	if (listObject.alwaysVisible)
 		return YES;
 	
+	/* A bookmark whose account is offline used to be hidden unconditionally, ignoring both
+	 * settings which govern every other entry. An entry that vanishes without being deleted
+	 * is indistinguishable from one that was deleted - and a user who cannot see it cannot
+	 * drag it back either. Follow the same rules as contacts do. */
 	if ([listObject isKindOfClass:[AIListBookmark class]])
-		return ((AIListBookmark *)listObject).account.online;
-	
+		return (!hideOfflineIdleOrMobileContacts ||
+				showOfflineContacts ||
+				((AIListBookmark *)listObject).account.online);
+
 	if (!hideOfflineIdleOrMobileContacts)
 		return YES;
 	

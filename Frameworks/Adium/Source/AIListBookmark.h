@@ -50,4 +50,14 @@
  */
 - (NSString *)logDescription;
 
+/*!
+ * @brief Throw away everything we stored about ourselves
+ *
+ * Our preferences are filed under our internalObjectID, which is derived from the room ID and
+ * therefore comes back the moment the same room is bookmarked again. Left standing, they would
+ * hand a freshly created bookmark the deleted one's name and group - which looks exactly like
+ * the deletion never happened. Only for use when a bookmark is being removed for good.
+ */
+- (void)removeStoredPreferences;
+
 @end

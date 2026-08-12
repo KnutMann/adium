@@ -19,6 +19,9 @@
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIListGroup.h>
+#import <Adium/AIListBookmark.h>
+#import <Adium/AIContactList.h>
+#import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIServiceMenu.h>
 
@@ -32,6 +35,7 @@
 @interface AINewBookmarkWindowController ()
 - (id)initWithChat:(AIChat *)inChat notifyingTarget:(id)inTarget;
 - (void)buildGroupMenu;
+- (AIListGroup *)groupTheChatIsAlreadyIn;
 - (void)newGroup:(id)sender;
 - (void)newGroupDidEnd:(NSNotification *)inNotification;
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
@@ -158,6 +162,43 @@
 
 	[popUp_group setMenu:menu];
 	[popUp_group selectItemAtIndex:0];
+
+	/* Index 0 is whichever group happens to sort first, which has nothing to do with this
+	 * chat; accepting the sheet without touching the popup then files the entry somewhere the
+	 * user has no reason to look. If the room is already represented in the list, offer that
+	 * group instead. */
+	AIListGroup *group = [self groupTheChatIsAlreadyIn];
+
+	if (group)
+		[popUp_group selectItemWithRepresentedObject:group];
+}
+
+/*!
+ * @brief The group the room is filed under already, if any
+ *
+ * A bookmark for this chat which is still around (misfiled or simply pre-existing) knows best;
+ * failing that, an ordinary contact carrying the room ID is where the user has been keeping
+ * this room. Returns nil if neither exists, or if it sits in the root list rather than a group.
+ */
+- (AIListGroup *)groupTheChatIsAlreadyIn
+{
+	AIListObject *listObject = [adium.contactController existingBookmarkForChat:chat];
+
+	if (!listObject && chat.name.length) {
+		listObject = [adium.contactController existingContactWithService:chat.account.service
+																 account:chat.account
+																	 UID:chat.name];
+	}
+
+	for (AIListObject *containingObject in listObject.groups) {
+		/* The root list is an AIListGroup too, but it isn't in the menu and picking it would
+		 * only mean "no group at all". */
+		if ([containingObject isKindOfClass:[AIListGroup class]] &&
+			![containingObject isKindOfClass:[AIContactList class]])
+			return (AIListGroup *)containingObject;
+	}
+
+	return nil;
 }
 
 /*!
