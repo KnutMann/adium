@@ -185,7 +185,10 @@
 		[self setLabel:[self label]];
 		[self updateTabStatusIcon];
     } else if ([keys containsObject:KEY_UNVIEWED_CONTENT]) {
+		/* -showObjectCount follows the count, so it has to be announced with it: the tab bar
+		 * asks it first and skips the badge entirely while it answers NO. */
 		[self setValue:nil forKeyPath:@"objectCount"];
+		[self setValue:nil forKeyPath:@"showObjectCount"];
 		[self setValue:nil forKeyPath:@"countColor"];
 	}
 }
@@ -361,6 +364,28 @@
 - (void)setObjectCount:(NSNumber *)number
 {
 	//method does nothing; force the tab bindings to reload -objectCount
+}
+
+- (void)setShowObjectCount:(BOOL)flag
+{
+	//method does nothing; force the tab bindings to reload -showObjectCount
+}
+
+/*!
+ * @brief Whether the tab draws an unread badge at all
+ *
+ * MMTabBarButtonCell asks this before it measures or draws anything: with it off,
+ * -_objectCounterRectForBounds: answers NSZeroRect and the count never appears, however
+ * correct -objectCount is. It comes from NSTabViewItem+MMTabBarViewExtensions, which keeps
+ * it in an associated object defaulting to NO - so without an answer of our own the badge
+ * was switched off for every tab, whatever the preferences said.
+ *
+ * Tied to the count rather than always on, because an empty badge would be drawn for a tab
+ * with nothing unread.
+ */
+- (BOOL)showObjectCount
+{
+	return ([self objectCount] > 0);
 }
 
 - (NSInteger)objectCount
