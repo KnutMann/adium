@@ -25,7 +25,11 @@
 }
 
 - (void)drawRect:(NSRect)rect {
-	[[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:1.0f] set]; // plain white for now
+	/* The colour the system uses behind text, rather than the plain white this filled with since
+	 * the days when that was the same thing. In dark mode it was a bright white slab, and the
+	 * texts drawn on it keep their own colour - so the welcome text, the closing text and the
+	 * field labels of the very first launch stood white on white. */
+	[[NSColor textBackgroundColor] set];
 	NSRectFill(rect);
 }
 

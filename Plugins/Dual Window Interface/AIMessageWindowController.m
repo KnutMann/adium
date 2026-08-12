@@ -1117,7 +1117,11 @@
 }
 
 //Create a new tab window
-- (MMTabBarView *)tabView:(NSTabView *)tabView newTabBarForDraggedTabViewItem:(NSTabViewItem *)tabViewItem atPoint:(NSPoint)point
+/* The name carries a "View" that PSMTabBarControl's did not: MMTabBarView asks for
+ * -tabView:newTabBarViewForDraggedTabViewItem:atPoint: (MMTabDragAssistant.m:159), and the old
+ * name went unanswered - dragging a tab out simply snapped it back instead of opening a window.
+ * A delegate method is looked up by name at run time, so nothing ever reported it. */
+- (MMTabBarView *)tabView:(NSTabView *)tabView newTabBarViewForDraggedTabViewItem:(NSTabViewItem *)tabViewItem atPoint:(NSPoint)point
 {
 	id newController = [interface openNewContainer];
 	NSRect frame;

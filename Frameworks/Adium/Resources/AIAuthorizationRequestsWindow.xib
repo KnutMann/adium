@@ -30,7 +30,7 @@
                             <rect key="frame" x="0.0" y="0.0" width="423" height="235"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" multipleSelection="YES" rowHeight="42" headerView="NO" id="tbl">
+                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" multipleSelection="YES" rowHeight="42" headerView="NO" id="tbl" customClass="AIAlternatingRowTableView">
                                     <rect key="frame" x="0.0" y="0.0" width="423" height="235"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
@@ -44,7 +44,7 @@
                                         </tableColumn>
                                         <tableColumn identifier="request" editable="NO" width="365" minWidth="40" maxWidth="1000" id="colRequest">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left"/>
-                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" alignment="left" id="colRequestCell">
+                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" alignment="left" id="colRequestCell" customClass="AIImageTextCell">
                                                 <font key="font" metaFont="system"/>
                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
