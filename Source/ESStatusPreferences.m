@@ -700,11 +700,15 @@
 	[outlineView_stateList reloadData];
 	[self updateTableControlAvailability];
 
+	/* Menus first, height second. A pop up row measures its button at every layout pass, and
+	 * -updateStateListHeight is what triggers one - so filling the menus afterwards left the
+	 * three buttons measured empty, which is a width of nothing and a row that looks like it has
+	 * no control at all. It only ever corrected itself one notification late, when the next
+	 * layout found the menus the previous round had built. */
+	[self configureAutoAwayStatusStatePopUp];
+
 	//The card is as tall as the list; a status more or less changes it
 	[self updateStateListHeight];
-
-	//Update the auto away status pop up as necessary
-	[self configureAutoAwayStatusStatePopUp];
 }
 
 //State Editing --------------------------------------------------------------------------------------------------------
