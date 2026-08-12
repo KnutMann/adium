@@ -323,20 +323,20 @@
 
 #pragma mark Status list and controls
 /*!
- * @brief The statuses the list shows: everything Adium brings with it, plus everything the user saved
+ * @brief The statuses the list shows: the ones the user saved, and only those
  *
- * The same two sources -[AIStatusController sortedFullStateArray] starts from, sorted the same way,
- * but without the temporary states it adds on top: those belong to the accounts currently wearing
- * them, are never saved, and have no business in a list which manages saved statuses.
+ * The states Adium brings with it are deliberately left out. They were briefly in here, so that the
+ * switch in each row could take one out of the status menu - they cannot be deleted, after all. That
+ * was a bad trade: it made "Available" switchable, and a hidden "Available" leaves no way back from
+ * away through the menu. The built-in states stay out of reach, and the switch means what it says
+ * for a status of one's own - keep it, but do not show it for now.
  *
- * The built-in statuses were not in this list before. They are what the switch in each row exists
- * for: they cannot be deleted, so switching one off is the only way to take it out of the status
- * menu.
+ * Temporary states are left out as well: they belong to the accounts currently wearing them, are
+ * never saved, and have no business in a list which manages saved statuses.
  */
 - (NSArray *)statusItemsForList
 {
-	NSArray			*originalStateArray = [[adium.statusController builtInStateArray]
-										   arrayByAddingObjectsFromArray:[[adium.statusController rootStateGroup] containedStatusItems]];
+	NSArray			*originalStateArray = [[adium.statusController rootStateGroup] containedStatusItems];
 	NSMutableArray	*sortedItems = [[originalStateArray mutableCopy] autorelease];
 
 	//The original array's indexes are what keeps statuses of one kind in the order they were saved in
