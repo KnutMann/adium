@@ -28,7 +28,7 @@
 	
 	NSToolbarItem			*toolbarItem;
 	
-	NSMutableDictionary		*scriptTaskInfoDicts;
+	NSMutableDictionary		*pendingScriptRuns;			//uniqueID (NSNumber) -> watchdog NSTimer for the script run in flight
 }
 
 @end

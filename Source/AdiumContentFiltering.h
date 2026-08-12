@@ -63,5 +63,8 @@
 					   content:(AIContentObject *)content;
 
 - (void)delayedFilterDidFinish:(NSAttributedString *)attributedString uniqueID:(unsigned long long)uniqueID;
+- (void)delayedFilterDidProgress:(NSAttributedString *)attributedString uniqueID:(unsigned long long)uniqueID;
+
+- (void)cancelAllDelayedFiltrations;
 
 @end

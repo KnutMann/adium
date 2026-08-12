@@ -47,19 +47,24 @@
 - (void)applescriptDidRun:(id)userInfo resultString:(NSString *)resultString;
 - (IBAction)dummyTarget:(id)sender;
 
-- (void)_replaceKeyword:(NSString *)keyword
+- (BOOL)_replaceKeyword:(NSString *)keyword
 			 withScript:(NSMutableDictionary *)infoDict
 			   inString:(NSString *)inString
 	 inAttributedString:(NSMutableAttributedString *)attributedString
 				context:(id)context
 			   uniqueID:(unsigned long long)uniqueID;
 
-- (void)_executeScript:(NSMutableDictionary *)infoDict 
+- (BOOL)_executeScript:(NSMutableDictionary *)infoDict
 		 withArguments:(NSArray *)arguments
 		 forAttributedString:(NSMutableAttributedString *)attributedString
 		  keywordRange:(NSRange)keywordRange
 			   context:(id)context
 			  uniqueID:(unsigned long long)uniqueID;
+
+- (void)_armWatchdogForUniqueID:(unsigned long long)uniqueID
+			   attributedString:(NSMutableAttributedString *)attributedString;
+- (BOOL)_consumeRunForUniqueID:(unsigned long long)uniqueID;
+- (void)scriptRunTimedOut:(NSTimer *)timer;
 @end
 
 NSInteger _scriptTitleSort(id scriptA, id scriptB, void *context);
@@ -120,12 +125,18 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context);
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
+
+	//Any watchdog still ticking would fire into a deallocated plugin
+	for (NSTimer *timer in [pendingScriptRuns allValues]) {
+		[timer invalidate];
+	}
+	[pendingScriptRuns release]; pendingScriptRuns = nil;
+
 	[scriptArray release]; scriptArray = nil;
     [flatScriptArray release]; flatScriptArray = nil;
 	[scriptMenuItem release]; scriptMenuItem = nil;
 	[contextualScriptMenuItem release]; contextualScriptMenuItem = nil;
-	
+
 	[super dealloc];
 }
 
@@ -463,24 +474,30 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 
 			if ((prefixOnly && ([stringMessage rangeOfString:keyword options:(NSCaseInsensitiveSearch | NSAnchoredSearch)].location == 0)) ||
 			   (!prefixOnly && [stringMessage rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound)) {
-				NSNumber	*shouldSendNumber;
+				NSMutableAttributedString	*workingCopy = [[inAttributedString mutableCopy] autorelease];
 
-				[self _replaceKeyword:keyword
-						   withScript:infoDict
-							 inString:stringMessage
-				   inAttributedString:[[inAttributedString mutableCopy] autorelease]
-							  context:context
-							 uniqueID:uniqueID];
+				/* Only claim to have begun if a script run was actually handed off. If it wasn't,
+				 * we keep looking: a broken script must not hide a working one, and if none of them
+				 * starts we return NO, so the caller gets its text back at once with the keyword
+				 * still visible instead of waiting forever for a result nobody will deliver.
+				 */
+				if ([self _replaceKeyword:keyword
+							   withScript:infoDict
+								 inString:stringMessage
+					   inAttributedString:workingCopy
+								  context:context
+								 uniqueID:uniqueID]) {
+					NSNumber	*shouldSendNumber = [infoDict objectForKey:@"ShouldSend"];
 
-				shouldSendNumber = [infoDict objectForKey:@"ShouldSend"];
-				if ((shouldSendNumber) &&
-					(![shouldSendNumber boolValue]) &&
-					([context isKindOfClass:[AIContentObject class]])) {
-					[(AIContentObject *)context setSendContent:NO];
+					if ((shouldSendNumber) &&
+						(![shouldSendNumber boolValue]) &&
+						([context isKindOfClass:[AIContentObject class]])) {
+						[(AIContentObject *)context setSendContent:NO];
+					}
+
+					beganProcessing = YES;
+					break;
 				}
-				
-				beganProcessing = YES;
-				break;
 			}
 		}
 	}
@@ -500,8 +517,10 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 
 /*!
  * @brief Replace one instance of a keyword within a string. This will be called once for each instance.
+ *
+ * @result YES if a script run was started; NO if the keyword was only found inside a link or the run could not be started
  */
-- (void)_replaceKeyword:(NSString *)keyword
+- (BOOL)_replaceKeyword:(NSString *)keyword
 			 withScript:(NSMutableDictionary *)infoDict
 			   inString:(NSString *)inString
 	 inAttributedString:(NSMutableAttributedString *)attributedString
@@ -509,6 +528,7 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 			   uniqueID:(unsigned long long)uniqueID
 {
 	NSScanner	*scanner;
+	BOOL		startedRun = NO;
 	BOOL		foundKeyword = NO;
 
 	//Scan for the keyword
@@ -537,44 +557,141 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 			
 			//Run the script.
 			NSRange	keywordRange = NSMakeRange(keywordStart, keywordEnd - keywordStart);
-			[self _executeScript:infoDict 
-				   withArguments:argArray
-			 forAttributedString:attributedString
-					keywordRange:keywordRange
-						 context:context
-						uniqueID:uniqueID];
-			
+			startedRun = [self _executeScript:infoDict
+								withArguments:argArray
+						  forAttributedString:attributedString
+								 keywordRange:keywordRange
+									  context:context
+									 uniqueID:uniqueID];
+
+			/* We stop at the first occurrence either way. If the run could not be started it was
+			 * the script itself which was unusable, so the next occurrence of the same keyword
+			 * would fail for exactly the same reason.
+			 */
 			foundKeyword = YES;
 		}
 	}
+
+	return startedRun;
 }
 
 /*!
- * @brief Execute the script as a separate task
+ * @brief Execute the script
  *
- * When the task is complete, we will be notified, at which point we perform the replacement for the script result
+ * When the script is complete, we will be notified, at which point we perform the replacement for the script result
  * and pass the modified attributed string back to the content controller for use.
+ *
+ * @result YES if the run was handed off; NO if we could not even start, in which case nobody may wait for us
  */
-- (void)_executeScript:(NSMutableDictionary *)infoDict 
+- (BOOL)_executeScript:(NSMutableDictionary *)infoDict
 			   withArguments:(NSArray *)arguments
 		 forAttributedString:(NSMutableAttributedString *)attributedString
 				keywordRange:(NSRange)keywordRange
 					 context:(id)context
 					uniqueID:(unsigned long long)uniqueID
 {
+	NSString	*path = [infoDict objectForKey:@"Path"];
+
+	/* Nothing to run means the filter must not report YES: the content controller would then wait
+	 * for a completion which will never arrive, and the chat's send queue stays blocked forever.
+	 */
+	if (![path length]) {
+		NSLog(@"GBApplescriptFiltersPlugin: no script file for keyword %@; leaving the keyword in place",
+			  [infoDict objectForKey:@"Keyword"]);
+		return NO;
+	}
+
 	NSDictionary	*userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
 		attributedString, @"Mutable Attributed String",
 		NSStringFromRange(keywordRange), @"Range",
 		[NSNumber numberWithUnsignedLongLong:uniqueID], @"uniqueID",
 		(context ? context : [NSNull null]), @"context",
 		nil];
-	
-	[adium.applescriptabilityController runApplescriptAtPath:[infoDict objectForKey:@"Path"]
+
+	//Arm the watchdog before we start, so we cannot lose the race against a very fast script
+	[self _armWatchdogForUniqueID:uniqueID attributedString:attributedString];
+
+	[adium.applescriptabilityController runApplescriptAtPath:path
 													  function:@"substitute"
 													 arguments:arguments
 											   notifyingTarget:self
 													  selector:@selector(applescriptDidRun:resultString:)
 													  userInfo:userInfo];
+
+	return YES;
+}
+
+/*!
+ * @brief Arm the watchdog for a script run
+ *
+ * NSAppleScript runs cannot be cancelled, so this is our only way of getting the message moving
+ * again if a script never comes back.
+ */
+- (void)_armWatchdogForUniqueID:(unsigned long long)uniqueID
+			   attributedString:(NSMutableAttributedString *)attributedString
+{
+	NSNumber	*uniqueIDNumber = [NSNumber numberWithUnsignedLongLong:uniqueID];
+
+	if (!pendingScriptRuns) pendingScriptRuns = [[NSMutableDictionary alloc] init];
+
+	//A second keyword in the same message reuses the uniqueID; the previous watchdog is done with
+	[[pendingScriptRuns objectForKey:uniqueIDNumber] invalidate];
+
+	NSTimer	*timer = [NSTimer timerWithTimeInterval:SCRIPT_TIMEOUT
+											 target:self
+										   selector:@selector(scriptRunTimedOut:)
+										   userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+													 uniqueIDNumber, @"uniqueID",
+													 attributedString, @"Mutable Attributed String",
+													 nil]
+											repeats:NO];
+
+	/* Common modes on purpose: in the default mode the watchdog would stay silent while a menu is
+	 * open or a window is being dragged -- which is precisely when the user is still typing away.
+	 */
+	[[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+
+	[pendingScriptRuns setObject:timer forKey:uniqueIDNumber];
+}
+
+/*!
+ * @brief Claim the one ticket which exists for a script run
+ *
+ * @result YES if this caller may finish the run; NO if somebody else (the watchdog) already did
+ */
+- (BOOL)_consumeRunForUniqueID:(unsigned long long)uniqueID
+{
+	NSNumber	*uniqueIDNumber = [NSNumber numberWithUnsignedLongLong:uniqueID];
+	NSTimer		*timer = [pendingScriptRuns objectForKey:uniqueIDNumber];
+
+	if (!timer) return NO;
+
+	[timer invalidate];
+	[pendingScriptRuns removeObjectForKey:uniqueIDNumber];
+
+	return YES;
+}
+
+/*!
+ * @brief A script took too long
+ *
+ * Finish the delayed filtration with what we have. The keyword is still standing in that string,
+ * which is exactly what the user should see: better a message with a visible /chuck in it than a
+ * message which never leaves and a chat which never accepts another one.
+ */
+- (void)scriptRunTimedOut:(NSTimer *)timer
+{
+	NSDictionary				*timerInfo = [[[timer userInfo] retain] autorelease];
+	NSNumber					*uniqueIDNumber = [timerInfo objectForKey:@"uniqueID"];
+	NSMutableAttributedString	*attributedString = [timerInfo objectForKey:@"Mutable Attributed String"];
+
+	[pendingScriptRuns removeObjectForKey:uniqueIDNumber];
+
+	NSLog(@"GBApplescriptFiltersPlugin: a script did not finish within %i seconds; sending the message with the keyword unreplaced (filter %@)",
+		  SCRIPT_TIMEOUT, uniqueIDNumber);
+
+	[adium.contentController delayedFilterDidFinish:attributedString
+										   uniqueID:[uniqueIDNumber unsignedLongLongValue]];
 }
 
 /*!
@@ -586,32 +703,51 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 	NSRange						keywordRange = NSRangeFromString([userInfo objectForKey:@"Range"]);
 	unsigned long long			uniqueID = [[userInfo objectForKey:@"uniqueID"] unsignedLongLongValue];
 
-	//If the script fails, eat the keyword
-	if (!resultString) resultString = @"";
+	//The watchdog may have finished this filtration already; a late result is dropped rather than finishing it twice
+	if (![self _consumeRunForUniqueID:uniqueID]) return;
 
-	//Replace the substring with script result
-	if (NSMaxRange(keywordRange) <= [attributedString length]) {
-		if (([resultString hasPrefix:@"<HTML>"])) {
-			//Obtain the attributed string version of the HTML, passing our current attributes as the default ones
-			NSAttributedString *attributedScriptResult = [AIHTMLDecoder decodeHTML:resultString
-															 withDefaultAttributes:[attributedString attributesAtIndex:keywordRange.location
-																										effectiveRange:nil]];
-			[attributedString replaceCharactersInRange:keywordRange
-								  withAttributedString:attributedScriptResult];
-			
-		} else {
-			[attributedString replaceCharactersInRange:keywordRange
-											withString:resultString];
+	BOOL	didReplace = NO;
+
+	/* A nil result means the script gave us nothing -- missing handler, compile error, runtime
+	 * error. We leave the keyword alone in that case; sending "/chuck" is annoying, silently eating
+	 * what the user typed is worse. A script which deliberately returns an empty string hands us
+	 * @"" rather than nil and still replaces the keyword with nothing.
+	 */
+	if (resultString) {
+		//Replace the substring with script result
+		if (NSMaxRange(keywordRange) <= [attributedString length]) {
+			if (([resultString hasPrefix:@"<HTML>"])) {
+				//Obtain the attributed string version of the HTML, passing our current attributes as the default ones
+				NSAttributedString *attributedScriptResult = [AIHTMLDecoder decodeHTML:resultString
+																 withDefaultAttributes:[attributedString attributesAtIndex:keywordRange.location
+																											effectiveRange:nil]];
+				[attributedString replaceCharactersInRange:keywordRange
+									  withAttributedString:attributedScriptResult];
+
+			} else {
+				[attributedString replaceCharactersInRange:keywordRange
+												withString:resultString];
+			}
+
+			didReplace = YES;
 		}
 	}
 
-	//Inform the content controller that we're done if we don't need to do any more filtering
-	if (![self delayedFilterAttributedString:attributedString
-									 context:[userInfo objectForKey:@"context"]
-									uniqueID:uniqueID]) {
-		[adium.contentController delayedFilterDidFinish:attributedString
-												 uniqueID:uniqueID];
+	/* Only look for further keywords if this one is actually gone. If it is still standing -- the
+	 * script failed -- another pass would find it again, start the very same script again and fail
+	 * in the very same way, forever. We finish here instead, and any second keyword in the message
+	 * simply stays unsubstituted as well.
+	 */
+	if (didReplace &&
+		[self delayedFilterAttributedString:attributedString
+									context:[userInfo objectForKey:@"context"]
+								   uniqueID:uniqueID]) {
+		return;
 	}
+
+	//Inform the content controller that we're done
+	[adium.contentController delayedFilterDidFinish:attributedString
+										   uniqueID:uniqueID];
 }
 
 /*!

@@ -178,7 +178,6 @@ ifeq ($(OFFICIAL_BUILD),TRUE)
 	@# One approach would be to sign each framework and other bundle individually....
 	@# codesign --verbose --force --sign $(SIGNING_CERT_NAME) --deep --requirements $(SIGNING_REQUIREMENTS) $(ADIUM_DIR)/Adium.app/Contents/Frameworks/*.framework
 	@# codesign --verbose --force --sign $(SIGNING_CERT_NAME) --requirements $(SIGNING_REQUIREMENTS) $(ADIUM_DIR)/Adium.app/Contents/Library/Spotlight/*.mdimporter
-	@# codesign --verbose --force --sign $(SIGNING_CERT_NAME) --requirements $(SIGNING_REQUIREMENTS) $(ADIUM_DIR)/Adium.app/Contents/Resources/AdiumApplescriptRunner
 	@# codesign --verbose --force --sign $(SIGNING_CERT_NAME) --requirements $(SIGNING_REQUIREMENTS) $(ADIUM_DIR)/Adium.app
 	
 	@# However, it appears fine to use --deep and get it all recursively

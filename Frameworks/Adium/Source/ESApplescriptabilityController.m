@@ -163,6 +163,25 @@
  */
 - (void)runApplescriptAtPath:(NSString *)path function:(NSString *)function arguments:(NSArray *)arguments notifyingTarget:(id)target selector:(SEL)selector userInfo:(id)userInfo
 {
+	/* AdiumApplescriptRunner promises its callers exactly one callback, always -- but every caller
+	 * reaches it through here, and after -controllerWillClose the runner is nil. A message to nil
+	 * would swallow the whole request without a sound, and the delayed content filter waiting on it
+	 * would sit there until its watchdog fires, long after the controllers are gone. So keep the
+	 * promise ourselves rather than letting it end at the instance variable.
+	 */
+	if (!applescriptRunner) {
+		NSLog(@"ESApplescriptabilityController: asked to run %@ after the runner was torn down; reporting failure", path);
+
+		if (target && selector) {
+			//Never synchronously: the caller registers what it is waiting for only after we return
+			[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+				[target performSelector:selector withObject:userInfo withObject:nil];
+			}];
+		}
+
+		return;
+	}
+
 	[applescriptRunner runApplescriptAtPath:path
 								   function:function
 								  arguments:arguments

@@ -99,6 +99,16 @@ typedef enum {
 					  selector:(SEL)selector
 					   context:(id)context;
 - (void)delayedFilterDidFinish:(NSAttributedString *)attributedString uniqueID:(unsigned long long)uniqueID;
+
+/*!
+ * @brief A delayed filter is still working, but has an improved string to show for it so far
+ *
+ * A filter which does several things in a row (the AppleScript filter runs one script per keyword)
+ * should report each intermediate result. Two things depend on it: the watchdog deadline is measured
+ * per step rather than across the whole chain, and if the chain does eventually overrun, what goes
+ * out is the last state reported here instead of the untouched original.
+ */
+- (void)delayedFilterDidProgress:(NSAttributedString *)attributedString uniqueID:(unsigned long long)uniqueID;
 - (NSString *)filterHTMLString:(NSString *)htmlString
 					 direction:(AIFilterDirection)direction
 					   content:(AIContentObject*)content;
@@ -229,6 +239,15 @@ typedef enum {
  * [adium.contentController delayedFilterDidFinish:uniqueID:] should be called with the eventual result if this method returns YES.
  * If the filter eventually fails, this method MUST be called with the original inAttributedString.
  *
+ * That call must be made ASYNCHRONOUSLY, no earlier than the next pass through the run loop: the
+ * filtration is only recorded after this method returns, so a completion delivered from inside it
+ * is looked up before it exists and is silently discarded.
+ *
+ * If the completion never arrives at all, a watchdog in the filter framework fires after
+ * DELAYED_FILTER_TIMEOUT and passes on the string as it stood when the filter took it; whatever
+ * this filter was going to produce is then lost. Returning YES therefore means: I really did start
+ * something, and I will report back.
+ *
  * @param inAttributedString NSAttributedString to filter
  * @param context An object, such as an AIListContact or an AIAccount, potentially relevant to filtration. May be anything, so check its class as needed.
  * @param uniqueID A uniqueID which will be passed back to [adium.contentController delayedFilterDidFinish:uniqueID:] when this filtration is complete.
@@ -247,6 +266,17 @@ typedef enum {
  * @result A float between 0.0 and 1.0, with (HIGHEST_FILTER_PRIORITY == 0.0) and (LOWEST_FILTER_PRIORITY == 1.0)
  */
 - (CGFloat)filterPriority;
+
+@optional
+/*!
+ * @brief A filtration this filter started was given up on
+ *
+ * Sent when the watchdog ran out of patience and finished the filtration without us. Implement it to
+ * drop whatever is being held for that uniqueID -- a later delayedFilterDidFinish: for it will be
+ * refused anyway, and until then the working copy of the message and its content object are being
+ * kept alive for nothing.
+ */
+- (void)delayedFilterWasCancelledForUniqueID:(unsigned long long)uniqueID;
 @end
 
 @protocol AdiumMessageEncryptor <NSObject>

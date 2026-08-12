@@ -16,9 +16,19 @@
 
 #import "AdiumContentFiltering.h"
 
+/* Deliberately longer than the 30 seconds the AppleScript plugin gives itself: in the normal case
+ * the better-informed place should be the one which finishes the filtration, and this is only the
+ * emergency exit for a delayed filter which stays silent altogether.
+ */
+#define DELAYED_FILTER_TIMEOUT	45.0
+
 @interface AdiumContentFiltering ()
 - (void)_registerContentFilter:(id)inFilter
 				   filterArray:(NSMutableArray *)inFilterArray;
+- (void)_armWatchdogForTrackingDict:(NSMutableDictionary *)trackingDict
+			   attributedString:(NSAttributedString *)attributedString
+					   uniqueID:(unsigned long long)uniqueID;
+- (void)delayedFilterTimedOut:(NSTimer *)timer;
 @end
 
 @implementation AdiumContentFiltering
@@ -37,7 +47,12 @@
 }
 
 - (void)dealloc
-{	
+{
+	//Any watchdog still ticking would fire into a deallocated object
+	for (NSDictionary *trackingDict in [delayedFilteringDict allValues]) {
+		[[trackingDict objectForKey:@"Watchdog"] invalidate];
+	}
+
 	[stringsRequiringPolling release];
 	[delayedFilteringDict release];
 
@@ -131,6 +146,13 @@
 	for (NSUInteger i = 0; i < FILTER_TYPE_COUNT; i++) {
 		for (NSUInteger j = 0; j < FILTER_DIRECTION_COUNT; j++) {
 			[delayedContentFilters[i][j] removeObject:inFilter];
+
+			/* A delayed filter is registered in both arrays, so it has to be removed from both.
+			 * Otherwise it would keep running after being unregistered -- and worse, it would no
+			 * longer show up in filtersToSkip, so the synchronous path would start calling it too,
+			 * where its return value is thrown away and its result is lost.
+			 */
+			[contentFilter[i][j] removeObject:inFilter];
 		}
 	}
 }
@@ -333,12 +355,17 @@
 				invocation, @"Invocation",
 				contentFilter[type][direction], @"Delayed Content Filter",
 				filterContext, @"Filter Context", nil];
-			
+
 			if (performedFilters) {
 				[trackingDict setObject:performedFilters
 								 forKey:@"Performed Filters"];
 			}
-	
+
+			//Keep the string as it stands, so the watchdog has something to hand back
+			[self _armWatchdogForTrackingDict:trackingDict
+							 attributedString:attributedString
+									 uniqueID:uniqueDelayedFilterID];
+
 			//Track this so we can invoke with the filtered product later
 			[delayedFilteringDict setObject:trackingDict
 									 forKey:[NSNumber numberWithUnsignedLongLong:uniqueDelayedFilterID]];
@@ -359,6 +386,70 @@
 }
 
 /*!
+ * @brief Arm the watchdog for a delayed filtration
+ *
+ * A delayed filter which never reports back plugs the chat's outgoing queue for good
+ * (AIChat.m:544-553) and keeps the content object in objectsBeingReceived forever, so the chat can
+ * never be closed either. After this deadline we would rather deliver the string as it stands than
+ * let the chat die quietly. This protects every delayed filter, not just the AppleScript one.
+ */
+- (void)_armWatchdogForTrackingDict:(NSMutableDictionary *)trackingDict
+				   attributedString:(NSAttributedString *)attributedString
+						   uniqueID:(unsigned long long)uniqueID
+{
+	//Whatever was armed for an earlier stage of the same filtration is done with
+	[[trackingDict objectForKey:@"Watchdog"] invalidate];
+
+	if (attributedString) {
+		[trackingDict setObject:attributedString forKey:@"Attributed String"];
+	} else {
+		[trackingDict removeObjectForKey:@"Attributed String"];
+	}
+
+	NSTimer	*timer = [NSTimer timerWithTimeInterval:DELAYED_FILTER_TIMEOUT
+											 target:self
+										   selector:@selector(delayedFilterTimedOut:)
+										   userInfo:[NSNumber numberWithUnsignedLongLong:uniqueID]
+											repeats:NO];
+
+	/* Common modes: in the default mode this would not fire while a menu is open or a window is
+	 * being dragged, which is exactly when the user notices that nothing is going out any more.
+	 */
+	[[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+
+	[trackingDict setObject:timer forKey:@"Watchdog"];
+}
+
+/*!
+ * @brief A delayed filtration overran its deadline; deliver what we have
+ */
+- (void)delayedFilterTimedOut:(NSTimer *)timer
+{
+	NSNumber			*uniqueIDNumber = [[[timer userInfo] retain] autorelease];
+	NSMutableDictionary	*infoDict = [delayedFilteringDict objectForKey:uniqueIDNumber];
+
+	if (!infoDict) return;
+
+	//We are about to drop it from the dictionary, which is the only thing holding it
+	[[infoDict retain] autorelease];
+
+	NSLog(@"AdiumContentFiltering: delayed filtration %@ did not finish within %0.0f seconds; delivering the string unfiltered",
+		  uniqueIDNumber, (double)DELAYED_FILTER_TIMEOUT);
+
+	NSAttributedString	*attributedString = [infoDict objectForKey:@"Attributed String"];
+	NSInvocation		*invocation = [infoDict objectForKey:@"Invocation"];
+
+	[invocation setArgument:&attributedString atIndex:2];
+
+	/* Remove first, invoke second: the invocation runs straight into the sending pipeline, which can
+	 * come back around into this class before it returns.
+	 */
+	[delayedFilteringDict removeObjectForKey:uniqueIDNumber];
+
+	[invocation invoke];
+}
+
+/*!
  * @brief A delayed filter finished filtering
  *
  * After this filter finishes, run it through the delayed filter system again
@@ -376,6 +467,19 @@
 
 	uniqueIDNumber = [NSNumber numberWithUnsignedLongLong:uniqueID];
 	infoDict = [delayedFilteringDict objectForKey:uniqueIDNumber];
+
+	/* No entry means either a completion for a filtration which already ended (the watchdog beat the
+	 * filter to it) or one which was never registered because the filter finished synchronously.
+	 * Both used to run on through here with a nil invocation and vanish without a word.
+	 */
+	if (!infoDict) {
+		NSLog(@"AdiumContentFiltering: delayedFilterDidFinish: for unknown filtration %llu; ignoring", uniqueID);
+		return;
+	}
+
+	//The filter came back, so this stage's watchdog is no longer needed
+	[[infoDict objectForKey:@"Watchdog"] invalidate];
+	[infoDict removeObjectForKey:@"Watchdog"];
 
 	//Run through the filters again, skipping the ones we did previously, since a delayed filter would stop after the first hit
 	shouldDelay = [self _filterAttributedString:&attributedString
@@ -404,6 +508,11 @@
 		 */
 		[infoDict setObject:performedFilters
 					 forKey:@"Performed Filters"];
+
+		//The next link in the chain needs its own watchdog, or everything after the first one is unguarded
+		[self _armWatchdogForTrackingDict:infoDict
+						 attributedString:attributedString
+								 uniqueID:uniqueID];
 	}
 }
 

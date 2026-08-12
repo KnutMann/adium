@@ -1141,13 +1141,6 @@
 			remoteGlobalIDString = 6334FBFC0F9C11DC003C77A9;
 			remoteInfo = AIUtilities.framework;
 		};
-		4DAA96682577B2820000D3F7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 349C2EFA0867AC97000BF883;
-			remoteInfo = AdiumApplescriptRunner;
-		};
 		4DAA966A2577B2820000D3F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */;
@@ -2745,7 +2738,6 @@
 		63C7E1150FAFA35E00B310AC /* Touch Framework Bundles to Executable Date.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "Touch Framework Bundles to Executable Date.xcconfig"; sourceTree = "<group>"; };
 		63C7E1160FAFA35E00B310AC /* Plist Macros.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "Plist Macros.xcconfig"; sourceTree = "<group>"; };
 		63C7E1170FAFA35E00B310AC /* Setup Build Directory.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "Setup Build Directory.xcconfig"; sourceTree = "<group>"; };
-		63C7E11A0FAFA35E00B310AC /* AdiumApplescriptRunner.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = AdiumApplescriptRunner.xcconfig; sourceTree = "<group>"; };
 		63C7E2030FAFAA4700B310AC /* AIUtilities.framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = AIUtilities.framework.xcconfig; sourceTree = "<group>"; };
 		63C7E2040FAFAA4700B310AC /* Adium.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Adium.xcconfig; sourceTree = "<group>"; };
 		63C7E2050FAFAA4700B310AC /* Unit tests.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "Unit tests.xcconfig"; sourceTree = "<group>"; };
@@ -5271,7 +5263,6 @@
 			isa = PBXGroup;
 			children = (
 				4DAA96672577B2820000D3F7 /* AIUtilities.framework */,
-				4DAA96692577B2820000D3F7 /* AdiumApplescriptRunner */,
 				4DAA966B2577B2820000D3F7 /* AdiumSpotlightImporter.mdimporter */,
 			);
 			name = Products;
@@ -5467,7 +5458,6 @@
 				63C7E1150FAFA35E00B310AC /* Touch Framework Bundles to Executable Date.xcconfig */,
 				63C7E1160FAFA35E00B310AC /* Plist Macros.xcconfig */,
 				63C7E1170FAFA35E00B310AC /* Setup Build Directory.xcconfig */,
-				63C7E11A0FAFA35E00B310AC /* AdiumApplescriptRunner.xcconfig */,
 			);
 			path = xcconfigs;
 			sourceTree = "<group>";
@@ -6618,13 +6608,6 @@
 			fileType = wrapper.framework;
 			path = AIUtilities.framework;
 			remoteRef = 4DAA96662577B2820000D3F7 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		4DAA96692577B2820000D3F7 /* AdiumApplescriptRunner */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = AdiumApplescriptRunner;
-			remoteRef = 4DAA96682577B2820000D3F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		4DAA966B2577B2820000D3F7 /* AdiumSpotlightImporter.mdimporter */ = {

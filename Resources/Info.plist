@@ -417,6 +417,8 @@
 	<string>10.7.0</string>
 	<key>LSRequiresNativeExecution</key>
 	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Adium runs AppleScript xtras. Some of them ask other applications - your web browser, say - for information to put into a message.</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>NSMainNibFile</key>
@@ -782,7 +784,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>NSSupportsAutomaticGraphicsSwitching</key>
-	<true/>
 </dict>
 </plist>

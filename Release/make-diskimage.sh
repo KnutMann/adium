@@ -35,10 +35,16 @@ cp RightDS_Store "/Volumes/${VOLUME_NAME}/.DS_Store"
 
 # run applescript
 if [ ! -z "${APPLESCRIPT}" -a "${APPLESCRIPT}" != "-null-" ]; then
-#	osascript "${APPLESCRIPT}"
-    #   pass the applescript our volume name and our artwork path, to its process_disk_image function
-    echo "Running Applescript: ./AdiumApplescriptRunner \"${APPLESCRIPT}\" process_disk_image \"${VOLUME_NAME}\""
-    ./AdiumApplescriptRunner "${APPLESCRIPT}" process_disk_image "${VOLUME_NAME}" "${ART_PATH}" || true
+    #   pass the applescript our volume name and our artwork path, to its process_disk_image function.
+    #   A plain 'osascript "${APPLESCRIPT}"' would not do: it hands free arguments to 'on run argv',
+    #   not to a named handler, so we load the script and call the handler ourselves. (This used to
+    #   call ./AdiumApplescriptRunner, a helper binary which no longer exists.)
+    #   'load script POSIX file' needs an absolute path; callers pass a relative one.
+    APPLESCRIPT_DIR=`cd \`dirname "${APPLESCRIPT}"\` > /dev/null; pwd`
+    APPLESCRIPT_ABS="${APPLESCRIPT_DIR}/`basename "${APPLESCRIPT}"`"
+    echo "Running Applescript: ${APPLESCRIPT_ABS} process_disk_image \"${VOLUME_NAME}\""
+    osascript -e "set s to load script POSIX file \"${APPLESCRIPT_ABS}\"" \
+              -e "tell s to process_disk_image(\"${VOLUME_NAME}\", \"${ART_PATH}\")" || true
     echo "Done running the applescript..."
 fi
 
