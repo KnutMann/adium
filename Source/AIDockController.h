@@ -36,6 +36,7 @@
 	BOOL					needsDisplay;
 	
 	NSDockTile *dockTile;
+	NSImageView *view;
 	NSImage *overlay;
 	
 	BOOL showConversationCount;
