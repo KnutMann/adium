@@ -243,6 +243,11 @@
 	alwaysDrawFocusRingIfFocused = inFlag;
 	shouldDrawFocusRing = NO;
 	lastResp = nil;
+
+	/* An NSTextView cannot show a focus ring of its own, so the ring belongs around the scroll
+	 * view holding it - but only a view which asks for one gets one. */
+	[self setFocusRingType:(inFlag ? NSFocusRingTypeExterior : NSFocusRingTypeDefault)];
+	[self noteFocusRingMaskChanged];
 }
 
 //Focus ring drawing code by Nicholas Riley, posted on cocoadev and available at:
@@ -269,27 +274,35 @@
 							   [(NSView *)resp isDescendantOf:self]); // [sic]
 		lastResp = resp;
 		
-		[self setKeyboardFocusRingNeedsDisplayInRect:[self bounds]];
+		[self noteFocusRingMaskChanged];
 		return YES;
 	} else {
 		return [super needsDisplay];
 	}
 }
 
-//Draw a focus ring around our view
-- (void)drawRect:(NSRect)rect
+/*!
+ * @brief The shape the system rings, and whether there is one to ring at all
+ *
+ * Since 10.7 a view says what shape it wants ringed and AppKit draws it - in the current look,
+ * the user's accent colour, the right thickness, and obeying the accessibility settings. What
+ * stood here before was the 2002 recipe: set the ring style and fill the rect by hand inside
+ * -drawRect:, which pinned the ring's appearance to whatever the system looked like then and,
+ * because -drawRect: is handed only the part being redrawn, drew a ring around each strip
+ * repainted while text was typed.
+ *
+ * An empty bounds means no ring, which is how the ring comes and goes: -needsDisplay above
+ * works out whether the focus is inside us and calls -noteFocusRingMaskChanged.
+ */
+- (NSRect)focusRingMaskBounds
 {
-	[super drawRect:rect];
-	
-	if (shouldDrawFocusRing) {
-		/* Around the view, not around @a rect: that is only the part being redrawn, and a ring
-		 * drawn around a fragment is a ring in the middle of the view. Redrawn in strips - which
-		 * is what happens while text is being typed - it left blue bars lying across the window.
-		 * Drawing past the dirty rect is fine; AppKit clips to it. */
-		NSSetFocusRingStyle(NSFocusRingOnly);
-		NSRectFill([self bounds]);
-	}
-} 
+	return (shouldDrawFocusRing ? [self bounds] : NSZeroRect);
+}
+
+- (void)drawFocusRingMask
+{
+	if (shouldDrawFocusRing) NSRectFill([self bounds]);
+}
 
 @end
 
