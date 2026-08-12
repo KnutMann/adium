@@ -1,44 +1,86 @@
-# Adium (Apple Silicon fork)
+# Adium (revival fork)
 
 **This is a fork of the original [Adium](https://adium.im)
-([source](https://github.com/adium/adium)), rebuilt for Apple Silicon
-(arm64), including all bundled libraries, so it keeps running on
-current Macs.** The original is Intel-only and will stop working when
-Apple retires Rosetta 2.
+([source](https://github.com/adium/adium)) that revives and modernizes
+it for current macOS.** It began as an Apple Silicon (arm64) port —
+the original is an Intel-only binary from 2021 — and has grown into a
+broader overhaul: a rebuilt, System Settings-style preferences window,
+a WKWebView message view, Notification Center in place of Growl,
+password storage in the Keychain, Telegram and WhatsApp alongside the
+classic services, and a long list of fixes for how modern AppKit and
+WebKit behave.
 
 **Adium was created and developed by the Adium team.** All credit for
 the application itself belongs to the original developers; see
 [Copyright.txt](Copyright.txt). This fork is not affiliated with or
-endorsed by them. It is maintained by a long-time Adium user who
-simply wants to keep a beloved app alive after many years of use.
-The upstream project has been inactive since 2021, and its last
-official release is an Intel-only binary whose days are numbered with
-Rosetta 2 being phased out.
+endorsed by them. It is maintained by a long-time Adium user who simply
+wants to keep a beloved app alive after many years of use. The upstream
+project has been inactive since 2021.
+
+Current version: **1.6.0**.
 
 ## Original project
 
 * Website: <https://adium.im>
 * Source: <https://github.com/adium/adium>
-* Last official release (Intel, runs on Apple Silicon via Rosetta 2):
+* Last official release (Intel; on Apple Silicon it runs only through
+  Rosetta 2, which Apple is phasing out):
   [Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg)
 
 ## What this fork changes
 
-* Native arm64 build; the app bundle is self-contained (no Homebrew or
-  other third-party runtime dependencies)
-* Bundled libpurple upgraded from 2.12.0 (2017) to 2.14.14 (2025)
-* Notifications via the macOS Notification Center (replaces Growl)
-* Many fixes for current AppKit/WebKit behavior (message styles,
-  contact list, tabs, tooltips)
-* Removed services whose networks no longer exist: AIM, ICQ, MSN,
-  Yahoo, Google Talk, MobileMe, LiveJournal, Sametime and Twitter
-* Removed Sparkle auto-update (the update feed is long dead); update
-  by pulling and rebuilding
+### Platform
 
-**New services: Telegram** (via the bundled
-[tdlib-purple](https://github.com/BenWiederhake/tdlib-purple) plugin)
-**and WhatsApp** (via
-[purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)).
+* Native arm64 build; the app bundle is self-contained, with no
+  Homebrew or other third-party runtime dependency
+* All bundled libraries are native arm64, built from pinned sources
+* Bundled libpurple upgraded from 2.12.0 (2017) to 2.14.14, on a
+  current glib
+* Passwords stored through the Keychain (SecItem) API
+* Removed the dead Sparkle auto-update feed; update by pulling and
+  rebuilding
+
+### User interface
+
+* A rebuilt preferences window in the style of System Settings: a
+  source-list sidebar, cards instead of boxed groups, and a reusable
+  settings form every pane is now laid out on, sizing itself with Auto
+  Layout
+* The whole app target is XIB-based; the last of the old nibs are gone
+* The chat message view renders with WKWebView
+* Modern window chrome — full-size content, tab-bar vibrancy, the
+  current tab style — and a sweep of fixes for focus rings, scrolling,
+  contact-list drawing, tabs and tooltips on recent macOS
+* Notifications go through the macOS Notification Center, including the
+  Dock badge and menu-bar unread indicators, replacing Growl
+* The menu-bar status item, the contact list's borderless window and
+  the now-playing "music status" (on Music.app, and Spotify) revived
+  and brought up to date
+
+### Messaging and services
+
+* **New: Telegram** (via the bundled
+  [tdlib-purple](https://github.com/BenWiederhake/tdlib-purple) plugin)
+  **and WhatsApp** (via
+  [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)),
+  with inline images and voice notes, reactions, typing, read markers,
+  group chats, profile pictures and address-book names
+* XMPP modernized: read markers, delivery receipts, chat markers and
+  message carbons
+* OTR migrated to the libotr 4.x API
+* An IRC fix so anything after login is actually sent — an upstream
+  libpurple rate limiter never drained its queue under Adium's event
+  loop
+* Removed services whose networks no longer exist: AIM, ICQ, MSN,
+  Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
+  and Meanwhile
+
+### Localization
+
+* String extraction, unrun for years, caught up: hundreds of strings
+  the app already showed but had never been extracted are now
+  translatable, filled in across the 26 shipped languages
+* Growl and other dead-feature wording renamed so it no longer misleads
 
 Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
 Bonjour (local network), Novell GroupWise and SIMPLE**, plus OTR
@@ -52,7 +94,7 @@ for details on what has been touched.
 
 * Apple Silicon Mac, macOS 11 or later
 * Everything is native arm64, including all bundled dependencies
-  (libpurple, glib, libotr, ...): no Rosetta 2, no Homebrew required
+  (libpurple, glib, libotr, ...): no Homebrew required to run
 * Xcode for building (there are no binary releases at this time)
 
 For Intel Macs and older systems, use the original
@@ -72,8 +114,9 @@ products, then builds the main project.
 
 All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
 vendored as prebuilt arm64 frameworks in the repository. Rebuilding
-them from source is only necessary when upgrading a dependency; see
-`Dependencies/build.sh` (this does require a Homebrew toolchain).
+them from source is only necessary when upgrading a dependency or
+patching one (as the IRC fix does); see `Dependencies/build.sh` (this
+does require a Homebrew toolchain).
 
 ## License
 
@@ -98,7 +141,7 @@ listed here:
 | `Frameworks/libotr.framework` and friends | [libotr](https://otr.cypherpunks.ca), [libgcrypt](https://gnupg.org), [libgpg-error](https://gnupg.org), [gettext](https://www.gnu.org/software/gettext/) | Homebrew builds | GPL v2 / LGPL v2.1 |
 
 libpurple, glib and the other core dependencies are not shipped as
-binaries; they are built from source by the scripts in
-`Dependencies/` (which pin the exact versions, e.g. libpurple
-2.14.14). The LGPL components are dynamically linked, so they can be
-swapped out by rebuilding the bundle.
+binaries; they are built from source by the scripts in `Dependencies/`
+(which pin the exact versions, e.g. libpurple 2.14.14). The LGPL
+components are dynamically linked, so they can be swapped out by
+rebuilding the bundle.
