@@ -77,10 +77,13 @@
 
 - (void)controllerDidLoad
 {
+	/* Deliberately no content view of our own: a tile that draws itself owns the whole tile,
+	 * and the Dock then stops compositing -badgeLabel onto it - the unread badge was set and
+	 * simply never appeared. Handing the composed icon to -setApplicationIconImage: instead
+	 * leaves the drawing to the Dock, which gives us the system badge back, in its native
+	 * look and in both appearances.
+	 */
 	dockTile = [NSApp dockTile];
-	view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, 128, 128)];
-	
-	[dockTile setContentView:view];
 
 	//Register our default preferences
 	[adium.preferenceController registerDefaults:[NSDictionary dictionaryNamed:DOCK_DEFAULT_PREFS
@@ -693,14 +696,14 @@
 {
 	NSImage *image = [[[currentIconState image] copy] autorelease];
 	if (overlay) {
+		NSRect	imageRect = NSMakeRect(0.0f, 0.0f, [image size].width, [image size].height);
+
 		[image lockFocus];
-		[overlay drawInRect:[view frame] fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0f];
+		[overlay drawInRect:imageRect fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0f];
 		[image unlockFocus];
 	}
-	
-	[view setImage:image];
-	[dockTile setContentView:view];
-	[dockTile display];
+
+	[NSApp setApplicationIconImage:image];
 }
 
 - (void)updateDockBadge
@@ -711,13 +714,6 @@
         [dockTile setBadgeLabel:[NSString stringWithFormat:@"%ld", (long)contentCount]];
 	else
 		[dockTile setBadgeLabel:nil];
-
-	/* We draw the tile ourselves through a content view of our own (-controllerDidLoad), and
-	 * a tile like that is only repainted when it is asked to be. Setting the label alone left
-	 * it correct but invisible: -badgeLabel answered the count while the Dock kept showing the
-	 * last image we drew, without a badge on it.
-	 */
-	[dockTile display];
 }
 
 - (void)animateDockIcon
