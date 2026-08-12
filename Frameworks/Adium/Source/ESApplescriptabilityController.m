@@ -173,9 +173,18 @@
 		NSLog(@"ESApplescriptabilityController: asked to run %@ after the runner was torn down; reporting failure", path);
 
 		if (target && selector) {
-			//Never synchronously: the caller registers what it is waiting for only after we return
+			/* Never synchronously: the caller registers what it is waiting for only after we return.
+			 * Held by hand for the same reason AdiumApplescriptRunner does it -- a block releases
+			 * what it captured whenever it is destroyed, and userInfo can be an NSTextView.
+			 */
+			__block id	blockTarget = [target retain];
+			__block id	blockUserInfo = [userInfo retain];
+
 			[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-				[target performSelector:selector withObject:userInfo withObject:nil];
+				[blockTarget performSelector:selector withObject:blockUserInfo withObject:nil];
+
+				[blockTarget release]; blockTarget = nil;
+				[blockUserInfo release]; blockUserInfo = nil;
 			}];
 		}
 

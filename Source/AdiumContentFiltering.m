@@ -28,6 +28,8 @@
 - (void)_armWatchdogForTrackingDict:(NSMutableDictionary *)trackingDict
 			   attributedString:(NSAttributedString *)attributedString
 					   uniqueID:(unsigned long long)uniqueID;
+- (void)_tellDelayedFiltersOfCancellation:(NSMutableDictionary *)trackingDict
+								 uniqueID:(unsigned long long)uniqueID;
 - (void)delayedFilterTimedOut:(NSTimer *)timer;
 @end
 
@@ -48,7 +50,11 @@
 
 - (void)dealloc
 {
-	//Any watchdog still ticking would fire into a deallocated object
+	/* Belt and braces, nothing more: a scheduled NSTimer retains its target, so for as long as a
+	 * watchdog is armed it holds this object up and we never get here at all.
+	 * -cancelAllDelayedFiltrations is the one which actually breaks that grip; it is called from
+	 * AIContentController's -controllerWillClose.
+	 */
 	for (NSDictionary *trackingDict in [delayedFilteringDict allValues]) {
 		[[trackingDict objectForKey:@"Watchdog"] invalidate];
 	}
@@ -57,6 +63,37 @@
 	[delayedFilteringDict release];
 
 	[super dealloc];
+}
+
+/*!
+ * @brief Give up on every filtration still in flight
+ *
+ * Called while the application is shutting down. We deliberately do not invoke anybody: the
+ * invocation would run the whole outgoing message pipeline into controllers which are in the middle
+ * of being torn down. Dropping the entries is what matters -- each armed watchdog is holding this
+ * object, its message copy and its content object alive, and would otherwise keep doing so until it
+ * fired.
+ */
+- (void)cancelAllDelayedFiltrations
+{
+	if (![delayedFilteringDict count]) return;
+
+	NSDictionary	*pending = [[delayedFilteringDict copy] autorelease];
+
+	NSLog(@"AdiumContentFiltering: giving up on %lu delayed filtration(s) still in flight at shutdown",
+		  (unsigned long)[pending count]);
+
+	[delayedFilteringDict removeAllObjects];
+
+	for (NSNumber *uniqueIDNumber in pending) {
+		NSMutableDictionary	*trackingDict = [pending objectForKey:uniqueIDNumber];
+
+		[[trackingDict objectForKey:@"Watchdog"] invalidate];
+		[trackingDict removeObjectForKey:@"Watchdog"];
+
+		[self _tellDelayedFiltersOfCancellation:trackingDict
+									   uniqueID:[uniqueIDNumber unsignedLongLongValue]];
+	}
 }
 
 
@@ -356,6 +393,14 @@
 				contentFilter[type][direction], @"Delayed Content Filter",
 				filterContext, @"Filter Context", nil];
 
+			/* The watchdog needs these to finish the job the way the regular path would: run the
+			 * rest of the chain, but without letting a delayed filter start all over again.
+			 */
+			if (delayedContentFilters[type][direction]) {
+				[trackingDict setObject:delayedContentFilters[type][direction]
+								 forKey:@"Delayed Filters"];
+			}
+
 			if (performedFilters) {
 				[trackingDict setObject:performedFilters
 								 forKey:@"Performed Filters"];
@@ -421,6 +466,19 @@
 }
 
 /*!
+ * @brief Tell the delayed filters of a filtration that it has been abandoned
+ */
+- (void)_tellDelayedFiltersOfCancellation:(NSMutableDictionary *)trackingDict
+								 uniqueID:(unsigned long long)uniqueID
+{
+	for (id <AIDelayedContentFilter> filter in [trackingDict objectForKey:@"Delayed Filters"]) {
+		if ([filter respondsToSelector:@selector(delayedFilterWasCancelledForUniqueID:)]) {
+			[filter delayedFilterWasCancelledForUniqueID:uniqueID];
+		}
+	}
+}
+
+/*!
  * @brief A delayed filtration overran its deadline; deliver what we have
  */
 - (void)delayedFilterTimedOut:(NSTimer *)timer
@@ -433,20 +491,55 @@
 	//We are about to drop it from the dictionary, which is the only thing holding it
 	[[infoDict retain] autorelease];
 
-	NSLog(@"AdiumContentFiltering: delayed filtration %@ did not finish within %0.0f seconds; delivering the string unfiltered",
+	NSLog(@"AdiumContentFiltering: delayed filtration %@ did not finish within %0.0f seconds; delivering the string as it stands",
 		  uniqueIDNumber, (double)DELAYED_FILTER_TIMEOUT);
 
-	NSAttributedString	*attributedString = [infoDict objectForKey:@"Attributed String"];
-	NSInvocation		*invocation = [infoDict objectForKey:@"Invocation"];
-
-	[invocation setArgument:&attributedString atIndex:2];
-
-	/* Remove first, invoke second: the invocation runs straight into the sending pipeline, which can
-	 * come back around into this class before it returns.
+	/* Remove first, everything else second: what follows runs straight into the sending pipeline,
+	 * which can come back around into this class before it returns.
 	 */
 	[delayedFilteringDict removeObjectForKey:uniqueIDNumber];
 
-	[invocation invoke];
+	/* The filter we are abandoning is still sitting on its working copy and the content object; tell
+	 * it to let go, since its eventual result would be refused now anyway.
+	 */
+	[self _tellDelayedFiltersOfCancellation:infoDict
+								   uniqueID:[uniqueIDNumber unsignedLongLongValue]];
+
+	NSAttributedString	*attributedString = [infoDict objectForKey:@"Attributed String"];
+
+	/* Finish the chain the same way -delayedFilterDidFinish: would. The delayed filter which stalled
+	 * runs first (HIGH_FILTER_PRIORITY, in the AppleScript case), so at this point not one of the
+	 * ordinary filters behind it has run yet -- without this the message would go out with its NULs
+	 * and its default font still in it. Passing the delayed filters as filtersToSkip makes sure no
+	 * new delayed filtration can start from here; there is nobody left to wait for it.
+	 */
+	NSMutableArray	*filtersToSkip = [NSMutableArray array];
+	NSArray			*performedFilters = [infoDict objectForKey:@"Performed Filters"];
+
+	if (performedFilters) [filtersToSkip addObjectsFromArray:performedFilters];
+
+	for (id filter in [infoDict objectForKey:@"Delayed Filters"]) {
+		if (![filtersToSkip containsObject:filter]) [filtersToSkip addObject:filter];
+	}
+
+	[self _filterAttributedString:&attributedString
+					contentFilter:[infoDict objectForKey:@"Delayed Content Filter"]
+					filterContext:[infoDict objectForKey:@"Filter Context"]
+			uniqueDelayedFilterID:[uniqueIDNumber unsignedLongLongValue]
+					filtersToSkip:filtersToSkip
+				  finishedFilters:NULL];
+
+	NSInvocation	*invocation = [infoDict objectForKey:@"Invocation"];
+
+	[invocation setArgument:&attributedString atIndex:2];
+
+	/* Off the timer's back before the pipeline runs: this fires in the common run loop modes -- it
+	 * has to, or it would stay silent for as long as a menu is open -- and sending a message from
+	 * inside a timer callout during event tracking is a stack nobody here was written for.
+	 */
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[invocation invoke];
+	});
 }
 
 /*!
@@ -496,11 +589,17 @@
 		//Put that attributed string into the invocation as the first argument after the two hidden arguments of every NSInvocation
 		[invocation setArgument:&attributedString atIndex:2];
 
+		/* Out of the dictionary before we invoke, for the same reason the watchdog does it in that
+		 * order: the invocation runs into the sending pipeline, which can come back around into this
+		 * class -- and if anything down there raises, an entry left behind here would never be
+		 * cleaned up again, unwatched and unfinishable. The dictionary is its only owner, so hold it
+		 * over the call.
+		 */
+		[[infoDict retain] autorelease];
+		[delayedFilteringDict removeObjectForKey:uniqueIDNumber];
+
 		//Send the filtered attributedString back via the invocation
 		[invocation invoke];
-
-		//No further need for the infoDict from delayedFilteringDict
-		[delayedFilteringDict removeObjectForKey:uniqueIDNumber];
 
 	} else {
 		/* performedFilters may now be a different object after filters ran;
@@ -514,6 +613,28 @@
 						 attributedString:attributedString
 								 uniqueID:uniqueID];
 	}
+}
+
+/*!
+ * @brief A delayed filter got part of the way and is carrying on
+ *
+ * A filter which works in several steps without coming back through -delayedFilterDidFinish: between
+ * them (the AppleScript filter runs one script per keyword) would otherwise have the whole chain
+ * measured against a single deadline, and on overrun we would hand out the string as it was before
+ * the first step -- throwing away work which was already finished. Every step reported here becomes
+ * the new fallback and starts the clock over.
+ */
+- (void)delayedFilterDidProgress:(NSAttributedString *)attributedString uniqueID:(unsigned long long)uniqueID
+{
+	NSNumber			*uniqueIDNumber = [NSNumber numberWithUnsignedLongLong:uniqueID];
+	NSMutableDictionary	*infoDict = [delayedFilteringDict objectForKey:uniqueIDNumber];
+
+	//Nothing to update means the watchdog already finished this one; the filter will find that out shortly
+	if (!infoDict) return;
+
+	[self _armWatchdogForTrackingDict:infoDict
+					 attributedString:attributedString
+							 uniqueID:uniqueID];
 }
 
 #pragma mark Filter priority sort

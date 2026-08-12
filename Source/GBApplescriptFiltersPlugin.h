@@ -29,6 +29,7 @@
 	NSToolbarItem			*toolbarItem;
 	
 	NSMutableDictionary		*pendingScriptRuns;			//uniqueID (NSNumber) -> watchdog NSTimer for the script run in flight
+	NSMutableDictionary		*scriptChainDepth;			//uniqueID (NSNumber) -> NSNumber, script runs made so far for that filtration
 }
 
 @end

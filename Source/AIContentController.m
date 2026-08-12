@@ -108,7 +108,12 @@
  */
 - (void)controllerWillClose
 {
-
+	/* An armed filtration watchdog is an NSTimer holding its target, so it keeps the filtering object
+	 * -- along with a copy of the message and its content object -- alive all by itself. Nothing
+	 * would ever come along and take it down, since -dealloc cannot be reached while the timer
+	 * exists. This is the point at which somebody has to say stop.
+	 */
+	[adiumContentFiltering cancelAllDelayedFiltrations];
 }
 
 /*!
@@ -224,6 +229,11 @@
 {
 	[adiumContentFiltering delayedFilterDidFinish:attributedString
 										 uniqueID:uniqueID];
+}
+- (void)delayedFilterDidProgress:(NSAttributedString *)attributedString uniqueID:(unsigned long long)uniqueID
+{
+	[adiumContentFiltering delayedFilterDidProgress:attributedString
+										   uniqueID:uniqueID];
 }
 
 //Messaging ------------------------------------------------------------------------------------------------------------

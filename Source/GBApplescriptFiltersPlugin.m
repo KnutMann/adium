@@ -37,6 +37,12 @@
 
 #define SCRIPT_TIMEOUT			30
 
+/* One message is filtered by running one script per keyword occurrence, each run looking at the
+ * result of the last. A script whose output contains its own keyword would keep that going forever,
+ * so the chain gets a ceiling. It is set well above anything a person would type on purpose.
+ */
+#define SCRIPT_CHAIN_LIMIT		32
+
 @interface GBApplescriptFiltersPlugin ()
 - (NSArray *)_argumentsFromString:(NSString *)inString forScript:(NSMutableDictionary *)scriptDict;
 - (void)buildScriptMenu;
@@ -64,6 +70,7 @@
 - (void)_armWatchdogForUniqueID:(unsigned long long)uniqueID
 			   attributedString:(NSMutableAttributedString *)attributedString;
 - (BOOL)_consumeRunForUniqueID:(unsigned long long)uniqueID;
+- (void)_forgetFiltration:(unsigned long long)uniqueID;
 - (void)scriptRunTimedOut:(NSTimer *)timer;
 @end
 
@@ -120,17 +127,42 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context);
 }
 
 /*!
+ * @brief Uninstall
+ *
+ * This is the only place where a watchdog which is still ticking can actually be stopped: an armed
+ * NSTimer retains its target, so as long as one exists this plugin cannot be deallocated at all and
+ * -dealloc will never come around to clean anything up.
+ */
+- (void)uninstallPlugin
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+	/* Without this the filter would stay registered on a plugin nobody owns any more -- and worse,
+	 * once it is gone from the delayed list it is no longer skipped on the synchronous path, where
+	 * its return value is thrown away.
+	 */
+	[adium.contentController unregisterDelayedContentFilter:self];
+
+	for (NSTimer *timer in [pendingScriptRuns allValues]) {
+		[timer invalidate];
+	}
+	[pendingScriptRuns removeAllObjects];
+	[scriptChainDepth removeAllObjects];
+}
+
+/*!
  * @brief Deallocate
  */
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
-	//Any watchdog still ticking would fire into a deallocated plugin
+	//Belt and braces; a watchdog which is still armed holds us up long enough that we never get here
 	for (NSTimer *timer in [pendingScriptRuns allValues]) {
 		[timer invalidate];
 	}
 	[pendingScriptRuns release]; pendingScriptRuns = nil;
+	[scriptChainDepth release]; scriptChainDepth = nil;
 
 	[scriptArray release]; scriptArray = nil;
     [flatScriptArray release]; flatScriptArray = nil;
@@ -611,6 +643,13 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 	//Arm the watchdog before we start, so we cannot lose the race against a very fast script
 	[self _armWatchdogForUniqueID:uniqueID attributedString:attributedString];
 
+	//Count this link of the chain; -applescriptDidRun: refuses to add another one past the ceiling
+	NSNumber	*uniqueIDNumber = [NSNumber numberWithUnsignedLongLong:uniqueID];
+
+	if (!scriptChainDepth) scriptChainDepth = [[NSMutableDictionary alloc] init];
+	[scriptChainDepth setObject:[NSNumber numberWithUnsignedInteger:([[scriptChainDepth objectForKey:uniqueIDNumber] unsignedIntegerValue] + 1)]
+						 forKey:uniqueIDNumber];
+
 	[adium.applescriptabilityController runApplescriptAtPath:path
 													  function:@"substitute"
 													 arguments:arguments
@@ -673,6 +712,28 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 }
 
 /*!
+ * @brief Drop everything we were keeping for a filtration which is over
+ */
+- (void)_forgetFiltration:(unsigned long long)uniqueID
+{
+	[scriptChainDepth removeObjectForKey:[NSNumber numberWithUnsignedLongLong:uniqueID]];
+}
+
+/*!
+ * @brief The content filter framework gave up on one of our filtrations
+ *
+ * Let go of the watchdog we still have armed for it. Beyond saving the message copy and the content
+ * object from being held for another half minute, this closes the ticket: the framework has already
+ * passed our working copy on to be sent, and a script result arriving afterwards must not be allowed
+ * to edit a string which is on its way out.
+ */
+- (void)delayedFilterWasCancelledForUniqueID:(unsigned long long)uniqueID
+{
+	[self _consumeRunForUniqueID:uniqueID];
+	[self _forgetFiltration:uniqueID];
+}
+
+/*!
  * @brief A script took too long
  *
  * Finish the delayed filtration with what we have. The keyword is still standing in that string,
@@ -686,12 +747,21 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 	NSMutableAttributedString	*attributedString = [timerInfo objectForKey:@"Mutable Attributed String"];
 
 	[pendingScriptRuns removeObjectForKey:uniqueIDNumber];
+	[self _forgetFiltration:[uniqueIDNumber unsignedLongLongValue]];
 
 	NSLog(@"GBApplescriptFiltersPlugin: a script did not finish within %i seconds; sending the message with the keyword unreplaced (filter %@)",
 		  SCRIPT_TIMEOUT, uniqueIDNumber);
 
-	[adium.contentController delayedFilterDidFinish:attributedString
-										   uniqueID:[uniqueIDNumber unsignedLongLongValue]];
+	/* Out of the timer callout first. This watchdog runs in the common modes on purpose -- otherwise
+	 * it would stay quiet for as long as a menu is open, which is exactly when the user notices that
+	 * nothing is going out -- but finishing the filtration means running the entire send pipeline,
+	 * and that should not happen on top of a CFRunLoopTimer callout. The ticket above is already
+	 * gone, so a script result arriving in the meantime is refused as usual.
+	 */
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[adium.contentController delayedFilterDidFinish:attributedString
+											   uniqueID:[uniqueIDNumber unsignedLongLongValue]];
+	});
 }
 
 /*!
@@ -737,15 +807,35 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 	 * script failed -- another pass would find it again, start the very same script again and fail
 	 * in the very same way, forever. We finish here instead, and any second keyword in the message
 	 * simply stays unsubstituted as well.
+	 *
+	 * A replacement is not proof of progress either: a script which answers "%_uptime unavailable"
+	 * puts its own keyword back into the string, and the next pass searches the whole string again
+	 * and finds it. That loop replaces text every time, so the test above would never catch it --
+	 * hence the ceiling on how many times one message may send us round.
 	 */
-	if (didReplace &&
-		[self delayedFilterAttributedString:attributedString
-									context:[userInfo objectForKey:@"context"]
-								   uniqueID:uniqueID]) {
+	NSUInteger	chainDepth = [[scriptChainDepth objectForKey:[NSNumber numberWithUnsignedLongLong:uniqueID]] unsignedIntegerValue];
+
+	if (didReplace && (chainDepth >= SCRIPT_CHAIN_LIMIT)) {
+		NSLog(@"GBApplescriptFiltersPlugin: filtration %llu ran %lu scripts without settling; a script is probably reproducing its own keyword. Sending what we have",
+			  uniqueID, (unsigned long)chainDepth);
+
+	} else if (didReplace &&
+			   [self delayedFilterAttributedString:attributedString
+										   context:[userInfo objectForKey:@"context"]
+										  uniqueID:uniqueID]) {
+		/* Another script is running now, so we are not finished -- but this much is done and must not
+		 * be thrown away. Reporting it hands the framework the current text as its fallback and
+		 * restarts its deadline for this link, so its patience is measured per script, the way ours
+		 * is. Without it the whole chain shares one deadline and an overrun sends out the message
+		 * exactly as the user typed it, discarding every substitution already made.
+		 */
+		[adium.contentController delayedFilterDidProgress:attributedString
+												 uniqueID:uniqueID];
 		return;
 	}
 
 	//Inform the content controller that we're done
+	[self _forgetFiltration:uniqueID];
 	[adium.contentController delayedFilterDidFinish:attributedString
 										   uniqueID:uniqueID];
 }
