@@ -711,6 +711,13 @@
         [dockTile setBadgeLabel:[NSString stringWithFormat:@"%ld", (long)contentCount]];
 	else
 		[dockTile setBadgeLabel:nil];
+
+	/* We draw the tile ourselves through a content view of our own (-controllerDidLoad), and
+	 * a tile like that is only repainted when it is asked to be. Setting the label alone left
+	 * it correct but invisible: -badgeLabel answered the count while the Dock kept showing the
+	 * last image we drew, without a badge on it.
+	 */
+	[dockTile display];
 }
 
 - (void)animateDockIcon
