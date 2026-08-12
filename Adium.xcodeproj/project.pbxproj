@@ -219,7 +219,6 @@
 		ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */; };
 		ADD1E5C0DE00000000001402 /* StatusSortConfiguration.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001401 /* StatusSortConfiguration.xib */; };
 		ADD1E5C0DE00000000001604 /* ListLayoutSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001603 /* ListLayoutSheet.xib */; };
-		343EC6C8096F7E1700349098 /* ESStatusAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */; };
 		343EC9810970C29400349098 /* OfflineContactHidingDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 343EC9800970C29400349098 /* OfflineContactHidingDefaults.plist */; };
 		343ECBEB0971B18200349098 /* ESShowContactInfoPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 343ECBE90971B18200349098 /* ESShowContactInfoPromptController.m */; };
 		343ECBEE0971B18E00349098 /* ShowContactInfoPrompt.xib in Resources */ = {isa = PBXBuildFile; fileRef = 343ECBED0971B18E00349098 /* ShowContactInfoPrompt.xib */; };
@@ -1681,8 +1680,6 @@
 		ADD1E5C0DE00000000000F01 /* AccountProxy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountProxy.xib; path = Resources/AccountProxy.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusAdvancedPreferences.h; path = Source/ESStatusAdvancedPreferences.h; sourceTree = "<group>"; };
-		343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusAdvancedPreferences.m; path = Source/ESStatusAdvancedPreferences.m; sourceTree = "<group>"; };
 		343EC9800970C29400349098 /* OfflineContactHidingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = OfflineContactHidingDefaults.plist; path = Resources/OfflineContactHidingDefaults.plist; sourceTree = "<group>"; };
 		343ECBE80971B18200349098 /* ESShowContactInfoPromptController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESShowContactInfoPromptController.h; path = Source/ESShowContactInfoPromptController.h; sourceTree = "<group>"; };
 		343ECBE90971B18200349098 /* ESShowContactInfoPromptController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESShowContactInfoPromptController.m; path = Source/ESShowContactInfoPromptController.m; sourceTree = "<group>"; };
@@ -3300,8 +3297,6 @@
 				ADD1E5C0DF00000000000021 /* AIStatusListView.h */,
 				ADD1E5C0DF00000000000022 /* AIStatusListView.m */,
 				34A250B507E0F822009854E1 /* StatusDefaults.plist */,
-				343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */,
-				343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */,
 				ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */,
 			);
 			name = "Status Preferences";
@@ -7265,7 +7260,6 @@
 				341BD5630965E97F00CF83F5 /* ESOTRFingerprintDetailsWindowController.m in Sources */,
 				341BD56C0965E9A500CF83F5 /* AdiumOTREncryption.m in Sources */,
 				EEC461B6096D68580028632F /* OWSpellingPerContactPlugin.m in Sources */,
-				343EC6C8096F7E1700349098 /* ESStatusAdvancedPreferences.m in Sources */,
 				343ECBEB0971B18200349098 /* ESShowContactInfoPromptController.m in Sources */,
 				343ECBFC0971B92100349098 /* AIBorderlessListController.m in Sources */,
 				34607EE909B228FE000DB3D2 /* AIContactListNameButton.m in Sources */,

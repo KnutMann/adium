@@ -15,7 +15,6 @@
  */
 
 #import "ESStatusPreferencesPlugin.h"
-#import "ESStatusAdvancedPreferences.h"
 #import "ESStatusPreferences.h"
 #import <Adium/AIMenuControllerProtocol.h>
 #import "AIStatusController.h"
@@ -61,9 +60,9 @@
 {
 	NSMenuItem *menuItem;
 	
-	//Install our preference view
+	/* One pane, not two: the Advanced pane of the same name held only the Now Playing format,
+	 * which lives on the main Status pane now, beside the list its status is switched on in. */
     preferences = [(ESStatusPreferences *)[ESStatusPreferences preferencePaneForPlugin:self] retain];
-	advancedPreferences = [(ESStatusAdvancedPreferences *)[ESStatusAdvancedPreferences preferencePaneForPlugin:self] retain];
 
 	//Add our menu item
 	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Status Menu",nil) stringByAppendingEllipsis]

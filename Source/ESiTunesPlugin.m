@@ -445,7 +445,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * a track token, or started editing the format in Advanced › Status — so the dialog
 	 * has a visible cause. Somebody who never touches the feature never reaches this
 	 * line; note that merely opening a preference pane is not enough, which is why
-	 * -[ESStatusAdvancedPreferences askPlayersOnFirstInteraction] waits for the caret
+	 * -[ESStatusPreferences askPlayersOnFirstInteraction] waits for the caret
 	 * or the Insert menu rather than asking from -viewDidLoad.
 	 */
 	/* Autoreleased into the worker's pool rather than released at the end: the caller
@@ -714,7 +714,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  * that pane is deliberately not one of these moments: the preferences window reopens on
  * whichever pane was last used, so it can happen without an act behind it, and the
  * answer does not stop at the preview but re-publishes every account's status message
- * through -fireUpdateiTunesInfo. See -[ESStatusAdvancedPreferences askPlayersOnFirstInteraction],
+ * through -fireUpdateiTunesInfo. See -[ESStatusPreferences askPlayersOnFirstInteraction],
  * and note that it is this method it calls and never -requestPlayerQuery.
  *
  * lastRawInfo is the only honest marker for "we have never heard anything":

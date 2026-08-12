@@ -23,12 +23,18 @@
  * @class ESStatusPreferences
  * @brief The Status preference pane, built as an AISettingsFormView
  *
- * Three cards: the list of statuses with its "+" button, the idle and away
- * settings, and the two automatic status changes. The list itself is built in
- * code (AIStatusListView); what the nib still supplies is the two minute fields
- * with their steppers and unit labels, the three status menus and the "+". -view
- * moves those controls into the form and keeps the nib's top level view in
- * nibView for as long as they are in use.
+ * Four cards: the list of statuses with its "+" button, the idle and away
+ * settings, the two automatic status changes, and what the Now Playing status
+ * sends. The list itself is built in code (AIStatusListView); what the nib
+ * still supplies is the two minute fields with their steppers and unit labels,
+ * the three status menus and the "+". -view moves those controls into the form
+ * and keeps the nib's top level view in nibView for as long as they are in use.
+ *
+ * The Now Playing card lived in a second pane which was also called "Status",
+ * under Advanced - one name, two sidebar entries, and the setting for what a
+ * status sends was the one thing not on the pane that manages statuses. The
+ * status itself is switched on and off in the list above like any other, so
+ * everything about it is in one place now.
  *
  * Every control writes its preference the moment it is touched: the preferences
  * window only calls -closeView when the window itself closes, so leaving the
@@ -36,7 +42,7 @@
  * saved. The old -saveTimeValues, which wrote the two intervals from
  * -viewWillClose and nowhere else, is gone with it.
  */
-@interface ESStatusPreferences : AIPreferencePane <AIStatusListViewDelegate> {
+@interface ESStatusPreferences : AIPreferencePane <AIStatusListViewDelegate, NSTextFieldDelegate> {
 	/* The nib is only a supplier of ready made controls now; our view is the settings form we
 	 * move them into. This reference keeps the nib's top level view — and with it its ownership
 	 * of everything we did not move — alive for as long as we use its controls. */
@@ -75,6 +81,26 @@
 	 * notification can arrive from inside a row's own switch, which must not be torn out from under
 	 * AppKit; -stateArrayChanged: says so. */
 	BOOL						refreshScheduled;
+
+	/* The Now Playing card. All built in code; non-retaining references, cleared by -tearDown. */
+	NSTextField			*textField_format;
+	NSPopUpButton		*popUp_insertToken;
+	NSTextField			*textField_preview;			//Shows what the format resolves to right now; read-only
+
+	/* Where the caret stood when the format field last gave up editing. Choosing
+	 * from the pull down can take the focus away, and the token still has to land
+	 * where the user left off. */
+	NSRange				 savedSelectedRange;
+	BOOL				 hasSavedSelectedRange;
+
+	BOOL				 formatChangePending;		//A coalesced format announcement is still outstanding
+
+	/* Whether the players have already been asked during this visit to the pane.
+	 * Asking is not free — it is an Apple event and possibly an automation dialog —
+	 * so it waits for the user to actually take hold of the card, and then happens
+	 * once. See -askPlayersOnFirstInteraction.
+	 */
+	BOOL				 hasAskedPlayers;
 }
 
 - (IBAction)addOrRemoveState:(id)sender;

@@ -156,7 +156,7 @@ typedef enum {
  * Cheap is not the same as free, though, and this is not to be called merely because the
  * feature has come into view. What comes back goes through -setiTunesCurrentInfo:fromPlayer:
  * and ends in a dynamic content update, so every account re-publishes its status message:
- * an act of the user's has to be behind it. See -[ESStatusAdvancedPreferences askPlayersOnFirstInteraction]
+ * an act of the user's has to be behind it. See -[ESStatusPreferences askPlayersOnFirstInteraction]
  * for what counts as one.
  *
  * The deliberate, unconditional -requestPlayerQuery stays private on purpose: it can
