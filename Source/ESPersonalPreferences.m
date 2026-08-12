@@ -293,8 +293,9 @@ static NSString *AIRowLabel(NSString *label)
 	/* Handed to the form directly, not wrapped: a labelled control row is not
 	 * clipped to the card's corners the way an edge to edge row is, so the focus
 	 * ring the scroll view draws outside its bounds has room - the container and
-	 * inset the old card needed for it are gone. */
-	[form addRowWithLabel:profileLabel stretchingControl:scrollView_profile];
+	 * inset the old card needed for it are gone. Label top-aligned, beside the
+	 * first line of the editor rather than floating down its middle. */
+	[form addRowWithLabel:profileLabel stretchingControl:scrollView_profile labelTopAligned:YES];
 
 	/* Icon: a dropdown rather than the nib's two radio cells. Both titles are
 	 * already translated everywhere, and "no icon" against "this icon" is the kind
@@ -342,20 +343,21 @@ static NSString *AIRowLabel(NSString *label)
 
 	/* Stacked vertically - well on top, button under it - in a plain container the
 	 * form places without resizing. Non-flipped, so a higher y is higher up: the
-	 * well takes the top, the button the bottom, each centred over the wider of
-	 * the two. */
+	 * well takes the top, the button the bottom, both flush with the stack's right
+	 * edge so they share one line. Handed to a control row, which pins that edge to
+	 * the card's trailing inset, so the pair ends where the dropdown above it does. */
 	NSSize		buttonSize = [button_chooseIcon frame].size;
 	CGFloat		stackWidth = MAX(USER_ICON_WELL_SIDE, buttonSize.width);
 	CGFloat		stackHeight = USER_ICON_WELL_SIDE + PROFILE_RING_INSET + buttonSize.height;
 	NSView		*iconStack = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, stackWidth, stackHeight)] autorelease];
 
-	[imageView_userIcon setFrameOrigin:NSMakePoint(floor((stackWidth - USER_ICON_WELL_SIDE) / 2.0),
+	[imageView_userIcon setFrameOrigin:NSMakePoint(stackWidth - USER_ICON_WELL_SIDE,
 												   buttonSize.height + PROFILE_RING_INSET)];
-	[button_chooseIcon setFrameOrigin:NSMakePoint(floor((stackWidth - buttonSize.width) / 2.0), 0.0)];
+	[button_chooseIcon setFrameOrigin:NSMakePoint(stackWidth - buttonSize.width, 0.0)];
 	[iconStack addSubview:imageView_userIcon];
 	[iconStack addSubview:button_chooseIcon];
 
-	[form addFullWidthRow:iconStack stretch:NO];
+	[form addRowWithLabel:nil control:iconStack];
 
 	return form;
 }

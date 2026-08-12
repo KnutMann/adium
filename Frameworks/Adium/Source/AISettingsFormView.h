@@ -180,6 +180,15 @@
 - (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control;
 
 /*!
+ * @brief As above, but with the label beside the control's top line.
+ *
+ * For a tall stretching control - a text editor - where a vertically centred
+ * label floats halfway down the box. A one-line control looks the same either
+ * way. Pass NO and this is exactly @c addRowWithLabel:stretchingControl:.
+ */
+- (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control labelTopAligned:(BOOL)labelTopAligned;
+
+/*!
  * @brief Append a row with @a label on top and radio buttons stacked below it.
  *
  * @a radioButtons are NSButtons (see @c radioButtonWithTitle:target:action:);

@@ -277,6 +277,10 @@ static void AISettingsAdoptView(NSView *view)
 static NSControl *AISettingsPrimaryControl(NSView *view)
 {
 	if (!view) return nil;
+	/* A scroller is never a row's setting: it is furniture inside a scroll view, and an
+	 * autohiding one with nothing to scroll reports itself disabled - which, taken for the
+	 * row's control, greyed the label of a text-editor row for no reason. */
+	if ([view isKindOfClass:[NSScroller class]]) return nil;
 	if ([view isKindOfClass:[NSControl class]]) return (NSControl *)view;
 
 	NSControl *primary = nil;
@@ -643,6 +647,7 @@ typedef enum {
 	NSView				*radioContainer;
 	NSView				*fullWidthView;
 	BOOL				 stretchesFullWidthView;
+	BOOL				 labelTopAligned;		//Stretch rows: pin the label to the control's top, not its centre
 	NSControl			*enabledSource;			//Not retained; lives inside control/radioContainer
 
 	AISettingsRowView		*rowView;			//The row's container in the card stack
@@ -1045,6 +1050,11 @@ typedef enum {
 
 - (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control
 {
+	[self addRowWithLabel:label stretchingControl:control labelTopAligned:NO];
+}
+
+- (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control labelTopAligned:(BOOL)labelTopAligned
+{
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
 
 	/* Built exactly like a slider row: the two are the same shape — a label as
@@ -1057,6 +1067,8 @@ typedef enum {
 											  [NSColor labelColor]);
 	}
 	row->control = [control retain];
+	//A tall control - a text editor - reads better with its label beside its first line, not its middle
+	row->labelTopAligned = labelTopAligned;
 
 	AISettingsApplyAccessibility(control, label, nil);
 
@@ -1643,9 +1655,16 @@ typedef enum {
 		row->labelColumnConstraint = [[row->labelField.widthAnchor constraintEqualToConstant:0.0] retain];
 		[row->labelColumnConstraint setPriority:AISettingsPrioritySliderLabelColumn];
 
+		/* Beside the control's top line for a tall control, beside its middle otherwise: a
+		 * label centred against a text editor floats halfway down an empty box. Both keep the
+		 * same top floor, so a one-line control looks identical either way. */
+		NSLayoutConstraint *labelVertical = (row->labelTopAligned ?
+			[row->labelField.topAnchor constraintEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV] :
+			[row->labelField.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor]);
+
 		[constraints addObjectsFromArray:
 		 @[[row->labelField.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
-		   [row->labelField.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   labelVertical,
 		   [row->labelField.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
 		   row->labelColumnConstraint]];
 	}
