@@ -44,10 +44,13 @@
  * [form addFullWidthRow:buttonBar];
  * </pre>
  *
- * Everything is positioned with explicit frames — no Auto Layout, no XIB — so
- * the form composes freely with the rest of the (frame based) codebase and is
- * safe under manual retain/release. The view is flipped: rows are appended
- * downwards in the order they are added.
+ * The form is a hybrid: towards its host it keeps the frame contract of the
+ * (frame based) codebase — the window controller sets its frame, the form sets
+ * its own height — while on the inside a stack of Auto Layout constraints
+ * derives every height, so no code here adds y coordinates up. Views handed in
+ * by a pane stay frame based; the form hosts them, so they need no constraints
+ * of their own and remain safe under manual retain/release. The view is
+ * flipped: rows are appended downwards in the order they are added.
  *
  * <h3>Sizing</h3>
  * The form lays itself out whenever its width changes and updates its own
@@ -57,9 +60,11 @@
  * grows that document view so the scrolling column always covers the content.
  */
 @interface AISettingsFormView : NSView {
-	NSMutableArray	*sections;			//AISettingsFormSection, in display order
-	CGFloat			 contentHeight;		//Height of the laid out content
-	BOOL			 needsFormLayout;
+	NSMutableArray		*sections;				//AISettingsFormSection, in display order
+	NSStackView			*formStack;				//The one vertical stack everything hangs off
+	NSLayoutConstraint	*formWidthConstraint;	//How -layoutForWidth: hands the stack its width
+	CGFloat				 contentHeight;			//Height of the laid out content
+	BOOL				 needsFormLayout;
 }
 
 /*!

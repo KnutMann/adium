@@ -14,6 +14,35 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+/* Auto Layout inside, a frame contract outside.
+ *
+ * Towards its host this view is what it always was: a frame based NSView whose
+ * size the preferences window controller sets with -setFrame:, and which
+ * answers with the truthful height of its content. Nothing above it — the
+ * window controller, the panes — knows or cares how that height comes about.
+ *
+ * Inside, the height is no longer added up by hand. The form holds exactly one
+ * vertical NSStackView, pinned to its top and leading edge and given its width
+ * by -layoutForWidth: through a single constraint. Sections drop their header,
+ * card, accessory strip and footnote into that stack; each card holds a second
+ * vertical stack with one row view per row; and each row view describes its
+ * shape — label left, control right, everything centred, at least 44 points
+ * tall — as constraints. A layout pass resolves the whole tree, the form reads
+ * the stack's height back, and that is the content height. The old machine
+ * computed every one of those numbers itself, which bred a whole class of
+ * bugs: imposed heights, autoresizing springs re-moving what had just been
+ * placed, two writers disagreeing about the document height.
+ *
+ * Views handed in by the panes are the reason this is a hybrid and not a
+ * conversion: they come out of nibs and code that positions by frame, resize
+ * themselves with -setFrameSize: and report it with -noteContentSizeChanged.
+ * Rather than teaching each of them constraints, every guest keeps its frame
+ * semantics inside a small host view (AISettingsGuestHostView below) which
+ * translates between the two worlds: the constraint engine sizes the host, the
+ * host sizes the guest by frame, and the guest's own height is read back as
+ * the host's intrinsic size. The guests never meet a constraint.
+ */
+
 #import "AISettingsFormView.h"
 
 //Card geometry, matching the System Settings metrics
@@ -28,7 +57,7 @@ static const CGFloat AISettingsDetailGap		= 2.0;	//Between label and its detail 
 static const CGFloat AISettingsHeaderGap		= 8.0;	//Between a section header and its card
 static const CGFloat AISettingsSectionGap		= 22.0;	//Above a section header
 static const CGFloat AISettingsCardGap			= 12.0;	//Between two cards with no header
-static const CGFloat AISettingsAccessoryGap		= 8.0;	//Between a card and the button bar below it
+static const CGFloat AISettingsAccessoryGap	= 8.0;	//Between a card and the button bar below it
 static const CGFloat AISettingsControlGap		= 8.0;	//Between two adjacent controls of one bar
 static const CGFloat AISettingsRadioTopGap		= 8.0;	//Between a radio group label and its buttons
 static const CGFloat AISettingsRadioSpacing		= 6.0;
@@ -52,6 +81,34 @@ static const CGFloat AISettingsInlineButtonSize	= 22.0;		//Edge length of a row'
 static const CGFloat AISettingsInlineSymbolSize	= 16.0;		//Point size of the symbol drawn in it
 static const CGFloat AISettingsInfoImageSize	= 40.0;		//Longest edge of the picture in an info row
 
+/* The pecking order of the constraints. Where the old machine wrote its rules
+ * as arithmetic — "the control keeps its natural width, but never more than
+ * the card minus the label's minimum; a squeezed slider shortens its label
+ * first" — the new one writes them as priorities, and the order below is that
+ * arithmetic, spelt out once. Higher numbers give way later:
+ *
+ *   ShrinkRow < LabelFill < NaturalWidth < SliderLabelColumn < SliderMinWidth
+ *   < LabelReserve < ControlFloor < NaturalCap < ValueColumn < CardWidth.
+ *
+ * So a row is pulled down onto its content (ShrinkRow) unless something taller
+ * stands in it; a label stretches into leftover width (LabelFill) but never
+ * pushes a control off its natural size (NaturalWidth); a narrow card takes
+ * width from the control before it takes the label below its minimum
+ * (LabelReserve beats NaturalWidth), yet cannot squeeze a control below its
+ * floor (ControlFloor) or stretch it beyond its natural size (NaturalCap). */
+static const NSLayoutPriority AISettingsPriorityShrinkRow			= 200.0;
+static const NSLayoutPriority AISettingsPriorityLabelFill			= 400.0;
+static const NSLayoutPriority AISettingsPriorityNaturalWidth		= 500.0;
+static const NSLayoutPriority AISettingsPrioritySliderLabelColumn	= 600.0;
+static const NSLayoutPriority AISettingsPrioritySliderMinWidth		= 650.0;
+static const NSLayoutPriority AISettingsPriorityLabelReserve		= 700.0;
+static const NSLayoutPriority AISettingsPriorityControlFloor		= 710.0;
+static const NSLayoutPriority AISettingsPriorityNaturalCap			= 720.0;
+static const NSLayoutPriority AISettingsPriorityValueColumn		= 730.0;
+static const NSLayoutPriority AISettingsPriorityKeepFrame			= 900.0;	//An accessory is never resized at all
+static const NSLayoutPriority AISettingsPriorityCardWidth			= 900.0;	//Card tracks the form's width...
+static const NSLayoutPriority AISettingsPriorityCardWidthFloor		= 995.0;	//...but never collapses entirely
+
 /* Our own KVO context: a row must be able to tell its own notification from one
  * meant for a superclass. AISettingsFormRow inherits from NSObject, whose
  * -observeValueForKeyPath:… raises, so forwarding a foreign notification would
@@ -62,7 +119,7 @@ typedef enum {
 	AISettingsRowTypeControl = 0,
 	AISettingsRowTypePopUp,
 	AISettingsRowTypeSlider,
-	AISettingsRowTypeStretch,		//Label plus a control filling the row; laid out as a slider row
+	AISettingsRowTypeStretch,		//Label plus a control filling the row; built as a slider row
 	AISettingsRowTypeRadioGroup,
 	AISettingsRowTypeFullWidth,
 	AISettingsRowTypeEdgeToEdge,
@@ -119,6 +176,33 @@ static NSTextField *AISettingsMakeDetailLabel(NSString *text)
 }
 
 /*!
+ * @brief Hand one of the form's own fields to the constraint engine.
+ *
+ * Only the fields the form itself creates live in Auto Layout; everything a
+ * pane hands in stays frame based inside a host view. The low horizontal
+ * priorities make a field the most compliant thing in its row: it stretches
+ * into whatever width the row leaves it and never pushes a control off its
+ * natural size — the frame based machine gave labels no say either.
+ */
+static void AISettingsPrepareField(NSTextField *field)
+{
+	if (!field) return;
+
+	[field setTranslatesAutoresizingMaskIntoConstraints:NO];
+	[field setContentHuggingPriority:100.0 forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[field setContentCompressionResistancePriority:100.0 forOrientation:NSLayoutConstraintOrientationHorizontal];
+}
+
+/*!
+ * @brief Sugar: give @a constraint a priority and hand it back.
+ */
+static NSLayoutConstraint *AISettingsPrioritized(NSLayoutConstraint *constraint, NSLayoutPriority priority)
+{
+	[constraint setPriority:priority];
+	return constraint;
+}
+
+/*!
  * @brief The picture of an info row, scaled into the standard square.
  *
  * Scales a <em>copy</em>, never the image it was handed: a caller may hand us a
@@ -150,22 +234,8 @@ static NSImage *AISettingsMakeInfoImage(NSImage *image)
 }
 
 /*!
- * @brief Height a wrapping label needs when constrained to @a width.
- */
-static CGFloat AISettingsFieldHeight(NSTextField *field, CGFloat width)
-{
-	if (!field || width < 1.0) return 0.0;
-
-	NSSize size = [[field cell] cellSizeForBounds:NSMakeRect(0.0, 0.0, width, 10000.0)];
-	return ceil(size.height);
-}
-
-/*!
- * @brief The size a control should be laid out at: its own frame if it has one,
- *        otherwise its fitting size.
- *
- * Only ever called while a control still has its natural size — the result is
- * remembered per row, because layout narrows the frame it would read back.
+ * @brief The size a hosted view should be laid out at: its own frame if it has
+ *        one, otherwise its fitting size.
  */
 static NSSize AISettingsControlSize(NSView *control)
 {
@@ -181,14 +251,14 @@ static NSSize AISettingsControlSize(NSView *control)
 }
 
 /*!
- * @brief Take a view over for frame based layout.
+ * @brief Take a view over for frame based hosting.
  *
- * The form positions everything by frame. A view whose
+ * Guests live by their frames inside their host view. A view whose
  * translatesAutoresizingMaskIntoConstraints is NO — anything coming out of a
- * XIB which was saved without Auto Layout, for instance — is owned by the
- * layout engine instead, which would resolve it as ambiguous and collapse it
- * the moment the constraint engine touches that part of the hierarchy. Say
- * explicitly that its frame is the truth.
+ * XIB which was saved with Auto Layout, for instance — expects constraints
+ * that nobody here is going to write, and the engine would resolve it as
+ * ambiguous and collapse it. Say explicitly that its frame is the truth; its
+ * own subviews keep whatever layout they came with.
  */
 static void AISettingsAdoptView(NSView *view)
 {
@@ -265,6 +335,199 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 #pragma mark -
 
 /*!
+ * @brief How a host treats the frame based guest it carries.
+ */
+typedef enum {
+	/*! The guest is resized to the host: as wide as the engine made the host,
+	 *  as tall as its remembered natural size. For controls which keep their
+	 *  natural width but may be narrowed by a narrow card — and must grow back
+	 *  when there is room again, which is why the natural size is remembered
+	 *  here instead of being read from the (possibly narrowed) frame. */
+	AISettingsGuestSizingNatural = 0,
+	/*! The guest is stretched to the host's width but keeps whatever height its
+	 *  own frame has, and that height <em>is</em> the host's intrinsic height —
+	 *  read afresh every time, so a guest which resizes itself (a hosted list,
+	 *  a WebView preview) resizes its row with it. */
+	AISettingsGuestSizingStretch,
+	/*! The guest is never touched at all; the host simply reports the guest's
+	 *  frame as its own intrinsic size. For accessory bars, which keep the size
+	 *  their builder gave them. */
+	AISettingsGuestSizingKeepFrame
+} AISettingsGuestSizing;
+
+/*!
+ * @brief The bridge between the constraint engine and a frame based guest.
+ *
+ * The engine sizes the host; the host sizes the guest by plain -setFrame:, the
+ * way the old layout machine did — so guests out of nibs and panes never need
+ * constraints, springs keep meaning what they meant, and a guest resizing
+ * itself keeps working: its new frame becomes the host's intrinsic size at the
+ * next -noteContentSizeChanged. Flipped, so the guest hangs from the top edge.
+ */
+@interface AISettingsGuestHostView : NSView {
+@public
+	NSView					*guestView;		//Retained; also our subview
+	AISettingsGuestSizing	 sizing;
+	NSSize					 naturalSize;	//Natural sizing only: the size the guest wants
+}
++ (AISettingsGuestHostView *)hostForGuest:(NSView *)guest sizing:(AISettingsGuestSizing)guestSizing;
+- (void)refreshGuestMetrics;
+- (void)resetNaturalSize;
+@end
+
+@implementation AISettingsGuestHostView
+
++ (AISettingsGuestHostView *)hostForGuest:(NSView *)guest sizing:(AISettingsGuestSizing)guestSizing
+{
+	AISettingsGuestHostView *host = [[[self alloc] initWithFrame:NSZeroRect] autorelease];
+
+	[host setTranslatesAutoresizingMaskIntoConstraints:NO];
+	host->sizing = guestSizing;
+	host->guestView = [guest retain];
+	host->naturalSize = AISettingsControlSize(guest);
+
+	//A guest without a frame yet starts at its natural size, as it always did
+	NSRect guestFrame = [guest frame];
+	if (NSWidth(guestFrame) < 1.0 || NSHeight(guestFrame) < 1.0) [guest setFrameSize:host->naturalSize];
+	[guest setFrameOrigin:NSZeroPoint];
+
+	[host addSubview:guest];
+
+	return host;
+}
+
+- (void)dealloc
+{
+	[guestView release];
+	[super dealloc];
+}
+
+- (BOOL)isFlipped
+{
+	return YES;
+}
+
+- (NSSize)intrinsicContentSize
+{
+	switch (sizing) {
+		case AISettingsGuestSizingNatural:
+			return naturalSize;
+		case AISettingsGuestSizingStretch:
+			//Width is the row's business; the guest only ever decides its height
+			return NSMakeSize(NSViewNoIntrinsicMetric, NSHeight([guestView frame]));
+		case AISettingsGuestSizingKeepFrame:
+		default:
+			return [guestView frame].size;
+	}
+}
+
+- (void)layout
+{
+	[super layout];
+
+	NSRect	target = [guestView frame];
+
+	switch (sizing) {
+		case AISettingsGuestSizingNatural:
+			target = NSMakeRect(0.0, 0.0, NSWidth([self bounds]), naturalSize.height);
+			break;
+		case AISettingsGuestSizingStretch:
+			target = NSMakeRect(0.0, 0.0, NSWidth([self bounds]), NSHeight(target));
+			break;
+		case AISettingsGuestSizingKeepFrame:
+			target.origin = NSZeroPoint;
+			break;
+	}
+
+	/* Only when something moved: guests may watch their own frame, and a no-op
+	 * -setFrame: still costs them a notification. */
+	if (!NSEqualRects(target, [guestView frame])) [guestView setFrame:target];
+}
+
+/*!
+ * @brief Re-read what the guest wants to be; called once per form layout.
+ *
+ * For a natural sized guest the width only ever ratchets up: our own layout is
+ * what narrows the frame, so reading it back unconditionally would ratchet
+ * every control down to the narrowest width it was ever laid out at. A frame
+ * wider than what we remember can only come from the caller — a -sizeToFit
+ * after filling a menu, say — and is adopted as the new natural width. Heights
+ * are the guest's own and are adopted in both directions.
+ */
+- (void)refreshGuestMetrics
+{
+	if (sizing == AISettingsGuestSizingNatural) {
+		NSSize current = [guestView frame].size;
+		if (current.width > naturalSize.width + 0.5) naturalSize.width = current.width;
+		if (fabs(current.height - naturalSize.height) > 0.5) naturalSize.height = current.height;
+	}
+	[self invalidateIntrinsicContentSize];
+}
+
+/*!
+ * @brief Take the guest's current frame as the natural size, wider or narrower.
+ *
+ * For pop up buttons, which are re-measured from scratch at every layout: a
+ * rebuilt menu may want less room than the old one, not just more.
+ */
+- (void)resetNaturalSize
+{
+	naturalSize = AISettingsControlSize(guestView);
+	[self invalidateIntrinsicContentSize];
+}
+
+@end
+
+#pragma mark -
+
+/*!
+ * @brief One row of a card: a plain constraint container.
+ *
+ * Its only behaviour of its own is the wrapping bookkeeping: a wrapping
+ * NSTextField only reports a useful intrinsic height once it knows the width
+ * it will actually get, so after every engine pass the row feeds each wrapping
+ * field its resolved width back as preferredMaxLayoutWidth. A changed width
+ * invalidates the field's intrinsic size, and the following pass gets the
+ * refolded height — which is why -layoutForWidth: always runs two passes.
+ */
+@interface AISettingsRowView : NSView {
+	NSMutableArray	*wrappingFields;
+}
+- (void)followWidthOfField:(NSTextField *)field;
+@end
+
+@implementation AISettingsRowView
+
+- (void)dealloc
+{
+	[wrappingFields release];
+	[super dealloc];
+}
+
+- (void)followWidthOfField:(NSTextField *)field
+{
+	if (!field) return;
+	if (!wrappingFields) wrappingFields = [[NSMutableArray alloc] init];
+	[wrappingFields addObject:field];
+}
+
+- (void)layout
+{
+	[super layout];
+
+	for (NSTextField *field in wrappingFields) {
+		CGFloat width = NSWidth([field frame]);
+		if (width >= 1.0 && fabs([field preferredMaxLayoutWidth] - width) > 0.5) {
+			[field setPreferredMaxLayoutWidth:width];
+		}
+	}
+}
+
+@end
+
+#pragma mark -
+
+/*!
  * @brief The rounded card: background plus the hairlines between its rows.
  */
 @interface AISettingsCardView : NSView {
@@ -288,7 +551,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 - (void)setSeparatorPositions:(NSArray *)positions
 {
-	if (positions != separatorPositions) {
+	if (positions != separatorPositions && ![positions isEqualToArray:separatorPositions]) {
 		[separatorPositions release];
 		separatorPositions = [positions retain];
 		[self setNeedsDisplay:YES];
@@ -364,7 +627,8 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 #pragma mark -
 
 /*!
- * @brief One row of a card, holding its views and its computed height.
+ * @brief One row of a card, holding its views, its row container and the
+ *        constraints the form retunes at layout time.
  */
 @interface AISettingsFormRow : NSObject {
 @public
@@ -379,13 +643,20 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	NSView				*radioContainer;
 	NSView				*fullWidthView;
 	BOOL				 stretchesFullWidthView;
-	NSSize				 naturalControlSize;	//Before layout ever narrowed the frame
 	NSControl			*enabledSource;			//Not retained; lives inside control/radioContainer
-	/* Slider rows only: the label and readout columns shared by every slider row
-	 * of the same card, so their sliders start and end on one line. Filled by
-	 * -layoutForWidth: before the rows are placed. */
-	CGFloat				 sliderLabelColumn;
-	CGFloat				 sliderValueColumn;
+
+	AISettingsRowView		*rowView;			//The row's container in the card stack
+	//Hosts are subviews of rowView and owned by it; plain pointers are enough
+	AISettingsGuestHostView	*controlHost;
+	AISettingsGuestHostView	*accessoryHost;
+	AISettingsGuestHostView	*valueHost;
+	AISettingsGuestHostView	*radioHost;
+	AISettingsGuestHostView	*fullWidthHost;
+	/* Slider/stretch rows only: the shared label and readout columns of the
+	 * card, as constraints whose constants -layoutForWidth: retunes so every
+	 * slider of a card starts and ends on the same two lines. */
+	NSLayoutConstraint		*labelColumnConstraint;
+	NSLayoutConstraint		*valueColumnConstraint;
 }
 - (void)trackEnabledStateOf:(NSControl *)source;
 - (void)updateLabelColor;
@@ -445,6 +716,9 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	[radioButtons release];
 	[radioContainer release];
 	[fullWidthView release];
+	[rowView release];
+	[labelColumnConstraint release];
+	[valueColumnConstraint release];
 	[super dealloc];
 }
 @end
@@ -458,9 +732,12 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 @public
 	NSTextField			*headerField;	//nil for a header-less card
 	AISettingsCardView	*cardView;
+	NSStackView			*cardStack;		//Inside the card; one arranged subview per row
 	NSMutableArray		*rows;
 	NSView				*accessoryView;	//Sits below the card, outside of it; nil for most sections
 	BOOL				 accessoryTrailing;	//NO: aligned with the card's leading edge, the default
+	NSView				*accessoryWrapper;	//Card-wide strip the accessory hangs in, for the alignment
+	AISettingsGuestHostView	*accessoryHost;	//Subview of the wrapper; plain pointer
 	NSTextField			*footnoteField;	//Below the card and below the accessory; nil for most sections
 	/* Widest slider label this card has ever held, uncapped. Never shrinks, so a
 	 * row renamed to something shorter leaves the column — and with it every
@@ -474,7 +751,25 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	if ((self = [super init])) {
 		rows = [[NSMutableArray alloc] init];
+
 		cardView = [[AISettingsCardView alloc] initWithFrame:NSZeroRect];
+		[cardView setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+		/* The rows stack inside the card and give it its height: the stack is
+		 * pinned to all four card edges, so the card is exactly as tall as its
+		 * rows and no code ever adds row heights up again. */
+		cardStack = [[NSStackView alloc] initWithFrame:NSZeroRect];
+		[cardStack setOrientation:NSUserInterfaceLayoutOrientationVertical];
+		[cardStack setAlignment:NSLayoutAttributeCenterX];
+		[cardStack setDistribution:NSStackViewDistributionFill];
+		[cardStack setSpacing:0.0];
+		[cardStack setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[cardView addSubview:cardStack];
+		[NSLayoutConstraint activateConstraints:
+		 @[[cardStack.leadingAnchor constraintEqualToAnchor:cardView.leadingAnchor],
+		   [cardStack.trailingAnchor constraintEqualToAnchor:cardView.trailingAnchor],
+		   [cardStack.topAnchor constraintEqualToAnchor:cardView.topAnchor],
+		   [cardStack.bottomAnchor constraintEqualToAnchor:cardView.bottomAnchor]]];
 	}
 	return self;
 }
@@ -482,8 +777,10 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	[headerField release];
 	[cardView release];
+	[cardStack release];
 	[rows release];
 	[accessoryView release];
+	[accessoryWrapper release];
 	[footnoteField release];
 	[super dealloc];
 }
@@ -494,8 +791,15 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 @interface AISettingsFormView ()
 - (void)addAccessoryView:(NSView *)view trailing:(BOOL)trailing;
 - (AISettingsFormSection *)currentSection;
+- (void)attachSection:(AISettingsFormSection *)section;
+- (void)pinCardWidthElement:(NSView *)view;
 - (void)appendRow:(AISettingsFormRow *)row;
-- (CGFloat)layoutRow:(AISettingsFormRow *)row atY:(CGFloat)rowY inCardOfWidth:(CGFloat)cardWidth;
+- (void)buildViewForRow:(AISettingsFormRow *)row isFirstRowInCard:(BOOL)isFirstRowInCard;
+- (void)constrainHeightFloorOfRow:(AISettingsRowView *)rowView;
+- (NSLayoutGuide *)textBlockWithTop:(NSTextField *)topField bottom:(NSTextField *)bottomField inRow:(AISettingsRowView *)rowView;
+- (void)refreshGuestMetricsForCardWidth:(CGFloat)cardWidth;
+- (void)updateStackSpacing;
+- (void)updateCardSeparators;
 - (void)updateEnclosingDocumentViewHeight;
 @end
 
@@ -517,6 +821,26 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		sections = [[NSMutableArray alloc] init];
 		contentHeight = 0.0;
 		needsFormLayout = YES;
+
+		/* The one stack everything hangs off. Pinned to top and leading only:
+		 * the bottom stays free because the stack's height is the answer we
+		 * read back, not something the form's frame may dictate — the frame
+		 * height follows the stack, never the other way round. The width comes
+		 * through a constraint of its own, so -layoutForWidth: can lay out for
+		 * a width the frame does not have yet. */
+		formStack = [[NSStackView alloc] initWithFrame:NSZeroRect];
+		[formStack setOrientation:NSUserInterfaceLayoutOrientationVertical];
+		[formStack setAlignment:NSLayoutAttributeCenterX];
+		[formStack setDistribution:NSStackViewDistributionFill];
+		[formStack setSpacing:0.0];
+		[formStack setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:formStack];
+		[NSLayoutConstraint activateConstraints:
+		 @[[formStack.topAnchor constraintEqualToAnchor:self.topAnchor],
+		   [formStack.leadingAnchor constraintEqualToAnchor:self.leadingAnchor]]];
+
+		formWidthConstraint = [[formStack.widthAnchor constraintEqualToConstant:NSWidth(frame)] retain];
+		[formWidthConstraint setActive:YES];
 	}
 	return self;
 }
@@ -524,6 +848,8 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 - (void)dealloc
 {
 	[sections release];
+	[formStack release];
+	[formWidthConstraint release];
 	[super dealloc];
 }
 
@@ -541,10 +867,40 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	if (!section) {
 		section = [[[AISettingsFormSection alloc] init] autorelease];
 		[sections addObject:section];
-		[self addSubview:section->cardView];
+		[self attachSection:section];
 	}
 
 	return section;
+}
+
+/*!
+ * @brief Put a section's header and card into the form stack.
+ */
+- (void)attachSection:(AISettingsFormSection *)section
+{
+	if (section->headerField) {
+		AISettingsPrepareField(section->headerField);
+		[formStack addArrangedSubview:section->headerField];
+		[self pinCardWidthElement:section->headerField];
+	}
+	[formStack addArrangedSubview:section->cardView];
+	[self pinCardWidthElement:section->cardView];
+}
+
+/*!
+ * @brief Make @a view as wide as a card: the form's width minus both margins.
+ *
+ * Below required, so a floor keeps the card usable when a host hands over an
+ * absurdly narrow width — the same MAX() the old machine applied.
+ */
+- (void)pinCardWidthElement:(NSView *)view
+{
+	[NSLayoutConstraint activateConstraints:
+	 @[AISettingsPrioritized([view.widthAnchor constraintEqualToAnchor:formStack.widthAnchor
+															  constant:-2.0 * AISettingsOuterMargin],
+							 AISettingsPriorityCardWidth),
+	   AISettingsPrioritized([view.widthAnchor constraintGreaterThanOrEqualToConstant:2.0 * AISettingsCardInsetH + 40.0],
+							 AISettingsPriorityCardWidthFloor)]];
 }
 
 - (void)addSectionHeader:(NSString *)title
@@ -562,11 +918,10 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		section->headerField = AISettingsMakeLabel(title,
 												   [NSFont systemFontOfSize:AISettingsHeaderFontSize weight:NSFontWeightBold],
 												   [NSColor labelColor]);
-		[self addSubview:section->headerField];
 	}
 
 	[sections addObject:section];
-	[self addSubview:section->cardView];
+	[self attachSection:section];
 
 	[self layoutForWidth:NSWidth([self frame])];
 }
@@ -581,54 +936,37 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	} else if (section) {
 		AISettingsFormSection *next = [[[AISettingsFormSection alloc] init] autorelease];
 		[sections addObject:next];
-		[self addSubview:next->cardView];
+		[self attachSection:next];
 	}
 }
 
 - (void)appendRow:(AISettingsFormRow *)row
 {
 	AISettingsFormSection *section = [self currentSection];
+	BOOL isFirstRowInCard = ([section->rows count] == 0);
 
 	[section->rows addObject:row];
 
-	if (row->labelField) [section->cardView addSubview:row->labelField];
-	/* Drawing order only, and only an info row has a picture at all: it lands between
-	 * that row's heading and its paragraph, which says nothing about the order the row
-	 * is read in - an info row keeps its picture out of the accessibility tree
-	 * altogether. */
-	if (row->imageView) [section->cardView addSubview:row->imageView];
-	if (row->detailField) [section->cardView addSubview:row->detailField];
-	if (row->valueField) [section->cardView addSubview:row->valueField];
-	if (row->accessoryControl) [section->cardView addSubview:row->accessoryControl];
-	if (row->control) [section->cardView addSubview:row->control];
-	/* Radio buttons live in their own container: AppKit makes one exclusive
-	 * group out of every radio button sharing a superview and an action, so two
-	 * groups in the same card would silently clear each other. */
-	if (row->radioContainer) [section->cardView addSubview:row->radioContainer];
-	if (row->fullWidthView) [section->cardView addSubview:row->fullWidthView];
-
-	/* This form places every subview itself, so nothing in a card may be placed a second time
-	 * behind its back. A control built here has no autoresizing to begin with, but one adopted
-	 * from a nib arrives with whatever the nib gave it, and the card resizes its subviews: the
-	 * status pane's pop up menus carried NSViewMinXMargin and were shifted a further two hundred
-	 * points on top of the position they had just been given, which put them past the right edge
-	 * of their card, clipped away and invisible until the window was resized by hand.
-	 *
-	 * Set one by one rather than over a collection: most rows leave most of these nil, and
-	 * +arrayWithObjects: ends at the first one it meets - which would quietly treat only the
-	 * label of a pop up row and leave the menu itself exactly as it was.
-	 */
-	[row->labelField setAutoresizingMask:NSViewNotSizable];
-	[row->imageView setAutoresizingMask:NSViewNotSizable];
-	[row->detailField setAutoresizingMask:NSViewNotSizable];
-	[row->valueField setAutoresizingMask:NSViewNotSizable];
-	[row->accessoryControl setAutoresizingMask:NSViewNotSizable];
+	/* Every guest is hosted frame based, and its host is the only thing that
+	 * may ever write its frame — so it must translate its mask (a nib view may
+	 * arrive constraint based) and must carry no springs of its own: the status
+	 * pane's pop up menus once came with NSViewMinXMargin and were shifted a
+	 * second time on top of the position they had just been given. */
+	AISettingsAdoptView(row->control);
+	AISettingsAdoptView(row->accessoryControl);
+	AISettingsAdoptView(row->valueField);
+	AISettingsAdoptView(row->fullWidthView);
 	[row->control setAutoresizingMask:NSViewNotSizable];
+	[row->accessoryControl setAutoresizingMask:NSViewNotSizable];
+	[row->valueField setAutoresizingMask:NSViewNotSizable];
 	[row->radioContainer setAutoresizingMask:NSViewNotSizable];
 	[row->fullWidthView setAutoresizingMask:NSViewNotSizable];
 
-	//Read the natural sizes now; layout narrows the frames it would read back
-	row->naturalControlSize = AISettingsControlSize(row->control ?: row->fullWidthView);
+	[self buildViewForRow:row isFirstRowInCard:isFirstRowInCard];
+
+	[section->cardStack addArrangedSubview:row->rowView];
+	//Every row spans the card; the shapes inside the row do the aligning
+	[[row->rowView.widthAnchor constraintEqualToAnchor:section->cardStack.widthAnchor] setActive:YES];
 
 	[row trackEnabledStateOf:AISettingsPrimaryControl(row->control ?: row->radioContainer)];
 
@@ -709,12 +1047,9 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
 
-	AISettingsAdoptView(control);
-
-	/* Filled exactly like a slider row, and laid out by the slider row's case
-	 * below: the two are the same shape — a label as wide as its text, a control
-	 * taking everything left — and a stretching row is one without a readout.
-	 */
+	/* Built exactly like a slider row: the two are the same shape — a label as
+	 * wide as its text, a control taking everything left — and a stretching row
+	 * is one without a readout. */
 	row->type = AISettingsRowTypeStretch;
 	if (label.length) {
 		row->labelField = AISettingsMakeLabel(label,
@@ -739,13 +1074,30 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 											  [NSColor labelColor]);
 	}
 	row->radioButtons = [radioButtons copy];
+	/* Radio buttons live in their own container: AppKit makes one exclusive
+	 * group out of every radio button sharing a superview and an action, so two
+	 * groups in the same card would silently clear each other. The buttons
+	 * never change size, so the column is laid out once, right here; the
+	 * container's height is what the row reads back. */
 	row->radioContainer = [[AISettingsFlippedView alloc] initWithFrame:NSZeroRect];
 	if (label.length) [row->radioContainer setAccessibilityLabel:label];
 
+	CGFloat buttonY = 0.0;
+	CGFloat widestButton = 0.0;
 	for (NSButton *button in row->radioButtons) {
+		AISettingsAdoptView(button);
+		[button setAutoresizingMask:NSViewNotSizable];
 		if (NSWidth([button frame]) < 1.0 || NSHeight([button frame]) < 1.0) [button sizeToFit];
+
+		NSSize size = [button frame].size;
+		[button setFrameOrigin:NSMakePoint(0.0, buttonY)];
 		[row->radioContainer addSubview:button];
+		buttonY += size.height + AISettingsRadioSpacing;
+		widestButton = MAX(widestButton, size.width);
 	}
+	if ([row->radioButtons count]) buttonY -= AISettingsRadioSpacing;
+
+	[row->radioContainer setFrame:NSMakeRect(0.0, 0.0, MAX(widestButton, 1.0), MAX(buttonY, 0.0))];
 
 	[self appendRow:row];
 }
@@ -759,8 +1111,6 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 {
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
 
-	AISettingsAdoptView(view);
-
 	row->type = AISettingsRowTypeFullWidth;
 	row->fullWidthView = [view retain];
 	row->stretchesFullWidthView = stretch;
@@ -771,8 +1121,6 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 - (void)addEdgeToEdgeRow:(NSView *)view
 {
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
-
-	AISettingsAdoptView(view);
 
 	/* The view <em>is</em> the card, so it has to be clipped to the card's
 	 * rounded corners - a selected first or last row of a hosted list would
@@ -800,12 +1148,10 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	row->type = AISettingsRowTypeDetail;
 	row->detailField = AISettingsMakeDetailLabel(text);
 
-	/* Deliberately neither control nor fullWidthView: -layoutRow:atY:inCardOfWidth:
-	 * adopts the frame of either as the row's natural size, which would freeze the
-	 * height measured for a wide card and stop the text from ever folding again.
-	 * The same nil also means -appendRow: finds no control to follow, so the field
-	 * never dims and keeps the colour AISettingsMakeDetailLabel() gave it — right
-	 * for a sentence which explains a whole card rather than one setting. */
+	/* Deliberately not the control of the row: the same nil means -appendRow:
+	 * finds no control to follow, so the field never dims and keeps the colour
+	 * AISettingsMakeDetailLabel() gave it — right for a sentence which explains
+	 * a whole card rather than one setting. */
 	[self appendRow:row];
 }
 
@@ -825,7 +1171,6 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	 * an empty card reads as if something were there after all. */
 	[row->detailField setSelectable:NO];
 
-	//Neither control nor fullWidthView, for the reason -addDetailRow: spells out
 	[self appendRow:row];
 }
 
@@ -842,8 +1187,6 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	if (!text.length && !title.length && !symbol && !control) return;
 
 	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
-
-	AISettingsAdoptView(control);
 
 	row->type = AISettingsRowTypeInfo;
 	/* The heading takes the row label's font rather than a section header's bold:
@@ -886,14 +1229,6 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 		[row->imageView setAccessibilityElement:NO];
 	}
 
-	/* The picture goes in an ivar of its own rather than into control or
-	 * fullWidthView, for the reason -addDetailRow: spells out: those two are where
-	 * -layoutRow:atY:inCardOfWidth: takes a row's natural size from, and a row
-	 * measured from a hosted view keeps the height it was first given and never
-	 * folds its text again. Here the height still comes from measuring heading and
-	 * paragraph at the width the picture and the control leave them, every layout —
-	 * the image view only ever receives a frame, it never decides one, and the
-	 * control contributes nothing but its own height, which no width can change. */
 	[self appendRow:row];
 }
 
@@ -912,33 +1247,59 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	AISettingsFormSection *section = [self currentSection];
 
 	AISettingsAdoptView(view);
-
-	/* The form places the accessory itself, and every layout pass may end by resizing the
-	 * form's own frame - after the accessory has already been put where it belongs. A view
-	 * built in code carries no autoresizing, but one adopted from a nib arrives with whatever
-	 * springs the nib gave it, and those are applied by that trailing resize: a flexible top
-	 * margin re-anchors the view to the form's bottom edge, so every net height change of a
-	 * layout pass drags it off the position that very pass computed - visibly, onto the card
-	 * it hangs under. Row views get the same treatment in -appendRow:. */
 	[view setAutoresizingMask:NSViewNotSizable];
 
-	if (section->accessoryView != view) {
-		[section->accessoryView removeFromSuperview];
-		[section->accessoryView release];
-		section->accessoryView = [view retain];
-		//Below the card, so a subview of the form itself rather than of the card
-		if (view) [self addSubview:view];
+	//Survives the teardown below even when it is the same view handed over again
+	[view retain];
 
-		/* A footnote is drawn below the accessory bar, and VoiceOver reads a
-		 * container in subview order: a footnote added before the bar has to move
-		 * behind it again, or it is announced above what it stands under. */
-		if (view && section->footnoteField) {
-			[section->footnoteField removeFromSuperview];
-			[self addSubview:section->footnoteField];
-		}
-	}
-
+	/* One accessory per card, so the old strip goes wholesale; rebuilding it is
+	 * also what makes switching between leading and trailing alignment work
+	 * without bookkeeping which constraint is currently installed. */
+	[section->accessoryWrapper removeFromSuperview];
+	[section->accessoryWrapper release];
+	section->accessoryWrapper = nil;
+	section->accessoryHost = nil;
+	[section->accessoryView release];
+	section->accessoryView = view;
 	section->accessoryTrailing = trailing;
+
+	if (view) {
+		/* A card-wide strip with the accessory hanging in one corner of it: the
+		 * strip takes the card's width, so leading and trailing alignment are a
+		 * single constraint each, and the stack below never needs to know. */
+		NSView *wrapper = [[NSView alloc] initWithFrame:NSZeroRect];
+		[wrapper setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+		AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:view
+																	   sizing:AISettingsGuestSizingKeepFrame];
+		/* Aligned with one edge of the card and never resized: it keeps the size
+		 * its builder gave it, so reading the frame back cannot ratchet it down. */
+		[host setContentHuggingPriority:AISettingsPriorityKeepFrame forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[host setContentCompressionResistancePriority:AISettingsPriorityKeepFrame forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[wrapper addSubview:host];
+		[NSLayoutConstraint activateConstraints:
+		 @[[host.topAnchor constraintEqualToAnchor:wrapper.topAnchor],
+		   [host.bottomAnchor constraintEqualToAnchor:wrapper.bottomAnchor],
+		   (trailing ?
+			[host.trailingAnchor constraintEqualToAnchor:wrapper.trailingAnchor] :
+			[host.leadingAnchor constraintEqualToAnchor:wrapper.leadingAnchor])]];
+
+		section->accessoryWrapper = wrapper;	//The alloc above is the section's retain
+		section->accessoryHost = host;
+
+		/* Into the stack ahead of the footnote: a footnote is drawn below the
+		 * accessory bar, and VoiceOver reads a container in subview order, so a
+		 * footnote added first must stay behind the bar or it is announced
+		 * above what it stands under. The section is always the last one —
+		 * -currentSection says so — hence the end of the stack otherwise. */
+		NSArray *arranged = [formStack arrangedSubviews];
+		NSUInteger index = [arranged count];
+		if (section->footnoteField && [arranged containsObject:section->footnoteField]) {
+			index = [arranged indexOfObject:section->footnoteField];
+		}
+		[formStack insertArrangedSubview:wrapper atIndex:index];
+		[self pinCardWidthElement:wrapper];
+	}
 
 	[self layoutForWidth:NSWidth([self frame])];
 }
@@ -952,8 +1313,16 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	//An empty field would still measure one blank line below the card
 	section->footnoteField = (text.length ? AISettingsMakeDetailLabel(text) : nil);
 
-	//Below the card, so a subview of the form itself rather than of the card
-	if (section->footnoteField) [self addSubview:section->footnoteField];
+	if (section->footnoteField) {
+		/* Aligned with the card's edge rather than with the labels inside it,
+		 * so a card carrying both a button bar and a footnote does not put two
+		 * different left edges underneath itself. The section is the last one,
+		 * so the end of the stack is the footnote's place: below the card and
+		 * below the accessory bar. */
+		AISettingsPrepareField(section->footnoteField);
+		[formStack addArrangedSubview:section->footnoteField];
+		[self pinCardWidthElement:section->footnoteField];
+	}
 
 	[self layoutForWidth:NSWidth([self frame])];
 }
@@ -964,9 +1333,9 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 	for (AISettingsFormSection *section in sections) {
 		for (AISettingsFormRow *row in section->rows) {
-			NSView *rowView = (row->control ?: row->fullWidthView);
+			NSView *rowHostedView = (row->control ?: row->fullWidthView);
 
-			if (!rowView || !(rowView == control || [control isDescendantOf:rowView])) continue;
+			if (!rowHostedView || !(rowHostedView == control || [control isDescendantOf:rowHostedView])) continue;
 
 			//A row added without a label has no field to put one in
 			if (!row->labelField) return;
@@ -978,7 +1347,7 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 			if ([[row->labelField stringValue] isEqualToString:(label ?: @"")]) return;
 
 			[row->labelField setStringValue:(label ?: @"")];
-			if (label.length) [AISettingsPrimaryControl(rowView) setAccessibilityLabel:label];
+			if (label.length) [AISettingsPrimaryControl(rowHostedView) setAccessibilityLabel:label];
 
 			//The new text may need more or fewer points than the old one
 			[self layoutForWidth:NSWidth([self frame])];
@@ -993,14 +1362,14 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 	for (AISettingsFormSection *section in sections) {
 		for (AISettingsFormRow *row in section->rows) {
-			NSView *rowView = (row->control ?: row->fullWidthView);
+			NSView *rowHostedView = (row->control ?: row->fullWidthView);
 
-			if (!rowView || !(rowView == control || [control isDescendantOf:rowView])) continue;
+			if (!rowHostedView || !(rowHostedView == control || [control isDescendantOf:rowHostedView])) continue;
 
 			/* Everything the row draws, so the hot area is the whole line as it was
 			 * in a nib, where the label was the control's own title. No layout is
 			 * needed: a tool tip changes nothing that is measured. */
-			[rowView setToolTip:toolTip];
+			[rowHostedView setToolTip:toolTip];
 			[row->labelField setToolTip:toolTip];
 			[row->detailField setToolTip:toolTip];
 			[row->valueField setToolTip:toolTip];
@@ -1013,14 +1382,529 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 - (void)removeAllSections
 {
 	for (AISettingsFormSection *section in sections) {
+		//The accessory itself hangs inside its wrapper and leaves with it
 		[section->headerField removeFromSuperview];
 		[section->cardView removeFromSuperview];
-		[section->accessoryView removeFromSuperview];
+		[section->accessoryWrapper removeFromSuperview];
 		[section->footnoteField removeFromSuperview];
 	}
 	[sections removeAllObjects];
 
 	[self layoutForWidth:NSWidth([self frame])];
+}
+
+#pragma mark Row shapes
+
+/*!
+ * @brief Build the constraint container for @a row.
+ *
+ * Everything the old -layoutRow:atY:inCardOfWidth: computed per pass is
+ * declared here once, as constraints; from then on the engine keeps it true at
+ * every width. The row types map onto a handful of shapes.
+ */
+- (void)buildViewForRow:(AISettingsFormRow *)row isFirstRowInCard:(BOOL)isFirstRowInCard
+{
+	AISettingsRowView *rowView = [[AISettingsRowView alloc] initWithFrame:NSZeroRect];
+	[rowView setTranslatesAutoresizingMaskIntoConstraints:NO];
+	row->rowView = rowView;	//The alloc is the row's retain; released in -[AISettingsFormRow dealloc]
+
+	switch (row->type) {
+		case AISettingsRowTypeControl:		[self buildControlRow:row];		break;
+		case AISettingsRowTypePopUp:		[self buildPopUpRow:row];		break;
+		case AISettingsRowTypeSlider:
+		case AISettingsRowTypeStretch:		[self buildSliderRow:row];		break;
+		case AISettingsRowTypeRadioGroup:	[self buildRadioRow:row];		break;
+		case AISettingsRowTypeFullWidth:	[self buildFullWidthRow:row];	break;
+		case AISettingsRowTypeEdgeToEdge:	[self buildEdgeToEdgeRow:row];	break;
+		case AISettingsRowTypeDetail:		[self buildDetailRow:row isFirstRowInCard:isFirstRowInCard]; break;
+		case AISettingsRowTypeEmptyState:	[self buildEmptyStateRow:row];	break;
+		case AISettingsRowTypeInfo:			[self buildInfoRow:row];		break;
+	}
+}
+
+/*!
+ * @brief A row's minimum height, and the pull that keeps it honest.
+ *
+ * Every constraint above the shrinker only ever says "at least this tall"; the
+ * low priority equality is what pulls the row down onto the tallest of those
+ * floors, so a row is exactly 44 points or exactly its content plus padding —
+ * never something in between left over from an earlier pass.
+ */
+- (void)constrainHeightFloorOfRow:(AISettingsRowView *)rowView
+{
+	[NSLayoutConstraint activateConstraints:
+	 @[[rowView.heightAnchor constraintGreaterThanOrEqualToConstant:AISettingsRowMinHeight],
+	   AISettingsPrioritized([rowView.heightAnchor constraintEqualToConstant:0.0], AISettingsPriorityShrinkRow)]];
+}
+
+/*!
+ * @brief Label over detail line, as one block the caller centres in the row.
+ *
+ * A layout guide rather than a container view, so the fields stay direct
+ * subviews of the row — which is what lets the row feed them their wrap width
+ * back after every pass.
+ */
+- (NSLayoutGuide *)textBlockWithTop:(NSTextField *)topField bottom:(NSTextField *)bottomField inRow:(AISettingsRowView *)rowView
+{
+	NSLayoutGuide *block = [[[NSLayoutGuide alloc] init] autorelease];
+	[rowView addLayoutGuide:block];
+
+	AISettingsPrepareField(topField);
+	[rowView addSubview:topField];
+	[rowView followWidthOfField:topField];
+
+	NSMutableArray *constraints = [NSMutableArray arrayWithObjects:
+								   [topField.topAnchor constraintEqualToAnchor:block.topAnchor],
+								   [topField.leadingAnchor constraintEqualToAnchor:block.leadingAnchor],
+								   [topField.trailingAnchor constraintEqualToAnchor:block.trailingAnchor],
+								   nil];
+
+	if (bottomField) {
+		AISettingsPrepareField(bottomField);
+		[rowView addSubview:bottomField];
+		[rowView followWidthOfField:bottomField];
+		[constraints addObjectsFromArray:
+		 @[[bottomField.topAnchor constraintEqualToAnchor:topField.bottomAnchor constant:AISettingsDetailGap],
+		   [bottomField.leadingAnchor constraintEqualToAnchor:block.leadingAnchor],
+		   [bottomField.trailingAnchor constraintEqualToAnchor:block.trailingAnchor],
+		   [bottomField.bottomAnchor constraintEqualToAnchor:block.bottomAnchor]]];
+	} else {
+		[constraints addObject:[topField.bottomAnchor constraintEqualToAnchor:block.bottomAnchor]];
+	}
+
+	[NSLayoutConstraint activateConstraints:constraints];
+
+	return block;
+}
+
+/*!
+ * @brief Label on the left, the control right aligned at its natural width.
+ */
+- (void)buildControlRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+	NSMutableArray		*constraints = [NSMutableArray array];
+	//Subview order is reading order: the label goes in first, as it always did
+	NSLayoutGuide		*block = nil;
+
+	if (row->labelField || row->detailField) {
+		NSTextField *topField = (row->labelField ?: row->detailField);
+		NSTextField *bottomField = ((row->labelField && row->detailField) ? row->detailField : nil);
+
+		block = [self textBlockWithTop:topField bottom:bottomField inRow:rowView];
+	}
+
+	if (row->control) {
+		AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:row->control
+																	   sizing:AISettingsGuestSizingNatural];
+		row->controlHost = host;
+		/* The natural width as a pair of priorities: hugging keeps the control
+		 * from ever growing past it, compression lets a narrow card take width
+		 * away — and since the natural size is remembered in the host, the
+		 * control grows back the moment there is room again. */
+		[host setContentHuggingPriority:AISettingsPriorityNaturalCap forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[host setContentCompressionResistancePriority:AISettingsPriorityNaturalWidth forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[rowView addSubview:host];
+
+		[constraints addObjectsFromArray:
+		 @[[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+		   [host.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [host.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+		   //Whatever the priorities below decide, the card's inner width is a hard wall
+		   [host.leadingAnchor constraintGreaterThanOrEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+		   //A wide control gives way before the label column falls below its minimum...
+		   AISettingsPrioritized([host.widthAnchor constraintLessThanOrEqualToAnchor:rowView.widthAnchor
+																			constant:-(2.0 * AISettingsCardInsetH + AISettingsLabelControlGap + AISettingsMinLabelWidth)],
+								 AISettingsPriorityLabelReserve),
+		   //...but never below a usable floor, which a naturally narrow control ignores (its hugging outranks this)
+		   AISettingsPrioritized([host.widthAnchor constraintGreaterThanOrEqualToConstant:60.0],
+								 AISettingsPriorityControlFloor)]];
+	}
+
+	if (block) {
+		[constraints addObjectsFromArray:
+		 @[[block.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+		   [block.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [block.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV]]];
+
+		if (row->controlHost) {
+			/* The label column is as wide as the row leaves it — that width is
+			 * also the tool tip's hot area — but stretching it must never be a
+			 * reason to squeeze the control, hence below NaturalWidth. */
+			[constraints addObjectsFromArray:
+			 @[[block.trailingAnchor constraintLessThanOrEqualToAnchor:row->controlHost.leadingAnchor
+															  constant:-AISettingsLabelControlGap],
+			   AISettingsPrioritized([block.trailingAnchor constraintEqualToAnchor:row->controlHost.leadingAnchor
+																		  constant:-AISettingsLabelControlGap],
+									 AISettingsPriorityLabelFill)]];
+		} else {
+			[constraints addObject:[block.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor
+																		constant:-AISettingsCardInsetH]];
+		}
+	}
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
+/*!
+ * @brief Label, pop up button and optional accessory button at the trailing edge.
+ */
+- (void)buildPopUpRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+	NSMutableArray		*constraints = [NSMutableArray array];
+
+	//Subview order is reading order: label, accessory, menu — as it always was
+	if (row->labelField) {
+		AISettingsPrepareField(row->labelField);
+		[rowView addSubview:row->labelField];
+		[rowView followWidthOfField:row->labelField];
+	}
+
+	if (row->accessoryControl) {
+		AISettingsGuestHostView *accessory = [AISettingsGuestHostView hostForGuest:row->accessoryControl
+																			sizing:AISettingsGuestSizingKeepFrame];
+		row->accessoryHost = accessory;
+		//The accessory is never resized; in a card too narrow for both, the menu gives way
+		[accessory setContentHuggingPriority:AISettingsPriorityKeepFrame forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[accessory setContentCompressionResistancePriority:AISettingsPriorityKeepFrame forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[rowView addSubview:accessory];
+
+		[constraints addObjectsFromArray:
+		 @[[accessory.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+		   [accessory.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [accessory.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV]]];
+	}
+
+	AISettingsGuestHostView *popUp = [AISettingsGuestHostView hostForGuest:row->control
+																	sizing:AISettingsGuestSizingNatural];
+	row->controlHost = popUp;
+	/* Natural width as priorities, exactly as in a control row — but the
+	 * natural size itself is re-measured from the menu at every layout, in
+	 * -refreshGuestMetricsForCardWidth:. */
+	[popUp setContentHuggingPriority:AISettingsPriorityNaturalCap forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[popUp setContentCompressionResistancePriority:AISettingsPriorityNaturalWidth forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[rowView addSubview:popUp];
+
+	[constraints addObjectsFromArray:
+	 @[(row->accessoryHost ?
+		[popUp.trailingAnchor constraintEqualToAnchor:row->accessoryHost.leadingAnchor constant:-AISettingsControlGap] :
+		[popUp.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]),
+	   [popUp.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+	   [popUp.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+	   [popUp.leadingAnchor constraintGreaterThanOrEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+	   //A minimum for the menu, not a licence to overrun the card: the required pins above win
+	   AISettingsPrioritized([popUp.widthAnchor constraintGreaterThanOrEqualToConstant:40.0],
+							 AISettingsPriorityControlFloor)]];
+
+	if (row->labelField) {
+		[constraints addObjectsFromArray:
+		 @[[row->labelField.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+		   [row->labelField.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [row->labelField.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+		   [row->labelField.trailingAnchor constraintLessThanOrEqualToAnchor:popUp.leadingAnchor
+																	constant:-AISettingsLabelControlGap],
+		   AISettingsPrioritized([row->labelField.trailingAnchor constraintEqualToAnchor:popUp.leadingAnchor
+																				constant:-AISettingsLabelControlGap],
+								 AISettingsPriorityLabelFill),
+		   //A wide menu gives way before the label column falls below its minimum
+		   AISettingsPrioritized([row->labelField.widthAnchor constraintGreaterThanOrEqualToConstant:AISettingsMinLabelWidth],
+								 AISettingsPriorityLabelReserve)]];
+	}
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
+/*!
+ * @brief Label column, stretching control, optional readout column.
+ *
+ * Serves sliders and stretching rows alike: the two are the same shape, and a
+ * stretching row is one without a readout, so its control runs to the card's
+ * inset. The label and readout widths are the card-wide shared columns whose
+ * constants -refreshGuestMetricsForCardWidth: keeps up to date.
+ */
+- (void)buildSliderRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+	NSMutableArray		*constraints = [NSMutableArray array];
+
+	if (row->labelField) {
+		AISettingsPrepareField(row->labelField);
+		/* A label pressed below the width its text needs is truncated, not
+		 * wrapped: wrapping would turn a long label into a column of single
+		 * syllables and blow the row up to ten lines. Within the column it
+		 * always fits on one line, so nothing is lost by never wrapping. */
+		[[row->labelField cell] setWraps:NO];
+		[row->labelField setLineBreakMode:NSLineBreakByTruncatingTail];
+		[rowView addSubview:row->labelField];
+
+		row->labelColumnConstraint = [[row->labelField.widthAnchor constraintEqualToConstant:0.0] retain];
+		[row->labelColumnConstraint setPriority:AISettingsPrioritySliderLabelColumn];
+
+		[constraints addObjectsFromArray:
+		 @[[row->labelField.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+		   [row->labelField.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [row->labelField.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+		   row->labelColumnConstraint]];
+	}
+
+	if (row->valueField) {
+		AISettingsGuestHostView *value = [AISettingsGuestHostView hostForGuest:row->valueField
+																		sizing:AISettingsGuestSizingStretch];
+		row->valueHost = value;
+		[rowView addSubview:value];
+
+		/* The readout is stretched to the shared column; its text is right
+		 * aligned, so a wider column still ends at the card's inset. */
+		row->valueColumnConstraint = [[value.widthAnchor constraintEqualToConstant:0.0] retain];
+		[row->valueColumnConstraint setPriority:AISettingsPriorityValueColumn];
+
+		[constraints addObjectsFromArray:
+		 @[[value.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+		   [value.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [value.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+		   row->valueColumnConstraint]];
+	}
+
+	AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:row->control
+																   sizing:AISettingsGuestSizingStretch];
+	row->controlHost = host;
+	[rowView addSubview:host];
+
+	[constraints addObjectsFromArray:
+	 @[(row->labelField ?
+		[host.leadingAnchor constraintEqualToAnchor:row->labelField.trailingAnchor constant:AISettingsLabelControlGap] :
+		[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH]),
+	   (row->valueHost ?
+		[host.trailingAnchor constraintEqualToAnchor:row->valueHost.leadingAnchor constant:-AISettingsLabelControlGap] :
+		[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]),
+	   [host.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+	   [host.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+	   /* A narrow card shortens the label rather than the slider: this outranks
+		* the label column, so the column's equality is what breaks first. */
+	   AISettingsPrioritized([host.widthAnchor constraintGreaterThanOrEqualToConstant:AISettingsSliderMinWidth],
+							 AISettingsPrioritySliderMinWidth)]];
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
+/*!
+ * @brief Label on top, the radio button column below it.
+ */
+- (void)buildRadioRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+	NSMutableArray		*constraints = [NSMutableArray array];
+	//The 2 point nudge keeps the group clear of the hairline, as it always did
+	CGFloat				 insetV = AISettingsRowInsetV + 2.0;
+
+	if (row->labelField) {
+		AISettingsPrepareField(row->labelField);
+		[rowView addSubview:row->labelField];
+		[rowView followWidthOfField:row->labelField];
+
+		[constraints addObjectsFromArray:
+		 @[[row->labelField.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+		   [row->labelField.topAnchor constraintEqualToAnchor:rowView.topAnchor constant:insetV],
+		   [row->labelField.trailingAnchor constraintLessThanOrEqualToAnchor:rowView.trailingAnchor
+																	constant:-AISettingsCardInsetH],
+		   AISettingsPrioritized([row->labelField.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor
+																				constant:-AISettingsCardInsetH],
+								 AISettingsPriorityLabelFill)]];
+	}
+
+	AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:row->radioContainer
+																   sizing:AISettingsGuestSizingStretch];
+	row->radioHost = host;
+	[rowView addSubview:host];
+
+	[constraints addObjectsFromArray:
+	 @[[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+	   [host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+	   (row->labelField ?
+		[host.topAnchor constraintEqualToAnchor:row->labelField.bottomAnchor constant:AISettingsRadioTopGap] :
+		[host.topAnchor constraintEqualToAnchor:rowView.topAnchor constant:insetV]),
+	   [host.bottomAnchor constraintLessThanOrEqualToAnchor:rowView.bottomAnchor constant:-insetV]]];
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
+/*!
+ * @brief A view spanning the card's inner width — or keeping its own.
+ *
+ * Top aligned rather than centred, as the frame based machine had it: a short
+ * bar in a minimum height row sits at the standard top inset.
+ */
+- (void)buildFullWidthRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView		*rowView = row->rowView;
+	AISettingsGuestHostView	*host = [AISettingsGuestHostView hostForGuest:row->fullWidthView
+																   sizing:(row->stretchesFullWidthView ?
+																		   AISettingsGuestSizingStretch :
+																		   AISettingsGuestSizingNatural)];
+	row->fullWidthHost = host;
+	[rowView addSubview:host];
+
+	NSMutableArray *constraints = [NSMutableArray arrayWithObjects:
+								   [host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+								   [host.topAnchor constraintEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+								   [host.bottomAnchor constraintLessThanOrEqualToAnchor:rowView.bottomAnchor constant:-AISettingsRowInsetV],
+								   nil];
+
+	if (row->stretchesFullWidthView) {
+		[constraints addObject:[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]];
+	} else {
+		//Its own width, capped at the card: a push button is not stretched across a card
+		[host setContentHuggingPriority:AISettingsPriorityNaturalCap forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[host setContentCompressionResistancePriority:AISettingsPriorityNaturalWidth forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[constraints addObject:[host.trailingAnchor constraintLessThanOrEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]];
+	}
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
+/*!
+ * @brief The view is the card: all four edges, no padding, no minimum height.
+ */
+- (void)buildEdgeToEdgeRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView		*rowView = row->rowView;
+	AISettingsGuestHostView	*host = [AISettingsGuestHostView hostForGuest:row->fullWidthView
+																   sizing:AISettingsGuestSizingStretch];
+	row->fullWidthHost = host;
+	[rowView addSubview:host];
+
+	//The hosted view's own height is the row height; it decides how tall the card is
+	[NSLayoutConstraint activateConstraints:
+	 @[[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor],
+	   [host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor],
+	   [host.topAnchor constraintEqualToAnchor:rowView.topAnchor],
+	   [host.bottomAnchor constraintEqualToAnchor:rowView.bottomAnchor]]];
+}
+
+/*!
+ * @brief A block of explanation, hugging the row above it.
+ *
+ * No minimum height — a 44 point row around one 15 point line would be a hole
+ * in the card — and no shrinker either: both edges are pinned, so the row is
+ * exactly its text plus the padding. Opening a card it takes the card's own
+ * top padding instead of clinging to a row that is not there.
+ */
+- (void)buildDetailRow:(AISettingsFormRow *)row isFirstRowInCard:(BOOL)isFirstRowInCard
+{
+	AISettingsRowView	*rowView = row->rowView;
+
+	AISettingsPrepareField(row->detailField);
+	[rowView addSubview:row->detailField];
+	[rowView followWidthOfField:row->detailField];
+
+	[NSLayoutConstraint activateConstraints:
+	 @[[row->detailField.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+	   [row->detailField.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+	   [row->detailField.topAnchor constraintEqualToAnchor:rowView.topAnchor
+												  constant:(isFirstRowInCard ? AISettingsRowInsetV : AISettingsDetailGap)],
+	   [row->detailField.bottomAnchor constraintEqualToAnchor:rowView.bottomAnchor constant:-AISettingsRowInsetV]]];
+}
+
+/*!
+ * @brief Centred text standing in for the rows a list does not have yet.
+ */
+- (void)buildEmptyStateRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+
+	AISettingsPrepareField(row->detailField);
+	[rowView addSubview:row->detailField];
+	[rowView followWidthOfField:row->detailField];
+
+	//A whole control row's height, so the card reads as an empty list, not as prose
+	[NSLayoutConstraint activateConstraints:
+	 @[[row->detailField.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+	   [row->detailField.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+	   [row->detailField.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+	   [row->detailField.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV]]];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
+/*!
+ * @brief Picture, heading over paragraph, optional control — all centred.
+ */
+- (void)buildInfoRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+	NSMutableArray		*constraints = [NSMutableArray array];
+	/* The text begins at the far side of the whole 40 point square, not of this
+	 * particular picture: only one edge of a scaled picture lands on the
+	 * square, so a portrait one is 36 points wide and a landscape one 40, and
+	 * two info rows in a card would otherwise start their paragraphs at two
+	 * different x — the same misalignment the shared slider label column exists
+	 * to prevent. The picture is centred in that column. */
+	CGFloat				 leadingColumn = (row->imageView ? AISettingsInfoImageSize + AISettingsLabelControlGap : 0.0);
+	//Subview order is reading order: the text goes in first, the picture is not read at all
+	NSLayoutGuide		*block = nil;
+
+	if (row->labelField || row->detailField) {
+		NSTextField *topField = (row->labelField ?: row->detailField);
+		NSTextField *bottomField = ((row->labelField && row->detailField) ? row->detailField : nil);
+
+		block = [self textBlockWithTop:topField bottom:bottomField inRow:rowView];
+	}
+
+	if (row->imageView) {
+		NSSize symbolSize = [[row->imageView image] size];
+
+		[row->imageView setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[rowView addSubview:row->imageView];
+		[constraints addObjectsFromArray:
+		 @[[row->imageView.widthAnchor constraintEqualToConstant:symbolSize.width],
+		   [row->imageView.heightAnchor constraintEqualToConstant:symbolSize.height],
+		   [row->imageView.centerXAnchor constraintEqualToAnchor:rowView.leadingAnchor
+														constant:AISettingsCardInsetH + AISettingsInfoImageSize / 2.0],
+		   [row->imageView.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [row->imageView.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV]]];
+	}
+
+	if (row->control) {
+		AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:row->control
+																	   sizing:AISettingsGuestSizingNatural];
+		row->controlHost = host;
+		//Natural width as priorities, exactly as in a control row
+		[host setContentHuggingPriority:AISettingsPriorityNaturalCap forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[host setContentCompressionResistancePriority:AISettingsPriorityNaturalWidth forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[rowView addSubview:host];
+
+		[constraints addObjectsFromArray:
+		 @[[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+		   [host.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [host.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+		   [host.leadingAnchor constraintGreaterThanOrEqualToAnchor:rowView.leadingAnchor
+															constant:AISettingsCardInsetH + leadingColumn],
+		   AISettingsPrioritized([host.widthAnchor constraintGreaterThanOrEqualToConstant:60.0],
+								 AISettingsPriorityControlFloor)]];
+	}
+
+	if (block) {
+		[constraints addObjectsFromArray:
+		 @[[block.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor
+											   constant:AISettingsCardInsetH + leadingColumn],
+		   [block.centerYAnchor constraintEqualToAnchor:rowView.centerYAnchor],
+		   [block.topAnchor constraintGreaterThanOrEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
+		   (row->controlHost ?
+			[block.trailingAnchor constraintEqualToAnchor:row->controlHost.leadingAnchor constant:-AISettingsLabelControlGap] :
+			[block.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]),
+		   /* A button wider than what the paragraph can spare gives way, so the
+			* text is never squeezed into a column of syllables. */
+		   AISettingsPrioritized([block.widthAnchor constraintGreaterThanOrEqualToConstant:AISettingsMinLabelWidth],
+								 AISettingsPriorityLabelReserve)]];
+	}
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
 }
 
 #pragma mark Layout
@@ -1033,8 +1917,9 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 - (void)noteContentSizeChanged
 {
-	/* -layoutRow:atY:inCardOfWidth: adopts a height a hosted view changed on its
-	 * own, so laying out again is all it takes. */
+	/* The hosts re-read every guest's frame in the next pass, so laying out
+	 * again is all it takes: the grown list becomes its host's new intrinsic
+	 * height, the card follows, the form follows, the document height follows. */
 	[self layoutForWidth:NSWidth([self frame])];
 }
 
@@ -1049,103 +1934,23 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 	needsFormLayout = NO;
 
 	CGFloat cardWidth = MAX(width - 2.0 * AISettingsOuterMargin, 2.0 * AISettingsCardInsetH + 40.0);
-	CGFloat y = 0.0;
-	BOOL isFirstSection = YES;
 
-	for (AISettingsFormSection *section in sections) {
-		if (![section->rows count] && !section->headerField && !section->accessoryView && !section->footnoteField) continue;
+	[self updateStackSpacing];
+	[self refreshGuestMetricsForCardWidth:cardWidth];
 
-		if (!isFirstSection) y += (section->headerField ? AISettingsSectionGap : AISettingsCardGap);
-		isFirstSection = NO;
+	if (fabs([formWidthConstraint constant] - width) > 0.5) [formWidthConstraint setConstant:width];
 
-		if (section->headerField) {
-			CGFloat headerHeight = AISettingsFieldHeight(section->headerField, cardWidth);
-			[section->headerField setFrame:NSMakeRect(AISettingsOuterMargin, y, cardWidth, headerHeight)];
-			y += headerHeight + AISettingsHeaderGap;
-		}
+	/* Two passes: the first resolves the widths, and on its way out hands every
+	 * wrapping field the width it actually got (see AISettingsRowView); the
+	 * second resolves the heights of the text that refolded to those widths.
+	 * Heights never feed back into widths here, so two passes settle it. */
+	[self layoutSubtreeIfNeeded];
+	[self layoutSubtreeIfNeeded];
 
-		/* Slider rows of one card share a label and a readout column, the way
-		 * System Settings lines its sliders up: otherwise "Opacity" and "Maximum
-		 * Width" would start their sliders at two different x, and retitling one
-		 * of them would shift its slider while the user works two rows above.
-		 * Stretching rows are laid out as slider rows and share the columns with
-		 * them, so a card mixing both still has one label column. */
-		CGFloat sliderInnerWidth = cardWidth - 2.0 * AISettingsCardInsetH;
-		CGFloat sliderLabelColumn = 0.0;
-		CGFloat sliderValueColumn = 0.0;
+	[self updateCardSeparators];
 
-		for (AISettingsFormRow *row in section->rows) {
-			if (row->type != AISettingsRowTypeSlider && row->type != AISettingsRowTypeStretch) continue;
-
-			if (row->labelField) {
-				sliderLabelColumn = MAX(sliderLabelColumn, ceil([[row->labelField cell] cellSize].width));
-			}
-			if (row->valueField) {
-				sliderValueColumn = MAX(sliderValueColumn, AISettingsControlSize(row->valueField).width);
-			}
-		}
-		//Only the cap follows the card's width; the text width itself never shrinks again
-		section->sliderLabelNatural = MAX(section->sliderLabelNatural, sliderLabelColumn);
-		sliderLabelColumn = MIN(section->sliderLabelNatural, floor(sliderInnerWidth * AISettingsSliderLabelMax));
-
-		for (AISettingsFormRow *row in section->rows) {
-			row->sliderLabelColumn = sliderLabelColumn;
-			row->sliderValueColumn = sliderValueColumn;
-		}
-
-		//Rows are laid out in the card's own (flipped) coordinates
-		NSMutableArray *separators = [NSMutableArray array];
-		CGFloat rowY = 0.0;
-		BOOL previousWasEdgeToEdge = NO;
-
-		for (AISettingsFormRow *row in section->rows) {
-			BOOL edgeToEdge = (row->type == AISettingsRowTypeEdgeToEdge);
-
-			/* An edge to edge row fills the card and brings its own separators,
-			 * so the card must not draw one against it. A detail row explains what
-			 * stands above it and has to end up on the near side of the line: it
-			 * gets no divider of its own, while the row after it draws one as
-			 * usual. */
-			if (rowY > 0.0 && !edgeToEdge && !previousWasEdgeToEdge && row->type != AISettingsRowTypeDetail) {
-				[separators addObject:[NSNumber numberWithDouble:rowY]];
-			}
-			rowY += [self layoutRow:row atY:rowY inCardOfWidth:cardWidth];
-			previousWasEdgeToEdge = edgeToEdge;
-		}
-
-		[section->cardView setFrame:NSMakeRect(AISettingsOuterMargin, y, cardWidth, rowY)];
-		[section->cardView setSeparatorPositions:separators];
-		[section->cardView setNeedsDisplay:YES];
-
-		y += rowY;
-
-		if (section->accessoryView) {
-			/* Aligned with one edge of the card and never resized: it keeps the size
-			 * its builder gave it, so reading the frame back cannot ratchet it down. */
-			NSSize	size = AISettingsControlSize(section->accessoryView);
-			CGFloat	accessoryX = (section->accessoryTrailing ?
-								  AISettingsOuterMargin + MAX(cardWidth - size.width, 0.0) :
-								  AISettingsOuterMargin);
-
-			y += AISettingsAccessoryGap;
-			[section->accessoryView setFrame:NSMakeRect(accessoryX, y, size.width, size.height)];
-			y += size.height;
-		}
-
-		if (section->footnoteField) {
-			/* Aligned with the card's edge rather than with the labels inside it,
-			 * so a card carrying both a button bar and a footnote does not put two
-			 * different left edges underneath itself. Measured at exactly the width
-			 * it is given, so it refolds with the window instead of being clipped. */
-			CGFloat footnoteHeight = AISettingsFieldHeight(section->footnoteField, cardWidth);
-
-			y += AISettingsAccessoryGap;
-			[section->footnoteField setFrame:NSMakeRect(AISettingsOuterMargin, y, cardWidth, footnoteHeight)];
-			y += footnoteHeight;
-		}
-	}
-
-	contentHeight = ceil(y);
+	//The whole point of the stack: the content height is read, not added up
+	contentHeight = ceil(NSHeight([formStack frame]));
 
 	if (fabs(NSWidth([self frame]) - width) > 0.5 || fabs(NSHeight([self frame]) - contentHeight) > 0.5) {
 		//Bypasses our own -setFrameSize: so this cannot recurse
@@ -1157,327 +1962,142 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 }
 
 /*!
- * @brief Place one row's views and return the height it occupies.
+ * @brief Everything a layout pass must re-read before the engine runs.
+ *
+ * The one place where guest frames meet the constraint world: pop up menus are
+ * re-measured, self resized guests become their host's new intrinsic height,
+ * and the shared slider columns get their constants. All of it happens before
+ * -layoutSubtreeIfNeeded, so the engine sees one consistent picture.
  */
-- (CGFloat)layoutRow:(AISettingsFormRow *)row atY:(CGFloat)rowY inCardOfWidth:(CGFloat)cardWidth
+- (void)refreshGuestMetricsForCardWidth:(CGFloat)cardWidth
 {
-	CGFloat innerWidth = cardWidth - 2.0 * AISettingsCardInsetH;
+	CGFloat sliderInnerWidth = cardWidth - 2.0 * AISettingsCardInsetH;
 
-	/* Layout only ever narrows a control, so a frame wider than the size we
-	 * remembered can only come from the caller (a -sizeToFit after filling a
-	 * pop up menu, say): adopt it as the new natural size. Reading the frame
-	 * back unconditionally would ratchet every control down to the narrowest
-	 * width it was ever laid out at.
-	 */
-	NSView *sizedView = (row->control ?: row->fullWidthView);
-	if (sizedView) {
-		NSSize current = [sizedView frame].size;
-		if (current.width > row->naturalControlSize.width + 0.5) row->naturalControlSize.width = current.width;
-		if (fabs(current.height - row->naturalControlSize.height) > 0.5) row->naturalControlSize.height = current.height;
-	}
+	for (AISettingsFormSection *section in sections) {
+		//Headers and footnotes wrap at the card's width, which is known up front
+		if (section->headerField) [section->headerField setPreferredMaxLayoutWidth:cardWidth];
+		if (section->footnoteField) [section->footnoteField setPreferredMaxLayoutWidth:cardWidth];
+		[section->accessoryHost refreshGuestMetrics];
 
-	switch (row->type) {
-		case AISettingsRowTypeEdgeToEdge: {
-			/* The view is the card: full width, no inset, and its height is the
-			 * row height, so a hosted list decides how tall the card is. */
-			CGFloat height = MAX(row->naturalControlSize.height, 1.0);
+		/* Slider rows of one card share a label and a readout column, the way
+		 * System Settings lines its sliders up: otherwise "Opacity" and "Maximum
+		 * Width" would start their sliders at two different x, and retitling one
+		 * of them would shift its slider while the user works two rows above.
+		 * Stretching rows are built as slider rows and share the columns with
+		 * them, so a card mixing both still has one label column. */
+		CGFloat labelColumn = 0.0;
+		CGFloat valueColumn = 0.0;
+		for (AISettingsFormRow *row in section->rows) {
+			if (row->type != AISettingsRowTypeSlider && row->type != AISettingsRowTypeStretch) continue;
 
-			[row->fullWidthView setFrame:NSMakeRect(0.0, rowY, cardWidth, height)];
-
-			return height;
+			if (row->labelField) labelColumn = MAX(labelColumn, ceil([[row->labelField cell] cellSize].width));
+			if (row->valueField) valueColumn = MAX(valueColumn, AISettingsControlSize(row->valueField).width);
 		}
+		//Only the cap follows the card's width; the text width itself never shrinks again
+		section->sliderLabelNatural = MAX(section->sliderLabelNatural, labelColumn);
+		labelColumn = MIN(section->sliderLabelNatural, floor(sliderInnerWidth * AISettingsSliderLabelMax));
 
-		case AISettingsRowTypeFullWidth: {
-			NSSize size = row->naturalControlSize;
-			CGFloat width = (row->stretchesFullWidthView ? innerWidth : MIN(size.width, innerWidth));
-
-			[row->fullWidthView setFrame:NSMakeRect(AISettingsCardInsetH,
-													rowY + AISettingsRowInsetV,
-													MAX(width, 1.0),
-													size.height)];
-			return MAX(size.height + 2.0 * AISettingsRowInsetV, AISettingsRowMinHeight);
-		}
-
-		case AISettingsRowTypeDetail: {
-			/* A block of explanation, not a control row: no minimum height — a
-			 * 44 point row around one 15 point line would be a hole in the card —
-			 * and measured at exactly the width the frame is about to get, so a
-			 * word cannot fold into a line no height was reserved for. */
-			CGFloat textHeight = AISettingsFieldHeight(row->detailField, innerWidth);
-
-			/* A detail row explains the row above it, so it clings to it the way a
-			 * label's own detail line does; opening a card it needs the card's
-			 * padding instead. rowY is 0 for the first row of a card — the same
-			 * test -layoutForWidth: uses for the dividers. */
-			CGFloat topInset = (rowY > 0.0 ? AISettingsDetailGap : AISettingsRowInsetV);
-
-			[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH,
-												  rowY + topInset,
-												  innerWidth,
-												  textHeight)];
-
-			return topInset + textHeight + AISettingsRowInsetV;
-		}
-
-		case AISettingsRowTypeEmptyState: {
-			/* A whole row's worth of height, unlike a detail row: this stands for
-			 * the rows which are not there, so the card has to look like a list
-			 * with nothing in it rather than like a single line of prose. The text
-			 * is centred in both directions and re-measured every time, so it
-			 * refolds with the window. */
-			CGFloat textHeight = AISettingsFieldHeight(row->detailField, innerWidth);
-			CGFloat rowHeight = MAX(AISettingsRowMinHeight, textHeight + 2.0 * AISettingsRowInsetV);
-
-			[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH,
-												  rowY + floor((rowHeight - textHeight) / 2.0),
-												  innerWidth,
-												  textHeight)];
-
-			return rowHeight;
-		}
-
-		case AISettingsRowTypeInfo: {
-			/* A picture at the leading edge, the heading and the paragraph it
-			 * illustrates beside it and a control at the trailing edge, all three
-			 * centred against whichever of them is tallest.
-			 *
-			 * Measured exactly the way a detail row is: both text heights are asked
-			 * for afresh at every layout, at the width that is actually left between
-			 * the picture and the control, so the block refolds as the window
-			 * narrows. Nothing here reads a text frame back — the image view is given
-			 * the size its (already scaled) picture has and never reports one, and the
-			 * control's remembered size has no width in it that a layout could shrink
-			 * — so no measurement of a wide card can survive into a narrow one. */
-			NSImage	*symbol = [row->imageView image];
-			NSSize	 symbolSize = (symbol ? [symbol size] : NSZeroSize);
-			/* The text begins at the far side of the whole square, not at the far side of
-			 * this particular picture: only one of the two edges of a scaled picture ends up
-			 * on the square, so a portrait one is 36 points wide and a landscape one 40, and
-			 * two info rows in a card would start their paragraphs at two different x - the
-			 * same misalignment the shared slider label column above exists to prevent. The
-			 * picture is centred in that column, so a narrow one does not hang off its
-			 * leading edge. */
-			CGFloat	 leading = (symbolSize.width > 0.0 ? AISettingsInfoImageSize + AISettingsLabelControlGap : 0.0);
-
-			/* Everything the picture did not take. The control is capped against this
-			 * rather than against the whole card, the way a control row caps itself
-			 * against the card's inner width: a button wider than what is left would
-			 * squeeze the paragraph into a column of syllables. */
-			CGFloat	 available = MAX(innerWidth - leading, 1.0);
-			NSSize	 controlSize = (row->control ? row->naturalControlSize : NSZeroSize);
-			CGFloat	 maxControlWidth = MAX(MIN(available - AISettingsMinLabelWidth - AISettingsLabelControlGap,
-											   available - 1.0),
-										   MIN(60.0, available - 1.0));
-			CGFloat	 controlWidth = (row->control ? MAX(MIN(controlSize.width, maxControlWidth), 0.0) : 0.0);
-			CGFloat	 trailing = (controlWidth > 0.0 ? controlWidth + AISettingsLabelControlGap : 0.0);
-			CGFloat	 textWidth = MAX(available - trailing, 1.0);
-
-			CGFloat	 titleHeight = (row->labelField ? AISettingsFieldHeight(row->labelField, textWidth) : 0.0);
-			CGFloat	 textHeight = (row->detailField ? AISettingsFieldHeight(row->detailField, textWidth) : 0.0);
-			//The gap only exists where there are two lines to keep apart
-			CGFloat	 titleGap = ((titleHeight > 0.0 && textHeight > 0.0) ? AISettingsDetailGap : 0.0);
-			CGFloat	 blockHeight = titleHeight + titleGap + textHeight;
-			CGFloat	 rowHeight = MAX(AISettingsRowMinHeight,
-									 MAX(MAX(blockHeight, symbolSize.height), controlSize.height) + 2.0 * AISettingsRowInsetV);
-			CGFloat	 textY = rowY + floor((rowHeight - blockHeight) / 2.0);
-
-			if (row->imageView) {
-				[row->imageView setFrame:NSMakeRect(AISettingsCardInsetH + floor((AISettingsInfoImageSize - symbolSize.width) / 2.0),
-													rowY + floor((rowHeight - symbolSize.height) / 2.0),
-													symbolSize.width,
-													symbolSize.height)];
+		for (AISettingsFormRow *row in section->rows) {
+			if (row->type == AISettingsRowTypePopUp) {
+				/* The menu decides how wide the button wants to be, and it may
+				 * have been rebuilt since the last pass, so ask again every time
+				 * — wider or narrower, unlike the ratchet every other control
+				 * rides on. */
+				[(NSControl *)row->control sizeToFit];
+				[row->controlHost resetNaturalSize];
+			} else {
+				[row->controlHost refreshGuestMetrics];
 			}
-			if (row->labelField) {
-				[row->labelField setFrame:NSMakeRect(AISettingsCardInsetH + leading,
-													 textY,
-													 textWidth,
-													 titleHeight)];
-			}
-			if (row->detailField) {
-				[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH + leading,
-													  textY + titleHeight + titleGap,
-													  textWidth,
-													  textHeight)];
-			}
-			if (row->control) {
-				[row->control setFrame:NSMakeRect(cardWidth - AISettingsCardInsetH - controlWidth,
-												  rowY + floor((rowHeight - controlSize.height) / 2.0),
-												  MAX(controlWidth, 1.0),
-												  controlSize.height)];
-			}
-
-			return rowHeight;
-		}
-
-		case AISettingsRowTypePopUp: {
-			/* The menu decides how wide the button wants to be, and it may have
-			 * been rebuilt since the row was added, so ask again every time. */
-			[(NSControl *)row->control sizeToFit];
-
-			NSSize	popUpSize = AISettingsControlSize(row->control);
-			NSSize	accessorySize = (row->accessoryControl ? AISettingsControlSize(row->accessoryControl) : NSZeroSize);
-			CGFloat	trailing = (accessorySize.width > 0.0 ? accessorySize.width + AISettingsControlGap : 0.0);
-			CGFloat	maxControlWidth = MAX(MIN(innerWidth - AISettingsMinLabelWidth - AISettingsLabelControlGap,
-											  innerWidth - 1.0),
-										  MIN(60.0, innerWidth - 1.0));
-			CGFloat	popUpWidth = MIN(popUpSize.width, MAX(maxControlWidth - trailing, 40.0));
-			CGFloat	controlWidth = popUpWidth + trailing;
-
-			/* The 40 point floor above is a minimum for the menu, not a licence to
-			 * overrun the card: in a card narrow enough that the accessory button
-			 * alone fills it, the menu — not the button — gives way. */
-			if (controlWidth > innerWidth) {
-				popUpWidth = MAX(innerWidth - trailing, 20.0);
-				controlWidth = popUpWidth + trailing;
-			}
-			CGFloat	labelWidth = MAX(innerWidth - controlWidth - AISettingsLabelControlGap, 1.0);
-
-			CGFloat	labelHeight = (row->labelField ? AISettingsFieldHeight(row->labelField, labelWidth) : 0.0);
-			CGFloat	rowHeight = MAX(AISettingsRowMinHeight,
-									MAX(MAX(labelHeight, popUpSize.height), accessorySize.height) + 2.0 * AISettingsRowInsetV);
-
-			if (row->labelField) {
-				[row->labelField setFrame:NSMakeRect(AISettingsCardInsetH,
-													 rowY + floor((rowHeight - labelHeight) / 2.0),
-													 labelWidth,
-													 labelHeight)];
-			}
-			if (row->accessoryControl) {
-				[row->accessoryControl setFrame:NSMakeRect(cardWidth - AISettingsCardInsetH - accessorySize.width,
-														   rowY + floor((rowHeight - accessorySize.height) / 2.0),
-														   accessorySize.width,
-														   accessorySize.height)];
-			}
-			[row->control setFrame:NSMakeRect(cardWidth - AISettingsCardInsetH - controlWidth,
-											  rowY + floor((rowHeight - popUpSize.height) / 2.0),
-											  popUpWidth,
-											  popUpSize.height)];
-
-			return rowHeight;
-		}
-
-		case AISettingsRowTypeSlider:
-		case AISettingsRowTypeStretch: {
-			/* Label, slider and readout share one line: the label and the readout
-			 * keep the width of their text, the slider takes what is left. A
-			 * stretching row is the same thing without a readout — valueField is
-			 * nil, so the trailing column collapses to nothing and the control
-			 * runs to the card's inset. */
-			NSSize	valueSize = (row->valueField ? AISettingsControlSize(row->valueField) : NSZeroSize);
-			CGFloat	sliderHeight = MAX(row->naturalControlSize.height, 1.0);
-			//Both columns are shared by every slider row of this card
-			CGFloat	valueWidth = MAX(row->sliderValueColumn, valueSize.width);
-			CGFloat	trailing = (valueWidth > 0.0 ? valueWidth + AISettingsLabelControlGap : 0.0);
-			CGFloat	labelWidth = (row->labelField ? row->sliderLabelColumn : 0.0);
-
-			CGFloat leading = (labelWidth > 0.0 ? labelWidth + AISettingsLabelControlGap : 0.0);
-			CGFloat sliderWidth = innerWidth - leading - trailing;
-
-			if (sliderWidth < AISettingsSliderMinWidth) {
-				//A narrow card shortens the label rather than the slider
-				labelWidth = MAX(labelWidth - (AISettingsSliderMinWidth - sliderWidth), 0.0);
-				leading = (labelWidth > 0.0 ? labelWidth + AISettingsLabelControlGap : 0.0);
-				sliderWidth = MAX(innerWidth - leading - trailing, 1.0);
-			}
-
-			/* A label pressed below the width its text needs is truncated, not
-			 * wrapped: wrapping would turn a long label into a column of single
-			 * syllables and blow the row up to ten lines. */
-			if (row->labelField) {
-				BOOL	fits = (labelWidth + 0.5 >= ceil([[row->labelField cell] cellSize].width));
-
-				/* -setWraps: rewrites the line break mode (word wrapping when YES,
-				 * clipping when NO), so the mode has to be set afterwards. */
-				[[row->labelField cell] setWraps:fits];
-				[row->labelField setLineBreakMode:(fits ? NSLineBreakByWordWrapping : NSLineBreakByTruncatingTail)];
-			}
-
-			CGFloat labelHeight = (labelWidth > 0.0 ? AISettingsFieldHeight(row->labelField, labelWidth) : 0.0);
-			CGFloat rowHeight = MAX(AISettingsRowMinHeight,
-									MAX(MAX(labelHeight, sliderHeight), valueSize.height) + 2.0 * AISettingsRowInsetV);
-
-			if (row->labelField) {
-				[row->labelField setFrame:NSMakeRect(AISettingsCardInsetH,
-													 rowY + floor((rowHeight - labelHeight) / 2.0),
-													 MAX(labelWidth, 1.0),
-													 labelHeight)];
-				[row->labelField setHidden:(labelWidth < 1.0)];
-			}
-			[row->control setFrame:NSMakeRect(AISettingsCardInsetH + leading,
-											  rowY + floor((rowHeight - sliderHeight) / 2.0),
-											  sliderWidth,
-											  sliderHeight)];
-			if (row->valueField) {
-				//Right aligned text, so a wider shared column still ends at the card's inset
-				[row->valueField setFrame:NSMakeRect(cardWidth - AISettingsCardInsetH - valueWidth,
-													 rowY + floor((rowHeight - valueSize.height) / 2.0),
-													 valueWidth,
-													 valueSize.height)];
-			}
-
-			return rowHeight;
-		}
-
-		case AISettingsRowTypeRadioGroup: {
-			CGFloat offset = AISettingsRowInsetV + 2.0;
-			CGFloat buttonY = 0.0;
-
-			if (row->labelField) {
-				CGFloat labelHeight = AISettingsFieldHeight(row->labelField, innerWidth);
-				[row->labelField setFrame:NSMakeRect(AISettingsCardInsetH, rowY + offset, innerWidth, labelHeight)];
-				offset += labelHeight + AISettingsRadioTopGap;
-			}
-
-			//Positions are relative to the group's own (flipped) container
-			for (NSButton *button in row->radioButtons) {
-				NSSize size = AISettingsControlSize(button);
-				[button setFrame:NSMakeRect(0.0, buttonY, MIN(size.width, innerWidth), size.height)];
-				buttonY += size.height + AISettingsRadioSpacing;
-			}
-			if ([row->radioButtons count]) buttonY -= AISettingsRadioSpacing;
-
-			[row->radioContainer setFrame:NSMakeRect(AISettingsCardInsetH, rowY + offset, innerWidth, MAX(buttonY, 0.0))];
-			offset += MAX(buttonY, 0.0);
-
-			return MAX(offset + AISettingsRowInsetV + 2.0, AISettingsRowMinHeight);
-		}
-
-		case AISettingsRowTypeControl:
-		default: {
-			NSSize controlSize = row->naturalControlSize;
-			CGFloat maxControlWidth = MAX(MIN(innerWidth - AISettingsMinLabelWidth - AISettingsLabelControlGap,
-											  innerWidth - 1.0),
-										  MIN(60.0, innerWidth - 1.0));
-			CGFloat controlWidth = MIN(controlSize.width, maxControlWidth);
-			CGFloat labelWidth = MAX(innerWidth - (row->control ? controlWidth + AISettingsLabelControlGap : 0.0), 1.0);
-
-			CGFloat labelHeight = (row->labelField ? AISettingsFieldHeight(row->labelField, labelWidth) : 0.0);
-			CGFloat detailHeight = (row->detailField ? AISettingsFieldHeight(row->detailField, labelWidth) : 0.0);
-			CGFloat textHeight = labelHeight + (detailHeight > 0.0 ? AISettingsDetailGap + detailHeight : 0.0);
-
-			CGFloat rowHeight = MAX(AISettingsRowMinHeight,
-									MAX(textHeight, controlSize.height) + 2.0 * AISettingsRowInsetV);
-
-			CGFloat textY = rowY + floor((rowHeight - textHeight) / 2.0);
-			if (row->labelField) {
-				[row->labelField setFrame:NSMakeRect(AISettingsCardInsetH, textY, labelWidth, labelHeight)];
-			}
-			if (row->detailField) {
-				[row->detailField setFrame:NSMakeRect(AISettingsCardInsetH,
-													  textY + labelHeight + AISettingsDetailGap,
-													  labelWidth,
-													  detailHeight)];
-			}
-			if (row->control) {
-				[row->control setFrame:NSMakeRect(cardWidth - AISettingsCardInsetH - controlWidth,
-												  rowY + floor((rowHeight - controlSize.height) / 2.0),
-												  controlWidth,
-												  controlSize.height)];
-			}
-
-			return rowHeight;
+			if (row->labelColumnConstraint) [row->labelColumnConstraint setConstant:labelColumn];
+			if (row->valueColumnConstraint) [row->valueColumnConstraint setConstant:valueColumn];
+			[row->accessoryHost refreshGuestMetrics];
+			[row->valueHost refreshGuestMetrics];
+			[row->radioHost refreshGuestMetrics];
+			[row->fullWidthHost refreshGuestMetrics];
 		}
 	}
+}
+
+/*!
+ * @brief Keep the stack's gaps true to the section structure.
+ *
+ * The gaps of the old machine, expressed as custom spacing: a header hangs
+ * eight points over its card, an accessory or footnote eight points under it,
+ * and a section keeps twenty-two points of air in front of a headed successor
+ * but only twelve in front of a bare card. Empty sections — endCard leaves one
+ * behind by design — are hidden, which detaches them from the stack entirely,
+ * so they cost no gap either.
+ */
+- (void)updateStackSpacing
+{
+	NSMutableArray *visibleSections = [NSMutableArray array];
+
+	for (AISettingsFormSection *section in sections) {
+		BOOL visible = ([section->rows count] || section->headerField || section->accessoryView || section->footnoteField);
+		[section->cardView setHidden:!visible];
+		if (visible) [visibleSections addObject:section];
+	}
+
+	NSUInteger count = [visibleSections count];
+	for (NSUInteger index = 0; index < count; index++) {
+		AISettingsFormSection	*section = [visibleSections objectAtIndex:index];
+		AISettingsFormSection	*next = (index + 1 < count ? [visibleSections objectAtIndex:index + 1] : nil);
+		NSView					*lastView = (section->footnoteField ?
+											 (NSView *)section->footnoteField :
+											 (section->accessoryWrapper ?: (NSView *)section->cardView));
+		//The air in front of the next section belongs to this one's last view
+		CGFloat					 trailingGap = (next ? (next->headerField ? AISettingsSectionGap : AISettingsCardGap) : 0.0);
+
+		if (section->headerField) [formStack setCustomSpacing:AISettingsHeaderGap afterView:section->headerField];
+		if ((NSView *)section->cardView != lastView) {
+			[formStack setCustomSpacing:AISettingsAccessoryGap afterView:section->cardView];
+		}
+		if (section->accessoryWrapper && section->accessoryWrapper != lastView) {
+			[formStack setCustomSpacing:AISettingsAccessoryGap afterView:section->accessoryWrapper];
+		}
+		[formStack setCustomSpacing:trailingGap afterView:lastView];
+	}
+}
+
+/*!
+ * @brief Tell every card where its hairlines go.
+ *
+ * The dividers are read off the rows' resolved frames after a pass instead of
+ * being views of their own: a separator view in the stack would add its point
+ * to the card's height, while the frame based machine always drew the line
+ * <em>on</em> the boundary. The rules are unchanged: a line between two rows,
+ * none against an edge to edge row — a hosted list draws its own — and none
+ * above a detail row, whose text belongs to the row it stands under.
+ */
+- (void)updateCardSeparators
+{
+	for (AISettingsFormSection *section in sections) {
+		NSMutableArray		*positions = [NSMutableArray array];
+		AISettingsFormRow	*previous = nil;
+
+		for (AISettingsFormRow *row in section->rows) {
+			if (previous &&
+				row->type != AISettingsRowTypeEdgeToEdge &&
+				previous->type != AISettingsRowTypeEdgeToEdge &&
+				row->type != AISettingsRowTypeDetail &&
+				[row->rowView superview]) {
+				NSRect rowFrame = [section->cardView convertRect:[row->rowView frame]
+														fromView:[row->rowView superview]];
+				[positions addObject:[NSNumber numberWithDouble:NSMinY(rowFrame)]];
+			}
+			previous = row;
+		}
+
+		[section->cardView setSeparatorPositions:([positions count] ? positions : nil)];
+	}
+}
+
+- (void)layout
+{
+	[super layout];
+	/* Engine passes the form did not start — an intrinsic size invalidated by
+	 * AppKit itself, say — still move rows, and the hairlines have to follow. */
+	[self updateCardSeparators];
 }
 
 /*!
