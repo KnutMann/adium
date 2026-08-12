@@ -24,6 +24,9 @@
 	//Status states
 	AIStatusGroup			*_rootStateGroup;
 	NSMutableSet			*_flatStatusSet;
+	/* The unique status IDs the user has switched out of the status menus, loaded lazily from
+	 * KEY_HIDDEN_STATUS_IDS. Whatever is not in here is shown. */
+	NSMutableSet			*_hiddenStatusIDs;
 	NSMutableArray			*builtInStateArray;
 
 	AIStatus				*offlineStatusState; //Shared state used to symbolize the offline 'status'

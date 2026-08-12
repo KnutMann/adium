@@ -15,19 +15,20 @@
  */
 
 #import "AIPreferencePane.h"
+#import "AIStatusListView.h"
 
-@class AIStatus, AIAlternatingRowOutlineView, AISettingsFormView;
+@class AIStatus, AISettingsFormView;
 
 /*!
  * @class ESStatusPreferences
  * @brief The Status preference pane, built as an AISettingsFormView
  *
- * Three cards: the list of saved statuses with its button bar, the idle and away
- * settings, and the two automatic status changes. The nib no longer supplies an
- * arrangement, only ready made controls — above all the outline view with its
- * data source, its delegate and its drag registration, which is far too much to
- * rebuild by hand. -view moves those controls into the form and keeps the nib's
- * top level view in nibView for as long as they are in use.
+ * Three cards: the list of statuses with its "+" button, the idle and away
+ * settings, and the two automatic status changes. The list itself is built in
+ * code (AIStatusListView); what the nib still supplies is the two minute fields
+ * with their steppers and unit labels, the three status menus and the "+". -view
+ * moves those controls into the form and keeps the nib's top level view in
+ * nibView for as long as they are in use.
  *
  * Every control writes its preference the moment it is touched: the preferences
  * window only calls -closeView when the window itself closes, so leaving the
@@ -35,29 +36,17 @@
  * saved. The old -saveTimeValues, which wrote the two intervals from
  * -viewWillClose and nowhere else, is gone with it.
  */
-@interface ESStatusPreferences : AIPreferencePane {
+@interface ESStatusPreferences : AIPreferencePane <AIStatusListViewDelegate> {
 	/* The nib is only a supplier of ready made controls now; our view is the settings form we
 	 * move them into. This reference keeps the nib's top level view — and with it its ownership
 	 * of everything we did not move — alive for as long as we use its controls. */
 	NSView								*nibView;
 
-	//Status state list
-	IBOutlet	NSButton				*button_editState;
-	IBOutlet	NSButton				*button_addGroup;
+	/* The status list. Built in code and owned by the form once it has been handed over; this is a
+	 * non-retaining reference, cleared by -tearDown. */
+	AIStatusListView					*listView_states;
+	//The one button under the list, the nib's segmented control cut down to a single "+"
 	IBOutlet	NSSegmentedControl		*button_addOrRemoveState;
-
-	IBOutlet	AIAlternatingRowOutlineView	*outlineView_stateList;
-	//AIPassthroughScrollView in the nib: the list is sized to its rows and must not eat the wheel
-	IBOutlet	NSScrollView			*scrollView_stateList;
-
-	NSArray								*draggingItems;
-	BOOL								 stateListHeightUpdateScheduled;
-	/* A drop takes a rebuilding delay from the status controller and the perform which follows it
-	 * gives it back. -tearDown cancels pending performs, so it has to know whether it just cancelled
-	 * the one which would have balanced that delay. */
-	BOOL								 delayedStatusMenuRebuilding;
-	//What the outline view keeps beside its column, measured while it is tiled to its clip view
-	CGFloat								 stateColumnMargin;
 
 	/* The two checkboxes are NSSwitches built by -buildSettingsForm, the way every converted
 	 * pane does it; their titles moved into the row labels. Everything else below still comes
@@ -74,25 +63,21 @@
 	IBOutlet	NSTextField		*label_idleMinutes;		//The "minutes" behind the field
 
 	IBOutlet	NSPopUpButton	*popUp_autoAwayStatusState;
-	BOOL						showingSubmenuItemInAutoAway;
-
 	IBOutlet	NSPopUpButton	*popUp_fastUserSwitchingStatusState;
-	BOOL						showingSubmenuItemInFastUserSwitching;
-
 	IBOutlet	NSPopUpButton	*popUp_screenSaverStatusState;
-	BOOL						showingSubmenuItemInScreenSaver;
 
 	NSSwitch			*checkBox_awayReminder;
 	IBOutlet	NSTextField		*textField_awayReminderMinutes;
 	IBOutlet	NSStepper		*stepper_awayReminderMinutes;
 	IBOutlet	NSTextField		*label_awayReminderMinutes;
+
+	/* A rebuild of the menus and the list is due on the next turn of the run loop. The state array
+	 * notification can arrive from inside a row's own switch, which must not be torn out from under
+	 * AppKit; -stateArrayChanged: says so. */
+	BOOL						refreshScheduled;
 }
 
-- (void)configureStateList;
-
 - (IBAction)addOrRemoveState:(id)sender;
-- (IBAction)editState:(id)sender;
-- (IBAction)addGroup:(id)sender;
 
 /*!
  * @brief A minutes field or its stepper changed; write that interval now

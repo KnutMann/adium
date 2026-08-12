@@ -22,7 +22,6 @@
 #import <Adium/ESTextAndButtonsWindowController.h>
 #import <Adium/AIAccount.h>
 #import <Adium/AIStatus.h>
-#import <Adium/AIStatusGroup.h>
 
 typedef enum {
 	AIAwayIdle = (1 << 1),
@@ -366,12 +365,7 @@ typedef enum {
 - (void)triggerAutoAwayWithStatusID:(NSNumber *)statusID
 {
 	AIStatusItem *targetStatusState = [adium.statusController statusStateWithUniqueStatusID:statusID];
-	
-	// Grab any group member if possible
-	if ([targetStatusState isKindOfClass:[AIStatusGroup class]]) {
-		targetStatusState = [(AIStatusGroup *)targetStatusState anyContainedStatus];
-	}
-	
+
 	// If we weren't given a valid and new state, fail.
 	if (!targetStatusState || [oldStatusID isEqualToNumber:statusID]) {
 		return;

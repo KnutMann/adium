@@ -265,6 +265,20 @@
 	}
 }
 
+#pragma mark Visibility
+
+- (BOOL)showsInStatusMenu
+{
+	return [adium.statusController statusItemShowsInStatusMenu:self];
+}
+
+- (void)setShowsInStatusMenu:(BOOL)shows
+{
+	[adium.statusController setStatusItem:self showsInStatusMenu:shows];
+}
+
+#pragma mark Containment
+
 - (AIStatusGroup *)containingStatusGroup
 {
 	return containingStatusGroup;

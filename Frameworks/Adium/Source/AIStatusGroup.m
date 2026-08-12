@@ -17,8 +17,6 @@
 #import <Adium/AIStatusGroup.h>
 #import <Adium/AIStatus.h>
 #import <Adium/AIStatusControllerProtocol.h>
-#import <Adium/AIStatusMenu.h>
-#import <AIUtilities/AIMenuAdditions.h>
 
 @implementation AIStatusGroup
 
@@ -46,7 +44,6 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 	if ((self = [super init])) {
 		containedStatusItems = [[NSMutableArray alloc] init];
 		_flatStatusSet = nil;
-		delaySavingAndNotification = 0;
 	}
 	
 	return self;
@@ -107,11 +104,12 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 	if (!_flatStatusSet) {
 		_flatStatusSet = [[NSMutableSet alloc] init];
 		
+		/* Nothing but statuses can be in here. A group decoded from an older archive is dissolved
+		 * by -[AIStatusController rootStateGroup] right after decoding, which is long before anyone
+		 * asks for this set for the first time. */
 		for (id statusItem in containedStatusItems) {
 			if ([statusItem isKindOfClass:[AIStatus class]]) {
 				[_flatStatusSet addObject:(AIStatus *)statusItem];
-			} else if ([statusItem isKindOfClass:[AIStatusGroup class]]) {
-				[_flatStatusSet unionSet:[(AIStatusGroup *)statusItem flatStatusSet]];
 			}
 		}
 	}
@@ -124,141 +122,28 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 	return containedStatusItems;
 }
 
-- (AIStatus *)anyContainedStatus
-{
-	//Pick a random contained status item
-	AIStatusItem *anyStatus = ([containedStatusItems count] ?
-							   [containedStatusItems objectAtIndex:(random() % [containedStatusItems count])] :
-							   nil);
-	
-	//If it's a status group, recurse into it
-	if ([anyStatus isKindOfClass:[AIStatusGroup class]]) {
-		anyStatus = [(AIStatusGroup *)anyStatus anyContainedStatus];
-		//XXX if we found an empty status group, we should look elsewhere if possible, iterating through the list or something.
-	}
-	
-	return (AIStatus *)anyStatus;
-}
-
-/*!
- * @brief Returns an array of this AIStatusGroup's contents sorted via statusArraySort()
- */
-- (NSArray *)sortedContainedStatusItems
-{
-	if (!_sortedContainedStatusItems) {
-		_sortedContainedStatusItems = [[containedStatusItems sortedArrayUsingFunction:statusArraySort
-																			  context:containedStatusItems] retain];
-	}
-
-	return _sortedContainedStatusItems;
-}
-
-- (BOOL)enclosesStatusState:(AIStatus *)inStatusState
-{
-	return ([[self flatStatusSet] containsObject:inStatusState]);
-}
-
-- (BOOL)enclosesStatusStateInSet:(NSSet *)inSet
-{
-	return ([[self flatStatusSet] intersectsSet:inSet]);
-}
-
-/*!
- * @brief Create a menu of the items in this group
- *
- * This should not be used for the root group, as it doesn't include the temporary and built-in items or the Custom... items.
- */
-- (NSMenu *)statusSubmenuNotifyingTarget:(id)target action:(SEL)selector
-{
-	NSMenu			*menu = [[NSMenu alloc] init];
-	NSEnumerator	*enumerator;
-	NSMenuItem		*menuItem;
-	AIStatusItem	*statusState;
-	AIStatusType	currentStatusType = AIAvailableStatusType;
-	BOOL			addedItemForThisStatusType = NO;
-
-	/* Create a menu item for each state.  States must first be sorted such that states of the same AIStatusType
-		* are grouped together.
-		*/
-	enumerator = [[self sortedContainedStatusItems] objectEnumerator];
-	while ((statusState = [enumerator nextObject])) {
-		AIStatusType thisStatusType = statusState.statusType;
-
-		//We treat Invisible statuses as being the same as Away for purposes of the menu
-		if (thisStatusType == AIInvisibleStatusType) thisStatusType = AIAwayStatusType;
-
-		/* Add  a separatorItem before beginning to add items for a new statusType
-		 * Sorting the menu items before enumerating means that we know our statuses are sorted first by statusType
-		 */
-		if ((currentStatusType != thisStatusType)) {			
-			if ((currentStatusType != AIOfflineStatusType) && addedItemForThisStatusType) {
-				//Add a divider
-				[menu addItem:[NSMenuItem separatorItem]];
-			}
-
-			currentStatusType = thisStatusType;
-		}
-
-		menuItem = [[NSMenuItem alloc] initWithTitle:[AIStatusMenu titleForMenuDisplayOfState:statusState]
-											  target:target
-											  action:selector
-									   keyEquivalent:@""];
-		
-		if ([statusState isKindOfClass:[AIStatus class]]) {
-			[menuItem setToolTip:[(AIStatus *)statusState statusMessageString]];
-
-		} else {
-			/* AIStatusGroup */
-			[menuItem setSubmenu:[(AIStatusGroup *)statusState statusSubmenuNotifyingTarget:target
-																					 action:selector]];
-		}
-		[menuItem setRepresentedObject:[NSDictionary dictionaryWithObject:statusState
-																   forKey:@"AIStatus"]];
-		[menuItem setTag:currentStatusType];
-		[menuItem setImage:[statusState menuIcon]];
-		[menu addItem:menuItem];
-		[menuItem release];
-
-		addedItemForThisStatusType = YES;
-	}
-
-	return [menu autorelease];
-}
-
 #pragma mark Modifying contents
 - (void)setContainedStatusItems:(NSArray *)inContainedStatusItems
 {
 	if (containedStatusItems != inContainedStatusItems) {
 		[containedStatusItems release];
 		containedStatusItems = [inContainedStatusItems mutableCopy];
+
+		//Everything the flat set was built from is gone; it is rebuilt from the new contents on demand
+		[_flatStatusSet release]; _flatStatusSet = nil;
 	}
 }
 
-- (void)statusesOfContainedGroupChanged
-{
-	//Clear our cached sorted array so it'll resort as needed
-	[_sortedContainedStatusItems release]; _sortedContainedStatusItems = nil;
-	[_flatStatusSet release]; _flatStatusSet = nil;
-
-	//Let our containing group or the status controller know that there's power in the blood
-	if ([self containingStatusGroup]) {
-		[[self containingStatusGroup] statusesOfContainedGroupChanged];
-	} else {
-		[adium.statusController savedStatusesChanged];
-	}
-}
-
+/*!
+ * @brief Our contents changed
+ *
+ * The root has no containing group, so every change lands at the status controller - and that is
+ * the write to disk. Anything which changes what is in here has to come through this method, or the
+ * change is only in memory until Adium is quit.
+ */
 - (void)containedStatusesChanged
 {
-	//Clear our cached sorted array so it'll resort as needed
-	[_sortedContainedStatusItems release]; _sortedContainedStatusItems = nil;
-	
-	//Let our containing group or the status controller know that there's power in the blood
-	if ([self containingStatusGroup]) {
-		[[self containingStatusGroup] statusesOfContainedGroupChanged];
-	} else {
-		[adium.statusController savedStatusesChanged];
-	}
+	[adium.statusController savedStatusesChanged];
 }
 
 #pragma mark -
@@ -279,65 +164,26 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 
 	[inStatusItem setContainingStatusGroup:self];
 
-	//Add this item or its contents to our flat status array
-	if (!_flatStatusSet) _flatStatusSet = [[NSMutableSet alloc] init];
-
-	if ([inStatusItem isKindOfClass:[AIStatus class]]) {
+	/* Keep the flat set in step, but only if there is one: a nil set means nobody has asked yet, and
+	 * building one here would leave a set holding this one status and nothing else - which -flatStatusSet
+	 * would then hand out as complete. Nil stays nil so the lazy build stays the single source. */
+	if (_flatStatusSet && [inStatusItem isKindOfClass:[AIStatus class]]) {
 		[_flatStatusSet addObject:(AIStatus *)inStatusItem];
-	} else if ([inStatusItem isKindOfClass:[AIStatusGroup class]]) {
-		[_flatStatusSet unionSet:[(AIStatusGroup *)inStatusItem flatStatusSet]];
 	}
 
-	if (!delaySavingAndNotification) {
-		[self containedStatusesChanged];
-	}
+	[self containedStatusesChanged];
 }
 
 - (void)removeStatusItem:(AIStatusItem *)inStatusItem
 {
 	[containedStatusItems removeObjectIdenticalTo:inStatusItem];
 
-	//Remove this item from our flat array. If it's a group, clear the array entirely for lazy regeneration
+	//Remove this item from our flat status set
 	if ([inStatusItem isKindOfClass:[AIStatus class]]) {
 		[_flatStatusSet removeObject:(AIStatus *)inStatusItem];
-
-	} else if ([inStatusItem isKindOfClass:[AIStatusGroup class]]) {
-		[_flatStatusSet release]; _flatStatusSet = nil;
 	}
-	
-	if (!delaySavingAndNotification) {
-		[self containedStatusesChanged];
-	}
-}
 
-/*!
- * @brief Move a state
- *
- * Move a state that already exists in Adium's state array to another index
- *
- * @param statusState AIStatus to move
- * @param destIndex Destination index
- */
-- (NSUInteger)moveStatusItem:(AIStatusItem *)statusState toIndex:(NSUInteger)destIndex
-{
-    NSUInteger sourceIndex = [containedStatusItems indexOfObjectIdenticalTo:statusState];
-
-    //Remove the state
-    [statusState retain];
-    [containedStatusItems removeObject:statusState];
-	
-    //Re-insert the state
-    if (destIndex > sourceIndex) destIndex -= 1;
-	if (destIndex > [containedStatusItems count]) destIndex = [containedStatusItems count];
-
-    [containedStatusItems insertObject:statusState atIndex:destIndex];
-    [statusState release];
-	
-	if (!delaySavingAndNotification) {
-		[self containedStatusesChanged];
-	}
-	
-	return destIndex;
+	[self containedStatusesChanged];
 }
 
 /*!
@@ -352,29 +198,25 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 {
 	if (oldStatusState != newStatusState) {
 		NSUInteger idx = [containedStatusItems indexOfObject:oldStatusState];
-		
+
 		if (idx != NSNotFound && idx < [containedStatusItems count]) {
 			[containedStatusItems replaceObjectAtIndex:idx withObject:newStatusState];
 		}
 
+		/* The flat set has to be swapped too, and this is the place which used to forget it: an edit
+		 * hands the new status the old one's unique ID, so -statusStateWithUniqueStatusID: searching
+		 * a stale set went on answering with the status as it read before the edit - and an automatic
+		 * status, which knows nothing but that ID, went on setting that. */
+		if (_flatStatusSet) {
+			[_flatStatusSet removeObject:oldStatusState];
+
+			if ([newStatusState isKindOfClass:[AIStatus class]]) {
+				[_flatStatusSet addObject:newStatusState];
+			}
+		}
+
 		[newStatusState setContainingStatusGroup:self];
 
-		if (!delaySavingAndNotification) {
-			[self containedStatusesChanged];
-		}
-	}
-}
-
-#pragma mark Delay
-- (void)setDelaySavingAndNotification:(BOOL)inShouldDelay
-{
-	if (inShouldDelay)
-		delaySavingAndNotification++;
-	else
-		delaySavingAndNotification--;
-	
-	//Notify if we just ended a delay
-	if (!delaySavingAndNotification) {
 		[self containedStatusesChanged];
 	}
 }

@@ -21,6 +21,11 @@
 	NSMutableArray	*menuItemArray;
 	NSMutableSet	*stateMenuItemsAlreadyValidated;
 
+	/* The statuses which are in the menu although their switch is off, because they are the status
+	 * an account is in right now. Remembered from the last rebuild so that -activeStatusStateChanged:
+	 * can tell whether the menu still shows the right ones. */
+	NSSet			*hiddenActiveStatusItems;
+
 	id<AIStatusMenuDelegate>				delegate;
 }
 

@@ -31,7 +31,6 @@
 
 	IBOutlet	NSButton					*importAccountsButton;
 	IBOutlet	NSButton					*importStatusButton;
-	IBOutlet	NSButton					*createStatusGroupsButton;
 	IBOutlet	NSButton					*importLogsButton;
 
 	IBOutlet	NSTextField					*importDetails;

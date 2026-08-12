@@ -17,7 +17,6 @@
                 <outlet property="backgroundView" destination="wizardBg" id="oBgView"/>
                 <outlet property="importAccountsButton" destination="chkAccounts" id="oChkAccounts"/>
                 <outlet property="importStatusButton" destination="chkStatuses" id="oChkStatuses"/>
-                <outlet property="createStatusGroupsButton" destination="chkStatusGroups" id="oChkGroups"/>
                 <outlet property="importLogsButton" destination="chkLogs" id="oChkLogs"/>
                 <outlet property="importDetails" destination="lblLogDetails" id="oLogDetails"/>
                 <outlet property="importProgress" destination="progLogs" id="oProgLogs"/>
@@ -114,17 +113,6 @@
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>
-                                        </button>
-                                        <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="chkStatusGroups">
-                                            <rect key="frame" x="119" y="58" width="290" height="18"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <buttonCell key="cell" type="check" title="Automatically create Status Groups" bezelStyle="regularSquare" imagePosition="left" alignment="left" controlSize="small" inset="2" id="chkStatusGroupsC">
-                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                                <font key="font" metaFont="smallSystem"/>
-                                            </buttonCell>
-                                            <connections>
-                                                <binding destination="objCon" name="enabled" keyPath="selection.shouldImportStatus" id="bChkGroups"/>
-                                            </connections>
                                         </button>
                                     </subviews>
                                 </view>

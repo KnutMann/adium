@@ -42,6 +42,16 @@
 - (int)preexistingUniqueStatusID;
 - (void)setUniqueStatusID:(NSNumber *)inUniqueStatusID;
 
+/*!
+ * @brief Whether this status appears in the status menus
+ *
+ * The property does not live in statusDict but as a list of unique IDs kept by the status
+ * controller: the built-in statuses are rebuilt from a plist at every launch and never archived, so
+ * a flag of their own would not survive a restart. Default is YES.
+ */
+- (BOOL)showsInStatusMenu;
+- (void)setShowsInStatusMenu:(BOOL)shows;
+
 - (AIStatusGroup *)containingStatusGroup;
 - (void)setContainingStatusGroup:(AIStatusGroup *)inStatusGroup;
 

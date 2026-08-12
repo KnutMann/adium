@@ -16,21 +16,12 @@
 
 #import "ESStatusPreferences.h"
 #import "AIStatusController.h"
-#import "ESEditStatusGroupWindowController.h"
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIAccount.h>
 #import <Adium/AIEditStateWindowController.h>
 #import <Adium/AIStatusMenu.h>
 #import <Adium/AIStatusGroup.h>
 #import <Adium/AISettingsFormView.h>
-#import <AIUtilities/AIImageAdditions.h>
-#import <AIUtilities/AIImageTextCell.h>
-#import <AIUtilities/AIVerticallyCenteredTextCell.h>
-#import <AIUtilities/AIOutlineViewAdditions.h>
-#import <AIUtilities/AIAlternatingRowOutlineView.h>
-#import <AIUtilities/AIImageDrawingAdditions.h>
-
-#define STATE_DRAG_TYPE	@"AIState"
 
 /* Width of the three minute fields. Wide enough for more digits than the stepper can produce: a
  * setting made before this pane had a stepper at all may be any number of minutes, and the field
@@ -41,29 +32,22 @@
 #define MINUTES_MINIMUM				1
 #define MINUTES_MAXIMUM				999
 
-/* Fallback only: the room the outline view keeps above its first and below its last row is
- * measured off the view itself as soon as it has any (see -heightOfStateList). */
-#define STATE_LIST_END_PADDING		4.0f
-//An empty card must not collapse into a line
-#define STATE_LIST_MINIMUM_ROWS		3
+/* Extra room around the "+", so it is not packed as tightly as the control asks for. Smaller than
+ * the account list's ADD_BUTTON_PADDING, which is meant for a "+" plus its menu chevron; this one
+ * opens the status editor straight away and has no chevron. */
+#define ADD_BUTTON_PADDING			12.0f
 
 @interface ESStatusPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
 - (AISettingsFormView *)settingsForm;
 - (void)tearDown;
 
-- (void)configureStateListButtons;
+- (void)configureAddStatusControl;
+- (NSArray *)statusItemsForList;
+- (void)refreshFromStateArray;
 - (NSView *)minutesRowWithField:(NSTextField *)field
 						stepper:(NSStepper *)stepper
 					  unitLabel:(NSTextField *)unitLabel;
-
-- (CGFloat)heightOfStateList;
-- (void)updateStateListHeight;
-- (void)setStateListHeightNeedsUpdate;
-- (void)stateListHeightUpdateFired;
-- (void)synchronizeStateColumnWidth;
-- (void)stateListFrameChanged:(NSNotification *)notification;
-- (void)autoscrollPaneForDrag:(id <NSDraggingInfo>)info;
 
 - (void)configureOtherControls;
 - (void)refreshDisplayedValues;
@@ -77,16 +61,13 @@
 						forKey:(NSString *)key;
 - (void)_selectStatusWithUniqueID:(NSNumber *)uniqueID inPopUpButton:(NSPopUpButton *)inPopUpButton;
 
-- (void)reselectDraggedItems:(NSArray *)theDraggedItems;
 - (void)changedAutoAwayStatus:(id)sender;
 - (void)changedFastUserSwitchingStatus:(id)sender;
 - (void)changedScreenSaverStatus:(id)sender;
 
-- (BOOL)addItemIfNeeded:(NSMenuItem *)menuItem toPopUpButton:(NSPopUpButton *)popUpButton alreadyShowingAnItem:(BOOL)alreadyShowing;
-
-
 - (void)newState;
-- (void)deleteState;
+- (void)editStatus:(AIStatusItem *)statusItem;
+- (void)deleteStatus:(AIStatusItem *)statusItem;
 @end
 
 @implementation ESStatusPreferences
@@ -116,10 +97,9 @@
 /*!
  * @brief Our view: the nib's controls, arranged by the settings form
  *
- * The nib still supplies the outline view — with its data source, its delegate, its drag
- * registration and its column — plus the three list buttons, the minute fields, their steppers
- * and the three status menus, but no longer their arrangement. Mirrors -[AIModularPane view] so
- * the subclass hooks fire in the same order.
+ * The nib supplies the "+" under the list, the minute fields, their steppers and the three status
+ * menus, but no longer their arrangement; the list itself is built in code. Mirrors
+ * -[AIModularPane view] so the subclass hooks fire in the same order.
  */
 - (NSView *)view
 {
@@ -162,8 +142,8 @@
 /*!
  * @brief Stack the nib's controls into cards
  *
- * Three of them: the saved statuses with their button bar, everything about being idle and away,
- * and the two status changes Adium makes on its own. The checkbox titles of the old layout became
+ * Three of them: the statuses with the "+" under them, everything about being idle and away, and
+ * the two status changes Adium makes on its own. The checkbox titles of the old layout became
  * row labels, and the sentences they used to continue ("Set idle after [10] minutes of
  * inactivity") became a row of their own — a dependent row, dimmed with the switch above it,
  * rather than an indented one.
@@ -186,26 +166,20 @@
 		[popUp setTranslatesAutoresizingMaskIntoConstraints:YES];
 	}
 
-	/* Card 1: the list of saved statuses.
-	 *
-	 * The column follows the width the form gives the scroll view, so the outline view has to
-	 * resize with it from the very first layout - the nib leaves it non-resizable. */
-	[outlineView_stateList setAutoresizingMask:NSViewWidthSizable];
-
+	//Card 1: the list of statuses
 	[form addSectionHeader:AILocalizedString(@"Statuses", nil)];
 
 	/* The list is the card: it fills it edge to edge and its height decides how tall the card is.
-	 * Adding a view which still has a superview moves it, so the nib's arrangement comes apart on
-	 * its own - no view is ever left without an owner in between. */
-	[form addEdgeToEdgeRow:scrollView_stateList];
+	 * The form owns it from here on; listView_states is a non-retaining reference. */
+	listView_states = [[[AIStatusListView alloc] initWithStatusItems:[self statusItemsForList]] autorelease];
+	[listView_states setListDelegate:self];
+	[form addEdgeToEdgeRow:listView_states];
 
-	//...and all three of its buttons hang under the card in one bar, the way System Settings does
-	[self configureStateListButtons];
-	[form addAccessoryView:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
-														   button_addOrRemoveState,
-														   button_addGroup,
-														   button_editState,
-														   nil]]];
+	/* ...and the "+" hangs under the right-hand corner of that card, the way System Settings puts
+	 * one under a list. Its natural size is what the form arranges it by; nothing here positions
+	 * it. */
+	[self configureAddStatusControl];
+	[form addTrailingAccessoryView:button_addOrRemoveState];
 
 	//Card 2: idle and away
 	[form addSectionHeader:AILocalizedString(@"Idle and Away","Section title above the idle and away status settings")];
@@ -224,10 +198,6 @@
 	[form addRowWithLabel:AILocalizedString(@"Change my status to","Label of the menu holding the status set after a while of inactivity")
 			  popUpButton:popUp_autoAwayStatusState
 		  accessoryButton:nil];
-
-	/* Says out loud what the merged setting does: the same duration carries both halves. Without
-	 * it nothing on screen would tell the user when the status above is going to be set. */
-	[form addDetailRow:AILocalizedString(@"Adium changes to this status after the same time.","Explanation under the menu holding the status set after a while of inactivity")];
 
 	checkBox_awayReminder = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
 	[form addRowWithLabel:AILocalizedString(@"Remind me while away","Switch for being reminded now and then that one's status is still away")
@@ -257,19 +227,14 @@
  */
 - (void)viewDidLoad
 {
-	//Configure the controls
-	[self configureStateList];
-
-	[outlineView_stateList accessibilitySetOverrideValue:AILocalizedString(@"Statuses", nil)
-											forAttribute:NSAccessibilityTitleAttribute];
-
 	/* Register as an observer of state array changes so we can refresh our list
 	 * in response to changes. */
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(stateArrayChanged:)
 									   name:AIStatusStateArrayChangedNotification
 									 object:nil];
-	[self stateArrayChanged:nil];
+	//Straight away, not coalesced: the three menus have to be filled before the form is first laid out
+	[self refreshFromStateArray];
 
 	[self configureOtherControls];
 }
@@ -295,29 +260,16 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-	stateListHeightUpdateScheduled = NO;
 
-	/* One of the performs just cancelled may have been -reselectDraggedItems:, which is the only
-	 * thing that gives back the rebuilding delay a drop takes. The status controller counts those
-	 * delays and rebuilds no status menu anywhere in Adium until the count is back at zero, so a
-	 * delay left behind here would be one for the rest of the session. */
-	if (delayedStatusMenuRebuilding) {
-		delayedStatusMenuRebuilding = NO;
-		[adium.statusController setDelayStatusMenuRebuilding:NO];
-	}
-
-	/* The list no longer lives in the nib's view but in the form's card, and those two are released
-	 * on different paths (-tearDown here, -[AIModularPane closeView] there). Cut the outline view
-	 * loose from us here, so a view which outlives us for a moment can never ask a freed pane for
-	 * its rows - its delegate, data source and target are all non-retaining references to us. */
-	[outlineView_stateList setDelegate:nil];
-	[outlineView_stateList setDataSource:nil];
-	[outlineView_stateList setTarget:nil];
-	[outlineView_stateList setDoubleAction:NULL];
+	/* The list lives in the form's card, and the form and this pane are released on different paths
+	 * (-tearDown here, -[AIModularPane closeView] there). Cut it loose from us here, so a view which
+	 * outlives us for a moment can never ask a freed pane anything - its delegate is a non-retaining
+	 * reference to us. */
+	[listView_states tearDown];
 
 	//Same for everything else we handed a target or a delegate to
 	for (NSControl *control in [NSArray arrayWithObjects:
-								button_addOrRemoveState, button_addGroup, button_editState,
+								button_addOrRemoveState,
 								checkBox_idle, checkBox_awayReminder,
 								stepper_idleMinutes, stepper_awayReminderMinutes,
 								nil]) {
@@ -337,16 +289,11 @@
 		[popUp setMenu:[[[NSMenu alloc] initWithTitle:@""] autorelease]];
 	}
 
-	[scrollView_stateList removeFromSuperview];
-
-	/* All of these outlets are non-retaining and the views behind them go away with the form,
+	/* All of these references are non-retaining and the views behind them go away with the form,
 	 * which may be released after us; forget them so a second -tearDown cannot message freed
 	 * memory. */
-	outlineView_stateList = nil;
-	scrollView_stateList = nil;
+	listView_states = nil;
 	button_addOrRemoveState = nil;
-	button_addGroup = nil;
-	button_editState = nil;
 	checkBox_idle = nil;
 	checkBox_awayReminder = nil;
 	textField_idleMinutes = nil;
@@ -359,12 +306,8 @@
 	popUp_fastUserSwitchingStatusState = nil;
 	popUp_screenSaverStatusState = nil;
 
-	showingSubmenuItemInAutoAway = NO;
-	showingSubmenuItemInFastUserSwitching = NO;
-	showingSubmenuItemInScreenSaver = NO;
-
-	//A drag which never reached -outlineView:acceptDrop:item:childIndex: still holds its items
-	[draggingItems release]; draggingItems = nil;
+	//A refresh may have been due; -cancelPreviousPerformRequestsWithTarget: above took it away
+	refreshScheduled = NO;
 
 	[nibView release]; nibView = nil;
 }
@@ -378,98 +321,73 @@
 	[super dealloc];
 }
 
-#pragma mark Status state list and controls
+#pragma mark Status list and controls
 /*!
-* @brief Configure the state list
+ * @brief The statuses the list shows: everything Adium brings with it, plus everything the user saved
  *
- * Configure the state list table view, setting up the custom table cells, padding, scroll view settings and other
- * state list interface related setup.
+ * The same two sources -[AIStatusController sortedFullStateArray] starts from, sorted the same way,
+ * but without the temporary states it adds on top: those belong to the accounts currently wearing
+ * them, are never saved, and have no business in a list which manages saved statuses.
+ *
+ * The built-in statuses were not in this list before. They are what the switch in each row exists
+ * for: they cannot be deleted, so switching one off is the only way to take it out of the status
+ * menu.
  */
-- (void)configureStateList
+- (NSArray *)statusItemsForList
 {
-    AIVerticallyCenteredTextCell *cell;
+	NSArray			*originalStateArray = [[adium.statusController builtInStateArray]
+										   arrayByAddingObjectsFromArray:[[adium.statusController rootStateGroup] containedStatusItems]];
+	NSMutableArray	*sortedItems = [[originalStateArray mutableCopy] autorelease];
 
-	//Configure the table view
-	[outlineView_stateList setTarget:self];
-	[outlineView_stateList setDoubleAction:@selector(editState:)];
-	[outlineView_stateList setIntercellSpacing:NSMakeSize(4,4)];
+	//The original array's indexes are what keeps statuses of one kind in the order they were saved in
+	[AIStatusGroup sortArrayOfStatusItems:sortedItems context:originalStateArray];
 
-	/* The card behind the list is drawn by the form - controlBackgroundColor plus a translucent
-	 * tint - so the list has to let it through, the way the account list does.
-	 *
-	 * Two things are needed for that, not one. -[AIAlternatingRowOutlineView setDrawsBackground:]
-	 * writes its own flag and never reaches NSTableView, so it only switches off that class's own
-	 * alternating rows and grid; NSTableView goes on filling the whole card with the nib's
-	 * controlBackgroundColor, which is the card's fill without its tint and square where the card
-	 * is round. Clearing the background colour is what actually stops that. The system's own
-	 * alternating rows are off with them: they are opaque as well, and neither the account list nor
-	 * a System Settings list has stripes. */
-	[outlineView_stateList setDrawsBackground:NO];
-	[outlineView_stateList setUsesAlternatingRowBackgroundColors:NO];
-	[(NSTableView *)outlineView_stateList setBackgroundColor:[NSColor clearColor]];
-
-	/* The single column has to follow the width of the card. A table does not reliably re-tile it
-	 * on its own (measured on macOS 26 for the account list, which needs the same treatment), so it
-	 * is set from the width the list really has whenever that changes. */
-	stateColumnMargin = 0.0f;
-	[outlineView_stateList setPostsFrameChangedNotifications:YES];
-	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(stateListFrameChanged:)
-												 name:NSViewFrameDidChangeNotification
-											   object:outlineView_stateList];
-
-	/* The list does not scroll: it is as tall as its rows and the preferences column scrolls
-	 * instead. The scroll view stays - an outline view outside of one loses its tiling and its
-	 * enclosing clip view, and dragging states about is the whole point of this list - but it never
-	 * scrolls anything: no scrollers, no elasticity. The nib gives it AIPassthroughScrollView on top
-	 * of that, so the wheel reaches the pane behind it; a drag which reaches the edge of the window
-	 * is followed by -autoscrollPaneForDrag:, since a clip view with nothing to scroll has nothing
-	 * to offer AppKit's own drag autoscrolling either.
-	 *
-	 * It draws no background of its own; the form draws the card and rounds our corners to its
-	 * radius. */
-	[scrollView_stateList setBorderType:NSNoBorder];
-	[scrollView_stateList setDrawsBackground:NO];
-	[scrollView_stateList setHasVerticalScroller:NO];
-	[scrollView_stateList setHasHorizontalScroller:NO];
-	[scrollView_stateList setVerticalScrollElasticity:NSScrollElasticityNone];
-	[scrollView_stateList setHorizontalScrollElasticity:NSScrollElasticityNone];
-	[scrollView_stateList setAutomaticallyAdjustsContentInsets:NO];
-	[scrollView_stateList setContentInsets:NSEdgeInsetsZero];
-	[scrollView_stateList setAutoresizingMask:NSViewNotSizable];
-
-	//Enable dragging of states
-	[outlineView_stateList registerForDraggedTypes:[NSArray arrayWithObject:STATE_DRAG_TYPE]];
-
-    //Custom vertically-centered text cell for status state names
-    cell = [[AIVerticallyCenteredTextCell alloc] init];
-    [cell setFont:[NSFont systemFontOfSize:13]];
-    [[outlineView_stateList tableColumnWithIdentifier:@"name"] setDataCell:cell];
-	[cell release];
+	return sortedItems;
 }
 
 /*!
- * @brief Give the three list buttons their titles and the look of a bar under a card
+ * @brief Turn the nib's +/- pair into the single "+" System Settings puts under a list
  *
- * The nib drew them in the small square style which belonged under a bezelled list; under a card
- * System Settings uses the ordinary rounded push button and, for a +/- pair, the rounded segmented
- * group. Each is then sized to its content, because the accessory bar arranges them by their
- * natural size and never resizes them.
+ * One segment showing a "+", in the small rounded group, sized to its content plus a little room.
+ * The minus segment is gone: a status is deleted through the ⊖ in its own row, and "Edit" with
+ * it - a double click on a row opens the status editor.
+ *
+ * The accessory bar never resizes what it is given, so the button has to be finished before it is
+ * handed over. A symbol has no title to fall back on, hence both a tool tip and an accessibility
+ * label.
  */
-- (void)configureStateListButtons
+- (void)configureAddStatusControl
 {
+	NSImage		*addImage = [NSImage imageWithSystemSymbolName:@"plus"
+									  accessibilityDescription:AILocalizedString(@"Add Status", "Button which creates a new saved status")];
+
+	if (!addImage) addImage = [NSImage imageNamed:NSImageNameAddTemplate];
+
+	[button_addOrRemoveState setSegmentCount:1];
 	[button_addOrRemoveState setSegmentStyle:NSSegmentStyleRounded];
 	[button_addOrRemoveState setTrackingMode:NSSegmentSwitchTrackingMomentary];
+	[button_addOrRemoveState setImage:addImage forSegment:0];
+	[button_addOrRemoveState setImageScaling:NSImageScaleProportionallyDown forSegment:0];
+	[button_addOrRemoveState setLabel:@"" forSegment:0];
+	//No menu drops out of this one: it opens the status editor straight away
+	[button_addOrRemoveState setShowsMenuIndicator:NO forSegment:0];
+
+	//Zero asks the control for the width its content needs; that is tighter than System Settings draws it
+	[button_addOrRemoveState setWidth:0.0f forSegment:0];
 	[button_addOrRemoveState sizeToFit];
 
-	[button_addGroup setTitle:AILocalizedString(@"Add Group",nil)];
-	[button_editState setTitle:AILocalizedString(@"Edit",nil)];
+	NSSize	fittedSize = [button_addOrRemoveState frame].size;
+	NSSize	fittingSize = [button_addOrRemoveState fittingSize];
+	CGFloat	contentWidth = MAX(fittedSize.width, fittingSize.width);
 
-	for (NSButton *button in [NSArray arrayWithObjects:button_addGroup, button_editState, nil]) {
-		[button setBezelStyle:NSBezelStyleRounded];
-		[button setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
-		[button sizeToFit];
-	}
+	[button_addOrRemoveState setWidth:(contentWidth + ADD_BUTTON_PADDING) forSegment:0];
+	[button_addOrRemoveState sizeToFit];
+	[button_addOrRemoveState setFrameSize:NSMakeSize(MAX(NSWidth([button_addOrRemoveState frame]),
+														contentWidth + ADD_BUTTON_PADDING),
+													 MAX(fittedSize.height, fittingSize.height))];
+
+	[button_addOrRemoveState setToolTip:AILocalizedString(@"Add Status", "Button which creates a new saved status")];
+	[button_addOrRemoveState setAccessibilityLabel:AILocalizedString(@"Add Status", "Button which creates a new saved status")];
 }
 
 /*!
@@ -537,208 +455,66 @@
 }
 
 /*!
- * @brief The height the state list needs to show every visible row without scrolling
- *
- * Unlike the account list this one has a fixed row height, so nothing here depends on the width -
- * and unlike a flat table, only -numberOfRows knows how many rows there are: a collapsed group is
- * one row, an expanded one is itself plus its children. Row rects are where the outline view says
- * how it really laid itself out, so the last row's rect plus the room the view keeps below it is
- * the whole answer. An empty list still gets a few rows' worth of height, so its card does not
- * collapse into a line.
- */
-- (CGFloat)heightOfStateList
-{
-	NSInteger	visibleRows = [outlineView_stateList numberOfRows];
-	CGFloat		rowStep = [outlineView_stateList rowHeight] + [outlineView_stateList intercellSpacing].height;
-	CGFloat		endPadding = STATE_LIST_END_PADDING;
-	CGFloat		height;
-
-	/* The room the view keeps at each end. Only the outline view can say what it is, and only once
-	 * it has rows; until then the fallback is the best guess we have. */
-	if (visibleRows > 0) {
-		CGFloat		topInset = NSMinY([outlineView_stateList rectOfRow:0]);
-
-		if (topInset >= 0.0f) endPadding = topInset;
-
-		height = NSMaxY([outlineView_stateList rectOfRow:(visibleRows - 1)]) + endPadding;
-	} else {
-		height = rowStep + (2.0f * endPadding);
-	}
-
-	CGFloat		minimumHeight = (STATE_LIST_MINIMUM_ROWS * rowStep) + (2.0f * endPadding);
-
-	return ceil(height < minimumHeight ? minimumHeight : height);
-}
-
-/*!
- * @brief Grow or shrink the card around the list to fit its rows
- *
- * The list is the edge to edge row of a card, so its height is the card's height. Handing the new
- * height to the form makes the form resize its card and itself, and the preferences window - which
- * watches the pane's frame - resizes its scrolling column in turn. That is the whole chain: the
- * card grows with the number of statuses and the window scrolls, not the list.
- *
- * The half point guard is not decoration: -noteContentSizeChanged runs a full layout pass, which
- * causes frame changes of its own, and without it that can circle.
- */
-- (void)updateStateListHeight
-{
-	CGFloat		height;
-
-	if (!scrollView_stateList) return;
-
-	//Whatever changed the list may have changed how wide its rows have to be laid out
-	[self synchronizeStateColumnWidth];
-
-	height = [self heightOfStateList];
-
-	if (fabs(NSHeight([scrollView_stateList frame]) - height) < 0.5f) return;
-
-	[scrollView_stateList setFrameSize:NSMakeSize(NSWidth([scrollView_stateList frame]), height)];
-	[[self settingsForm] noteContentSizeChanged];
-}
-
-/*!
- * @brief Ask for the card to be refitted once the outline view is done laying itself out
- *
- * Expanding and collapsing a group changes the number of rows without the model moving at all, and
- * we hear about it from inside the outline view's own work; resizing it from there would be
- * resizing a view in the middle of its layout. The common run loop modes rather than the default
- * one, so a group opened while a menu or a sheet is up is followed straight away too. An update
- * which is already scheduled is left alone: it reads the row count when it runs, so it is up to
- * date whatever happened in between.
- */
-- (void)setStateListHeightNeedsUpdate
-{
-	if (stateListHeightUpdateScheduled) return;
-
-	stateListHeightUpdateScheduled = YES;
-	[self performSelector:@selector(stateListHeightUpdateFired)
-			   withObject:nil
-			   afterDelay:0.0
-				  inModes:[NSArray arrayWithObject:(NSString *)NSRunLoopCommonModes]];
-}
-
-- (void)stateListHeightUpdateFired
-{
-	stateListHeightUpdateScheduled = NO;
-	[self updateStateListHeight];
-}
-
-/*!
- * @brief Keep the single column as wide as the room the list has
- *
- * A table does not reliably re-tile its columns when it is widened - measured on macOS 26 for the
- * account list, which is hosted in a card exactly like this one: a table grown from 505pt to 640pt
- * left its only column at the 473pt it had before, while narrowing it and widening it again did
- * re-tile. A column left behind like that lays every status name out in a strip well short of the
- * card's edge, and a click beside it hits no row at all.
- *
- * So the column is set from the width of the clip view rather than left to the table. Whatever the
- * table keeps beside its column while it is tiled to that clip view is measured off the table
- * itself instead of assumed, the same way the account list does it.
- */
-- (void)synchronizeStateColumnWidth
-{
-	NSTableColumn	*column = [outlineView_stateList tableColumnWithIdentifier:@"name"];
-	CGFloat			 clipWidth = NSWidth([[scrollView_stateList contentView] bounds]);
-
-	if (!column || clipWidth <= 0.0f) return;
-
-	CGFloat			 tableWidth = NSWidth([outlineView_stateList bounds]);
-	CGFloat			 observedMargin = tableWidth - [column width];
-
-	if ((fabs(tableWidth - clipWidth) < 0.5f) && (observedMargin >= 0.0f) && (observedMargin <= 32.0f)) {
-		stateColumnMargin = observedMargin;
-	}
-
-	CGFloat			 targetWidth = clipWidth - stateColumnMargin;
-
-	if (targetWidth < [column minWidth]) targetWidth = [column minWidth];
-	if (targetWidth > [column maxWidth]) targetWidth = [column maxWidth];
-
-	if (fabs([column width] - targetWidth) > 0.5f) [column setWidth:targetWidth];
-}
-
-/*!
- * @brief The list was resized: its column has to follow
- *
- * The form hands the scroll view the width of the card at every layout, and the outline view
- * follows it by its autoresizing mask; the column is the one thing which does not follow on its own.
- */
-- (void)stateListFrameChanged:(NSNotification *)notification
-{
-	[self synchronizeStateColumnWidth];
-}
-
-/*!
- * @brief Update table control availability
- *
- * Updates table control availability based on the current state selection.  If no states are selected this method dims the
- * edit and delete buttons since they require a selection to function.  The edit and delete buttons are also
- * dimmed if the selected state is a built-in state.
- */
-- (void)updateTableControlAvailability
-{
-//	NSArray *selectedItems = [outlineView_stateList arrayOfSelectedItems];
-	NSIndexSet *selectedIndexes = [outlineView_stateList selectedRowIndexes];
-	NSInteger			count = [selectedIndexes count];
-
-	[button_editState setEnabled:(count && 
-								  ([[outlineView_stateList itemAtRow:[selectedIndexes firstIndex]] mutabilityType] == AIEditableStatusState))];
-	[button_addOrRemoveState setEnabled:count forSegment:1];
-}
-
-/*!
  * @brief Invoked when the state array changes
  *
- * This method is invoked when the state array changes.  In response, we hold onto the new array and refresh our state
- * list.
+ * A status was added, edited, deleted or switched out of the status menu, anywhere in Adium.
+ *
+ * Coalesced onto the next turn of the run loop rather than answered on the spot, the way
+ * AIXtrasPreferences answers its own switches. The notification reaches us from inside a row's
+ * NSSwitch action - -toggleStatusShown: writes the setting, which rebuilds every status menu in
+ * Adium and lands back here - and the answer to it throws every row away and builds it again. Doing
+ * that while AppKit is still tracking the switch would pull the control out from under it.
  */
 - (void)stateArrayChanged:(NSNotification *)notification
 {
-	[outlineView_stateList reloadData];
-	[self updateTableControlAvailability];
+	//A refresh already due is left where it is, so a run of changes cannot keep deferring it
+	if (refreshScheduled) return;
 
-	/* Menus first, height second. A pop up row measures its button at every layout pass, and
-	 * -updateStateListHeight is what triggers one - so filling the menus afterwards left the
-	 * three buttons measured empty, which is a width of nothing and a row that looks like it has
-	 * no control at all. It only ever corrected itself one notification late, when the next
-	 * layout found the menus the previous round had built. */
+	refreshScheduled = YES;
+	[self performSelector:@selector(refreshFromStateArray) withObject:nil afterDelay:0.0];
+}
+
+/*!
+ * @brief Build the three status menus and the list from the status controller again
+ */
+- (void)refreshFromStateArray
+{
+	refreshScheduled = NO;
+
+	/* Menus first, list second. A pop up row measures its button at every layout pass, and the list
+	 * reporting a new height is what triggers one - so filling the menus afterwards left the three
+	 * buttons measured empty, which is a width of nothing and a row that looks like it has no
+	 * control at all. It only ever corrected itself one notification late, when the next layout
+	 * found the menus the previous round had built. */
 	[self configureAutoAwayStatusStatePopUp];
 
-	//The card is as tall as the list; a status more or less changes it
-	[self updateStateListHeight];
+	//The card is as tall as the list; a status more or less changes it, and the list says so
+	[listView_states setStatusItems:[self statusItemsForList]];
 }
 
 //State Editing --------------------------------------------------------------------------------------------------------
 #pragma mark State Editing
 /*!
-* @brief Edit the selected state
+ * @brief Edit a status
  *
- * Opens an edit state sheet for the selected state.  If the sheet is closed with success our
- * customStatusState:changedTo: method will be invoked and we can save the changes
+ * Opens an edit state sheet. If the sheet is closed with success our -customStatusState:changedTo:
+ * method is invoked and saves the changes.
+ *
+ * Anything but a status the user made is left alone: an edit is written through
+ * [[originalState containingStatusGroup] replaceExistingStatusState:...], and a built-in status has
+ * no containing group - the change would simply vanish.
  */
-- (IBAction)editState:(id)sender
+- (void)editStatus:(AIStatusItem *)statusItem
 {
-	NSInteger				selectedRow = [outlineView_stateList selectedRow];
-	AIStatusItem	*statusState = [outlineView_stateList itemAtRow:selectedRow];
-	
-	if (statusState) {
-		if ([statusState isKindOfClass:[AIStatus class]]) {
-			[AIEditStateWindowController editCustomState:(AIStatus *)statusState
-												 forType:statusState.statusType
-											  andAccount:nil
-										  withSaveOption:NO
-												onWindow:[[self view] window]
-										 notifyingTarget:self];
-			
-		} else if ([statusState isKindOfClass:[AIStatusGroup class]]) {
-			ESEditStatusGroupWindowController *editStatusGroupWindowController = [[ESEditStatusGroupWindowController alloc] initWithStatusGroup:(AIStatusGroup *)statusState
-																																notifyingTarget:self];
-			[editStatusGroupWindowController showOnWindow:[[self view] window]];
-		}
-	}
+	if (![statusItem isKindOfClass:[AIStatus class]]) return;
+	if ([statusItem mutabilityType] != AIEditableStatusState) return;
+
+	[AIEditStateWindowController editCustomState:(AIStatus *)statusItem
+										 forType:statusItem.statusType
+									  andAccount:nil
+								  withSaveOption:NO
+										onWindow:[[self view] window]
+								 notifyingTarget:self];
 }
 
 /*!
@@ -771,65 +547,51 @@
 		[adium.statusController addStatusState:newState];
 	}
 	
-	[outlineView_stateList selectItemsInArray:[NSArray arrayWithObject:newState]];
-	[outlineView_stateList scrollRowToVisible:[outlineView_stateList rowForItem:newState]];
-}
-
-- (void)finishedStatusGroupEdit:(AIStatusGroup *)inStatusGroup
-{
-	if (![inStatusGroup containingStatusGroup]) {
-		//Add it if it's not already in a group
-		[[adium.statusController rootStateGroup] addStatusItem:inStatusGroup atIndex:-1];
-
-	} else {
-		//Otherwise just save
-		[adium.statusController savedStatusesChanged];
-	}
-
-	[outlineView_stateList selectItemsInArray:[NSArray arrayWithObject:inStatusGroup]];
-	[outlineView_stateList scrollRowToVisible:[outlineView_stateList rowForItem:inStatusGroup]];
+	/* Nothing to select and nothing to scroll to: the list has no selection and never scrolls - it is
+	 * as tall as its rows, and the preferences column scrolls instead. */
 }
 
 /*!
- * @brief Delete the selected state
+ * @brief Ask before deleting a status, then delete it
  *
- * Deletes the selected state from Adium's state array.
+ * The question is the point: a saved status is gone for good, and the three automatic status
+ * settings know their status by nothing but its unique ID - deleting the wrong one switches one of
+ * them off without a word.
  */
-- (void)deleteState
+- (void)deleteStatus:(AIStatusItem *)statusItem
 {
-	NSArray		 *selectedItems = [outlineView_stateList arrayOfSelectedItems];
-	
-	if ([selectedItems count]) {
-		//Confirm deletion of a status group with contents
-		NSUInteger			 numberOfItems = 0;
+	NSAlert		*warning = [[[NSAlert alloc] init] autorelease];
+	NSWindow	*sheetParent = [[self view] window];
 
-		for (AIStatusItem *statusItem in selectedItems) {
-			if ([statusItem isKindOfClass:[AIStatusGroup class]] &&
-				[[(AIStatusGroup *)statusItem flatStatusSet] count]) {
-				numberOfItems += [[(AIStatusGroup *)statusItem flatStatusSet] count];
-			} else {
-				numberOfItems++;
-			}
-		}
+	[warning setMessageText:AILocalizedString(@"Delete Status?", "Title of the confirmation before deleting a saved status")];
+	[warning setInformativeText:[NSString stringWithFormat:
+								 AILocalizedString(@"“%@” will be deleted.",
+												   "Confirmation before deleting a saved status. %@ is the title of the status."),
+								 ([statusItem title] ?: @"")]];
+	[warning addButtonWithTitle:AILocalizedString(@"Delete", nil)];	//NSAlertFirstButtonReturn, the default button
+	[warning addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
 
-		NSString *message = [NSString stringWithFormat:AILocalizedString(@"Are you sure you want to delete %lu saved status items?",nil),
-							 numberOfItems];
-		
-		//Warn if deleting a group containing status items
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-		[alert setMessageText:AILocalizedString(@"Status Deletion Confirmation",nil)];
-		[alert setInformativeText:message];
-		[alert addButtonWithTitle:AILocalizedString(@"Delete", nil)];	//NSAlertFirstButtonReturn, was the default button
-		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];	//NSAlertSecondButtonReturn, was the alternate button
-		/* The former didEndSelector's contextInfo is now captured by the completion block,
-		 * which retains selectedItems for us (blocks retain captured objects). */
-		[alert beginSheetModalForWindow:[[self view] window] completionHandler:^(NSModalResponse returnCode) {
-			if (returnCode == NSAlertFirstButtonReturn) {
-				for (AIStatusItem *statusItem in selectedItems) {
-					[[statusItem containingStatusGroup] removeStatusItem:statusItem];
-				}
-			}
-		}];
+	/* The block holds the status - and nothing else. It deliberately never touches self, and that has
+	 * to stay so: the sheet outlives the click that opened it, and the pane behind it can be torn
+	 * down (-tearDown, -dealloc) while it stands, so anything sent to self from in here would reach
+	 * a freed view. Only the status is captured, which is what keeps it alive - the list holding it
+	 * may well have been rebuilt by the time the sheet is answered. */
+	void (^completionHandler)(NSModalResponse) = ^(NSModalResponse returnCode) {
+		if (returnCode != NSAlertFirstButtonReturn) return;
+
+		/* Take the status out of the "hidden from the status menu" setting first, while it still
+		 * knows its own ID. Not strictly needed - IDs are counted up and never reused - but it keeps
+		 * that setting finite. */
+		if (![statusItem showsInStatusMenu]) [statusItem setShowsInStatusMenu:YES];
+
+		//This is the write to disk: the root group turns every change of its contents into a save
+		[[statusItem containingStatusGroup] removeStatusItem:statusItem];
+	};
+
+	if (sheetParent) {
+		[warning beginSheetModalForWindow:sheetParent completionHandler:completionHandler];
+	} else {
+		completionHandler([warning runModal]);
 	}
 }
 
@@ -850,272 +612,38 @@
 								 notifyingTarget:self];
 }
 
-- (IBAction)addGroup:(id)sender
-{
-	ESEditStatusGroupWindowController *editStatusGroupWindowController = [[ESEditStatusGroupWindowController alloc] initWithStatusGroup:nil
-																														notifyingTarget:self];
-	[editStatusGroupWindowController showOnWindow:[[self view] window]];
-}
-
+/*!
+ * @brief The "+" under the list was clicked
+ *
+ * One segment, one meaning. The name is the nib's and stays because the connection is.
+ */
 - (IBAction)addOrRemoveState:(id)sender
 {
-	NSInteger selectedSegment = [sender selectedSegment];
-	
-	switch (selectedSegment) {
-		case 0:
-			[self newState];
-			break;
-		case 1:
-			[self deleteState];
-			break;
-	}
+	[self newState];
 }
 
-//State List OutlinView Delegate --------------------------------------------------------------------------------------------
-#pragma mark State List (OutlineView Delegate)
-- (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)idx ofItem:(id)item
+#pragma mark Status list delegate
+
+- (void)statusListView:(AIStatusListView *)listView setShownInStatusMenu:(BOOL)shown forStatus:(AIStatusItem *)statusItem
 {
-	AIStatusGroup *statusGroup = (item ? item : [adium.statusController rootStateGroup]);
-	
-	return [[statusGroup containedStatusItems] objectAtIndex:idx];
+	//Writes there and then, and rebuilds every status menu in Adium
+	[statusItem setShowsInStatusMenu:shown];
 }
 
-- (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
+- (void)statusListView:(AIStatusListView *)listView deleteStatus:(AIStatusItem *)statusItem
 {
-	AIStatusGroup *statusGroup = (item ? item : [adium.statusController rootStateGroup]);
-	
-	return [[statusGroup containedStatusItems] count];	
+	[self deleteStatus:statusItem];
 }
 
-- (NSString *)outlineView:(NSOutlineView *)outlineView typeSelectStringForTableColumn:(NSTableColumn *)tableColumn item:(id)item
+- (void)statusListView:(AIStatusListView *)listView editStatus:(AIStatusItem *)statusItem
 {
-	if([[tableColumn identifier] isEqualToString:@"name"])
-		return [item title] ? [item title] : @"";
-	return @"";
-}
-- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
-{
-
+	[self editStatus:statusItem];
 }
 
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+- (void)statusListViewDidChangeHeight:(AIStatusListView *)listView
 {
-	NSString 		*identifier = [tableColumn identifier];
-	
-	if ([identifier isEqualToString:@"icon"]) {
-		return ([item respondsToSelector:@selector(icon)] ? [item icon] : nil);
-		
-	} else if ([identifier isEqualToString:@"name"]) {
-		NSImage *icon = ([item respondsToSelector:@selector(icon)] ? [item icon] : nil);
-		
-		if (icon) {
-			NSMutableAttributedString *name;
-
-			NSTextAttachment		*attachment;
-			NSTextAttachmentCell	*cell;
-			
-			NSSize					iconSize = [icon size];
-			
-			if ((iconSize.width > 13) || (iconSize.height > 13)) {
-				icon = [icon imageByScalingToSize:NSMakeSize(13, 13)];
-			}
-
-			cell = [[[NSTextAttachmentCell alloc] init] autorelease];
-			[cell setImage:icon];
-			
-			attachment = [[[NSTextAttachment alloc] init] autorelease];
-			[attachment setAttachmentCell:cell];
-			
-			name = [[NSAttributedString attributedStringWithAttachment:attachment] mutableCopy];
-			[name appendAttributedString:[[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@",([item title] ? [item title] : @"")]
-																		  attributes:nil] autorelease]];
-			return [name autorelease];
-		} else {
-			return [item title]; 
-		}
-	}
-	
-	return nil;
-}
-
-- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
-{
-	return [item isKindOfClass:[AIStatusGroup class]];
-}
-
-/*!
- * @brief A group was opened or closed
- *
- * The number of visible rows changed without the saved statuses moving, so nothing else will tell
- * the card to grow. Without this the opened group would scroll inside a card which is still as
- * tall as the closed one.
- */
-- (void)outlineViewItemDidExpand:(NSNotification *)notification
-{
-	[self setStateListHeightNeedsUpdate];
-}
-
-- (void)outlineViewItemDidCollapse:(NSNotification *)notification
-{
-	[self setStateListHeightNeedsUpdate];
-}
-
-/*!
-* @brief Delete the selected row
- */
-- (void)outlineViewDeleteSelectedRows:(NSTableView *)tableView
-{
-    [self deleteState];
-}
-
-/*!
-* @brief Selection change
- */
-- (void)outlineViewSelectionDidChange:(NSNotification *)notification
-{
-	[self updateTableControlAvailability];
-}
-
-/*!
-* @brief Drag start
- */
-- (BOOL)outlineView:(NSOutlineView *)outlineView writeItems:(NSArray*)items toPasteboard:(NSPasteboard*)pboard
-{
-	/* Release first: only a drag which ends in a drop clears this, so a drag let go of anywhere else
-	 * leaves its items here until the next one takes their place. */
-	[draggingItems release];
-	draggingItems = [items retain];
-
-    [pboard declareTypes:[NSArray arrayWithObject:STATE_DRAG_TYPE] owner:self];
-    [pboard setString:@"State" forType:STATE_DRAG_TYPE]; //Arbitrary state
-
-    return YES;
-}
-
-- (NSDragOperation)outlineView:(NSOutlineView *)outlineView validateDrop:(id <NSDraggingInfo>)info proposedItem:(id)item proposedChildIndex:(NSInteger)idx
-{
-	[self autoscrollPaneForDrag:info];
-
-    if (idx == NSOutlineViewDropOnItemIndex && ![item isKindOfClass:[AIStatusGroup class]]) {
-		AIStatusGroup *dropItem = [item containingStatusGroup];
-		if (dropItem == [adium.statusController rootStateGroup])
-			dropItem = nil;
-
-		[outlineView setDropItem:dropItem
-				  dropChildIndex:[[[item containingStatusGroup] containedStatusItems] indexOfObjectIdenticalTo:item]];
-	}
-     
-	return NSDragOperationPrivate;
-}
-
-/*!
- * @brief Follow a drag which has reached the edge of the window
- *
- * AppKit's own drag autoscrolling asks the clip view the list sits in, and that one has nothing to
- * scroll: the list is as tall as its rows. It does not walk any further out either, so with a card
- * taller than the window a drop position below the fold could not be reached at all - and moving
- * statuses about is what this list is for. The scrolling therefore happens one scroll view further
- * out, the one the preferences window scrolls its column with.
- *
- * Best effort by its nature: it moves whenever the outline view asks us to validate a drop, so a
- * pointer held perfectly still at the edge may need a nudge. Which end of the visible area the
- * pointer is at decides the direction, so it reads the same whether that view is flipped or not.
- */
-- (void)autoscrollPaneForDrag:(id <NSDraggingInfo>)info
-{
-	NSView		*ancestor = [scrollView_stateList superview];
-
-	while (ancestor && ![ancestor isKindOfClass:[NSScrollView class]])
-		ancestor = [ancestor superview];
-
-	if (!ancestor) return;
-
-	NSScrollView	*paneScrollView = (NSScrollView *)ancestor;
-	NSClipView		*clipView = [paneScrollView contentView];
-	NSRect			 visible = [clipView bounds];
-	NSPoint			 point = [clipView convertPoint:[info draggingLocation] fromView:nil];
-	//One row at a time, and the same distance from the edge at which the scrolling starts
-	CGFloat			 step = [outlineView_stateList rowHeight] + [outlineView_stateList intercellSpacing].height;
-	CGFloat			 delta = 0.0f;
-
-	if (NSHeight(visible) <= (3.0f * step)) return;
-
-	if (point.y < (NSMinY(visible) + step)) delta = -step;
-	else if (point.y > (NSMaxY(visible) - step)) delta = step;
-
-	if (delta == 0.0f) return;
-
-	NSRect			 target = visible;
-
-	target.origin.y += delta;
-
-	[clipView scrollToPoint:[clipView constrainBoundsRect:target].origin];
-	[paneScrollView reflectScrolledClipView:clipView];
-}
-
-/*!
-* @brief Drag complete
- */
-- (BOOL)outlineView:(NSOutlineView *)outlineView acceptDrop:(id <NSDraggingInfo>)info item:(id)item childIndex:(NSInteger)idx
-{
-    NSString	*avaliableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObject:STATE_DRAG_TYPE]];
-    if ([avaliableType isEqualToString:STATE_DRAG_TYPE]) {
-		[adium.statusController setDelayStatusMenuRebuilding:YES];
-		delayedStatusMenuRebuilding = YES;
-
-		if (!item) item = [adium.statusController rootStateGroup];
-
-		AIStatusItem *statusItem;
-		
-
-		for (statusItem in draggingItems) {
-			if ([statusItem containingStatusGroup] == item) {
-				BOOL shouldIncrement = NO;
-				if ([[[statusItem containingStatusGroup] containedStatusItems] indexOfObject:statusItem] > idx) {
-					shouldIncrement = YES;
-				}
-				
-				//Move the state and select it in the new location
-				[item moveStatusItem:statusItem toIndex:idx];
-				
-				if (shouldIncrement) idx++;
-			} else {
-				//Don't let an object be moved into itself...
-				if (item != statusItem) {
-					[statusItem retain];
-					[[statusItem containingStatusGroup] removeStatusItem:statusItem];
-					[item addStatusItem:statusItem atIndex:idx];
-					[statusItem release];
-					
-					idx++;
-				}
-			}
-		}
-
-		//Notify and reselect outside of the NSOutlineView callback
-		[self performSelector:@selector(reselectDraggedItems:)
-				   withObject:draggingItems
-				   afterDelay:0];
-
-		[draggingItems release]; draggingItems = nil;
-
-        return YES;
-    } else {
-        return NO;
-    }
-}
-
-- (void)reselectDraggedItems:(NSArray *)theDraggedItems
-{
-	delayedStatusMenuRebuilding = NO;
-	[adium.statusController setDelayStatusMenuRebuilding:NO];
-
-	[outlineView_stateList selectItemsInArray:theDraggedItems];
-	[outlineView_stateList scrollRowToVisible:[outlineView_stateList rowForItem:[theDraggedItems objectAtIndex:0]]];
-
-	/* A state dragged into a collapsed group leaves fewer visible rows behind than there were, so
-	 * the card has to be refitted even though nothing was added or removed. */
-	[self updateStateListHeight];
+	//The list is the edge to edge row of a card, so its height is the card's height
+	[[self settingsForm] noteContentSizeChanged];
 }
 
 #pragma mark Other status-related controls
@@ -1183,20 +711,12 @@
 /*!
  * @brief Configure the pop up of states for autoAway.
  *
- * Should be called by stateArrayChanged: both for initial set up and for updating when the states change.
+ * Called by -refreshFromStateArray, for the first set up and for every later change alike.
  */
 - (void)configureAutoAwayStatusStatePopUp
 {
 	NSMenu		*statusStatesMenu;
 	NSNumber	*targetUniqueStatusIDNumber;
-
-	/* The three menus are about to be thrown away and built again, so whatever separator plus
-	 * imitation item -addItemIfNeeded:… had appended to them goes with them. Forgetting to say so
-	 * is a trap: the next -changed*Status: would take "already showing" at its word and remove the
-	 * last two items of the fresh menu, which are real statuses. */
-	showingSubmenuItemInAutoAway = NO;
-	showingSubmenuItemInFastUserSwitching = NO;
-	showingSubmenuItemInScreenSaver = NO;
 
 	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedAutoAwayStatus:)];
 	[self prependDoNotChangeItemToMenu:statusStatesMenu action:@selector(changedAutoAwayStatus:)];
@@ -1249,34 +769,6 @@
 }
 
 /*!
- * @brief Add all items in inMenu to an array, returning the resulting array
- *
- * This method adds items deeply; that is, submenus and their contents are recursively included
- *
- * @param inMenu The menu to start from
- * @param recursiveArray The array thus far; if nil an array will be created
- *
- * @result All the menu items in inMenu
- */
-- (NSMutableArray *)addItemsFromMenu:(NSMenu *)inMenu toArray:(NSMutableArray *)recursiveArray
-{
-	NSArray			*itemArray = [inMenu itemArray];
-	NSMenuItem		*menuItem;
-
-	if (!recursiveArray) recursiveArray = [NSMutableArray array];
-
-	for (menuItem in itemArray) {
-		[recursiveArray addObject:menuItem];
-
-		if ([menuItem submenu]) {
-			[self addItemsFromMenu:[menuItem submenu] toArray:recursiveArray];
-		}
-	}
-
-	return recursiveArray;
-}
-
-/*!
  * @brief Select a status with uniqueID in inPopUpButton
  *
  * An ID no status answers to — STATUS_STATE_ID_NONE, or one whose status has since been deleted —
@@ -1291,7 +783,9 @@
 	if (uniqueID) {
 		NSInteger			 targetUniqueStatusID= [uniqueID integerValue];
 
-		for (NSMenuItem *candidate in [self addItemsFromMenu:[inPopUpButton menu] toArray:nil]) {
+		/* One level, because there is only one: +staticStatusStatesMenuNotifyingTarget: built
+		 * submenus while groups of statuses existed, and every entry stands on its own now. */
+		for (NSMenuItem *candidate in [[inPopUpButton menu] itemArray]) {
 			AIStatusItem	*statusState;
 
 			statusState = [[candidate representedObject] objectForKey:@"AIStatus"];
@@ -1307,28 +801,11 @@
 		}
 	}
 
-	if (!menuItem) {
+	if (menuItem) {
+		[inPopUpButton selectItem:menuItem];
+	} else {
 		//Nothing to select: fall back on "Do not change", which we put at the top ourselves
 		if ([[inPopUpButton menu] numberOfItems]) [inPopUpButton selectItemAtIndex:0];
-
-	} else {
-		[inPopUpButton selectItem:menuItem];
-
-		//Add it if we weren't able to select it initially
-		if (![inPopUpButton selectedItem]) {
-			[self addItemIfNeeded:menuItem toPopUpButton:inPopUpButton alreadyShowingAnItem:NO];
-			
-			if (inPopUpButton == popUp_autoAwayStatusState) {
-				showingSubmenuItemInAutoAway = YES;
-				
-			} else if (inPopUpButton == popUp_fastUserSwitchingStatusState) {
-				showingSubmenuItemInFastUserSwitching = YES;
-				
-			} else if (inPopUpButton == popUp_screenSaverStatusState) {
-				showingSubmenuItemInScreenSaver = YES;
-				
-			}
-		}
 	}
 }
 
@@ -1392,42 +869,6 @@
 }
 
 /*!
- * @brief If menuItem is not selectable in popUpButton, add it and select it
- *
- * Menu items located within submenus can't be directly selected. This method will add a spearator item and then the item itself
- * to the bottom of popUpButton if needed.  alreadyShowing should be YES if a similarly set separate + item exists; it will be removed
- * first.
- *
- * @result YES if the item was added to popUpButton.
- */
-- (BOOL)addItemIfNeeded:(NSMenuItem *)menuItem toPopUpButton:(NSPopUpButton *)popUpButton alreadyShowingAnItem:(BOOL)alreadyShowing
-{
-	BOOL	nowShowing = NO;
-	NSMenu	*menu = [popUpButton menu];
-
-	[menuItem retain];
-	if (alreadyShowing) {
-		NSInteger count = [menu numberOfItems];
-		[menu removeItemAtIndex:--count];
-		[menu removeItemAtIndex:--count];			
-	}
-	
-	if ([popUpButton selectedItem] != menuItem) {
-		NSMenuItem  *imitationMenuItem = [menuItem copy];
-		
-		[menu addItem:[NSMenuItem separatorItem]];
-		[menu addItem:imitationMenuItem];
-		
-		[popUpButton selectItem:imitationMenuItem];
-		[imitationMenuItem release];
-		
-		nowShowing = YES;
-	}	
-	[menuItem release];
-	
-	return nowShowing;
-}
-/*!
  * @brief The status ID a menu item stands for, or "do not change" for the first entry
  *
  * The "Do not change" item carries no represented object, and STATUS_STATE_ID_NONE is what has to
@@ -1447,10 +888,6 @@
 	[adium.preferenceController setPreference:[self statusIDForSelectedMenuItem:sender]
 										 forKey:KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID
 										  group:PREF_GROUP_STATUS_PREFERENCES];
-
-	showingSubmenuItemInAutoAway = [self addItemIfNeeded:sender
-										   toPopUpButton:popUp_autoAwayStatusState
-									alreadyShowingAnItem:showingSubmenuItemInAutoAway];
 }
 
 - (void)changedFastUserSwitchingStatus:(id)sender
@@ -1458,10 +895,6 @@
 	[adium.preferenceController setPreference:[self statusIDForSelectedMenuItem:sender]
 										 forKey:KEY_STATUS_FUS_STATUS_STATE_ID
 										  group:PREF_GROUP_STATUS_PREFERENCES];
-
-	showingSubmenuItemInFastUserSwitching = [self addItemIfNeeded:sender
-													toPopUpButton:popUp_fastUserSwitchingStatusState
-											 alreadyShowingAnItem:showingSubmenuItemInFastUserSwitching];
 }
 
 - (void)changedScreenSaverStatus:(id)sender
@@ -1469,10 +902,6 @@
 	[adium.preferenceController setPreference:[self statusIDForSelectedMenuItem:sender]
 										 forKey:KEY_STATUS_SS_STATUS_STATE_ID
 										  group:PREF_GROUP_STATUS_PREFERENCES];
-
-	showingSubmenuItemInScreenSaver = [self addItemIfNeeded:sender
-													toPopUpButton:popUp_screenSaverStatusState
-											 alreadyShowingAnItem:showingSubmenuItemInScreenSaver];
 }
 
 /*!

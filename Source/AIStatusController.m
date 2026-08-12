@@ -44,6 +44,12 @@
 - (NSArray *)builtInStateArray;
 
 - (void)_upgradeSavedAwaysToSavedStates;
+- (BOOL)flattenUserStatusGroupsMappingGroupIDs:(NSMutableDictionary *)groupIDMap;
+- (void)appendContentsOfStatusGroup:(AIStatusGroup *)statusGroup
+							toArray:(NSMutableArray *)flattened
+					mappingGroupIDs:(NSMutableDictionary *)groupIDMap;
+- (void)remapAutomaticStatusIDsUsing:(NSDictionary *)groupIDMap;
+- (NSMutableSet *)hiddenStatusIDs;
 
 - (NSArray *)_menuItemsForStatusesOfType:(AIStatusType)type forServiceCodeUniqueID:(NSString *)inServiceCodeUniqueID withTarget:(id)target;
 - (void)_addMenuItemsForStatusOfType:(AIStatusType)type
@@ -186,6 +192,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 {
 	[_rootStateGroup release]; _rootStateGroup = nil;
 	[_sortedFullStateArray release]; _sortedFullStateArray = nil;
+	[_hiddenStatusIDs release]; _hiddenStatusIDs = nil;
 	[super dealloc];
 }
 
@@ -677,11 +684,226 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 		if (!_rootStateGroup) _rootStateGroup = [[AIStatusGroup statusGroup] retain];
 
+		/* Groups of statuses are no longer a concept of Adium's, so any a previous version saved are
+		 * dissolved here - before the first reader (the per-account "LastStatus" lookup of
+		 * -controllerDidLoad) sees the root, and long before any menu or preference pane does.
+		 *
+		 * Nothing marks this as done: the condition is structural. Once the archive holds nothing but
+		 * statuses there is no group left to find, so the next launch does and writes nothing - and a
+		 * user who restores an old backup of their preferences is simply migrated again. The 0.7x
+		 * upgrade right below recognises its own work the same way, by the old preference being gone.
+		 *
+		 * No recursion: -savedStatusesChanged asks for the root again, but _rootStateGroup is set by
+		 * now and is handed straight back.
+		 *
+		 * A migration does notify, though, and it notifies from inside this method - so whoever
+		 * asked for the root can be re-entered before their own work is finished. The one delay
+		 * bracket keeps that to a single notification (the same one the 0.7x upgrade below takes);
+		 * surviving it is the job of -sortedFullStateArray and -flatStatusSet, which say so there. */
+		NSMutableDictionary	*groupIDMap = [NSMutableDictionary dictionary];
+
+		if ([self flattenUserStatusGroupsMappingGroupIDs:groupIDMap]) {
+			[self setDelayStatusMenuRebuilding:YES];
+
+			/* Keep the archive as it was, once: the save below overwrites KEY_SAVED_STATUS for good,
+			 * and someone who kept ten statuses in groups should not be one bug away from losing
+			 * them. */
+			if (savedStateData &&
+				![adium.preferenceController preferenceForKey:KEY_SAVED_STATUS_PRE_FLATTENING
+													    group:PREF_GROUP_SAVED_STATUS]) {
+				[adium.preferenceController setPreference:savedStateData
+												   forKey:KEY_SAVED_STATUS_PRE_FLATTENING
+													group:PREF_GROUP_SAVED_STATUS];
+			}
+
+			[self remapAutomaticStatusIDsUsing:groupIDMap];
+
+			AILog(@"*** Dissolved the saved status groups; %lu statuses are now in the root",
+				  (unsigned long)[[_rootStateGroup containedStatusItems] count]);
+
+			[self savedStatusesChanged];
+
+			[self setDelayStatusMenuRebuilding:NO];
+		}
+
 		//Upgrade Adium 0.7x away messages
 		[self _upgradeSavedAwaysToSavedStates];
 	}
 
 	return _rootStateGroup;
+}
+
+/*!
+ * @brief Lift the statuses out of every saved status group, in place
+ *
+ * The root's contents are walked in order; a status moves across unchanged, a group is replaced by
+ * its contents at exactly the position it stood in. Groups could be nested, so the walk recurses.
+ * Not one status ID is touched - each lives in the status's own statusDict and travels with it; only
+ * the groups' own IDs are dropped, and @a groupIDMap records what they should become (see
+ * -remapAutomaticStatusIDsUsing:).
+ *
+ * @result YES if there was a group to dissolve. NO means: nothing was changed, nothing needs saving.
+ */
+- (BOOL)flattenUserStatusGroupsMappingGroupIDs:(NSMutableDictionary *)groupIDMap
+{
+	NSMutableArray	*flattened = [NSMutableArray array];
+	BOOL			 foundGroup = NO;
+
+	for (AIStatusItem *statusItem in [_rootStateGroup containedStatusItems]) {
+		if ([statusItem isKindOfClass:[AIStatusGroup class]]) {
+			foundGroup = YES;
+			[self appendContentsOfStatusGroup:(AIStatusGroup *)statusItem
+									  toArray:flattened
+							  mappingGroupIDs:groupIDMap];
+		} else {
+			[flattened addObject:statusItem];
+		}
+	}
+
+	if (!foundGroup) return NO;
+
+	[_rootStateGroup setContainedStatusItems:flattened];
+
+	/* Every lifted status has to know where it now stands: without a containing group neither its
+	 * deletion nor a later ID assignment would ever be written. */
+	[flattened makeObjectsPerformSelector:@selector(setContainingStatusGroup:)
+							   withObject:_rootStateGroup];
+
+	return YES;
+}
+
+/*!
+ * @brief Append the contents of @a statusGroup, and of any group inside it, to @a flattened
+ */
+- (void)appendContentsOfStatusGroup:(AIStatusGroup *)statusGroup
+							toArray:(NSMutableArray *)flattened
+					mappingGroupIDs:(NSMutableDictionary *)groupIDMap
+{
+	NSUInteger	 firstLiftedIndex = [flattened count];
+
+	for (AIStatusItem *statusItem in [statusGroup containedStatusItems]) {
+		if ([statusItem isKindOfClass:[AIStatusGroup class]]) {
+			[self appendContentsOfStatusGroup:(AIStatusGroup *)statusItem
+									  toArray:flattened
+							  mappingGroupIDs:groupIDMap];
+		} else {
+			[flattened addObject:statusItem];
+		}
+	}
+
+	/* -preexistingUniqueStatusID, never -uniqueStatusID: the latter would hand this group - which is
+	 * about to be thrown away - a brand new ID and count TopStatusID up for it. */
+	int			 groupID = [statusGroup preexistingUniqueStatusID];
+
+	if (groupID != -1) {
+		AIStatusItem	*firstLifted = ((firstLiftedIndex < [flattened count]) ?
+										[flattened objectAtIndex:firstLiftedIndex] :
+										nil);
+
+		[groupIDMap setObject:[NSNumber numberWithInt:(firstLifted ? [firstLifted preexistingUniqueStatusID] : -1)]
+					   forKey:[NSNumber numberWithInt:groupID]];
+	}
+}
+
+/*!
+ * @brief Point the three automatic status settings at a status again if they named a group
+ *
+ * Such a setting has been silently doing nothing all along: -statusStateWithUniqueStatusID: searches
+ * flatStatusSet, which never held a group. So this does not repair what the flattening broke - it
+ * repairs what was already broken, and turns a dead setting into one which works and is visible in
+ * its menu. A group which was empty leaves nothing to point at and becomes "do not change".
+ */
+- (void)remapAutomaticStatusIDsUsing:(NSDictionary *)groupIDMap
+{
+	if (![groupIDMap count]) return;
+
+	for (NSString *key in [NSArray arrayWithObjects:
+						   KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID,
+						   KEY_STATUS_FUS_STATUS_STATE_ID,
+						   KEY_STATUS_SS_STATUS_STATE_ID,
+						   nil]) {
+		NSNumber	*storedID = [adium.preferenceController preferenceForKey:key
+																	   group:PREF_GROUP_STATUS_PREFERENCES];
+		NSNumber	*replacement = (storedID ?
+									[groupIDMap objectForKey:[NSNumber numberWithInt:[storedID intValue]]] :
+									nil);
+
+		if (!replacement) continue;
+
+		if ([replacement intValue] == -1) replacement = [NSNumber numberWithInteger:STATUS_STATE_ID_NONE];
+
+		[adium.preferenceController setPreference:replacement
+										   forKey:key
+											group:PREF_GROUP_STATUS_PREFERENCES];
+	}
+}
+
+#pragma mark Visibility in the status menus
+
+/*!
+ * @brief The set of hidden unique status IDs, loaded on first use
+ *
+ * The numbers are normalised through -intValue on both sides: the built-in statuses bring their IDs
+ * out of a plist, where they are reals, while the preference stores whole numbers - and membership
+ * of a set made of two different kinds of NSNumber is a trap worth not setting.
+ */
+- (NSMutableSet *)hiddenStatusIDs
+{
+	if (!_hiddenStatusIDs) {
+		NSArray	*savedIDs = [adium.preferenceController preferenceForKey:KEY_HIDDEN_STATUS_IDS
+																   group:PREF_GROUP_SAVED_STATUS];
+
+		_hiddenStatusIDs = [[NSMutableSet alloc] init];
+
+		for (NSNumber *uniqueID in savedIDs) {
+			[_hiddenStatusIDs addObject:[NSNumber numberWithInt:[uniqueID intValue]]];
+		}
+	}
+
+	return _hiddenStatusIDs;
+}
+
+/*!
+ * @brief Whether a status is to appear in the status menus
+ *
+ * -preexistingUniqueStatusID rather than -uniqueStatusID: the latter hands out an ID, counts
+ * TopStatusID up and provokes a save, none of which may happen while a menu or a table row is being
+ * drawn. A status which has never been given an ID cannot be hidden, so it is shown.
+ */
+- (BOOL)statusItemShowsInStatusMenu:(AIStatusItem *)statusItem
+{
+	int		uniqueID = [statusItem preexistingUniqueStatusID];
+
+	return ((uniqueID == -1) ||
+			![[self hiddenStatusIDs] containsObject:[NSNumber numberWithInt:uniqueID]]);
+}
+
+/*!
+ * @brief Show or hide a status in the status menus
+ *
+ * -uniqueStatusID is right here: someone flipping the switch means this status, so giving it an
+ * identity of its own is exactly what is wanted. Only the menus are told about it afterwards, not
+ * -savedStatusesChanged: the switch is not part of the statuses' archive.
+ */
+- (void)setStatusItem:(AIStatusItem *)statusItem showsInStatusMenu:(BOOL)shows
+{
+	NSNumber	*uniqueID = [NSNumber numberWithInt:[[statusItem uniqueStatusID] intValue]];
+
+	if (shows) {
+		if (![[self hiddenStatusIDs] containsObject:uniqueID]) return;
+
+		[[self hiddenStatusIDs] removeObject:uniqueID];
+	} else {
+		if ([[self hiddenStatusIDs] containsObject:uniqueID]) return;
+
+		[[self hiddenStatusIDs] addObject:uniqueID];
+	}
+
+	[adium.preferenceController setPreference:[[self hiddenStatusIDs] allObjects]
+									   forKey:KEY_HIDDEN_STATUS_IDS
+										group:PREF_GROUP_SAVED_STATUS];
+
+	[self notifyOfChangedStatusArray];
 }
 
 /*!
@@ -784,7 +1006,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
  * @brief Return a sorted state array for use in menu item creation
  *
  * The array is created by adding the built in states to the user states, then sorting using _statusArraySort
- * The resulting array may contain AIStatus and AIStatusGroup objects.
+ * It holds AIStatus objects only; groups of statuses no longer exist.
  *
  * @result A cached NSArray which is sorted by status type (available, away), built-in vs. user-made, and then original ordering.
  */
@@ -805,7 +1027,15 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		//Pass the original array so its indexes can be used for comparison of saved state ordering
 		[AIStatusGroup sortArrayOfStatusItems:tempArray context:originalStateArray];
 
-		_sortedFullStateArray = tempArray;
+		/* Assign only if nobody beat us to it. -rootStateGroup above migrates on the first call and
+		 * notifies while doing so, and an observer which answers that notification by asking for
+		 * this array again gets here first and leaves a finished array behind - which a plain
+		 * assignment would overwrite and, without ARC, leak. Its contents are ours either way. */
+		if (_sortedFullStateArray) {
+			[tempArray release];
+		} else {
+			_sortedFullStateArray = tempArray;
+		}
 	}
 
 	return _sortedFullStateArray;
@@ -825,9 +1055,14 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		//Add temporary ones
 		[tempArray addObjectsFromArray:[temporaryStateArray allObjects]];
 
-		_flatStatusSet = tempArray;
+		//Same re-entrancy through -rootStateGroup as in -sortedFullStateArray, and the same answer
+		if (_flatStatusSet) {
+			[tempArray release];
+		} else {
+			_flatStatusSet = tempArray;
+		}
 	}
-	
+
 	return _flatStatusSet;
 }
 

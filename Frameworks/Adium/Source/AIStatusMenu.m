@@ -16,7 +16,6 @@
 
 #import <Adium/AIStatusMenu.h>
 #import <Adium/AIStatus.h>
-#import <Adium/AIStatusGroup.h>
 #import <Adium/AIAccount.h>
 #import <Adium/AIStatusControllerProtocol.h>
 #import <Adium/AIEditStateWindowController.h>
@@ -40,7 +39,11 @@
 - (void)statusIconSetChanged:(NSNotification *)notification;
 - (IBAction)selectCustomState:(id)sender;
 - (void)selectState:(id)sender;
-+ (void)dummyAction:(id)sender;
++ (NSArray *)statusItemsForMenuDisplay;
++ (NSSet *)activeStatusItemsHiddenFromTheMenu;
+- (void)addCustomItemsForStatusTypesFrom:(AIStatusType)fromStatusType
+									  to:(AIStatusType)toStatusType
+					 skippingTheFirstOne:(BOOL)skipFirst;
 @end
 
 @implementation AIStatusMenu
@@ -85,6 +88,7 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[stateMenuItemsAlreadyValidated release];
+	[hiddenActiveStatusItems release];
 	[menuItemArray release];
 
 	self.delegate = nil;
@@ -122,7 +126,22 @@
 
 - (void)activeStatusStateChanged:(NSNotification *)notification
 {
-	[stateMenuItemsAlreadyValidated removeAllObjects];
+	/* +statusItemsForMenuDisplay keeps the status which is set right now in the menu even when its
+	 * switch is off - but that is decided while the menu is built, and nothing else rebuilds it for
+	 * a status change: an automatic status is set on the accounts by ID (AIAutomaticStatus), which
+	 * never touches the status array. Without this the user's own state would carry no checkmark
+	 * anywhere and the menu would be silent about where they stand.
+	 *
+	 * Only that one case rebuilds; every other status change needs nothing but the validation cache
+	 * emptied, and rebuilding every menu of Adium each time an account goes online would be dear. */
+	NSSet	*nowHiddenAndActive = [AIStatusMenu activeStatusItemsHiddenFromTheMenu];
+
+	if (![nowHiddenAndActive isEqualToSet:hiddenActiveStatusItems]) {
+		//-rebuildMenu empties the validation cache and takes down the new set itself
+		[self rebuildMenu];
+	} else {
+		[stateMenuItemsAlreadyValidated removeAllObjects];
+	}
 }
 
 - (void)statusIconSetChanged:(NSNotification *)notification
@@ -147,8 +166,90 @@
 													 iconType:AIStatusIconMenu
 													direction:AIIconNormal]];
 	[menuItem setTag:statusType];
-	
+
 	return [menuItem autorelease];
+}
+
+/*!
+ * @brief Add the "Custom…" entry and the divider of every status type from @a fromStatusType up to (not including) @a toStatusType
+ *
+ * Every type is walked, not just the one being left behind, because a type can be missing from the
+ * menu altogether: switch the built-in Away and the built-in Invisible off and, without saved away
+ * statuses, not a single away status is enumerated - so the menu never crosses into the away group.
+ * Deriving "Custom (away)…" from that crossing alone dropped it with them, and since it is the only
+ * other way to go away from a status menu, Adium could not be set away from the menu bar, the dock,
+ * the menu extra or the contact list any more. The switch tidies the menu; it must not close a door.
+ *
+ * @param skipFirst YES if @a fromStatusType has had its entry already - which is what the secondary
+ *                  locked group (the Now Playing status) does before it begins.
+ */
+- (void)addCustomItemsForStatusTypesFrom:(AIStatusType)fromStatusType
+									  to:(AIStatusType)toStatusType
+					 skippingTheFirstOne:(BOOL)skipFirst
+{
+	NSInteger	statusType;
+
+	for (statusType = (NSInteger)fromStatusType; statusType < (NSInteger)toStatusType; statusType++) {
+		//Invisible shares the away group's entry everywhere in this menu; it never gets one of its own
+		if (statusType == AIInvisibleStatusType) continue;
+
+		if (!(skipFirst && (statusType == (NSInteger)fromStatusType))) {
+			[menuItemArray addObject:[self customMenuItemForStatusType:(AIStatusType)statusType]];
+		}
+
+		//Add a divider
+		[menuItemArray addObject:[NSMenuItem separatorItem]];
+	}
+}
+
+/*!
+ * @brief The statuses to show in an everyday status menu, sorted as always
+ *
+ * The one place where the "show in the status menu" switch is acted upon, which is why it covers the
+ * menu bar, the dock, the status menu extra, the contact list window and the per-account submenus
+ * of the contact list at once: all of them are only handed the menu items built below. The three
+ * choosers of the status preferences and the "Set Status" menu of the accounts preferences are not
+ * among them and show every status; +staticStatusStatesMenuNotifyingTarget: says why.
+ *
+ * Two safeguards. The status which is set right now is always shown, or no entry would carry a
+ * checkmark any more and the menu would keep the user's own state from them - which is only half
+ * the job, so -activeStatusStateChanged: rebuilds the menu when that status changes. And if nothing
+ * at all is left, everything is shown; Offline has no "Custom…" stand-in and would otherwise be
+ * unreachable from the status menu altogether.
+ *
+ * A whole status type falling away is <em>not</em> a dead end: -rebuildMenu builds the "Custom…"
+ * entry of every type whether that type has any statuses left or not.
+ */
++ (NSArray *)statusItemsForMenuDisplay
+{
+	NSArray			*allItems = [adium.statusController sortedFullStateArray];
+	NSSet			*activeStates = [adium.statusController allActiveStatusStates];
+	NSMutableArray	*visibleItems = [NSMutableArray arrayWithCapacity:[allItems count]];
+
+	for (AIStatusItem *statusItem in allItems) {
+		if ([statusItem showsInStatusMenu] || [activeStates containsObject:statusItem]) {
+			[visibleItems addObject:statusItem];
+		}
+	}
+
+	return ([visibleItems count] ? visibleItems : allItems);
+}
+
+/*!
+ * @brief The statuses which are only in the menu because they are set right now
+ *
+ * The exception +statusItemsForMenuDisplay makes, on its own: when this set changes, the menu it
+ * built no longer shows what it should, and -activeStatusStateChanged: rebuilds.
+ */
++ (NSSet *)activeStatusItemsHiddenFromTheMenu
+{
+	NSMutableSet	*hiddenAndActive = [NSMutableSet set];
+
+	for (AIStatusItem *statusItem in [adium.statusController allActiveStatusStates]) {
+		if (![statusItem showsInStatusMenu]) [hiddenAndActive addObject:statusItem];
+	}
+
+	return hiddenAndActive;
 }
 
 /*!
@@ -171,10 +272,16 @@
 	[menuItemArray removeAllObjects];
 	[stateMenuItemsAlreadyValidated removeAllObjects];
 
+	/* Taken down before the menu is built, and out of the same answer the build is about to use:
+	 * this is what -activeStatusStateChanged: compares against to decide whether the menu still
+	 * shows the status the user is in. */
+	[hiddenActiveStatusItems release];
+	hiddenActiveStatusItems = [[AIStatusMenu activeStatusItemsHiddenFromTheMenu] retain];
+
 	/* Create a menu item for each state.  States must first be sorted such that states of the same AIStatusType
 		* are grouped together.
 		*/
-	enumerator = [[adium.statusController sortedFullStateArray] objectEnumerator];
+	enumerator = [[AIStatusMenu statusItemsForMenuDisplay] objectEnumerator];
 	while ((statusState = [enumerator nextObject])) {
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		AIStatusType thisStatusType = statusState.statusType;
@@ -197,15 +304,13 @@
 			*/
 		if ((currentStatusType != thisStatusType) &&
 			(currentStatusType != AIOfflineStatusType)) {
-			
-			//Don't include a Custom item after the secondary locked group, as it was already included
-			if ((currentStatusMutabilityType != AISecondaryLockedStatusState)) {
-				[menuItemArray addObject:[self customMenuItemForStatusType:currentStatusType]];
-			}
-			
-			//Add a divider
-			[menuItemArray addObject:[NSMenuItem separatorItem]];
-			
+			/* Every type between the one being left and the one beginning, so that a type with no
+			 * statuses left to enumerate still gets its "Custom…" entry. The one after a secondary
+			 * locked group is skipped: that group added it before it began. */
+			[self addCustomItemsForStatusTypesFrom:currentStatusType
+												to:thisStatusType
+							   skippingTheFirstOne:(currentStatusMutabilityType == AISecondaryLockedStatusState)];
+
 			currentStatusType = thisStatusType;
 		}
 
@@ -214,14 +319,7 @@
 											  action:@selector(selectState:)
 									   keyEquivalent:@""];
 		
-		if ([statusState isKindOfClass:[AIStatus class]]) {
-			[menuItem setToolTip:[statusState statusMessageTooltipString]];
-			
-		} else {
-			/* AIStatusGroup */
-			[menuItem setSubmenu:[(AIStatusGroup *)statusState statusSubmenuNotifyingTarget:self
-																					 action:@selector(selectState:)]];
-		}
+		[menuItem setToolTip:[statusState statusMessageTooltipString]];
 		[menuItem setRepresentedObject:[NSDictionary dictionaryWithObject:statusState
 																   forKey:@"AIStatus"]];
 		[menuItem setTag:currentStatusType];
@@ -234,11 +332,14 @@
 	}
 	
 	if (currentStatusType != AIOfflineStatusType) {
-		/* Add the last "Custom..." state option for the last statusType we handled,
-		 * which didn't get a "Custom..." item yet.  At present, our last status type should always be
-		 * our AIOfflineStatusType, so this will never be executed and just exists for completeness.
-		 */
-		[menuItemArray addObject:[self customMenuItemForStatusType:currentStatusType]];
+		/* The types the enumeration never reached still want their "Custom..." entry. At present the
+		 * last status type is always AIOfflineStatusType, so this is for completeness. */
+		[self addCustomItemsForStatusTypesFrom:currentStatusType
+											to:AIOfflineStatusType
+						   skippingTheFirstOne:(currentStatusMutabilityType == AISecondaryLockedStatusState)];
+
+		//Nothing follows, so the divider the loop appended has nothing left to divide
+		if ([[menuItemArray lastObject] isSeparatorItem]) [menuItemArray removeLastObject];
 	}
 
 	//Now that we are done creating the menu items, tell the plugin about them
@@ -275,9 +376,7 @@
 				*/
 			if ([adium.statusController.flatStatusSet containsObject:appropriateActiveStatusState]) {
 				//If the search state is in the array so is a saved state, search for the match
-				if ((menuItemStatusState == appropriateActiveStatusState) ||
-					([menuItemStatusState isKindOfClass:[AIStatusGroup class]] &&
-					 [(AIStatusGroup *)menuItemStatusState enclosesStatusState:appropriateActiveStatusState])) {
+				if (menuItemStatusState == appropriateActiveStatusState) {
 					if ([menuItem state] != NSControlStateValueOn) [menuItem setState:NSControlStateValueOn];
 				} else {
 					if ([menuItem state] != NSControlStateValueOff) [menuItem setState:NSControlStateValueOff];
@@ -303,9 +402,7 @@
 			
 			if (menuItemStatusState) {
 				//If this menu item has a status state, set it to the right on state if that state is active
-				if ([allActiveStatusStates containsObject:menuItemStatusState] ||
-					([menuItemStatusState isKindOfClass:[AIStatusGroup class]] &&
-					 [(AIStatusGroup *)menuItemStatusState enclosesStatusStateInSet:allActiveStatusStates])) {
+				if ([allActiveStatusStates containsObject:menuItemStatusState]) {
 					if ([menuItem state] != onState) [menuItem setState:onState];
 				} else {
 					if ([menuItem state] != NSControlStateValueOff) [menuItem setState:NSControlStateValueOff];
@@ -352,10 +449,6 @@
 	NSDictionary	*dict = [sender representedObject];
 	AIStatusItem	*statusItem = [dict objectForKey:@"AIStatus"];
 	AIAccount		*account = [dict objectForKey:@"AIAccount"];
-	
-	if ([statusItem isKindOfClass:[AIStatusGroup class]]) {
-		statusItem = [(AIStatusGroup *)statusItem anyContainedStatus];
-	}
 	
 	/* Random undocumented feature of the moment... hold option and select a state to bring up the custom status window
 	 * for modifying and then setting it. Alternately, select an active status (one in the on state) to do the same.
@@ -458,15 +551,21 @@
 	[statusStatesMenu setMenuChangedMessagesEnabled:NO];
 	[statusStatesMenu setAutoenablesItems:NO];
 	
-	if (!target && !selector) {
-		//Need to set a target and action for items with submenus (AIStatusGroups) to be selectable... so if we're not given one, set one.
-		target = self;
-		selector = @selector(dummyAction:);
-	}
-	
-	/* Create a menu item for each state.  States must first be sorted such that states of the same AIStatusType
-		* are grouped together.
-		*/
+	/* Create a menu item for each state.  States must first be sorted such that states of the same
+	 * AIStatusType are grouped together.
+	 *
+	 * Deliberately every status, not +statusItemsForMenuDisplay. The line runs between the everyday
+	 * status menus, which filter, and the preference panes, which do not - and this method serves
+	 * only the latter:
+	 *
+	 *   - The three choosers of the status preferences would otherwise hide a setting that is in
+	 *     force and fall back to "Do not change" - whereupon the next click would write
+	 *     STATUS_STATE_ID_NONE and switch off an automatic status the user never touched.
+	 *   - The "Set Status" submenu of the accounts preferences, and the status menu of an account's
+	 *     info sheet, are where an account is set up; every status Adium knows belongs there,
+	 *     whether or not the user keeps it out of the menu bar.
+	 *
+	 * Hiding a status tidies the everyday menu; it takes nothing away. */
 	enumerator = [[adium.statusController sortedFullStateArray] objectEnumerator];
 	while ((statusState = [enumerator nextObject])) {
 		AIStatusType thisStatusType = statusState.statusType;
@@ -489,15 +588,8 @@
 		[menuItem setTag:statusState.statusType];
 		[menuItem setRepresentedObject:[NSDictionary dictionaryWithObject:statusState
 																   forKey:@"AIStatus"]];
-		if ([statusState isKindOfClass:[AIStatus class]]) {
-			[menuItem setToolTip:[statusState statusMessageTooltipString]];
-			
-		} else {
-			/* AIStatusGroup */
-			[menuItem setSubmenu:[(AIStatusGroup *)statusState statusSubmenuNotifyingTarget:target
-																					 action:selector]];
-		}
-		
+		[menuItem setToolTip:[statusState statusMessageTooltipString]];
+
 		[statusStatesMenu addItem:menuItem];
 		[menuItem release];
 	}
@@ -533,7 +625,5 @@
 	
 	return title;
 }
-
-+ (void)dummyAction:(id)sender {};
 
 @end

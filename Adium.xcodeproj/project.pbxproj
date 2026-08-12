@@ -200,6 +200,7 @@
 		ADD1E5C0DE00000000001802 /* OTRPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001801 /* OTRPrefs.xib */; };
 		342353D709D45726009FF634 /* AILogViewerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 342353D509D45725009FF634 /* AILogViewerWindowController.m */; };
 		3428328907D2643F004F01C9 /* ESStatusPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 3428328507D2643F004F01C9 /* ESStatusPreferences.m */; };
+		ADD1E5C0DF00000000000025 /* AIStatusListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000022 /* AIStatusListView.m */; };
 		3428328B07D2643F004F01C9 /* ESStatusPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */; };
 		342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */ = {isa = PBXBuildFile; fileRef = 342838ED07D2D004004F01C9 /* Shared Dock Icon Images */; };
 		342910CD07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */; };
@@ -410,8 +411,6 @@
 		34891C140D4B75EE00AEF48C /* AIStandardListScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34891C130D4B75EE00AEF48C /* AIStandardListScrollView.m */; };
 		348B250D0A50A1C900B2B972 /* ESSourceListBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 348B250B0A50A1C900B2B972 /* ESSourceListBackgroundView.m */; };
 		348C47170D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 348C47160D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.m */; };
-		348F57940936F3CC00288E41 /* ESEditStatusGroupWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 348F57920936F3CC00288E41 /* ESEditStatusGroupWindowController.m */; };
-		348F579E0936FA6D00288E41 /* EditStatusGroup.xib in Resources */ = {isa = PBXBuildFile; fileRef = 348F579D0936FA6D00288E41 /* EditStatusGroup.xib */; };
 		349062A2127F7E6900FC313F /* AITemporaryIRCAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 349062A1127F7E6900FC313F /* AITemporaryIRCAccountWindowController.m */; };
 		349195660C9662AA00595A04 /* AIListBookmark.m in Sources */ = {isa = PBXBuildFile; fileRef = 349195640C9662AA00595A04 /* AIListBookmark.m */; };
 		349195670C9662AA00595A04 /* AIListBookmark.h in Headers */ = {isa = PBXBuildFile; fileRef = 349195650C9662AA00595A04 /* AIListBookmark.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1622,6 +1621,8 @@
 		3428328407D2643E004F01C9 /* ESStatusPreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusPreferencesPlugin.h; path = Source/ESStatusPreferencesPlugin.h; sourceTree = "<group>"; };
 		3428328507D2643F004F01C9 /* ESStatusPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusPreferences.m; path = Source/ESStatusPreferences.m; sourceTree = "<group>"; };
 		3428328607D2643F004F01C9 /* ESStatusPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESStatusPreferences.h; path = Source/ESStatusPreferences.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000021 /* AIStatusListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStatusListView.h; path = Source/AIStatusListView.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000022 /* AIStatusListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStatusListView.m; path = Source/AIStatusListView.m; sourceTree = "<group>"; };
 		3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusPreferencesPlugin.m; path = Source/ESStatusPreferencesPlugin.m; sourceTree = "<group>"; };
 		342838ED07D2D004004F01C9 /* Shared Dock Icon Images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Shared Dock Icon Images"; path = "Resources/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		3428B33E0815E1FB00C0D3DC /* emoticon32.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = emoticon32.tiff; path = Resources/emoticon32.tiff; sourceTree = "<group>"; };
@@ -1979,9 +1980,6 @@
 		348E5ACA06D2A74C004C051C /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		348F50C00935317C00288E41 /* AIStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStatusItem.h; path = Frameworks/Adium/Source/AIStatusItem.h; sourceTree = "<group>"; };
 		348F50C10935317C00288E41 /* AIStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStatusItem.m; path = Frameworks/Adium/Source/AIStatusItem.m; sourceTree = "<group>"; };
-		348F57910936F3CC00288E41 /* ESEditStatusGroupWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESEditStatusGroupWindowController.h; path = Source/ESEditStatusGroupWindowController.h; sourceTree = "<group>"; };
-		348F57920936F3CC00288E41 /* ESEditStatusGroupWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESEditStatusGroupWindowController.m; path = Source/ESEditStatusGroupWindowController.m; sourceTree = "<group>"; };
-		348F579D0936FA6D00288E41 /* EditStatusGroup.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EditStatusGroup.xib; path = Resources/EditStatusGroup.xib; sourceTree = "<group>"; };
 		348FF83E09128BEB00A942A8 /* CBPurpleAccount.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CBPurpleAccount.m; path = "Plugins/Purple Service/CBPurpleAccount.m"; sourceTree = "<group>"; };
 		348FF84909128D6300A942A8 /* AccountDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AccountDefaults.plist; path = Frameworks/Adium/AccountDefaults.plist; sourceTree = "<group>"; };
 		349062A0127F7E6900FC313F /* AITemporaryIRCAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITemporaryIRCAccountWindowController.h; path = Source/AITemporaryIRCAccountWindowController.h; sourceTree = "<group>"; };
@@ -3299,12 +3297,11 @@
 				3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */,
 				3428328607D2643F004F01C9 /* ESStatusPreferences.h */,
 				3428328507D2643F004F01C9 /* ESStatusPreferences.m */,
-				348F57910936F3CC00288E41 /* ESEditStatusGroupWindowController.h */,
-				348F57920936F3CC00288E41 /* ESEditStatusGroupWindowController.m */,
+				ADD1E5C0DF00000000000021 /* AIStatusListView.h */,
+				ADD1E5C0DF00000000000022 /* AIStatusListView.m */,
 				34A250B507E0F822009854E1 /* StatusDefaults.plist */,
 				343EC6C5096F7E1700349098 /* ESStatusAdvancedPreferences.h */,
 				343EC6C6096F7E1700349098 /* ESStatusAdvancedPreferences.m */,
-				348F579D0936FA6D00288E41 /* EditStatusGroup.xib */,
 				ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */,
 			);
 			name = "Status Preferences";
@@ -6797,7 +6794,6 @@
 				EE147A6D0896B18800A21377 /* ABSearch.png in Resources */,
 				EE147A790896B32400A21377 /* ABSearch.xib in Resources */,
 				63C120750910A0DD00C9DB57 /* DefaultXtraReadme.rtf in Resources */,
-				348F579E0936FA6D00288E41 /* EditStatusGroup.xib in Resources */,
 				6333699409497DB000970871 /* EmoticonPreviewView.xib in Resources */,
 				63336B060949908300970871 /* DockIconPreviewView.xib in Resources */,
 				ADD1E5C0DE00000000001602 /* ListThemeSheet.xib in Resources */,
@@ -7233,6 +7229,7 @@
 				4BAE6D4307CFA0CB007E2820 /* AIAppearancePreferencesPlugin.m in Sources */,
 				4B08399507D2350D0034A001 /* AIDockIconSelectionSheet.m in Sources */,
 				3428328907D2643F004F01C9 /* ESStatusPreferences.m in Sources */,
+				ADD1E5C0DF00000000000025 /* AIStatusListView.m in Sources */,
 				3428328B07D2643F004F01C9 /* ESStatusPreferencesPlugin.m in Sources */,
 				9E125C6607D3571400AA91C5 /* ESBlockingPlugin.m in Sources */,
 				34A6FAD907D6F3AA00972830 /* AIEventSoundsPlugin.m in Sources */,
@@ -7253,7 +7250,6 @@
 				ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */,
 				ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */,
 				ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */,
-				348F57940936F3CC00288E41 /* ESEditStatusGroupWindowController.m in Sources */,
 				632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */,
 				63EA62CA094B832D009C8453 /* AIEmoticonPreviewController.m in Sources */,
 				63EA62F0094B8705009C8453 /* AIXtraInfoController.m in Sources */,

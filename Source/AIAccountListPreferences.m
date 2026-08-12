@@ -32,7 +32,6 @@
 #import <Adium/AIService.h>
 #import <Adium/AIStatusMenu.h>
 #import <Adium/AIStatus.h>
-#import <Adium/AIStatusGroup.h>
 #import <Adium/AIEditStateWindowController.h>
 #import <Adium/AIStatusControllerProtocol.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
@@ -153,13 +152,12 @@
 @end
 
 /*!
- * @brief Name @a account as the account a status menu and all of its submenus apply to
+ * @brief Name @a account as the account a status menu applies to
  *
  * +[AIStatusMenu staticStatusStatesMenuNotifyingTarget:selector:] builds a menu of the status
- * states alone: every item carries an "AIStatus" but no account, and status groups bring submenus
- * built the same way. Adding the account to each represented object turns that generic menu into
- * one for a single account - the same shape -[AIAccountMenu] hands out, but without depending on
- * the state that menu happens to be in.
+ * states alone: one flat level, every item carrying an "AIStatus" but no account. Adding the account
+ * to each represented object turns that generic menu into one for a single account - the same shape
+ * -[AIAccountMenu] hands out, but without depending on the state that menu happens to be in.
  */
 static void AIAddAccountToStatusMenu(NSMenu *menu, AIAccount *account)
 {
@@ -171,8 +169,6 @@ static void AIAddAccountToStatusMenu(NSMenu *menu, AIAccount *account)
 		if (!info) info = [NSMutableDictionary dictionary];
 		[info setObject:account forKey:@"AIAccount"];
 		[menuItem setRepresentedObject:info];
-
-		if ([menuItem submenu]) AIAddAccountToStatusMenu([menuItem submenu], account);
 	}
 }
 
@@ -258,8 +254,8 @@ static void AIAddCustomStatusItemsToMenu(NSMenu *menu, AIAccount *account, id ta
  * -[AIStatusMenu validateMenuItem:] does this for the menus that class owns; ours are built fresh
  * every time the menu is asked for and are not its, so the state is set here on the spot. The rule
  * is the one that method uses for an account specific menu: if the account is in a saved state,
- * that state's item is on (or the group which encloses it); if it is in a state the user typed,
- * the "Custom..." item of that type is on instead.
+ * that state's item is on; if it is in a state the user typed, the "Custom..." item of that type is
+ * on instead.
  */
 static void AISetAccountStatusMenuStates(NSMenu *menu, AIAccount *account)
 {
@@ -273,17 +269,13 @@ static void AISetAccountStatusMenuStates(NSMenu *menu, AIAccount *account)
 		BOOL			 isActive;
 
 		if (isSavedState) {
-			isActive = ((itemState == activeState) ||
-						([itemState isKindOfClass:[AIStatusGroup class]] &&
-						 [(AIStatusGroup *)itemState enclosesStatusState:activeState]));
+			isActive = (itemState == activeState);
 		} else {
 			//A state the user typed: the custom item of its type is the active one
 			isActive = (activeState && !itemState && ([menuItem tag] == (NSInteger)activeState.statusType));
 		}
 
 		[menuItem setState:(isActive ? NSControlStateValueOn : NSControlStateValueOff)];
-
-		if ([menuItem submenu]) AISetAccountStatusMenuStates([menuItem submenu], account);
 	}
 }
 
@@ -1310,9 +1302,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  * This is -[AIStatusMenu selectState:] for one account, and it has to be: a status the user typed
  * lives in the status controller's array of temporary states, which is kept alive by the accounts
  * using it. Leaving a temporary state without telling the status controller leaves that state in
- * every status menu in Adium for good. The option click shortcut and status groups are handled
- * here for the same reason - a menu which behaves differently from the same menu elsewhere is a
- * bug of its own.
+ * every status menu in Adium for good. The option click shortcut is handled here for the same
+ * reason - a menu which behaves differently from the same menu elsewhere is a bug of its own.
  */
 - (void)setStatusFromMenu:(id)sender
 {
@@ -1321,13 +1312,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	AIAccount		*account = [info objectForKey:@"AIAccount"];
 
 	if (!account || !statusItem) return;
-
-	//A group of states stands for any one of the states in it
-	if ([statusItem isKindOfClass:[AIStatusGroup class]]) {
-		statusItem = [(AIStatusGroup *)statusItem anyContainedStatus];
-
-		if (!statusItem) return;
-	}
 
 	/* Holding option - or picking the status the account is already in - opens the custom status
 	 * window on that status instead of just setting it, as everywhere else in Adium. */

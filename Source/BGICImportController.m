@@ -21,7 +21,6 @@
 #import "AWBonjourService.h"
 
 #import <Adium/AIStatusControllerProtocol.h>
-#import <Adium/AIStatusGroup.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIStatus.h>
 
@@ -37,7 +36,7 @@
 -(void)importAccountsForService:(NSString *)serviceName;
 -(void)importLogs;
 -(void)importStatuses;
--(void)addStatusFromString:(NSString *)statusString isAway:(BOOL)shouldBeAway withGroup:(AIStatusGroup *)parentGroup;
+-(void)addStatusFromString:(NSString *)statusString isAway:(BOOL)shouldBeAway;
 -(void)deleteAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
 
@@ -236,31 +235,10 @@
 	[importStatusDetails setStringValue:[NSString stringWithFormat:[AILocalizedString(@"Now importing %lu 'Available' messages", nil) stringByAppendingEllipsis],
 										 [customAvailable count]]];
 	
-	AIStatusGroup *availableGroup = nil;
-	
-	// optionally create a status group for collecting them together
-	if ([createStatusGroupsButton state] == NSControlStateValueOn) {
-		availableGroup = [AIStatusGroup statusGroup];
-		[availableGroup setTitle:AILocalizedString(@"iChat Available Messages", nil)];
-		[availableGroup setStatusType:AIAvailableStatusType];
-		// add to the set
-		[[adium.statusController rootStateGroup] addStatusItem:availableGroup atIndex:-1];
-	}
-
+	// Statuses are imported flat: Adium no longer knows groups of statuses
 	for (NSInteger availableLoop = 0; availableLoop < [customAvailable count]; availableLoop++) {
-		[self addStatusFromString:[customAvailable objectAtIndex:availableLoop] isAway:NO withGroup:availableGroup];
+		[self addStatusFromString:[customAvailable objectAtIndex:availableLoop] isAway:NO];
 	}
-	
-	AIStatusGroup *awayGroup = nil;
-	
-	// optionally create a status group for collecting them together
-	if ([createStatusGroupsButton state] == NSControlStateValueOn) {
-		awayGroup = [AIStatusGroup statusGroup];
-		[awayGroup setTitle:AILocalizedString(@"iChat Away Messages", nil)];
-		[awayGroup setStatusType:AIAwayStatusType];
-		// add to the set
-		[[adium.statusController rootStateGroup] addStatusItem:awayGroup atIndex:-1];
-	}	
 
 	// loop through the aways and add them
 	NSArray *customAways = [ichatPrefs objectForKey:@"CustomAwayMessages"];
@@ -269,7 +247,7 @@
 										 [customAways count]]];
 
 	for (NSInteger awayLoop = 0; awayLoop < [customAways count]; awayLoop++) {
-		[self addStatusFromString:[customAways objectAtIndex:awayLoop] isAway:YES withGroup:awayGroup];
+		[self addStatusFromString:[customAways objectAtIndex:awayLoop] isAway:YES];
 	}
 		
 	[importStatusDetails setStringValue:AILocalizedString(@"Status importing is now complete.", nil)];
@@ -277,19 +255,14 @@
 	[backButton setEnabled:YES];
 }
 
-// the only difference between imported statuses is their type (optionally can be added to a group)
--(void)addStatusFromString:(NSString *)statusString isAway:(BOOL)shouldBeAway withGroup:(AIStatusGroup *)parentGroup
+// the only difference between imported statuses is their type
+-(void)addStatusFromString:(NSString *)statusString isAway:(BOOL)shouldBeAway
 {
 	AIStatus *newStatus = [AIStatus statusOfType:(shouldBeAway ? AIAwayStatusType : AIAvailableStatusType)];
 	[newStatus setTitle:statusString];
 	[newStatus setStatusMessage:[[[NSAttributedString alloc] initWithString:statusString] autorelease]];
-	
-	// optionally add to a status group
-	if (parentGroup == nil) {
-		[adium.statusController addStatusState:newStatus];	
-	} else {
-		[parentGroup addStatusItem:newStatus atIndex:-1];
-	}
+
+	[adium.statusController addStatusState:newStatus];
 }
 
 + (void)importIChatConfiguration
@@ -312,7 +285,6 @@
 
 	[importAccountsButton setState:NSControlStateValueOn];
 	[importStatusButton setState:NSControlStateValueOn];
-	[createStatusGroupsButton setState:NSControlStateValueOn];
 	[importLogsButton setState:NSControlStateValueOn];
 
 	[[self window] center];
@@ -340,7 +312,6 @@
 	[importAccountsButton setState:NSControlStateValueOff];
 	[importStatusButton setState:NSControlStateValueOff];
 	[importLogsButton setState:NSControlStateValueOff];
-	[createStatusGroupsButton setState:NSControlStateValueOff];
 	
 	[assistantPanes selectTabViewItemWithIdentifier:@"start"];
 }

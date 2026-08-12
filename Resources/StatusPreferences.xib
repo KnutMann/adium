@@ -9,11 +9,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="ESStatusPreferences">
             <connections>
                 <outlet property="view" destination="paneView" id="oView"/>
-                <outlet property="scrollView_stateList" destination="stateScroll" id="oScroll"/>
-                <outlet property="outlineView_stateList" destination="stateOutline" id="oOutline"/>
                 <outlet property="button_addOrRemoveState" destination="segAddRemove" id="oSegAR"/>
-                <outlet property="button_addGroup" destination="bAddGroup" id="oBAddGroup"/>
-                <outlet property="button_editState" destination="bEdit" id="oBEdit"/>
                 <outlet property="textField_idleMinutes" destination="tIdle" id="oTIdle"/>
                 <outlet property="stepper_idleMinutes" destination="stIdle" id="oStIdle"/>
                 <outlet property="label_idleMinutes" destination="lIdle" id="oLIdle"/>
@@ -31,46 +27,6 @@
             <rect key="frame" x="0.0" y="0.0" width="557" height="427"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
-                <scrollView fixedFrame="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="stateScroll" customClass="AIPassthroughScrollView">
-                    <rect key="frame" x="20" y="212" width="517" height="195"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                    <clipView key="contentView" id="stateClip">
-                        <rect key="frame" x="1" y="1" width="515" height="193"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="YES" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" rowHeight="17" headerView="NO" indentationPerLevel="16" autoresizesOutlineColumn="YES" outlineTableColumn="colName" id="stateOutline" customClass="AIAlternatingRowOutlineView">
-                                <rect key="frame" x="0.0" y="0.0" width="515" height="193"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <size key="intercellSpacing" width="3" height="2"/>
-                                <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
-                                <tableColumns>
-                                    <tableColumn identifier="name" editable="NO" width="489" minWidth="8" maxWidth="1000" id="colName">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left"/>
-                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="colNameCell">
-                                            <font key="font" metaFont="system"/>
-                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                        </textFieldCell>
-                                        <tableColumnResizingMask key="resizingMask" resizeWithTable="YES"/>
-                                    </tableColumn>
-                                </tableColumns>
-                                <connections>
-                                    <outlet property="dataSource" destination="-2" id="oOutlineDS"/>
-                                    <outlet property="delegate" destination="-2" id="oOutlineDel"/>
-                                </connections>
-                            </outlineView>
-                        </subviews>
-                    </clipView>
-                    <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="stateHScroller">
-                        <rect key="frame" x="1" y="179" width="515" height="15"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </scroller>
-                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="stateVScroller">
-                        <rect key="frame" x="501" y="1" width="15" height="178"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </scroller>
-                </scrollView>
                 <segmentedControl verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="segAddRemove">
                     <rect key="frame" x="20" y="182" width="49" height="23"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -78,29 +34,10 @@
                         <font key="font" metaFont="system"/>
                         <segments>
                             <segment image="NSAddTemplate" width="23"/>
-                            <segment image="NSRemoveTemplate" width="23" tag="1"/>
                         </segments>
                     </segmentedCell>
                     <connections><action selector="addOrRemoveState:" target="-2" id="aSegAR"/></connections>
                 </segmentedControl>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bAddGroup">
-                    <rect key="frame" x="77" y="182" width="91" height="23"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="smallSquare" title="Add Group" bezelStyle="smallSquare" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bAddGroupC">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="addGroup:" target="-2" id="aBAddGroup"/></connections>
-                </button>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bEdit">
-                    <rect key="frame" x="480" y="182" width="57" height="23"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="smallSquare" title="Edit" bezelStyle="smallSquare" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bEditC">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="editState:" target="-2" id="aBEdit"/></connections>
-                </button>
                 <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tIdle">
                     <rect key="frame" x="128" y="144" width="32" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -185,6 +122,5 @@
     </objects>
     <resources>
         <image name="NSAddTemplate" width="20" height="20"/>
-        <image name="NSRemoveTemplate" width="20" height="20"/>
     </resources>
 </document>
