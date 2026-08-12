@@ -91,7 +91,16 @@
 
 		[window makeKeyAndOrderFront:self];
 
-		urlToDownload = [[NSURL alloc] initWithString:[NSString stringWithFormat:@"%@://%@/%@%@%@", @"http", [url host], [url path],
+		/* App Transport Security refuses plain HTTP outright, so an adiumxtra:// link died with a
+		 * policy error rather than a download. Both names below answer on the same address and
+		 * serve the same site, but the certificate is issued for adiumxtras.com alone - asking
+		 * for xtras.adium.im over TLS fails on the name, not on the connection. So ask the host
+		 * the certificate is written for. */
+		NSString *downloadHost = ([[url host] isEqualToString:@"xtras.adium.im"] ?
+								  @"www.adiumxtras.com" :
+								  [url host]);
+
+		urlToDownload = [[NSURL alloc] initWithString:[NSString stringWithFormat:@"%@://%@/%@%@%@", @"https", downloadHost, [url path],
 													   ([url query] ? @"?" : @""),
 													   ([url query] ? [url query] : @"")]];
 //		dest = [NSTemporaryDirectory() stringByAppendingPathComponent:[[urlToDownload path] lastPathComponent]];
