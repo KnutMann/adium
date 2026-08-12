@@ -953,7 +953,12 @@
 		AIChat	*chat = [(AIMessageTabViewItem *)tabViewItem chat];
         [(AIMessageTabViewItem *)tabViewItem tabViewItemWasSelected]; //Let the tab know it was selected
 		
-        if ([[self window] isMainWindow]) { //If our window is main, set the newly selected container as active
+		/* Key, not main: a message window can hold the selection and the keyboard while a
+		 * panel is main, and -windowWillClose: already uses isKeyWindow for the same decision.
+		 * The guard cannot go entirely - -removeTabViewItem:silent: selects foreign tabs on
+		 * its way out, and their unviewed counts would be cleared behind the user's back.
+		 */
+        if ([[self window] isKeyWindow]) { //If our window is key, set the newly selected container as active
 			[adium.interfaceController chatDidBecomeActive:chat];
         }
 		

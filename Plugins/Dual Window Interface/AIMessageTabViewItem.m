@@ -78,16 +78,22 @@
 			[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatParticipatingListObjectsChanged:)
 											   name:Chat_ParticipatingListObjectsChanged
 											 object:chat];
-			[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatAttributesChanged:)
-											   name:Chat_AttributesChanged
-											 object:chat];
 		} else {
 			[[NSNotificationCenter defaultCenter] addObserver:self
 													 selector:@selector(updateTabStatusIcon)
 														 name:ListObject_StatusChanged
-													   object:chat.account];	
+													   object:chat.account];
 		}
-		
+
+		/* tabStateIcon - the typing/unviewed-content overlay - is announced through
+		 * Chat_AttributesChanged for every chat, group or not. Kept inside the one-on-one
+		 * branch it left group chat tabs with no path at all from the unviewed count to the
+		 * icon, so whatever icon the tab was born with stayed on it forever.
+		 */
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatAttributesChanged:)
+										   name:Chat_AttributesChanged
+										 object:chat];
+
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatStatusChanged:)
 										   name:Chat_StatusChanged
 										 object:chat];
@@ -111,6 +117,7 @@
     [messageViewController release]; messageViewController = nil;
 
 	[largeImage release];
+	[largeImageSource release];
 
     [super dealloc];
 }
@@ -190,6 +197,10 @@
 		[self setValue:nil forKeyPath:@"objectCount"];
 		[self setValue:nil forKeyPath:@"showObjectCount"];
 		[self setValue:nil forKeyPath:@"objectCountColor"];
+		/* Badge and icon are two views of the same count, so they are announced together.
+		 * The chat observers have already recomputed tabStateIcon by the time this is posted.
+		 */
+		[self updateTabStatusIcon];
 	}
 }
 
@@ -454,8 +465,18 @@
 }
 - (void)updateTabContactIcon
 {
+	/* Scaling is not free and every attribute change of the chat arrives here, so keep the
+	 * image we scaled from and do the work only when the chat actually hands us another one.
+	 */
+	NSImage *chatImage = self.chat.chatImage;
+	if (chatImage == largeImageSource && largeImage) return;
+
+	[chatImage retain];
+	[largeImageSource release];
+	largeImageSource = chatImage;
+
 	[self willChangeValueForKey:@"icon"];
-	[self setLargeImage:[self.chat.chatImage imageByScalingToSize:NSMakeSize(48,48)]];
+	[self setLargeImage:[chatImage imageByScalingToSize:NSMakeSize(48,48)]];
 	[self didChangeValueForKey:@"icon"];
 }
 

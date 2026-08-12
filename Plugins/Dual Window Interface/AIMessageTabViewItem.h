@@ -23,6 +23,7 @@
 	AIMessageViewController 	*messageViewController;
 	NSImage						*tabViewItemImage;
 	NSImage						*largeImage;
+	NSImage						*largeImageSource;
 }
 
 + (AIMessageTabViewItem *)messageTabWithView:(AIMessageViewController *)inMessageView;
