@@ -913,6 +913,15 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 
 	AISettingsAdoptView(view);
 
+	/* The form places the accessory itself, and every layout pass may end by resizing the
+	 * form's own frame - after the accessory has already been put where it belongs. A view
+	 * built in code carries no autoresizing, but one adopted from a nib arrives with whatever
+	 * springs the nib gave it, and those are applied by that trailing resize: a flexible top
+	 * margin re-anchors the view to the form's bottom edge, so every net height change of a
+	 * layout pass drags it off the position that very pass computed - visibly, onto the card
+	 * it hangs under. Row views get the same treatment in -appendRow:. */
+	[view setAutoresizingMask:NSViewNotSizable];
+
 	if (section->accessoryView != view) {
 		[section->accessoryView removeFromSuperview];
 		[section->accessoryView release];

@@ -42,7 +42,7 @@
  * saved. The old -saveTimeValues, which wrote the two intervals from
  * -viewWillClose and nowhere else, is gone with it.
  */
-@interface ESStatusPreferences : AIPreferencePane <AIStatusListViewDelegate, NSTextFieldDelegate> {
+@interface ESStatusPreferences : AIPreferencePane <AIStatusListViewDelegate, NSTokenFieldDelegate> {
 	/* The nib is only a supplier of ready made controls now; our view is the settings form we
 	 * move them into. This reference keeps the nib's top level view — and with it its ownership
 	 * of everything we did not move — alive for as long as we use its controls. */
@@ -84,9 +84,12 @@
 
 	/* The music status card. All built in code; non-retaining references, cleared by -tearDown. */
 	NSSwitch			*checkBox_musicStatus;
-	NSTextField			*textField_format;
+	/* A token field: the %_ triggers show as pills named after what they stand for, free text
+	 * between them stays free text. What is stored is still the plain %_ format string. */
+	NSTokenField		*textField_format;
 	NSPopUpButton		*popUp_insertToken;
 	NSTextField			*textField_preview;			//Shows what the format resolves to right now; read-only
+	NSButton			*button_refreshPreview;		//Asks the running players what is playing, on demand
 
 	/* Where the caret stood when the format field last gave up editing. Choosing
 	 * from the pull down can take the focus away, and the token still has to land

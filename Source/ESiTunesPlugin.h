@@ -162,11 +162,25 @@ typedef enum {
  * and ends in a dynamic content update, so every account re-publishes its status message:
  * an act of the user's has to be behind it. See -[ESStatusPreferences askPlayersOnFirstInteraction]
  * for what counts as one.
- *
- * The deliberate, unconditional -requestPlayerQuery stays private on purpose: it can
- * put an automation dialog on screen, and the moments which have earned that are all
- * in this file.
  */
 - (void)requestPlayerQueryIfNothingIsKnown;
+
+/*!
+ * @brief Ask the running players what they are playing, whether or not anything is known.
+ *
+ * The unconditional form, for the one act that means exactly that: the refresh button
+ * next to the Status pane's preview. What is already known may be stale, so the guard
+ * of -requestPlayerQueryIfNothingIsKnown would make that button do nothing for as long
+ * as anything at all is known — the opposite of what a click on refresh asks for.
+ *
+ * Not for anything less deliberate: this can put an automation dialog on screen the
+ * first time, which only an explicit act of the user's excuses. The method brings its
+ * own restraint — nothing is sent to a player which is not running (the event would
+ * launch it), nothing to one whose automation was refused, nothing twice within a few
+ * seconds, and never two queries at once — so callers add no guards of their own.
+ * The answer arrives asynchronously as Adium_iTunesTrackChangedNotification; there is
+ * nothing to wait for here.
+ */
+- (void)requestPlayerQuery;
 
 @end

@@ -514,7 +514,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 - (NSString *)musicSearchURLForTerms:(NSString *)terms;
 
 - (void)setiTunesCurrentInfo:(NSDictionary *)newInfo fromPlayer:(NSString *)bundleIdentifier;
-- (void)requestPlayerQuery;
 - (void)finishPlayerQueryWithResults:(NSDictionary *)resultsByBundleIdentifier
 							refusals:(NSSet *)refusals
 				   requestGeneration:(NSUInteger)requestGeneration;
@@ -753,11 +752,13 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  * -insertiTMSLink. Somebody who never touches the feature never gets here, and so
  * never sees an automation dialog. The preference pane is held to the same standard
  * and does not get here by being shown; it waits for the format field or the Insert
- * menu, which is why it calls -requestPlayerQueryIfNothingIsKnown and not this.
+ * menu, which is why its first touch calls -requestPlayerQueryIfNothingIsKnown and
+ * not this.
  *
- * Private, and staying that way: this asks whether or not anything is known. Callers
- * outside this file — the preferences pane is the only one — get
- * -requestPlayerQueryIfNothingIsKnown instead.
+ * One outside caller earns the unconditional form all the same: the refresh button
+ * next to the pane's preview. This asks whether or not anything is known, which is
+ * exactly what a click on refresh means — what is known may be stale — and a click
+ * on a button is as deliberate as an act gets. The header says what that costs.
  */
 - (void)requestPlayerQuery
 {

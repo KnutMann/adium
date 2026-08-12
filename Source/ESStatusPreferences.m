@@ -86,11 +86,16 @@
 //The music status card
 - (void)configureMusicStatusControls;
 - (void)changeMusicStatusShown:(id)sender;
+- (NSTokenField *)formatTokenField;
+- (NSArray *)tokenTriggers;
+- (NSString *)displayNameForTrigger:(NSString *)trigger;
+- (NSArray *)tokensForFormatString:(NSString *)string;
 - (NSPopUpButton *)insertTokenPopUpButton;
 - (NSTextField *)previewField;
 - (ESiTunesPlugin *)musicPlugin;
 - (IBAction)changeFormat:(id)sender;
 - (void)insertToken:(id)sender;
+- (void)refreshNowPlaying:(id)sender;
 - (void)askPlayersOnFirstInteraction;
 - (NSString *)currentFormat;
 - (void)saveFormat;
@@ -271,8 +276,7 @@
 				   detail:AILocalizedString(@"In the early days of instant messaging it was simply part of it - showing your friends over ICQ, MSN or IRC what you were listening to. Turn the music status on to bring this little tradition of internet history back.",
 											"Second line of the music status switch, saying where the feature comes from")];
 
-	textField_format = [AISettingsFormView textFieldWithTarget:self action:@selector(changeFormat:)];
-	[textField_format setDelegate:self];
+	textField_format = [self formatTokenField];
 	[form addRowWithLabel:AILocalizedString(@"Format", "Title of the Format menu")
 		stretchingControl:textField_format];
 
@@ -281,24 +285,30 @@
 	 * as the text it was made from, and a detail line offers no way to change its text afterwards.
 	 */
 	textField_preview = [self previewField];
+
+	/* The refresh next to it asks Music and Spotify there and then. The broadcast the preview
+	 * lives on only arrives when something changes, so after a launch — or with the answer gone
+	 * stale — this button is the way to one without waiting for the next track. */
+	button_refreshPreview = [AISettingsFormView inlineSymbolButtonWithSymbolName:@"arrow.clockwise"
+															   fallbackImageName:NSImageNameRefreshTemplate
+																		  target:self
+																		  action:@selector(refreshNowPlaying:)];
+	[button_refreshPreview setToolTip:AILocalizedString(@"Ask the running music players what is playing", "Tool tip and accessibility label of the refresh button next to the Now Playing preview")];
+	[button_refreshPreview setAccessibilityLabel:AILocalizedString(@"Ask the running music players what is playing", "Tool tip and accessibility label of the refresh button next to the Now Playing preview")];
+
+	NSView *previewRow = [AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
+														 textField_preview, button_refreshPreview, nil]];
+	/* The row is laid out as a stretching control, which resizes this container to the room the
+	 * card leaves; inside it the field takes every point of that and the button keeps to the
+	 * trailing edge, the way the resolved text lines up with the format above it. */
+	[textField_preview setAutoresizingMask:NSViewWidthSizable];
+	[button_refreshPreview setAutoresizingMask:NSViewMinXMargin];
+
 	[form addRowWithLabel:AILocalizedString(@"Preview", "Title of the row showing what the Now Playing format currently resolves to")
-		stretchingControl:textField_preview];
+		stretchingControl:previewRow];
 
 	popUp_insertToken = [self insertTokenPopUpButton];
 	[form addTrailingAccessoryView:popUp_insertToken];
-
-	/* Says what the format is for, and warns about the one thing the user would otherwise take
-	 * for a fault: Music broadcasts only when something changes, so after a restart Adium knows
-	 * nothing until the next track, pause or stop.
-	 *
-	 * The first touch of the card asks the running players once as well (see
-	 * -askPlayersOnFirstInteraction), which fills that hole most of the time — but only most of
-	 * the time: a player which is not running, one we have been denied automation of, and the
-	 * whole of the time before anything has been touched still leave the preview waiting for the
-	 * broadcast, and this sentence is what explains the wait when it happens.
-	 */
-	[form addFootnote:AILocalizedString(@"The Music Status and the %_iTunes token are replaced with this. Adium learns what is playing the next time Music starts, pauses or changes the track.",
-										"Explanation below the Now Playing format field. %_iTunes is a token and must not be translated.")];
 
 	return form;
 }
@@ -329,7 +339,7 @@
 	if (![displayFormat length]) {
 		displayFormat = [NSString stringWithFormat:@"%@ - %@", TRIGGER_TRACK, TRIGGER_ARTIST];
 	}
-	[textField_format setStringValue:displayFormat];
+	[textField_format setObjectValue:[self tokensForFormatString:displayFormat]];
 
 	/* The track only changes every few minutes, so without this the preview would stand still
 	 * while the music moved on. Posted by -[ESiTunesPlugin fireUpdateiTunesInfo], which already
@@ -370,6 +380,7 @@
 	[textField_format setEnabled:shown];
 	[popUp_insertToken setEnabled:shown];
 	[textField_preview setEnabled:shown];
+	[button_refreshPreview setEnabled:shown];
 
 	//The preview recolours itself by its field's enabled state; see the note in -updatePreview
 	[self updatePreview];
@@ -430,7 +441,7 @@
 
 	//Same for everything else we handed a target or a delegate to
 	for (NSControl *control in [NSArray arrayWithObjects:
-								button_addOrRemoveState,
+								button_addOrRemoveState, button_refreshPreview,
 								checkBox_idle, checkBox_awayReminder, checkBox_musicStatus,
 								stepper_idleMinutes, stepper_awayReminderMinutes,
 								nil]) {
@@ -471,6 +482,7 @@
 	checkBox_musicStatus = nil;
 	textField_format = nil;
 	textField_preview = nil;
+	button_refreshPreview = nil;
 	popUp_insertToken = nil;
 
 	//A refresh may have been due; -cancelPreviousPerformRequestsWithTarget: above took it away
@@ -1232,6 +1244,118 @@
 #pragma mark The Now Playing format
 
 /*!
+ * @brief The %_ triggers offered as building blocks, in the Insert menu's order.
+ *
+ * The plugin knows more triggers than these — %_iTMS, %_music, %_iTunes — but those are composites
+ * with rules of their own, not fields of the current track. A format holding one of them still
+ * survives this pane: anything not in this list rides along as plain text.
+ */
+- (NSArray *)tokenTriggers
+{
+	return [NSArray arrayWithObjects:
+			TRIGGER_TRACK, TRIGGER_ARTIST, TRIGGER_ALBUM,
+			TRIGGER_COMPOSER, TRIGGER_GENRE, TRIGGER_YEAR, TRIGGER_STATUS,
+			nil];
+}
+
+/*!
+ * @brief The name a trigger's pill and its Insert item carry, or nil for anything else.
+ *
+ * One place for both, so the word on the pill is always the word that put it there.
+ */
+- (NSString *)displayNameForTrigger:(NSString *)trigger
+{
+	if ([trigger isEqualToString:TRIGGER_TRACK])	return AILocalizedString(@"Title", nil);
+	if ([trigger isEqualToString:TRIGGER_ARTIST])	return AILocalizedString(@"Artist", nil);
+	if ([trigger isEqualToString:TRIGGER_ALBUM])	return AILocalizedString(@"Album", nil);
+	if ([trigger isEqualToString:TRIGGER_COMPOSER])	return AILocalizedString(@"Composer", nil);
+	if ([trigger isEqualToString:TRIGGER_GENRE])	return AILocalizedString(@"Genre", nil);
+	if ([trigger isEqualToString:TRIGGER_YEAR])		return AILocalizedString(@"Year", nil);
+	if ([trigger isEqualToString:TRIGGER_STATUS])	return AILocalizedString(@"Player State", nil);
+
+	return nil;
+}
+
+/*!
+ * @brief Split a stored format into the token field's objects.
+ *
+ * The triggers become tokens, every run of text between them becomes one object of plain text, and
+ * nothing else happens: joining the result with nothing in between is the stored string again, to
+ * the character. That round trip has to be exact, because whatever a user once typed into the old
+ * plain field — including triggers this pane does not offer — comes through here on its way to the
+ * screen and back into the preference.
+ *
+ * Always the leftmost match, and of two matches in the same place the longer one; no offered
+ * trigger is a prefix of another today, but this is not the place to depend on it.
+ */
+- (NSArray *)tokensForFormatString:(NSString *)string
+{
+	NSMutableArray	*tokens = [NSMutableArray array];
+	NSArray			*triggers = [self tokenTriggers];
+	NSUInteger		 length = [string length];
+	NSUInteger		 position = 0;
+
+	while (position < length) {
+		NSRange		bestRange = NSMakeRange(NSNotFound, 0);
+
+		for (NSString *trigger in triggers) {
+			NSRange	candidate = [string rangeOfString:trigger
+											  options:NSLiteralSearch
+												range:NSMakeRange(position, length - position)];
+
+			if (candidate.location == NSNotFound) continue;
+			if (bestRange.location == NSNotFound ||
+				candidate.location < bestRange.location ||
+				(candidate.location == bestRange.location && candidate.length > bestRange.length)) {
+				bestRange = candidate;
+			}
+		}
+
+		if (bestRange.location == NSNotFound) {
+			[tokens addObject:[string substringFromIndex:position]];
+			break;
+		}
+
+		if (bestRange.location > position) {
+			[tokens addObject:[string substringWithRange:NSMakeRange(position, bestRange.location - position)]];
+		}
+		[tokens addObject:[string substringWithRange:bestRange]];
+		position = NSMaxRange(bestRange);
+	}
+
+	return tokens;
+}
+
+/*!
+ * @brief The field the format is edited in.
+ *
+ * A token field, the way the Address Book pane edits its name format: the %_ triggers show as
+ * pills named after what they stand for, and everything between them stays ordinary text. The
+ * tokenizing character set is empty because the format is free text — nothing may split on comma
+ * or space; triggers become pills through their %_ shape alone
+ * (-tokenField:shouldAddObjects:atIndex:).
+ */
+- (NSTokenField *)formatTokenField
+{
+	NSTokenField *field = [[[NSTokenField alloc] initWithFrame:NSZeroRect] autorelease];
+
+	[field setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
+	[field setDelegate:self];
+	[field setTokenizingCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@""]];
+	[field setTarget:self];
+	[field setAction:@selector(changeFormat:)];
+	/* Most changes are stored per keystroke through -controlTextDidChange:; the action on the end
+	 * of editing closes what that cannot see, such as autocompletion committing text. */
+	[[field cell] setSendsActionOnEndEditing:YES];
+
+	//The row decides the width; only the height comes from the field itself
+	[field sizeToFit];
+	[field setFrameSize:NSMakeSize(100.0, ceil(NSHeight([field frame])))];
+
+	return field;
+}
+
+/*!
  * @brief The "Insert" menu of tokens, sitting under the format card.
  *
  * A pull down rather than a pop up: the button is a verb, not a choice that stays selected, so its
@@ -1241,40 +1365,77 @@
 - (NSPopUpButton *)insertTokenPopUpButton
 {
 	NSPopUpButton	*popUp = [[[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES] autorelease];
-	NSArray			*titles = [NSArray arrayWithObjects:
-							   AILocalizedString(@"Title", nil),
-							   AILocalizedString(@"Artist", nil),
-							   AILocalizedString(@"Album", nil),
-							   AILocalizedString(@"Composer", nil),
-							   AILocalizedString(@"Genre", nil),
-							   AILocalizedString(@"Year", nil),
-							   AILocalizedString(@"Player State", nil),
-							   nil];
-	NSArray			*tokens = [NSArray arrayWithObjects:
-							   TRIGGER_TRACK,
-							   TRIGGER_ARTIST,
-							   TRIGGER_ALBUM,
-							   TRIGGER_COMPOSER,
-							   TRIGGER_GENRE,
-							   TRIGGER_YEAR,
-							   TRIGGER_STATUS,
-							   nil];
 
 	[popUp addItemWithTitle:AILocalizedString(@"Insert", nil)];
 
-	for (NSUInteger i = 0; i < [tokens count]; i++) {
-		NSMenuItem *item = [[[NSMenuItem alloc] initWithTitle:[titles objectAtIndex:i]
+	for (NSString *trigger in [self tokenTriggers]) {
+		NSMenuItem *item = [[[NSMenuItem alloc] initWithTitle:[self displayNameForTrigger:trigger]
 													  action:@selector(insertToken:)
 											   keyEquivalent:@""] autorelease];
 
 		[item setTarget:self];
-		[item setRepresentedObject:[tokens objectAtIndex:i]];
+		[item setRepresentedObject:trigger];
 		[[popUp menu] addItem:item];
 	}
 
 	[popUp sizeToFit];
 
 	return popUp;
+}
+
+#pragma mark Token field delegate
+
+/*!
+ * @brief Whatever is about to become tokens is re-split along the triggers
+ *
+ * This is what turns a typed or pasted %_track into a pill: with no tokenizing characters the
+ * field only tokenizes when editing settles, and what it then proposes is whole stretches of
+ * text. Splitting the joined proposal rather than each piece also mends a trigger which arrives
+ * in halves.
+ */
+- (NSArray *)tokenField:(NSTokenField *)tokenField shouldAddObjects:(NSArray *)tokens atIndex:(NSUInteger)index
+{
+	return [self tokensForFormatString:[tokens componentsJoinedByString:@""]];
+}
+
+//Only the triggers are pills; the text between them looks like the text it is
+- (NSTokenStyle)tokenField:(NSTokenField *)tokenField styleForRepresentedObject:(id)representedObject
+{
+	return ([[self tokenTriggers] containsObject:representedObject] ?
+			NSRoundedTokenStyle : NSPlainTextTokenStyle);
+}
+
+//nil for free text lets the field show the string itself
+- (NSString *)tokenField:(NSTokenField *)tokenField displayStringForRepresentedObject:(id)representedObject
+{
+	return ([representedObject isKindOfClass:[NSString class]] ?
+			[self displayNameForTrigger:representedObject] : nil);
+}
+
+//A pill is not edited as text; nil keeps it one. Free text goes back to being typed in.
+- (NSString *)tokenField:(NSTokenField *)tokenField editingStringForRepresentedObject:(id)representedObject
+{
+	if ([[self tokenTriggers] containsObject:representedObject]) return nil;
+
+	return representedObject;
+}
+
+- (id)tokenField:(NSTokenField *)tokenField representedObjectForEditingString:(NSString *)editingString
+{
+	//As it stands; -tokenField:shouldAddObjects:atIndex: is where triggers are picked out
+	return editingString;
+}
+
+//Copied pills leave as the %_ triggers they stand for, so the clipboard holds a working format
+- (BOOL)tokenField:(NSTokenField *)tokenField writeRepresentedObjects:(NSArray *)objects toPasteboard:(NSPasteboard *)pboard
+{
+	[pboard setString:[objects componentsJoinedByString:@""] forType:NSPasteboardTypeString];
+	return YES;
+}
+
+- (NSArray *)tokenField:(NSTokenField *)tokenField readFromPasteboard:(NSPasteboard *)pboard
+{
+	return [self tokensForFormatString:[pboard stringForType:NSPasteboardTypeString]];
 }
 
 /*!
@@ -1286,7 +1447,7 @@
  *
  * One line, truncated at the end, never wrapped. The row is exactly as tall as the control it is
  * handed and re-reads that height at every layout, so a preview allowed to grow would shove the
- * Insert button and the footnote up and down with every keystroke. What does not fit is put in
+ * Insert button up and down with every keystroke. What does not fit is put in
  * the row's tool tip instead — see -updatePreview.
  *
  * The height is fixed here, once, by measuring a line of the font; nothing set later changes it,
@@ -1352,6 +1513,22 @@
 }
 
 /*!
+ * @brief The refresh button next to the preview was clicked: ask the players now.
+ *
+ * The unconditional query, not the tame one the first touch of the card sends — a click on
+ * refresh means "what is playing *now*", which the answer already held may no longer be. The
+ * click itself is the deliberate act that earns it, automation dialog included.
+ *
+ * Fire and done: the method carries its own restraint (nothing to a player that is not running,
+ * nothing twice within seconds — see its header), and the answer comes back asynchronously as
+ * Adium_iTunesTrackChangedNotification, which -trackChanged: already turns into a fresh preview.
+ */
+- (void)refreshNowPlaying:(id)sender
+{
+	[[self musicPlugin] requestPlayerQuery];
+}
+
+/*!
  * @brief The format field finished editing: Return, Tab or the focus moving away.
  */
 - (IBAction)changeFormat:(id)sender
@@ -1362,7 +1539,7 @@
 /*!
  * @brief Put a token where the caret is.
  *
- * Through the field editor rather than through -setStringValue:, so the token lands at the caret,
+ * Through the field editor rather than through -setObjectValue:, so the token lands at the caret,
  * replaces a selection, can be undone, and does not throw away an edit in progress.
  */
 - (void)insertToken:(id)sender
@@ -1370,7 +1547,7 @@
 	NSString	*token = [sender representedObject];
 	NSText		*editor = [textField_format currentEditor];
 
-	if (![token length]) return;
+	if (![token length] || !textField_format) return;
 
 	/* The other deliberate act on this card. Before the insertion rather than after, so the
 	 * answer is on its way while the token is being put in; the preview below redraws itself when
@@ -1400,9 +1577,17 @@
 
 	if ([editor isKindOfClass:[NSTextView class]]) {
 		[(NSTextView *)editor insertText:token replacementRange:[editor selectedRange]];
+
+		/* Fold the raw trigger back into -objectValue, which is also what turns it into a pill;
+		 * the editing session itself goes on. The Address Book pane inserts the same way. */
+		[textField_format validateEditing];
 	} else {
 		//No window to edit in; appending beats losing the token
-		[textField_format setStringValue:[[textField_format stringValue] stringByAppendingString:token]];
+		NSMutableArray	*tokens = [[[textField_format objectValue] mutableCopy] autorelease];
+
+		if (!tokens) tokens = [NSMutableArray array];
+		[tokens addObject:token];
+		[textField_format setObjectValue:tokens];
 	}
 
 	[self saveFormat];
@@ -1415,16 +1600,19 @@
 }
 
 /*!
- * @brief What stands in the format field right now.
+ * @brief What stands in the format field right now, as the %_ string that is stored.
  *
- * While a field is being edited its -stringValue is still the last committed text; only the field
- * editor knows what stands there now.
+ * While a field is being edited its -objectValue is still the last committed state; only the
+ * field editor knows what stands there now. In a token field, though, the editor's -string is no
+ * use: every pill in it is a single attachment character, so reading it would store object
+ * replacement characters where the triggers belong. The pill still knows what it stands for —
+ * its attachment cell carries the trigger as its represented object — so the live format is
+ * reassembled from the editor's attributed text instead: pills contribute their trigger, plain
+ * runs contribute themselves. Built fresh on every call, so nothing here ever aliases the field
+ * editor's own storage.
  *
- * Copied, not just taken: -[NSText string] hands out the field editor's own text storage, and one
- * field editor serves the whole window. Stored as it is, the preference would keep following the
- * editor — through every further keystroke and on into the next field the editor is handed to —
- * and AIPreferenceContainer, finding the very object it already holds, would take each of those
- * keystrokes for no change at all and never write the file.
+ * Outside an editing session the committed tokens are simply joined back up, which is the exact
+ * inverse of -tokensForFormatString:.
  *
  * @result The format, or nil once the field is gone.
  */
@@ -1434,7 +1622,40 @@
 
 	NSText *editor = [textField_format currentEditor];
 
-	return [[(editor ? [editor string] : [textField_format stringValue]) copy] autorelease];
+	if ([editor isKindOfClass:[NSTextView class]]) {
+		NSAttributedString	*contents = [(NSTextView *)editor textStorage];
+		NSString			*plainText = [contents string];
+		NSMutableString		*format = [NSMutableString string];
+		NSUInteger			 length = [contents length];
+		NSRange				 effectiveRange = NSMakeRange(0, 0);
+
+		for (NSUInteger index = 0; index < length; index = NSMaxRange(effectiveRange)) {
+			NSTextAttachment	*attachment = [contents attribute:NSAttachmentAttributeName
+														   atIndex:index
+													effectiveRange:&effectiveRange];
+			id					 cell = (attachment ? [attachment attachmentCell] : nil);
+
+			if (cell) {
+				/* The token field's attachment cells answer -representedObject with the token's
+				 * object — our trigger or free text string. Anything that does not is not one of
+				 * our pills and has no place in a format string. */
+				id representedObject = ([cell respondsToSelector:@selector(representedObject)] ?
+										[(NSCell *)cell representedObject] : nil);
+
+				if ([representedObject isKindOfClass:[NSString class]]) {
+					[format appendString:representedObject];
+				}
+			} else {
+				[format appendString:[plainText substringWithRange:effectiveRange]];
+			}
+		}
+
+		return format;
+	}
+
+	NSArray *tokens = [textField_format objectValue];
+
+	return ([tokens count] ? [tokens componentsJoinedByString:@""] : @"");
 }
 
 /*!
