@@ -38,9 +38,10 @@
  * resizable and the nib gave it a maximum height of ten million points): without
  * a height fixed here the card would grow with every line the user types. The
  * nib's scroll view was 167 points tall; 150 is that height less the space the
- * nib spent on its own border.
+ * nib spent on its own border. Shorter now that the profile shares a card and a
+ * label column with the name above it rather than filling a card of its own.
  */
-#define PROFILE_HEIGHT					150.0
+#define PROFILE_HEIGHT					96.0
 
 /* The profile card is an edge to edge row, which the form clips to the card's
  * rounded corners - and a clipped layer swallows the focus ring AppKit draws
@@ -49,11 +50,17 @@
  */
 #define PROFILE_RING_INSET				4.0
 
-/* The icon well. The nib drew it at 104 points and let the picker scale images
- * down to 128; at 128 the well shows an icon at the size it is actually stored,
- * which is also the size the contact list and every service use.
+/* How large an icon the picker hands back, unchanged: the size the icon is
+ * stored at and the contact list and every service use. Independent of the well
+ * it is shown in.
  */
 #define USER_ICON_SIDE					128.0
+
+/* The well the icon is shown in, sitting in the shared card under the Icon
+ * dropdown with its button beneath it. Smaller than the stored size and framed
+ * with the grey bezel the account editor's icon well uses, so the two match.
+ */
+#define USER_ICON_WELL_SIDE				96.0
 
 /* How long a text control gathers keystrokes before it stores what was typed.
  *
@@ -199,11 +206,11 @@ static NSString *AIRowLabel(NSString *label)
 		   withImage:[NSImage imageNamed:@"default-icon" forClass:[self class]]];
 	[form endCard];
 
-	/* Card 1: the name */
+	/* One card, no headers: Name, Profile and Icon are row labels now, the three
+	 * settings sitting together the way a System Settings group does rather than
+	 * each in a card of its own. The card opens with no section header at all. */
 
-	//The nib's "Name:" label, kept as the card's section header
-	[form addSectionHeader:nameLabel];
-
+	//Name: the nib's "Name:" label, now the row's own label
 	textField_displayName = [AISettingsFormView textFieldWithTarget:self action:@selector(changePreference:)];
 	//...and as our delegate it also tells us about every keystroke, see -controlTextDidChange:
 	[textField_displayName setDelegate:self];
@@ -217,25 +224,16 @@ static NSString *AIRowLabel(NSString *label)
 																			  object:nil] attributedString] string];
 	[textField_displayName setPlaceholderString:(defaultName ? defaultName : @"")];
 
-	/* The card's header already says "Name", so the row carries no label of its
-	 * own - but a bare field has no title for VoiceOver to read, so it is named
-	 * here instead.
-	 */
-	[textField_displayName setAccessibilityLabel:nameLabel];
-
-	[form addRowWithLabel:nil stretchingControl:textField_displayName];
+	[form addRowWithLabel:nameLabel stretchingControl:textField_displayName];
 	//The nib put this on the label and on the field; the form puts it on the whole row
 	[form setToolTip:DISPLAY_NAME_TOOLTIP forRowWithControl:textField_displayName];
 
-	/* Card 2: the profile */
-
-	//The nib's "Profile:" label, kept as the card's section header
-	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Profile:",nil))];
-
+	//Profile: a labelled row with the editor as its control, no longer a card of its own
+	NSString	*profileLabel = AIRowLabel(AILocalizedString(@"Profile:",nil));
 
 	scrollView_profile = [[[AIAutoScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																			 PERSONAL_PANE_INITIAL_WIDTH - 2.0 * PROFILE_RING_INSET,
-																			 PROFILE_HEIGHT - 2.0 * PROFILE_RING_INSET)] autorelease];
+																			 PERSONAL_PANE_INITIAL_WIDTH,
+																			 PROFILE_HEIGHT)] autorelease];
 	/* No border of its own: the card around it is the frame now, and a bezel
 	 * inside a card would be a second one. The background stays the text
 	 * background, so the writing area is still visibly an editable field.
@@ -284,6 +282,7 @@ static NSString *AIRowLabel(NSString *label)
 
 	textView_profile = profileView;
 	[textView_profile setDelegate:self];
+	[scrollView_profile setAccessibilityLabel:profileLabel];
 
 	/* The font panel edits whatever its delegate is; without this, Format->Font
 	 * would have nothing to work on. It keeps the delegate without retaining it,
@@ -291,52 +290,37 @@ static NSString *AIRowLabel(NSString *label)
 	 */
 	[[NSFontPanel sharedFontPanel] setDelegate:(id <NSWindowDelegate>)textView_profile];
 
-	/* The card is the text area, the way a card is a list elsewhere - but with the
-	 * scroll view inside a container rather than handed over directly, because the
-	 * form clips an edge to edge row to the card's corners and would clip the
-	 * focus ring away with them.
-	 */
-	NSView	*profileContainer = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																		  PERSONAL_PANE_INITIAL_WIDTH,
-																		  PROFILE_HEIGHT)] autorelease];
-	[profileContainer setAutoresizesSubviews:YES];
-	[scrollView_profile setFrameOrigin:NSMakePoint(PROFILE_RING_INSET, PROFILE_RING_INSET)];
-	[scrollView_profile setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-	[profileContainer addSubview:scrollView_profile];
+	/* Handed to the form directly, not wrapped: a labelled control row is not
+	 * clipped to the card's corners the way an edge to edge row is, so the focus
+	 * ring the scroll view draws outside its bounds has room - the container and
+	 * inset the old card needed for it are gone. */
+	[form addRowWithLabel:profileLabel stretchingControl:scrollView_profile];
 
-	[form addEdgeToEdgeRow:profileContainer];
+	/* Icon: a dropdown rather than the nib's two radio cells. Both titles are
+	 * already translated everywhere, and "no icon" against "this icon" is the kind
+	 * of two-way choice a pop up carries in System Settings; the well it governs
+	 * sits below it. Tag 0 is "no icon", tag 1 "this icon" - the boolean the
+	 * KEY_USE_USER_ICON preference stores. */
+	popUp_iconChoice = [AISettingsFormView popUpButtonWithTitles:[NSArray arrayWithObjects:
+																  AILocalizedString(@"Use no icon",nil),
+																  AIRowLabel(AILocalizedString(@"Use this icon:",nil)),
+																  nil]
+														 target:self
+														 action:@selector(changePreference:)];
+	[[popUp_iconChoice itemAtIndex:0] setTag:0];
+	[[popUp_iconChoice itemAtIndex:1] setTag:1];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Icon",nil))
+			  popUpButton:popUp_iconChoice
+		  accessoryButton:nil];
 
-	/* Card 3: the icon */
-
-	[form addSectionHeader:AILocalizedString(@"Icon",nil)];
-
-	/* The nib's two radio cells, with their titles and tool tips. A group rather
-	 * than a switch: both titles are already translated everywhere, and "no icon"
-	 * against "this icon" is a choice between two things rather than an option to
-	 * turn off.
-	 */
-	radio_noIcon = [AISettingsFormView radioButtonWithTitle:AILocalizedString(@"Use no icon",nil)
-													 target:self
-													 action:@selector(changePreference:)];
-	[radio_noIcon setToolTip:AILocalizedString(@"Do not use an icon to represent you.", nil)];
-
-	radio_useIcon = [AISettingsFormView radioButtonWithTitle:AIRowLabel(AILocalizedString(@"Use this icon:",nil))
-													  target:self
-													  action:@selector(changePreference:)];
-	[radio_useIcon setToolTip:AILocalizedString(@"Use the icon below to represent you.", nil)];
-
-	[form addRadioGroupWithLabel:nil
-						 buttons:[NSArray arrayWithObjects:radio_noIcon, radio_useIcon, nil]];
-
-	/* The well and the button that fills it, side by side. The well is given a
-	 * frame of its own because the row takes its height from it: an image view
-	 * has no natural size to fall back on.
-	 */
+	/* The well, framed with the grey bezel the account editor's icon well uses so
+	 * the two match, and its button directly below it. The picker still hands back
+	 * an icon at the full stored size; only the well it is shown in is smaller. */
 	imageView_userIcon = [[[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																					   USER_ICON_SIDE,
-																					   USER_ICON_SIDE)] autorelease];
+																					   USER_ICON_WELL_SIDE,
+																					   USER_ICON_WELL_SIDE)] autorelease];
 	[imageView_userIcon setDelegate:self];
-	[imageView_userIcon setImageFrameStyle:NSImageFramePhoto];
+	[imageView_userIcon setImageFrameStyle:NSImageFrameGrayBezel];
 	[imageView_userIcon setImageScaling:NSImageScaleProportionallyDown];
 	[imageView_userIcon setAnimates:YES];
 	//As in the nib: the well is reached by clicking it, not by tabbing through the pane
@@ -354,9 +338,24 @@ static NSString *AIRowLabel(NSString *label)
 	button_chooseIcon = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Choose Icon...",nil)
 														target:imageView_userIcon
 														action:@selector(showImagePicker:)];
+	[button_chooseIcon sizeToFit];
 
-	[form addFullWidthRow:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:imageView_userIcon, button_chooseIcon, nil]]
-				   stretch:NO];
+	/* Stacked vertically - well on top, button under it - in a plain container the
+	 * form places without resizing. Non-flipped, so a higher y is higher up: the
+	 * well takes the top, the button the bottom, each centred over the wider of
+	 * the two. */
+	NSSize		buttonSize = [button_chooseIcon frame].size;
+	CGFloat		stackWidth = MAX(USER_ICON_WELL_SIDE, buttonSize.width);
+	CGFloat		stackHeight = USER_ICON_WELL_SIDE + PROFILE_RING_INSET + buttonSize.height;
+	NSView		*iconStack = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, stackWidth, stackHeight)] autorelease];
+
+	[imageView_userIcon setFrameOrigin:NSMakePoint(floor((stackWidth - USER_ICON_WELL_SIDE) / 2.0),
+												   buttonSize.height + PROFILE_RING_INSET)];
+	[button_chooseIcon setFrameOrigin:NSMakePoint(floor((stackWidth - buttonSize.width) / 2.0), 0.0)];
+	[iconStack addSubview:imageView_userIcon];
+	[iconStack addSubview:button_chooseIcon];
+
+	[form addFullWidthRow:iconStack stretch:NO];
 
 	return form;
 }
@@ -423,6 +422,8 @@ static NSString *AIRowLabel(NSString *label)
 	[textView_profile setDelegate:nil];
 	[textField_displayName setDelegate:nil];
 	[imageView_userIcon setDelegate:nil];
+	//The dropdown's action points at us too; the button's points at the well, which the form owns
+	[popUp_iconChoice setTarget:nil];
 
 	/* The form owns every control; these are the pane's non-owning references to
 	 * them and must not outlive the view.
@@ -430,8 +431,7 @@ static NSString *AIRowLabel(NSString *label)
 	textField_displayName = nil;
 	scrollView_profile = nil;
 	textView_profile = nil;
-	radio_noIcon = nil;
-	radio_useIcon = nil;
+	popUp_iconChoice = nil;
 	button_chooseIcon = nil;
 	imageView_userIcon = nil;
 
@@ -441,12 +441,12 @@ static NSString *AIRowLabel(NSString *label)
 /*!
  * @brief Dim what the icon choice switches off
  *
- * The well and its button follow the radio group, as they did in the nib. The
- * form dims a row's label along with its control, so nothing else is needed.
+ * The well and its button follow the icon dropdown: they mean nothing while "no
+ * icon" is chosen, so they dim with it.
  */
 - (void)configureControlDimming
 {
-	BOOL	enableUserIcon = ([radio_useIcon state] == NSControlStateValueOn);
+	BOOL	enableUserIcon = ([[popUp_iconChoice selectedItem] tag] == 1);
 
 	[button_chooseIcon setEnabled:enableUserIcon];
 	[imageView_userIcon setEnabled:enableUserIcon];
@@ -512,14 +512,13 @@ static NSString *AIRowLabel(NSString *label)
 	}
 
 	/* The nib had no way back for this one at all, so a change made elsewhere left
-	 * the radio group showing the wrong choice. Setting a button's state sends no
-	 * action, so writing the preference and hearing about it cannot loop.
+	 * the choice showing the wrong item. Selecting a menu item sends no action, so
+	 * writing the preference and hearing about it cannot loop.
 	 */
 	if (firstTime || [key isEqualToString:KEY_USE_USER_ICON]) {
 		BOOL	useUserIcon = [[prefDict objectForKey:KEY_USE_USER_ICON] boolValue];
 
-		[radio_noIcon setState:(useUserIcon ? NSControlStateValueOff : NSControlStateValueOn)];
-		[radio_useIcon setState:(useUserIcon ? NSControlStateValueOn : NSControlStateValueOff)];
+		[popUp_iconChoice selectItemWithTag:(useUserIcon ? 1 : 0)];
 	}
 
 	if (firstTime || [key isEqualToString:KEY_USER_ICON] || [key isEqualToString:KEY_DEFAULT_USER_ICON]) {
@@ -545,8 +544,8 @@ static NSString *AIRowLabel(NSString *label)
 		//Return, Tab or the focus moving away; nothing may be held back after that
 		[self saveDisplayName];
 
-	} else if (sender == radio_noIcon || sender == radio_useIcon) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:(sender == radio_useIcon)]
+	} else if (sender == popUp_iconChoice) {
+		[adium.preferenceController setPreference:[NSNumber numberWithBool:([[popUp_iconChoice selectedItem] tag] == 1)]
 										   forKey:KEY_USE_USER_ICON
 											group:GROUP_ACCOUNT_STATUS];
 	}

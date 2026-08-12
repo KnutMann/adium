@@ -49,8 +49,7 @@
 	BOOL						 configuringProfile;
 
 	//The two cells matrix_userIcon used to hold, in display order
-	NSButton					*radio_noIcon;
-	NSButton					*radio_useIcon;
+	NSPopUpButton				*popUp_iconChoice;	//"Use no icon" / "Use this icon", tags 0 and 1
 
 	NSButton					*button_chooseIcon;
 	AIImageViewWithImagePicker	*imageView_userIcon;
