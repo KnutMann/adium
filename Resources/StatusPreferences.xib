@@ -14,20 +14,15 @@
                 <outlet property="button_addOrRemoveState" destination="segAddRemove" id="oSegAR"/>
                 <outlet property="button_addGroup" destination="bAddGroup" id="oBAddGroup"/>
                 <outlet property="button_editState" destination="bEdit" id="oBEdit"/>
-                <outlet property="checkBox_idle" destination="cbIdle" id="oCbIdle"/>
                 <outlet property="textField_idleMinutes" destination="tIdle" id="oTIdle"/>
                 <outlet property="stepper_idleMinutes" destination="stIdle" id="oStIdle"/>
                 <outlet property="label_idleMinutes" destination="lIdle" id="oLIdle"/>
-                <outlet property="checkBox_autoAway" destination="cbAway" id="oCbAway"/>
                 <outlet property="textField_autoAwayMinutes" destination="tAway" id="oTAway"/>
                 <outlet property="stepper_autoAwayMinutes" destination="stAway" id="oStAway"/>
                 <outlet property="label_autoAwayMinutes" destination="lAway" id="oLAway"/>
                 <outlet property="popUp_autoAwayStatusState" destination="pAway" id="oPAway"/>
-                <outlet property="checkBox_fastUserSwitching" destination="cbFus" id="oCbFus"/>
                 <outlet property="popUp_fastUserSwitchingStatusState" destination="pFus" id="oPFus"/>
-                <outlet property="checkBox_screenSaver" destination="cbSaver" id="oCbSaver"/>
                 <outlet property="popUp_screenSaverStatusState" destination="pSaver" id="oPSaver"/>
-                <outlet property="checkBox_awayReminder" destination="cbRemind" id="oCbRemind"/>
                 <outlet property="textField_awayReminderMinutes" destination="tRemind" id="oTRemind"/>
                 <outlet property="stepper_awayReminderMinutes" destination="stRemind" id="oStRemind"/>
                 <outlet property="label_awayReminderMinutes" destination="lRemind" id="oLRemind"/>
@@ -39,7 +34,7 @@
             <rect key="frame" x="0.0" y="0.0" width="557" height="427"/>
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
-                <scrollView fixedFrame="YES" borderType="bezel" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="stateScroll" customClass="AIAutoScrollView">
+                <scrollView fixedFrame="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="stateScroll" customClass="AIPassthroughScrollView">
                     <rect key="frame" x="20" y="212" width="517" height="195"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     <clipView key="contentView" id="stateClip">
@@ -109,15 +104,6 @@
                     </buttonCell>
                     <connections><action selector="editState:" target="-2" id="aBEdit"/></connections>
                 </button>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbIdle">
-                    <rect key="frame" x="20" y="146" width="102" height="18"/>
-                    <autoresizingMask key="autoresizingMask"/>
-                    <buttonCell key="cell" type="check" title="Set idle after" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbIdleC">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbIdle"/></connections>
-                </button>
                 <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tIdle">
                     <rect key="frame" x="128" y="144" width="32" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -127,7 +113,6 @@
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                     <connections>
-                        <action selector="takeIntValueFrom:" target="stIdle" id="aTIdle"/>
                         <outlet property="delegate" destination="-2" id="oTIdleDel"/>
                     </connections>
                 </textField>
@@ -135,26 +120,16 @@
                     <rect key="frame" x="160" y="141" width="19" height="28"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <stepperCell key="cell" continuous="YES" alignment="left" increment="1" maxValue="999" doubleValue="10" valueWraps="YES" autorepeat="YES" id="stIdleC"/>
-                    <connections><action selector="takeIntValueFrom:" target="tIdle" id="aStIdle"/></connections>
                 </stepper>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lIdle">
                     <rect key="frame" x="181" y="147" width="151" height="17"/>
                     <autoresizingMask key="autoresizingMask"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes of inactivity" id="lIdleC">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes" id="lIdleC">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbAway">
-                    <rect key="frame" x="20" y="114" width="54" height="18"/>
-                    <autoresizingMask key="autoresizingMask"/>
-                    <buttonCell key="cell" type="check" title="After" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbAwayC">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbAway"/></connections>
-                </button>
                 <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tAway">
                     <rect key="frame" x="77" y="112" width="32" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -164,7 +139,6 @@
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                     <connections>
-                        <action selector="takeIntValueFrom:" target="stAway" id="aTAway"/>
                         <outlet property="delegate" destination="-2" id="oTAwayDel"/>
                     </connections>
                 </textField>
@@ -172,12 +146,11 @@
                     <rect key="frame" x="109" y="109" width="19" height="28"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <stepperCell key="cell" continuous="YES" alignment="left" increment="1" maxValue="999" doubleValue="10" valueWraps="YES" autorepeat="YES" id="stAwayC"/>
-                    <connections><action selector="takeIntValueFrom:" target="tAway" id="aStAway"/></connections>
                 </stepper>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lAway">
                     <rect key="frame" x="131" y="116" width="204" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes of inactivity, set:" id="lAwayC">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes" id="lAwayC">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -191,17 +164,7 @@
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="pAwayM"/>
                     </popUpButtonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aPAway"/></connections>
                 </popUpButton>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbFus">
-                    <rect key="frame" x="20" y="82" width="314" height="18"/>
-                    <autoresizingMask key="autoresizingMask"/>
-                    <buttonCell key="cell" type="check" title="When Fast User Switching is activated, set:" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbFusC">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbFus"/></connections>
-                </button>
                 <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pFus">
                     <rect key="frame" x="337" y="77" width="203" height="26"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
@@ -210,17 +173,7 @@
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="pFusM"/>
                     </popUpButtonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aPFus"/></connections>
                 </popUpButton>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbSaver">
-                    <rect key="frame" x="20" y="50" width="314" height="18"/>
-                    <autoresizingMask key="autoresizingMask"/>
-                    <buttonCell key="cell" type="check" title="When Screen Saver is activated, set:" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbSaverC">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbSaver"/></connections>
-                </button>
                 <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pSaver">
                     <rect key="frame" x="337" y="45" width="203" height="26"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
@@ -229,17 +182,7 @@
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="pSaverM"/>
                     </popUpButtonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aPSaver"/></connections>
                 </popUpButton>
-                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbRemind">
-                    <rect key="frame" x="20" y="18" width="135" height="18"/>
-                    <autoresizingMask key="autoresizingMask"/>
-                    <buttonCell key="cell" type="check" title="Remind me after" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbRemindC">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections><action selector="changePreference:" target="-2" id="aCbRemind"/></connections>
-                </button>
                 <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tRemind">
                     <rect key="frame" x="161" y="16" width="32" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -249,7 +192,6 @@
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                     <connections>
-                        <action selector="takeIntValueFrom:" target="stRemind" id="aTRemind"/>
                         <outlet property="delegate" destination="-2" id="oTRemindDel"/>
                     </connections>
                 </textField>
@@ -257,12 +199,11 @@
                     <rect key="frame" x="193" y="13" width="19" height="28"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <stepperCell key="cell" continuous="YES" alignment="left" increment="1" minValue="1" maxValue="999" doubleValue="30" autorepeat="YES" id="stRemindC"/>
-                    <connections><action selector="changeAwayReminderMinutes:" target="-2" id="aStRemind"/></connections>
                 </stepper>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lRemind">
                     <rect key="frame" x="214" y="19" width="325" height="17"/>
                     <autoresizingMask key="autoresizingMask"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes of being away" id="lRemindC">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="minutes" id="lRemindC">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
