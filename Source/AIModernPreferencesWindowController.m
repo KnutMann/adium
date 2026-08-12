@@ -69,6 +69,50 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	return YES;
 }
+
+/*!
+ * @brief Refuse frames that would displace or clip the pane.
+ *
+ * Every legitimate caller — -layoutCurrentPane and the form's own document
+ * height update — puts this view at the origin and never below its content.
+ * Frames from anywhere else arrive anyway: measured live, a document view
+ * holding a 1014 point pane stood at origin y = -66 with a height of 560,
+ * which cut everything past the first screen off, and no code of ours writes
+ * either number. Whoever it is, the answer is an invariant rather than a hunt:
+ * the origin is always zero, and the height never falls below the lowest
+ * subview plus the standard padding. Growing beyond that stays allowed — a
+ * short pane's document is deliberately taller than its content.
+ */
+- (NSRect)constrainedFrame:(NSRect)frame
+{
+	CGFloat need = 0.0;
+
+	for (NSView *subview in [self subviews]) {
+		need = MAX(need, NSMaxY([subview frame]));
+	}
+
+	frame.origin = NSZeroPoint;
+	frame.size.height = MAX(frame.size.height, ceil(need + AIPrefsContentPadding));
+
+	return frame;
+}
+
+- (void)setFrame:(NSRect)frame
+{
+	[super setFrame:[self constrainedFrame:frame]];
+}
+
+- (void)setFrameSize:(NSSize)newSize
+{
+	NSRect frame = [self constrainedFrame:NSMakeRect(0, 0, newSize.width, newSize.height)];
+
+	[super setFrameSize:frame.size];
+}
+
+- (void)setFrameOrigin:(NSPoint)newOrigin
+{
+	[super setFrameOrigin:NSZeroPoint];
+}
 @end
 
 /*!
@@ -575,6 +619,15 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)contentClipViewFrameChanged:(NSNotification *)notification
 {
 	if (layingOutPane) {
+		/* Not dropped: a clip change arriving mid-layout is usually the vertical scroller
+		 * appearing because of the very height that pass just set, and swallowing it leaves
+		 * the column laid out for a width it no longer has. One follow-up pass once the
+		 * current one is off the stack settles it; scheduling is idempotent enough here
+		 * because the selector is coalesced against ourselves. */
+		[NSObject cancelPreviousPerformRequestsWithTarget:self
+												 selector:@selector(layoutCurrentPane)
+												   object:nil];
+		[self performSelector:@selector(layoutCurrentPane) withObject:nil afterDelay:0.0];
 		return;
 	}
 
