@@ -418,7 +418,7 @@
 	<key>LSRequiresNativeExecution</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Adium runs AppleScript xtras. Some of them ask other applications - your web browser, say - for information to put into a message.</string>
+	<string>Adium runs AppleScript xtras. Some of them ask other applications - your web browser, say - for information to put into a message. When you use the music status, Adium also asks Music or Spotify what is playing so it can show it.</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>NSMainNibFile</key>

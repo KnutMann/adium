@@ -32,6 +32,10 @@
 #import <Adium/AIHTMLDecoder.h>
 #import <Adium/AIStatus.h>
 #import <WebKit/WebKit.h>
+/* For AEDeterminePermissionToAutomateTarget and the errAE… numbers: the active
+ * query has to be able to tell "the user said no" apart from "nothing is playing".
+ */
+#import <CoreServices/CoreServices.h>
 
 #define STRING_TRIGGERS_MENU		AILocalizedString(@"Insert Music Token", "Label used for edit and contextual menus of Music triggers")
 #define STRING_TRIGGERS_TOOLBAR		AILocalizedString(@"Music","Label for the Music toolbar item. The name of Music.app.")
@@ -62,6 +66,171 @@
 
 #pragma mark -
 
+#define SPOTIFY_BUNDLE_IDENTIFIER	@"com.spotify.client"
+
+/* Spotify answers with a URI for its own application — spotify:track:<id> — which is
+ * of no use to the person on the other end of the conversation: it is not a link
+ * anywhere, most clients will not even make it clickable, and without Spotify
+ * installed it does nothing at all. The web address is the same identifier, and
+ * that one opens for everybody.
+ */
+#define SPOTIFY_TRACK_URI_PREFIX	@"spotify:track:"
+#define SPOTIFY_TRACK_WEB_URL		@"https://open.spotify.com/track/%@"
+
+/* Several of the moments below can fire in quick succession — selecting the Now
+ * Playing status changes the status of every account, and the filter runs over every
+ * outgoing message. One Apple event round trip per five seconds is plenty: a real
+ * track change arrives over the broadcast anyway, the query only has to fill the
+ * hole the broadcast leaves after launch.
+ */
+#define PLAYER_QUERY_MINIMUM_INTERVAL	5.0
+
+/* Both scripts answer with a list of exactly ten strings, always the same length and
+ * always in the same order, empty where the player does not know something. A fixed
+ * shape rather than a delimited string on purpose: track names contain commas,
+ * quotes and newlines, and no separator would survive them.
+ */
+#define PLAYER_QUERY_FIELD_COUNT	10
+enum {
+	AIPlayerFieldPlayerState	= 1,
+	AIPlayerFieldName			= 2,
+	AIPlayerFieldArtist			= 3,
+	AIPlayerFieldAlbum			= 4,
+	AIPlayerFieldComposer		= 5,
+	AIPlayerFieldGenre			= 6,
+	AIPlayerFieldYear			= 7,
+	AIPlayerFieldTotalTime		= 8,
+	AIPlayerFieldStoreURL		= 9,
+	AIPlayerFieldStreamTitle	= 10
+};
+
+/* Every property is fetched inside its own try. Music raises -1728 for the whole of
+ * 'current track' when the track is not in the library — Apple Music radio, a shared
+ * library — and individual properties can fail on their own; one bad property must
+ * not cost us the other nine.
+ *
+ * The player state is compared against the enumerators rather than coerced with
+ * 'as text': the coercion fails outright in some cases, and comparing lets the script
+ * hand back Adium's own spelling, so nothing has to be translated on the way in.
+ * Fast forwarding and rewinding count as playing — sound is still coming out.
+ *
+ * Every variable is adium-prefixed. Both applications define enormous vocabularies
+ * and a short name such as "st" collides with Spotify's terminology and fails to
+ * compile; "adium" appears in neither dictionary.
+ *
+ * Music reports 'duration' in seconds and the broadcast carries milliseconds, so it
+ * is scaled here. Spotify's dictionary claims seconds but measurably answers in
+ * milliseconds already, so its value is passed on untouched.
+ *
+ * The store URL slot stays empty for Music, and that is not an oversight. Music has
+ * no scriptable store address at all: 'address' belongs to its URL track class and
+ * holds the address of an internet radio stream, so asking for it would fill the
+ * field precisely the wrong way round — empty for the catalogue tracks which do have
+ * a store link, and carrying a raw stream address for the ones which do not. That
+ * address would then go out labelled as an Apple Music link and be published to
+ * every contact as the tune URL. The link the broadcast carries is the real one, and
+ * -finishPlayerQueryWithResults:refusals:requestGeneration: keeps it.
+ */
+static NSString * const AIMusicQueryScript = @"\
+tell application id \"com.apple.Music\"\n\
+	set adiumState to \"Stopped\"\n\
+	try\n\
+		set adiumPS to player state\n\
+		if adiumPS is playing or adiumPS is fast forwarding or adiumPS is rewinding then\n\
+			set adiumState to \"Playing\"\n\
+		else if adiumPS is paused then\n\
+			set adiumState to \"Paused\"\n\
+		end if\n\
+	end try\n\
+	set adiumName to \"\"\n\
+	set adiumArtist to \"\"\n\
+	set adiumAlbum to \"\"\n\
+	set adiumComposer to \"\"\n\
+	set adiumGenre to \"\"\n\
+	set adiumYear to \"\"\n\
+	set adiumTime to \"\"\n\
+	set adiumURL to \"\"\n\
+	set adiumStream to \"\"\n\
+	if adiumState is not \"Stopped\" then\n\
+		try\n\
+			set adiumTrack to current track\n\
+			try\n\
+				set adiumName to (name of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumArtist to (artist of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumAlbum to (album of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumComposer to (composer of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumGenre to (genre of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumYearNum to (year of adiumTrack) as integer\n\
+				if adiumYearNum > 0 then set adiumYear to adiumYearNum as text\n\
+			end try\n\
+			try\n\
+				set adiumDur to duration of adiumTrack\n\
+				if adiumDur > 0 then set adiumTime to ((round (adiumDur * 1000)) as text)\n\
+			end try\n\
+		end try\n\
+		try\n\
+			set adiumStream to (current stream title) as text\n\
+		end try\n\
+	end if\n\
+	return {adiumState, adiumName, adiumArtist, adiumAlbum, adiumComposer, adiumGenre, adiumYear, adiumTime, adiumURL, adiumStream}\n\
+end tell";
+
+/* Spotify's dictionary has no composer, no genre, no year and no stream title. Those
+ * four slots stay empty rather than being filled with something plausible — an empty
+ * %_genre is the truth, a guessed one is not.
+ */
+static NSString * const AISpotifyQueryScript = @"\
+tell application id \"com.spotify.client\"\n\
+	set adiumState to \"Stopped\"\n\
+	try\n\
+		set adiumPS to player state\n\
+		if adiumPS is playing then\n\
+			set adiumState to \"Playing\"\n\
+		else if adiumPS is paused then\n\
+			set adiumState to \"Paused\"\n\
+		end if\n\
+	end try\n\
+	set adiumName to \"\"\n\
+	set adiumArtist to \"\"\n\
+	set adiumAlbum to \"\"\n\
+	set adiumTime to \"\"\n\
+	set adiumURL to \"\"\n\
+	if adiumState is not \"Stopped\" then\n\
+		try\n\
+			set adiumTrack to current track\n\
+			try\n\
+				set adiumName to (name of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumArtist to (artist of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumAlbum to (album of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumDur to (duration of adiumTrack) as integer\n\
+				if adiumDur > 0 then set adiumTime to adiumDur as text\n\
+			end try\n\
+			try\n\
+				set adiumURL to (spotify url of adiumTrack) as text\n\
+			end try\n\
+		end try\n\
+	end if\n\
+	return {adiumState, adiumName, adiumArtist, adiumAlbum, \"\", \"\", \"\", adiumTime, adiumURL, \"\"}\n\
+end tell";
+
+#pragma mark -
+
 /*!
  * @brief @a string with the four characters an <A> tag cannot carry, escaped.
  *
@@ -80,6 +249,232 @@ static NSString *AIEscapedForHTML(NSString *string)
 	[escaped replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:NSLiteralSearch range:NSMakeRange(0, [escaped length])];
 
 	return escaped;
+}
+
+#pragma mark -
+#pragma mark Asking a player directly
+
+/*!
+ * @brief Is an application with this bundle identifier running right now?
+ *
+ * Asked before every single Apple event, and it is not a nicety: an Apple event to an
+ * application which is not running LAUNCHES it. Adium must never be the reason Music
+ * or Spotify starts up.
+ */
+static BOOL AIPlayerIsRunning(NSString *bundleIdentifier)
+{
+	return ([[NSRunningApplication runningApplicationsWithBundleIdentifier:bundleIdentifier] count] > 0);
+}
+
+/*!
+ * @brief The @a index'th string of an Apple event list, or nil if it is empty
+ *
+ * Indices are one-based, as everywhere in Apple event lists. "Empty" and "absent" are
+ * the same thing to us: the scripts return a fixed number of slots and fill the ones
+ * they cannot answer with @"".
+ */
+static NSString *AIStringAtIndex(NSAppleEventDescriptor *list, NSInteger index)
+{
+	NSString *string = [[list descriptorAtIndex:index] stringValue];
+
+	return ([string length] ? string : nil);
+}
+
+/*!
+ * @brief How much a player state is worth: making sound beats holding a track beats nothing
+ *
+ * Used for both questions the answers raise — which player speaks for the user, and
+ * whether an answer may replace what we already hold.
+ */
+static NSInteger AIPlayerStateRank(NSString *playerState)
+{
+	if ([playerState isEqualToString:KEY_ITUNES_PLAYING]) return 2;
+	if ([playerState isEqualToString:KEY_ITUNES_PAUSED]) return 1;
+
+	return 0;
+}
+
+/*!
+ * @brief An https link to a Spotify track, or nil if that is not what we were given
+ *
+ * spotify:track:1jqAIYg9qcDpUOkHWpPcIb becomes
+ * https://open.spotify.com/track/1jqAIYg9qcDpUOkHWpPcIb — the identifier is the same,
+ * only the form differs. Anything that is not a plain track URI (a local file, a
+ * podcast episode, a future kind of thing) yields nil rather than a guess: an empty
+ * store URL costs nothing, since -insertiTMSLink then falls back to a search, while a
+ * broken link would go out into somebody's conversation.
+ */
+static NSString *AISpotifyWebURLFromURI(NSString *uri)
+{
+	if (![uri hasPrefix:SPOTIFY_TRACK_URI_PREFIX]) return nil;
+
+	NSString *trackIdentifier = [uri substringFromIndex:[SPOTIFY_TRACK_URI_PREFIX length]];
+
+	//A remaining colon would mean this is not the simple track URI we think it is
+	if (![trackIdentifier length] || ([trackIdentifier rangeOfString:@":"].location != NSNotFound)) return nil;
+
+	return [NSString stringWithFormat:SPOTIFY_TRACK_WEB_URL, trackIdentifier];
+}
+
+/*!
+ * @brief Turn a script's answer into a dictionary of the shape the broadcast has
+ *
+ * Shape matters: a key we invent, or an empty placeholder for something the player
+ * does not know, would be one more thing the rest of the file has to think about.
+ * Absent means absent, exactly as in the broadcast.
+ *
+ * What this shape does NOT buy is the duplicate check in -setiTunesCurrentInfo:. That
+ * one compares against lastRawInfo, the broadcast payload as it arrived, and Music
+ * sends Total Time and Year as numbers — the loop in -setiTunesCurrentInfo: exists to
+ * turn them into strings. Everything here is a string, so an answer about a track we
+ * already know can never compare equal to the broadcast that told us about it.
+ * -finishPlayerQueryWithResults:refusals:requestGeneration: does that comparison
+ * itself, against the stringified copy, and it has to.
+ *
+ * @result The track information, or nil if the answer was not usable at all.
+ */
+static NSDictionary *AITrackInfoFromDescriptor(NSAppleEventDescriptor *result, NSString *bundleIdentifier)
+{
+	//Not our ten-slot list: something else answered, or the script was changed and this was not
+	if ([result numberOfItems] != PLAYER_QUERY_FIELD_COUNT) return nil;
+
+	NSString *playerState = AIStringAtIndex(result, AIPlayerFieldPlayerState);
+
+	/* The scripts already speak in Adium's spelling. Insisting on it is worth the two
+	 * lines: CBPurpleAccount compares the player state against @"Playing" letter for
+	 * letter, and Spotify's own word for it is lowercase.
+	 */
+	if (!([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
+		  [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
+		  [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
+		return nil;
+	}
+
+	NSMutableDictionary *info = [NSMutableDictionary dictionary];
+	[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
+
+	//Nothing playing: a lone player state, which is precisely what a stop broadcast carries
+	if ([playerState isEqualToString:KEY_ITUNES_STOPPED]) return [[info copy] autorelease];
+
+	/* Playing, but not a word about what: Music does this for anything outside the
+	 * user's own library, where 'current track' raises -1728 while the player state
+	 * happily reports playing. -setiTunesCurrentInfo: has no defence against it — it
+	 * only guards against an empty payload — and the filter would send out the
+	 * half-empty track line the guard there exists to prevent. A query which learned
+	 * nothing must look exactly like a query which never happened.
+	 *
+	 * A stream title on its own is enough, though. The script fetches it outside the
+	 * 'current track' block on purpose, so it can arrive when the track did not, and
+	 * -setiTunesCurrentInfo: promotes it to the track name — which is how the
+	 * broadcast has always been treated. Only both being empty means we learned
+	 * nothing.
+	 */
+	NSString *name = AIStringAtIndex(result, AIPlayerFieldName);
+	NSString *streamTitle = AIStringAtIndex(result, AIPlayerFieldStreamTitle);
+	if (!name && !streamTitle) return nil;
+
+	if (name) [info setObject:name forKey:KEY_ITUNES_NAME];
+
+	NSDictionary *keysByField = [NSDictionary dictionaryWithObjectsAndKeys:
+								 KEY_ITUNES_ARTIST,       [NSNumber numberWithInteger:AIPlayerFieldArtist],
+								 KEY_ITUNES_ALBUM,        [NSNumber numberWithInteger:AIPlayerFieldAlbum],
+								 KEY_ITUNES_COMPOSER,     [NSNumber numberWithInteger:AIPlayerFieldComposer],
+								 KEY_ITUNES_GENRE,        [NSNumber numberWithInteger:AIPlayerFieldGenre],
+								 KEY_ITUNES_YEAR,         [NSNumber numberWithInteger:AIPlayerFieldYear],
+								 /* No trigger and no place in substitutionDict — but CBPurpleAccount
+								  * reads it, so it has to be here even though nothing in a status
+								  * message ever shows it.
+								  */
+								 KEY_ITUNES_TOTAL_TIME,   [NSNumber numberWithInteger:AIPlayerFieldTotalTime],
+								 KEY_ITUNES_STREAM_TITLE, [NSNumber numberWithInteger:AIPlayerFieldStreamTitle],
+								 nil];
+
+	for (NSNumber *field in keysByField) {
+		NSString *value = AIStringAtIndex(result, [field integerValue]);
+		if (value) [info setObject:value forKey:[keysByField objectForKey:field]];
+	}
+
+	/* Only ever Spotify's, and only in its own scheme: the Music script leaves this slot
+	 * empty on purpose (see AIMusicQueryScript), because the only address Music can be
+	 * asked for is a radio stream's, not a store link.
+	 */
+	NSString *storeURL = AIStringAtIndex(result, AIPlayerFieldStoreURL);
+	if (storeURL && [bundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER]) {
+		storeURL = AISpotifyWebURLFromURI(storeURL);
+	}
+	if (storeURL) [info setObject:storeURL forKey:KEY_ITUNES_STORE_URL];
+
+	return [[info copy] autorelease];
+}
+
+/*!
+ * @brief Ask one player what it is playing. Runs on a worker thread, never on the main one.
+ *
+ * @param outConsentRefused Set to YES if the user has denied us automation of this player.
+ * @result The track information, or nil if we learned nothing — for any reason at all.
+ */
+static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptSource, BOOL *outConsentRefused)
+{
+	NSAppleEventDescriptor	*target = [NSAppleEventDescriptor descriptorWithBundleIdentifier:bundleIdentifier];
+
+	/* Ask the system what it thinks before sending anything. With askUserIfNeeded set
+	 * to false this reports the state of the permission without showing a dialog and
+	 * without an event ever leaving the process — which is the only way to tell "the
+	 * user said no once" from "the user has never been asked". typeWildCard for class
+	 * and ID asks about automation of the target in general, which is what we want.
+	 * It must not be called on the main thread; it can block for as long as a dialog
+	 * is up.
+	 */
+	OSStatus permission = AEDeterminePermissionToAutomateTarget([target aeDesc], typeWildCard, typeWildCard, false);
+
+	//The user has said no. Take the answer and stop bothering them for the rest of this launch.
+	if (permission == errAEEventNotPermitted) {
+		if (outConsentRefused) *outConsentRefused = YES;
+		return nil;
+	}
+
+	/* Quit between the runningApplications check and here. Sending now would start it
+	 * up again, which is the one thing this must never do.
+	 */
+	if (permission == procNotFound) return nil;
+
+	/* Everything else — noErr, or errAEEventWouldRequireUserConsent because this is
+	 * the first time — goes ahead, and the dialog, if there is one, appears now. Only
+	 * the moments in -requestPlayerQuery get this far, and every one of them is
+	 * something the user just did with the music status, so the dialog has a visible
+	 * cause. Somebody who never uses the feature never reaches this line.
+	 */
+	/* Autoreleased into the worker's pool rather than released at the end: the caller
+	 * treats an exception out of here as possible and catches it, and an unwind would
+	 * walk straight past a manual release. The compiled script and its descriptor are
+	 * not small, and -requestPlayerQueryIfNothingIsKnown will come back again, so a
+	 * reproducible raise would leak one of these per attempt for the whole launch.
+	 */
+	NSDictionary			*errorInfo = nil;
+	NSAppleScript			*script = [[[NSAppleScript alloc] initWithSource:scriptSource] autorelease];
+	NSAppleEventDescriptor	*result = [script executeAndReturnError:&errorInfo];
+	NSDictionary			*info = nil;
+
+	if (result) {
+		/* An answer came back, so it is trustworthy: every "nothing is playing" case
+		 * is handled inside the script and returns normally with a player state of
+		 * Stopped. It never reaches us as an error.
+		 */
+		info = AITrackInfoFromDescriptor(result, bundleIdentifier);
+
+	} else {
+		/* No answer. Refused consent (-1743), the player quitting mid-query (-600), a
+		 * timeout (-1712), a script the running version of the application no longer
+		 * understands — all of them mean the same thing to us: we learned nothing.
+		 * Nothing is written and the state we had stands. Writing "stopped" here would
+		 * let a refused permission wipe perfectly good broadcast information.
+		 */
+		NSInteger errorNumber = [[errorInfo objectForKey:NSAppleScriptErrorNumber] integerValue];
+
+		if ((errorNumber == errAEEventNotPermitted) && outConsentRefused) *outConsentRefused = YES;
+	}
+
+	return info;
 }
 
 #pragma mark -
@@ -109,6 +504,15 @@ static NSString *AIEscapedForHTML(NSString *string)
 - (void)bringMusicToFront;
 - (NSURL *)musicApplicationURL;
 - (NSString *)musicSearchURLForTerms:(NSString *)terms;
+
+- (void)setiTunesCurrentInfo:(NSDictionary *)newInfo fromPlayer:(NSString *)bundleIdentifier;
+- (void)requestPlayerQuery;
+- (void)requestPlayerQueryIfNothingIsKnown;
+- (void)finishPlayerQueryWithResults:(NSDictionary *)resultsByBundleIdentifier
+							refusals:(NSSet *)refusals
+				   requestGeneration:(NSUInteger)requestGeneration;
+- (NSString *)bestPlayerOfResults:(NSDictionary *)resultsByBundleIdentifier;
+- (void)activeStatusStateDidChange:(NSNotification *)aNotification;
 @end
 
 /*!
@@ -123,8 +527,9 @@ static NSString *AIEscapedForHTML(NSString *string)
 /*!
  * @brief Is Music stopped?
  *
- * Never asks Music itself: -installPlugin starts this out as "stopped", and from
- * then on only the broadcast changes it.
+ * Never asks a player itself: -installPlugin starts this out as "stopped", and from
+ * then on only something arriving at -setiTunesCurrentInfo: changes it — the
+ * broadcast, or the answer to a query we asked for in -requestPlayerQuery.
  */
 - (BOOL)iTunesIsStopped
 {
@@ -171,6 +576,22 @@ static NSString *AIEscapedForHTML(NSString *string)
  */
 - (void)setiTunesCurrentInfo:(NSDictionary *)newInfo
 {
+	//The broadcast does not say who sent it, and does not have to; see -setiTunesCurrentInfo:fromPlayer:
+	[self setiTunesCurrentInfo:newInfo fromPlayer:nil];
+}
+
+/*!
+ * @brief Store track information and remember which player it describes
+ *
+ * @param bundleIdentifier The player we asked, or nil when this came over the broadcast.
+ *
+ * The source is worth keeping for one decision only: whether a later "nothing is
+ * playing" may be believed. A player can only speak about itself, so a stop from
+ * somewhere else says nothing about what we are holding — see
+ * -finishPlayerQueryWithResults:refusals:requestGeneration:.
+ */
+- (void)setiTunesCurrentInfo:(NSDictionary *)newInfo fromPlayer:(NSString *)bundleIdentifier
+{
 	/* The broadcast is an open channel (see -installPlugin), so a sender that posts
 	 * no payload at all can get here. That would leave us with neither track
 	 * information nor a player state — which the filter reads as "playing" and sends
@@ -180,6 +601,32 @@ static NSString *AIEscapedForHTML(NSString *string)
 	if (![newInfo count]) {
 		newInfo = [NSDictionary dictionaryWithObject:KEY_ITUNES_STOPPED forKey:KEY_ITUNES_PLAYER_STATE];
 	}
+
+	/* Anything reaching this method — a broadcast, or the answer to a query we sent
+	 * ourselves — makes whatever a query still in flight is about to report older than
+	 * what we know now. The query notes this count before it sends and
+	 * -finishPlayerQueryWithResults:refusals:requestGeneration: throws its answer away
+	 * if the count has moved on since. Both ends run on the main thread — a
+	 * distributed notification is delivered on the run loop of the thread which
+	 * registered for it, and that is the main thread in -installPlugin, while the
+	 * query hands its answer back on the main queue — so noting and comparing cannot
+	 * interleave and no lock is needed.
+	 *
+	 * Counted before the duplicate check below rather than after: a repeat means the
+	 * broadcast is alive and saying the same thing, which is exactly the situation in
+	 * which an older answer must not be let in.
+	 */
+	infoGeneration++;
+
+	/* Something real has arrived, so whatever a fruitless query concluded a moment ago
+	 * is out of date. Cleared before the duplicate check below rather than after: a
+	 * repeat still means a player is talking to us, which is precisely what that
+	 * conclusion was about.
+	 */
+	playerQueryLearnedNothing = NO;
+
+	[infoSourceBundleIdentifier release];
+	infoSourceBundleIdentifier = [bundleIdentifier copy];
 
 	/* Every change arrives twice: Music broadcasts under its own name and under
 	 * the one iTunes used, and we listen for both (see -installPlugin). The
@@ -240,6 +687,316 @@ static NSString *AIEscapedForHTML(NSString *string)
 }
 
 #pragma mark -
+#pragma mark Asking the players
+
+/*!
+ * @brief Ask the running players what they are playing, unless we already know something
+ *
+ * The one query moment which is not a deliberate act: the filter has just run over
+ * text which really does contain a music token, and nothing has ever reached
+ * -setiTunesCurrentInfo:. That is the case this whole thing exists for — after a
+ * launch the Now Playing status is restored from the saved preference and filtered
+ * the moment an account connects, without the user clicking anything, and until the
+ * next track change the line goes out empty.
+ *
+ * lastRawInfo is the only honest marker for "we have never heard anything":
+ * -installPlugin fills in iTunesCurrentInfo and both flags but deliberately leaves
+ * lastRawInfo alone, and nothing but a real payload ever sets it. iTunesCurrentInfo
+ * would not do — its starting value is a lone "Stopped", which is exactly what a
+ * genuine stop broadcast looks like.
+ *
+ * That marker alone would keep this going forever, though, because a query which
+ * learns nothing writes nothing and so never sets it. Music playing an Apple Music
+ * radio station is exactly that case — 'current track' raises -1728, the answer is
+ * unusable — and this method is reached from every filter run, which for an
+ * auto-refreshing status message is every thirty seconds for as long as that station
+ * plays. The second marker says "we asked, and asking again would tell us the same",
+ * and only a real payload clears it. The deliberate moments call -requestPlayerQuery
+ * directly and are not affected: if the user picks the status again, they get a fresh
+ * attempt.
+ */
+- (void)requestPlayerQueryIfNothingIsKnown
+{
+	if (![NSThread isMainThread]) {
+		[self performSelectorOnMainThread:@selector(requestPlayerQueryIfNothingIsKnown) withObject:nil waitUntilDone:NO];
+		return;
+	}
+
+	if (lastRawInfo || playerQueryLearnedNothing) return;
+
+	[self requestPlayerQuery];
+}
+
+/*!
+ * @brief Ask every running player what it is playing
+ *
+ * Only ever called from a moment where the user is visibly using the music status —
+ * see -requestPlayerQueryIfNothingIsKnown, -activeStatusStateDidChange:, and the two
+ * insertion actions the menus actually reach, -insertUnfilteredString: and
+ * -insertiTMSLink. Somebody who never touches the feature never gets here, and so
+ * never sees an automation dialog.
+ */
+- (void)requestPlayerQuery
+{
+	if (![NSThread isMainThread]) {
+		[self performSelectorOnMainThread:@selector(requestPlayerQuery) withObject:nil waitUntilDone:NO];
+		return;
+	}
+
+	//-uninstallPlugin drops the queue; a trigger arriving afterwards is simply ignored
+	if (!playerQueryQueue) return;
+
+	//One at a time. A player which has stopped answering must not pile queries up behind it.
+	if (playerQueryInFlight) return;
+
+	NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+	if ((lastPlayerQueryTime > 0.0) && ((now - lastPlayerQueryTime) < PLAYER_QUERY_MINIMUM_INTERVAL)) return;
+
+	/* Decided here, on the main thread, and passed to the worker as a finished list:
+	 * an application which is not running must not be sent anything, because the event
+	 * would launch it. There is a gap of a few milliseconds between this check and the
+	 * event which no public interface closes — NSAppleScript has no "do not launch"
+	 * setting — so AIQueryPlayer checks a second time through the permission call,
+	 * which reports procNotFound for a target that has gone away. That narrows the
+	 * window; it does not quite shut it, and pretending otherwise would be worse than
+	 * saying so.
+	 */
+	NSMutableArray *bundleIdentifiers = [NSMutableArray array];
+	for (NSString *bundleIdentifier in [NSArray arrayWithObjects:MUSIC_BUNDLE_IDENTIFIER, SPOTIFY_BUNDLE_IDENTIFIER, nil]) {
+		if ([playersRefusingAutomation containsObject:bundleIdentifier]) continue;
+		if (!AIPlayerIsRunning(bundleIdentifier)) continue;
+
+		[bundleIdentifiers addObject:bundleIdentifier];
+	}
+
+	//Nothing is running: nothing is sent, and so no dialog can appear either
+	if (![bundleIdentifiers count]) return;
+
+	lastPlayerQueryTime = now;
+	playerQueryInFlight = YES;
+
+	NSUInteger	 generationAtRequest = infoGeneration;
+	NSArray		*targets = [[bundleIdentifiers copy] autorelease];
+
+	/* Held by hand rather than captured, exactly as AdiumApplescriptRunner does it:
+	 * under manual retain/release a __block object variable is not retained by the
+	 * block, so this pair is the only claim on the plugin, and it is given up on the
+	 * main thread. An Apple event can take seconds; the plugin must not be able to go
+	 * away underneath the answer.
+	 */
+	__block id blockSelf = [self retain];
+
+	[playerQueryQueue addOperationWithBlock:^{
+		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+		NSMutableDictionary	*results = [NSMutableDictionary dictionary];
+		NSMutableSet		*refusals = [NSMutableSet set];
+
+		for (NSString *bundleIdentifier in targets) {
+			/* Swallowed rather than rethrown, and deliberately not @finally: unwinding
+			 * out of here would take the worker thread with it, and the callback below
+			 * has to happen whatever else does — it is what clears playerQueryInFlight.
+			 * Inside the loop rather than around it, so that one player raising costs
+			 * us that player's answer and not the other one's.
+			 */
+			@try {
+				BOOL			 consentRefused = NO;
+				NSString		*scriptSource = ([bundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER] ?
+												 AISpotifyQueryScript : AIMusicQueryScript);
+				NSDictionary	*info = AIQueryPlayer(bundleIdentifier, scriptSource, &consentRefused);
+
+				if (consentRefused) [refusals addObject:bundleIdentifier];
+				if (info) [results setObject:info forKey:bundleIdentifier];
+
+				/* Someone is playing, and -bestPlayerOfResults: settles ties in favour of
+				 * whoever came first — in the same order this loop walks. Nothing a later
+				 * player could say would be chosen over this, so asking it would be an
+				 * Apple event whose answer is thrown away, and, the first time, an
+				 * automation dialog for a player we had no reason to disturb.
+				 */
+				if ([[info objectForKey:KEY_ITUNES_PLAYER_STATE] isEqualToString:KEY_ITUNES_PLAYING]) break;
+			}
+			@catch (NSException *exception) {
+				//Quietly, into the log: a failed query is not something to trouble the user with
+				NSLog(@"ESiTunesPlugin: asking %@ failed: %@: %@", bundleIdentifier, [exception name], [exception reason]);
+			}
+		}
+
+		/* Back to the main thread. Copying this block retains results and refusals, so
+		 * they outlive the pool released below.
+		 */
+		[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+			[blockSelf finishPlayerQueryWithResults:results
+										   refusals:refusals
+								  requestGeneration:generationAtRequest];
+
+			[blockSelf release]; blockSelf = nil;
+		}];
+
+		[pool release];
+	}];
+}
+
+/*!
+ * @brief Take in what the players answered. Main thread.
+ */
+- (void)finishPlayerQueryWithResults:(NSDictionary *)resultsByBundleIdentifier
+							refusals:(NSSet *)refusals
+				   requestGeneration:(NSUInteger)requestGeneration
+{
+	playerQueryInFlight = NO;
+
+	/* Noted even when the answer itself is stale or the plugin has been uninstalled: a
+	 * refusal is a fact about this launch, not about this query, and remembering it is
+	 * what stops us from walking into the same wall again.
+	 */
+	if ([refusals count]) [playersRefusingAutomation unionSet:refusals];
+
+	/* Somebody was quicker. A track change broadcast while the Apple event was in the
+	 * air, or -uninstallPlugin invalidated us; either way what we are holding is older
+	 * than what is already stored, and older information must never be written over
+	 * newer. See -setiTunesCurrentInfo: for the other half of this.
+	 */
+	if (requestGeneration != infoGeneration) {
+		/* Deliberately without the marker below: something newer arrived, so this query
+		 * did not fail to learn anything — it was simply overtaken.
+		 */
+		return;
+	}
+
+	NSString		*bestPlayer = [self bestPlayerOfResults:resultsByBundleIdentifier];
+	NSDictionary	*info = (bestPlayer ? [resultsByBundleIdentifier objectForKey:bestPlayer] : nil);
+
+	//Nothing usable came back. Indistinguishable, on purpose, from a query never sent.
+	if (!info) {
+		playerQueryLearnedNothing = YES;
+		return;
+	}
+
+	NSString	*queriedState = [info objectForKey:KEY_ITUNES_PLAYER_STATE];
+	NSString	*knownState = [iTunesCurrentInfo objectForKey:KEY_ITUNES_PLAYER_STATE];
+
+	//Did what we are holding come from the very player that has just answered?
+	BOOL sameSource = (infoSourceBundleIdentifier && [infoSourceBundleIdentifier isEqualToString:bestPlayer]);
+
+	/* A stop — or a pause — from the wrong player. Each of them can only speak about
+	 * itself, and the set we get to ask is smaller than the set that can put something
+	 * in here: a player whose automation the user refused is skipped, one that is not
+	 * running is skipped, Music raises for anything outside its library, and the
+	 * broadcast is an open channel other players send on as well. So "nothing is playing
+	 * here" and "we could not reach whoever is playing" arrive looking exactly alike,
+	 * and reading it the first way is how a Spotify sitting idle in the background comes
+	 * to overwrite a track Music is audibly still playing — the status flips to "is
+	 * listening to nothing" while the music plays on.
+	 *
+	 * So an answer may say that more is going on than we thought, never that less is,
+	 * unless it comes from the player we heard it from in the first place. That one
+	 * taking its own words back is believed, and has to be: it is the only way we ever
+	 * hear that Spotify stopped, since Spotify does not broadcast at all. For Music the
+	 * broadcast reports its own stop anyway.
+	 */
+	if ((AIPlayerStateRank(queriedState) < AIPlayerStateRank(knownState)) && !sameSource) {
+		playerQueryLearnedNothing = YES;
+		return;
+	}
+
+	/* The same track we are already holding. The broadcast says more than any query can
+	 * — the store link above all, which Music has no scriptable property for at all —
+	 * and writing the answer over it would take those keys away: the Apple Music link
+	 * in the toolbar menu would fall back to a search, and the tune URL published to
+	 * every contact would go out empty. So for a track we already know the query is
+	 * allowed to update the player state and to fill in what nobody has told us yet,
+	 * and nothing else.
+	 *
+	 * The comparison is against iTunesCurrentInfo rather than lastRawInfo because the
+	 * latter is the broadcast payload as it arrived, numbers and all, and an answer is
+	 * strings throughout — see AITrackInfoFromDescriptor. If the result of all this is
+	 * what we already had, it is not news, and news costs a filter run over every open
+	 * conversation and a status push on every account.
+	 */
+	NSString	*knownName = [iTunesCurrentInfo objectForKey:KEY_ITUNES_NAME];
+	//What the answer will end up being called: a stream title becomes the name, as it does for the broadcast
+	NSString	*queriedName = ([info objectForKey:KEY_ITUNES_NAME] ?: [info objectForKey:KEY_ITUNES_STREAM_TITLE]);
+	NSString	*knownArtist = [iTunesCurrentInfo objectForKey:KEY_ITUNES_ARTIST];
+	NSString	*queriedArtist = [info objectForKey:KEY_ITUNES_ARTIST];
+
+	//Two absent artists are the same artist; -isEqualToString: would say no to both of them
+	BOOL		 sameArtist = ((knownArtist == queriedArtist) ||
+							   (knownArtist && queriedArtist && [knownArtist isEqualToString:queriedArtist]));
+
+	if (knownName && queriedName && [knownName isEqualToString:queriedName] && sameArtist) {
+		NSMutableDictionary *merged = [[iTunesCurrentInfo mutableCopy] autorelease];
+
+		[merged setObject:queriedState forKey:KEY_ITUNES_PLAYER_STATE];
+
+		for (NSString *key in info) {
+			if (![merged objectForKey:key]) [merged setObject:[info objectForKey:key] forKey:key];
+		}
+
+		if ([merged isEqualToDictionary:iTunesCurrentInfo]) {
+			//Nothing learned, but we did reach a player and it did answer; no marker
+			return;
+		}
+
+		info = merged;
+	}
+
+	[self setiTunesCurrentInfo:info fromPlayer:bestPlayer];
+}
+
+/*!
+ * @brief Which of the players gets to speak for the user
+ *
+ * Playing beats paused beats stopped: whatever is actually making sound is what the
+ * user would say they are listening to. Should both be playing at once, Music wins —
+ * not by seniority, but because Music is the one which also broadcasts. Preferring it
+ * keeps the query saying what the next broadcast will say anyway, whereas preferring
+ * Spotify would produce a visible flip the moment Music sent its next update.
+ *
+ * @result The bundle identifier of the player whose answer counts, or nil if there is none.
+ */
+- (NSString *)bestPlayerOfResults:(NSDictionary *)resultsByBundleIdentifier
+{
+	NSString		*best = nil;
+	NSInteger		 bestRank = -1;
+
+	for (NSString *bundleIdentifier in [NSArray arrayWithObjects:MUSIC_BUNDLE_IDENTIFIER, SPOTIFY_BUNDLE_IDENTIFIER, nil]) {
+		NSDictionary	*info = [resultsByBundleIdentifier objectForKey:bundleIdentifier];
+		if (!info) continue;
+
+		NSInteger		 rank = AIPlayerStateRank([info objectForKey:KEY_ITUNES_PLAYER_STATE]);
+
+		//Strictly greater, so that the first of the two — Music — keeps a tie
+		if (rank > bestRank) {
+			bestRank = rank;
+			best = bundleIdentifier;
+		}
+	}
+
+	return best;
+}
+
+/*!
+ * @brief The active status changed
+ *
+ * The clearest query moment there is: the user has just picked the Now Playing status
+ * out of the status menu, which is as plain a way of saying "send what I am listening
+ * to" as there is. If an automation dialog appears it does so directly after their own
+ * choice, where it makes sense.
+ *
+ * The notification itself is no such signal — it is posted whenever any account
+ * changes status, several times over during a connect — so the special status type is
+ * what is actually asked about, and only the edge from off to on counts.
+ */
+- (void)activeStatusStateDidChange:(NSNotification *)aNotification
+{
+	BOOL musicStatusIsActive = ([[adium.statusController activeStatusState] specialStatusType] == AINowPlayingSpecialStatusType);
+
+	if (musicStatusIsActive && !musicStatusWasActive) [self requestPlayerQuery];
+
+	musicStatusWasActive = musicStatusIsActive;
+}
+
+#pragma mark -
 #pragma mark Plugin Methods
 
 /*!
@@ -255,14 +1012,28 @@ static NSString *AIEscapedForHTML(NSString *string)
 - (void)installPlugin
 {
 	/* Music only broadcasts when something changes, so nothing at all arrives
-	 * until the user next starts, pauses or changes a track — there is no way to
-	 * ask without an Apple event, and asking would cost an automation prompt. Start
-	 * out as "stopped" rather than as nothing: with no player state at all the
-	 * filter takes Music for playing and sends a half-empty track line.
+	 * until the user next starts, pauses or changes a track. Start out as "stopped"
+	 * rather than as nothing: with no player state at all the filter takes Music for
+	 * playing and sends a half-empty track line. -requestPlayerQuery fills the gap
+	 * later on, but only once the user shows they want it — asking here, at every
+	 * launch, would put an automation dialog in front of people who never use the
+	 * music status at all.
 	 */
 	iTunesCurrentInfo = [[NSDictionary alloc] initWithObjectsAndKeys:KEY_ITUNES_STOPPED, KEY_ITUNES_PLAYER_STATE, nil];
 	[self setiTunesIsStopped:YES];
 	[self setiTunesIsPaused:NO];
+
+	/* One at a time and off the main thread. An Apple event to a player which is busy
+	 * or beachballed takes as long as it takes, and AEDeterminePermissionToAutomateTarget
+	 * must not be called on the main thread at all — it blocks for as long as a
+	 * consent dialog is on screen.
+	 */
+	playerQueryQueue = [[NSOperationQueue alloc] init];
+	[playerQueryQueue setName:@"im.adium.musicquery"];
+	[playerQueryQueue setMaxConcurrentOperationCount:1];
+	[playerQueryQueue setQualityOfService:NSQualityOfServiceUtility];
+
+	playersRefusingAutomation = [[NSMutableSet alloc] init];
 
 	//Perform substitutions on outgoing content
 	[adium.contentController registerContentFilter:self
@@ -284,6 +1055,12 @@ static NSString *AIEscapedForHTML(NSString *string)
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(currentTrackFormatDidChange:)
 												 name:Adium_CurrentTrackFormatChangedNotification
+											   object:nil];
+
+	//So we can notice the Now Playing status being selected; see -activeStatusStateDidChange:
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(activeStatusStateDidChange:)
+												 name:AIStatusActiveStateChangedNotification
 											   object:nil];
 
 	/* The values are the keys Music puts into the broadcast; they are not ours to
@@ -323,6 +1100,17 @@ static NSString *AIEscapedForHTML(NSString *string)
 	//Both centres: -installPlugin registered with each of them
 	[[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+	/* A query still in the air cannot be recalled — the Apple event is with the other
+	 * application — but its answer can be made worthless. Moving the count on is
+	 * exactly the invalidation -finishPlayerQueryWithResults:refusals:requestGeneration:
+	 * already checks for, so nothing it brings back will be written. Dropping the queue
+	 * stops any further query from starting; the operation which is running holds the
+	 * queue alive until it is finished with it, and the plugin itself is held by the
+	 * retain in -requestPlayerQuery.
+	 */
+	infoGeneration++;
+	[playerQueryQueue release]; playerQueryQueue = nil;
 }
 
 #pragma mark -
@@ -437,7 +1225,8 @@ static NSString *AIEscapedForHTML(NSString *string)
 		NSEnumerator	*enumerator;
 		NSString		*trigger;
 		BOOL			addStoreLinkAsSubtext = NO;
-		
+		BOOL			sawMusicTrigger = NO;
+
 		/* Replace the phrases with the string containing the triggers.
 		 * For example, /music will become *is listening to %_track by %_artist*.
 		 * This will then become the actual track information in the next while().
@@ -449,7 +1238,9 @@ static NSString *AIEscapedForHTML(NSString *string)
 			if (([stringMessage rangeOfString:trigger options:(NSLiteralSearch | NSCaseInsensitiveSearch)].location != NSNotFound)) {
 				NSDictionary	*replacementDict;
 				NSString		*replacement;
-				
+
+				sawMusicTrigger = YES;
+
 				//get the format for the current trigger
 				replacementDict = [phraseSubstitutionDict objectForKey:trigger];
 
@@ -491,6 +1282,9 @@ static NSString *AIEscapedForHTML(NSString *string)
 			//Find if the current trigger is in the string
 			if (([stringMessage rangeOfString:trigger options:(NSLiteralSearch | NSCaseInsensitiveSearch)].location != NSNotFound)) {
 				NSString *replacement = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:trigger]];
+
+				sawMusicTrigger = YES;
+
 				if (replacement == nil) {
 					//If no replacement is found, replace the trigger with an empty string
 					replacement = @"";
@@ -509,6 +1303,19 @@ static NSString *AIEscapedForHTML(NSString *string)
 			}
 		}
 		
+		/* A music token really was in the text and we have never heard a thing. This
+		 * filter run is already lost — it is a plain AIContentFilter and runs
+		 * synchronously, so it cannot wait for an Apple event — but the answer puts
+		 * itself right through -setiTunesCurrentInfo: and the update it triggers, and
+		 * the user sees the empty line only once.
+		 *
+		 * Filtering can happen off the main thread (see AdiumContentFiltering), so the
+		 * two reads here are only a cheap way of not bothering; the binding decision is
+		 * taken again on the main thread, inside -requestPlayerQueryIfNothingIsKnown,
+		 * which is also where the second of them is explained.
+		 */
+		if (sawMusicTrigger && !lastRawInfo && !playerQueryLearnedNothing) [self requestPlayerQueryIfNothingIsKnown];
+
 		if (addStoreLinkAsSubtext && filteredMessage) {
 			NSString *storeLinkForSubtext = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_STORE_URL]];
 			if (storeLinkForSubtext) {
@@ -703,6 +1510,12 @@ static NSString *AIEscapedForHTML(NSString *string)
  */
 - (void)insertiTMSLink
 {
+	/* Worth asking here more than anywhere else: without track information this method
+	 * has nothing to do but beep. The answer comes too late for this click, but a
+	 * second attempt then works instead of beeping again.
+	 */
+	[self requestPlayerQuery];
+
 	NSString	*artist = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_ARTIST]];
 	NSString	*trackName = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_TRACK]];
 	NSString	*storeURL = [iTunesCurrentInfo objectForKey:[substitutionDict objectForKey:TRIGGER_STORE_URL]];
@@ -807,6 +1620,14 @@ static NSString *AIEscapedForHTML(NSString *string)
  */
 - (void)insertUnfilteredString:(id)sender
 {
+	/* The token goes into the text unfiltered, so this insertion needs nothing from
+	 * the players — but the user has just said, with a menu, that they want their
+	 * music in a message. Asking now means the information is there by the time the
+	 * message is sent, and any dialog appears while they are still looking at the menu
+	 * they used.
+	 */
+	[self requestPlayerQuery];
+
 	[self insertStringIntoMessageEntryView:[sender representedObject]];
 }
 
@@ -821,6 +1642,13 @@ static NSString *AIEscapedForHTML(NSString *string)
  */
 - (void)filterAndInsertString:(NSString *)inString
 {
+	/* Nothing calls this, or -insertFilteredString: above it: every item the toolbar
+	 * menu and the Edit menu build inserts the token itself, through
+	 * -insertUnfilteredString:, or is the store link item. Left as it stands because it
+	 * is upstream's, but deliberately without the player query the two live insertion
+	 * paths do — a query belongs where a user action really reaches it, and this is not
+	 * one of those places.
+	 */
 	id responder = [[[NSApplication sharedApplication] keyWindow] firstResponder];
 	if (responder && [responder isKindOfClass:[NSTextView class]]) {
 		NSAttributedString *attributedResult = [[NSAttributedString alloc] initWithString:inString
@@ -1015,6 +1843,14 @@ static NSString *AIEscapedForHTML(NSString *string)
 
 	//A delayed update still in flight would message a freed plugin
 	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(fireUpdateiTunesInfo) object:nil];
+
+	/* Not waited on: a player which never answers must not be able to hold up
+	 * quitting. -uninstallPlugin has normally dropped this already; a plugin torn down
+	 * without it still gets here.
+	 */
+	[playerQueryQueue release]; playerQueryQueue = nil;
+	[playersRefusingAutomation release]; playersRefusingAutomation = nil;
+	[infoSourceBundleIdentifier release]; infoSourceBundleIdentifier = nil;
 
 	//Release class variables
 	if (iTunesCurrentInfo) [iTunesCurrentInfo release];

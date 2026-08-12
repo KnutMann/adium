@@ -68,6 +68,30 @@ typedef enum {
 	NSDictionary *phraseSubstitutionDict;
 	BOOL iTunesIsStopped;
 	BOOL iTunesIsPaused;
+
+	/* The active query. The broadcast above only ever arrives when something
+	 * changes, so until the user next touches a player we know nothing at all;
+	 * -requestPlayerQuery asks Music and Spotify directly, but only from a moment
+	 * where the user is visibly using the music status.
+	 *
+	 * One limit is worth stating where it cannot be missed: nothing is sent to an
+	 * application which is not running, because the event would launch it — but the
+	 * check and the event cannot be made one indivisible step. A player which quits
+	 * in the handful of milliseconds between them is relaunched by its own Apple
+	 * event. AEDeterminePermissionToAutomateTarget is asked a second time from the
+	 * worker for exactly this reason and answers procNotFound for a target that has
+	 * gone, which narrows the window to almost nothing; shutting it completely would
+	 * mean giving up NSAppleScript and assembling the events by hand, which is not
+	 * worth it for the last few milliseconds. See AIQueryPlayer.
+	 */
+	NSOperationQueue *playerQueryQueue;			//Apple events are sent from here, never from the main thread
+	NSMutableSet *playersRefusingAutomation;	//Bundle identifiers the user has denied us; asked once per launch, then left alone
+	NSUInteger infoGeneration;					//Counts every payload reaching -setiTunesCurrentInfo:; guards against a stale answer
+	NSTimeInterval lastPlayerQueryTime;			//When we last actually sent something, to keep repeated triggers cheap
+	BOOL playerQueryInFlight;
+	BOOL playerQueryLearnedNothing;				//A query came back empty-handed; see -requestPlayerQueryIfNothingIsKnown
+	NSString *infoSourceBundleIdentifier;		//Which player answered for what we hold, or nil when it came over the broadcast
+	BOOL musicStatusWasActive;					//Previous state of the Now Playing status, so we can spot it becoming active
 }
 
 @end
