@@ -449,7 +449,20 @@ static NSString *AIRowLabel(NSString *label)
 	//Appearance
 	if ([group isEqualToString:PREF_GROUP_APPEARANCE]) {
 		if (firstTime) {
-			[popUp_windowStyle selectItemWithTag:[[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_STYLE] integerValue]];	
+			/* "Regular Window" left the menu: every list style targets the borderless window,
+			 * and a stored preference from the days it was offered would leave the pop up with
+			 * no selection at all. Folding it onto Borderless is written back, so the contact
+			 * list itself follows and not just this menu. prefDict still holds the old value
+			 * on this very pass, hence the local variable. */
+			NSInteger windowStyleTag = [[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_STYLE] integerValue];
+
+			if (windowStyleTag == AIContactListWindowStyleStandard) {
+				windowStyleTag = AIContactListWindowStyleBorderless;
+				[adium.preferenceController setPreference:[NSNumber numberWithInteger:windowStyleTag]
+												   forKey:KEY_LIST_LAYOUT_WINDOW_STYLE
+													group:PREF_GROUP_APPEARANCE];
+			}
+			[popUp_windowStyle selectItemWithTag:windowStyleTag];
 			[checkBox_verticalAutosizing setState:[[prefDict objectForKey:KEY_LIST_LAYOUT_VERTICAL_AUTOSIZE] boolValue]];
 			[checkBox_horizontalAutosizing setState:[[prefDict objectForKey:KEY_LIST_LAYOUT_HORIZONTAL_AUTOSIZE] boolValue]];
 			[slider_windowOpacity setDoubleValue:([[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_OPACITY] doubleValue] * 100.0)];
@@ -749,10 +762,10 @@ static NSString *AIRowLabel(NSString *label)
 {
 	NSMenu	*menu = [[NSMenu alloc] init];
 
-	[self _addWindowStyleOption:AILocalizedString(@"Regular Window",nil)
-						withTag:AIContactListWindowStyleStandard
-						 toMenu:menu];
-	[menu addItem:[NSMenuItem separatorItem]];
+	/* No "Regular Window" any more: every list style is drawn for the borderless variant, and
+	 * a titled window puts a full title bar over a list that was never designed to sit under
+	 * one. The tag stays in the enum for stored preferences from before; -configureAppearance
+	 * folds it onto Borderless when it meets one. */
 	[self _addWindowStyleOption:AILocalizedString(@"Borderless Window",nil)
 						withTag:AIContactListWindowStyleBorderless
 						 toMenu:menu];

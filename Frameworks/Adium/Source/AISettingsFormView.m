@@ -1506,10 +1506,18 @@ static void AISettingsApplyAccessibility(NSView *view, NSString *label, NSString
 - (void)setFrameSize:(NSSize)newSize
 {
 	BOOL widthChanged = (fabs(newSize.width - NSWidth([self frame])) > 0.5);
+	/* The height is not the caller's to choose: it is what the cards add up to, and only a
+	 * layout pass may set it. Heights get imposed on us regardless - a superview resizing with
+	 * no flexible vertical spring on us scales every subview proportionally, which pressed a
+	 * form down to the clip height and cut everything below it off, with nothing ever putting
+	 * it right because only a width change used to earn a new layout. Accepting the size and
+	 * laying out again is the correction: -layoutForWidth: ends by restoring the computed
+	 * height through [super setFrameSize:], which cannot come back through here. */
+	BOOL heightImposed = (contentHeight > 0.5 && fabs(newSize.height - contentHeight) > 0.5);
 
 	[super setFrameSize:newSize];
 
-	if (widthChanged || needsFormLayout) [self layoutForWidth:newSize.width];
+	if (widthChanged || heightImposed || needsFormLayout) [self layoutForWidth:newSize.width];
 }
 
 - (void)viewDidMoveToWindow
