@@ -83,7 +83,9 @@
 - (void)editStatus:(AIStatusItem *)statusItem;
 - (void)deleteStatus:(AIStatusItem *)statusItem;
 
-//The Now Playing card
+//The music status card
+- (void)configureMusicStatusControls;
+- (void)changeMusicStatusShown:(id)sender;
 - (NSPopUpButton *)insertTokenPopUpButton;
 - (NSTextField *)previewField;
 - (ESiTunesPlugin *)musicPlugin;
@@ -194,8 +196,9 @@
 		[popUp setTranslatesAutoresizingMaskIntoConstraints:YES];
 	}
 
-	//Card 1: the list of statuses
-	[form addSectionHeader:AILocalizedString(@"Statuses", nil)];
+	/* Card 1: the list of statuses. "Custom", because that is what the list holds: the states the
+	 * user saved, and only those - the built-in ones are deliberately not in here. */
+	[form addSectionHeader:AILocalizedString(@"Custom Statuses", "Section title above the list of statuses the user has saved")];
 
 	/* The list is the card: it fills it edge to edge and its height decides how tall the card is.
 	 * The form owns it from here on; listView_states is a non-retaining reference. */
@@ -255,11 +258,18 @@
 			  popUpButton:popUp_screenSaverStatusState
 		  accessoryButton:nil];
 
-	/* Card 4: what the Now Playing status and the %_iTunes token are replaced with. The status
-	 * itself is switched on and off in the list at the top like any other, so this card holds only
-	 * its text. Same strings and keys as the Advanced pane this card moved out of, so every
-	 * existing translation still applies. */
-	[form addSectionHeader:AILocalizedString(@"Now Playing", "Section title of the settings for what the Now Playing status sends")];
+	/* Card 4: the music status. Same header key as the status's own title (ESiTunesPlugin), so the
+	 * card and the entry it governs in the list above always carry one name. */
+	[form addSectionHeader:AILocalizedString(@"Music Status", "Current track information (Track - Artist)")];
+
+	/* The switch is the same setting as the status's switch in the list above: whether the music
+	 * status is offered in the status menu at all. Two handles on one value - the list rebuild
+	 * notification keeps this one honest (see -refreshFromStateArray). */
+	checkBox_musicStatus = [AISettingsFormView switchWithTarget:self action:@selector(changeMusicStatusShown:)];
+	[form addRowWithLabel:AILocalizedString(@"Show a music status", "Switch for offering the music status in the status menu")
+				  control:checkBox_musicStatus
+				   detail:AILocalizedString(@"In the early days of instant messaging it was simply part of it - showing your friends over ICQ, MSN or IRC what you were listening to. Turn the music status on to bring this little tradition of internet history back.",
+											"Second line of the music status switch, saying where the feature comes from")];
 
 	textField_format = [AISettingsFormView textFieldWithTarget:self action:@selector(changeFormat:)];
 	[textField_format setDelegate:self];
@@ -331,11 +341,55 @@
 												 name:Adium_iTunesTrackChangedNotification
 											   object:nil];
 
-	[self updatePreview];
+	[self configureMusicStatusControls];
 
 	/* Deliberately no player query here; see -askPlayersOnFirstInteraction for where it went and
 	 * why merely putting this view on screen is not enough to earn it.
 	 */
+}
+
+/*!
+ * @brief Mirror the music status onto its card
+ *
+ * The switch shows whether the music status is offered in the status menu, and the rows under it
+ * only mean anything while it is - a format for a status nobody can pick is dead text, so they dim
+ * with it. Runs from -viewDidLoad, after the switch itself was flipped, and from
+ * -refreshFromStateArray, which is how a flip of the same status's switch in the list above
+ * reaches this card.
+ */
+- (void)configureMusicStatusControls
+{
+	AIStatus	*musicStatus = [adium.statusController statusStateWithUniqueStatusID:
+								[NSNumber numberWithInteger:ITUNES_STATUS_ID]];
+	BOOL		 shown = (musicStatus && [musicStatus showsInStatusMenu]);
+
+	//No status registered means no plugin to talk to; a switch that cannot do anything is off
+	[checkBox_musicStatus setEnabled:(musicStatus != nil)];
+	[checkBox_musicStatus setState:(shown ? NSControlStateValueOn : NSControlStateValueOff)];
+
+	[textField_format setEnabled:shown];
+	[popUp_insertToken setEnabled:shown];
+	[textField_preview setEnabled:shown];
+
+	//The preview recolours itself by its field's enabled state; see the note in -updatePreview
+	[self updatePreview];
+}
+
+/*!
+ * @brief The card's switch was flipped
+ *
+ * The same setting the status's own row in the list above writes: whether it is offered in the
+ * status menu. Writing it rebuilds every status menu in Adium and posts the state array
+ * notification, which brings the list in line; the dimming here does not wait for that round trip.
+ */
+- (void)changeMusicStatusShown:(id)sender
+{
+	AIStatus	*musicStatus = [adium.statusController statusStateWithUniqueStatusID:
+								[NSNumber numberWithInteger:ITUNES_STATUS_ID]];
+
+	[musicStatus setShowsInStatusMenu:([checkBox_musicStatus state] == NSControlStateValueOn)];
+
+	[self configureMusicStatusControls];
 }
 
 /*!
@@ -377,7 +431,7 @@
 	//Same for everything else we handed a target or a delegate to
 	for (NSControl *control in [NSArray arrayWithObjects:
 								button_addOrRemoveState,
-								checkBox_idle, checkBox_awayReminder,
+								checkBox_idle, checkBox_awayReminder, checkBox_musicStatus,
 								stepper_idleMinutes, stepper_awayReminderMinutes,
 								nil]) {
 		[control setTarget:nil];
@@ -414,6 +468,7 @@
 	popUp_autoAwayStatusState = nil;
 	popUp_fastUserSwitchingStatusState = nil;
 	popUp_screenSaverStatusState = nil;
+	checkBox_musicStatus = nil;
 	textField_format = nil;
 	textField_preview = nil;
 	popUp_insertToken = nil;
@@ -607,6 +662,9 @@
 
 	//The card is as tall as the list; a status more or less changes it, and the list says so
 	[listView_states setStatusItems:[self statusItemsForList]];
+
+	//The music status card mirrors one of those states; flipping it in the list lands here
+	[self configureMusicStatusControls];
 }
 
 //State Editing --------------------------------------------------------------------------------------------------------

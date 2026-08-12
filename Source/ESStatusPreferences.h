@@ -82,7 +82,8 @@
 	 * AppKit; -stateArrayChanged: says so. */
 	BOOL						refreshScheduled;
 
-	/* The Now Playing card. All built in code; non-retaining references, cleared by -tearDown. */
+	/* The music status card. All built in code; non-retaining references, cleared by -tearDown. */
+	NSSwitch			*checkBox_musicStatus;
 	NSTextField			*textField_format;
 	NSPopUpButton		*popUp_insertToken;
 	NSTextField			*textField_preview;			//Shows what the format resolves to right now; read-only

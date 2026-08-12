@@ -52,7 +52,6 @@
 
 #pragma mark -
 
-#define ITUNES_STATUS_ID			-8000
 #define MUSIC_BUNDLE_IDENTIFIER		@"com.apple.Music"
 /* The store moved to the web years ago; itms://itunes.com/link? and
  * itms://phobos.apple.com/… are both dead and answer nothing at all. */

@@ -27,6 +27,10 @@ typedef enum {
 #define Adium_iTunesTrackChangedNotification		@"Adium_iTunesTrackChangedNotification"
 #define Adium_CurrentTrackFormatChangedNotification	@"Adium_CurrentTrackFormatChangedNotification"
 
+/* The unique ID the Now Playing status is registered and looked up under. In the header
+ * because the Status pane's card needs to find the very same status the plugin owns. */
+#define ITUNES_STATUS_ID			-8000
+
 #define TRIGGER_ALBUM				@"%_album"
 #define TRIGGER_ARTIST				@"%_artist"
 #define TRIGGER_COMPOSER			@"%_composer"
