@@ -141,7 +141,14 @@
 
 	/* The delegate and our categories are already in place; see -installPlugin.
 	 * What is left here is what may safely wait until the events exist. */
-	[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound)
+	/* The badge belongs in here even though nothing in this plugin draws one: the unread count
+	 * the dock controller writes with -[NSDockTile setBadgeLabel:] is only ever shown while the
+	 * application holds badge authorization. Without asking for it, -badgeLabel answers the
+	 * count and the Dock quietly draws nothing at all.
+	 */
+	[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert |
+											 UNAuthorizationOptionSound |
+											 UNAuthorizationOptionBadge)
 						  completionHandler:^(BOOL granted, NSError *error) {
 		if (!granted) {
 			AILogWithSignature(@"Notification authorization not granted: %@", error);
