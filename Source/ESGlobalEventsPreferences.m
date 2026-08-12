@@ -209,7 +209,7 @@ static NSString *AIRowLabel(NSString *label)
 		  accessoryButton:nil];
 
 	[form addRowWithLabel:AILocalizedString(@"Volume", "Accessibility label for the sound volume slider")
-		stretchingControl:[self volumeRowView]];
+				  control:[self volumeRowView]];
 
 	/* Card 3: the list of events. The header reuses the pane name's key on purpose, so every
 	 * existing translation of "Events" applies here as well. */
@@ -249,38 +249,52 @@ static NSString *AIRowLabel(NSString *label)
  * to the ends of the scale. They stay one bundle rather than becoming a form slider row, because a
  * slider row has no place for the buttons — and losing them would lose the one-click way to mute.
  *
- * Laid out by hand rather than through +rowOfViews:, because this bundle goes into a stretching
- * row: the loud end has to sit on the card's trailing inset, flush under the pop ups of the rows
- * above, and only the slider may take the width in between. A rowOfViews keeps its natural width,
- * which left the row ending wherever the nib's slider happened to end.
+ * The bundle has a fixed, moderate width and goes into an ordinary control row, which puts its
+ * trailing edge on the same inset the pop ups above end on. What broke that alignment before was
+ * not the row but the buttons: the nib draws each speaker as a 32 point icon with air around the
+ * glyph inside its own frame, so the bundle's frame ended on the inset and the visible speaker
+ * ended well short of it. The buttons wear tightly-fitting SF symbols now — template images, so
+ * they follow the label colour the way every other inline symbol here does.
  */
 - (NSView *)volumeRowView
 {
-	const CGFloat	gap = 8.0f;
-	NSRect			minFrame = [button_minvolume frame];
-	NSRect			maxFrame = [button_maxvolume frame];
-	NSRect			sliderFrame = [slider_volume frame];
-	CGFloat			height = ceil(fmax(NSHeight(sliderFrame), fmax(NSHeight(minFrame), NSHeight(maxFrame))));
-	CGFloat			width = NSWidth(minFrame) + gap + NSWidth(sliderFrame) + gap + NSWidth(maxFrame);
-	NSView			*row = [[[NSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)] autorelease];
+	const CGFloat	gap = 6.0f;
+	const CGFloat	sliderWidth = 200.0f;
+
+	struct { NSButton *button; NSString *symbol; } speakers[] = {
+		{ button_minvolume, @"speaker.fill" },
+		{ button_maxvolume, @"speaker.wave.3.fill" },
+	};
+	for (unsigned i = 0; i < 2; i++) {
+		NSImage *symbol = [NSImage imageWithSystemSymbolName:speakers[i].symbol
+									accessibilityDescription:nil];
+		if (symbol) {
+			[speakers[i].button setImage:symbol];
+			[speakers[i].button setBordered:NO];
+			[speakers[i].button setImagePosition:NSImageOnly];
+			[speakers[i].button sizeToFit];
+		}
+	}
+
+	NSRect		minFrame = [button_minvolume frame];
+	NSRect		maxFrame = [button_maxvolume frame];
+	NSRect		sliderFrame = [slider_volume frame];
+	CGFloat		height = ceil(fmax(NSHeight(sliderFrame), fmax(NSHeight(minFrame), NSHeight(maxFrame))));
+	CGFloat		width = NSWidth(minFrame) + gap + sliderWidth + gap + NSWidth(maxFrame);
+	NSView		*row = [[[NSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)] autorelease];
 
 	for (NSView *view in [NSArray arrayWithObjects:button_minvolume, slider_volume, button_maxvolume, nil]) {
 		[view setTranslatesAutoresizingMaskIntoConstraints:YES];
+		[view setAutoresizingMask:NSViewNotSizable];
 		[row addSubview:view];
 	}
 
 	[button_minvolume setFrameOrigin:NSMakePoint(0, floor((height - NSHeight(minFrame)) / 2.0))];
 	[slider_volume setFrame:NSMakeRect(NSMaxX([button_minvolume frame]) + gap,
 									   floor((height - NSHeight(sliderFrame)) / 2.0),
-									   NSWidth(sliderFrame), NSHeight(sliderFrame))];
+									   sliderWidth, NSHeight(sliderFrame))];
 	[button_maxvolume setFrameOrigin:NSMakePoint(NSMaxX([slider_volume frame]) + gap,
 												 floor((height - NSHeight(maxFrame)) / 2.0))];
-
-	//The ends stay on their edges; the slider alone follows the row's width
-	[button_minvolume setAutoresizingMask:NSViewMaxXMargin];
-	[slider_volume setAutoresizingMask:NSViewWidthSizable];
-	[button_maxvolume setAutoresizingMask:NSViewMinXMargin];
-	[row setAutoresizesSubviews:YES];
 
 	return row;
 }
