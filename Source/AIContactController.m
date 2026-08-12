@@ -124,6 +124,7 @@
 		groupDict = [[NSMutableDictionary alloc] init];
 		metaContactDict = [[NSMutableDictionary alloc] init];
 		bookmarkDict = [[NSMutableDictionary alloc] init];
+		unloadableBookmarks = [[NSMutableArray alloc] init];
 		contactToMetaContactLookupDict = [[NSMutableDictionary alloc] init];
 		contactLists = [[NSMutableArray alloc] init];
 
@@ -180,6 +181,7 @@
 	[contactToMetaContactLookupDict release];
 	[contactLists release];
 	[bookmarkDict release];
+	[unloadableBookmarks release];
 	
 	[contactPropertiesObserverManager release];
 
@@ -223,15 +225,42 @@
 //Load the contact list
 - (void)loadContactList
 {
-	//We must load all the groups before loading contacts for the ordering system to work correctly.
-	[self _loadMetaContactsFromArray:[adium.preferenceController preferenceForKey:KEY_FLAT_METACONTACTS
-																			  group:PREF_GROUP_CONTACT_LIST]];
-	[self _loadBookmarks];
+	/* Loading a bookmark can reach -saveContactList - through the internalObjectID collision
+	 * below, and through a bookmark repairing itself as it comes online. A save at that moment
+	 * would archive the half-built bookmarkDict and write it to disk straight away, which is
+	 * how a contact list ends up as "Bookmarks = ()". Hold everything until the list stands. */
+	isLoadingContactList = YES;
+	contactListSaveWasDeferred = NO;
+
+	@try {
+		//We must load all the groups before loading contacts for the ordering system to work correctly.
+		[self _loadMetaContactsFromArray:[adium.preferenceController preferenceForKey:KEY_FLAT_METACONTACTS
+																				group:PREF_GROUP_CONTACT_LIST]];
+		[self _loadBookmarks];
+
+	} @finally {
+		/* A corrupt archive makes NSKeyedUnarchiver raise. Leaving the flag standing would
+		 * mean nothing was ever written again for the rest of the session - the same loss,
+		 * only slower. */
+		isLoadingContactList = NO;
+	}
+
+	if (contactListSaveWasDeferred) {
+		contactListSaveWasDeferred = NO;
+		[self saveContactList];
+	}
 }
 
 //Save the contact list
 - (void)saveContactList
 {
+	if (isLoadingContactList) {
+		/* See -loadContactList: what we would archive right now is a fragment of the list.
+		 * Remember that somebody asked and do it once the list is complete. */
+		contactListSaveWasDeferred = YES;
+		return;
+	}
+
 	for (AIListGroup *listGroup in [groupDict objectEnumerator]) {
 		[listGroup setPreference:[NSNumber numberWithBool:[listGroup isExpanded]]
 						  forKey:KEY_EXPANDED
@@ -242,7 +271,21 @@
 	for (AIListBookmark *bookmark in self.allBookmarks) {
 		[bookmarks addObject:[NSKeyedArchiver archivedDataWithObject:bookmark]];
 	}
-	
+
+	/* Anything which didn't materialize at load time is written back untouched. Otherwise
+	 * storage would be load-or-lose: a session in which an account or a service was missing
+	 * would quietly delete its bookmarks for good. Same idea as unloadableAccounts in
+	 * AdiumAccounts. */
+	[bookmarks addObjectsFromArray:unloadableBookmarks];
+
+	AILogWithSignature(@"Storing %lu bookmark(s), %lu of them unloadable",
+					   (unsigned long)bookmarks.count, (unsigned long)unloadableBookmarks.count);
+
+	/* Writing nothing is the event we are hunting; whoever asked for it should be named.
+	 * AILogBacktrace() is gated on debug logging, so this costs nothing when it is off. */
+	if (!bookmarks.count)
+		AILogBacktrace();
+
 	[adium.preferenceController setPreference:bookmarks
 									   forKey:KEY_BOOKMARKS
 										group:PREF_GROUP_CONTACT_LIST];
@@ -250,7 +293,21 @@
 
 - (void)_loadBookmarks
 {
-	for (NSData *data in [adium.preferenceController preferenceForKey:KEY_BOOKMARKS group:PREF_GROUP_CONTACT_LIST]) {
+	/* The preference container hands out its own array, neither retained nor autoreleased.
+	 * Anything in the loop below which reaches -setPreference: for this key would release it
+	 * under us and leave the enumeration walking freed memory. */
+	NSArray			*storedBookmarks = [[[adium.preferenceController preferenceForKey:KEY_BOOKMARKS
+																				group:PREF_GROUP_CONTACT_LIST] retain] autorelease];
+	NSUInteger		loaded = 0;
+
+	/* "0 of 0" reads the same whether the key was never written or was written empty, and
+	 * telling those apart is the whole question when bookmarks go missing. */
+	AILogWithSignature(@"Bookmarks preference is %@",
+					   (storedBookmarks ?
+						(storedBookmarks.count ? @"populated" : @"an empty array") :
+						@"absent"));
+
+	for (NSData *data in storedBookmarks) {
 		//As a bookmark is initialized, it will add itself to the contact list in the right place
 		AIListBookmark	*bookmark = [NSKeyedUnarchiver objectWithArchivedData:data];
 
@@ -259,13 +316,26 @@
 				// In case we end up with two bookmarks with the same internalObjectID; this should be almost impossible.
 				[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]];
 			}
-			
+
 			[bookmarkDict setObject:bookmark forKey:bookmark.internalObjectID];
-			
+
 			//It's a newly created object, so set its initial attributes
 			[contactPropertiesObserverManager _updateAllAttributesOfObject:bookmark];
+
+			loaded++;
+
+		} else {
+			/* -[AIListBookmark initWithCoder:] returns nil when it can't find its account,
+			 * and +objectWithArchivedData: returns nil on a decoding failure - neither says
+			 * anything by itself. Hold on to the archive so the next save doesn't drop it. */
+			AILogWithSignature(@"A stored bookmark produced no object (%lu bytes); keeping the archive",
+							   (unsigned long)data.length);
+			[unloadableBookmarks addObject:data];
 		}
 	}
+
+	AILogWithSignature(@"Loaded %lu of %lu stored bookmark(s)",
+					   (unsigned long)loaded, (unsigned long)storedBookmarks.count);
 }
 
 - (void)_loadMetaContactsFromArray:(NSArray *)array
@@ -1269,13 +1339,21 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 	AIListBookmark *existingBookmark = nil;
 	
 	for(AIListBookmark *listBookmark in self.allBookmarks) {
-		if([listBookmark.name isEqualToString:[inAccount.service normalizeChatName:inName]] &&
-			listBookmark.account == inAccount &&
-			((!listBookmark.chatCreationDictionary && !inCreationInfo) ||
-			 ([listBookmark.chatCreationDictionary isEqualToDictionary:inCreationInfo]))) {
-			existingBookmark = listBookmark;
-			break;
-		}
+		if(![listBookmark.name isEqualToString:[inAccount.service normalizeChatName:inName]] ||
+		   listBookmark.account != inAccount)
+			continue;
+
+		/* Same reasoning as -[AIListBookmark chatIsOurs:]: a missing creation dictionary on
+		 * either side is a gap, not a different room. Treating it as one made bookmarking a
+		 * chat which was already bookmarked from before create a second bookmark with the
+		 * same internalObjectID - and the collision handling in -_loadBookmarks then throws
+		 * one of them away at the next launch. */
+		if(listBookmark.chatCreationDictionary && inCreationInfo &&
+		   ![listBookmark.chatCreationDictionary isEqualToDictionary:inCreationInfo])
+			continue;
+
+		existingBookmark = listBookmark;
+		break;
 	}
 	
 	return existingBookmark;
@@ -1317,9 +1395,23 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
  */
 - (void)removeBookmark:(AIListBookmark *)listBookmark
 {
+	/* Bookmarks have gone missing without anyone being able to say who removed them. There
+	 * are four candidates - the "Unable to join bookmarked chat" alert, the contact list
+	 * editor, -removeListGroup:, and the internalObjectID collision in _loadBookmarks - and
+	 * the call stack tells them apart in one line.
+	 *
+	 * -logDescription rather than the bookmark itself: a WhatsApp room ID is a phone number,
+	 * and a debug log is something the user is asked to hand over. AILogBacktrace() is gated
+	 * on debug logging, unlike AILogWithSignature, so deleting a group full of bookmarks
+	 * doesn't symbolicate a stack per entry for users who never turned logging on. */
+	AILogWithSignature(@"%@ (%lu bookmark(s) before removal)",
+					   listBookmark.logDescription,
+					   (unsigned long)bookmarkDict.count);
+	AILogBacktrace();
+
 	[self moveContact:listBookmark fromGroups:listBookmark.groups intoGroups:[NSSet set]];
 	[bookmarkDict removeObjectForKey:listBookmark.internalObjectID];
-	
+
 	[self saveContactList];
 }
 

@@ -42,4 +42,12 @@
 
 - (AIChat *)openChat;
 
+/*!
+ * @brief A description of this bookmark which is safe to write into a debug log
+ *
+ * A group chat's room ID is a phone number on WhatsApp, and debug logs are mailed around.
+ * This keeps enough to tell two bookmarks apart and drops the rest.
+ */
+- (NSString *)logDescription;
+
 @end

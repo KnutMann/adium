@@ -488,14 +488,22 @@ static void adiumPurpleConvUpdated(PurpleConversation *conv, PurpleConvUpdateTyp
 																	   withSource:who];
 				break;
 			}
-			case PURPLE_CONV_UPDATE_TITLE:
-				[accountLookup(purple_conversation_get_account(conv)) updateTitle:(purple_conversation_get_title(conv) ?
-														   [NSString stringWithUTF8String:purple_conversation_get_title(conv)] :
-														   nil)
-												  forChat:groupChatLookupFromConv(conv)];
-				
-				AILog(@"Update to title: %s",purple_conversation_get_title(conv));
+			case PURPLE_CONV_UPDATE_TITLE: {
+				const char	*newTitle = purple_conversation_get_title(conv);
+				NSString	*titleString = (newTitle ? [NSString stringWithUTF8String:newTitle] : nil);
+
+				/* No title at all means "drop the one you have"; a title we could not decode
+				 * does not. +stringWithUTF8String: hands back nil for bytes which aren't valid
+				 * UTF-8, and passing that on would clear the chat's name and leave the window
+				 * showing the room ID. */
+				if (!newTitle || titleString) {
+					[accountLookup(purple_conversation_get_account(conv)) updateTitle:titleString
+																			 forChat:groupChatLookupFromConv(conv)];
+				}
+
+				AILog(@"Update to title: %s",newTitle);
 				break;
+			}
 			case PURPLE_CONV_UPDATE_CHATLEFT:
 				[accountLookup(purple_conversation_get_account(conv)) leftChat:groupChatLookupFromConv(conv)];
 				break;

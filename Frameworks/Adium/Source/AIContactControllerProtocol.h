@@ -114,6 +114,14 @@ typedef enum {
 - (AIListBookmark *)bookmarkForChat:(AIChat *)inChat inGroup:(AIListGroup *)group;
 - (void)removeBookmark:(AIListBookmark *)listBookmark;
 
+/*!
+ * @brief Write the bookmarks (and group expansion state) back to disk
+ *
+ * Bookmarks are only stored when this is called; a bookmark which changes something it has
+ * encoded has to ask for it.
+ */
+- (void)saveContactList;
+
 - (AIMetaContact *)knownMetaContactForGroupingUIDs:(NSArray *)UIDsArray forServices:(NSArray *)servicesArray;
 - (AIMetaContact *)groupUIDs:(NSArray *)UIDsArray forServices:(NSArray *)servicesArray usingMetaContactHint:(AIMetaContact *)metaContactHint;
 - (AIMetaContact *)metaContactWithObjectID:(NSNumber *)inObjectID;

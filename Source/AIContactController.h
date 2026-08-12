@@ -26,7 +26,10 @@
 	NSMutableDictionary		*metaContactDict;
 	NSMutableDictionary		*contactToMetaContactLookupDict;
 	NSMutableDictionary		*bookmarkDict;
-	
+	NSMutableArray			*unloadableBookmarks;	//Archives which produced no object; kept so we don't delete them
+	BOOL					isLoadingContactList;	//No saving while the list is only half built
+	BOOL					contactListSaveWasDeferred;
+
 	//Contact List and Groups
 	AIContactList			*contactList;
 	NSMutableDictionary		*groupDict;

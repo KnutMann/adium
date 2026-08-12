@@ -129,4 +129,13 @@ typedef enum {
  */
 - (BOOL)joiningGroupChatRequiresCreationDictionary;
 
+/*!
+ * @brief The information needed to join a group chat known only by name
+ *
+ * Default returns nil. Subclasses which require a chatCreationDictionary should return the
+ * defaults their protocol would use for this room, so that a bookmark stored without one can
+ * be repaired instead of thrown away.
+ */
+- (NSDictionary *)defaultChatCreationDictionaryForChatName:(NSString *)chatName;
+
 @end

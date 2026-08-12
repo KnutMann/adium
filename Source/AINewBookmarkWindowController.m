@@ -97,7 +97,10 @@
 	[self buildGroupMenu];
 	
 	if (chat) {
-		[textField_name setStringValue:chat.name];
+		/* chat.name is the room ID the protocol works with - for WhatsApp the group JID,
+		 * which is no use to anybody reading the contact list. Offer the name the protocol
+		 * gave the chat; the user can still type over it. */
+		[textField_name setStringValue:(chat.displayName ?: chat.name)];
 	}
 	
 	[label_name setStringValue:AILocalizedString(@"Name:", nil)];

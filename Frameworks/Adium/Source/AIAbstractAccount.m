@@ -1099,6 +1099,11 @@
     return NO;
 }
 
+- (NSDictionary *)defaultChatCreationDictionaryForChatName:(NSString *)chatName
+{
+	return nil;
+}
+
 //Connectivity ---------------------------------------------------------------------------------------------------------
 #pragma mark Connectivity
 

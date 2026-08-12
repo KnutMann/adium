@@ -1073,17 +1073,18 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
 	return [chatCreationDict isEqualToDictionary:baseDict];
 }
 
-- (NSDictionary *)extractChatCreationDictionaryFromConversation:(PurpleConversation *)conv
+/*!
+ * @brief The prpl's default join components for a room, as a chat creation dictionary
+ *
+ * Returns nil if the connection is gone or the prpl has no defaults to offer.
+ */
+static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc, const char *chatName)
 {
-	/* Generic fallback: ask the prpl for its default join components for
-	 * this conversation name. Without this, bookmarks and rejoins fail for
-	 * every service lacking a custom implementation. */
-	PurpleConnection *gc = purple_conversation_get_gc(conv);
 	PurplePluginProtocolInfo *prpl_info = (gc ? PURPLE_PLUGIN_PROTOCOL_INFO(purple_connection_get_prpl(gc)) : NULL);
-	if (!prpl_info || !prpl_info->chat_info_defaults)
+	if (!prpl_info || !prpl_info->chat_info_defaults || !chatName)
 		return nil;
 
-	GHashTable *components = prpl_info->chat_info_defaults(gc, purple_conversation_get_name(conv));
+	GHashTable *components = prpl_info->chat_info_defaults(gc, chatName);
 	if (!components)
 		return nil;
 
@@ -1100,6 +1101,28 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
 	g_hash_table_destroy(components);
 
 	return (dict.count ? dict : nil);
+}
+
+- (NSDictionary *)extractChatCreationDictionaryFromConversation:(PurpleConversation *)conv
+{
+	/* Generic fallback: ask the prpl for its default join components for
+	 * this conversation name. Without this, bookmarks and rejoins fail for
+	 * every service lacking a custom implementation. */
+	return chatCreationDictionaryFromPrplDefaults(purple_conversation_get_gc(conv),
+												  purple_conversation_get_name(conv));
+}
+
+- (NSDictionary *)defaultChatCreationDictionaryForChatName:(NSString *)chatName
+{
+	/* Same question as above, but without a conversation to hand: the prpl only needs the
+	 * room name. This is what lets a bookmark stored before we filled in creation
+	 * dictionaries repair itself rather than being offered up for deletion. Needs the
+	 * account connected, since the defaults come from the connection's prpl. */
+	if (!account)
+		return nil;
+
+	return chatCreationDictionaryFromPrplDefaults(purple_account_get_connection(account),
+												  [chatName UTF8String]);
 }
 
 - (AIChat *)chatWithContact:(AIListContact *)contact identifier:(id)identifier

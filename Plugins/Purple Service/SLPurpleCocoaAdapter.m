@@ -425,6 +425,31 @@ AIChat* groupChatLookupFromConv(PurpleConversation *conv)
             [(AIChat *)(conv->ui_data) release];
             conv->ui_data = [chat retain];
         }
+
+		/* purple runs purple_conversation_autoset_title() inside purple_conversation_new(),
+		 * i.e. before it calls ops->create_conversation() - so the readable title (for
+		 * WhatsApp the group name, which the prpl stored as the blist alias) is already
+		 * sitting on the conversation the very first time we see it. The
+		 * PURPLE_CONV_UPDATE_TITLE that came with it fired while this chat was still being
+		 * created and had nothing to update, so pick the title up here; otherwise the chat
+		 * keeps the room ID as its display name until somebody joins.
+		 *
+		 * Both comparisons are needed: -setDisplayName: fires chatStatusChanged, and this
+		 * function is re-entered recursively (see above), so we must not update on every pass.
+		 */
+		if (chat) {
+			const char *title = purple_conversation_get_title(conv);
+			if (title && *title && !purple_strequal(title, purple_conversation_get_name(conv))) {
+				/* +stringWithUTF8String: hands back nil for bytes which aren't valid UTF-8,
+				 * and a group name is arbitrary user text passed through by the bridge. The
+				 * nil has to be caught here: -isEqualToString: on nil answers NO, so the
+				 * comparison alone would let it through and wipe the title we do have. */
+				NSString *titleString = [NSString stringWithUTF8String:title];
+				if (titleString && ![titleString isEqualToString:chat.displayName])
+					[account updateTitle:titleString forChat:chat];
+			}
+		}
+
 		AILog(@"group chat lookup assigned %@ to %p (%s)",chat,conv, purple_conversation_get_name(conv));
 	}
 

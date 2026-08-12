@@ -31,15 +31,54 @@
 
 #define KEY_ACCOUNT_INTERNAL_ID		@"AccountInternalObjectID"
 
-@interface AIListBookmark ()
+/* The last title we took over from a chat. Stored so that -hasOwnDisplayName can tell a name
+ * we merely copied from the protocol apart from one the user typed; the alias preference alone
+ * cannot, since both end up in it. */
+#define KEY_ADOPTED_DISPLAY_NAME	@"Adopted Display Name"
+
+@interface AIListBookmark () {
+	/* YES while -adoptDisplayNameFromChat: is inside -setDisplayName:, so that our own write
+	 * isn't mistaken for the user picking a name. */
+	BOOL		adoptingDisplayName;
+
+	//The last name we pushed onto a chat, so we can tell our leftovers from a protocol title.
+	NSString	*pushedDisplayName;
+}
 - (BOOL)chatIsOurs:(AIChat *)chat;
 - (AIChat *)openChatWithoutActivating;
 - (void)restoreGrouping;
 
 - (void)claimChatIfOurs:(AIChat *)chat;
+- (void)reconcileChatCreationDictionaryWithChat:(AIChat *)chat;
+
+- (BOOL)hasOwnDisplayName;
+- (void)adoptDisplayNameFromChat:(AIChat *)chat;
+- (void)pushDisplayName:(NSString *)inDisplayName toChat:(AIChat *)chat;
 
 - (void)_updateUnreadMessagesStatusForChat:(AIChat *)inChat;
 @end
+
+/*!
+ * @brief Shorten a room ID for logging
+ *
+ * A WhatsApp room ID is "<phone number>-<timestamp>@g.us", and the debug log is something a
+ * user is asked to hand over. Keep the tail of the local part - enough to recognise one room
+ * across a log - and drop the rest.
+ */
+static NSString *AIRedactedRoomID(NSString *roomID)
+{
+	if (!roomID.length)
+		return roomID;
+
+	NSRange		at = [roomID rangeOfString:@"@" options:NSBackwardsSearch];
+	NSString	*localPart = (at.location == NSNotFound ? roomID : [roomID substringToIndex:at.location]);
+	NSString	*domain = (at.location == NSNotFound ? @"" : [roomID substringFromIndex:at.location]);
+
+	if (localPart.length > 4)
+		localPart = [NSString stringWithFormat:@"…%@", [localPart substringFromIndex:(localPart.length - 4)]];
+
+	return [localPart stringByAppendingString:domain];
+}
 
 @implementation AIListBookmark
 
@@ -88,8 +127,11 @@
 						  service:inChat.account.service
 					   dictionary:inChat.chatCreationDictionary
 							 name:inChat.name])) {
-		[self setDisplayName:inChat.displayName];
-		
+		/* Take the title the same way we would at any later point, so that a name we only
+		 * copied from the protocol keeps following the group's renames instead of freezing
+		 * at whatever the group was called the day the bookmark was made. */
+		[self adoptDisplayNameFromChat:inChat];
+
 		if ([inChat valueForProperty:KEY_TOPIC]) {
 			[self setStatusMessage:[NSAttributedString stringWithString:[inChat valueForProperty:KEY_TOPIC]] notify:NotifyNow];
 		}
@@ -102,13 +144,22 @@
 
 - (id)initWithCoder:(NSCoder *)decoder
 {
-	AIAccount *myAccount = [adium.accountController accountWithInternalObjectID:[decoder decodeObjectForKey:KEY_ACCOUNT_INTERNAL_ID]];
-	
+	NSString *accountInternalObjectID = [decoder decodeObjectForKey:KEY_ACCOUNT_INTERNAL_ID];
+	AIAccount *myAccount = [adium.accountController accountWithInternalObjectID:accountInternalObjectID];
+
 	if (!myAccount) {
+		/* We are about to vanish without a trace, and the next -saveContactList would write
+		 * the shortened list back. Say who we were, so the next time bookmarks go missing
+		 * there is something to read - but a room ID is a phone number on WhatsApp, so log
+		 * only as much of it as it takes to tell two bookmarks apart. */
+		AILogWithSignature(@"No account %@ for bookmark %@ (service %@) - not loading it",
+						   accountInternalObjectID,
+						   AIRedactedRoomID([decoder decodeObjectForKey:@"name"]),
+						   [decoder decodeObjectForKey:@"ServiceID"]);
 		[self release];
 		return nil;
 	}
-	
+
 	if ((self = [self initWithUID:[decoder decodeObjectForKey:@"UID"]
 						  account:myAccount
 						  service:[adium.accountController firstServiceWithServiceID:[decoder decodeObjectForKey:@"ServiceID"]]
@@ -134,6 +185,7 @@
 	[name release]; name = nil;
 	[chatCreationDictionary release]; chatCreationDictionary = nil;
 	[password release]; password = nil;
+	[pushedDisplayName release]; pushedDisplayName = nil;
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[adium.chatController unregisterChatObserver:self];
@@ -200,14 +252,128 @@
  */
 - (void)setDisplayName:(NSString *)inDisplayName
 {
+	BOOL adopting = adoptingDisplayName;
+
+	if (!adopting) {
+		/* Every other caller is the user renaming us, one way or another - from here on this
+		 * is a name of our own and a protocol title must not overrule it. Writing back the
+		 * very name we adopted doesn't count: the info inspector sends the field's contents
+		 * whenever it loses focus, and merely tabbing through it must not freeze the name. */
+		NSString *adopted = [self preferenceForKey:KEY_ADOPTED_DISPLAY_NAME group:GROUP_LIST_BOOKMARK];
+
+		if (adopted && ![adopted isEqualToString:inDisplayName])
+			[self setPreference:nil forKey:KEY_ADOPTED_DISPLAY_NAME group:GROUP_LIST_BOOKMARK];
+	}
+
 	[super setDisplayName:inDisplayName];
-	
+
+	if (adopting)
+		return;			//The chat is where the name came from; there is nothing to push back.
+
 	AIChat *chat = [adium.chatController existingChatWithName:[self name]
 					onAccount:self.account];
-	
-	if ([self chatIsOurs:chat]) {
-		chat.displayName = self.displayName;
+
+	if (![self chatIsOurs:chat])
+		return;
+
+	if ([self hasOwnDisplayName]) {
+		[self pushDisplayName:self.displayName toChat:chat];
+
+	} else if (pushedDisplayName && [pushedDisplayName isEqualToString:chat.displayName]) {
+		/* Our name was just cleared and the chat is still showing what we put there. Leaving
+		 * it would make the name unremovable while the chat is open - and -updateChat: would
+		 * read our own leftover straight back out again as if the protocol had sent it. Hand
+		 * the chat its own name back; if the protocol knows a title it will send it again,
+		 * and having no alias means precisely "call it whatever the protocol calls it".
+		 * A title we did not write is left alone - it is not ours to delete. */
+		[self pushDisplayName:chat.name toChat:chat];
 	}
+}
+
+/*!
+ * @brief Put a name onto our chat and remember that we did
+ *
+ * The chat's Display Name array records the chat itself as the owner, no matter who wrote the
+ * entry, so nothing else can tell our doing from the protocol's afterwards.
+ */
+- (void)pushDisplayName:(NSString *)inDisplayName toChat:(AIChat *)chat
+{
+	if ([inDisplayName isEqualToString:chat.displayName])
+		return;
+
+	[pushedDisplayName release];
+	pushedDisplayName = [inDisplayName copy];
+
+	chat.displayName = inDisplayName;
+}
+
+/*!
+ * @brief Do we carry a name of our own?
+ *
+ * Without an alias our display name falls back to our formattedUID, which for a group chat
+ * is the room ID the protocol uses internally - for WhatsApp the group JID. That is not a
+ * name; it is what we would like to get rid of.
+ *
+ * A title we adopted from a chat isn't one of our own either, even though it sits in the same
+ * alias preference a typed name does: the group may be renamed, and the new name has to win.
+ * That is what KEY_ADOPTED_DISPLAY_NAME is for.
+ */
+- (BOOL)hasOwnDisplayName
+{
+	NSString *ourName = self.displayName;
+
+	if (!ourName.length)
+		return NO;
+
+	NSString *adopted = [self preferenceForKey:KEY_ADOPTED_DISPLAY_NAME group:GROUP_LIST_BOOKMARK];
+	if (adopted && [ourName isEqualToString:adopted])
+		return NO;
+
+	/* Our formattedUID hands back the chat's name while a chat of ours is open, and that is
+	 * the normalized spelling of our own name - so compare both normalized. */
+	AIService *service = self.account.service;
+	return ![[service normalizeChatName:ourName] isEqualToString:[service normalizeChatName:self.name]];
+}
+
+/*!
+ * @brief Take over the name the protocol gave our chat
+ *
+ * Bookmarks created before the chat had a readable title carry the room ID as their name;
+ * WhatsApp group chats are the usual case, since the group name only becomes known once the
+ * conversation exists. As soon as a chat of ours knows better, adopt it - but never over a
+ * name the user picked, which is what -hasOwnDisplayName guards.
+ *
+ * The name is written twice: as the alias, so the contact list shows it and it survives a
+ * restart, and into KEY_ADOPTED_DISPLAY_NAME, so we still know next time that it wasn't ours.
+ * -setDisplayName: fires chatStatusChanged and brings us back through
+ * -updateChat:keys:silent:; the second pass finds the same name already in place and stops at
+ * the guard below.
+ */
+- (void)adoptDisplayNameFromChat:(AIChat *)chat
+{
+	if ([self hasOwnDisplayName])
+		return;
+
+	NSString	*chatName = chat.displayName;
+	AIService	*service = self.account.service;
+
+	/* A chat with no title of its own reports its room ID here; that is what we already are.
+	 * Compare normalized: AIChatController hands a new chat the unnormalized name as its
+	 * display name while chat.name is normalized, so the two differ by case alone for
+	 * services whose room IDs aren't lowercase to begin with (IRC, XMPP MUCs). */
+	if (!chatName.length ||
+		[[service normalizeChatName:chatName] isEqualToString:[service normalizeChatName:self.name]])
+		return;
+
+	if ([chatName isEqualToString:self.displayName])
+		return;			//Already adopted - don't rewrite the preferences on every update.
+
+	AILogWithSignature(@"%@: adopting \"%@\"", self.logDescription, chatName);
+
+	adoptingDisplayName = YES;
+	[self setPreference:chatName forKey:KEY_ADOPTED_DISPLAY_NAME group:GROUP_LIST_BOOKMARK];
+	[self setDisplayName:chatName];
+	adoptingDisplayName = NO;
 }
 
 /*!
@@ -297,32 +463,60 @@
  */
 - (AIChat *)openChatWithoutActivating
 {
-	if (self.account.joiningGroupChatRequiresCreationDictionary && !self.chatCreationDictionary) {
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-		[alert setMessageText:AILocalizedString(@"Unable to join bookmarked chat", nil)];
-		[alert setInformativeText:[NSString stringWithFormat:
-								   AILocalizedString(@"The bookmark %@ does not contain enough information and can not be used. Please recreate it next time you join the chat.\nWould you like to remove this bookmark?", nil),
-								   [self displayName]]];
-		[alert addButtonWithTitle:AILocalizedStringFromTable(@"Delete", @"Buttons", nil)];	//NSAlertFirstButtonReturn, was the default button
-		[alert addButtonWithTitle:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];
-		if ([alert runModal] == NSAlertFirstButtonReturn) {
-			AILogWithSignature(@"Removing %@", self);
-			[adium.contactController removeBookmark:self];
-		}
-		return nil;
-	}
-	
 	AIChat *chat = [adium.chatController existingChatWithName:self.name
 					onAccount:self.account];
-	
+
+	/* If the room is already open, its join information is the real thing. Take that before
+	 * reaching for the prpl's defaults below, which are only an educated guess. */
+	if ([self chatIsOurs:chat])
+		[self reconcileChatCreationDictionaryWithChat:chat];
+
+	if (self.account.joiningGroupChatRequiresCreationDictionary && !self.chatCreationDictionary) {
+		/* Bookmarks used to be stored without any join information, so every one of them
+		 * ends up here through no fault of the user. Ask the account what it would use to
+		 * join this room and mend the bookmark rather than offering to throw it away. */
+		NSDictionary *repairedDictionary = [self.account defaultChatCreationDictionaryForChatName:self.name];
+
+		if (repairedDictionary) {
+			AILogWithSignature(@"%@ had no chat creation dictionary; using the protocol's defaults for this room",
+							   self.logDescription);
+			[chatCreationDictionary release];
+			chatCreationDictionary = [repairedDictionary copy];
+			[adium.contactController saveContactList];
+
+		} else {
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			[alert setMessageText:AILocalizedString(@"Unable to join bookmarked chat", nil)];
+			[alert setInformativeText:[NSString stringWithFormat:
+									   AILocalizedString(@"The bookmark %@ does not contain enough information and can not be used. Please recreate it next time you join the chat.\nWould you like to remove this bookmark?", nil),
+									   [self displayName]]];
+			/* Cancel goes first, and so is the default: a stray Return must not delete
+			 * something the user collected. An account which is merely offline lands here
+			 * too, and then there is nothing wrong with the bookmark at all. */
+			[alert addButtonWithTitle:AILocalizedStringFromTable(@"Cancel", @"Buttons", nil)];	//NSAlertFirstButtonReturn
+			[alert addButtonWithTitle:AILocalizedStringFromTable(@"Delete", @"Buttons", nil)];	//NSAlertSecondButtonReturn
+			if ([alert runModal] == NSAlertSecondButtonReturn) {
+				AILogWithSignature(@"Removing %@ at the user's request (no chat creation dictionary)",
+								   self.logDescription);
+				[adium.contactController removeBookmark:self];
+			}
+			return nil;
+		}
+	}
+
 	if (![self chatIsOurs:chat]) {
 		//Open a new group chat (bookmarked chat)
 		chat = [adium.chatController chatWithName:self.name
-				identifier:NULL 
-				onAccount:self.account 
+				identifier:NULL
+				onAccount:self.account
 				chatCreationInfo:self.chatCreationDictionary];
+	} else {
+		/* The chat existed already, so -chatWithName: never got the chance to hand it our
+		 * join information. Do it here, or the repair above would make us stop recognising
+		 * our own chat. */
+		[self reconcileChatCreationDictionaryWithChat:chat];
 	}
-	
+
 	return chat;
 }
 
@@ -348,7 +542,16 @@
 - (void)claimChatIfOurs:(AIChat *)chat
 {
 	if ([self chatIsOurs:chat]) {
-		chat.displayName = self.displayName;
+		[self reconcileChatCreationDictionaryWithChat:chat];
+
+		/* Push our name down only if we have one of our own; a bookmark still named after the
+		 * room ID - or carrying a title it merely adopted, which may since have changed -
+		 * would otherwise stamp a stale name back onto a chat that knows better. */
+		if ([self hasOwnDisplayName])
+			[self pushDisplayName:self.displayName toChat:chat];
+		else
+			[self adoptDisplayNameFromChat:chat];
+
 		[self setStatusMessage:[NSAttributedString stringWithString:([chat valueForProperty:KEY_TOPIC] ?: @"")] notify:NotifyNow];
 	}
 }
@@ -370,11 +573,46 @@
  */
 - (BOOL)chatIsOurs:(AIChat *)chat
 {
-	return (chat &&
-			[chat.name isEqualToString:[self.account.service normalizeChatName:self.name]] &&
-			chat.account == self.account &&
-			((!chat.chatCreationDictionary && !self.chatCreationDictionary) ||
-			 ([chat.chatCreationDictionary isEqualToDictionary:self.chatCreationDictionary])));
+	if (!chat ||
+		chat.account != self.account ||
+		![chat.name isEqualToString:[self.account.service normalizeChatName:self.name]])
+		return NO;
+
+	/* A missing creation dictionary on either side is not a mismatch, it is a gap. Bookmarks
+	 * stored before Adium filled these in have none at all - and those are exactly the ones
+	 * still named after the room ID, so insisting on a match would lock them out of the
+	 * repair they need. A chat can be without one too: AIChatController only sets it when it
+	 * creates the chat itself, never when the protocol brings one in.
+	 *
+	 * Account and room name identify a room; the dictionary only says how to join it, and
+	 * -reconcileChatCreationDictionaryWithChat: fills in whichever side is missing it. */
+	if (!chat.chatCreationDictionary || !self.chatCreationDictionary)
+		return YES;
+
+	return [chat.chatCreationDictionary isEqualToDictionary:self.chatCreationDictionary];
+}
+
+/*!
+ * @brief Make us and our chat agree on how the room is joined
+ *
+ * Whichever side knows hands it to the other. The chat's dictionary is the better source - it
+ * came from the protocol - so ours is only written when we had none, which is the case where
+ * the bookmark could not be joined at all.
+ */
+- (void)reconcileChatCreationDictionaryWithChat:(AIChat *)chat
+{
+	if (!chat)
+		return;
+
+	if (!self.chatCreationDictionary && chat.chatCreationDictionary) {
+		AILogWithSignature(@"%@ takes the join information from its open chat", self.logDescription);
+		[chatCreationDictionary release];
+		chatCreationDictionary = [chat.chatCreationDictionary copy];
+		[adium.contactController saveContactList];
+
+	} else if (self.chatCreationDictionary && !chat.chatCreationDictionary) {
+		chat.chatCreationDictionary = self.chatCreationDictionary;
+	}
 }
 
 #pragma mark -
@@ -396,7 +634,16 @@
 - (NSSet *)updateChat:(AIChat *)inChat keys:(NSSet *)inModifiedKeys silent:(BOOL)silent
 {
 	if ([self chatIsOurs:inChat]) {
-		
+
+		[self reconcileChatCreationDictionaryWithChat:inChat];
+
+		/* The readable title often arrives well after the chat does - with WhatsApp it can
+		 * take until the participant list turns up. Heal a bookmark still named after the
+		 * room ID whenever it does. (Key as set by -[AIChat setDisplayName:].) */
+		if (!inModifiedKeys || [inModifiedKeys containsObject:@"Display Name"]) {
+			[self adoptDisplayNameFromChat:inChat];
+		}
+
 		if ([inModifiedKeys containsObject:KEY_TOPIC]) {
 			[self setStatusMessage:[NSAttributedString stringWithString:([inChat valueForProperty:KEY_TOPIC] ?: @"")] notify:NotifyNow];
 		}
@@ -441,6 +688,16 @@
 - (NSString *)description
 {
 	return [NSString stringWithFormat:@"<%@:%p %@ - %@ on %@ in %@>",NSStringFromClass([self class]), self, self.formattedUID, [self chatCreationDictionary], self.account, self.remoteGroups];
+}
+
+- (NSString *)logDescription
+{
+	/* The account's UID is the user's own phone number on WhatsApp, so that gets shortened
+	 * as well - it only needs to tell two accounts of the same service apart. */
+	return [NSString stringWithFormat:@"<%@:%p %@ on %@ %@>",
+			NSStringFromClass([self class]), self,
+			AIRedactedRoomID(self.name),
+			self.account.service.serviceID, AIRedactedRoomID(self.account.UID)];
 }
 
 @end
