@@ -254,11 +254,17 @@
 	// GIF requires special treatment, as Apple doesn't allow you to save animations.
 	
 	NSMutableData *GIFRepresentation = nil;
-	NSImageRep *imageRep = [[self representations] objectAtIndex:0];
+	/* An image with no representations at all answers nothing to index 0 but raises, and this is
+	 * reached straight from a file the user picked. */
+	NSImageRep *imageRep = [[self representations] firstObject];
     NSBitmapImageRep *bitmap = nil;
-    
+
 	if (imageRep && [imageRep isKindOfClass:[NSBitmapImageRep class]]) {
-        bitmap = (NSBitmapImageRep *)bitmap;
+        /* imageRep, not bitmap: the line used to assign the variable to itself, so it stayed nil,
+         * the frame count came out as zero, and the nil that followed went into an array - which
+         * raises. Animated pictures have therefore not been saveable at all since the assignment
+         * was introduced in 555afb07a, a commit that set out to silence casting warnings. */
+        bitmap = (NSBitmapImageRep *)imageRep;
 		unsigned frameCount = [[bitmap valueForProperty:NSImageFrameCount] intValue];
 		
 		if (!frameCount) {

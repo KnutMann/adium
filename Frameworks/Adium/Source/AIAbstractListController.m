@@ -823,6 +823,8 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	{
 		NSMutableArray *URLStrings = [NSMutableArray arrayWithCapacity:[items count]];
 		NSMutableArray *linkTitles = [NSMutableArray arrayWithCapacity:[items count]];
+		//Filled for every contact, whether or not its service has a URL scheme
+		NSMutableArray *textLines = [NSMutableArray arrayWithCapacity:[items count]];
 
 		//XXX This should be read in from a plist file at some point.
 		NSDictionary *URLFormats = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -847,6 +849,8 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 			if ([listObject isKindOfClass:[AIMetaContact class]]) {
 				//Process each contact in the metacontact.
 				for (AIListContact *subcontact in (AIMetaContact *)listObject) {
+					[textLines addObject:[NSString stringWithFormat:LINK_TITLE_FORMAT, subcontact.UID, [subcontact.service longDescription]]];
+
 					format = [URLFormats objectForKey:subcontact.service.serviceID];
 					if (format) {
 						[URLStrings addObject:[NSString stringWithFormat:format, [subcontact.UID stringByEncodingURLEscapes]]];
@@ -854,6 +858,8 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 					}
 				}
 			} else if ([listObject isKindOfClass:[AIListContact class]]) {
+				[textLines addObject:[NSString stringWithFormat:LINK_TITLE_FORMAT, listObject.UID, listObject.service.longDescription]];
+
 				format = [URLFormats objectForKey:listObject.service.serviceID];
 				if (!format) {
 					AILogWithSignature(@"Can't copy contact %@ of service %@ because there's no URL scheme associated with that service - skipping",
@@ -867,6 +873,17 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 			//We ignore groups.
 		}
 
+		/* Text first, and on its own condition. It used to hang off the URLs below, and the table
+		 * above knows almost nothing that still exists - of the services registered today only
+		 * Jabber is in it. So copying an IRC, Telegram, WhatsApp or Bonjour contact wrote no
+		 * public type at all: pasting into any other application produced nothing, without a
+		 * word. Whether we can offer a link is a separate question from whether we can say who
+		 * was copied. */
+		if ([textLines count]) {
+			[pboard setString:[textLines componentsJoinedByString:@"\n"] forType:NSPasteboardTypeString];
+			[pboard addTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:self];
+		}
+
 		if ([URLStrings count]) {
 			/* This writes an ARRAY of URL strings as one property list, which only the
 			 * legacy "Apple URL pasteboard type" flavor can represent; the modern
@@ -874,9 +891,8 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 			 * (AINSPasteboardTypeLegacyURL) keeps the written data byte-identical. */
 			[pboard setPropertyList:URLStrings forType:AINSPasteboardTypeLegacyURL];
 			[pboard setPropertyList:[NSArray arrayWithObjects:URLStrings, linkTitles, nil] forType:AIWebURLsWithTitlesPboardType];
-			[pboard setString:[URLStrings componentsJoinedByString:@"\n"] forType:NSPasteboardTypeString];
 
-			[pboard addTypes:[NSArray arrayWithObjects:AINSPasteboardTypeLegacyURL, NSPasteboardTypeString, AIWebURLsWithTitlesPboardType, nil] owner:self];
+			[pboard addTypes:[NSArray arrayWithObjects:AINSPasteboardTypeLegacyURL, AIWebURLsWithTitlesPboardType, nil] owner:self];
 		}
 	}
 
