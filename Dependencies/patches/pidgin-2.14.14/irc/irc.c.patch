@@ -1,0 +1,26 @@
+--- a/libpurple/protocols/irc/irc.c
++++ b/libpurple/protocols/irc/irc.c
+@@ -518,7 +518,11 @@
+ 	                               IRC_DEFAULT_COMMAND_MAX_BURST);
+ 
+ 	irc->send_time = time(NULL) - (interval * burst);
+-	irc->send_handler = g_timeout_add_seconds(1, irc_send_handler_cb, irc);
++	/* purple_timeout_add_seconds, not g_timeout_add_seconds: a UI may run libpurple without
++	 * spinning GLib's default main context - Adium drives everything through the eventloop UI
++	 * ops onto GCD - so a raw GLib source would never fire, leaving the send queue below
++	 * undrained and every message after login (PONG included) stuck in it forever. */
++	irc->send_handler = purple_timeout_add_seconds(1, irc_send_handler_cb, irc);
+ 
+ 	return TRUE;
+ }
+@@ -596,7 +600,9 @@
+ 
+ 	g_queue_free_full(irc->send_queue, g_free);
+ 	if(irc->send_handler != 0) {
+-		g_source_remove(irc->send_handler);
++		/* Paired with the purple_timeout_add_seconds above: the tag belongs to the eventloop
++		 * UI ops, so it has to be removed through them, not through GLib. */
++		purple_timeout_remove(irc->send_handler);
+ 	}
+ 
+ 	g_free(irc->mode_chars);

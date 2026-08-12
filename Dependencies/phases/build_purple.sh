@@ -56,6 +56,19 @@ build_libpurple() {
 		done
 		touch "$ROOTDIR/source/libpurple/.adium-patches-applied"
 	fi
+
+	# IRC: route the rate limiter's send timer through the eventloop UI ops. Upstream 2.14
+	# drives it with a raw g_timeout_add_seconds, which never fires under a UI that does not
+	# spin GLib's main context - Adium runs everything on GCD - so the send queue never drains
+	# and nothing after login is ever sent. Own sentinel, so a tree that already carries the
+	# jabber sentinel still gets this one; patch -N makes re-application a no-op regardless.
+	if [ -d "$ROOTDIR/patches/pidgin-2.14.14/irc" ] && [ ! -f "$ROOTDIR/source/libpurple/.adium-irc-patches-applied" ]; then
+		status "Applying Adium irc patches"
+		for irc_patch in "$ROOTDIR/patches/pidgin-2.14.14/irc/"*.patch; do
+			patch -d "$ROOTDIR/source/libpurple" -p1 -N < "$irc_patch"
+		done
+		touch "$ROOTDIR/source/libpurple/.adium-irc-patches-applied"
+	fi
 	
 	prereq "cyrus-sasl" \
 		"https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz"
