@@ -21,21 +21,37 @@
 
 @implementation AIBorderlessListOutlineView
 
-//Forward mouse down events to our containing window (when command is pressed) to allow dragging
+/*!
+ * @brief Split mouse gestures between the list and the borderless window
+ *
+ * The window has no title bar, so dragging its empty background is the only way to move it.
+ * A gesture that starts on a row, however, belongs to the list: selection, expanding groups,
+ * double-click actions, and dragging contacts or bookmarks between groups. Deciding by the
+ * hit row at mouse down (and remembering that decision for the rest of the gesture) keeps
+ * both behaviors available at once.
+ */
 - (void)mouseDown:(NSEvent *)theEvent
 {
-	if (![theEvent cmdKey]) {
-		//Wait for the next event
+	NSPoint viewPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+
+	if (([self rowAtPoint:viewPoint] != -1) || [theEvent cmdKey]) {
+		gestureMovesWindow = NO;
+        [super mouseDown:theEvent];
+
+	} else {
+		gestureMovesWindow = YES;
+
+		//Wait for the next event to tell a plain click (handled by the list) from a window drag
 		NSEvent *nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
 														untilDate:[NSDate distantFuture]
 														   inMode:NSEventTrackingRunLoopMode
 														  dequeue:NO];
-		
+
 		//Pass along the event (either to ourself or our window, depending on what it is)
 		switch ([nextEvent type]) {
 			case NSEventTypeLeftMouseUp:
-				[super mouseDown:theEvent];   
-				[super mouseUp:nextEvent];   
+				[super mouseDown:theEvent];
+				[super mouseUp:nextEvent];
 				break;
 			case NSEventTypeLeftMouseDragged:
 				[[self window] mouseDown:theEvent];
@@ -45,14 +61,12 @@
 				[[self window] mouseDown:theEvent];
 				break;
 		}
-	} else {
-        [super mouseDown:theEvent];   
 	}
 }
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    if (![theEvent cmdKey]) {
-        [[self window] mouseDragged:theEvent];   
+    if (gestureMovesWindow) {
+        [[self window] mouseDragged:theEvent];
 	} else {
 		[super mouseDragged:theEvent];
 	}
@@ -60,11 +74,12 @@
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    if (![theEvent cmdKey]) {
-        [[self window] mouseUp:theEvent];   
+    if (gestureMovesWindow) {
+		gestureMovesWindow = NO;
+        [[self window] mouseUp:theEvent];
 	} else {
 		[super mouseUp:theEvent];
-	}	
+	}
 }
 
 - (NSInteger)desiredHeight
