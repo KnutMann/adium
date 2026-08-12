@@ -190,6 +190,15 @@ static NSString *AIRowLabel(NSString *label)
 	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:PERSONAL_PANE_INITIAL_WIDTH] autorelease];
 	NSString			*nameLabel = AIRowLabel(AILocalizedString(@"Name:",nil));
 
+	/* A card of its own, above everything else: what the nib only offered as a tool tip over the
+	 * "Profile:" label, and what stood under the profile card until now. It says what this pane is
+	 * for, so it belongs before the pane rather than inside one of its cards - the way the Xtras
+	 * pane opens with the paragraph that explains it. No heading over it: it would only repeat the
+	 * pane's own title. */
+	[form addInfoRow:PROFILE_TOOLTIP
+		   withImage:[NSImage imageNamed:@"default-icon" forClass:[self class]]];
+	[form endCard];
+
 	/* Card 1: the name */
 
 	//The nib's "Name:" label, kept as the card's section header
@@ -222,6 +231,7 @@ static NSString *AIRowLabel(NSString *label)
 
 	//The nib's "Profile:" label, kept as the card's section header
 	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Profile:",nil))];
+
 
 	scrollView_profile = [[[AIAutoScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
 																			 PERSONAL_PANE_INITIAL_WIDTH - 2.0 * PROFILE_RING_INSET,
@@ -295,11 +305,6 @@ static NSString *AIRowLabel(NSString *label)
 	[profileContainer addSubview:scrollView_profile];
 
 	[form addEdgeToEdgeRow:profileContainer];
-
-	/* What the nib only offered as a tool tip over the label. It explains the whole
-	 * card rather than one control, and there is no row label left to hover over.
-	 */
-	[form addFootnote:PROFILE_TOOLTIP];
 
 	/* Card 3: the icon */
 
