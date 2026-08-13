@@ -266,6 +266,8 @@
 		ADD1E5C0DE00000000000412 /* Telegram-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000411 /* Telegram-large.png */; };
 		ADD1E5C0DE00000000000422 /* WhatsApp-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000421 /* WhatsApp-small.png */; };
 		ADD1E5C0DE00000000000432 /* WhatsApp-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000431 /* WhatsApp-large.png */; };
+		ADD1E5C0DE00000000000442 /* Signal-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000441 /* Signal-small.png */; };
+		ADD1E5C0DE00000000000452 /* Signal-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000451 /* Signal-large.png */; };
 		346544DC0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.xib in Resources */ = {isa = PBXBuildFile; fileRef = 346544DA0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.xib */; };
 		3465451C0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.h in Headers */ = {isa = PBXBuildFile; fileRef = 3465451A0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.h */; };
 		3465451D0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3465451B0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.m */; };
@@ -1860,6 +1862,8 @@
 		ADD1E5C0DE00000000000411 /* Telegram-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Telegram-large.png"; path = "Plugins/Purple Service/Telegram-large.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000421 /* WhatsApp-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "WhatsApp-small.png"; path = "Plugins/Purple Service/WhatsApp-small.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000431 /* WhatsApp-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "WhatsApp-large.png"; path = "Plugins/Purple Service/WhatsApp-large.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000441 /* Signal-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Signal-small.png"; path = "Plugins/Purple Service/Signal-small.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000451 /* Signal-large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Signal-large.png"; path = "Plugins/Purple Service/Signal-large.png"; sourceTree = "<group>"; };
 		346544DA0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AMPurpleJabberDiscoveryBrowser.xib; path = "Plugins/Purple Service/AMPurpleJabberDiscoveryBrowser.xib"; sourceTree = "<group>"; };
 		3465451A0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberServiceDiscoveryBrowserController.h; path = "Plugins/Purple Service/AMPurpleJabberServiceDiscoveryBrowserController.h"; sourceTree = "<group>"; };
 		3465451B0C8F6A670046ED68 /* AMPurpleJabberServiceDiscoveryBrowserController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberServiceDiscoveryBrowserController.m; path = "Plugins/Purple Service/AMPurpleJabberServiceDiscoveryBrowserController.m"; sourceTree = "<group>"; };
@@ -3465,6 +3469,8 @@
 				ADD1E5C0DE00000000000411 /* Telegram-large.png */,
 				ADD1E5C0DE00000000000421 /* WhatsApp-small.png */,
 				ADD1E5C0DE00000000000431 /* WhatsApp-large.png */,
+				ADD1E5C0DE00000000000441 /* Signal-small.png */,
+				ADD1E5C0DE00000000000451 /* Signal-large.png */,
 				ADD1E5C0DE00000000000101 /* AITelegramService.m */,
 				ADD1E5C0DE00000000000113 /* AIPurpleTelegramAccount.h */,
 				ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */,
@@ -6675,6 +6681,8 @@
 				ADD1E5C0DE00000000000412 /* Telegram-large.png in Resources */,
 				ADD1E5C0DE00000000000422 /* WhatsApp-small.png in Resources */,
 				ADD1E5C0DE00000000000432 /* WhatsApp-large.png in Resources */,
+				ADD1E5C0DE00000000000442 /* Signal-small.png in Resources */,
+				ADD1E5C0DE00000000000452 /* Signal-large.png in Resources */,
 				346544DC0C8F686B0046ED68 /* AMPurpleJabberDiscoveryBrowser.xib in Resources */,
 				34E4CD5B0E68277D00D1B0DC /* ESIRCJoinChatView.xib in Resources */,
 				34E4CD660E68279C00D1B0DC /* irc.png in Resources */,
