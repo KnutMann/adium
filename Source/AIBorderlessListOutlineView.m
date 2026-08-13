@@ -15,32 +15,65 @@
  */
 
 #import "AIBorderlessListOutlineView.h"
+#import <Adium/AIListGroup.h>
 #import <AIUtilities/AIEventAdditions.h>
+#import <AIUtilities/AIMultiCellOutlineView.h>
 
 #define FORCED_MINIMUM_HEIGHT 20
+
+/* AIMultiCellOutlineView keeps this hook to its own implementation file, but it is the one place
+ * where a disclosure triangle claims a gesture before anyone else sees it, so a view that hands
+ * gestures to its window has to be able to speak about it - including to super, which is why the
+ * declaration belongs on the class that implements it rather than on ours.
+ */
+@interface AIMultiCellOutlineView (AIBorderlessListOutlineViewInheritedPrivate)
+- (BOOL)handleExpandedStateToggleForEvent:(NSEvent *)theEvent needsExpandCollapseSuppression:(BOOL *)needsExpandCollapseSuppression;
+@end
 
 @implementation AIBorderlessListOutlineView
 
 /*!
  * @brief Split mouse gestures between the list and the borderless window
  *
- * The window has no title bar, so dragging its empty background is the only way to move it.
- * A gesture that starts on a row, however, belongs to the list: selection, expanding groups,
- * double-click actions, and dragging contacts or bookmarks between groups. Deciding by the
- * hit row at mouse down (and remembering that decision for the rest of the gesture) keeps
- * both behaviors available at once.
+ * The window has no title bar, so it can only be dragged where the list does not want the gesture
+ * for itself. Empty background is such a place, but a full contact list leaves hardly any, which is
+ * what made the window so hard to move. Group headers are the other one: they are always present and
+ * they are wide, so they serve as the handle.
+ *
+ * Both meanings begin with the same mouse down, so we look at the next event before deciding. The
+ * peek does not dequeue, and that is what lets a click be passed on untouched: we simply call
+ * through to super, and AIListOutlineView peeks at the very same event and expands, collapses and
+ * selects exactly as it did before.
+ *
+ * The whole width of a group row behaves alike, disclosure triangle included: a gesture that begins
+ * there means the same thing as one that begins on the group's name, and splitting the row into two
+ * zones only made it unpredictable to use.
+ *
+ * Command keeps any gesture with the list, as it already did here, and that is how a group is
+ * reordered now - dragging one plainly moves the window instead. Reordering is real: every sort
+ * controller honours a manual group order unless the user asked for groups to be sorted
+ * alphabetically, and no controller can be asked which of the two is in force (canSortManually
+ * speaks about contacts, not groups), so we do not guess. What makes command unambiguous here is
+ * that a selection can never hold a group together with anything else - see AIAbstractListController.
+ *
+ * Contacts, bookmarks and metacontacts are untouched: dragging them between groups is their gesture.
  */
 - (void)mouseDown:(NSEvent *)theEvent
 {
-	NSPoint viewPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+	NSPoint		viewPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+	NSInteger	row = [self rowAtPoint:viewPoint];
 
-	if (([self rowAtPoint:viewPoint] != -1) || [theEvent cmdKey]) {
+	/* Only true group headers. AIListBookmark and AIMetaContact are contacts rather than groups, so
+	 * they are excluded by the class test; the item standing in the row is an AIProxyListObject,
+	 * which answers isKindOfClass: for the object it represents.
+	 */
+	BOOL rowIsWindowHandle = ((row != -1) && [[self itemAtRow:row] isKindOfClass:[AIListGroup class]]);
+
+	if (((row != -1) && !rowIsWindowHandle) || [theEvent cmdKey]) {
 		gestureMovesWindow = NO;
         [super mouseDown:theEvent];
 
 	} else {
-		gestureMovesWindow = YES;
-
 		//Wait for the next event to tell a plain click (handled by the list) from a window drag
 		NSEvent *nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
 														untilDate:[NSDate distantFuture]
@@ -50,15 +83,27 @@
 		//Pass along the event (either to ourself or our window, depending on what it is)
 		switch ([nextEvent type]) {
 			case NSEventTypeLeftMouseUp:
+				gestureMovesWindow = NO;
 				[super mouseDown:theEvent];
-				[super mouseUp:nextEvent];
+				/* A group header takes the mouse up out of the queue we left it in, on its own
+				 * peek. Empty background has no row to hand it to, so it has to be told.
+				 */
+				if (!rowIsWindowHandle)
+					[super mouseUp:nextEvent];
 				break;
 			case NSEventTypeLeftMouseDragged:
+				gestureMovesWindow = YES;
 				[[self window] mouseDown:theEvent];
 				[[self window] mouseDragged:nextEvent];
 				break;
 			default:
-				[[self window] mouseDown:theEvent];
+				if (rowIsWindowHandle) {
+					gestureMovesWindow = NO;
+					[super mouseDown:theEvent];
+				} else {
+					gestureMovesWindow = YES;
+					[[self window] mouseDown:theEvent];
+				}
 				break;
 		}
 	}
@@ -80,6 +125,30 @@
 	} else {
 		[super mouseUp:theEvent];
 	}
+}
+
+/*!
+ * @brief Keep a group's disclosure triangle from swallowing a command-drag
+ *
+ * The triangle toggles its group the instant the mouse goes down, which is what a click wants but
+ * never what a drag wants: with command held the gesture means "reorder this group", and a group
+ * that collapses under the pointer cannot be dragged anywhere. Everywhere else on the row the
+ * command-drag already reaches NSOutlineView untouched; this lets the triangle do the same.
+ * Contacts keep the toggle in every case - only groups are draggable this way.
+ */
+- (BOOL)handleExpandedStateToggleForEvent:(NSEvent *)theEvent needsExpandCollapseSuppression:(BOOL *)needsExpandCollapseSuppression
+{
+	if ([theEvent cmdKey]) {
+		NSPoint		viewPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+		NSInteger	row = [self rowAtPoint:viewPoint];
+
+		if ((row != -1) && [[self itemAtRow:row] isKindOfClass:[AIListGroup class]]) {
+			*needsExpandCollapseSuppression = NO;
+			return NO;
+		}
+	}
+
+	return [super handleExpandedStateToggleForEvent:theEvent needsExpandCollapseSuppression:needsExpandCollapseSuppression];
 }
 
 - (NSInteger)desiredHeight

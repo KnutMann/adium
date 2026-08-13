@@ -17,7 +17,7 @@
 #import "AIAnimatingListOutlineView.h"
 
 @interface AIBorderlessListOutlineView : AIAnimatingListOutlineView {
-	//Whether the current mouse gesture began on empty background and thus belongs to the window (moving it)
+	//Whether the current gesture began on a window handle - empty background or a group header - and thus moves the window
 	BOOL	gestureMovesWindow;
 }
 

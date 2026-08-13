@@ -757,6 +757,52 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 }
 
 /*!
+ * @brief Keep a group out of any selection that holds anything else
+ *
+ * A group and a contact have nothing in common that an action could be carried out on, and several
+ * groups at once are no better: renaming, deleting or dragging such a selection either does nothing
+ * or does something surprising to half of it. A selection therefore holds either any number of
+ * contacts, or exactly one group.
+ *
+ * That rule is also what lets a command-drag on a group header mean one unambiguous thing, namely
+ * "reorder this group", even though command is the very key that extends a selection: once a group
+ * is selected the extension cannot take, so the group is always alone and nothing else is dragged
+ * along with it. See AIBorderlessListOutlineView, which gives the plain drag to the window.
+ */
+- (NSIndexSet *)outlineView:(NSOutlineView *)outlineView selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes
+{
+	NSMutableIndexSet *groupRows = [NSMutableIndexSet indexSet];
+
+	[proposedSelectionIndexes enumerateIndexesUsingBlock:^(NSUInteger row, BOOL *stop) {
+		if ([[outlineView itemAtRow:row] isKindOfClass:[AIListGroup class]])
+			[groupRows addIndex:row];
+	}];
+
+	//Contacts among themselves, or a single group on its own: nothing to arbitrate
+	if (([groupRows count] == 0) ||
+		(([groupRows count] == 1) && ([proposedSelectionIndexes count] == 1)))
+		return proposedSelectionIndexes;
+
+	/* Whichever group held the selection keeps it: extending away from a group must not quietly
+	 * hand the selection to a different one. Failing that, the topmost group wins.
+	 */
+	NSIndexSet			*currentSelection = [outlineView selectedRowIndexes];
+	__block NSUInteger	 keptRow = NSNotFound;
+
+	[groupRows enumerateIndexesUsingBlock:^(NSUInteger row, BOOL *stop) {
+		if ([currentSelection containsIndex:row]) {
+			keptRow = row;
+			*stop = YES;
+		}
+	}];
+
+	if (keptRow == NSNotFound)
+		keptRow = [groupRows firstIndex];
+
+	return [NSIndexSet indexSetWithIndex:keptRow];
+}
+
+/*!
  * @brief Return the string value used for type selection
  */
 - (NSString *)outlineView:(NSOutlineView *)outlineView typeSelectStringForTableColumn:(NSTableColumn *)tableColumn item:(AIProxyListObject *)item
