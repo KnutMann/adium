@@ -25,6 +25,7 @@
 #import <Adium/AIListContact.h>
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIStatusIcons.h>
+#import <MMTabBarView/MMTabBarView.h>
 
 #define BACK_CELL_LEFT_INDENT	-1
 #define BACK_CELL_RIGHT_INDENT	3
@@ -41,6 +42,7 @@
 
 - (void)chatSourceOrDestinationChanged:(NSNotification *)notification;
 - (void)chatAttributesChanged:(NSNotification *)notification;
+- (void)tabBarNeedsLayout;
 @end
 
 @implementation AIMessageTabViewItem
@@ -201,6 +203,8 @@
 		 * The chat observers have already recomputed tabStateIcon by the time this is posted.
 		 */
 		[self updateTabStatusIcon];
+		//A badge appearing or vanishing is worth 24pt, so the tab has to be measured again
+		[self tabBarNeedsLayout];
 	}
 }
 
@@ -302,6 +306,26 @@
 - (NSString *)label
 {
 	return messageViewController.chat.displayName;
+}
+
+/* A tab is measured only while the bar is laying out, and nothing that changes its width
+ * starts a layout pass by itself. MMTabBarButton does ask the bar to -update when the title
+ * changes, but -update returns immediately unless -setNeedsUpdate: armed it first, and no
+ * caller on the title path arms it. The new text is then drawn into the frame that was
+ * measured from the old one. A chat opened by an incoming message is where this shows:
+ * it is created before the sender's alias has arrived, so the tab gets measured against the
+ * raw UID and keeps that width for the rest of its life. The unread badge has the same
+ * problem from the other side - it is worth 24pt of width that appears and vanishes.
+ */
+- (void)tabBarNeedsLayout
+{
+	[windowController.tabBar setNeedsUpdate:YES];
+}
+
+- (void)setLabel:(NSString *)inLabel
+{
+	[super setLabel:inLabel];
+	[self tabBarNeedsLayout];
 }
 
 - (void)setIcon:(NSImage *)newIcon
