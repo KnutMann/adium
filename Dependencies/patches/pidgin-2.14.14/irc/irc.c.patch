@@ -1,19 +1,26 @@
 --- a/libpurple/protocols/irc/irc.c
 +++ b/libpurple/protocols/irc/irc.c
-@@ -518,7 +518,11 @@
+@@ -518,7 +518,18 @@
  	                               IRC_DEFAULT_COMMAND_MAX_BURST);
  
  	irc->send_time = time(NULL) - (interval * burst);
 -	irc->send_handler = g_timeout_add_seconds(1, irc_send_handler_cb, irc);
-+	/* purple_timeout_add_seconds, not g_timeout_add_seconds: a UI may run libpurple without
-+	 * spinning GLib's default main context - Adium drives everything through the eventloop UI
-+	 * ops onto GCD - so a raw GLib source would never fire, leaving the send queue below
-+	 * undrained and every message after login (PONG included) stuck in it forever. */
++	/* purple_timeout_add_seconds, not g_timeout_add_seconds: a UI is free to run libpurple
++	 * without spinning GLib's default main context, which is what PurpleEventLoopUiOps is for,
++	 * and a raw GLib source then never fires. Nothing drains this queue, so everything routed
++	 * through irc_send sits in it forever.
++	 *
++	 * That takes the connection down before it is up. The server's registration PING is
++	 * answered inline in irc_parse_msg, which uses irc_send, so the PONG never leaves and the
++	 * server closes the link with "Registration timeout" - then the same thing happens on every
++	 * retry. PASS, USER and NICK still go out because irc_login_cb sends those through
++	 * irc_priority_send, which writes directly; that is what makes it look like a working
++	 * connection right up to the moment it is dropped. */
 +	irc->send_handler = purple_timeout_add_seconds(1, irc_send_handler_cb, irc);
  
  	return TRUE;
  }
-@@ -596,7 +600,9 @@
+@@ -596,7 +607,9 @@
  
  	g_queue_free_full(irc->send_queue, g_free);
  	if(irc->send_handler != 0) {
