@@ -50,6 +50,7 @@
 	[ESIRCService registerService];
 	[AITelegramService registerService];
 	[AIWhatsAppService registerService];
+	[AISignalService registerService];
 	[ESSimpleService registerService];
 	[ESNovellService registerService];
 	[ESJabberService registerService];
