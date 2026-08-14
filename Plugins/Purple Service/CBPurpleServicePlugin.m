@@ -16,6 +16,7 @@
 
 #import "CBPurpleServicePlugin.h"
 #import "PurpleServices.h"
+#import "AIPurpleGenericService.h"
 #import "SLPurpleCocoaAdapter.h"
 #import <Adium/AIAccount.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
@@ -48,14 +49,28 @@
     //Install the services
 	[ESGaduGaduService registerService];
 	[ESIRCService registerService];
-	[AITelegramService registerService];
 	[AIWhatsAppService registerService];
 	[AISignalService registerService];
 	[ESSimpleService registerService];
 	[ESNovellService registerService];
 	[ESJabberService registerService];
-	
+
 	[SLPurpleCocoaAdapter pluginDidLoad];
+
+	/* And then everything that a descriptor covers rather than a class. This runs after the list
+	 * above, and skips any protocol that list already answers for, so a protocol which later gets a
+	 * class of its own does not end up with two services.
+	 *
+	 * Asking for the shared adapter is what brings libpurple's core up, and it has to be up by now:
+	 * until it is there are no protocols to ask, and a service that is not registered before accounts
+	 * load is a service whose accounts silently disappear. It used to come up at the first connection
+	 * instead, so this moves the cost, and the risk, of loading every protocol plugin to startup.
+	 */
+	[SLPurpleCocoaAdapter sharedInstance];
+
+	[AIPurpleGenericService registerServicesForLoadedProtocolsExcluding:
+	 [NSSet setWithObjects:@"prpl-gg", @"prpl-irc", @"prpl-hehoe-whatsmeow",
+	  @"prpl-hehoe-presage", @"prpl-simple", @"prpl-novell", @"prpl-jabber", nil]];
 	
 	//tooltip for tunes
 	tunetooltip = [[AMPurpleTuneTooltip alloc] init];

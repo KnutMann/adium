@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+	One entry per libpurple protocol that has no service class of its own, keyed by the protocol id
+	the plugin registers itself under.
+
+	Only what cannot be asked of the protocol belongs here. Whether it takes a password, whether it
+	has group chats, whether accounts can be registered: the protocol answers all of that, and
+	AIPurpleGenericService asks it.
+
+	ServiceCodeUniqueID is written into every stored account and into the encryption key store. It
+	is decided once and then never changes, whatever else about the protocol does.
+
+	IconBaseName names two images in this bundle, "<base>-small" and "<base>-large".
+
+	UserNameLabel is English here and is looked up in the usual string table at runtime, so a
+	translated one keeps working.
+-->
+<plist version="1.0">
+<dict>
+	<key>telegram-tdlib</key>
+	<dict>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-Telegram</string>
+		<key>ServiceID</key>
+		<string>Telegram</string>
+		<key>ServiceClass</key>
+		<string>Telegram</string>
+		<key>ShortDescription</key>
+		<string>Telegram</string>
+		<key>LongDescription</key>
+		<string>Telegram</string>
+		<!-- The account name is the phone number in international format, +4917012345678 -->
+		<key>UserNameLabel</key>
+		<string>Phone Number</string>
+		<key>AllowedCharacters</key>
+		<string>+0123456789</string>
+		<key>AllowedLength</key>
+		<integer>20</integer>
+		<key>CaseSensitive</key>
+		<false/>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<key>IconBaseName</key>
+		<string>Telegram</string>
+		<!-- tdlib keeps its own connection; there is no host to probe -->
+		<key>NetworkReachability</key>
+		<false/>
+		<!-- Store and forward: a file reaches a contact who looks offline -->
+		<key>OfflineFileTransfers</key>
+		<true/>
+	</dict>
+</dict>
+</plist>
