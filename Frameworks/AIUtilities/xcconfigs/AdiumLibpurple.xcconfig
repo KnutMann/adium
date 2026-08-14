@@ -1,7 +1,7 @@
 LIBRARY_SEARCH_PATHS = "$(SRCROOT)" $(inherited) $(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SRCROOT)/Frameworks/libpurple.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "$(SRCROOT)/Frameworks/libglib.framework/Headers"
-HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "$(SRCROOT)/Frameworks/libintl8.framework/Headers"
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "$(SRCROOT)/Frameworks/libintl.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4 = "$(SRCROOT)/Frameworks/libgstreamer.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_5 = "$(SDKROOT)/usr/include/libxml2"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread = "$(SRCROOT)/Frameworks/libgthread.framework/Headers"
@@ -9,7 +9,14 @@ LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SDKROOT)/usr/lib"
 PRODUCT_NAME = AdiumLibpurple
 SKIP_INSTALL = YES
 DYLIB_CURRENT_VERSION = 1
-OTHER_LDFLAGS = -lsasl2 "$(SRCROOT)/Frameworks/libintl8.framework/Versions/A/libintl8"
+// libintl.framework, not libintl8.framework, and the distinction matters. The bundle carries both,
+// they export the same thirteen symbols, and either one will happily translate a string. What they do
+// not share is state. bind_textdomain_codeset in adiumPurpleCoreUiInit records the output encoding in
+// the table of whichever copy it was linked against, and libpurple, glib and gio all read that table
+// out of libintl.framework. Linking libintl8 here meant the encoding was set in a table nobody
+// consulted, so libpurple fell back to the locale charset and transliterated its German down to ASCII:
+// "Ubertragung der Datei" instead of "Übertragung der Datei".
+OTHER_LDFLAGS = -lsasl2 "$(SRCROOT)/Frameworks/libintl.framework/Versions/8/libintl"
 INFOPLIST_FILE = Plists/AdiumLibpurple/Info.plist
 DYLIB_COMPATIBILITY_VERSION = 1
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
