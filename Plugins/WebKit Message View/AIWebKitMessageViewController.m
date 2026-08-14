@@ -59,6 +59,11 @@
 
 #define TEMPORARY_FILE_PREFIX	@"TEMP"
 
+/* The widest a profile picture may be shown in a conversation, in points. Message styles differ on
+ * how they size the picture and some hand it its natural size, which for the newer services means
+ * whatever the owner uploaded, several hundred points square. */
+#define WEBKIT_USER_ICON_MAXIMUM_SIZE	200.0f
+
 @interface AIWebKitMessageViewController ()
 - (id)initForChat:(AIChat *)inChat withPlugin:(AIWebKitMessageViewPlugin *)inPlugin;
 - (void)_initWebView;
@@ -71,6 +76,7 @@
 - (void)_setDocumentReady;
 
 - (NSString *)_webKitBackgroundImagePathForUniqueID:(NSInteger)uniqueID;
+- (NSImage *)iconScaledToFit:(NSImage *)icon;
 - (NSString *)_webKitUserIconPathForObject:(AIListObject *)inObject;
 - (void)releaseCurrentWebKitUserIconForObject:(AIListObject *)inObject;
 - (void)releaseAllCachedIcons;
@@ -1347,6 +1353,13 @@ static NSArray *draggedTypes = nil;
 			webKitUserIcon = userIcon;
 		}
 
+		/* Whatever arrives here, the conversation gets at most WEBKIT_USER_ICON_MAXIMUM_SIZE of it.
+		 * A profile picture is whatever size its owner uploaded, and the newer services hand over
+		 * several hundred points square, which a message style that gives the picture its natural
+		 * size then draws at that size. Scaling here rather than in the style covers every style
+		 * there is, and it shrinks what gets written to disk and handed to WebKit as well. */
+		webKitUserIcon = [self iconScaledToFit:webKitUserIcon];
+
 		oldWebKitUserIconPath = [objectIconPathDict objectForKey:iconSourceObject.internalObjectID];		
 		webKitUserIconPath = [iconSourceObject valueForProperty:KEY_WEBKIT_USER_ICON];
 		if (!webKitUserIconPath) {
@@ -1477,6 +1490,39 @@ static NSArray *draggedTypes = nil;
 {
 	NSString	*filename = [NSString stringWithFormat:@"%@-WebkitBGImage-%ld.png", TEMPORARY_FILE_PREFIX, (long)uniqueID];
 	return [[adium cachesPath] stringByAppendingPathComponent:filename];
+}
+
+/*!
+ * @brief A profile picture cut down to a size a conversation can use
+ *
+ * Proportionally, and only ever downwards: a small picture blown up to the limit would be worse than
+ * the small picture. The result is drawn once at the size it will be shown at, so what goes to disk
+ * and through WebKit is that size too.
+ */
+- (NSImage *)iconScaledToFit:(NSImage *)icon
+{
+	NSSize size = [icon size];
+
+	if (size.width <= WEBKIT_USER_ICON_MAXIMUM_SIZE && size.height <= WEBKIT_USER_ICON_MAXIMUM_SIZE)
+		return icon;
+
+	CGFloat scale = WEBKIT_USER_ICON_MAXIMUM_SIZE / MAX(size.width, size.height);
+	NSSize scaled = NSMakeSize(round(size.width * scale), round(size.height * scale));
+
+	if (scaled.width < 1.0f || scaled.height < 1.0f)
+		return icon;
+
+	NSImage *result = [[[NSImage alloc] initWithSize:scaled] autorelease];
+
+	[result lockFocus];
+	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+	[icon drawInRect:NSMakeRect(0.0f, 0.0f, scaled.width, scaled.height)
+			fromRect:NSMakeRect(0.0f, 0.0f, size.width, size.height)
+		   operation:NSCompositingOperationSourceOver
+			fraction:1.0f];
+	[result unlockFocus];
+
+	return result;
 }
 
 /*!
