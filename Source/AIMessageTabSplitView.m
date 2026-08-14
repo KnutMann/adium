@@ -50,7 +50,10 @@
 	if (rightColor && leftColor) {
 		NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:leftColor
 															 endingColor:rightColor];
-		[gradient drawInRect:self.bounds angle:90.0];
+		/* The divider, not the whole view. Drawing over the bounds painted the gradient across
+		 * everything the split view covers, so any part of it a subview did not reach, and there is
+		 * always some, came out as a grey band. */
+		[gradient drawInRect:aRect angle:90.0];
 		[gradient release];
 		NSBezierPath *line = nil;
 		

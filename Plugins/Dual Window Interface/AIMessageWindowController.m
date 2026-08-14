@@ -57,6 +57,25 @@
 #define VERTICAL_DIVIDER_THICKNESS				4
 #define VERTICAL_TAB_BAR_TO_VIEW_SPACING		3
 
+/*!
+ * @class AITabBarBackdropView
+ * @brief The vibrancy behind the tab bar, which the pointer passes straight through
+ *
+ * With the bar along the bottom this sits beside it and never sees the pointer. With the bar down
+ * the side it sits inside it, because a vertical bar is one of a split view's panes and a second
+ * view put next to it there would become a pane of its own. Inside the bar it would otherwise take
+ * every click that landed on empty space, so it takes none.
+ */
+@interface AITabBarBackdropView : NSVisualEffectView
+@end
+
+@implementation AITabBarBackdropView
+- (NSView *)hitTest:(NSPoint)point
+{
+	return nil;
+}
+@end
+
 @interface AIMessageWindowController ()
 - (id)initWithWindowNibName:(NSString *)windowNibName interface:(AIDualWindowInterfacePlugin *)inInterface containerID:(NSString *)inContainerID containerName:(NSString *)inName;
 - (void)_configureToolbar;
@@ -194,10 +213,10 @@
     [theWindow setExcludedFromWindowsMenu:YES];
 	[theWindow useOptimizedDrawing:YES];
 
-	//Vibrancy backdrop behind the horizontal tab bar (the effect view only
-	//composites in a layer-backed hierarchy).
+	//Vibrancy backdrop behind the tab bar (the effect view only composites in a
+	//layer-backed hierarchy).
 	[[theWindow contentView] setWantsLayer:YES];
-	tabView_tabBarBackdrop = [[NSVisualEffectView alloc] initWithFrame:NSZeroRect];
+	tabView_tabBarBackdrop = [[AITabBarBackdropView alloc] initWithFrame:NSZeroRect];
 	[tabView_tabBarBackdrop setMaterial:NSVisualEffectMaterialSidebar];
 	[tabView_tabBarBackdrop setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
 	[tabView_tabBarBackdrop setState:NSVisualEffectStateActive];
@@ -521,9 +540,13 @@
 			tabBarFrame.size.height = [[[self window] contentView] frame].size.height;
 			tabBarFrame.size.width = [tabView_tabBar isTabBarHidden] ? 0 : lastTabBarWidth;
 			tabBarFrame.origin.y = NSMinY(contentRect);
-			tabViewMessagesFrame.origin.y = NSMinY(contentRect) - 0;
-			tabViewMessagesFrame.size.height = NSHeight(contentRect) + 2;
-			tabViewMessagesFrame.size.width = NSWidth(contentRect) - NSWidth(tabBarFrame);
+			tabViewMessagesFrame.origin.y = NSMinY(contentRect);
+			tabViewMessagesFrame.size.height = NSHeight(contentRect);
+			/* Minus the divider, which is what splitView:resizeSubviewsWithOldSize: works out on every
+			 * resize afterwards. Without it the first layout is one divider too wide and the panes do
+			 * not line up until the window is resized once. */
+			tabViewMessagesFrame.size.width = NSWidth(contentRect) - NSWidth(tabBarFrame) -
+											  ([tabView_tabBar isTabBarHidden] ? 0 : VERTICAL_DIVIDER_THICKNESS);
 			
 			//set the position of the tab bar (left/right)
 			if (tabPosition == AdiumTabPositionLeft) {
@@ -538,15 +561,13 @@
 			[tabView_tabBar setButtonMinWidth:50];
 			[tabView_tabBar setButtonMaxWidth:200];
 			
-			//put the subviews into a split view
+			/* Exactly the content view, with none of the overhang this used to carry. The split view
+			 * paints a gradient across itself, so two points of it standing proud of the content view
+			 * were two points of grey along the top of the window, above both the tabs and the
+			 * conversation. Nothing clipped that away: the content view is layer backed and views do
+			 * not clip their subviews by default. The same overhang exists with the tabs along the
+			 * bottom, where nothing in it paints and nothing showed. */
 			NSRect splitViewRect = [[[self window] contentView] frame];
-			splitViewRect.size.height += 2;
-			if (tabPosition == AdiumTabPositionLeft) {
-				splitViewRect.origin.x -= [tabView_tabBar isTabBarHidden] ? 0 : 1;
-				splitViewRect.size.width += [tabView_tabBar isTabBarHidden] ? 0 : 1;
-			} else {
-				splitViewRect.size.width += [tabView_tabBar isTabBarHidden] ? 0 : 1;
-			}
 			tabView_splitView = [[[AIMessageTabSplitView alloc] initWithFrame:splitViewRect] autorelease];
 			[tabView_splitView setDividerThickness:([tabView_tabBar isTabBarHidden] ? 0 : VERTICAL_DIVIDER_THICKNESS)];
 			[tabView_splitView setVertical:YES];
@@ -579,27 +600,36 @@
 	[[[self window] contentView] setNeedsDisplay:YES];
 }
 
-/* Keep the vibrancy backdrop glued to the horizontal tab bar. In vertical
- * orientation the bar lives inside the split view (whose subviews are its
- * panes), so the backdrop stays out of the hierarchy there. */
+/* Keep the vibrancy backdrop glued to the tab bar, whichever edge it is on. */
 - (void)_syncTabBarBackdrop
 {
 	if (!tabView_tabBarBackdrop)
 		return;
 
-	BOOL horizontal = ([tabView_tabBar orientation] == MMTabBarHorizontalOrientation);
-	if (!horizontal || [tabView_tabBar isTabBarHidden] || ![tabView_tabBar superview]) {
+	if ([tabView_tabBar isTabBarHidden] || ![tabView_tabBar superview]) {
 		[tabView_tabBarBackdrop removeFromSuperview];
 		return;
 	}
 
 	[tabView_tabBarBackdrop removeFromSuperview];
-	[tabView_tabBarBackdrop setFrame:[tabView_tabBar frame]];
-	[tabView_tabBarBackdrop setAutoresizingMask:[tabView_tabBar autoresizingMask]];
-	[[tabView_tabBar superview] addSubview:tabView_tabBarBackdrop
-								positioned:NSWindowBelow
-								relativeTo:tabView_tabBar];
 
+	if ([tabView_tabBar orientation] == MMTabBarHorizontalOrientation) {
+		//Beside the bar, where it can follow the bar's own frame and resizing
+		[tabView_tabBarBackdrop setFrame:[tabView_tabBar frame]];
+		[tabView_tabBarBackdrop setAutoresizingMask:[tabView_tabBar autoresizingMask]];
+		[[tabView_tabBar superview] addSubview:tabView_tabBarBackdrop
+									positioned:NSWindowBelow
+									relativeTo:tabView_tabBar];
+	} else {
+		/* Inside the bar, because a vertical bar is one of the split view's panes and anything else
+		 * added there becomes a pane too. The bar paints no background of its own, so a view behind
+		 * everything it holds is what shows through the gaps between the tabs. */
+		[tabView_tabBarBackdrop setFrame:[tabView_tabBar bounds]];
+		[tabView_tabBarBackdrop setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+		[tabView_tabBar addSubview:tabView_tabBarBackdrop
+						positioned:NSWindowBelow
+						relativeTo:nil];
+	}
 }
 
 - (void)updateOverflowMenuUnviewedContentIcon
