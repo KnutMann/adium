@@ -816,6 +816,10 @@
 		4B191D8B0611C10800E8A4E7 /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 4B191D890611C10800E8A4E7 /* ReadMe.rtf */; };
 		4B7A567B07A1754400BDC540 /* AIEditAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */; };
 		4B909C8A064D75400074C9A8 /* BGEmoticonMenuPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = C4243C930638E4EA007AD2D9 /* BGEmoticonMenuPlugin.m */; };
+		ADD1E5C0DE00000000000F03 /* AITypstRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */; };
+		ADD1E5C0DE00000000000912 /* AITypstPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000911 /* AITypstPlugin.m */; };
+		ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000931 /* AITypstHistory.m */; };
+		ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000921 /* AITypstEditorView.m */; };
 		4B97DB6706AC123A0003EE49 /* msg-insert-link.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4B97DB6606AC123A0003EE49 /* msg-insert-link.tiff */; };
 		4BA62D8E06C51257001D6B3C /* Status Icons in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 4BA62D7F06C51256001D6B3C /* Status Icons */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4BAA1B530632EF0000D8B92C /* events-error-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BAA1B500632EF0000D8B92C /* events-error-alert.tiff */; };
@@ -2870,6 +2874,14 @@
 		9EF0DBF409D944A300FBCC1E /* msg-unblock-contact.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-unblock-contact.tiff"; path = "Resources/msg-unblock-contact.tiff"; sourceTree = "<group>"; };
 		C4243C920638E4EA007AD2D9 /* BGEmoticonMenuPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BGEmoticonMenuPlugin.h; path = Source/BGEmoticonMenuPlugin.h; sourceTree = "<group>"; };
 		C4243C930638E4EA007AD2D9 /* BGEmoticonMenuPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = BGEmoticonMenuPlugin.m; path = Source/BGEmoticonMenuPlugin.m; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstRenderer.m; path = "Plugins/Typst Formulas/AITypstRenderer.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000903 /* AITypstRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstRenderer.h; path = "Plugins/Typst Formulas/AITypstRenderer.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000911 /* AITypstPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstPlugin.m; path = "Plugins/Typst Formulas/AITypstPlugin.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000913 /* AITypstPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstPlugin.h; path = "Plugins/Typst Formulas/AITypstPlugin.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000931 /* AITypstHistory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstHistory.m; path = "Plugins/Typst Formulas/AITypstHistory.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000933 /* AITypstHistory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstHistory.h; path = "Plugins/Typst Formulas/AITypstHistory.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000921 /* AITypstEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstEditorView.m; path = "Plugins/Typst Formulas/AITypstEditorView.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000923 /* AITypstEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstEditorView.h; path = "Plugins/Typst Formulas/AITypstEditorView.h"; sourceTree = "<group>"; };
 		C44BA7800AAB696300C7504F /* SetupAssistantBoxBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SetupAssistantBoxBackgroundView.h; path = Source/SetupAssistantBoxBackgroundView.h; sourceTree = "<group>"; };
 		C44BA7810AAB696400C7504F /* SetupAssistantBoxBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SetupAssistantBoxBackgroundView.m; path = Source/SetupAssistantBoxBackgroundView.m; sourceTree = "<group>"; };
 		C4D29CBF0C3C2E3C001545A2 /* BGICImportController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BGICImportController.h; path = Source/BGICImportController.h; sourceTree = SOURCE_ROOT; };
@@ -3142,6 +3154,14 @@
 			children = (
 				C4243C920638E4EA007AD2D9 /* BGEmoticonMenuPlugin.h */,
 				C4243C930638E4EA007AD2D9 /* BGEmoticonMenuPlugin.m */,
+				ADD1E5C0DE00000000000903 /* AITypstRenderer.h */,
+				ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */,
+				ADD1E5C0DE00000000000913 /* AITypstPlugin.h */,
+				ADD1E5C0DE00000000000911 /* AITypstPlugin.m */,
+				ADD1E5C0DE00000000000933 /* AITypstHistory.h */,
+				ADD1E5C0DE00000000000931 /* AITypstHistory.m */,
+				ADD1E5C0DE00000000000923 /* AITypstEditorView.h */,
+				ADD1E5C0DE00000000000921 /* AITypstEditorView.m */,
 			);
 			name = Emoticons;
 			sourceTree = "<group>";
@@ -7175,6 +7195,10 @@
 				7E824CE306387FAF00813072 /* SHLinkEditorWindowController.m in Sources */,
 				7E824CEB06387FAF00813072 /* SHLinkManagementPlugin.m in Sources */,
 				4B909C8A064D75400074C9A8 /* BGEmoticonMenuPlugin.m in Sources */,
+				ADD1E5C0DE00000000000F03 /* AITypstRenderer.m in Sources */,
+				ADD1E5C0DE00000000000912 /* AITypstPlugin.m in Sources */,
+				ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */,
+				ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */,
 				9E20910E06A601AF00E33E27 /* CBStatusMenuItemController.m in Sources */,
 				9E20911006A601B200E33E27 /* CBStatusMenuItemPlugin.m in Sources */,
 				6E4D961406B739AC005235E9 /* DCJoinChatPanelPlugin.m in Sources */,

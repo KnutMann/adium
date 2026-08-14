@@ -1357,7 +1357,7 @@
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
 {
     return [NSArray arrayWithObjects:@"UserIcon",@"Encryption",  NSToolbarSeparatorItemIdentifier, 
-		@"SourceDestination", @"InsertEmoticon", @"BlockParticipants", @"LinkEditor", @"SafariLink", @"AddBookmark", NSToolbarShowColorsItemIdentifier,
+		@"SourceDestination", @"InsertEmoticon", @"FormulaEditor", @"BlockParticipants", @"LinkEditor", @"SafariLink", @"AddBookmark", NSToolbarShowColorsItemIdentifier,
 		NSToolbarShowFontsItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier, @"SendFile",
 		@"ShowInfo", @"LogViewer", nil];
 }
