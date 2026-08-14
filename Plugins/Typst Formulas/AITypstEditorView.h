@@ -34,10 +34,9 @@
  * shelf it sits on, and letting the view hierarchy own it means closing the shelf disposes of
  * everything with no bookkeeping anywhere else.
  */
-@interface AITypstEditorView : NSView <NSTextViewDelegate> {
+@interface AITypstEditorView : NSView {
 	AIChat			*chat;
 
-	NSTextView		*textView_source;
 	NSImageView		*imageView_preview;
 	NSTextField		*textField_error;
 	NSButton		*button_insert;

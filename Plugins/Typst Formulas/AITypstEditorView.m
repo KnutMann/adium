@@ -30,7 +30,6 @@
 #define PREVIEW_DELAY				0.25
 
 #define EDITOR_MARGIN				8.0f
-#define SOURCE_MINIMUM_HEIGHT		44.0f
 #define PREVIEW_MINIMUM_HEIGHT		56.0f
 #define HISTORY_STRIP_HEIGHT		48.0f
 #define THUMBNAIL_POINT_SIZE		11.0
@@ -38,7 +37,11 @@
 
 @interface AITypstEditorView ()
 - (void)buildInterface;
+- (void)entryDidChange:(NSNotification *)notification;
 - (void)schedulePreview;
+- (AIMessageEntryTextView *)entryTextView;
+- (NSRange)formulaRange;
+- (NSString *)currentFormula;
 - (void)renderPreview;
 - (void)showError:(NSString *)message;
 - (void)insertFormula:(id)sender;
@@ -80,6 +83,22 @@ static NSMutableDictionary *thumbnailCache = nil;
 												 selector:@selector(historyDidChange:)
 													 name:AITypstHistoryDidChangeNotification
 												   object:nil];
+
+		/* The formula is written in the chat's own message entry, so that is what the preview
+		 * follows. Both notifications matter: typing changes what the formula is, and moving the
+		 * selection changes which part of the field counts as the formula. */
+		NSTextView *entry = [self entryTextView];
+		if (entry) {
+			[[NSNotificationCenter defaultCenter] addObserver:self
+													 selector:@selector(entryDidChange:)
+														 name:NSTextDidChangeNotification
+													   object:entry];
+			[[NSNotificationCenter defaultCenter] addObserver:self
+													 selector:@selector(entryDidChange:)
+														 name:NSTextViewDidChangeSelectionNotification
+													   object:entry];
+			[self schedulePreview];
+		}
 	}
 
 	return self;
@@ -109,7 +128,49 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 - (void)takeFocus
 {
-	[[self window] makeFirstResponder:textView_source];
+	NSTextView *entry = [self entryTextView];
+
+	[[entry window] makeFirstResponder:entry];
+}
+
+/*!
+ * @brief The chat's own message entry, which is where a formula is written
+ *
+ * Resolved on each use rather than kept: the chain to it runs through the chat's container, which is
+ * nil before the tab exists and nil again once the chat closes, and a stale pointer through there is
+ * a crash rather than a blank panel.
+ */
+- (AIMessageEntryTextView *)entryTextView
+{
+	return chat.chatContainer.messageViewController.textEntryView;
+}
+
+/*!
+ * @brief What is being written, and where it sits
+ *
+ * The selection if there is one, the whole field otherwise. One rule, used both for what the preview
+ * shows and for what the insert replaces, because two rules here would mean a picture landing
+ * somewhere other than where the user was looking.
+ */
+- (NSRange)formulaRange
+{
+	NSTextView *entry = [self entryTextView];
+	if (!entry) return NSMakeRange(NSNotFound, 0);
+
+	NSRange selected = [entry selectedRange];
+
+	return (selected.length ? selected : NSMakeRange(0, [[entry string] length]));
+}
+
+- (NSString *)currentFormula
+{
+	NSTextView *entry = [self entryTextView];
+	NSRange range = [self formulaRange];
+	if (!entry || range.location == NSNotFound || NSMaxRange(range) > [[entry string] length])
+		return nil;
+
+	return [[[entry string] substringWithRange:range] stringByTrimmingCharactersInSet:
+			[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 }
 
 //Interface ------------------------------------------------------------------------------------------------------------
@@ -124,22 +185,6 @@ static NSMutableDictionary *thumbnailCache = nil;
  */
 - (void)buildInterface
 {
-	NSScrollView *scrollView_source = [[[NSScrollView alloc] initWithFrame:NSZeroRect] autorelease];
-	[scrollView_source setHasVerticalScroller:YES];
-	[scrollView_source setBorderType:NSBezelBorder];
-	[scrollView_source setTranslatesAutoresizingMaskIntoConstraints:NO];
-
-	textView_source = [[[NSTextView alloc] initWithFrame:NSZeroRect] autorelease];
-	[textView_source setFont:[NSFont monospacedSystemFontOfSize:12.0 weight:NSFontWeightRegular]];
-	[textView_source setAutomaticQuoteSubstitutionEnabled:NO];
-	[textView_source setAutomaticDashSubstitutionEnabled:NO];
-	[textView_source setAutomaticTextReplacementEnabled:NO];
-	[textView_source setAutomaticSpellingCorrectionEnabled:NO];
-	[textView_source setContinuousSpellCheckingEnabled:NO];
-	[textView_source setAllowsUndo:YES];
-	[textView_source setDelegate:self];
-	[scrollView_source setDocumentView:textView_source];
-
 	imageView_preview = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
 	[imageView_preview setImageScaling:NSImageScaleProportionallyDown];
 	[imageView_preview setImageAlignment:NSImageAlignCenter];
@@ -196,27 +241,22 @@ static NSMutableDictionary *thumbnailCache = nil;
 											   url:@"https://typst.app/docs/guides/for-latex-users/"]
 			   inGravity:NSStackViewGravityLeading];
 
-	[self addSubview:scrollView_source];
 	[self addSubview:imageView_preview];
 	[self addSubview:textField_error];
 	[self addSubview:scrollView_history];
 	[self addSubview:stack_links];
 	[self addSubview:button_insert];
 
-	NSDictionary *views = NSDictionaryOfVariableBindings(scrollView_source, imageView_preview,
+	NSDictionary *views = NSDictionaryOfVariableBindings(imageView_preview,
 														textField_error, scrollView_history,
 														stack_links, button_insert);
 	NSDictionary *metrics = [NSDictionary dictionaryWithObjectsAndKeys:
 							 [NSNumber numberWithFloat:EDITOR_MARGIN], @"margin",
-							 [NSNumber numberWithFloat:SOURCE_MINIMUM_HEIGHT], @"sourceMin",
 							 [NSNumber numberWithFloat:PREVIEW_MINIMUM_HEIGHT], @"previewMin",
 							 [NSNumber numberWithFloat:HISTORY_STRIP_HEIGHT], @"stripHeight",
 							 nil];
 
 	NSMutableArray *constraints = [NSMutableArray array];
-	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[scrollView_source]-margin-|"
-											 options:0 metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
 	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[imageView_preview]-margin-|"
 											 options:0 metrics:metrics views:views]];
@@ -228,7 +268,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 											 options:NSLayoutFormatAlignAllCenterY metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
 	 [NSLayoutConstraint constraintsWithVisualFormat:
-	  @"V:|-margin-[scrollView_source(>=sourceMin)]-margin-[imageView_preview(>=previewMin)]-margin-[scrollView_history(stripHeight)]-margin-[button_insert]-margin-|"
+	  @"V:|-margin-[imageView_preview(>=previewMin)]-margin-[scrollView_history(stripHeight)]-margin-[button_insert]-margin-|"
 											 options:0 metrics:metrics views:views]];
 
 	/* The complaint occupies the same space as the picture rather than a row of its own. There is
@@ -243,17 +283,6 @@ static NSMutableDictionary *thumbnailCache = nil;
 														  toItem:imageView_preview
 													   attribute:NSLayoutAttributeCenterY
 													  multiplier:1.0f
-														constant:0.0f]];
-
-	/* The picture gets rather more of the height than the source does. A formula is short to type and
-	 * worth looking at closely, and this is the ratio that keeps both usable when the shelf is
-	 * dragged smaller. */
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview
-													   attribute:NSLayoutAttributeHeight
-													   relatedBy:NSLayoutRelationEqual
-														  toItem:scrollView_source
-													   attribute:NSLayoutAttributeHeight
-													  multiplier:1.4f
 														constant:0.0f]];
 
 	/* The strip's content decides its own width; it is the clip view's height it has to match. */
@@ -299,7 +328,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 //Preview --------------------------------------------------------------------------------------------------------------
 #pragma mark Preview
 
-- (void)textDidChange:(NSNotification *)notification
+- (void)entryDidChange:(NSNotification *)notification
 {
 	[self schedulePreview];
 }
@@ -312,8 +341,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 - (void)renderPreview
 {
-	NSString *formula = [[textView_source string] stringByTrimmingCharactersInSet:
-						 [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	NSString *formula = [self currentFormula];
 
 	if (![formula length]) {
 		[imageView_preview setImage:nil];
@@ -395,14 +423,26 @@ static NSMutableDictionary *thumbnailCache = nil;
 																			formula:renderedFormula];
 	if (!attachment) return;
 
-	AIMessageViewController *messageViewController = chat.chatContainer.messageViewController;
-	if (!messageViewController) return;
+	NSTextView *entry = [self entryTextView];
+	NSRange range = [self formulaRange];
+	if (!entry || range.location == NSNotFound || NSMaxRange(range) > [[entry string] length])
+		return;
 
-	[messageViewController addToTextEntryView:attachment];
+	/* Replacing rather than appending: the source is in the field, and it is the thing the picture is
+	 * a rendering of. Leaving it behind would send the formula twice, once as text and once as an
+	 * image. The range is the same one the preview was made from, so what disappears is what the user
+	 * has been watching. */
+	if (![entry shouldChangeTextInRange:range replacementString:nil])
+		return;
+
+	[[entry textStorage] replaceCharactersInRange:range withAttributedString:attachment];
+	[entry didChangeText];
+	[entry setSelectedRange:NSMakeRange(range.location + [attachment length], 0)];
+
 	renderedPathWasInserted = YES;
 
 	[AITypstHistory rememberFormula:renderedFormula];
-	[messageViewController makeTextEntryViewFirstResponder];
+	[[entry window] makeFirstResponder:entry];
 }
 
 //History --------------------------------------------------------------------------------------------------------------
@@ -507,9 +547,19 @@ static NSMutableDictionary *thumbnailCache = nil;
 	NSString *formula = [sender toolTip];
 	if (!formula) return;
 
-	[textView_source setString:formula];
+	NSTextView *entry = [self entryTextView];
+	if (!entry) return;
+
+	NSRange range = [self formulaRange];
+	if (range.location != NSNotFound && [entry shouldChangeTextInRange:range replacementString:formula]) {
+		[[entry textStorage] replaceCharactersInRange:range withAttributedString:
+		 [[[NSAttributedString alloc] initWithString:formula attributes:[entry typingAttributes]] autorelease]];
+		[entry didChangeText];
+		[entry setSelectedRange:NSMakeRange(range.location, [formula length])];
+	}
+
 	[self renderPreview];
-	[[self window] makeFirstResponder:textView_source];
+	[[entry window] makeFirstResponder:entry];
 }
 
 - (void)forgetFormula:(id)sender
