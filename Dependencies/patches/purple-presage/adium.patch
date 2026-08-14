@@ -1,8 +1,14 @@
 diff --git a/src/c/blist.c b/src/c/blist.c
-index 03e540a..2c381e8 100755
+index 03e540a..33bdebc 100755
 --- a/src/c/blist.c
 +++ b/src/c/blist.c
-@@ -99,6 +99,18 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
+@@ -1,4 +1,5 @@
+ #include "presage.h"
++#include <glib/gstdio.h> // g_remove
+ 
+ // NOTE: These functions are the same for WhatsApp and Signal. Maybe move to a repository of common functions?
+ 
+@@ -99,9 +100,59 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
  
      if (topic != NULL) {
          purple_blist_alias_chat(chat, topic);
@@ -21,6 +27,68 @@ index 03e540a..2c381e8 100755
      }
  }
  
++/*
++ * Hand a contact's profile picture to libpurple.
++ *
++ * The bytes arrive as a file rather than as a buffer, which is how everything larger than a string
++ * crosses this boundary here: rust writes it, C reads it and deletes it. The alternative would mean
++ * agreeing on who frees a foreign allocation, and attachments already established this pattern.
++ *
++ * libpurple takes ownership of the buffer, and it only keeps it if a buddy of this name exists,
++ * which is why the lookup happens first: an icon set for a name nobody knows is allocated, refused
++ * and freed again on the spot.
++ */
++void presage_handle_avatar(PurpleConnection *connection, const char *uuid, const char *path) {
++    g_return_if_fail(uuid != NULL);
++    g_return_if_fail(path != NULL);
++
++    PurpleAccount *account = purple_connection_get_account(connection);
++    gchar *data = NULL;
++    gsize length = 0;
++    GError *error = NULL;
++
++    if (!g_file_get_contents(path, &data, &length, &error)) {
++        purple_debug_error(PLUGIN_NAME, "unable to read avatar %s: %s\n", path, error ? error->message : "unknown");
++        g_clear_error(&error);
++    } else if (length == 0) {
++        purple_debug_info(PLUGIN_NAME, "empty avatar for %s, ignoring.\n", uuid);
++        g_free(data);
++    } else if (purple_find_buddy(account, uuid) == NULL) {
++        purple_debug_info(PLUGIN_NAME, "no buddy %s to give an avatar to.\n", uuid);
++        g_free(data);
++    } else {
++        // MEMCHECK: purple_buddy_icons_set_for_user takes ownership of data
++        purple_buddy_icons_set_for_user(account, uuid, data, length, NULL);
++        purple_debug_info(PLUGIN_NAME, "set avatar for %s (%zu bytes).\n", uuid, (size_t)length);
++    }
++
++    g_remove(path);
++}
++
+ void presage_handle_contact(PurpleConnection *connection, const char *uuid, const char *name, const char *phone_number) {
+     if (phone_number != NULL) { 
+         PurpleBuddy *buddy = presage_blist_update_buddy(purple_connection_get_account(connection), uuid, name);
+diff --git a/src/c/bridge.c b/src/c/bridge.c
+index df9cf61..2c3f474 100755
+--- a/src/c/bridge.c
++++ b/src/c/bridge.c
+@@ -42,6 +42,7 @@ void free_message(Message * message) {
+     g_free(message->extension);
+     g_free(message->filename);
+     g_free(message->hash);
++    g_free(message->avatar_path);
+     // message->blob is not released here – it must be released by the xfer callback
+     if (message->groups) {
+         for (int gi = 0; gi < message->groups_length; gi++) {
+@@ -114,6 +115,8 @@ static void handle_message(Message * message) {
+         presage_handle_xfer_end(message->xfer, message->flags, message->body, message->mimetype);
+     } else if (message->body != NULL) {
+         presage_handle_text(connection, message->who, message->name, message->group, message->flags, message->timestamp_seconds, message->body);
++    } else if (message->avatar_path != NULL) {
++        presage_handle_avatar(connection, message->who, message->avatar_path);
+     } else if (message->groups != NULL) {
+         presage_handle_groups(connection, message->groups, message->groups_length);
+     } else if (message->who) {
 diff --git a/src/c/connection.c b/src/c/connection.c
 index 21b6295..fba61b3 100755
 --- a/src/c/connection.c
@@ -159,7 +227,7 @@ index 6de1aaf..ef0482c 100755
      return account_options;
  }
 diff --git a/src/c/presage.h b/src/c/presage.h
-index f0fd7e1..431df8d 100755
+index f0fd7e1..1b4e98d 100755
 --- a/src/c/presage.h
 +++ b/src/c/presage.h
 @@ -8,6 +8,29 @@
@@ -201,6 +269,22 @@ index f0fd7e1..431df8d 100755
  void presage_rust_destroy(RustRuntimePtr);
  void presage_rust_whoami(PurpleAccount *, RustRuntimePtr, RustChannelPtr);
  void presage_rust_exit(PurpleAccount *, RustRuntimePtr, RustChannelPtr);
+@@ -68,6 +91,7 @@ typedef struct {
+     char *filename;
+     char *extension;
+     char *mimetype;
++    char *avatar_path;   // a contact's profile picture, written to disk by rust; see presage_handle_avatar
+     Group *groups;
+     size_t groups_length;
+     PurpleXfer *xfer;
+@@ -107,6 +131,7 @@ void presage_blist_set_online(PurpleAccount *account, PurpleBuddy *buddy);
+ void presage_blist_buddies_all_set_online(PurpleAccount *account);
+ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, const char *topic);
+ void presage_handle_contact(PurpleConnection *connection, const char *uuid, const char *name, const char *phone_number);
++void presage_handle_avatar(PurpleConnection *connection, const char *uuid, const char *path);
+ void presage_tooltip_text(PurpleBuddy *buddy, PurpleNotifyUserInfo *info, gboolean full);
+ void presage_get_info(PurpleConnection *connection, const char *who);
+ void presage_show_info(PurpleConnection *connection, const char *uuid, const char *name, const char *phone_number, const char *error);
 diff --git a/src/c/profile.c b/src/c/profile.c
 index c4db58d..8b8bfff 100644
 --- a/src/c/profile.c
@@ -419,10 +503,42 @@ index d65ceb8..a175710 100755
          purple_serv_got_chat_in(connection, g_str_hash(group), who, flags, text, timestamp_seconds);
      }
 diff --git a/src/rust/src/bridge.rs b/src/rust/src/bridge.rs
-index f13d8ce..8eaadcd 100755
+index f13d8ce..cb4b472 100755
 --- a/src/rust/src/bridge.rs
 +++ b/src/rust/src/bridge.rs
-@@ -294,8 +294,11 @@ pub unsafe extern "C" fn presage_rust_main(
+@@ -16,6 +16,7 @@ pub struct Message {
+     pub flags: crate::bridge_structs::PurpleMessageFlags,
+     pub who: Option<String>,
+     pub name: Option<String>,
++    pub avatar_path: Option<String>,
+     pub phone_number: Option<String>,
+     pub group: Option<String>,
+     pub body: Option<String>,
+@@ -61,6 +62,7 @@ impl Default for Message {
+             flags: crate::bridge_structs::PurpleMessageFlags::default(),
+             who: None,
+             name: None,
++            avatar_path: None,
+             group: None,
+             body: None,
+             attachment_pointer: None,
+@@ -143,6 +145,7 @@ pub fn append_message(message: Message) {
+     let filename = to_cstring(message.filename);
+     let extension = to_cstring(message.extension);
+     let mimetype = to_cstring(message.mimetype);
++    let avatar_path = to_cstring(message.avatar_path);
+     let groups_length = message.groups.len();
+     // create a CString for every field for every CGroup
+     let groups: Vec<CGroup> = message
+@@ -189,6 +192,7 @@ pub fn append_message(message: Message) {
+         filename: get_cstring_ptr(&filename),
+         extension: get_cstring_ptr(&extension),
+         mimetype: get_cstring_ptr(&mimetype),
++        avatar_path: get_cstring_ptr(&avatar_path),
+         timestamp_seconds: message.timestamp_seconds.unwrap_or(0),
+         flags: message.flags,
+         who: get_cstring_ptr(&who),
+@@ -294,8 +298,11 @@ pub unsafe extern "C" fn presage_rust_main(
      account: *mut crate::bridge_structs::PurpleAccount,
      rt: *mut tokio::runtime::Runtime,
      c_store_path: *const std::os::raw::c_char,
@@ -434,7 +550,7 @@ index f13d8ce..8eaadcd 100755
  
      // create a channel for asynchronous communication of commands c → rust
      let (tx, rx) = tokio::sync::mpsc::channel(32);
-@@ -309,6 +312,6 @@ pub unsafe extern "C" fn presage_rust_main(
+@@ -309,6 +316,6 @@ pub unsafe extern "C" fn presage_rust_main(
  
      // now execute the actual program
      let runtime = rt.as_ref().unwrap();
@@ -465,8 +581,93 @@ index e234830..db99755 100755
          }
      }
  }
+diff --git a/src/rust/src/bridge_structs.rs b/src/rust/src/bridge_structs.rs
+index 5a15f58..81f9d58 100644
+--- a/src/rust/src/bridge_structs.rs
++++ b/src/rust/src/bridge_structs.rs
+@@ -157,6 +157,7 @@ pub struct Message {
+     pub filename: *const ::std::os::raw::c_char,
+     pub extension: *const ::std::os::raw::c_char,
+     pub mimetype: *const ::std::os::raw::c_char,
++    pub avatar_path: *const ::std::os::raw::c_char,
+     pub groups: *const Group,
+     pub groups_length: usize,
+     pub xfer: *const PurpleXfer,
+diff --git a/src/rust/src/contacts.rs b/src/rust/src/contacts.rs
+index 5a48600..33b0df8 100755
+--- a/src/rust/src/contacts.rs
++++ b/src/rust/src/contacts.rs
+@@ -32,6 +32,68 @@ pub async fn forward_contacts<C: presage::store::Store + 'static>(
+     }
+ }
+ 
++/*
++ * Fetches each contact's profile picture and hands it over as a file.
++ *
++ * Separate from forward_contacts and spawned rather than awaited, because this talks to the server:
++ * presage caches an avatar in its store after the first fetch, but the first time round this is one
++ * request per contact, and doing that before the receive loop starts would hold up the whole login
++ * for as long as it takes.
++ *
++ * The bytes travel as a file for the same reason attachments do: nothing larger than a string
++ * crosses this FFI boundary, and inventing an ownership contract for a buffer is not worth it for a
++ * few kilobytes. The C side reads the file and removes it.
++ */
++pub async fn forward_avatars<C: presage::store::Store + 'static>(
++    account: *mut crate::bridge_structs::PurpleAccount,
++    mut manager: presage::Manager<C, presage::manager::Registered>,
++    avatar_directory: std::path::PathBuf,
++) {
++    let contacts = match manager.store().contacts().await {
++        Err(err) => {
++            crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_ERROR, format!("Unable to get contacts for avatars due to {err:?}\n"));
++            return;
++        }
++        Ok(contacts) => contacts.flatten().collect::<Vec<_>>(),
++    };
++
++    if let Err(err) = std::fs::create_dir_all(&avatar_directory) {
++        crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_ERROR, format!("Unable to create avatar directory due to {err}\n"));
++        return;
++    }
++
++    for contact in contacts {
++        // A contact with no profile key is one whose profile we are not allowed to read.
++        let key: [u8; 32] = match contact.profile_key.clone().try_into() {
++            Ok(key) => key,
++            Err(_) => continue,
++        };
++        let profile_key = presage::libsignal_service::prelude::ProfileKey::create(key);
++
++        let avatar = match manager.retrieve_profile_avatar_by_uuid(contact.uuid, profile_key).await {
++            Ok(Some(avatar)) => avatar,
++            Ok(None) => continue,
++            Err(err) => {
++                crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, format!("No avatar for {}: {err}\n", contact.uuid));
++                continue;
++            }
++        };
++
++        let path = avatar_directory.join(contact.uuid.to_string());
++        if let Err(err) = std::fs::write(&path, &avatar) {
++            crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_ERROR, format!("Unable to write avatar due to {err}\n"));
++            continue;
++        }
++
++        crate::bridge::append_message(crate::bridge::Message {
++            account: account,
++            who: Some(contact.uuid.to_string()),
++            avatar_path: Some(path.to_string_lossy().into_owned()),
++            ..Default::default()
++        });
++    }
++}
++
+ pub async fn get_group_members<C: presage::store::Store + 'static>(
+     account: *mut crate::bridge_structs::PurpleAccount,
+     manager: presage::Manager<C, presage::manager::Registered>,
 diff --git a/src/rust/src/core.rs b/src/rust/src/core.rs
-index b34023d..e2bc739 100755
+index b34023d..02d3cfb 100755
 --- a/src/rust/src/core.rs
 +++ b/src/rust/src/core.rs
 @@ -138,6 +138,7 @@ pub async fn command_loop<C: presage::store::Store + 'static>(
@@ -521,7 +722,7 @@ index b34023d..e2bc739 100755
      passphrase: Option<String>,
      command_receiver: tokio::sync::mpsc::Receiver<crate::structs::Cmd>,
      account: *mut crate::bridge_structs::PurpleAccount,
-@@ -342,7 +344,7 @@ pub async fn main(
+@@ -342,13 +344,20 @@ pub async fn main(
          }
          Ok(config_store) => {
              crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, String::from("config store OK\n"));
@@ -530,3 +731,16 @@ index b34023d..e2bc739 100755
                  // Login has succeeded, forward (cached) contacts for bitlbee. It tends to forget them after re-connects.
                  crate::contacts::forward_contacts(account, &mut manager).await;
                  // clone the manager so we can receive messages in one task and process commands in the other
+                 let manager_receive = manager.clone();
+                 let local = tokio::task::LocalSet::new();
+                 local.spawn_local(receive(manager_receive, account));
++                /* Profile pictures alongside, not before: the first pass is one request per contact
++                 * and holding up the receive loop for it would mean no messages until it finished. */
++                local.spawn_local(crate::contacts::forward_avatars(
++                    account,
++                    manager.clone(),
++                    std::path::Path::new(&store_path).with_extension("avatars"),
++                ));
+                 local.run_until(command_loop(manager, command_receiver, account)).await;
+             }
+         }
