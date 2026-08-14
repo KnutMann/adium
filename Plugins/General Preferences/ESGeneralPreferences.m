@@ -601,11 +601,9 @@ static NSString *AIRowLabel(NSString *label)
 			 keyEquivalent:@""
 					   tag:AdiumTabPositionLeft];
 
-	[menu addItemWithTitle:AILocalizedString(@"Right","Position menu item for tabs at the right of the message window")
-					target:nil
-					action:nil
-			 keyEquivalent:@""
-					   tag:AdiumTabPositionRight];
+	/* No right. It is the mirror image of left and nobody reads a window from that side, so it was
+	 * one more arrangement to keep working for no one's benefit. A stored right is moved to bottom
+	 * when the interface opens, so nothing is left pointing at a choice that is no longer offered. */
 
 	return [menu autorelease];
 }

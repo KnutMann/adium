@@ -44,8 +44,19 @@
 
 	//Preferences
 	//XXX - move to separate plugin
-    [adium.preferenceController registerDefaults:[NSDictionary dictionaryNamed:DUAL_INTERFACE_DEFAULT_PREFS forClass:[self class]] 
+    [adium.preferenceController registerDefaults:[NSDictionary dictionaryNamed:DUAL_INTERFACE_DEFAULT_PREFS forClass:[self class]]
 										  forGroup:PREF_GROUP_DUAL_WINDOW_INTERFACE];
+
+	/* Tabs down the right hand side are no longer offered, so anybody who had them is moved to the
+	 * bottom rather than left with a window laid out a way the settings can no longer describe.
+	 * Written back rather than merely read around, because the settings would otherwise show bottom
+	 * while the stored value still said right. */
+	if ([[adium.preferenceController preferenceForKey:KEY_TABBAR_POSITION
+												group:PREF_GROUP_DUAL_WINDOW_INTERFACE] intValue] == AdiumTabPositionRight) {
+		[adium.preferenceController setPreference:[NSNumber numberWithInt:AdiumTabPositionBottom]
+										   forKey:KEY_TABBAR_POSITION
+											group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
+	}
 
 	preferenceMessageAdvController = [(ESDualWindowMessageAdvancedPreferences *)[ESDualWindowMessageAdvancedPreferences preferencePane] retain];
 	

@@ -16,6 +16,10 @@
 	<true/>
 	<key>Spell Checking Enabled</key>
 	<true/>
+	<!-- 0 is AdiumTabPositionBottom. It was already what a missing value came to,
+	     since the preference is read with intValue, but said rather than implied. -->
+	<key>Tab Bar Position</key>
+	<integer>0</integer>
 	<key>Text Replacement Substitutions</key>
 	<true/>
 	<key>UserList Minimum Width</key>
