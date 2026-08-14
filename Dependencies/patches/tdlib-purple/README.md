@@ -61,3 +61,46 @@ libpurple into a process that already has the bundled ones. Two glibs mean two s
 tables: the protocol registers itself into one while libpurple reads the other, and the account
 hangs on "Connecting" with no error — indistinguishable from the scheduling bug above, and it cost a
 day to find once. The script rewrites the paths and refuses to finish if any absolute one remains.
+
+## Moving to adrighem's tree
+
+Under way as of 2026-08-15. The plugin in `PurplePlugins/` is still the 0.8.1 build described above;
+what follows is the record of the move, not of what ships today.
+
+adrighem/tdlib-purple 2.1.0 was built against tdlib 1.8.65 and run in Adium with a real account: it
+connects, reuses the tdlib session that 1.8.35 created, receives and sends, and schedules timeouts
+from the libpurple thread. Three changes were needed and all three are offered upstream:
+
+* [#29](https://github.com/adrighem/tdlib-purple/pull/29): master does not compile.
+  `ops->request_yes_no` is not a member of `PurpleRequestUiOps`.
+* [#30](https://github.com/adrighem/tdlib-purple/pull/30): `tgprpl_close` deletes the client before
+  clearing the connection's protocol data, so a reentrant close deletes it twice.
+* [#31](https://github.com/adrighem/tdlib-purple/pull/31): the scheduling, which is what
+  `adium.patch` above solves locally for the 0.8.1 line. Rather than substituting the calls, the
+  plugin dispatches on a context of its own which is driven from libpurple's event loop through
+  `purple_input_add` and `purple_timeout_add`. Answers upstream issue 26.
+
+When those land, the four fixes in `adium.patch` are no longer needed: three are upstream already
+(#24, #25 and the restored deletion prompt), and the scheduling is #31.
+
+### Building that tree here
+
+Two flags beyond the obvious, both learned the hard way:
+
+    cmake -B build -S . \
+      -DTd_DIR=<tdlib 1.8.65>/lib/cmake/Td \
+      -DNoVoip=TRUE -DNoLottie=TRUE \
+      -DCMAKE_DISABLE_FIND_PACKAGE_fmt=TRUE
+
+`NoLottie` because rlottie's pixman NEON assembly is written for 32 bit ARM while the C beside it is
+gated on `__ARM_NEON__`, which clang defines on arm64 as well; the link then fails on
+`pixman_composite_over_n_8888_asm_neon`. Nothing is lost, the shipped 0.8.1 build has no lottie in
+it either. `CMAKE_DISABLE_FIND_PACKAGE_fmt` because cmake otherwise picks up Homebrew's libfmt and
+records it as an absolute path, which `relink_for_bundle.sh` has no mapping for and rightly refuses.
+
+tdlib 1.8.65 has to be built from the commit the tree pins; Homebrew carries 1.8.0 and the
+`Dependencies` tree builds 1.8.35, and the CMakeLists refuses anything below 1.8.65.
+
+One thing to know before switching back: tdlib 1.8.65 upgrades the session database in place, and
+1.8.35 may not read it afterwards. Take a copy of
+`~/Library/Application Support/Adium 2.0/Users/Default/libpurple/tdlib` first.
