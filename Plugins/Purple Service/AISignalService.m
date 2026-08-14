@@ -60,8 +60,12 @@
 - (NSString *)longDescription{
 	return @"Signal";
 }
+/* Not "Signal UUID", although a UUID is what it ends up holding. Nobody knows their Signal UUID
+ * before they have linked, and the first thing this field asks for is a placeholder, so naming it
+ * after the value it will eventually contain reads as a demand for something the user cannot
+ * supply. */
 - (NSString *)userNameLabel{
-	return AILocalizedString(@"Signal UUID", "Label for the account name field for Signal; the account's UUID, or anything on first link");
+	return AILocalizedString(@"Account Name", "Label for the account name field for Signal; holds a placeholder until the first link, then the account's UUID");
 }
 - (NSCharacterSet *)allowedCharacters{
 	//A UUID is hex and hyphens; permissive because the first link accepts any placeholder

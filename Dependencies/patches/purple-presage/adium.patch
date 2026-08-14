@@ -1,5 +1,91 @@
+diff --git a/src/c/connection.c b/src/c/connection.c
+index 21b6295..4a00416 100755
+--- a/src/c/connection.c
++++ b/src/c/connection.c
+@@ -1,6 +1,66 @@
+ #include "presage.h"
++#include <glib/gstdio.h> // g_rename, which respects the encoding rules on the platforms that have them
++
++/*
++ * Move the store to the name the account is about to be given.
++ *
++ * The store is named after the username, and the username is what the user typed before anything
++ * knew the account's real UUID. Linking therefore lands in a store called after a placeholder, and
++ * the error telling the user to correct the username also, on its own, invalidates the work: the
++ * corrected name points at a store that does not exist, so the QR code comes back and the device
++ * linked a minute ago sits on the account doing nothing. Moving the store instead means the second
++ * attempt finds what the first one did, and there is one scan rather than two.
++ *
++ * Called only from rust_main_finished, and that is the point of it. Renaming a SQLite database out
++ * from under an open connection is a way to lose data quietly; here the runtime has returned, so
++ * everything is closed.
++ */
++static void presage_move_store_to_uuid(PurpleAccount *account) {
++    const char *uuid = purple_account_get_string(account, PRESAGE_PENDING_UUID_SETTING, NULL);
++    if (uuid == NULL || uuid[0] == '\0') {
++        return;
++    }
++    purple_account_set_string(account, PRESAGE_PENDING_UUID_SETTING, "");
++
++    const char *username = purple_account_get_username(account);
++    if (username == NULL || purple_strequal(username, uuid)) {
++        return;
++    }
++
++    const char *user_dir = purple_user_dir();
++    // the write ahead log and its shared memory file belong to the database and move with it
++    const char * const suffixes[] = {"", "-wal", "-shm"};
++    gchar *from[G_N_ELEMENTS(suffixes)];
++    gchar *to[G_N_ELEMENTS(suffixes)];
++    for (gsize i = 0; i < G_N_ELEMENTS(suffixes); i++) {
++        from[i] = g_strdup_printf("%s/presage/%s.db3%s", user_dir, username, suffixes[i]);
++        to[i] = g_strdup_printf("%s/presage/%s.db3%s", user_dir, uuid, suffixes[i]);
++    }
++
++    /* Refuse rather than overwrite. A store already under the real name means this account has been
++     * linked before, and that one is the one worth keeping. */
++    if (!g_file_test(from[0], G_FILE_TEST_EXISTS)) {
++        purple_debug_info(PLUGIN_NAME, "no store at %s to move.\n", from[0]);
++    } else if (g_file_test(to[0], G_FILE_TEST_EXISTS)) {
++        purple_debug_info(PLUGIN_NAME, "not moving store: %s already exists.\n", to[0]);
++    } else {
++        for (gsize i = 0; i < G_N_ELEMENTS(suffixes); i++) {
++            if (g_file_test(from[i], G_FILE_TEST_EXISTS) && g_rename(from[i], to[i]) != 0) {
++                purple_debug_error(PLUGIN_NAME, "failed to move %s to %s.\n", from[i], to[i]);
++            }
++        }
++        purple_debug_info(PLUGIN_NAME, "moved store to %s.\n", to[0]);
++    }
++
++    for (gsize i = 0; i < G_N_ELEMENTS(suffixes); i++) {
++        g_free(from[i]);
++        g_free(to[i]);
++    }
++}
+ 
+ static gboolean rust_main_finished(gpointer account) {
++    presage_move_store_to_uuid(account);
++
+     PurpleConnection *connection = purple_account_get_connection(account);
+     if (connection == NULL) {
+         purple_debug_info(PLUGIN_NAME, "rust runtime has finished after connection ceased to exist.\n");
+diff --git a/src/c/presage.h b/src/c/presage.h
+index f0fd7e1..293521b 100755
+--- a/src/c/presage.h
++++ b/src/c/presage.h
+@@ -9,6 +9,10 @@
+ extern const char * PRESAGE_STARTUP_DELAY_SECONDS_OPTION;
+ extern const char * PRESAGE_ATTACHMENT_PATH_TEMPLATE_OPTION;
+ 
++/* Carries the account's real UUID from the moment the back-end reports it to the moment the store
++ * can safely be moved to match. Not a user setting; see presage_move_store_to_uuid. */
++#define PRESAGE_PENDING_UUID_SETTING "pending-uuid"
++
+ #ifdef _WIN32
+ static_assert(sizeof(time_t) == 4, "time_t must be 4 bytes (32 bit)");
+ #else
 diff --git a/src/c/qrcode.c b/src/c/qrcode.c
-index 7da09b0..e0408a6 100755
+index 7da09b0..997ce09 100755
 --- a/src/c/qrcode.c
 +++ b/src/c/qrcode.c
 @@ -1,5 +1,6 @@
@@ -88,3 +174,16 @@ index 7da09b0..e0408a6 100755
  }
  
  static void write_qrcode_as_conversation(PurpleConnection *connection, const char *data) {
+@@ -107,6 +122,12 @@ void presage_handle_uuid(PurpleConnection *connection, const char *uuid) {
+     if (purple_strequal(username, uuid)) {
+         purple_request_close_with_handle(connection); // close request displaying the QR code
+     } else {
++        /* The linking has already happened at this point, and it happened into a store named after
++         * whatever the user typed. Note the real name down so the store can be moved to match once
++         * the runtime has stopped; without that, correcting the username points the plug-in at an
++         * empty store, the QR code comes back, and the device that was just linked is left behind on
++         * the account doing nothing. See presage_move_store_to_uuid in connection.c. */
++        purple_account_set_string(account, PRESAGE_PENDING_UUID_SETTING, uuid);
+         char *errmsg = g_strdup_printf("Username for this account must be '%s'.", uuid);
+         purple_connection_error(connection, PURPLE_CONNECTION_ERROR_OTHER_ERROR, errmsg);
+         g_free(errmsg);
