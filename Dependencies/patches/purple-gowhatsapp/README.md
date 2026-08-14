@@ -1,0 +1,60 @@
+# purple-gowhatsapp patches
+
+`Dependencies/source` is not under version control, so this patch is the only record in this
+repository of what `PurplePlugins/libwhatsmeow.so` was built from.
+
+Base revision: `5a725916f15322751421ed07351eb9378169c062` (2026-08-10) of
+<https://github.com/hoehermann/purple-gowhatsapp>, branch `whatsmeow`. Upstream is active, so the
+patch is expected to be rebased rather than carried forever. The working checkout also has a remote
+`knutmann` pointing at <https://github.com/KnutMann/purple-gowhatsapp>, where the earlier single
+purpose branches were pushed. The combined branch these changes now live on is local only.
+
+## adium.patch
+
+Seven commits, all of them adjustments to what suits a Cocoa frontend rather than corrections to
+upstream's own behaviour, with one exception noted last.
+
+**Reactions, inline media, voice notes, display names.** The largest of them. Voice notes arrive as
+Ogg/Opus, which WebKit will not play, so they are decoded to WAV next to the temporary file and
+announced as a link the message view turns into a player. Adium renders media itself, so images are
+handed to the conversation instead of being offered as downloads.
+
+**Location messages as Apple Maps links, and no buddies for group identifiers.** A group is a chat,
+not a contact, and creating a buddy for one puts a row in the contact list that can never be
+messaged sensibly.
+
+**Documents are fetched and announced with a file link** rather than left as an offer to accept.
+
+**Profile pictures at full resolution**, since the list can scale down but cannot invent detail.
+
+**Message cache raised to 500.** The cache is what lets an edit or a reaction find the message it
+refers to, and the upstream default is small enough that anything but a brisk conversation loses
+the reference.
+
+**Inline media by default.** The test in `gowhatsapp_handle_attachment` compares the option against
+INLINE, so the fallback value decides what every account that never touched the setting does.
+
+**A sent picture is attributed to the sender, not to the conversation.** This one is a plain fix and
+worth offering upstream. The inline echo of an outgoing image passed the transfer's `who` as both
+the sender and the conversation. In a one to one chat those are the same string and nothing looks
+wrong. In a group chat `who` is the group, so the picture appeared under the group's raw identifier,
+`120363...@g.us`, while every other message from the same account showed the account holder's name.
+Passing the account name also makes `gowhatsapp_display_text_message` recognise the message as
+outgoing, which it decides by comparing the sender against the account.
+
+## Rebuilding the plugin
+
+There is no build phase for this; it is done by hand.
+
+    cd Dependencies/source/purple-gowhatsapp
+    git apply ../../patches/purple-gowhatsapp/adium.patch     # if starting from a fresh checkout
+    cmake --build build
+
+Then, and this step is not optional:
+
+    ./Dependencies/patches/purple-gowhatsapp/relink_for_bundle.sh
+
+The script copies the result over `PurplePlugins/libwhatsmeow.so`, rewrites the absolute paths cmake
+recorded so everything resolves inside the bundle, signs it, and refuses to finish if any absolute
+path remains. Skipping it loads second copies of glib, libpurple and gettext into a process that
+already has them, and the failures that follow are confusing out of all proportion to the cause.

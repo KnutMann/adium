@@ -1,0 +1,740 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0c9a9a6..b4b9670 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,56 +1,56 @@
+-﻿cmake_minimum_required(VERSION 3.16...3.24)
+-
+-project("purple-whatsmeow" C)
+-
+-# TODO: add support for
+-# find_package(OpusFile CONFIG REQUIRED)
+-# target_link_libraries(main PRIVATE OpusFile::opusfile)
+-find_package(PkgConfig QUIET)
+-if (${PKG_CONFIG_FOUND})
+-    pkg_check_modules(PIXBUF gdk-pixbuf-2.0)
+-    pkg_check_modules(OPUSFILE opusfile)
+-    if (OPUSFILE_LINK_LIBRARIES MATCHES "\\.a$")
+-        # a static opusfile does not pull in its private dependencies (opus, ogg) automatically
+-        find_library(OPUS_LIB opus HINTS ${OPUSFILE_LIBRARY_DIRS})
+-        find_library(OGG_LIB ogg HINTS ${OPUSFILE_LIBRARY_DIRS})
+-        if (OPUS_LIB AND OGG_LIB)
+-            list(APPEND OPUSFILE_LINK_LIBRARIES ${OPUS_LIB} ${OGG_LIB})
+-        endif()
+-    endif()
+-endif()
+-if (NOT "${OPUSFILE_FOUND}")
+-    message(STATUS "opusfile not found via pkg-config, trying file-based search...")
+-    find_path(OPUSFILE_INCLUDE_DIR opusfile.h PATH_SUFFIXES opus)
+-    find_path(OGG_INCLUDE_DIR ogg/ogg.h)
+-    if (OPUSFILE_INCLUDE_DIR AND OGG_INCLUDE_DIR)
+-        set(OPUSFILE_INCLUDE_DIRS ${OPUSFILE_INCLUDE_DIR} ${OPUSFILE_INCLUDE_DIR}/opus ${OGG_INCLUDE_DIR})
+-    endif()
+-    find_library(OPUSFILE_LIB opusfile)
+-    find_library(OPUS_LIB opus)
+-    find_library(OGG_LIB ogg)
+-    if (OPUSFILE_LIB AND OPUS_LIB AND OGG_LIB)
+-        set(OPUSFILE_LINK_LIBRARIES ${OPUSFILE_LIB} ${OPUS_LIB} ${OGG_LIB})
+-    endif()
+-endif()
+-
+-set(Purple_DIR "scripts/purple-cmake" CACHE PATH "Where to find purple-config.cmake")
+-find_package(Purple REQUIRED)
+-
+-message(STATUS "PURPLE_INCLUDE_DIRS: ${PURPLE_INCLUDE_DIRS}")
+-message(STATUS "PURPLE_LIBRARY_DIRS: ${PURPLE_LIBRARY_DIRS}")
+-message(STATUS "PURPLE_LIBRARIES: ${PURPLE_LIBRARIES}")
+-message(STATUS "PURPLE_PLUGIN_DIR: ${PURPLE_PLUGIN_DIR}")
+-message(STATUS "PURPLE_DATA_DIR: ${PURPLE_DATA_DIR}")
+-message(STATUS "PIXBUF_INCLUDE_DIRS: ${PIXBUF_INCLUDE_DIRS}") # might be supplied by either PkgConfig or Purple on win32
+-message(STATUS "OPUSFILE_INCLUDE_DIRS: ${OPUSFILE_INCLUDE_DIRS}")
+-message(STATUS "OPUSFILE_LINK_LIBRARIES: ${OPUSFILE_LINK_LIBRARIES}")
+-
+-# read version string from file
+-file(READ "${CMAKE_SOURCE_DIR}/VERSION" VERSION)
+-
+-include(scripts/go.cmake)
+-add_subdirectory(glue)
+-
+-install(DIRECTORY "assets/pixmaps" DESTINATION "${PURPLE_DATA_DIR}" FILES_MATCHING PATTERN "*.png")
+-
+-include(scripts/cpack.cmake)
++﻿cmake_minimum_required(VERSION 3.16...3.24)
++
++project("purple-whatsmeow" C)
++
++# TODO: add support for
++# find_package(OpusFile CONFIG REQUIRED)
++# target_link_libraries(main PRIVATE OpusFile::opusfile)
++find_package(PkgConfig QUIET)
++if (${PKG_CONFIG_FOUND})
++    pkg_check_modules(PIXBUF gdk-pixbuf-2.0)
++    pkg_check_modules(OPUSFILE opusfile)
++    if (OPUSFILE_LINK_LIBRARIES MATCHES "\\.a$")
++        # a static opusfile does not pull in its private dependencies (opus, ogg) automatically
++        find_library(OPUS_LIB opus HINTS ${OPUSFILE_LIBRARY_DIRS})
++        find_library(OGG_LIB ogg HINTS ${OPUSFILE_LIBRARY_DIRS})
++        if (OPUS_LIB AND OGG_LIB)
++            list(APPEND OPUSFILE_LINK_LIBRARIES ${OPUS_LIB} ${OGG_LIB})
++        endif()
++    endif()
++endif()
++if (NOT "${OPUSFILE_FOUND}")
++    message(STATUS "opusfile not found via pkg-config, trying file-based search...")
++    find_path(OPUSFILE_INCLUDE_DIR opusfile.h PATH_SUFFIXES opus)
++    find_path(OGG_INCLUDE_DIR ogg/ogg.h)
++    if (OPUSFILE_INCLUDE_DIR AND OGG_INCLUDE_DIR)
++        set(OPUSFILE_INCLUDE_DIRS ${OPUSFILE_INCLUDE_DIR} ${OPUSFILE_INCLUDE_DIR}/opus ${OGG_INCLUDE_DIR})
++    endif()
++    find_library(OPUSFILE_LIB opusfile)
++    find_library(OPUS_LIB opus)
++    find_library(OGG_LIB ogg)
++    if (OPUSFILE_LIB AND OPUS_LIB AND OGG_LIB)
++        set(OPUSFILE_LINK_LIBRARIES ${OPUSFILE_LIB} ${OPUS_LIB} ${OGG_LIB})
++    endif()
++endif()
++
++set(Purple_DIR "scripts/purple-cmake" CACHE PATH "Where to find purple-config.cmake")
++find_package(Purple REQUIRED)
++
++message(STATUS "PURPLE_INCLUDE_DIRS: ${PURPLE_INCLUDE_DIRS}")
++message(STATUS "PURPLE_LIBRARY_DIRS: ${PURPLE_LIBRARY_DIRS}")
++message(STATUS "PURPLE_LIBRARIES: ${PURPLE_LIBRARIES}")
++message(STATUS "PURPLE_PLUGIN_DIR: ${PURPLE_PLUGIN_DIR}")
++message(STATUS "PURPLE_DATA_DIR: ${PURPLE_DATA_DIR}")
++message(STATUS "PIXBUF_INCLUDE_DIRS: ${PIXBUF_INCLUDE_DIRS}") # might be supplied by either PkgConfig or Purple on win32
++message(STATUS "OPUSFILE_INCLUDE_DIRS: ${OPUSFILE_INCLUDE_DIRS}")
++message(STATUS "OPUSFILE_LINK_LIBRARIES: ${OPUSFILE_LINK_LIBRARIES}")
++
++# read version string from file
++file(READ "${CMAKE_SOURCE_DIR}/VERSION" VERSION)
++
++include(scripts/go.cmake)
++add_subdirectory(glue)
++
++install(DIRECTORY "assets/pixmaps" DESTINATION "${PURPLE_DATA_DIR}" FILES_MATCHING PATTERN "*.png")
++
++include(scripts/cpack.cmake)
+diff --git a/bridge.go b/bridge.go
+index 875ee04..1b5cbf3 100644
+--- a/bridge.go
++++ b/bridge.go
+@@ -297,6 +297,16 @@ func gowhatsapp_go_get_contacts(account *PurpleAccount, flush C.int) {
+ 					}
+ 					C.gowhatsapp_process_message_bridge(cmessage)
+ 				}
++				// also announce our own profile name so the UI can adopt it
++				if handler.client.Store.ID != nil && handler.client.Store.PushName != "" {
++					cmessage := C.struct_gowhatsapp_message{
++						account:   account,
++						msgtype:   C.char(C.gowhatsapp_message_type_name),
++						remoteJid: C.CString(handler.client.Store.ID.ToNonAD().String()),
++						name:      C.CString(handler.client.Store.PushName),
++					}
++					C.gowhatsapp_process_message_bridge(cmessage)
++				}
+ 				// send one "nil" contact to indicate end of list
+ 				cmessage := C.struct_gowhatsapp_message{
+ 					account:   account,
+diff --git a/glue/blist.c b/glue/blist.c
+index 48ccd40..568cf2f 100644
+--- a/glue/blist.c
++++ b/glue/blist.c
+@@ -27,32 +27,39 @@ void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy) {
+  * identifier is the username (purple who)
+  * name is the human readable name (purple alias).
+  */
+-PurpleBuddy * gowhatsapp_ensure_buddy_in_blist(PurpleAccount *account, const char *identifier, const char *name) {
++PurpleBuddy * gowhatsapp_ensure_buddy_in_blist(PurpleAccount *account, const char *identifier, const char *name, gboolean authoritative) {
+     if (purple_str_has_suffix(identifier, "@lid")) {
+         // TODO: combine into existing non-hidden buddy
+         return NULL;
+     }
+ 
++    /* Groups are chats (bookmarks), not contacts: never create a buddy
++     * for a group JID. Opening such a pseudo-contact would start a 1:1
++     * conversation with the group JID, which silently goes nowhere. */
++    if (purple_str_has_suffix(identifier, "@g.us")) {
++        return NULL;
++    }
++
+     PurpleBuddy *buddy = purple_blist_find_buddy(account, identifier);
+ 
+     if (!buddy) {
+         PurpleGroup *group = gowhatsapp_get_purple_group();
+-        buddy = purple_buddy_new(account, identifier, name); // MEMCHECK: blist takes ownership
++        buddy = purple_buddy_new(account, identifier, NULL); // MEMCHECK: blist takes ownership; no local alias – that belongs to the user
+         purple_blist_add_buddy(buddy, NULL, group, NULL);
+         gowhatsapp_subscribe_presence_updates(account, buddy);
+     }
+ 
+-    // update name after checking against local alias and persisted name
++    /* Update the server-side alias only. The local alias stays under the user's
++     * control. Authoritative names come from the contact sync (the address book
++     * name); non-authoritative ones are push names riding along with messages,
++     * which must never overwrite a synced name. */
+     if (name != NULL && *name) {
+-        const char *local_alias = purple_buddy_get_alias(buddy);
+         const char *server_alias = purple_blist_node_get_string(&buddy->node, "server_alias");
+-        if (local_alias == NULL) {
+-            // if no local alias exists, use the provided one
+-            purple_blist_alias_buddy(buddy, name);
+-        }
+-        if (!purple_strequal(local_alias, name) && !purple_strequal(server_alias, name)) {
+-            purple_serv_got_alias(purple_account_get_connection(account), identifier, name); // this sets buddy->server_alias, but it is not persisted
+-            purple_blist_node_set_string(&buddy->node, "server_alias", name); // explicitly persist the new name so there is no name-change reported after a restart
++        gboolean update = authoritative ? !purple_strequal(server_alias, name)
++                                        : (server_alias == NULL || !*server_alias);
++        if (update) {
++            purple_serv_got_alias(purple_account_get_connection(account), identifier, name);
++            purple_blist_node_set_string(&buddy->node, "server_alias", name); // persist so there is no name-change reported after a restart
+         }
+     }
+ 
+diff --git a/glue/display_message.c b/glue/display_message.c
+index 7674529..b48b265 100644
+--- a/glue/display_message.c
++++ b/glue/display_message.c
+@@ -80,7 +80,7 @@ void gowhatsapp_display_text_message(
+             purple_conv_im_write(purple_conversation_get_im_data(conv), remoteJid, text_with_id, flags, timestamp);
+         } else {
+             if (purple_account_get_bool(account, GOWHATSAPP_UPDATE_BUDDY_ON_MESSAGE_OPTION, TRUE)) {
+-                gowhatsapp_ensure_buddy_in_blist(account, remoteJid, name);
++                gowhatsapp_ensure_buddy_in_blist(account, remoteJid, name, FALSE);
+             }
+             purple_serv_got_im(connection, remoteJid, text_with_id, flags, timestamp);
+         }
+diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
+index 0945d37..d54db62 100644
+--- a/glue/gowhatsapp.h
++++ b/glue/gowhatsapp.h
+@@ -55,7 +55,7 @@ void gowhatsapp_free_name(PurpleConversation *conv);
+ char *gowhatsapp_get_cb_alias(PurpleConnection *gc, int id, const char *who);
+ 
+ // blist
+-PurpleBuddy * gowhatsapp_ensure_buddy_in_blist(PurpleAccount *account, const char *remoteJid, const char *display_name);
++PurpleBuddy * gowhatsapp_ensure_buddy_in_blist(PurpleAccount *account, const char *remoteJid, const char *display_name, gboolean authoritative);
+ PurpleChat * gowhatsapp_ensure_group_chat_in_blist(PurpleAccount *account, const char *remoteJid, const char *topic);
+ PurpleGroup * gowhatsapp_get_purple_group();
+ PurpleChat * gowhatsapp_find_blist_chat(PurpleAccount *account, const char *jid);
+diff --git a/glue/groups.c b/glue/groups.c
+index 0336962..37fa2ab 100644
+--- a/glue/groups.c
++++ b/glue/groups.c
+@@ -168,6 +168,8 @@ void gowhatsapp_handle_group(PurpleConnection *pc, gowhatsapp_message_t *gwamsg)
+         // this might be a delayed response to a query for participants of a currently active group chat
+         PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, gwamsg->remoteJid, gwamsg->account);
+         if (conv != NULL) {
++            // refresh the human readable title from the (possibly just updated) blist alias
++            purple_conversation_autoset_title(conv);
+             PurpleConvChat *conv_chat = purple_conversation_get_chat_data(conv);
+             if (conv_chat != NULL) {
+                 gowhatsapp_chat_set_participants(conv_chat, gwamsg->participants);
+@@ -190,12 +192,30 @@ void gowhatsapp_handle_group(PurpleConnection *pc, gowhatsapp_message_t *gwamsg)
+  */
+ void 
+ gowhatsapp_chat_set_participants(PurpleConvChat *conv_chat, char **participants) {
++    PurpleConversation *conv = purple_conv_chat_get_conversation(conv_chat);
++    PurpleAccount *account = conv ? purple_conversation_get_account(conv) : NULL;
+     // remove all users
+     purple_conv_chat_clear_users(conv_chat);
+-    // now add all current users
++    // now add all current users, resolving their display names where possible
+     for(char **participant_ptr = participants; participant_ptr != NULL && *participant_ptr != NULL; participant_ptr++) {
+         PurpleConvChatBuddyFlags flags = 0;
+-        purple_conv_chat_add_user(conv_chat, *participant_ptr, NULL, flags, FALSE);
++        char *alias = NULL;
++        if (account != NULL) {
++            if (purple_strequal(*participant_ptr, purple_account_get_username(account))) {
++                /* Ourselves: prefer the WhatsApp profile name over our own
++                 * address book card, matching how outgoing messages are shown */
++                const char *self_name = purple_account_get_string(account, "self-display-name", NULL);
++                if (self_name && *self_name) {
++                    alias = strdup(self_name);
++                }
++            }
++            if (alias == NULL || !*alias) {
++                free(alias);
++                alias = gowhatsapp_go_get_display_name(account, *participant_ptr);
++            }
++        }
++        purple_conv_chat_add_user(conv_chat, *participant_ptr, (alias && *alias) ? alias : NULL, flags, FALSE);
++        free(alias);
+     }
+ }
+ 
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index 31fcf0a..88ff9c2 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -1,4 +1,5 @@
+ #include "gowhatsapp.h"
++#include "../opusreader.h"
+ #include "libwhatsmeow.h"
+ #include "constants.h"
+ #include "pixbuf.h"
+@@ -36,6 +37,68 @@ static void gowhatsapp_display_image_inline(gowhatsapp_message_t *gwamsg, const
+     }
+ }
+ 
++static gboolean gowhatsapp_is_voice_mimetype(const char *mimetype) {
++    return mimetype != NULL &&
++        (g_str_has_prefix(mimetype, "audio/ogg") || g_str_has_prefix(mimetype, "application/ogg"));
++}
++
++/* Voice notes are Ogg/Opus, which WebKit cannot play; decode to WAV in the
++ * temporary directory and hand the chat a link the message view turns into
++ * an inline audio player. The WAV stays around for playback. */
++static void gowhatsapp_display_audio_inline(gowhatsapp_message_t *gwamsg, const char *local_file_path) {
++    gchar *wav_name = g_strdup_printf("AdiumVoice_%s.wav", gwamsg->hash_hex);
++    gchar *wav_path = g_build_filename(g_get_tmp_dir(), wav_name, NULL);
++    g_free(wav_name);
++    int64_t seconds = opusfile_decode_file_to_wav(local_file_path, wav_path);
++    if (seconds >= 0) {
++        gchar *text = g_strdup_printf("<a href=\"file://%s\">Voice message (%d:%02d)</a>",
++                                      wav_path, (int)(seconds / 60), (int)(seconds % 60));
++        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, FALSE);
++        g_free(text);
++    } else {
++        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, "Received a voice message, but it could not be decoded.", gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
++    }
++    g_free(wav_path);
++}
++
++/* Documents (and other non-image, non-voice, non-video attachments) are
++ * auto-downloaded to the user's download directory and announced with a
++ * clickable file link — WhatsApp semantics, avoiding the transfer prompt
++ * (which would target the group JID as a pseudo 1:1 contact). */
++static void gowhatsapp_display_document_inline(gowhatsapp_message_t *gwamsg) {
++    const char *downloads = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
++    if (downloads == NULL) {
++        downloads = g_get_tmp_dir();
++    }
++    gchar *base;
++    if (gwamsg->filename != NULL && gwamsg->filename[0]) {
++        base = g_strdup_printf("%s%s", gwamsg->filename, gwamsg->extension);
++    } else {
++        base = g_strdup_printf("%s%s", gwamsg->hash_hex, gwamsg->extension);
++    }
++    gchar *local_path = g_build_filename(downloads, base, NULL);
++    for (int i = 2; g_file_test(local_path, G_FILE_TEST_EXISTS) && i < 100; i++) {
++        g_free(local_path);
++        gchar *numbered = g_strdup_printf("%s (%d)%s",
++            (gwamsg->filename && gwamsg->filename[0]) ? gwamsg->filename : gwamsg->hash_hex,
++            i, gwamsg->extension);
++        local_path = g_build_filename(downloads, numbered, NULL);
++        g_free(numbered);
++    }
++    char *error = gowhatsapp_go_download_attachment(gwamsg->account, local_path, gwamsg->download_handle);
++    gwamsg->download_handle = 0;
++    if (error && error[0]) {
++        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
++    } else {
++        gchar *text = g_strdup_printf("<a href=\"file://%s\">%s</a>", local_path, base);
++        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, FALSE);
++        g_free(text);
++    }
++    g_free(error);
++    g_free(local_path);
++    g_free(base);
++}
++
+ static void gowhatsapp_display_caption(gowhatsapp_message_t *gwamsg) {
+     if (gwamsg->text && gwamsg->text[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, gwamsg->text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, TRUE);
+@@ -261,7 +324,11 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+     if (error && error[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
+     } else {
+-        gowhatsapp_display_image_inline(gwamsg, local_path_tmp);
++        if (gowhatsapp_is_voice_mimetype(gwamsg->mimetype)) {
++            gowhatsapp_display_audio_inline(gwamsg, local_path_tmp);
++        } else {
++            gowhatsapp_display_image_inline(gwamsg, local_path_tmp);
++        }
+         gowhatsapp_display_caption(gwamsg);
+     }
+     g_remove(local_path_tmp);
+@@ -269,10 +336,18 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+ }
+ 
+ void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg) {
+-    gboolean inline_only = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
+-    inline_only &= gowhatsapp_attachment_is_inline_image(gwamsg); // only inline images which can be loaded
++    /* Default to INLINE, not upstream's BOTH: this line tests for equality with INLINE, so the
++     * fallback decides the behaviour of every account that never set the option. Adium shows
++     * media in the message view, so showing it there is what it should do out of the box. */
++    gboolean inline_mode = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
++    gboolean is_video = (gwamsg->mimetype != NULL && g_str_has_prefix(gwamsg->mimetype, "video/"));
++    // only media the frontend can show: images by the upstream rule, plus voice notes, which Adium plays inline
++    gboolean inline_only = inline_mode && (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
+     if (inline_only) {
+         download_to_temporary_directory(gwamsg);
++    } else if (inline_mode && !is_video) {
++        gowhatsapp_display_document_inline(gwamsg);
++        gowhatsapp_display_caption(gwamsg);
+     } else {
+         const char *local_path_template = purple_account_get_string(gwamsg->account, GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_OPTION, GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_DEFAULT);
+         if (local_path_template && local_path_template[0]) {
+diff --git a/glue/options.c b/glue/options.c
+index 074c385..205e4ca 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -69,7 +69,7 @@ gowhatsapp_add_account_options(GList *account_options)
+     option = purple_account_option_int_new(
+                 "Number of messages to cache",
+                 GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION,
+-                0
++                500
+                 );
+     account_options = g_list_append(account_options, option);
+ 
+@@ -119,9 +119,9 @@ gowhatsapp_add_account_options(GList *account_options)
+         
+     {
+         GList *choices = NULL;
+-        choices = add_choice(choices, "no", GOWHATSAPP_ICONS_CHOICE_NO);
+-        choices = add_choice(choices, "preview", GOWHATSAPP_ICONS_CHOICE_PREVIEW);
+         choices = add_choice(choices, "original", GOWHATSAPP_ICONS_CHOICE_ORIGINAL);
++        choices = add_choice(choices, "preview", GOWHATSAPP_ICONS_CHOICE_PREVIEW);
++        choices = add_choice(choices, "no", GOWHATSAPP_ICONS_CHOICE_NO);
+         option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
+             "Download user profile pictures",
+             GOWHATSAPP_ICONS_OPTION,
+@@ -132,8 +132,8 @@ gowhatsapp_add_account_options(GList *account_options)
+ 
+     {
+         GList *choices = NULL;
+-        choices = add_choice(choices, "download to user-defined location and show", GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH);
+         choices = add_choice(choices, "download to temporary location and show", GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
++        choices = add_choice(choices, "download to user-defined location and show", GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH);
+         choices = add_choice(choices, "download to user-defined location only", GOWHATSAPP_HANDLE_IMAGES_CHOICE_ATTACHMENT);
+         option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
+             "How to handle images",
+@@ -209,7 +209,7 @@ gowhatsapp_add_account_options(GList *account_options)
+     option = purple_account_option_bool_new( // MEMCHECK: account_options takes ownership
+         "Inline images of all types (requires frontend support)",
+         GOWHATSAPP_INLINE_ALL_IMAGES_OPTION,
+-        FALSE
++        TRUE // Adium draws images itself and needs no gdk-pixbuf loader, so it is such a frontend
+         );
+     account_options = g_list_append(account_options, option);
+ 
+diff --git a/glue/presence.c b/glue/presence.c
+index 3955255..5b1e153 100644
+--- a/glue/presence.c
++++ b/glue/presence.c
+@@ -140,7 +140,7 @@ gowhatsapp_subscribe_presence_updates(PurpleAccount *account, PurpleBuddy *buddy
+ void gowhatsapp_request_profile_picture(PurpleAccount *account, PurpleBuddy *buddy) {
+     g_return_if_fail(buddy != NULL);
+ 
+-    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_NO), GOWHATSAPP_ICONS_CHOICE_NO)) {
++    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
+         const char *picture_id = purple_blist_node_get_string(&buddy->node, "picture_id");
+         const char *picture_date = purple_blist_node_get_string(&buddy->node, "picture_date");
+         gowhatsapp_go_request_profile_picture(account, buddy->name, (char *)picture_date, (char *)picture_id); // cgo does not suport const
+diff --git a/glue/process_message.c b/glue/process_message.c
+index 1d53d9b..9de9fdf 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -105,8 +105,13 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+                 gowhatsapp_connection_set_online(pc);
+                 // we also want to query the room list automatically (so group chats may be added to the buddy list).
+                 gowhatsapp_roomlist_get_list(pc);
++            } else if (purple_strequal(gwamsg->remoteJid, purple_account_get_username(gwamsg->account))) {
++                /* Our own profile name; expose it so the UI can adopt it */
++                if (gwamsg->name && *gwamsg->name) {
++                    purple_account_set_string(gwamsg->account, "self-display-name", gwamsg->name);
++                }
+             } else {
+-                gowhatsapp_ensure_buddy_in_blist(gwamsg->account, gwamsg->remoteJid, gwamsg->name);
++                gowhatsapp_ensure_buddy_in_blist(gwamsg->account, gwamsg->remoteJid, gwamsg->name, TRUE);
+             }
+             break;
+         case gowhatsapp_message_type_disconnected:
+diff --git a/glue/send_file.c b/glue/send_file.c
+index 7858f5c..b62ef57 100644
+--- a/glue/send_file.c
++++ b/glue/send_file.c
+@@ -1,5 +1,39 @@
+ #include "gowhatsapp.h"
+ #include "libwhatsmeow.h"
++#include <string.h>
++
++/* After a successful outgoing transfer, echo the image into the chat so the
++ * sender sees what they sent (mirrors the inline display of received images). */
++static void
++gowhatsapp_display_sent_image_inline(PurpleAccount *account, const char *who, const char *filename)
++{
++    gchar *data = NULL;
++    gsize len = 0;
++    if (!g_file_get_contents(filename, &data, &len, NULL)) {
++        return;
++    }
++    gboolean is_png = (len > 8 && memcmp(data, "\x89PNG", 4) == 0);
++    gboolean is_jpg = (len > 3 && (guchar)data[0] == 0xFF && (guchar)data[1] == 0xD8);
++    if (!is_png && !is_jpg) {
++        g_free(data);
++        return;
++    }
++    int img_id = purple_imgstore_add_with_id(data, len, NULL); // takes ownership of data
++    if (img_id > 0) {
++        gboolean isGroup = (strstr(who, "@g.us") != NULL);
++        gchar *text = g_strdup_printf("<img id=\"%u\">", img_id);
++        /* Sender and conversation are two different things, and in a group chat they are never the
++         * same. Passing the chat as the sender labelled our own picture with the group's raw
++         * identifier, "120363...@g.us", where every other message we send shows our name. The account
++         * name is also what gowhatsapp_display_text_message compares against to decide that this is an
++         * outgoing message rather than an incoming one. */
++        gowhatsapp_display_text_message(account, purple_account_get_username(account), who, text, time(NULL), isGroup, TRUE, NULL, PURPLE_MESSAGE_IMAGES, NULL, FALSE);
++        g_free(text);
++        purple_imgstore_unref_by_id(img_id);
++    } else {
++        g_free(data);
++    }
++}
+ 
+ static void
+ gowhatsapp_free_xfer(PurpleXfer *xfer)
+@@ -19,6 +53,7 @@ gowhatsapp_xfer_send_init(PurpleXfer *xfer)
+     } else {
+         purple_xfer_set_bytes_sent(xfer, purple_xfer_get_size(xfer));
+         purple_xfer_set_completed(xfer, TRUE);
++        gowhatsapp_display_sent_image_inline(account, who, filename);
+     }
+     g_free(error);
+ }
+diff --git a/groups.go b/groups.go
+index acdf515..22a050a 100644
+--- a/groups.go
++++ b/groups.go
+@@ -16,9 +16,10 @@ import (
+ func (handler *Handler) query_group_participants_retry(group_jid types.JID, seconds_backoff int, max_retries int, retry_count int) []types.GroupParticipant {
+ 	group, err := handler.client.GetGroupInfo(context.TODO(), group_jid)
+ 	if err == nil && group != nil {
+-		if retry_count > 0 {
+-			purple_update_group(handler.account, group)
+-		} else {
++		// always feed the full group info (name included) back to purple,
++		// so conversation titles resolve even on the first fetch
++		purple_update_group(handler.account, group)
++		if retry_count == 0 {
+ 			return group.Participants
+ 		}
+ 	} else {
+diff --git a/handle_message.go b/handle_message.go
+index 2adc92f..17f7c5b 100644
+--- a/handle_message.go
++++ b/handle_message.go
+@@ -159,6 +159,27 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
+ 			}
+ 		}
+ 	}
++	{
++		lm := message.GetLocationMessage()
++		if lm != nil {
++			label := lm.GetName()
++			if label == "" {
++				label = lm.GetAddress()
++			}
++			if label == "" {
++				label = "Shared location"
++			}
++			text += fmt.Sprintf("%s: https://maps.apple.com/?ll=%f,%f&q=%f,%f", label,
++				lm.GetDegreesLatitude(), lm.GetDegreesLongitude(),
++				lm.GetDegreesLatitude(), lm.GetDegreesLongitude())
++		}
++		llm := message.GetLiveLocationMessage()
++		if llm != nil {
++			text += fmt.Sprintf("Sharing live location (last position: https://maps.apple.com/?ll=%f,%f&q=%f,%f)",
++				llm.GetDegreesLatitude(), llm.GetDegreesLongitude(),
++				llm.GetDegreesLatitude(), llm.GetDegreesLongitude())
++		}
++	}
+ 	{
+ 		pcm := GetAnyPollCreationMessage(message)
+ 		if pcm != nil {
+diff --git a/handler.go b/handler.go
+index f2c4dd5..28f68e1 100644
+--- a/handler.go
++++ b/handler.go
+@@ -29,6 +29,7 @@ type Handler struct {
+ 	client           *whatsmeow.Client
+ 	deferredReceipts map[types.JID]map[types.JID][]types.MessageID // holds ID and sender of a received message so the receipt can be sent later.
+ 	cachedMessages   []CachedMessage                               // for looking up reactions and quotes
++	cacheFilePath    string                                        // where cachedMessages are persisted
+ 	pictureRequests  chan ProfilePictureRequest
+ 	httpClient       *http.Client // for executing picture requests
+ 	blocklist        *types.Blocklist
+@@ -139,14 +140,14 @@ func (handler *Handler) eventHandler(rawEvt interface{}) {
+ 		bcm := evt.BasicCallMeta
+ 		chat := handler.lidToPn(bcm.From, "handling call offer")
+ 		sender := handler.lidToPn(bcm.CallCreator, "handling call offer")
+-		text := "This contact is trying to call you, but whatsmeow does not support calls."
++		text := "This contact is trying to call you. Adium does not support WhatsApp calls."
+ 		purple_display_text_message(handler.account, chat.ToNonAD().String(), false, false, sender.ToNonAD().String(), nil, bcm.Timestamp, text, nil)
+ 	case *events.CallOfferNotice:
+ 		// same as CallOffer, but is a group
+ 		bcm := evt.BasicCallMeta
+ 		chat := handler.lidToPn(bcm.From, "handling call offer notice")
+ 		sender := handler.lidToPn(bcm.CallCreator, "handling call offer notice")
+-		text := "This contact is trying to make you notice a call, but whatsmeow does not support calls."
++		text := "This contact is calling you. Adium does not support WhatsApp calls."
+ 		purple_display_text_message(handler.account, chat.ToNonAD().String(), true, false, sender.ToNonAD().String(), nil, bcm.Timestamp, text, nil)
+ 	case *events.CallRelayLatency:
+ 		// related to calls. ignore silently.
+diff --git a/login.go b/login.go
+index fe775ef..3f1d72f 100644
+--- a/login.go
++++ b/login.go
+@@ -161,7 +161,8 @@ func login(account *PurpleAccount, purple_user_dir string, username string, cred
+ 		pictureRequests:  make(chan ProfilePictureRequest, 1000), // I hope that no user has more than 1000 contacts
+ 	}
+ 	handlers[account] = &handler
+-	handler.LoadCachedMessages(filepath.Join(purple_user_dir, username+".json"))
++	handler.cacheFilePath = filepath.Join(purple_user_dir, username+".json")
++	handler.LoadCachedMessages(handler.cacheFilePath)
+ 	handler.client.AddEventHandler(handler.eventHandler)
+ 
+ 	if proxy_address != "" {
+diff --git a/message_cache.go b/message_cache.go
+index 758ead0..ab562a6 100644
+--- a/message_cache.go
++++ b/message_cache.go
+@@ -61,9 +61,13 @@ func (handler *Handler) add_to_cache(message *waE2E.Message, id types.MessageID,
+ 		// TODO: also add FromMe and IsGroup since they are necessary for BuildPollVote
+ 	})
+ 	// from https://www.delftstack.com/howto/go/queue-implementation-in-golang/
+-	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 0) {
++	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 500) {
+ 		handler.cachedMessages = handler.cachedMessages[1:]
+ 	}
++	// persist after every addition so the cache survives an unclean shutdown
++	if handler.cacheFilePath != "" {
++		handler.SaveCachedMessages(handler.cacheFilePath)
++	}
+ }
+ 
+ func (handler *Handler) lookup_cached_message_by_id(id string) *CachedMessage {
+diff --git a/opusreader.c b/opusreader.c
+index 41e1cf2..9834167 100644
+--- a/opusreader.c
++++ b/opusreader.c
+@@ -5,6 +5,8 @@
+ #include <opusfile.h>
+ #include <glib.h>
+ #include <math.h>
++#include <string.h>
++#include <stdio.h>
+ 
+ // TODO: assert ogg_int64_t is int64_t because that is what cgo is written to expect
+ 
+@@ -64,6 +66,61 @@ struct opusfile_info opusfile_get_info(void *data, size_t size) {
+   return info;
+ }
+ 
++int64_t opusfile_decode_file_to_wav(const char *ogg_path, const char *wav_path) {
++  int error;
++  OggOpusFile *of = op_open_file(ogg_path, &error);
++  if (of == NULL) {
++    return -1;
++  }
++  int channels = op_channel_count(of, -1);
++  if (channels < 1 || channels > 2) {
++    op_free(of);
++    return -1;
++  }
++  FILE *out = fopen(wav_path, "wb");
++  if (out == NULL) {
++    op_free(of);
++    return -1;
++  }
++  unsigned char header[44] = {0};
++  fwrite(header, 1, sizeof(header), out); // placeholder, rewritten below
++
++  opus_int16 pcm[120 * 48 * 2];
++  int64_t total_samples = 0;
++  int n;
++  while ((n = op_read(of, pcm, 120 * 48 * 2, NULL)) > 0) {
++    fwrite(pcm, sizeof(opus_int16) * channels, n, out);
++    total_samples += n;
++  }
++  op_free(of);
++
++  uint32_t sample_rate = 48000;
++  uint32_t data_bytes = (uint32_t)(total_samples * channels * 2);
++  uint32_t byte_rate = sample_rate * channels * 2;
++  uint16_t block_align = channels * 2;
++  uint32_t riff_size = 36 + data_bytes;
++  memcpy(header, "RIFF", 4);
++  memcpy(header + 4, &riff_size, 4);
++  memcpy(header + 8, "WAVEfmt ", 8);
++  uint32_t fmt_size = 16; memcpy(header + 16, &fmt_size, 4);
++  uint16_t fmt_pcm = 1; memcpy(header + 20, &fmt_pcm, 2);
++  uint16_t ch16 = (uint16_t)channels; memcpy(header + 22, &ch16, 2);
++  memcpy(header + 24, &sample_rate, 4);
++  memcpy(header + 28, &byte_rate, 4);
++  memcpy(header + 32, &block_align, 2);
++  uint16_t bits = 16; memcpy(header + 34, &bits, 2);
++  memcpy(header + 36, "data", 4);
++  memcpy(header + 40, &data_bytes, 4);
++  fseek(out, 0, SEEK_SET);
++  fwrite(header, 1, sizeof(header), out);
++  fclose(out);
++
++  if (total_samples == 0) {
++    return -1;
++  }
++  return total_samples / sample_rate;
++}
++
+ #else
+ 
+ #pragma message "Warning: Building without opusfile. Sending voice messages is disabled."
+@@ -72,4 +129,8 @@ struct opusfile_info opusfile_get_info(void *data, size_t size) {
+   return info;
+ }
+ 
++int64_t opusfile_decode_file_to_wav(const char *ogg_path, const char *wav_path) {
++  return -1;
++}
++
+ #endif
+diff --git a/opusreader.h b/opusreader.h
+index 0b265d7..c087d5a 100644
+--- a/opusreader.h
++++ b/opusreader.h
+@@ -10,3 +10,7 @@ struct opusfile_info {
+ };
+ 
+ struct opusfile_info opusfile_get_info(void *data, size_t size);
++
++/* Decodes an Ogg/Opus file to a 16-bit PCM WAV file (48 kHz).
++ * Returns the duration in seconds, or -1 on error. */
++int64_t opusfile_decode_file_to_wav(const char *ogg_path, const char *wav_path);
+diff --git a/profile.go b/profile.go
+index 38a4281..f80b278 100644
+--- a/profile.go
++++ b/profile.go
+@@ -21,7 +21,7 @@ type ProfilePictureRequest struct {
+ }
+ 
+ func (handler *Handler) request_profile_picture(jid types.JID, picture_date string, picture_id string) {
+-	setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_NO)
++	setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_ORIGINAL)
+ 	if setting != C.GoString(C.GOWHATSAPP_ICONS_CHOICE_NO) {
+ 		select {
+ 		case handler.pictureRequests <- ProfilePictureRequest{jid: jid, picture_date: picture_date, picture_id: picture_id}:
+diff --git a/send_file.go b/send_file.go
+index 4e054ee..709d012 100644
+--- a/send_file.go
++++ b/send_file.go
+@@ -44,7 +44,7 @@ func (handler *Handler) send_file_bytes(recipient types.JID, isGroup bool, data
+ 	handler.log.Infof("Attachment mime type is %s.", mimetype)
+ 	// TODO: redundant implementation in send_link_message. merge.
+ 	switch mimetype {
+-	case "image/jpeg":
++	case "image/jpeg", "image/png":
+ 		msg, err = handler.send_file_image(data, mimetype)
+ 	case "application/ogg", "audio/ogg":
+ 		opusfile_info := C.opusfile_get_info(C.CBytes(data), C.size_t(len(data)))
