@@ -594,6 +594,21 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 			[self adoptDisplayNameFromChat:chat];
 
 		[self setStatusMessage:[NSAttributedString stringWithString:([chat valueForProperty:KEY_TOPIC] ?: @"")] notify:NotifyNow];
+
+		/* Everything decided about this chat before now was decided without us, because the way to
+		 * find the bookmark for a chat is to look one up by name and account, and until this moment
+		 * that lookup answered nil. The unviewed content icon is the visible casualty: it is written
+		 * by a chat observer onto whatever bookmark that lookup returns, so a chat that already had
+		 * unread messages when we appeared carries none in the contact list, and stays that way until
+		 * some later change happens to run the same observer again. Measured on a group chat: the
+		 * first two announcements found no bookmark, the third, thirty-five seconds later, did.
+		 *
+		 * Asking for the state to be announced again is enough, and it is announced silently because
+		 * none of this is new: the messages arrived before, and their sounds and alerts have already
+		 * been and gone. */
+		[adium.chatController chatStatusChanged:chat
+							 modifiedStatusKeys:[NSSet setWithObjects:KEY_UNVIEWED_CONTENT, KEY_UNVIEWED_MENTION, nil]
+										 silent:YES];
 	}
 }
 
