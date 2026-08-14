@@ -460,9 +460,30 @@ static void adiumPurpleConvPresent(PurpleConversation *conv)
 }
 
 //This isn't a function we want Purple doing anything with, I don't think
+/*!
+ * @brief Is the user looking at this conversation right now?
+ *
+ * A protocol asks this before telling the other side that their message was read, so answering no to
+ * everything, which is what this did, meant Adium never sent a read receipt on any protocol that
+ * bothers to ask. Telegram is one. A protocol whose user interface does not offer this callback at
+ * all is better off, because it can fall back to assuming yes; offering it and always saying no is
+ * the one answer with no way around it.
+ *
+ * Three things have to hold. The chat is the active one, its window is the one keyboard input goes
+ * to, and Adium is the application in front. A chat selected in a window buried behind another
+ * application is not being read.
+ */
 static gboolean adiumPurpleConvHasFocus(PurpleConversation *conv)
 {
-	return NO;
+	AIChat *chat = chatLookupFromConv(conv);
+
+	if (!chat || ![NSApp isActive])
+		return NO;
+
+	NSWindow *window = [[[chat chatContainer] windowController] window];
+
+	return (window && [window isKeyWindow] &&
+			[adium.interfaceController activeChatInWindow:window] == chat);
 }
 
 static void adiumPurpleConvUpdated(PurpleConversation *conv, PurpleConvUpdateType type)
