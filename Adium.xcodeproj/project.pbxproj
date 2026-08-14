@@ -122,7 +122,6 @@
 		ADD1E5C0DE00000000000012 /* libotr.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000011 /* libotr.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000014 /* libgcrypt.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000013 /* libgcrypt.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000016 /* libgpgerror.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000015 /* libgpgerror.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		ADD1E5C0DE00000000000018 /* libintl8.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000017 /* libintl8.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000202 /* libwebp.7.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000201 /* libwebp.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000212 /* libsharpyuv.0.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000222 /* libpng16.16.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000221 /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1244,7 +1243,6 @@
 				ADD1E5C0DE00000000000012 /* libotr.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000014 /* libgcrypt.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000016 /* libgpgerror.framework in Copy Frameworks */,
-				ADD1E5C0DE00000000000018 /* libintl8.framework in Copy Frameworks */,
 				ADD1E5C0DE00000000000202 /* libwebp.7.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000212 /* libsharpyuv.0.dylib in Copy Frameworks */,
 				ADD1E5C0DE00000000000222 /* libpng16.16.dylib in Copy Frameworks */,
@@ -1410,7 +1408,6 @@
 		ADD1E5C0DE00000000000303 /* libtelegram-tdlib.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000304 /* libwhatsmeow.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000302 /* libwhatsmeow.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000F05 /* libsignal-presage.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F04 /* libsignal-presage.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		ADD1E5C0DE00000000000017 /* libintl8.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl8.framework; path = Frameworks/libintl8.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libtelegram-tdlib.so"; path = "PurplePlugins/libtelegram-tdlib.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000302 /* libwhatsmeow.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwhatsmeow.so"; path = "PurplePlugins/libwhatsmeow.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000F04 /* libsignal-presage.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsignal-presage.so"; path = "PurplePlugins/libsignal-presage.so"; sourceTree = "<group>"; };
@@ -3108,7 +3105,6 @@
 				ADD1E5C0DE00000000000011 /* libotr.framework */,
 				ADD1E5C0DE00000000000013 /* libgcrypt.framework */,
 				ADD1E5C0DE00000000000015 /* libgpgerror.framework */,
-				ADD1E5C0DE00000000000017 /* libintl8.framework */,
 				ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */,
 				ADD1E5C0DE00000000000302 /* libwhatsmeow.so */,
 				ADD1E5C0DE00000000000F04 /* libsignal-presage.so */,

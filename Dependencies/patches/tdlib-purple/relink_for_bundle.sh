@@ -42,9 +42,9 @@ relink "$(cd "$(dirname "$0")/../../build/lib" && pwd)/libglib-2.0.0.dylib" \
        "$FW/libglib.framework/Versions/2.0.0/libglib"
 
 # Homebrew's copies of libraries Adium bundles itself.
-# libintl.framework rather than the libintl8.framework beside it. Both are in the bundle and both work,
-# but gettext keeps its per-domain output encoding in the copy that was linked, so everything has to
-# agree on one. libpurple, glib and gio use this one.
+# libintl.framework. The bundle used to carry a second copy beside it, and gettext keeps its per-domain
+# output encoding in whichever copy was linked, so anything linking the other one set that encoding
+# where nobody would read it. There is one now; keep it that way.
 relink /opt/homebrew/opt/gettext/lib/libintl.8.dylib  "$FW/libintl.framework/Versions/8/libintl"
 relink /opt/homebrew/opt/webp/lib/libwebp.7.dylib     "$FW/libwebp.7.dylib"
 relink /opt/homebrew/opt/libpng/lib/libpng16.16.dylib "$FW/libpng16.16.dylib"
