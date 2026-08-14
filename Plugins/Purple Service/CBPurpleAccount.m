@@ -30,6 +30,7 @@
 #import <Adium/AIContentNotification.h>
 #import <Adium/AIHTMLDecoder.h>
 #import <Adium/AIListContact.h>
+#import <Adium/AIListBookmark.h>
 #import <Adium/AIListGroup.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIMetaContact.h>
@@ -561,6 +562,33 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 {
 	PurpleBuddy		*buddy;
 	NSData			*data = nil;
+
+	/* A group chat is a bookmark here and a PurpleChat over there, and libpurple keeps pictures for
+	 * buddies, not for chats. What it does offer for any node in the list, chats included, is a
+	 * custom icon, which is where a protocol plugin puts a group's picture because there is nowhere
+	 * else to put it. The bookmark's name is the room identifier, which is what the lookup wants; its
+	 * UID is not, and neither is the chat's name, since that answers with the alias when one is set. */
+	if ([contact isKindOfClass:[AIListBookmark class]]) {
+		PurpleChat *purpleChat = (self.purpleAccount ?
+								  purple_blist_find_chat(account, [((AIListBookmark *)contact).name UTF8String]) :
+								  NULL);
+
+		if (purpleChat) {
+			PurpleStoredImage *storedImage = purple_buddy_icons_node_find_custom_icon((PurpleBlistNode *)purpleChat);
+
+			if (storedImage) {
+				gconstpointer	 iconData = purple_imgstore_get_data(storedImage);
+				size_t			 len = purple_imgstore_get_size(storedImage);
+
+				if (iconData && len)
+					data = [NSData dataWithBytes:iconData length:len];
+
+				purple_imgstore_unref(storedImage);
+			}
+		}
+
+		return data;
+	}
 
 	if (self.purpleAccount &&
 		(buddy = purple_find_buddy(account, [contact.UID UTF8String]))) {

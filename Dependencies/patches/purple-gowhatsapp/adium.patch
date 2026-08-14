@@ -137,7 +137,7 @@ index 875ee04..1b5cbf3 100644
  				cmessage := C.struct_gowhatsapp_message{
  					account:   account,
 diff --git a/glue/blist.c b/glue/blist.c
-index 48ccd40..568cf2f 100644
+index 48ccd40..ea47d09 100644
 --- a/glue/blist.c
 +++ b/glue/blist.c
 @@ -27,32 +27,39 @@ void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy) {
@@ -191,6 +191,37 @@ index 48ccd40..568cf2f 100644
          }
      }
  
+@@ -81,6 +88,30 @@ void gowhatsapp_for_all_buddies(PurpleAccount *account, void(*func)(PurpleAccoun
+     }
+ }
+ 
++/*
++ * Calls a function once on each group chat of this account.
++ *
++ * The counterpart of gowhatsapp_for_all_buddies, and needed because a group is deliberately not a
++ * buddy here: a chat cannot be messaged like a contact, and a contact list row for one is a row that
++ * leads nowhere. Anything that wants to treat groups the way contacts are treated has to walk them
++ * separately, and the walk is the one gowhatsapp_find_blist_chat already does.
++ */
++void gowhatsapp_for_all_chats(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleChat *)) {
++    g_return_if_fail(account != NULL);
++
++    for (PurpleBlistNode *node = purple_blist_get_root();
++         node != NULL;
++         node = purple_blist_node_next(node, TRUE)) {
++        if (PURPLE_IS_CHAT(node)) {
++            PurpleChat *chat = PURPLE_CHAT(node);
++
++            if (purple_chat_get_account(chat) == account) {
++                func(account, chat);
++            }
++        }
++    }
++}
++
+ // Group chat related functions
+ 
+ /*
 diff --git a/glue/display_message.c b/glue/display_message.c
 index 7674529..b48b265 100644
 --- a/glue/display_message.c
@@ -205,7 +236,7 @@ index 7674529..b48b265 100644
              purple_serv_got_im(connection, remoteJid, text_with_id, flags, timestamp);
          }
 diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
-index 0945d37..d54db62 100644
+index 0945d37..2abca71 100644
 --- a/glue/gowhatsapp.h
 +++ b/glue/gowhatsapp.h
 @@ -55,7 +55,7 @@ void gowhatsapp_free_name(PurpleConversation *conv);
@@ -217,6 +248,15 @@ index 0945d37..d54db62 100644
  PurpleChat * gowhatsapp_ensure_group_chat_in_blist(PurpleAccount *account, const char *remoteJid, const char *topic);
  PurpleGroup * gowhatsapp_get_purple_group();
  PurpleChat * gowhatsapp_find_blist_chat(PurpleAccount *account, const char *jid);
+@@ -63,6 +63,8 @@ void gowhatsapp_add_buddy(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup
+ void gowhatsapp_tooltip_text(PurpleBuddy *buddy, PurpleNotifyUserInfo *info, gboolean full);
+ void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy);
+ void gowhatsapp_for_all_buddies(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleBuddy *));
++void gowhatsapp_for_all_chats(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleChat *));
++void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat *chat);
+ 
+ // send_message
+ int gowhatsapp_send_im(PurpleConnection *pc, const gchar *who, const gchar *message, PurpleMessageFlags flags);
 diff --git a/glue/groups.c b/glue/groups.c
 index 0336962..37fa2ab 100644
 --- a/glue/groups.c
@@ -421,10 +461,59 @@ index 074c385..205e4ca 100644
      account_options = g_list_append(account_options, option);
  
 diff --git a/glue/presence.c b/glue/presence.c
-index 3955255..5b1e153 100644
+index 3955255..d381ce7 100644
 --- a/glue/presence.c
 +++ b/glue/presence.c
-@@ -140,7 +140,7 @@ gowhatsapp_subscribe_presence_updates(PurpleAccount *account, PurpleBuddy *buddy
+@@ -36,6 +36,20 @@ gowhatsapp_handle_presence(PurpleAccount *account, char *remoteJid, char online,
+ void
+ gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg)
+ {
++    /* A group's picture cannot go where a contact's goes. purple_buddy_icons_set_for_user only keeps
++     * an icon that some buddy or open conversation takes a reference to, and a group is neither, so
++     * for one it would allocate the image, find no taker and free it again on the spot. What
++     * libpurple does offer for any node in the list, chats included, is a custom icon, which also
++     * survives a restart because the file name is written into blist.xml. */
++    PurpleChat *chat = gowhatsapp_find_blist_chat(gwamsg->account, gwamsg->remoteJid);
++    if (chat != NULL) {
++        // MEMCHECK: purple_buddy_icons_node_set_custom_icon takes ownership of the blob, as set_for_user does
++        purple_buddy_icons_node_set_custom_icon((PurpleBlistNode *)chat, (guchar *)gwamsg->blob, gwamsg->blobsize);
++        purple_blist_node_set_string(&chat->node, "picture_id", gwamsg->messageId);
++        purple_blist_node_set_string(&chat->node, "picture_date", gwamsg->text);
++        return;
++    }
++
+     purple_buddy_icons_set_for_user(gwamsg->account, gwamsg->remoteJid, gwamsg->blob, gwamsg->blobsize, NULL);
+     // no g_free(gwamsg->blob) here – purple takes ownership
+     const char *buddy_alias = gwamsg->senderJid;
+@@ -137,10 +151,35 @@ gowhatsapp_subscribe_presence_updates(PurpleAccount *account, PurpleBuddy *buddy
+     }
+ }
+ 
++/*
++ * Ask for a group's picture, the way gowhatsapp_request_profile_picture asks for a contact's.
++ *
++ * whatsmeow's GetProfilePictureInfo takes a JID and does not care whether it belongs to a person or
++ * to a group, so the Go layer needs nothing new. What differs is where the answer is put, since a
++ * group is not a buddy; see gowhatsapp_handle_profile_picture.
++ *
++ * The identifier is the "name" component and not the chat's own name, which answers with the alias
++ * once one is set.
++ */
++void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat *chat) {
++    g_return_if_fail(chat != NULL);
++
++    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
++        GHashTable *components = purple_chat_get_components(chat);
++        const char *remoteJid = components ? g_hash_table_lookup(components, "name") : NULL;
++
++        if (remoteJid != NULL) {
++            const char *picture_id = purple_blist_node_get_string(&chat->node, "picture_id");
++            const char *picture_date = purple_blist_node_get_string(&chat->node, "picture_date");
++            gowhatsapp_go_request_profile_picture(account, (char *)remoteJid, (char *)picture_date, (char *)picture_id); // cgo does not support const
++        }
++    }
++}
++
  void gowhatsapp_request_profile_picture(PurpleAccount *account, PurpleBuddy *buddy) {
      g_return_if_fail(buddy != NULL);
  
@@ -434,10 +523,18 @@ index 3955255..5b1e153 100644
          const char *picture_date = purple_blist_node_get_string(&buddy->node, "picture_date");
          gowhatsapp_go_request_profile_picture(account, buddy->name, (char *)picture_date, (char *)picture_id); // cgo does not suport const
 diff --git a/glue/process_message.c b/glue/process_message.c
-index 1d53d9b..9de9fdf 100644
+index 1d53d9b..fc71358 100644
 --- a/glue/process_message.c
 +++ b/glue/process_message.c
-@@ -105,8 +105,13 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+@@ -35,6 +35,7 @@ static void gowhatsapp_connection_set_online(PurpleConnection *connection) {
+     gowhatsapp_set_presence(account, purple_account_get_active_status(account));
+ 
+     gowhatsapp_for_all_buddies(account, gowhatsapp_request_profile_picture);
++    gowhatsapp_for_all_chats(account, gowhatsapp_request_chat_profile_picture);
+ }
+ 
+ /*
+@@ -105,8 +106,13 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
                  gowhatsapp_connection_set_online(pc);
                  // we also want to query the room list automatically (so group chats may be added to the buddy list).
                  gowhatsapp_roomlist_get_list(pc);

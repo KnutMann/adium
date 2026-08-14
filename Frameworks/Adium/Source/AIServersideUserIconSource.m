@@ -53,8 +53,13 @@
 - (NSData *)serversideUserIconDataForObject:(AIListObject *)inObject
 {
 	NSData *iconData = [serversideIconDataCache objectForKey:inObject.internalObjectID];
-	if (!iconData && [inObject isMemberOfClass:[AIListContact class]]) {
-		//If this is specifically an AIListContact, ask the account if it has serverside data.
+	/* isKindOfClass:, not isMemberOfClass:. The exact-class test kept the two subclasses out, and one
+	 * of them is AIListBookmark, which is how a group chat appears in the contact list. A group has a
+	 * picture like anyone else, and refusing to ask the account for it was the reason no group row
+	 * ever showed one. AIMetaContact, the other subclass, resolves its icon through the contacts it
+	 * contains and simply has nothing to answer here. */
+	if (!iconData && [inObject isKindOfClass:[AIListContact class]]) {
+		//Ask the account if it has serverside data.
 		gettingServersideData = YES;
 		iconData = [[(AIListContact *)inObject account] serversideIconDataForContact:(AIListContact *)inObject];
 		gettingServersideData = NO;

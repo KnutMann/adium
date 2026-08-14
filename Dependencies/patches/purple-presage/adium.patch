@@ -1,5 +1,5 @@
 diff --git a/src/c/blist.c b/src/c/blist.c
-index 03e540a..33bdebc 100755
+index 03e540a..9bbc9b5 100755
 --- a/src/c/blist.c
 +++ b/src/c/blist.c
 @@ -1,4 +1,5 @@
@@ -8,7 +8,7 @@ index 03e540a..33bdebc 100755
  
  // NOTE: These functions are the same for WhatsApp and Signal. Maybe move to a repository of common functions?
  
-@@ -99,9 +100,59 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
+@@ -99,7 +100,70 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
  
      if (topic != NULL) {
          purple_blist_alias_chat(chat, topic);
@@ -24,9 +24,9 @@ index 03e540a..33bdebc 100755
 +        if (conv != NULL) {
 +            purple_conversation_autoset_title(conv);
 +        }
-     }
- }
- 
++    }
++}
++
 +/*
 + * Hand a contact's profile picture to libpurple.
 + *
@@ -53,21 +53,32 @@ index 03e540a..33bdebc 100755
 +    } else if (length == 0) {
 +        purple_debug_info(PLUGIN_NAME, "empty avatar for %s, ignoring.\n", uuid);
 +        g_free(data);
-+    } else if (purple_find_buddy(account, uuid) == NULL) {
-+        purple_debug_info(PLUGIN_NAME, "no buddy %s to give an avatar to.\n", uuid);
-+        g_free(data);
-+    } else {
++    } else if (purple_find_buddy(account, uuid) != NULL) {
 +        // MEMCHECK: purple_buddy_icons_set_for_user takes ownership of data
 +        purple_buddy_icons_set_for_user(account, uuid, data, length, NULL);
 +        purple_debug_info(PLUGIN_NAME, "set avatar for %s (%zu bytes).\n", uuid, (size_t)length);
-+    }
++    } else {
++        /* Not a contact, so try a group. A group's picture cannot go where a contact's goes:
++         * purple_buddy_icons_set_for_user only keeps an icon something holds a reference to, and a
++         * chat is not a buddy, so it would be allocated, refused and freed again. A custom icon on
++         * the node is what libpurple offers for a chat, and it outlives a restart because the file
++         * name goes into blist.xml. */
++        PurpleChat *chat = presage_find_blist_chat(account, uuid);
++
++        if (chat != NULL) {
++            // MEMCHECK: purple_buddy_icons_node_set_custom_icon takes ownership of data
++            purple_buddy_icons_node_set_custom_icon((PurpleBlistNode *)chat, (guchar *)data, length);
++            purple_debug_info(PLUGIN_NAME, "set group avatar for %s (%zu bytes).\n", uuid, (size_t)length);
++        } else {
++            purple_debug_info(PLUGIN_NAME, "nothing named %s to give an avatar to.\n", uuid);
++            g_free(data);
++        }
+     }
 +
 +    g_remove(path);
-+}
-+
+ }
+ 
  void presage_handle_contact(PurpleConnection *connection, const char *uuid, const char *name, const char *phone_number) {
-     if (phone_number != NULL) { 
-         PurpleBuddy *buddy = presage_blist_update_buddy(purple_connection_get_account(connection), uuid, name);
 diff --git a/src/c/bridge.c b/src/c/bridge.c
 index df9cf61..c923301 100755
 --- a/src/c/bridge.c
@@ -603,10 +614,10 @@ index 5a15f58..81f9d58 100644
      pub groups_length: usize,
      pub xfer: *const PurpleXfer,
 diff --git a/src/rust/src/contacts.rs b/src/rust/src/contacts.rs
-index 5a48600..33b0df8 100755
+index 5a48600..032ef6b 100755
 --- a/src/rust/src/contacts.rs
 +++ b/src/rust/src/contacts.rs
-@@ -32,6 +32,68 @@ pub async fn forward_contacts<C: presage::store::Store + 'static>(
+@@ -32,6 +32,110 @@ pub async fn forward_contacts<C: presage::store::Store + 'static>(
      }
  }
  
@@ -666,6 +677,48 @@ index 5a48600..33b0df8 100755
 +        crate::bridge::append_message(crate::bridge::Message {
 +            account: account,
 +            who: Some(contact.uuid.to_string()),
++            avatar_path: Some(path.to_string_lossy().into_owned()),
++            ..Default::default()
++        });
++    }
++
++    /* Groups have pictures too, and the same round trip applies. Collected before the loop because
++     * iterating the store borrows it while retrieve_group_avatar wants the manager mutably. */
++    let groups = match manager.store().groups().await {
++        Err(err) => {
++            crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_ERROR, format!("Unable to get groups for avatars due to {err:?}\n"));
++            return;
++        }
++        Ok(groups) => groups.flatten().collect::<Vec<_>>(),
++    };
++
++    for (master_key, group) in groups {
++        let context = presage::proto::GroupContextV2 {
++            master_key: Some(master_key.to_vec()),
++            revision: Some(group.revision),
++            ..Default::default()
++        };
++
++        let avatar = match manager.retrieve_group_avatar(context).await {
++            Ok(Some(avatar)) => avatar,
++            Ok(None) => continue,
++            Err(err) => {
++                crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, format!("No avatar for group {}: {err}\n", hex::encode(master_key)));
++                continue;
++            }
++        };
++
++        // the same identifier the group is known by everywhere else in this plug-in
++        let identifier = hex::encode(master_key);
++        let path = avatar_directory.join(&identifier);
++        if let Err(err) = std::fs::write(&path, &avatar) {
++            crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_ERROR, format!("Unable to write group avatar due to {err}\n"));
++            continue;
++        }
++
++        crate::bridge::append_message(crate::bridge::Message {
++            account: account,
++            who: Some(identifier),
 +            avatar_path: Some(path.to_string_lossy().into_owned()),
 +            ..Default::default()
 +        });
