@@ -10,7 +10,22 @@ C layer for libpurple, and it is under active development.
 
 ## adium.patch
 
-**The QR code is a PNG**, in `src/c/qrcode.c`. Linking a Signal account means scanning a QR code with
+**The runtime thread gets a stack it can live on**, in `src/c/connection.c` and `src/c/presage.h`.
+This one crashes the whole application, so it comes first.
+
+`presage_login` starts the Rust runtime on a thread of its own. The Windows branch asks for 32 MB,
+with a comment saying tokio is picky about it, and `bridge.rs` sets the same size for its tokio
+workers next to a note that 25 MB was found to be too little. The `pthread_create` branch passes no
+attributes at all and takes the default. On Linux that is 8 MB and it grows. On macOS it is 512 KB,
+measured, and it does not grow.
+
+The result is not a Signal problem that stays inside the plugin: the runtime walks off the end of its
+stack somewhere inside the first URL it parses, and macOS kills the process. What the user sees is
+Adium vanishing a second after the account connects, with a crash report pointing at
+`url::Parser::parse_path`, which looks like anything but a stack size. The tell is in the exception:
+`KERN_PROTECTION_FAILURE` on an address inside the stack guard region.
+
+The size is now one constant used by both branches. Linking a Signal account means scanning a QR code with
 the phone, so the plugin draws one and hands it to the UI as an image. It drew it as a PBM, the
 Netpbm ASCII bitmap format, with a comment in the original calling it a poor man's encoder. NSImage
 does not read PBM, so on macOS the field where the QR code belongs came up blank and there was no way

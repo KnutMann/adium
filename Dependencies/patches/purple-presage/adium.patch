@@ -1,5 +1,5 @@
 diff --git a/src/c/connection.c b/src/c/connection.c
-index 21b6295..f0a905f 100755
+index 21b6295..a601291 100755
 --- a/src/c/connection.c
 +++ b/src/c/connection.c
 @@ -1,5 +1,24 @@
@@ -27,6 +27,33 @@ index 21b6295..f0a905f 100755
  static gboolean rust_main_finished(gpointer account) {
      PurpleConnection *connection = purple_account_get_connection(account);
      if (connection == NULL) {
+@@ -48,14 +67,24 @@ void presage_login(PurpleAccount *account) {
+     #ifdef WIN32
+     // the stack should grow automatically, but rust's tokio seems to be picky
+     // the stack size used here should match the value in bridge.rs
+-    HANDLE thread = CreateThread(NULL, 32 * 1024 * 1024, rust_main, account, 0, NULL);
++    HANDLE thread = CreateThread(NULL, PRESAGE_THREAD_STACK_SIZE, rust_main, account, 0, NULL);
+     if (thread != NULL) {
+         // detach thread so its resources are released as soon it terminates
+         CloseHandle(thread);
+     }
+     #else
+     pthread_t presage_thread;
+-    int err = pthread_create(&presage_thread, NULL, rust_main, (void *)account);
++    pthread_attr_t presage_thread_attr;
++    pthread_attr_init(&presage_thread_attr);
++    /* The same stack the Windows branch above asks for, and for the same reason. pthread's default
++     * is not the 8 MB it is on Linux: macOS gives a thread 512 KB and does not grow it, while this
++     * code path wants tens of megabytes, as the note beside the tokio builder in bridge.rs records.
++     * Without this the runtime walks off the end of its stack somewhere inside the first URL it
++     * parses, and what the user sees is the application disappearing a second after the account
++     * connects. */
++    pthread_attr_setstacksize(&presage_thread_attr, PRESAGE_THREAD_STACK_SIZE);
++    int err = pthread_create(&presage_thread, &presage_thread_attr, rust_main, (void *)account);
++    pthread_attr_destroy(&presage_thread_attr);
+     if (err == 0) {
+         // detach thread so its resources are released as soon it terminates
+         pthread_detach(presage_thread);
 diff --git a/src/c/groups.c b/src/c/groups.c
 index f681ebf..751c657 100755
 --- a/src/c/groups.c
@@ -43,13 +70,17 @@ index f681ebf..751c657 100755
                  presage_rust_get_group_members(account, rust_runtime, presage->tx_ptr, identifier);
              }
 diff --git a/src/c/presage.h b/src/c/presage.h
-index f0fd7e1..ceec658 100755
+index f0fd7e1..4795cfa 100755
 --- a/src/c/presage.h
 +++ b/src/c/presage.h
-@@ -9,6 +9,18 @@
+@@ -9,6 +9,22 @@
  extern const char * PRESAGE_STARTUP_DELAY_SECONDS_OPTION;
  extern const char * PRESAGE_ATTACHMENT_PATH_TEMPLATE_OPTION;
  
++/* Stack for the thread the Rust runtime is started on. It has to match the tokio worker stack size
++ * set in bridge.rs, where a note records that 25 MB was found to be too little. */
++#define PRESAGE_THREAD_STACK_SIZE (32 * 1024 * 1024)
++
 +/* The account's own Signal identity, as the back-end reports it. Not a user setting: it is written
 + * once the connection is up and read wherever this account has to name itself. Kept apart from the
 + * username because the two are not the same thing, and asking the user for this one is asking for
