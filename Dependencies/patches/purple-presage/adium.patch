@@ -1,5 +1,5 @@
 diff --git a/src/c/connection.c b/src/c/connection.c
-index 21b6295..a601291 100755
+index 21b6295..fba61b3 100755
 --- a/src/c/connection.c
 +++ b/src/c/connection.c
 @@ -1,5 +1,24 @@
@@ -27,7 +27,26 @@ index 21b6295..a601291 100755
  static gboolean rust_main_finished(gpointer account) {
      PurpleConnection *connection = purple_account_get_connection(account);
      if (connection == NULL) {
-@@ -48,14 +67,24 @@ void presage_login(PurpleAccount *account) {
+@@ -24,8 +43,17 @@ rust_main(void* account) {
+     const char *username = purple_account_get_username(account);
+     const int startup_delay_seconds = purple_account_get_int(account, PRESAGE_STARTUP_DELAY_SECONDS_OPTION, 1);
+     char *store_path = g_strdup_printf("%s/presage/%s.db3", user_dir, username);
++
++    /* Empty means the option was registered before the frontend published its name, so work it out
++     * now. Only used when this account has never been linked; an existing link keeps the name it was
++     * given. */
++    const char *configured_name = purple_account_get_string(account, PRESAGE_DEVICE_NAME_OPTION, NULL);
++    char *device_name = (configured_name && configured_name[0]) ? g_strdup(configured_name)
++                                                                : presage_default_device_name();
++
+     g_usleep(G_USEC_PER_SEC * startup_delay_seconds); // waiting here for alleviates database locking issues O_o
+-    presage_rust_main(account, rust_runtime, store_path);
++    presage_rust_main(account, rust_runtime, store_path, device_name);
++    g_free(device_name);
+     g_free(store_path);
+     purple_timeout_add(500, rust_main_finished, account); // wait half a second before assessing the termination – there might be messages lingering in the rust → C bridge queue
+     return 0;
+@@ -48,14 +76,24 @@ void presage_login(PurpleAccount *account) {
      #ifdef WIN32
      // the stack should grow automatically, but rust's tokio seems to be picky
      // the stack size used here should match the value in bridge.rs
@@ -69,14 +88,69 @@ index f681ebf..751c657 100755
                  // request list of participants
                  presage_rust_get_group_members(account, rust_runtime, presage->tx_ptr, identifier);
              }
+diff --git a/src/c/options.c b/src/c/options.c
+index 6de1aaf..ef0482c 100755
+--- a/src/c/options.c
++++ b/src/c/options.c
+@@ -2,6 +2,25 @@
+ 
+ const char * PRESAGE_STARTUP_DELAY_SECONDS_OPTION = "startup-delay-seconds";
+ const char * PRESAGE_ATTACHMENT_PATH_TEMPLATE_OPTION = "attachment-path-template";
++const char * PRESAGE_DEVICE_NAME_OPTION = "device-name";
++
++/*
++ * What this device is called in the Signal app's list of linked devices.
++ *
++ * The frontend's own name, rather than this plug-in's, because that list is read by a person who
++ * knows which program they linked and has never heard of purple-presage. libpurple already knows the
++ * answer: a UI puts its name in the ui_info table, so this reads "Adium" under Adium and "Pidgin"
++ * under Pidgin without either being written down here. The host name follows it, since one account
++ * may well be linked from more than one machine.
++ *
++ * Falls back to the plug-in name if the frontend supplied none. Returns a string the caller frees.
++ */
++char * presage_default_device_name(void) {
++    GHashTable *ui_info = purple_core_get_ui_info();
++    const char *ui_name = ui_info ? g_hash_table_lookup(ui_info, "name") : NULL;
++
++    return g_strdup_printf("%s on %s", (ui_name ? ui_name : PLUGIN_NAME), g_get_host_name());
++}
+ 
+ GList * presage_add_account_options(GList *account_options) {
+     PurpleAccountOption *option;
+@@ -20,5 +39,16 @@ GList * presage_add_account_options(GList *account_options) {
+         );
+     account_options = g_list_append(account_options, option);
+ 
++    /* Best effort at registration time: if the frontend has not published its name yet, the default
++     * shown here is the plug-in's own, and presage_login computes the real one when it links. */
++    char *device_name = presage_default_device_name(); // MEMCHECK: released below
++    option = purple_account_option_string_new( // MEMCHECK: account_options takes ownership
++        "Device name",
++        PRESAGE_DEVICE_NAME_OPTION,
++        device_name
++        );
++    account_options = g_list_append(account_options, option);
++    g_free(device_name);
++
+     return account_options;
+ }
 diff --git a/src/c/presage.h b/src/c/presage.h
-index f0fd7e1..4795cfa 100755
+index f0fd7e1..431df8d 100755
 --- a/src/c/presage.h
 +++ b/src/c/presage.h
-@@ -9,6 +9,22 @@
+@@ -8,6 +8,29 @@
+ 
  extern const char * PRESAGE_STARTUP_DELAY_SECONDS_OPTION;
  extern const char * PRESAGE_ATTACHMENT_PATH_TEMPLATE_OPTION;
- 
++extern const char * PRESAGE_DEVICE_NAME_OPTION;
++
++/*! What to call this device in the Signal app, taken from the frontend. Caller frees. */
++char * presage_default_device_name(void);
++
++/*! Does this name have the shape of a Signal contact identifier, rather than a group's? */
++gboolean presage_uuid_looks_valid(const char *who);
++
 +/* Stack for the thread the Rust runtime is started on. It has to match the tokio worker stack size
 + * set in bridge.rs, where a note records that 25 MB was found to be too little. */
 +#define PRESAGE_THREAD_STACK_SIZE (32 * 1024 * 1024)
@@ -92,10 +166,70 @@ index f0fd7e1..4795cfa 100755
 + * connection has yet reported one. Never NULL for an account that has connected once.
 + */
 +const char *presage_own_uuid(PurpleAccount *account);
-+
+ 
  #ifdef _WIN32
  static_assert(sizeof(time_t) == 4, "time_t must be 4 bytes (32 bit)");
- #else
+@@ -25,7 +48,7 @@ typedef struct _RustRuntime * RustRuntimePtr;
+ typedef struct _RustChannelTx * RustChannelPtr;
+ typedef struct _RustAttachment * RustAttachmentPtr;
+ RustRuntimePtr presage_rust_init();
+-void presage_rust_main(PurpleAccount *, RustRuntimePtr, char *);
++void presage_rust_main(PurpleAccount *, RustRuntimePtr, char *, const char *);
+ void presage_rust_destroy(RustRuntimePtr);
+ void presage_rust_whoami(PurpleAccount *, RustRuntimePtr, RustChannelPtr);
+ void presage_rust_exit(PurpleAccount *, RustRuntimePtr, RustChannelPtr);
+diff --git a/src/c/profile.c b/src/c/profile.c
+index c4db58d..8b8bfff 100644
+--- a/src/c/profile.c
++++ b/src/c/profile.c
+@@ -1,13 +1,47 @@
+ #include "presage.h"
++#include <string.h>
+ 
+ void presage_get_info(PurpleConnection *connection, const char *who) {
+     PurpleAccount *account = purple_connection_get_account(connection);
+     Presage *presage = purple_connection_get_protocol_data(connection);
++
++    /* Only a contact has a profile. A group is named by a 64 character identifier, and asking for the
++     * profile of one used to hand that to Uuid::parse_str, whose complaint ("invalid length: found
++     * 64") was then reported as a CONNECTION error, which is the class that takes the account
++     * offline. Asking a group for a profile it does not have should do nothing at all. */
++    if (!presage_uuid_looks_valid(who)) {
++        purple_debug_info(PLUGIN_NAME, "not requesting a profile for '%s': not a contact.\n", who);
++        return;
++    }
++
+     g_free(presage->profile);
+     presage->profile = g_strdup(who); // remember user requested a profile
+     presage_rust_get_profile(account, rust_runtime, presage->tx_ptr, who);
+ }
+ 
++/*
++ * Does this name have the shape of a Signal contact identifier?
++ *
++ * A UUID as text: 36 characters, hexadecimal, hyphens in the four canonical places. Deliberately a
++ * shape test and not a parse: the point is to keep things that are obviously not contacts, group
++ * identifiers above all, out of code paths that can only deal with contacts.
++ */
++gboolean presage_uuid_looks_valid(const char *who) {
++    if (who == NULL || strlen(who) != 36) {
++        return FALSE;
++    }
++
++    for (int i = 0; i < 36; i++) {
++        if (i == 8 || i == 13 || i == 18 || i == 23) {
++            if (who[i] != '-') return FALSE;
++        } else if (!g_ascii_isxdigit(who[i])) {
++            return FALSE;
++        }
++    }
++
++    return TRUE;
++}
++
+ void presage_show_info(PurpleConnection *connection, const char *uuid, const char *name, const char *phone_number, const char *error) {
+     Presage *presage = purple_connection_get_protocol_data(connection);
+     if (purple_strequal(presage->profile, uuid)) { // do not create a visual if user did not request this profile
 diff --git a/src/c/qrcode.c b/src/c/qrcode.c
 index 7da09b0..ed1d831 100755
 --- a/src/c/qrcode.c
@@ -261,3 +395,115 @@ index d65ceb8..a175710 100755
          }
          purple_serv_got_chat_in(connection, g_str_hash(group), who, flags, text, timestamp_seconds);
      }
+diff --git a/src/rust/src/bridge.rs b/src/rust/src/bridge.rs
+index f13d8ce..8eaadcd 100755
+--- a/src/rust/src/bridge.rs
++++ b/src/rust/src/bridge.rs
+@@ -294,8 +294,11 @@ pub unsafe extern "C" fn presage_rust_main(
+     account: *mut crate::bridge_structs::PurpleAccount,
+     rt: *mut tokio::runtime::Runtime,
+     c_store_path: *const std::os::raw::c_char,
++    c_device_name: *const std::os::raw::c_char,
+ ) {
+     let store_path = std::ffi::CStr::from_ptr(c_store_path).to_str().unwrap().to_owned();
++    // what the Signal app calls this device in its list of linked devices; see presage_default_device_name
++    let device_name = std::ffi::CStr::from_ptr(c_device_name).to_str().unwrap().to_owned();
+ 
+     // create a channel for asynchronous communication of commands c → rust
+     let (tx, rx) = tokio::sync::mpsc::channel(32);
+@@ -309,6 +312,6 @@ pub unsafe extern "C" fn presage_rust_main(
+ 
+     // now execute the actual program
+     let runtime = rt.as_ref().unwrap();
+-    runtime.block_on(crate::core::main(store_path, None, rx, account));
++    runtime.block_on(crate::core::main(store_path, device_name, None, rx, account));
+     purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, String::from("rust runtime finishes now…\n"));
+ }
+diff --git a/src/rust/src/bridge_commands.rs b/src/rust/src/bridge_commands.rs
+index e234830..db99755 100755
+--- a/src/rust/src/bridge_commands.rs
++++ b/src/rust/src/bridge_commands.rs
+@@ -148,8 +148,16 @@ pub unsafe extern "C" fn presage_rust_get_profile(
+             send_cmd(account, rt, tx, cmd);
+         }
+         Err(err) => {
+-            let c_errmsg = std::ffi::CString::new(err.to_string()).unwrap();
+-            presage_account_error(account, crate::bridge_structs::PURPLE_CONNECTION_ERROR_OTHER_ERROR, c_errmsg.as_ptr());
++            /* A name that is not a UUID is not a reason to take the account offline, which is what
++             * PURPLE_CONNECTION_ERROR_OTHER_ERROR does. Asking for the profile of a group used to
++             * end up here, because a group is named by 64 hex characters and Uuid::parse_str says
++             * "invalid length: found 64". The caller filters those out now; this stays as a log
++             * line so the next one to arrive is visible without being fatal. */
++            crate::bridge::purple_debug(
++                account,
++                crate::bridge_structs::PURPLE_DEBUG_INFO,
++                format!("not a contact identifier, no profile requested: {err}\n"),
++            );
+         }
+     }
+ }
+diff --git a/src/rust/src/core.rs b/src/rust/src/core.rs
+index b34023d..e2bc739 100755
+--- a/src/rust/src/core.rs
++++ b/src/rust/src/core.rs
+@@ -138,6 +138,7 @@ pub async fn command_loop<C: presage::store::Store + 'static>(
+ 
+ pub async fn login(
+     config_store: presage_store_sqlite::SqliteStore,
++    device_name: String,
+     account: *mut crate::bridge_structs::PurpleAccount,
+ ) -> Option<presage::Manager<presage_store_sqlite::SqliteStore, presage::manager::Registered>> {
+     crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, format!("login begins…\n"));
+@@ -153,21 +154,21 @@ pub async fn login(
+                     // so far, err usually is ServiceError(WsError(Handshake(UnexpectedStatusCode(403))))
+                     // happens when main device removed our linked device
+                     crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, format!("Unable to confirm log-in due to {err:?}.\n"));
+-                    return link(config_store, account).await;
++                    return link(config_store, device_name, account).await;
+                 }
+             }
+         }
+         Err(presage::Error::NotYetRegisteredError) => {
+             // happens on pristine set-ups
+             // can happen during whoami
+-            return link(config_store, account).await;
++            return link(config_store, device_name, account).await;
+         }
+         Err(presage::Error::ServiceError(err)) => {
+             // can happen during load_registered after main device has revoked the link
+             // NOTE: possibly also happens during execution of commands like whoami or send, possibly others
+             match err {
+                 presage::libsignal_service::push_service::ServiceError::Unauthorized => {
+-                    return link(config_store, account).await;
++                    return link(config_store, device_name, account).await;
+                 }
+                 // Handle specific HTTP timeout error – by ChatGPT
+                 presage::libsignal_service::push_service::ServiceError::Http(ref http_err) => {
+@@ -223,9 +224,9 @@ pub async fn login(
+ 
+ async fn link(
+     config_store: presage_store_sqlite::SqliteStore,
++    device_name: String,
+     account: *mut crate::bridge_structs::PurpleAccount,
+ ) -> Option<presage::Manager<presage_store_sqlite::SqliteStore, presage::manager::Registered>> {
+-    let device_name = "purple-presage".to_string(); // TODO: use hostname or make user-configurable
+     let server = presage::libsignal_service::configuration::SignalServers::Production;
+     let (provisioning_link_tx, provisioning_link_rx) = futures::channel::oneshot::channel();
+     let join_handle = futures::future::join(presage::Manager::link_secondary_device(config_store, server, device_name, provisioning_link_tx), async move {
+@@ -319,6 +320,7 @@ async fn receive<S: presage::store::Store>(
+  */
+ pub async fn main(
+     store_path: String,
++    device_name: String,
+     passphrase: Option<String>,
+     command_receiver: tokio::sync::mpsc::Receiver<crate::structs::Cmd>,
+     account: *mut crate::bridge_structs::PurpleAccount,
+@@ -342,7 +344,7 @@ pub async fn main(
+         }
+         Ok(config_store) => {
+             crate::bridge::purple_debug(account, crate::bridge_structs::PURPLE_DEBUG_INFO, String::from("config store OK\n"));
+-            if let Some(mut manager) = login(config_store, account).await {
++            if let Some(mut manager) = login(config_store, device_name, account).await {
+                 // Login has succeeded, forward (cached) contacts for bitlbee. It tends to forget them after re-connects.
+                 crate::contacts::forward_contacts(account, &mut manager).await;
+                 // clone the manager so we can receive messages in one task and process commands in the other
