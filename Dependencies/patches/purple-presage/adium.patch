@@ -69,18 +69,19 @@ index 03e540a..33bdebc 100755
      if (phone_number != NULL) { 
          PurpleBuddy *buddy = presage_blist_update_buddy(purple_connection_get_account(connection), uuid, name);
 diff --git a/src/c/bridge.c b/src/c/bridge.c
-index df9cf61..2c3f474 100755
+index df9cf61..c923301 100755
 --- a/src/c/bridge.c
 +++ b/src/c/bridge.c
-@@ -42,6 +42,7 @@ void free_message(Message * message) {
+@@ -42,6 +42,8 @@ void free_message(Message * message) {
      g_free(message->extension);
      g_free(message->filename);
      g_free(message->hash);
++    g_free(message->mimetype);   // copied in presage_append_message and never released until now
 +    g_free(message->avatar_path);
      // message->blob is not released here – it must be released by the xfer callback
      if (message->groups) {
          for (int gi = 0; gi < message->groups_length; gi++) {
-@@ -114,6 +115,8 @@ static void handle_message(Message * message) {
+@@ -114,6 +116,8 @@ static void handle_message(Message * message) {
          presage_handle_xfer_end(message->xfer, message->flags, message->body, message->mimetype);
      } else if (message->body != NULL) {
          presage_handle_text(connection, message->who, message->name, message->group, message->flags, message->timestamp_seconds, message->body);
@@ -89,6 +90,14 @@ index df9cf61..2c3f474 100755
      } else if (message->groups != NULL) {
          presage_handle_groups(connection, message->groups, message->groups_length);
      } else if (message->who) {
+@@ -162,6 +166,7 @@ void presage_append_message(const Message *message_rust) {
+     message_heap->filename = g_strdup(message_rust->filename);
+     message_heap->extension = g_strdup(message_rust->extension);
+     message_heap->mimetype = g_strdup(message_rust->mimetype);
++    message_heap->avatar_path = g_strdup(message_rust->avatar_path);
+     // copy all groups to the heap
+     message_heap->groups = g_new(Group, message_rust->groups_length);
+     for (int gi = 0; gi < message_heap->groups_length; gi++) {
 diff --git a/src/c/connection.c b/src/c/connection.c
 index 21b6295..fba61b3 100755
 --- a/src/c/connection.c
