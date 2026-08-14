@@ -140,6 +140,7 @@
 - (CGFloat)statusTextWidth;
 - (CGFloat)rowInsetPerSide;
 - (NSString *)statusTitleForAccount:(AIAccount *)account;
+- (NSString *)nameLineForAccount:(AIAccount *)account;
 - (NSString *)statusLineForAccount:(AIAccount *)account;
 - (NSColor *)statusColorForAccount:(AIAccount *)account;
 - (void)setAccountEnabled:(BOOL)inEnabled atRow:(NSInteger)row;
@@ -1736,6 +1737,43 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 }
 
 /*!
+ * @brief The line naming an account in the list
+ *
+ * Says which of the two things it is showing rather than leaving the reader to work it out. The
+ * account name alone is unambiguous only as long as every service has one that looks like an
+ * address, and they do not: a phone number, a UUID, a nickname and a bare word are all account names
+ * here, and an IRC account is identified as much by its server as by its nickname.
+ *
+ * The name comes first because that is what the user is looking for. The server follows where there
+ * is one, and stands alone where there is no name, which IRC permits.
+ */
+- (NSString *)nameLineForAccount:(AIAccount *)account
+{
+	NSMutableArray	*parts = [NSMutableArray array];
+	/* formattedUID, not explicitFormattedUID. The two are the same everywhere but IRC, which
+	 * overrides the explicit one to read "server (nickname)" precisely because this list had no other
+	 * way to tell two accounts on different servers apart. It has one now, and taking the composed
+	 * string here would print the server twice and call the whole of it the account name. */
+	NSString		*uid = [account formattedUID];
+	NSString		*host = [account host];
+
+	if ([uid length]) {
+		[parts addObject:[NSString stringWithFormat:
+						  AILocalizedString(@"Account Name: %@", "Account list entry; %@ is the name of the account"), uid]];
+	}
+
+	if ([host length]) {
+		[parts addObject:[NSString stringWithFormat:
+						  AILocalizedString(@"Server: %@", "Account list entry; %@ is the server the account connects to"), host]];
+	}
+
+	if (![parts count])
+		return NEW_ACCOUNT_DISPLAY_TEXT;
+
+	return [parts componentsJoinedByString:@", "];
+}
+
+/*!
  * @brief The complete status line of an account
  *
  * Combines the state, the reconnection countdown and the connection progress or error message
@@ -1999,11 +2037,14 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 															  direction:AIIconNormal] imageByScalingToSize:NSMakeSize(SERVICE_ICON_SIZE, SERVICE_ICON_SIZE)
 																								  fraction:(accountEnabled ? 1.0f : 0.5f)]];
 
-	//Account name
+	NSString	*nameLine = [self nameLineForAccount:account];
+	[[cellView textField] setStringValue:nameLine];
+
+	/* The bare name for the switch, which reads better spoken as "Enable Christian" than as "Enable
+	 * Account Name: Christian". */
 	NSString	*accountName = ([[account explicitFormattedUID] length] ?
 								[account explicitFormattedUID] :
 								NEW_ACCOUNT_DISPLAY_TEXT);
-	[[cellView textField] setStringValue:accountName];
 
 	//Encryption indicator
 	if ([account encrypted]) {
@@ -2050,7 +2091,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[cellView setDimmed:!accountEnabled];
 	[cellView setContextHighlighted:(row == contextMenuRow)];
 	[cellView setAccessibilityLabel:[NSString stringWithFormat:@"%@, %@, %@",
-									 accountName, [account.service longDescription], statusLine]];
+									 nameLine, [account.service longDescription], statusLine]];
 }
 
 /*!

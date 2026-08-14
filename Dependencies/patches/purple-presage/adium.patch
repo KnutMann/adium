@@ -97,7 +97,7 @@ index f0fd7e1..4795cfa 100755
  static_assert(sizeof(time_t) == 4, "time_t must be 4 bytes (32 bit)");
  #else
 diff --git a/src/c/qrcode.c b/src/c/qrcode.c
-index 7da09b0..1de17b0 100755
+index 7da09b0..ed1d831 100755
 --- a/src/c/qrcode.c
 +++ b/src/c/qrcode.c
 @@ -1,5 +1,6 @@
@@ -107,7 +107,36 @@ index 7da09b0..1de17b0 100755
  
  static void qrcode_hide(PurpleConnection *connection, PurpleRequestFields *fields) {
      // nothing to do.
-@@ -38,37 +39,51 @@ static void show_qrcode(PurpleConnection *connection, const char *qrstring, gcha
+@@ -16,20 +17,21 @@ static void show_qrcode(PurpleConnection *connection, const char *qrstring, gcha
+ 
+     purple_request_fields_add_group(fields, group);
+     {
+-        PurpleRequestField *field = purple_request_field_string_new("qr_string", "QR Code Data", qrstring, FALSE);
+-        purple_request_field_group_add_field(group, field);
+-    }
+-    {
++        /* The picture and nothing else. The string the code encodes used to be shown beside it, and
++         * there is nothing a person can do with it: it is not a code to type anywhere, it is the
++         * same bytes the camera is about to read. */
+         PurpleRequestField *field = purple_request_field_image_new("qr_code", "QR Code", qrimgdata, qrimglen);
+         purple_request_field_group_add_field(group, field);
+     }
+ 
+     PurpleAccount *account = purple_connection_get_account(connection);
+     purple_request_fields(
+-        connection, "Signal Protocol", "Link to master device",
+-        "In the Signal App, go to \"Preferences\" and \"Linked devices\". Scan the QR code below. Wait for the window to close.", 
++        connection,
++        "Signal Device Linking",
++        "Scan this code with Signal on your phone",
++        "In Signal, open Settings, then Linked devices, and add a device. This window closes by itself once the phone has finished.",
+         fields,
+-        "Hide", G_CALLBACK(qrcode_hide), 
++        "Hide", G_CALLBACK(qrcode_hide),
+         "Cancel", G_CALLBACK(qrcode_cancel),
+         account, NULL, NULL,
+         connection);
+@@ -38,37 +40,51 @@ static void show_qrcode(PurpleConnection *connection, const char *qrstring, gcha
  static void generate_and_show_qrcode(PurpleConnection *connection, const char *data) {
      g_return_if_fail(data != NULL);
      QRcode * qrcode = QRcode_encodeString(data, 0, QR_ECLEVEL_L, QR_MODE_8, 1);
@@ -186,7 +215,7 @@ index 7da09b0..1de17b0 100755
  }
  
  static void write_qrcode_as_conversation(PurpleConnection *connection, const char *data) {
-@@ -103,12 +118,17 @@ void presage_handle_qrcode(PurpleConnection *connection, const char *data) {
+@@ -103,12 +119,17 @@ void presage_handle_qrcode(PurpleConnection *connection, const char *data) {
  void presage_handle_uuid(PurpleConnection *connection, const char *uuid) {
      g_return_if_fail(uuid != NULL);
      PurpleAccount *account = purple_connection_get_account(connection);
