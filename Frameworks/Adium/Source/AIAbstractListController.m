@@ -593,9 +593,23 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 
 	//Redraw the modified object (or the whole list, if object is nil)
 	if (object) {
+		/* Redisplaying one row means finding it, and finding it can fail: the announcement names a
+		 * list object, the row holds a proxy for it, and the outline view is asked which row that
+		 * proxy is at. That is a lookup by equality, and it used to answer -1 for every row ever,
+		 * because a proxy was not equal to itself. The cause is fixed in AIProxyListObject; this
+		 * remains as a net, because a row nobody can find is still a row the user is looking at, and
+		 * a whole list redrawn is cheaper than a list that lies. */
+		BOOL didRedisplay = NO;
+
 		for (AIProxyListObject *proxyObject in [[object.proxyObjects copy] autorelease]) {
-			[contactListView redisplayItem:proxyObject];
+			if ([contactListView rowForItem:proxyObject] != -1) {
+				[contactListView redisplayItem:proxyObject];
+				didRedisplay = YES;
+			}
 		}
+
+		if (!didRedisplay)
+			[contactListView redisplayItem:nil];
 	} else {
 		[contactListView redisplayItem:nil];
 	}

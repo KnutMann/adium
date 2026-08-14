@@ -130,9 +130,38 @@ static inline NSMutableDictionary *_getProxyDict() {
 	return [[self listObject] isMemberOfClass:class];
 }
 
+/*!
+ * @brief A proxy answers for its list object, and for itself
+ *
+ * The forwarding is the point of the class: code holding a proxy compares it against a list object
+ * and expects a match. What was missing is the first line, and it is not a nicety. Without it a proxy
+ * is not equal to itself, because the question asked is whether the LIST OBJECT equals the proxy, and
+ * it does not.
+ *
+ * NSOutlineView finds its items by equality. So -rowForItem: answered -1 for every contact list row,
+ * every time, and -redisplayItem: therefore redrew nothing: measured, ninety-five announcements in
+ * three minutes and not one row found. Single row redraws had never worked. What kept the list
+ * looking correct was the delayed update timer, which repaints everything, so changes appeared
+ * whenever it next came around and looked like an arbitrary delay of up to a minute.
+ */
 - (BOOL)isEqual:(id)inObject
 {
+	if (inObject == self)
+		return YES;
+
 	return [[self listObject] isEqual:inObject];
+}
+
+/*!
+ * @brief Hash as the object we answer for
+ *
+ * Equal objects must hash alike, and this one reports itself equal to its list object. Inherited
+ * NSObject hashing broke that the moment -isEqual: was overridden, which is what leaves an object
+ * findable by pointer and unfindable by lookup.
+ */
+- (NSUInteger)hash
+{
+	return [[self listObject] hash];
 }
 
 - (id)forwardingTargetForSelector:(SEL)aSelector
