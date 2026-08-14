@@ -28,7 +28,12 @@
 	//Split views
 	IBOutlet	NSSplitView		*splitView_textEntryHorizontal;
 	IBOutlet	NSSplitView		*splitView_verticalSplit;
-	
+
+	/* The shelf. Both are nil until something asks for one, so a chat that never opens a shelf keeps
+	 * exactly the view tree the nib describes. */
+	NSSplitView				*splitView_shelf;
+	NSView					*view_shelf;
+
 	//Message Display
 	IBOutlet	AIMessageWindowOutgoingScrollView *scrollView_messages;
 	IBOutlet	NSView					*view_messages;
@@ -88,6 +93,26 @@
 
 //User List
 - (IBAction)showActionMenu:(id)sender;
+
+/*!
+ * @brief Put a view on a shelf across the bottom of the conversation, or take it away again
+ *
+ * The shelf spans the full width of the chat, beneath both the message view and the participant
+ * list, and the user can drag its divider. It exists so that a plugin can offer a working area that
+ * belongs to one conversation, rather than a panel floating somewhere with no idea which chat it is
+ * meant for.
+ *
+ * There is room for one shelf. A second caller passing a view replaces the first one's, so a plugin
+ * should ask what is there before it takes the space.
+ *
+ * @param inView The view to install, or nil to remove the shelf entirely
+ */
+- (void)setShelfView:(NSView *)inView;
+
+/*!
+ * @brief What is currently on the shelf, or nil
+ */
+- (NSView *)shelfView;
 
 //Account Selection
 - (void)redisplaySourceAndDestinationSelector:(NSNotification *)notification;

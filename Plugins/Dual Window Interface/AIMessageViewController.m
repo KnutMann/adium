@@ -49,6 +49,10 @@
 #define KEY_USER_LIST_VISIBLE_PREFIX		@"Userlist Visible Chat:"	// Preference key prefix for user list visibility
 #define KEY_USER_LIST_ON_RIGHT				@"UserList On Right"		// Preference key for user list being on the right
 
+#define SHELF_DEFAULT_HEIGHT				260.0f						// Height a shelf opens at
+#define SHELF_MINIMUM_HEIGHT				120.0f						// Below this a shelf is not worth showing
+#define CONVERSATION_MINIMUM_HEIGHT			100.0f						// A shelf may never squeeze the chat past this
+
 @interface AIMessageViewController ()
 - (id)initForChat:(AIChat *)inChat;
 - (void)chatStatusChanged:(NSNotification *)notification;
@@ -64,6 +68,9 @@
 - (void)_configureUserList;
 - (CGFloat)_userListViewDividerPositionIgnoringUserMinimum:(BOOL)ignoreUserMinimum;
 - (void)updateFramesForAccountSelectionView;
+- (NSView *)conversationContainerView;
+- (void)_createShelfSplitView;
+- (void)_destroyShelfSplitView;
 - (void)saveUserListMinimumSize;
 - (BOOL)userListInitiallyVisible;
 - (void)setUserListVisible:(BOOL)inVisible;
@@ -196,6 +203,12 @@
     [messageDisplayController release];
 	[userListController release];
 	
+	/* Before the view tree goes: NSSplitView does not retain its delegate, and this one is about to
+	 * stop existing. */
+	[splitView_shelf setDelegate:nil];
+	[splitView_shelf release]; splitView_shelf = nil;
+	[view_shelf release]; view_shelf = nil;
+
 	//release menuItem
 	[showHide release];
 	[view_contents release]; view_contents = nil;
@@ -720,19 +733,124 @@
  */
 - (void)updateFramesForAccountSelectionView
 {
-	CGFloat accountSelectionHeight = (accountSelectionVisible ? NSHeight(view_accountSelection.frame) : 0.0f);
-	
-	NSRect verticalFrame = splitView_verticalSplit.frame;
+	CGFloat	 accountSelectionHeight = (accountSelectionVisible ? NSHeight(view_accountSelection.frame) : 0.0f);
+	NSView	*conversationView		= [self conversationContainerView];
+
+	NSRect verticalFrame = conversationView.frame;
 	verticalFrame.size.height = NSHeight(view_contents.frame) - accountSelectionHeight - NSMinY(verticalFrame) - 2;
 	verticalFrame.size.width = NSWidth(view_contents.frame);
-	[splitView_verticalSplit setFrame:verticalFrame];
-	
-	[view_accountSelection setFrameOrigin:NSMakePoint(NSMinX(splitView_verticalSplit.frame), NSMaxY(splitView_verticalSplit.frame))];
-	
+	[conversationView setFrame:verticalFrame];
+
+	[view_accountSelection setFrameOrigin:NSMakePoint(NSMinX(conversationView.frame), NSMaxY(conversationView.frame))];
+
 	[view_accountSelection setHidden:!accountSelectionVisible];
-	
+
 	[self _updateTextEntryViewHeight];
-}	
+}
+
+/*!
+ * @brief The view sitting directly under the account selection strip
+ *
+ * Ordinarily the vertical split view holding the message view and the participant list. Once a shelf
+ * has been asked for, that split view has been moved inside another one, and it is the outer split
+ * view that occupies the space and has to be given the frame.
+ */
+- (NSView *)conversationContainerView
+{
+	return (splitView_shelf ? (NSView *)splitView_shelf : (NSView *)splitView_verticalSplit);
+}
+
+
+//Shelf ----------------------------------------------------------------------------------------------------------------
+#pragma mark Shelf
+
+- (NSView *)shelfView
+{
+	return [[view_shelf subviews] lastObject];
+}
+
+- (void)setShelfView:(NSView *)inView
+{
+	if (!inView) {
+		[self _destroyShelfSplitView];
+		[self updateFramesForAccountSelectionView];
+		return;
+	}
+
+	[self _createShelfSplitView];
+
+	for (NSView *existing in [[[view_shelf subviews] copy] autorelease])
+		[existing removeFromSuperview];
+
+	[inView setFrame:[view_shelf bounds]];
+	[inView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+	[view_shelf addSubview:inView];
+
+	[self updateFramesForAccountSelectionView];
+}
+
+/*!
+ * @brief Move the conversation inside a second split view, with room underneath it
+ *
+ * The vertical split view is the one that gets moved, and the choice is not arbitrary. Nothing in
+ * this file reaches it through its superview, whereas the superview of splitView_textEntryHorizontal
+ * is used in four places as a stand-in for the message side of the conversation, so slipping a view
+ * in above that one would quietly change what those four lines mean.
+ *
+ * Nothing is built until a shelf is actually asked for. A chat that never opens one keeps precisely
+ * the view tree the nib describes, which is worth more than the few objects it saves: it means this
+ * cannot regress the ordinary case.
+ */
+- (void)_createShelfSplitView
+{
+	if (splitView_shelf) return;
+
+	NSView *container = [splitView_verticalSplit superview];
+	NSRect	frame	  = [splitView_verticalSplit frame];
+
+	splitView_shelf = [[NSSplitView alloc] initWithFrame:frame];
+	[splitView_shelf setVertical:NO];
+	[splitView_shelf setDividerStyle:NSSplitViewDividerStyleThin];
+	[splitView_shelf setAutoresizingMask:[splitView_verticalSplit autoresizingMask]];
+
+	view_shelf = [[NSView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, NSWidth(frame), SHELF_DEFAULT_HEIGHT)];
+
+	/* Taken out and put back, so retain it across the move: removeFromSuperview is the only owner
+	 * releasing it. */
+	[splitView_verticalSplit retain];
+	[splitView_verticalSplit removeFromSuperview];
+	[splitView_verticalSplit setFrameOrigin:NSZeroPoint];
+	[splitView_shelf addSubview:splitView_verticalSplit];
+	[splitView_verticalSplit release];
+
+	[splitView_shelf addSubview:view_shelf];
+	[container addSubview:splitView_shelf];
+
+	/* The delegate is set last. NSSplitView calls back during addSubview:, and answering those
+	 * questions before the two panes are both in place gives the wrong answers. */
+	[splitView_shelf setDelegate:(id<NSSplitViewDelegate>)self];
+	[splitView_shelf adjustSubviews];
+}
+
+- (void)_destroyShelfSplitView
+{
+	if (!splitView_shelf) return;
+
+	NSView *container = [splitView_shelf superview];
+	NSRect	frame	  = [splitView_shelf frame];
+
+	[splitView_shelf setDelegate:nil];
+
+	[splitView_verticalSplit retain];
+	[splitView_verticalSplit removeFromSuperview];
+	[splitView_shelf removeFromSuperview];
+	[splitView_verticalSplit setFrame:frame];
+	[container addSubview:splitView_verticalSplit];
+	[splitView_verticalSplit release];
+
+	[splitView_shelf release]; splitView_shelf = nil;
+	[view_shelf release]; view_shelf = nil;
+}
 
 
 //Text Entry -----------------------------------------------------------------------------------------------------------
@@ -1413,7 +1531,11 @@
 		return NO;
 	else if (subview == [scrollView_textEntry superview])
 		return NO;
-	
+	/* Without this the conversation itself would be collapsible once a shelf exists, since it is then
+	 * a pane like any other and this method answers YES to anything it does not recognise. */
+	else if (subview == splitView_verticalSplit)
+		return NO;
+
 	return YES;
 }
 
@@ -1449,8 +1571,11 @@
 			else
 				return 0;
 		}
+	} else if (splitView == splitView_shelf) {
+		//How far down the divider may go: far enough to leave the shelf its minimum
+		return AIfloor(NSHeight(splitView_shelf.frame) - SHELF_MINIMUM_HEIGHT - [splitView dividerThickness] + 0.5f);
 	}
-	
+
 	return proposedMax;
 }
 
@@ -1479,8 +1604,11 @@
 			else
 				return 0;
 		}
+	} else if (splitView == splitView_shelf) {
+		//How far up the divider may go: the conversation keeps at least this much
+		return CONVERSATION_MINIMUM_HEIGHT;
 	}
-	
+
 	return proposedMin;
 }
 
