@@ -185,10 +185,41 @@ index 21b6295..fba61b3 100755
          // detach thread so its resources are released as soon it terminates
          pthread_detach(presage_thread);
 diff --git a/src/c/groups.c b/src/c/groups.c
-index f681ebf..751c657 100755
+index f681ebf..6e2d169 100755
 --- a/src/c/groups.c
 +++ b/src/c/groups.c
-@@ -83,8 +83,8 @@ void presage_join_chat(PurpleConnection *connection, GHashTable *data) {
+@@ -22,6 +22,30 @@ void presage_set_chat_topic(PurpleConnection *pc, int id, const char *topic) {
+  * Copied from
+  * https://github.com/hoehermann/libpurple-signald/blob/master/groups.c
+  */
++/*
++ * What this protocol needs in order to join a chat, filled in for a known room.
++ *
++ * Without this, a bookmark cannot be repaired. Adium stores the components a room was joined with,
++ * and where a bookmark has none, which is every bookmark made before it started storing them, it
++ * asks the protocol what it would use. A protocol that does not answer leaves it with nothing, and
++ * the user is told the bookmark cannot be used and offered its deletion, which is a poor reward for
++ * having bookmarked a room that is perfectly reachable.
++ *
++ * The identifier is all that is needed. "topic" is in the chat info because the join dialogue shows
++ * it, but presage_join_chat only reads "name", and the real title arrives with the group list.
++ */
++GHashTable * presage_chat_info_defaults(PurpleConnection *connection, const char *chat_name) {
++    GHashTable *defaults = g_hash_table_new_full( // MEMCHECK: caller takes ownership
++        g_str_hash, g_str_equal, NULL, g_free
++    );
++
++    if (chat_name != NULL) {
++        g_hash_table_insert(defaults, "name", g_strdup(chat_name)); // MEMCHECK: released by the table's value_destroy_func
++    }
++
++    return defaults;
++}
++
+ GList * presage_chat_info(PurpleConnection *connection) {
+     GList *infos = NULL;
+ 
+@@ -83,8 +107,8 @@ void presage_join_chat(PurpleConnection *connection, GHashTable *data) {
                  if (topic != NULL) {
                      purple_conv_chat_set_topic(conv_chat, NULL, topic); // TODO: find out why this does not work on Windows
                  }
@@ -199,6 +230,18 @@ index f681ebf..751c657 100755
                  // request list of participants
                  presage_rust_get_group_members(account, rust_runtime, presage->tx_ptr, identifier);
              }
+diff --git a/src/c/init.c b/src/c/init.c
+index 4c44696..fba7a2e 100644
+--- a/src/c/init.c
++++ b/src/c/init.c
+@@ -63,6 +63,7 @@ static PurplePluginProtocolInfo prpl_info = {
+     .set_chat_topic = presage_set_chat_topic,
+     .chat_send = presage_send_chat,
+     .chat_info = presage_chat_info,
++    .chat_info_defaults = presage_chat_info_defaults,
+     .join_chat = presage_join_chat,
+     .roomlist_get_list = presage_roomlist_get_list,
+     // file transfer
 diff --git a/src/c/options.c b/src/c/options.c
 index 6de1aaf..ef0482c 100755
 --- a/src/c/options.c
@@ -247,7 +290,7 @@ index 6de1aaf..ef0482c 100755
      return account_options;
  }
 diff --git a/src/c/presage.h b/src/c/presage.h
-index f0fd7e1..1b4e98d 100755
+index f0fd7e1..9ba41e2 100755
 --- a/src/c/presage.h
 +++ b/src/c/presage.h
 @@ -8,6 +8,29 @@
@@ -305,6 +348,14 @@ index f0fd7e1..1b4e98d 100755
  void presage_tooltip_text(PurpleBuddy *buddy, PurpleNotifyUserInfo *info, gboolean full);
  void presage_get_info(PurpleConnection *connection, const char *who);
  void presage_show_info(PurpleConnection *connection, const char *uuid, const char *name, const char *phone_number, const char *error);
+@@ -115,6 +140,7 @@ void presage_show_info(PurpleConnection *connection, const char *uuid, const cha
+ PurpleChat * presage_find_blist_chat(PurpleAccount *account, const char *identifier);
+ void presage_set_chat_topic(PurpleConnection *connection, int id, const char *topic);
+ GList * presage_chat_info(PurpleConnection *connection);
++GHashTable * presage_chat_info_defaults(PurpleConnection *connection, const char *chat_name);
+ void presage_join_chat(PurpleConnection *connection, GHashTable *data);
+ void presage_handle_groups(PurpleConnection *connection, const Group *groups, uint64_t length);
+ //void presage_handle_members(PurpleConnection *connection, const char *group, char **members, uint64_t length);
 diff --git a/src/c/profile.c b/src/c/profile.c
 index c4db58d..8b8bfff 100644
 --- a/src/c/profile.c
