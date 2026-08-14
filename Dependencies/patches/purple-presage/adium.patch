@@ -1,91 +1,72 @@
 diff --git a/src/c/connection.c b/src/c/connection.c
-index 21b6295..4a00416 100755
+index 21b6295..f0a905f 100755
 --- a/src/c/connection.c
 +++ b/src/c/connection.c
-@@ -1,6 +1,66 @@
+@@ -1,5 +1,24 @@
  #include "presage.h"
-+#include <glib/gstdio.h> // g_rename, which respects the encoding rules on the platforms that have them
-+
-+/*
-+ * Move the store to the name the account is about to be given.
-+ *
-+ * The store is named after the username, and the username is what the user typed before anything
-+ * knew the account's real UUID. Linking therefore lands in a store called after a placeholder, and
-+ * the error telling the user to correct the username also, on its own, invalidates the work: the
-+ * corrected name points at a store that does not exist, so the QR code comes back and the device
-+ * linked a minute ago sits on the account doing nothing. Moving the store instead means the second
-+ * attempt finds what the first one did, and there is one scan rather than two.
-+ *
-+ * Called only from rust_main_finished, and that is the point of it. Renaming a SQLite database out
-+ * from under an open connection is a way to lose data quietly; here the runtime has returned, so
-+ * everything is closed.
-+ */
-+static void presage_move_store_to_uuid(PurpleAccount *account) {
-+    const char *uuid = purple_account_get_string(account, PRESAGE_PENDING_UUID_SETTING, NULL);
-+    if (uuid == NULL || uuid[0] == '\0') {
-+        return;
-+    }
-+    purple_account_set_string(account, PRESAGE_PENDING_UUID_SETTING, "");
-+
-+    const char *username = purple_account_get_username(account);
-+    if (username == NULL || purple_strequal(username, uuid)) {
-+        return;
-+    }
-+
-+    const char *user_dir = purple_user_dir();
-+    // the write ahead log and its shared memory file belong to the database and move with it
-+    const char * const suffixes[] = {"", "-wal", "-shm"};
-+    gchar *from[G_N_ELEMENTS(suffixes)];
-+    gchar *to[G_N_ELEMENTS(suffixes)];
-+    for (gsize i = 0; i < G_N_ELEMENTS(suffixes); i++) {
-+        from[i] = g_strdup_printf("%s/presage/%s.db3%s", user_dir, username, suffixes[i]);
-+        to[i] = g_strdup_printf("%s/presage/%s.db3%s", user_dir, uuid, suffixes[i]);
-+    }
-+
-+    /* Refuse rather than overwrite. A store already under the real name means this account has been
-+     * linked before, and that one is the one worth keeping. */
-+    if (!g_file_test(from[0], G_FILE_TEST_EXISTS)) {
-+        purple_debug_info(PLUGIN_NAME, "no store at %s to move.\n", from[0]);
-+    } else if (g_file_test(to[0], G_FILE_TEST_EXISTS)) {
-+        purple_debug_info(PLUGIN_NAME, "not moving store: %s already exists.\n", to[0]);
-+    } else {
-+        for (gsize i = 0; i < G_N_ELEMENTS(suffixes); i++) {
-+            if (g_file_test(from[i], G_FILE_TEST_EXISTS) && g_rename(from[i], to[i]) != 0) {
-+                purple_debug_error(PLUGIN_NAME, "failed to move %s to %s.\n", from[i], to[i]);
-+            }
-+        }
-+        purple_debug_info(PLUGIN_NAME, "moved store to %s.\n", to[0]);
-+    }
-+
-+    for (gsize i = 0; i < G_N_ELEMENTS(suffixes); i++) {
-+        g_free(from[i]);
-+        g_free(to[i]);
-+    }
-+}
  
- static gboolean rust_main_finished(gpointer account) {
-+    presage_move_store_to_uuid(account);
++/*
++ * How this account refers to itself.
++ *
++ * The back-end reports the account's UUID on every connection, not only on the first one, because
++ * presage_rust_whoami is asked for it as soon as the channel to the runtime exists. Storing it means
++ * this account can name itself correctly from the moment it connects, without the username ever
++ * having to be the UUID.
++ *
++ * Falling back to the username covers two cases: the moments before the first report arrives, and
++ * accounts set up the old way, where the username had to be the UUID and therefore already is one.
++ */
++const char *presage_own_uuid(PurpleAccount *account) {
++    const char *uuid = purple_account_get_string(account, PRESAGE_OWN_UUID_SETTING, NULL);
++    if (uuid != NULL && uuid[0] != '\0') {
++        return uuid;
++    }
++    return purple_account_get_username(account);
++}
 +
+ static gboolean rust_main_finished(gpointer account) {
      PurpleConnection *connection = purple_account_get_connection(account);
      if (connection == NULL) {
-         purple_debug_info(PLUGIN_NAME, "rust runtime has finished after connection ceased to exist.\n");
+diff --git a/src/c/groups.c b/src/c/groups.c
+index f681ebf..751c657 100755
+--- a/src/c/groups.c
++++ b/src/c/groups.c
+@@ -83,8 +83,8 @@ void presage_join_chat(PurpleConnection *connection, GHashTable *data) {
+                 if (topic != NULL) {
+                     purple_conv_chat_set_topic(conv_chat, NULL, topic); // TODO: find out why this does not work on Windows
+                 }
+-                // set own identity in this chat
+-                purple_conv_chat_set_nick(conv_chat, purple_account_get_username(account));
++                // set own identity in this chat; the other participants are named by UUID, so we are too
++                purple_conv_chat_set_nick(conv_chat, presage_own_uuid(account));
+                 // request list of participants
+                 presage_rust_get_group_members(account, rust_runtime, presage->tx_ptr, identifier);
+             }
 diff --git a/src/c/presage.h b/src/c/presage.h
-index f0fd7e1..293521b 100755
+index f0fd7e1..ceec658 100755
 --- a/src/c/presage.h
 +++ b/src/c/presage.h
-@@ -9,6 +9,10 @@
+@@ -9,6 +9,18 @@
  extern const char * PRESAGE_STARTUP_DELAY_SECONDS_OPTION;
  extern const char * PRESAGE_ATTACHMENT_PATH_TEMPLATE_OPTION;
  
-+/* Carries the account's real UUID from the moment the back-end reports it to the moment the store
-+ * can safely be moved to match. Not a user setting; see presage_move_store_to_uuid. */
-+#define PRESAGE_PENDING_UUID_SETTING "pending-uuid"
++/* The account's own Signal identity, as the back-end reports it. Not a user setting: it is written
++ * once the connection is up and read wherever this account has to name itself. Kept apart from the
++ * username because the two are not the same thing, and asking the user for this one is asking for
++ * something they cannot know before they have linked. */
++#define PRESAGE_OWN_UUID_SETTING "own-uuid"
++
++/*!
++ * How this account refers to itself: the UUID the back-end reported, or the username while no
++ * connection has yet reported one. Never NULL for an account that has connected once.
++ */
++const char *presage_own_uuid(PurpleAccount *account);
 +
  #ifdef _WIN32
  static_assert(sizeof(time_t) == 4, "time_t must be 4 bytes (32 bit)");
  #else
 diff --git a/src/c/qrcode.c b/src/c/qrcode.c
-index 7da09b0..997ce09 100755
+index 7da09b0..1de17b0 100755
 --- a/src/c/qrcode.c
 +++ b/src/c/qrcode.c
 @@ -1,5 +1,6 @@
@@ -174,16 +155,49 @@ index 7da09b0..997ce09 100755
  }
  
  static void write_qrcode_as_conversation(PurpleConnection *connection, const char *data) {
-@@ -107,6 +122,12 @@ void presage_handle_uuid(PurpleConnection *connection, const char *uuid) {
-     if (purple_strequal(username, uuid)) {
-         purple_request_close_with_handle(connection); // close request displaying the QR code
-     } else {
-+        /* The linking has already happened at this point, and it happened into a store named after
-+         * whatever the user typed. Note the real name down so the store can be moved to match once
-+         * the runtime has stopped; without that, correcting the username points the plug-in at an
-+         * empty store, the QR code comes back, and the device that was just linked is left behind on
-+         * the account doing nothing. See presage_move_store_to_uuid in connection.c. */
-+        purple_account_set_string(account, PRESAGE_PENDING_UUID_SETTING, uuid);
-         char *errmsg = g_strdup_printf("Username for this account must be '%s'.", uuid);
-         purple_connection_error(connection, PURPLE_CONNECTION_ERROR_OTHER_ERROR, errmsg);
-         g_free(errmsg);
+@@ -103,12 +118,17 @@ void presage_handle_qrcode(PurpleConnection *connection, const char *data) {
+ void presage_handle_uuid(PurpleConnection *connection, const char *uuid) {
+     g_return_if_fail(uuid != NULL);
+     PurpleAccount *account = purple_connection_get_account(connection);
+-    const char *username = purple_account_get_username(account);
+-    if (purple_strequal(username, uuid)) {
+-        purple_request_close_with_handle(connection); // close request displaying the QR code
+-    } else {
+-        char *errmsg = g_strdup_printf("Username for this account must be '%s'.", uuid);
+-        purple_connection_error(connection, PURPLE_CONNECTION_ERROR_OTHER_ERROR, errmsg);
+-        g_free(errmsg);
+-    }
++
++    /* Note it down and carry on. This used to insist that the username already was the UUID and
++     * refuse the connection otherwise, which put the user in an impossible position: an account has
++     * to be named before it can be linked, and nothing tells you your Signal UUID until you have
++     * linked. The documented way through was to type a placeholder, read the UUID out of the error,
++     * rename the account and link a second time, leaving the first linked device stranded.
++     *
++     * The username never needed to be the UUID. It is the file name of the store and a label in the
++     * account list; the three places where this account has to name itself to Signal now ask
++     * presage_own_uuid, which answers with what the back-end reported. That is asked for on every
++     * connection, not only the first, so it is always current. */
++    purple_account_set_string(account, PRESAGE_OWN_UUID_SETTING, uuid);
++    purple_request_close_with_handle(connection); // close request displaying the QR code
+ }
+diff --git a/src/c/receive_text.c b/src/c/receive_text.c
+index d65ceb8..a175710 100755
+--- a/src/c/receive_text.c
++++ b/src/c/receive_text.c
+@@ -32,12 +32,12 @@ void presage_handle_text(PurpleConnection *connection, const char *who, const ch
+             g_hash_table_destroy(data); // MEMCHECK: g_hash_table_insert above
+         }
+         if (flags & PURPLE_MESSAGE_SEND) {
+-            // the backend does not include the username for sync messages
+-            who = purple_account_get_username(account);
++            // the backend does not include the sender for sync messages, and it is us
++            who = presage_own_uuid(account);
+         }
+         if (flags & PURPLE_MESSAGE_ERROR) {
+             // who must be set in a chat, even for an error message
+-            who = purple_account_get_username(account);
++            who = presage_own_uuid(account);
+         }
+         purple_serv_got_chat_in(connection, g_str_hash(group), who, flags, text, timestamp_seconds);
+     }

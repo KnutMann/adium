@@ -27,9 +27,11 @@
 	return "prpl-hehoe-presage";
 }
 
-/* The username is the Signal account UUID, passed straight through: presage
- * takes it verbatim and, on the first link, tells the user which one to use if
- * the placeholder was wrong. No JID or domain to derive, unlike WhatsApp. */
+/* Passed straight through: unlike WhatsApp there is no JID or domain to derive,
+ * and unlike every other service this name is not an address. Signal knows this
+ * account by a UUID which presage learns from the server on each connection; the
+ * name is what the account is called here, and what its message store is filed
+ * under. Renaming the account after linking therefore means linking again. */
 - (const char *)purpleAccountName
 {
 	return [self.UID UTF8String];

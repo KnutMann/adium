@@ -60,16 +60,22 @@
 - (NSString *)longDescription{
 	return @"Signal";
 }
-/* Not "Signal UUID", although a UUID is what it ends up holding. Nobody knows their Signal UUID
- * before they have linked, and the first thing this field asks for is a placeholder, so naming it
- * after the value it will eventually contain reads as a demand for something the user cannot
- * supply. */
+/* A name, not an address. Signal identifies this account by a UUID, but the UUID is not something a
+ * person knows or should have to find out: the plugin learns it from the server on every connection
+ * and uses it wherever the account has to name itself. What is asked for here is only what the
+ * account should be called in Adium, and it is what the message store is filed under, so it is worth
+ * choosing something and leaving it alone. */
 - (NSString *)userNameLabel{
-	return AILocalizedString(@"Account Name", "Label for the account name field for Signal; holds a placeholder until the first link, then the account's UUID");
+	return AILocalizedString(@"Account Name", "Label for the account name field for Signal; a name the user chooses, not an address");
 }
 - (NSCharacterSet *)allowedCharacters{
-	//A UUID is hex and hyphens; permissive because the first link accepts any placeholder
-	return [NSCharacterSet characterSetWithCharactersInString:@"0123456789abcdefABCDEF-+@."];
+	/* Whatever the user wants to call it, minus the characters that would be trouble as part of a
+	 * file name, since the name is what the plugin files this account's message store under. */
+	NSMutableCharacterSet *allowed = [[[NSCharacterSet illegalCharacterSet] mutableCopy] autorelease];
+	[allowed formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
+	[allowed addCharactersInString:@"/:\\"];
+
+	return [allowed invertedSet];
 }
 - (NSUInteger)allowedLength{
 	return 64;

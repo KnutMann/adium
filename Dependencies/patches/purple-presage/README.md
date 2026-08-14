@@ -19,27 +19,27 @@ so the modules stay crisp squares rather than being smoothed into each other, an
 libpurple frontend can display that, so this is not a macOS special case, and gdk-pixbuf was already
 a dependency of the plugin.
 
-**The store moves with the username**, in `src/c/connection.c` and `src/c/qrcode.c`. Setting an
-account up asks for a username before anything knows the account's real UUID, so the documented
-advice is to type anything and let the plugin report the right value. It reports it by refusing to
-connect: "Username for this account must be ...". By then the device has been linked, and it has been
-linked into a store named after the placeholder, because `rust_main` builds the path as
-`<user dir>/presage/<username>.db3`. Correcting the username therefore points the plugin at a store
-that does not exist, the QR code comes back, and the device linked a minute ago stays on the account
-doing nothing until the user notices and removes it. Two scans and a stray device, for a first run.
+**The username no longer has to be the UUID**, in `src/c/presage.h`, `src/c/connection.c`,
+`src/c/qrcode.c`, `src/c/receive_text.c` and `src/c/groups.c`. This is the larger of the two changes
+and it removes the whole of the set-up procedure the upstream README describes.
 
-The patch notes the real UUID down when it reports it, and moves the store, its write ahead log and
-its shared memory file to match once the runtime has stopped. The second attempt then finds what the
-first one did and connects without asking again. It refuses to move onto an existing store, since one
-already under the real name means the account has been linked before and that is the one worth
-keeping.
+An account has to be named before it can be linked, and nothing tells you your Signal UUID until you
+have linked. `presage_handle_uuid` insisted the username already was the UUID and refused the
+connection otherwise, reporting the right value in the error text. The documented way through was
+therefore: type a placeholder, link, read the UUID out of the error, rename the account, link again.
+Twice, because the store is named after the username, so the corrected name points at an empty store.
+And the first linked device stays on the Signal account doing nothing until the user notices it.
 
-The timing is the whole of the care here. `rust_main_finished` is the only point at which the Rust
-runtime has returned and the database is closed, which is why the move happens there rather than
-where the UUID arrives. Renaming a SQLite database out from under an open connection loses data
-quietly.
+The username never needed to be the UUID. It is two things: the file name of the store, and a label.
+Signal identity is needed in exactly three places, where this account has to name itself among other
+participants, and all three now ask `presage_own_uuid`, which answers with what the back-end
+reported. That is asked for on every connection, not only the first, because `bridge.c` sends
+`presage_rust_whoami` as soon as the channel to the runtime exists, so it is always current. It is
+stored on the account as well, so it is right from the first moment rather than from the first reply.
 
-Worth offering upstream. Nothing in it is specific to Adium; the two scans happen on every frontend.
+What the user does now: name the account anything, link once, done.
+
+Worth offering upstream. Nothing in it is specific to Adium; the procedure was the same everywhere.
 
 ## Building
 
