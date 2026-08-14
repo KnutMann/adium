@@ -89,17 +89,39 @@
     selector = inSelector;
 }
 
+- (id)sendTarget
+{
+	return target;
+}
+
+- (SEL)sendAction
+{
+	return selector;
+}
+
 //Send messages on a command-return
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
 	NSString *charactersIgnoringModifiers = [theEvent charactersIgnoringModifiers];
-    if (([charactersIgnoringModifiers length] && [charactersIgnoringModifiers characterAtIndex:0] == '\r') &&
-		sendingEnabled) {
-		[self sendContent:nil];
-		return YES;
-	} else {
+
+	if (![charactersIgnoringModifiers length] ||
+		[charactersIgnoringModifiers characterAtIndex:0] != '\r' ||
+		!sendingEnabled)
 		return NO;
-	}
+
+	/* A key equivalent is offered around the whole window before the first responder ever sees the
+	 * key, which is how a default button answers a plain return typed into a text view. Return and
+	 * enter therefore arrive here rather than at insertText:, and answering every one of them was the
+	 * reason turning both send keys off had no effect on this view at all.
+	 *
+	 * Command return still sends whatever the send keys are set to: it is the deliberate one, and
+	 * nothing else in the window claims it. */
+	if (!([theEvent modifierFlags] & NSEventModifierFlagCommand) && !sendOnReturn && !sendOnEnter)
+		return NO;
+
+	[self sendContent:nil];
+
+	return YES;
 }
 
 // special characters only work at the end of a string of input

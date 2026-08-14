@@ -72,6 +72,20 @@
  */
 - (void)setTarget:(id)inTarget action:(SEL)inSelector;
 
+/*!
+ * @brief The target a send is sent to
+ *
+ * Readable so that something which takes the send over for a while can put back what it found rather
+ * than having to know who was there before it.
+ */
+@property (readonly, nonatomic) id sendTarget;
+
+/*!
+ * @brief The message a send performs on the target
+ * @see sendTarget
+ */
+@property (readonly, nonatomic) SEL sendAction;
+
 @end
 
 @interface AISendingTextView (PRIVATE_AISendingTextViewAndSubclasses)

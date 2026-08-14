@@ -22,9 +22,9 @@
  * @class AITypstEditorView
  * @brief The formula editor that sits on a chat's shelf
  *
- * Source at the top, the picture it produces underneath, and the formulas used before along the
- * bottom. Everything it needs is in one view, and the view belongs to one conversation, so pressing
- * insert has somewhere unambiguous to put the result.
+ * The formula is written in the conversation's own message field. The picture it produces sits here,
+ * with the formulas used before along the bottom, and the view belongs to one conversation, so
+ * sending has somewhere unambiguous to send to.
  *
  * There is no palette of symbols. Typst's own documentation is better than any list that could be
  * put here, and unlike a copy it does not go out of date, so the bottom bar links to it instead.
@@ -39,7 +39,7 @@
 
 	NSImageView		*imageView_preview;
 	NSTextField		*textField_error;
-	NSButton		*button_insert;
+	NSButton		*button_send;
 	NSStackView		*view_historyStrip;
 	NSScrollView	*scrollView_history;
 
@@ -51,12 +51,19 @@
 
 	NSMutableArray	*pendingThumbnails;
 	AITypstRenderer	*thumbnailRender;
+
+	//What the message field's sending looked like before this editor took it over
+	BOOL			 sendingWasTakenOver;
+	id				 previousSendTarget;
+	SEL				 previousSendAction;
+	BOOL			 previousSendOnReturn;
+	BOOL			 previousSendOnEnter;
 }
 
 /*!
  * @brief Create an editor for one conversation
  *
- * @param inChat The chat whose entry field the insert button writes into
+ * @param inChat The chat whose entry field the formula is written in and whose send button sends it
  */
 - (id)initWithChat:(AIChat *)inChat;
 

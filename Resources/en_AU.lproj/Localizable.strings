@@ -2657,6 +2657,7 @@
 "Select Buddy" = "Select Buddy";
 
 /* No comment provided by engineer. */
+"Send" = "Send";
 "Send %@ the message \"%@\"" = "Send %1$@ the message \"%2$@\"";
 
 /* Tooltip for the Send File toolbar item */

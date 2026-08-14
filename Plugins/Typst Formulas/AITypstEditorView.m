@@ -34,9 +34,11 @@
 #define HISTORY_STRIP_HEIGHT		48.0f
 #define THUMBNAIL_POINT_SIZE		11.0
 #define THUMBNAIL_MAXIMUM_WIDTH		200.0f
+#define SEND_SYMBOL_POINT_SIZE		20.0
 
 @interface AITypstEditorView ()
 - (void)buildInterface;
+- (NSImage *)sendButtonImage;
 - (void)entryDidChange:(NSNotification *)notification;
 - (void)schedulePreview;
 - (AIMessageEntryTextView *)entryTextView;
@@ -44,7 +46,11 @@
 - (NSString *)currentFormula;
 - (void)renderPreview;
 - (void)showError:(NSString *)message;
-- (void)insertFormula:(id)sender;
+- (void)takeOverSending;
+- (void)handSendingBack;
+- (void)sendFormula:(id)sender;
+- (void)sendEnteredMessage:(id)sender;
+- (BOOL)insertRenderedFormula;
 - (void)openDocumentation:(id)sender;
 - (void)recallFormula:(id)sender;
 - (void)forgetFormula:(id)sender;
@@ -97,6 +103,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 													 selector:@selector(entryDidChange:)
 														 name:NSTextViewDidChangeSelectionNotification
 													   object:entry];
+			[self takeOverSending];
 			[self schedulePreview];
 		}
 	}
@@ -108,6 +115,8 @@ static NSMutableDictionary *thumbnailCache = nil;
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+
+	[self handSendingBack];
 
 	[activeRender cancel];
 	[activeRender release];
@@ -215,17 +224,19 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[scrollView_history setDocumentView:stack_history];
 	view_historyStrip = stack_history;
 
-	button_insert = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
-	[button_insert setTitle:AILocalizedString(@"Insert", "Button in the formula editor which puts the rendered formula into the message being written")];
-	[button_insert setBezelStyle:NSBezelStyleRounded];
-	[button_insert setTarget:self];
-	[button_insert setAction:@selector(insertFormula:)];
-	/* Command and return rather than return alone: a formula may well run to several lines, and the
-	 * source field needs the plain return key for that. */
-	[button_insert setKeyEquivalent:@"\r"];
-	[button_insert setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
-	[button_insert setEnabled:NO];
-	[button_insert setTranslatesAutoresizingMaskIntoConstraints:NO];
+	button_send = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	[button_send setImage:[self sendButtonImage]];
+	[button_send setImagePosition:NSImageOnly];
+	[button_send setBordered:NO];
+	[button_send setContentTintColor:[NSColor systemBlueColor]];
+	[button_send setToolTip:AILocalizedString(@"Send", "Button in the formula editor which sends the rendered formula")];
+	[button_send setTarget:self];
+	[button_send setAction:@selector(sendFormula:)];
+	/* No key equivalent of its own. Command and return already arrives at the message field, whose
+	 * send this editor has taken over, so claiming the same key here would put two views in the window
+	 * in a race for one event. */
+	[button_send setEnabled:NO];
+	[button_send setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 	NSStackView *stack_links = [[[NSStackView alloc] initWithFrame:NSZeroRect] autorelease];
 	[stack_links setOrientation:NSUserInterfaceLayoutOrientationHorizontal];
@@ -245,11 +256,11 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[self addSubview:textField_error];
 	[self addSubview:scrollView_history];
 	[self addSubview:stack_links];
-	[self addSubview:button_insert];
+	[self addSubview:button_send];
 
 	NSDictionary *views = NSDictionaryOfVariableBindings(imageView_preview,
 														textField_error, scrollView_history,
-														stack_links, button_insert);
+														stack_links, button_send);
 	NSDictionary *metrics = [NSDictionary dictionaryWithObjectsAndKeys:
 							 [NSNumber numberWithFloat:EDITOR_MARGIN], @"margin",
 							 [NSNumber numberWithFloat:PREVIEW_MINIMUM_HEIGHT], @"previewMin",
@@ -264,11 +275,11 @@ static NSMutableDictionary *thumbnailCache = nil;
 	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[scrollView_history]-margin-|"
 											 options:0 metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[stack_links]-(>=margin)-[button_insert]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[stack_links]-(>=margin)-[button_send]-margin-|"
 											 options:NSLayoutFormatAlignAllCenterY metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
 	 [NSLayoutConstraint constraintsWithVisualFormat:
-	  @"V:|-margin-[imageView_preview(>=previewMin)]-margin-[scrollView_history(stripHeight)]-margin-[button_insert]-margin-|"
+	  @"V:|-margin-[imageView_preview(>=previewMin)]-margin-[scrollView_history(stripHeight)]-margin-[button_send]-margin-|"
 											 options:0 metrics:metrics views:views]];
 
 	/* The complaint occupies the same space as the picture rather than a row of its own. There is
@@ -295,6 +306,24 @@ static NSMutableDictionary *thumbnailCache = nil;
 														constant:0.0f]];
 
 	[NSLayoutConstraint activateConstraints:constraints];
+}
+
+/*!
+ * @brief The arrow in the blue circle
+ *
+ * The same picture the rest of the system puts on a send button, taken from the system's own symbols
+ * rather than drawn or bundled here, so that it keeps in step with whatever the system does to it.
+ * The circle is filled and the arrow is cut out of it, which is why the button is tinted rather than
+ * coloured: the arrow takes the colour of whatever is behind the button.
+ */
+- (NSImage *)sendButtonImage
+{
+	NSImage *image = [NSImage imageWithSystemSymbolName:@"arrow.up.circle.fill"
+							   accessibilityDescription:AILocalizedString(@"Send", "Button in the formula editor which sends the rendered formula")];
+
+	return [image imageWithSymbolConfiguration:
+			[NSImageSymbolConfiguration configurationWithPointSize:SEND_SYMBOL_POINT_SIZE
+														   weight:NSFontWeightRegular]];
 }
 
 - (NSButton *)linkButtonWithTitle:(NSString *)title url:(NSString *)url
@@ -346,7 +375,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 	if (![formula length]) {
 		[imageView_preview setImage:nil];
 		[textField_error setHidden:YES];
-		[button_insert setEnabled:NO];
+		[button_send setEnabled:NO];
 		return;
 	}
 
@@ -379,7 +408,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 			[imageView_preview setImage:image];
 			[textField_error setHidden:YES];
-			[button_insert setEnabled:(image != nil)];
+			[button_send setEnabled:(image != nil)];
 
 			/* The picture this one replaces is not needed any more, unless it went into a message: an
 			 * attachment refers to its file by name, and that file has to still be there when the
@@ -402,38 +431,125 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[imageView_preview setImage:nil];
 	[textField_error setStringValue:(message ? message : @"")];
 	[textField_error setHidden:NO];
-	[button_insert setEnabled:NO];
+	[button_send setEnabled:NO];
 }
 
-//Insertion ------------------------------------------------------------------------------------------------------------
-#pragma mark Insertion
+//Sending --------------------------------------------------------------------------------------------------------------
+#pragma mark Sending
+
+/*!
+ * @brief Take the message field's sending over for as long as this editor is open
+ *
+ * Two things change. The send keys stop sending, because the field is where the formula is written
+ * and a formula runs to several lines often enough that the return key is needed for the text. And
+ * the send itself comes here first, so that however the user asks for it, by the button below or by
+ * command and return in the field, what goes out is the picture and not the source it was made from.
+ *
+ * What was there before is read rather than assumed. The field belongs to the conversation and not to
+ * this editor: it was set up before the shelf opened and has to be handed back as it was found.
+ */
+- (void)takeOverSending
+{
+	AIMessageEntryTextView *entry = [self entryTextView];
+	if (!entry) return;
+
+	previousSendTarget = [entry sendTarget];
+	previousSendAction = [entry sendAction];
+	previousSendOnReturn = [entry sendOnReturn];
+	previousSendOnEnter = [entry sendOnEnter];
+
+	[entry setTarget:self action:@selector(sendEnteredMessage:)];
+	[entry setSendOnReturn:NO];
+	[entry setSendOnEnter:NO];
+
+	sendingWasTakenOver = YES;
+}
+
+- (void)handSendingBack
+{
+	AIMessageEntryTextView *entry = [self entryTextView];
+
+	/* Nothing to hand back if nothing was taken. The field is reached through the conversation's
+	 * window, so an editor built before that window exists finds none, and writing the remembered
+	 * nothing into a field that turned up later would leave it unable to send at all. */
+	if (!entry || !sendingWasTakenOver) return;
+
+	/* Only if it is still ours to hand back. Nothing else takes the send over today, but putting a
+	 * remembered target back over a newer one would be the kind of fault that shows up much later. */
+	if ([entry sendTarget] == self)
+		[entry setTarget:previousSendTarget action:previousSendAction];
+
+	[entry setSendOnReturn:previousSendOnReturn];
+	[entry setSendOnEnter:previousSendOnEnter];
+}
+
+/*!
+ * @brief The send button was pressed
+ *
+ * Through the field's own send rather than straight into sendEnteredMessage:, so that a formula sent
+ * from here goes the same way a typed message does, into the message history and past whatever else
+ * the field does on its way out. availableForSending is what a send key asks, so a conversation that
+ * is refusing messages refuses this one too.
+ */
+- (void)sendFormula:(id)sender
+{
+	AIMessageEntryTextView *entry = [self entryTextView];
+
+	if (entry && [entry availableForSending])
+		[entry sendContent:nil];
+}
+
+/*!
+ * @brief A message is being sent from the conversation this editor belongs to
+ *
+ * Installed as the message field's send action while the editor is open, so this runs whichever way
+ * the send was asked for.
+ *
+ * The picture takes the place of its source in the field and the send then carries on to where it was
+ * going before, which is the ordinary path with its filters, its offline handling and its file
+ * transfers. Handing the picture to the account from here would be a shorter route and would miss all
+ * of it, which is why the insert stayed even though nothing is called insert any more.
+ */
+- (void)sendEnteredMessage:(id)sender
+{
+	/* Sending closes the editor and closing it is what releases it, so the receiver has to be kept
+	 * alive for the rest of this method. */
+	[[self retain] autorelease];
+
+	[self insertRenderedFormula];
+
+	if (previousSendTarget && previousSendAction)
+		[previousSendTarget performSelector:previousSendAction withObject:sender];
+
+	/* Closed once the message is gone rather than left standing: people do not talk in formulas alone,
+	 * and the next thing typed into that field is far more likely to be a sentence. */
+	[chat.chatContainer.messageViewController setShelfView:nil];
+}
 
 /*!
  * @brief Put the rendered formula into the message being written
  *
- * Into the entry field rather than straight out to the contact, so that a sentence can be written
- * around it and so that the ordinary send path, with its filters and its file transfer handling,
- * is the one that carries it.
+ * @result YES if the field now holds the picture
  */
-- (void)insertFormula:(id)sender
+- (BOOL)insertRenderedFormula
 {
-	if (!renderedPath || !renderedFormula) return;
+	if (!renderedPath || !renderedFormula) return NO;
 
 	NSAttributedString *attachment = [AITypstRenderer attachmentStringForImageAtPath:renderedPath
 																			formula:renderedFormula];
-	if (!attachment) return;
+	if (!attachment) return NO;
 
 	NSTextView *entry = [self entryTextView];
 	NSRange range = [self formulaRange];
 	if (!entry || range.location == NSNotFound || NSMaxRange(range) > [[entry string] length])
-		return;
+		return NO;
 
 	/* Replacing rather than appending: the source is in the field, and it is the thing the picture is
 	 * a rendering of. Leaving it behind would send the formula twice, once as text and once as an
 	 * image. The range is the same one the preview was made from, so what disappears is what the user
 	 * has been watching. */
 	if (![entry shouldChangeTextInRange:range replacementString:nil])
-		return;
+		return NO;
 
 	[[entry textStorage] replaceCharactersInRange:range withAttributedString:attachment];
 	[entry didChangeText];
@@ -442,7 +558,8 @@ static NSMutableDictionary *thumbnailCache = nil;
 	renderedPathWasInserted = YES;
 
 	[AITypstHistory rememberFormula:renderedFormula];
-	[[entry window] makeFirstResponder:entry];
+
+	return YES;
 }
 
 //History --------------------------------------------------------------------------------------------------------------
