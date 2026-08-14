@@ -1225,6 +1225,7 @@
 			files = (
 				ADD1E5C0DE00000000000303 /* libtelegram-tdlib.so in Copy Purple Plugins */,
 				ADD1E5C0DE00000000000304 /* libwhatsmeow.so in Copy Purple Plugins */,
+				ADD1E5C0DE00000000000F05 /* libsignal-presage.so in Copy Purple Plugins */,
 			);
 			name = "Copy Purple Plugins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1408,9 +1409,11 @@
 		ADD1E5C0DE00000000000015 /* libgpgerror.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgpgerror.framework; path = Frameworks/libgpgerror.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000303 /* libtelegram-tdlib.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000304 /* libwhatsmeow.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000302 /* libwhatsmeow.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE00000000000F05 /* libsignal-presage.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F04 /* libsignal-presage.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000017 /* libintl8.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl8.framework; path = Frameworks/libintl8.framework; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libtelegram-tdlib.so"; path = "PurplePlugins/libtelegram-tdlib.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000302 /* libwhatsmeow.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwhatsmeow.so"; path = "PurplePlugins/libwhatsmeow.so"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000F04 /* libsignal-presage.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsignal-presage.so"; path = "PurplePlugins/libsignal-presage.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000201 /* libwebp.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwebp.7.dylib"; path = "Frameworks/libwebp.7.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsharpyuv.0.dylib"; path = "Frameworks/libsharpyuv.0.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000221 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libpng16.16.dylib"; path = "Frameworks/libpng16.16.dylib"; sourceTree = "<group>"; };
@@ -3108,6 +3111,7 @@
 				ADD1E5C0DE00000000000017 /* libintl8.framework */,
 				ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */,
 				ADD1E5C0DE00000000000302 /* libwhatsmeow.so */,
+				ADD1E5C0DE00000000000F04 /* libsignal-presage.so */,
 				ADD1E5C0DE00000000000201 /* libwebp.7.dylib */,
 				ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */,
 				ADD1E5C0DE00000000000221 /* libpng16.16.dylib */,

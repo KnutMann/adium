@@ -1,0 +1,90 @@
+diff --git a/src/c/qrcode.c b/src/c/qrcode.c
+index 7da09b0..e0408a6 100755
+--- a/src/c/qrcode.c
++++ b/src/c/qrcode.c
+@@ -1,5 +1,6 @@
+ #include "presage.h"
+ #include <qrencode.h>
++#include <gdk-pixbuf/gdk-pixbuf.h>
+ 
+ static void qrcode_hide(PurpleConnection *connection, PurpleRequestFields *fields) {
+     // nothing to do.
+@@ -38,37 +39,51 @@ static void show_qrcode(PurpleConnection *connection, const char *qrstring, gcha
+ static void generate_and_show_qrcode(PurpleConnection *connection, const char *data) {
+     g_return_if_fail(data != NULL);
+     QRcode * qrcode = QRcode_encodeString(data, 0, QR_ECLEVEL_L, QR_MODE_8, 1);
+-    if (qrcode != NULL) {
+-        int border = 4;
+-        int zoom = 6;
+-        int qrcodewidth = qrcode->width;
+-        int imgwidth = (border*2+qrcodewidth)*zoom;
+-        // poor man's PBM encoder
+-        gchar *head = g_strdup_printf("P1 %d %d ", imgwidth, imgwidth);
+-        int headlen = strlen(head);
+-        const gsize qrimglen = headlen+imgwidth*2*imgwidth*2;
+-        gchar * qrimgdata = g_strndup(head, qrimglen);
+-        g_free(head);
+-        gchar *imgptr = qrimgdata+headlen;
+-        // inspired by printQr in https://github.com/nayuki/QR-Code-generator/blob/master/c/qrcodegen-demo.c
+-        for (int y = 0; y/zoom < qrcodewidth + border*2; y++) {
+-            for (int x = 0; x/zoom < qrcodewidth + border*2; x++) {
+-                int yoffset = y/zoom - border;
+-                int xoffset = x/zoom - border;
+-                char pixel = '0';
+-                if (yoffset >= 0 && yoffset < qrcodewidth && xoffset >= 0 && xoffset < qrcodewidth) {
+-                    pixel = (qrcode->data[yoffset*qrcodewidth + xoffset] & 1) ? '1' : '0';
+-                }
+-                *imgptr++ = pixel;
+-                *imgptr++ = ' ';
++    if (qrcode == NULL) {
++        purple_debug_info(PLUGIN_NAME, "qrcodegen failed.\n");
++        return;
++    }
++    const int border = 4;
++    const int zoom = 6;
++    const int qrcodewidth = qrcode->width;
++    const int cells = qrcodewidth + border * 2;    /* modules per side, quiet zone included */
++    const int imgwidth = cells * zoom;
++
++    /* PNG rather than the original ASCII PBM ("P1"): PBM is a Netpbm format that some UI image
++     * loaders - macOS's NSImage among them - do not read, so the QR field stayed blank there. A
++     * one-pixel-per-module RGB pixbuf is filled here, scaled up with nearest-neighbour so the
++     * modules stay crisp squares, and serialised to PNG, which every purple UI can display. */
++    GdkPixbuf *small = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, cells, cells);
++    guchar *pixels = gdk_pixbuf_get_pixels(small);
++    int rowstride = gdk_pixbuf_get_rowstride(small);
++    for (int y = 0; y < cells; y++) {
++        for (int x = 0; x < cells; x++) {
++            int yoffset = y - border;
++            int xoffset = x - border;
++            gboolean black = FALSE;
++            if (yoffset >= 0 && yoffset < qrcodewidth && xoffset >= 0 && xoffset < qrcodewidth) {
++                black = (qrcode->data[yoffset*qrcodewidth + xoffset] & 1);
+             }
++            guchar *p = pixels + y*rowstride + x*3;
++            p[0] = p[1] = p[2] = black ? 0x00 : 0xff;
+         }
+-        QRcode_free(qrcode);
+-        show_qrcode(connection, data, qrimgdata, qrimglen);
+-        g_free(qrimgdata);
++    }
++    QRcode_free(qrcode);
++
++    GdkPixbuf *big = gdk_pixbuf_scale_simple(small, imgwidth, imgwidth, GDK_INTERP_NEAREST);
++    g_object_unref(small);
++
++    gchar *png = NULL;
++    gsize pnglen = 0;
++    GError *error = NULL;
++    if (gdk_pixbuf_save_to_buffer(big, &png, &pnglen, "png", &error, NULL)) {
++        show_qrcode(connection, data, png, pnglen);
++        g_free(png);
+     } else {
+-        purple_debug_info(PLUGIN_NAME, "qrcodegen failed.\n");
++        purple_debug_info(PLUGIN_NAME, "QR PNG encoding failed: %s\n", error ? error->message : "unknown");
++        if (error) g_error_free(error);
+     }
++    g_object_unref(big);
+ }
+ 
+ static void write_qrcode_as_conversation(PurpleConnection *connection, const char *data) {
