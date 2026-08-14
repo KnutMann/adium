@@ -47,6 +47,9 @@
 
 #define TOOLBAR_CONTACT_LIST				@"ContactList:1.0"				//Toolbar identifier
 
+//The largest picture the image well here will hand back, matching the account editor
+#define USER_ICON_MAXIMUM_SIDE				256.0
+
 @interface AIStandardListWindowController ()
 - (void)_configureToolbar;
 - (void)updateStatusMenuSelection:(NSNotification *)notification;
@@ -119,7 +122,13 @@
 	[[self window] setMinSize:NSMakeSize(135, 60)];
 	
 	[self _configureToolbar];
-	
+
+	/* The other two image wells that open the picker say how large a picture they want back, 256 in
+	 * the account editor and 128 in the personal preferences. This one said nothing, so an account
+	 * whose picture is a few hundred points square, which the newer services hand over as a matter
+	 * of course, was passed to the picker whole. */
+	[imagePicker setMaxSize:NSMakeSize(USER_ICON_MAXIMUM_SIDE, USER_ICON_MAXIMUM_SIDE)];
+
 	//Add VoiceOver labels
 	[[nameView cell] accessibilitySetOverrideValue:AILocalizedString(@"Change display name", nil)
 									  forAttribute:NSAccessibilityDescriptionAttribute];

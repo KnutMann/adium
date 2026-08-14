@@ -28,12 +28,17 @@
 
 #define DRAGGING_THRESHOLD 16.0
 
+/* The largest picture the picker is opened on when the image well names no size of its own. The
+ * picker sizes its window to what it is given, so this is really a window size limit. */
+#define PICTURE_TAKER_MAXIMUM_SIDE 256.0
+
 @class IKPictureTakerRecentPicture;
 
 @interface AIImageViewWithImagePicker ()
 
 - (void)_initImageViewWithImagePicker;
 - (void)showPictureTaker;
+- (NSImage *)imageForPictureTaker:(NSImage *)image;
 - (void)copy:(id)sender;
 - (void)paste:(id)sender;
 - (void)delete;
@@ -545,6 +550,50 @@
 /*
  * @brief Show the image picker controller
  */
+/*!
+ * @brief The picture the picker should open on
+ *
+ * The picker sizes its window to the picture it is handed, so a picture of a few hundred points
+ * square, which the newer services deliver as a matter of course, opens a window covering half the
+ * screen. It is handed no more than the well is willing to hand back, which is what the picker was
+ * going to reduce it to anyway, and no more than PICTURE_TAKER_MAXIMUM_SIDE either, so a well that
+ * names no size of its own still gets a window somebody can use.
+ *
+ * Only ever downwards: a small picture blown up to the limit would be worse than the small picture.
+ */
+- (NSImage *)imageForPictureTaker:(NSImage *)image
+{
+	if (!image)
+		return nil;
+
+	NSSize size = [image size];
+	CGFloat side = PICTURE_TAKER_MAXIMUM_SIDE;
+
+	if ([self maxSize].width > 0.0f && [self maxSize].height > 0.0f)
+		side = MIN(side, MAX([self maxSize].width, [self maxSize].height));
+
+	if (size.width <= side && size.height <= side)
+		return image;
+
+	CGFloat scale = side / MAX(size.width, size.height);
+	NSSize scaled = NSMakeSize(round(size.width * scale), round(size.height * scale));
+
+	if (scaled.width < 1.0f || scaled.height < 1.0f)
+		return image;
+
+	NSImage *result = [[[NSImage alloc] initWithSize:scaled] autorelease];
+
+	[result lockFocus];
+	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+	[image drawInRect:NSMakeRect(0.0f, 0.0f, scaled.width, scaled.height)
+			 fromRect:NSMakeRect(0.0f, 0.0f, size.width, size.height)
+			operation:NSCompositingOperationSourceOver
+			 fraction:1.0f];
+	[result unlockFocus];
+
+	return result;
+}
+
 - (void)showPictureTaker
 {
 	if (usePictureTaker) {
@@ -563,7 +612,7 @@
 		if (activeRecentPicture && [pictureTaker respondsToSelector:@selector(setRecentPictureAsImageInput:)])
 			[pictureTaker setRecentPictureAsImageInput:activeRecentPicture];
 		else
-			[pictureTaker setInputImage:(theImage ? theImage : [self image])];
+			[pictureTaker setInputImage:[self imageForPictureTaker:(theImage ? theImage : [self image])]];
 
 		[pictureTaker setTitle:([self title] ? [self title] : AILocalizedStringFromTableInBundle(@"Image Picker", nil, [NSBundle bundleWithIdentifier:AIUTILITIES_BUNDLE_ID], nil))];
 		[pictureTaker setValue:(([self maxSize].width != 0 && [self maxSize].height != 0) ?
