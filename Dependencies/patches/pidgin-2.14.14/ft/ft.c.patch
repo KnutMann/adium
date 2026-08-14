@@ -1,0 +1,155 @@
+--- a/libpurple/ft.c
++++ b/libpurple/ft.c
+@@ -332,8 +332,42 @@
+ {
+ 	purple_xfer_conversation_write_internal(xfer, message, FALSE, TRUE);
+ }
++
++/*
++ * What to call the other end of a transfer in a message shown to the user.
++ *
++ * A buddy alias where there is a buddy, as before. The addition is the second step: a transfer does
++ * not have to address a buddy. Where a protocol lets one address a chat, purple_find_buddy returns
++ * nothing and the name fell through to xfer->who, which is whatever identifier the protocol uses
++ * internally. For a WhatsApp group that reads "Offering to send formula.png to
++ * 120363428551123670@g.us", in the middle of a sentence that is otherwise plain language, and the
++ * user has no way to tell which of their groups that is.
++ *
++ * The conversation is the right place to ask, because these strings are written into a conversation
++ * and purple_xfer_conversation_write_internal looks one up by the same name. If there is none, the
++ * message is not shown at all, so the title is available whenever the name is actually needed.
++ */
++static const char *
++purple_xfer_get_remote_alias(PurpleXfer *xfer)
++{
++	PurpleBuddy *buddy;
++	PurpleConversation *conv;
+ 
++	g_return_val_if_fail(xfer != NULL, NULL);
+ 
++	buddy = purple_find_buddy(xfer->account, xfer->who);
++	if (buddy != NULL)
++		return purple_buddy_get_alias(buddy);
++
++	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_ANY, xfer->who,
++	                                            purple_xfer_get_account(xfer));
++	if (conv != NULL)
++		return purple_conversation_get_title(conv);
++
++	return xfer->who;
++}
++
++
+ static void purple_xfer_show_file_error(PurpleXfer *xfer, const char *filename)
+ {
+ 	int err = errno;
+@@ -498,21 +532,20 @@
+ 	/* If we have already accepted the request, ask the destination file
+ 	   name directly */
+ 	if (purple_xfer_get_status(xfer) != PURPLE_XFER_STATUS_ACCEPTED) {
+-		PurpleBuddy *buddy = purple_find_buddy(xfer->account, xfer->who);
+ 
+ 		if (purple_xfer_get_filename(xfer) != NULL)
+ 		{
+ 			size = purple_xfer_get_size(xfer);
+ 			size_buf = purple_str_size_to_units(size);
+ 			buf = g_strdup_printf(_("%s wants to send you %s (%s)"),
+-						  buddy ? purple_buddy_get_alias(buddy) : xfer->who,
++						  purple_xfer_get_remote_alias(xfer),
+ 						  purple_xfer_get_filename(xfer), size_buf);
+ 			g_free(size_buf);
+ 		}
+ 		else
+ 		{
+ 			buf = g_strdup_printf(_("%s wants to send you a file"),
+-						buddy ? purple_buddy_get_alias(buddy) : xfer->who);
++						purple_xfer_get_remote_alias(xfer));
+ 		}
+ 
+ 		if (xfer->message != NULL)
+@@ -558,10 +591,9 @@
+ purple_xfer_ask_accept(PurpleXfer *xfer)
+ {
+ 	char *buf, *buf2 = NULL;
+-	PurpleBuddy *buddy = purple_find_buddy(xfer->account, xfer->who);
+ 
+ 	buf = g_strdup_printf(_("Accept file transfer request from %s?"),
+-				  buddy ? purple_buddy_get_alias(buddy) : xfer->who);
++				  purple_xfer_get_remote_alias(xfer));
+ 	if (purple_xfer_get_remote_ip(xfer) &&
+ 		purple_xfer_get_remote_port(xfer))
+ 		buf2 = g_strdup_printf(_("A file is available for download from:\n"
+@@ -598,10 +630,9 @@
+ 		           purple_xfer_get_status(xfer) == PURPLE_XFER_STATUS_ACCEPTED)
+ 		{
+ 			gchar* message = NULL;
+-			PurpleBuddy *buddy = purple_find_buddy(xfer->account, xfer->who);
+ 
+ 			message = g_strdup_printf(_("%s is offering to send file %s"),
+-				buddy ? purple_buddy_get_alias(buddy) : xfer->who, purple_xfer_get_filename(xfer));
++				purple_xfer_get_remote_alias(xfer), purple_xfer_get_filename(xfer));
+ 			purple_xfer_conversation_write_with_thumbnail(xfer, message);
+ 			g_free(message);
+ 
+@@ -627,7 +658,6 @@
+ 	struct stat st;
+ 	char *msg, *utf8, *base;
+ 	PurpleAccount *account;
+-	PurpleBuddy *buddy;
+ 
+ 	if (xfer == NULL)
+ 		return;
+@@ -645,7 +675,6 @@
+ 		g_return_if_fail(filename != NULL);
+ 	}
+ 
+-	buddy = purple_find_buddy(account, xfer->who);
+ 
+ 	if (type == PURPLE_XFER_SEND) {
+ 		/* Sending a file */
+@@ -689,7 +718,7 @@
+ 		purple_xfer_set_filename(xfer, utf8);
+ 
+ 		msg = g_strdup_printf(_("Offering to send %s to %s"),
+-				utf8, buddy ? purple_buddy_get_alias(buddy) : xfer->who);
++				utf8, purple_xfer_get_remote_alias(xfer));
+ 		g_free(utf8);
+ 		purple_xfer_conversation_write(xfer, msg, FALSE);
+ 		g_free(msg);
+@@ -700,7 +729,7 @@
+ 		purple_xfer_set_local_filename(xfer, filename);
+ 
+ 		msg = g_strdup_printf(_("Starting transfer of %s from %s"),
+-				xfer->filename, buddy ? purple_buddy_get_alias(buddy) : xfer->who);
++				xfer->filename, purple_xfer_get_remote_alias(xfer));
+ 		purple_xfer_conversation_write(xfer, msg, FALSE);
+ 		g_free(msg);
+ 	}
+@@ -1673,7 +1702,6 @@
+ 	PurpleXferUiOps *ui_ops;
+ 	gchar *msg;
+ 	PurpleAccount *account;
+-	PurpleBuddy *buddy;
+ 
+ 	g_return_if_fail(xfer != NULL);
+ 
+@@ -1682,17 +1710,16 @@
+ 	xfer->end_time = time(NULL);
+ 
+ 	account = purple_xfer_get_account(xfer);
+-	buddy = purple_find_buddy(account, xfer->who);
+ 
+ 	if (purple_xfer_get_filename(xfer) != NULL)
+ 	{
+ 		msg = g_strdup_printf(_("%s cancelled the transfer of %s"),
+-				buddy ? purple_buddy_get_alias(buddy) : xfer->who, purple_xfer_get_filename(xfer));
++				purple_xfer_get_remote_alias(xfer), purple_xfer_get_filename(xfer));
+ 	}
+ 	else
+ 	{
+ 		msg = g_strdup_printf(_("%s cancelled the file transfer"),
+-				buddy ? purple_buddy_get_alias(buddy) : xfer->who);
++				purple_xfer_get_remote_alias(xfer));
+ 	}
+ 	purple_xfer_conversation_write(xfer, msg, TRUE);
+ 	purple_xfer_error(purple_xfer_get_type(xfer), account, xfer->who, msg);
