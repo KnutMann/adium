@@ -1,3 +1,26 @@
+diff --git a/src/c/blist.c b/src/c/blist.c
+index 03e540a..2c381e8 100755
+--- a/src/c/blist.c
++++ b/src/c/blist.c
+@@ -99,6 +99,18 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
+ 
+     if (topic != NULL) {
+         purple_blist_alias_chat(chat, topic);
++
++        /* A conversation reads this alias once, when purple_conversation_new autosets its title, and
++         * nothing revisits it afterwards. The alias almost always arrives later than that: an
++         * incoming group message carries the sender's name but not the group's, so the entry is first
++         * created here with no alias at all, and the real title only turns up with the group list
++         * that presage_join_chat goes on to request. Without this the conversation keeps the raw
++         * group identifier, a 64 character hex string, as its name for the rest of the session, and
++         * so does every window title and contact list row that asks it for one. */
++        PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, identifier, account);
++        if (conv != NULL) {
++            purple_conversation_autoset_title(conv);
++        }
+     }
+ }
+ 
 diff --git a/src/c/connection.c b/src/c/connection.c
 index 21b6295..fba61b3 100755
 --- a/src/c/connection.c
