@@ -28,6 +28,35 @@
 }
 
 /*!
+ * @brief The name libpurple knows this account by
+ *
+ * Normally the formatted UID, which is what a service that formats addresses wants. A protocol whose
+ * account name is a name rather than an address wants the name the user typed and nothing else: the
+ * formatted one carries whatever the protocol reported about itself on the last connection, which is
+ * a different string and files the account's message store somewhere else.
+ */
+- (const char *)purpleAccountName
+{
+	if ([[(AIPurpleGenericService *)self.service descriptorValueForKey:@"AccountNameFromUID"] boolValue])
+		return [self.UID UTF8String];
+
+	return [super purpleAccountName];
+}
+
+/*!
+ * @brief Should Adium show its own copy of an outgoing group message?
+ *
+ * A protocol that echoes what was sent, including from the phone or another linked device, wants
+ * Adium to display the echo rather than a local copy, or messages sent elsewhere never appear here.
+ */
+- (BOOL)shouldDisplayOutgoingMUCMessages
+{
+	NSNumber *echoes = [(AIPurpleGenericService *)self.service descriptorValueForKey:@"EchoesOutgoingMessages"];
+
+	return echoes ? ![echoes boolValue] : [super shouldDisplayOutgoingMUCMessages];
+}
+
+/*!
  * @brief Should this account be greyed out when the machine reports no network?
  *
  * A protocol that keeps its own connection, and the newer ones all do, has no fixed host whose

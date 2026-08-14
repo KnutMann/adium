@@ -63,4 +63,13 @@
  */
 - (id)descriptorValueForKey:(NSString *)key;
 
+/*!
+ * @brief Does the protocol declare an account option by this name?
+ *
+ * The name is libpurple's setting name, "server" or "port" and so on, which is what a protocol
+ * plugin gives purple_account_option_new. A protocol that declares none of a thing has no use for a
+ * field asking about it.
+ */
+- (BOOL)protocolHasOption:(NSString *)setting;
+
 @end

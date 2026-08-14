@@ -50,5 +50,55 @@
 		<key>OfflineFileTransfers</key>
 		<true/>
 	</dict>
+
+	<key>prpl-hehoe-presage</key>
+	<dict>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-Signal</string>
+		<key>ServiceID</key>
+		<string>Signal</string>
+		<key>ServiceClass</key>
+		<string>Signal</string>
+		<key>ShortDescription</key>
+		<string>Signal</string>
+		<key>LongDescription</key>
+		<string>Signal</string>
+		<!--
+			A name, not an address. Signal knows this account by a UUID which the plugin learns from
+			the server on every connection; what is asked for here is only what the account is called
+			in Adium, and it is what the message store is filed under. Worth choosing once and then
+			leaving alone: renaming after linking means linking again.
+		-->
+		<key>UserNameLabel</key>
+		<string>Account Name</string>
+		<!--
+			No AllowedCharacters. The hand written service excluded what would be trouble in a file
+			name, which the generic side cannot express as a plain list, so this is a place where the
+			descriptor is thinner than the class it replaces, and ForbiddenCharacters says the same
+			thing from the other side.
+		-->
+		<key>ForbiddenCharacters</key>
+		<string>/:\</string>
+		<key>AllowedLength</key>
+		<integer>64</integer>
+		<key>CaseSensitive</key>
+		<false/>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<key>IconBaseName</key>
+		<string>Signal</string>
+		<!-- presage keeps its own connection; there is no host to probe -->
+		<key>NetworkReachability</key>
+		<false/>
+		<!-- The name is a name: hand it over as typed, not as formatted -->
+		<key>AccountNameFromUID</key>
+		<true/>
+		<!-- presage echoes what was sent, including from the phone -->
+		<key>EchoesOutgoingMessages</key>
+		<true/>
+		<!-- Store and forward, and presence is sparse -->
+		<key>OfflineFileTransfers</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

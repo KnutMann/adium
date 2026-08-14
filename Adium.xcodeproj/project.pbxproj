@@ -350,8 +350,6 @@
 		3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 348FF83E09128BEB00A942A8 /* CBPurpleAccount.m */; };
 		3485DB5909EBCE7400232CC4 /* ESGaduGaduService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416159059FC5330019246B /* ESGaduGaduService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB5A09EBCE7400232CC4 /* ESGaduGaduService.m in Sources */ = {isa = PBXBuildFile; fileRef = 3441615A059FC5340019246B /* ESGaduGaduService.m */; };
-		ADD1E5C0DE00000000000102 /* AITelegramService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000101 /* AITelegramService.m */; };
-		ADD1E5C0DE00000000000112 /* AIPurpleTelegramAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */; };
 		ADD1E5C0DE00000000000122 /* AIWhatsAppService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000121 /* AIWhatsAppService.m */; };
 		ADD1E5C0DE00000000000132 /* AIPurpleWhatsAppAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000131 /* AIPurpleWhatsAppAccount.m */; };
 		3485DB5B09EBCE7400232CC4 /* ESPurpleGaduGaduAccount.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416070059FC27D0019246B /* ESPurpleGaduGaduAccount.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -362,12 +360,10 @@
 		3485DB6009EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416085059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB6109EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */; };
 		ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */; };
-		ADD1E5C0DE00000000000712 /* AISignalService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000711 /* AISignalService.m */; };
 		ADD1E5C0DE00000000000742 /* AIPurpleGenericService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000741 /* AIPurpleGenericService.m */; };
+		ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */; };
 		ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */; };
 		ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */; };
-		ADD1E5C0DE00000000000722 /* AIPurpleSignalAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000721 /* AIPurpleSignalAccount.m */; };
-		ADD1E5C0DE00000000000732 /* AISignalAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000731 /* AISignalAccountViewController.m */; };
 		ADD1E5C0DE00000000001006 /* ESPurpleGaduGaduAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */; };
 		3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */; };
 		3485DB6409EBCE7400232CC4 /* ESJabberService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416171059FC55A0019246B /* ESJabberService.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1712,25 +1708,17 @@
 		344160C4059FC3080019246B /* ESPurpleJabberAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleJabberAccount.m; path = "Plugins/Purple Service/ESPurpleJabberAccount.m"; sourceTree = "<group>"; };
 		34416159059FC5330019246B /* ESGaduGaduService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGaduGaduService.h; path = "Plugins/Purple Service/ESGaduGaduService.h"; sourceTree = "<group>"; };
 		3441615A059FC5340019246B /* ESGaduGaduService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGaduGaduService.m; path = "Plugins/Purple Service/ESGaduGaduService.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000101 /* AITelegramService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITelegramService.m; path = "Plugins/Purple Service/AITelegramService.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000103 /* AITelegramService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITelegramService.h; path = "Plugins/Purple Service/AITelegramService.h"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleTelegramAccount.m; path = "Plugins/Purple Service/AIPurpleTelegramAccount.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000113 /* AIPurpleTelegramAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleTelegramAccount.h; path = "Plugins/Purple Service/AIPurpleTelegramAccount.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000121 /* AIWhatsAppService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWhatsAppService.m; path = "Plugins/Purple Service/AIWhatsAppService.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000123 /* AIWhatsAppService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWhatsAppService.h; path = "Plugins/Purple Service/AIWhatsAppService.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000131 /* AIPurpleWhatsAppAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleWhatsAppAccount.m; path = "Plugins/Purple Service/AIPurpleWhatsAppAccount.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000133 /* AIPurpleWhatsAppAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleWhatsAppAccount.h; path = "Plugins/Purple Service/AIPurpleWhatsAppAccount.h"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000711 /* AISignalService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISignalService.m; path = "Plugins/Purple Service/AISignalService.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000741 /* AIPurpleGenericService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericService.m; path = "Plugins/Purple Service/AIPurpleGenericService.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccountViewController.m; path = "Plugins/Purple Service/AIPurpleGenericAccountViewController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000753 /* AIPurpleGenericAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericAccountViewController.h; path = "Plugins/Purple Service/AIPurpleGenericAccountViewController.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000743 /* AIPurpleGenericService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericService.h; path = "Plugins/Purple Service/AIPurpleGenericService.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccount.m; path = "Plugins/Purple Service/AIPurpleGenericAccount.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericAccount.h; path = "Plugins/Purple Service/AIPurpleGenericAccount.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AIPurpleServiceDescriptors.plist; path = "Plugins/Purple Service/AIPurpleServiceDescriptors.plist"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000713 /* AISignalService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISignalService.h; path = "Plugins/Purple Service/AISignalService.h"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000721 /* AIPurpleSignalAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleSignalAccount.m; path = "Plugins/Purple Service/AIPurpleSignalAccount.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000723 /* AIPurpleSignalAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleSignalAccount.h; path = "Plugins/Purple Service/AIPurpleSignalAccount.h"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000731 /* AISignalAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISignalAccountViewController.m; path = "Plugins/Purple Service/AISignalAccountViewController.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000733 /* AISignalAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISignalAccountViewController.h; path = "Plugins/Purple Service/AISignalAccountViewController.h"; sourceTree = "<group>"; };
 		34416171059FC55A0019246B /* ESJabberService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESJabberService.h; path = "Plugins/Purple Service/ESJabberService.h"; sourceTree = "<group>"; };
 		34416172059FC55A0019246B /* ESJabberService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESJabberService.m; path = "Plugins/Purple Service/ESJabberService.m"; sourceTree = "<group>"; };
 		344161BB0943E0D800BC26ED /* AdiumSetupWizard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumSetupWizard.h; path = Source/AdiumSetupWizard.h; sourceTree = "<group>"; };
@@ -3492,16 +3480,12 @@
 			children = (
 				34416159059FC5330019246B /* ESGaduGaduService.h */,
 				3441615A059FC5340019246B /* ESGaduGaduService.m */,
-				ADD1E5C0DE00000000000103 /* AITelegramService.h */,
 				ADD1E5C0DE00000000000401 /* Telegram-small.png */,
 				ADD1E5C0DE00000000000411 /* Telegram-large.png */,
 				ADD1E5C0DE00000000000421 /* WhatsApp-small.png */,
 				ADD1E5C0DE00000000000431 /* WhatsApp-large.png */,
 				ADD1E5C0DE00000000000441 /* Signal-small.png */,
 				ADD1E5C0DE00000000000451 /* Signal-large.png */,
-				ADD1E5C0DE00000000000101 /* AITelegramService.m */,
-				ADD1E5C0DE00000000000113 /* AIPurpleTelegramAccount.h */,
-				ADD1E5C0DE00000000000111 /* AIPurpleTelegramAccount.m */,
 				ADD1E5C0DE00000000000123 /* AIWhatsAppService.h */,
 				ADD1E5C0DE00000000000121 /* AIWhatsAppService.m */,
 				ADD1E5C0DE00000000000133 /* AIPurpleWhatsAppAccount.h */,
@@ -3515,17 +3499,13 @@
 				34416086059FC2A30019246B /* ESPurpleGaduGaduAccountViewController.m */,
 				ADD1E5C0DE00000000000603 /* AIWhatsAppAccountViewController.h */,
 				ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */,
-				ADD1E5C0DE00000000000713 /* AISignalService.h */,
-				ADD1E5C0DE00000000000711 /* AISignalService.m */,
 				ADD1E5C0DE00000000000741 /* AIPurpleGenericService.m */,
+				ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */,
+				ADD1E5C0DE00000000000753 /* AIPurpleGenericAccountViewController.h */,
 				ADD1E5C0DE00000000000743 /* AIPurpleGenericService.h */,
 				ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */,
 				ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */,
 				ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */,
-				ADD1E5C0DE00000000000723 /* AIPurpleSignalAccount.h */,
-				ADD1E5C0DE00000000000721 /* AIPurpleSignalAccount.m */,
-				ADD1E5C0DE00000000000733 /* AISignalAccountViewController.h */,
-				ADD1E5C0DE00000000000731 /* AISignalAccountViewController.m */,
 				ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */,
 				4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */,
 			);
@@ -7088,19 +7068,15 @@
 				3485DB3809EBCE7400232CC4 /* PurpleService.m in Sources */,
 				3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */,
 				3485DB5A09EBCE7400232CC4 /* ESGaduGaduService.m in Sources */,
-				ADD1E5C0DE00000000000102 /* AITelegramService.m in Sources */,
-				ADD1E5C0DE00000000000112 /* AIPurpleTelegramAccount.m in Sources */,
 				ADD1E5C0DE00000000000122 /* AIWhatsAppService.m in Sources */,
 				ADD1E5C0DE00000000000132 /* AIPurpleWhatsAppAccount.m in Sources */,
 				3485DB5C09EBCE7400232CC4 /* ESPurpleGaduGaduAccount.m in Sources */,
 				3485DB5E09EBCE7400232CC4 /* DCPurpleGaduGaduJoinChatViewController.m in Sources */,
 				3485DB6109EBCE7400232CC4 /* ESPurpleGaduGaduAccountViewController.m in Sources */,
 				ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */,
-				ADD1E5C0DE00000000000712 /* AISignalService.m in Sources */,
 				ADD1E5C0DE00000000000742 /* AIPurpleGenericService.m in Sources */,
+				ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */,
 				ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */,
-				ADD1E5C0DE00000000000722 /* AIPurpleSignalAccount.m in Sources */,
-				ADD1E5C0DE00000000000732 /* AISignalAccountViewController.m in Sources */,
 				3485DB6509EBCE7400232CC4 /* ESJabberService.m in Sources */,
 				3485DB6709EBCE7400232CC4 /* ESPurpleJabberAccount.m in Sources */,
 				3485DB6909EBCE7400232CC4 /* DCPurpleJabberJoinChatViewController.m in Sources */,

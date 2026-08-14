@@ -50,7 +50,6 @@
 	[ESGaduGaduService registerService];
 	[ESIRCService registerService];
 	[AIWhatsAppService registerService];
-	[AISignalService registerService];
 	[ESSimpleService registerService];
 	[ESNovellService registerService];
 	[ESJabberService registerService];
@@ -70,7 +69,7 @@
 
 	[AIPurpleGenericService registerServicesForLoadedProtocolsExcluding:
 	 [NSSet setWithObjects:@"prpl-gg", @"prpl-irc", @"prpl-hehoe-whatsmeow",
-	  @"prpl-hehoe-presage", @"prpl-simple", @"prpl-novell", @"prpl-jabber", nil]];
+	  @"prpl-simple", @"prpl-novell", @"prpl-jabber", nil]];
 	
 	//tooltip for tunes
 	tunetooltip = [[AMPurpleTuneTooltip alloc] init];

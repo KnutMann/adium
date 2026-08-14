@@ -16,7 +16,16 @@
 
 #import "PurpleAccountViewController.h"
 
-@interface AISignalAccountViewController : PurpleAccountViewController {
-}
+/*!
+ * @class AIPurpleGenericAccountViewController
+ * @brief The account editor for a protocol described by a descriptor
+ *
+ * Shows the fields the protocol has a use for and hides the rest. A protocol that authenticates by
+ * its own means says so, and then there is no password field; one that connects wherever it likes
+ * declares no server or port option, and then there are no server and port fields.
+ *
+ * Both of those were hand written per protocol until now, and both said the same thing three times.
+ */
+@interface AIPurpleGenericAccountViewController : PurpleAccountViewController
 
 @end

@@ -16,7 +16,7 @@
 
 #import "AIPurpleGenericService.h"
 #import "AIPurpleGenericAccount.h"
-#import "PurpleAccountViewController.h"
+#import "AIPurpleGenericAccountViewController.h"
 #import "SLPurpleCocoaAdapter.h"
 
 #import <Adium/AIStatusControllerProtocol.h>
@@ -24,6 +24,7 @@
 #import <AIUtilities/AIStringUtilities.h>
 
 #import <libpurple/libpurple.h>
+#import <libpurple/accountopt.h>
 
 #define DESCRIPTORS_PLIST	@"AIPurpleServiceDescriptors"
 
@@ -118,7 +119,24 @@
 
 - (AIAccountViewController *)accountViewController
 {
-	return [PurpleAccountViewController accountViewController];
+	return [AIPurpleGenericAccountViewController accountViewController];
+}
+
+- (BOOL)protocolHasOption:(NSString *)setting
+{
+	PurplePluginProtocolInfo *info = [self protocolInfo];
+	if (!info)
+		return NO;
+
+	for (GList *iter = info->protocol_options; iter; iter = iter->next) {
+		PurpleAccountOption *option = iter->data;
+		const char *name = option ? purple_account_option_get_setting(option) : NULL;
+
+		if (name && [setting isEqualToString:[NSString stringWithUTF8String:name]])
+			return YES;
+	}
+
+	return NO;
 }
 
 - (DCJoinChatViewController *)joinChatView
@@ -178,8 +196,22 @@
 - (NSCharacterSet *)allowedCharacters
 {
 	NSString *allowed = [descriptor objectForKey:@"AllowedCharacters"];
+	if (allowed)
+		return [NSCharacterSet characterSetWithCharactersInString:allowed];
 
-	return allowed ? [NSCharacterSet characterSetWithCharactersInString:allowed] : [super allowedCharacters];
+	/* Or the other way round, for a name the user is free to choose: everything except what would be
+	 * trouble, which for a name that ends up as a directory means the separators and anything a file
+	 * system will not take. Listing what is allowed is impossible there; listing what is not is not. */
+	NSString *forbidden = [descriptor objectForKey:@"ForbiddenCharacters"];
+	if (forbidden) {
+		NSMutableCharacterSet *excluded = [[[NSCharacterSet illegalCharacterSet] mutableCopy] autorelease];
+		[excluded formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
+		[excluded addCharactersInString:forbidden];
+
+		return [excluded invertedSet];
+	}
+
+	return [super allowedCharacters];
 }
 
 - (NSUInteger)allowedLength
