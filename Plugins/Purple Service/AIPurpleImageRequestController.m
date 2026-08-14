@@ -40,11 +40,22 @@
 {
 	AIPurpleImageRequestController *controller = [[self alloc] init];
 
-	/* The requesting plugin supplies English strings; run them through
-	 * our strings table so known ones (QR login dialog) get localized. */
-	NSBundle *bundle = [NSBundle bundleForClass:self];
+	/* The requesting plugin supplies English strings; run them through our strings tables so known
+	 * ones, the device linking dialogs among them, come out in the user's language.
+	 *
+	 * Two tables, and the second one is the point. This class lives in AdiumLibpurple.framework, so
+	 * bundleForClass: finds that framework's own table, which holds the strings this framework has
+	 * always had. Anything added on the application side is in the application's table, and looking
+	 * only in the framework left those in English while everything around them was translated. */
+	NSBundle *frameworkBundle = [NSBundle bundleForClass:self];
 	NSString *(^localize)(NSString *) = ^(NSString *text) {
-		return (text ? [bundle localizedStringForKey:text value:text table:nil] : (NSString *)nil);
+		if (!text) return (NSString *)nil;
+
+		NSString *notFound = @"\0AINotLocalized";
+		NSString *localized = [frameworkBundle localizedStringForKey:text value:notFound table:nil];
+		if (![localized isEqualToString:notFound]) return localized;
+
+		return [[NSBundle mainBundle] localizedStringForKey:text value:text table:nil];
 	};
 	title = localize(title);
 	primary = localize(primary);
