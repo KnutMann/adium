@@ -134,5 +134,39 @@
 		<key>OfflineFileTransfers</key>
 		<true/>
 	</dict>
+
+	<key>prpl-eionrobb-msteams</key>
+	<dict>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-Teams</string>
+		<key>ServiceID</key>
+		<string>Teams</string>
+		<key>ServiceClass</key>
+		<string>Teams</string>
+		<key>ShortDescription</key>
+		<string>Teams</string>
+		<key>LongDescription</key>
+		<string>Microsoft Teams</string>
+		<!--
+			The name is not an address and nothing is looked up by it. Signing in happens in the
+			browser, so this only has to tell two accounts apart, which is why the protocol calls it
+			a placeholder.
+		-->
+		<key>UserNameLabel</key>
+		<string>Account Name</string>
+		<key>AllowedLength</key>
+		<integer>64</integer>
+		<key>CaseSensitive</key>
+		<false/>
+		<key>AccountNameFromUID</key>
+		<true/>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<key>IconBaseName</key>
+		<string>Teams</string>
+		<!-- It keeps its own connection and reconnects itself; there is no host to probe -->
+		<key>NetworkReachability</key>
+		<false/>
+	</dict>
 </dict>
 </plist>

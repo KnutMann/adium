@@ -1,0 +1,22 @@
+{
+	"note": [
+		"Signing in happens in the browser: the protocol opens a page and asks for the code that comes",
+		"back, so there is no password and no server to name.",
+		"",
+		"The tenant belongs with the account rather than among the options. It says which organisation",
+		"is being connected to, and anyone who needs more than one has to set it."
+	],
+
+	"account": {
+		"options": ["tenant"]
+	},
+
+	"options": [
+		"fetch-history",
+		"history-days",
+		"should_collapse_threads",
+		"hide_meeting_chats",
+		"calendar_notify_minutes",
+		"set-global-status"
+	]
+}
