@@ -692,14 +692,23 @@ static CGFloat AIXtraRowHeight(void)
 /*!
  * @brief The second line of a row: version, origin and state, joined by " · "
  *
- * Never empty. An Xtra which is none of the above - a lone .ListLayout plist, an old sound set
- * folder - falls back to its filename extension, so that every row of a list is two lines tall and
- * the row height stays the constant AIXtraRowHeight() promises it is.
+ * Never empty, because every row is two lines tall and the row height is the constant
+ * AIXtraRowHeight() promises it is. An Xtra that says nothing about itself falls back to its
+ * filename extension, which merely repeats the group it is standing in; that is the last resort
+ * and not the usual case, since most name an author or a version.
  */
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo
 {
 	NSMutableArray	*parts = [NSMutableArray array];
+	NSString		*author = [xtraInfo author];
 	NSString		*version = [xtraInfo version];
+
+	/* Who made it comes first, because it is the one thing about an Xtra that nothing else on the
+	 * row already says: the group above names the kind, the icon shows the look, and the name is
+	 * the name. */
+	if ([author length]) {
+		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"by %@", "Author of an installed Xtra, shown below its name"), author]];
+	}
 
 	if ([version length]) {
 		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"Version %@", "Version of an installed Xtra, shown below its name"), version]];

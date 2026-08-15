@@ -63,6 +63,7 @@
 		type = [[[[url path] pathExtension] lowercaseString] retain];
 		xtraBundle = [[NSBundle alloc] initWithPath:path];
 		version = [[xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"] retain];
+		author = [[xtraBundle objectForInfoDictionaryKey:@"OriginalAuthor"] retain];
 		if (xtraBundle && ([[xtraBundle objectForInfoDictionaryKey:@"XtraBundleVersion"] integerValue] == 1)) { //This checks for a new-style xtra
 			[self setName:[xtraBundle objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey]];
 			resourcePath = [[xtraBundle resourcePath] retain];
@@ -114,6 +115,7 @@
 	[resourcePath release];
 	[type release];
 	[version release];
+	[author release];
 	[readMePath release];
 	[super dealloc];
 }
@@ -131,6 +133,11 @@
 - (NSString *)readMePath
 {
 	return readMePath;
+}
+
+- (NSString *)author
+{
+	return author;
 }
 
 - (NSBundle *)bundle

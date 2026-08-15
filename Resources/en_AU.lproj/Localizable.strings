@@ -781,6 +781,9 @@
 /* No comment provided by engineer. */
 "Browse" = "Browse";
 
+/* Author of an installed Xtra, shown below its name */
+"by %@" = "by %@";
+
 /* Event: came back (follows a contact's name displayed as a header) */
 "came back" = "came back";
 

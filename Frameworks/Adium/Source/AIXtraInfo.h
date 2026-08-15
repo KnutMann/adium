@@ -19,6 +19,7 @@
 	NSString		*name;
 	NSString		*path;
 	NSString		*version;
+	NSString		*author;
 	NSImage			*icon;
 	NSImage			*previewImage;
 	NSString		*resourcePath;
@@ -36,6 +37,15 @@
 - (NSString *)path;
 - (NSString *)name;
 - (NSString *)version;
+
+/*!
+ * @brief Who made it, or nil where the Xtra does not say
+ *
+ * Read from OriginalAuthor, which is what the Xtras of this world actually carry: half of the ones
+ * shipped with Adium name somebody there, and none of them ships the read me where an author would
+ * otherwise have to be looked for.
+ */
+- (NSString *)author;
 - (NSString *)resourcePath;
 - (NSString *)readMePath;
 - (NSImage *)icon;

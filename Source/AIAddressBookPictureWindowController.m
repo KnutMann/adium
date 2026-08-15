@@ -32,7 +32,10 @@
 
 #define PICTURE_SIDE		160.0
 #define WINDOW_WIDTH		780.0
-#define WINDOW_HEIGHT		440.0
+/* The window opens at the smallest size it works at: everything above the list is fixed in
+ * height, so the extra room only ever went to the list, and whoever wants a longer list can
+ * pull it open. One constant for both, or the two drift apart. */
+#define WINDOW_HEIGHT		320.0
 
 /* AILocalizedString reaches for [self class] to find its bundle, which the plain C helpers below
  * do not have. They name the class instead. */
@@ -129,7 +132,7 @@ static NSImageView *AIPictureWell(NSRect frame)
 	NSView		*content = [window contentView];
 
 	[window setTitle:AILocalizedString(@"Contact Pictures", "Title of the window which hands contact pictures to address book cards")];
-	[window setMinSize:NSMakeSize(WINDOW_WIDTH, 320.0)];
+	[window setMinSize:NSMakeSize(WINDOW_WIDTH, WINDOW_HEIGHT)];
 	[window setReleasedWhenClosed:NO];
 	[self setWindow:window];
 
