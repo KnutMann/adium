@@ -292,7 +292,14 @@
 	if (computed)
 		[field setDefaultValue:computed];
 
+	[self refineField:field forSetting:setting];
+
 	return field;
+}
+
+- (void)refineField:(AIAccountPlanField *)field forSetting:(NSString *)setting
+{
+	//A protocol that words its options well needs nothing here, and most of them do
 }
 
 - (void)describe

@@ -364,6 +364,7 @@
 		ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000601 /* AIWhatsAppAccountViewController.m */; };
 		ADD1E5C0DE00000000000742 /* AIPurpleGenericService.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000741 /* AIPurpleGenericService.m */; };
 		ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */; };
+		ADD1E5C0DE0000000000F003 /* AIPurpleWhatsAppAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000F002 /* AIPurpleWhatsAppAccountPlan.m */; };
 		ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */; };
 		ADD1E5C0DE0000000000C00B /* Teams-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C00A /* Teams-small.png */; };
 		ADD1E5C0DE0000000000E00B /* TeamsPersonal-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E00A /* TeamsPersonal-small.png */; };
@@ -1747,6 +1748,8 @@
 		ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccountViewController.m; path = "Plugins/Purple Service/AIPurpleGenericAccountViewController.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000753 /* AIPurpleGenericAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericAccountViewController.h; path = "Plugins/Purple Service/AIPurpleGenericAccountViewController.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000743 /* AIPurpleGenericService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericService.h; path = "Plugins/Purple Service/AIPurpleGenericService.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000F001 /* AIPurpleWhatsAppAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleWhatsAppAccountPlan.h; path = "Plugins/Purple Service/AIPurpleWhatsAppAccountPlan.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000F002 /* AIPurpleWhatsAppAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleWhatsAppAccountPlan.m; path = "Plugins/Purple Service/AIPurpleWhatsAppAccountPlan.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccount.m; path = "Plugins/Purple Service/AIPurpleGenericAccount.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C00A /* Teams-small.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = Teams-small.png; path = "Plugins/Purple Service/Teams-small.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000E00A /* TeamsPersonal-small.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = TeamsPersonal-small.png; path = "Plugins/Purple Service/TeamsPersonal-small.png"; sourceTree = "<group>"; };
@@ -3564,6 +3567,8 @@
 				ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */,
 				ADD1E5C0DE00000000000753 /* AIPurpleGenericAccountViewController.h */,
 				ADD1E5C0DE00000000000743 /* AIPurpleGenericService.h */,
+				ADD1E5C0DE0000000000F001 /* AIPurpleWhatsAppAccountPlan.h */,
+				ADD1E5C0DE0000000000F002 /* AIPurpleWhatsAppAccountPlan.m */,
 				ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */,
 				ADD1E5C0DE0000000000C00A /* Teams-small.png */,
 				ADD1E5C0DE0000000000E00A /* TeamsPersonal-small.png */,
@@ -7178,6 +7183,7 @@
 				ADD1E5C0DE00000000000602 /* AIWhatsAppAccountViewController.m in Sources */,
 				ADD1E5C0DE00000000000742 /* AIPurpleGenericService.m in Sources */,
 				ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */,
+				ADD1E5C0DE0000000000F003 /* AIPurpleWhatsAppAccountPlan.m in Sources */,
 				ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */,
 				ADD1E5C0DE0000000000B00C /* AIPurpleAccountPlan.m in Sources */,
 				ADD1E5C0DE0000000000B010 /* ESPurpleJabberAccountPlan.m in Sources */,

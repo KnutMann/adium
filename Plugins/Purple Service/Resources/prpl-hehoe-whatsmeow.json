@@ -1,8 +1,13 @@
 {
 	"note": [
 		"WhatsApp connects as a linked device, so there is no server, no port and no password. The name",
-		"this link is listed under on the phone is the one thing worth asking for straight away."
+		"this link is listed under on the phone is the one thing worth asking for straight away.",
+		"",
+		"The class is here for one row: the protocol lists the three ways of fetching a picture under",
+		"the names it stores them as, which reads as anything but a choice."
 	],
+
+	"class": "AIPurpleWhatsAppAccountPlan",
 
 	"account": {
 		"options": ["device-name"]

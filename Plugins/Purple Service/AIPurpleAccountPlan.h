@@ -68,6 +68,18 @@
 - (id)defaultForOption:(NSString *)setting;
 
 /*!
+ * @brief Adjust a field after the protocol described it
+ *
+ * Everything a row shows comes from the protocol, which is what makes a service bindable without
+ * code. Some protocols word their options for whoever wrote them rather than for whoever reads them,
+ * and a list whose entries are its own stored values is the usual shape of that.
+ *
+ * Override to put that right. Change only what is wrong; anything left alone stays as declared. Keep
+ * the values: they are what the protocol stores, and only the wording is ours to pick.
+ */
+- (void)refineField:(AIAccountPlanField *)field forSetting:(NSString *)setting;
+
+/*!
  * @brief A migration that a key mapping cannot express
  *
  * Called once before any row is built, so that a row shows the migrated value rather than a default.
