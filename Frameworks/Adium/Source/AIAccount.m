@@ -348,6 +348,19 @@ typedef enum
 	return NO;
 }
 
+/*!
+ * @brief Whether something of the protocol's is being kept where the password goes
+ *
+ * A service that says it has no password normally means nobody is ever asked for one, and there is
+ * then nothing to fetch before connecting. Some protocols still use that slot, not for a password
+ * but for the session they were handed, and they expect to find it again. For those the stored value
+ * has to be fetched even though no one will ever be asked to type it.
+ */
+- (BOOL)passwordHoldsProtocolSession
+{
+	return NO;
+}
+
 //Properties -----------------------------------------------------------------------------------------------------------
 #pragma mark Properties
 /*!

@@ -217,6 +217,7 @@ typedef enum {
 @property (readonly, nonatomic) NSString *explicitFormattedUID;
 @property (readonly, nonatomic) BOOL useHostForPasswordServerName;
 @property (readonly, nonatomic) BOOL useInternalObjectIDForPasswordName;
+@property (readonly, nonatomic) BOOL passwordHoldsProtocolSession;
 
 //Properties
 @property (readonly, nonatomic) BOOL disconnectOnFastUserSwitch;

@@ -497,7 +497,12 @@
 		if ([key isEqualToString:@"isOnline"]) {
 			if (self.shouldBeOnline && self.enabled) {
 				if (!areOnline && ![self boolValueForProperty:@"isConnecting"]) {
-					if (self.service.supportsPassword && (!password || [self boolValueForProperty:@"mustPromptForPasswordOnNextConnect"])) {
+					/* A service with no password of its own may still have a session of the protocol's
+					 * kept in that slot, and that has to be fetched too or the protocol signs in from
+					 * scratch every launch. */
+					BOOL somethingToFetch = (self.service.supportsPassword || self.passwordHoldsProtocolSession);
+
+					if (somethingToFetch && (!password || [self boolValueForProperty:@"mustPromptForPasswordOnNextConnect"])) {
 						[self retrievePasswordThenConnect];
 
 					} else {

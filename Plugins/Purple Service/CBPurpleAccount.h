@@ -21,6 +21,10 @@
 #define KEY_CONNECT_COMMANDS			@"Commands On Connect"
 #define KEY_BROADCAST_MUSIC_INFO		@"Broadcast Music Information"
 
+/* Whether what is stored as this account's password belongs to the protocol rather than to the
+ * person: a session it was handed and expects to find again, not something anybody typed. */
+#define KEY_PASSWORD_IS_PROTOCOL_SESSION	@"Password Is Protocol Session"
+
 #define KEY_KEY		@"Key"
 #define KEY_VALUE	@"Value"
 #define KEY_TYPE	@"Type"

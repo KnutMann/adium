@@ -2240,9 +2240,38 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
  *
  * So whatever the protocol left there is kept, and handed back on the next connect. Nothing happens
  * for an account whose password is the user's: the protocol never touches it, so the two always
- * agree. A protocol that clears the slot, which is how one says its session has expired, has the
- * stored one forgotten rather than offered again.
+ * agree.
+ *
+ * An empty slot is the hard part, because it means two different things. A protocol that had a
+ * session and cleared it is saying that session is over, and the stored one has to go with it. A
+ * protocol that never used the slot at all leaves it just as empty, and there the stored password is
+ * the user's and must not be touched: Telegram had one deleted that way, since tdlib puts nothing
+ * where the password goes and every disconnect looked like an expiring session.
+ *
+ * The two are told apart by remembering who wrote what is stored. Only a password this method put
+ * there itself is ever taken away again, and only when there was nothing of the user's underneath
+ * it: a protocol that merely rewrites a password somebody typed keeps it marked as the user's, so
+ * clearing the slot later cannot cost them anything.
+ *
+ * A protocol can also say so itself, and Teams does, by asking for its password to be remembered at
+ * the moment it writes its session. That flag is how libpurple's own clients keep such a token, so
+ * a protocol that wants one kept is already setting it; Adium never sets it for anybody, which
+ * leaves it saying exactly one thing. It is only ever true for the connection at hand, so it is
+ * written down here to still be known at the next launch.
  */
+/*!
+ * @brief Whether this account's stored password is a session of the protocol's
+ *
+ * Answered from what was written down the last time one was kept, because at the moment this is
+ * asked there is no connection to ask instead: it is asked in order to decide whether to fetch
+ * anything before connecting at all.
+ */
+- (BOOL)passwordHoldsProtocolSession
+{
+	return [[self preferenceForKey:KEY_PASSWORD_IS_PROTOCOL_SESSION
+							 group:GROUP_ACCOUNT_STATUS] boolValue];
+}
+
 - (void)rememberProtocolPassword
 {
 	if (!account)
@@ -2251,16 +2280,34 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	const char *current = purple_account_get_password(account);
 	NSString *fromProtocol = (current ? [NSString stringWithUTF8String:current] : nil);
 	NSString *stored = [adium.accountController passwordForAccount:self];
+	BOOL	  isSession = [[self preferenceForKey:KEY_PASSWORD_IS_PROTOCOL_SESSION
+											group:GROUP_ACCOUNT_STATUS] boolValue];
 
 	if ((fromProtocol == stored) || [fromProtocol isEqualToString:stored])
 		return;
 
 	if ([fromProtocol length]) {
-		AILogWithSignature(@"%@: keeping the session %s handed back", self, [self protocolPlugin]);
+		/* The protocol's own if it says so, if it is replacing one of its own, or if it is filling an
+		 * empty slot. Rewriting something the user typed does not by itself make it the protocol's. */
+		BOOL nowASession = (isSession ||
+							purple_account_get_remember_password(account) ||
+							![stored length]);
+
+		AILogWithSignature(@"%@: keeping what %s handed back%@", self, [self protocolPlugin],
+						   nowASession ? @" as its session" : @"");
+
 		[adium.accountController setPassword:fromProtocol forAccount:self];
-	} else if ([stored length]) {
+
+		if (nowASession != isSession)
+			[self setPreference:[NSNumber numberWithBool:nowASession]
+						 forKey:KEY_PASSWORD_IS_PROTOCOL_SESSION
+						  group:GROUP_ACCOUNT_STATUS];
+
+	} else if ([stored length] && isSession) {
 		AILogWithSignature(@"%@: %s says its session is over", self, [self protocolPlugin]);
+
 		[adium.accountController forgetPasswordForAccount:self];
+		[self setPreference:nil forKey:KEY_PASSWORD_IS_PROTOCOL_SESSION group:GROUP_ACCOUNT_STATUS];
 	}
 }
 
