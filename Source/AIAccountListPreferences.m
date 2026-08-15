@@ -1058,6 +1058,32 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[detailPage tearDown];
 		[detailPage release]; detailPage = nil;
 	}
+
+	//The window draws the back arrow and the title, so it has to be told
+	id windowController = [[[self view] window] windowController];
+	if ([windowController respondsToSelector:@selector(paneNavigationChanged)])
+		[windowController paneNavigationChanged];
+}
+
+//What the window asks of a pane which can drill into something -------------------------------------------------------
+#pragma mark Navigation
+
+- (BOOL)preferencePaneCanNavigateBack
+{
+	return [navigationController canGoBack];
+}
+
+- (void)preferencePaneNavigateBack
+{
+	[navigationController popViewControllerAnimated:YES];
+}
+
+/*!
+ * @brief What the window should call itself while a page is open
+ */
+- (NSString *)preferencePaneNavigationTitle
+{
+	return (detailPage ? [[detailPage account] formattedUID] : nil);
 }
 
 - (IBAction)editSelectedAccount:(id)sender

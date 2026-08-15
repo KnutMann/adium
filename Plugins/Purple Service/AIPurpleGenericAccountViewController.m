@@ -18,6 +18,18 @@
 #import "AIPurpleGenericService.h"
 
 #import <Adium/AIAccount.h>
+#import <Adium/AISettingsFormView.h>
+#import <AIUtilities/AIStringUtilities.h>
+
+#import <libpurple/libpurple.h>
+#import <libpurple/accountopt.h>
+
+@interface AIPurpleGenericAccountViewController ()
+- (NSString *)preferenceKeyForSetting:(const char *)setting;
+- (void)optionSwitchChanged:(id)sender;
+- (void)optionFieldChanged:(id)sender;
+- (void)optionMenuChanged:(id)sender;
+@end
 
 @implementation AIPurpleGenericAccountViewController
 
@@ -47,6 +59,160 @@
 		[label_port setHidden:YES];
 		[textField_connectPort setHidden:YES];
 	}
+}
+
+//The protocol's own options -------------------------------------------------------------------------------------------
+#pragma mark The protocol's own options
+
+/*!
+ * @brief Where one option's value is kept
+ *
+ * Namespaced by protocol, because two protocols naming a setting "server" mean two different servers
+ * and an account belongs to one of them.
+ */
+- (NSString *)preferenceKeyForSetting:(const char *)setting
+{
+	AIPurpleGenericService *service = (AIPurpleGenericService *)[account service];
+
+	return [NSString stringWithFormat:@"%s:%s", [service prplIDCString], setting];
+}
+
+- (BOOL)hasProtocolOptions
+{
+	AIPurpleGenericService *service = (AIPurpleGenericService *)[account service];
+	if (![service isKindOfClass:[AIPurpleGenericService class]])
+		return NO;
+
+	PurplePlugin *prpl = purple_plugins_find_with_id([service prplIDCString]);
+	PurplePluginProtocolInfo *info = (prpl && prpl->info) ? PURPLE_PLUGIN_PROTOCOL_INFO(prpl) : NULL;
+
+	return (info && info->protocol_options != NULL);
+}
+
+- (void)addOptionRowsToForm:(AISettingsFormView *)form
+{
+	AIPurpleGenericService *service = (AIPurpleGenericService *)[account service];
+	if (![service isKindOfClass:[AIPurpleGenericService class]])
+		return;
+
+	PurplePlugin *prpl = purple_plugins_find_with_id([service prplIDCString]);
+	PurplePluginProtocolInfo *info = (prpl && prpl->info) ? PURPLE_PLUGIN_PROTOCOL_INFO(prpl) : NULL;
+	if (!info)
+		return;
+
+	for (GList *iter = info->protocol_options; iter; iter = iter->next) {
+		PurpleAccountOption *option = iter->data;
+		if (!option)
+			continue;
+
+		const char *setting = purple_account_option_get_setting(option);
+		if (!setting)
+			continue;
+
+		const char *text = purple_account_option_get_text(option);
+
+		/* Its own label if it has one. A protocol which names an option and nothing else gets the
+		 * setting name, which is at least the truth. */
+		NSString *label = (text && *text) ? [NSString stringWithUTF8String:text]
+										  : [NSString stringWithUTF8String:setting];
+		NSString *key = [self preferenceKeyForSetting:setting];
+		id stored = [account preferenceForKey:key group:GROUP_ACCOUNT_STATUS];
+
+		switch (purple_account_option_get_type(option)) {
+			case PURPLE_PREF_BOOLEAN: {
+				NSSwitch *control = [AISettingsFormView switchWithTarget:self action:@selector(optionSwitchChanged:)];
+				BOOL on = stored ? [stored boolValue] : purple_account_option_get_default_bool(option);
+
+				[control setState:(on ? NSControlStateValueOn : NSControlStateValueOff)];
+				[control setIdentifier:key];
+				[form addRowWithLabel:label control:control];
+				break;
+			}
+
+			case PURPLE_PREF_INT: {
+				NSTextField *control = [AISettingsFormView valueFieldWithWidth:70.0f
+																	   target:self
+																	   action:@selector(optionFieldChanged:)];
+
+				[control setIntegerValue:(stored ? [stored integerValue] : purple_account_option_get_default_int(option))];
+				[control setIdentifier:key];
+				[form addRowWithLabel:label control:control];
+				break;
+			}
+
+			case PURPLE_PREF_STRING:
+			case PURPLE_PREF_PATH: {
+				const char *fallback = purple_account_option_get_default_string(option);
+				NSTextField *control = [AISettingsFormView textFieldWithTarget:self action:@selector(optionFieldChanged:)];
+
+				[control setStringValue:(stored ? stored : (fallback ? [NSString stringWithUTF8String:fallback] : @""))];
+				[control setIdentifier:key];
+				[form addRowWithLabel:label control:control];
+				break;
+			}
+
+			case PURPLE_PREF_STRING_LIST: {
+				NSMutableArray *titles = [NSMutableArray array];
+				NSMutableArray *values = [NSMutableArray array];
+
+				for (GList *entry = purple_account_option_get_list(option); entry; entry = entry->next) {
+					PurpleKeyValuePair *pair = entry->data;
+					if (!pair || !pair->key)
+						continue;
+
+					[titles addObject:[NSString stringWithUTF8String:pair->key]];
+					[values addObject:(pair->value ? [NSString stringWithUTF8String:(const char *)pair->value] : @"")];
+				}
+
+				if (![titles count])
+					break;
+
+				NSPopUpButton *control = [AISettingsFormView popUpButtonWithTitles:titles
+																		   target:self
+																		   action:@selector(optionMenuChanged:)];
+
+				//The menu shows what a person reads; what is stored is what the protocol wants
+				for (NSUInteger i = 0; i < [titles count]; i++)
+					[[control itemAtIndex:i] setRepresentedObject:[values objectAtIndex:i]];
+
+				const char *fallback = purple_account_option_get_default_list_value(option);
+				NSString *current = stored ? stored : (fallback ? [NSString stringWithUTF8String:fallback] : nil);
+				NSUInteger index = (current ? [values indexOfObject:current] : NSNotFound);
+				if (index != NSNotFound)
+					[control selectItemAtIndex:(NSInteger)index];
+
+				[control setIdentifier:key];
+				[form addRowWithLabel:label control:control];
+				break;
+			}
+
+			default:
+				//A type nothing here knows how to show is left out rather than shown wrongly
+				break;
+		}
+	}
+}
+
+//Written as they change: a settings pane has no OK to wait for
+- (void)optionSwitchChanged:(id)sender
+{
+	[account setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
+					forKey:[sender identifier]
+					 group:GROUP_ACCOUNT_STATUS];
+}
+
+- (void)optionFieldChanged:(id)sender
+{
+	[account setPreference:[sender stringValue]
+					forKey:[sender identifier]
+					 group:GROUP_ACCOUNT_STATUS];
+}
+
+- (void)optionMenuChanged:(id)sender
+{
+	[account setPreference:[[sender selectedItem] representedObject]
+					forKey:[sender identifier]
+					 group:GROUP_ACCOUNT_STATUS];
 }
 
 @end

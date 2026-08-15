@@ -26,6 +26,29 @@
  *
  * Both of those were hand written per protocol until now, and both said the same thing three times.
  */
+@class AISettingsFormView;
+
 @interface AIPurpleGenericAccountViewController : PurpleAccountViewController
+
+/*!
+ * @brief Put this protocol's own options into a settings form, as ordinary rows
+ *
+ * A protocol describes its options itself: name, type, default, and for a choice the choices. Pidgin
+ * builds its whole account dialog out of that; nothing here read it until now, which is why every
+ * option any service offers was at some point drawn into a nib by hand and why no two of them look
+ * alike.
+ *
+ * A switch for a yes or no, a field for a number or a string, a menu for a choice. The account is
+ * written as soon as a control changes, because a settings pane has no OK to wait for.
+ */
+- (void)addOptionRowsToForm:(AISettingsFormView *)form;
+
+/*!
+ * @brief Does this protocol declare any option worth a card?
+ *
+ * Asked before the heading is written, so a protocol with nothing to configure does not get a
+ * heading over an empty card.
+ */
+- (BOOL)hasProtocolOptions;
 
 @end

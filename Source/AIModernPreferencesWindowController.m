@@ -230,6 +230,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)selectPane:(AIPreferencePane *)pane;
 - (void)layoutCurrentPane;
 - (void)updateNavigationControl;
+- (void)updatePaneTitle;
 - (void)refreshSidebarColors:(NSNotification *)notification;
 - (void)paneViewFrameChanged:(NSNotification *)notification;
 - (CGFloat)contentTopInset;
@@ -535,9 +536,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[self layoutCurrentPane];
 	[[[contentHost enclosingScrollView] contentView] scrollToPoint:NSMakePoint(0, -[self contentTopInset])];
 
-	NSString *paneTitle = (AIPrefPaneName(pane) ?: @"");
-	[[self window] setTitle:paneTitle];
-	[toolbarTitleField setStringValue:paneTitle];
+	[self updatePaneTitle];
 
 	NSInteger row = [outlineView rowForItem:pane];
 	if (row >= 0 && [outlineView selectedRow] != row) {
@@ -677,17 +676,62 @@ static NSImage *AIPrefPaneIcon(id pane)
 
 #pragma mark - Back/forward navigation
 
+/*!
+ * @brief The pane's name, or the name of whatever it has drilled into
+ */
+- (void)updatePaneTitle
+{
+	NSString *paneTitle = (currentPane ? (AIPrefPaneName(currentPane) ?: @"") : @"");
+
+	if (currentPane && [currentPane respondsToSelector:@selector(preferencePaneNavigationTitle)]) {
+		NSString *pageTitle = [(id)currentPane preferencePaneNavigationTitle];
+		if ([pageTitle length])
+			paneTitle = pageTitle;
+	}
+
+	[[self window] setTitle:paneTitle];
+	[toolbarTitleField setStringValue:paneTitle];
+}
+
+/*!
+ * @brief Can the pane itself go back, before the window's own history does?
+ *
+ * A pane which drills into something, an account's own settings for instance, is a step of its own:
+ * back leaves that before it leaves the pane, which is what System Settings does.
+ */
+- (BOOL)currentPaneCanNavigateBack
+{
+	return (currentPane &&
+			[currentPane respondsToSelector:@selector(preferencePaneCanNavigateBack)] &&
+			[(id)currentPane preferencePaneCanNavigateBack]);
+}
+
 - (void)updateNavigationControl
 {
 	if (!navigationControl) {
 		return;
 	}
-	[navigationControl setEnabled:(historyIndex > 0) forSegment:0];
+	[navigationControl setEnabled:(historyIndex > 0 || [self currentPaneCanNavigateBack]) forSegment:0];
 	[navigationControl setEnabled:(historyIndex >= 0 && historyIndex + 1 < (NSInteger)[history count]) forSegment:1];
+}
+
+/*!
+ * @brief A pane pushed or popped a page of its own
+ */
+- (void)paneNavigationChanged
+{
+	[self updateNavigationControl];
+	[self updatePaneTitle];
 }
 
 - (void)navigate:(id)sender
 {
+	//Out of the pane's own page first, and only then out of the pane
+	if ([sender selectedSegment] == 0 && [self currentPaneCanNavigateBack]) {
+		[(id)currentPane preferencePaneNavigateBack];
+		return;
+	}
+
 	NSInteger target = historyIndex + ([sender selectedSegment] == 0 ? -1 : 1);
 	if (target < 0 || target >= (NSInteger)[history count]) {
 		return;

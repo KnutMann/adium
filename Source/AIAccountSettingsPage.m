@@ -26,7 +26,6 @@
 @interface AIAccountSettingsPage ()
 - (void)buildForm;
 - (void)addHostedView:(NSView *)hosted underHeader:(NSString *)header;
-- (void)goBack:(id)sender;
 @end
 
 @implementation AIAccountSettingsPage
@@ -78,13 +77,6 @@
 
 - (void)buildForm
 {
-	/* Back sits in the page for now. It belongs in the window's own navigation control, next to the
-	 * pane title, and moves there once the window has learnt that a pane can have pages. */
-	NSButton *backButton = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"All Accounts", "Button leading back from one account's settings to the list of accounts")
-														   target:self
-														   action:@selector(goBack:)];
-	[form addAccessoryView:backButton];
-
 	//Which account this is, and whether it is on
 	NSImage *serviceIcon = [AIServiceIcons serviceIconForObject:account
 														  type:AIServiceIconLarge
@@ -98,8 +90,18 @@
 			underHeader:AILocalizedString(@"Account", "Section header above an account's name and password")];
 	[self addHostedView:[accountViewController profileView]
 			underHeader:AILocalizedString(@"Personal", "Section header above an account's personal details")];
-	[self addHostedView:[accountViewController optionsView]
-			underHeader:AILocalizedString(@"Options", "Section header above an account's options")];
+	/* Options as ordinary rows when the protocol can describe them, which for a libpurple protocol
+	 * means always: it declares each option's name, type, default and, for a choice, the choices.
+	 * Only when nothing can be had that way is the service's own view hosted instead, which is what
+	 * every service used to do and why no two of them looked alike. */
+	if ([accountViewController respondsToSelector:@selector(addOptionRowsToForm:)] &&
+		[(id)accountViewController hasProtocolOptions]) {
+		[form addSectionHeader:AILocalizedString(@"Options", "Section header above an account's options")];
+		[(id)accountViewController addOptionRowsToForm:form];
+	} else if (![accountViewController respondsToSelector:@selector(addOptionRowsToForm:)]) {
+		[self addHostedView:[accountViewController optionsView]
+				underHeader:AILocalizedString(@"Options", "Section header above an account's options")];
+	}
 	[self addHostedView:[accountViewController privacyView]
 			underHeader:AILocalizedString(@"Privacy", "Section header above an account's privacy settings")];
 
@@ -119,11 +121,6 @@
 
 	[form addSectionHeader:header];
 	[form addFullWidthRow:hosted stretch:YES];
-}
-
-- (void)goBack:(id)sender
-{
-	[backTarget performSelector:backAction withObject:self];
 }
 
 @end
