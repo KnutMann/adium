@@ -145,20 +145,39 @@
 															group:PREF_GROUP_USERICONS] != nil)];
 }
 
+/*!
+ * @brief The line under the picture, naming whoever is being looked at
+ *
+ * Normally the account name, because on most services that is what somebody is known by and what
+ * one would type to reach them. Where the service says its names are numbers it is not: WhatsApp
+ * and its like hand out machine identities, and lately not even a number but an opaque lid, which
+ * tells a person nothing about who they are looking at. There the name the protocol reports is
+ * shown instead, and the identity moves to the tooltip rather than disappearing.
+ */
 -(void)updateAccountName:(AIListObject *)inObject
 {
 	if(!inObject) {
 		[accountName setStringValue:@""];
+		[accountName setToolTip:nil];
 		return;
 	}
-	
-	NSString *displayName = inObject.formattedUID;
-	
-	if (!displayName) {
-		displayName = inObject.displayName;
+
+	NSString *identity = inObject.formattedUID;
+	NSString *shown = identity;
+	NSString *tooltip = nil;
+
+	if (!shown) {
+		shown = inObject.displayName;
+
+	} else if (inObject.service.userNamesArePhoneNumbers &&
+			   [inObject.displayName length] &&
+			   ![inObject.displayName isEqualToString:identity]) {
+		shown = inObject.displayName;
+		tooltip = identity;
 	}
-	
-	[accountName setStringValue:displayName];
+
+	[accountName setStringValue:(shown ? shown : @"")];
+	[accountName setToolTip:tooltip];
 }
 
 -(void)updateStatusIcon:(AIListObject *)inObject
