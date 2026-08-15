@@ -2608,16 +2608,6 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 }
 
 /*!
- * @brief Perform the setting of a status state
- *
- * Sets the account to a passed status state.  The account should set itself to best possible status given the return
- * values of statusState's accessors.  The passed statusMessage has been filtered; it should be used rather than
- * statusState.statusMessage, which returns an unfiltered statusMessage.
- *
- * @param statusState The state to enter
- * @param statusMessage The filtered status message to use.
- */
-/*!
  * @brief The id this protocol knows a status by
  *
  * Returns @a statusID untouched when the protocol has a status of that name, which is the usual case.
@@ -2656,6 +2646,16 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	return statusID;
 }
 
+/*!
+ * @brief Perform the setting of a status state
+ *
+ * Sets the account to a passed status state.  The account should set itself to best possible status given the return
+ * values of statusState's accessors.  The passed statusMessage has been filtered; it should be used rather than
+ * statusState.statusMessage, which returns an unfiltered statusMessage.
+ *
+ * @param statusState The state to enter
+ * @param statusMessage The filtered status message to use.
+ */
 - (void)setStatusState:(AIStatus *)statusState usingStatusMessage:(NSAttributedString *)inStatusMessage
 {
 	NSString			*encodedStatusMessage;

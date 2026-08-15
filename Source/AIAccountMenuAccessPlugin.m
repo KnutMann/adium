@@ -21,10 +21,7 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
 
-#import "AIGuestAccountWindowController.h"
-
 @interface AIAccountMenuAccessPlugin ()
-- (void)showGuestAccountWindow:(id)sender;
 - (void)connectAllAccounts:(NSMenuItem *)menuItem;
 @end
 
@@ -40,13 +37,6 @@
 - (void)installPlugin
 {
 	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self submenuType:AIAccountOptionsSubmenu showTitleVerbs:YES] retain];
-	
-	NSMenuItem	*menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Connect a Guest Account", "Menu item title which opens the window for adding and connecting a guest (temporary) account") stringByAppendingEllipsis]
-													   target:self
-													   action:@selector(showGuestAccountWindow:)
-												keyEquivalent:@""];
-	[adium.menuController addMenuItem:menuItem toLocation:LOC_File_Additions];
-	[menuItem release];
 }
 
 /*!
@@ -115,12 +105,6 @@
 		if (account.enabled && !account.online)
 			[account setShouldBeOnline:YES];
 	}
-}
-
-#pragma mark Guest account access
-- (void)showGuestAccountWindow:(id)sender
-{
-	[AIGuestAccountWindowController showGuestAccountWindow];
 }
 
 @end

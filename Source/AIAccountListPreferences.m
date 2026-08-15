@@ -19,7 +19,6 @@
 #import "AIAccountSettingsPage.h"
 #import <Adium/AIContactControllerProtocol.h>
 #import "AIStatusController.h"
-#import "AIEditAccountWindowController.h"
 #import <AIUtilities/AIAutoScrollView.h>
 #import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
@@ -1010,34 +1009,22 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 		[self editAccount:account];
 		newAccountBeingCreated = account;
-		return;
 	}
-
-	AIEditAccountWindowController *editAccountWindowController = [[AIEditAccountWindowController alloc] initWithAccount:account
-																										notifyingTarget:self];
-	[editAccountWindowController showOnWindow:[[self view] window]];
 }
 
 - (void)editAccount:(AIAccount *)inAccount
 {
-	/* Slid in over the list rather than opened beside it. The page shows the account's settings but
-	 * does not yet write them: that is the next step, and it is a bigger one, because a pane has no
-	 * OK to save on and no Cancel to discard on. Until then this is a look, and the old window is
-	 * still what changes anything. */
-	if (navigationController && inAccount) {
-		[detailPage tearDown];
-		[detailPage release];
-
-		detailPage = [[AIAccountSettingsPage alloc] initWithAccount:inAccount
-														 backTarget:self
-															 action:@selector(accountPageWantsBack:)];
-		[navigationController pushViewController:detailPage animated:YES];
+	//Slid in over the list rather than opened beside it
+	if (!navigationController || !inAccount)
 		return;
-	}
 
-	AIEditAccountWindowController *editAccountWindowController = [[AIEditAccountWindowController alloc] initWithAccount:inAccount
-																										notifyingTarget:self];
-	[editAccountWindowController showOnWindow:[[self view] window]];	
+	[detailPage tearDown];
+	[detailPage release];
+
+	detailPage = [[AIAccountSettingsPage alloc] initWithAccount:inAccount
+													 backTarget:self
+														 action:@selector(accountPageWantsBack:)];
+	[navigationController pushViewController:detailPage animated:YES];
 }
 
 /*!

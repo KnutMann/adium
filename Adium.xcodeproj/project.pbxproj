@@ -168,8 +168,6 @@
 		340C1ABF0BD58FAB00D09235 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 340C1ABE0BD58FAB00D09235 /* Security.framework */; };
 		340C1E770BD59A0500D09235 /* GBImportPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 340C1E750BD59A0500D09235 /* GBImportPlugin.m */; };
 		340D859B0ADC82D100D05B3F /* sourceListBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 340670790A55A044004E22AC /* sourceListBackground.png */; };
-		34107B4C09E9923D001CC042 /* AIGuestAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34107B4A09E9923D001CC042 /* AIGuestAccountWindowController.m */; };
-		34107B5609E992DA001CC042 /* GuestAccountWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34107B5509E992DA001CC042 /* GuestAccountWindow.xib */; };
 		ADD1E5C0DE00000000001102 /* DualWindowMessageAdvanced.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001101 /* DualWindowMessageAdvanced.xib */; };
 		3419DE730A81042F00C3FC68 /* AccountPrefs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8326107CBD598006466F2 /* AccountPrefs.plist */; };
 		3419DE740A81042F00C3FC68 /* BuiltInStatusStates.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8327507CBD5B3006466F2 /* BuiltInStatusStates.plist */; };
@@ -835,7 +833,6 @@
 		4B08399C07D235190034A001 /* DockIconSelectionSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4B08399B07D235190034A001 /* DockIconSelectionSheet.xib */; };
 		4B191D8A0611C10800E8A4E7 /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4B191D880611C10800E8A4E7 /* License.txt */; };
 		4B191D8B0611C10800E8A4E7 /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 4B191D890611C10800E8A4E7 /* ReadMe.rtf */; };
-		4B7A567B07A1754400BDC540 /* AIEditAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */; };
 		4B909C8A064D75400074C9A8 /* BGEmoticonMenuPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = C4243C930638E4EA007AD2D9 /* BGEmoticonMenuPlugin.m */; };
 		ADD1E5C0DE00000000000F03 /* AITypstRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */; };
 		ADD1E5C0DE00000000000912 /* AITypstPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000911 /* AITypstPlugin.m */; };
@@ -872,7 +869,6 @@
 		4BB9972B083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB99727083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m */; };
 		4BB9972D083D1A5F006ACD6F /* SMContactListShowDetailsPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB99729083D1A5F006ACD6F /* SMContactListShowDetailsPane.m */; };
 		4BB9972F083D1A74006ACD6F /* ContactListShowBehavior.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BB9972E083D1A74006ACD6F /* ContactListShowBehavior.xib */; };
-		4BCAB5F307B59967006641B9 /* EditAccountSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */; };
 		4BCAC4CF07B59AFE006641B9 /* AddressBookPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.xib */; };
 		4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */; };
 		4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E307B59B65006641B9 /* Alias Defaults.plist */; };
@@ -1591,9 +1587,6 @@
 		340F487D06DA5E440072E2FA /* AIListGroupBubbleToFitCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListGroupBubbleToFitCell.h; path = Frameworks/Adium/Source/AIListGroupBubbleToFitCell.h; sourceTree = "<group>"; };
 		340F487E06DA5E440072E2FA /* AIListGroupBubbleCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListGroupBubbleCell.m; path = Frameworks/Adium/Source/AIListGroupBubbleCell.m; sourceTree = "<group>"; };
 		340F487F06DA5E440072E2FA /* AIListGroupCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListGroupCell.h; path = Frameworks/Adium/Source/AIListGroupCell.h; sourceTree = "<group>"; };
-		34107B4909E9923D001CC042 /* AIGuestAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIGuestAccountWindowController.h; path = Source/AIGuestAccountWindowController.h; sourceTree = "<group>"; };
-		34107B4A09E9923D001CC042 /* AIGuestAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIGuestAccountWindowController.m; path = Source/AIGuestAccountWindowController.m; sourceTree = "<group>"; };
-		34107B5509E992DA001CC042 /* GuestAccountWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GuestAccountWindow.xib; path = Resources/GuestAccountWindow.xib; sourceTree = "<group>"; };
 		34111A5D06BE1B370005AF5C /* ESObjectWithProperties.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESObjectWithProperties.h; path = Frameworks/Adium/Source/ESObjectWithProperties.h; sourceTree = "<group>"; };
 		34111A5E06BE1B370005AF5C /* ESObjectWithProperties.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESObjectWithProperties.m; path = Frameworks/Adium/Source/ESObjectWithProperties.m; sourceTree = "<group>"; };
 		34182F480AC2CA3B0067DEF3 /* AIPreviewChat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPreviewChat.h; path = "Plugins/WebKit Message View/AIPreviewChat.h"; sourceTree = "<group>"; };
@@ -2537,8 +2530,6 @@
 		4B588C9C07AC23B2001832A9 /* AIEditStateWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEditStateWindowController.m; path = Frameworks/Adium/Source/AIEditStateWindowController.m; sourceTree = "<group>"; };
 		4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "PurpleDefaultsGadu-Gadu.plist"; path = "Plugins/Purple Service/PurpleDefaultsGadu-Gadu.plist"; sourceTree = "<group>"; };
 		4B76476007A07BC90021CCD7 /* PurpleDefaultsGroupWise.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = PurpleDefaultsGroupWise.plist; path = "Plugins/Purple Service/PurpleDefaultsGroupWise.plist"; sourceTree = "<group>"; };
-		4B7A567707A1754400BDC540 /* AIEditAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEditAccountWindowController.h; path = Source/AIEditAccountWindowController.h; sourceTree = "<group>"; };
-		4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEditAccountWindowController.m; path = Source/AIEditAccountWindowController.m; sourceTree = "<group>"; };
 		4B7F278705440C8D00CDFC90 /* CBPurpleAccount.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CBPurpleAccount.h; path = "Plugins/Purple Service/CBPurpleAccount.h"; sourceTree = "<group>"; };
 		4B7F278905440C8D00CDFC90 /* CBPurpleServicePlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CBPurpleServicePlugin.h; path = "Plugins/Purple Service/CBPurpleServicePlugin.h"; sourceTree = "<group>"; };
 		4B7F278A05440C8D00CDFC90 /* CBPurpleServicePlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CBPurpleServicePlugin.m; path = "Plugins/Purple Service/CBPurpleServicePlugin.m"; sourceTree = "<group>"; };
@@ -2634,7 +2625,6 @@
 		4BC540B708648322003CD69E /* AdiumFormatting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumFormatting.m; path = Source/AdiumFormatting.m; sourceTree = "<group>"; };
 		4BC5418E08649CC6003CD69E /* AdiumContentFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumContentFiltering.h; path = Source/AdiumContentFiltering.h; sourceTree = "<group>"; };
 		4BC5418F08649CC6003CD69E /* AdiumContentFiltering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumContentFiltering.m; path = Source/AdiumContentFiltering.m; sourceTree = "<group>"; };
-		4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EditAccountSheet.xib; path = Resources/EditAccountSheet.xib; sourceTree = "<group>"; };
 		4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AddressBookPrefs.xib; path = Resources/AddressBookPrefs.xib; sourceTree = "<group>"; };
 		4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = AddressBook.tiff; path = Resources/AddressBook.tiff; sourceTree = "<group>"; };
 		4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "AB Display Format Defaults.plist"; path = "Frameworks/Adium/Resources/AB Display Format Defaults.plist"; sourceTree = "<group>"; };
@@ -5895,7 +5885,6 @@
 				3474DFFC08254F3500BF30F0 /* Copyright.txt */,
 				4B191D880611C10800E8A4E7 /* License.txt */,
 				3474DFFF082550FD00BF30F0 /* Credits.rtf */,
-				34107B5509E992DA001CC042 /* GuestAccountWindow.xib */,
 				34F849520A4AEFA00002A017 /* LogFileUpgrade.xib */,
 				34483A980BC869680083723B /* AdvancedPreferences.xib */,
 			);
@@ -5983,8 +5972,6 @@
 			children = (
 				34E2A0C207AF593B006735BC /* AIAccountMenuAccessPlugin.h */,
 				34E2A0C107AF593B006735BC /* AIAccountMenuAccessPlugin.m */,
-				34107B4909E9923D001CC042 /* AIGuestAccountWindowController.h */,
-				34107B4A09E9923D001CC042 /* AIGuestAccountWindowController.m */,
 			);
 			name = "Account Menu";
 			sourceTree = "<group>";
@@ -6192,9 +6179,6 @@
 				ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */,
 				ADD1E5C0DE00000000000773 /* AIAccountSettingsPage.h */,
 				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */,
-				4B7A567707A1754400BDC540 /* AIEditAccountWindowController.h */,
-				4B7A567807A1754400BDC540 /* AIEditAccountWindowController.m */,
-				4BCAB5F007B59967006641B9 /* EditAccountSheet.xib */,
 				4BDAF69507A1560F00276D68 /* AIAccountProxySettings.h */,
 				4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */,
 				ADD1E5C0DE00000000000F01 /* AccountProxy.xib */,
@@ -6884,7 +6868,6 @@
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
 				34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */,
 				ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */,
-				4BCAB5F307B59967006641B9 /* EditAccountSheet.xib in Resources */,
 				4BCAC4CF07B59AFE006641B9 /* AddressBookPrefs.xib in Resources */,
 				4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */,
 				4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */,
@@ -6945,7 +6928,6 @@
 				349710DD096C4C7700699948 /* Buttons.strings in Resources */,
 				343EC9810970C29400349098 /* OfflineContactHidingDefaults.plist in Resources */,
 				343ECBEE0971B18E00349098 /* ShowContactInfoPrompt.xib in Resources */,
-				34107B5609E992DA001CC042 /* GuestAccountWindow.xib in Resources */,
 				34B9C7920A255DCE00CEA8AE /* LogViewerDateFilter.xib in Resources */,
 				3456232F0A37723400E7FC97 /* LogViewer.xib in Resources */,
 				345623380A3773C300E7FC97 /* LoggingDefaults.plist in Resources */,
@@ -7325,7 +7307,6 @@
 				34C68B260778FA1300EB423C /* ESGeneralPreferencesPlugin.m in Sources */,
 				34C68B2C0778FA5C00EB423C /* ESGeneralPreferences.m in Sources */,
 				4BDAF69907A1561000276D68 /* AIAccountProxySettings.m in Sources */,
-				4B7A567B07A1754400BDC540 /* AIEditAccountWindowController.m in Sources */,
 				34DFF5FD07A63DB400B92233 /* ESSecureMessagingPlugin.m in Sources */,
 				349E2E8E07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m in Sources */,
 				34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */,
@@ -7420,7 +7401,6 @@
 				34607F1209B2296A000DB3D2 /* AIHoveringPopUpButton.m in Sources */,
 				34AE249E09BCCFA900A35B51 /* AIWindowDraggingView.m in Sources */,
 				342353D709D45726009FF634 /* AILogViewerWindowController.m in Sources */,
-				34107B4C09E9923D001CC042 /* AIGuestAccountWindowController.m in Sources */,
 				9ECB03E709F2A9D900996F44 /* AIDictionaryDebug.m in Sources */,
 				9ECB03E909F2A9D900996F44 /* AIXMLAppender.m in Sources */,
 				F5F8CA4D0A1A9C9400154550 /* GBQuestionHandlerPlugin.m in Sources */,

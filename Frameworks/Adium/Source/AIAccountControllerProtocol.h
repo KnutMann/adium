@@ -26,14 +26,6 @@
 - (void)beginSheetModalForWindow:(NSWindow*)window;
 @end
 
-@interface NSObject (AIEditAccountWindowControllerTarget)
-//Optional
-- (void)editAccountWindow:(NSWindow*)window didOpenForAccount:(AIAccount *)inAccount;
-
-//Required
-- (void)editAccountSheetDidEndForAccount:(AIAccount *)inAccount withSuccess:(BOOL)successful;
-@end
-
 typedef enum {
 	AIPromptAsNeeded = 0,
 	AIPromptAlways,
@@ -198,12 +190,10 @@ typedef enum {
 @property (nonatomic, readonly) BOOL oneOrMoreConnectedOrConnectingAccounts;
 
 /*!
- * @brief Display account configuration for an account
+ * @brief Show an account's settings, in the one place they are configured
  *
  * @param account The account to edit. Must not be nil.
- * @param window The window on which to attach the configuration as a sheet. If nil, the editor is shown as a free-standing window.
- * @param target The target to notify when editing is complete. See the AIEditAccountWindowControllerTarget informal protocol.
  */
-- (void)editAccount:(AIAccount *)account onWindow:(NSWindow *)window notifyingTarget:(id)target;
+- (void)editAccount:(AIAccount *)account;
 
 @end

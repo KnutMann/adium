@@ -39,7 +39,6 @@
 #import "AdiumPasswords.h"
 #import "AdiumAccounts.h"
 #import "AdiumPreferredAccounts.h"
-#import "AIEditAccountWindowController.h"
 
 #define ACCOUNT_DEFAULT_PREFS			@"AccountPrefs"
 
@@ -223,11 +222,16 @@
 }
 
 #pragma mark Editing
-- (void)editAccount:(AIAccount *)account onWindow:(NSWindow *)window notifyingTarget:(id)target
+
+/*!
+ * @brief Show an account's settings
+ *
+ * There is one place an account is configured, the accounts pane, and it opens there. The window this
+ * used to put up was a second interface for the same settings and did not know about the first.
+ */
+- (void)editAccount:(AIAccount *)account
 {
-	AIEditAccountWindowController *accountWindowController = [[AIEditAccountWindowController alloc] initWithAccount:account
-																									notifyingTarget:target];
-	[accountWindowController showOnWindow:window];
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"AIEditAccount" object:account];
 }
 
 @end
