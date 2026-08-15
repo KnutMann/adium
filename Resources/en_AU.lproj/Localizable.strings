@@ -706,6 +706,9 @@
 /* Quit Confirmation preference */
 "Ask when there are unread messages" = "Ask when there are unread messages";
 
+/* Button which attaches the selected address book card to a contact */
+"Attach Card" = "Attach Card";
+
 /* Menu item for attaching groups to detachable windows */
 "Attach To Window" = "Attach To Window";
 
@@ -880,11 +883,14 @@
 /* No comment provided by engineer. */
 "Check Spelling As You Type" = "Check Spelling As You Type";
 
-/* No comment provided by engineer. */
-"Choose an Address Card:" = "Choose an Address Card:";
+/* Button which replaces the address book card Adium found with a chosen one */
+"Choose Another Card" = "Choose Another Card";
 
 /* No comment provided by engineer. */
 "Choose Icon" = "Choose Icon";
+
+/* Where an attached address book card came from */
+"Chosen by you" = "Chosen by you";
 
 /* No comment provided by engineer. */
 "Clear" = "Clear";
@@ -1202,6 +1208,9 @@
 
 /* No comment provided by engineer. */
 "Deselect All" = "Deselect All";
+
+/* Button which forgets the address book card chosen for a contact */
+"Detach Card" = "Detach Card";
 
 /* Menu item for detaching groups from their window */
 "Detach From Window" = "Detach From Window";
@@ -1533,6 +1542,9 @@
 
 /* Title of the Format menu */
 "Format" = "Format";
+
+/* Where an attached address book card came from */
+"Found by Adium" = "Found by Adium";
 
 /* No comment provided by engineer. */
 "From" = "From";

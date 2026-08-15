@@ -429,7 +429,6 @@
 		34A1A8ED0DFB27A800AC78CF /* AICustomSocialNetworkingStatusWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A1A8EB0DFB27A800AC78CF /* AICustomSocialNetworkingStatusWindowController.h */; };
 		34A1A8EE0DFB27A800AC78CF /* AICustomSocialNetworkingStatusWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1A8EC0DFB27A800AC78CF /* AICustomSocialNetworkingStatusWindowController.m */; };
 		34A1AB6C0DFC531000AC78CF /* AIXMLChatlogConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1AB6B0DFC531000AC78CF /* AIXMLChatlogConverter.m */; };
-		34A1AEE90DFD4BFE00AC78CF /* AIAddressBookInspectorPane.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34A1AEE80DFD4BFE00AC78CF /* AIAddressBookInspectorPane.xib */; };
 		ADD1E5C0DE00000000001702 /* AIAdvancedInspectorPane.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001701 /* AIAdvancedInspectorPane.xib */; };
 		34A1B2C30DFDBA1200AC78CF /* AIStringDebug.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1B2C20DFDBA1200AC78CF /* AIStringDebug.m */; };
 		34A250B607E0F822009854E1 /* StatusDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34A250B507E0F822009854E1 /* StatusDefaults.plist */; };
@@ -2060,7 +2059,6 @@
 		34A1ABF00DFD47BE00AC78CF /* cs */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cs; path = "Resources/cs.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34A1ABF20DFD47CA00AC78CF /* sv */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sv; path = "Resources/sv.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		34A1AC020DFD47D600AC78CF /* pt */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pt; path = "Resources/pt.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
-		34A1AEE80DFD4BFE00AC78CF /* AIAddressBookInspectorPane.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIAddressBookInspectorPane.xib; path = Resources/AIAddressBookInspectorPane.xib; sourceTree = "<group>"; };
 		34A1B2C10DFDBA1200AC78CF /* AIStringDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStringDebug.h; path = Source/AIStringDebug.h; sourceTree = "<group>"; };
 		34A1B2C20DFDBA1200AC78CF /* AIStringDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStringDebug.m; path = Source/AIStringDebug.m; sourceTree = "<group>"; };
 		34A1B59E0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitPreviewMessageViewController.h; path = "Plugins/WebKit Message View/AIWebKitPreviewMessageViewController.h"; sourceTree = "<group>"; };
@@ -6177,7 +6175,6 @@
 				ADD1E5C0DE00000000001701 /* AIAdvancedInspectorPane.xib */,
 				4F1CB62D0D640D770073A1E6 /* AIAddressBookInspectorPane.h */,
 				4F1CB62C0D640D770073A1E6 /* AIAddressBookInspectorPane.m */,
-				34A1AEE80DFD4BFE00AC78CF /* AIAddressBookInspectorPane.xib */,
 				4F1CB6240D640D5B0073A1E6 /* AIContactInfoContentController.h */,
 				4F1CB6250D640D5B0073A1E6 /* AIContactInfoContentController.m */,
 				343ECBE80971B18200349098 /* ESShowContactInfoPromptController.h */,
@@ -6927,7 +6924,6 @@
 				4F1CB64C0D640F4F0073A1E6 /* ContactInfoInspector.xib in Resources */,
 				4BB2EB220D88D76100CA7A7D /* timestamp32.tiff in Resources */,
 				4BB2EB230D88D76100CA7A7D /* timestamp32_transparent.tiff in Resources */,
-				34A1AEE90DFD4BFE00AC78CF /* AIAddressBookInspectorPane.xib in Resources */,
 				ADD1E5C0DE00000000001702 /* AIAdvancedInspectorPane.xib in Resources */,
 				317D83680E89F40500298BDB /* msg-bookmark-chat.tiff in Resources */,
 				117866DE0EC759B9003E9B97 /* FTProgressResend_Selected.tif in Resources */,
