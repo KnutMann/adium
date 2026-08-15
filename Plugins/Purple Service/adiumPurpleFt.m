@@ -15,6 +15,7 @@
  */
 
 #import "adiumPurpleFt.h"
+#import <Adium/ESFileTransfer.h>
 #import <AIUtilities/AIObjectAdditions.h>
 
 static void adiumPurpleNewXfer(PurpleXfer *xfer)
@@ -26,8 +27,16 @@ static void adiumPurpleDestroy(PurpleXfer *xfer)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	ESFileTransfer *fileTransfer = (ESFileTransfer *)xfer->ui_data;
+
+	/* The transfer object outlives this xfer: the file transfer window keeps every one of them in a
+	 * list of its own, so releasing the account's reference below is not the last one. What it kept
+	 * of the xfer has to go first, or it holds a pointer into freed memory that still looks perfectly
+	 * good, and the next Cancel or Reject reads it. Both of those already ask whether they have one;
+	 * clearing it here is what makes the question worth asking. */
+	[fileTransfer setAccountData:nil];
+
 	[accountLookup(xfer->account) destroyFileTransfer:fileTransfer];
-	
+
 	xfer->ui_data = nil;
     [pool drain];
 }

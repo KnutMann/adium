@@ -1867,6 +1867,14 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	
 	xfer = [[fileTransfer accountData] pointerValue];
 
+	/* Gone while the request was on screen, which the protocol is free to do: the other side cancels,
+	 * the connection drops, the account signs out. Accepting then reads an xfer that is not there any
+	 * more. Reject and cancel ask the same question. */
+	if (!xfer) {
+		AILogWithSignature(@"%@ is no longer known to the protocol", fileTransfer);
+		return;
+	}
+
     xferType = purple_xfer_get_type(xfer);
     if (xferType == PURPLE_XFER_SEND) {
         [fileTransfer setFileTransferType:Outgoing_FileTransfer];

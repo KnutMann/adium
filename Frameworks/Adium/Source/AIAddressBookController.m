@@ -188,6 +188,22 @@ NSString* serviceIDForJabberUID(NSString *UID);
 												group:PREF_GROUP_ADDRESSBOOK];
 		}
 		
+		/* Two elements with nothing between them, "%[FIRSTFULL]%[LASTFULL]", which reads as
+		 * "JohnSmith". The format is assembled from the pieces in the settings and the separator
+		 * between them went missing on the way in, and nothing downstream puts one back: the name is
+		 * built by replacing the elements and by nothing else. Repaired once rather than on every
+		 * read, so that anyone who really wants them run together can say so and be left alone. */
+		if ([displayFormat rangeOfString:@"]%["].location != NSNotFound) {
+			NSString *repaired = [displayFormat stringByReplacingOccurrencesOfString:@"]%[" withString:@"] %["];
+
+			[displayFormat release];
+			displayFormat = [repaired retain];
+
+			[adium.preferenceController setPreference:displayFormat
+											   forKey:KEY_AB_DISPLAYFORMAT
+												group:PREF_GROUP_ADDRESSBOOK];
+		}
+
 		//Services dictionary
 		serviceDict = [[NSDictionary dictionaryWithObjectsAndKeys:kABAIMInstantProperty,@"AIM",
 				kABJabberInstantProperty,@"Jabber",
