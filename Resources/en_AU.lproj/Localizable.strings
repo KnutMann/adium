@@ -46,6 +46,9 @@
 /* No comment provided by engineer. */
 "%@" = "%@";
 
+/* Which service a contact picture is from, and which of several it is */
+"%@ (%li of %li)" = "%@ (%li of %li)";
+
 /* %@ will be replaced by an amount of time such as '1 day, 4 hours'. This string is used in the 'Last Seen:' information shown when hovering over an offline contact. */
 "%@ ago" = "%@ ago";
 
@@ -580,6 +583,9 @@
 /* Confirmation preference */
 "Always" = "Always";
 
+/* Quit Confirmation preference */
+"Always ask before quitting Adium" = "Always ask before quitting Adium";
+
 /* No comment provided by engineer. */
 "Always set Adium as the default" = "Always set Adium as the default";
 
@@ -651,6 +657,15 @@
 
 /* Insert Current iTunes track artist toolbar menu item. */
 "Artist" = "Artist";
+
+/* Quit Confirmation preference */
+"Ask when chat windows are open" = "Ask when chat windows are open";
+
+/* Quit Confirmation preference */
+"Ask when file transfers are in progress" = "Ask when file transfers are in progress";
+
+/* Quit Confirmation preference */
+"Ask when there are unread messages" = "Ask when there are unread messages";
 
 /* Menu item for attaching groups to detachable windows */
 "Attach To Window" = "Attach To Window";
@@ -781,6 +796,9 @@
 /* %@ is a filename of a file being sent */
 "cancelled the transfer of %@" = "cancelled the transfer of %@";
 
+/* Shown where an address book card carries no picture */
+"Card has no picture" = "Card has no picture";
+
 /* No comment provided by engineer. */
 "Center" = "Centre";
 
@@ -886,9 +904,6 @@
 /* Message close confirmation preference */
 "Confirm before closing multiple chat windows" = "Confirm before closing multiple chat windows";
 
-/* Quit Confirmation preference */
-"Confirm before quitting Adium" = "Confirm before quitting Adium";
-
 /* No comment provided by engineer. */
 "Confirm Quit" = "Confirm Quit";
 
@@ -986,6 +1001,12 @@
 
 /* No comment provided by engineer. */
 "Contact Name Format" = "Contact Name Format";
+
+/* Title of the window which hands contact pictures to address book cards */
+"Contact Pictures" = "Contact Pictures";
+
+/* Label beside the button which opens the contact pictures window */
+"Contact pictures on cards" = "Contact pictures on cards";
 
 /* No comment provided by engineer. */
 "Contact returns from away" = "Contact returns from away";
@@ -1420,11 +1441,11 @@
 /* No comment provided by engineer. */
 "File Transfers" = "File Transfers";
 
-/* Quit Confirmation preference */
-"File transfers are in progress" = "File transfers are in progress";
-
 /* No comment provided by engineer. */
 "Fill" = "Fill";
+
+/* Placeholder of the field which narrows the list of cards */
+"Filter" = "Filter";
 
 /* No comment provided by engineer. */
 "Filter logs by date" = "Filter logs by date";
@@ -1921,6 +1942,9 @@
 /* No comment provided by engineer. */
 "No" = "No";
 
+/* Shown where a contact has no picture to hand over */
+"No picture" = "No picture";
+
 /* Message to show in the Encryption OTR preferences when an account is selected which does not have a private key */
 "No private key present" = "No private key present";
 
@@ -1990,9 +2014,6 @@
 
 /* Explains when rebuilding the transcript search index is worth doing */
 "Only needed if searching does not find a conversation that exists." = "Only needed if searching does not find a conversation that exists.";
-
-/* Quit Confirmation preference */
-"Only when" = "Only when";
 
 /* Message close confirmation preference */
 "Only when there are unread messages" = "Only when there are unread messages";
@@ -2138,6 +2159,12 @@
 /* No comment provided by engineer. */
 "Proxy" = "Proxy";
 
+/* Explains what the contact pictures window does */
+"Put a contact's picture onto their card. Nothing is written until you ask for it." = "Put a contact's picture onto their card. Nothing is written until you ask for it.";
+
+/* Button which writes the shown contact picture onto the address book card */
+"Put on Card" = "Put on Card";
+
 /* No comment provided by engineer. */
 "Quit" = "Quit";
 
@@ -2254,6 +2281,9 @@
 
 /* No comment provided by engineer. */
 "Returns from mobile" = "Returns from mobile";
+
+/* Button which opens the window for handing contact pictures to address book cards */
+"Review" = "Review";
 
 /* Position menu item for tabs at the right of the message window */
 "Right" = "Right";
@@ -2676,6 +2706,9 @@
 /* No comment provided by engineer. */
 "Text To Speak:" = "Text To Speak:";
 
+/* Said when writing a contact picture onto a card failed */
+"The Address Book would not save the picture." = "The Address Book would not save the picture.";
+
 /* No comment provided by engineer. */
 "The characters you're entering are not valid for an account name on this service." = "The characters you're entering are not valid for an account name on this service.";
 
@@ -2687,12 +2720,6 @@
 
 /* No comment provided by engineer. */
 "The transfer of %@ failed" = "The transfer of %@ failed";
-
-/* Quit Confirmation preference */
-"There are open chat windows" = "There are open chat windows";
-
-/* Quit Confirmation preference */
-"There are unread messages" = "There are unread messages";
 
 /* No comment provided by engineer. */
 "This is a sample topic for this chat. Enjoy!" = "This is a sample topic for this chat. Enjoy!";
@@ -2820,6 +2847,9 @@
 /* No comment provided by engineer. */
 "Unknown conversation error." = "Unknown conversation error.";
 
+/* Name shown for an address book card that has no name on it */
+"Unnamed card" = "Unnamed card";
+
 /* No comment provided by engineer. */
 "Unread messages" = "Unread messages";
 
@@ -2858,9 +2888,6 @@
 
 /* No comment provided by engineer. */
 "Use System Default" = "Use System Default";
-
-/* Radio button in the Personal tab of Account preferences; an image is shown beneath it to select the account's icon.  This -must- be a short string of 20 characters or less. */
-"Use this icon:" = "Use this icon:";
 
 /* Speak Text action keyword: user alias */
 "User alias" = "User alias";

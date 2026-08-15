@@ -47,12 +47,10 @@
 	return [NSImage imageNamed:@"pref-confirmations" forClass:[AIPreferenceWindowController class]];
 }
 
-/* No -nibName: the pane builds its own view below, so AIModularPane never loads
- * a nib for us. AIConfirmationsAdvancedPreferences.xib is dead — and it must
- * stay unloaded: it still wires outlets this class no longer has
- * (matrix_quitConfirmType, matrix_closeConfirmType, label_*), so loading it
- * would raise NSUnknownKeyException rather than fall back to the old interface.
- * Removing it from the target needs project file access we do not have here.
+/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib for us.
+ * AIConfirmationsAdvancedPreferences.xib, which used to hold this interface, has been deleted
+ * along with its entry in the target: nothing loaded it any more, and it still wired outlets this
+ * class no longer has, so anything that did load it would have raised rather than fallen back.
  */
 
 #pragma mark View
@@ -132,42 +130,26 @@
 	//Quit confirmation
 	[form addSectionHeader:AILocalizedString(@"Quit Confirmation", "Preference")];
 
-	checkBox_confirmBeforeQuitting = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Confirm before quitting Adium", "Quit Confirmation preference")
-				  control:checkBox_confirmBeforeQuitting];
-
-	radio_quitConfirmAlways = [AISettingsFormView radioButtonWithTitle:AILocalizedString(@"Always", "Confirmation preference")
-																target:self
-																action:@selector(changePreference:)];
-	[radio_quitConfirmAlways setTag:AIQuitConfirmAlways];
-
-	/* The nib's title, minus the ellipsis it used to point at the indented
-	 * checkboxes: the same string, so its translations in every localization keep
-	 * applying. What it points at is now the card that follows immediately below.
+	/* Four switches of equal rank, where there used to be a switch, a choice between always and
+	 * only when, and three conditions hanging off the second answer. Three levels for what is one
+	 * question: under which circumstances shall quitting be questioned. The first switch answers
+	 * "any", the other three name their own, and what is stored underneath is unchanged, so
+	 * whatever decides at quitting time never learns that the interface was rearranged.
 	 */
-	radio_quitConfirmSelective = [AISettingsFormView radioButtonWithTitle:AILocalizedString(@"Only when", "Quit Confirmation preference")
-																   target:self
-																   action:@selector(changePreference:)];
-	[radio_quitConfirmSelective setTag:AIQuitConfirmSelective];
-
-	[form addRadioGroupWithLabel:nil buttons:[self quitConfirmTypeButtons]];
-
-	/* The conditions "Only when" narrows the confirmation down to. Their own,
-	 * headerless card: they belong to the radio above, not to the quit switch, and
-	 * a card boundary is the only grouping System Settings has for that.
-	 */
-	[form endCard];
+	checkBox_quitConfirmAlways = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Always ask before quitting Adium", "Quit Confirmation preference")
+				  control:checkBox_quitConfirmAlways];
 
 	checkBox_quitConfirmFT = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"File transfers are in progress", "Quit Confirmation preference")
+	[form addRowWithLabel:AILocalizedString(@"Ask when file transfers are in progress", "Quit Confirmation preference")
 				  control:checkBox_quitConfirmFT];
 
 	checkBox_quitConfirmUnread = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"There are unread messages", "Quit Confirmation preference")
+	[form addRowWithLabel:AILocalizedString(@"Ask when there are unread messages", "Quit Confirmation preference")
 				  control:checkBox_quitConfirmUnread];
 
 	checkBox_quitConfirmOpenChats = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"There are open chat windows", "Quit Confirmation preference")
+	[form addRowWithLabel:AILocalizedString(@"Ask when chat windows are open", "Quit Confirmation preference")
 				  control:checkBox_quitConfirmOpenChats];
 
 	return form;
@@ -180,10 +162,12 @@
 {
 	NSDictionary *confirmationDict = [adium.preferenceController preferencesForGroup:PREF_GROUP_CONFIRMATIONS];
 
-	[checkBox_confirmBeforeQuitting setState:([[confirmationDict objectForKey:KEY_CONFIRM_QUIT] boolValue] ?
-											  NSControlStateValueOn : NSControlStateValueOff)];
-	[self selectTag:[[confirmationDict objectForKey:KEY_CONFIRM_QUIT_TYPE] integerValue]
-	   inRadioGroup:[self quitConfirmTypeButtons]];
+	/* Asking always is the two stored answers together: confirm at all, and confirm regardless of
+	 * what is going on. */
+	BOOL always = ([[confirmationDict objectForKey:KEY_CONFIRM_QUIT] boolValue] &&
+				   [[confirmationDict objectForKey:KEY_CONFIRM_QUIT_TYPE] integerValue] == AIQuitConfirmAlways);
+
+	[checkBox_quitConfirmAlways setState:(always ? NSControlStateValueOn : NSControlStateValueOff)];
 
 	/* The three keys suppress a confirmation, so the switch is the inverse of the
 	 * stored value — exactly as the checkboxes were.
@@ -207,9 +191,7 @@
 
 - (void)viewWillClose
 {
-	checkBox_confirmBeforeQuitting = nil;
-	radio_quitConfirmAlways = nil;
-	radio_quitConfirmSelective = nil;
+	checkBox_quitConfirmAlways = nil;
 	checkBox_quitConfirmFT = nil;
 	checkBox_quitConfirmUnread = nil;
 	checkBox_quitConfirmOpenChats = nil;
@@ -221,14 +203,6 @@
 }
 
 #pragma mark Radio groups
-
-/*!
- * @brief The buttons of the "when to confirm quitting" choice, in display order
- */
-- (NSArray *)quitConfirmTypeButtons
-{
-	return [NSArray arrayWithObjects:radio_quitConfirmAlways, radio_quitConfirmSelective, nil];
-}
 
 /*!
  * @brief The buttons of the "when to confirm closing" choice, in display order
@@ -283,13 +257,33 @@
 
 #pragma mark Changing preferences
 
+/*!
+ * @brief Write the two stored answers the four switches together stand for
+ *
+ * Whether to ask at all is now nothing anybody sets directly: it follows from whether any of the
+ * four switches wants a question. Whether to ask regardless follows from the first one alone.
+ */
+- (void)writeQuitConfirmation
+{
+	BOOL always = (checkBox_quitConfirmAlways.state == NSControlStateValueOn);
+	BOOL anyCondition = ((checkBox_quitConfirmFT.state == NSControlStateValueOn) ||
+						 (checkBox_quitConfirmUnread.state == NSControlStateValueOn) ||
+						 (checkBox_quitConfirmOpenChats.state == NSControlStateValueOn));
+
+	[adium.preferenceController setPreference:[NSNumber numberWithInteger:(always ? AIQuitConfirmAlways : AIQuitConfirmSelective)]
+									   forKey:KEY_CONFIRM_QUIT_TYPE
+										group:PREF_GROUP_CONFIRMATIONS];
+
+	[adium.preferenceController setPreference:[NSNumber numberWithBool:(always || anyCondition)]
+									   forKey:KEY_CONFIRM_QUIT
+										group:PREF_GROUP_CONFIRMATIONS];
+}
+
+
 - (IBAction)changePreference:(id)sender
 {
-	if (sender == checkBox_confirmBeforeQuitting) {
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
-										   forKey:KEY_CONFIRM_QUIT
-											group:PREF_GROUP_CONFIRMATIONS];
-
+	if (sender == checkBox_quitConfirmAlways) {
+		[self writeQuitConfirmation];
 		[self configureControlDimming];
 	}
 
@@ -311,12 +305,9 @@
 											group:PREF_GROUP_CONFIRMATIONS];
 	}
 
-	if (sender == radio_quitConfirmAlways || sender == radio_quitConfirmSelective) {
-		[adium.preferenceController setPreference:[NSNumber numberWithInteger:[(NSButton *)sender tag]]
-								   forKey:KEY_CONFIRM_QUIT_TYPE
-									group:PREF_GROUP_CONFIRMATIONS];
-
-		[self configureControlDimming];
+	if (sender == checkBox_quitConfirmFT || sender == checkBox_quitConfirmUnread ||
+		sender == checkBox_quitConfirmOpenChats) {
+		[self writeQuitConfirmation];
 	}
 
 	if (sender == checkBox_confirmBeforeClosing) {
@@ -338,11 +329,11 @@
 
 - (void)configureControlDimming
 {
-	BOOL		confirmQuitEnabled			= (checkBox_confirmBeforeQuitting.state == NSControlStateValueOn);
-	BOOL		enableSpecificConfirmations = (confirmQuitEnabled &&
-											   [self selectedTagInRadioGroup:[self quitConfirmTypeButtons]] == AIQuitConfirmSelective);
+	/* Asking in every case answers the other three as well, so they have nothing left to decide
+	 * and say so by dimming. They keep their state while dimmed, and get it back the moment the
+	 * first switch goes off again. */
+	BOOL		enableSpecificConfirmations = (checkBox_quitConfirmAlways.state != NSControlStateValueOn);
 
-	[self setEnabled:confirmQuitEnabled forRadioGroup:[self quitConfirmTypeButtons]];
 	[checkBox_quitConfirmFT	setEnabled:enableSpecificConfirmations];
 	[checkBox_quitConfirmUnread	setEnabled:enableSpecificConfirmations];
 	[checkBox_quitConfirmOpenChats setEnabled:enableSpecificConfirmations];

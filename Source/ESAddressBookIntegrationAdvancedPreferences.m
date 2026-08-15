@@ -15,6 +15,7 @@
  */
 
 #import "ESAddressBookIntegrationAdvancedPreferences.h"
+#import "AIAddressBookPictureWindowController.h"
 #import <Adium/AIAddressBookController.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
@@ -202,6 +203,17 @@
 	[form addRowWithLabel:AILocalizedString(@"Combine contacts listed on a single card",nil)
 				  control:checkBox_metaContacts];
 
+	/* The one place Adium writes to the address book, which is why it is a window somebody opens
+	 * and a button somebody presses. It sits here because this is where the two sides are already
+	 * being talked about. */
+	button_pictures = [AISettingsFormView pushButtonWithTitle:[AILocalizedString(@"Review", "Button which opens the window for handing contact pictures to address book cards") stringByAppendingEllipsis]
+													   target:self
+													   action:@selector(reviewPictures:)];
+	[form addRowWithLabel:AILocalizedString(@"Contact pictures on cards", "Label beside the button which opens the contact pictures window")
+				  control:button_pictures
+				   detail:AILocalizedString(@"Put a contact's picture onto their card. Nothing is written until you ask for it.",
+											"Explains what the contact pictures window does")];
+
 	return form;
 }
 
@@ -328,6 +340,7 @@
 	checkBox_useABImages = nil;
 	checkBox_preferABImages = nil;
 	checkBox_metaContacts = nil;
+	button_pictures = nil;
 
 	[super viewWillClose];
 }
@@ -408,6 +421,11 @@
 /*!
  * @brief Save changed preference
  */
+- (IBAction)reviewPictures:(id)sender
+{
+	[AIAddressBookPictureWindowController showWindow];
+}
+
 - (IBAction)changePreference:(id)sender
 {
     if (sender == checkBox_useABImages) {

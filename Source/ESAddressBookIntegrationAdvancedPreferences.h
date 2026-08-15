@@ -43,6 +43,7 @@
 
 	// Contacts
 	NSSwitch		*checkBox_metaContacts;
+	NSButton		*button_pictures;
 
 	/* Never created, and it was not in the nib either: the note sync setting lost
 	 * its checkbox long ago and nothing reads KEY_AB_NOTE_SYNC anymore. The write

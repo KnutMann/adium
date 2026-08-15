@@ -30,9 +30,7 @@
  */
 @interface AIConfirmationsAdvancedPreferences : AIAdvancedPreferencePane {
 	// Quit confirmation
-	NSSwitch		*checkBox_confirmBeforeQuitting;
-	NSButton		*radio_quitConfirmAlways;		//tag AIQuitConfirmAlways
-	NSButton		*radio_quitConfirmSelective;	//tag AIQuitConfirmSelective
+	NSSwitch		*checkBox_quitConfirmAlways;
 
 	NSSwitch		*checkBox_quitConfirmFT;
 	NSSwitch		*checkBox_quitConfirmUnread;
