@@ -119,7 +119,9 @@ static ErrorMessageWindowController *sharedErrorMessageInstance = nil;
 	NSString	*title = [errorTitleArray objectAtIndex:0];
     [textView_errorTitle setString:title];
 
-	// Resize the window frame to fit the error title
+	/* Resize the window frame to fit the error title. The glyphs have to exist before anything can be
+	 * measured, and setting a string only schedules that. */
+	[[textView_errorTitle layoutManager] ensureLayoutForTextContainer:[textView_errorTitle textContainer]];
 	[textView_errorTitle sizeToFit];
 	CGFloat	titleHeightChange = [textView_errorTitle frame].size.height - [scrollView_errorTitle documentVisibleRect].size.height;
 	
@@ -135,6 +137,7 @@ static ErrorMessageWindowController *sharedErrorMessageInstance = nil;
 	[textView_errorInfo setString:[errorDescArray objectAtIndex:0]];
 
 	// Resize the window frame to fit the error message
+	[[textView_errorInfo layoutManager] ensureLayoutForTextContainer:[textView_errorInfo textContainer]];
 	[textView_errorInfo sizeToFit];
 	CGFloat errorInfoChange = [textView_errorInfo frame].size.height - [scrollView_errorInfo documentVisibleRect].size.height;
 	NSRect errorInfoFrame = [scrollView_errorInfo frame];
@@ -180,11 +183,18 @@ static ErrorMessageWindowController *sharedErrorMessageInstance = nil;
     [textView_errorTitle setVerticallyResizable:YES];
     [textView_errorTitle setDrawsBackground:NO];
     [scrollView_errorTitle setDrawsBackground:NO];
-	
+
     [textView_errorInfo setHorizontallyResizable:NO];
     [textView_errorInfo setVerticallyResizable:YES];
     [textView_errorInfo setDrawsBackground:NO];
     [scrollView_errorInfo setDrawsBackground:NO];
+
+	/* Not resizable horizontally is not the same as wrapping: a text container keeps whatever width
+	 * the nib gave it unless it is told to follow its text view, and a sentence longer than that ran
+	 * off the side and was clipped, taking with it whatever stood at the end of it. That is how the
+	 * code in "enter the code XYZ to authenticate" came to be the part nobody could read. */
+	[[textView_errorTitle textContainer] setWidthTracksTextView:YES];
+	[[textView_errorInfo textContainer] setWidthTracksTextView:YES];
 	
 	// Center
 	[[self window] center];

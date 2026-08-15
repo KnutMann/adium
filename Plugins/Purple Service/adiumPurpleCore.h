@@ -19,3 +19,8 @@
 PurpleCoreUiOps *adium_purple_core_get_ops(void);
 
 void configurePurpleDebugLogging();
+
+/*!
+ * @brief Tell libpurple which language to speak, before its core comes up
+ */
+void adiumPurpleSetLocale(void);

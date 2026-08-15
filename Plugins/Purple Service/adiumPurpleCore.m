@@ -183,17 +183,23 @@ static void associateLibpurpleAccounts(void)
 	}
 }
 
-/* The core is ready... finish configuring libpurple and its plugins */
-static void adiumPurpleCoreUiInit(void)
+/*!
+ * @brief Tell libpurple which language to speak
+ *
+ * Has to happen before the core comes up, not while it does: a protocol asks for its strings once,
+ * when it registers itself, and the ones built into libpurple register during purple_core_init. Bound
+ * afterwards, every option of every built in protocol keeps the English it was born with, while the
+ * ones loaded later come out translated. That is why half the settings used to be in one language and
+ * half in another.
+ */
+void adiumPurpleSetLocale(void)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	bindtextdomain("pidgin", [[[NSBundle bundleWithIdentifier:@"im.pidgin.libpurple"] resourcePath] fileSystemRepresentation]);
 	bind_textdomain_codeset("pidgin", "UTF-8");
 	textdomain("pidgin");
-	
+
 	NSString *preferredLocale = [[[NSBundle bundleForClass:[SLPurpleCocoaAdapter class]] preferredLocalizations] objectAtIndex:0];
-	
+
 	// OS X-ism.. "pt" is Brazilian Portuguese, "pt_PT" is Portugal Portuguese.
 	// However, libpurple delivers us localizations in the form of pt for pt_PT and pt_BR for pt.
 	if ([preferredLocale isEqualToString:@"pt"]) {
@@ -201,16 +207,23 @@ static void adiumPurpleCoreUiInit(void)
 	} else if ([preferredLocale isEqualToString:@"pt_PT"]) {
 		preferredLocale = @"pt";
 	}
-	
+
 	AILog(@"Setting %@ as LC_ALL", preferredLocale);
-	
+
 	const char *preferredLocaleString = [preferredLocale UTF8String];
 	//We should be able to just do setlocale()... but it always returns NULL, which indicates failure
 	/* setlocale(LC_MESSAGES, preferredLocaleString); */
-	
+
 	//So we'll set the environment variable for this process, which does work
 	setenv("LC_ALL", preferredLocaleString, /* overwrite? */ 1);
 	setenv("LC_MESSAGES", preferredLocaleString, /* overwrite? */ 1);
+}
+
+/* The core is ready... finish configuring libpurple and its plugins */
+static void adiumPurpleCoreUiInit(void)
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
 
 	//Initialize all external plugins.
 	init_all_plugins();

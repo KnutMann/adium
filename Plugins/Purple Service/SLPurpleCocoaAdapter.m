@@ -259,6 +259,10 @@ void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *
 												forKey:@"Adium 1.2.4 deleted blist.xml"];
 	}
 	
+	/* Before the core, not from inside it: the protocols built into libpurple ask for their strings
+	 * while the core comes up, and whatever is not bound by then stays English for good. */
+	adiumPurpleSetLocale();
+
 	purple_core_set_ui_ops(adium_purple_core_get_ops());
 	purple_eventloop_set_ui_ops(adium_purple_eventloop_get_ui_ops());
 
