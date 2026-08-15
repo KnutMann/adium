@@ -1529,7 +1529,11 @@ GList *createListFromDictionary(NSDictionary *arguments)
 	GList			*attrs;
 	PurpleStatus	*tune;
 
-	tune = purple_presence_get_status(purple_account_get_presence(account), "tune");
+	/* An account that has never been connected has no presence to carry a tune, and asking one for
+	 * its status is a complaint from libpurple per account per song. */
+	PurplePresence	*presence = (account ? purple_account_get_presence(account) : NULL);
+
+	tune = (presence ? purple_presence_get_status(presence, "tune") : NULL);
 	if (!tune)
 		return;
 	
