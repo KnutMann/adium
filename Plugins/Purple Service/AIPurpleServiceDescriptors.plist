@@ -51,6 +51,33 @@
 		<true/>
 	</dict>
 
+	<key>prpl-eionrobb-ircv3</key>
+	<dict>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-IRCv3</string>
+		<!--
+			Its own service id, not "IRC": two services answering to one id make
+			firstServiceWithServiceID: pick whichever the dictionary happens to hand back. The class
+			stays IRC, which is what the url handler and the channel linker match on, so those keep
+			working for an ircv3 account.
+		-->
+		<key>ServiceID</key>
+		<string>IRCv3</string>
+		<key>ServiceClass</key>
+		<string>IRC</string>
+		<key>ShortDescription</key>
+		<string>IRC (v3)</string>
+		<key>LongDescription</key>
+		<string>IRC with IRCv3 capabilities</string>
+		<key>UserNameLabel</key>
+		<string>Nickname</string>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<!-- The images the built in IRC service already ships -->
+		<key>IconBaseName</key>
+		<string>irc</string>
+	</dict>
+
 	<key>prpl-hehoe-presage</key>
 	<dict>
 		<key>ServiceCodeUniqueID</key>

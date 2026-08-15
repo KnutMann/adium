@@ -282,12 +282,23 @@
 //Icons ----------------------------------------------------------------------------------------------------------------
 #pragma mark Icons
 
+/*!
+ * @brief What the two images for this service are called
+ *
+ * Two spellings are in use here. Most carry "<base>-small" and "<base>-large"; the older ones call
+ * the large one just "<base>". Both are asked for rather than making a service rename its artwork.
+ */
 - (NSString *)iconNameOfType:(AIServiceIconType)iconType
 {
 	NSString *base = [descriptor objectForKey:@"IconBaseName"];
+	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 
-	return [base stringByAppendingString:((iconType == AIServiceIconSmall || iconType == AIServiceIconList) ?
-										  @"-small" : @"-large")];
+	if (iconType == AIServiceIconSmall || iconType == AIServiceIconList)
+		return [base stringByAppendingString:@"-small"];
+
+	NSString *large = [base stringByAppendingString:@"-large"];
+
+	return ([bundle pathForImageResource:large] ? large : base);
 }
 
 - (NSImage *)defaultServiceIconOfType:(AIServiceIconType)iconType

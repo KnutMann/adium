@@ -151,12 +151,15 @@
 #pragma mark Password Return
 - (void)passwordReturned:(NSString *)inPassword returnCode:(AIPasswordPromptReturn)returnCode context:(NSDictionary *)inDict
 {
-	ESIRCAccount *account = [inDict objectForKey:@"Account"];
+	AIAccount	 *account = [inDict objectForKey:@"Account"];
 	NSString	 *displayName = [inDict objectForKey:@"Name"];
 	
 	AILogWithSignature(@"%@ password returned with any: %d", displayName, inPassword.length > 0);
 	
-	if (inPassword && inPassword.length) {
+	/* Whoever can identify, not whoever is an ESIRCAccount. An IRC account without that class, and
+	 * there is one now, would have been cast to it and sent a message it does not answer. */
+	if (inPassword && inPassword.length &&
+		[account respondsToSelector:@selector(identifyForName:password:)]) {
 		[account setValue:[NSNumber numberWithBool:YES] forProperty:@"Identifying" notify:NotifyNever];
 		[(ESIRCAccount *)account identifyForName:displayName
 										password:[inPassword stringByReplacingOccurrencesOfString:@" "

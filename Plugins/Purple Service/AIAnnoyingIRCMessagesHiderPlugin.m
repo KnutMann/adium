@@ -16,6 +16,7 @@
 
 #import "AIAnnoyingIRCMessagesHiderPlugin.h"
 #import "ESIRCAccount.h"
+#import <Adium/AIService.h>
 #import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIContentObject.h>
 
@@ -48,8 +49,10 @@
 {	
 	AIContentObject		*contentObject = [[notification userInfo] objectForKey:@"Object"];
 	
+	/* Any IRC account, not only the one with a class of its own. What makes the server noise below
+	 * worth hiding is the protocol, and a second IRC protocol is exactly as noisy as the first. */
 	if (![contentObject isKindOfClass:[AIContentMessage class]] ||
-		![contentObject.chat.account isKindOfClass:[ESIRCAccount class]] ||
+		![contentObject.chat.account.service.serviceClass isEqualToString:@"IRC"] ||
 		!contentObject.source) {
 		return;
 	}
