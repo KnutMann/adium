@@ -41,7 +41,10 @@
 #define EDIT_IN_AB_CONTEXTUAL_MENU_TITLE AILocalizedString(@"Edit In Address Book", "Edit In Address Book Contextual Menu")
 
 
-#define KEY_ADDRESS_BOOK_ACTIONS_INSTALLED	@"Adium:Installed Adress Book Actions 1.3"
+/* The version is part of the name so that a change to what gets installed runs once more on a
+ * Mac where the previous set is already lying about. Raised when the actions for services
+ * Adium no longer has were taken back out. */
+#define KEY_ADDRESS_BOOK_ACTIONS_INSTALLED	@"Adium:Installed Address Book Actions 2.0"
 
 #define KEY_AB_TO_METACONTACT_DICT			@"UniqueIDToMetaContactObjectIDDictionary"
 
@@ -150,8 +153,6 @@ static NSString *AIEmailKey(NSString *address)
 	return [trimmed lowercaseString];
 }
 
-NSString* serviceIDForOscarUID(NSString *UID);
-NSString* serviceIDForJabberUID(NSString *UID);
 
 + (void) startAddressBookIntegration
 {
@@ -237,12 +238,11 @@ NSString* serviceIDForJabberUID(NSString *UID);
 		}
 
 		//Services dictionary
-		serviceDict = [[NSDictionary dictionaryWithObjectsAndKeys:kABAIMInstantProperty,@"AIM",
-				kABJabberInstantProperty,@"Jabber",
-				kABMSNInstantProperty,@"MSN",
-				kABYahooInstantProperty,@"Yahoo!",
-				kABICQInstantProperty,@"ICQ",
-				kABURLsProperty,@"Facebook", nil] retain];
+		/* Which card field holds a name for which service. Once six entries, now one: AIM, ICQ, MSN,
+		 * Yahoo and Facebook are gone from Adium, and a field can only ever match a contact of a
+		 * service that exists. What the modern services are recognised by is not a field of their
+		 * own but the number or the address on the card, which is indexed separately. */
+		serviceDict = [[NSDictionary dictionaryWithObjectsAndKeys:kABJabberInstantProperty,@"Jabber", nil] retain];
 		
 		//Shared Address Book, once we are allowed to read it
 		[self openAddressBookWhenAllowed];
@@ -333,7 +333,20 @@ NSString* serviceIDForJabberUID(NSString *UID);
 		pluginDirectory = [[libraryDirectory stringByAppendingPathComponent:@"Address Book Plug-Ins"] stringByAppendingPathComponent:@"/"];
 		[fileManager createDirectoryAtPath:pluginDirectory withIntermediateDirectories:YES attributes:nil error:NULL];
 		
-		for (NSString *name in [NSArray arrayWithObjects:@"AIM", @"MSN", @"Yahoo", @"ICQ", @"Jabber", @"SMS", nil]) {
+		/* Take back the ones for services Adium no longer has. They were put here by earlier
+		 * versions, they can only ever offer to start a conversation on a network that is gone, and
+		 * leaving somebody else's Library tidier than we left it is the least this can do. Trashed
+		 * rather than deleted, so anybody who wants them back can take them out again. */
+		for (NSString *name in [NSArray arrayWithObjects:@"AIM", @"MSN", @"Yahoo", @"ICQ", @"SMS", nil]) {
+			NSString *fullName = [NSString stringWithFormat:@"AdiumAddressBookAction_%@", name];
+
+			[fileManager trashFileAtPath:[pluginDirectory stringByAppendingPathComponent:
+				[fullName stringByAppendingPathExtension:@"scpt"]]];
+			[fileManager trashFileAtPath:[pluginDirectory stringByAppendingPathComponent:
+				[NSString stringWithFormat:@"%@-Adium.scpt", name]]];
+		}
+
+		for (NSString *name in [NSArray arrayWithObject:@"Jabber"]) {
 			NSString *fullName = [NSString stringWithFormat:@"AdiumAddressBookAction_%@",name];
 			NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:fullName ofType:@"scpt"];
 
@@ -687,25 +700,7 @@ NSString* serviceIDForJabberUID(NSString *UID);
  */
 + (AIService *)serviceFromProperty:(NSString *)property
 {
-	NSString	*serviceID = nil;
-	
-	if ([property isEqualToString:kABAIMInstantProperty])
-		serviceID = @"AIM";
-	
-	else if ([property isEqualToString:kABICQInstantProperty])
-		serviceID = @"ICQ";
-	
-	else if ([property isEqualToString:kABMSNInstantProperty])
-		serviceID = @"MSN";
-	
-	else if ([property isEqualToString:kABJabberInstantProperty])
-		serviceID = @"Jabber";
-	
-	else if ([property isEqualToString:kABYahooInstantProperty])
-		serviceID = @"Yahoo!";
-	
-	else if ([property isEqualToString:kABURLsProperty])
-		serviceID = @"Facebook";
+	NSString	*serviceID = ([property isEqualToString:kABJabberInstantProperty] ? @"Jabber" : nil);
 
 	return (serviceID ? [adium.accountController firstServiceWithServiceID:serviceID] : nil);
 }
@@ -718,22 +713,8 @@ NSString* serviceIDForJabberUID(NSString *UID);
 	NSString *result;
 	NSString *serviceID = inService.serviceID;
 
-	result = [serviceDict objectForKey:serviceID];
-
-	//Check for some special cases
-	if (!result) {
-		if ([serviceID isEqualToString:@"GTalk"]) {
-			result = kABJabberInstantProperty;
-		} else if ([serviceID isEqualToString:@"LiveJournal"]) {
-			result = kABJabberInstantProperty;
-		} else if ([serviceID isEqualToString:@"Mac"]) {
-			result = kABAIMInstantProperty;
-		} else if ([serviceID isEqualToString:@"MobileMe"]) {
-			result = kABAIMInstantProperty;
-		}
-	}
-	
-	return result;
+	//No special cases left: the services they named, GTalk, LiveJournal, Mac and MobileMe, are gone
+	return [serviceDict objectForKey:serviceID];
 }
 
 /*!
@@ -807,16 +788,6 @@ NSString* serviceIDForJabberUID(NSString *UID);
 					person = (ABPerson *)found;
 			}
 
-			/* If we don't find anything yet, look at alternative service possibilities:
-			 *    AIM <--> ICQ
-			 */
-			if (!person) {
-				if ([serviceID isEqualToString:@"AIM"]) {
-					person = [self _searchForUID:UID serviceID:@"ICQ"];
-				} else if ([serviceID isEqualToString:@"ICQ"]) {
-					person = [self _searchForUID:UID serviceID:@"AIM"];
-				}
-			}
 		}
 	}
 
@@ -838,22 +809,9 @@ NSString* serviceIDForJabberUID(NSString *UID);
 	ABPerson		*person = nil;
 	NSDictionary	*dict;
 	
-	if ([serviceID isEqualToString:@"Mac"] ||
-		[serviceID isEqualToString:@"MobileMe"]) {
-		dict = [addressBookDict objectForKey:@"AIM"];
-
-	} else if ([serviceID isEqualToString:@"GTalk"]) {
-		dict = [addressBookDict objectForKey:@"Jabber"];
-
-	} else if ([serviceID isEqualToString:@"LiveJournal"]) {
-		dict = [addressBookDict objectForKey:@"Jabber"];
-		
-	} else if ([serviceID isEqualToString:@"Yahoo! Japan"]) {
-		dict = [addressBookDict objectForKey:@"Yahoo!"];
-		
-	} else {
-		dict = [addressBookDict objectForKey:serviceID];
-	} 
+	/* Every service that used to need redirecting here, Mac and MobileMe to AIM, GTalk and
+	 * LiveJournal to Jabber, Yahoo! Japan to Yahoo!, has itself been gone for years. */
+	dict = [addressBookDict objectForKey:serviceID];
 	
 	if (dict) {
 		NSString *uniqueID = [dict objectForKey:[UID compactedString]];
@@ -873,8 +831,7 @@ NSString* serviceIDForJabberUID(NSString *UID);
 	NSString		*serviceID;
 	NSMutableSet	*contactSet = [NSMutableSet set];
 	ABMultiValue	*emails;
-	ABMultiValue	*homepages;
-	NSInteger				i, emailsCount, homepagesCount;
+	NSInteger				i, emailsCount;
 
 	//An ABPerson may have multiple emails; iterate through them looking for @mac.com addresses
 	{
@@ -885,62 +842,20 @@ NSString* serviceIDForJabberUID(NSString *UID);
 			NSString	*email;
 			
 			email = [emails valueAtIndex:i];
-			if ([email hasSuffix:@"@mac.com"]) {
-				//Retrieve all appropriate contacts
-				NSSet	*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:@"Mac"]
-																				  UID:email];
 
-				//Add them to our set
-				[contactSet unionSet:contacts];
-
-			} else if ([email hasSuffix:@"me.com"]) {
-					//Retrieve all appropriate contacts
-					NSSet	*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:@"MobileMe"]
-																					UID:email];
-					
-					//Add them to our set
-					[contactSet unionSet:contacts];
-
-			} else if ([email hasSuffix:@"gmail.com"] || [email hasSuffix:@"googlemail.com"]) {
-				//Retrieve all appropriate contacts
-				NSSet	*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:@"GTalk"]
+			/* The one case where an email address is also a chat name: a Jabber account at Google is
+			 * reached under the same address. The branches that stood beside this one asked for
+			 * services called Mac, MobileMe, MSN and Facebook, none of which Adium has any more, and
+			 * a lookup on a service that is nil finds nobody. */
+			if ([email hasSuffix:@"gmail.com"] || [email hasSuffix:@"googlemail.com"]) {
+				NSSet	*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:@"Jabber"]
 																				UID:email];
-				
-				//Add them to our set
-				[contactSet unionSet:contacts];
-			} else if ([email hasSuffix:@"hotmail.com"]) {
-				//Retrieve all appropriate contacts
-				NSSet	*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:@"MSN"]
-																				UID:email];
-				
-				//Add them to our set
+
 				[contactSet unionSet:contacts];
 			}
 		}
 	}
-	
-	//An ABPerson may have multiple hompages; iterate through them looking for fb:// addresses
-	{
-		homepages = [person valueForProperty:kABURLsProperty];
-		homepagesCount = [homepages count];
-		
-		for (i = 0; i < homepagesCount ; i++) {
-			NSURL	*homepage = [NSURL URLWithString:(NSString*)[homepages valueAtIndex:i]];
-			if ([[homepage scheme] isEqualToString:@"fb"]) {
-				//Retrieve all appropriate contacts
-				//This will be fb://profile/XXX where XXX is the UID
-				NSString	*facebookNumber = (NSString*)[(NSString*)homepage lastPathComponent];
-				NSString	*facebookUID = [NSString stringWithFormat:@"-%@@chat.facebook.com", facebookNumber];
 
-				NSSet		*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:@"Facebook"]
-																					UID:facebookUID];
-				
-				//Add them to our set
-				[contactSet unionSet:contacts];
-			}
-		}
-	}
-	
 	//Now go through the instant messaging keys
 	for (serviceID in allServiceKeys) {
 		NSString		*addressBookKey = [serviceDict objectForKey:serviceID];
@@ -954,21 +869,14 @@ NSString* serviceIDForJabberUID(NSString *UID);
 		//Continue to the next serviceID immediately if no names are found
 		if (nameCount == 0) continue;
 		
-		BOOL					isOSCAR = ([serviceID isEqualToString:@"AIM"] || 
-										   [serviceID isEqualToString:@"ICQ"]);
-		BOOL					isJabber = [serviceID isEqualToString:@"Jabber"] ||
-                                           [serviceID isEqualToString:@"XMPP"];
-		
 		for (i = 0 ; i < nameCount ; i++) {
 			NSString	*UID = [[names valueAtIndex:i] compactedString];
 			if ([UID length]) {
-				if (isOSCAR) {
-					serviceID = serviceIDForOscarUID(UID);
-					
-				} else if (isJabber) {
-					serviceID = serviceIDForJabberUID(UID);
-				}
-				
+				/* The service is the one whose field the name was read from, full stop. A gmail
+				 * address used to be turned into "GTalk" here and a numeric name into "ICQ", and
+				 * since neither service exists any more the lookup that followed asked for a
+				 * service that is nil and found nobody. A Jabber contact at gmail was invisible to
+				 * the address book because of it. */
 				NSSet	*contacts = [adium.contactController allContactsWithService:[adium.accountController firstServiceWithServiceID:serviceID]
 																				  UID:UID];
 				
@@ -1156,54 +1064,6 @@ NSString* serviceIDForJabberUID(NSString *UID);
 }
 
 
-/*!
- * @brief Service ID for an OSCAR UID
- *
- * If we are on an OSCAR service we need to resolve our serviceID into the appropriate string
- * because we may have a .Mac, an ICQ, or an AIM name in the field
- */
-NSString* serviceIDForOscarUID(NSString *UID)
-{
-	NSString	*serviceID;
-
-	const char	firstCharacter = [UID characterAtIndex:0];
-	
-	//Determine service based on UID
-	if ([UID hasSuffix:@"@mac.com"]) {
-		serviceID = @"Mac";
-	} else if ([UID hasSuffix:@"@me.com"]) {
-		serviceID = @"MobileMe";
-	} else if (firstCharacter >= '0' && firstCharacter <= '9') {
-		serviceID = @"ICQ";
-	} else {
-		serviceID = @"AIM";
-	}
-	
-	return serviceID;
-}
-
-/*!
- * @brief Service ID for a Jabber UID
- *
- * If we are on the Jabber server, we need to distinguish between Google Talk (GTalk), LiveJournal, and the rest of the
- * Jabber world. serviceID is already Jabber, so we only need to change if we have a special UID.
- */
-NSString* serviceIDForJabberUID(NSString *UID)
-{
-	NSString	*serviceID;
-
-	if ([UID hasSuffix:@"@gmail.com"] ||
-		[UID hasSuffix:@"@googlemail.com"] ||
-        [UID hasSuffix:@"@public.talk.google.com"]) {
-		serviceID = @"GTalk";
-	} else if ([UID hasSuffix:@"@livejournal.com"]) {
-		serviceID = @"LiveJournal";
-	} else {
-		serviceID = @"Jabber";
-	}
-	
-	return serviceID;
-}
 
 /*!
  * @brief add people to our address book lookup dictionary
@@ -1271,98 +1131,34 @@ NSString* serviceIDForJabberUID(NSString *UID)
 		
 		NSMutableDictionary	*dict;
 		ABMultiValue		*emails;
-		ABMultiValue		*homepages;
-		NSInteger					i, emailsCount, homepagesCount;
+		NSInteger					i, emailsCount;
 		
-		//An ABPerson may have multiple emails; iterate through them looking for @mac.com addresses
+		/* A card's email addresses, for the one case where an address is also a chat name: a Jabber
+		 * account at Google is reached under the same address. The other cases that stood here,
+		 * @mac.com and @me.com becoming AIM names, hotmail becoming MSN, and an fb:// homepage
+		 * becoming a Facebook name, named services Adium no longer has.
+		 */
 		{
 			emails = [person valueForProperty:kABEmailProperty];
 			emailsCount = [emails count];
-			
-			for (i = 0; i < emailsCount ; i++) {
-				NSString	*email;
-				
-				email = [emails valueAtIndex:i];
-				if ([email hasSuffix:@"@mac.com"]) {
-					//@mac.com UIDs go into the AIM dictionary
-					if (!(dict = [addressBookDict objectForKey:@"AIM"])) {
-						dict = [[[NSMutableDictionary alloc] init] autorelease];
-						[addressBookDict setObject:dict forKey:@"AIM"];
-					}
-					
-					[dict setObject:[person uniqueId] forKey:email];
-					
-					//Internally we distinguish them as .Mac addresses (for metaContact purposes below)
-					[UIDsArray addObject:email];
-					[servicesArray addObject:@"Mac"];
 
-				} else if ([email hasSuffix:@"me.com"]) {
-					//@me.com UIDs go into the AIM dictionary
-					if (!(dict = [addressBookDict objectForKey:@"AIM"])) {
-						dict = [[[NSMutableDictionary alloc] init] autorelease];
-						[addressBookDict setObject:dict forKey:@"AIM"];
-					}
-					
-					[dict setObject:[person uniqueId] forKey:email];
-					
-					//Internally we distinguish them as .Mac addresses (for metaContact purposes below)
-					[UIDsArray addObject:email];
-					[servicesArray addObject:@"MobileMe"];
-					
-				} else if ([email hasSuffix:@"gmail.com"] || [email hasSuffix:@"googlemail.com"]) {
-					//GTalk UIDs go into the Jabber dictionary
+			for (i = 0; i < emailsCount ; i++) {
+				NSString	*email = [emails valueAtIndex:i];
+
+				if ([email hasSuffix:@"gmail.com"] || [email hasSuffix:@"googlemail.com"]) {
 					if (!(dict = [addressBookDict objectForKey:@"Jabber"])) {
 						dict = [[[NSMutableDictionary alloc] init] autorelease];
 						[addressBookDict setObject:dict forKey:@"Jabber"];
 					}
-					
+
 					[dict setObject:[person uniqueId] forKey:email];
-					
-					//Internally we distinguish them as Google Talk addresses (for metaContact purposes below)
+
 					[UIDsArray addObject:email];
-					[servicesArray addObject:@"GTalk"];
-					
-				} else if ([email hasSuffix:@"hotmail.com"]) {
-					//GTalk UIDs go into the Jabber dictionary
-					if (!(dict = [addressBookDict objectForKey:@"MSN"])) {
-						dict = [[[NSMutableDictionary alloc] init] autorelease];
-						[addressBookDict setObject:dict forKey:@"MSN"];
-					}
-					
-					[dict setObject:[person uniqueId] forKey:email];
-					
-					[UIDsArray addObject:email];
-					[servicesArray addObject:@"MSN"];
+					[servicesArray addObject:@"Jabber"];
 				}
 			}
 		}
-		
-		//An ABPerson may have multiple hompages; iterate through them looking for fb:// addresses
-		{
-			homepages = [person valueForProperty:kABURLsProperty];
-			homepagesCount = [homepages count];
-			
-			for (i = 0; i < homepagesCount ; i++) {
-				NSURL	*homepage = [NSURL URLWithString:(NSString*)[homepages valueAtIndex:i]];
-				if ([[homepage scheme] isEqualToString:@"fb"]) {
-					//Retrieve all appropriate contacts
-					//This will be fb://profile/XXX where XXX is the UID
-					NSString	*facebookNumber = (NSString*)[(NSString*)homepage lastPathComponent];
-					NSString	*facebookUID = [NSString stringWithFormat:@"-%@@chat.facebook.com", facebookNumber];
-					if (!(dict = [addressBookDict objectForKey:@"Facebook"])) {
-						dict = [[[NSMutableDictionary alloc] init] autorelease];
-						[addressBookDict setObject:dict forKey:@"Facebook"];
-					}
-												
-					[dict setObject:[person uniqueId] forKey:facebookUID];
-												
-					//Add them to our set
-					[UIDsArray addObject:facebookUID];
-					[servicesArray addObject:@"Facebook"];
-				}
-			}
-		}
-												
+
 		//Now go through the instant messaging keys
 		for (serviceID in allServiceKeys) {
 			NSString			*addressBookKey = [serviceDict objectForKey:serviceID];
@@ -1383,25 +1179,16 @@ NSString* serviceIDForJabberUID(NSString *UID)
 				[dict release];
 			}
 			
-			BOOL	isOSCAR = ([serviceID isEqualToString:@"AIM"] || 
-							   [serviceID isEqualToString:@"ICQ"]);
-			BOOL	isJabber = [serviceID isEqualToString:@"Jabber"] ||
-			[serviceID isEqualToString:@"XMPP"];
-			
 			for (i = 0 ; i < nameCount ; i++) {
 				NSString	*UID = [[names valueAtIndex:i] compactedString];
 				if ([UID length]) {
 					[dict setObject:[person uniqueId] forKey:UID];
-					
+
+					/* The service is the field the name came from. Guessing a narrower one from the
+					 * shape of the name, ICQ for digits, GTalk for a gmail address, named services
+					 * that no longer exist, and a grouping made under a service that is nil groups
+					 * nothing. */
 					[UIDsArray addObject:UID];
-					
-					if (isOSCAR) {
-						serviceID = serviceIDForOscarUID(UID);
-						
-					} else if (isJabber) {
-						serviceID = serviceIDForJabberUID(UID);
-					}
-					
 					[servicesArray addObject:serviceID];
 				}
 			}

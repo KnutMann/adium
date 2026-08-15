@@ -979,12 +979,7 @@
 		636D92BE0E4E97AA00E5F558 /* AIAddressBookUserIconSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3403F4310D2EF01D006B08FB /* AIAddressBookUserIconSource.m */; };
 		636D92CD0E4E990500E5F558 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 348E5ACA06D2A74C004C051C /* AddressBook.framework */; };
 		636D93400E4E9ED600E5F558 /* AB Display Format Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */; };
-		636D93890E4EA23F00E5F558 /* AdiumAddressBookAction_Yahoo.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D93660E4E9FD300E5F558 /* AdiumAddressBookAction_Yahoo.scpt */; };
-		636D938A0E4EA23F00E5F558 /* AdiumAddressBookAction_SMS.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D93670E4E9FD300E5F558 /* AdiumAddressBookAction_SMS.scpt */; };
-		636D938B0E4EA23F00E5F558 /* AdiumAddressBookAction_MSN.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D93680E4E9FD300E5F558 /* AdiumAddressBookAction_MSN.scpt */; };
 		636D938C0E4EA23F00E5F558 /* AdiumAddressBookAction_Jabber.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */; };
-		636D938D0E4EA23F00E5F558 /* AdiumAddressBookAction_ICQ.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D936A0E4E9FD300E5F558 /* AdiumAddressBookAction_ICQ.scpt */; };
-		636D938E0E4EA23F00E5F558 /* AdiumAddressBookAction_AIM.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D936B0E4E9FD300E5F558 /* AdiumAddressBookAction_AIM.scpt */; };
 		636D93F40E4EAB7500E5F558 /* AIContactObserverManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 34555C5E0DB6BCE500649CD4 /* AIContactObserverManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		636D94090E4EAB9D00E5F558 /* AIContactObserverManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 34555C5F0DB6BCE500649CD4 /* AIContactObserverManager.m */; };
 		638BC1FC0FC932E000CE7600 /* AIObjectDebug.m in Sources */ = {isa = PBXBuildFile; fileRef = 638BC1FB0FC932E000CE7600 /* AIObjectDebug.m */; };
@@ -2734,12 +2729,7 @@
 		6360B2590BF2EB93004CD99B /* AIWebKitDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitDelegate.m; path = "Plugins/WebKit Message View/AIWebKitDelegate.m"; sourceTree = "<group>"; };
 		636C6E5D0ED56D0100E0E528 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		636D8C970E4E95A500E5F558 /* AIAddressBookController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookController.m; path = Frameworks/Adium/Source/AIAddressBookController.m; sourceTree = "<group>"; };
-		636D93660E4E9FD300E5F558 /* AdiumAddressBookAction_Yahoo.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Yahoo.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Yahoo.scpt; sourceTree = "<group>"; };
-		636D93670E4E9FD300E5F558 /* AdiumAddressBookAction_SMS.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_SMS.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_SMS.scpt; sourceTree = "<group>"; };
-		636D93680E4E9FD300E5F558 /* AdiumAddressBookAction_MSN.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_MSN.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_MSN.scpt; sourceTree = "<group>"; };
 		636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Jabber.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Jabber.scpt; sourceTree = "<group>"; };
-		636D936A0E4E9FD300E5F558 /* AdiumAddressBookAction_ICQ.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_ICQ.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_ICQ.scpt; sourceTree = "<group>"; };
-		636D936B0E4E9FD300E5F558 /* AdiumAddressBookAction_AIM.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_AIM.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_AIM.scpt; sourceTree = "<group>"; };
 		638BC1FA0FC932E000CE7600 /* AIObjectDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIObjectDebug.h; path = Source/AIObjectDebug.h; sourceTree = "<group>"; };
 		638BC1FB0FC932E000CE7600 /* AIObjectDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIObjectDebug.m; path = Source/AIObjectDebug.m; sourceTree = "<group>"; };
 		63B0EC9A0F8FBB660062476B /* AIProxyListObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIProxyListObject.m; path = Frameworks/Adium/Source/AIProxyListObject.m; sourceTree = "<group>"; };
@@ -5452,12 +5442,7 @@
 		636D930E0E4E9DDD00E5F558 /* Address Book Integration */ = {
 			isa = PBXGroup;
 			children = (
-				636D93660E4E9FD300E5F558 /* AdiumAddressBookAction_Yahoo.scpt */,
-				636D93670E4E9FD300E5F558 /* AdiumAddressBookAction_SMS.scpt */,
-				636D93680E4E9FD300E5F558 /* AdiumAddressBookAction_MSN.scpt */,
 				636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */,
-				636D936A0E4E9FD300E5F558 /* AdiumAddressBookAction_ICQ.scpt */,
-				636D936B0E4E9FD300E5F558 /* AdiumAddressBookAction_AIM.scpt */,
 				34E2A2EE07B018B1006735BC /* AIAddressBookController.h */,
 				636D8C970E4E95A500E5F558 /* AIAddressBookController.m */,
 				3403F4300D2EF01D006B08FB /* AIAddressBookUserIconSource.h */,
@@ -6968,12 +6953,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				636D93400E4E9ED600E5F558 /* AB Display Format Defaults.plist in Resources */,
-				636D93890E4EA23F00E5F558 /* AdiumAddressBookAction_Yahoo.scpt in Resources */,
-				636D938A0E4EA23F00E5F558 /* AdiumAddressBookAction_SMS.scpt in Resources */,
-				636D938B0E4EA23F00E5F558 /* AdiumAddressBookAction_MSN.scpt in Resources */,
 				636D938C0E4EA23F00E5F558 /* AdiumAddressBookAction_Jabber.scpt in Resources */,
-				636D938D0E4EA23F00E5F558 /* AdiumAddressBookAction_ICQ.scpt in Resources */,
-				636D938E0E4EA23F00E5F558 /* AdiumAddressBookAction_AIM.scpt in Resources */,
 				34DC8A590A7EEEF7003E1636 /* PresetManagement.xib in Resources */,
 				34DC8A5C0A7EEEF7003E1636 /* PresetNameSheet.xib in Resources */,
 				34DC8A650A7EEEF7003E1636 /* AccountSetup.xib in Resources */,
