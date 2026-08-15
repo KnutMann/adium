@@ -124,6 +124,19 @@
 	return NO;
 }
 
+- (void)addNavigationRowTo:(NSString *)cardIdentifier
+					inForm:(AISettingsFormView *)form
+					 label:(NSString *)label
+					target:(id)target
+					action:(SEL)action
+{
+	//Nothing opened the card if it has no rows, and an unopened card is the one before it
+	if (![self hasFieldsInCard:cardIdentifier])
+		[form addSectionHeader:[self titleForCard:cardIdentifier]];
+
+	[form addNavigationRowWithLabel:label target:target action:action];
+}
+
 - (void)addCard:(AIAccountPlanCard *)card toForm:(AISettingsFormView *)form
 {
 	if (![[card fields] count])

@@ -791,6 +791,9 @@ typedef enum {
 	NSView				*radioContainer;
 	NSView				*fullWidthView;
 	BOOL				 stretchesFullWidthView;
+	/* Edge to edge rows draw no hairline against their neighbours, because a hosted list brings its
+	 * own. A row that is edge to edge only so that its highlight covers the card still wants one. */
+	BOOL				 wantsSeparators;
 	BOOL				 labelTopAligned;		//Stretch rows: pin the label to the control's top, not its centre
 	NSControl			*enabledSource;			//Not retained; lives inside control/radioContainer
 
@@ -1305,9 +1308,12 @@ typedef enum {
 																				   target:target
 																				   action:action] autorelease];
 
-	/* Edge to edge, so the highlight covers the card rather than stopping at the inset: the row is
-	 * the card, exactly as a hosted list is. */
+	/* Edge to edge, so the highlight covers the card rather than stopping at the inset. Unlike a
+	 * hosted list, which draws its own lines, this is one row among others and takes the card's. */
 	[self addEdgeToEdgeRow:row];
+
+	AISettingsFormSection *section = [sections lastObject];
+	[[section->rows lastObject] setValue:[NSNumber numberWithBool:YES] forKey:@"wantsSeparators"];
 }
 
 - (void)addDetailRow:(NSString *)text
@@ -2425,8 +2431,8 @@ typedef enum {
 
 		for (AISettingsFormRow *row in section->rows) {
 			if (previous &&
-				row->type != AISettingsRowTypeEdgeToEdge &&
-				previous->type != AISettingsRowTypeEdgeToEdge &&
+				(row->type != AISettingsRowTypeEdgeToEdge || row->wantsSeparators) &&
+				(previous->type != AISettingsRowTypeEdgeToEdge || previous->wantsSeparators) &&
 				row->type != AISettingsRowTypeDetail &&
 				[row->rowView superview]) {
 				NSRect rowFrame = [section->cardView convertRect:[row->rowView frame]

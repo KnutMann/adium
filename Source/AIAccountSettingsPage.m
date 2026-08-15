@@ -164,15 +164,25 @@
 			 control:nil];
 
 	/* Everything but the options nobody curated. A dozen rows named the way the protocol names them
-	 * would be the first thing met on this page, and they are the last thing most accounts need. */
-	[builder buildInForm:form skippingCard:AIAccountCardMore];
+	 * would be the first thing met on this page, and they are the last thing most accounts need.
+	 * The way to them is the last row of the options, where somebody looking for a setting that is
+	 * not in front of them would look, rather than a card of its own below everything. */
+	for (AIAccountPlanCard *card in [plan cards]) {
+		NSString *identifier = [card identifier];
 
-	if ([builder hasFieldsInCard:AIAccountCardMore]) {
-		[form endCard];
-		[form addNavigationRowWithLabel:AILocalizedString(@"More Options",
+		if ([identifier isEqualToString:AIAccountCardMore])
+			continue;
+
+		[builder buildCard:identifier inForm:form];
+
+		if ([identifier isEqualToString:AIAccountCardOptions] && [builder hasFieldsInCard:AIAccountCardMore]) {
+			[builder addNavigationRowTo:AIAccountCardOptions
+								 inForm:form
+								  label:AILocalizedString(@"More Options",
 														  "Row that opens the options a protocol offers beyond the usual ones")
 								 target:self
 								 action:@selector(showMoreOptions:)];
+		}
 	}
 
 	[form layoutForWidth:600.0f];

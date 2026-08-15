@@ -69,4 +69,16 @@
  */
 - (BOOL)hasFieldsInCard:(NSString *)cardIdentifier;
 
+/*!
+ * @brief Add a row leading somewhere else to the end of a card
+ *
+ * For the way to a card that is shown on a page of its own. Opens the card first where it has no
+ * rows to sit under, so that the row cannot land in whatever card came before it.
+ */
+- (void)addNavigationRowTo:(NSString *)cardIdentifier
+					inForm:(AISettingsFormView *)form
+					 label:(NSString *)label
+					target:(id)target
+					action:(SEL)action;
+
 @end
