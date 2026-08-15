@@ -22,11 +22,15 @@
  * @class ESPersonalPreferences
  * @brief The Personal pane, built as an AISettingsFormView
  *
- * Three cards: the name sent to contacts, the profile shown when they ask for
- * information, and the icon standing for the user. Every control below is
- * created by -buildSettingsForm and owned by that form (which the inherited
- * 'view' ivar retains), so the references here are non-owning and are cleared
- * again in -viewWillClose. There is no nib.
+ * A profile page rather than a page of settings, the way every messenger builds
+ * the page about the person at this end: the user's picture, round and centred,
+ * with their name under it and the way to change the picture under that, and
+ * only below all of that the ordinary card rows for what is left, the profile
+ * contacts are shown and whether the picture is sent at all.
+ *
+ * Every control below is created by -buildSettingsForm and owned by that form
+ * (which the inherited 'view' ivar retains), so the references here are
+ * non-owning and are cleared again in -viewWillClose. There is no nib.
  *
  * The pane is its own text delegate on purpose: the name field and the profile
  * view have no action to fall back on, and the preferences window only calls
@@ -35,6 +39,7 @@
  * implementation).
  */
 @interface ESPersonalPreferences : AIPreferencePane <NSTextFieldDelegate, NSTextViewDelegate> {
+	//The centred name of the profile header, not a row's field
 	NSTextField					*textField_displayName;
 	//A keystroke was gathered but not stored yet; see SAVE_DELAY in the implementation
 	BOOL						 displayNameSavePending;
@@ -48,8 +53,8 @@
 	//Set while the stored profile is put into the view, so that filling it writes nothing back
 	BOOL						 configuringProfile;
 
-	//The two cells matrix_userIcon used to hold, in display order
-	NSPopUpButton				*popUp_iconChoice;	//"Use no icon" / "Use this icon", tags 0 and 1
+	//Whether an icon is sent at all: what matrix_userIcon's two cells used to choose between
+	NSSwitch					*switch_useIcon;
 
 	NSButton					*button_chooseIcon;
 	AIImageViewWithImagePicker	*imageView_userIcon;

@@ -282,16 +282,18 @@ static NSImage *AIPrefPaneIcon(id pane)
 #pragma mark - Data
 
 /*!
- * @brief The main panes in their classic order, followed by the advanced group.
+ * @brief The main panes in their order, followed by the advanced group.
  *
- * Accounts leads (like the old shell), the remaining main panes follow the
+ * Personal leads, the way System Settings opens on the person using the Mac
+ * rather than on the machinery: it is the page about the user, and the one they
+ * come back to. Accounts follows, then the remaining main panes in their
  * historic order, and every advanced pane becomes its own entry under an
- * "Advanced" group header — that flattening is the System Settings idiom
- * and replaces the nested shelf container of the old Advanced pane.
+ * "Advanced" group header. That flattening is the System Settings idiom and
+ * replaces the nested shelf container of the old Advanced pane.
  */
 - (NSString *)mainPaneOrderIdentifiers
 {
-	return @"Accounts,General,Personal,Appearance,Messages,Status,Events,File Transfer,Xtras";
+	return @"Personal,Accounts,General,Appearance,Messages,Status,Events,File Transfer,Xtras";
 }
 
 - (void)buildSidebarEntries

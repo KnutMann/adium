@@ -354,6 +354,44 @@
 - (void)addInfoRow:(NSString *)text withImage:(NSImage *)image;
 
 /*!
+ * @brief Open a card with a round picture, the name under it and the control
+ *        which changes the picture under that.
+ *
+ * The shape every messenger gives the page about the person at this end
+ * (WhatsApp, Threema, Telegram, Signal), and the one System Settings gives an
+ * account it knows a person by: the picture stands on its own above everything
+ * else, centred and round rather than square, with the name directly beneath it
+ * and the way to change the picture beneath that. None of the three is
+ * labelled, because none needs naming; a round picture at the top of a page of
+ * settings about oneself says what it is without a word.
+ *
+ * It reads as a block of its own rather than as a setting, so it wants a card of
+ * its own: open the next one with @c endCard or @c addSectionHeader:.
+ *
+ * @a imageView is clipped to a circle by the form, taken from the frame it
+ * arrives with, for the reason a card's corners are rounded here and not by its
+ * host (@c addEdgeToEdgeRow:): the radius belongs to the form, so no pane picks
+ * a number half a point off the one the form draws with. The picture keeps that
+ * frame, so how large it is remains the caller's decision, and it is centred on
+ * a plain disc filling the circle wherever the picture does not. A picture which
+ * is not square, or an account with no picture at all, therefore still reads as
+ * an empty avatar rather than as a hole in the card.
+ *
+ * @a nameView is stretched across the full inner width of the card instead of
+ * keeping a width of its own, so text centred inside it is centred on the card
+ * and stays centred while the window is resized. Build it with
+ * @c profileNameFieldWithTarget:action:.
+ *
+ * @a button keeps its natural size and is centred under the name. Hand over a
+ * single control; for a pair of them, wrap them in @c rowOfViews:.
+ *
+ * Every argument may be nil; with nothing at all, nothing is added.
+ */
+- (void)addProfileHeaderWithImageView:(NSView *)imageView
+							 nameView:(NSView *)nameView
+							   button:(NSView *)button;
+
+/*!
  * @brief Put @a view directly below the current card, outside of any card.
  *
  * The shape of the +/− bar under a System Settings list. @a view keeps its own
@@ -542,6 +580,22 @@
  * end editing.
  */
 + (NSTextField *)textFieldWithTarget:(id)target action:(SEL)action;
+
+/*!
+ * @brief The centred name of a profile header, wired to @a target / @a action.
+ *
+ * Larger and heavier than a row label, because it names the whole page rather
+ * than one setting, and centred, because the picture above it is. Editable and
+ * without a bezel: the name is written where it is read, the way a messenger's
+ * profile page has it, and a box drawn around it would turn the header back
+ * into a form.
+ *
+ * Sends its action when editing ends, exactly as @c textFieldWithTarget:action:
+ * does, and never wraps: a long name scrolls under the insertion point while it
+ * is typed and is truncated afterwards, so the header keeps its height whatever
+ * the user is called.
+ */
++ (NSTextField *)profileNameFieldWithTarget:(id)target action:(SEL)action;
 
 /*!
  * @brief A slider for @c addRowWithLabel:slider:valueLabel:, wired to @a target / @a action.

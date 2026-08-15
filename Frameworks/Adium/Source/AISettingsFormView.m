@@ -81,6 +81,13 @@ static const CGFloat AISettingsInlineButtonSize	= 22.0;		//Edge length of a row'
 static const CGFloat AISettingsInlineSymbolSize	= 16.0;		//Point size of the symbol drawn in it
 static const CGFloat AISettingsDisclosureSymbolSize = 11.0;	//Point size of a row's chevron
 static const CGFloat AISettingsInfoImageSize	= 40.0;		//Longest edge of the picture in an info row
+/* A profile header breathes more than a row does: it opens a page instead of
+ * carrying a setting, and the picture needs air around it to read as a portrait
+ * rather than as a control which happens to be round. */
+static const CGFloat AISettingsProfileTopInset	= 20.0;		//Above the picture of a profile header, and below its button
+static const CGFloat AISettingsProfileNameGap	= 12.0;		//Between that picture and the name under it
+static const CGFloat AISettingsProfileButtonGap	= 8.0;		//Between that name and the button under it
+static const CGFloat AISettingsProfileNameSize	= 19.0;		//Point size of that name
 
 /* The pecking order of the constraints. Where the old machine wrote its rules
  * as arithmetic — "the control keeps its natural width, but never more than
@@ -127,7 +134,8 @@ typedef enum {
 	AISettingsRowTypeEdgeToEdge,
 	AISettingsRowTypeDetail,		//Explanatory text, no control at all
 	AISettingsRowTypeEmptyState,	//"Nothing here yet", centred in an otherwise empty card
-	AISettingsRowTypeInfo			//A picture plus the paragraph it illustrates
+	AISettingsRowTypeInfo,			//A picture plus the paragraph it illustrates
+	AISettingsRowTypeProfileHeader	//Round picture, name and a button under it, all centred
 } AISettingsRowType;
 
 #pragma mark -
@@ -1249,6 +1257,38 @@ typedef enum {
 	[self appendRow:row];
 }
 
+- (void)addProfileHeaderWithImageView:(NSView *)imageView nameView:(NSView *)nameView button:(NSView *)button
+{
+	if (!imageView && !nameView && !button) return;
+
+	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+
+	/* The three guests travel in the ivars the other shapes use for the same kind
+	 * of thing: the picture is the row's control, the name the view which spans the
+	 * row, the button its accessory. Adoption, the refresh of the guest metrics at
+	 * every layout and -dealloc then all reach them without a line of their own. */
+	row->type = AISettingsRowTypeProfileHeader;
+	row->control = [imageView retain];
+	row->fullWidthView = [nameView retain];
+	row->accessoryControl = [button retain];
+
+	if (imageView) {
+		/* Round, and rounded here rather than by the caller for the reason a card's
+		 * corners are: the radius is the form's, so no pane picks a number half a
+		 * point off the one the disc behind the picture is drawn with. Taken from the
+		 * frame the picture arrives with, which is also the frame it keeps, so the
+		 * circle cannot drift away from the picture afterwards. */
+		NSSize	size = AISettingsControlSize(imageView);
+
+		[imageView setFrameSize:size];
+		[imageView setWantsLayer:YES];
+		[[imageView layer] setCornerRadius:(MIN(size.width, size.height) / 2.0)];
+		[[imageView layer] setMasksToBounds:YES];
+	}
+
+	[self appendRow:row];
+}
+
 - (void)addAccessoryView:(NSView *)view
 {
 	[self addAccessoryView:view trailing:NO];
@@ -1436,6 +1476,7 @@ typedef enum {
 		case AISettingsRowTypeDetail:		[self buildDetailRow:row isFirstRowInCard:isFirstRowInCard]; break;
 		case AISettingsRowTypeEmptyState:	[self buildEmptyStateRow:row];	break;
 		case AISettingsRowTypeInfo:			[self buildInfoRow:row];		break;
+		case AISettingsRowTypeProfileHeader:[self buildProfileHeaderRow:row]; break;
 	}
 }
 
@@ -1947,6 +1988,104 @@ typedef enum {
 	[self constrainHeightFloorOfRow:rowView];
 }
 
+/*!
+ * @brief A round picture, the name under it and the button which changes it.
+ *
+ * All three are optional and all three are centred, so the row is built from top
+ * to bottom against a moving anchor rather than against three fixed ones: each
+ * element hangs from whatever stood above it, and the last one gives the row its
+ * height. The picture and the button keep their own size; only the name is
+ * stretched, which is what makes text centred inside it sit on the middle of the
+ * card instead of on the middle of the name.
+ */
+- (void)buildProfileHeaderRow:(AISettingsFormRow *)row
+{
+	AISettingsRowView	*rowView = row->rowView;
+	NSMutableArray		*constraints = [NSMutableArray array];
+	//What the next element hangs from, and how far below it
+	NSLayoutYAxisAnchor	*previousBottom = rowView.topAnchor;
+	CGFloat				 gap = AISettingsProfileTopInset;
+
+	if (row->control) {
+		NSSize					 size = [row->control frame].size;
+		CGFloat					 radius = MIN(size.width, size.height) / 2.0;
+		NSBox					*disc = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		AISettingsGuestHostView	*host = [AISettingsGuestHostView hostForGuest:row->control
+																	   sizing:AISettingsGuestSizingKeepFrame];
+
+		/* What the picture is centred on. A picture which is not square fills only
+		 * part of the circle it is clipped to, and a user who has set no picture at
+		 * all fills none of it, so without something behind it the header would show
+		 * the card through a hole shaped like the missing photograph. An NSBox rather
+		 * than a layer of the form's own: a layer's colour is a CGColor, which would
+		 * keep the light appearance's grey after the user switches to the dark one. */
+		[disc setBoxType:NSBoxCustom];
+		[disc setBorderWidth:0.0];
+		[disc setTitlePosition:NSNoTitle];
+		[disc setFillColor:[NSColor quaternaryLabelColor]];
+		[disc setCornerRadius:radius];
+		[disc setTranslatesAutoresizingMaskIntoConstraints:NO];
+		//It says nothing the picture in front of it does not; that one is the control
+		[disc setAccessibilityElement:NO];
+
+		row->controlHost = host;
+		//Behind the picture, which is what adding it first means
+		[rowView addSubview:disc];
+		[rowView addSubview:host];
+
+		[constraints addObjectsFromArray:
+		 @[[host.centerXAnchor constraintEqualToAnchor:rowView.centerXAnchor],
+		   [host.topAnchor constraintEqualToAnchor:previousBottom constant:gap],
+		   [disc.leadingAnchor constraintEqualToAnchor:host.leadingAnchor],
+		   [disc.trailingAnchor constraintEqualToAnchor:host.trailingAnchor],
+		   [disc.topAnchor constraintEqualToAnchor:host.topAnchor],
+		   [disc.bottomAnchor constraintEqualToAnchor:host.bottomAnchor]]];
+
+		previousBottom = host.bottomAnchor;
+		gap = AISettingsProfileNameGap;
+	}
+
+	if (row->fullWidthView) {
+		AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:row->fullWidthView
+																	   sizing:AISettingsGuestSizingStretch];
+		row->fullWidthHost = host;
+		[rowView addSubview:host];
+
+		[constraints addObjectsFromArray:
+		 @[[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
+		   [host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH],
+		   [host.topAnchor constraintEqualToAnchor:previousBottom constant:gap]]];
+
+		previousBottom = host.bottomAnchor;
+		gap = AISettingsProfileButtonGap;
+	}
+
+	if (row->accessoryControl) {
+		AISettingsGuestHostView *host = [AISettingsGuestHostView hostForGuest:row->accessoryControl
+																	   sizing:AISettingsGuestSizingKeepFrame];
+		row->accessoryHost = host;
+		/* Never resized, as an accessory bar under a card is not: it keeps the size
+		 * its builder gave it, and nothing here pins it to an edge, so a card too
+		 * narrow for it cannot turn into a broken layout either. */
+		[host setContentHuggingPriority:AISettingsPriorityKeepFrame forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[host setContentCompressionResistancePriority:AISettingsPriorityKeepFrame forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[rowView addSubview:host];
+
+		[constraints addObjectsFromArray:
+		 @[[host.centerXAnchor constraintEqualToAnchor:rowView.centerXAnchor],
+		   [host.topAnchor constraintEqualToAnchor:previousBottom constant:gap]]];
+
+		previousBottom = host.bottomAnchor;
+	}
+
+	//A floor rather than an equality, so the shrinker pulls the row exactly onto its content
+	[constraints addObject:[previousBottom constraintLessThanOrEqualToAnchor:rowView.bottomAnchor
+																   constant:-AISettingsProfileTopInset]];
+
+	[NSLayoutConstraint activateConstraints:constraints];
+	[self constrainHeightFloorOfRow:rowView];
+}
+
 #pragma mark Layout
 
 - (CGFloat)totalHeight
@@ -2350,6 +2489,36 @@ typedef enum {
 	/* Return alone is not enough: a user who types and then clicks somewhere else
 	 * expects what they typed to have been taken. */
 	[[field cell] setSendsActionOnEndEditing:YES];
+	[field sizeToFit];
+
+	//The row decides the width; only the height comes from the field itself
+	[field setFrameSize:NSMakeSize(AISettingsSliderMinWidth, ceil(NSHeight([field frame])))];
+
+	return field;
+}
+
++ (NSTextField *)profileNameFieldWithTarget:(id)target action:(SEL)action
+{
+	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+
+	[field setFont:[NSFont systemFontOfSize:AISettingsProfileNameSize weight:NSFontWeightSemibold]];
+	[field setAlignment:NSTextAlignmentCenter];
+	/* No box around it, and no background either: under the picture this is the
+	 * name of the page, and it happens to be editable. The insertion point and the
+	 * focus ring are what say so while it is being used. */
+	[field setBordered:NO];
+	[field setBezeled:NO];
+	[field setDrawsBackground:NO];
+	[field setTarget:target];
+	[field setAction:action];
+	//As in +textFieldWithTarget:action:: Return is not the only way out of a field
+	[[field cell] setSendsActionOnEndEditing:YES];
+	/* One line whatever the name: it scrolls under the insertion point while it is
+	 * typed and is truncated once it is not, so a long name neither folds the
+	 * header into two lines nor pushes the button under it out of the card. */
+	[[field cell] setWraps:NO];
+	[[field cell] setScrollable:YES];
+	[field setLineBreakMode:NSLineBreakByTruncatingTail];
 	[field sizeToFit];
 
 	//The row decides the width; only the height comes from the field itself
