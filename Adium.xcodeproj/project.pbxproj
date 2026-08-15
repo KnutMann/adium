@@ -629,7 +629,6 @@
 		ADD1E5C0DE0000000000B008 /* AIAccountPlanFormBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B007 /* AIAccountPlanFormBuilder.m */; };
 		ADD1E5C0DE0000000000B00C /* AIPurpleAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */; };
 		ADD1E5C0DE0000000000B010 /* ESPurpleJabberAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */; };
-		ADD1E5C0DE0000000000B014 /* ESIRCAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B013 /* ESIRCAccountPlan.m */; };
 		ADD1E5C0DE0000000000B016 /* prpl-jabber.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B015 /* prpl-jabber.json */; };
 		ADD1E5C0DE0000000000B018 /* prpl-irc.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B017 /* prpl-irc.json */; };
 		ADD1E5C0DE0000000000B01A /* prpl-eionrobb-ircv3.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */; };
@@ -2499,8 +2498,6 @@
 		ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleAccountPlan.m; path = "Plugins/Purple Service/AIPurpleAccountPlan.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B00D /* ESPurpleJabberAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleJabberAccountPlan.h; path = "Plugins/Purple Service/ESPurpleJabberAccountPlan.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleJabberAccountPlan.m; path = "Plugins/Purple Service/ESPurpleJabberAccountPlan.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE0000000000B011 /* ESIRCAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESIRCAccountPlan.h; path = "Plugins/Purple Service/ESIRCAccountPlan.h"; sourceTree = "<group>"; };
-		ADD1E5C0DE0000000000B013 /* ESIRCAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESIRCAccountPlan.m; path = "Plugins/Purple Service/ESIRCAccountPlan.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B015 /* prpl-jabber.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-jabber.json; path = "Plugins/Purple Service/Resources/prpl-jabber.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B017 /* prpl-irc.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-irc.json; path = "Plugins/Purple Service/Resources/prpl-irc.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-eionrobb-ircv3.json; path = "Plugins/Purple Service/Resources/prpl-eionrobb-ircv3.json"; sourceTree = "<group>"; };
@@ -3570,8 +3567,6 @@
 				ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */,
 				ADD1E5C0DE0000000000B00D /* ESPurpleJabberAccountPlan.h */,
 				ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */,
-				ADD1E5C0DE0000000000B011 /* ESIRCAccountPlan.h */,
-				ADD1E5C0DE0000000000B013 /* ESIRCAccountPlan.m */,
 				ADD1E5C0DE0000000000B015 /* prpl-jabber.json */,
 				ADD1E5C0DE0000000000B017 /* prpl-irc.json */,
 				ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */,
@@ -7169,7 +7164,6 @@
 				ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */,
 				ADD1E5C0DE0000000000B00C /* AIPurpleAccountPlan.m in Sources */,
 				ADD1E5C0DE0000000000B010 /* ESPurpleJabberAccountPlan.m in Sources */,
-				ADD1E5C0DE0000000000B014 /* ESIRCAccountPlan.m in Sources */,
 				3485DB6509EBCE7400232CC4 /* ESJabberService.m in Sources */,
 				3485DB6709EBCE7400232CC4 /* ESPurpleJabberAccount.m in Sources */,
 				3485DB6909EBCE7400232CC4 /* DCPurpleJabberJoinChatViewController.m in Sources */,

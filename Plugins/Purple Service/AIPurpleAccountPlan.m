@@ -350,6 +350,23 @@
 
 	[placed addObject:@"port"];
 
+	/* Adium's own, not any protocol's: a list of commands sent as soon as the connection is up.
+	 * CBPurpleAccount runs them through libpurple's command registry, so any protocol that registers
+	 * commands can have them, and the file says which ones should offer it. */
+	if ([[description objectForKey:@"commandsOnConnect"] boolValue]) {
+		AIAccountPlanField *commands = [AIAccountPlanField fieldNamed:@"connectCommands"
+																 kind:AIAccountFieldMultiline];
+
+		[commands setStore:AIAccountFieldStorePreference];
+		[commands setPreferenceKey:KEY_CONNECT_COMMANDS];
+		[commands setLegacyKey:@"IRC:Commands"];
+		[commands setLabel:AILocalizedString(@"Execute commands on connect", nil)];
+		[commands setDetail:AILocalizedString(@"One per line, without the leading slash.",
+											  "Explains how the commands sent after connecting are written")];
+
+		[self addField:commands toCard:AIAccountCardOptions];
+	}
+
 	//What the file puts in front of a person, in the order it names them
 	for (NSString *setting in [accountSection objectForKey:@"options"]) {
 		[self addField:[self fieldForSetting:setting] toCard:AIAccountCardAccount];

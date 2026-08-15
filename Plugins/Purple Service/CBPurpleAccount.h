@@ -18,6 +18,7 @@
 #import <AdiumLibpurple/PurpleCommon.h>
 
 #define KEY_DISPLAY_CUSTOM_EMOTICONS	@"Display Custom Emoticons"
+#define KEY_CONNECT_COMMANDS			@"Commands On Connect"
 #define KEY_BROADCAST_MUSIC_INFO		@"Broadcast Music Information"
 
 #define KEY_KEY		@"Key"

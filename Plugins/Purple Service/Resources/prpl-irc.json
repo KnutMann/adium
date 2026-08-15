@@ -5,7 +5,7 @@
 		"protocol does not name it."
 	],
 
-	"class": "ESIRCAccountPlan",
+	"commandsOnConnect": true,
 
 	"account": {
 		"server": true,

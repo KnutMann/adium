@@ -87,6 +87,7 @@
 - (NSNumber *)shouldCheckMail;
 - (void)configurePurpleAccountNotifyingTarget:(id)target selector:(SEL)selector;
 - (void)configureProtocolOptions;
+- (void)runConnectCommands;
 - (const char *)protocolStatusIDForStatusID:(const char *)statusID ofType:(AIStatusType)statusType;
 - (void)continueConnectWithConfiguredProxy;
 - (void)continueRegisterWithConfiguredPurpleAccount;
@@ -2210,6 +2211,78 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 
 	if (unregisterAfterConnecting)
 		[self unregister];
+
+	[self runConnectCommands];
+}
+
+/*!
+ * @brief A conversation that exists only to run a command against
+ *
+ * purple_cmd_do_command needs one to know which account it is talking to, and there is no real
+ * conversation at this point. Deliberately not registered with libpurple: doing that fires the
+ * conversation updated signal, and plugins would start hanging their own data off something that is
+ * about to be freed.
+ */
+static PurpleConversation *commandConversation(PurpleAccount *account)
+{
+	PurpleConversation *conv = g_new0(PurpleConversation, 1);
+
+	conv->type = PURPLE_CONV_TYPE_IM;
+	conv->account = account;
+
+	return conv;
+}
+
+/*!
+ * @brief Run whatever the account is set to send once it is connected
+ *
+ * Adium's own feature, not any protocol's: a list of commands, one per line, sent as soon as the
+ * connection is up. Joining a channel and identifying with a nickname service is what it is for.
+ *
+ * Everything here goes through libpurple's command registry, so it works for any protocol that
+ * registers commands rather than for the one this was written against. A line the protocol does not
+ * know is offered again as an argument to "quote", which is what IRC and its like call sending a
+ * raw line to the server; where that is not a command either, the line is logged rather than sent
+ * somewhere it does not belong.
+ */
+- (void)runConnectCommands
+{
+	NSString *commands = [self preferenceForKey:KEY_CONNECT_COMMANDS group:GROUP_ACCOUNT_STATUS];
+
+	/* Where the setting used to live. Read here as well as in the settings page, so that an account
+	 * whose page has never been opened still does what it has always done. */
+	if (![commands length])
+		commands = [self preferenceForKey:@"IRC:Commands" group:GROUP_ACCOUNT_STATUS];
+
+	if (![commands length])
+		return;
+
+	PurpleConversation *conv = commandConversation(account);
+
+	for (__strong NSString *command in [commands componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
+		if ([command hasPrefix:@"/"])
+			command = [command substringFromIndex:1];
+
+		command = [[command stringByReplacingOccurrencesOfString:@"$me" withString:(self.displayName ?: @"")]
+					stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+		if (![command length])
+			continue;
+
+		char *error = NULL;
+		PurpleCmdStatus status = purple_cmd_do_command(conv, [command UTF8String], [command UTF8String], &error);
+
+		if (status == PURPLE_CMD_STATUS_NOT_FOUND) {
+			NSString *quoted = [@"quote " stringByAppendingString:command];
+
+			status = purple_cmd_do_command(conv, [quoted UTF8String], [quoted UTF8String], &error);
+		}
+
+		if (status != PURPLE_CMD_STATUS_OK)
+			AILogWithSignature(@"%@: command \"%@\" failed: %d %s", self, command, status, (error ? error : ""));
+	}
+
+	g_free(conv);
 }
 
 //Our account has connected
