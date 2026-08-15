@@ -27,6 +27,8 @@
 
 @interface AIMenuController ()
 - (void)localizeMenuTitles;
+- (void)applySymbolsToMenu:(NSMenu *)menu;
+- (void)applySymbolToMenuItem:(NSMenuItem *)menuItem;
 - (void)updateAccountSpecificMenu:(NSMenu *)menu;
 - (NSMenu *)contextualMenuWithLocations:(NSArray *)inLocationArray usingMenu:(NSMenu *)inMenu;
 - (void)addMenuItemsForContact:(AIListContact *)inContact toMenu:(NSMenu *)workingMenu separatorItem:(BOOL *)separatorItem;
@@ -87,10 +89,14 @@
 	NSInteger			targetIndex;
 	NSInteger			destination;
 
-	//Find the menu item (or the closest one above it)
+	/* Find the menu item (or the closest one above it). An anchor that has been taken out of its
+	 * menu counts as no anchor at all: tidying away a doubled divider can quietly carry off the very
+	 * item a location points at, and inserting below something that is in no menu inserts nowhere. */
 	destination = location;
 	menuItem = [locationArray objectAtIndex:destination];
-	while ((menuItem == nilMenuItem) && (destination > 0)) {
+	while (((menuItem == nilMenuItem) ||
+			([menuItem isKindOfClass:[NSMenuItem class]] && ![menuItem menu])) &&
+		   (destination > 0)) {
 		destination--;
 		menuItem = [locationArray objectAtIndex:destination];
 	}
@@ -110,12 +116,28 @@
 		targetIndex = -1;
 	}
 
+	/* An anchor that is no longer in any menu leaves nothing to insert into, and -insertItem: on
+	 * nothing quietly does nothing: the item is simply never seen again. Say so instead. */
+	if (!targetMenu) {
+		AILogWithSignature(@"Nowhere to put %@ at location %i: the anchor %@ is in no menu",
+						   [newItem title], (int)location, menuItem);
+		return;
+	}
+
 	//Insert the new item and a divider (if necessary)
 	if (location != destination) {
 		[targetMenu insertItem:[NSMenuItem separatorItem] atIndex:++targetIndex];
 	}
 
 	[targetMenu insertItem:newItem atIndex:targetIndex+1];
+
+	/* Every item a plugin puts in the menu bar comes through here, which is why the symbols are
+	 * handed out here rather than only over the menu built from the nib: Status, Contact and Display
+	 * have nothing in them until a plugin fills them. */
+	[self applySymbolToMenuItem:newItem];
+
+	if ([newItem submenu])
+		[self applySymbolsToMenu:[newItem submenu]];
 
 	//update the location array
 	[locationArray replaceObjectAtIndex:location withObject:newItem];
@@ -127,11 +149,22 @@
 - (void)removeMenuItem:(NSMenuItem *)targetItem
 {
 	NSMenu		*targetMenu = [targetItem menu];
-	if (!targetMenu) return;
+	NSUInteger	loop, maxLoop;
+
+	/* Already out of its menu, which happens to a divider that was tidied away with the item above
+	 * it. There is nothing left to remove, but a location still pointing at it would be an anchor
+	 * that nothing can be hung from, so that much is still worth putting right. */
+	if (!targetMenu) {
+		for (loop = 0, maxLoop = [locationArray count]; loop < maxLoop; loop++) {
+			if ([locationArray objectAtIndex:loop] == targetItem)
+				[locationArray replaceObjectAtIndex:loop withObject:nilMenuItem];
+		}
+
+		return;
+	}
 
 	NSInteger			targetIndex = [targetMenu indexOfItem:targetItem];
-	NSUInteger	loop, maxLoop;
-	
+
 	//Fix the pointer if this is one
 	for (loop = 0, maxLoop = [locationArray count]; loop < maxLoop; loop++) {
 		NSMenuItem	*menuItem = [locationArray objectAtIndex:loop];
@@ -418,10 +451,6 @@
 	[menuItem_aboutAdium setTitle:AILocalizedString(@"About Adium",nil)];
 	//The Xtras are a pane of the preferences window now, not a window of their own
 	[menuItem_adiumXtras setTitle:[AILocalizedString(@"Xtras", "Adium menu item which opens the Xtras preference pane") stringByAppendingEllipsis]];
-	if (@available(macOS 11.0, *)) {
-		[menuItem_adiumXtras setImage:[NSImage imageWithSystemSymbolName:@"face.smiling"
-													accessibilityDescription:nil]];
-	}
 	[menuItem_preferences setTitle:[AILocalizedString(@"Preferences",nil) stringByAppendingEllipsis]];
 	// The fork accepts no donations for the original project; drop the menu item
 	[[menuItem_donate menu] removeItem:menuItem_donate];
@@ -500,6 +529,142 @@
 	[menuItem_reportABug setTitle:AILocalizedString(@"Report a Bug",nil)];
 	[menuItem_sendFeedback setTitle:AILocalizedString(@"Send Feedback",nil)];
 	[menuItem_adiumForums setTitle:AILocalizedString(@"Adium Forums",nil)];
+
+	[self applySymbolsToMenu:[NSApp mainMenu]];
+}
+
+#pragma mark Symbols
+
+/*!
+ * @brief Which symbol belongs on the item for an action
+ *
+ * Keyed by the action rather than by the title, for the same reason macOS keys its own by the
+ * action: a title is translated and a menu is rearranged, while the action is what the row actually
+ * does and does not move. Anything absent here is left bare on purpose.
+ *
+ * Only Adium's own actions are listed. Cut, Minimize, Quit and the rest of AppKit's are drawn by
+ * macOS itself, which knows better than we do what it wants to draw and changes its mind between
+ * releases; setting an image on those would freeze one release's idea of them into this menu.
+ */
+static NSDictionary *symbolNamesByAction(void)
+{
+	static NSDictionary *names = nil;
+
+	if (!names) {
+		names = [[NSDictionary alloc] initWithObjectsAndKeys:
+			//Adium menu
+			@"info.circle",					@"showAboutBox:",
+			@"face.smiling",				@"showXtras:",
+			@"gearshape",					@"showPreferenceWindow:",
+			@"power",						@"confirmQuit:",
+
+			//File menu
+			@"arrow.uturn.backward",		@"reopenChat:",
+			/* One mark in three containers, widening with what is being closed. There is no
+			 * crossed out speech bubble to be had, so the family carries the meaning instead. */
+			@"xmark.square",				@"closeMenu:",
+			@"xmark.circle",				@"closeChatMenu:",
+			@"xmark.octagon",				@"closeAllChats:",
+			@"printer",						@"adiumPrint:",
+
+			//Edit menu
+			@"doc.on.clipboard",			@"pasteWithImagesAndColors:",
+			@"link",						@"editFormattedLink:",
+			@"link.badge.plus",				@"shortenLink",
+			@"textformat",					@"restoreDefaultFormat:",
+
+			//The contact list and its windows
+			@"list.bullet",					@"toggleContactList:",
+			@"folder",						@"toggleShowGroups:",
+			@"arrow.up.arrow.down",			@"changedSortSelection:",
+			@"slider.horizontal.3",			@"configureSort:",
+			@"eye.slash",					@"toggleHide:",
+			@"pencil",						@"showEditor:",
+			@"pencil",						@"toggleEditor:",
+			@"xmark.square",				@"closeDetachedContactLists",
+
+			//Contacts
+			@"person.badge.plus",			@"addContact:",
+			@"folder.badge.plus",			@"addGroup:",
+			@"person.crop.circle",			@"showContactInfo:",
+			@"person.crop.circle",			@"showSpecifiedContactInfo:",
+			@"trash",						@"deleteSelection:",
+			@"hand.raised",					@"blockContact:",
+			@"checkmark.shield",			@"openAuthorizationWindow:",
+			@"bell",						@"notifyContact:",
+			@"paperclip",					@"sendFileToSelectedContact:",
+			@"photo",						@"uploadImage",
+
+			//Chats
+			@"square.and.pencil",			@"newMessage:",
+			@"person.3",					@"joinChat:",
+			@"bookmark",					@"addBookmark:",
+			@"rectangle.stack",				@"consolidateChats:",
+			@"macwindow.badge.plus",		@"moveChatToNewWindow:",
+			@"arrow.up.forward.app",		@"detachFromWindow:",
+			@"chevron.right",				@"nextChat:",
+			@"chevron.left",				@"previousChat:",
+			@"sidebar.right",				@"toggleUserlist:",
+			@"arrow.left.and.right",		@"toggleUserlistSide:",
+			@"arrow.left.arrow.right",		@"toggleShowJoinLeave:",
+			@"eraser",						@"clearDisplay:",
+			@"text.insert",					@"addMark",
+			@"function",					@"renderSelection:",
+
+			//Jumping about
+			@"scope",						@"jumpToFocus",
+			@"arrow.down.to.line",			@"jumpToNext",
+			@"arrow.up.to.line",			@"jumpToPrevious",
+
+			//Status and transfers
+			@"gearshape",					@"showStatusPreferences:",
+			@"arrow.down.circle",			@"showProgressWindow:",
+
+			//Help menu
+			@"list.bullet.rectangle",		@"showVersionHistory:",
+			@"heart",						@"contibutingToAdium:",
+			@"ladybug",						@"reportABug:",
+			@"envelope",					@"sendFeedback:",
+			@"bubble.left.and.bubble.right",@"showForums:",
+			@"terminal",					@"showDebugWindow:",
+			nil];
+	}
+
+	return names;
+}
+
+/*!
+ * @brief Put the symbol for its action on one item, if it has none of its own
+ *
+ * An item that already carries a picture is left alone: an account carries its service, a status
+ * carries its colour, a contact carries their photograph, and each of those says more about that
+ * one row than a symbol for the action ever could.
+ */
+- (void)applySymbolToMenuItem:(NSMenuItem *)menuItem
+{
+	if ([menuItem isSeparatorItem] || [menuItem image] || ![menuItem action])
+		return;
+
+	NSString *name = [symbolNamesByAction() objectForKey:NSStringFromSelector([menuItem action])];
+
+	if (name) {
+		/* A symbol that this system does not have comes back empty, which leaves the item bare
+		 * rather than broken. */
+		[menuItem setImage:[NSImage imageWithSystemSymbolName:name accessibilityDescription:nil]];
+	}
+}
+
+/*!
+ * @brief As above for a whole menu and everything under it
+ */
+- (void)applySymbolsToMenu:(NSMenu *)menu
+{
+	for (NSMenuItem *menuItem in [menu itemArray]) {
+		[self applySymbolToMenuItem:menuItem];
+
+		if ([menuItem submenu])
+			[self applySymbolsToMenu:[menuItem submenu]];
+	}
 }
 
 #pragma mark Menu delegate (contextual menu)
