@@ -1068,9 +1068,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 /*!
  * @brief Write what is on the open account page before leaving it
  *
- * Ending editing first, so a field the user is still in has handed its value to its control by the
- * time it is read. This is the last chance: a control bound through its controller rather than
- * targeted has no action to intercept, so leaving the page is where its value is picked up.
+ * Ending editing first, because a field the user is still in writes its value when it is left. This
+ * is the last chance to make that happen: taking the page off screen does not end editing by itself.
  */
 - (void)commitOpenAccountPage
 {

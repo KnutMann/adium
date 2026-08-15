@@ -1,0 +1,24 @@
+{
+	"note": [
+		"IRC declares no server option: the server is part of the account name, nick@irc.example.net,",
+		"which ESIRCAccount puts together. The account card therefore asks for one even though the",
+		"protocol does not name it."
+	],
+
+	"class": "ESIRCAccountPlan",
+
+	"account": {
+		"server": true,
+		"port": true,
+		"options": ["ssl"]
+	},
+
+	"options": ["username", "realname", "encoding", "quitmsg", "sasl", "saslname"],
+
+	"legacy": {
+		"IRC:Use SSL": "ssl",
+		"IRC:Username": "username",
+		"IRC:Realname": "realname",
+		"IRC:Encoding": "encoding"
+	}
+}

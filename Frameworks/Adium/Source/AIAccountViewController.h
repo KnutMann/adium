@@ -16,7 +16,7 @@
 
 #import <Adium/AIContactControllerProtocol.h>
 
-@class AIAccount, AISettingsFormView;
+@class AIAccount;
 
 @interface AIAccountViewController : NSObject {
 	/* These are the views used in Adium's account preferences.  If views aren't provided by a custom account view
@@ -36,8 +36,6 @@
 	IBOutlet	NSTextField		*textField_password;			//Password field
 
 	BOOL						passwordWasShown;			//Whether the field was filled from the keychain
-	NSMutableDictionary			*switchesByCheckBox;		//Switches standing in for nib checkboxes
-	NSMutableDictionary			*checkBoxesBySwitch;
 	IBOutlet	NSTextField		*textField_connectHost;			//Connect host
 	IBOutlet	NSTextField		*textField_connectPort;			//Connect port
 	IBOutlet	NSTextField		*textField_alias;				//User alias (or display name)
@@ -79,34 +77,6 @@
 - (void)usernameAndPasswordRegistered:(NSNotification*)notification;
 
 
-/*!
- * @brief Does this controller use the shared account views rather than a nib of its own?
- *
- * A service which brings its own nib has fields nobody here knows about, so its views are shown
- * whole. One using the shared ones has exactly the fields below, and those can be laid out as
- * ordinary settings rows.
- */
-- (BOOL)usesSharedAccountViews;
-
-/*!
- * @brief Put the shared fields into a settings form as rows
- *
- * The very same controls, moved out of their nib view and into rows. Nothing about loading or saving
- * changes, because both still read and write these outlets; only where they sit does.
- */
-- (void)addAccountRowsToForm:(AISettingsFormView *)form;
-- (void)addProfileRowsToForm:(AISettingsFormView *)form;
-- (void)addPrivacyRowsToForm:(AISettingsFormView *)form;
-
-/*!
- * @brief One row around a control that already exists, for a subclass adding its own
- */
-- (void)addRow:(AISettingsFormView *)form control:(NSView *)control label:(NSTextField *)labelField fallback:(NSString *)fallback;
-
-/*!
- * @brief A nib checkbox shown as the switch a settings row uses
- */
-- (void)addSwitchRow:(AISettingsFormView *)form checkBox:(NSButton *)checkBox label:(NSString *)label;
 
 @end
 

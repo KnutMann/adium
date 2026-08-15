@@ -16,6 +16,7 @@
 
 #import <Adium/AIAbstractAccount.h>
 #import <Adium/AIAccount.h>
+#import <Adium/AIAccountPlan.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListGroup.h>
 #import <Adium/AIContentMessage.h>
@@ -1031,6 +1032,11 @@ typedef enum
 }
 
 #pragma mark Logging
+- (AIAccountPlan *)accountPlan
+{
+	return [[[AIAccountPlan alloc] initWithAccount:self] autorelease];
+}
+
 - (BOOL)shouldLogChat:(AIChat *)chat
 {
 	BOOL shouldLog = ![self isTemporary];

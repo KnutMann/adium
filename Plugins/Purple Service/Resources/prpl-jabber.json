@@ -1,0 +1,27 @@
+{
+	"note": [
+		"What an XMPP account puts in front of a person. Every option is declared by the protocol",
+		"itself, so this file holds nothing but names and the order they are shown in.",
+		"",
+		"There is no server field: an XMPP address carries its server, and connect_server is the",
+		"override for connecting somewhere else, which is what the account card offers instead."
+	],
+
+	"class": "ESPurpleJabberAccountPlan",
+
+	"account": {
+		"server": false,
+		"port": true,
+		"options": ["connect_server"]
+	},
+
+	"options": ["connection_security", "custom_smileys"],
+
+	"legacy": {
+		"Jabber:Connect Server": "connect_server",
+		"Jabber:BOSH Server": "bosh_url",
+		"Jabber:File Transfer Proxies": "ft_proxies",
+		"Jabber:Allow Plaintext Authentication": "auth_plain_in_clear",
+		"Display Custom Emoticons": "custom_smileys"
+	}
+}

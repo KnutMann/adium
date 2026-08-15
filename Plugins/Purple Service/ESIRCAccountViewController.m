@@ -118,28 +118,4 @@
 }
 
 
-//Its own fields, as rows ----------------------------------------------------------------------------------------------
-#pragma mark Its own fields, as rows
-
-/*!
- * @brief The commands to send after connecting
- *
- * The only thing on this page the protocol knows nothing about: it is Adium that sends these, so it
- * is Adium that has to ask for them. Username, real name, SSL and the encoding are gone from here
- * because irc.c declares every one of them, along with SASL and a quit message that this nib never
- * offered at all.
- *
- * A text view rather than a field, so it gets a row of its own with the label above it, the way the
- * other multi line settings in this application are laid out.
- */
-- (void)addProfileRowsToForm:(AISettingsFormView *)form
-{
-	[super addProfileRowsToForm:form];
-
-	if (box_commands && ![box_commands isHidden]) {
-		[box_commands removeFromSuperview];
-		[form addFullWidthRow:box_commands stretch:YES];
-	}
-}
-
 @end

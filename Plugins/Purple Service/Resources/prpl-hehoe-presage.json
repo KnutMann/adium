@@ -1,0 +1,11 @@
+{
+	"note": [
+		"Signal links a device rather than logging in, so its account card asks for the name that link",
+		"is listed under and nothing else. Everything the protocol offers beyond that is shown as it",
+		"declares it."
+	],
+
+	"account": {
+		"options": ["device-name"]
+	}
+}

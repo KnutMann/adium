@@ -365,7 +365,6 @@
 		ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */; };
 		ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */; };
 		ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */; };
-		ADD1E5C0DE00000000000792 /* AIPurpleLegacyOptionKeys.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000791 /* AIPurpleLegacyOptionKeys.plist */; };
 		ADD1E5C0DE00000000001006 /* ESPurpleGaduGaduAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */; };
 		3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */; };
 		3485DB6409EBCE7400232CC4 /* ESJabberService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416171059FC55A0019246B /* ESJabberService.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -618,6 +617,18 @@
 		34DC8A620A7EEEF7003E1636 /* AIAbstractAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BE8AF6E0796EC1200B6E49B /* AIAbstractAccount.m */; };
 		34DC8A630A7EEEF7003E1636 /* AIAccountViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B28DDAB0599FED200343093 /* AIAccountViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8A640A7EEEF7003E1636 /* AIAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B28DDAC0599FED200343093 /* AIAccountViewController.m */; };
+		ADD1E5C0DE0000000000B002 /* AIAccountPlan.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B001 /* AIAccountPlan.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000B004 /* AIAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B003 /* AIAccountPlan.m */; };
+		ADD1E5C0DE0000000000B006 /* AIAccountPlanFormBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B005 /* AIAccountPlanFormBuilder.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000B008 /* AIAccountPlanFormBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B007 /* AIAccountPlanFormBuilder.m */; };
+		ADD1E5C0DE0000000000B00C /* AIPurpleAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */; };
+		ADD1E5C0DE0000000000B010 /* ESPurpleJabberAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */; };
+		ADD1E5C0DE0000000000B014 /* ESIRCAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B013 /* ESIRCAccountPlan.m */; };
+		ADD1E5C0DE0000000000B016 /* prpl-jabber.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B015 /* prpl-jabber.json */; };
+		ADD1E5C0DE0000000000B018 /* prpl-irc.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B017 /* prpl-irc.json */; };
+		ADD1E5C0DE0000000000B01A /* prpl-eionrobb-ircv3.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */; };
+		ADD1E5C0DE0000000000B01C /* prpl-hehoe-whatsmeow.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B01B /* prpl-hehoe-whatsmeow.json */; };
+		ADD1E5C0DE0000000000B01E /* prpl-hehoe-presage.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B01D /* prpl-hehoe-presage.json */; };
 		34DC8A650A7EEEF7003E1636 /* AccountSetup.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E907A0B6D30057DB2C /* AccountSetup.xib */; };
 		34DC8A660A7EEEF7003E1636 /* AccountProfile.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E807A0B6D30057DB2C /* AccountProfile.xib */; };
 		34DC8A670A7EEEF7003E1636 /* AccountOptions.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BDD81E707A0B6D30057DB2C /* AccountOptions.xib */; };
@@ -1726,7 +1737,6 @@
 		ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccount.m; path = "Plugins/Purple Service/AIPurpleGenericAccount.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericAccount.h; path = "Plugins/Purple Service/AIPurpleGenericAccount.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AIPurpleServiceDescriptors.plist; path = "Plugins/Purple Service/AIPurpleServiceDescriptors.plist"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000791 /* AIPurpleLegacyOptionKeys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AIPurpleLegacyOptionKeys.plist; path = "Plugins/Purple Service/AIPurpleLegacyOptionKeys.plist"; sourceTree = "<group>"; };
 		34416171059FC55A0019246B /* ESJabberService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESJabberService.h; path = "Plugins/Purple Service/ESJabberService.h"; sourceTree = "<group>"; };
 		34416172059FC55A0019246B /* ESJabberService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESJabberService.m; path = "Plugins/Purple Service/ESJabberService.m"; sourceTree = "<group>"; };
 		344161BB0943E0D800BC26ED /* AdiumSetupWizard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumSetupWizard.h; path = Source/AdiumSetupWizard.h; sourceTree = "<group>"; };
@@ -2466,6 +2476,21 @@
 		4B25494703F6A32700A8010A /* AIAccountSelectionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAccountSelectionView.m; path = "Plugins/Dual Window Interface/AIAccountSelectionView.m"; sourceTree = "<group>"; };
 		4B28DDAB0599FED200343093 /* AIAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountViewController.h; path = Frameworks/Adium/Source/AIAccountViewController.h; sourceTree = "<group>"; };
 		4B28DDAC0599FED200343093 /* AIAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountViewController.m; path = Frameworks/Adium/Source/AIAccountViewController.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B001 /* AIAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAccountPlan.h; path = Frameworks/Adium/Source/AIAccountPlan.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B003 /* AIAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAccountPlan.m; path = Frameworks/Adium/Source/AIAccountPlan.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B005 /* AIAccountPlanFormBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAccountPlanFormBuilder.h; path = Frameworks/Adium/Source/AIAccountPlanFormBuilder.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B007 /* AIAccountPlanFormBuilder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAccountPlanFormBuilder.m; path = Frameworks/Adium/Source/AIAccountPlanFormBuilder.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B009 /* AIPurpleAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleAccountPlan.h; path = "Plugins/Purple Service/AIPurpleAccountPlan.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleAccountPlan.m; path = "Plugins/Purple Service/AIPurpleAccountPlan.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B00D /* ESPurpleJabberAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPurpleJabberAccountPlan.h; path = "Plugins/Purple Service/ESPurpleJabberAccountPlan.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleJabberAccountPlan.m; path = "Plugins/Purple Service/ESPurpleJabberAccountPlan.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B011 /* ESIRCAccountPlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESIRCAccountPlan.h; path = "Plugins/Purple Service/ESIRCAccountPlan.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B013 /* ESIRCAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESIRCAccountPlan.m; path = "Plugins/Purple Service/ESIRCAccountPlan.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B015 /* prpl-jabber.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-jabber.json; path = "Plugins/Purple Service/Resources/prpl-jabber.json"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B017 /* prpl-irc.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-irc.json; path = "Plugins/Purple Service/Resources/prpl-irc.json"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-eionrobb-ircv3.json; path = "Plugins/Purple Service/Resources/prpl-eionrobb-ircv3.json"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B01B /* prpl-hehoe-whatsmeow.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-hehoe-whatsmeow.json; path = "Plugins/Purple Service/Resources/prpl-hehoe-whatsmeow.json"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B01D /* prpl-hehoe-presage.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-hehoe-presage.json; path = "Plugins/Purple Service/Resources/prpl-hehoe-presage.json"; sourceTree = "<group>"; };
 		4B292D3007A9C8E100C5F882 /* AIStatusController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIStatusController.h; path = Source/AIStatusController.h; sourceTree = "<group>"; };
 		4B292D3107A9C8E100C5F882 /* AIStatusController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStatusController.m; path = Source/AIStatusController.m; sourceTree = "<group>"; };
 		4B31E8C004C46A9100A8010A /* AIContactStatusColoringPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactStatusColoringPlugin.h; path = Source/AIContactStatusColoringPlugin.h; sourceTree = "<group>"; };
@@ -3517,9 +3542,19 @@
 				ADD1E5C0DE00000000000753 /* AIPurpleGenericAccountViewController.h */,
 				ADD1E5C0DE00000000000743 /* AIPurpleGenericService.h */,
 				ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */,
+				ADD1E5C0DE0000000000B009 /* AIPurpleAccountPlan.h */,
+				ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */,
+				ADD1E5C0DE0000000000B00D /* ESPurpleJabberAccountPlan.h */,
+				ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */,
+				ADD1E5C0DE0000000000B011 /* ESIRCAccountPlan.h */,
+				ADD1E5C0DE0000000000B013 /* ESIRCAccountPlan.m */,
+				ADD1E5C0DE0000000000B015 /* prpl-jabber.json */,
+				ADD1E5C0DE0000000000B017 /* prpl-irc.json */,
+				ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */,
+				ADD1E5C0DE0000000000B01B /* prpl-hehoe-whatsmeow.json */,
+				ADD1E5C0DE0000000000B01D /* prpl-hehoe-presage.json */,
 				ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */,
 				ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */,
-				ADD1E5C0DE00000000000791 /* AIPurpleLegacyOptionKeys.plist */,
 				ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */,
 				4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */,
 			);
@@ -4670,6 +4705,10 @@
 				4BE8AF6E0796EC1200B6E49B /* AIAbstractAccount.m */,
 				4B28DDAB0599FED200343093 /* AIAccountViewController.h */,
 				4B28DDAC0599FED200343093 /* AIAccountViewController.m */,
+				ADD1E5C0DE0000000000B001 /* AIAccountPlan.h */,
+				ADD1E5C0DE0000000000B003 /* AIAccountPlan.m */,
+				ADD1E5C0DE0000000000B005 /* AIAccountPlanFormBuilder.h */,
+				ADD1E5C0DE0000000000B007 /* AIAccountPlanFormBuilder.m */,
 				4BDD81E907A0B6D30057DB2C /* AccountSetup.xib */,
 				4BDD81E807A0B6D30057DB2C /* AccountProfile.xib */,
 				4BDD81E707A0B6D30057DB2C /* AccountOptions.xib */,
@@ -6312,6 +6351,8 @@
 				34DC8A5F0A7EEEF7003E1636 /* AIAccount.h in Headers */,
 				34DC8A610A7EEEF7003E1636 /* AIAbstractAccount.h in Headers */,
 				34DC8A630A7EEEF7003E1636 /* AIAccountViewController.h in Headers */,
+				ADD1E5C0DE0000000000B002 /* AIAccountPlan.h in Headers */,
+				ADD1E5C0DE0000000000B006 /* AIAccountPlanFormBuilder.h in Headers */,
 				34DC8A6A0A7EEEF7003E1636 /* AIEmoticon.h in Headers */,
 				34DC8A6C0A7EEEF7003E1636 /* AIEmoticonPack.h in Headers */,
 				34DC8A6E0A7EEEF7003E1636 /* AIStatusDefines.h in Headers */,
@@ -6702,7 +6743,11 @@
 				ADD1E5C0DE0000000000100A /* ESPurpleSimpleAccountView.xib in Resources */,
 				3485DBA109EBCE7400232CC4 /* PurpleDefaultsSimple.plist in Resources */,
 				ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */,
-				ADD1E5C0DE00000000000792 /* AIPurpleLegacyOptionKeys.plist in Resources */,
+				ADD1E5C0DE0000000000B016 /* prpl-jabber.json in Resources */,
+				ADD1E5C0DE0000000000B018 /* prpl-irc.json in Resources */,
+				ADD1E5C0DE0000000000B01A /* prpl-eionrobb-ircv3.json in Resources */,
+				ADD1E5C0DE0000000000B01C /* prpl-hehoe-whatsmeow.json in Resources */,
+				ADD1E5C0DE0000000000B01E /* prpl-hehoe-presage.json in Resources */,
 				3485DBC309EBCE7400232CC4 /* PurpleMultilineRequestWindow.xib in Resources */,
 				3485DBC409EBCE7400232CC4 /* PurpleSinglelineRequestWindow.xib in Resources */,
 				3485DBD009EBCE8200232CC4 /* Localizable.strings in Resources */,
@@ -7097,6 +7142,9 @@
 				ADD1E5C0DE00000000000742 /* AIPurpleGenericService.m in Sources */,
 				ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */,
 				ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */,
+				ADD1E5C0DE0000000000B00C /* AIPurpleAccountPlan.m in Sources */,
+				ADD1E5C0DE0000000000B010 /* ESPurpleJabberAccountPlan.m in Sources */,
+				ADD1E5C0DE0000000000B014 /* ESIRCAccountPlan.m in Sources */,
 				3485DB6509EBCE7400232CC4 /* ESJabberService.m in Sources */,
 				3485DB6709EBCE7400232CC4 /* ESPurpleJabberAccount.m in Sources */,
 				3485DB6909EBCE7400232CC4 /* DCPurpleJabberJoinChatViewController.m in Sources */,
@@ -7480,6 +7528,8 @@
 				34DC8A600A7EEEF7003E1636 /* AIAccount.m in Sources */,
 				34DC8A620A7EEEF7003E1636 /* AIAbstractAccount.m in Sources */,
 				34DC8A640A7EEEF7003E1636 /* AIAccountViewController.m in Sources */,
+				ADD1E5C0DE0000000000B004 /* AIAccountPlan.m in Sources */,
+				ADD1E5C0DE0000000000B008 /* AIAccountPlanFormBuilder.m in Sources */,
 				34DC8A6B0A7EEEF7003E1636 /* AIEmoticon.m in Sources */,
 				34DC8A6D0A7EEEF7003E1636 /* AIEmoticonPack.m in Sources */,
 				639484590EB13DFE008CB6DE /* AIContactHidingController.m in Sources */,

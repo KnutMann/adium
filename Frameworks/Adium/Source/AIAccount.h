@@ -16,7 +16,7 @@
 
 #import <Adium/AIListObject.h>
 
-@class AIListContact, AIChat, AIContentObject, ESFileTransfer, AIStatus, AIContentMessage, AIContentNotification, AIContentTyping;
+@class AIListContact, AIChat, AIContentObject, ESFileTransfer, AIStatus, AIContentMessage, AIContentNotification, AIContentTyping, AIAccountPlan;
 
 #define GROUP_ACCOUNT_STATUS   @"Account Status"
 
@@ -330,6 +330,15 @@ typedef enum {
  * Subclasses which intend to return YES should return [super shouldLogChat:chat].
  */
 - (BOOL)shouldLogChat:(AIChat *)chat;
+
+/*!
+ * @brief What this account offers to configure, and where each of those values lives
+ *
+ * The settings pane builds its rows from this and from nothing else. The base answer is what every
+ * account has: its name, its password, the name it shows to others and what it tells the other side.
+ * A subclass whose world brings more than that answers with a plan of its own.
+ */
+- (AIAccountPlan *)accountPlan;
 
 @end
 

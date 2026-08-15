@@ -15,6 +15,7 @@
  */
 
 #import "CBPurpleAccount.h"
+#import "AIPurpleAccountPlan.h"
 #import <libpurple/accountopt.h>
 
 #import "PurpleService.h"
@@ -2239,6 +2240,18 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 - (const char *)purpleAccountName
 {
 	return [self.formattedUID UTF8String];
+}
+
+/*!
+ * @brief Every libpurple account describes itself out of its protocol
+ *
+ * One override for all of them, because what a purple account offers comes from the protocol rather
+ * than from the class: the protocol declares each option, and one file per protocol says which of
+ * them belong in front of a person.
+ */
+- (AIAccountPlan *)accountPlan
+{
+	return [AIPurpleAccountPlan planForAccount:self];
 }
 
 - (void)setPurpleAccount:(PurpleAccount *)inAccount

@@ -1,0 +1,17 @@
+{
+	"note": [
+		"As prpl-irc, but bound without any code of its own: the server goes into the account name,",
+		"which the descriptor states with AccountNameIncludesHost.",
+		"",
+		"No commands on connect here. That is Adium's own feature and it lives in ESIRCAccount, which",
+		"an account of this protocol is not."
+	],
+
+	"account": {
+		"server": "inAccountName",
+		"port": true,
+		"options": ["ssl"]
+	},
+
+	"options": ["username", "realname", "encoding", "quitmsg", "sasl", "saslname"]
+}
