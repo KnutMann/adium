@@ -250,7 +250,13 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
  */
 - (BOOL)attachmentWasChosen
 {
-	return ([[displayedObject preferenceForKey:KEY_AB_UNIQUE_ID group:PREF_GROUP_ADDRESSBOOK] length] != 0);
+	NSString	*stored = [displayedObject preferenceForKey:KEY_AB_UNIQUE_ID group:PREF_GROUP_ADDRESSBOOK];
+
+	/* Not merely whether a choice is on record, but whether the card being shown is the one that was
+	 * chosen. Delete that card in the Contacts app and the record still names it while the search
+	 * quietly turns up a different one; calling that "chosen by you" would offer to let go of
+	 * something nobody picked, and letting go would change nothing anybody could see. */
+	return ([stored length] && [[[self attachedPerson] uniqueId] isEqualToString:stored]);
 }
 
 /*!
