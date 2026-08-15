@@ -998,6 +998,21 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	AIAccount	*account = [adium.accountController createAccountWithService:service
 																		   UID:[service defaultUserName]];
 
+	if (navigationController) {
+		/* Real from the start, and disabled. There is no OK to make it real at, so the alternative
+		 * would be an account that exists only inside a page: not in the list behind it, not
+		 * anywhere if the page went away. Disabled and offline, the way System Settings adds a new
+		 * configuration before it is filled in; the switch is what puts it online.
+		 *
+		 * Left again without a name, it is taken back out, which is what Cancel used to do. */
+		[account setPreference:[NSNumber numberWithBool:NO] forKey:@"Online" group:GROUP_ACCOUNT_STATUS];
+		[adium.accountController addAccount:account];
+
+		[self editAccount:account];
+		newAccountBeingCreated = account;
+		return;
+	}
+
 	AIEditAccountWindowController *editAccountWindowController = [[AIEditAccountWindowController alloc] initWithAccount:account
 																										notifyingTarget:self];
 	[editAccountWindowController showOnWindow:[[self view] window]];
@@ -1064,6 +1079,15 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 	[[[self view] window] makeFirstResponder:nil];
 	[detailPage commit];
+
+	/* An account just added and left again without a name never became anything. Taking it back out
+	 * is what Cancel did in the window this replaces; there is nothing to ask about, because there
+	 * is nothing there. */
+	AIAccount *account = [detailPage account];
+	if (account && account == newAccountBeingCreated && ![[account UID] length]) {
+		[adium.accountController deleteAccount:account];
+		newAccountBeingCreated = nil;
+	}
 }
 
 /*!
@@ -1073,6 +1097,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	if (![controller canGoBack] && detailPage) {
 		[detailPage commit];
+		newAccountBeingCreated = nil;
 		[detailPage tearDown];
 		[detailPage release]; detailPage = nil;
 	}

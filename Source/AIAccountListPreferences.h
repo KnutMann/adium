@@ -46,6 +46,7 @@
 	AISettingsNavigationController	*navigationController;
 	AISettingsFormView				*listForm;
 	AIAccountSettingsPage			*detailPage;
+	AIAccount						*newAccountBeingCreated;	//Not retained; the account controller holds it
 
     //Account List
     NSArray							*accountArray;
