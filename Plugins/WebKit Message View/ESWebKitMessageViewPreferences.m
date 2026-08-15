@@ -960,7 +960,16 @@ static NSString *AIRowLabel(NSString *label)
 - (NSMutableDictionary *)_addParticipants:(NSDictionary *)participants toChat:(AIChat *)inChat fromPath:(NSString *)previewPath
 {
 	NSMutableDictionary	*listObjectDict = [NSMutableDictionary dictionary];
-	AIService			*aimService = [adium.accountController firstServiceWithServiceID:@"AIM"];
+
+	/* Somebody has to be on some service for the sample conversation to be drawn, and it never
+	 * mattered which: nothing about the preview depends on it. It asked for AIM, which has been gone
+	 * for a while, so every participant was built without a service at all and anything that later
+	 * asked one of them which service they were on got nothing back. Jabber is asked for first
+	 * because it is the one service Adium always has, and failing that whichever service there is. */
+	AIService			*previewService = [adium.accountController firstServiceWithServiceID:@"Jabber"];
+
+	if (!previewService)
+		previewService = [[adium.accountController services] firstObject];
 
 	for (NSDictionary *participant in participants) {
 		NSString		*UID, *alias, *userIconName;
@@ -968,7 +977,7 @@ static NSString *AIRowLabel(NSString *label)
 
 		//Create object
 		UID = [participant objectForKey:@"UID"];
-		listContact = [[AIListContact alloc] initWithUID:UID service:aimService];
+		listContact = [[AIListContact alloc] initWithUID:UID service:previewService];
 
 		//Display name
 		if ((alias = [participant objectForKey:@"Display Name"])) {

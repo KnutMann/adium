@@ -2899,25 +2899,19 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 #pragma mark Transcript services special-casing
 NSString *handleSpecialCasesForUIDAndServiceClass(NSString *contactUID, NSString *serviceClass)
 {
-	/* Jabber and its specified derivative services need special handling;
-	 * this is cross-contamination from ESPurpleJabberAccount.
+	/* Transcripts are filed on disk under the service they were written by, and this brings the
+	 * names found there back to the services that exist. It used to run the other way for Jabber:
+	 * an address at Google made the class GTalk and one at LiveJournal made it LiveJournal, which
+	 * split today's Jabber transcripts off into classes that no longer exist and therefore have no
+	 * icon. Folders written under those names by earlier versions are still out there, so they are
+	 * still recognised, and every one of them is a Jabber transcript.
 	 */
 	if ([serviceClass isEqualToString:@"Jabber"] ||
 		[serviceClass isEqualToString:@"GTalk"] ||
 		[serviceClass isEqualToString:@"LiveJournal"]) {
-		
-		if ([contactUID hasSuffix:@"@gmail.com"] ||
-			[contactUID hasSuffix:@"@googlemail.com"] ||
-            [contactUID hasSuffix:@"@public.talk.google.com"]) {
-			serviceClass = @"GTalk";
-			
-		} else if ([contactUID hasSuffix:@"@livejournal.com"]){
-			serviceClass = @"LiveJournal";
-			
-		} else {
-			serviceClass = @"Jabber";
-		}	
-		
+
+		serviceClass = @"Jabber";
+
 		/* OSCAR and its specified derivative services need special handling;
 		 *  this is cross-contamination from CBPurpleOscarAccount.
 		 */
