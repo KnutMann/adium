@@ -794,13 +794,20 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo
 {
 	NSMutableArray	*parts = [NSMutableArray array];
+	NSString		*summary = [self contentSummaryForXtra:xtraInfo];
 	NSString		*author = [xtraInfo author];
 	NSString		*version = [xtraInfo version];
 
-	/* Who made it comes first, because it is the one thing about an Xtra that nothing else on the
-	 * row already says: the group above names the kind, the icon shows the look, and the name is
-	 * the name. */
-	if ([author length]) {
+	/* What is in it and who made it, read as one phrase rather than two, so that a row saying both
+	 * does not look like a different kind of row from one saying either. Neither is always there:
+	 * a dock icon names its maker and cannot be counted, an emoticon set counts and names nobody. */
+	if ([summary length] && [author length]) {
+		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"%@ by %@", "What an Xtra holds and who made it, e.g. 78 emoticons by Jane"), summary, author]];
+
+	} else if ([summary length]) {
+		[parts addObject:summary];
+
+	} else if ([author length]) {
 		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"by %@", "Author of an installed Xtra, shown below its name"), author]];
 	}
 
@@ -821,17 +828,10 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 	}
 
 	if (![parts count]) {
-		NSString	*summary = [self contentSummaryForXtra:xtraInfo];
+		//Truly nothing to say: the extension merely repeats the group, and is the last resort
+		NSString	*extension = [[xtraInfo path] pathExtension];
 
-		if (summary) {
-			[parts addObject:summary];
-
-		} else {
-			//Truly nothing to say: the extension merely repeats the group, and is the last resort
-			NSString	*extension = [[xtraInfo path] pathExtension];
-
-			[parts addObject:([extension length] ? extension : [[xtraInfo path] lastPathComponent])];
-		}
+		[parts addObject:([extension length] ? extension : [[xtraInfo path] lastPathComponent])];
 	}
 
 	return [parts componentsJoinedByString:@" · "];

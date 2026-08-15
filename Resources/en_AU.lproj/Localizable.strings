@@ -64,6 +64,9 @@
 /* A person began sending you a file. The first %@ is a name; the second %@ is the filename of the file being sent. */
 "%@ began sending you %@" = "%1$@ began sending you %2$@";
 
+/* What an Xtra holds and who made it, e.g. 78 emoticons by Jane */
+"%@ by %@" = "%@ by %@";
+
 /* Event: <A contact's name> came back (is now available) */
 "%@ came back" = "%@ came back";
 
