@@ -137,6 +137,24 @@
 
 - (NSString *)author
 {
+	/* A dock icon pack keeps who made it in its own list rather than in the bundle's, under a key
+	 * of its own, and every one of them fills it in where hardly any other kind does. Some write
+	 * "Created by" in front of the name, which would read twice over once the line says "by". */
+	if (!author) {
+		NSDictionary	*iconPack = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"IconPack.plist"]];
+		NSString		*creator = [[iconPack objectForKey:@"Description"] objectForKey:@"Creator"];
+
+		if ([creator length]) {
+			NSString	*prefix = @"created by ";
+
+			if (([creator length] > [prefix length]) &&
+				([[creator substringToIndex:[prefix length]] caseInsensitiveCompare:prefix] == NSOrderedSame))
+				creator = [creator substringFromIndex:[prefix length]];
+
+			author = [[creator stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] retain];
+		}
+	}
+
 	return author;
 }
 

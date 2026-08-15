@@ -721,12 +721,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 - (NSString *)contentSummaryForXtra:(AIXtraInfo *)xtraInfo
 {
 	static NSSet	*audioExtensions = nil;
-	static NSSet	*imageExtensions = nil;
 
-	if (!audioExtensions) {
+	if (!audioExtensions)
 		audioExtensions = [[NSSet alloc] initWithObjects:@"aif", @"aiff", @"wav", @"mp3", @"m4a", @"caf", @"au", @"snd", nil];
-		imageExtensions = [[NSSet alloc] initWithObjects:@"png", @"tiff", @"tif", @"gif", @"jpg", @"jpeg", @"pdf", nil];
-	}
 
 	NSString	*type = [xtraInfo type];
 	NSString	*path = [xtraInfo path];
@@ -758,11 +755,27 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 		one = AILocalizedString(@"1 script", "An Xtra holding a single script");
 		many = AILocalizedString(@"%li scripts", "How many scripts an Xtra holds");
 
-	} else if ([type isEqualToString:@"adiumicon"] || [type hasSuffix:@"icons"]) {
-		count = AIFileCountUnder(path, imageExtensions);
-		one = AILocalizedString(@"1 icon", "An Xtra holding a single icon");
-		many = AILocalizedString(@"%li icons", "How many icons an Xtra holds");
+	} else if ([type isEqualToString:@"adiumserviceicons"] || [type isEqualToString:@"adiumstatusicons"]) {
+		/* Counted from the list that names them, not from the images: a set carrying one picture per
+		 * service in two sizes has twice as many files as it has services. */
+		NSString		*listPath = [path stringByAppendingPathComponent:@"Icons.plist"];
+		NSDictionary	*list = [NSDictionary dictionaryWithContentsOfFile:listPath];
+
+		count = [[list objectForKey:@"List"] count];
+
+		if ([type isEqualToString:@"adiumserviceicons"]) {
+			one = AILocalizedString(@"1 service", "A service icon set covering a single service");
+			many = AILocalizedString(@"%li services", "How many services a service icon set covers");
+		} else {
+			one = AILocalizedString(@"1 status", "A status icon set covering a single status");
+			many = AILocalizedString(@"%li statuses", "How many statuses a status icon set covers");
+		}
 	}
+
+	/* Deliberately not counted: dock icons and menu bar icons. Their files are the states of one
+	 * symbol, awake, away, idle and so on, in one and two times the resolution, so counting them
+	 * would announce fourteen symbols where there is one. A dock icon names its creator instead,
+	 * and a menu bar icon set has nothing to say that is not already on the row. */
 
 	if (count < 1)
 		return nil;

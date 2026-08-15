@@ -229,14 +229,17 @@
 /* How many emoticons an Xtra holds */
 "%li emoticons" = "%li emoticons";
 
-/* How many icons an Xtra holds */
-"%li icons" = "%li icons";
-
 /* How many scripts an Xtra holds */
 "%li scripts" = "%li scripts";
 
+/* How many services a service icon set covers */
+"%li services" = "%li services";
+
 /* How many sounds an Xtra holds */
 "%li sounds" = "%li sounds";
+
+/* How many statuses a status icon set covers */
+"%li statuses" = "%li statuses";
 
 /* How many variants a message style offers */
 "%li variants" = "%li variants";
@@ -394,9 +397,6 @@
 /* No comment provided by engineer. */
 "1 hour" = "1 hour";
 
-/* An Xtra holding a single icon */
-"1 icon" = "1 icon";
-
 /* No comment provided by engineer. */
 "1 matching transcript" = "1 matching log";
 
@@ -406,8 +406,14 @@
 /* An Xtra holding a single script */
 "1 script" = "1 script";
 
+/* A service icon set covering a single service */
+"1 service" = "1 service";
+
 /* An Xtra holding a single sound */
 "1 sound" = "1 sound";
+
+/* A status icon set covering a single status */
+"1 status" = "1 status";
 
 /* No comment provided by engineer. */
 "1 transcript" = "1 log";
