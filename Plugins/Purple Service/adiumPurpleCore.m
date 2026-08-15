@@ -28,7 +28,6 @@
 #import "adiumPurpleRequest.h"
 #import "adiumPurpleRoomlist.h"
 #import "adiumPurpleSignals.h"
-#import "adiumPurpleWebcam.h"
 #import "adiumPurpleCertificateTrustWarning.h"
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>

@@ -5,9 +5,6 @@
 "%@ (%@) Setup" = "%1$@ (%2$@) Setup";
 
 /* No comment provided by engineer. */
-"%@ has %u new messages." = "%1$@ has %2$u new messages.";
-
-/* No comment provided by engineer. */
 "%@ has 1 new message." = "%@ has 1 new message.";
 
 /* No comment provided by engineer. */
@@ -38,9 +35,6 @@
 "Adium could not find any information in the user's profile. This may not be a registered name." = "Adium could not find any information in the user's profile. This may not be a registered name.";
 
 /* No comment provided by engineer. */
-"Adium is authorized for Facebook Chat." = "Adium is authorised for Facebook Chat.";
-
-/* No comment provided by engineer. */
 "Adium Notice: %@" = "Adium Notice: %@";
 
 /* No comment provided by engineer. */
@@ -52,20 +46,8 @@
 /* No comment provided by engineer. */
 "Allow MSN Mobile pages?" = "Allow MSN Mobile pages?";
 
-/* Action menu item for MSN accounts to toggle whether Mobile pages [forwarding messages to a mobile device] are enabled */
-"Allow/Disallow Mobile Pages" = "Allow/Disallow Mobile Pages";
-
-/* No comment provided by engineer. */
-"Always Appear Offline to %@" = "Always Appear Offline to %@";
-
 /* No comment provided by engineer. */
 "An error was encountered sending the file." = "An error was encountered sending the file.";
-
-/* No comment provided by engineer. */
-"Appear Offline to %@" = "Appear Offline to %@";
-
-/* No comment provided by engineer. */
-"Appear Online to %@" = "Appear Online to %@";
 
 /* No comment provided by engineer. */
 "Authenticating" = "Authenticating";
@@ -91,17 +73,11 @@
 /* Category table column header for the service discovery browser */
 "Category" = "Category";
 
-/* No comment provided by engineer. */
-"Change Currently Registered Email Address" = "Change Currently Registered Email Address";
-
 /* Menu item title for changing the password of an account */
 "Change Password" = "Change Password";
 
 /* No comment provided by engineer. */
 "Conference service; double-click to join" = "Conference service; double-click to join";
-
-/* No comment provided by engineer. */
-"Configure IM Forwarding" = "Configure IM Forwarding";
 
 /* Button title to connect; this is a verb */
 "Connect" = "Connect";
@@ -116,19 +92,10 @@
 "Connection error." = "Connection error.";
 
 /* No comment provided by engineer. */
-"Connection established" = "Connection established";
-
-/* No comment provided by engineer. */
 "Contact list synchronization error for %@" = "Contact list synchronisation error for %@";
 
 /* No comment provided by engineer. */
-"Contacting authorization server" = "Contacting authorisation server";
-
-/* No comment provided by engineer. */
 "Continue" = "Continue";
-
-/* No comment provided by engineer. */
-"Could not complete authorization." = "Could not complete authorisation.";
 
 /* No comment provided by engineer. */
 "Delete" = "Delete";
@@ -151,12 +118,6 @@
 /* No comment provided by engineer. */
 "Devoice" = "Devoice";
 
-/* Direct IM is an AIM-specific phrase for transferring images in the message window */
-"Direct IM connected" = "Direct IM connected";
-
-/* Direct IM is an AIM-specific phrase for transferring images in the message window */
-"Direct IM disconnected" = "Direct IM disconnected";
-
 /* No comment provided by engineer. */
 "Directory service; double-click to search" = "Directory service; double-click to search";
 
@@ -167,13 +128,7 @@
 "Discovery Browser" = "Discovery Browser";
 
 /* No comment provided by engineer. */
-"Display Currently Registered Email Address" = "Display Currently Registered Email Address";
-
-/* No comment provided by engineer. */
 "Do you want to allow or disallow people on your buddy list to send you MSN Mobile pages to your cell phone or other mobile device?" = "Do you want to allow or disallow people on your buddy list to send you MSN Mobile pages to your cell phone or other mobile device?";
-
-/* No comment provided by engineer. */
-"Don't Always Appear Offline to %@" = "Don't Always Appear Offline to %@";
 
 /* Used as a label for a username specified by email address */
 "Email" = "Email";
@@ -182,28 +137,10 @@
 "Exchanging key hash" = "Exchanging key hash";
 
 /* No comment provided by engineer. */
-"Export Sametime List..." = "Export Sametime List...";
-
-/* No comment provided by engineer. */
-"Facebook Account Setup" = "Facebook Account Setup";
-
-/* Label for the username for a Facebook contact */
-"Facebook Email" = "Facebook Email";
-
-/* No comment provided by engineer. */
-"Facebook ID" = "Facebook ID";
-
-/* No comment provided by engineer. */
 "Fetching..." = "Fetching...";
 
 /* No comment provided by engineer. */
 "File Send Error" = "File Send Error";
-
-/* No comment provided by engineer. */
-"Finalizing connection" = "Finalising connection";
-
-/* No comment provided by engineer. */
-"Forcing Login" = "Forcing Login";
 
 /* Generic fields request window title */
 "Form" = "Form";
@@ -212,25 +149,7 @@
 "From: " = "From: ";
 
 /* No comment provided by engineer. */
-"Getting Cookie" = "Getting Cookie";
-
-/* No comment provided by engineer. */
 "GG Number" = "GG Number";
-
-/* No comment provided by engineer. */
-"GTalk ID" = "GTalk ID";
-
-/* No comment provided by engineer. */
-"Handshake Acknowledged; Sending Login" = "Handshake Acknowledged; Sending Login";
-
-/* No comment provided by engineer. */
-"Handshaking" = "Handshaking";
-
-/* No comment provided by engineer. */
-"ICQ Number" = "ICQ Number";
-
-/* No comment provided by engineer. */
-"Import Sametime List..." = "Import Sametime List...";
 
 /* Error message displayed when the server reports username or password as being incorrect. */
 "Incorrect username or password" = "Incorrect username or password";
@@ -240,12 +159,6 @@
 
 /* No comment provided by engineer. */
 "Initializing Stream" = "Initialising Stream";
-
-/* No comment provided by engineer. */
-"Initiate Conference with %@" = "Start Conference with %@";
-
-/* No comment provided by engineer. */
-"Initiate Direct IM with %@" = "Start Direct IM with %@";
 
 /* No comment provided by engineer. */
 "Initiate Multiuser Chat with %@" = "Start Multiuser Chat with %@";
@@ -266,40 +179,16 @@
 "Join" = "Join";
 
 /* No comment provided by engineer. */
-"Join %@'s Chat" = "Join %@'s Chat";
-
-/* No comment provided by engineer. */
 "Kick" = "Kick";
 
 /* No comment provided by engineer. */
 "Launch %@" = "Launch %@";
 
 /* No comment provided by engineer. */
-"LiveJournal ID" = "LiveJournal ID";
-
-/* Connection step */
-"Logging in" = "Logging in";
-
-/* No comment provided by engineer. */
-"Login Acknowledged" = "Login Acknowledged";
-
-/* No comment provided by engineer. */
-"Login Redirected" = "Login Redirected";
-
-/* No comment provided by engineer. */
 "Looking up server" = "Looking up server";
-
-/* No comment provided by engineer. */
-"Member Name" = "Member Name";
 
 /* user mood tooltip title */
 "Mood" = "Mood";
-
-/* No comment provided by engineer. */
-"MSN Passport" = "MSN Passport";
-
-/* Label for the username for a MySpace contact */
-"MySpace ID" = "MySpace ID";
 
 /* Name table column header for the service discovery browser */
 "Name" = "Name";
@@ -341,22 +230,10 @@
 "Parse Error." = "Parse Error.";
 
 /* No comment provided by engineer. */
-"Password sent" = "Password sent";
-
-/* No comment provided by engineer. */
 "Ping %@" = "Ping %@";
 
 /* No comment provided by engineer. */
-"Presence Settings for %@" = "Presence Settings for %@";
-
-/* No comment provided by engineer. */
-"Promoting authorization for chat" = "Promoting authorisation for chat";
-
-/* No comment provided by engineer. */
 "Re-request Authorization from %@" = "Re-request Authorisation from %@";
-
-/* Description of a step in the connection process for MySpace. This could be translated as something like 'Reading from server'. */
-"Reading challenge" = "Reading challenge";
 
 /* Connection step */
 "Reading data" = "Reading data";
@@ -367,32 +244,14 @@
 /* No comment provided by engineer. */
 "Really remove gateway?" = "Really remove gateway?";
 
-/* No comment provided by engineer. */
-"Received authorization" = "Received authorisation";
-
 /* alert default button */
 "Remove" = "Remove";
 
 /* gateway menu item */
 "Remove gateway" = "Remove gateway";
 
-/* No comment provided by engineer. */
-"Requesting authorization" = "Requesting authorisation";
-
-/* No comment provided by engineer. */
-"Retrieving buddy list" = "Retrieving buddy list";
-
 /* Roster - the Jabber default group */
 "Roster" = "Roster";
-
-/* No comment provided by engineer. */
-"Screen Name" = "Screen Name";
-
-/* No comment provided by engineer. */
-"Screen name sent" = "Screen name sent";
-
-/* No comment provided by engineer. */
-"Search for Contact By Email Address" = "Search for Contact By Email Address";
 
 /* No comment provided by engineer. */
 "Search for Users" = "Search for Users";
@@ -406,26 +265,11 @@
 /* No comment provided by engineer. */
 "Send Message" = "Send Message";
 
-/* No comment provided by engineer. */
-"Send to %@'s Mobile" = "Send to %@'s Mobile";
-
-/* No comment provided by engineer. */
-"Sending Cookie" = "Sending Cookie";
-
-/* No comment provided by engineer. */
-"Sending Handshake" = "Sending Handshake";
-
 /* Window title for the service discovery browser */
 "Service Discovery Browser" = "Service Discovery Browser";
 
 /* No comment provided by engineer. */
 "Service:" = "Service:";
-
-/* No comment provided by engineer. */
-"Set Home Phone Number" = "Set Home Phone Number";
-
-/* No comment provided by engineer. */
-"Set Mobile Phone Number" = "Set Mobile Phone Number";
 
 /* No comment provided by engineer. */
 "Set Mood" = "Set Mood";
@@ -434,13 +278,7 @@
 "Set Nickname" = "Set Nickname";
 
 /* No comment provided by engineer. */
-"Set Privacy Options" = "Set Privacy Options";
-
-/* No comment provided by engineer. */
 "Set User Info" = "Set User Info";
-
-/* No comment provided by engineer. */
-"Set Work Phone Number" = "Set Work Phone Number";
 
 /* Title for the MSN display name setting dialogue box */
 "Set your friendly name." = "Set your friendly name.";
@@ -454,17 +292,8 @@
 /* Title for the dialogue prompting for your work phone number */
 "Set your work phone number." = "Set your work phone number.";
 
-/* Account action menu item to show a list of contacts for whom this account is awaiting authorization to be able to show them in the contact list */
-"Show Contacts Awaiting Authorization" = "Show Contacts Awaiting Authorisation";
-
 /* No comment provided by engineer. */
 "Show Server Certificate" = "Show Server Certificate";
-
-/* No comment provided by engineer. */
-"Starting authentication" = "Starting authentication";
-
-/* No comment provided by engineer. */
-"Starting Services" = "Starting Services";
 
 /* No comment provided by engineer. */
 "Subject: " = "Subject: ";
@@ -484,9 +313,6 @@
 /* No comment provided by engineer. */
 "The other user is temporarily unavailable." = "The other user is temporarily unavailable.";
 
-/* Invalid name on AIM */
-"The screen name you entered is not registered. Check to ensure you typed it correctly. If it is a new name, you must register it at www.aim.com before you can use it." = "The screen name you entered is not registered. Check to ensure you typed it correctly. If it is a new name, you must register it at www.aim.com before you can use it.";
-
 /* Description for the MSN display name setting dialogue. */
 "This is the name that other MSN buddies will see you as." = "This is the name that other MSN buddies will see you as.";
 
@@ -499,9 +325,6 @@
 /* No comment provided by engineer. */
 "This operation would remove the gateway %@ itself and all contacts belonging to the gateway on your contact list. It cannot be undone." = "This operation would remove the gateway %@ itself and all contacts belonging to the gateway on your contact list. It cannot be undone.";
 
-/* No comment provided by engineer. */
-"Transferring" = "Transferring";
-
 /* user tune tooltip title */
 "Tune" = "Tune";
 
@@ -512,16 +335,10 @@
 "Unable to parse the server list at %@. Please try again later." = "Unable to parse the server list at %@. Please try again later.";
 
 /* No comment provided by engineer. */
-"United States" = "United States";
-
-/* No comment provided by engineer. */
 "Unsubscribe %@" = "Unsubscribe %@";
 
 /* Sample name and server for new livejournal accounts */
 "username" = "username";
-
-/* Sample name and server for new gmail accounts */
-"username@gmail.com" = "username@gmail.com";
 
 /* Sample name and server for new Jabber accounts */
 "username@jabber.org" = "username@jabber.org";
@@ -533,16 +350,7 @@
 "View %@'s %@ web profile" = "View %1$@'s %2$@ web profile";
 
 /* No comment provided by engineer. */
-"View %@'s Webcam" = "View %@'s Webcam";
-
-/* No comment provided by engineer. */
 "Voice" = "Voice";
-
-/* No comment provided by engineer. */
-"Waiting for Handshake Acknowledgement" = "Waiting for Handshake Acknowledgement";
-
-/* No comment provided by engineer. */
-"Waiting for Login Acknowledgement" = "Waiting for Login Acknowledgement";
 
 /* No comment provided by engineer. */
 "Waiting for Response" = "Waiting for Response";
@@ -557,13 +365,7 @@
 "XML Console" = "XML Console";
 
 /* No comment provided by engineer. */
-"Yahoo! ID" = "Yahoo! ID";
-
-/* No comment provided by engineer. */
 "You are sending messages too quickly; wait a moment and try again." = "You are sending messages too quickly; wait a moment and try again.";
-
-/* No comment provided by engineer. */
-"You have %u new messages." = "You have %u new messages.";
 
 /* No comment provided by engineer. */
 "You have 1 new message." = "You have 1 new message.";

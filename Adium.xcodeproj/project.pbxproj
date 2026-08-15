@@ -336,8 +336,6 @@
 		3485DB2D09EBCE6500232CC4 /* adiumPurpleRoomlist.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BBE12907A2F09B00663CC9 /* adiumPurpleRoomlist.m */; };
 		3485DB2E09EBCE6500232CC4 /* adiumPurpleSignals.h in Headers */ = {isa = PBXBuildFile; fileRef = 34BBE1B807A2F4C500663CC9 /* adiumPurpleSignals.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB2F09EBCE6500232CC4 /* adiumPurpleSignals.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BBE1B907A2F4C500663CC9 /* adiumPurpleSignals.m */; };
-		3485DB3009EBCE6500232CC4 /* adiumPurpleWebcam.h in Headers */ = {isa = PBXBuildFile; fileRef = 34BBE18407A2F20E00663CC9 /* adiumPurpleWebcam.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3485DB3109EBCE6500232CC4 /* adiumPurpleWebcam.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BBE18507A2F20E00663CC9 /* adiumPurpleWebcam.m */; };
 		3485DB3709EBCE7400232CC4 /* PurpleService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34415A63059F9B9B0019246B /* PurpleService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3485DB3809EBCE7400232CC4 /* PurpleService.m in Sources */ = {isa = PBXBuildFile; fileRef = 34415A64059F9B9B0019246B /* PurpleService.m */; };
 		3485DB3909EBCE7400232CC4 /* CBPurpleAccount.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B7F278705440C8D00CDFC90 /* CBPurpleAccount.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -2164,8 +2162,6 @@
 		34BBE12907A2F09B00663CC9 /* adiumPurpleRoomlist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleRoomlist.m; path = "Plugins/Purple Service/adiumPurpleRoomlist.m"; sourceTree = "<group>"; };
 		34BBE17E07A2F10400663CC9 /* adiumPurpleConversation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleConversation.h; path = "Plugins/Purple Service/adiumPurpleConversation.h"; sourceTree = "<group>"; };
 		34BBE17F07A2F10400663CC9 /* adiumPurpleConversation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleConversation.m; path = "Plugins/Purple Service/adiumPurpleConversation.m"; sourceTree = "<group>"; };
-		34BBE18407A2F20E00663CC9 /* adiumPurpleWebcam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleWebcam.h; path = "Plugins/Purple Service/adiumPurpleWebcam.h"; sourceTree = "<group>"; };
-		34BBE18507A2F20E00663CC9 /* adiumPurpleWebcam.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleWebcam.m; path = "Plugins/Purple Service/adiumPurpleWebcam.m"; sourceTree = "<group>"; };
 		34BBE18A07A2F2A600663CC9 /* adiumPurpleEventloop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleEventloop.h; path = "Plugins/Purple Service/adiumPurpleEventloop.h"; sourceTree = "<group>"; };
 		34BBE18B07A2F2A600663CC9 /* adiumPurpleEventloop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleEventloop.m; path = "Plugins/Purple Service/adiumPurpleEventloop.m"; sourceTree = "<group>"; };
 		34BBE1B207A2F36400663CC9 /* adiumPurpleCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleCore.h; path = "Plugins/Purple Service/adiumPurpleCore.h"; sourceTree = "<group>"; };
@@ -4125,8 +4121,6 @@
 				34BBE12907A2F09B00663CC9 /* adiumPurpleRoomlist.m */,
 				34BBE1B807A2F4C500663CC9 /* adiumPurpleSignals.h */,
 				34BBE1B907A2F4C500663CC9 /* adiumPurpleSignals.m */,
-				34BBE18407A2F20E00663CC9 /* adiumPurpleWebcam.h */,
-				34BBE18507A2F20E00663CC9 /* adiumPurpleWebcam.m */,
 				811036230CDE8C2100EC6038 /* adiumPurpleCertificateTrustWarning.h */,
 				811036240CDE8C2100EC6038 /* adiumPurpleCertificateTrustWarning.m */,
 			);
@@ -6205,7 +6199,6 @@
 				3485DB2A09EBCE6500232CC4 /* adiumPurpleRequest.h in Headers */,
 				3485DB2C09EBCE6500232CC4 /* adiumPurpleRoomlist.h in Headers */,
 				3485DB2E09EBCE6500232CC4 /* adiumPurpleSignals.h in Headers */,
-				3485DB3009EBCE6500232CC4 /* adiumPurpleWebcam.h in Headers */,
 				3485DB3709EBCE7400232CC4 /* PurpleService.h in Headers */,
 				3485DB3909EBCE7400232CC4 /* CBPurpleAccount.h in Headers */,
 				3485DB5909EBCE7400232CC4 /* ESGaduGaduService.h in Headers */,
@@ -7078,7 +7071,6 @@
 				3485DB2B09EBCE6500232CC4 /* adiumPurpleRequest.m in Sources */,
 				3485DB2D09EBCE6500232CC4 /* adiumPurpleRoomlist.m in Sources */,
 				3485DB2F09EBCE6500232CC4 /* adiumPurpleSignals.m in Sources */,
-				3485DB3109EBCE6500232CC4 /* adiumPurpleWebcam.m in Sources */,
 				3485DB3809EBCE7400232CC4 /* PurpleService.m in Sources */,
 				3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */,
 				3485DB5A09EBCE7400232CC4 /* ESGaduGaduService.m in Sources */,
