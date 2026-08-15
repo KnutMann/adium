@@ -365,6 +365,7 @@
 		ADD1E5C0DE00000000000752 /* AIPurpleGenericAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000751 /* AIPurpleGenericAccountViewController.m */; };
 		ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */; };
 		ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */; };
+		ADD1E5C0DE00000000000792 /* AIPurpleLegacyOptionKeys.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000791 /* AIPurpleLegacyOptionKeys.plist */; };
 		ADD1E5C0DE00000000001006 /* ESPurpleGaduGaduAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */; };
 		3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */; };
 		3485DB6409EBCE7400232CC4 /* ESJabberService.h in Headers */ = {isa = PBXBuildFile; fileRef = 34416171059FC55A0019246B /* ESJabberService.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1725,6 +1726,7 @@
 		ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccount.m; path = "Plugins/Purple Service/AIPurpleGenericAccount.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericAccount.h; path = "Plugins/Purple Service/AIPurpleGenericAccount.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AIPurpleServiceDescriptors.plist; path = "Plugins/Purple Service/AIPurpleServiceDescriptors.plist"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000791 /* AIPurpleLegacyOptionKeys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AIPurpleLegacyOptionKeys.plist; path = "Plugins/Purple Service/AIPurpleLegacyOptionKeys.plist"; sourceTree = "<group>"; };
 		34416171059FC55A0019246B /* ESJabberService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESJabberService.h; path = "Plugins/Purple Service/ESJabberService.h"; sourceTree = "<group>"; };
 		34416172059FC55A0019246B /* ESJabberService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESJabberService.m; path = "Plugins/Purple Service/ESJabberService.m"; sourceTree = "<group>"; };
 		344161BB0943E0D800BC26ED /* AdiumSetupWizard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumSetupWizard.h; path = Source/AdiumSetupWizard.h; sourceTree = "<group>"; };
@@ -3517,6 +3519,7 @@
 				ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */,
 				ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */,
 				ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */,
+				ADD1E5C0DE00000000000791 /* AIPurpleLegacyOptionKeys.plist */,
 				ADD1E5C0DE00000000001005 /* ESPurpleGaduGaduAccountView.xib */,
 				4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */,
 			);
@@ -6699,6 +6702,7 @@
 				ADD1E5C0DE0000000000100A /* ESPurpleSimpleAccountView.xib in Resources */,
 				3485DBA109EBCE7400232CC4 /* PurpleDefaultsSimple.plist in Resources */,
 				ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */,
+				ADD1E5C0DE00000000000792 /* AIPurpleLegacyOptionKeys.plist in Resources */,
 				3485DBC309EBCE7400232CC4 /* PurpleMultilineRequestWindow.xib in Resources */,
 				3485DBC409EBCE7400232CC4 /* PurpleSinglelineRequestWindow.xib in Resources */,
 				3485DBD009EBCE8200232CC4 /* Localizable.strings in Resources */,

@@ -122,28 +122,12 @@
 #pragma mark Its own fields, as rows
 
 /*!
- * @brief IRC has a nib, but only for four more fields
- *
- * So it lays out the shared ones as rows like everyone else and adds its own after them, rather than
- * having its whole view hosted because of four controls.
- */
-- (BOOL)usesSharedAccountViews
-{
-	return YES;
-}
-
-- (void)addAccountRowsToForm:(AISettingsFormView *)form
-{
-	[super addAccountRowsToForm:form];
-
-	[self addRow:form control:textField_username label:label_username fallback:AILocalizedString(@"Username", nil)];
-	[self addRow:form control:textField_realname label:label_realname fallback:AILocalizedString(@"Real Name", nil)];
-	[self addSwitchRow:form checkBox:checkbox_useSSL label:AILocalizedString(@"Connect using SSL", "IRC account row: whether to connect over SSL")];
-	[self addRow:form control:popUp_encoding label:label_encoding fallback:AILocalizedString(@"Encoding", nil)];
-}
-
-/*!
  * @brief The commands to send after connecting
+ *
+ * The only thing on this page the protocol knows nothing about: it is Adium that sends these, so it
+ * is Adium that has to ask for them. Username, real name, SSL and the encoding are gone from here
+ * because irc.c declares every one of them, along with SASL and a quit message that this nib never
+ * offered at all.
  *
  * A text view rather than a field, so it gets a row of its own with the label above it, the way the
  * other multi line settings in this application are laid out.

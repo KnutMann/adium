@@ -270,6 +270,53 @@
 	return [NSString stringWithFormat:@"%s:%s", [(CBPurpleAccount *)account protocolPlugin], setting];
 }
 
+/*!
+ * @brief Every purple service lays its fields out as rows
+ *
+ * A nib of its own used to mean its whole view was hosted, which is how five services kept hand
+ * drawn fields for options their protocol had been declaring all along. The protocol is asked
+ * instead, and it knows more than any of those nibs did.
+ */
+- (BOOL)usesSharedAccountViews
+{
+	return YES;
+}
+
+/*!
+ * @brief What this option used to be stored under, if it was stored anywhere else
+ *
+ * Purely a move: read once, written where the option lives now, and the old key is left alone so
+ * that going back a version loses nothing.
+ */
+- (id)legacyValueForSetting:(const char *)setting
+{
+	static NSDictionary *legacyKeys = nil;
+	if (!legacyKeys) {
+		NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"AIPurpleLegacyOptionKeys"
+																		  ofType:@"plist"];
+		legacyKeys = [[NSDictionary alloc] initWithContentsOfFile:path];
+	}
+
+	NSDictionary *forProtocol = [legacyKeys objectForKey:[NSString stringWithUTF8String:[(CBPurpleAccount *)account protocolPlugin]]];
+	if (!forProtocol)
+		return nil;
+
+	NSString *wanted = [NSString stringWithUTF8String:setting];
+
+	for (NSString *oldKey in forProtocol) {
+		if (![[forProtocol objectForKey:oldKey] isEqualToString:wanted])
+			continue;
+
+		id value = [account preferenceForKey:oldKey group:GROUP_ACCOUNT_STATUS];
+		if (value) {
+			[account setPreference:value forKey:[self preferenceKeyForSetting:setting] group:GROUP_ACCOUNT_STATUS];
+			return value;
+		}
+	}
+
+	return nil;
+}
+
 - (BOOL)hasProtocolOptions
 {
 	PurplePlugin *prpl = purple_plugins_find_with_id([(CBPurpleAccount *)account protocolPlugin]);
@@ -302,6 +349,8 @@
 										  : [NSString stringWithUTF8String:setting];
 		NSString *key = [self preferenceKeyForSetting:setting];
 		id stored = [account preferenceForKey:key group:GROUP_ACCOUNT_STATUS];
+		if (!stored)
+			stored = [self legacyValueForSetting:setting];
 
 		switch (purple_account_option_get_type(option)) {
 			case PURPLE_PREF_BOOLEAN: {
