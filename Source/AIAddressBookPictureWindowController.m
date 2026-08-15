@@ -54,6 +54,8 @@ static AIAddressBookPictureWindowController *sharedController = nil;
 - (void)stepPicture:(id)sender;
 - (void)applyFilter;
 - (void)filterChanged:(id)sender;
+- (void)rebuild;
+- (void)addressBookChanged:(NSNotification *)notification;
 @end
 
 @implementation AIAddressBookPictureWindowController
@@ -77,13 +79,65 @@ static AIAddressBookPictureWindowController *sharedController = nil;
 	if ((self = [super initWithWindow:nil])) {
 		entries = [[NSMutableArray alloc] init];
 		[self buildWindow];
+
+		/* The Contacts app writes to the same database and says so when it does, which matters here
+		 * more than anywhere: this window exists to compare two pictures, and comparing against one
+		 * that has since been replaced next door is worse than showing none. */
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(addressBookChanged:)
+													 name:kABDatabaseChangedExternallyNotification
+												   object:nil];
 	}
 
 	return self;
 }
 
+/*!
+ * @brief Somebody changed the address book from outside Adium
+ *
+ * After the current round of notifications rather than during it: the address book controller is
+ * listening for the same one and rebuilds what it knows about which card belongs to whom, and the
+ * list here is built from exactly that.
+ */
+- (void)addressBookChanged:(NSNotification *)notification
+{
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(rebuild) object:nil];
+	[self performSelector:@selector(rebuild) withObject:nil afterDelay:0.0];
+}
+
+/*!
+ * @brief Build the list again, keeping whoever was selected selected
+ */
+- (void)rebuild
+{
+	NSDictionary	*wasSelected = [self selectedEntry];
+	NSString		*uniqueID = [[wasSelected objectForKey:ENTRY_PERSON] uniqueId];
+
+	[self buildEntries];
+	[self applyFilter];
+	[table reloadData];
+
+	if (uniqueID) {
+		NSUInteger index = 0;
+
+		for (NSDictionary *entry in shown) {
+			if ([[[entry objectForKey:ENTRY_PERSON] uniqueId] isEqualToString:uniqueID]) {
+				[table selectRowIndexes:[NSIndexSet indexSetWithIndex:index] byExtendingSelection:NO];
+				[table scrollRowToVisible:index];
+				break;
+			}
+			index++;
+		}
+	}
+
+	[self updateSides];
+}
+
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+
 	[entries release];
 	[shown release];
 	[super dealloc];

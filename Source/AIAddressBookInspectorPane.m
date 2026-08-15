@@ -40,6 +40,9 @@
 - (void)filterChanged:(id)sender;
 - (void)performAction:(id)sender;
 - (void)updateState;
+- (void)loadPeople;
+- (void)reloadCards;
+- (void)addressBookChanged:(NSNotification *)notification;
 @end
 
 @implementation AIAddressBookInspectorPane
@@ -68,13 +71,47 @@ static NSString *AICardName(ABPerson *person)
 {
 	if ((self = [super init])) {
 		[self buildView];
+
+		/* The Contacts app writes to the same database, and says so when it does. Without this the
+		 * list would show whatever was there when the window opened, which for a pane that stays
+		 * open while somebody edits a card next door is exactly the wrong moment to be stale. */
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(addressBookChanged:)
+													 name:kABDatabaseChangedExternallyNotification
+												   object:nil];
 	}
 
 	return self;
 }
 
+/*!
+ * @brief Somebody changed the address book from outside Adium
+ *
+ * Done after the current round of notifications rather than during it, because the address book
+ * controller is listening for the same one and rebuilds what it knows; asking it anything while
+ * that is still going on would be asking too early.
+ */
+- (void)addressBookChanged:(NSNotification *)notification
+{
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(reloadCards) object:nil];
+	[self performSelector:@selector(reloadCards) withObject:nil afterDelay:0.0];
+}
+
+- (void)reloadCards
+{
+	if (!displayedObject) return;
+
+	[self loadPeople];
+	[self applyFilter];
+	[table reloadData];
+	[self updateState];
+}
+
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+
 	[displayedObject release];
 	[people release];
 	[shown release];
@@ -216,6 +253,17 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	return ([[displayedObject preferenceForKey:KEY_AB_UNIQUE_ID group:PREF_GROUP_ADDRESSBOOK] length] != 0);
 }
 
+/*!
+ * @brief Every card, once, sorted the way the list will show them
+ */
+- (void)loadPeople
+{
+	[people release];
+	people = [[[[ABAddressBook sharedAddressBook] people] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+		return [AICardName(a) localizedCaseInsensitiveCompare:AICardName(b)];
+	}] retain];
+}
+
 - (void)updateForListObject:(AIListObject *)inObject
 {
 	//The card belongs to the person, not to one of their accounts
@@ -228,11 +276,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 
 	choosing = NO;
 
-	//Every card, once, sorted the way the list will show them
-	[people release];
-	people = [[[[ABAddressBook sharedAddressBook] people] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-		return [AICardName(a) localizedCaseInsensitiveCompare:AICardName(b)];
-	}] retain];
+	[self loadPeople];
 
 	[filterField setStringValue:@""];
 	[self applyFilter];
