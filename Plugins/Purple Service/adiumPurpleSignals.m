@@ -56,16 +56,6 @@ static void buddy_event_cb(PurpleBuddy *buddy, PurpleBuddyEvent event)
 				break;
 			}
 
-			case PURPLE_BUDDY_EVIL: {
-				updateSelector = @selector(updateEvil:withData:);
-				//This is an update of the AIM Warning Level. We really, really don't care.
-				/*
-				if (buddy->evil) {
-					data = [NSNumber numberWithInt:buddy->evil];
-				}
-				 */
-				break;
-			}
 			case PURPLE_BUDDY_ICON: {
 				PurpleBuddyIcon *buddyIcon = purple_buddy_get_icon(buddy);
 				updateSelector = @selector(updateIcon:withData:);

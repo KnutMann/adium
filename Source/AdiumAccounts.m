@@ -286,43 +286,20 @@
 										   range:NSMakeRange(0, [newServiceID length])];
 		serviceID = [newServiceID autorelease];
 
-	} else if ([serviceID hasSuffix:@"LIBGAIM"]) {
-		if ([serviceID isEqualToString:@"AIM-LIBGAIM"]) {
-			NSString 	*uid = [accountDict objectForKey:ACCOUNT_UID];
-			if (uid && [uid length]) {
-				const char	firstCharacter = [uid characterAtIndex:0];
-				
-				if ([uid hasSuffix:@"@mac.com"]) {
-					serviceID = @"libpurple-oscar-Mac";
-				} else if (firstCharacter >= '0' && firstCharacter <= '9') {
-					serviceID = @"libpurple-oscar-ICQ";
-				} else {
-					serviceID = @"libpurple-oscar-AIM";
-				}
-			}
-		} else if ([serviceID isEqualToString:@"GaduGadu-LIBGAIM"]) {
-			serviceID = @"libpurple-Gadu-Gadu";
-		} else if ([serviceID isEqualToString:@"Jabber-LIBGAIM"]) {
-			serviceID = @"libpurple-Jabber";
-		} else if ([serviceID isEqualToString:@"MSN-LIBGAIM"]) {
-			serviceID = @"libpurple-MSN";
-		} else if ([serviceID isEqualToString:@"Napster-LIBGAIM"]) {
-			serviceID = @"libpurple-Napster";
-		} else if ([serviceID isEqualToString:@"Novell-LIBGAIM"]) {
-			serviceID = @"libpurple-GroupWise";
-		} else if ([serviceID isEqualToString:@"Sametime-LIBGAIM"]) {
-			serviceID = @"libpurple-Sametime";
-		} else if ([serviceID isEqualToString:@"Yahoo-LIBGAIM"]) {
-			serviceID = @"libpurple-Yahoo!";
-		} else if ([serviceID isEqualToString:@"Yahoo-Japan-LIBGAIM"]) {
-			serviceID = @"libpurple-Yahoo!-Japan";
-		}
-	} else if ([serviceID isEqualToString:@"rvous-libezv"])
+	/* The names an account was filed under before Adium 1.0. Only the ones naming a service that
+	 * still exists are translated; an account of any other kind ends up in unloadableAccounts
+	 * whether it was renamed first or not, and is written back out untouched either way, so
+	 * translating it changed nothing except which name it was refused under.
+	 */
+	} else if ([serviceID isEqualToString:@"GaduGadu-LIBGAIM"]) {
+		serviceID = @"libpurple-Gadu-Gadu";
+	} else if ([serviceID isEqualToString:@"Jabber-LIBGAIM"]) {
+		serviceID = @"libpurple-Jabber";
+	} else if ([serviceID isEqualToString:@"Novell-LIBGAIM"]) {
+		serviceID = @"libpurple-GroupWise";
+	} else if ([serviceID isEqualToString:@"rvous-libezv"]) {
 		serviceID = @"bonjour-libezv";
-	else if ([serviceID isEqualToString:@"joscar-OSCAR-AIM"])
-		serviceID = @"libpurple-oscar-AIM";
-	else if ([serviceID isEqualToString:@"joscar-OSCAR-dotMac"])
-		serviceID = @"libpurple-oscar-Mac";
+	}
 	
 	return serviceID;
 }

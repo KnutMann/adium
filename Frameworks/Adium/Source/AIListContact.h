@@ -88,8 +88,6 @@
 - (void)setIdle:(BOOL)isIdle sinceDate:(NSDate *)idleSinceDate notify:(NotifyTiming)notify;
 - (void)setServersideIconData:(NSData *)iconData notify:(NotifyTiming)notify;
 
-- (void)setWarningLevel:(NSInteger)warningLevel notify:(NotifyTiming)notify;
-- (NSInteger)warningLevel;
 
 - (void)setProfileArray:(NSArray *)array notify:(NotifyTiming)notify;
 - (void)setProfile:(NSAttributedString *)profile notify:(NotifyTiming)notify;

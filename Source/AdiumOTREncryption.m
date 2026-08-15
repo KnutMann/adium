@@ -648,9 +648,6 @@ int max_message_size_cb(void *opdata, ConnContext *context)
 	static NSDictionary *maxSizeByServiceClassDict = nil;
 	if (!maxSizeByServiceClassDict) {
 		maxSizeByServiceClassDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-									 [NSNumber numberWithInteger:2343], @"AIM-compatible",
-									 [NSNumber numberWithInteger:1409], @"MSN",
-									 [NSNumber numberWithInteger:832], @"Yahoo!",
 									 [NSNumber numberWithInteger:1999], @"Gadu-Gadu",
 									 [NSNumber numberWithInteger:417], @"IRC",
 									 nil];

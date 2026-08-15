@@ -256,40 +256,12 @@ static void adiumPurpleConvWriteConv(PurpleConversation *conv, const char *who, 
 		
 		AILog(@"*** Conversation error %@: %@", chat, messageString);
 	} else {
+		/* What stood here caught the notices of a Direct IM, OSCAR's peer to peer conversation, and
+		 * either turned them into a contact event or swallowed them. None of the six messages it
+		 * matched exists in any protocol Adium still ships, so nothing was ever caught, and the last
+		 * of them was matched against untranslated English anyway.
+		 */
 		BOOL				shouldDisplayMessage = TRUE;
-		if (strcmp(message, _("Direct IM established")) == 0) {
-			[accountLookup(purple_conversation_get_account(conv)) updateContact:chat.listObject
-											   forEvent:[NSNumber numberWithInteger:PURPLE_BUDDY_DIRECTIM_CONNECTED]];
-			shouldDisplayMessage = FALSE;
-			
-		} else {
-			BOOL isClosingDirectIM = FALSE;
-			if ((strcmp(message, _("The remote user has closed the connection.")) == 0) ||
-				(strcmp(message, _("The remote user has declined your request.")) == 0) ||
-				(strcmp(message, _("Received invalid data on connection with remote user.")) == 0) ||
-				(strcmp(message, _("Could not establish a connection with the remote user.")) == 0)) {
-				isClosingDirectIM = TRUE;
-			}
-			
-			if (!isClosingDirectIM) {
-				//Only works in English - XXX fix me!
-				if ([messageString rangeOfString:@"Lost connection with the remote user:"].location != NSNotFound) {
-					isClosingDirectIM = TRUE;
-				}
-			}
-			
-			if (isClosingDirectIM) {
-				if (strcmp(message, _("The remote user has closed the connection.")) != 0) {
-					//Display the message if it's not just the one for the other guy closing it...
-					[adium.contentController displayEvent:messageString
-												   ofType:@"directIMDisconnected"
-												   inChat:chat];
-				}
-				
-				[accountLookup(purple_conversation_get_account(conv)) updateContact:chat.listObject forEvent:[NSNumber numberWithInteger:PURPLE_BUDDY_DIRECTIM_DISCONNECTED]];
-				shouldDisplayMessage = FALSE;
-			}
-		}
 
 		if (shouldDisplayMessage) {
 			CBPurpleAccount *account = accountLookup(purple_conversation_get_account(conv));

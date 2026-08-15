@@ -135,7 +135,6 @@
 					  isMobile:(BOOL)isMobile;
 - (NSString *)statusNameForPurpleBuddy:(PurpleBuddy *)b;
 - (NSAttributedString *)statusMessageForPurpleBuddy:(PurpleBuddy *)b;
-- (void)updateEvil:(AIListContact *)theContact withData:(NSNumber *)evilNumber;
 - (void)updateIcon:(AIListContact *)theContact withData:(NSData *)userIconData;
 
 - (void)removeContact:(AIListContact *)theContact;

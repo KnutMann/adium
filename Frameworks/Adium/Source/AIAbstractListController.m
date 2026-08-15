@@ -886,18 +886,13 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		//Filled for every contact, whether or not its service has a URL scheme
 		NSMutableArray *textLines = [NSMutableArray arrayWithCapacity:[items count]];
 
-		//XXX This should be read in from a plist file at some point.
+		/* Nine of the ten entries here named services Adium no longer has, so copying anybody who is
+		 * not on Jabber found no scheme and logged a complaint. IRC is the other one with an address
+		 * form worth writing down; the rest identify people by a number or an opaque handle that no
+		 * scheme takes. */
 		NSDictionary *URLFormats = [NSDictionary dictionaryWithObjectsAndKeys:
-			@"aim://goim?screenname=%@", @"AIM",
-			@"aim://goim?screenname=%@", @"Mac", //.Mac
-			@"aim://goim?screenname=%@", @"MobileMe",
 			@"xmpp:%@?message", @"Jabber",
-			@"xmpp:%@?message", @"GTalk",
-			@"xmpp:%@?message", @"LiveJournal",
-			@"xmpp:%@?message", @"Gizmo",
-			@"msn://%@", @"MSN",
-			@"ymsgr://im?to=%@", @"Yahoo!",
-			@"ymsgr://im?to=%@", @"Yahoo! Japan",
+			@"irc://%@", @"IRC",
 			nil];
 
 		NSEnumerator *itemsEnum = [items objectEnumerator];

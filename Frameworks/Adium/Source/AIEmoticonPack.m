@@ -352,16 +352,12 @@
 			default: break;
 		}
 		
+		/* Only what the pack declares. Guessing a service class from the pack's name filled in
+		 * AIM-compatible, MSN or Yahoo!, none of which is a service class any more, so the guess
+		 * could only ever produce a class no account belongs to. A pack that names none simply has
+		 * none, which is what the tie breaker in the emoticon controller expects.
+		 */
 		serviceClass = [[infoDict objectForKey:EMOTICON_SERVICE_CLASS] retain];
-		if (!serviceClass) {
-			if ([name rangeOfString:@"AIM"].location != NSNotFound) {
-				serviceClass = [@"AIM-compatible" retain];
-			} else if ([name rangeOfString:@"MSN"].location != NSNotFound) {
-				serviceClass = [@"MSN" retain];
-			} else if ([name rangeOfString:@"Yahoo"].location != NSNotFound) {
-				serviceClass = [@"Yahoo!" retain];
-			}
-		}
 	}
 	
 	//Sort the emoticons in this pack using the AIEmoticon compare: selector

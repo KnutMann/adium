@@ -444,30 +444,6 @@
 	[AIUserIcons setServersideIconData:iconData forObject:self notify:notify];
 }
 
-/*!
- * @brief Set the warning level
- *
- * @param warningLevel The warning level, an integer between 0 and 100
- * @param notify The NotifyTiming
- */
-- (void)setWarningLevel:(NSInteger)warningLevel notify:(NotifyTiming)notify
-{
-	if (warningLevel != self.warningLevel) {
-		[self setValue:[NSNumber numberWithInteger:warningLevel]
-					   forProperty:@"Warning"
-					   notify:notify];
-	}
-}
-
-/*!
- * @brief Warning level
- *
- * @result The warning level, an integer between 0 and 100
- */
-- (NSInteger)warningLevel
-{
-	return [self integerValueForProperty:@"Warning"];
-}
 
 /*!
  * @brief Set the profile array

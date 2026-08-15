@@ -329,14 +329,6 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 }
 	
 //Evil level (warning level)
-- (void)updateEvil:(AIListContact *)theContact withData:(NSNumber *)evilNumber
-{
-	[theContact setWarningLevel:[evilNumber integerValue]
-						 notify:NotifyLater];
-
-	//Apply any changes
-	[theContact notifyOfChangedPropertiesSilently:silentAndDelayed];
-}
 
 
 - (void)clearIconForContact:(AIListContact *)theContact

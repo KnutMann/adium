@@ -321,25 +321,6 @@ void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *
 
 #pragma mark Lookup functions
 
-static NSString* serviceClassForPurpleProtocolID(const char *protocolID)
-{
-	NSString	*serviceClass = nil;
-	if (protocolID) {
-		if (!strcmp(protocolID, "prpl-gg"))
-			serviceClass = @"Gadu-Gadu";
-		else if (!strcmp(protocolID, "prpl-jabber"))
-			serviceClass = @"Jabber";
-		else if (!strcmp(protocolID, "prpl-msn"))
-			serviceClass = @"MSN";
-		else if (!strcmp(protocolID, "prpl-novell"))
-			serviceClass = @"GroupWise";
-		else if (!strcmp(protocolID, "prpl-yahoo"))
-			serviceClass = @"Yahoo!";
-	}
-	
-	return serviceClass;
-}
-
 /*
  * Finds an instance of CBPurpleAccount for a pointer to a PurpleAccount struct.
  */
@@ -350,12 +331,18 @@ CBPurpleAccount* accountLookup(PurpleAccount *account)
 	 * lookup data, we have to do some manual parsing.  This is used for example from the OTR preferences.
 	 */
 	if (!adiumPurpleAccount && account) {
+		/* Matched on the protocol each account names for itself, which every one of them knows,
+		 * rather than on a table translating protocol ids into service classes. That table listed
+		 * six protocols, of which three had been removed from Adium and none of the five it has
+		 * gained since was in it, so this lookup simply failed for WhatsApp, Telegram, Signal,
+		 * Teams and IRCv3.
+		 */
 		const char	*protocolID = account->protocol_id;
-		NSString	*serviceClass = serviceClassForPurpleProtocolID(protocolID);
 
 		for (adiumPurpleAccount in adium.accountController.accounts) {
 			if ([adiumPurpleAccount isKindOfClass:[CBPurpleAccount class]] &&
-			   [adiumPurpleAccount.service.serviceClass isEqualToString:serviceClass] &&
+			   [adiumPurpleAccount protocolPlugin] && protocolID &&
+			   !strcmp([adiumPurpleAccount protocolPlugin], protocolID) &&
 			   [adiumPurpleAccount.UID caseInsensitiveCompare:[NSString stringWithUTF8String:account->username]] == NSOrderedSame) {
 				break;
 			}
@@ -1275,33 +1262,6 @@ static void purpleUnregisterCb(PurpleAccount *account, gboolean success, void *u
 					// Perform the add to the new group. This will turn into a move, and will update serverside.
 					AILog(@"Buddy %p (%@) moving serverside to %@", buddy, objectUID, groupName);
 
-    			if (strcmp(purple_account_get_protocol_id(account), "prpl-yahoo") == 0) {
-    				/* XXX File a bug report with the need for this special-case w/ libpurple -evands 10/14/10 */
-
-    				/* Work around a Yahoo! bug in which buddies in multiple groups can't be moved properly.
-    				 *
-    				 * Traverse all buddies on this account.
-    				 * If the buddy is in the old group (it must be, for us to reach this point given the if
-    				 * statement above) and is also in another group, we need to remove it from the old group before
-    				 * this move. Otherwise, it won't work. However, if we remove it from the old group and it *isn't* in 
-    				 * another group already, Yahoo will force reauthorization, which is ugly.  */
-    				GSList	*buddies = purple_find_buddies(account, [objectUID UTF8String]);
-    				
-    				BOOL isInGroupBesidesOldGroup = NO;
-    				for (GSList	*bb = buddies; bb != NULL; bb = bb->next) {
-    					PurpleBuddy *aBuddy = (PurpleBuddy *)bb->data;
-    					if (purple_buddy_get_group(aBuddy) != oldGroup) {
-    						isInGroupBesidesOldGroup = YES;
-    					}
-    				}
-
-    				if (isInGroupBesidesOldGroup) {
-    					purple_account_remove_buddy(account, buddy, oldGroup);
-    					AILog(@"Removed because it met the Yahoo! workaround criteria");
-    				}
-
-    			}
-    			
 					purple_blist_add_buddy(buddy, NULL, group, NULL);
 					// Continue so we avoid the "add to group" code below.
 					continue;

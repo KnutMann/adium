@@ -52,9 +52,6 @@ typedef enum
 	PURPLE_BUDDY_ICON				= 0x40, /**< The buddy's icon changed.     */
 	PURPLE_BUDDY_MISCELLANEOUS		= 0x80, /**< The buddy's service-specific miscalleneous info changed.     */
 	PURPLE_BUDDY_SIGNON_TIME		= 0x11, /**< The buddy's signon time changed.     */
-	PURPLE_BUDDY_EVIL				= 0x12,  /**< The buddy's warning level changed.     */
-	PURPLE_BUDDY_DIRECTIM_CONNECTED = 0x14, /**< Connected to the buddy via DirectIM.  */
-	PURPLE_BUDDY_DIRECTIM_DISCONNECTED = 0x18, /**< Disconnected from the buddy via DirectIM.  */
 	PURPLE_BUDDY_NAME				= 0x20 /**<Buddy name (UID) changed. */
 	
 } PurpleBuddyEvent;

@@ -1341,7 +1341,7 @@
 	static NSSet *_contactProperties = nil;
 	
 	if (!_contactProperties)
-		_contactProperties = [[NSSet alloc] initWithObjects:@"isOnline",@"Warning",@"idleSince",
+		_contactProperties = [[NSSet alloc] initWithObjects:@"isOnline",@"idleSince",
 							  @"idle",@"isIdle",@"Signon Date",@"listObjectStatusName",@"listObjectStatusType",@"listObjectStatusMessage",@"Client",KEY_TYPING,nil];
 	
 	return _contactProperties;

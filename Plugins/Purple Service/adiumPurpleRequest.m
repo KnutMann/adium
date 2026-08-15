@@ -44,12 +44,6 @@
 //Jabber registration
 #import <libpurple/jabber.h>
 
-/* resolved id for Meanwhile */
-struct resolved_id {
-	char *id;
-	char *name;
-};
-
 /*!
  * @brief Process button text, removing gtk+ accelerator underscores
  *
