@@ -28,7 +28,6 @@
 #define DOCK_DEFAULT_PREFS			@"DockPrefs"
 #define ICON_DISPLAY_DELAY			0.1
 
-#define LAST_ICON_UPDATE_VERSION	@"Adium:Last Icon Update Version"
 
 #define CONTINUOUS_BOUNCE_INTERVAL  0
 #define SINGLE_BOUNCE_INTERVAL		999
@@ -46,7 +45,6 @@
 - (void)_stopBouncing;
 - (BOOL)_bounceWithInterval:(double)delay;
 - (AIIconState *)iconStateFromStateDict:(NSDictionary *)stateDict folderPath:(NSString *)folderPath;
-- (void)updateAppBundleIcon;
 - (void)updateDockView;
 - (void)updateDockBadge;
 - (void)animateDockIcon;
@@ -115,12 +113,6 @@
 							   name:AIXtrasDidChangeNotification
 							 object:nil];
 
-	//If Adium has been upgraded since the last time we ran re-apply the user's custom icon
-	NSString	*lastVersion = [[NSUserDefaults standardUserDefaults] objectForKey:LAST_ICON_UPDATE_VERSION];
-	if (![[NSApp applicationVersion] isEqualToString:lastVersion]) {
-		[self updateAppBundleIcon];
-		[[NSUserDefaults standardUserDefaults] setObject:[NSApp applicationVersion] forKey:LAST_ICON_UPDATE_VERSION];
-	}
 }
 
 /*!
@@ -383,13 +375,6 @@
 				}
 			}
 			
-			//Write the icon to the Adium application bundle so that Finder will see it.
-			//On launch we only need to update the icon file if this is a new version of Adium.
-			//When preferences change we always want to update it
-			if (!firstTime) {
-				[self updateAppBundleIcon];
-			}
-
 			//Recomposite the icon
 			[self _setNeedsDisplay];
 		}
@@ -442,22 +427,15 @@
 	}
 }
 
-- (void)updateAppBundleIcon
-{	
-	NSImage *image = [[[availableIconStateDict objectForKey:@"State"] objectForKey:@"ApplicationIcon"] image];
-	if (!image)
-		image = [[[availableIconStateDict objectForKey:@"State"] objectForKey:@"Base"] image];
-	
-	if (image) {
-		[[NSWorkspace sharedWorkspace] setIcon:image
-									   forFile:[[NSBundle mainBundle] bundlePath]
-									   options:0];
-
-		/* The deprecated -noteFileSystemChanged: call that used to follow has been
-		 * removed without replacement: it has been a no-op for a long time, and
-		 * -setIcon:forFile:options: itself notifies the system of the change. */
-	}
-}
+/* An icon chosen here used to be stamped onto Adium's own application bundle as well, so that the
+ * Finder would show it too. A program writing into its own bundle is worth avoiding on its own
+ * account, and it left a resource fork and a custom icon flag behind that codesign refuses to sign
+ * over, which broke every second build.
+ *
+ * Nothing about the icon while Adium runs depended on it: the dock tile above is drawn from the
+ * chosen set either way. What is gone is the icon that showed while Adium was closed, which is the
+ * shipped one again.
+ */
 
 /*!
  * @brief Return the dock icon image without any auxiliary states

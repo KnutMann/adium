@@ -7089,7 +7089,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Adium stamps its dock icon onto its own bundle so the Finder shows it, see\n# -[AIDockController updateAppBundleIcon]. That leaves behind an Icon file carrying a resource\n# fork, plus a custom-icon flag on the bundle itself. codesign refuses to sign a bundle holding\n# either, so a build over a bundle that has been run once fails with\n# \"resource fork, Finder information, or similar detritus not allowed\".\n#\n# Taking them off here costs nothing when they are absent, and Adium writes the icon again the\n# next time it runs, so nothing anybody chose is lost.\nAPP=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\n[ -d \"$APP\" ] || exit 0\n/usr/bin/find \"$APP\" -maxdepth 1 -name 'Icon?' -delete\n/usr/bin/xattr -c \"$APP\" 2>/dev/null || true\n";
+			shellScript = "# A custom icon on a folder or bundle lives in an Icon file carrying a resource fork, plus a flag\n# in the bundle's own Finder information. codesign refuses to sign a bundle holding either, so a\n# build over a bundle that has picked one up fails with\n# \"resource fork, Finder information, or similar detritus not allowed\".\n#\n# Adium used to do this to itself on every icon change; it no longer does. Setting one by hand in\n# the Finder still does, so this stays. It costs nothing when there is nothing to take off.\nAPP=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\n[ -d \"$APP\" ] || exit 0\n/usr/bin/find \"$APP\" -maxdepth 1 -name 'Icon?' -delete\n/usr/bin/xattr -c \"$APP\" 2>/dev/null || true\n";
 		};
 		345DFF4A05564DB200CEE7B3 /* Run Generate Buildnum File Script */ = {
 			isa = PBXShellScriptBuildPhase;
