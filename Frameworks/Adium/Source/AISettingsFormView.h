@@ -261,6 +261,18 @@
 - (void)addEdgeToEdgeRow:(NSView *)view;
 
 /*!
+ * @brief Append a row that opens a page of its own: @a label, a chevron, and nothing else.
+ *
+ * The shape System Settings uses for a row that leads somewhere. The whole row is the target, not
+ * the chevron: it darkens while it is held, goes back when the pointer is dragged off it, and sends
+ * @a action only when the press ends on it.
+ *
+ * Laid out edge to edge, so the highlight runs the full width of the card and is clipped to its
+ * corners. That means it wants a card of its own, which @c endCard: or @c addSectionHeader: opens.
+ */
+- (void)addNavigationRowWithLabel:(NSString *)label target:(id)target action:(SEL)action;
+
+/*!
  * @brief Append a row holding nothing but @a text, wrapped across the card.
  *
  * The shape System Settings uses for a line of explanation inside a group: the

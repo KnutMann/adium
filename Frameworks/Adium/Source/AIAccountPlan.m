@@ -234,7 +234,9 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 	[typing setStore:AIAccountFieldStorePreference];
 	[typing setPreferenceKey:KEY_DISABLE_TYPING_NOTIFICATIONS];
 	[typing setInverted:YES];
-	[typing setDefaultValue:[NSNumber numberWithBool:YES]];
+	/* What is stored is what it switches off, so "not disabled" is the default and the row shows it
+	 * as on. Telling the other side is what every messenger does unless it is asked not to. */
+	[typing setDefaultValue:[NSNumber numberWithBool:NO]];
 	[typing setLabel:AILocalizedString(@"Let others know when I am typing",
 									   "Account privacy row: whether typing is reported to the other side")];
 	[self addField:typing toCard:AIAccountCardPrivacy];
@@ -244,7 +246,7 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 		[receipts setStore:AIAccountFieldStorePreference];
 		[receipts setPreferenceKey:KEY_DISABLE_READ_RECEIPTS];
 		[receipts setInverted:YES];
-		[receipts setDefaultValue:[NSNumber numberWithBool:YES]];
+		[receipts setDefaultValue:[NSNumber numberWithBool:NO]];
 		[receipts setLabel:AILocalizedString(@"Let others know when I have read their messages",
 											 "Account privacy row: whether read receipts are sent")];
 		[self addField:receipts toCard:AIAccountCardPrivacy];

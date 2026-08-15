@@ -168,18 +168,11 @@
 	[builder buildInForm:form skippingCard:AIAccountCardMore];
 
 	if ([builder hasFieldsInCard:AIAccountCardMore]) {
-		NSButton *chevron = [AISettingsFormView inlineSymbolButtonWithSymbolName:@"chevron.forward"
-															  fallbackImageName:nil
-																		 target:self
-																		 action:@selector(showMoreOptions:)];
-
-		[chevron setAccessibilityLabel:AILocalizedString(@"More Options",
-														 "Row that opens the options a protocol offers beyond the usual ones")];
-
 		[form endCard];
-		[form addRowWithLabel:AILocalizedString(@"More Options",
-												"Row that opens the options a protocol offers beyond the usual ones")
-					  control:chevron];
+		[form addNavigationRowWithLabel:AILocalizedString(@"More Options",
+														  "Row that opens the options a protocol offers beyond the usual ones")
+								 target:self
+								 action:@selector(showMoreOptions:)];
 	}
 
 	[form layoutForWidth:600.0f];

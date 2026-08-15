@@ -542,6 +542,117 @@ typedef enum {
 #pragma mark -
 
 /*!
+ * @brief A whole row that acts as one button, the way a System Settings row that opens a page does.
+ *
+ * A chevron at the trailing edge is a signpost rather than a target: what is pressed is the row, all
+ * of it, and it darkens under the finger while it is held. A button placed in an ordinary row would
+ * only answer to the few points the glyph covers, and would give no sign that it had been hit.
+ *
+ * Hosted edge to edge, so the highlight runs the full width of the card and is clipped to its
+ * corners. The label keeps the same inset every other row's label has, so a card mixing both kinds
+ * lines up.
+ */
+@interface AISettingsNavigationRowView : NSView {
+	id		 target;			//Not retained, as a control's target is not
+	SEL		 action;
+	BOOL	 pressed;
+}
+- (id)initWithLabel:(NSString *)label target:(id)inTarget action:(SEL)inAction;
+@end
+
+@implementation AISettingsNavigationRowView
+
+- (id)initWithLabel:(NSString *)label target:(id)inTarget action:(SEL)inAction
+{
+	if ((self = [super initWithFrame:NSMakeRect(0.0, 0.0, 100.0, AISettingsRowMinHeight)])) {
+		target = inTarget;
+		action = inAction;
+
+		NSTextField *labelField = AISettingsMakeLabel(label,
+													 [NSFont systemFontOfSize:AISettingsLabelFontSize],
+													 [NSColor labelColor]);
+		NSImageView *chevron = [NSImageView imageViewWithImage:[AISettingsFormView disclosureIndicatorImage]];
+
+		[chevron setContentTintColor:[NSColor tertiaryLabelColor]];
+		[chevron setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[chevron setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
+
+		[self addSubview:labelField];
+		[self addSubview:chevron];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[labelField.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:AISettingsCardInsetH],
+			[labelField.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
+			[chevron.leadingAnchor constraintGreaterThanOrEqualToAnchor:labelField.trailingAnchor constant:8.0],
+			[chevron.trailingAnchor constraintEqualToAnchor:self.trailingAnchor constant:-AISettingsCardInsetH],
+			[chevron.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
+			[self.heightAnchor constraintEqualToConstant:AISettingsRowMinHeight]
+		]];
+
+		[self setAccessibilityRole:NSAccessibilityButtonRole];
+		[self setAccessibilityLabel:label];
+	}
+
+	return self;
+}
+
+- (BOOL)isFlipped
+{
+	return YES;
+}
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+	if (!pressed) return;
+
+	/* A foreground colour at low alpha rather than a fixed grey: it darkens on a light card and
+	 * lightens on a dark one, which is what the system does, and it needs no second colour. */
+	[[NSColor quaternaryLabelColor] set];
+	NSRectFillUsingOperation([self bounds], NSCompositingOperationSourceOver);
+}
+
+- (void)setPressed:(BOOL)inPressed
+{
+	if (pressed == inPressed) return;
+
+	pressed = inPressed;
+	[self setNeedsDisplay:YES];
+}
+
+/*!
+ * @brief Track the press ourselves
+ *
+ * A row is not a control, and wrapping one in an NSButton would put the button's own drawing under
+ * the label. Tracking is four lines and gives exactly the behaviour of a list row: held down it
+ * darkens, dragged off it goes back, released outside it does nothing.
+ */
+- (void)mouseDown:(NSEvent *)event
+{
+	BOOL inside = YES;
+
+	[self setPressed:YES];
+
+	while (YES) {
+		NSEvent *next = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged)];
+		inside = NSPointInRect([self convertPoint:[next locationInWindow] fromView:nil], [self bounds]);
+
+		if ([next type] == NSEventTypeLeftMouseUp)
+			break;
+
+		[self setPressed:inside];
+	}
+
+	[self setPressed:NO];
+
+	if (inside && target && action)
+		[NSApp sendAction:action to:target from:self];
+}
+
+@end
+
+#pragma mark -
+
+/*!
  * @brief The rounded card: background plus the hairlines between its rows.
  */
 @interface AISettingsCardView : NSView {
@@ -1160,6 +1271,20 @@ typedef enum {
 	row->stretchesFullWidthView = YES;
 
 	[self appendRow:row];
+}
+
+/*!
+ * @brief Append a row that opens a page of its own.
+ */
+- (void)addNavigationRowWithLabel:(NSString *)label target:(id)target action:(SEL)action
+{
+	AISettingsNavigationRowView *row = [[[AISettingsNavigationRowView alloc] initWithLabel:label
+																				   target:target
+																				   action:action] autorelease];
+
+	/* Edge to edge, so the highlight covers the card rather than stopping at the inset: the row is
+	 * the card, exactly as a hosted list is. */
+	[self addEdgeToEdgeRow:row];
 }
 
 - (void)addDetailRow:(NSString *)text
