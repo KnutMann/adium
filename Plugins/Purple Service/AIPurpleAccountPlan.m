@@ -313,12 +313,6 @@
 	NSArray *declared = [self declaredSettings];
 	NSMutableSet *placed = [NSMutableSet set];
 
-	/* A file that names no option has curated nothing, so there is nothing to separate: everything
-	 * the protocol declares is simply the options. Where a file did curate, what it left out goes
-	 * into a card of its own rather than in among the ones somebody chose. */
-	BOOL curated = ([[description objectForKey:@"options"] count] ||
-					[[accountSection objectForKey:@"options"] count]);
-	NSString *leftoverCard = (curated ? AIAccountCardMore : AIAccountCardOptions);
 
 	/* Adium asks for the server and the port itself and hands both to the protocol under exactly these
 	 * names, so a row built from the protocol would be a second field for one setting. */
@@ -375,7 +369,11 @@
 		if ([placed containsObject:setting])
 			continue;
 
-		[self addField:[self fieldForSetting:setting] toCard:leftoverCard];
+		/* Always behind the row, never in among the ones somebody chose. A protocol declares as many
+		 * options as it likes and names them for itself, and meeting a dozen of those first is what
+		 * the page is arranged to prevent. A protocol nobody has curated at all therefore shows the
+		 * fields every account has and one row leading to the rest. */
+		[self addField:[self fieldForSetting:setting] toCard:AIAccountCardMore];
 	}
 }
 

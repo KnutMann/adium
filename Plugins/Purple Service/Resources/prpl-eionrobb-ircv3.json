@@ -4,14 +4,15 @@
 		"which the descriptor states with AccountNameIncludesHost.",
 		"",
 		"No commands on connect here. That is Adium's own feature and it lives in ESIRCAccount, which",
-		"an account of this protocol is not."
+		"an account of this protocol is not.",
+		"",
+		"Nothing is promoted beyond what it takes to connect. The ident name and the real name read as",
+		"a second account name and a second display name, and neither is what anybody came here for."
 	],
 
 	"account": {
 		"server": "inAccountName",
 		"port": true,
 		"options": ["ssl"]
-	},
-
-	"options": ["username", "realname", "encoding", "quitmsg", "sasl", "saslname"]
+	}
 }

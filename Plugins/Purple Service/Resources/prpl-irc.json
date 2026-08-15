@@ -13,8 +13,6 @@
 		"options": ["ssl"]
 	},
 
-	"options": ["username", "realname", "encoding", "quitmsg", "sasl", "saslname"],
-
 	"legacy": {
 		"IRC:Use SSL": "ssl",
 		"IRC:Username": "username",
