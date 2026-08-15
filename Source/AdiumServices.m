@@ -115,7 +115,7 @@
  * @brief Retrieves a service by service ID.
  *
  * Service IDs may be shared by multiple services if the same service is provided by two different plugins.
- * -[AIService serviceID] returns serviceIDs. An example is @"AIM".
+ * -[AIService serviceID] returns serviceIDs. An example is @"Jabber".
  * @return The first service with the matching service ID, or nil if none is found.
  */
 - (AIService *)firstServiceWithServiceID:(NSString *)serviceID

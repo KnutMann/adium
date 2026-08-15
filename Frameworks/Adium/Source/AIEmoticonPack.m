@@ -54,7 +54,8 @@
  *
  * An emoticon pack must have a name and a set of one or more emoticons (AIEmoticon objects).
  * It may also have a serviceClass, which indicates the class of a service upon which its emoticons are preferred.
- * For example, a set of MSN emoticons would have a service class of @"MSN".
+ * For example, a set drawn for Jabber would have a service class of @"Jabber". The packs that
+ * ship name no class and are therefore offered on every service.
  */
 @implementation AIEmoticonPack
 

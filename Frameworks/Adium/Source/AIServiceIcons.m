@@ -26,6 +26,7 @@ static NSDictionary			*serviceIconNames[NUMBER_OF_SERVICE_ICON_TYPES];
 
 @interface AIServiceIcons ()
 + (NSImage *)defaultServiceIconForType:(AIServiceIconType)type serviceID:(NSString *)serviceID;
++ (NSArray *)previewServiceIDsFromIconNames:(NSDictionary *)previewIconNames;
 @end
 
 @implementation AIServiceIcons
@@ -159,57 +160,112 @@ static NSDictionary			*serviceIconNames[NUMBER_OF_SERVICE_ICON_TYPES];
 
 #define	PREVIEW_MENU_IMAGE_SIZE		13
 #define	PREVIEW_MENU_IMAGE_MARGIN	2
+#define	PREVIEW_MENU_IMAGE_COUNT	4
+
+/*!
+ * @brief The services a pack should be judged on, most telling first
+ *
+ * Which four services to draw used to be written out here by name, and three of those four are
+ * services Adium no longer speaks, so every pack drew one icon and three gaps. The pack is asked
+ * what it holds instead, and the four are chosen so the preview shows what this user will really
+ * see: services they have an account on first, then any other service Adium knows, then whatever
+ * else the pack carries. Each round goes by name, because the account controller keeps its
+ * services in a dictionary and hands them out in whatever order it pleases, and a preview that
+ * shuffled itself between launches would be no preview at all.
+ */
++ (NSArray *)previewServiceIDsFromIconNames:(NSDictionary *)previewIconNames
+{
+	NSMutableArray	*serviceIDs = [NSMutableArray array];
+	NSArray			*iconIDsByName = [[previewIconNames allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+	NSMutableSet	*activeServiceIDs = [NSMutableSet set];
+	NSMutableSet	*knownServiceIDs = [NSMutableSet set];
+
+	for (AIService *service in [adium.accountController activeServicesIncludingCompatibleServices:YES])
+		[activeServiceIDs addObject:service.serviceID];
+
+	for (AIService *service in adium.accountController.services)
+		[knownServiceIDs addObject:service.serviceID];
+
+	for (NSString *serviceID in iconIDsByName) {
+		if ([activeServiceIDs containsObject:serviceID])
+			[serviceIDs addObject:serviceID];
+	}
+
+	for (NSString *serviceID in iconIDsByName) {
+		if ([knownServiceIDs containsObject:serviceID] && ![serviceIDs containsObject:serviceID])
+			[serviceIDs addObject:serviceID];
+	}
+
+	for (NSString *serviceID in iconIDsByName) {
+		if (![serviceIDs containsObject:serviceID])
+			[serviceIDs addObject:serviceID];
+	}
+
+	if ([serviceIDs count] > PREVIEW_MENU_IMAGE_COUNT)
+		[serviceIDs removeObjectsInRange:NSMakeRange(PREVIEW_MENU_IMAGE_COUNT, [serviceIDs count] - PREVIEW_MENU_IMAGE_COUNT)];
+
+	return serviceIDs;
+}
 
 + (NSImage *)previewMenuImageForIconPackAtPath:(NSString *)inPath
 {
 	NSImage			*image;
 	NSDictionary	*iconDict;
-
-	image = [[NSImage alloc] initWithSize:NSMakeSize((PREVIEW_MENU_IMAGE_SIZE + PREVIEW_MENU_IMAGE_MARGIN) * 4,
-													 PREVIEW_MENU_IMAGE_SIZE)];
+	NSDictionary	*previewIconNames;
+	NSArray			*previewServiceIDs;
 
 	iconDict = [NSDictionary dictionaryWithContentsOfFile:[inPath stringByAppendingPathComponent:@"Icons.plist"]];
 
-	if (iconDict && [[iconDict objectForKey:@"AdiumSetVersion"] intValue] == 1) {
-		NSDictionary	*previewIconNames = [iconDict objectForKey:@"List"];
-		NSEnumerator	*enumerator = [[NSArray arrayWithObjects:@"AIM",@"Jabber",@"MSN",@"Yahoo!",nil] objectEnumerator];
-		NSString		*iconID;
-		int				xOrigin = 0;
+	if (!iconDict || ([[iconDict objectForKey:@"AdiumSetVersion"] intValue] != 1))
+		return nil;
 
-		[image lockFocus];
-		while ((iconID = [enumerator nextObject])) {
-			NSString	*anIconPath = [inPath stringByAppendingPathComponent:[previewIconNames objectForKey:iconID]];
-			NSImage		*anIcon;
+	previewIconNames = [iconDict objectForKey:@"List"];
+	previewServiceIDs = [self previewServiceIDsFromIconNames:previewIconNames];
 
-			if ((anIcon = [[[NSImage alloc] initWithContentsOfFile:anIconPath] autorelease])) {
-				NSSize	anIconSize = [anIcon size];
-				NSRect	targetRect = NSMakeRect(xOrigin, 0, PREVIEW_MENU_IMAGE_SIZE, PREVIEW_MENU_IMAGE_SIZE);
+	if (![previewServiceIDs count])
+		return nil;
 
-				if (anIconSize.width < targetRect.size.width) {
-					CGFloat difference = (targetRect.size.width - anIconSize.width)/2;
+	/* Only as wide as there is something to put in it. A pack holding fewer icons than the preview
+	 * has room for used to be padded out to the full four widths, which read as missing artwork.
+	 */
+	image = [[NSImage alloc] initWithSize:NSMakeSize((PREVIEW_MENU_IMAGE_SIZE + PREVIEW_MENU_IMAGE_MARGIN) * [previewServiceIDs count] - PREVIEW_MENU_IMAGE_MARGIN,
+													 PREVIEW_MENU_IMAGE_SIZE)];
 
-					targetRect.size.width -= difference;
-					targetRect.origin.x += difference;
-				}
+	int		xOrigin = 0;
 
-				if (anIconSize.height < targetRect.size.height) {
-					CGFloat difference = (targetRect.size.height - anIconSize.height)/2;
+	[image lockFocus];
+	for (NSString *iconID in previewServiceIDs) {
+		NSString	*anIconPath = [inPath stringByAppendingPathComponent:[previewIconNames objectForKey:iconID]];
+		NSImage		*anIcon;
 
-					targetRect.size.height -= difference;
-					targetRect.origin.y += difference;
-				}
+		if ((anIcon = [[[NSImage alloc] initWithContentsOfFile:anIconPath] autorelease])) {
+			NSSize	anIconSize = [anIcon size];
+			NSRect	targetRect = NSMakeRect(xOrigin, 0, PREVIEW_MENU_IMAGE_SIZE, PREVIEW_MENU_IMAGE_SIZE);
 
-				[anIcon drawInRect:targetRect
-							fromRect:NSMakeRect(0,0,anIconSize.width,anIconSize.height)
-						   operation:NSCompositingOperationCopy
-							fraction:1.0f];
+			if (anIconSize.width < targetRect.size.width) {
+				CGFloat difference = (targetRect.size.width - anIconSize.width)/2;
 
-				//Shift right in preparation for next image
-				xOrigin += PREVIEW_MENU_IMAGE_SIZE + PREVIEW_MENU_IMAGE_MARGIN;
+				targetRect.size.width -= difference;
+				targetRect.origin.x += difference;
 			}
+
+			if (anIconSize.height < targetRect.size.height) {
+				CGFloat difference = (targetRect.size.height - anIconSize.height)/2;
+
+				targetRect.size.height -= difference;
+				targetRect.origin.y += difference;
+			}
+
+			[anIcon drawInRect:targetRect
+						fromRect:NSMakeRect(0,0,anIconSize.width,anIconSize.height)
+					   operation:NSCompositingOperationCopy
+						fraction:1.0f];
 		}
-		[image unlockFocus];
+
+		//Shift right whether or not the pack could supply this one, so the icons stay in step
+		xOrigin += PREVIEW_MENU_IMAGE_SIZE + PREVIEW_MENU_IMAGE_MARGIN;
 	}
+	[image unlockFocus];
 
 	return [image autorelease];
 }

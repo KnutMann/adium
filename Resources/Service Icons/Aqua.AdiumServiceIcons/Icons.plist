@@ -6,8 +6,6 @@
 	<integer>1</integer>
 	<key>Interface-Large</key>
 	<dict>
-		<key>AIM</key>
-		<string>aim.png</string>
 		<key>Bonjour</key>
 		<string>bonjour.png</string>
 		<key>Gadu-Gadu</key>
@@ -16,19 +14,11 @@
 		<string>groupwise.png</string>
 		<key>Jabber</key>
 		<string>jabber.png</string>
-		<key>MSN</key>
-		<string>msn.png</string>
 		<key>SIMPLE</key>
 		<string>simple.png</string>
-		<key>Yahoo!</key>
-		<string>yahoo.png</string>
-		<key>Yahoo! Japan</key>
-		<string>yahoo.png</string>
 	</dict>
 	<key>Interface-Small</key>
 	<dict>
-		<key>AIM</key>
-		<string>aim-small.png</string>
 		<key>Bonjour</key>
 		<string>bonjour-small.png</string>
 		<key>Gadu-Gadu</key>
@@ -37,19 +27,11 @@
 		<string>groupwise-small.png</string>
 		<key>Jabber</key>
 		<string>jabber-small.png</string>
-		<key>MSN</key>
-		<string>msn-small.png</string>
 		<key>SIMPLE</key>
 		<string>simple-small.png</string>
-		<key>Yahoo!</key>
-		<string>yahoo-small.png</string>
-		<key>Yahoo! Japan</key>
-		<string>yahoo-small.png</string>
 	</dict>
 	<key>List</key>
 	<dict>
-		<key>AIM</key>
-		<string>aim-small.png</string>
 		<key>Bonjour</key>
 		<string>bonjour-small.png</string>
 		<key>Gadu-Gadu</key>
@@ -58,16 +40,8 @@
 		<string>groupwise-small.png</string>
 		<key>Jabber</key>
 		<string>jabber-small.png</string>
-		<key>MSN</key>
-		<string>msn-small.png</string>
 		<key>SIMPLE</key>
 		<string>simple-small.png</string>
-		<key>Stress Test</key>
-		<string>yahoo-small.png</string>
-		<key>Yahoo!</key>
-		<string>yahoo-small.png</string>
-		<key>Yahoo! Japan</key>
-		<string>yahoo-small.png</string>
 	</dict>
 </dict>
 </plist>
