@@ -32,7 +32,6 @@
 	IBOutlet NSTextView	 *textView_welcomeMessage;
 	
 	//Import
-	IBOutlet NSButton		*button_informationAboutImporting;
 	
 	//Account Setup
 	IBOutlet NSTextField	*textField_addAccount;

@@ -14,6 +14,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#import <Adium/AIAccountMenu.h>
 #import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AISettingsFormView.h>
@@ -52,6 +53,8 @@
 - (NSMenu *)tabChangeKeysMenu;
 - (NSMenu *)sendKeysMenu;
 - (NSMenu *)tabPositionMenu;
+- (NSMenu *)accountMenuIconMenu;
+- (IBAction)rebuildLogIndex:(id)sender;
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 - (AISettingsFormView *)buildSettingsForm;
 - (void)bindObject:(id)object binding:(NSString *)binding keyPath:(NSString *)keyPath options:(NSDictionary *)options;
@@ -134,6 +137,7 @@ static NSString *AIRowLabel(NSString *label)
 		[popUp_sendKeys sizeToFit];
 		[popUp_tabKeys sizeToFit];
 		[popUp_tabPositionMenu sizeToFit];
+		[popUp_accountMenuIcon sizeToFit];
 		[form layoutForWidth:NSWidth([form frame])];
 
 		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
@@ -335,6 +339,20 @@ static NSString *AIRowLabel(NSString *label)
 	[form addRowWithLabel:AILocalizedString(@"Log OTR-secured chats",nil)
 				  control:checkBox_logOTR];
 
+	/* Rebuilding the search index used to be a menu command, which put a repair next to the things
+	 * people do every day. It keeps itself current on its own and is only ever wanted when a search
+	 * comes up empty for a conversation that plainly exists, so it belongs beside the transcripts
+	 * rather than in a menu. */
+	button_rebuildIndex = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Rebuild",
+																				   "Button which rebuilds the transcript search index")
+														   target:self
+														   action:@selector(rebuildLogIndex:)];
+	[form addRowWithLabel:AILocalizedString(@"Search index",
+										   "Label for the button which rebuilds the transcript search index")
+				  control:button_rebuildIndex
+				   detail:AILocalizedString(@"Only needed if searching does not find a conversation that exists.",
+											"Explains when rebuilding the transcript search index is worth doing")];
+
 	//Status
 	[form addSectionHeader:AILocalizedString(@"Status",nil)];
 
@@ -346,7 +364,25 @@ static NSString *AIRowLabel(NSString *label)
 	[form addRowWithLabel:AILocalizedString(@"Show Adium status in menu bar",nil)
 				  control:checkBox_showMenuBarStatus];
 
+	/* Filled and bound in -configureView, once the menu is in place: binding a selected tag to an
+	 * empty button would write the setting away before it has anything to select. */
+	popUp_accountMenuIcon = [AISettingsFormView popUpButtonWithTitles:nil target:nil action:NULL];
+	[form addRowWithLabel:AILocalizedString(@"Show account status in menus",
+										   "Chooses what an account carries in front of its name in the menus listing accounts")
+				  control:popUp_accountMenuIcon];
+
 	return form;
+}
+
+/*!
+ * @brief Rebuild the search index over every transcript
+ *
+ * The transcript window opens with it, because that is where the work becomes visible and where the
+ * search that went wrong is repeated afterwards.
+ */
+- (IBAction)rebuildLogIndex:(id)sender
+{
+	[[NSNotificationCenter defaultCenter] postNotificationName:AIShowLogViewerAndReindexNotification object:nil];
 }
 
 #pragma mark Bindings
@@ -396,6 +432,8 @@ static NSString *AIRowLabel(NSString *label)
 	popUp_tabKeys = nil;
 	popUp_sendKeys = nil;
 	popUp_tabPositionMenu = nil;
+	popUp_accountMenuIcon = nil;
+	button_rebuildIndex = nil;
 }
 
 #pragma mark Configuration
@@ -434,6 +472,16 @@ static NSString *AIRowLabel(NSString *label)
 	[self bindObject:popUp_tabPositionMenu
 			 binding:NSSelectedTagBinding
 			 keyPath:[self keyPathForGroup:PREF_GROUP_DUAL_WINDOW_INTERFACE key:KEY_TABBAR_POSITION]
+			 options:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
+												 forKey:NSValidatesImmediatelyBindingOption]];
+
+	//Same order for the same reason: the menu first, the selection second, the binding last
+	[popUp_accountMenuIcon setMenu:[self accountMenuIconMenu]];
+	[popUp_accountMenuIcon selectItemWithTag:[[adium.preferenceController preferenceForKey:KEY_ACCOUNT_MENU_ICON
+																					 group:PREF_GROUP_GENERAL] intValue]];
+	[self bindObject:popUp_accountMenuIcon
+			 binding:NSSelectedTagBinding
+			 keyPath:[self keyPathForGroup:PREF_GROUP_GENERAL key:KEY_ACCOUNT_MENU_ICON]
 			 options:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
 												 forKey:NSValidatesImmediatelyBindingOption]];
 
@@ -577,6 +625,37 @@ static NSString *AIRowLabel(NSString *label)
 {
 	[sheet orderOut:nil];
 	[sheet.windowController release];
+}
+
+/*!
+ * @brief What an account carries in front of its name in the menus that list accounts
+ */
+- (NSMenu *)accountMenuIconMenu
+{
+	NSMenu *menu = [[NSMenu alloc] init];
+
+	[menu addItemWithTitle:AILocalizedString(@"Status and service icon",
+											 "Both icons in front of an account's name in a menu")
+					target:nil
+					action:nil
+			 keyEquivalent:@""
+					   tag:AIAccountMenuIconStatusAndService];
+
+	[menu addItemWithTitle:AILocalizedString(@"Service icon only",
+											 "Only the service's icon in front of an account's name in a menu")
+					target:nil
+					action:nil
+			 keyEquivalent:@""
+					   tag:AIAccountMenuIconServiceOnly];
+
+	[menu addItemWithTitle:AILocalizedString(@"Status only",
+											 "Only the status icon in front of an account's name in a menu")
+					target:nil
+					action:nil
+			 keyEquivalent:@""
+					   tag:AIAccountMenuIconStatusOnly];
+
+	return [menu autorelease];
 }
 
 - (NSMenu *)tabPositionMenu

@@ -39,6 +39,7 @@
 	NSSwitch		*checkBox_showMenuBarStatus;
 
 	NSButton		*button_customizeLogAccounts;
+	NSButton		*button_rebuildIndex;
 
 	NSTextField		*textField_recentMessages;
 	NSStepper		*stepper_recentMessages;
@@ -46,6 +47,7 @@
 	NSPopUpButton	*popUp_tabKeys;
 	NSPopUpButton	*popUp_sendKeys;
 	NSPopUpButton	*popUp_tabPositionMenu;
+	NSPopUpButton	*popUp_accountMenuIcon;
 
 	NSMutableArray	*establishedBindings;	//NSArrays of (object, binding name), unbound when the view closes
 }

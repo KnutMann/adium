@@ -12,7 +12,6 @@
                 <outlet property="button_alternate" destination="10" id="54"/>
                 <outlet property="button_continue" destination="9" id="52"/>
                 <outlet property="button_goBack" destination="8" id="53"/>
-                <outlet property="button_informationAboutImporting" destination="148" id="193"/>
                 <outlet property="popUp_services" destination="78" id="86"/>
                 <outlet property="tabView" destination="62" id="83"/>
                 <outlet property="textField_addAccount" destination="143" id="144"/>
@@ -145,17 +144,6 @@ DQ
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                         </scrollView>
-                                        <button verticalHuggingPriority="750" imageHugsTitle="YES" id="148" customClass="AILocalizationButton">
-                                            <rect key="frame" x="110" y="8" width="221" height="32"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <buttonCell key="cell" type="push" title="Information about Importing" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="176">
-                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                                <font key="font" metaFont="system"/>
-                                            </buttonCell>
-                                            <connections>
-                                                <action selector="promptForMultiples:" target="-2" id="150"/>
-                                            </connections>
-                                        </button>
                                     </subviews>
                                 </view>
                             </tabViewItem>

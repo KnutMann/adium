@@ -271,11 +271,6 @@
 	[inAccount toggleOnline];
 }
 
-- (BOOL)accountMenuShouldIncludeAddAccountsMenu:(AIAccountMenu *)inAccountMenu
-{
-	return NO;
-}
-
 - (BOOL)accountMenuShouldIncludeDisabledAccountsMenu:(AIAccountMenu *)inAccountMenu
 {
 	return YES;

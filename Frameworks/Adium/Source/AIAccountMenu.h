@@ -27,6 +27,21 @@ typedef enum {
 	AIAccountOptionsSubmenu
 } AIAccountSubmenuType;
 
+/*!
+ * @brief What an account carries in front of its name in a menu
+ *
+ * A menu item holds one picture, so showing both the status and the service means drawing them side
+ * by side into one. Whether that reads as two useful facts or as two symbols fighting each other
+ * depends on the icon set, which is why it is a choice rather than a decision.
+ */
+typedef enum {
+	AIAccountMenuIconStatusAndService = 0,
+	AIAccountMenuIconServiceOnly,
+	AIAccountMenuIconStatusOnly
+} AIAccountMenuIconType;
+
+#define KEY_ACCOUNT_MENU_ICON	@"Account Menu Icon"
+
 @interface AIAccountMenu : AIAbstractListObjectMenu <AIListObjectObserver, AIStatusMenuDelegate, NSMenuDelegate> {
 	id<AIAccountMenuDelegate>				delegate;
 	BOOL			delegateRespondsToDidSelectAccount;
@@ -36,7 +51,6 @@ typedef enum {
 	BOOL			submenuType;
 	BOOL			showTitleVerbs;
 	BOOL			includeDisabledAccountsMenu;
-	BOOL			includeAddAccountsMenu;
 	BOOL			delegateRespondsToSpecialMenuItem;
 
 	NSControlSize	controlSize;
@@ -73,9 +87,6 @@ typedef enum {
  * If not implemented, the default is NSControlSizeRegular. NSControlSizeMini is not supported.
  */
 - (NSControlSize)controlSizeForAccountMenu:(AIAccountMenu *)inAccountMenu; 
-
-//Should the account menu include a submenu of services for adding accounts?
-- (BOOL)accountMenuShouldIncludeAddAccountsMenu:(AIAccountMenu *)inAccountMenu;			
 
 //Does the menu require a special topmost item + seperator?
 - (NSMenuItem *)accountMenuSpecialMenuItem:(AIAccountMenu *)inAccountMenu;			

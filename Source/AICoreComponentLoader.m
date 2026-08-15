@@ -142,7 +142,6 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"AINulRemovalPlugin",
 		@"AIDefaultFontRemovalPlugin",
 		@"AIAdvancedPreferencesPlugin",
-		@"GBImportPlugin",
 		@"AIMentionEventPlugin",
 		@"AIURLShortenerPlugin",
 		@"AIGroupChatStatusTooltipPlugin",

@@ -521,9 +521,6 @@
 "Adium Icon" = "Adium Icon";
 
 /* No comment provided by engineer. */
-"Adium includes assistants to import your accounts, settings, and transcripts from other clients. Choose a client below to open its assistant, or press Continue to skip importing." = "Adium includes assistants to import your accounts, settings, and logs from other clients. Choose a client below to open its assistant, or press Continue to skip importing.";
-
-/* No comment provided by engineer. */
 "Adium is now ready for you. \n\nThe Status indicator at the top of your Contact List and in the Status menu lets you determine whether others see you as Available or Away or, alternately, if you are Offline. Select Custom to type your own status message.\n\nDouble-click a name in your Contact List to begin a conversation.  You can add contacts to your Contact List via the Contact menu.\n\nWant to customize your Adium experience? Check out the Adium Preferences and Xtras Manager via the Adium menu.\n\nEnjoy! Click Done to begin using Adium." = "Adium is now ready for you. \n\nThe Status indicator at the top of your Contact List and in the Status menu lets you determine whether others see you as Available or Away or, alternately, if you are Offline. Select Custom to type your own status message.\n\nDouble-click a name in your Contact List to begin a conversation.  You can add contacts to your Contact List via the Contact menu.\n\nWant to customise your Adium experience? Check out the Adium Preferences and Xtras Manager via the Adium menu.\n\nEnjoy! Click Done to begin using Adium.";
 
 /* No comment provided by engineer. */
@@ -567,9 +564,6 @@
 
 /* No comment provided by engineer. */
 "All (%@)" = "All (%@)";
-
-/* No comment provided by engineer. */
-"All of the iChat transcripts that were imported into Adium will be moved to the Trash." = "All of the iChat logs that were imported into Adium will be moved to the Bin.";
 
 /* No comment provided by engineer. */
 "All Other Accounts" = "All Other Accounts";
@@ -630,9 +624,6 @@
 
 /* No comment provided by engineer. */
 "Are you sure you want to delete %lu saved status items?" = "Are you sure you want to delete %lu saved status items?";
-
-/* No comment provided by engineer. */
-"Are you sure you want to delete all of your iChat Transcripts?" = "Are you sure you want to delete all of your iChat logs?";
 
 /* No comment provided by engineer. */
 "Are you sure you want to delete the %@ Dock Icon? It will be moved to the Trash." = "Are you sure you want to delete the %@ Dock Icon? It will be moved to the Bin.";
@@ -789,9 +780,6 @@
 
 /* %@ is a filename of a file being sent */
 "cancelled the transfer of %@" = "cancelled the transfer of %@";
-
-/* No comment provided by engineer. */
-"Cancelling transcript import" = "Cancelling log import";
 
 /* No comment provided by engineer. */
 "Center" = "Centre";
@@ -1150,9 +1138,6 @@
 "Delete Xtra?" = "Delete Xtra?";
 
 /* No comment provided by engineer. */
-"Deleting iChat Transcripts" = "Deleting iChat Logs";
-
-/* No comment provided by engineer. */
 "Deselect All" = "Deselect All";
 
 /* Menu item for detaching groups from their window */
@@ -1495,9 +1480,6 @@
 /* No comment provided by engineer. */
 "Full Name" = "Full Name";
 
-/* No comment provided by engineer. */
-"Gathering list of transcripts" = "Gathering list of logs";
-
 /* General preferences label */
 "General" = "General";
 
@@ -1539,9 +1521,6 @@
 
 /* No comment provided by engineer. */
 "Group:" = "Group:";
-
-/* Title which introduces import assistants during setup */
-"Have you used other chat clients?" = "Have you used other chat clients?";
 
 /* Title of the Help menu */
 "Help" = "Help";
@@ -1603,9 +1582,6 @@
 /* Adium homepage. Only localize if a translated version of the page exists. */
 "http://www.adium.im" = "http://www.adium.im";
 
-/* Menu item title under the 'Import' submenu. iChat is another OS X instant messaging client. */
-"iChat Accounts, Statuses, and Transcripts" = "iChat Accounts, Statuses, and Logs";
-
 /* No comment provided by engineer. */
 "iChat Available Messages" = "iChat Available Messages";
 
@@ -1640,28 +1616,7 @@
 "Images" = "Images";
 
 /* No comment provided by engineer. */
-"Import" = "Import";
-
-/* No comment provided by engineer. */
-"Import Finished" = "Import Finished";
-
-/* iChat is the OS X instant messaging client which ships with OS X; the name probably should not be localized */
-"Import from iChat" = "Import from iChat";
-
-/* No comment provided by engineer. */
 "Import my contacts' names from the Address Book" = "Import my contacts' names from the Address Book";
-
-/* No comment provided by engineer. */
-"Importing Accounts and Settings" = "Importing Accounts and Settings";
-
-/* No comment provided by engineer. */
-"Importing iChat Transcripts" = "Importing iChat Logs";
-
-/* No comment provided by engineer. */
-"Importing Statuses" = "Importing Statuses";
-
-/* No comment provided by engineer. */
-"Importing transcripts requires at least 1 account to be present." = "Importing lots requires at least 1 account to be present.";
 
 /* No comment provided by engineer. */
 "In Group:" = "In Group:";
@@ -1680,9 +1635,6 @@
 
 /* No comment provided by engineer. */
 "Info" = "Info";
-
-/* button title for more information about importing information in the setup wizard */
-"Information About Importing" = "Information About Importing";
 
 /* No comment provided by engineer. */
 "Initializing transfer" = "Initialising transfer";
@@ -2006,18 +1958,6 @@
 /* No comment provided by engineer. */
 "Notification received" = "Notification received";
 
-/* No comment provided by engineer. */
-"Now importing %lu 'Available' messages" = "Now importing %lu 'Available' messages";
-
-/* No comment provided by engineer. */
-"Now importing %lu 'Away' messages" = "Now importing %lu 'Away' messages";
-
-/* No comment provided by engineer. */
-"Now importing all your accounts from iChat" = "Now importing all your accounts from iChat";
-
-/* %ld will be a number; %@ is a name */
-"Now importing transcript %ld of %ld: %@" = "Now importing log %1$ld of %2$ld: %3$@";
-
 /* You are offering to send a file to a remote user. The first %@ is the filename of the file being sent; the second %@ is the recipient of the file being sent. */
 "Offering to send %@ to %@" = "Offering to send %1$@ to %2$@";
 
@@ -2056,6 +1996,9 @@
 
 /* File Transfer preferences */
 "only from contacts on my Contact List" = "only from contacts on my Contact List";
+
+/* Explains when rebuilding the transcript search index is worth doing */
+"Only needed if searching does not find a conversation that exists." = "Only needed if searching does not find a conversation that exists.";
 
 /* Quit Confirmation preference */
 "Only when" = "Only when";
@@ -2154,9 +2097,6 @@
 "Please enter your %@ password." = "Please enter your %@ password.";
 
 /* No comment provided by engineer. */
-"Please select an account into which to import your transcripts:" = "Please select an account into which to import your logs:";
-
-/* No comment provided by engineer. */
 "Please wait" = "Please wait";
 
 /* AdiumXtras category name */
@@ -2173,9 +2113,6 @@
 
 /* File transfer preparing status description */
 "Preparing file transfer" = "Preparing file transfer";
-
-/* No comment provided by engineer. */
-"Preparing to import your custom status messages" = "Preparing to import your custom status messages";
 
 /* No comment provided by engineer. */
 "Previous Chat" = "Previous Chat";
@@ -2228,6 +2165,9 @@
 /* No comment provided by engineer. */
 "Real Name" = "Real Name";
 
+/* Button which rebuilds the transcript search index */
+"Rebuild" = "Rebuild";
+
 /* %@ is a filename of a file being sent */
 "received %@" = "received %@";
 
@@ -2245,9 +2185,6 @@
 
 /* No comment provided by engineer. */
 "Regenerate" = "Regenerate";
-
-/* Menu item titel under the 'Import' submenu. This causes existing Adium logs to be reindexed. */
-"Reindex Adium Logs" = "Reindex Adium Logs";
 
 /* No comment provided by engineer. */
 "Remember this account" = "Remember this account";
@@ -2390,6 +2327,9 @@
 /* No comment provided by engineer. */
 "Search In Address Book" = "Search In Address Book";
 
+/* Label for the button which rebuilds the transcript search index */
+"Search index" = "Search index";
+
 /* No comment provided by engineer. */
 "Search Logs" = "Search Logs";
 
@@ -2499,6 +2439,9 @@
 /* No comment provided by engineer. */
 "Server:" = "Server:";
 
+/* Only the service's icon in front of an account's name in a menu */
+"Service icon only" = "Service icon only";
+
 /* AdiumXtras category name */
 "Service Icons" = "Service Icons";
 
@@ -2525,6 +2468,9 @@
 
 /* Shift key word + Directional arrow keys word */
 "Shift + Arrows (%@ and %@)" = "Shift + Arrows (%1$@ and %2$@)";
+
+/* Chooses what an account carries in front of its name in the menus listing accounts */
+"Show account status in menus" = "Show account status in menus";
 
 /* No comment provided by engineer. */
 "Show All" = "Show All";
@@ -2616,9 +2562,6 @@
 /* No comment provided by engineer. */
 "Since Yesterday" = "Since Yesterday";
 
-/* button title for skipping the import of another client in the setup wizard */
-"Skip Import" = "Skip Import";
-
 /* Menu item title for making the font size smaller */
 "Smaller" = "Smaller";
 
@@ -2691,6 +2634,9 @@
 /* This segment displays the status and profile information for the selected contact. */
 "Status and Profile" = "Status and Profile";
 
+/* Both icons in front of an account's name in a menu */
+"Status and service icon" = "Status and service icon";
+
 /* No comment provided by engineer. */
 "Status Deletion Confirmation" = "Status Deletion Confirmation";
 
@@ -2707,10 +2653,10 @@
 "Status Icons" = "Status Icons";
 
 /* No comment provided by engineer. */
-"Status importing is now complete." = "Status importing is now complete.";
-
-/* No comment provided by engineer. */
 "Status Menu Item" = "Status Menu Item";
+
+/* Only the status icon in front of an account's name in a menu */
+"Status only" = "Status only";
 
 /* No comment provided by engineer. */
 "Statuses" = "Statuses";
@@ -2840,12 +2786,6 @@
 
 /* Submenu for iTunes toolbar item menu for inserting current track information. */
 "Track Information" = "Track Information";
-
-/* No comment provided by engineer. */
-"Transcript importing cancelled. %ld of %ld transcripts already imported." = "Log importing cancelled. %1$ld of %2$ld logs already imported.";
-
-/* No comment provided by engineer. */
-"Transcript importing complete." = "Log importing complete.";
 
 /* No comment provided by engineer. */
 "Transcripts" = "Lots";
@@ -3251,12 +3191,6 @@
 
 /* Someone mentions your name in a group chat */
 "you were mentioned in %@" = "you were mentioned in %@";
-
-/* No comment provided by engineer. */
-"Your accounts have been successfully imported." = "Your accounts have been successfully imported.";
-
-/* No comment provided by engineer. */
-"Your iChat transcripts have been removed." = "Your iChat logs have been removed.";
 
 /* No comment provided by engineer. */
 "Your message has been sent. %@ will receive it when online." = "Your message has been sent. %@ will receive it when online.";

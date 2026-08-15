@@ -166,7 +166,6 @@
 		340670A90A55A4B4004E22AC /* ESGlassSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 340670A70A55A4B4004E22AC /* ESGlassSplitView.m */; };
 		34082675075B079800703011 /* Dock Icons in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 3408254D075B078B00703011 /* Dock Icons */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		340C1ABF0BD58FAB00D09235 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 340C1ABE0BD58FAB00D09235 /* Security.framework */; };
-		340C1E770BD59A0500D09235 /* GBImportPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 340C1E750BD59A0500D09235 /* GBImportPlugin.m */; };
 		340D859B0ADC82D100D05B3F /* sourceListBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 340670790A55A044004E22AC /* sourceListBackground.png */; };
 		ADD1E5C0DE00000000001102 /* DualWindowMessageAdvanced.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001101 /* DualWindowMessageAdvanced.xib */; };
 		3419DE730A81042F00C3FC68 /* AccountPrefs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8326107CBD598006466F2 /* AccountPrefs.plist */; };
@@ -1077,9 +1076,6 @@
 		9EF0DBFA09D944C200FBCC1E /* msg-block-contact.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 9EF0DBF309D944A300FBCC1E /* msg-block-contact.tiff */; };
 		9EF0DBFB09D944C200FBCC1E /* msg-unblock-contact.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 9EF0DBF409D944A300FBCC1E /* msg-unblock-contact.tiff */; };
 		C44BA7830AAB696400C7504F /* SetupAssistantBoxBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = C44BA7810AAB696400C7504F /* SetupAssistantBoxBackgroundView.m */; };
-		C4D29CC40C3C2E3C001545A2 /* BGICImportController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4D29CC00C3C2E3C001545A2 /* BGICImportController.m */; };
-		C4D29CC60C3C2E3C001545A2 /* BGICLogImportController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4D29CC20C3C2E3C001545A2 /* BGICLogImportController.m */; };
-		C4D29CC80C3C2E49001545A2 /* ICImport.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4D29CC70C3C2E49001545A2 /* ICImport.xib */; };
 		C6BC7F9B15DD666600C5FF52 /* events-notification.tiff in Resources */ = {isa = PBXBuildFile; fileRef = C6BC7F9A15DD666600C5FF52 /* events-notification.tiff */; };
 		D10A3A2B122C61EF003B5A7E /* msg-source-destination.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D10A3A2A122C61EF003B5A7E /* msg-source-destination.tiff */; };
 		EE147A6D0896B18800A21377 /* ABSearch.png in Resources */ = {isa = PBXBuildFile; fileRef = EE147A6C0896B18700A21377 /* ABSearch.png */; };
@@ -1547,8 +1543,6 @@
 		340BA84409EC593A000EC441 /* AICorePluginLoader.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AICorePluginLoader.h; path = Frameworks/Adium/Source/AICorePluginLoader.h; sourceTree = "<group>"; };
 		340BA84509EC593B000EC441 /* AICorePluginLoader.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AICorePluginLoader.m; path = Frameworks/Adium/Source/AICorePluginLoader.m; sourceTree = "<group>"; };
 		340C1ABE0BD58FAB00D09235 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
-		340C1E750BD59A0500D09235 /* GBImportPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GBImportPlugin.m; path = Source/GBImportPlugin.m; sourceTree = "<group>"; };
-		340C1E760BD59A0500D09235 /* GBImportPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GBImportPlugin.h; path = Source/GBImportPlugin.h; sourceTree = "<group>"; };
 		340D03990A7D78FC0059A3AF /* AIAccountControllerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAccountControllerProtocol.h; path = Frameworks/Adium/Source/AIAccountControllerProtocol.h; sourceTree = "<group>"; };
 		340D03A80A7D798A0059A3AF /* AIControllerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIControllerProtocol.h; path = Frameworks/Adium/Source/AIControllerProtocol.h; sourceTree = "<group>"; };
 		340D081F0A7DBFE40059A3AF /* AIChatControllerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIChatControllerProtocol.h; path = Frameworks/Adium/Source/AIChatControllerProtocol.h; sourceTree = "<group>"; };
@@ -2928,11 +2922,6 @@
 		ADD1E5C0DE00000000000923 /* AITypstEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstEditorView.h; path = "Plugins/Typst Formulas/AITypstEditorView.h"; sourceTree = "<group>"; };
 		C44BA7800AAB696300C7504F /* SetupAssistantBoxBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SetupAssistantBoxBackgroundView.h; path = Source/SetupAssistantBoxBackgroundView.h; sourceTree = "<group>"; };
 		C44BA7810AAB696400C7504F /* SetupAssistantBoxBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SetupAssistantBoxBackgroundView.m; path = Source/SetupAssistantBoxBackgroundView.m; sourceTree = "<group>"; };
-		C4D29CBF0C3C2E3C001545A2 /* BGICImportController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BGICImportController.h; path = Source/BGICImportController.h; sourceTree = SOURCE_ROOT; };
-		C4D29CC00C3C2E3C001545A2 /* BGICImportController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = BGICImportController.m; path = Source/BGICImportController.m; sourceTree = SOURCE_ROOT; };
-		C4D29CC10C3C2E3C001545A2 /* BGICLogImportController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BGICLogImportController.h; path = Source/BGICLogImportController.h; sourceTree = SOURCE_ROOT; };
-		C4D29CC20C3C2E3C001545A2 /* BGICLogImportController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = BGICLogImportController.m; path = Source/BGICLogImportController.m; sourceTree = SOURCE_ROOT; };
-		C4D29CC70C3C2E49001545A2 /* ICImport.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ICImport.xib; path = Resources/ICImport.xib; sourceTree = SOURCE_ROOT; };
 		C6BC7F9A15DD666600C5FF52 /* events-notification.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-notification.tiff"; path = "Resources/events-notification.tiff"; sourceTree = "<group>"; };
 		D10A3A2A122C61EF003B5A7E /* msg-source-destination.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-source-destination.tiff"; path = "Resources/msg-source-destination.tiff"; sourceTree = "<group>"; };
 		D1B9C00814C3ADF600D03244 /* sl */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; fileEncoding = 10; name = sl; path = "Plugins/Purple Service/Resources/sl.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -5015,8 +5004,6 @@
 				F57938AF033E737001A8010A /* AIPreferenceController.m */,
 				347F4B7F0D340F16006D5A56 /* AIPreferenceContainer.h */,
 				347F4B800D340F16006D5A56 /* AIPreferenceContainer.m */,
-				340C1E750BD59A0500D09235 /* GBImportPlugin.m */,
-				340C1E760BD59A0500D09235 /* GBImportPlugin.h */,
 				344C0D4306B6D5E300DA7200 /* Applescriptability */,
 				11819A0210D0B8BE003E8ECA /* AIMediaController.h */,
 				11819A0310D0B8BE003E8ECA /* AIMediaController.m */,
@@ -5846,11 +5833,6 @@
 		C4D29C9D0C3C2D90001545A2 /* iChat Importer */ = {
 			isa = PBXGroup;
 			children = (
-				C4D29CC70C3C2E49001545A2 /* ICImport.xib */,
-				C4D29CBF0C3C2E3C001545A2 /* BGICImportController.h */,
-				C4D29CC00C3C2E3C001545A2 /* BGICImportController.m */,
-				C4D29CC10C3C2E3C001545A2 /* BGICLogImportController.h */,
-				C4D29CC20C3C2E3C001545A2 /* BGICLogImportController.m */,
 				C4D29CA00C3C2D9C001545A2 /* From Logorrhea */,
 			);
 			name = "iChat Importer";
@@ -6524,6 +6506,7 @@
 				4BF2E91F067CB76300743318 /* Copy Built-in Xtras */,
 				34BD9D6A053146CC000AB133 /* Copy AdiumPlugins */,
 				345DFF4A05564DB200CEE7B3 /* Run Generate Buildnum File Script */,
+				ADD1E5C0DE00000000009901 /* Strip Custom Icon Before Signing */,
 			);
 			buildRules = (
 				81F9D1DF0A7F81A5004A35BD /* PBXBuildRule */,
@@ -6973,7 +6956,6 @@
 				34483A990BC869680083723B /* AdvancedPreferences.xib in Resources */,
 				07C6EA890C06676400B79CBD /* AdiumHelp in Resources */,
 				0CAC6A140C0C657A0090AE95 /* Adium.sdef in Resources */,
-				C4D29CC80C3C2E49001545A2 /* ICImport.xib in Resources */,
 				07E179780C657B5E005DDA3D /* ConfirmationDefaults.plist in Resources */,
 				34A970740C965FC800F46006 /* AddBookmark.xib in Resources */,
 				34A9707E0C96602300F46006 /* sidebarStatusAreaBackground.png in Resources */,
@@ -7098,6 +7080,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# otool -L \"$SCRIPT_INPUT_FILE_0\" | grep libpurple.framework | \n# install_name_tool -change @executable_path/../Frameworks/libpurple.framework/Versions/0.5.0/libpurple @executable_path/../Frameworks/libpurple.framework/Versions/Current/libpurple\n";
+		};
+		ADD1E5C0DE00000000009901 /* Strip Custom Icon Before Signing */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			alwaysOutOfDate = 1;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Custom Icon Before Signing";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Adium stamps its dock icon onto its own bundle so the Finder shows it, see\n# -[AIDockController updateAppBundleIcon]. That leaves behind an Icon file carrying a resource\n# fork, plus a custom-icon flag on the bundle itself. codesign refuses to sign a bundle holding\n# either, so a build over a bundle that has been run once fails with\n# \"resource fork, Finder information, or similar detritus not allowed\".\n#\n# Taking them off here costs nothing when they are absent, and Adium writes the icon again the\n# next time it runs, so nothing anybody chose is lost.\nAPP=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\n[ -d \"$APP\" ] || exit 0\n/usr/bin/find \"$APP\" -maxdepth 1 -name 'Icon?' -delete\n/usr/bin/xattr -c \"$APP\" 2>/dev/null || true\n";
 		};
 		345DFF4A05564DB200CEE7B3 /* Run Generate Buildnum File Script */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -7475,13 +7472,10 @@
 				3448399A0BC8644C0083723B /* AIAdvancedPreferencesPlugin.m in Sources */,
 				344839A00BC864610083723B /* AIAdvancedPreferences.m in Sources */,
 				346371080BCA0A5400AD57AD /* AIMessageTabSplitView.m in Sources */,
-				340C1E770BD59A0500D09235 /* GBImportPlugin.m in Sources */,
 				0CD41C710C2776550082F83B /* AICreateCommand.m in Sources */,
 				0CD3C3AD0C43C8CC003E637C /* NSWindowScriptingAdditions.m in Sources */,
 				348477140C1A5CE50019EF08 /* AIAnimatingListOutlineView.m in Sources */,
 				34847ADE0C1A62C40019EF08 /* AIOutlineViewAnimation.m in Sources */,
-				C4D29CC40C3C2E3C001545A2 /* BGICImportController.m in Sources */,
-				C4D29CC60C3C2E3C001545A2 /* BGICLogImportController.m in Sources */,
 				344D974F0C3C442600498CA1 /* InstantMessage.m in Sources */,
 				344D97530C3C442600498CA1 /* Presentity.m in Sources */,
 				0C79A2D90C5E633F005AE6FA /* AIMoveCommand.m in Sources */,

@@ -18,7 +18,6 @@
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
 #import "SetupWizardBackgroundView.h"
-#import "BGICImportController.h"
 #import <AIUtilities/AIImageAdditions.h>
 #import "AIServiceMenu.h"
 #import <Adium/AIService.h>
@@ -38,7 +37,6 @@ enum{
 };
 
 @interface AdiumSetupWizard ()
-- (void)multipleImportAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 - (void)show __attribute__((ns_consumes_self));
 @end
 
@@ -76,8 +74,6 @@ enum{
 	[textField_passwordLabel setLocalizedString:AILocalizedString(@"Password:", "Label for the password field in the account preferences")];
 	[textField_serviceLabel	setLocalizedString:AILocalizedString(@"Service:",nil)];
 	
-	[button_informationAboutImporting setLocalizedString:AILocalizedString(@"Information About Importing", "button title for more information about importing information in the setup wizard")];
-	[button_alternate setLocalizedString:AILocalizedString(@"Skip Import","button title for skipping the import of another client in the setup wizard")];
 }
 
 /*!
@@ -105,25 +101,6 @@ enum{
 	[[self window] center];
 
 	[super windowDidLoad];
-}
-
-- (IBAction)promptForMultiples:(id)sender
-{
-	// Since we have multiple dedicated importers in 1.1+ it's better to direct the user as needed
-    
-	NSAlert *multipleImportPrompt = [[[NSAlert alloc] init] autorelease];
-	[multipleImportPrompt setMessageText:AILocalizedString(@"Have you used other chat clients?", "Title which introduces import assistants during setup")];
-	[multipleImportPrompt setInformativeText:AILocalizedString(@"Adium includes assistants to import your accounts, settings, and transcripts from other clients. Choose a client below to open its assistant, or press Continue to skip importing.", nil)];
-	[multipleImportPrompt addButtonWithTitle:AILocalizedStringFromTable(@"Continue", @"Buttons", nil)];	//NSAlertFirstButtonReturn, was the default button
-	[multipleImportPrompt addButtonWithTitle:AILocalizedString(@"Import from iChat", "iChat is the OS X instant messaging client which ships with OS X; the name probably should not be localized")];	//NSAlertSecondButtonReturn, was the alternate button
-	[multipleImportPrompt beginSheetModalForWindow:[self window] completionHandler:^(NSModalResponse returnCode) {
-		if(returnCode == NSAlertSecondButtonReturn) {
-			[BGICImportController performSelector:@selector(importIChatConfiguration)
-									   withObject:nil
-									   afterDelay:0.5];
-			[[self window] close];
-		}
-	}];
 }
 
 /*!

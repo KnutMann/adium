@@ -23,9 +23,11 @@
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIParagraphStyleAdditions.h>
 #import <Adium/AIAccount.h>
+#import <Adium/AIPreferenceControllerProtocol.h>
 #import <Adium/AIService.h>
 #import <Adium/AIServiceMenu.h>
 #import <Adium/AISocialNetworkingStatusMenu.h>
+#import <Adium/AIStatusIcons.h>
 
 //Menu titles
 #define	ACCOUNT_CONNECT_ACTION_MENU_TITLE			AILocalizedString(@"Connect: %@", "Connect account prefix")
@@ -106,6 +108,10 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 										   name:Account_ListChanged
 										 object:nil];
 
+		/* And when the choice of what an account carries changes, which is a setting rather than
+		 * anything about the accounts themselves. */
+		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_GENERAL];
+
 		//Observe our accouts and prepare our state menus
 		[[AIContactObserverManager sharedManager] registerListObjectObserver:self];
 
@@ -128,6 +134,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	}
 
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
+	[adium.preferenceController unregisterPreferenceObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
 	delegate = nil;
@@ -170,9 +177,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	delegateRespondsToDidSelectAccount = [delegate respondsToSelector:@selector(accountMenu:didSelectAccount:)];
 	delegateRespondsToShouldIncludeAccount = [delegate respondsToSelector:@selector(accountMenu:shouldIncludeAccount:)];
 
-	includeAddAccountsMenu = ([delegate respondsToSelector:@selector(accountMenuShouldIncludeAddAccountsMenu:)] &&
-							  [delegate accountMenuShouldIncludeAddAccountsMenu:self]);
-
 	includeDisabledAccountsMenu = ([delegate respondsToSelector:@selector(accountMenuShouldIncludeDisabledAccountsMenu:)] &&
 								   [delegate accountMenuShouldIncludeDisabledAccountsMenu:self]);
 	
@@ -181,6 +185,22 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 - (id<AIAccountMenuDelegate>)delegate
 {
 	return delegate;
+}
+
+/*!
+ * @brief Redraw when the choice of what an account carries has changed
+ *
+ * Nothing is done the first time, when this only reports what was already read while the menu was
+ * being built, and nothing for the other settings in this group either.
+ */
+- (void)preferencesChangedForGroup:(NSString *)group
+							   key:(NSString *)key
+							object:(AIListObject *)object
+					preferenceDict:(NSDictionary *)prefDict
+						 firstTime:(BOOL)firstTime
+{
+	if (!firstTime && [key isEqualToString:KEY_ACCOUNT_MENU_ICON])
+		[self rebuildMenu];
 }
 
 /*!
@@ -263,29 +283,9 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 			}
 		}
 
-		if (includeAddAccountsMenu || [disabledAccountMenu numberOfItems]) {
-			[menuItemArray addObject:[NSMenuItem separatorItem]];
-		}
-
-		if (includeAddAccountsMenu) {
-			//Build the 'add account' menu of each available service
-			NSMenu	*serviceMenu = [AIServiceMenu menuOfServicesWithTarget:self 
-														activeServicesOnly:NO
-														   longDescription:YES
-																	format:AILocalizedString(@"%@",nil)];
-			
-			
-			NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Add Account", nil)
-																						target:self
-																						action:@selector(dummyAction:)
-																				 keyEquivalent:@""
-																			 representedObject:nil];
-			[menuItemArray addObject:menuItem];
-			[menuItem setSubmenu:serviceMenu];
-			[menuItem release];
-        }
-
 		if ([disabledAccountMenu numberOfItems]) {
+			[menuItemArray addObject:[NSMenuItem separatorItem]];
+
 			NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Disabled Accounts", nil)
                                                                             target:self
                                                                             action:@selector(dummyAction:)
@@ -311,16 +311,35 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 
 /*!
 * @brief Returns a menu image for the account
+ *
+ * Super draws the status and the service side by side into the one picture a menu item is allowed.
+ * Whether that reads well depends on the icon set, so which of the two is wanted is a setting, and
+ * this is the one place that answers it for every account menu there is.
  */
 - (NSImage *)imageForListObject:(AIListObject *)listObject usingUserIcon:(BOOL)useUserIcon
 {
+	/* A disabled account is not offline, it is not in use at all, and a status for it would say
+	 * something untrue whatever the setting says. */
 	if ([listObject isKindOfClass:[AIAccount class]] &&
 		![(AIAccount *)listObject enabled]) {
-		return [AIServiceIcons serviceIconForObject:listObject type:AIServiceIconSmall direction:AIIconNormal];	
-
-	} else {
-		return [super imageForListObject:listObject usingUserIcon:useUserIcon];
+		return [AIServiceIcons serviceIconForObject:listObject type:AIServiceIconSmall direction:AIIconNormal];
 	}
+
+	AIAccountMenuIconType iconType = [[adium.preferenceController preferenceForKey:KEY_ACCOUNT_MENU_ICON
+																			group:PREF_GROUP_GENERAL] intValue];
+
+	switch (iconType) {
+		case AIAccountMenuIconServiceOnly:
+			return [AIServiceIcons serviceIconForObject:listObject type:AIServiceIconSmall direction:AIIconNormal];
+
+		case AIAccountMenuIconStatusOnly:
+			return [AIStatusIcons statusIconForListObject:listObject type:AIStatusIconMenu direction:AIIconNormal];
+
+		case AIAccountMenuIconStatusAndService:
+			break;
+	}
+
+	return [super imageForListObject:listObject usingUserIcon:useUserIcon];
 }
 
 /*!
@@ -480,30 +499,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	}
 
     return nil;
-}
-
-- (IBAction)selectServiceType:(id)sender
-{
-	AIService	*service = [sender representedObject];
-	AIAccount	*account = [adium.accountController createAccountWithService:service
-																		   UID:[service defaultUserName]];
-	[adium.accountController editAccount:account
-								  onWindow:nil
-						   notifyingTarget:self];
-}
-
-/*!
-* @brief Editing of an account completed
- */
-- (void)editAccountSheetDidEndForAccount:(AIAccount *)inAccount withSuccess:(BOOL)successful
-{
-	if (successful) {
-		//New accounts need to be added to our account list once they're configured
-		[adium.accountController addAccount:inAccount];
-        
-		//Put new accounts online by default
-		[inAccount setPreference:[NSNumber numberWithBool:YES] forKey:@"isOnline" group:GROUP_ACCOUNT_STATUS];
-	}
 }
 
 //Account Action Submenu -----------------------------------------------------------------------------------------------
