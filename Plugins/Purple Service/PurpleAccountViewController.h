@@ -40,4 +40,9 @@
  */
 - (BOOL)hasProtocolOptions;
 
+/*!
+ * @brief What this machine calls itself in another device's list of linked devices
+ */
++ (NSString *)defaultDeviceName;
+
 @end

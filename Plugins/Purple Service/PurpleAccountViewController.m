@@ -243,6 +243,19 @@
 	return [menu autorelease];
 }
 
+
+/*!
+ * @brief What this machine calls itself in another device's list of linked devices
+ */
++ (NSString *)defaultDeviceName
+{
+	NSString *machine = [[NSHost currentHost] localizedName];
+	if (![machine length])
+		machine = [[NSProcessInfo processInfo] hostName];
+
+	return [NSString stringWithFormat:AILocalizedString(@"Adium on %@", "Name this computer gives itself in another device's list of linked devices. %@ is the computer's name."), machine];
+}
+
 //The protocol's own options -------------------------------------------------------------------------------------------
 #pragma mark The protocol's own options
 
@@ -315,6 +328,12 @@
 			case PURPLE_PREF_STRING:
 			case PURPLE_PREF_PATH: {
 				const char *fallback = purple_account_option_get_default_string(option);
+
+				/* What the other side lists this link as. The plugins name themselves there, which
+				 * is not what a person recognises in their list of linked devices. */
+				if (!stored && !strcmp(setting, "device-name"))
+					stored = [PurpleAccountViewController defaultDeviceName];
+
 				NSTextField *control = [AISettingsFormView textFieldWithTarget:self action:@selector(optionFieldChanged:)];
 
 				[control setStringValue:(stored ? stored : (fallback ? [NSString stringWithUTF8String:fallback] : @""))];
@@ -348,8 +367,15 @@
 					[[control itemAtIndex:i] setRepresentedObject:[values objectAtIndex:i]];
 
 				const char *fallback = purple_account_option_get_default_list_value(option);
-				NSString *current = stored ? stored : (fallback ? [NSString stringWithUTF8String:fallback] : nil);
-				NSUInteger index = (current ? [values indexOfObject:current] : NSNotFound);
+				NSString *fallbackValue = (fallback ? [NSString stringWithUTF8String:fallback] : nil);
+				NSUInteger index = (stored ? [values indexOfObject:stored] : NSNotFound);
+
+				/* A stored value the protocol no longer offers, or none at all, falls back to the
+				 * protocol's own default rather than to whatever happens to be first in the menu:
+				 * showing the first entry would claim a setting nobody chose. */
+				if (index == NSNotFound && fallbackValue)
+					index = [values indexOfObject:fallbackValue];
+
 				if (index != NSNotFound)
 					[control selectItemAtIndex:(NSInteger)index];
 

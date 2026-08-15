@@ -69,6 +69,8 @@
 	{
 		account = nil;
 		changedPrefDict = [[NSMutableDictionary alloc] init];
+		switchesByCheckBox = [[NSMutableDictionary alloc] init];
+		checkBoxesBySwitch = [[NSMutableDictionary alloc] init];
 
 		//Load custom views for our subclass (If our subclass specifies a nib name)
 		if ([self nibName]) {
@@ -92,6 +94,8 @@
  */
 - (void)dealloc
 {    
+	[switchesByCheckBox release]; switchesByCheckBox = nil;
+	[checkBoxesBySwitch release]; checkBoxesBySwitch = nil;
 	[view_setup release];
 	[view_profile release];
 	if (view_setup != view_options)
@@ -463,9 +467,53 @@
 	if (!control || [control isHidden])
 		return;
 
+	NSString *label = ([[labelField stringValue] length] ? [labelField stringValue] : fallback);
+
+	/* The nib labels end in a colon, which is how a form laid out in columns reads. A settings row
+	 * has the label and the control on one line and none of the others carry one. */
+	while ([label hasSuffix:@":"])
+		label = [label substringToIndex:([label length] - 1)];
+
 	[control removeFromSuperview];
-	[form addRowWithLabel:([[labelField stringValue] length] ? [labelField stringValue] : fallback)
-				  control:control];
+
+	/* A field keeps whatever width its nib gave it, which for the display name was most of the
+	 * window. A row decides its own width. */
+	if ([control isKindOfClass:[NSTextField class]])
+		[form addRowWithLabel:label stretchingControl:control];
+	else
+		[form addRowWithLabel:label control:control];
+}
+
+/*!
+ * @brief A checkbox from a nib, shown as the switch a settings row uses
+ *
+ * The checkbox stays: it is what -saveConfiguration reads, and it is kept in step with the switch.
+ * Its own title moves out to become the row's label, since a row says what it is on the left.
+ */
+- (void)addSwitchRow:(AISettingsFormView *)form checkBox:(NSButton *)checkBox label:(NSString *)label
+{
+	if (!checkBox || [checkBox isHidden])
+		return;
+
+	NSSwitch *toggle = [AISettingsFormView switchWithTarget:self action:@selector(switchRowChanged:)];
+
+	[toggle setState:[checkBox state]];
+	[switchesByCheckBox setObject:toggle forKey:[NSValue valueWithNonretainedObject:checkBox]];
+	[checkBoxesBySwitch setObject:[NSValue valueWithNonretainedObject:checkBox]
+						   forKey:[NSValue valueWithNonretainedObject:toggle]];
+
+	[form addRowWithLabel:label control:toggle];
+}
+
+- (void)switchRowChanged:(id)sender
+{
+	NSButton *checkBox = [[checkBoxesBySwitch objectForKey:[NSValue valueWithNonretainedObject:sender]] nonretainedObjectValue];
+
+	[checkBox setState:[sender state]];
+
+	//The checkbox is what the nib wired up, so its action is what anything watching expects
+	if ([checkBox target] && [checkBox action])
+		[[checkBox target] performSelector:[checkBox action] withObject:checkBox];
 }
 
 - (void)addAccountRowsToForm:(AISettingsFormView *)form
@@ -501,16 +549,17 @@
 
 - (void)addPrivacyRowsToForm:(AISettingsFormView *)form
 {
-	[self addRow:form
-		 control:checkBox_sendTyping
-		   label:label_typing
-		fallback:AILocalizedString(@"Send typing notifications", nil)];
+	/* Switches rather than checkboxes, and the label says what is being allowed rather than naming
+	 * the setting: these are two things the other side is told, not two settings of this program. */
+	[self addSwitchRow:form
+			  checkBox:checkBox_sendTyping
+				 label:AILocalizedString(@"Let others know when I am typing", "Account privacy row: whether typing is reported to the other side")];
 
-	[self addRow:form
-		 control:checkBox_sendReadReceipts
-		   label:label_readReceipts
-		fallback:AILocalizedString(@"Send read receipts", nil)];
+	[self addSwitchRow:form
+			  checkBox:checkBox_sendReadReceipts
+				 label:AILocalizedString(@"Let others know when I have read their messages", "Account privacy row: whether read receipts are sent")];
 
+	//Encryption is a choice, not a permission, so it keeps its name
 	[self addRow:form
 		 control:popUp_encryption
 		   label:label_encryption
