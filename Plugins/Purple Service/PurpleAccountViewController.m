@@ -341,6 +341,12 @@
 		if (!setting)
 			continue;
 
+		/* Not the ones Adium asks for itself. Server and port have their own shared fields, and
+		 * CBPurpleAccount hands their values to the protocol under exactly these names, so a row
+		 * built from the protocol would be a second field for one setting. */
+		if (!strcmp(setting, "server") || !strcmp(setting, "port"))
+			continue;
+
 		const char *text = purple_account_option_get_text(option);
 
 		/* Its own label if it has one. A protocol which names an option and nothing else gets the
