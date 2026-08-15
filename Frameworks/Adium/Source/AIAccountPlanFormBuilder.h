@@ -52,8 +52,21 @@
 - (void)buildInForm:(AISettingsFormView *)form;
 
 /*!
- * @brief End editing in whatever field has it, so the last keystroke is written
+ * @brief As above, without one card, which is going somewhere else
  */
-- (void)commitEditing;
+- (void)buildInForm:(AISettingsFormView *)form skippingCard:(NSString *)cardIdentifier;
+
+/*!
+ * @brief Add one card of the plan to @a form
+ *
+ * For a card that belongs on a page of its own. The same builder does both, so a field written on
+ * either page reaches the same plan and reports to the same target.
+ */
+- (void)buildCard:(NSString *)cardIdentifier inForm:(AISettingsFormView *)form;
+
+/*!
+ * @brief Whether that card would put anything on a page at all
+ */
+- (BOOL)hasFieldsInCard:(NSString *)cardIdentifier;
 
 @end

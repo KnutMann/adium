@@ -1117,7 +1117,12 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 - (void)preferencePaneNavigateBack
 {
-	[self commitOpenAccountPage];
+	/* Only when the account page itself is being left. A page opened on top of it, the protocol's
+	 * remaining options for instance, goes away without any of that: an account being created has no
+	 * name yet, and taking it out because a page above it closed would be wrong. */
+	if ([navigationController topViewController] == detailPage)
+		[self commitOpenAccountPage];
+
 	[navigationController popViewControllerAnimated:YES];
 }
 

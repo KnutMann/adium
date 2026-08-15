@@ -26,6 +26,7 @@
 
 @interface AIAccountPlanFormBuilder () <NSTextViewDelegate>
 - (NSString *)titleForCard:(NSString *)identifier;
+- (void)addCard:(AIAccountPlanCard *)card toForm:(AISettingsFormView *)form;
 - (void)addField:(AIAccountPlanField *)field toForm:(AISettingsFormView *)form;
 - (NSView *)controlForField:(AIAccountPlanField *)field;
 - (void)controlChanged:(id)sender;
@@ -92,21 +93,46 @@
 
 - (void)buildInForm:(AISettingsFormView *)form
 {
+	[self buildInForm:form skippingCard:nil];
+}
+
+- (void)buildInForm:(AISettingsFormView *)form skippingCard:(NSString *)skipped
+{
 	for (AIAccountPlanCard *card in [plan cards]) {
-		if (![[card fields] count])
+		if (skipped && [[card identifier] isEqualToString:skipped])
 			continue;
 
-		[form addSectionHeader:[self titleForCard:[card identifier]]];
-
-		for (AIAccountPlanField *field in [card fields])
-			[self addField:field toForm:form];
-
-		/* The card nobody curated: everything the protocol declares that no plan mentions. Saying so
-		 * beats letting it read as a second, equally considered list of settings. */
-		if ([[card identifier] isEqualToString:AIAccountCardMore])
-			[form addFootnote:AILocalizedString(@"Everything else this protocol offers.",
-											    "Footnote under the card holding a protocol's remaining options")];
+		[self addCard:card toForm:form];
 	}
+}
+
+- (void)buildCard:(NSString *)cardIdentifier inForm:(AISettingsFormView *)form
+{
+	for (AIAccountPlanCard *card in [plan cards]) {
+		if ([[card identifier] isEqualToString:cardIdentifier])
+			[self addCard:card toForm:form];
+	}
+}
+
+- (BOOL)hasFieldsInCard:(NSString *)cardIdentifier
+{
+	for (AIAccountPlanCard *card in [plan cards]) {
+		if ([[card identifier] isEqualToString:cardIdentifier])
+			return ([[card fields] count] != 0);
+	}
+
+	return NO;
+}
+
+- (void)addCard:(AIAccountPlanCard *)card toForm:(AISettingsFormView *)form
+{
+	if (![[card fields] count])
+		return;
+
+	[form addSectionHeader:[self titleForCard:[card identifier]]];
+
+	for (AIAccountPlanField *field in [card fields])
+		[self addField:field toForm:form];
 }
 
 - (void)addField:(AIAccountPlanField *)field toForm:(AISettingsFormView *)form
@@ -369,21 +395,6 @@
 
 	if (field)
 		[plan performActionForField:field];
-}
-
-- (void)commitEditing
-{
-	for (NSString *name in controlsByName) {
-		NSView *control = [controlsByName objectForKey:name];
-		NSWindow *window = [control window];
-
-		//Only the field that actually has the focus needs telling, and only it can lose a keystroke
-		if (window && [[window firstResponder] isKindOfClass:[NSTextView class]] &&
-			[(NSView *)[window firstResponder] isDescendantOf:control]) {
-			[window makeFirstResponder:nil];
-			return;
-		}
-	}
 }
 
 @end

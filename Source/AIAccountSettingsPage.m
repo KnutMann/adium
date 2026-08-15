@@ -15,10 +15,12 @@
  */
 
 #import "AIAccountSettingsPage.h"
+#import "AIAccountOptionsPage.h"
 
 #import <Adium/AIAccount.h>
 #import <Adium/AIAccountPlan.h>
 #import <Adium/AIAccountPlanFormBuilder.h>
+#import <Adium/AISettingsNavigationController.h>
 #import <Adium/AIService.h>
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AISettingsFormView.h>
@@ -26,6 +28,7 @@
 
 @interface AIAccountSettingsPage ()
 - (void)buildForm;
+- (void)showMoreOptions:(id)sender;
 - (void)fieldChanged:(AIAccountPlanField *)field;
 - (void)editingChanged:(NSNotification *)notification;
 - (void)windowResignedKey:(NSNotification *)notification;
@@ -160,9 +163,41 @@
 			   title:[account formattedUID]
 			 control:nil];
 
-	[builder buildInForm:form];
+	/* Everything but the options nobody curated. A dozen rows named the way the protocol names them
+	 * would be the first thing met on this page, and they are the last thing most accounts need. */
+	[builder buildInForm:form skippingCard:AIAccountCardMore];
+
+	if ([builder hasFieldsInCard:AIAccountCardMore]) {
+		NSButton *chevron = [AISettingsFormView inlineSymbolButtonWithSymbolName:@"chevron.forward"
+															  fallbackImageName:nil
+																		 target:self
+																		 action:@selector(showMoreOptions:)];
+
+		[chevron setAccessibilityLabel:AILocalizedString(@"More Options",
+														 "Row that opens the options a protocol offers beyond the usual ones")];
+
+		[form endCard];
+		[form addRowWithLabel:AILocalizedString(@"More Options",
+												"Row that opens the options a protocol offers beyond the usual ones")
+					  control:chevron];
+	}
 
 	[form layoutForWidth:600.0f];
+}
+
+/*!
+ * @brief Open the protocol's remaining options as a page of their own
+ */
+- (void)showMoreOptions:(id)sender
+{
+	AIAccountOptionsPage *page = [[[AIAccountOptionsPage alloc] initWithBuilder:builder
+																		  card:AIAccountCardMore] autorelease];
+
+	//The stack this page is in is the one it was pushed onto, so there is nothing to hand around
+	id parent = [self parentViewController];
+
+	if ([parent isKindOfClass:[AISettingsNavigationController class]])
+		[(AISettingsNavigationController *)parent pushViewController:page animated:YES];
 }
 
 @end

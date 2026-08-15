@@ -227,6 +227,7 @@
 		344499EA0B23CA5D0054B761 /* adiumPurpleAccounts.m in Sources */ = {isa = PBXBuildFile; fileRef = 344499E80B23CA5D0054B761 /* adiumPurpleAccounts.m */; };
 		344838690BC85EF70083723B /* AccountListPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */; };
 		344838B50BC860770083723B /* AIAccountListPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */; };
+		ADD1E5C0DE0000000000D003 /* AIAccountOptionsPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D002 /* AIAccountOptionsPage.m */; };
 		ADD1E5C0DE00000000000772 /* AIAccountSettingsPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */; };
 		344839380BC862780083723B /* pref-messages.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34D8336707CBD807006466F2 /* pref-messages.tiff */; };
 		3448399A0BC8644C0083723B /* AIAdvancedPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */; };
@@ -2539,6 +2540,8 @@
 		4B8742490840E3D800738987 /* AdiumPasswords.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumPasswords.m; path = Source/AdiumPasswords.m; sourceTree = "<group>"; };
 		4B8C3C970825EAF9004B9F45 /* AIAccountListPreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountListPreferences.h; path = Source/AIAccountListPreferences.h; sourceTree = "<group>"; };
 		4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountListPreferences.m; path = Source/AIAccountListPreferences.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D001 /* AIAccountOptionsPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAccountOptionsPage.h; path = "Source/AIAccountOptionsPage.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D002 /* AIAccountOptionsPage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAccountOptionsPage.m; path = "Source/AIAccountOptionsPage.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAccountSettingsPage.m; path = "Source/AIAccountSettingsPage.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000773 /* AIAccountSettingsPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAccountSettingsPage.h; path = "Source/AIAccountSettingsPage.h"; sourceTree = "<group>"; };
 		4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountListPreferences.xib; path = Resources/AccountListPreferences.xib; sourceTree = "<group>"; };
@@ -6166,6 +6169,8 @@
 				F55B413C03AB895501A8010A /* AIAccountListPreferencesPlugin.m */,
 				4B8C3C970825EAF9004B9F45 /* AIAccountListPreferences.h */,
 				4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */,
+				ADD1E5C0DE0000000000D001 /* AIAccountOptionsPage.h */,
+				ADD1E5C0DE0000000000D002 /* AIAccountOptionsPage.m */,
 				ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */,
 				ADD1E5C0DE00000000000773 /* AIAccountSettingsPage.h */,
 				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */,
@@ -7465,6 +7470,7 @@
 				346935D60BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m in Sources */,
 				11C7CAF30BB58F4100296D7F /* AINudgeBuzzHandlerPlugin.m in Sources */,
 				344838B50BC860770083723B /* AIAccountListPreferences.m in Sources */,
+				ADD1E5C0DE0000000000D003 /* AIAccountOptionsPage.m in Sources */,
 				ADD1E5C0DE00000000000772 /* AIAccountSettingsPage.m in Sources */,
 				3448399A0BC8644C0083723B /* AIAdvancedPreferencesPlugin.m in Sources */,
 				344839A00BC864610083723B /* AIAdvancedPreferences.m in Sources */,
