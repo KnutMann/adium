@@ -553,9 +553,11 @@ typedef enum {
  * lines up.
  */
 @interface AISettingsNavigationRowView : NSView {
-	id		 target;			//Not retained, as a control's target is not
-	SEL		 action;
-	BOOL	 pressed;
+	NSTextField	*labelField;
+	NSImageView	*chevron;
+	id			 target;			//Not retained, as a control's target is not
+	SEL			 action;
+	BOOL		 pressed;
 }
 - (id)initWithLabel:(NSString *)label target:(id)inTarget action:(SEL)inAction;
 @end
@@ -568,26 +570,19 @@ typedef enum {
 		target = inTarget;
 		action = inAction;
 
-		NSTextField *labelField = AISettingsMakeLabel(label,
-													 [NSFont systemFontOfSize:AISettingsLabelFontSize],
-													 [NSColor labelColor]);
-		NSImageView *chevron = [NSImageView imageViewWithImage:[AISettingsFormView disclosureIndicatorImage]];
+		labelField = AISettingsMakeLabel(label,
+										 [NSFont systemFontOfSize:AISettingsLabelFontSize],
+										 [NSColor labelColor]);
+		[labelField sizeToFit];
 
+		chevron = [[NSImageView imageViewWithImage:[AISettingsFormView disclosureIndicatorImage]] retain];
 		[chevron setContentTintColor:[NSColor tertiaryLabelColor]];
-		[chevron setTranslatesAutoresizingMaskIntoConstraints:NO];
-		[chevron setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[chevron setFrameSize:[[chevron image] size]];
 
+		/* Frames rather than constraints: the form hosts this view the way it hosts anything a pane
+		 * hands it, by setting its frame, and a view laid out both ways at once fights itself. */
 		[self addSubview:labelField];
 		[self addSubview:chevron];
-
-		[NSLayoutConstraint activateConstraints:@[
-			[labelField.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:AISettingsCardInsetH],
-			[labelField.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-			[chevron.leadingAnchor constraintGreaterThanOrEqualToAnchor:labelField.trailingAnchor constant:8.0],
-			[chevron.trailingAnchor constraintEqualToAnchor:self.trailingAnchor constant:-AISettingsCardInsetH],
-			[chevron.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-			[self.heightAnchor constraintEqualToConstant:AISettingsRowMinHeight]
-		]];
 
 		[self setAccessibilityRole:NSAccessibilityButtonRole];
 		[self setAccessibilityLabel:label];
@@ -596,9 +591,37 @@ typedef enum {
 	return self;
 }
 
+- (void)dealloc
+{
+	[labelField release];
+	[chevron release];
+
+	[super dealloc];
+}
+
 - (BOOL)isFlipped
 {
 	return YES;
+}
+
+- (void)resizeSubviewsWithOldSize:(NSSize)oldSize
+{
+	NSRect bounds = [self bounds];
+	NSSize chevronSize = [chevron frame].size;
+	CGFloat chevronX = NSMaxX(bounds) - AISettingsCardInsetH - chevronSize.width;
+
+	[chevron setFrame:NSMakeRect(chevronX,
+								 round((NSHeight(bounds) - chevronSize.height) / 2.0),
+								 chevronSize.width,
+								 chevronSize.height)];
+
+	CGFloat labelWidth = chevronX - 8.0 - AISettingsCardInsetH;
+	NSSize labelSize = [labelField frame].size;
+
+	[labelField setFrame:NSMakeRect(AISettingsCardInsetH,
+									round((NSHeight(bounds) - labelSize.height) / 2.0),
+									MAX(labelWidth, 0.0),
+									labelSize.height)];
 }
 
 - (void)drawRect:(NSRect)dirtyRect
@@ -623,7 +646,7 @@ typedef enum {
  * @brief Track the press ourselves
  *
  * A row is not a control, and wrapping one in an NSButton would put the button's own drawing under
- * the label. Tracking is four lines and gives exactly the behaviour of a list row: held down it
+ * the label. Tracking is a few lines and gives exactly the behaviour of a list row: held down it
  * darkens, dragged off it goes back, released outside it does nothing.
  */
 - (void)mouseDown:(NSEvent *)event
