@@ -65,8 +65,24 @@
 	NSLayoutConstraint	*formWidthConstraint;	//How -layoutForWidth: hands the stack its width
 	CGFloat				 contentHeight;			//Height of the laid out content
 	CGFloat				 maximumSliderWidth;	//0: sliders fill their row; >0: capped to this and right aligned
+	CGFloat				 sharedLabelNatural;	//Widest label of the whole form, once they share a column
+	BOOL				 sharesLabelColumn;
 	BOOL				 needsFormLayout;
 }
+
+/*!
+ * @brief Line the label column up across every card, not only within one.
+ *
+ * By default each card finds its own label column, which is what System
+ * Settings does: two cards about different things have no reason to agree. A
+ * form whose cards are all the same kind of thing - a page of fields about one
+ * account - reads better with one column throughout, because then every field
+ * that takes what the row leaves is exactly as wide as the next.
+ *
+ * Set it before adding rows. The column never gives width back, so it settles
+ * on the widest label the form ever had.
+ */
+@property (nonatomic) BOOL sharesLabelColumn;
 
 /*!
  * @brief Cap the width of every slider row added after this, or 0 to fill.

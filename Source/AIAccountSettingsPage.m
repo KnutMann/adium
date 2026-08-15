@@ -137,6 +137,11 @@
 - (void)loadView
 {
 	form = [[AISettingsFormView alloc] initWithWidth:600.0f];
+
+	/* Every card here is about the same account, so one label column throughout: otherwise a field
+	 * under a short label is wider than the one under a long label two cards down. */
+	[form setSharesLabelColumn:YES];
+
 	[self buildForm];
 	[self setView:form];
 }

@@ -813,6 +813,7 @@ typedef enum {
 @implementation AISettingsFormView
 
 @synthesize maximumSliderWidth = maximumSliderWidth;
+@synthesize sharesLabelColumn = sharesLabelColumn;
 
 - (instancetype)initWithWidth:(CGFloat)width
 {
@@ -2011,6 +2012,24 @@ typedef enum {
 - (void)refreshGuestMetricsForCardWidth:(CGFloat)cardWidth
 {
 	CGFloat sliderInnerWidth = cardWidth - 2.0 * AISettingsCardInsetH;
+	CGFloat sharedColumn = 0.0;
+
+	/* One column for the whole form rather than one per card: every field that takes what its row
+	 * leaves then starts at the same x and ends at the same inset, so they are all the same width. */
+	if (sharesLabelColumn) {
+		for (AISettingsFormSection *section in sections) {
+			for (AISettingsFormRow *row in section->rows) {
+				if (row->type != AISettingsRowTypeSlider && row->type != AISettingsRowTypeStretch) continue;
+
+				if (row->labelField)
+					sharedColumn = MAX(sharedColumn, ceil([[row->labelField cell] cellSize].width));
+			}
+		}
+
+		//Only the cap follows the card's width; the text width itself never shrinks again
+		sharedLabelNatural = MAX(sharedLabelNatural, sharedColumn);
+		sharedColumn = MIN(sharedLabelNatural, floor(sliderInnerWidth * AISettingsSliderLabelMax));
+	}
 
 	for (AISettingsFormSection *section in sections) {
 		//Headers and footnotes wrap at the card's width, which is known up front
@@ -2035,6 +2054,9 @@ typedef enum {
 		//Only the cap follows the card's width; the text width itself never shrinks again
 		section->sliderLabelNatural = MAX(section->sliderLabelNatural, labelColumn);
 		labelColumn = MIN(section->sliderLabelNatural, floor(sliderInnerWidth * AISettingsSliderLabelMax));
+
+		if (sharesLabelColumn)
+			labelColumn = sharedColumn;
 
 		for (AISettingsFormRow *row in section->rows) {
 			if (row->type == AISettingsRowTypePopUp) {
