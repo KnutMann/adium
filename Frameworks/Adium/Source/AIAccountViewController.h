@@ -16,7 +16,7 @@
 
 #import <Adium/AIContactControllerProtocol.h>
 
-@class AIAccount;
+@class AIAccount, AISettingsFormView;
 
 @interface AIAccountViewController : NSObject {
 	/* These are the views used in Adium's account preferences.  If views aren't provided by a custom account view
@@ -75,6 +75,26 @@
 
 - (void)didBeginRegistration;
 - (void)usernameAndPasswordRegistered:(NSNotification*)notification;
+
+
+/*!
+ * @brief Does this controller use the shared account views rather than a nib of its own?
+ *
+ * A service which brings its own nib has fields nobody here knows about, so its views are shown
+ * whole. One using the shared ones has exactly the fields below, and those can be laid out as
+ * ordinary settings rows.
+ */
+- (BOOL)usesSharedAccountViews;
+
+/*!
+ * @brief Put the shared fields into a settings form as rows
+ *
+ * The very same controls, moved out of their nib view and into rows. Nothing about loading or saving
+ * changes, because both still read and write these outlets; only where they sit does.
+ */
+- (void)addAccountRowsToForm:(AISettingsFormView *)form;
+- (void)addProfileRowsToForm:(AISettingsFormView *)form;
+- (void)addPrivacyRowsToForm:(AISettingsFormView *)form;
 
 @end
 

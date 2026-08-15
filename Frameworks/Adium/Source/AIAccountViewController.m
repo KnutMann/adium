@@ -442,4 +442,80 @@
 	[label_server setStringValue:AILocalizedStringFromTableInBundle(@"Login Server:", nil, [NSBundle bundleForClass:[AIAccountViewController class]], "Label for the login server field in the account preferences")];
 }
 
+
+//The shared fields, as rows ------------------------------------------------------------------------------------------
+#pragma mark The shared fields, as rows
+
+- (BOOL)usesSharedAccountViews
+{
+	return ![[self nibName] length];
+}
+
+/*!
+ * @brief One row, built around a control that already exists
+ *
+ * The control is moved out of the nib view it was laid out in and into the row. Its own label goes
+ * with it as the row's label, so a service which renamed a field keeps the name it chose.
+ */
+- (void)addRow:(AISettingsFormView *)form control:(NSView *)control label:(NSTextField *)labelField fallback:(NSString *)fallback
+{
+	if (!control || [control isHidden])
+		return;
+
+	NSString *label = ([[labelField stringValue] length] ? [labelField stringValue] : fallback);
+
+	[control removeFromSuperview];
+	[form addRowWithLabel:label control:control];
+	[labelField setHidden:YES];
+}
+
+- (void)addAccountRowsToForm:(AISettingsFormView *)form
+{
+	[self addRow:form
+		 control:textField_accountUID
+		   label:textField_accountUIDLabel
+		fallback:[[account service] userNameLabel]];
+
+	[self addRow:form
+		 control:textField_password
+		   label:label_password
+		fallback:AILocalizedString(@"Password", nil)];
+
+	[self addRow:form
+		 control:textField_connectHost
+		   label:label_server
+		fallback:AILocalizedString(@"Server", nil)];
+
+	[self addRow:form
+		 control:textField_connectPort
+		   label:label_port
+		fallback:AILocalizedString(@"Port", nil)];
+}
+
+- (void)addProfileRowsToForm:(AISettingsFormView *)form
+{
+	[self addRow:form
+		 control:textField_alias
+		   label:label_alias
+		fallback:AILocalizedString(@"Display Name", nil)];
+}
+
+- (void)addPrivacyRowsToForm:(AISettingsFormView *)form
+{
+	[self addRow:form
+		 control:checkBox_sendTyping
+		   label:label_typing
+		fallback:AILocalizedString(@"Send typing notifications", nil)];
+
+	[self addRow:form
+		 control:checkBox_sendReadReceipts
+		   label:label_readReceipts
+		fallback:AILocalizedString(@"Send read receipts", nil)];
+
+	[self addRow:form
+		 control:popUp_encryption
+		   label:label_encryption
+		fallback:AILocalizedString(@"Encryption", nil)];
+}
+
 @end

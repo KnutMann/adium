@@ -216,10 +216,23 @@
 			   title:[account formattedUID]
 			 control:nil];
 
-	[self addHostedView:[accountViewController setupView]
-			underHeader:AILocalizedString(@"Account", "Section header above an account's name and password")];
-	[self addHostedView:[accountViewController profileView]
-			underHeader:AILocalizedString(@"Personal", "Section header above an account's personal details")];
+	/* A service using the shared account views has exactly the fields everyone knows about, and those
+	 * become ordinary rows. One with a nib of its own has fields nobody here knows, so its view is
+	 * shown whole rather than picked apart. */
+	BOOL shared = [accountViewController usesSharedAccountViews];
+
+	if (shared) {
+		[form addSectionHeader:AILocalizedString(@"Account", "Section header above an account's name and password")];
+		[accountViewController addAccountRowsToForm:form];
+
+		[form addSectionHeader:AILocalizedString(@"Personal", "Section header above an account's personal details")];
+		[accountViewController addProfileRowsToForm:form];
+	} else {
+		[self addHostedView:[accountViewController setupView]
+				underHeader:AILocalizedString(@"Account", "Section header above an account's name and password")];
+		[self addHostedView:[accountViewController profileView]
+				underHeader:AILocalizedString(@"Personal", "Section header above an account's personal details")];
+	}
 	/* Options as ordinary rows when the protocol can describe them, which for a libpurple protocol
 	 * means always: it declares each option's name, type, default and, for a choice, the choices.
 	 * Only when nothing can be had that way is the service's own view hosted instead, which is what
@@ -236,8 +249,13 @@
 		[self addHostedView:[accountViewController optionsView]
 				underHeader:AILocalizedString(@"Options", "Section header above an account's options")];
 	}
-	[self addHostedView:[accountViewController privacyView]
-			underHeader:AILocalizedString(@"Privacy", "Section header above an account's privacy settings")];
+	if (shared) {
+		[form addSectionHeader:AILocalizedString(@"Privacy", "Section header above an account's privacy settings")];
+		[accountViewController addPrivacyRowsToForm:form];
+	} else {
+		[self addHostedView:[accountViewController privacyView]
+				underHeader:AILocalizedString(@"Privacy", "Section header above an account's privacy settings")];
+	}
 
 	[form layoutForWidth:600.0f];
 }
