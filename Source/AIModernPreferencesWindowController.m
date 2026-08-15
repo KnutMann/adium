@@ -564,6 +564,23 @@ static NSImage *AIPrefPaneIcon(id pane)
 		return;
 	}
 
+	/* Laying out sets frames, and a frame set here comes back as a notification asking for another
+	 * layout: the document view resizes the pane with it. As long as both sides want the same height
+	 * that settles after one pass, but a page that arrives with a different height has the two of
+	 * them alternating, and AppKit gives up after sixty three nested passes.
+	 *
+	 * Not dropped, deferred: what arrives mid-pass is real, the pane really did end up a different
+	 * height. One follow-up once this pass is off the stack reads that height and agrees with it. */
+	if (layingOutPane) {
+		[NSObject cancelPreviousPerformRequestsWithTarget:self
+												 selector:@selector(layoutCurrentPane)
+												   object:nil];
+		[self performSelector:@selector(layoutCurrentPane) withObject:nil afterDelay:0.0];
+		return;
+	}
+
+	layingOutPane = YES;
+
 	NSScrollView *scrollView = [contentHost enclosingScrollView];
 	NSClipView *clipView = [scrollView contentView];
 
@@ -608,6 +625,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[contentHost setFrame:NSMakeRect(0, 0, visibleSize.width,
 										 MAX(settledHeight + 2 * AIPrefsContentPadding, visibleSize.height - topInset))];
 	}
+
+	layingOutPane = NO;
 }
 
 /*!
@@ -619,22 +638,10 @@ static NSImage *AIPrefPaneIcon(id pane)
  */
 - (void)contentClipViewFrameChanged:(NSNotification *)notification
 {
-	if (layingOutPane) {
-		/* Not dropped: a clip change arriving mid-layout is usually the vertical scroller
-		 * appearing because of the very height that pass just set, and swallowing it leaves
-		 * the column laid out for a width it no longer has. One follow-up pass once the
-		 * current one is off the stack settles it; scheduling is idempotent enough here
-		 * because the selector is coalesced against ourselves. */
-		[NSObject cancelPreviousPerformRequestsWithTarget:self
-												 selector:@selector(layoutCurrentPane)
-												   object:nil];
-		[self performSelector:@selector(layoutCurrentPane) withObject:nil afterDelay:0.0];
-		return;
-	}
-
-	layingOutPane = YES;
+	/* A clip change arriving mid-layout is usually the vertical scroller appearing because of the
+	 * very height that pass just set, and swallowing it would leave the column laid out for a width
+	 * it no longer has. -layoutCurrentPane defers it rather than dropping it. */
 	[self layoutCurrentPane];
-	layingOutPane = NO;
 }
 
 /*!
