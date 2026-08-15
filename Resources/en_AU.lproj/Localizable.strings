@@ -1946,12 +1946,6 @@
 /* Explanation of when the 'show contact list' action is available for use */
 "Note: This behavior is only available if the contact list is set to hide." = "Note: This behavior is only available if the contact list is set to hide.";
 
-/* Short identifier for the 'notes' which can be entered for contacts. This will be shown in the contact list tooltips. */
-"Notes" = "Notes";
-
-/* Label beside the field for contact notes in the Settings tab of the Get Info window */
-"Notes:" = "Notes:";
-
 /* No comment provided by engineer. */
 "Notification received" = "Notification received";
 

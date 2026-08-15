@@ -232,7 +232,6 @@
 				<cocoa key="internalObjectID" />
 			</property>			
 			<property name="display name" code="Pdnm" type="text" access="rw" description="The display name or alias associated with this contact." />
-			<property name="notes" code="Pnts" type="text" access="rw" description="The user-defined notes for this contact."/>
 			<property name="idle time" code="Pidl" type="integer" access="r" description="The time this contact has been idle." />
 			<property name="status type" code="Psts" type="status types" access="r" description="The current status of this contact">
 				<cocoa key="scriptingStatusType" />

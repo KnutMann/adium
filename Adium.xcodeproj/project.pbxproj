@@ -305,7 +305,6 @@
 		347E7A9007CAF88200350507 /* AIContactAwayPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7A8E07CAF88200350507 /* AIContactAwayPlugin.m */; };
 		347E7A9907CAF8AF00350507 /* ESContactClientPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7A9407CAF8AE00350507 /* ESContactClientPlugin.m */; };
 		347E7A9C07CAF8AF00350507 /* AIContactIdlePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7A9707CAF8AF00350507 /* AIContactIdlePlugin.m */; };
-		347E7AA307CAF8DA00350507 /* BGContactNotesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7AA107CAF8DA00350507 /* BGContactNotesPlugin.m */; };
 		347E7AAA07CAF8EE00350507 /* SAContactOnlineForPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7AA807CAF8EE00350507 /* SAContactOnlineForPlugin.m */; };
 		347E7AB307CAF93700350507 /* AIContactOnlineSincePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7AB107CAF93700350507 /* AIContactOnlineSincePlugin.m */; };
 		347E7ABC07CAF94A00350507 /* ESContactServersideDisplayName.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E7ABA07CAF94A00350507 /* ESContactServersideDisplayName.m */; };
@@ -1962,8 +1961,6 @@
 		347E7A9607CAF8AF00350507 /* CBContactLastSeenPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CBContactLastSeenPlugin.h; path = Source/CBContactLastSeenPlugin.h; sourceTree = "<group>"; };
 		347E7A9707CAF8AF00350507 /* AIContactIdlePlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactIdlePlugin.m; path = Source/AIContactIdlePlugin.m; sourceTree = "<group>"; };
 		347E7A9807CAF8AF00350507 /* AIContactIdlePlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactIdlePlugin.h; path = Source/AIContactIdlePlugin.h; sourceTree = "<group>"; };
-		347E7AA107CAF8DA00350507 /* BGContactNotesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = BGContactNotesPlugin.m; path = Source/BGContactNotesPlugin.m; sourceTree = "<group>"; };
-		347E7AA207CAF8DA00350507 /* BGContactNotesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BGContactNotesPlugin.h; path = Source/BGContactNotesPlugin.h; sourceTree = "<group>"; };
 		347E7AA807CAF8EE00350507 /* SAContactOnlineForPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SAContactOnlineForPlugin.m; path = Source/SAContactOnlineForPlugin.m; sourceTree = "<group>"; };
 		347E7AA907CAF8EE00350507 /* SAContactOnlineForPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SAContactOnlineForPlugin.h; path = Source/SAContactOnlineForPlugin.h; sourceTree = "<group>"; };
 		347E7AB107CAF93700350507 /* AIContactOnlineSincePlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactOnlineSincePlugin.m; path = Source/AIContactOnlineSincePlugin.m; sourceTree = "<group>"; };
@@ -3818,8 +3815,6 @@
 				347E7A9707CAF8AF00350507 /* AIContactIdlePlugin.m */,
 				347E7AB207CAF93700350507 /* AIContactOnlineSincePlugin.h */,
 				347E7AB107CAF93700350507 /* AIContactOnlineSincePlugin.m */,
-				347E7AA207CAF8DA00350507 /* BGContactNotesPlugin.h */,
-				347E7AA107CAF8DA00350507 /* BGContactNotesPlugin.m */,
 				347E7A9607CAF8AF00350507 /* CBContactLastSeenPlugin.h */,
 				074DDB5C07CB413F0033AFF7 /* CBContactLastSeenPlugin.m */,
 				347E7A9507CAF8AE00350507 /* ESContactClientPlugin.h */,
@@ -7320,7 +7315,6 @@
 				347E7A9007CAF88200350507 /* AIContactAwayPlugin.m in Sources */,
 				347E7A9907CAF8AF00350507 /* ESContactClientPlugin.m in Sources */,
 				347E7A9C07CAF8AF00350507 /* AIContactIdlePlugin.m in Sources */,
-				347E7AA307CAF8DA00350507 /* BGContactNotesPlugin.m in Sources */,
 				347E7AAA07CAF8EE00350507 /* SAContactOnlineForPlugin.m in Sources */,
 				347E7AB307CAF93700350507 /* AIContactOnlineSincePlugin.m in Sources */,
 				347E7ABC07CAF94A00350507 /* ESContactServersideDisplayName.m in Sources */,

@@ -33,7 +33,6 @@
 {
 	if ((self = [super init])) {
 		[NSBundle loadNibNamed:[self nibName] owner:self];
-		[label_notes setStringValue:AILocalizedString(@"Notes:", "Label beside the field for contact notes in the Settings tab of the Get Info window")];
 		[button_chooseCard setTitle:[AILocalizedStringFromTable(@"Choose Address Book Card", @"Buttons", "Button title to choose an Address Book card for a contact") stringByAppendingEllipsis]];
 
 		[label_abPeoplePickerChooseAnAddressCard setStringValue:AILocalizedString(@"Choose an Address Card:", nil)];
@@ -64,30 +63,12 @@
 
 -(void)updateForListObject:(AIListObject *)inObject
 {
-	NSString	*currentNotes;
-
 	//Hold onto the object, using the highest-up metacontact if necessary
 	[displayedObject release];
 	displayedObject = ([inObject isKindOfClass:[AIListContact class]] ?
 				  [(AIListContact *)inObject parentContact] :
 				  inObject);
 	[displayedObject retain];
-
-	//Current note
-    if ((currentNotes = [displayedObject notes])) {
-        [contactNotes setStringValue:currentNotes];
-    } else {
-        [contactNotes setStringValue:@""];
-    }
-}
-
-- (IBAction)setNotes:(id)sender
-{
-	if(!displayedObject)
-		return;
-	
-	NSString *currentNote = [contactNotes stringValue];
-	[displayedObject setNotes:currentNote];
 }
 
 //Address Book Panel methods.

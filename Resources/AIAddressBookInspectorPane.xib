@@ -9,8 +9,6 @@
         <customObject id="-2" userLabel="File's Owner" customClass="AIAddressBookInspectorPane">
             <connections>
                 <outlet property="inspectorContentView" destination="paneView" id="oView"/>
-                <outlet property="label_notes" destination="lNotes" id="oLNotes"/>
-                <outlet property="contactNotes" destination="fNotes" id="oFNotes"/>
                 <outlet property="button_chooseCard" destination="bChooseCard" id="oBChooseCard"/>
                 <outlet property="addressBookPanel" destination="abPanel" id="oABPanel"/>
                 <outlet property="addressBookPicker" destination="abPicker" id="oABPicker"/>
@@ -25,27 +23,6 @@
             <rect key="frame" x="0.0" y="0.0" width="300" height="258"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNotes">
-                    <rect key="frame" x="12" y="230" width="43" height="14"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="left" title="Notes:" id="lNotesC">
-                        <font key="font" metaFont="smallSystem"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fNotes" customClass="AIDelayedTextField">
-                    <rect key="frame" x="14" y="51" width="273" height="171"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                    <textFieldCell key="cell" controlSize="small" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="left" drawsBackground="YES" id="fNotesC">
-                        <font key="font" metaFont="smallSystem"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                    <connections>
-                        <action selector="setNotes:" target="-2" id="aSetNotes"/>
-                    </connections>
-                </textField>
                 <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bChooseCard">
                     <rect key="frame" x="42" y="9" width="215" height="32"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>

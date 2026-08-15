@@ -168,7 +168,6 @@ typedef enum {
 
 @property (readonly, nonatomic) NSString *phoneticName;
 
-@property (readwrite, nonatomic, retain) NSString *notes;
 
 @property (readonly, nonatomic) NSInteger idleTime;
 

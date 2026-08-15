@@ -99,7 +99,6 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"AITabStatusIconsPlugin",
 		@"AITypstPlugin",
 		@"AIUserNotificationPlugin",
-		@"BGContactNotesPlugin",
 		@"BGEmoticonMenuPlugin",
 		@"CBActionSupportPlugin",
 		@"CBContactCountingDisplayPlugin",

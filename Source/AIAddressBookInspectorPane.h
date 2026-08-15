@@ -22,9 +22,6 @@
 	IBOutlet	NSView					*inspectorContentView;
 	AIListObject			*displayedObject;
 	
-	IBOutlet	NSTextField				*label_notes;
-	IBOutlet	AIDelayedTextField		*contactNotes;
-
 	IBOutlet	NSButton				*button_chooseCard;
 
 	IBOutlet	NSPanel					*addressBookPanel;
@@ -37,8 +34,6 @@
 -(NSString *)nibName;
 -(NSView *)inspectorContentView;
 -(void)updateForListObject:(AIListObject *)inObject;
-
-- (IBAction)setNotes:(id)sender;
 
 //Address Book panel methods.
 -(IBAction)runABPanel:(id)sender;

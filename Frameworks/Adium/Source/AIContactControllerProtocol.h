@@ -43,7 +43,6 @@
 #define	PREF_GROUP_ALIASES						@"Aliases"			//Preference group in which to store aliases
 #define PREF_GROUP_USERICONS					@"User Icons"
 #define KEY_USER_ICON							@"User Icon"
-#define PREF_GROUP_NOTES						@"Notes"			//Preference group to store notes in
 #define PREF_GROUP_ADDRESSBOOK                  @"Address Book"
 #define PREF_GROUP_ALWAYS_VISIBLE				@"Always Visible"
 

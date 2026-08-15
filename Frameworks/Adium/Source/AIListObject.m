@@ -472,27 +472,6 @@
 	return NO;
 }
 
-- (NSString *)notes
-{
-	NSString *notes;
-	
-    notes = [self preferenceForKey:@"Notes" group:PREF_GROUP_NOTES];
-	if (!notes) notes = [self valueForProperty:@"Notes"];
-	
-	return notes;
-}
-- (void)setNotes:(NSString *)notes
-{
-	if ([notes length] == 0) notes = nil; 
-
-	NSString	*oldNotes = [self preferenceForKey:@"Notes" group:PREF_GROUP_NOTES];
-	if ((!notes && oldNotes) ||
-		(notes && (![notes isEqualToString:oldNotes]))) {
-		//Save the note
-		[self setPreference:notes forKey:@"Notes" group:PREF_GROUP_NOTES];
-	}
-}
-
 #pragma mark Status states
 
 /*!
