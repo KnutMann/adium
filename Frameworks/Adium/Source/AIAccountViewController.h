@@ -98,6 +98,16 @@
 - (void)addProfileRowsToForm:(AISettingsFormView *)form;
 - (void)addPrivacyRowsToForm:(AISettingsFormView *)form;
 
+/*!
+ * @brief One row around a control that already exists, for a subclass adding its own
+ */
+- (void)addRow:(AISettingsFormView *)form control:(NSView *)control label:(NSTextField *)labelField fallback:(NSString *)fallback;
+
+/*!
+ * @brief A nib checkbox shown as the switch a settings row uses
+ */
+- (void)addSwitchRow:(AISettingsFormView *)form checkBox:(NSButton *)checkBox label:(NSString *)label;
+
 @end
 
 @interface AIAccountViewController (ForSubclasses)
