@@ -106,6 +106,19 @@ static NSDictionary				*serviceDict;
 static NSString *AIPhoneNumberKey(NSString *number)
 {
 	NSMutableString *digits = [NSMutableString string];
+	NSRange			 at = [number rangeOfString:@"@"];
+
+	/* A name may arrive as a whole address, and then only the part in front of the @ could be a
+	 * number. What follows it also says whether it is one at all: WhatsApp hands out @lid names
+	 * beside @s.whatsapp.net ones, and a lid is an opaque fifteen digit identifier that no more
+	 * belongs to a person's phone than a serial number does. Left in, its last nine digits would
+	 * happily match somebody's real number and attach the wrong card. */
+	if (at.location != NSNotFound) {
+		if ([[number substringFromIndex:NSMaxRange(at)] caseInsensitiveCompare:@"lid"] == NSOrderedSame)
+			return nil;
+
+		number = [number substringToIndex:at.location];
+	}
 
 	for (NSUInteger i = 0; i < [number length]; i++) {
 		unichar c = [number characterAtIndex:i];
