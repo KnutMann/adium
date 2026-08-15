@@ -26,6 +26,10 @@
 @interface AIAccountSettingsPage ()
 - (void)buildForm;
 - (void)addHostedView:(NSView *)hosted underHeader:(NSString *)header;
+- (void)watchControlsIn:(NSView *)hosted;
+- (void)hostedControlActed:(id)sender;
+- (void)editingEnded:(NSNotification *)notification;
+- (void)windowResignedKey:(NSNotification *)notification;
 @end
 
 @implementation AIAccountSettingsPage
@@ -41,6 +45,18 @@
 		 * this replaces made a new controller each time it opened too. */
 		accountViewController = [[[account service] accountViewController] retain];
 		[accountViewController configureForAccount:account];
+
+		hostedTargets = [[NSMutableDictionary alloc] init];
+		hostedActions = [[NSMutableDictionary alloc] init];
+
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(editingEnded:)
+													 name:NSControlTextDidEndEditingNotification
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(windowResignedKey:)
+													 name:NSWindowDidResignKeyNotification
+												   object:nil];
 	}
 
 	return self;
@@ -52,8 +68,100 @@
 	[super dealloc];
 }
 
+//Saving ---------------------------------------------------------------------------------------------------------------
+#pragma mark Saving
+
+- (void)commit
+{
+	/* Re-entrant by nature: saving an account tells its observers, and one of them redraws the row
+	 * behind this page, which ends editing somewhere and asks to save again. */
+	if (committing || !account || !accountViewController)
+		return;
+
+	committing = YES;
+	[accountViewController saveConfiguration];
+
+	/* Once per burst rather than once per field. Reconfiguring a live account is not free, and a
+	 * page full of fields left in a row would otherwise do it for every one of them. */
+	[NSObject cancelPreviousPerformRequestsWithTarget:account selector:@selector(accountEdited) object:nil];
+	[account performSelector:@selector(accountEdited) withObject:nil afterDelay:0.0];
+
+	committing = NO;
+}
+
+/*!
+ * @brief A field somewhere on the page was left
+ */
+- (void)editingEnded:(NSNotification *)notification
+{
+	[self commit];
+}
+
+/*!
+ * @brief The window went away; whatever was typed goes with it
+ */
+- (void)windowResignedKey:(NSNotification *)notification
+{
+	if ([notification object] != [[self view] window])
+		return;
+
+	//Ends editing in whatever field had it, so its value is on the control before it is read
+	[[[self view] window] makeFirstResponder:nil];
+	[self commit];
+}
+
+/*!
+ * @brief Take over every control in a hosted view, then hand the click on
+ *
+ * The service views come from nibs whose controls point at their own controller, and there are nine
+ * of those. Rather than change all nine, each control's target and action are remembered and
+ * replaced with this: it forwards to where the click was going and then saves. A control bound
+ * through the controller rather than targeted has nothing to intercept, which is why leaving a field
+ * and leaving the page save as well.
+ */
+- (void)watchControlsIn:(NSView *)hosted
+{
+	for (NSView *subview in [hosted subviews]) {
+		if ([subview isKindOfClass:[NSControl class]]) {
+			NSControl *control = (NSControl *)subview;
+
+			//Text fields report through the editing notification; taking their action would break them
+			if (![control isKindOfClass:[NSTextField class]] && [control action]) {
+				[hostedTargets setObject:[NSValue valueWithPointer:[control target]]
+								  forKey:[NSValue valueWithNonretainedObject:control]];
+				[hostedActions setObject:NSStringFromSelector([control action])
+								  forKey:[NSValue valueWithNonretainedObject:control]];
+				[control setTarget:self];
+				[control setAction:@selector(hostedControlActed:)];
+			}
+		}
+
+		[self watchControlsIn:subview];
+	}
+}
+
+- (void)hostedControlActed:(id)sender
+{
+	NSValue *senderKey = [NSValue valueWithNonretainedObject:sender];
+	id originalTarget = [[hostedTargets objectForKey:senderKey] pointerValue];
+	NSString *originalAction = [hostedActions objectForKey:senderKey];
+
+	if (originalTarget && originalAction) {
+		SEL action = NSSelectorFromString(originalAction);
+		if ([originalTarget respondsToSelector:action])
+			[originalTarget performSelector:action withObject:sender];
+	}
+
+	[self commit];
+}
+
 - (void)tearDown
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+	[hostedTargets release]; hostedTargets = nil;
+	[hostedActions release]; hostedActions = nil;
+
 	[accountViewController release]; accountViewController = nil;
 	[form release]; form = nil;
 	[account release]; account = nil;
@@ -121,6 +229,7 @@
 
 	[form addSectionHeader:header];
 	[form addFullWidthRow:hosted stretch:YES];
+	[self watchControlsIn:hosted];
 }
 
 @end

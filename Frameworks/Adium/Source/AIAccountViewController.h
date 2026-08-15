@@ -34,6 +34,8 @@
 	IBOutlet	NSTextField		*textField_accountUID;			//UID field
 	IBOutlet	NSTextField		*label_password;				//Label on the password field
 	IBOutlet	NSTextField		*textField_password;			//Password field
+
+	BOOL						passwordWasShown;			//Whether the field was filled from the keychain
 	IBOutlet	NSTextField		*textField_connectHost;			//Connect host
 	IBOutlet	NSTextField		*textField_connectPort;			//Connect port
 	IBOutlet	NSTextField		*textField_alias;				//User alias (or display name)

@@ -215,6 +215,10 @@
 		//Password
 		NSString	*savedPassword = [adium.accountController passwordForAccount:account];
 		[textField_password setStringValue:[savedPassword length] ? savedPassword : @""];
+		/* Whether the field started out holding one. Emptiness only means "forget it" if there was
+		 * something there to begin with: if the keychain had nothing to give at this moment, an
+		 * empty field says nothing about what is stored. */
+		passwordWasShown = ([savedPassword length] != 0);
 		
 		//User alias (display name)
 		NSString *alias = [[[account preferenceForKey:KEY_ACCOUNT_DISPLAY_NAME group:GROUP_ACCOUNT_STATUS] attributedString] string];
@@ -269,9 +273,13 @@
 {
 	//UID - account; only set if the account doesn't handle setting its own UID based on a combination of fields.
 	if (textField_accountUID) {
-		NSString	*newUID = [textField_accountUID stringValue];
-		if (![account.UID isEqualToString:newUID] ||
-			![account.formattedUID isEqualToString:newUID]) {
+		NSString	*newUID = [[textField_accountUID stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+		/* Never to nothing. An account renamed to the empty string loses the name its stored
+		 * settings and its message history are filed under, and a field is empty at some point
+		 * during every edit. */
+		if ([newUID length] &&
+			(![account.UID isEqualToString:newUID] ||
+			 ![account.formattedUID isEqualToString:newUID])) {
 			[account filterAndSetUID:newUID];
 		}
 	}
@@ -293,7 +301,8 @@
 		if (![password isEqualToString:oldPassword]) {
 			[adium.accountController setPassword:password forAccount:account];
 		}
-	} else if ((oldPassword && [oldPassword length] != 0) && textField_password) {
+	} else if ((oldPassword && [oldPassword length] != 0) && textField_password && passwordWasShown) {
+		//Emptied by the user, not merely empty because the keychain had nothing to say earlier
 		[adium.accountController forgetPasswordForAccount:account];
 	}
 

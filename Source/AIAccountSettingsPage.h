@@ -40,6 +40,9 @@
 	AISettingsFormView		*form;
 	id						 backTarget;			//Not retained
 	SEL						 backAction;
+	BOOL					 committing;
+	NSMutableDictionary		*hostedTargets;
+	NSMutableDictionary		*hostedActions;
 }
 
 - (id)initWithAccount:(AIAccount *)inAccount backTarget:(id)inTarget action:(SEL)inAction;
@@ -50,5 +53,14 @@
  * @brief Let go of the account and the service's views
  */
 - (void)tearDown;
+
+/*!
+ * @brief Write what is on the page to the account
+ *
+ * The window this page replaces saved on OK; a pane has no OK, so this runs whenever something was
+ * finished: a field left, a control used, the page left. Idempotent, because it writes every value
+ * from the state of the controls rather than tracking what changed.
+ */
+- (void)commit;
 
 @end

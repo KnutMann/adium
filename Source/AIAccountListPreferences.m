@@ -1046,7 +1046,24 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  */
 - (void)accountPageWantsBack:(id)sender
 {
+	[self commitOpenAccountPage];
 	[navigationController popViewControllerAnimated:YES];
+}
+
+/*!
+ * @brief Write what is on the open account page before leaving it
+ *
+ * Ending editing first, so a field the user is still in has handed its value to its control by the
+ * time it is read. This is the last chance: a control bound through its controller rather than
+ * targeted has no action to intercept, so leaving the page is where its value is picked up.
+ */
+- (void)commitOpenAccountPage
+{
+	if (!detailPage)
+		return;
+
+	[[[self view] window] makeFirstResponder:nil];
+	[detailPage commit];
 }
 
 /*!
@@ -1055,6 +1072,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 - (void)settingsNavigationControllerDidChangeStack:(AISettingsNavigationController *)controller
 {
 	if (![controller canGoBack] && detailPage) {
+		[detailPage commit];
 		[detailPage tearDown];
 		[detailPage release]; detailPage = nil;
 	}
@@ -1075,6 +1093,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 - (void)preferencePaneNavigateBack
 {
+	[self commitOpenAccountPage];
 	[navigationController popViewControllerAnimated:YES];
 }
 
