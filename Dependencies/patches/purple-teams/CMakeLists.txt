@@ -16,7 +16,7 @@ pkg_check_modules(Purple REQUIRED purple)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(JSONGLIB REQUIRED json-glib-1.0)
 
-add_library(teams MODULE
+set(TEAMS_SOURCES
     libteams.c
     teams_connection.c
     teams_contacts.c
@@ -31,45 +31,56 @@ add_library(teams MODULE
     purple2compat/purple-socket.c
 )
 
-# libpurple loads its protocols through GModule, and it looks for the name the
-# other protocols carry rather than a platform default.
-set_target_properties(teams PROPERTIES
-    PREFIX "lib"
-    SUFFIX ".so"
-)
+# The same sources build two protocols: work and school accounts against
+# teams.microsoft.com, and personal ones against teams.live.com. They are
+# separate protocol ids and can be used side by side.
+function(add_teams_protocol target)
+    add_library(${target} MODULE ${TEAMS_SOURCES})
 
-target_compile_definitions(teams PRIVATE
-    ENABLE_NLS
-    PACKAGE_VERSION="${PROJECT_VERSION}"
-)
-
-target_compile_options(teams PRIVATE
-    -Wall
-    -Wno-deprecated-declarations
-    -fno-strict-aliasing
-)
-
-target_include_directories(teams SYSTEM PRIVATE
-    purple2compat
-    ${Purple_INCLUDE_DIRS}
-    ${GLIB_INCLUDE_DIRS}
-    ${JSONGLIB_INCLUDE_DIRS}
-)
-
-if (Purple_LIBRARY_DIRS OR GLIB_LIBRARY_DIRS OR JSONGLIB_LIBRARY_DIRS)
-    target_link_directories(teams PRIVATE
-        ${Purple_LIBRARY_DIRS}
-        ${GLIB_LIBRARY_DIRS}
-        ${JSONGLIB_LIBRARY_DIRS}
+    # libpurple loads its protocols through GModule, and it looks for the name
+    # the other protocols carry rather than a platform default.
+    set_target_properties(${target} PROPERTIES
+        PREFIX "lib"
+        SUFFIX ".so"
     )
-endif()
 
-target_link_libraries(teams PRIVATE
-    ${Purple_LIBRARIES}
-    ${GLIB_LIBRARIES}
-    ${JSONGLIB_LIBRARIES}
-    z
-)
+    target_compile_definitions(${target} PRIVATE
+        ENABLE_NLS
+        PACKAGE_VERSION="${PROJECT_VERSION}"
+        ${ARGN}
+    )
+
+    target_compile_options(${target} PRIVATE
+        -Wall
+        -Wno-deprecated-declarations
+        -fno-strict-aliasing
+    )
+
+    target_include_directories(${target} SYSTEM PRIVATE
+        purple2compat
+        ${Purple_INCLUDE_DIRS}
+        ${GLIB_INCLUDE_DIRS}
+        ${JSONGLIB_INCLUDE_DIRS}
+    )
+
+    if (Purple_LIBRARY_DIRS OR GLIB_LIBRARY_DIRS OR JSONGLIB_LIBRARY_DIRS)
+        target_link_directories(${target} PRIVATE
+            ${Purple_LIBRARY_DIRS}
+            ${GLIB_LIBRARY_DIRS}
+            ${JSONGLIB_LIBRARY_DIRS}
+        )
+    endif()
+
+    target_link_libraries(${target} PRIVATE
+        ${Purple_LIBRARIES}
+        ${GLIB_LIBRARIES}
+        ${JSONGLIB_LIBRARIES}
+        z
+    )
+endfunction()
+
+add_teams_protocol(teams)
+add_teams_protocol(teams-personal ENABLE_TEAMS_PERSONAL)
 
 # Where the plugin has to end up depends on the client, so this only says what
 # libpurple itself reports and leaves the rest to the caller.
@@ -78,5 +89,5 @@ if (NOT DEFINED PURPLE_PLUGIN_DIR)
 endif()
 
 if (PURPLE_PLUGIN_DIR)
-    install(TARGETS teams DESTINATION "${PURPLE_PLUGIN_DIR}")
+    install(TARGETS teams teams-personal DESTINATION "${PURPLE_PLUGIN_DIR}")
 endif()

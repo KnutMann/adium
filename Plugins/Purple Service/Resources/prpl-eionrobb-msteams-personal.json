@@ -1,0 +1,18 @@
+{
+	"note": [
+		"The same protocol as prpl-eionrobb-msteams, built against teams.live.com. Signing in happens",
+		"in the browser, so there is no password and no server to name.",
+		"",
+		"No tenant: a personal account belongs to nobody's organisation, and the protocol does not",
+		"declare the option in this build."
+	],
+
+	"options": [
+		"fetch-history",
+		"history-days",
+		"should_collapse_threads",
+		"hide_meeting_chats",
+		"calendar_notify_minutes",
+		"set-global-status"
+	]
+}

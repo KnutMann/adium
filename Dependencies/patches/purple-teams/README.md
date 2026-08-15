@@ -44,6 +44,9 @@ why it has a script of its own rather than sharing tdlib-purple's.
 
 ## The personal variant
 
-The same source builds `libteams-personal.so` with `-DENABLE_TEAMS_PERSONAL`, for consumer Microsoft
-accounts rather than work ones. Not built here; it would be a second protocol id, a second descriptor
-and a second plan, and nobody has asked for it.
+The same sources build a second time with `-DENABLE_TEAMS_PERSONAL`, against `teams.live.com` rather
+than `teams.microsoft.com`, and register as `prpl-eionrobb-msteams-personal`. Both are built and both
+are bound, so a personal and a work account can be used at once.
+
+The only difference in what it offers is the tenant, which that build does not declare: a personal
+account belongs to nobody's organisation.

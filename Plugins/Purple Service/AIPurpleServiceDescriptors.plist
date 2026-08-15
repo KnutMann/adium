@@ -168,5 +168,38 @@
 		<key>NetworkReachability</key>
 		<false/>
 	</dict>
+
+	<!--
+		The same plugin built a second time, against teams.live.com rather than teams.microsoft.com.
+		A separate protocol id, so both can be used at once, and no tenant: a personal account
+		belongs to nobody's organisation.
+	-->
+	<key>prpl-eionrobb-msteams-personal</key>
+	<dict>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-TeamsPersonal</string>
+		<key>ServiceID</key>
+		<string>TeamsPersonal</string>
+		<key>ServiceClass</key>
+		<string>Teams</string>
+		<key>ShortDescription</key>
+		<string>Teams (Personal)</string>
+		<key>LongDescription</key>
+		<string>Microsoft Teams for personal accounts</string>
+		<key>UserNameLabel</key>
+		<string>Account Name</string>
+		<key>AllowedLength</key>
+		<integer>64</integer>
+		<key>CaseSensitive</key>
+		<false/>
+		<key>AccountNameFromUID</key>
+		<true/>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<key>IconBaseName</key>
+		<string>TeamsPersonal</string>
+		<key>NetworkReachability</key>
+		<false/>
+	</dict>
 </dict>
 </plist>
