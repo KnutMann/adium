@@ -17,6 +17,8 @@
 #import <Adium/AIPreferencePane.h>
 #import <Adium/AISettingsNavigationController.h>
 #import <Adium/AISettingsFormView.h>
+
+@class AIAccountSettingsPage;
 #import <Adium/AIContactObserverManager.h>
 #import <AIUtilities/AISegmentedControl.h>
 
@@ -43,6 +45,7 @@
 	 * top. AIModularPane knows only about a view, so the controller has to be held here. */
 	AISettingsNavigationController	*navigationController;
 	AISettingsFormView				*listForm;
+	AIAccountSettingsPage			*detailPage;
 
     //Account List
     NSArray							*accountArray;

@@ -16,6 +16,7 @@
 
 #import <Adium/AIAccountControllerProtocol.h>
 #import "AIAccountListPreferences.h"
+#import "AIAccountSettingsPage.h"
 #import <Adium/AIContactControllerProtocol.h>
 #import "AIStatusController.h"
 #import "AIEditAccountWindowController.h"
@@ -879,6 +880,9 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 	[nibView release]; nibView = nil;
 
+	[detailPage tearDown];
+	[detailPage release]; detailPage = nil;
+
 	[navigationController setDelegate:nil];
 	[navigationController release]; navigationController = nil;
 	[listForm release]; listForm = nil;
@@ -1001,6 +1005,21 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 - (void)editAccount:(AIAccount *)inAccount
 {
+	/* Slid in over the list rather than opened beside it. The page shows the account's settings but
+	 * does not yet write them: that is the next step, and it is a bigger one, because a pane has no
+	 * OK to save on and no Cancel to discard on. Until then this is a look, and the old window is
+	 * still what changes anything. */
+	if (navigationController && inAccount) {
+		[detailPage tearDown];
+		[detailPage release];
+
+		detailPage = [[AIAccountSettingsPage alloc] initWithAccount:inAccount
+														 backTarget:self
+															 action:@selector(accountPageWantsBack:)];
+		[navigationController pushViewController:detailPage animated:YES];
+		return;
+	}
+
 	AIEditAccountWindowController *editAccountWindowController = [[AIEditAccountWindowController alloc] initWithAccount:inAccount
 																										notifyingTarget:self];
 	[editAccountWindowController showOnWindow:[[self view] window]];	
@@ -1022,6 +1041,25 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  * Rows are not selectable any more, so the account is the one under the pointer:
  * -clickedRow is set for the whole time an action sent by the table is running.
  */
+/*!
+ * @brief The open account page asked to go back to the list
+ */
+- (void)accountPageWantsBack:(id)sender
+{
+	[navigationController popViewControllerAnimated:YES];
+}
+
+/*!
+ * @brief The stack changed: the list is showing again, so the page can go
+ */
+- (void)settingsNavigationControllerDidChangeStack:(AISettingsNavigationController *)controller
+{
+	if (![controller canGoBack] && detailPage) {
+		[detailPage tearDown];
+		[detailPage release]; detailPage = nil;
+	}
+}
+
 - (IBAction)editSelectedAccount:(id)sender
 {
 	AIAccount	*account = [self accountAtRow:[tableView_accountList clickedRow]];
