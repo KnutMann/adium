@@ -46,11 +46,15 @@
 		<string>connect_server</string>
 		<key>Jabber:BOSH Server</key>
 		<string>bosh_url</string>
+		<key>Jabber:File Transfer Proxies</key>
+		<string>ft_proxies</string>
+		<key>Jabber:Allow Plaintext Authentication</key>
+		<string>auth_plain_in_clear</string>
 		<!--
-			Adium kept three separate switches for what the protocol has long expressed as one
-			choice, so those do not move: "Use TLS", "Require TLS" and "Force Old SSL" together mean
-			one of connection_security's values, and guessing which one from three booleans would be
-			a decision rather than a move. The choice is offered directly now.
+			"Require TLS" and "Force Old SSL" together mean one of connection_security's values, so
+			that pair cannot be expressed as a key. Adium already turns the two into exactly one
+			value on every connect, and -legacyValueForSetting: reads that same rule, so the row
+			shows what is really in force rather than the protocol's default.
 		-->
 	</dict>
 </dict>

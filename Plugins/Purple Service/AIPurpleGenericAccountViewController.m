@@ -49,8 +49,12 @@
 	}
 
 	/* And a protocol that connects wherever it likes declares no server or port for anyone to set.
-	 * Pidgin builds its whole account dialog out of these options; this reads two of them. */
-	if (![service protocolHasOption:@"server"]) {
+	 * Pidgin builds its whole account dialog out of these options; this reads two of them.
+	 *
+	 * IRC is the exception that declares no server option and still needs one, because it carries the
+	 * server in the account name. The descriptor says so, and then the field stays. */
+	if (![service protocolHasOption:@"server"] &&
+		![[service descriptorValueForKey:@"AccountNameIncludesHost"] boolValue]) {
 		[label_server setHidden:YES];
 		[textField_connectHost setHidden:YES];
 	}

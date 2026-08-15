@@ -76,6 +76,13 @@
 		<!-- The images the built in IRC service already ships -->
 		<key>IconBaseName</key>
 		<string>irc</string>
+		<!--
+			IRC takes the server as part of the account name, "nick@irc.example.net", and declares no
+			server option of its own. Without this the server field would have nothing to write to
+			and would be hidden, leaving no way to say where to connect.
+		-->
+		<key>AccountNameIncludesHost</key>
+		<true/>
 	</dict>
 
 	<key>prpl-hehoe-presage</key>

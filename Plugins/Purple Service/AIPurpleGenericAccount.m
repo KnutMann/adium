@@ -34,13 +34,36 @@
  * account name is a name rather than an address wants the name the user typed and nothing else: the
  * formatted one carries whatever the protocol reported about itself on the last connection, which is
  * a different string and files the account's message store somewhere else.
+ *
+ * IRC and its like carry the server here instead of in an option, so for those the name is the nick
+ * and the server together. A server that is not set yet leaves the name alone rather than spelling
+ * out that it is missing.
  */
 - (const char *)purpleAccountName
 {
-	if ([[(AIPurpleGenericService *)self.service descriptorValueForKey:@"AccountNameFromUID"] boolValue])
+	AIPurpleGenericService *service = (AIPurpleGenericService *)self.service;
+
+	if ([[service descriptorValueForKey:@"AccountNameFromUID"] boolValue])
 		return [self.UID UTF8String];
 
+	if ([[service descriptorValueForKey:@"AccountNameIncludesHost"] boolValue] && self.host.length)
+		return [[NSString stringWithFormat:@"%@@%@", self.formattedUID, self.host] UTF8String];
+
 	return [super purpleAccountName];
+}
+
+/*!
+ * @brief Hand libpurple the account name again
+ *
+ * The name is fixed when the account is created, so a protocol carrying its server in that name would
+ * keep connecting to the old one after the server field is changed.
+ */
+- (void)configurePurpleAccount
+{
+	[super configurePurpleAccount];
+
+	if ([[(AIPurpleGenericService *)self.service descriptorValueForKey:@"AccountNameIncludesHost"] boolValue])
+		purple_account_set_username(self.purpleAccount, self.purpleAccountName);
 }
 
 /*!

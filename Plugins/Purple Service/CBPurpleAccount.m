@@ -85,6 +85,7 @@
 - (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date;
 - (NSNumber *)shouldCheckMail;
 - (void)configurePurpleAccountNotifyingTarget:(id)target selector:(SEL)selector;
+- (void)configureProtocolOptions;
 - (void)continueConnectWithConfiguredProxy;
 - (void)continueRegisterWithConfiguredPurpleAccount;
 - (void)promptForHostBeforeConnecting;
@@ -1996,7 +1997,8 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	
 	//Perform the synchronous configuration activities (subclasses may want to take action in this function)
 	[self configurePurpleAccount];
-	
+	[self configureProtocolOptions];
+
 	contextInvocation = [NSInvocation invocationWithMethodSignature:[target methodSignatureForSelector:selector]];
 	
 	[contextInvocation setTarget:target];
@@ -2048,9 +2050,20 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	
 	//Update a few properties before we begin connecting.  Libpurple will send these automatically
     [self updateStatusForKey:KEY_USER_ICON];
+}
 
-	/* And every option the protocol itself declares. Neither side had to be told which options
-	 * exist: the protocol says so, and the settings pane builds its rows from the same list. */
+/*!
+ * @brief Write every option the protocol itself declares
+ *
+ * Neither side had to be told which options exist: the protocol says so, and the settings pane
+ * builds its rows from the same list.
+ *
+ * Runs after -configurePurpleAccount rather than inside it, because a service that still writes an
+ * option of its own does so after calling super and would otherwise win. Only a value the user
+ * actually set is written here, so a setting no row has touched keeps whatever that service does.
+ */
+- (void)configureProtocolOptions
+{
 	PurplePlugin *prpl = purple_plugins_find_with_id([self protocolPlugin]);
 	PurplePluginProtocolInfo *info = (prpl && prpl->info) ? PURPLE_PLUGIN_PROTOCOL_INFO(prpl) : NULL;
 	if (!info)
@@ -3368,6 +3381,7 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	if (self.online || [self boolValueForProperty:@"isConnecting"]) {
 		AILog(@"Re-configuring purple account due to preference changes.");
 		[self configurePurpleAccount];
+		[self configureProtocolOptions];
 	}
 }
 

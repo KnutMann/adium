@@ -16,6 +16,7 @@
 
 #import "PurpleAccountViewController.h"
 #import "CBPurpleAccount.h"
+#import "ESPurpleJabberAccount.h"
 
 #import <Adium/AISettingsFormView.h>
 
@@ -297,7 +298,30 @@
 		legacyKeys = [[NSDictionary alloc] initWithContentsOfFile:path];
 	}
 
-	NSDictionary *forProtocol = [legacyKeys objectForKey:[NSString stringWithUTF8String:[(CBPurpleAccount *)account protocolPlugin]]];
+	NSString *protocol = [NSString stringWithUTF8String:[(CBPurpleAccount *)account protocolPlugin]];
+
+	/* Jabber says with two switches what the protocol says with one choice. ESPurpleJabberAccount
+	 * turns them into a connection_security value on every connect, so the row reads them the same
+	 * way and shows what is in force. Neither switch has had a place in the interface since the
+	 * options came from the protocol, so this is what the account is still running on. */
+	if ([protocol isEqualToString:@"prpl-jabber"] && !strcmp(setting, "connection_security")) {
+		NSString *key = [self preferenceKeyForSetting:setting];
+		if ([account preferenceForKey:key group:GROUP_ACCOUNT_STATUS])
+			return nil;
+
+		NSString *security;
+		if ([[account preferenceForKey:KEY_JABBER_FORCE_OLD_SSL group:GROUP_ACCOUNT_STATUS] boolValue])
+			security = @"old_ssl";
+		else if ([[account preferenceForKey:KEY_JABBER_REQUIRE_TLS group:GROUP_ACCOUNT_STATUS] boolValue])
+			security = @"require_tls";
+		else
+			security = @"opportunistic_tls";
+
+		[account setPreference:security forKey:key group:GROUP_ACCOUNT_STATUS];
+		return security;
+	}
+
+	NSDictionary *forProtocol = [legacyKeys objectForKey:protocol];
 	if (!forProtocol)
 		return nil;
 

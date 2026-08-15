@@ -30,7 +30,6 @@
                 <outlet property="textField_BOSHserver" destination="642" id="646"/>
                 <outlet property="textField_accountUID" destination="409" id="413"/>
                 <outlet property="textField_accountUIDLabel" destination="408" id="412"/>
-                <outlet property="textField_connectHost" destination="210" id="233"/>
                 <outlet property="textField_connectPort" destination="210" id="218"/>
                 <outlet property="textField_connectServer" destination="208" id="217"/>
                 <outlet property="textField_ftProxies" destination="583" id="587"/>
