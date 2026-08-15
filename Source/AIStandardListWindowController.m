@@ -174,14 +174,9 @@
 	}
 	
 	
-	AIAccount *activeAccount = [[self class] activeAccountForIconsGettingOnlineAccounts:nil ownIconAccounts:nil];
-	BOOL imagePickerIsVisible;
-	
-	if (activeAccount) {
-		imagePickerIsVisible = ([activeAccount userIcon] != nil);
-	} else {
-		imagePickerIsVisible = [[adium.preferenceController preferenceForKey:KEY_USE_USER_ICON group:GROUP_ACCOUNT_STATUS] boolValue];
-	}
+	BOOL imagePickerIsVisible = [[adium.preferenceController preferenceForKey:KEY_USE_USER_ICON
+																		group:GROUP_ACCOUNT_STATUS] boolValue];
+
 	
 	if (!imagePickerIsVisible) {
 		desiredImagePickerPosition = ((desiredImagePickerPosition == ContactListImagePickerOnLeft) ?
@@ -202,7 +197,6 @@
 		if ([key isEqualToString:KEY_USER_ICON] ||
 			[key isEqualToString:KEY_DEFAULT_USER_ICON] || 
 			[key isEqualToString:KEY_USE_USER_ICON] ||
-			[key isEqualToString:@"Active Icon Selection Account"] ||
 			firstTime) {
 			[self updateImagePicker];
 			[self positionImagePickerIfNeeded];
@@ -334,72 +328,23 @@
 
 #pragma mark User icon changing
 
-/*!
- * @brief Determine the account which will be modified by a change to the image picker
- *
- * @result The 'active' account for image purposes, or nil if the global icon is active
- */
-+ (AIAccount *)activeAccountForIconsGettingOnlineAccounts:(NSMutableSet *)onlineAccounts ownIconAccounts:(NSMutableSet *)ownIconAccounts
-{
-	AIAccount			*activeAccount = nil;
-	BOOL					atLeastOneOwnIconAccount = NO;
-	NSArray				*accounts = adium.accountController.accounts;
-	
-	if (!onlineAccounts) onlineAccounts = [NSMutableSet set];
-	if (!ownIconAccounts) ownIconAccounts = [NSMutableSet set];
-	
-	//Figure out what accounts are online and what of those have their own custom icon
-	for (AIAccount *account in accounts) {
-		if (account.online) {
-			[onlineAccounts addObject:account];
-			if ([account preferenceForKey:KEY_USER_ICON group:GROUP_ACCOUNT_STATUS]) {
-				[ownIconAccounts addObject:account];
-				atLeastOneOwnIconAccount = YES;
-			}
-		}
-	}
-	
-	//At least one account is using its own icon rather than the global preference
-	if (atLeastOneOwnIconAccount) {
-		NSString	*accountID = [adium.preferenceController preferenceForKey:@"Active Icon Selection Account"
-																			 group:GROUP_ACCOUNT_STATUS];
-		
-		activeAccount = (accountID ? [adium.accountController accountWithInternalObjectID:accountID] : nil);
-		
-		//If the activeAccount isn't in ownIconAccounts we don't want anything to do with it
-		if (![ownIconAccounts containsObject:activeAccount]) activeAccount = nil;
-		
-		/* However, if all accounts are using their own icon, we should return one of them.
-		 * Let's use the first one in the accounts list.
-		 */
-		if (!activeAccount && ([ownIconAccounts count] == [onlineAccounts count])) {
-			for (AIAccount *account in accounts) {
-				if (account.online) {
-					activeAccount = account;
-					break;
-				}
-			}
-		}
-	}
-	
-	return activeAccount;
-}
 
+/*!
+ * @brief The picture the well shows, which is the one picture there is
+ *
+ * There used to be a second question in front of this one: whether some account online right now had
+ * a picture of its own, in which case the well showed that account's rather than everybody's. There is
+ * one picture now, set in Personal, and this shows it.
+ */
 - (NSImage *)imageForImagePicker
 {
-	AIAccount *activeAccount = [[self class] activeAccountForIconsGettingOnlineAccounts:nil ownIconAccounts:nil];
-	NSImage	  *image;
-	
-	if (activeAccount) {
-		image = [activeAccount userIcon];
-	} else {
-		NSData *data = [adium.preferenceController preferenceForKey:KEY_USER_ICON group:GROUP_ACCOUNT_STATUS];
-		if (!data) data = [adium.preferenceController preferenceForKey:KEY_DEFAULT_USER_ICON group:GROUP_ACCOUNT_STATUS];
-		
-		image = [[[NSImage alloc] initWithData:data] autorelease];
-	}
-	
-	return image;
+	NSData *data = [adium.preferenceController preferenceForKey:KEY_USER_ICON group:GROUP_ACCOUNT_STATUS];
+
+	//A picture that came from somewhere rather than being chosen, the address book's own card say
+	if (!data)
+		data = [adium.preferenceController preferenceForKey:KEY_DEFAULT_USER_ICON group:GROUP_ACCOUNT_STATUS];
+
+	return [[[NSImage alloc] initWithData:data] autorelease];
 }
 
 - (void)updateImagePicker
@@ -417,19 +362,9 @@
  */
 - (void)imageViewWithImagePicker:(AIImageViewWithImagePicker *)picker didChangeToImageData:(NSData *)imageData
 {
-	AIAccount	*activeAccount = [[self class] activeAccountForIconsGettingOnlineAccounts:nil
-																		ownIconAccounts:nil];
-	
-	if (activeAccount) {
-		[activeAccount setPreference:imageData
-							  forKey:KEY_USER_ICON
-							   group:GROUP_ACCOUNT_STATUS];
-		
-	} else {
-		[adium.preferenceController setPreference:imageData
-											 forKey:KEY_USER_ICON
-											  group:GROUP_ACCOUNT_STATUS];
-	}
+	[adium.preferenceController setPreference:imageData
+									   forKey:KEY_USER_ICON
+										group:GROUP_ACCOUNT_STATUS];
 }
 
 #pragma mark Status menu

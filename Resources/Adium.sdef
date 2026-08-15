@@ -170,6 +170,13 @@
 			<property name="status message" code="Pasm" type="rich text" access="rw" description="The message associated with the current status. Setting this creates a temporary status.">
 				<cocoa key="scriptingStatusMessage" />
 			</property>
+			<!--
+				Writing this is OBSOLETE and will be taken away. It is the last way left to give a
+				single account a picture of its own: there is one picture now, set in Personal, and no
+				part of the interface offers a per account one any more. Kept for the moment because
+				it is a published interface that a script may be using, and because dropping the write
+				and keeping the read is the change that needs announcing rather than sneaking in.
+			-->
 			<property name="image" code="Pimg" type="TIFF picture" access="rw" description="The image associated with this account.">
 				<cocoa key="userIconData" />
 			</property>

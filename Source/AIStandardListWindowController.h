@@ -49,8 +49,6 @@ typedef enum {
 
 - (void)updateImagePicker;
 
-+ (AIAccount *)activeAccountForIconsGettingOnlineAccounts:(NSMutableSet *)onlineAccounts
-										  ownIconAccounts:(NSMutableSet *)ownIconAccounts;
 + (AIAccount *)activeAccountForDisplayNameGettingOnlineAccounts:(NSMutableSet *)onlineAccounts
 										 ownDisplayNameAccounts:(NSMutableSet *)ownDisplayNameAccounts;
 @end

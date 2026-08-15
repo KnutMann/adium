@@ -177,6 +177,18 @@
  * Method for accessing the user icon data for this account. This should always be used to retrieve the account's image data.
  * @return NSData for this account's user icon
  */
+/*!
+ * @brief The picture this account shows to the people it talks to
+ *
+ * OBSOLETE, and kept only so that nobody loses a picture they set years ago: the branch below for an
+ * account with a picture of its own has no way left to be entered. Nothing in the application sets
+ * "Use User Icon" on an account any more, the window that used to offer it is gone, and there is one
+ * picture now, set in Personal. Only two things can still get here: a preference written before all
+ * that, and a script setting "image of account".
+ *
+ * To be removed once those two are dealt with. Removing it today would silently change the picture
+ * an old account shows, and the person on the other end would be the first to notice.
+ */
 - (NSData *)userIconData
 {
 	NSData	*userIconData = nil;

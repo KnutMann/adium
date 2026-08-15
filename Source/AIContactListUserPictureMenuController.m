@@ -39,7 +39,6 @@
 - (NSMutableArray *)recentSmallPictures;
 
 // Menu actions
-- (void)selectedAccount:(id)sender;
 - (void)choosePicture:(id)sender;
 - (void)clearRecentPictures:(id)sender;
 
@@ -168,64 +167,6 @@
 	menuItem = [aMenu itemAtIndex:0];
 	[menuItem setTitle:AILocalizedString(@"Recent Icons:", "Label at the top of the recent icons picker shown in the contact list")];
 	
-	// Add menu items for accounts
-	NSMutableSet *onlineAccounts = [NSMutableSet set];
-	NSMutableSet *ownIconAccounts = [NSMutableSet set];
-	
-	AIAccount *activeAccount = nil;
-	activeAccount = [AIStandardListWindowController activeAccountForIconsGettingOnlineAccounts:onlineAccounts
-																			   ownIconAccounts:ownIconAccounts];
-	
-	NSInteger ownIconAccountsCount = [ownIconAccounts count];
-	NSInteger onlineAccountsCount = [onlineAccounts count];
-	
-	if (ownIconAccountsCount > 1) {
-		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Change Icon For:", nil)
-											  target:nil
-											  action:nil
-									   keyEquivalent:@""];
-		
-		[menuItem setEnabled:NO];
-		[aMenu addItem:menuItem];
-		[menuItem release];
-		
-		for (AIAccount *account in ownIconAccounts) {
-			menuItem = [[NSMenuItem alloc] initWithTitle:account.formattedUID
-												  target:self
-												  action:@selector(selectedAccount:)
-										   keyEquivalent:@""];
-			
-			[menuItem setRepresentedObject:account];
-			
-			//Put a checkmark if it is the active account
-			if (activeAccount == account) {
-				[menuItem setState:NSControlStateValueOn];
-			}
-			
-			[menuItem setIndentationLevel:1];
-			[aMenu addItem:menuItem];
-			
-			[menuItem release];
-		}
-		
-		//There are at least some accounts using the global preference if the counts differ
-		if (onlineAccountsCount != ownIconAccountsCount) {
-			menuItem = [[NSMenuItem alloc] initWithTitle:ALL_OTHER_ACCOUNTS
-												  target:self
-												  action:@selector(selectedAccount:)
-										   keyEquivalent:@""];
-			if (!activeAccount) {
-				[menuItem setState:NSControlStateValueOn];
-			}
-			
-			[menuItem setIndentationLevel:1];
-			[aMenu addItem:menuItem];
-			[menuItem release];
-		}
-		
-		[aMenu addItem:[NSMenuItem separatorItem]];
-	}
-	
 	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Choose Icon", nil) stringByAppendingEllipsis]
 										  target:self
 										  action:@selector(choosePicture:)
@@ -282,16 +223,6 @@
 }
 
 #pragma mark - Menu Actions
-
-- (void)selectedAccount:(id)sender
-{
-	AIAccount *activeAccount = [sender representedObject];
-
-	//Change the active account
-	[adium.preferenceController setPreference:(activeAccount ? activeAccount.internalObjectID : nil)
-									   forKey:@"Active Icon Selection Account"
-										group:GROUP_ACCOUNT_STATUS];
-}
 
 - (void)choosePicture:(id)sender
 {
