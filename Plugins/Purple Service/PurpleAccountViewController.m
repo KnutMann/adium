@@ -41,15 +41,22 @@
 - (void)saveConfiguration
 {
     [super saveConfiguration];
-	
-	[account setPreference:[NSNumber numberWithBool:[checkBox_broadcastMusic state]]
-					forKey:KEY_BROADCAST_MUSIC_INFO
-					 group:GROUP_ACCOUNT_STATUS];
-	
-	
-	[account setPreference:[NSNumber numberWithBool:[checkBox_displayCustomEmoticons state]] 
-					forKey:KEY_DISPLAY_CUSTOM_EMOTICONS
-					 group:GROUP_ACCOUNT_STATUS];
+
+	/* Only what the user was actually shown. Of the services using this controller only Jabber's nib
+	 * connects these two, so for every other one the state read here is the state of a nil outlet,
+	 * which is zero, and writing it stores "off" for a setting nobody was offered. That was once per
+	 * OK and rare enough to go unnoticed; it is about to happen on every change. */
+	if (checkBox_broadcastMusic) {
+		[account setPreference:[NSNumber numberWithBool:[checkBox_broadcastMusic state]]
+						forKey:KEY_BROADCAST_MUSIC_INFO
+						 group:GROUP_ACCOUNT_STATUS];
+	}
+
+	if (checkBox_displayCustomEmoticons) {
+		[account setPreference:[NSNumber numberWithBool:[checkBox_displayCustomEmoticons state]]
+						forKey:KEY_DISPLAY_CUSTOM_EMOTICONS
+						 group:GROUP_ACCOUNT_STATUS];
+	}
 }
 
 #pragma mark Encoding

@@ -497,6 +497,14 @@
  * where that symbol is not available, and may be nil. Give the button an
  * accessibility label of its own — a symbol has no title to fall back on.
  */
+/*!
+ * @brief The chevron a row shows when it opens a page of its own
+ *
+ * A host which draws its own rows, a table hosted edge to edge for instance, would otherwise pick a
+ * glyph and a tint of its own and end up half a point off the ones the form draws.
+ */
++ (NSImage *)disclosureIndicatorImage;
+
 + (NSButton *)inlineSymbolButtonWithSymbolName:(NSString *)symbolName
 							 fallbackImageName:(NSString *)imageName
 										target:(id)target

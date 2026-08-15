@@ -423,17 +423,17 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setEnabledSwitch:enabledSwitch];
 
 		//Info button, opens the account editor
-		NSImage *infoImage = [NSImage imageWithSystemSymbolName:@"info.circle"
-									   accessibilityDescription:AILocalizedString(@"Account Information", "Accessibility description of the button which opens an account's settings")];
-		infoImage = [infoImage imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:16.0f
-																										   weight:NSFontWeightRegular]];
-		if (!infoImage) infoImage = [NSImage imageNamed:NSImageNameRevealFreestandingTemplate];
+		/* A chevron, not an (i): the row no longer opens a window to one side but leads into the
+		 * account's own settings, and that is the mark the rest of the system uses for it. Drawn
+		 * from the same place the form's own rows take theirs, so the two never drift apart. */
+		NSImage *infoImage = [AISettingsFormView disclosureIndicatorImage];
 
 		NSButton *infoButton = [NSButton buttonWithImage:infoImage target:nil action:NULL];
 		[infoButton setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[infoButton setBordered:NO];
 		[infoButton setImagePosition:NSImageOnly];
-		[infoButton setContentTintColor:[NSColor secondaryLabelColor]];
+		[infoButton setContentTintColor:[NSColor tertiaryLabelColor]];
+		[infoButton setAccessibilityLabel:AILocalizedString(@"Account Information", "Accessibility description of the button which opens an account's settings")];
 		[self addSubview:infoButton];
 		[self setInfoButton:infoButton];
 
@@ -662,7 +662,20 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		 * its controls, and -tearDown releases it. */
 		[nibView release];
 		nibView = view;
-		view = [[self buildSettingsForm] retain];
+
+		/* The form is no longer the pane's view but its first page. What the pane hands out is the
+		 * navigation controller's container, so that an account's own settings can slide in over the
+		 * list without the window having to know that anything moved. */
+		listForm = [[self buildSettingsForm] retain];
+
+		NSViewController *listPage = [[[NSViewController alloc] init] autorelease];
+		[listPage setView:listForm];
+
+		navigationController = [[AISettingsNavigationController alloc] init];
+		[navigationController setDelegate:self];
+		[navigationController setRootViewController:listPage];
+
+		view = [[navigationController view] retain];
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -762,7 +775,9 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  */
 - (AISettingsFormView *)settingsForm
 {
-	return ([view isKindOfClass:[AISettingsFormView class]] ? (AISettingsFormView *)view : nil);
+	/* The pane's view is the navigation container now, so asking it what class it is would answer
+	 * "not a form" and quietly stop every height update the list depends on. */
+	return listForm;
 }
 
 /*!
@@ -843,7 +858,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[tableView_accountList setDelegate:nil];
 	[tableView_accountList setDataSource:nil];
 	[tableView_accountList setTarget:nil];
-	[tableView_accountList setDoubleAction:NULL];
+	[tableView_accountList setAction:NULL];
 	[scrollView_accountList removeFromSuperview];
 
 	/* Both outlets are non-retaining and the views behind them go away with the form, which may be
@@ -852,6 +867,10 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	scrollView_accountList = nil;
 
 	[nibView release]; nibView = nil;
+
+	[navigationController setDelegate:nil];
+	[navigationController release]; navigationController = nil;
+	[listForm release]; listForm = nil;
 
 	[accountArray release]; accountArray = nil;
 	[requiredHeightDict release]; requiredHeightDict = nil;
@@ -1000,13 +1019,18 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 }
 
 /*!
- * @brief Handle a double click within our table
+ * @brief Handle a click within our table
  *
- * Clicks on the switch and on the info button never reach the table view, so any double click
- * which arrives here is meant to open the account editor.
+ * Clicks on the switch and on the chevron never reach the table view, so a click which arrives here
+ * landed on the row itself, and a row with a chevron opens when it is clicked.
+ *
+ * A click on empty space below the last row reports -1, which is not an account.
  */
-- (void)doubleClickInTableView:(id)sender
+- (void)singleClickInTableView:(id)sender
 {
+	if ([tableView_accountList clickedRow] < 0)
+		return;
+
 	[self editSelectedAccount:sender];
 }
 
@@ -1117,7 +1141,10 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	//Configure our table view for a view based, System Settings style list
 	[tableView_accountList setTarget:self];
-	[tableView_accountList setDoubleAction:@selector(doubleClickInTableView:)];
+	/* A single click opens the account now, the way a row with a chevron behaves everywhere else.
+	 * The switch and the chevron have their own targets and never reach the table, so what arrives
+	 * here is a click on the row itself. */
+	[tableView_accountList setAction:@selector(singleClickInTableView:)];
 	[tableView_accountList setIntercellSpacing:NSZeroSize];
 	[tableView_accountList setHeaderView:nil];
 	[tableView_accountList setCornerView:nil];

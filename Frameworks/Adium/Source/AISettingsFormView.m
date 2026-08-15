@@ -2246,6 +2246,25 @@ typedef enum {
 	return button;
 }
 
++ (NSImage *)disclosureIndicatorImage
+{
+	NSImage *image = nil;
+
+	if (@available(macOS 11.0, *)) {
+		image = [NSImage imageWithSystemSymbolName:@"chevron.forward"
+						  accessibilityDescription:nil];
+		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:AISettingsInlineSymbolSize
+																								   weight:NSFontWeightSemibold]];
+	}
+
+	if (!image)
+		image = [NSImage imageNamed:NSImageNameGoRightTemplate];
+
+	[image setTemplate:YES];
+
+	return image;
+}
+
 + (NSButton *)inlineSymbolButtonWithSymbolName:(NSString *)symbolName
 							 fallbackImageName:(NSString *)imageName
 										target:(id)target

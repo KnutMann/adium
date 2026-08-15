@@ -753,7 +753,9 @@
 		34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = F5793923033E74C301A8010A /* AIPreferencePane.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */ = {isa = PBXBuildFile; fileRef = F5793913033E748F01A8010A /* AIPreferencePane.m */; };
 		ADD1E5C0DE00000000001A12 /* AISettingsFormView.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000000764 /* AISettingsNavigationController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000763 /* AISettingsNavigationController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000001A13 /* AISettingsFormView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */; };
+		ADD1E5C0DE00000000000762 /* AISettingsNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000761 /* AISettingsNavigationController.m */; };
 		34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000701 /* NSView+AILegacyButtonNormalization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000703 /* NSView+AILegacyButtonNormalization.m */; };
@@ -2949,6 +2951,8 @@
 		F5793923033E74C301A8010A /* AIPreferencePane.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPreferencePane.h; path = Frameworks/Adium/Source/AIPreferencePane.h; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AISettingsFormView.h; path = Frameworks/Adium/Source/AISettingsFormView.h; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISettingsFormView.m; path = Frameworks/Adium/Source/AISettingsFormView.m; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000761 /* AISettingsNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISettingsNavigationController.m; path = "Frameworks/Adium/Source/AISettingsNavigationController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000763 /* AISettingsNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISettingsNavigationController.h; path = "Frameworks/Adium/Source/AISettingsNavigationController.h"; sourceTree = "<group>"; };
 		F5793924033E74C301A8010A /* AIPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPlugin.h; path = Frameworks/Adium/Source/AIPlugin.h; sourceTree = "<group>"; };
 		F579392B033E74C401A8010A /* AIContentMessage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContentMessage.h; path = Frameworks/Adium/Source/AIContentMessage.h; sourceTree = "<group>"; };
 		F579397F033E756E01A8010A /* AIDualWindowInterfacePlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIDualWindowInterfacePlugin.h; path = "Plugins/Dual Window Interface/AIDualWindowInterfacePlugin.h"; sourceTree = "<group>"; };
@@ -6127,6 +6131,8 @@
 				F5793913033E748F01A8010A /* AIPreferencePane.m */,
 				ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */,
 				ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */,
+				ADD1E5C0DE00000000000761 /* AISettingsNavigationController.m */,
+				ADD1E5C0DE00000000000763 /* AISettingsNavigationController.h */,
 				343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */,
 				343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */,
 				4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */,
@@ -6356,6 +6362,7 @@
 				34DC8AF10A7EEEF7003E1636 /* AIActionDetailsPane.h in Headers */,
 				34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */,
 				ADD1E5C0DE00000000001A12 /* AISettingsFormView.h in Headers */,
+				ADD1E5C0DE00000000000764 /* AISettingsNavigationController.h in Headers */,
 				34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */,
 				ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */,
 				34DC8AF70A7EEEF7003E1636 /* AIHTMLDecoder.h in Headers */,
@@ -7523,6 +7530,7 @@
 				34DC8AF20A7EEEF7003E1636 /* AIActionDetailsPane.m in Sources */,
 				34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */,
 				ADD1E5C0DE00000000001A13 /* AISettingsFormView.m in Sources */,
+				ADD1E5C0DE00000000000762 /* AISettingsNavigationController.m in Sources */,
 				34DC8AF60A7EEEF7003E1636 /* AIModularPaneCategoryView.m in Sources */,
 				ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */,
 				34DC8AF80A7EEEF7003E1636 /* AIHTMLDecoder.m in Sources */,

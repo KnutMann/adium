@@ -15,12 +15,14 @@
  */
 
 #import <Adium/AIPreferencePane.h>
+#import <Adium/AISettingsNavigationController.h>
+#import <Adium/AISettingsFormView.h>
 #import <Adium/AIContactObserverManager.h>
 #import <AIUtilities/AISegmentedControl.h>
 
 @class AIAccountController, AIAccount, AIAutoScrollView, AIImageViewWithImagePicker;
 
-@interface AIAccountListPreferences : AIPreferencePane <AIListObjectObserver, NSTableViewDelegate> {
+@interface AIAccountListPreferences : AIPreferencePane <AIListObjectObserver, NSTableViewDelegate, AISettingsNavigationControllerDelegate> {
 	//Account list
     IBOutlet		NSScrollView			*scrollView_accountList;
     IBOutlet		NSTableView				*tableView_accountList;
@@ -36,6 +38,11 @@
 	 * move them into. This keeps the nib's top level view (and with it the nib's ownership of
 	 * everything we did not move) alive for as long as we use its controls. */
 	NSView							*nibView;
+
+	/* The pane is a page stack now: the list is its root page, an account's settings slide in on
+	 * top. AIModularPane knows only about a view, so the controller has to be held here. */
+	AISettingsNavigationController	*navigationController;
+	AISettingsFormView				*listForm;
 
     //Account List
     NSArray							*accountArray;
