@@ -2597,6 +2597,9 @@ typedef enum {
 	[field setAlignment:NSTextAlignmentRight];
 	[field setTarget:target];
 	[field setAction:action];
+	/* Return alone is not enough here either: a port typed into this field and left behind by a click
+	 * elsewhere used to be dropped without a word, and the setting kept whatever it had before. */
+	[[field cell] setSendsActionOnEndEditing:YES];
 	[field sizeToFit];
 	[field setFrameSize:NSMakeSize(width, NSHeight([field frame]))];
 

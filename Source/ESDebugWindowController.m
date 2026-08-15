@@ -116,10 +116,19 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 
 	[[self window] setTitle:AILocalizedString(@"Adium Debug Log","Debug window title")];
 
-	/* The box used to carry the path it writes to, which is longer than the window gives it and was
-	 * cut off in the middle. The name says what it does and the path is one hover away. */
-	[checkBox_logWriting setTitle:AILocalizedString(@"Write a log file", "Logging checkbox in the Adium Debug Window")];
-	[checkBox_logWriting setToolTip:[AIDebugLogFolder() stringByAbbreviatingWithTildeInPath]];
+	/* A switch at the trailing edge with its name beside it, the shape a setting has everywhere else
+	 * in this application now. The path it writes to is longer than the window gives it, so it is a
+	 * tooltip rather than a title that would be cut off in the middle. */
+	NSString *folder = [AIDebugLogFolder() stringByAbbreviatingWithTildeInPath];
+
+	[label_logWriting setStringValue:AILocalizedString(@"Write a log file", "Logging switch in the Adium Debug Window")];
+	[label_logWriting setEditable:NO];
+	[label_logWriting setSelectable:NO];
+	[label_logWriting setBezeled:NO];
+	[label_logWriting setDrawsBackground:NO];
+	[label_logWriting setToolTip:folder];
+	[switch_logWriting setToolTip:folder];
+	[switch_logWriting setAccessibilityLabel:AILocalizedString(@"Write a log file", "Logging switch in the Adium Debug Window")];
 
 	[button_clear setTitle:AILocalizedString(@"Clear", nil)];
 
@@ -128,8 +137,9 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 						   withObject:nil
 						   afterDelay:0];
 	
-	[checkBox_logWriting setState:[[adium.preferenceController preferenceForKey:KEY_DEBUG_WRITE_LOG
-																			group:GROUP_DEBUG] boolValue]];
+	[switch_logWriting setState:([[adium.preferenceController preferenceForKey:KEY_DEBUG_WRITE_LOG
+																		 group:GROUP_DEBUG] boolValue] ?
+								 NSControlStateValueOn : NSControlStateValueOff)];
 	
 	[super windowDidLoad];
 }

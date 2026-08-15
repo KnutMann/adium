@@ -11,7 +11,8 @@
                 <outlet property="window" destination="win" id="oWin"/>
                 <outlet property="textView_debug" destination="tvDebug" id="oTv"/>
                 <outlet property="scrollView_debug" destination="scroll" id="oScroll"/>
-                <outlet property="checkBox_logWriting" destination="cbLog" id="oCbLog"/>
+                <outlet property="label_logWriting" destination="lblLog" id="oLblLog"/>
+                <outlet property="switch_logWriting" destination="cbLog" id="oCbLog"/>
                 <outlet property="button_clear" destination="btnClear" id="oBtnClear"/>
             </connections>
         </customObject>
@@ -65,17 +66,22 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
-                    <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbLog">
-                        <rect key="frame" x="187" y="13" width="255" height="18"/>
+                    <textField fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lblLog">
+                        <rect key="frame" x="180" y="16" width="216" height="16"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
-                        <buttonCell key="cell" type="check" title="Log to ~/Library/Logs/Adium Debug" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="cbLogCell">
-                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="right" title="Write a log file" id="lblLogCell">
                             <font key="font" metaFont="system"/>
-                        </buttonCell>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <switch fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cbLog">
+                        <rect key="frame" x="404" y="11" width="42" height="25"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                         <connections>
                             <action selector="toggleLogWriting:" target="-2" id="aToggleLog"/>
                         </connections>
-                    </button>
+                    </switch>
                     <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="btnClear">
                         <rect key="frame" x="14" y="4" width="82" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
