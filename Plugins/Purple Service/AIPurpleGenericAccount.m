@@ -18,7 +18,6 @@
 #import "AIPurpleGenericService.h"
 
 #import <Adium/AIListContact.h>
-#import <libpurple/accountopt.h>
 #import <Adium/ESFileTransfer.h>
 
 @implementation AIPurpleGenericAccount
@@ -88,58 +87,6 @@
 	}
 
 	return [super availableForSendingContentType:inType toContact:inContact];
-}
-
-/*!
- * @brief Hand the protocol its own options back
- *
- * Every option this protocol declared, read from where the account keeps it and written into the
- * libpurple account. Neither side had to be told which options exist: the protocol says so, and the
- * settings pane built its rows from the same list.
- */
-- (void)configurePurpleAccount
-{
-	[super configurePurpleAccount];
-
-	AIPurpleGenericService *service = (AIPurpleGenericService *)self.service;
-	PurplePlugin *prpl = purple_plugins_find_with_id([service prplIDCString]);
-	PurplePluginProtocolInfo *info = (prpl && prpl->info) ? PURPLE_PLUGIN_PROTOCOL_INFO(prpl) : NULL;
-	if (!info)
-		return;
-
-	for (GList *iter = info->protocol_options; iter; iter = iter->next) {
-		PurpleAccountOption *option = iter->data;
-		const char *setting = option ? purple_account_option_get_setting(option) : NULL;
-		if (!setting)
-			continue;
-
-		NSString *key = [NSString stringWithFormat:@"%s:%s", [service prplIDCString], setting];
-		id stored = [self preferenceForKey:key group:GROUP_ACCOUNT_STATUS];
-
-		/* Nothing stored means the user never touched it, and the protocol's own default is already
-		 * in place. Writing it back would only turn a default that may change into a fixed value. */
-		if (!stored)
-			continue;
-
-		switch (purple_account_option_get_type(option)) {
-			case PURPLE_PREF_BOOLEAN:
-				purple_account_set_bool(account, setting, [stored boolValue]);
-				break;
-
-			case PURPLE_PREF_INT:
-				purple_account_set_int(account, setting, (int)[stored integerValue]);
-				break;
-
-			case PURPLE_PREF_STRING:
-			case PURPLE_PREF_PATH:
-			case PURPLE_PREF_STRING_LIST:
-				purple_account_set_string(account, setting, [stored UTF8String]);
-				break;
-
-			default:
-				break;
-		}
-	}
 }
 
 @end

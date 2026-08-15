@@ -41,6 +41,7 @@
 	id						 backTarget;			//Not retained
 	SEL						 backAction;
 	BOOL					 committing;
+	BOOL					 edited;				//Whether anything on the page was actually changed
 	NSMutableDictionary		*hostedTargets;
 	NSMutableDictionary		*hostedActions;
 }

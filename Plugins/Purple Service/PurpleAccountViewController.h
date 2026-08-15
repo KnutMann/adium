@@ -14,6 +14,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+@class AISettingsFormView;
+
 #import <Adium/AIAccountViewController.h>
 
 @interface PurpleAccountViewController : AIAccountViewController {
@@ -22,5 +24,20 @@
 }
 
 - (NSMenu *)encodingMenu;
+
+
+/*!
+ * @brief Build this protocol's own options as ordinary settings rows
+ *
+ * A libpurple protocol describes each of its options: name, type, default, and for a choice the
+ * choices. Pidgin builds its whole account dialog out of that; nothing here read it, which is why
+ * every option was at some point drawn into a nib by hand and no two services looked alike.
+ */
+- (void)addOptionRowsToForm:(AISettingsFormView *)form;
+
+/*!
+ * @brief Does this protocol declare any option at all?
+ */
+- (BOOL)hasProtocolOptions;
 
 @end

@@ -29,6 +29,7 @@
 - (void)watchControlsIn:(NSView *)hosted;
 - (void)hostedControlActed:(id)sender;
 - (void)editingEnded:(NSNotification *)notification;
+- (void)editingChanged:(NSNotification *)notification;
 - (void)windowResignedKey:(NSNotification *)notification;
 @end
 
@@ -52,6 +53,12 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(editingEnded:)
 													 name:NSControlTextDidEndEditingNotification
+												   object:nil];
+		/* Typing is what makes a page dirty, not leaving a field: tabbing through an account without
+		 * touching anything ends editing in every field it passes and changes none of them. */
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(editingChanged:)
+													 name:NSControlTextDidChangeNotification
 												   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(windowResignedKey:)
@@ -79,12 +86,19 @@
 		return;
 
 	committing = YES;
+
+	/* Written every time, because it is idempotent and cheap: it puts the state of the controls back
+	 * where it came from. */
 	[accountViewController saveConfiguration];
 
-	/* Once per burst rather than once per field. Reconfiguring a live account is not free, and a
-	 * page full of fields left in a row would otherwise do it for every one of them. */
-	[NSObject cancelPreviousPerformRequestsWithTarget:account selector:@selector(accountEdited) object:nil];
-	[account performSelector:@selector(accountEdited) withObject:nil afterDelay:0.0];
+	/* Telling the account is not cheap: it reconfigures a live connection and can bounce it. So it
+	 * happens only when something was actually typed or switched, not merely because the page was
+	 * opened and left again. Once per burst, so a page full of fields does not do it per field. */
+	if (edited) {
+		edited = NO;
+		[NSObject cancelPreviousPerformRequestsWithTarget:account selector:@selector(accountEdited) object:nil];
+		[account performSelector:@selector(accountEdited) withObject:nil afterDelay:0.0];
+	}
 
 	committing = NO;
 }
@@ -95,6 +109,12 @@
 - (void)editingEnded:(NSNotification *)notification
 {
 	[self commit];
+}
+
+- (void)editingChanged:(NSNotification *)notification
+{
+	if ([[notification object] isDescendantOf:[self view]])
+		edited = YES;
 }
 
 /*!
@@ -145,6 +165,8 @@
 	NSValue *senderKey = [NSValue valueWithNonretainedObject:sender];
 	id originalTarget = [[hostedTargets objectForKey:senderKey] pointerValue];
 	NSString *originalAction = [hostedActions objectForKey:senderKey];
+
+	edited = YES;
 
 	if (originalTarget && originalAction) {
 		SEL action = NSSelectorFromString(originalAction);
@@ -202,11 +224,15 @@
 	 * means always: it declares each option's name, type, default and, for a choice, the choices.
 	 * Only when nothing can be had that way is the service's own view hosted instead, which is what
 	 * every service used to do and why no two of them looked alike. */
-	if ([accountViewController respondsToSelector:@selector(addOptionRowsToForm:)] &&
-		[(id)accountViewController hasProtocolOptions]) {
-		[form addSectionHeader:AILocalizedString(@"Options", "Section header above an account's options")];
-		[(id)accountViewController addOptionRowsToForm:form];
-	} else if (![accountViewController respondsToSelector:@selector(addOptionRowsToForm:)]) {
+	if ([accountViewController respondsToSelector:@selector(addOptionRowsToForm:)]) {
+		/* Every libpurple protocol describes its own options, so every one of them gets ordinary rows
+		 * and none of them needs a nib for it. A protocol with nothing to configure gets no heading
+		 * over an empty card. */
+		if ([(id)accountViewController hasProtocolOptions]) {
+			[form addSectionHeader:AILocalizedString(@"Options", "Section header above an account's options")];
+			[(id)accountViewController addOptionRowsToForm:form];
+		}
+	} else {
 		[self addHostedView:[accountViewController optionsView]
 				underHeader:AILocalizedString(@"Options", "Section header above an account's options")];
 	}

@@ -15,6 +15,7 @@
  */
 
 #import "CBPurpleAccount.h"
+#import <libpurple/accountopt.h>
 
 #import "PurpleService.h"
 
@@ -2047,6 +2048,47 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	
 	//Update a few properties before we begin connecting.  Libpurple will send these automatically
     [self updateStatusForKey:KEY_USER_ICON];
+
+	/* And every option the protocol itself declares. Neither side had to be told which options
+	 * exist: the protocol says so, and the settings pane builds its rows from the same list. */
+	PurplePlugin *prpl = purple_plugins_find_with_id([self protocolPlugin]);
+	PurplePluginProtocolInfo *info = (prpl && prpl->info) ? PURPLE_PLUGIN_PROTOCOL_INFO(prpl) : NULL;
+	if (!info)
+		return;
+
+	for (GList *iter = info->protocol_options; iter; iter = iter->next) {
+		PurpleAccountOption *option = iter->data;
+		const char *setting = option ? purple_account_option_get_setting(option) : NULL;
+		if (!setting)
+			continue;
+
+		NSString *key = [NSString stringWithFormat:@"%s:%s", [self protocolPlugin], setting];
+		id stored = [self preferenceForKey:key group:GROUP_ACCOUNT_STATUS];
+
+		/* Nothing stored means the user never touched it, and the protocol's own default is already
+		 * in place. Writing it back would only turn a default that may change into a fixed value. */
+		if (!stored)
+			continue;
+
+		switch (purple_account_option_get_type(option)) {
+			case PURPLE_PREF_BOOLEAN:
+				purple_account_set_bool(account, setting, [stored boolValue]);
+				break;
+
+			case PURPLE_PREF_INT:
+				purple_account_set_int(account, setting, (int)[stored integerValue]);
+				break;
+
+			case PURPLE_PREF_STRING:
+			case PURPLE_PREF_PATH:
+			case PURPLE_PREF_STRING_LIST:
+				purple_account_set_string(account, setting, [stored UTF8String]);
+				break;
+
+			default:
+				break;
+		}
+	}
 }
 
 /*!
@@ -3384,5 +3426,7 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 {
 	return NO;
 }
+
+
 
 @end
