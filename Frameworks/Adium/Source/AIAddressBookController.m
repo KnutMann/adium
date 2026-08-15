@@ -85,6 +85,39 @@ static ABAddressBook			*sharedAddressBook;
 static NSMutableDictionary		*addressBookDict;
 static NSDictionary				*serviceDict;
 
+/*!
+ * @brief Where phone numbers are indexed
+ *
+ * Not a service, so it cannot collide with one: a card's numbers are filed here and looked up by any
+ * service that says its names are numbers.
+ */
+#define AB_PHONE_NUMBERS	@"\1phone numbers"
+
+/*!
+ * @brief What two phone numbers have to share to be the same person
+ *
+ * Numbers are written down every way there is: +49 157 …, 0157 …, 004915 …, with spaces, dashes and
+ * brackets. Comparing the digits alone still leaves the country code, which one side usually has and
+ * the other usually has not, so the last nine are what is compared. That is one rule for the whole
+ * problem, and short enough numbers, which are not mobile numbers anyway, simply never match.
+ */
+static NSString *AIPhoneNumberKey(NSString *number)
+{
+	NSMutableString *digits = [NSMutableString string];
+
+	for (NSUInteger i = 0; i < [number length]; i++) {
+		unichar c = [number characterAtIndex:i];
+
+		if (c >= '0' && c <= '9')
+			[digits appendFormat:@"%C", c];
+	}
+
+	if ([digits length] < 9)
+		return nil;
+
+	return [digits substringFromIndex:([digits length] - 9)];
+}
+
 NSString* serviceIDForOscarUID(NSString *UID);
 NSString* serviceIDForJabberUID(NSString *UID);
 
@@ -753,7 +786,19 @@ NSString* serviceIDForJabberUID(NSString *UID);
 			NSString		*serviceID = inObject.service.serviceID;
 			
 			person = [self _searchForUID:UID serviceID:serviceID];
-			
+
+			/* A service whose names are numbers says so, and then the number is what identifies the
+			 * person rather than a handle nobody wrote on their card. The service is asked instead of
+			 * the string being guessed at, so a numeric name on some other service stays a name. */
+			if (!person && inObject.service.userNamesArePhoneNumbers) {
+				NSString *key = AIPhoneNumberKey(UID);
+				NSString *uniqueId = (key ? [[addressBookDict objectForKey:AB_PHONE_NUMBERS] objectForKey:key] : nil);
+				ABRecord *found = (uniqueId ? [sharedAddressBook recordForUniqueId:uniqueId] : nil);
+
+				if ([found isKindOfClass:[ABPerson class]])
+					person = (ABPerson *)found;
+			}
+
 			/* If we don't find anything yet, look at alternative service possibilities:
 			 *    AIM <--> ICQ
 			 */
@@ -1171,7 +1216,28 @@ NSString* serviceIDForJabberUID(NSString *UID)
 	
 	for (person in people) {
 		NSString			*serviceID;
-		
+
+		/* The card's phone numbers, so that a service which identifies people by their number can
+		 * find them. Deliberately not added to the arrays below: those group contacts into one
+		 * metacontact, and sharing a number is a good enough reason to look somebody up but not a
+		 * good enough reason to merge them without being asked. */
+		{
+			ABMultiValue	*numbers = [person valueForProperty:kABPhoneProperty];
+			NSMutableDictionary *phoneDict = [addressBookDict objectForKey:AB_PHONE_NUMBERS];
+
+			for (NSUInteger n = 0; n < [numbers count]; n++) {
+				NSString *key = AIPhoneNumberKey([numbers valueAtIndex:n]);
+				if (!key) continue;
+
+				if (!phoneDict) {
+					phoneDict = [[[NSMutableDictionary alloc] init] autorelease];
+					[addressBookDict setObject:phoneDict forKey:AB_PHONE_NUMBERS];
+				}
+
+				[phoneDict setObject:[person uniqueId] forKey:key];
+			}
+		}
+
 		NSMutableArray		*UIDsArray = [NSMutableArray array];
 		NSMutableArray		*servicesArray = [NSMutableArray array];
 		

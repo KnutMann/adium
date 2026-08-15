@@ -244,6 +244,11 @@
  * authenticate by their own means and set this flag; every hand written service for them repeated
  * the answer in Objective-C.
  */
+- (BOOL)userNamesArePhoneNumbers
+{
+	return [[descriptor objectForKey:@"UserNamesArePhoneNumbers"] boolValue];
+}
+
 - (BOOL)supportsPassword
 {
 	PurplePluginProtocolInfo *info = [self protocolInfo];

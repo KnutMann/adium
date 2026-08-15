@@ -74,6 +74,11 @@
 - (BOOL)supportsPassword{
 	return NO;
 }
+- (BOOL)userNamesArePhoneNumbers
+{
+	return YES;
+}
+
 - (BOOL)requiresPassword{
 	return NO;
 }

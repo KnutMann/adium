@@ -68,6 +68,15 @@ typedef enum {
 @property (readonly, nonatomic) BOOL canRegisterNewAccounts;
 @property (readonly, nonatomic) BOOL supportsProxySettings;
 @property (readonly, nonatomic) BOOL supportsPassword;
+
+/*!
+ * @brief Are the names on this service phone numbers?
+ *
+ * WhatsApp and its like identify people by their number rather than by a name they chose. Anything
+ * that has to recognise a person across services, the address book above all, can then look them up
+ * the way the rest of the system does, instead of guessing from the shape of a string.
+ */
+@property (readonly, nonatomic) BOOL userNamesArePhoneNumbers;
 @property (readonly, nonatomic) BOOL requiresPassword;
 @property (readonly, nonatomic) BOOL isSocialNetworkingService;
 @property (readonly, nonatomic) NSString *defaultUserName;

@@ -399,6 +399,11 @@
 	return YES;
 }
 
+- (BOOL)userNamesArePhoneNumbers
+{
+	return NO;
+}
+
 /*!
  * @brief Requires Password
  *
