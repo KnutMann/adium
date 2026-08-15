@@ -79,6 +79,7 @@ static const CGFloat AISettingsHeaderFontSize	= 13.0;
 static const CGFloat AISettingsFallbackWidth	= 480.0;	//Used when a host gives us no usable width
 static const CGFloat AISettingsInlineButtonSize	= 22.0;		//Edge length of a row's trailing symbol button
 static const CGFloat AISettingsInlineSymbolSize	= 16.0;		//Point size of the symbol drawn in it
+static const CGFloat AISettingsDisclosureSymbolSize = 11.0;	//Point size of a row's chevron
 static const CGFloat AISettingsInfoImageSize	= 40.0;		//Longest edge of the picture in an info row
 
 /* The pecking order of the constraints. Where the old machine wrote its rules
@@ -2253,7 +2254,9 @@ typedef enum {
 	if (@available(macOS 11.0, *)) {
 		image = [NSImage imageWithSystemSymbolName:@"chevron.forward"
 						  accessibilityDescription:nil];
-		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:AISettingsInlineSymbolSize
+		/* Smaller than the symbols that sit in a row as controls. This one is a signpost, not
+		 * something to aim at, and at the inline size it reads as heavy beside the system's own. */
+		image = [image imageWithSymbolConfiguration:[NSImageSymbolConfiguration configurationWithPointSize:AISettingsDisclosureSymbolSize
 																								   weight:NSFontWeightSemibold]];
 	}
 

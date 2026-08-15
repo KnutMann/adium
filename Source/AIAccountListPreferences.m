@@ -73,6 +73,7 @@
 #define STATUS_DOT_GAP					 6.0f		//Space between the status dot and the status text
 #define STATUS_DOT_TOP_INSET			 4.0f		//Keeps the dot optically centered on the status line
 #define INFO_BUTTON_SIZE				22.0f
+#define DISCLOSURE_TRAILING_INSET		4.0f		//The chevron sits nearer the edge than a control does
 #define CONTROL_GAP						10.0f		//Space around the switch
 #define LOCK_ICON_SIZE					12.0f
 #define INSET_STYLE_MARGIN				32.0f		//Horizontal room claimed by NSTableViewStyleInset (16pt per side), fallback only
@@ -432,7 +433,8 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[infoButton setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[infoButton setBordered:NO];
 		[infoButton setImagePosition:NSImageOnly];
-		[infoButton setContentTintColor:[NSColor tertiaryLabelColor]];
+		/* Lighter than quaternaryLabelColor, which is the lightest of the named label colours and
+		 * still reads heavier here than the system's own chevrons. */
 		[infoButton setAccessibilityLabel:AILocalizedString(@"Account Information", "Accessibility description of the button which opens an account's settings")];
 		[self addSubview:infoButton];
 		[self setInfoButton:infoButton];
@@ -461,7 +463,9 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 			[[serviceIcon heightAnchor] constraintEqualToConstant:SERVICE_ICON_SIZE],
 
 			//Info button
-			[[infoButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
+			/* Closer to the edge than the rest of the row: a chevron sits at the very end of a
+			 * System Settings row, further out than any control would. */
+			[[infoButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-DISCLOSURE_TRAILING_INSET],
 			[[infoButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
 			[[infoButton widthAnchor] constraintEqualToConstant:INFO_BUTTON_SIZE],
 			[[infoButton heightAnchor] constraintEqualToConstant:INFO_BUTTON_SIZE],
@@ -611,9 +615,16 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[[self statusField] setTextColor:(emphasized ?
 									  [NSColor alternateSelectedControlTextColor] :
 									  [NSColor secondaryLabelColor])];
+	/* The chevron is a signpost, not a label: tertiaryLabelColor is what the system uses for one,
+	 * and measuring System Settings' own chevron against ours put it at #b7b7b7, which is what that
+	 * colour comes to on a card. No arithmetic on top of it: alpha applied to a semantic colour does
+	 * not compose the way plain arithmetic suggests, which is why three attempts at it moved nothing.
+	 * On a selected row it follows the selection colour or it would vanish into it. This is also the
+	 * only place the colour may be set, since this runs on every selection change and would put back
+	 * whatever the row was built with. */
 	[[self infoButton] setContentTintColor:(emphasized ?
 											[NSColor alternateSelectedControlTextColor] :
-											[NSColor secondaryLabelColor])];
+											[NSColor tertiaryLabelColor])];
 }
 
 @end
