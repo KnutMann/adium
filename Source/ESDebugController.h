@@ -18,6 +18,14 @@
 #define	KEY_DEBUG_WRITE_LOG		@"Write Debug Log"
 #define	GROUP_DEBUG				@"Debug Group"
 
+/*!
+ * @brief Where a written debug log ends up
+ *
+ * Asked for rather than spelled out a second time, so the window cannot name a folder the controller
+ * does not write to.
+ */
+NSString *AIDebugLogFolder(void);
+
 @interface ESDebugController : NSObject <AIDebugController> {
 @private
 	NSMutableArray			*debugLogArray;

@@ -115,7 +115,12 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 
 
 	[[self window] setTitle:AILocalizedString(@"Adium Debug Log","Debug window title")];
-	[checkBox_logWriting setTitle:AILocalizedString(@"Log to ~/Library/Logs/Adium Debug", "Logging checkbox in the Adium Debug Window")];
+
+	/* The box used to carry the path it writes to, which is longer than the window gives it and was
+	 * cut off in the middle. The name says what it does and the path is one hover away. */
+	[checkBox_logWriting setTitle:AILocalizedString(@"Write a log file", "Logging checkbox in the Adium Debug Window")];
+	[checkBox_logWriting setToolTip:[AIDebugLogFolder() stringByAbbreviatingWithTildeInPath]];
+
 	[button_clear setTitle:AILocalizedString(@"Clear", nil)];
 
 	//On the next run loop, scroll to the bottom

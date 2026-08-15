@@ -36,6 +36,15 @@
 - (void) showDebugWindow:(id)sender;
 @end
 
+NSString *AIDebugLogFolder(void)
+{
+	NSString *folder = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, /*expandTilde*/ YES) objectAtIndex:0];
+
+	folder = [folder stringByAppendingPathComponent:@"Logs"];
+
+	return [folder stringByAppendingPathComponent:@"Adium Debug"];
+}
+
 @implementation ESDebugController
 
 //Throwing an exception isn't enough, we need to die completely.
@@ -191,9 +200,7 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 		int fd;
 		
 		//make sure the containing folder for debug logs exists.
-		folder = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, /*expandTilde*/ YES) objectAtIndex:0];
-		folder = [folder stringByAppendingPathComponent:@"Logs"];
-		folder = [folder stringByAppendingPathComponent:@"Adium Debug"];
+		folder = AIDebugLogFolder();
 		BOOL success = [mgr createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
 		if((!success) && (errno != EEXIST)) {
 			/*raise an exception if the folder could not be created,

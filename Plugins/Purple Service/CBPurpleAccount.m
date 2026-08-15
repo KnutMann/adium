@@ -87,6 +87,7 @@
 - (NSNumber *)shouldCheckMail;
 - (void)configurePurpleAccountNotifyingTarget:(id)target selector:(SEL)selector;
 - (void)configureProtocolOptions;
+- (const char *)protocolStatusIDForStatusID:(const char *)statusID ofType:(AIStatusType)statusType;
 - (void)continueConnectWithConfiguredProxy;
 - (void)continueRegisterWithConfiguredPurpleAccount;
 - (void)promptForHostBeforeConnecting;
@@ -2616,6 +2617,45 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
  * @param statusState The state to enter
  * @param statusMessage The filtered status message to use.
  */
+/*!
+ * @brief The id this protocol knows a status by
+ *
+ * Returns @a statusID untouched when the protocol has a status of that name, which is the usual case.
+ * Otherwise the protocol names its statuses in its own way, and the one meaning the same thing is
+ * looked up by primitive: that is what says whether a status is available, away or invisible, while
+ * the id is only a name. A status nobody may set is skipped, since setting it would fail as well.
+ */
+- (const char *)protocolStatusIDForStatusID:(const char *)statusID ofType:(AIStatusType)statusType
+{
+	if (!account || !statusID || purple_account_get_status_type(account, statusID))
+		return statusID;
+
+	PurpleStatusPrimitive wanted;
+
+	switch (statusType) {
+		case AIAvailableStatusType:	wanted = PURPLE_STATUS_AVAILABLE;	break;
+		case AIAwayStatusType:		wanted = PURPLE_STATUS_AWAY;		break;
+		case AIInvisibleStatusType:	wanted = PURPLE_STATUS_INVISIBLE;	break;
+		case AIOfflineStatusType:	wanted = PURPLE_STATUS_OFFLINE;		break;
+		default:					return statusID;
+	}
+
+	for (GList *iter = purple_account_get_status_types(account); iter; iter = iter->next) {
+		PurpleStatusType *type = iter->data;
+
+		if (purple_status_type_get_primitive(type) == wanted && purple_status_type_is_user_settable(type)) {
+			const char *own = purple_status_type_get_id(type);
+
+			AILogWithSignature(@"%s does not know \"%s\"; using its own \"%s\"",
+							   [self protocolPlugin], statusID, own);
+
+			return own;
+		}
+	}
+
+	return statusID;
+}
+
 - (void)setStatusState:(AIStatus *)statusState usingStatusMessage:(NSAttributedString *)inStatusMessage
 {
 	NSString			*encodedStatusMessage;
@@ -2624,6 +2664,12 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 	//Get the purple status type from this class or subclasses, which may also potentially modify or nullify our statusMessage
 	const char *statusID = [self purpleStatusIDForStatus:statusState
 											 arguments:arguments];
+
+	/* The ids above are the ones libpurple's own protocols use, and a protocol is free to name its
+	 * statuses itself: "Available" rather than "available", say. Setting one it does not have fails,
+	 * and an account that cannot be set to a status never comes online at all. What a status means
+	 * is its primitive rather than its id, so ask the protocol for the one it calls that. */
+	statusID = [self protocolStatusIDForStatusID:statusID ofType:statusState.statusType];
 
 	if (![inStatusMessage length] &&
 		(statusState.statusType == AIAwayStatusType) &&
