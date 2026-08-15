@@ -454,19 +454,18 @@
 /*!
  * @brief One row, built around a control that already exists
  *
- * The control is moved out of the nib view it was laid out in and into the row. Its own label goes
- * with it as the row's label, so a service which renamed a field keeps the name it chose.
+ * Only the control moves. Its label is read from the text field beside it in the nib, because that
+ * is where the translated string already is, and that field is left where it is: the nib view is not
+ * shown when its fields have been laid out as rows.
  */
 - (void)addRow:(AISettingsFormView *)form control:(NSView *)control label:(NSTextField *)labelField fallback:(NSString *)fallback
 {
 	if (!control || [control isHidden])
 		return;
 
-	NSString *label = ([[labelField stringValue] length] ? [labelField stringValue] : fallback);
-
 	[control removeFromSuperview];
-	[form addRowWithLabel:label control:control];
-	[labelField setHidden:YES];
+	[form addRowWithLabel:([[labelField stringValue] length] ? [labelField stringValue] : fallback)
+				  control:control];
 }
 
 - (void)addAccountRowsToForm:(AISettingsFormView *)form
