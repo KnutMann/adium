@@ -404,6 +404,11 @@
 	return NO;
 }
 
+- (BOOL)userNamesAreEmailAddresses
+{
+	return NO;
+}
+
 /*!
  * @brief Requires Password
  *

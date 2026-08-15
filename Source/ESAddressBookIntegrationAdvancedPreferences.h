@@ -40,7 +40,6 @@
 	// Images
 	NSSwitch		*checkBox_useABImages;
 	NSSwitch		*checkBox_preferABImages;
-	NSSwitch		*checkBox_syncAutomatic;
 
 	// Contacts
 	NSSwitch		*checkBox_metaContacts;

@@ -21,7 +21,6 @@
 #import <Adium/AIMetaContact.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
 
-#define KEY_AB_IMAGE_SYNC						@"AB Image Sync"
 #define KEY_AB_PREFER_ADDRESS_BOOK_IMAGES		@"AB Prefer AB Images"
 
 @interface AIAddressBookUserIconSource ()

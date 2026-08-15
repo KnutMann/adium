@@ -39,12 +39,7 @@
 #define IMAGE_LOOKUP_INTERVAL   0.01
 #define SHOW_IN_AB_CONTEXTUAL_MENU_TITLE AILocalizedString(@"Show In Address Book", "Show In Address Book Contextual Menu")
 #define EDIT_IN_AB_CONTEXTUAL_MENU_TITLE AILocalizedString(@"Edit In Address Book", "Edit In Address Book Contextual Menu")
-#define ADD_TO_AB_CONTEXTUAL_MENU_TITLE AILocalizedString(@"Add To Address Book", "Add To Address Book Contextual Menu")
 
-#define CONTACT_ADDED_SUCCESS_TITLE		AILocalizedString(@"Success", "Title of a panel shown after adding successfully adding a contact to the address book.")
-#define CONTACT_ADDED_SUCCESS_Message	AILocalizedString(@"%@ had been successfully added to the Address Book.\nWould you like to edit the card now?", nil)
-#define CONTACT_ADDED_ERROR_TITLE		AILocalizedString(@"Error", nil)
-#define CONTACT_ADDED_ERROR_Message		AILocalizedString(@"An error had occurred while adding %@ to the Address Book.", nil)
 
 #define KEY_ADDRESS_BOOK_ACTIONS_INSTALLED	@"Adium:Installed Adress Book Actions 1.3"
 
@@ -65,7 +60,6 @@
 - (void)openAddressBook;
 
 - (void)adiumFinishedLaunching:(NSNotification *)notification;
-- (void)addToAddressBook;
 - (void)addressBookChanged:(NSNotification *)notification;
 - (void)accountListChanged:(NSNotification *)notification;
 @end
@@ -94,6 +88,14 @@ static NSDictionary				*serviceDict;
 #define AB_PHONE_NUMBERS	@"\1phone numbers"
 
 /*!
+ * @brief Where email addresses are indexed
+ *
+ * Same arrangement as the numbers above, and for the same reason: a service whose names are
+ * addresses can look a card up by one without an entry of its own having to exist on the card.
+ */
+#define AB_EMAIL_ADDRESSES	@"\1email addresses"
+
+/*!
  * @brief What two phone numbers have to share to be the same person
  *
  * Numbers are written down every way there is: +49 157 …, 0157 …, 004915 …, with spaces, dashes and
@@ -116,6 +118,23 @@ static NSString *AIPhoneNumberKey(NSString *number)
 		return nil;
 
 	return [digits substringFromIndex:([digits length] - 9)];
+}
+
+/*!
+ * @brief What two email addresses have to share to be the same person
+ *
+ * Far less work than a phone number, because an address is already written one way. Case is the
+ * only thing that varies in practice, and no mail system in use treats two addresses differing
+ * only in case as two people.
+ */
+static NSString *AIEmailKey(NSString *address)
+{
+	NSString *trimmed = [address stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+	if (![trimmed length] || ([trimmed rangeOfString:@"@"].location == NSNotFound))
+		return nil;
+
+	return [trimmed lowercaseString];
 }
 
 NSString* serviceIDForOscarUID(NSString *UID);
@@ -373,14 +392,8 @@ NSString* serviceIDForJabberUID(NSString *UID);
 	[editInABContextualMenuItem setAlternate:YES];
 	[editInABContextualMenuItem setTag:AIRequiresAddressBookEntry];
 	
-	addToABContexualMenuItem = [[[NSMenuItem alloc] initWithTitle:ADD_TO_AB_CONTEXTUAL_MENU_TITLE
-											 action:@selector(addToAddressBook)
-										  keyEquivalent:@""] autorelease];
-	[addToABContexualMenuItem setTarget:self];
-	[addToABContexualMenuItem setTag:AIRequiresNoAddressBookEntry];
 	
 	//Install our menus
-	[adium.menuController addContextualMenuItem:addToABContexualMenuItem toLocation:Context_Contact_Action];
 	[adium.menuController addContextualMenuItem:showInABContextualMenuItem toLocation:Context_Contact_Action];
 	[adium.menuController addContextualMenuItem:editInABContextualMenuItem toLocation:Context_Contact_Action];
 	
@@ -510,41 +523,6 @@ NSString* serviceIDForJabberUID(NSString *UID);
     return modifiedAttributes;
 }
 
-- (void)listObjectAttributesChanged:(NSNotification *)notification
-{
-	if (!automaticUserIconSync) return;
-
-	AIListObject	*inObject = [notification object];
-	NSSet			*keys = [[notification userInfo] objectForKey:@"Keys"];
-	
-	if ([keys containsObject:KEY_USER_ICON] &&
-		[inObject isKindOfClass:[AIListContact class]]) {
-		AIListContact *listContact = (AIListContact *)inObject;
-		ABPerson *person = [listContact addressBookPerson];
-			
-		if (person && (person != [sharedAddressBook me])) {
-			NSData	*existingABImageData = [person imageData];
-			NSImage	*existingABImage = (existingABImageData ? [[[NSImage alloc] initWithData:[person imageData]] autorelease] : nil);
-			NSImage	*objectUserIcon = [listContact userIcon];
-			
-			if (!existingABImage || objectUserIcon) {
-				NSData  *objectUserIconData = [objectUserIcon PNGRepresentation];
-				
-				if (![objectUserIconData isEqualToData:[existingABImage PNGRepresentation]]) {
-					[person setImageData:objectUserIconData];
-					
-					[[sharedAddressBook class] cancelPreviousPerformRequestsWithTarget:sharedAddressBook
-																			  selector:@selector(save)
-																				object:nil];
-					[sharedAddressBook performSelector:@selector(save)
-											withObject:nil
-											afterDelay:5.0];						
-				}
-			}
-		}		
-	}
-}
-
 /*!
  * @brief Return the name of an ABPerson in the way Adium should display it
  *
@@ -654,7 +632,6 @@ NSString* serviceIDForJabberUID(NSString *UID);
 
 	//load new displayFormat
 	enableImport = [[prefDict objectForKey:KEY_AB_ENABLE_IMPORT] boolValue];
-	automaticUserIconSync = [[prefDict objectForKey:KEY_AB_IMAGE_SYNC] boolValue];
 	useFirstName = [[prefDict objectForKey:KEY_AB_USE_FIRSTNAME] boolValue];
 	useNickNameOnly = [[prefDict objectForKey:KEY_AB_USE_NICKNAME] boolValue];
 	displayFormat = [[prefDict objectForKey:KEY_AB_DISPLAYFORMAT] retain];
@@ -688,14 +665,6 @@ NSString* serviceIDForJabberUID(NSString *UID);
 		[self updateAllContacts];
 	}
 	
-	if (automaticUserIconSync) {
-		[[NSNotificationCenter defaultCenter] addObserver:self
-									   selector:@selector(listObjectAttributesChanged:)
-										   name:ListObject_AttributesChanged
-										 object:nil];
-	} else {
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:ListObject_AttributesChanged object:nil];
-	}
 }
 
 /*!
@@ -809,6 +778,16 @@ NSString* serviceIDForJabberUID(NSString *UID);
 			if (!person && inObject.service.userNamesArePhoneNumbers) {
 				NSString *key = AIPhoneNumberKey(UID);
 				NSString *uniqueId = (key ? [[addressBookDict objectForKey:AB_PHONE_NUMBERS] objectForKey:key] : nil);
+				ABRecord *found = (uniqueId ? [sharedAddressBook recordForUniqueId:uniqueId] : nil);
+
+				if ([found isKindOfClass:[ABPerson class]])
+					person = (ABPerson *)found;
+			}
+
+			//The same again for a service whose names are email addresses, Teams above all
+			if (!person && inObject.service.userNamesAreEmailAddresses) {
+				NSString *key = AIEmailKey(UID);
+				NSString *uniqueId = (key ? [[addressBookDict objectForKey:AB_EMAIL_ADDRESSES] objectForKey:key] : nil);
 				ABRecord *found = (uniqueId ? [sharedAddressBook recordForUniqueId:uniqueId] : nil);
 
 				if ([found isKindOfClass:[ABPerson class]])
@@ -1254,6 +1233,26 @@ NSString* serviceIDForJabberUID(NSString *UID)
 			}
 		}
 
+		/* And the card's email addresses, for a service that knows people by one. Kept out of the
+		 * arrays below for the same reason as the numbers: sharing an address is reason enough to
+		 * look somebody up, and not reason enough to merge two contacts unasked. */
+		{
+			ABMultiValue		*addresses = [person valueForProperty:kABEmailProperty];
+			NSMutableDictionary *emailDict = [addressBookDict objectForKey:AB_EMAIL_ADDRESSES];
+
+			for (NSUInteger n = 0; n < [addresses count]; n++) {
+				NSString *key = AIEmailKey([addresses valueAtIndex:n]);
+				if (!key) continue;
+
+				if (!emailDict) {
+					emailDict = [[[NSMutableDictionary alloc] init] autorelease];
+					[addressBookDict setObject:emailDict forKey:AB_EMAIL_ADDRESSES];
+				}
+
+				[emailDict setObject:[person uniqueId] forKey:key];
+			}
+		}
+
 		NSMutableArray		*UIDsArray = [NSMutableArray array];
 		NSMutableArray		*servicesArray = [NSMutableArray array];
 		
@@ -1447,48 +1446,30 @@ NSString* serviceIDForJabberUID(NSString *UID)
  */
 - (void)removeFromAddressBookDict:(NSArray *)uniqueIDs
 {
+	/* The numbers and the addresses are filed under keys of their own rather than under a service,
+	 * so they have to be named here: going by the services alone would leave a deleted card still
+	 * answering to its own phone number until the next full rebuild. */
+	NSMutableArray *tables = [[[serviceDict allKeys] mutableCopy] autorelease];
+
+	[tables addObject:AB_PHONE_NUMBERS];
+	[tables addObject:AB_EMAIL_ADDRESSES];
+
 	for (NSString *uniqueID in uniqueIDs) {
-		
-		//The same person may have multiple services; iterate through them and remove each one.
-		for (NSString *serviceID in [serviceDict allKeys]) {
-			
-			NSMutableDictionary *dict = [addressBookDict objectForKey:serviceID];
-			
+
+		//The same person may be in several of these; iterate through them and remove each one.
+		for (NSString *table in tables) {
+
+			NSMutableDictionary *dict = [addressBookDict objectForKey:table];
+
 			//The same person may have multiple accounts from the same service; we should remove them all.
 			for (NSString *key in [dict allKeysForObject:uniqueID]) {
 				[dict removeObjectForKey:key];
 			}
 		}
-	}	
+	}
 }
 
 #pragma mark AB contextual menu
-
-/*!
- * @brief Does the specified listObject have information valid to be added to the address book?
- *
- * Specifically, this requires one or more contacts in the listObject to be on a service we know how
- * to parse into an ABPerson.
- */
-- (BOOL)contactMayBeAddedToAddressBook:(AIListObject *)contact
-{
-	BOOL mayBeAdded = NO;
-	if ([contact isKindOfClass:[AIMetaContact class]]) {
-		for (AIListObject *c in [(AIMetaContact *)contact uniqueContainedObjects]) {
-			if ([AIAddressBookController propertyFromService:c.service] != nil) {
-				mayBeAdded = YES;
-				break;
-			}
-		}
-
-	} else {
-		mayBeAdded = ([AIAddressBookController propertyFromService:contact.service] != nil);
-	}
-	
-	return mayBeAdded;
-}
-
-
 
 /*!
  * @brief Validate menu item
@@ -1501,8 +1482,6 @@ NSString* serviceIDForJabberUID(NSString *UID)
 	
 	if ([menuItem tag] == AIRequiresAddressBookEntry) {
 		result = hasABEntry;
-	} else if ([menuItem tag] == AIRequiresNoAddressBookEntry) {
-		result = (!hasABEntry && [self contactMayBeAddedToAddressBook:listObject]);
 	}
 	
 	return result;
@@ -1528,89 +1507,5 @@ NSString* serviceIDForJabberUID(NSString *UID)
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
 }
 
-/*!
- * @brief Adds the selected contact to the Address Book
- */
-- (void)addToAddressBook
-{
-	AIListObject *contact = adium.menuController.currentContextMenuObject;
-	ABPerson	 *person = [[ABPerson alloc] init];
-	NSArray		 *contacts = ([contact isKindOfClass:[AIMetaContact class]] ? 
-							  [(AIMetaContact *)contact uniqueContainedObjects] :
-							  [NSArray arrayWithObject:contact]);
-	BOOL		 validForAddition = NO;
-	BOOL		 success = NO;
-	
-	//Set the name
-	[person setValue:contact.displayName forKey:kABFirstNameProperty];
-	if (![[contact phoneticName] isEqualToString:contact.displayName])
-		[person setValue:[contact phoneticName] forKey:kABFirstNamePhoneticProperty];
-
-	for (AIListObject *c in contacts) {
-		NSString *UID = c.formattedUID;
-		NSString *serviceProperty = [AIAddressBookController propertyFromService:c.service];
-		
-		/* We may get here with a metacontact which contains one or more contacts ineligible for addition to the Address
-		 * Book; skip these entries.
-		 */		
-		if (!UID || !serviceProperty)
-			continue;
-		
-		/* Reuse a previously added multivalue for this property if present;
-		 * this happens if a metacontact has multiple UIDs for a single service, e.g. multiple AIM names
-		 */
-		ABMutableMultiValue *multiValue = [person valueForKey:serviceProperty];
-		if (!multiValue)
-			multiValue = [[[ABMutableMultiValue alloc] init] autorelease];
-		
-		[multiValue addValue:UID withLabel:serviceProperty];
-		[person setValue:multiValue forKey:serviceProperty];
-		
-		validForAddition = YES;		
-	}
-	
-	if (validForAddition) {
-		//Set the image
-		[person setImageData:[contact userIconData]];
-		
-		//Set the notes
-		[person setValue:[contact notes] forKey:kABNoteProperty];
-		
-		//Add our newly created person to the AB database
-		if ([sharedAddressBook addRecord:person] && [sharedAddressBook save]) {
-			//Save the uid of the new person
-			[contact setPreference:[person uniqueId]
-							forKey:KEY_AB_UNIQUE_ID
-							 group:PREF_GROUP_ADDRESSBOOK];
-			
-			//Ask the user whether it would like to edit the new contact
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-			[alert setMessageText:CONTACT_ADDED_SUCCESS_TITLE];
-			[alert setInformativeText:[NSString stringWithFormat:CONTACT_ADDED_SUCCESS_Message, contact.displayName]];
-			[alert addButtonWithTitle:AILocalizedString(@"Yes", nil)];	//NSAlertFirstButtonReturn, was the default button (old return value 1 == NSModalResponseOK)
-			[alert addButtonWithTitle:AILocalizedString(@"No", nil)];
-			NSInteger result = [alert runModal];
-
-			if (result == NSAlertFirstButtonReturn) {
-				NSString *url = [[NSString alloc] initWithFormat:@"addressbook://%@?edit", [person uniqueId]];
-				[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
-				[url release];
-			}
-			
-			success = YES;
-		}
-	}
-	
-	
-	if (!success) {
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-		[alert setMessageText:CONTACT_ADDED_ERROR_TITLE];
-		[alert setInformativeText:[NSString stringWithFormat:CONTACT_ADDED_ERROR_Message, contact.displayName]];
-		[alert runModal];
-	}
-
-	//Clean up
-	[person release];
-}
 
 @end

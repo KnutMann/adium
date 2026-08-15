@@ -24,7 +24,6 @@
 #define KEY_AB_DISPLAYFORMAT					@"AB Display Format String"
 #define KEY_AB_NOTE_SYNC						@"AB Note Sync"
 #define KEY_AB_USE_IMAGES						@"AB Use AB Images"
-#define KEY_AB_IMAGE_SYNC						@"AB Image Sync"
 #define KEY_AB_PREFER_ADDRESS_BOOK_IMAGES		@"AB Prefer AB Images"
 #define KEY_AB_USE_FIRSTNAME					@"AB Use FirstName"
 #define KEY_AB_USE_NICKNAME						@"AB Use NickName Only"
@@ -45,15 +44,13 @@
 @class AIService, AIAddressBookUserIconSource;
 
 typedef enum {
-	AIRequiresAddressBookEntry,
-	AIRequiresNoAddressBookEntry
+	AIRequiresAddressBookEntry
 } AIAddressBookContextMenuTag;
 
 @interface AIAddressBookController : NSObject <AIListObjectObserver, ABImageClient> {
 @private
 	NSMenuItem			*showInABContextualMenuItem;
 	NSMenuItem			*editInABContextualMenuItem;
-	NSMenuItem			*addToABContexualMenuItem;
 
 	NSInteger			meTag;
     
@@ -61,7 +58,6 @@ typedef enum {
 	BOOL					enableImport;
 	BOOL					useFirstName;
 	BOOL					useNickNameOnly;
-	BOOL					automaticUserIconSync;
 	BOOL					createMetaContacts;
 	
 	AIAddressBookUserIconSource *addressBookUserIconSource;

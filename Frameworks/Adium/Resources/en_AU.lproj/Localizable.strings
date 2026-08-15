@@ -8,9 +8,6 @@
 "%@ (Connecting)" = "%@ (Connecting)";
 
 /* No comment provided by engineer. */
-"%@ had been successfully added to the Address Book.\nWould you like to edit the card now?" = "%@ had been successfully added to the Address Book.\nWould you like to edit the card now?";
-
-/* No comment provided by engineer. */
 "%@ is not on any account. Please select a specific account or add this contact first." = "%@ is not on any account. Please select a specific account or add this contact first.";
 
 /* No comment provided by engineer. */
@@ -64,17 +61,11 @@
 /* No comment provided by engineer. */
 "Add an action for the selected event" = "Add an action for the selected event";
 
-/* Add To Address Book Contextual Menu */
-"Add To Address Book" = "Add To Address Book";
-
 /* No comment provided by engineer. */
 "Adium provides encryption, authentication, deniability, and perfect forward secrecy over %@ via Off-the-Record Messaging (OTR). If your contact is not using an OTR-compatible messaging system, your contact will be sent a link to the OTR web site when you attempt to connect. For more information on OTR, visit https://otr.cypherpunks.ca/." = "Adium provides encryption, authentication, deniability, and perfect forward secrecy over %@ via Off-the-Record Messaging (OTR). If your contact is not using an OTR-compatible messaging system, your contact will be sent a link to the OTR web site when you attempt to connect. For more information on OTR, visit https://otr.cypherpunks.ca/.";
 
 /* No comment provided by engineer. */
 "Alias:" = "Alias:";
-
-/* No comment provided by engineer. */
-"An error had occurred while adding %@ to the Address Book." = "An error had occurred while adding %@ to the Address Book.";
 
 /* No comment provided by engineer. */
 "Any" = "Any";
@@ -297,9 +288,6 @@
 
 /* No comment provided by engineer. */
 "Sound set upgrade failed" = "Sound set upgrade failed";
-
-/* Title of a panel shown after adding successfully adding a contact to the address book. */
-"Success" = "Success";
 
 /* No comment provided by engineer. */
 "The active status icon pack \"%@\" installed at \"%@\" is invalid.  It is missing the required status icon \"%@\".  If you received this pack from xtras.adium.im, please contact its author. Your status icon setting will be restored to the default." = "The active status icon pack \"%1$@\" installed at \"%2$@\" is invalid.  It is missing the required status icon \"%3$@\".  If you received this pack from xtras.adium.im, please contact its author. Your status icon setting will be restored to the default.";

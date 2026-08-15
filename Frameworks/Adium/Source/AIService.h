@@ -77,6 +77,16 @@ typedef enum {
  * the way the rest of the system does, instead of guessing from the shape of a string.
  */
 @property (readonly, nonatomic) BOOL userNamesArePhoneNumbers;
+
+/*!
+ * @brief Whether a name on this service is an email address
+ *
+ * The same idea, and Teams is the case for it: it knows people by their work address, which is on
+ * their card anyway. A service says this itself rather than anybody guessing from an @ sign, which
+ * every Jabber ID has too without being a mailbox.
+ */
+@property (readonly, nonatomic) BOOL userNamesAreEmailAddresses;
+
 @property (readonly, nonatomic) BOOL requiresPassword;
 @property (readonly, nonatomic) BOOL isSocialNetworkingService;
 @property (readonly, nonatomic) NSString *defaultUserName;

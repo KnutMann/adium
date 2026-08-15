@@ -164,6 +164,9 @@
 		<string>Secondary</string>
 		<key>IconBaseName</key>
 		<string>Teams</string>
+		<!-- Teams knows people by their address, which is on their card anyway -->
+		<key>UserNamesAreEmailAddresses</key>
+		<true/>
 		<!-- It keeps its own connection and reconnects itself; there is no host to probe -->
 		<key>NetworkReachability</key>
 		<false/>
@@ -198,6 +201,9 @@
 		<string>Secondary</string>
 		<key>IconBaseName</key>
 		<string>TeamsPersonal</string>
+		<!-- Teams knows people by their address, which is on their card anyway -->
+		<key>UserNamesAreEmailAddresses</key>
+		<true/>
 		<key>NetworkReachability</key>
 		<false/>
 	</dict>

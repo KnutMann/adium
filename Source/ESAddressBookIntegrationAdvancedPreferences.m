@@ -197,10 +197,6 @@
 	[form addRowWithLabel:AILocalizedString(@"Even if the contact already has a contact icon",nil)
 				  control:checkBox_preferABImages];
 
-	checkBox_syncAutomatic = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Overwrite Address Book images with contacts' icons",nil)
-				  control:checkBox_syncAutomatic];
-
 	//The nib's "Contacts" label
 	[form addSectionHeader:AILocalizedString(@"Contacts",nil)];
 
@@ -312,9 +308,6 @@
 	[checkBox_preferABImages setState:([[adium.preferenceController preferenceForKey:KEY_AB_PREFER_ADDRESS_BOOK_IMAGES
 																			   group:PREF_GROUP_ADDRESSBOOK] boolValue] ?
 									   NSControlStateValueOn : NSControlStateValueOff)];
-	[checkBox_syncAutomatic setState:([[adium.preferenceController preferenceForKey:KEY_AB_IMAGE_SYNC
-																			  group:PREF_GROUP_ADDRESSBOOK] boolValue] ?
-									  NSControlStateValueOn : NSControlStateValueOff)];
 	[checkBox_metaContacts setState:([[adium.preferenceController preferenceForKey:KEY_AB_CREATE_METACONTACTS
 																			 group:PREF_GROUP_ADDRESSBOOK] boolValue] ?
 									 NSControlStateValueOn : NSControlStateValueOff)];
@@ -336,7 +329,6 @@
 	popUp_insertNameElement = nil;
 	checkBox_useABImages = nil;
 	checkBox_preferABImages = nil;
-	checkBox_syncAutomatic = nil;
 	checkBox_metaContacts = nil;
 
 	[super viewWillClose];
@@ -420,12 +412,7 @@
  */
 - (IBAction)changePreference:(id)sender
 {
-    if (sender == checkBox_syncAutomatic) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:([checkBox_syncAutomatic state] == NSControlStateValueOn)]
-                                             forKey:KEY_AB_IMAGE_SYNC
-                                              group:PREF_GROUP_ADDRESSBOOK];
-
-    } else if (sender == checkBox_useABImages) {
+    if (sender == checkBox_useABImages) {
         [adium.preferenceController setPreference:[NSNumber numberWithBool:([checkBox_useABImages state] == NSControlStateValueOn)]
                                              forKey:KEY_AB_USE_IMAGES
                                               group:PREF_GROUP_ADDRESSBOOK];

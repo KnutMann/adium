@@ -249,6 +249,11 @@
 	return [[descriptor objectForKey:@"UserNamesArePhoneNumbers"] boolValue];
 }
 
+- (BOOL)userNamesAreEmailAddresses
+{
+	return [[descriptor objectForKey:@"UserNamesAreEmailAddresses"] boolValue];
+}
+
 - (BOOL)supportsPassword
 {
 	PurplePluginProtocolInfo *info = [self protocolInfo];
