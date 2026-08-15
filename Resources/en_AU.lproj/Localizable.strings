@@ -1870,9 +1870,6 @@
 /* Insert Current iTunes track name toolbar menu item. */
 "Name" = "Name";
 
-/* Contains name format tokens */
-"Name elements" = "Name elements";
-
 /* No comment provided by engineer. */
 "Name:" = "Name:";
 
@@ -2059,9 +2056,6 @@
 
 /* This is shown before the Off-the-Record Session ID (a series of numbers and letters) sent by you to the other party with whom you are having an encrypted chat. */
 "Outgoing:" = "Outgoing:";
-
-/* No comment provided by engineer. */
-"Overwrite Address Book images with contacts' icons" = "Overwrite Address Book images with contacts' icons";
 
 /* Label for the password field in the account preferences */
 "Password:" = "Password:";
@@ -2795,9 +2789,6 @@
 
 /* No comment provided by engineer. */
 "Try running Repair Permissions from Disk Utility." = "Try running Repair Permissions from Disk Utility.";
-
-/* No comment provided by engineer. */
-"Type text and drag name elements to create a custom name format." = "Type text and drag name elements to create a custom name format.";
 
 /* Un-ignore means begin receiving messages from this contact again in a chat */
 "Un-ignore" = "Un-ignore";

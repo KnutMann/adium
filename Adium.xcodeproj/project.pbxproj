@@ -866,7 +866,6 @@
 		4BB9972B083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB99727083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m */; };
 		4BB9972D083D1A5F006ACD6F /* SMContactListShowDetailsPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB99729083D1A5F006ACD6F /* SMContactListShowDetailsPane.m */; };
 		4BB9972F083D1A74006ACD6F /* ContactListShowBehavior.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BB9972E083D1A74006ACD6F /* ContactListShowBehavior.xib */; };
-		4BCAC4CF07B59AFE006641B9 /* AddressBookPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.xib */; };
 		4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */; };
 		4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E307B59B65006641B9 /* Alias Defaults.plist */; };
 		4BCAC4E707B59B65006641B9 /* Display Format Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E407B59B65006641B9 /* Display Format Defaults.plist */; };
@@ -2615,7 +2614,6 @@
 		4BC540B708648322003CD69E /* AdiumFormatting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumFormatting.m; path = Source/AdiumFormatting.m; sourceTree = "<group>"; };
 		4BC5418E08649CC6003CD69E /* AdiumContentFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumContentFiltering.h; path = Source/AdiumContentFiltering.h; sourceTree = "<group>"; };
 		4BC5418F08649CC6003CD69E /* AdiumContentFiltering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumContentFiltering.m; path = Source/AdiumContentFiltering.m; sourceTree = "<group>"; };
-		4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AddressBookPrefs.xib; path = Resources/AddressBookPrefs.xib; sourceTree = "<group>"; };
 		4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = AddressBook.tiff; path = Resources/AddressBook.tiff; sourceTree = "<group>"; };
 		4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "AB Display Format Defaults.plist"; path = "Frameworks/Adium/Resources/AB Display Format Defaults.plist"; sourceTree = "<group>"; };
 		4BCAC4E307B59B65006641B9 /* Alias Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "Alias Defaults.plist"; path = "Resources/Alias Defaults.plist"; sourceTree = "<group>"; };
@@ -3425,7 +3423,6 @@
 			children = (
 				34E2A2EC07B018B1006735BC /* ESAddressBookIntegrationAdvancedPreferences.h */,
 				34E2A2EF07B018B2006735BC /* ESAddressBookIntegrationAdvancedPreferences.m */,
-				4BCAC4CE07B59AFE006641B9 /* AddressBookPrefs.xib */,
 				4BCAC4D807B59B2E006641B9 /* AddressBook.tiff */,
 			);
 			name = "Address Book Integration";
@@ -6845,7 +6842,6 @@
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
 				34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */,
 				ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */,
-				4BCAC4CF07B59AFE006641B9 /* AddressBookPrefs.xib in Resources */,
 				4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */,
 				4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */,
 				4BCAC4E707B59B65006641B9 /* Display Format Defaults.plist in Resources */,
