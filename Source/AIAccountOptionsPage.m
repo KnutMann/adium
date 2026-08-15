@@ -71,7 +71,7 @@
 	form = [[AISettingsFormView alloc] initWithWidth:600.0f];
 	[form setSharesLabelColumn:YES];
 
-	[form addInfoRow:AILocalizedString(@"These come from the protocol itself rather than from Adium, and they are shown exactly as it declares them: its own names, its own wording, its own defaults. Nothing here has been chosen or arranged, which is why most accounts never need any of it. What is worth reaching for is on the page you came from.",
+	[form addInfoRow:AILocalizedString(@"These come from the protocol itself rather than from Adium, and they are shown exactly as it declares them: its own names, its own wording, its own defaults.",
 									   "Explains the card holding the options a protocol offers beyond the ones Adium puts in front of a person")
 		   withImage:[self pluginImage]
 			   title:AILocalizedString(@"Straight from the protocol",
