@@ -570,7 +570,6 @@ static NSDictionary *symbolNamesByAction(void)
 			//Edit menu
 			@"doc.on.clipboard",			@"pasteWithImagesAndColors:",
 			@"link",						@"editFormattedLink:",
-			@"link.badge.plus",				@"shortenLink",
 			@"textformat",					@"restoreDefaultFormat:",
 
 			//The contact list and its windows

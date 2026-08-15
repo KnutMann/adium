@@ -78,7 +78,6 @@
 		ADD1E5C0DE00000000001004 /* ESIRCAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001003 /* ESIRCAccountView.xib */; };
 		1154F50A12E1476900B8CA27 /* AILogByAccountWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1154F50712E1476900B8CA27 /* AILogByAccountWindow.xib */; };
 		1154F50B12E1476900B8CA27 /* AILogByAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1154F50912E1476900B8CA27 /* AILogByAccountWindowController.m */; };
-		1163F0EC0F6C7A8300F12F5D /* AIURLShortenerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1163F0EB0F6C7A8300F12F5D /* AIURLShortenerPlugin.m */; };
 		1164A90D0F7AD4AB00110AE4 /* AIContentTopic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1164A90B0F7AD4AB00110AE4 /* AIContentTopic.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1164A9270F7AD70700110AE4 /* AIContentTopic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1164A90C0F7AD4AB00110AE4 /* AIContentTopic.m */; };
 		117009A70F7E7D720078D6AB /* AIIRCServicesPasswordPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 117009A10F7E7D3A0078D6AB /* AIIRCServicesPasswordPlugin.m */; };
@@ -1408,8 +1407,6 @@
 		1154F50712E1476900B8CA27 /* AILogByAccountWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AILogByAccountWindow.xib; sourceTree = "<group>"; };
 		1154F50812E1476900B8CA27 /* AILogByAccountWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AILogByAccountWindowController.h; sourceTree = "<group>"; };
 		1154F50912E1476900B8CA27 /* AILogByAccountWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AILogByAccountWindowController.m; sourceTree = "<group>"; };
-		1163F0EA0F6C7A8300F12F5D /* AIURLShortenerPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIURLShortenerPlugin.h; path = ../../Source/AIURLShortenerPlugin.h; sourceTree = "<group>"; };
-		1163F0EB0F6C7A8300F12F5D /* AIURLShortenerPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIURLShortenerPlugin.m; path = ../../Source/AIURLShortenerPlugin.m; sourceTree = "<group>"; };
 		1164A90B0F7AD4AB00110AE4 /* AIContentTopic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentTopic.h; path = Frameworks/Adium/Source/AIContentTopic.h; sourceTree = "<group>"; };
 		1164A90C0F7AD4AB00110AE4 /* AIContentTopic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentTopic.m; path = Frameworks/Adium/Source/AIContentTopic.m; sourceTree = "<group>"; };
 		117009A00F7E7D3A0078D6AB /* AIIRCServicesPasswordPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIIRCServicesPasswordPlugin.h; path = "Plugins/Purple Service/AIIRCServicesPasswordPlugin.h"; sourceTree = "<group>"; };
@@ -5582,8 +5579,6 @@
 			isa = PBXGroup;
 			children = (
 				4B97DB6606AC123A0003EE49 /* msg-insert-link.tiff */,
-				1163F0EA0F6C7A8300F12F5D /* AIURLShortenerPlugin.h */,
-				1163F0EB0F6C7A8300F12F5D /* AIURLShortenerPlugin.m */,
 				7E824CDB06387FAF00813072 /* SHLinkManagementPlugin.h */,
 				7E824CDC06387FAF00813072 /* SHLinkManagementPlugin.m */,
 				7E824CD106387FAF00813072 /* SHAutoValidatingTextView.h */,
@@ -7501,7 +7496,6 @@
 				111DDF3A0E8E7D2F00114FCA /* AIAutomaticStatus.m in Sources */,
 				632ADC150E9EDDCA00AB6817 /* SGKeyCodeTranslator.m in Sources */,
 				5A1781860EC1215D00BA1E04 /* AIAutoScrollTextView.m in Sources */,
-				1163F0EC0F6C7A8300F12F5D /* AIURLShortenerPlugin.m in Sources */,
 				11700A350F7E8BE80078D6AB /* AISpecialPasswordPromptController.m in Sources */,
 				112B490A0F82FB1700690E84 /* AIGroupChatStatusTooltipPlugin.m in Sources */,
 				112B4A250F83194700690E84 /* AIMentionAdvancedPreferences.m in Sources */,
