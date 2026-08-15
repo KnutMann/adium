@@ -82,9 +82,6 @@
 /* AccountName on ChatRoomName */
 "%@ in %@" = "%1$@ in %2$@";
 
-/* Contact invites you to a group chat */
-"%@ invites you to a group chat" = "%@ invites you to a group chat";
-
 /* No comment provided by engineer. */
 "%@ invites you to join the chat \"%@\"" = "%1$@ invites you to join the chat \"%2$@\"";
 
@@ -217,13 +214,8 @@
 /* Trigger for the year of the currently playing iTunes song */
 "%_year" = "%_year";
 
-/* No comment provided by engineer. */
-"%d contacts" = "%d contacts";
-
 /* Used to describe omitted contacts.\
                                                                The first parameter is the number of omitted contacts */
-
-"%d others" = "%d others";
 
 /* No comment provided by engineer. */
 "%i hours" = "%i hours";
@@ -239,12 +231,6 @@
 
 /* file sizes both measured in bytes */
 "%llu of %llu bytes" = "%1$llu of %2$llu bytes";
-
-/* Overview of total, enabled, and online accounts */
-"%lu accounts, %lu enabled, %lu online" = "%1$lu accounts, %2$lu enabled, %3$lu online";
-
-/* Overview of total and online accounts */
-"%lu accounts, %lu online" = "%1$lu accounts, %2$lu online";
 
 /* No comment provided by engineer. */
 "%lu Contacts" = "%lu Contacts";
@@ -272,18 +258,6 @@
 
 /* No comment provided by engineer. */
 "%u accounts received new email" = "%u accounts received new email";
-
-/* No comment provided by engineer. */
-"%u attention requests" = "%u attention requests";
-
-/* No comment provided by engineer. */
-"%u chats are open in this window, %u of which have unviewed messages. Do you want to close this window anyway?" = "%1$u chats are open in this window, %2$u of which have unviewed messages. Do you want to close this window anyway?";
-
-/* No comment provided by engineer. */
-"%u chats are open in this window, 1 of which has unviewed messages. Do you want to close this window anyway?" = "%u chats are open in this window, 1 of which has unviewed messages. Do you want to close this window anyway?";
-
-/* No comment provided by engineer. */
-"%u chats are open in this window. Do you want to close this window anyway?" = "%u chats are open in this window. Do you want to close this window anyway?";
 
 /* No comment provided by engineer. */
 "%u contacts are no longer seen" = "%u contacts are no longer seen";
@@ -420,9 +394,6 @@
 /* No comment provided by engineer. */
 "<HTML>Adium is <i>your</i> instant messaging solution.<br><br>Chat with whomever you want, whenever you want, however you want.  Multiple messaging services or accounts? Just one account? Work? Play? Both? No problem; Adium has you covered.<br><br>Adium is fast, free, and fun, with an interface you'll love to use day in and day out. :)<br><br>This assistant will help you set up your instant messaging accounts and get started chatting.<br><br>Click <b>Continue</b> and the duck will take it from here.</HTML>" = "<HTML>Adium is <i>your</i> instant messaging solution.<br><br>Chat with whomever you want, whenever you want, however you want.  Multiple messaging services or accounts? Just one account? Work? Play? Both? No problem; Adium has you covered.<br><br>Adium is fast, free, and fun, with an interface you'll love to use day in and day out. :)<br><br>This assistant will help you set up your instant messaging accounts and get started chatting.<br><br>Click <b>Continue</b> and the duck will take it from here.</HTML>";
 
-/* No comment provided by engineer. */
-"<HTML>To chat with your friends, family, and coworkers, you must have an instant messaging account on the same service they do. Choose a service, name, and password below; if you don't have an account yet, click <A HREF=\"http://trac.adium.im/wiki/CreatingAnAccount#Sigingupforanaccount\">here</A> for more information.\n\nAdium supports as many accounts as you want to add; you can always add more in the Accounts pane of the Adium Preferences.</HTML>" = "<HTML>To chat with your friends, family, and coworkers, you must have an instant messaging account on the same service they do. Choose a service, name, and password below; if you don't have an account yet, click <A HREF=\"http://trac.adium.im/wiki/CreatingAnAccount#Sigingupforanaccount\">here</A> for more information.\n\nAdium supports as many accounts as you want to add; you can always add more in the Accounts pane of the Adium Preferences.</HTML>";
-
 /* Placeholder displayed as the name of a new account */
 "<New Account>" = "<New Account>";
 
@@ -534,9 +505,6 @@
 /* Error message window title */
 "Adium : Error" = "Adium : Error";
 
-/* No comment provided by engineer. */
-"Adium currently has access to your account." = "Adium currently has access to your account.";
-
 /* Debug window title */
 "Adium Debug Log" = "Adium Debug Log";
 
@@ -557,9 +525,6 @@
 
 /* No comment provided by engineer. */
 "Adium is now ready for you. \n\nThe Status indicator at the top of your Contact List and in the Status menu lets you determine whether others see you as Available or Away or, alternately, if you are Offline. Select Custom to type your own status message.\n\nDouble-click a name in your Contact List to begin a conversation.  You can add contacts to your Contact List via the Contact menu.\n\nWant to customize your Adium experience? Check out the Adium Preferences and Xtras Manager via the Adium menu.\n\nEnjoy! Click Done to begin using Adium." = "Adium is now ready for you. \n\nThe Status indicator at the top of your Contact List and in the Status menu lets you determine whether others see you as Available or Away or, alternately, if you are Offline. Select Custom to type your own status message.\n\nDouble-click a name in your Contact List to begin a conversation.  You can add contacts to your Contact List via the Contact menu.\n\nWant to customise your Adium experience? Check out the Adium Preferences and Xtras Manager via the Adium menu.\n\nEnjoy! Click Done to begin using Adium.";
-
-/* Error message displayed when the server reports that our access has been revoked or invalid. */
-"Adium isn't allowed access to your account." = "Adium isn't allowed access to your account.";
 
 /* No comment provided by engineer. */
 "Adium plugin" = "Adium plugin";
@@ -610,9 +575,6 @@
 "All Other Accounts" = "All Other Accounts";
 
 /* No comment provided by engineer. */
-"Allow Adium access" = "Allow Adium access";
-
-/* No comment provided by engineer. */
 "Allow anyone" = "Allow anyone";
 
 /* No comment provided by engineer. */
@@ -629,9 +591,6 @@
 
 /* No comment provided by engineer. */
 "An encrypted message from %@ could not be decrypted." = "An encrypted message from %@ could not be decrypted.";
-
-/* No comment provided by engineer. */
-"An error occured while trying to gain access. Please try again." = "An error occured while trying to gain access. Please try again.";
 
 /* No comment provided by engineer. */
 "An error occurred" = "An error occurred";
@@ -682,13 +641,7 @@
 "Are you sure you want to delete the %@ Emoticon Pack? It will be moved to the Trash." = "Are you sure you want to delete the %@ Emoticon Pack? It will be moved to the Bin.";
 
 /* No comment provided by engineer. */
-"Are you sure you want to delete the direct message:\n\n\"%@\"\n\nThis action cannot be undone." = "Are you sure you want to delete the direct message:\n\n\"%@\"\n\nThis action cannot be undone.";
-
-/* No comment provided by engineer. */
 "Are you sure you want to delete the group \"%@\" containing 1 saved status item?" = "Are you sure you want to delete the group \"%@\" containing 1 saved status item?";
-
-/* No comment provided by engineer. */
-"Are you sure you want to delete the tweet:\n\n\"%@\"\n\nThis action cannot be undone." = "Are you sure you want to delete the tweet:\n\n\"%@\"\n\nThis action cannot be undone.";
 
 /* Quit Confirmation */
 "Are you sure you want to quit Adium?" = "Are you sure you want to quit Adium?";
@@ -710,15 +663,6 @@
 
 /* Menu item for attaching groups to detachable windows */
 "Attach To Window" = "Attach To Window";
-
-/* No comment provided by engineer. */
-"Attempt to delete tweet failed to connect." = "Attempt to delete tweet failed to connect.";
-
-/* No comment provided by engineer. */
-"Attempt to favorite tweet failed to connect." = "Attempt to favorite tweet failed to connect.";
-
-/* No comment provided by engineer. */
-"Attempt to favorite tweet failed. %@" = "Attempt to favorite tweet failed. %@";
 
 /* No comment provided by engineer. */
 "Audio Notifications" = "Audio Notifications";
@@ -756,9 +700,6 @@
 /* No comment provided by engineer. */
 "Badge (Lower Right)" = "Badge (Lower Right)";
 
-/* No comment provided by engineer. */
-"Badge the menu item with current status" = "Badge the menu item with current status";
-
 /* Event: became active (follows a contact's name displayed as a header) */
 "became active" = "became active";
 
@@ -794,9 +735,6 @@
 
 /* Menu item title for making the font size bigger */
 "Bigger" = "Bigger";
-
-/* No comment provided by engineer. */
-"Biography" = "Biography";
 
 /* Block Contact menu item */
 "Block" = "Block";
@@ -834,9 +772,6 @@
 /* No comment provided by engineer. */
 "Bring All to Front" = "Bring All to Front";
 
-/* iTunes toolbar menu item title to make iTunes frontmost app. */
-"Bring iTunes to Front" = "Bring iTunes to Front";
-
 /* No comment provided by engineer. */
 "Browse" = "Browse";
 
@@ -859,9 +794,6 @@
 "Cancelling transcript import" = "Cancelling log import";
 
 /* No comment provided by engineer. */
-"Cannot change notification setting for %@. %@" = "Cannot change notification setting for %1$@. %2$@";
-
-/* No comment provided by engineer. */
 "Center" = "Centre";
 
 /* Background image display preference: The image will be centered in the window */
@@ -872,9 +804,6 @@
 
 /* No comment provided by engineer. */
 "Change Display Name" = "Change Display Name";
-
-/* No comment provided by engineer. */
-"Change Icon For:" = "Change Icon For:";
 
 /* No comment provided by engineer. */
 "Change Source or Destination" = "Change Source or Destination";
@@ -894,12 +823,6 @@
 /* Title for the messages window menu item */
 "Chats" = "Chats";
 
-/* Instructions for enabling an account */
-"Check a box to enable an account" = "Check a box to enable an account";
-
-/* No comment provided by engineer. */
-"Check For Updates" = "Check For Updates";
-
 /* No comment provided by engineer. */
 "Check Grammar With Spelling" = "Check Grammar With Spelling";
 
@@ -918,17 +841,11 @@
 /* No comment provided by engineer. */
 "Clear" = "Clear";
 
-/* File Transfer preferences */
-"Clear completed transfers automatically" = "Clear completed transfers automatically";
-
 /* Clears the display window for the currently open message window */
 "Clear Display" = "Clear Display";
 
 /* No comment provided by engineer. */
 "Clear Recent Pictures" = "Clear Recent Pictures";
-
-/* Instructions on how to add an account when none are present */
-"Click the + to add a new account" = "Click the + to add a new account";
 
 /* No comment provided by engineer. */
 "Client" = "Client";
@@ -996,20 +913,8 @@
 /* No comment provided by engineer. */
 "Connect" = "Connect";
 
-/* Menu item title which opens the window for adding and connecting a guest (temporary) account */
-"Connect a Guest Account" = "Connect a Guest Account";
-
 /* No comment provided by engineer. */
 "Connect All Accounts" = "Connect All Accounts";
-
-/* Title for the window shown when adding a guest (temporary) account */
-"Connect Guest Account" = "Connect Guest Account";
-
-/* No comment provided by engineer. */
-"Connect Temporary IRC Account" = "Connect Temporary IRC Account";
-
-/* Account preferences checkbox for automatically conencting the account when Adium opens */
-"Connect when Adium opens" = "Connect when Adium opens";
 
 /* Event: connected (follows a contact's name displayed as a header) */
 "connected" = "connected";
@@ -1193,9 +1098,6 @@
 /* No comment provided by engineer. */
 "Current Status" = "Current Status";
 
-/* Message in the rate limit status window */
-"Current Twitter rate limit" = "Current Twitter rate limit";
-
 /* No comment provided by engineer. */
 "Custom" = "Custom";
 
@@ -1233,12 +1135,6 @@
 "Delete" = "Delete";
 
 /* No comment provided by engineer. */
-"Delete %lu Xtras?" = "Delete %lu Xtras?";
-
-/* No comment provided by engineer. */
-"Delete Direct Message?" = "Delete Direct Message?";
-
-/* No comment provided by engineer. */
 "Delete Dock Icon" = "Delete Dock Icon";
 
 /* No comment provided by engineer. */
@@ -1249,9 +1145,6 @@
 
 /* No comment provided by engineer. */
 "Delete the selection" = "Delete the selection";
-
-/* No comment provided by engineer. */
-"Delete Tweet?" = "Delete Tweet?";
 
 /* No comment provided by engineer. */
 "Delete Xtra?" = "Delete Xtra?";
@@ -1273,9 +1166,6 @@
 
 /* No comment provided by engineer. */
 "Disable chat encryption" = "Disable chat encryption";
-
-/* Disable sending Twitter notifications to your phone */
-"Disable device notifications for %@" = "Disable device notifications for %@";
 
 /* No comment provided by engineer. */
 "Disabled" = "Disabled";
@@ -1301,19 +1191,7 @@
 "Display" = "Display";
 
 /* No comment provided by engineer. */
-"Display a Growl notification" = "Display a notification";
-
-/* No comment provided by engineer. */
-"Display a Growl notification with a time stamp" = "Display a notification with a time stamp";
-
-/* No comment provided by engineer. */
 "Display a message count badge" = "Display a message count badge";
-
-/* No comment provided by engineer. */
-"Display a sticky Growl notification" = "Display a sticky notification";
-
-/* No comment provided by engineer. */
-"Display a sticky Growl notification with a time stamp" = "Display a sticky notification with a time stamp";
 
 /* No comment provided by engineer. */
 "Display an alert" = "Display an alert";
@@ -1328,16 +1206,10 @@
 "Display name in the dock icon" = "Display name in the dock icon";
 
 /* No comment provided by engineer. */
-"Display Preferences" = "Display Preferences";
-
-/* No comment provided by engineer. */
 "Display the alert \"%@\"" = "Display the alert \"%@\"";
 
 /* No comment provided by engineer. */
 "Do Not perform any further actions" = "Do Not perform any further actions";
-
-/* No comment provided by engineer. */
-"Do not use an icon to represent you." = "Do not use an icon to represent you.";
 
 /* No comment provided by engineer. */
 "Do not warn when closing multiple chats" = "Do not warn when closing multiple chats";
@@ -1402,9 +1274,6 @@
 /* No comment provided by engineer. */
 "Email:" = "Email:";
 
-/* Growl priority */
-"Emergency" = "Emergency";
-
 /* No comment provided by engineer. */
 "Emoticon" = "Emoticon";
 
@@ -1419,9 +1288,6 @@
 
 /* No comment provided by engineer. */
 "Enable" = "Enable";
-
-/* Enable sending Twitter notifications to your phone (device) */
-"Enable device notifications for %@" = "Enable device notifications for %@";
 
 /* No comment provided by engineer. */
 "Encrypt chats as requested" = "Encrypt chats as requested";
@@ -1497,38 +1363,20 @@
 
 "Events" = "Events";
 
-/* Update tweets every: 10 minutes */
-"every 10 minutes" = "every 10 minutes";
-
 /* No comment provided by engineer. */
 "Every 10 Seconds" = "Every 10 Seconds";
-
-/* Update tweets every: 15 minutes */
-"every 15 minutes" = "every 15 minutes";
 
 /* No comment provided by engineer. */
 "Every 15 Seconds" = "Every 15 Seconds";
 
-/* Update tweets: every 2 minutes */
-"every 2 minutes" = "every 2 minutes";
-
 /* No comment provided by engineer. */
 "Every 30 Seconds" = "Every 30 Seconds";
-
-/* Update tweets: every 5 minutes */
-"every 5 minutes" = "every 5 minutes";
 
 /* No comment provided by engineer. */
 "Every 5 Seconds" = "Every 5 Seconds";
 
 /* No comment provided by engineer. */
 "Every 60 Seconds" = "Every 60 Seconds";
-
-/* Update tweets every: half-hour */
-"every half-hour" = "every half-hour";
-
-/* Update tweets every hour */
-"every hour" = "every hour";
 
 /* No comment provided by engineer. */
 "Exactly" = "Exactly";
@@ -1633,12 +1481,6 @@
 "Flash when there are unread messages" = "Flash when there are unread messages";
 
 /* No comment provided by engineer. */
-"Followers" = "Followers";
-
-/* No comment provided by engineer. */
-"Following" = "Following";
-
-/* No comment provided by engineer. */
 "Force encryption and refuse plaintext" = "Force encryption and refuse plaintext";
 
 /* Title of the Format menu */
@@ -1676,9 +1518,6 @@
 
 /* No comment provided by engineer. */
 "Get Info for Contact" = "Get Info for Contact";
-
-/* No comment provided by engineer. */
-"Get Rate Limit Amount" = "Get Rate Limit Amount";
 
 /* 'go back' button title */
 "Go Back" = "Go Back";
@@ -1763,12 +1602,6 @@
 
 /* Adium homepage. Only localize if a translated version of the page exists. */
 "http://www.adium.im" = "http://www.adium.im";
-
-/* Adium xtras page. Localized only if a translated version exists. */
-"http://xtras.adium.im/" = "http://xtras.adium.im/";
-
-/* No comment provided by engineer. */
-"I've allowed Adium access" = "I've allowed Adium access";
 
 /* Menu item title under the 'Import' submenu. iChat is another OS X instant messaging client. */
 "iChat Accounts, Statuses, and Transcripts" = "iChat Accounts, Statuses, and Logs";
@@ -1872,14 +1705,8 @@
 /* No comment provided by engineer. */
 "Insert an emoticon into the text" = "Insert an emoticon into the text";
 
-/* Label for iTunes toolbar menu item. */
-"Insert current iTunes track information." = "Insert current iTunes track information.";
-
 /* No comment provided by engineer. */
 "Insert Emoticon" = "Insert Emoticon";
-
-/* Label used for edit and contextual menus of iTunes triggers */
-"Insert iTunes Token" = "Insert iTunes Token";
 
 /* No comment provided by engineer. */
 "Insert Link" = "Insert Link";
@@ -1917,9 +1744,6 @@
 /* Contact left Chat Name */
 "invites you to a group chat" = "invites you to a group chat";
 
-/* An abbreviation for 'in reply to' - placed at the beginning of the tweet tools for those which are directly in reply to another */
-"IRT" = "IRT";
-
 /* No comment provided by engineer. */
 "Is mentioned in a group chat message" = "Is mentioned in a group chat message";
 
@@ -1944,15 +1768,6 @@
 /* No comment provided by engineer. */
 "Italic" = "Italic";
 
-/* Label for iTunes toolbar menu item. */
-"iTunes" = "iTunes";
-
-/* No comment provided by engineer. */
-"iTunes Elements" = "iTunes Elements";
-
-/* Insert Current iTunes track store link toolbar menu item. */
-"iTunes Music Store Link" = "iTunes Music Store Link";
-
 /* No comment provided by engineer. */
 "Join Group Chat" = "Join Group Chat";
 
@@ -1973,9 +1788,6 @@
 
 /* No comment provided by engineer. */
 "Jump to Selection" = "Jump to Selection";
-
-/* Contact list labels */
-"Labels" = "Labels";
 
 /* Last name token */
 "Last" = "Last";
@@ -2009,9 +1821,6 @@
 
 /* No comment provided by engineer. */
 "Location" = "Location";
-
-/* Logging checkbox in the Adium Debug Window */
-"Log to ~/Library/Logs/Adium Debug" = "Log to ~/Library/Logs/Adium Debug";
 
 /* Option in the 'Attach to Window' for the main contact list window */
 "Main Window" = "Main Window";
@@ -2091,9 +1900,6 @@
 /* No comment provided by engineer. */
 "Mobile" = "Mobile";
 
-/* Growl priority */
-"Moderate" = "Moderate";
-
 /* singular month */
 "month" = "month";
 
@@ -2108,9 +1914,6 @@
 
 /* No comment provided by engineer. */
 "Multiple Packs Selected" = "Multiple Packs Selected";
-
-/* No comment provided by engineer. */
-"My Webcam" = "My Webcam";
 
 /* Insert Current iTunes track name toolbar menu item. */
 "Name" = "Name";
@@ -2169,9 +1972,6 @@
 /* No comment provided by engineer. */
 "No" = "No";
 
-/* No comment provided by engineer. */
-"No Host set" = "No Host set";
-
 /* Message to show in the Encryption OTR preferences when an account is selected which does not have a private key */
 "No private key present" = "No private key present";
 
@@ -2205,12 +2005,6 @@
 
 /* No comment provided by engineer. */
 "Notification received" = "Notification received";
-
-/* No comment provided by engineer. */
-"Notifications Disabled" = "Notifications Disabled";
-
-/* No comment provided by engineer. */
-"Notifications Enabled" = "Notifications Enabled";
 
 /* No comment provided by engineer. */
 "Now importing %lu 'Available' messages" = "Now importing %lu 'Available' messages";
@@ -2271,9 +2065,6 @@
 
 /* No comment provided by engineer. */
 "Open" = "Open";
-
-/* No comment provided by engineer. */
-"Open %@'s user page" = "Open %@'s user page";
 
 /* File Transfer preferences */
 "Open \"Safe\" files after receiving" = "Open \"Safe\" files after receiving";
@@ -2435,9 +2226,6 @@
 "Rank" = "Rank";
 
 /* No comment provided by engineer. */
-"Rate Limit Status" = "Rate Limit Status";
-
-/* No comment provided by engineer. */
 "Real Name" = "Real Name";
 
 /* %@ is a filename of a file being sent */
@@ -2457,9 +2245,6 @@
 
 /* No comment provided by engineer. */
 "Regenerate" = "Regenerate";
-
-/* No comment provided by engineer. */
-"Regular Window" = "Regular Window";
 
 /* Menu item titel under the 'Import' submenu. This causes existing Adium logs to be reindexed. */
 "Reindex Adium Logs" = "Reindex Adium Logs";
@@ -2518,17 +2303,8 @@
 /* No comment provided by engineer. */
 "Reply" = "Reply";
 
-/* Name of the 'reply to a tweet' window. */
-"Reply to a Tweet" = "Reply to a Tweet";
-
 /* No comment provided by engineer. */
 "Report a Bug" = "Report a Bug";
-
-/* No comment provided by engineer. */
-"Request refused by the server." = "Request refused by the server.";
-
-/* No comment provided by engineer. */
-"Requested resource not found." = "Requested resource not found.";
 
 /* %@ is a filename of a file being sent */
 "requests to send you %@" = "requests to send you %@";
@@ -2687,9 +2463,6 @@
 /* Send Later dialogue explanation text */
 "Send Later will send the message the next time both you and %@ are online. Send Now may work if %@ is invisible or is not on your contact list and so only appears to be offline." = "Send Later will send the message the next time both you and %1$@ are online. Send Now may work if %2$@ is invisible or is not on your contact list and so only appears to be offline.";
 
-/* Send notification (nudge or buzz) menu item */
-"Send Notification" = "Send Notification";
-
 /* No comment provided by engineer. */
 "Send Now" = "Send Now";
 
@@ -2813,9 +2586,6 @@
 /* No comment provided by engineer. */
 "Show this contact's icon" = "Show this contact's icon";
 
-/* Growl contact alert label */
-"Show time stamp" = "Show time stamp";
-
 /* No comment provided by engineer. */
 "Show Timestamps" = "Show Timestamps";
 
@@ -2936,9 +2706,6 @@
 /* AdiumXtras category name */
 "Status Icons" = "Status Icons";
 
-/* In the 'reply to tweet' window, this is the field for the ID of the status (numerical). */
-"Status ID:" = "Status ID:";
-
 /* No comment provided by engineer. */
 "Status importing is now complete." = "Status importing is now complete.";
 
@@ -2947,9 +2714,6 @@
 
 /* No comment provided by engineer. */
 "Statuses" = "Statuses";
-
-/* Growl contact alert label */
-"Sticky" = "Sticky";
 
 /* No comment provided by engineer. */
 "Stop Speaking" = "Stop Speaking";
@@ -2962,9 +2726,6 @@
 
 /* Title above the box in the Speak Text action's detail pane. The box contains keywords such as \%a and what they will become when spoken such as User Alias. */
 "Substitutions:" = "Substitutions:";
-
-/* No comment provided by engineer. */
-"Success! Adium now has access to your account. Click OK below." = "Success! Adium now has access to your account. Click OK below.";
 
 /* No comment provided by engineer. */
 "Successfully received %@" = "Successfully received %@";
@@ -2985,40 +2746,13 @@
 "Text To Speak:" = "Text To Speak:";
 
 /* No comment provided by engineer. */
-"The <a href=\"%@\">requested tweet</a> by <a href=\"%@\">%@</a> is no longer a favorite." = "The <a href=\"%1$@\">requested tweet</a> by <a href=\"%2$@\">%3$@</a> is no longer a favorite.";
-
-/* No comment provided by engineer. */
-"The <a href=\"%@\">requested tweet</a> by <a href=\"%@\">%@</a> is now a favorite." = "The <a href=\"%1$@\">requested tweet</a> by <a href=\"%2$@\">%3$@</a> is now a favorite.";
-
-/* No comment provided by engineer. */
 "The characters you're entering are not valid for an account name on this service." = "The characters you're entering are not valid for an account name on this service.";
 
 /* No comment provided by engineer. */
 "The conversation with %@ timed out." = "The conversation with %@ timed out.";
 
 /* No comment provided by engineer. */
-"The direct message failed to delete. %@" = "The direct message failed to delete. %@";
-
-/* No comment provided by engineer. */
-"The direct message has been successfully deleted." = "The direct message has been successfully deleted.";
-
-/* No comment provided by engineer. */
 "The following message was <b>not encrypted</b>: " = "The following message was <b>not encrypted</b>: ";
-
-/* No comment provided by engineer. */
-"The selected Xtra will be moved to the Trash." = "The selected Xtra will be moved to the Bin.";
-
-/* No comment provided by engineer. */
-"The selected Xtras will be moved to the Trash." = "The selected Xtras will be moved to the Bin.";
-
-/* No comment provided by engineer. */
-"The server is currently down." = "The server is currently down.";
-
-/* No comment provided by engineer. */
-"The server is overloaded with requests." = "The server is overloaded with requests.";
-
-/* No comment provided by engineer. */
-"The server reported an internal error." = "The server reported an internal error.";
 
 /* No comment provided by engineer. */
 "The transfer of %@ failed" = "The transfer of %@ failed";
@@ -3052,9 +2786,6 @@
 
 /* No comment provided by engineer. */
 "This will remove the group \"%@\" from the contact lists of your online accounts. The %lu contacts within this group will also be removed.\n\nThis action can not be undone." = "This will remove the group \"%1$@\" from the contact lists of your online accounts. The %2$lu contacts within this group will also be removed.\n\nThis action can not be undone.";
-
-/* No comment provided by engineer. */
-"This Xtra is not hosted by xtras.adium.im. Automatic installation is not allowed." = "This Xtra is not hosted by xtras.adium.im. Automatic installation is not allowed.";
 
 /* No comment provided by engineer. */
 "Tile" = "Tile";
@@ -3129,25 +2860,10 @@
 "Try running Repair Permissions from Disk Utility." = "Try running Repair Permissions from Disk Utility.";
 
 /* No comment provided by engineer. */
-"Tweet successfully sent." = "Tweet successfully sent.";
-
-/* No comment provided by engineer. */
-"Type text and drag iTunes elements to create a custom format." = "Type text and drag iTunes elements to create a custom format.";
-
-/* No comment provided by engineer. */
 "Type text and drag name elements to create a custom name format." = "Type text and drag name elements to create a custom name format.";
 
 /* Un-ignore means begin receiving messages from this contact again in a chat */
 "Un-ignore" = "Un-ignore";
-
-/* No comment provided by engineer. */
-"Unable to add %@ to account %@, the user does not exist." = "Unable to add %1$@ to account %2$@, the user does not exist.";
-
-/* No comment provided by engineer. */
-"Unable to add %@ to account %@. %@" = "Unable to add %1$@ to account %2$@. %3$@";
-
-/* No comment provided by engineer. */
-"Unable to Add Contact" = "Unable to Add Contact";
 
 /* No comment provided by engineer. */
 "Unable to Combine" = "Unable to Combine";
@@ -3156,40 +2872,10 @@
 "Unable to connect to server" = "Unable to connect to server";
 
 /* No comment provided by engineer. */
-"Unable to connect to the Twitter server." = "Unable to connect to the Twitter server.";
-
-/* No comment provided by engineer. */
-"Unable to Disable Notifications" = "Unable to Disable Notifications";
-
-/* No comment provided by engineer. */
-"Unable to Enable Notifications" = "Unable to Enable Notifications";
-
-/* No comment provided by engineer. */
-"Unable to remove %@ on account %@. %@" = "Unable to remove %1$@ on account %2$@. %3$@";
-
-/* No comment provided by engineer. */
-"Unable to Remove Contact" = "Unable to Remove Contact";
-
-/* No comment provided by engineer. */
-"Unable to retrieve user list" = "Unable to retrieve user list";
-
-/* Message when a (vital) twitter request to retrieve the follow list fails */
-"Unable to retrieve user list [additional fail]" = "Unable to retrieve user list [additional fail]";
-
-/* Message when a (vital) twitter request to retrieve the follow list fails */
-"Unable to retrieve user list [fail]" = "Unable to retrieve user list [fail]";
-
-/* No comment provided by engineer. */
 "Unable to send message to %@." = "Unable to send message to %@.";
 
 /* No comment provided by engineer. */
-"Unable to update timeline: %@" = "Unable to update timeline: %@";
-
-/* No comment provided by engineer. */
 "Unable to upload" = "Unable to upload";
-
-/* No comment provided by engineer. */
-"Unable to validate credentials" = "Unable to validate credentials";
 
 /* No comment provided by engineer. */
 "Unable to write file %@ to %@" = "Unable to write file %1$@ to %2$@";
@@ -3213,9 +2899,6 @@
 "Unknown conversation error." = "Unknown conversation error.";
 
 /* No comment provided by engineer. */
-"Unknown error: code %d, %@" = "Unknown error: code %1$d, %2$@";
-
-/* No comment provided by engineer. */
 "Unread messages" = "Unread messages";
 
 /* Word to describe an encryption fingerprint which is not currently being used */
@@ -3223,12 +2906,6 @@
 
 /* No comment provided by engineer. */
 "Unverified" = "Unverified";
-
-/* No comment provided by engineer. */
-"Update Tweets" = "Update Tweets";
-
-/* No comment provided by engineer. */
-"Updates" = "Updates";
 
 /* No comment provided by engineer. */
 "Uploading image to server" = "Uploading image to server";
@@ -3248,9 +2925,6 @@
 /* No comment provided by engineer. */
 "Use custom rate:" = "Use custom rate:";
 
-/* Radio button in the Personal tab of Account preferences.  This -must- be a short string of 20 characters or less. */
-"Use global icon" = "Use global icon";
-
 /* No comment provided by engineer. */
 "Use Nick exclusively if available" = "Use Nick exclusively if available";
 
@@ -3262,9 +2936,6 @@
 
 /* No comment provided by engineer. */
 "Use System Default" = "Use System Default";
-
-/* No comment provided by engineer. */
-"Use the icon below to represent you." = "Use the icon below to represent you.";
 
 /* Radio button in the Personal tab of Account preferences; an image is shown beneath it to select the account's icon.  This -must- be a short string of 20 characters or less. */
 "Use this icon:" = "Use this icon:";
@@ -3287,9 +2958,6 @@
 /* No comment provided by engineer. */
 "User Name (Alias)" = "User Name (Alias)";
 
-/* Either the username or the URL of a tweet we want to reply to. */
-"Username or Tweet URL:" = "Username or Tweet URL:";
-
 /* Label in front of an account drop-down selector to determine what account to use */
 "Using:" = "Using:";
 
@@ -3298,9 +2966,6 @@
 
 /* No comment provided by engineer. */
 "Verify Later" = "Verify Later";
-
-/* Growl priority */
-"Very Low" = "Very Low";
 
 /* Title of the View menu */
 "View" = "View";
@@ -3328,9 +2993,6 @@
 
 /* Phrase displayed when a contact sends a buzz/nudge/other notification. The contact's name will be shown above this phrase, as in a Growl notification. */
 "wants your attention!" = "wants your attention!";
-
-/* No comment provided by engineer. */
-"Website" = "Website";
 
 /* singular week */
 "week" = "week";
@@ -3450,9 +3112,6 @@
 "When an error occurs" = "When an error occurs";
 
 /* No comment provided by engineer. */
-"When pressed, this key combination will bring Adium to the front" = "When pressed, this key combination will bring Adium to the front";
-
-/* No comment provided by engineer. */
 "When there are unread messages:" = "When there are unread messages:";
 
 /* No comment provided by engineer. */
@@ -3564,25 +3223,10 @@
 "You are mentioned (Group Chat)" = "You are mentioned (Group Chat)";
 
 /* No comment provided by engineer. */
-"You are using an old-style (rsrc) keyboard layout which Adium does not support." = "You are using an old-style (rsrc) keyboard layout which Adium does not support.";
-
-/* No comment provided by engineer. */
 "You connect" = "You connect";
 
 /* No comment provided by engineer. */
 "You disconnect" = "You disconnect";
-
-/* Quit Confirmation */
-"You have %d file transfers in progress." = "You have %d file transfers in progress.";
-
-/* Quit Confirmation */
-"You have %d open chats." = "You have %d open chats.";
-
-/* Quit Confirmation */
-"You have %d unread messages." = "You have %d unread messages.";
-
-/* The first %d is the number of requests, the second is the total number of requests per hour. The %@ is the duration of time until the count resets. */
-"You have %d/%d more requests for %@." = "You have %1$d/%2$d more requests for %3$@.";
 
 /* Quit Confirmation */
 "You have a file transfer in progress." = "You have a file transfer in progress.";
@@ -3592,12 +3236,6 @@
 
 /* Quit Confirmation */
 "You have an unread message." = "You have an unread message.";
-
-/* No comment provided by engineer. */
-"You must allow Adium access to your account in the browser window which just opened. When you have done so, enter the PIN code in the field above." = "You must allow Adium access to your account in the browser window which just opened. When you have done so, enter the PIN code in the field above.";
-
-/* No comment provided by engineer. */
-"You need to create a new IRC account to connect to irc://%@%@/%@:" = "You need to create a new IRC account to connect to irc://%1$@%2$@/%3$@:";
 
 /* You said Message to Contact */
 "You said %@ to %@" = "You said %1$@ to %2$@";
@@ -3615,19 +3253,7 @@
 "you were mentioned in %@" = "you were mentioned in %@";
 
 /* No comment provided by engineer. */
-"You will no longer receive device notifications for %@." = "You will no longer receive device notifications for %@.";
-
-/* No comment provided by engineer. */
-"You will now receive device notifications for %@." = "You will now receive device notifications for %@.";
-
-/* No comment provided by engineer. */
-"You've exceeded the rate limit." = "You've exceeded the rate limit.";
-
-/* No comment provided by engineer. */
 "Your accounts have been successfully imported." = "Your accounts have been successfully imported.";
-
-/* No comment provided by engineer. */
-"Your credentials do not allow you access." = "Your credentials do not allow you access.";
 
 /* No comment provided by engineer. */
 "Your iChat transcripts have been removed." = "Your iChat logs have been removed.";
@@ -3643,12 +3269,6 @@
 
 /* First placeholder is a name; second is a filename */
 "Your transfer to %@ of %@ failed" = "Your transfer to %1$@ of %2$@ failed";
-
-/* No comment provided by engineer. */
-"Your tweet failed to delete. %@" = "Your tweet failed to delete. %@";
-
-/* No comment provided by engineer. */
-"Your tweet has been successfully deleted." = "Your tweet has been successfully deleted.";
 
 /* no file size */
 "Zero bytes" = "Zero bytes";
@@ -3714,7 +3334,6 @@
 "Menu Bar Icons:" = "Menu Bar Icons:";
 "Message Style:" = "Message Style:";
 "Message background colors are not supported by all styles" = "Message background colours are not supported by all styles";
-"Messages:" = "Messages:";
 "Minimum Font Size:" = "Minimum Font Size:";
 "Mockie Spacing:" = "Mockie Spacing:";
 "Offline Contacts:" = "Offline Contacts:";

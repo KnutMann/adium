@@ -25,23 +25,11 @@
 /* Message displayed when a contact sends a buzz/nudge/other notification. %@ will be the other person's name. */
 "%@ wants your attention!" = "%@ wants your attention!";
 
-/* Status message for a bookmark (>1 mention, >1 messages) */
-"%d mentions, %d messages" = "%1$d mentions, %2$d messages";
-
-/* Status message for a bookmark (>1 messages) */
-"%d messages" = "%d messages";
-
-/* No comment provided by engineer. */
-"%u authorization requests" = "%u authorisation requests";
-
 /* comma between actions in the events list */
 "," = ",";
 
 /* period at the end of the Events pane sentence describing actions taken for an event */
 "." = ".";
-
-/* Status message for a bookmark (1 mention, >1 messages) */
-"1 mention, %d messages" = "1 mention, %d messages";
 
 /* Status message for a bookmark (1 mention, 1 message) */
 "1 mention, 1 message" = "1 mention, 1 message";
@@ -279,9 +267,6 @@
 
 /* Label for the port field in the account preferences */
 "Port:" = "Port:";
-
-/* No comment provided by engineer. */
-"Remove the %i actions associated with this event?" = "Remove the %i actions associated with this event?";
 
 /* No comment provided by engineer. */
 "Remove the selected action(s)" = "Remove the selected action(s)";
