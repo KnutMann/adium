@@ -88,6 +88,7 @@
 - (void)configurePurpleAccountNotifyingTarget:(id)target selector:(SEL)selector;
 - (void)configureProtocolOptions;
 - (void)runConnectCommands;
+- (void)rememberProtocolPassword;
 - (const char *)protocolStatusIDForStatusID:(const char *)statusID ofType:(AIStatusType)statusType;
 - (void)continueConnectWithConfiguredProxy;
 - (void)continueRegisterWithConfiguredPurpleAccount;
@@ -2213,6 +2214,46 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 		[self unregister];
 
 	[self runConnectCommands];
+	[self rememberProtocolPassword];
+}
+
+/*!
+ * @brief Keep what the protocol put in the password, if it put anything there
+ *
+ * A password is normally the user's and Adium is the one that knows it. Some protocols do not have
+ * one at all and use the same slot for their session instead: they sign in once, are handed a token
+ * that stands for that session, and write it back where the password would be, expecting to find it
+ * again next time.
+ *
+ * They do not find it, because Adium fills that slot from the keychain on every connect, and for an
+ * account with no password of its own that means emptying it. The session is lost with it and the
+ * whole sign in starts over, which for Teams means reading a code out of a browser every single
+ * launch.
+ *
+ * So whatever the protocol left there is kept, and handed back on the next connect. Nothing happens
+ * for an account whose password is the user's: the protocol never touches it, so the two always
+ * agree. A protocol that clears the slot, which is how one says its session has expired, has the
+ * stored one forgotten rather than offered again.
+ */
+- (void)rememberProtocolPassword
+{
+	if (!account)
+		return;
+
+	const char *current = purple_account_get_password(account);
+	NSString *fromProtocol = (current ? [NSString stringWithUTF8String:current] : nil);
+	NSString *stored = [adium.accountController passwordForAccount:self];
+
+	if ((fromProtocol == stored) || [fromProtocol isEqualToString:stored])
+		return;
+
+	if ([fromProtocol length]) {
+		AILogWithSignature(@"%@: keeping the session %s handed back", self, [self protocolPlugin]);
+		[adium.accountController setPassword:fromProtocol forAccount:self];
+	} else if ([stored length]) {
+		AILogWithSignature(@"%@: %s says its session is over", self, [self protocolPlugin]);
+		[adium.accountController forgetPasswordForAccount:self];
+	}
 }
 
 /*!
@@ -2421,6 +2462,9 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 - (void)didDisconnect
 {
+	//A session can be renewed while the account is connected, so the latest is the one at the end
+	[self rememberProtocolPassword];
+
 	//Clear properties which don't make sense for a disconnected account
 	[self setValue:nil forProperty:@"textProfile" notify:NO];
 	

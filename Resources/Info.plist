@@ -421,6 +421,8 @@
 	<string>Adium runs AppleScript xtras. Some of them ask other applications - your web browser, say - for information to put into a message. When you use the music status, Adium also asks Music or Spotify what is playing so it can show it.</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
+	<key>NSContactsUsageDescription</key>
+	<string>Adium can link a contact to a card in your address book, so a chat can show the name and picture you keep there rather than a screen name.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
