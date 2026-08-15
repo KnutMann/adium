@@ -15,6 +15,9 @@
  */
 
 #import "AIAddressBookController.h"
+
+//Only to ask for permission; everything else here uses the older framework
+#import <Contacts/Contacts.h>
 #import <Adium/AIControllerProtocol.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIMenuControllerProtocol.h>
@@ -58,6 +61,8 @@
 - (void)addToAddressBookDict:(NSArray *)people;
 - (void)removeFromAddressBookDict:(NSArray *)UIDs;
 - (void)installAddressBookActions;
+- (void)openAddressBookWhenAllowed;
+- (void)openAddressBook;
 
 - (void)adiumFinishedLaunching:(NSNotification *)notification;
 - (void)addToAddressBook;
@@ -158,8 +163,8 @@ NSString* serviceIDForJabberUID(NSString *UID);
 				kABICQInstantProperty,@"ICQ",
 				kABURLsProperty,@"Facebook", nil] retain];
 		
-		//Shared Address Book
-		[sharedAddressBook release]; sharedAddressBook = [[ABAddressBook sharedAddressBook] retain];
+		//Shared Address Book, once we are allowed to read it
+		[self openAddressBookWhenAllowed];
 		
 		[self installAddressBookActions];
 		
@@ -173,6 +178,56 @@ NSString* serviceIDForJabberUID(NSString *UID);
 		[self updateSelfIncludingIcon:YES];
 	}
 	return self;
+}
+
+/*!
+ * @brief Open the address book, once the user has allowed us to read it
+ *
+ * Reading contacts has needed consent since Catalina. Until it is given the address book opens empty
+ * rather than refusing, which from here is indistinguishable from an address book with nobody in it,
+ * and that is what this integration looked like for years: present, working, and about nobody.
+ *
+ * The question is asked through Contacts.framework, which is where it lives now. The answer covers
+ * the older framework the rest of this class uses, because both ask the system the same thing.
+ *
+ * Nothing is asked twice: once denied, the system does not put the question up again, and once
+ * granted the answer is remembered across launches.
+ */
+- (void)openAddressBookWhenAllowed
+{
+	switch ([CNContactStore authorizationStatusForEntityType:CNEntityTypeContacts]) {
+		case CNAuthorizationStatusAuthorized:
+			[self openAddressBook];
+			break;
+
+		case CNAuthorizationStatusNotDetermined:
+			[[[[CNContactStore alloc] init] autorelease] requestAccessForEntityType:CNEntityTypeContacts
+																 completionHandler:^(BOOL granted, NSError *error) {
+				if (!granted)
+					return;
+
+				/* The answer comes back on a queue of its own, and everything below here touches the
+				 * contact list. Granting also arrives after the launch that would normally have read
+				 * the address book, so this does that work as well rather than waiting for a restart. */
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self openAddressBook];
+					[self rebuildAddressBookDict];
+					[self updateAllContacts];
+					[self updateSelfIncludingIcon:YES];
+				});
+			}];
+			break;
+
+		default:
+			AILogWithSignature(@"No permission to read contacts; the address book stays closed");
+			break;
+	}
+}
+
+- (void)openAddressBook
+{
+	[sharedAddressBook release];
+	sharedAddressBook = [[ABAddressBook sharedAddressBook] retain];
 }
 
 - (void)installAddressBookActions
