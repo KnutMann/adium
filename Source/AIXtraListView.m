@@ -136,6 +136,7 @@ static CGFloat AIXtraRowHeight(void)
 - (void)setContextMenuRow:(NSInteger)row;
 - (AIXtraInfo *)xtraAtRow:(NSInteger)row;
 - (BOOL)xtraIsUsers:(AIXtraInfo *)xtraInfo;
+- (NSString *)contentSummaryForXtra:(AIXtraInfo *)xtraInfo;
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo;
 - (NSMenu *)menuForRow:(NSInteger)row;
 - (void)deleteXtra:(AIXtraInfo *)xtraInfo;
@@ -690,6 +691,86 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
+ * @brief How many files of these kinds an Xtra holds
+ */
+static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
+{
+	NSDirectoryEnumerator	*enumerator = [[NSFileManager defaultManager] enumeratorAtPath:path];
+	NSInteger				 count = 0;
+
+	for (NSString *relative in enumerator) {
+		if ([extensions containsObject:[[relative pathExtension] lowercaseString]])
+			count++;
+	}
+
+	return count;
+}
+
+/*!
+ * @brief What is inside, counted, for the kinds where that can be said
+ *
+ * The only thing about most Xtras that is both always knowable and worth knowing. An author and a
+ * version have to be written down by whoever made it, and hardly anybody did: of fifteen Xtras
+ * installed here, ten carry no Info.plist at all and the other five leave both fields empty. What
+ * is in the folder cannot be left out.
+ *
+ * Each kind is counted from the place that actually holds the answer for it, not from the file
+ * count: an emoticon set is counted from the list that declares the emoticons, because a set of
+ * seventy eight of them keeps seventy nine files.
+ */
+- (NSString *)contentSummaryForXtra:(AIXtraInfo *)xtraInfo
+{
+	static NSSet	*audioExtensions = nil;
+	static NSSet	*imageExtensions = nil;
+
+	if (!audioExtensions) {
+		audioExtensions = [[NSSet alloc] initWithObjects:@"aif", @"aiff", @"wav", @"mp3", @"m4a", @"caf", @"au", @"snd", nil];
+		imageExtensions = [[NSSet alloc] initWithObjects:@"png", @"tiff", @"tif", @"gif", @"jpg", @"jpeg", @"pdf", nil];
+	}
+
+	NSString	*type = [xtraInfo type];
+	NSString	*path = [xtraInfo path];
+	NSInteger	 count = 0;
+	NSString	*one = nil;
+	NSString	*many = nil;
+
+	if ([type isEqualToString:@"adiumsoundset"]) {
+		count = AIFileCountUnder(path, audioExtensions);
+		one = AILocalizedString(@"1 sound", "An Xtra holding a single sound");
+		many = AILocalizedString(@"%li sounds", "How many sounds an Xtra holds");
+
+	} else if ([type isEqualToString:@"adiumemoticonset"]) {
+		NSString		*listPath = [path stringByAppendingPathComponent:@"Emoticons.plist"];
+		NSDictionary	*list = [NSDictionary dictionaryWithContentsOfFile:listPath];
+
+		count = [[list objectForKey:@"Emoticons"] count];
+		one = AILocalizedString(@"1 emoticon", "An Xtra holding a single emoticon");
+		many = AILocalizedString(@"%li emoticons", "How many emoticons an Xtra holds");
+
+	} else if ([type isEqualToString:@"adiummessagestyle"]) {
+		count = AIFileCountUnder([path stringByAppendingPathComponent:@"Contents/Resources/Variants"],
+								 [NSSet setWithObject:@"css"]);
+		one = AILocalizedString(@"1 variant", "A message style offering a single variant");
+		many = AILocalizedString(@"%li variants", "How many variants a message style offers");
+
+	} else if ([type isEqualToString:@"adiumscripts"]) {
+		count = AIFileCountUnder(path, [NSSet setWithObject:@"scpt"]);
+		one = AILocalizedString(@"1 script", "An Xtra holding a single script");
+		many = AILocalizedString(@"%li scripts", "How many scripts an Xtra holds");
+
+	} else if ([type isEqualToString:@"adiumicon"] || [type hasSuffix:@"icons"]) {
+		count = AIFileCountUnder(path, imageExtensions);
+		one = AILocalizedString(@"1 icon", "An Xtra holding a single icon");
+		many = AILocalizedString(@"%li icons", "How many icons an Xtra holds");
+	}
+
+	if (count < 1)
+		return nil;
+
+	return ((count == 1) ? one : [NSString stringWithFormat:many, (long)count]);
+}
+
+/*!
  * @brief The second line of a row: version, origin and state, joined by " · "
  *
  * Never empty, because every row is two lines tall and the row height is the constant
@@ -727,9 +808,17 @@ static CGFloat AIXtraRowHeight(void)
 	}
 
 	if (![parts count]) {
-		NSString	*extension = [[xtraInfo path] pathExtension];
+		NSString	*summary = [self contentSummaryForXtra:xtraInfo];
 
-		[parts addObject:([extension length] ? extension : [[xtraInfo path] lastPathComponent])];
+		if (summary) {
+			[parts addObject:summary];
+
+		} else {
+			//Truly nothing to say: the extension merely repeats the group, and is the last resort
+			NSString	*extension = [[xtraInfo path] pathExtension];
+
+			[parts addObject:([extension length] ? extension : [[xtraInfo path] lastPathComponent])];
+		}
 	}
 
 	return [parts componentsJoinedByString:@" · "];

@@ -226,6 +226,21 @@
 /* No comment provided by engineer. */
 "%i minutes" = "%i minutes";
 
+/* How many emoticons an Xtra holds */
+"%li emoticons" = "%li emoticons";
+
+/* How many icons an Xtra holds */
+"%li icons" = "%li icons";
+
+/* How many scripts an Xtra holds */
+"%li scripts" = "%li scripts";
+
+/* How many sounds an Xtra holds */
+"%li sounds" = "%li sounds";
+
+/* How many variants a message style offers */
+"%li variants" = "%li variants";
+
 /* file size measured in bytes */
 "%llu bytes" = "%llu bytes";
 
@@ -373,14 +388,26 @@
 /* No comment provided by engineer. */
 "1 download" = "1 download";
 
+/* An Xtra holding a single emoticon */
+"1 emoticon" = "1 emoticon";
+
 /* No comment provided by engineer. */
 "1 hour" = "1 hour";
+
+/* An Xtra holding a single icon */
+"1 icon" = "1 icon";
 
 /* No comment provided by engineer. */
 "1 matching transcript" = "1 matching log";
 
 /* No comment provided by engineer. */
 "1 minute" = "1 minute";
+
+/* An Xtra holding a single script */
+"1 script" = "1 script";
+
+/* An Xtra holding a single sound */
+"1 sound" = "1 sound";
 
 /* No comment provided by engineer. */
 "1 transcript" = "1 log";
@@ -390,6 +417,9 @@
 
 /* No comment provided by engineer. */
 "1 user" = "1 user";
+
+/* A message style offering a single variant */
+"1 variant" = "1 variant";
 
 /* Colon which will be appended after a label such as 'User Name', before an input field */
 ":" = ":";
