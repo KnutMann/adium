@@ -135,7 +135,8 @@
 		schemeToServiceDict = [[NSDictionary alloc] initWithObjectsAndKeys:
 							   @"Jabber",  @"xmpp",
 							   @"Jabber",  @"jabber",
-							   @"IRC",	   @"irc",
+							   //IRCv3 is the IRC that is registered; see CBPurpleServicePlugin
+							   @"IRCv3",   @"irc",
 							   nil];
 	}
 	

@@ -48,7 +48,11 @@
 	 */
     //Install the services
 	[ESGaduGaduService registerService];
-	[ESIRCService registerService];
+	/* IRC is not registered: prpl-eionrobb-ircv3 speaks the same protocol, knows the capabilities
+	 * this one has never heard of, and is bound through the descriptor rather than through a class
+	 * of its own. Two services for one protocol only made both harder to tell apart in the account
+	 * list. The class stays for now, and existing accounts keep their settings on disk; putting the
+	 * line back is what brings them into the list again. */
 	[AIWhatsAppService registerService];
 	[ESSimpleService registerService];
 	[ESNovellService registerService];
