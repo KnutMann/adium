@@ -94,21 +94,6 @@ static const AXCServiceDefinition *serviceDefinitionForID(NSString *serviceID)
 		nil];
 }
 
-- (NSString *)displayNameForCategoryName:(NSString *)categoryName
-{
-	/* A service-icon entry stores one file name, and AIServiceIcons loads that
-	 * file as a single NSImage. It does not discover a sibling @2x image, so
-	 * these are the actual pixel dimensions the current format consumes. */
-	if ([categoryName isEqualToString:@"Interface-Large"])
-		return @"Interface-Large (48 x 48 px)";
-	if ([categoryName isEqualToString:@"Interface-Small"])
-		return @"Interface-Small (16 x 16 px)";
-	if ([categoryName isEqualToString:@"List"])
-		return @"List (16 x 16 px)";
-
-	return [super displayNameForCategoryName:categoryName];
-}
-
 - (NSArray *) entriesForNewDocumentInCategory:(NSString *)categoryName {
 	NSMutableArray *entries = [NSMutableArray arrayWithCapacity:serviceDefinitionCount];
 	for (NSUInteger index = 0; index < serviceDefinitionCount; index++) {

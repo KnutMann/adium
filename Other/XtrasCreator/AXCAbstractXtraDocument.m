@@ -12,6 +12,89 @@
 #import "NSMutableArrayAdditions.h"
 
 #define THUMBNAIL_SIZE 16.0
+#define RESOURCE_SIZE_COLUMN_NAME @"dimensions"
+
+@interface AXCFileListDataSource : NSObject {
+	AXCAbstractXtraDocument *document;
+	id originalDataSource;
+}
+
+- (id)initWithDocument:(AXCAbstractXtraDocument *)newDocument dataSource:(id)newDataSource;
+- (NSArray *)resourcesAtRows:(NSIndexSet *)rows;
+
+@end
+
+@implementation AXCFileListDataSource
+
+- (id)initWithDocument:(AXCAbstractXtraDocument *)newDocument dataSource:(id)newDataSource
+{
+	if ((self = [super init])) {
+		document = newDocument; //The document owns the file list and this proxy.
+		originalDataSource = [newDataSource retain];
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	[originalDataSource release];
+	[super dealloc];
+}
+
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
+{
+	return [[originalDataSource arrangedObjects] count];
+}
+
+- (NSArray *)resourcesAtRows:(NSIndexSet *)rows
+{
+	NSArray *arrangedResources = [originalDataSource arrangedObjects];
+	NSMutableArray *selectedResources = [NSMutableArray arrayWithCapacity:[rows count]];
+	NSUInteger row = [rows firstIndex];
+	while (row != NSNotFound) {
+		if (row < [arrangedResources count])
+			[selectedResources addObject:[arrangedResources objectAtIndex:row]];
+		row = [rows indexGreaterThanIndex:row];
+	}
+
+	return selectedResources;
+}
+
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+{
+	NSArray *resources = [originalDataSource arrangedObjects];
+	if (row < 0 || row >= [resources count])
+		return @"";
+
+	NSString *resourcePath = [resources objectAtIndex:(NSUInteger)row];
+	if ([[tableColumn identifier] isEqualToString:RESOURCE_SIZE_COLUMN_NAME]) {
+		NSString *size = [document imageSizeStringForResource:resourcePath];
+		return size ? size : @"";
+	}
+
+	return resourcePath;
+}
+
+- (void)tableView:(NSTableView *)tableView setObjectValue:(id)value forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+{
+}
+
+- (NSDragOperation)tableView:(NSTableView *)tableView validateDrop:(id <NSDraggingInfo>)info proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)operation
+{
+	return [originalDataSource tableView:tableView validateDrop:info proposedRow:row proposedDropOperation:operation];
+}
+
+- (BOOL)tableView:(NSTableView *)tableView acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row dropOperation:(NSTableViewDropOperation)operation
+{
+	return [originalDataSource tableView:tableView acceptDrop:info row:row dropOperation:operation];
+}
+
+- (BOOL)tableView:(NSTableView *)tableView writeRowsWithIndexes:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pasteboard
+{
+	return [originalDataSource tableView:tableView writeRowsWithIndexes:rowIndexes toPasteboard:pasteboard];
+}
+
+@end
 
 static NSString *AXCLegacyBundleIdentifier(void)
 {
@@ -44,6 +127,12 @@ static NSString *AXCLegacyBundleIdentifier(void)
 	[resourcesSet release];
 	[imagePreviews release];
 	[displayNames release];
+	[imageSizeStrings release];
+	if (resourceRemovalEventMonitor) {
+		[NSEvent removeMonitor:resourceRemovalEventMonitor];
+		[resourceRemovalEventMonitor release];
+	}
+	[fileViewDataSource release];
 
 	[super dealloc];
 }
@@ -87,6 +176,46 @@ static NSString *AXCLegacyBundleIdentifier(void)
 	return image;
 }
 
+- (NSString *)imageSizeStringForResource:(NSString *)path
+{
+	if (!path)
+		return nil;
+
+	NSString *sizeString = [imageSizeStrings objectForKey:path];
+	if (sizeString)
+		return sizeString;
+
+	NSImage *image = [[NSImage alloc] initWithContentsOfFile:[self absolutePathForFile:path]];
+	if (!image)
+		return nil;
+
+	NSImageRep *largestRepresentation = nil;
+	NSInteger largestArea = 0;
+	for (NSImageRep *representation in [image representations]) {
+		NSInteger width = [representation pixelsWide];
+		NSInteger height = [representation pixelsHigh];
+		NSInteger area = width * height;
+		if (area > largestArea) {
+			largestRepresentation = representation;
+			largestArea = area;
+		}
+	}
+
+	NSInteger width = [largestRepresentation pixelsWide];
+	NSInteger height = [largestRepresentation pixelsHigh];
+	if (width > 0 && height > 0)
+		sizeString = [NSString stringWithFormat:@"%ldx%ld", (long)width, (long)height];
+
+	[image release];
+	if (sizeString) {
+		if (!imageSizeStrings)
+			imageSizeStrings = [[NSMutableDictionary alloc] init];
+		[imageSizeStrings setObject:sizeString forKey:path];
+	}
+
+	return sizeString;
+}
+
 #pragma mark -
 
 - (void) addResource:(NSString *)path
@@ -98,6 +227,9 @@ static NSString *AXCLegacyBundleIdentifier(void)
 
 	if ([imagePreviews objectForKey:path])
 		[imagePreviews removeObjectForKey:path];
+	[imageSizeStrings removeObjectForKey:path];
+	if (!displayNames)
+		displayNames = [[NSMutableDictionary alloc] init];
 	[displayNames setObject:[[NSFileManager defaultManager] displayNameAtPath:[self absolutePathForFile:path]] forKey:path];
 
 	[self didChangeValueForKey:@"resources"];
@@ -110,24 +242,19 @@ static NSString *AXCLegacyBundleIdentifier(void)
 	[resources    addObjectsFromArray:paths];
 	[resourcesSet addObjectsFromArray:paths];
 	
-	//add the files to the imagePreviews and displayNames dictionaries.
+	//Add the files to the image previews and display names dictionaries.
 	NSEnumerator *pathsEnum = [paths objectEnumerator];
 	NSString *path;
 	while ((path = [pathsEnum nextObject])) {
-		//first the image preview
-		NSImage *image = [self previewForFile:path];
+		//First the image preview.
+		[self previewForFile:path];
+		[imageSizeStrings removeObjectForKey:path];
 
-		/*now store the display name as well*/ {
+		/*Now store the display name as well.*/ {
 			if (!displayNames)
 				displayNames = [[NSMutableDictionary alloc] init];
 
 			NSString *displayName = [[NSFileManager defaultManager] displayNameAtPath:[self absolutePathForFile:path]];
-			if (image) {
-				enum { MULTIPLICATION_SIGN = 0x00d7 };
-				NSSize size = [image size];
-				displayName = [NSString stringWithFormat:@"%@ (%u%C%u)", displayName, (unsigned)size.width, MULTIPLICATION_SIGN, (unsigned)size.height];
-			}
-
 			[displayNames setObject:displayName forKey:path];
 		}
 	}
@@ -146,6 +273,7 @@ static NSString *AXCLegacyBundleIdentifier(void)
 	if ([imagePreviews objectForKey:path])
 		[imagePreviews removeObjectForKey:path];
 	[displayNames removeObjectForKey:path];
+	[imageSizeStrings removeObjectForKey:path];
 
 	[self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexSet forKey:@"resources"];
 }
@@ -161,6 +289,7 @@ static NSString *AXCLegacyBundleIdentifier(void)
 
 	[imagePreviews removeObjectsForKeys:paths];
 	[displayNames  removeObjectsForKeys:paths];
+	[imageSizeStrings removeObjectsForKeys:paths];
 
 	[self didChangeValueForKey:@"resources"];
 }
@@ -197,7 +326,36 @@ static NSString *AXCLegacyBundleIdentifier(void)
 		AXCFileCell *cell = [[AXCFileCell alloc] initTextCell:@""];
 		[[[fileView tableColumns] objectAtIndex:0U] setDataCell:cell];
 		[cell release];
+
+		fileViewDataSource = [[AXCFileListDataSource alloc] initWithDocument:self dataSource:[fileView dataSource]];
+		[fileView setDataSource:fileViewDataSource];
+
+		NSTableColumn *fileSizeColumn = [[NSTableColumn alloc] initWithIdentifier:RESOURCE_SIZE_COLUMN_NAME];
+		[fileSizeColumn setWidth:64.0];
+		[fileSizeColumn setMinWidth:64.0];
+		[fileSizeColumn setMaxWidth:64.0];
+		[fileSizeColumn setResizingMask:NSTableColumnNoResizing];
+		[fileSizeColumn setEditable:NO];
+		[[fileSizeColumn headerCell] setStringValue:@"Size"];
+		[[fileSizeColumn dataCell] setAlignment:NSTextAlignmentRight];
+
+		[fileView addTableColumn:fileSizeColumn];
+		[fileView setColumnAutoresizingStyle:NSTableViewFirstColumnOnlyAutoresizingStyle];
+		[fileSizeColumn release];
 	}
+
+	resourceRemovalEventMonitor = [[NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown
+		handler:^NSEvent *(NSEvent *event) {
+			unsigned short keyCode = [event keyCode];
+			if ((keyCode == 51 || keyCode == 117)
+				&& [event window] == [fileView window]
+				&& [[event window] firstResponder] == fileView
+				&& [fileView selectedRow] != -1) {
+				[self removeSelectedResources:nil];
+				return nil;
+			}
+			return event;
+		}] retain];
 
 	/*set up table view the drag types*/ {
 		[fileView registerForDraggedTypes:[NSArray arrayWithObject:NSFilenamesPboardType]];
@@ -209,6 +367,17 @@ static NSString *AXCLegacyBundleIdentifier(void)
 		while((item = [tabViewItemsEnum nextObject]))
 			[tabs addTabViewItem:item];
 	}
+}
+
+- (IBAction)removeSelectedResources:(id)sender
+{
+	NSIndexSet *selectedRows = [fileView selectedRowIndexes];
+	if (![selectedRows count])
+		return;
+
+	NSArray *selectedResources = [fileViewDataSource resourcesAtRows:selectedRows];
+	[self removeResources:selectedResources];
+	[fileView deselectAll:nil];
 }
 
 - (BOOL)writeToFile:(NSString *)fileName ofType:(NSString *)docType

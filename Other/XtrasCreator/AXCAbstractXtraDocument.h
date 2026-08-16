@@ -19,11 +19,14 @@
 	NSImage * icon;
 
 	NSMutableDictionary *imagePreviews; //keys: paths to image files; values: NSImages
-	NSMutableDictionary *displayNames; //keys: paths to files; values: display names (for an image, includes ' (WxH)' suffix)
+	NSMutableDictionary *displayNames; //keys: paths to files; values: display names
+	NSMutableDictionary *imageSizeStrings; //keys: paths to images; values: their pixel dimensions
 
 	IBOutlet NSTabView * tabs;
 	IBOutlet NSTableView * fileView;
 	IBOutlet NSTextView * readmeView;
+	id fileViewDataSource;
+	id resourceRemovalEventMonitor;
 
 	int lastDrag;
 	NSDragOperation lastDragOperation;
@@ -42,6 +45,9 @@
 - (void) removeResource:(NSString *)path;
 - (void) removeResources:(NSArray *)paths;
 - (void) setResources:(NSArray *)newResources;
+
+//Returns the dimensions of an image resource in pixels, for example "16x16".
+- (NSString *) imageSizeStringForResource:(NSString *)path;
 
 #pragma mark Accessors
 

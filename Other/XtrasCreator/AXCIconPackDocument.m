@@ -136,6 +136,24 @@
 	return YES;
 }
 
+- (void)removeResource:(NSString *)path
+{
+	[self removeResources:[NSArray arrayWithObject:path]];
+}
+
+- (void)removeResources:(NSArray *)paths
+{
+	for (NSArray *entries in [categoryStorage allValues]) {
+		for (AXCIconPackEntry *entry in entries) {
+			if ([paths containsObject:[entry path]])
+				[entry setPath:nil];
+		}
+	}
+
+	[super removeResources:paths];
+	[iconPlistView reloadData];
+}
+
 #pragma mark Bindings
 
 //use this, NOT -categoryNames, for bindings.
@@ -174,9 +192,12 @@
 	BOOL isKeyColumn = [KEY_COLUMN_NAME isEqualToString:[col identifier]];
 
 	if ([categoryNames indexOfObjectIdenticalTo:item] != NSNotFound)
-		return isKeyColumn ? [self displayNameForCategoryName:item] : [NSNumber numberWithInt:-1];
-	else
-		return isKeyColumn ? (NSObject *)[item displayName] : (NSObject *)[NSNumber numberWithUnsignedInteger:[resources indexOfObject:[item path]]];
+		return isKeyColumn ? item : [NSNumber numberWithInt:-1];
+	else if (isKeyColumn) {
+		NSString *size = [self imageSizeStringForResource:[item path]];
+		return size ? [NSString stringWithFormat:@"%@ (%@)", [item displayName], size] : [item displayName];
+	} else
+		return [NSNumber numberWithUnsignedInteger:[resources indexOfObject:[item path]]];
 }
 - (void) outlineView:(NSOutlineView *)outlineView setObjectValue:(id)newValue forTableColumn:(NSTableColumn *)col byItem:(id)item
 {
@@ -188,6 +209,7 @@
 		[(AXCIconPackEntry *)item setPath:[resources objectAtIndex:index]];
 	else
 		[(AXCIconPackEntry *)item setPath:nil];
+	[iconPlistView reloadItem:item];
 }
 
 - (NSDragOperation)outlineView:(NSOutlineView *)outlineView validateDrop:(id <NSDraggingInfo>)info proposedItem:(id)item proposedChildIndex:(NSInteger)index
@@ -205,6 +227,7 @@
 - (BOOL)outlineView:(NSOutlineView *)outlineView acceptDrop:(id <NSDraggingInfo>)info item:(id)item childIndex:(NSInteger)index
 {
 	[(AXCIconPackEntry *)item setPath:[[[info draggingPasteboard] propertyListForType:NSFilenamesPboardType] objectAtIndex:0]];
+	[iconPlistView reloadItem:item];
 	return YES;
 }
 
@@ -320,11 +343,6 @@
 - (NSArray *) entriesForNewDocumentInCategory:(NSString *)categoryName
 {
 	return [NSArray array];
-}
-
-- (NSString *) displayNameForCategoryName:(NSString *)categoryName
-{
-	return categoryName;
 }
 
 @end

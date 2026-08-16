@@ -30,7 +30,4 @@
 - (NSArray *) entriesInCategory:(NSString *)categoryName;
 - (NSArray *) entriesForNewDocumentInCategory:(NSString *)categoryName;
 
-//The category name is written to Icons.plist; subclasses may provide a UI-only label.
-- (NSString *) displayNameForCategoryName:(NSString *)categoryName;
-
 @end
