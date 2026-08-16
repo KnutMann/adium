@@ -1,5 +1,5 @@
 diff --git a/src/c/blist.c b/src/c/blist.c
-index 03e540a..9bbc9b5 100755
+index 03e540a..18688bc 100755
 --- a/src/c/blist.c
 +++ b/src/c/blist.c
 @@ -1,4 +1,5 @@
@@ -8,7 +8,30 @@ index 03e540a..9bbc9b5 100755
  
  // NOTE: These functions are the same for WhatsApp and Signal. Maybe move to a repository of common functions?
  
-@@ -99,7 +100,70 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
+@@ -30,6 +31,22 @@ const char * presage_blist_get_alias(PurpleAccount *account, const char *who) {
+  * Updates alias non-destructively.
+  */
+ PurpleBuddy * presage_blist_update_buddy(PurpleAccount *account, const char *who, const char *name) {
++    /* Signal never sends you a contact record for yourself: you are not in your own contact list,
++     * and the conversation with yourself is a place to put notes rather than a person. So the entry
++     * standing for your own account arrives with an empty name and an empty profile key, which
++     * leaves both roads to a display name closed. There is nothing to alias it with, and the profile
++     * that would hold your name cannot be fetched without a key, which is the "Missing profile key"
++     * line in the debug log. What the user sees is a contact whose name is a bare UUID, with nothing
++     * to say that it is themselves.
++     *
++     * The account already knows which UUID it is, reported by the back-end on every connection and
++     * kept in the account settings, so it can answer the question itself. Only the empty case is
++     * filled in: should a name ever arrive for this UUID, it wins.
++     */
++    if ((name == NULL || *name == '\0') && purple_strequal(who, presage_own_uuid(account))) {
++        name = "Note to Self"; // the name Signal itself gives this conversation
++    }
++
+     PurpleBuddy *buddy = purple_blist_find_buddy(account, who);
+ 
+     if (!buddy) {
+@@ -99,7 +116,70 @@ void presage_blist_update_chat(PurpleAccount *account, const char *identifier, c
  
      if (topic != NULL) {
          purple_blist_alias_chat(chat, topic);

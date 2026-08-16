@@ -56,6 +56,23 @@ What the user does now: name the account anything, link once, done.
 
 Worth offering upstream. Nothing in it is specific to Adium; the procedure was the same everywhere.
 
+**The conversation with yourself has a name**, in `src/c/blist.c`. One condition and one string.
+
+Signal never sends you a contact record for yourself. You are not in your own contact list, and the
+conversation with yourself is a place to put notes rather than a person. The entry standing for your
+own account therefore arrives with an empty name and an empty profile key, which closes both roads
+to a display name at once: there is nothing to alias the buddy with, and the profile that would hold
+your name cannot be fetched without a key. `contacts.rs` says so in the debug log, once per attempt,
+as `Missing profile key`. What is left on screen is a contact whose name is a bare UUID, with
+nothing to say that it is you.
+
+`presage_blist_update_buddy` now asks `presage_own_uuid`, which the change above already put there,
+and calls that buddy `Note to Self`, which is the name Signal itself uses. Only the empty case is
+filled in, so a real name would still win, and only the name is invented: no profile key is faked
+and nothing is fetched.
+
+Worth offering upstream, for the same reason as the last one. It is not an Adium problem.
+
 ## Building
 
     cd Dependencies/source/purple-presage/src/rust && cargo build --release   # long, only when needed
