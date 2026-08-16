@@ -48,10 +48,10 @@
 //Dealloc
 - (void)dealloc
 {
+	/* Stays: _destroyArrays is the real teardown and it does more than let go of the arrays. */
 	delegate = nil;
-	
+
 	[self _destroyArrays];
-	[super dealloc];
 }
 
 
@@ -66,7 +66,7 @@
 	}
 	[desc appendString:@">"];
 	
-	return [desc autorelease];
+	return desc;
 }
 
 
@@ -356,9 +356,9 @@
 //Destroy our storage arrays
 - (void)_destroyArrays
 {
-	[contentArray release]; contentArray = nil;
-	[priorityArray release]; priorityArray = nil;
-	[ownerArray release]; ownerArray = nil;
+	contentArray = nil;
+	priorityArray = nil;
+	ownerArray = nil;
 }
 
 //Delegation -----------------------------------------------------------------------------------------
@@ -375,7 +375,9 @@
 	return delegate;
 }
 
-- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackbuf count:(NSUInteger)len;
+/* The buffer is unretained by contract. Left unqualified it is taken for an out parameter and
+ * assumed to be autoreleasing, which does not match what fast enumeration hands over. */
+- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(__unsafe_unretained id *)stackbuf count:(NSUInteger)len;
 {
 	return [contentArray countByEnumeratingWithState:state objects:stackbuf count:len];
 }

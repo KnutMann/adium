@@ -74,7 +74,12 @@ static NSString *defaultRGBTxtLocation2 = @"etc/rgb.txt";
 	//the rgb.txt file that comes with Mac OS X 10.3.8 contains 752 entries.
 	//we create 3 autoreleased objects for each one.
 	//best to not pollute our caller's autorelease pool.
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	/* A pool with a scope rather than a lifetime. The parsing below makes three short lived
+	 * objects per line of a file with some seven hundred of them, and this is what keeps them
+	 * out of the caller's pool. The goto that leaves it early still drains it, and result is
+	 * declared outside so what it holds survives the drain.
+	 */
+	@autoreleasepool {
 	
 	NSMutableDictionary *mutableDict = [NSMutableDictionary dictionary];
 	
@@ -141,10 +146,10 @@ static NSString *defaultRGBTxtLocation2 = @"etc/rgb.txt";
 	//why not use -copy? because this is subclass-friendly.
 	//you can call this method on NSMutableDictionary and get a mutable dictionary back.
 	result = [[self alloc] initWithDictionary:mutableDict];
+	}
 end:
-	[pool release];
 
-	return [result autorelease];
+	return result;
 }
 
 @end

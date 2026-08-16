@@ -163,11 +163,11 @@ enum {
 
 + (id)stringWithData:(NSData *)data encoding:(NSStringEncoding)encoding
 {
-	return [[[self alloc] initWithData:data encoding:encoding] autorelease];
+	return [[self alloc] initWithData:data encoding:encoding];
 }
 + (id)stringWithBytes:(const void *)inBytes length:(unsigned)inLength encoding:(NSStringEncoding)inEncoding
 {
-	return [[[self alloc] initWithBytes:inBytes length:inLength encoding:inEncoding] autorelease];
+	return [[self alloc] initWithBytes:inBytes length:inLength encoding:inEncoding];
 }
 
 + (id)ellipsis
@@ -224,7 +224,7 @@ enum {
 		}
 	}
 	
-	return [outName autorelease];
+	return outName;
 }
 
 #define BUNDLE_STRING	@"$$BundlePath$$"
@@ -233,7 +233,7 @@ enum {
     if ([self hasPrefix:BUNDLE_STRING]) {
         return [[[[NSBundle mainBundle] bundlePath] stringByExpandingTildeInPath] stringByAppendingString:[self substringFromIndex:[BUNDLE_STRING length]]];
     } else {
-        return [[self copy] autorelease];
+        return [self copy];
     }
 }
 
@@ -244,7 +244,7 @@ enum {
     if ([self hasPrefix:bundlePath]) {
         return [BUNDLE_STRING stringByAppendingString:[self substringFromIndex:[bundlePath length]]];
     } else {
-        return [[self copy] autorelease];
+        return [self copy];
     }
 }
 
@@ -258,7 +258,7 @@ enum {
 		returnString = [[self substringToIndex:length-1] stringByAppendingString:[NSString ellipsis]];
 	} else {
 		//We don't need to truncate, so don't append an ellipsis
-		returnString = [[self copy] autorelease];
+		returnString = [self copy];
 	}
 	
 	return (returnString);
@@ -280,7 +280,7 @@ enum {
 
 	[string replaceOccurrencesOfString:@"/" withString:@"-" options:NSLiteralSearch range:NSMakeRange(0, length)];
 
-	return [string autorelease];
+	return string;
 }
 
 //- (NSString *)stringByEncodingURLEscapes
@@ -303,7 +303,7 @@ enum {
 //        }
 //    }
 //    
-//    return [encodedString autorelease];
+//    return encodedString;
 //}
 //
 //- (NSString *)stringByDecodingURLEscapes
@@ -329,7 +329,7 @@ enum {
 //
 //        }
 //    }
-//    return [decodedString autorelease];
+//    return decodedString;
 //
 //}
 //
@@ -364,7 +364,9 @@ enum {
 // Convert spaces to '+'
 - (NSString *)stringByEncodingURLEscapes
 {
-	NSData				*UTF8Data = [self dataUsingEncoding:NSUTF8StringEncoding];
+	/* Held to the end of the scope: the bytes below point into it and are read long after its last mention,
+	 * and a strong local may otherwise be given up as soon as nothing names it again. */
+	NS_VALID_UNTIL_END_OF_SCOPE NSData	*UTF8Data = [self dataUsingEncoding:NSUTF8StringEncoding];
 	const char			*UTF8 = [UTF8Data bytes];
 	char				*destPtr;
 	NSMutableData		*destData;
@@ -426,7 +428,7 @@ enum {
 		sourceIndex++;
 	}
 
-	return [[[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSASCIIStringEncoding] autorelease];
+	return [[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSASCIIStringEncoding];
 }
 
 //stringByDecodingURLEscapes
@@ -434,7 +436,9 @@ enum {
 // Convert '+' back to a space
 - (NSString *)stringByDecodingURLEscapes
 {
-	NSData				*UTF8Data = [self dataUsingEncoding:NSUTF8StringEncoding];
+	/* Held to the end of the scope: the bytes below point into it and are read long after its last mention,
+	 * and a strong local may otherwise be given up as soon as nothing names it again. */
+	NS_VALID_UNTIL_END_OF_SCOPE NSData	*UTF8Data = [self dataUsingEncoding:NSUTF8StringEncoding];
 	const char			*UTF8 = [UTF8Data bytes];
 	char				*destPtr;
 	NSMutableData		*destData;
@@ -502,7 +506,7 @@ enum {
 		destIndex++;
 	}
 
-	return [[[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSASCIIStringEncoding] autorelease];
+	return [[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSASCIIStringEncoding];
 }
 
 - (NSString *)string
@@ -546,11 +550,15 @@ enum {
 			nil];
 	}
 
-	return [(NSString *)CFXMLCreateStringByEscapingEntities(kCFAllocatorDefault, (CFStringRef)self, (CFDictionaryRef)realEntities) autorelease];
+	/* Create hands back something owned, and this method's name promises the opposite, so it was
+	 * leaked at every call site. Taken over here instead. */
+	return CFBridgingRelease(CFXMLCreateStringByEscapingEntities(kCFAllocatorDefault, (__bridge CFStringRef)self, (__bridge CFDictionaryRef)realEntities));
 }
 - (NSString *)stringByUnescapingFromXMLWithEntities:(NSDictionary *)entities
 {
-	return [(NSString *)CFXMLCreateStringByUnescapingEntities(kCFAllocatorDefault, (CFStringRef)self, (CFDictionaryRef)entities) autorelease];
+	/* Create hands back something owned, and this method's name promises the opposite, so it was
+	 * leaked at every call site. Taken over here instead. */
+	return CFBridgingRelease(CFXMLCreateStringByUnescapingEntities(kCFAllocatorDefault, (__bridge CFStringRef)self, (__bridge CFDictionaryRef)entities));
 }
 
 #ifndef BSD_LICENSE_ONLY
@@ -743,10 +751,10 @@ return nil; \
 	NSString	*uuidStr;
 	
 	uuid = CFUUIDCreate(NULL);
-	uuidStr = (NSString *)CFUUIDCreateString(NULL, uuid);
+	uuidStr = CFBridgingRelease(CFUUIDCreateString(NULL, uuid));
 	CFRelease(uuid);
 	
-	return [uuidStr autorelease];
+	return uuidStr;
 }
 
 + (NSString *)stringWithCGFloat:(CGFloat)f maxDigits:(NSUInteger)numDigits
@@ -779,7 +787,7 @@ return nil; \
 	if (!lineBreakCharacterSet) {
 		static const unichar lineBreakCharacters[numberOfLineBreakCharacters] = { LINE_FEED, FORM_FEED, CARRIAGE_RETURN, NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR };
 
-		lineBreakCharacterSet = [[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithCharacters:lineBreakCharacters length:numberOfLineBreakCharacters]] retain];
+		lineBreakCharacterSet = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithCharacters:lineBreakCharacters length:numberOfLineBreakCharacters]];
 	}
 
 	return lineBreakCharacterSet;
@@ -841,7 +849,7 @@ return nil; \
 		substringRange.length = lineBreakRange.location - searchRange.location;
 
 		[lines addObject:[self substringWithRange:substringRange]];
-		if (separatorObj) [lines addObject:[[separatorObj copy] autorelease]];
+		if (separatorObj) [lines addObject:[separatorObj copy]];
 
 		searchRange.location = (lineBreakRange.location + lineBreakRange.length);
 		searchRange.length = selfLength - searchRange.location;
@@ -896,8 +904,8 @@ return nil; \
 	 */
 	static NSCharacterSet *allowedCharacters = nil;
 	if (!allowedCharacters) {
-		allowedCharacters = [[NSCharacterSet characterSetWithCharactersInString:
-							  @"!'()*,-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"] retain];
+		allowedCharacters = [NSCharacterSet characterSetWithCharactersInString:
+							  @"!'()*,-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"];
 	}
 
 	return [self stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];

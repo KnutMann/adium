@@ -25,7 +25,7 @@
 
     [self addItem:theMenuItem];
     
-    return [theMenuItem autorelease];
+    return theMenuItem;
 }
 
 - (NSMenuItem *)addItemWithTitle:(NSString *)aString target:(id)target action:(SEL)aSelector keyEquivalent:(NSString *)charCode tag:(NSInteger)tag
@@ -36,7 +36,7 @@
 	
     [self addItem:theMenuItem];
     
-    return [theMenuItem autorelease];
+    return theMenuItem;
 }
 
 - (NSMenuItem *)addItemWithTitle:(NSString *)aString target:(id)target action:(SEL)aSelector keyEquivalent:(NSString *)charCode representedObject:(id)object
@@ -47,7 +47,7 @@
 
     [self addItem:theMenuItem];
     
-    return [theMenuItem autorelease];
+    return theMenuItem;
 }
 
 - (void)removeAllItemsButFirst
@@ -119,11 +119,15 @@
 	NSMenu	*menu = [self menu];
 	NSInteger		idx = [menu indexOfItem:self];
 
-	[self retain];
+	/* The menu is this item's only owner, and taking it out of the menu is the menu letting go.
+	 * Something has to hold on across the gap; this local is that something, and it says until when
+	 * out loud, because a strong local may otherwise be given up right after its last mention.
+	 */
+	NS_VALID_UNTIL_END_OF_SCOPE NSMenuItem *keptAcrossTheGap = self;
+
 	[menu removeItemAtIndex:idx];
 	[self setKeyEquivalent:@""];
 	[menu insertItem:self atIndex:idx];
-	[self release];
 }
 
 - (NSComparisonResult)titleCompare:(NSMenuItem *)inMenuItem
@@ -162,10 +166,16 @@
 {
 	if (itemA == itemB) return;
 
-	NSMenu	*menuA  = [[itemA retain] menu];
+	/* Both items are held for the length of this method: each is about to be taken out of the menu
+	 * that owns it, and the menu letting go is the only thing that was holding it.
+	 */
+	NS_VALID_UNTIL_END_OF_SCOPE NSMenuItem *keptA = itemA;
+	NS_VALID_UNTIL_END_OF_SCOPE NSMenuItem *keptB = itemB;
+
+	NSMenu	*menuA  = [itemA menu];
 	NSInteger		 indexA = menuA ? [menuA indexOfItem:itemA] : -1;
 
-	NSMenu	*menuB  = [[itemB retain] menu];
+	NSMenu	*menuB  = [itemB menu];
 	NSInteger		 indexB = menuB ? [menuB indexOfItem:itemB] : -1;
 
 	if ((menuA == menuB) && (indexA < indexB)) {
@@ -198,17 +208,19 @@
     NSInteger			menuItemIndex = [containingMenu indexOfItem:alternateItem];
     NSMenuItem  *primaryItem = [containingMenu itemAtIndex:(menuItemIndex-1)];
 	
+	/* Each is held across its own removal, for the same reason as everywhere else in this file:
+	 * the menu is the only owner and taking the item out is the menu letting go.
+	 */
+	NS_VALID_UNTIL_END_OF_SCOPE NSMenuItem *keptPrimary = primaryItem;
+	NS_VALID_UNTIL_END_OF_SCOPE NSMenuItem *keptAlternate = alternateItem;
+
 	//Remove the primary item and readd it
-	[primaryItem retain];
 	[containingMenu removeItemAtIndex:(menuItemIndex-1)];
 	[containingMenu insertItem:primaryItem atIndex:(menuItemIndex-1)];
-	[primaryItem release];
-	
+
 	//Remove the alternate item and readd it
-	[alternateItem retain];
     [containingMenu removeItemAtIndex:menuItemIndex];
     [containingMenu insertItem:alternateItem atIndex:menuItemIndex];
-	[alternateItem release];
 }
 
 @end
