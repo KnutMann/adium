@@ -120,6 +120,20 @@ is turned on, because TCC then refuses without ever asking the user.
 `NSCameraUsageDescription` nor `NSMicrophoneUsageDescription`. Any future call feature aborts on
 first use rather than asking.
 
+**The XtrasCreator.** A standalone tool under `Other/XtrasCreator` with its own project, not
+built by the main one, and demonstrably barely used: packs it writes never had their author shown,
+and nobody noticed for eighteen years. Its Info.plist declares editors for all seven Xtra kinds,
+but only the two icon-pack editors were ever written; the other five document classes
+(AXCSoundSetDocument, AXCEmoticonSetDocument, AXCMessageStyleDocument, AXCScriptPackDocument,
+AXCDockIconPackDocument) never existed at any point in the repository's history, so they are
+declarations of intent, not lost code, and would have to be built from the two that exist plus
+the AXCAbstractXtraDocument base, which already handles the bundle structure, Info.plist,
+version, author and readme. An overhaul also means: the service template for a new icon set
+still proposes the 2008 roster (AIM, Bonjour, MobileMe...) instead of asking the running app
+what it speaks; and whether the project builds on arm64 at all has not been checked. Worth doing
+if icon sets are going to be made for this fork; the sound and emoticon editors would be small,
+the message style editor is a project of its own.
+
 **Reproducible plugin builds.** The Telegram plugin was a binary in `PurplePlugins/` whose build
 recipe had been lost, which cost an account when it was rebuilt from what the tree actually held.
 That one is fixed and guarded. WhatsApp and Signal have not been checked the same way.
