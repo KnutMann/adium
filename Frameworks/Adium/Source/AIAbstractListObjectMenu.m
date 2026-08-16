@@ -78,12 +78,10 @@
 - (NSMenu *)menu
 {
 	if(!menu) {
-		menu = [[NSMenu allocWithZone:[NSMenu zone]] init];
+		menu = [[NSMenu alloc] init];
 
-		[menu setMenuChangedMessagesEnabled:NO];
 		for (NSMenuItem *menuItem in self.menuItems)
 			[menu addItem:menuItem];
-		[menu setMenuChangedMessagesEnabled:YES];
 	}
 	
 	return menu;

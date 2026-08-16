@@ -117,8 +117,12 @@
 	return YES;
 }
 
+/* Overriding -insertText:replacementRange: rather than -insertText:, which the text input system
+ * stopped calling in 10.11. Typed characters arrive here either way; what changes is that text put
+ * in from elsewhere, an emoticon from the menu or a script result, now arrives here too.
+ */
 // special characters only work at the end of a string of input
-- (void)insertText:(id)aString
+- (void)insertText:(id)aString replacementRange:(NSRange)replacementRange
 {
 	BOOL 		insertText = YES;
 	NSString	*theString = nil;
@@ -137,9 +141,9 @@
 		if ([theString length] > 1) {
 			NSRange range = NSMakeRange(0, [theString length]-1);
 			if ([aString isKindOfClass:[NSString class]]) {
-				[super insertText:[aString substringWithRange:range]];
+				[super insertText:[aString substringWithRange:range] replacementRange:replacementRange];
 			} else if ([aString isKindOfClass:[NSAttributedString class]]) {
-				[super insertText:[aString attributedSubstringFromRange:range]];
+				[super insertText:[aString attributedSubstringFromRange:range] replacementRange:replacementRange];
 			}
 		}
 		
@@ -148,7 +152,7 @@
 		insertText = NO;
 	}
 
-	if (insertText) [super insertText:aString];
+	if (insertText) [super insertText:aString replacementRange:replacementRange];
 }
 
 - (void)interpretKeyEvents:(NSArray *)eventArray

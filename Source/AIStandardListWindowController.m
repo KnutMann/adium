@@ -130,14 +130,10 @@
 	[imagePicker setMaxSize:NSMakeSize(USER_ICON_MAXIMUM_SIDE, USER_ICON_MAXIMUM_SIDE)];
 
 	//Add VoiceOver labels
-	[[nameView cell] accessibilitySetOverrideValue:AILocalizedString(@"Change display name", nil)
-									  forAttribute:NSAccessibilityDescriptionAttribute];
-	[[imagePicker cell] accessibilitySetOverrideValue:AILocalizedString(@"User icon", nil)
-										 forAttribute:NSAccessibilityDescriptionAttribute];
-	[[statusMenuView cell] accessibilitySetOverrideValue:AILocalizedString(@"Change status", nil)
-											forAttribute:NSAccessibilityDescriptionAttribute];
-	[[imageView_status cell] accessibilitySetOverrideValue:AILocalizedString(@"Status icon", nil)
-											  forAttribute:NSAccessibilityDescriptionAttribute];
+	[[nameView cell] setAccessibilityLabel:AILocalizedString(@"Change display name", nil)];
+	[[imagePicker cell] setAccessibilityLabel:AILocalizedString(@"User icon", nil)];
+	[[statusMenuView cell] setAccessibilityLabel:AILocalizedString(@"Change status", nil)];
+	[[imageView_status cell] setAccessibilityLabel:AILocalizedString(@"Status icon", nil)];
 }
 
 /*!

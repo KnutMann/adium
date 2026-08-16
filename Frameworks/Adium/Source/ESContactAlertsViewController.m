@@ -86,8 +86,7 @@ int globalAlertAlphabeticalSort(id objectA, id objectB, void *context);
 	[[button_addOrRemoveAlert cell] setToolTip:AILocalizedString(@"Add an action for the selected event", nil) forSegment:0];
 	[[button_addOrRemoveAlert cell] setToolTip:AILocalizedString(@"Remove the selected action(s)", nil) forSegment:1];
 
-	[outlineView_summary accessibilitySetOverrideValue:AILocalizedString(@"Events", nil)
-										  forAttribute:NSAccessibilityDescriptionAttribute];
+	[outlineView_summary setAccessibilityLabel:AILocalizedString(@"Events", nil)];
 
 	//Update enable state of our buttons
 	[self outlineViewSelectionDidChange:[NSNotification notificationWithName:@"SelectionChanged" object:nil]];

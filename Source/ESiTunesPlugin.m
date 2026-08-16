@@ -1822,7 +1822,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 - (void)insertAttributedStringIntoMessageEntryView:(NSAttributedString *)inString
 {
 	NSResponder *textView = [[[NSApplication sharedApplication] keyWindow] firstResponder];
-	[textView insertText:inString];
+	[(NSTextView *)textView insertText:inString replacementRange:NSMakeRange(NSNotFound, 0)];
 	
 	if (![inString length]) {
 		NSBeep();

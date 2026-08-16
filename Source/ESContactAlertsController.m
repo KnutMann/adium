@@ -139,7 +139,7 @@ static	NSMutableDictionary		*globalOnlyEventHandlersByGroup[EVENT_HANDLER_GROUP_
 	NSMenu				*menu;
 
 	//Prepare our menu
-	menu = [[NSMenu allocWithZone:[NSMenu zone]] init];
+	menu = [[NSMenu alloc] init];
 	[menu setAutoenablesItems:NO];
 	
 	for (NSMenuItem *item in [self arrayOfMenuItemsForEventsWithTarget:target forGlobalMenu:global]) {

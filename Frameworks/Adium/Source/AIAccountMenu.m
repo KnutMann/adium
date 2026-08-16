@@ -350,7 +350,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	AIAccount	*account = [menuItem representedObject];
 	
 	if (account) {
-		[[menuItem menu] setMenuChangedMessagesEnabled:NO];
 
 		[menuItem setImage:[self imageForListObject:account usingUserIcon:NO]];
 
@@ -402,7 +401,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 
 		[account accountMenuDidUpdate:menuItem];
 
-		[[menuItem menu] setMenuChangedMessagesEnabled:YES];
 	}
 }
 
@@ -511,7 +509,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
  */
 - (NSMenu *)actionsMenuForAccount:(AIAccount *)inAccount
 {
-	NSMenu		*actionsSubmenu = [[[NSMenu allocWithZone:[NSMenu zone]] init] autorelease];
+	NSMenu		*actionsSubmenu = [[[NSMenu alloc] init] autorelease];
 	
 	[actionsSubmenu setDelegate:self];
 
@@ -536,13 +534,11 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 		return;
 	
 	// clean menu
-	[actionsSubmenu setMenuChangedMessagesEnabled:NO];
 	while([actionsSubmenu numberOfItems] > 0) {
 		[actionsSubmenu removeItemAtIndex:0];
 	}
 	
 	[self rebuildActionsSubmenu:actionsSubmenu withAccount:account];
-	[actionsSubmenu setMenuChangedMessagesEnabled:YES];
 }
 
 /*!
@@ -684,11 +680,9 @@ NSMenu *statusMenuForAccountMenuItem(NSArray *menuItemArray, NSMenuItem *account
 	
 	if ([account.service isSocialNetworkingService]) {		
 		accountSubmenu = socialNetworkingSubmenuForAccount(account, [accountMenuItem target], [accountMenuItem action], self);
-		[accountSubmenu setMenuChangedMessagesEnabled:NO];
 		
 	} else {
-		accountSubmenu = [[[NSMenu allocWithZone:[NSMenu zone]] init] autorelease];
-		[accountSubmenu setMenuChangedMessagesEnabled:NO];
+		accountSubmenu = [[[NSMenu alloc] init] autorelease];
 
 		//Enumerate all the menu items we were originally passed
 		for (statusMenuItem in menuItemArray) {
@@ -751,7 +745,6 @@ NSMenu *statusMenuForAccountMenuItem(NSArray *menuItemArray, NSMenuItem *account
 	[accountSubmenu addItem:enableDisableItem];
 	[enableDisableItem release];
 	
-	[accountSubmenu setMenuChangedMessagesEnabled:YES];
 	
 	return accountSubmenu;
 }

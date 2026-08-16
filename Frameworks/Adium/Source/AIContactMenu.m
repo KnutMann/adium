@@ -336,7 +336,6 @@
 	AIListObject	*listObject = [menuItem representedObject];
 	
 	if (listObject) {
-		[[menuItem menu] setMenuChangedMessagesEnabled:NO];
 
 		if ([listObject isKindOfClass:[AIListContact class]]) {
 			[menuItem setImage:[self imageForListObject:listObject usingUserIcon:shouldUseUserIcon]];
@@ -353,7 +352,6 @@
 		
 		[menuItem setToolTip:(shouldSetTooltip ? [listObject.statusMessage string] : nil)];
 
-		[[menuItem menu] setMenuChangedMessagesEnabled:YES];
 	}
 }
 

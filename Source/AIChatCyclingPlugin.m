@@ -121,15 +121,12 @@
 			break;
 	}
 
-	//Previous and nextMessage menuItems are in the same menu, so the setMenuChangedMessagesEnabled applies to both.
-	[[previousChatMenuItem menu] setMenuChangedMessagesEnabled:NO];		
 	[previousChatMenuItem setKeyEquivalent:@""];
 	[previousChatMenuItem setKeyEquivalent:leftKey];
 	[previousChatMenuItem setKeyEquivalentModifierMask:leftKeyMask];
 	[nextChatMenuItem setKeyEquivalent:@""];
 	[nextChatMenuItem setKeyEquivalent:rightKey];
 	[nextChatMenuItem setKeyEquivalentModifierMask:rightKeyMask];
-	[[previousChatMenuItem menu] setMenuChangedMessagesEnabled:YES];
 }
 
 /*!

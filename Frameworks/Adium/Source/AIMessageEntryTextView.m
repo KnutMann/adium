@@ -517,7 +517,7 @@
 	for (NSString *type in generalPasteboard.types) {
 		if ([type isEqualToString:NSPasteboardTypeRTFD]) {
 			NSData *data = [generalPasteboard dataForType:NSPasteboardTypeRTFD];
-			[self insertText:[self attributedStringWithAITextAttachmentExtensionsFromRTFDData:data]];
+			[self insertText:[self attributedStringWithAITextAttachmentExtensionsFromRTFDData:data] replacementRange:NSMakeRange(NSNotFound, 0)];
 			handledPaste = YES;
 			
 		} else if ([PASS_TO_SUPERCLASS_DRAG_TYPE_ARRAY containsObject:type]) {
@@ -533,7 +533,8 @@
 															   options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
 																		 NSCharacterEncodingDocumentAttribute: @(NSUTF8StringEncoding),
 																		 NSWebResourceLoadDelegateDocumentOption: self}
-													documentAttributes:NULL error:NULL] autorelease]];
+													documentAttributes:NULL error:NULL] autorelease]
+			  replacementRange:NSMakeRange(NSNotFound, 0)];
 			handledPaste = YES;
 		}
 		
@@ -1562,7 +1563,7 @@
 			if (clipping) {
 				NSDictionary	*attributes = [[self typingAttributes] copy];
 				
-				[self insertText:clipping];
+				[self insertText:clipping replacementRange:NSMakeRange(NSNotFound, 0)];
 
 				if (attributes) {
 					[self setTypingAttributes:attributes];
@@ -1579,7 +1580,7 @@
 		[attachment setShouldSaveImageForLogging:YES];
 		
 		//Insert an attributed string into the text at the current insertion point
-		[self insertText:[self attributedStringWithTextAttachmentExtension:attachment]];
+		[self insertText:[self attributedStringWithTextAttachmentExtension:attachment] replacementRange:NSMakeRange(NSNotFound, 0)];
 		
 		[attachment release];
 	}
@@ -1596,7 +1597,7 @@
 	[attachment setShouldSaveImageForLogging:YES];
 	
 	//Insert an attributed string into the text at the current insertion point
-	[self insertText:[self attributedStringWithTextAttachmentExtension:attachment]];
+	[self insertText:[self attributedStringWithTextAttachmentExtension:attachment] replacementRange:NSMakeRange(NSNotFound, 0)];
 	
 	[attachment release];
 }
@@ -1710,9 +1711,9 @@
 				changeInLength:0];
 }
 
-- (void)insertText:(id)aString
+- (void)insertText:(id)aString replacementRange:(NSRange)replacementRange
 {
-	[super insertText:aString];
+	[super insertText:aString replacementRange:replacementRange];
 	// Auto set the writing direction based on our content
 	[self setBaseWritingDirection:[[[self textStorage] string] baseWritingDirection]];
 }

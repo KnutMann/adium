@@ -151,7 +151,6 @@
 					
 					if (!menu_chatMenu) {
 						menu_chatMenu = [[NSMenu alloc] initWithTitle:@""];
-						[menu_chatMenu setMenuChangedMessagesEnabled:NO];
 					}
 					
 					if (![addedChats containsObject:chat]) {
@@ -176,7 +175,6 @@
 			[menu_chatMenu removeItemAtIndex:(currentNumberOfItems-1)];
 		}
 		
-		[menu_chatMenu setMenuChangedMessagesEnabled:YES];
 	}
 	
 	return menu_chatMenu;

@@ -447,12 +447,9 @@ static NSString *AIRowLabel(NSString *label)
 
 - (void)localizePane
 {
-	[[button_minvolume cell] accessibilitySetOverrideValue:AILocalizedString(@"Set minimum volume", "Accessibility label for button to set to the minimum sound volume")
-									   forAttribute:NSAccessibilityDescriptionAttribute];
-	[[button_maxvolume cell] accessibilitySetOverrideValue:AILocalizedString(@"Set maximum volume", "Accessibility label for button to set to the maximum sound volume")
-									   forAttribute:NSAccessibilityDescriptionAttribute];
-	[[slider_volume cell] accessibilitySetOverrideValue:AILocalizedString(@"Volume", "Accessibility label for the sound volume slider")
-										   forAttribute:NSAccessibilityDescriptionAttribute];
+	[[button_minvolume cell] setAccessibilityLabel:AILocalizedString(@"Set minimum volume", "Accessibility label for button to set to the minimum sound volume")];
+	[[button_maxvolume cell] setAccessibilityLabel:AILocalizedString(@"Set maximum volume", "Accessibility label for button to set to the maximum sound volume")];
+	[[slider_volume cell] setAccessibilityLabel:AILocalizedString(@"Volume", "Accessibility label for the sound volume slider")];
 }
 
 /*!
@@ -590,7 +587,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (NSMenu *)eventPresetsMenu
 {
-	NSMenu			*eventPresetsMenu = [[NSMenu allocWithZone:[NSMenu zone]] init];
+	NSMenu			*eventPresetsMenu = [[NSMenu alloc] init];
 	NSEnumerator	*enumerator;
 	NSDictionary	*eventPreset;
 	NSMenuItem		*menuItem;

@@ -548,7 +548,6 @@
 	AIStatusType	currentStatusType = AIAvailableStatusType;
 	NSMenuItem		*menuItem;
 	
-	[statusStatesMenu setMenuChangedMessagesEnabled:NO];
 	[statusStatesMenu setAutoenablesItems:NO];
 	
 	/* Create a menu item for each state.  States must first be sorted such that states of the same
@@ -594,7 +593,6 @@
 		[menuItem release];
 	}
 	
-	[statusStatesMenu setMenuChangedMessagesEnabled:YES];
 	
 	return [statusStatesMenu autorelease];
 }

@@ -1002,7 +1002,7 @@
  */
 - (void)addToTextEntryView:(NSAttributedString *)inString
 {
-    [textView_outgoing insertText:inString];
+    [textView_outgoing insertText:inString replacementRange:NSMakeRange(NSNotFound, 0)];
     [[NSNotificationCenter defaultCenter] postNotificationName:NSTextDidChangeNotification object:textView_outgoing];
 }
 

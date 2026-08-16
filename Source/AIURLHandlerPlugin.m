@@ -379,7 +379,7 @@
 		//Insert the message text as if the user had typed it after opening the chat
 		NSResponder *responder = [[NSApp keyWindow] earliestResponderOfClass:[NSTextView class]];
 		if (message && [responder isKindOfClass:[NSTextView class]] && [(NSTextView *)responder isEditable]) {
-			[responder insertText:message];
+			[(NSTextView *)responder insertText:message replacementRange:NSMakeRange(NSNotFound, 0)];
 		}
 		
 	} else {

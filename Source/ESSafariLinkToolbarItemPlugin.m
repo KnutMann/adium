@@ -134,7 +134,7 @@
 		attributedScriptResult = [AIHTMLDecoder decodeHTML:resultString];
 		
 		attributes = [[earliestTextView typingAttributes] copy];
-		[earliestTextView insertText:attributedScriptResult];
+		[earliestTextView insertText:attributedScriptResult replacementRange:NSMakeRange(NSNotFound, 0)];
 		if (attributes) [earliestTextView setTypingAttributes:attributes];
 		[attributes release];
 

@@ -100,7 +100,7 @@
 - (void)statusMenu:(AIStatusMenu *)inStatusMenu didRebuildStatusMenuItems:(NSArray *)menuItemArray
 {
 	NSMenuItem		*menuItem;
-	NSMenu			*dockStatusMenu = [[NSMenu allocWithZone:[NSMenu zone]] init];
+	NSMenu			*dockStatusMenu = [[NSMenu alloc] init];
 
     for (menuItem in menuItemArray) {
 		NSMenuItem	*dockMenuItem;
@@ -129,15 +129,10 @@
 {
 	if ([inMenuItems count]) {
 		NSMenuItem		*menuItem;
-		
-		NSMenu			*menubarMenu = [(NSMenuItem *)[inMenuItems objectAtIndex:0] menu];
-		[menubarMenu setMenuChangedMessagesEnabled:NO];
-		
+
 		for (menuItem in inMenuItems) {
 			[adium.menuController removeMenuItem:menuItem];
 		}
-		
-		[menubarMenu setMenuChangedMessagesEnabled:YES];
 	}
 }
 

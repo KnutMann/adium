@@ -867,7 +867,7 @@
  */
 - (NSMenu *)encryptionMenuNotifyingTarget:(id)target withDefault:(BOOL)withDefault
 {
-	NSMenu		*encryptionMenu = [[NSMenu allocWithZone:[NSMenu zone]] init];
+	NSMenu		*encryptionMenu = [[NSMenu alloc] init];
 	NSMenuItem	*menuItem;
 
 	[encryptionMenu setTitle:ENCRYPTION_MENU_TITLE];

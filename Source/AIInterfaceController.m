@@ -1996,7 +1996,7 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 #pragma mark Window levels
 - (NSMenu *)menuForWindowLevelsNotifyingTarget:(id)target
 {
-	NSMenu		*windowPositionMenu = [[NSMenu allocWithZone:[NSMenu zone]] init];
+	NSMenu		*windowPositionMenu = [[NSMenu alloc] init];
 	NSMenuItem	*menuItem;
 	
 	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Above other windows",nil)

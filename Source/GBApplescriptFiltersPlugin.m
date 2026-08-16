@@ -424,7 +424,7 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 		NSArray		*arguments = [[sender representedObject] objectForKey:@"Arguments"];
 		NSString	*replacementText = [[sender representedObject] objectForKey:@"Keyword"];
 		
-		[(NSTextView *)responder insertText:replacementText];
+		[(NSTextView *)responder insertText:replacementText replacementRange:NSMakeRange(NSNotFound, 0)];
 		
 		//Append arg list to replacement string, to show the user what they can pass
 		if (arguments) {
@@ -437,24 +437,24 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 																					 toHaveTrait:NSItalicFontMask]
 										   forKey:NSFontAttributeName];
 			
-			[(NSTextView *)responder insertText:@"{"];
+			[(NSTextView *)responder insertText:@"{" replacementRange:NSMakeRange(NSNotFound, 0)];
 			
 			//Will that be a five minute argument or the full half hour?
 			for (anArgument in arguments) {
 				//Insert a comma after each argument past the first
 				if (insertedFirst) {
-					[(NSTextView *)responder insertText:@","];					
+					[(NSTextView *)responder insertText:@"," replacementRange:NSMakeRange(NSNotFound, 0)];					
 				} else {
 					insertedFirst = YES;
 				}
 				
 				//Turn on the italics version, insert the argument, then go back to normal for either the comma or the ending
 				[(NSTextView *)responder setTypingAttributes:italicizedTypingAttributes];
-				[(NSTextView *)responder insertText:anArgument];
+				[(NSTextView *)responder insertText:anArgument replacementRange:NSMakeRange(NSNotFound, 0)];
 				[(NSTextView *)responder setTypingAttributes:originalTypingAttributes];
 			}
 
-			[(NSTextView *)responder insertText:@"}"];
+			[(NSTextView *)responder insertText:@"}" replacementRange:NSMakeRange(NSNotFound, 0)];
 			
 			[italicizedTypingAttributes release];
 		}

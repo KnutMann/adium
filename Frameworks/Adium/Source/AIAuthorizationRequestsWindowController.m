@@ -107,8 +107,7 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 												 name:NSWindowDidResizeNotification
 											   object:self.window];
 	
-	[tableView accessibilitySetOverrideValue:AILocalizedString(@"Authorization Requests", nil)
-								forAttribute:NSAccessibilityTitleAttribute];
+	[tableView setAccessibilityTitle:AILocalizedString(@"Authorization Requests", nil)];
 	[tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 	
 	[self.window setTitle:AUTHORIZATION_REQUESTS];
@@ -558,11 +557,9 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 	if ([identifier isEqualToString:@"request"]) {
 		[(AIImageTextCell *)cell setSubString:[request objectForKey:@"Reason"]];
 	} else if ([identifier isEqualToString:@"icon"]) {
-		[cell accessibilitySetOverrideValue:[[[request objectForKey:@"Account"] service] longDescription]
-							   forAttribute:NSAccessibilityTitleAttribute];
+		[cell setAccessibilityTitle:[[[request objectForKey:@"Account"] service] longDescription]];
 		
-		[cell accessibilitySetOverrideValue:@" "
-							   forAttribute:NSAccessibilityRoleDescriptionAttribute];		 
+		[cell setAccessibilityRoleDescription:@" "];
 	}
 }
 

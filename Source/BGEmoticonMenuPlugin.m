@@ -186,7 +186,6 @@
 {
     NSMenu			*packMenu = [[NSMenu alloc] initWithTitle:TITLE_EMOTICON];
 	
-	[packMenu setMenuChangedMessagesEnabled:NO];
 	
     //loop through each emoticon and add a menu item for each
     for (AIEmoticon *anEmoticon in incomingPack.emoticons) {
@@ -211,7 +210,6 @@
         }
     }
     
-    [packMenu setMenuChangedMessagesEnabled:YES];
 	
     return [packMenu autorelease];
 }
@@ -237,7 +235,7 @@
 			if (0 != tmpRange.length) {
 				[(NSTextView *)responder setSelectedRange:NSMakeRange((tmpRange.location + tmpRange.length),0)];
 			}
-			[responder insertText:emoString];
+			[(NSTextView *)responder insertText:emoString replacementRange:NSMakeRange(NSNotFound, 0)];
 		}
     }
 }
