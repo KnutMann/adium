@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "AHLinkLexer.h"
+#import <AutoHyperlinks/AHLinkLexer.h>
 
 
 @interface AHMarkedHyperlink : NSObject <NSCopying> {

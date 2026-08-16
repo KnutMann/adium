@@ -16,4 +16,4 @@
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
-PurpleXferUiOps *adium_purple_xfers_get_ui_ops();
+PurpleXferUiOps *adium_purple_xfers_get_ui_ops(void);

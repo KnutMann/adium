@@ -97,8 +97,9 @@
 - (PurpleSslConnection *)secureConnection;
 
 //Account status
-- (NSSet *)supportedPropertyKeys;
-- (void)updateStatusForKey:(NSString *)key;
+/* Both of these are declared thirty lines above and inherited from AIAccount besides. Declaring
+ * them twice made every @selector on either of them ambiguous, which is a hundred warnings and a
+ * coin toss about which declaration a caller is checked against. */
 - (void)setAccountIdleSinceTo:(NSDate *)idleSince;
 
 - (void)setStatusState:(AIStatus *)statusState statusID:(const char *)statusID isActive:(NSNumber *)isActive arguments:(NSMutableDictionary *)arguments;

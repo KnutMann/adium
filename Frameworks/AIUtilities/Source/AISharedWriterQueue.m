@@ -17,7 +17,7 @@
 
 @implementation AISharedWriterQueue
 
-static inline dispatch_queue_t queue() {
+static inline dispatch_queue_t queue(void) {
     static dispatch_queue_t sharedWriterQueue = nil;
 	static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{

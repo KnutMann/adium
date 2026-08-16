@@ -16,4 +16,4 @@
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
-PurpleRoomlistUiOps *adium_purple_roomlist_get_ui_ops();
+PurpleRoomlistUiOps *adium_purple_roomlist_get_ui_ops(void);

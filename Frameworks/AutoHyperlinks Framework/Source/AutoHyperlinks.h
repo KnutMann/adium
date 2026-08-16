@@ -25,5 +25,5 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "AHHyperlinkScanner.h"
-#import "AHMarkedHyperlink.h"
+#import <AutoHyperlinks/AHHyperlinkScanner.h>
+#import <AutoHyperlinks/AHMarkedHyperlink.h>

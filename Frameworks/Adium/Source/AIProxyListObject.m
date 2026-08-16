@@ -28,7 +28,7 @@
 @synthesize listObject, containingObject;
 
 
-static inline NSMutableDictionary *_getProxyDict() {
+static inline NSMutableDictionary *_getProxyDict(void) {
     static NSMutableDictionary *proxyDict;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{

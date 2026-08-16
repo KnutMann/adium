@@ -61,7 +61,7 @@
 	return [self label];
 }
 
-int getRandomNumber()
+int getRandomNumber(void)
 {
 	return 4;	// chosen by fair dice roll.
 				// guaranteed to be random.

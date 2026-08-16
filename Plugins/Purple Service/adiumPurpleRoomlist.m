@@ -49,7 +49,7 @@ static PurpleRoomlistUiOps adiumPurpleRoomlistOps = {
 	NULL, NULL, NULL, NULL
 };
 
-PurpleRoomlistUiOps *adium_purple_roomlist_get_ui_ops()
+PurpleRoomlistUiOps *adium_purple_roomlist_get_ui_ops(void)
 {
 	return &adiumPurpleRoomlistOps;
 }

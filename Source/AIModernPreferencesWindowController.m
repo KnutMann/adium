@@ -238,6 +238,19 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (NSString *)mainPaneOrderIdentifiers;
 @end
 
+/* What a preference pane may offer beyond its own view, and what the window asks it about before
+ * drawing the back button. Written down because it was only ever implied: the calls were made
+ * through id with a respondsToSelector: guard in front, which leaves the compiler to guess the
+ * return types. It guessed id for a method that answers yes or no, and that happens to work on this
+ * architecture and is no way to ask a question.
+ */
+@protocol AIPreferencePaneNavigation <NSObject>
+@optional
+- (NSString *)preferencePaneNavigationTitle;
+- (BOOL)preferencePaneCanNavigateBack;
+- (void)preferencePaneNavigateBack;
+@end
+
 @implementation AIModernPreferencesWindowController
 
 + (AIModernPreferencesWindowController *)sharedController
@@ -693,7 +706,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSString *paneTitle = (currentPane ? (AIPrefPaneName(currentPane) ?: @"") : @"");
 
 	if (currentPane && [currentPane respondsToSelector:@selector(preferencePaneNavigationTitle)]) {
-		NSString *pageTitle = [(id)currentPane preferencePaneNavigationTitle];
+		NSString *pageTitle = [(id<AIPreferencePaneNavigation>)currentPane preferencePaneNavigationTitle];
 		if ([pageTitle length])
 			paneTitle = pageTitle;
 	}
@@ -712,7 +725,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	return (currentPane &&
 			[currentPane respondsToSelector:@selector(preferencePaneCanNavigateBack)] &&
-			[(id)currentPane preferencePaneCanNavigateBack]);
+			[(id<AIPreferencePaneNavigation>)currentPane preferencePaneCanNavigateBack]);
 }
 
 - (void)updateNavigationControl
@@ -737,7 +750,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	//Out of the pane's own page first, and only then out of the pane
 	if ([sender selectedSegment] == 0 && [self currentPaneCanNavigateBack]) {
-		[(id)currentPane preferencePaneNavigateBack];
+		[(id<AIPreferencePaneNavigation>)currentPane preferencePaneNavigateBack];
 		return;
 	}
 

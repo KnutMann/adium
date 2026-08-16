@@ -633,6 +633,14 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
  * @class AIAccountListPreferences
  * @brief Shows a list of accounts and provides for management of them
  */
+/* The window this pane sits in, when it is one that follows navigation. Only ever called behind
+ * a respondsToSelector: guard, and written down so the compiler is not left guessing.
+ */
+@protocol AIPreferencePaneNavigationHost <NSObject>
+@optional
+- (void)paneNavigationChanged;
+@end
+
 @implementation AIAccountListPreferences
 
 /*!
@@ -1091,7 +1099,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	//The window draws the back arrow and the title, so it has to be told
 	id windowController = [[[self view] window] windowController];
 	if ([windowController respondsToSelector:@selector(paneNavigationChanged)])
-		[windowController paneNavigationChanged];
+		[(id<AIPreferencePaneNavigationHost>)windowController paneNavigationChanged];
 }
 
 //What the window asks of a pane which can drill into something -------------------------------------------------------

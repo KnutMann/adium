@@ -16,4 +16,4 @@
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
-PurplePrivacyUiOps *adium_purple_privacy_get_ui_ops();
+PurplePrivacyUiOps *adium_purple_privacy_get_ui_ops(void);

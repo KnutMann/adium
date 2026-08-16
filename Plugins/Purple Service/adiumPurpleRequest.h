@@ -17,7 +17,7 @@
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 #import <Adium/AIPasswordPromptController.h>
 
-PurpleRequestUiOps *adium_purple_request_get_ui_ops();
+PurpleRequestUiOps *adium_purple_request_get_ui_ops(void);
 
 @protocol PurpleRequestController
 - (void)purpleRequestClose;

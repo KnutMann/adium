@@ -465,7 +465,7 @@ static PurpleRequestUiOps adiumPurpleRequestOps = {
  	NULL /* reserved */
 };
 
-PurpleRequestUiOps *adium_purple_request_get_ui_ops()
+PurpleRequestUiOps *adium_purple_request_get_ui_ops(void)
 {
 	return &adiumPurpleRequestOps;
 }

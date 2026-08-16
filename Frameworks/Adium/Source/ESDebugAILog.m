@@ -29,13 +29,13 @@ BOOL AIDebugLoggingEnabled = NO;
 
 NSString *const AIDebugLoggingEnabledNotification = @"AIDebugLoggingEnabledNotification";
 
-void AIEnableDebugLogging()
+void AIEnableDebugLogging(void)
 {
 	AIDebugLoggingEnabled = YES;
 	[[NSNotificationCenter defaultCenter] postNotificationName:AIDebugLoggingEnabledNotification object:nil];
 }
 
-BOOL AIDebugLoggingIsEnabled()
+BOOL AIDebugLoggingIsEnabled(void)
 {
 	return AIDebugLoggingEnabled;	
 }
@@ -127,7 +127,7 @@ void AILogWithPrefix_impl (const char *prefix, NSString *format, ...) {
 	va_end(ap); /* clean up when done */
 }
 
-void AILogBacktrace_impl() {
+void AILogBacktrace_impl(void) {
 	void* callstack[128];
 	int i, frames = backtrace(callstack, 128);
 	char** strs = backtrace_symbols(callstack, frames);
@@ -145,4 +145,4 @@ void AILogBacktrace_impl() {
 #undef AILogWithBacktrace
 void AILog(NSString *fmt, ...) {}
 void AILogWithPrefix(const char *signature, NSString *fmt, ...) {}
-void AILogWithBacktrace() {}
+void AILogWithBacktrace(void) {}

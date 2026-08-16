@@ -80,7 +80,7 @@ extern gboolean purple_init_ssl_plugin(void);
 extern gboolean purple_init_ssl_openssl_plugin(void);
 extern gboolean purple_init_ssl_cdsa_plugin(void);
 
-static void init_all_plugins()
+static void init_all_plugins(void)
 {
 	AILog(@"adiumPurpleCore: load_all_plugins()");
 
@@ -150,7 +150,7 @@ static void adiumPurplePrefsInit(void)
 	purple_buddy_icons_set_caching(TRUE);	
 }
 
-void configurePurpleDebugLogging()
+void configurePurpleDebugLogging(void)
 {
 	purple_debug_set_ui_ops(AIDebugLoggingIsEnabled() ?
 							adium_purple_debug_get_ui_ops() :

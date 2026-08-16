@@ -68,7 +68,7 @@ gcry_error_t otrl_instag_read(OtrlUserState us, const char *filename);
 gcry_error_t otrl_instag_read_FILEp(OtrlUserState us, FILE *instf);
 
 /* Return a new valid instance tag */
-otrl_instag_t otrl_instag_get_new();
+otrl_instag_t otrl_instag_get_new(void);
 
 /* Get a new instance tag for the given account and write to file*/
 gcry_error_t otrl_instag_generate(OtrlUserState us, const char *filename,
