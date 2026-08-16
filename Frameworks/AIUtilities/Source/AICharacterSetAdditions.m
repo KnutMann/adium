@@ -29,7 +29,9 @@
  */
 - (NSCharacterSet *)immutableCopy
 {
-	return [[NSCharacterSet characterSetWithBitmapRepresentation:[self bitmapRepresentation]] retain];
+	/* Handed back owned; the header declares this into the copy family, so the count is kept
+	 * whichever way the file is compiled. */
+	return [NSCharacterSet characterSetWithBitmapRepresentation:[self bitmapRepresentation]];
 }
 
 @end

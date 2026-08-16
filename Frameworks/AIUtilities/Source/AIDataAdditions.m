@@ -56,7 +56,7 @@
 	if (!data) return nil;
 
 	NSError *error = nil;
-	NSKeyedUnarchiver *unarchiver = [[[self alloc] initForReadingFromData:data error:&error] autorelease];
+	NSKeyedUnarchiver *unarchiver = [[self alloc] initForReadingFromData:data error:&error];
 	if (!unarchiver) {
 		NSLog(@"AIDataAdditions: Failed to create unarchiver: %@", error);
 		return nil;

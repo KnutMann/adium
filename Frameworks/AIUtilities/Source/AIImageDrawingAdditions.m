@@ -108,7 +108,7 @@
 	
 	// Proceed only if size or delta are changing
 	if ((NSEqualSizes(originalSize, size)) && (delta == 1.0) && !flipImage) {
-		return [[self copy] autorelease];
+		return [self copy];
 		
 	} else {
 		NSImage *newImage;
@@ -176,7 +176,6 @@
 			[self writeGIFExtensionBlocksInData:GIFRepresentationData forRepresenation:(NSBitmapImageRep *)bestRep];
 			
 			//You must release before you re-allocate. The data is retained in an autorelease loop in the images array.
-			[newImage release];
 			
 			newImage = [[NSImage alloc] initWithData:GIFRepresentationData];
 		} else {
@@ -192,7 +191,7 @@
 			[newImage unlockFocus];
 		}
 		
-		return [newImage autorelease];
+		return newImage;
 	}
 }
 
@@ -209,7 +208,7 @@
 	
 	// Proceed only if size or delta are changing
 	if ((NSEqualSizes(originalSize, size)) && (delta == 1.0) && !flipImage) {
-		return [[self copy] autorelease];
+		return [self copy];
 		
 	} else {
 		// Scale proportionally (rather than stretching to fit) if requested and needed
@@ -294,7 +293,6 @@
 			[self writeGIFExtensionBlocksInData:GIFRepresentationData forRepresenation:(NSBitmapImageRep *)bestRep];
 			
 			// Release before you re-allocate.
-			[newImage release];
 
 			newImage = [[NSImage alloc] initWithData:GIFRepresentationData];
 		} else {
@@ -320,9 +318,8 @@
 			[newImage unlockFocus];
 		}
 		
-		[scaledImage release];
 		
-		return [newImage autorelease];
+		return newImage;
 	}
 }
 
