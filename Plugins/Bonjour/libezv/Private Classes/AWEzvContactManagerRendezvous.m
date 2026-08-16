@@ -382,6 +382,7 @@ void image_register_reply (
 	if (error == kDNSServiceErr_NoError) {
 		// Let's create the hash
 		CC_SHA1([JPEGData bytes], (CC_LONG)[JPEGData length], digest);
+		[imagehash release];
 		imagehash = [[NSData dataWithBytes:digest length:20] retain];
         AILogWithSignature(@"Will update with hash %@; length is %lu", imagehash, (unsigned long)[JPEGData length]);
 		[self updatePHSH];
@@ -393,7 +394,13 @@ void image_register_reply (
 - (void) updatePHSH
 {
 	if (imagehash != nil) {
-		[userAnnounceData setField:@"phsh" content:[imagehash autorelease]];
+		/* Handed over without giving up our own reference. It used to be autoreleased here while
+		 * imagehash went on pointing at it, so the hash was freed under the ivar at the end of the
+		 * run loop and the next caller read it again. There is a next caller: the record
+		 * registration reports back through regImageCallback and asks for this a second time, so
+		 * the same object was given up twice. -setField:content: keeps its own reference anyway.
+		 */
+		[userAnnounceData setField:@"phsh" content:imagehash];
 		// Announce to network
 		[self updateAnnounceInfo];
 	} else {

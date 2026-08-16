@@ -79,8 +79,16 @@
 #pragma mark Private Interface
 #pragma mark -
 
-//GetMetadataForFile.m
-NSData *CopyDataForURL(CFStringRef contentTypeUTI, NSURL *urlToFile);
+/* Defined in GetMetadataForFile.m, which is compiled into AIUtilities.framework; Adium links it
+ * from there, and the Spotlight importer gets its own copy.
+ *
+ * The name follows the Core Foundation rule and the data comes back owned, which the caller below
+ * honours with a matching release. Said out loud here because a C function is otherwise assumed to
+ * hand back something unowned, and this declaration is the only thing a file counting references
+ * automatically would have to go on: the definition sits in another target and cannot correct it.
+ * Its neighbour needs nothing, because a CFStringRef named Copy is already understood.
+ */
+NSData *CopyDataForURL(CFStringRef contentTypeUTI, NSURL *urlToFile) NS_RETURNS_RETAINED;
 CFStringRef CopyTextContentForFileData(CFStringRef contentTypeUTI, NSURL *urlToFile, NSData *fileData);
 
 @interface AILoggerPlugin ()

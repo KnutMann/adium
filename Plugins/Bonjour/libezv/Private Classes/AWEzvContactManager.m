@@ -90,6 +90,8 @@
 	/* AWEzvContactManagerListener adds an observer; remove it */
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
+	[contacts release]; contacts = nil;
+	[imagehash release]; imagehash = nil;
 	[userAnnounceData release]; userAnnounceData = nil;
 	[avInstanceName release]; avInstanceName = nil;
 

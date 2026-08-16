@@ -101,10 +101,27 @@
 		
 		// check if it's a primitive type, if so, attempt to unwrap value
 		if (ivarType[0] == _C_ID) {
-			
-			[oldValue release];
-			object_setIvar(self, ivar, [value retain]);
-			
+
+			/* The runtime does the whole store, rather than a hand balanced retain and release
+			 * around a raw write. The two runtime calls differ in exactly one documented way: both
+			 * honour an ivar whose memory management is known, and for an ivar whose management is
+			 * unknown, object_setIvar writes it unretained while object_setIvarWithStrongDefault
+			 * retains the new value and releases the old.
+			 *
+			 * Every class here declares its ivars without qualification today, so the management is
+			 * unknown, the old raw write took no reference, and the pair around it supplied the one
+			 * reference the ivar holds. That is the same reference this call now takes on its own.
+			 *
+			 * It stops being the same the day a subclass is compiled with automatic reference
+			 * counting, because then the ivar is declared strong, the management is known, and the
+			 * raw write would have taken a reference of its own on top of the hand written one:
+			 * the new value held twice and the old released twice. Every class whose properties
+			 * pass through here would have had to change compiler in one commit with this file.
+			 * Asking the runtime to store it means each ivar is treated the way its own class
+			 * declared it, and they can be converted one at a time in any order.
+			 */
+			object_setIvarWithStrongDefault(self, ivar, value);
+
 		} else if (strcmp(ivarType, @encode(NSInteger)) == 0) {
 			
 			NSInteger iValue;
@@ -200,10 +217,21 @@
 - (id)_valueForProperty:(NSString *)key
 {
 	id ret = nil;
-	id value = nil;
-	
-	Ivar ivar = object_getInstanceVariable(self, [key UTF8String], (void **)&value);
-	
+
+	/* object_getInstanceVariable, which stood here, is declared OBJC_ARC_UNAVAILABLE in
+	 * objc/runtime.h: a file that calls it cannot be compiled with automatic reference counting at
+	 * all, whatever else in it is ready. It also handed the contents back through a pointer to a
+	 * local declared as an object, and the integer case below read that same local, so a property
+	 * backed by an NSInteger arrived here as a number wearing an object's clothes, safe only for as
+	 * long as nothing on the way treated it as one.
+	 *
+	 * Only the description of the ivar is fetched now, and each branch reads the contents itself
+	 * once it knows what it is looking at. That is also how the setter above and
+	 * -integerValueForProperty: below already found their ivars, so the three finally agree on
+	 * which class to ask.
+	 */
+	Ivar ivar = class_getInstanceVariable([self class], [key UTF8String]);
+
 	if (ivar == NULL) {
 		
 		// no dictionary -> this property is certainly nil
@@ -217,11 +245,11 @@
 		
 		// attempt to wrap it, if we know how
 		if (strcmp(ivarType, @encode(NSInteger)) == 0) {
-			ret = [[[NSNumber alloc] initWithInteger:(NSInteger)value] autorelease];
+			ret = [[[NSNumber alloc] initWithInteger:(NSInteger)object_getIvar(self, ivar)] autorelease];
 		} else if (ivarType[0] != _C_ID) {
 			AILogWithSignature(@" *** This ivar is not an object but an %s! Should not use -valueForProperty: @\"%@\" ***", ivarType, key);
 		} else {
-			ret = [[value retain] autorelease];
+			ret = [[object_getIvar(self, ivar) retain] autorelease];
 		}
 	}
 	

@@ -210,8 +210,22 @@ typedef enum {
 - (NSString *)accountWillSetUID:(NSString *)proposedUID;
 - (void)didChangeUID;
 - (void)willBeDeleted;
+/*! @brief A dialog asking whether this account should really be deleted
+ *
+ * Handed back owned, which is why it is declared into the new family. It is not the caller who
+ * gives it up again: the caller shows it and lets go, the sheet holds it while it is up, and
+ * -alertForAccountDeletion:didReturn: releases it once the answer is in. Both implementations of
+ * that method do so, AIAccount's and CBPurpleAccount's, the latter saying so in a comment because
+ * it does not call super.
+ *
+ * There was a property declaring the same name alongside this, saying the opposite, that the caller
+ * is handed something it does not own. It was never read as a property, only ever sent as a
+ * message, and clang takes the explicit declaration over the one a property implies, so nothing
+ * behaved differently either way. It has been removed because a reader had no such rule to fall
+ * back on, and two declarations disagreeing about who frees this object is a poor thing to leave
+ * for whoever converts this class.
+ */
 - (id<AIAccountControllerRemoveConfirmationDialog>)confirmationDialogForAccountDeletion __attribute__((objc_method_family(new)));
-@property (readonly, nonatomic) id<AIAccountControllerRemoveConfirmationDialog> confirmationDialogForAccountDeletion;
 @property (readonly, nonatomic) NSAlert *alertForAccountDeletion;
 - (void)alertForAccountDeletion:(id<AIAccountControllerRemoveConfirmationDialog>)dialog didReturn:(NSInteger)returnCode;
 @property (readonly, nonatomic) NSString *explicitFormattedUID;

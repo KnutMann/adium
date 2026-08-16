@@ -133,10 +133,23 @@ static ESFileTransferPreferences *preferences;
 
 - (void)dealloc
 {
-	[super dealloc];
-	
+	/* Two of these were released after the call to super, which frees the object they were being
+	 * read out of. Nothing has gone wrong so far only because nothing ever gets here: the
+	 * application holds this controller from the moment it makes it and never lets go.
+	 *
+	 * The three menu items were not given up at all. They are made here and this class owns them,
+	 * so they belong in the same list, and an object counting references automatically would free
+	 * all five without being asked. Leaving two of them out was the sort of gap that turns into a
+	 * difference the day it is converted.
+	 */
+	[menuItem_sendFile release]; menuItem_sendFile = nil;
+	[menuItem_sendFileContext release]; menuItem_sendFileContext = nil;
+	[menuItem_showFileTransferProgress release]; menuItem_showFileTransferProgress = nil;
+
 	[safeFileExtensions release]; safeFileExtensions = nil;
 	[fileTransferArray release]; fileTransferArray = nil;
+
+	[super dealloc];
 }
 
 #pragma mark Access to file transfer objects
