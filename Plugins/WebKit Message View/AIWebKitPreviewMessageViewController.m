@@ -66,29 +66,15 @@
 }
 
 /*!
- * @brief Let the preview scroll, but keep its scrollbar out of the way.
+ * @brief The preview never shows a scrollbar, whatever the preference says
  *
- * The sample conversation can run past the box, so it must be scrollable; a scrollbar in a settings
- * preview, though, reads as chrome that does not belong, and drawn beside the content it clips the
- * card's rounded corners.
- *
- * One rule now, where the old view needed two. WebKit1 drew the main frame's scrollbar as an AppKit
- * scroller that had to be restyled separately from the page; a WKWebView scrolls the page itself, so
- * hiding it is CSS like any other overflow in the document. The rule goes into this one page rather
- * than onto anything shared, so real chat windows keep their scrollbars, and -webViewIsReady fires
- * again after every reprime, which is why it guards against adding itself twice.
+ * The sample conversation can run past the box, so it must scroll; a scrollbar in a settings preview
+ * reads as chrome that does not belong, and drawn beside the content it clips the card's rounded
+ * corners. The rule itself is the controller's, and it goes into this page alone.
  */
-- (void)webViewIsReady
+- (BOOL)hidesScrollbar
 {
-	[super webViewIsReady];
-
-	[_webView evaluateJavaScript:
-		@"(function(){var i='adium-preview-no-scrollbar';"
-		 "if(!document.getElementById(i)){"
-		 "var s=document.createElement('style');s.id=i;"
-		 "s.textContent='::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}';"
-		 "(document.head||document.documentElement).appendChild(s);}})();"
-					   completionHandler:nil];
+	return YES;
 }
 
 @end

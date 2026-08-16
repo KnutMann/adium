@@ -241,6 +241,10 @@ static NSString *AIRowLabel(NSString *label)
 	[form addRowWithLabel:AILocalizedString(@"Show header", nil)
 				  control:checkBox_showHeader];
 
+	checkBox_hideScrollbar = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Hide scrollbar", nil)
+				  control:checkBox_hideScrollbar];
+
 	//Text display
 	[form addSectionHeader:AIRowLabel(AILocalizedString(@"Text Display:", nil))];
 
@@ -427,6 +431,7 @@ static NSString *AIRowLabel(NSString *label)
 	popUp_variants = nil;
 	checkBox_showUserIcons = nil;
 	checkBox_showHeader = nil;
+	checkBox_hideScrollbar = nil;
 	fontPreviewField_currentFont = nil;
 	button_setFont = nil;
 	button_defaultFont = nil;
@@ -509,6 +514,8 @@ static NSString *AIRowLabel(NSString *label)
 									  NSControlStateValueOff)];
 	[checkBox_showHeader setState:([[prefDict objectForKey:KEY_WEBKIT_SHOW_HEADER] boolValue] ?
 								   NSControlStateValueOn : NSControlStateValueOff)];
+	[checkBox_hideScrollbar setState:([[prefDict objectForKey:KEY_WEBKIT_HIDE_SCROLLBAR] boolValue] ?
+									  NSControlStateValueOn : NSControlStateValueOff)];
 	[checkBox_showMessageColors setState:([[previewController messageStyle] allowsColors] ?
 										  ([[prefDict objectForKey:KEY_WEBKIT_SHOW_MESSAGE_COLORS] boolValue] ?
 										   NSControlStateValueOn : NSControlStateValueOff) :
@@ -618,6 +625,11 @@ static NSString *AIRowLabel(NSString *label)
 		if (sender == checkBox_showUserIcons) {
 			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 												 forKey:KEY_WEBKIT_SHOW_USER_ICONS
+												  group:self.preferenceGroupForCurrentTab];
+
+		} else if (sender == checkBox_hideScrollbar) {
+			[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
+												 forKey:KEY_WEBKIT_HIDE_SCROLLBAR
 												  group:self.preferenceGroupForCurrentTab];
 
 		} else if (sender == checkBox_showHeader) {

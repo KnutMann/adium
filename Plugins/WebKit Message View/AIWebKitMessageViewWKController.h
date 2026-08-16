@@ -76,4 +76,10 @@
  */
 - (BOOL)allowsContextMenu;
 
+/* Whether the scrollbar beside the transcript should be hidden. Answers from the preference by
+ * default; the settings preview overrides it, because a scrollbar in a preview reads as chrome that
+ * does not belong there whatever the preference says.
+ */
+- (BOOL)hidesScrollbar;
+
 @end

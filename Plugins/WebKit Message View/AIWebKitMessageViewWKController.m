@@ -984,6 +984,15 @@ static NSString *const AIWKContextMenuScript =
 		if (currentContentQueue) {
 			[_contentQueue addObjectsFromArray:currentContentQueue];
 		}
+
+		/* The page is new and nothing has been drawn into it yet, so what was drawn last into the
+		 * old one is no longer what this one follows on from. Left standing, the first message of
+		 * the rebuilt conversation is compared against the last message of the one before it, and
+		 * where both are from the same person within five minutes it is drawn as a continuation:
+		 * no name, no time, no header at the top of the transcript.
+		 */
+		_previousContent = nil;
+		_cachedChatContentSource = nil;
 	} else {
 		// clearView: drop anything parked while the previous view was loading (including a
 		// topic queued by updateTopic) so the cleared view starts empty.
@@ -1025,7 +1034,13 @@ static NSString *const AIWKContextMenuScript =
 		// in place when the contact changes their icon (#124).
 		[self _trackUserIconForContent:content];
 
-		BOOL contentIsSimilar = [content isSimilarToContent:_previousContent];
+		/* Similar to nothing is not similar. The test itself would say so for an ordinary message,
+		 * whose source cannot match a source that is not there, but a file transfer has its own
+		 * ideas and the answer is asked for before there is anything to compare against.
+		 */
+		BOOL contentIsSimilar = (_previousContent != nil &&
+								 [content isSimilarToContent:_previousContent] &&
+								 ![content isKindOfClass:[ESFileTransfer class]]);
 		BOOL replaceLastContent = NO;
 
 		if ([_previousContent isKindOfClass:[AIContentStatus class]] &&
@@ -1380,7 +1395,37 @@ static NSString *const AIWKContextMenuScript =
 
 - (void)webViewIsReady
 {
-	//Nothing to do; here to be overridden.
+	[self _applyScrollbarVisibility];
+}
+
+- (BOOL)hidesScrollbar
+{
+	return [[adium.preferenceController preferenceForKey:KEY_WEBKIT_HIDE_SCROLLBAR
+												   group:_preferenceGroup] boolValue];
+}
+
+/*!
+ * @brief Put the scrollbar rule into the page, or take it out again
+ *
+ * One rule, added or removed, rather than the page being rebuilt: hiding a scrollbar is not a change
+ * of style and there is no reason to redraw a conversation for it. A WKWebView scrolls the page
+ * itself, so this is ordinary CSS; the old view drew the main frame's bar as an AppKit scroller and
+ * needed that restyled beside the rule.
+ *
+ * Called again after every reprime, hence the identifier: the rule must not be added twice.
+ */
+- (void)_applyScrollbarVisibility
+{
+	NSString *js = [self hidesScrollbar] ?
+		@"(function(){var i='adium-no-scrollbar';"
+		 "if(!document.getElementById(i)){"
+		 "var s=document.createElement('style');s.id=i;"
+		 "s.textContent='::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}';"
+		 "(document.head||document.documentElement).appendChild(s);}})();" :
+		@"(function(){var e=document.getElementById('adium-no-scrollbar');"
+		 "if(e){e.parentNode.removeChild(e);}})();";
+
+	[_webView evaluateJavaScript:js completionHandler:nil];
 }
 
 - (BOOL)allowsContextMenu
@@ -1410,6 +1455,16 @@ static NSString *const AIWKContextMenuScript =
 	 * This is what the preview in the message settings runs on, and without it a style could be
 	 * picked and nothing beside the list would move.
 	 */
+	/* The scrollbar is a rule in the page and nothing else, so it is applied where it lives rather
+	 * than by rebuilding everything around it. Whether anything is watching for preference changes
+	 * does not come into it: a chat window follows this one whether or not it follows the rest.
+	 */
+	if (_preferenceGroup && [group isEqualToString:_preferenceGroup] &&
+		[key isEqualToString:KEY_WEBKIT_HIDE_SCROLLBAR]) {
+		[self _applyScrollbarVisibility];
+		return;
+	}
+
 	if (_preferenceGroup && [group isEqualToString:_preferenceGroup] && _shouldReflectPreferenceChanges) {
 		if (![key isEqualToString:@"BackgroundCacheUniqueID"] &&
 			![key isEqualToString:[_plugin styleSpecificKey:@"BackgroundCachePath" forStyle:_activeStyle]] &&

@@ -94,6 +94,15 @@ typedef enum {
 /*!
  * @brief Key for group chats to use the same preferences as regular.
  */
+/*!
+ * @brief Hide the scrollbar without making the transcript unscrollable
+ *
+ * The conversation still scrolls, with the wheel, the trackpad and the keyboard; only the bar
+ * beside it goes. Off by default, because a scrollbar is also how far a reader knows they are from
+ * the end.
+ */
+#define KEY_WEBKIT_HIDE_SCROLLBAR				@"Hide Scrollbar"
+
 #define KEY_WEBKIT_USE_REGULAR_PREFERENCES		@"Use Regular Chat Preferences"
 
 #define NEW_CONTENT_RETRY_DELAY					0.01 

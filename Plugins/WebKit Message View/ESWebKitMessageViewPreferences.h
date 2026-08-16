@@ -40,6 +40,7 @@
 	NSPopUpButton		*popUp_variants;
 	NSSwitch			*checkBox_showUserIcons;
 	NSSwitch			*checkBox_showHeader;
+	NSSwitch			*checkBox_hideScrollbar;
 
 	JVFontPreviewField	*fontPreviewField_currentFont;
 	NSButton			*button_setFont;
