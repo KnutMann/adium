@@ -930,7 +930,7 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 
 		/* Text first, and on its own condition. It used to hang off the URLs below, and the table
 		 * above knows almost nothing that still exists - of the services registered today only
-		 * Jabber is in it. So copying an IRC, Telegram, WhatsApp or Bonjour contact wrote no
+		 * Jabber is in it. So copying an IRC, Telegram or WhatsApp contact wrote no
 		 * public type at all: pasting into any other application produced nothing, without a
 		 * word. Whether we can offer a link is a separate question from whether we can say who
 		 * was copied. */

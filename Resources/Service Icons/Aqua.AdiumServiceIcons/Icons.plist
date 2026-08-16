@@ -6,8 +6,6 @@
 	<integer>1</integer>
 	<key>Interface-Large</key>
 	<dict>
-		<key>Bonjour</key>
-		<string>bonjour.png</string>
 		<key>Gadu-Gadu</key>
 		<string>gadu-gadu.png</string>
 		<key>GroupWise</key>
@@ -19,8 +17,6 @@
 	</dict>
 	<key>Interface-Small</key>
 	<dict>
-		<key>Bonjour</key>
-		<string>bonjour-small.png</string>
 		<key>Gadu-Gadu</key>
 		<string>gadu-gadu-small.png</string>
 		<key>GroupWise</key>
@@ -32,8 +28,6 @@
 	</dict>
 	<key>List</key>
 	<dict>
-		<key>Bonjour</key>
-		<string>bonjour-small.png</string>
 		<key>Gadu-Gadu</key>
 		<string>gadu-gadu-small.png</string>
 		<key>GroupWise</key>

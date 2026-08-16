@@ -83,7 +83,7 @@ Current version: **1.6.0**.
 * Growl and other dead-feature wording renamed so it no longer misleads
 
 Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
-Bonjour (local network), Novell GroupWise and SIMPLE**, plus OTR
+Novell GroupWise and SIMPLE**, plus OTR
 encryption, tabbed chats, message styles, contact list themes and
 Xtras.
 

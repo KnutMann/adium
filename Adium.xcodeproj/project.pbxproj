@@ -27,28 +27,6 @@
 		11077B6F0DE647C100A4DD25 /* AIStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = 11077B6E0DE647C100A4DD25 /* AIStatusItemView.m */; };
 		1111B2300F8478500068CE51 /* Filter Bar.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1111B22F0F8478500068CE51 /* Filter Bar.xib */; };
 		1111B2680F847CAD0068CE51 /* AIFilterBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1111B2670F847CAD0068CE51 /* AIFilterBarView.m */; };
-		111256060F8DA2B200E76177 /* ESBonjourAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34F4675B080F46AC007800AB /* ESBonjourAccountView.xib */; };
-		111256070F8DA2BF00E76177 /* AWEzv.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5D30655E90C00B791E5 /* AWEzv.m */; };
-		111256080F8DA2BF00E76177 /* AWEzvContact.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5D50655E90C00B791E5 /* AWEzvContact.m */; };
-		111256090F8DA2BF00E76177 /* AWEzvSupportRoutines.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5EF0655E90D00B791E5 /* AWEzvSupportRoutines.m */; };
-		1112560A0F8DA2BF00E76177 /* AWEzvContactManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5F30655E90D00B791E5 /* AWEzvContactManager.m */; };
-		1112560B0F8DA2BF00E76177 /* AWEzvContactManagerListener.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5F50655E90D00B791E5 /* AWEzvContactManagerListener.m */; };
-		1112560C0F8DA2BF00E76177 /* AWEzvContactManagerRendezvous.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5F70655E90D00B791E5 /* AWEzvContactManagerRendezvous.m */; };
-		1112560D0F8DA2BF00E76177 /* AWEzvPrivate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5FB0655E90D00B791E5 /* AWEzvPrivate.m */; };
-		1112560E0F8DA2BF00E76177 /* AWEzvRendezvousData.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5FD0655E90D00B791E5 /* AWEzvRendezvousData.m */; };
-		1112560F0F8DA2BF00E76177 /* AWEzvStack.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F5FF0655E90D00B791E5 /* AWEzvStack.m */; };
-		111256100F8DA2BF00E76177 /* AWEzvXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F6010655E90D00B791E5 /* AWEzvXMLNode.m */; };
-		111256110F8DA2BF00E76177 /* AWEzvXMLStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 4947F6030655E90D00B791E5 /* AWEzvXMLStream.m */; };
-		111256120F8DA2BF00E76177 /* ESBonjourAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F46755080F46AB007800AB /* ESBonjourAccountViewController.m */; };
-		111256130F8DA2BF00E76177 /* AWBonjourPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F46757080F46AB007800AB /* AWBonjourPlugin.m */; };
-		111256140F8DA2BF00E76177 /* AWBonjourAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F46759080F46AB007800AB /* AWBonjourAccount.m */; };
-		111256150F8DA2BF00E76177 /* AWBonjourService.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F4675C080F46AC007800AB /* AWBonjourService.m */; };
-		111256160F8DA2BF00E76177 /* EKEzvFileTransfer.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FAFD7B20C4FD00100EDB3B8 /* EKEzvFileTransfer.m */; };
-		111256170F8DA2BF00E76177 /* AsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FB330970C7235AD00B001A8 /* AsyncSocket.m */; };
-		111256180F8DA2BF00E76177 /* HTTPAuthenticationRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FB330990C7235AD00B001A8 /* HTTPAuthenticationRequest.m */; };
-		111256190F8DA2BF00E76177 /* HTTPServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FB3309B0C7235AD00B001A8 /* HTTPServer.m */; };
-		1112561A0F8DA2BF00E76177 /* EKEzvIncomingFileTransfer.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FB330A20C7235BF00B001A8 /* EKEzvIncomingFileTransfer.m */; };
-		1112561B0F8DA2BF00E76177 /* EKEzvOutgoingFileTransfer.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FB330A40C7235BF00B001A8 /* EKEzvOutgoingFileTransfer.m */; };
 		111D58210F7FC1B900883487 /* AIListContactGroupChatCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 111D581F0F7FC1B900883487 /* AIListContactGroupChatCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		111D58220F7FC1B900883487 /* AIListContactGroupChatCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 111D58200F7FC1B900883487 /* AIListContactGroupChatCell.m */; };
 		111DDF3A0E8E7D2F00114FCA /* AIAutomaticStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 111DDF390E8E7D2F00114FCA /* AIAutomaticStatus.m */; };
@@ -2372,15 +2350,6 @@
 		34F2E83807C2CDBD007EAAAB /* ESFileWrapperExtension.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESFileWrapperExtension.m; path = Frameworks/Adium/Source/ESFileWrapperExtension.m; sourceTree = "<group>"; };
 		34F2E83907C2CDBD007EAAAB /* ESFileWrapperExtension.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESFileWrapperExtension.h; path = Frameworks/Adium/Source/ESFileWrapperExtension.h; sourceTree = "<group>"; };
 		34F312BC0ADC43CA00A4310E /* xtras_duck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = xtras_duck.png; path = Resources/xtras_duck.png; sourceTree = "<group>"; };
-		34F46755080F46AB007800AB /* ESBonjourAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ESBonjourAccountViewController.m; sourceTree = "<group>"; };
-		34F46756080F46AB007800AB /* ESBonjourAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ESBonjourAccountViewController.h; sourceTree = "<group>"; };
-		34F46757080F46AB007800AB /* AWBonjourPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AWBonjourPlugin.m; sourceTree = "<group>"; };
-		34F46758080F46AB007800AB /* AWBonjourPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AWBonjourPlugin.h; sourceTree = "<group>"; };
-		34F46759080F46AB007800AB /* AWBonjourAccount.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AWBonjourAccount.m; sourceTree = "<group>"; };
-		34F4675A080F46AB007800AB /* AWBonjourAccount.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AWBonjourAccount.h; sourceTree = "<group>"; };
-		34F4675B080F46AC007800AB /* ESBonjourAccountView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESBonjourAccountView.xib; path = ESBonjourAccountView.xib; sourceTree = "<group>"; };
-		34F4675C080F46AC007800AB /* AWBonjourService.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AWBonjourService.m; sourceTree = "<group>"; };
-		34F4675D080F46AC007800AB /* AWBonjourService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AWBonjourService.h; sourceTree = "<group>"; };
 		34F46778080F49C5007800AB /* Safari.scpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.scpt; name = Safari.scpt; path = Resources/Safari.scpt; sourceTree = "<group>"; };
 		34F46779080F49C5007800AB /* Safari.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Safari.png; path = Resources/Safari.png; sourceTree = "<group>"; };
 		34F46783080F7FFB007800AB /* ESSafariLinkToolbarItemPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESSafariLinkToolbarItemPlugin.m; path = Source/ESSafariLinkToolbarItemPlugin.m; sourceTree = "<group>"; };
@@ -2402,31 +2371,6 @@
 		40AC0F0F03B5C29E00A80202 /* ErrorMessageWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ErrorMessageWindowController.h; path = "Plugins/Error Message Handler/ErrorMessageWindowController.h"; sourceTree = "<group>"; };
 		40AC0F1003B5C29E00A80202 /* ErrorMessageWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ErrorMessageWindowController.m; path = "Plugins/Error Message Handler/ErrorMessageWindowController.m"; sourceTree = "<group>"; };
 		40AC0F1303B5C34800A80202 /* ErrorWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ErrorWindow.xib; path = "Plugins/Error Message Handler/ErrorWindow.xib"; sourceTree = SOURCE_ROOT; };
-		4947F5D20655E90C00B791E5 /* AWEzv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzv.h; sourceTree = "<group>"; };
-		4947F5D30655E90C00B791E5 /* AWEzv.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzv.m; sourceTree = "<group>"; };
-		4947F5D40655E90C00B791E5 /* AWEzvContact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvContact.h; sourceTree = "<group>"; };
-		4947F5D50655E90C00B791E5 /* AWEzvContact.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvContact.m; sourceTree = "<group>"; };
-		4947F5EB0655E90C00B791E5 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		4947F5ED0655E90C00B791E5 /* AWEzvDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvDefines.h; sourceTree = "<group>"; };
-		4947F5EE0655E90C00B791E5 /* AWEzvSupportRoutines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvSupportRoutines.h; sourceTree = "<group>"; };
-		4947F5EF0655E90D00B791E5 /* AWEzvSupportRoutines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvSupportRoutines.m; sourceTree = "<group>"; };
-		4947F5F20655E90D00B791E5 /* AWEzvContactManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvContactManager.h; sourceTree = "<group>"; };
-		4947F5F30655E90D00B791E5 /* AWEzvContactManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvContactManager.m; sourceTree = "<group>"; };
-		4947F5F40655E90D00B791E5 /* AWEzvContactManagerListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvContactManagerListener.h; sourceTree = "<group>"; };
-		4947F5F50655E90D00B791E5 /* AWEzvContactManagerListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvContactManagerListener.m; sourceTree = "<group>"; };
-		4947F5F60655E90D00B791E5 /* AWEzvContactManagerRendezvous.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvContactManagerRendezvous.h; sourceTree = "<group>"; };
-		4947F5F70655E90D00B791E5 /* AWEzvContactManagerRendezvous.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvContactManagerRendezvous.m; sourceTree = "<group>"; };
-		4947F5F80655E90D00B791E5 /* AWEzvContactPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvContactPrivate.h; sourceTree = "<group>"; };
-		4947F5FA0655E90D00B791E5 /* AWEzvPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvPrivate.h; sourceTree = "<group>"; };
-		4947F5FB0655E90D00B791E5 /* AWEzvPrivate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvPrivate.m; sourceTree = "<group>"; };
-		4947F5FC0655E90D00B791E5 /* AWEzvRendezvousData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvRendezvousData.h; sourceTree = "<group>"; };
-		4947F5FD0655E90D00B791E5 /* AWEzvRendezvousData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvRendezvousData.m; sourceTree = "<group>"; };
-		4947F5FE0655E90D00B791E5 /* AWEzvStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvStack.h; sourceTree = "<group>"; };
-		4947F5FF0655E90D00B791E5 /* AWEzvStack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvStack.m; sourceTree = "<group>"; };
-		4947F6000655E90D00B791E5 /* AWEzvXMLNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvXMLNode.h; sourceTree = "<group>"; };
-		4947F6010655E90D00B791E5 /* AWEzvXMLNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvXMLNode.m; sourceTree = "<group>"; };
-		4947F6020655E90D00B791E5 /* AWEzvXMLStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWEzvXMLStream.h; sourceTree = "<group>"; };
-		4947F6030655E90D00B791E5 /* AWEzvXMLStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AWEzvXMLStream.m; sourceTree = "<group>"; };
 		4B0149050733D3A4001A4C57 /* AICoreComponentLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AICoreComponentLoader.h; path = Source/AICoreComponentLoader.h; sourceTree = "<group>"; };
 		4B0149060733D3A5001A4C57 /* AICoreComponentLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AICoreComponentLoader.m; path = Source/AICoreComponentLoader.m; sourceTree = "<group>"; };
 		4B03711506595A70008F5981 /* Template.html */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = Template.html; path = "Plugins/WebKit Message View/Template.html"; sourceTree = "<group>"; };
@@ -2711,10 +2655,8 @@
 		ADD1E5C0DF00000000000002 /* AIXtraListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtraListView.m; path = Source/AIXtraListView.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtrasPreferences.h; path = Source/AIXtrasPreferences.h; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtrasPreferences.m; path = Source/AIXtrasPreferences.m; sourceTree = "<group>"; };
-		6341AEFE0E53A09C00AE1439 /* libexpat.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.dylib; path = usr/lib/libexpat.dylib; sourceTree = SDKROOT; };
 		634BCD1D0DDC1542005AF1C2 /* TestMutableStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestMutableStringAdditions.h; path = UnitTests/TestMutableStringAdditions.h; sourceTree = "<group>"; };
 		634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMutableStringAdditions.m; path = UnitTests/TestMutableStringAdditions.m; sourceTree = "<group>"; };
-		636C6E5D0ED56D0100E0E528 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		636D8C970E4E95A500E5F558 /* AIAddressBookController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookController.m; path = Frameworks/Adium/Source/AIAddressBookController.m; sourceTree = "<group>"; };
 		636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Jabber.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Jabber.scpt; sourceTree = "<group>"; };
 		638BC1FA0FC932E000CE7600 /* AIObjectDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIObjectDebug.h; path = Source/AIObjectDebug.h; sourceTree = "<group>"; };
@@ -2769,19 +2711,6 @@
 		6EC1684B06C170A000F9FAD3 /* InviteToChatWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = InviteToChatWindow.xib; path = "Plugins/Invite to Chat Plugin/InviteToChatWindow.xib"; sourceTree = "<group>"; };
 		6ECFABC606223733001C7E93 /* AIContentContext.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContentContext.h; path = Frameworks/Adium/Source/AIContentContext.h; sourceTree = "<group>"; };
 		6ECFABC706223733001C7E93 /* AIContentContext.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContentContext.m; path = Frameworks/Adium/Source/AIContentContext.m; sourceTree = "<group>"; };
-		6FAFD7B10C4FD00100EDB3B8 /* EKEzvFileTransfer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = EKEzvFileTransfer.h; sourceTree = "<group>"; };
-		6FAFD7B20C4FD00100EDB3B8 /* EKEzvFileTransfer.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = EKEzvFileTransfer.m; sourceTree = "<group>"; };
-		6FB330960C7235AD00B001A8 /* AsyncSocket.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AsyncSocket.h; path = "Plugins/Bonjour/libezv/Simple HTTP Server/AsyncSocket.h"; sourceTree = SOURCE_ROOT; };
-		6FB330970C7235AD00B001A8 /* AsyncSocket.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AsyncSocket.m; path = "Plugins/Bonjour/libezv/Simple HTTP Server/AsyncSocket.m"; sourceTree = SOURCE_ROOT; };
-		6FB330980C7235AD00B001A8 /* HTTPAuthenticationRequest.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HTTPAuthenticationRequest.h; path = "Plugins/Bonjour/libezv/Simple HTTP Server/HTTPAuthenticationRequest.h"; sourceTree = SOURCE_ROOT; };
-		6FB330990C7235AD00B001A8 /* HTTPAuthenticationRequest.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HTTPAuthenticationRequest.m; path = "Plugins/Bonjour/libezv/Simple HTTP Server/HTTPAuthenticationRequest.m"; sourceTree = SOURCE_ROOT; };
-		6FB3309A0C7235AD00B001A8 /* HTTPServer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HTTPServer.h; path = "Plugins/Bonjour/libezv/Simple HTTP Server/HTTPServer.h"; sourceTree = SOURCE_ROOT; };
-		6FB3309B0C7235AD00B001A8 /* HTTPServer.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HTTPServer.m; path = "Plugins/Bonjour/libezv/Simple HTTP Server/HTTPServer.m"; sourceTree = SOURCE_ROOT; };
-		6FB3309C0C7235AD00B001A8 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = LICENSE.txt; path = "Plugins/Bonjour/libezv/Simple HTTP Server/LICENSE.txt"; sourceTree = SOURCE_ROOT; };
-		6FB330A10C7235BF00B001A8 /* EKEzvIncomingFileTransfer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EKEzvIncomingFileTransfer.h; path = Plugins/Bonjour/libezv/Classes/EKEzvIncomingFileTransfer.h; sourceTree = SOURCE_ROOT; };
-		6FB330A20C7235BF00B001A8 /* EKEzvIncomingFileTransfer.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = EKEzvIncomingFileTransfer.m; path = Plugins/Bonjour/libezv/Classes/EKEzvIncomingFileTransfer.m; sourceTree = SOURCE_ROOT; };
-		6FB330A30C7235BF00B001A8 /* EKEzvOutgoingFileTransfer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EKEzvOutgoingFileTransfer.h; path = Plugins/Bonjour/libezv/Classes/EKEzvOutgoingFileTransfer.h; sourceTree = SOURCE_ROOT; };
-		6FB330A40C7235BF00B001A8 /* EKEzvOutgoingFileTransfer.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = EKEzvOutgoingFileTransfer.m; path = Plugins/Bonjour/libezv/Classes/EKEzvOutgoingFileTransfer.m; sourceTree = SOURCE_ROOT; };
 		7664EAA4162E086A008CF995 /* libffi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libffi.framework; path = Frameworks/libffi.framework; sourceTree = "<group>"; };
 		766ABAB41306D1020049FFB7 /* AIUnreadMessagesTooltip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIUnreadMessagesTooltip.h; path = Source/AIUnreadMessagesTooltip.h; sourceTree = "<group>"; };
 		766ABAB51306D1020049FFB7 /* AIUnreadMessagesTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIUnreadMessagesTooltip.m; path = Source/AIUnreadMessagesTooltip.m; sourceTree = "<group>"; };
@@ -4480,89 +4409,6 @@
 			name = "Error Message Handler";
 			sourceTree = "<group>";
 		};
-		4947F5BB0655E7C400B791E5 /* Bonjour */ = {
-			isa = PBXGroup;
-			children = (
-				6341AEFE0E53A09C00AE1439 /* libexpat.dylib */,
-				34F4675A080F46AB007800AB /* AWBonjourAccount.h */,
-				34F46759080F46AB007800AB /* AWBonjourAccount.m */,
-				34F46758080F46AB007800AB /* AWBonjourPlugin.h */,
-				34F46757080F46AB007800AB /* AWBonjourPlugin.m */,
-				34F4675D080F46AC007800AB /* AWBonjourService.h */,
-				34F4675C080F46AC007800AB /* AWBonjourService.m */,
-				34F4675B080F46AC007800AB /* ESBonjourAccountView.xib */,
-				34F46756080F46AB007800AB /* ESBonjourAccountViewController.h */,
-				34F46755080F46AB007800AB /* ESBonjourAccountViewController.m */,
-				4947F5D00655E90C00B791E5 /* libezv */,
-			);
-			name = Bonjour;
-			path = Plugins/Bonjour;
-			sourceTree = "<group>";
-		};
-		4947F5D00655E90C00B791E5 /* libezv */ = {
-			isa = PBXGroup;
-			children = (
-				636C6E5D0ED56D0100E0E528 /* libcrypto.dylib */,
-				4947F5D10655E90C00B791E5 /* Classes */,
-				4947F5EB0655E90C00B791E5 /* LICENSE */,
-				4947F5EC0655E90C00B791E5 /* Other Sources */,
-				4947F5F10655E90D00B791E5 /* Private Classes */,
-			);
-			path = libezv;
-			sourceTree = "<group>";
-		};
-		4947F5D10655E90C00B791E5 /* Classes */ = {
-			isa = PBXGroup;
-			children = (
-				6FAFD7B10C4FD00100EDB3B8 /* EKEzvFileTransfer.h */,
-				6FAFD7B20C4FD00100EDB3B8 /* EKEzvFileTransfer.m */,
-				4947F5D20655E90C00B791E5 /* AWEzv.h */,
-				4947F5D30655E90C00B791E5 /* AWEzv.m */,
-				4947F5D40655E90C00B791E5 /* AWEzvContact.h */,
-				4947F5D50655E90C00B791E5 /* AWEzvContact.m */,
-			);
-			path = Classes;
-			sourceTree = "<group>";
-		};
-		4947F5EC0655E90C00B791E5 /* Other Sources */ = {
-			isa = PBXGroup;
-			children = (
-				4947F5ED0655E90C00B791E5 /* AWEzvDefines.h */,
-				4947F5EE0655E90C00B791E5 /* AWEzvSupportRoutines.h */,
-				4947F5EF0655E90D00B791E5 /* AWEzvSupportRoutines.m */,
-			);
-			path = "Other Sources";
-			sourceTree = "<group>";
-		};
-		4947F5F10655E90D00B791E5 /* Private Classes */ = {
-			isa = PBXGroup;
-			children = (
-				6FB330A10C7235BF00B001A8 /* EKEzvIncomingFileTransfer.h */,
-				6FB330A20C7235BF00B001A8 /* EKEzvIncomingFileTransfer.m */,
-				6FB330A30C7235BF00B001A8 /* EKEzvOutgoingFileTransfer.h */,
-				6FB330A40C7235BF00B001A8 /* EKEzvOutgoingFileTransfer.m */,
-				6FB330940C72359100B001A8 /* HTTP Server */,
-				4947F5F20655E90D00B791E5 /* AWEzvContactManager.h */,
-				4947F5F30655E90D00B791E5 /* AWEzvContactManager.m */,
-				4947F5F40655E90D00B791E5 /* AWEzvContactManagerListener.h */,
-				4947F5F50655E90D00B791E5 /* AWEzvContactManagerListener.m */,
-				4947F5F60655E90D00B791E5 /* AWEzvContactManagerRendezvous.h */,
-				4947F5F70655E90D00B791E5 /* AWEzvContactManagerRendezvous.m */,
-				4947F5F80655E90D00B791E5 /* AWEzvContactPrivate.h */,
-				4947F5FA0655E90D00B791E5 /* AWEzvPrivate.h */,
-				4947F5FB0655E90D00B791E5 /* AWEzvPrivate.m */,
-				4947F5FC0655E90D00B791E5 /* AWEzvRendezvousData.h */,
-				4947F5FD0655E90D00B791E5 /* AWEzvRendezvousData.m */,
-				4947F5FE0655E90D00B791E5 /* AWEzvStack.h */,
-				4947F5FF0655E90D00B791E5 /* AWEzvStack.m */,
-				4947F6000655E90D00B791E5 /* AWEzvXMLNode.h */,
-				4947F6010655E90D00B791E5 /* AWEzvXMLNode.m */,
-				4947F6020655E90D00B791E5 /* AWEzvXMLStream.h */,
-				4947F6030655E90D00B791E5 /* AWEzvXMLStream.m */,
-			);
-			path = "Private Classes";
-			sourceTree = "<group>";
-		};
 		4B0473B7043E43F200A8010A /* Status Changed Messages */ = {
 			isa = PBXGroup;
 			children = (
@@ -4995,7 +4841,6 @@
 		4BD672C406001B530049CAF7 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				4947F5BB0655E7C400B791E5 /* Bonjour */,
 				4B7F278605440C6200CDFC90 /* Libpurple */,
 			);
 			name = Services;
@@ -5491,20 +5336,6 @@
 				6EC1684B06C170A000F9FAD3 /* InviteToChatWindow.xib */,
 			);
 			name = "Invite to Chat";
-			sourceTree = "<group>";
-		};
-		6FB330940C72359100B001A8 /* HTTP Server */ = {
-			isa = PBXGroup;
-			children = (
-				6FB330960C7235AD00B001A8 /* AsyncSocket.h */,
-				6FB330970C7235AD00B001A8 /* AsyncSocket.m */,
-				6FB330980C7235AD00B001A8 /* HTTPAuthenticationRequest.h */,
-				6FB330990C7235AD00B001A8 /* HTTPAuthenticationRequest.m */,
-				6FB3309A0C7235AD00B001A8 /* HTTPServer.h */,
-				6FB3309B0C7235AD00B001A8 /* HTTPServer.m */,
-				6FB3309C0C7235AD00B001A8 /* LICENSE.txt */,
-			);
-			name = "HTTP Server";
 			sourceTree = "<group>";
 		};
 		7E824CCD06387FAF00813072 /* Link Management */ = {
@@ -6705,7 +6536,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				111256060F8DA2B200E76177 /* ESBonjourAccountView.xib in Resources */,
 				6318DBA10F8D93F200C5E584 /* WebKit Defaults.plist in Resources */,
 				ADD1E5C0DE00000000000E02 /* WebKitPreferencesView.xib in Resources */,
 				6318DBA30F8D93F200C5E584 /* Preview.plist in Resources */,
@@ -7123,27 +6953,6 @@
 				11D9156F0FFC0FEB00B39713 /* AIImageShackImageUploader.m in Sources */,
 				111E89010F93FE3900A5F18B /* AIRealNameTooltip.m in Sources */,
 				111E89020F93FE3900A5F18B /* AIUserHostTooltip.m in Sources */,
-				111256070F8DA2BF00E76177 /* AWEzv.m in Sources */,
-				111256080F8DA2BF00E76177 /* AWEzvContact.m in Sources */,
-				111256090F8DA2BF00E76177 /* AWEzvSupportRoutines.m in Sources */,
-				1112560A0F8DA2BF00E76177 /* AWEzvContactManager.m in Sources */,
-				1112560B0F8DA2BF00E76177 /* AWEzvContactManagerListener.m in Sources */,
-				1112560C0F8DA2BF00E76177 /* AWEzvContactManagerRendezvous.m in Sources */,
-				1112560D0F8DA2BF00E76177 /* AWEzvPrivate.m in Sources */,
-				1112560E0F8DA2BF00E76177 /* AWEzvRendezvousData.m in Sources */,
-				1112560F0F8DA2BF00E76177 /* AWEzvStack.m in Sources */,
-				111256100F8DA2BF00E76177 /* AWEzvXMLNode.m in Sources */,
-				111256110F8DA2BF00E76177 /* AWEzvXMLStream.m in Sources */,
-				111256120F8DA2BF00E76177 /* ESBonjourAccountViewController.m in Sources */,
-				111256130F8DA2BF00E76177 /* AWBonjourPlugin.m in Sources */,
-				111256140F8DA2BF00E76177 /* AWBonjourAccount.m in Sources */,
-				111256150F8DA2BF00E76177 /* AWBonjourService.m in Sources */,
-				111256160F8DA2BF00E76177 /* EKEzvFileTransfer.m in Sources */,
-				111256170F8DA2BF00E76177 /* AsyncSocket.m in Sources */,
-				111256180F8DA2BF00E76177 /* HTTPAuthenticationRequest.m in Sources */,
-				111256190F8DA2BF00E76177 /* HTTPServer.m in Sources */,
-				1112561A0F8DA2BF00E76177 /* EKEzvIncomingFileTransfer.m in Sources */,
-				1112561B0F8DA2BF00E76177 /* EKEzvOutgoingFileTransfer.m in Sources */,
 				ADD1E5C0DE00000000000D03 /* AIWebKitMessageViewWKController.m in Sources */,
 				ADD1E5C0DE00000000000D06 /* AIAdiumURLSchemeHandler.m in Sources */,
 				ADD1E5C0DE00000000000D09 /* AIWebKitMessageViewWKContextMenu.m in Sources */,

@@ -297,8 +297,6 @@
 		serviceID = @"libpurple-Jabber";
 	} else if ([serviceID isEqualToString:@"Novell-LIBGAIM"]) {
 		serviceID = @"libpurple-GroupWise";
-	} else if ([serviceID isEqualToString:@"rvous-libezv"]) {
-		serviceID = @"bonjour-libezv";
 	}
 	
 	return serviceID;

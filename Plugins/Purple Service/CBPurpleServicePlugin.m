@@ -44,7 +44,6 @@
 	 * service class. Commenting a line out therefore doesn't mean "temporarily off" - it
 	 * means the service stops existing as far as the rest of Adium is concerned, while its
 	 * code would still be compiled into AdiumLibpurple and shipped. Drop the code instead.
-	 * (Bonjour is a service too, but registers itself in AWBonjourPlugin.)
 	 */
     //Install the services
 	[ESGaduGaduService registerService];
