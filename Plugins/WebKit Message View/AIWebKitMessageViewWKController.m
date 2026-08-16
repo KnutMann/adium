@@ -1385,6 +1385,22 @@ static NSString *const AIWKContextMenuScript =
 		return;
 	}
 
+	/* A change to this view's own group is a change to how it should look: another style, another
+	 * variant, another setting inside one of them. The view is rebuilt for it, except for the three
+	 * keys that are only ever storage: two naming a cached background image and one naming the style
+	 * whose change brought us here in the first place.
+	 *
+	 * This is what the preview in the message settings runs on, and without it a style could be
+	 * picked and nothing beside the list would move.
+	 */
+	if (_preferenceGroup && [group isEqualToString:_preferenceGroup] && _shouldReflectPreferenceChanges) {
+		if (![key isEqualToString:@"BackgroundCacheUniqueID"] &&
+			![key isEqualToString:[_plugin styleSpecificKey:@"BackgroundCachePath" forStyle:_activeStyle]] &&
+			!_isUpdatingView) {
+			[self _updateWebViewForCurrentPreferences];
+		}
+	}
+
 	if ([group isEqualToString:PREF_GROUP_WEBKIT_BACKGROUND_IMAGES] && _shouldReflectPreferenceChanges) {
 		[adium.preferenceController setPreference:nil
 										   forKey:[_plugin styleSpecificKey:@"BackgroundCachePath"
