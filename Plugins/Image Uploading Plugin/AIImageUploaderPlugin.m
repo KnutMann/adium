@@ -53,44 +53,32 @@
 	[subMenu setDelegate:self];
 	
 	// Edit menu
-	menuItem = [[[NSMenuItem alloc] initWithTitle:IMAGE_UPLOAD_MENU_TITLE
-										   target:self
-										   action:@selector(uploadImage)
-									keyEquivalent:@"k"
-										  keyMask:NSEventModifierFlagCommand | NSEventModifierFlagOption] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:IMAGE_UPLOAD_MENU_TITLE
+										  target:self
+										  action:@selector(uploadImage)
+								   keyEquivalent:@"k"
+										 keyMask:NSEventModifierFlagCommand | NSEventModifierFlagOption];
 	
 	[menuItem setSubmenu:subMenu];
 	
 	[adium.menuController addMenuItem:menuItem toLocation:LOC_Edit_Links];
 
 	// Context menu
-	menuItem = [[[NSMenuItem alloc] initWithTitle:IMAGE_UPLOAD_MENU_TITLE
-										   target:self
-										   action:@selector(uploadImage)
-									keyEquivalent:@""] autorelease];
-	
-	[menuItem setSubmenu:[[subMenu copy] autorelease]];
+	menuItem = [[NSMenuItem alloc] initWithTitle:IMAGE_UPLOAD_MENU_TITLE
+										  target:self
+										  action:@selector(uploadImage)
+								   keyEquivalent:@""];
+
+	[menuItem setSubmenu:[subMenu copy]];
 	
 	[adium.menuController addContextualMenuItem:menuItem toLocation:Context_TextView_Edit];
 	
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_FORMATTING];
-
-	[subMenu release];
 }
 
 - (void)uninstallPlugin
 {
 	[adium.preferenceController unregisterPreferenceObserver:self];
-}
-
-- (void)dealloc
-{
-	[defaultService release];
-	[windowControllers release];
-	[uploadInstances release];
-	[uploaders release];
-	
-	[super dealloc];
 }
 
 #pragma mark Preferences
@@ -236,7 +224,7 @@
 	[attrs setObject:inAddress forKey:NSLinkAttributeName];
 	
 	[textView.textStorage replaceCharactersInRange:selectedRange
-							  withAttributedString:[[[NSAttributedString alloc] initWithString:inAddress attributes:attrs] autorelease]];
+							  withAttributedString:[[NSAttributedString alloc] initWithString:inAddress attributes:attrs]];
 	
 	// Select the inserted URL
 	textView.selectedRange = NSMakeRange(selectedRange.location, inAddress.length);
@@ -266,13 +254,19 @@
 	NSObject <AIImageUploader> *imageUploader = [uploadInstances objectForKey:chat.internalObjectID];
 	
 	[windowController closeWindow:nil];
-	
-	[[windowController retain] autorelease];
-	[[imageUploader retain] autorelease];
-	
+
+	/* The dictionaries hold the only lasting references, and the upload instance is the caller
+	 * beneath this very method; removing the entries must not free either object before this run
+	 * loop turn ends, so both go to the pool first.
+	 */
+	if (windowController)
+		CFAutorelease(CFBridgingRetain(windowController));
+	if (imageUploader)
+		CFAutorelease(CFBridgingRetain(imageUploader));
+
 	[windowControllers setValue:nil forKey:chat.internalObjectID];
 	[uploadInstances setValue:nil forKey:chat.internalObjectID];
-	
+
 	AILogWithSignature(@"Received %@ for %@", url, chat);
 	
 	if (url) {
@@ -308,9 +302,15 @@
 	
 	[imageUploader cancel];
 
-	[[windowController retain] autorelease];
-	[[imageUploader retain] autorelease];
-	
+	/* The dictionaries hold the only lasting references, and the window controller's -cancel: is
+	 * the caller beneath this very method; removing the entries must not free either object before
+	 * this run loop turn ends, so both go to the pool first.
+	 */
+	if (windowController)
+		CFAutorelease(CFBridgingRetain(windowController));
+	if (imageUploader)
+		CFAutorelease(CFBridgingRetain(imageUploader));
+
 	[windowControllers setValue:nil forKey:chat.internalObjectID];
 	[uploadInstances setValue:nil forKey:chat.internalObjectID];
 

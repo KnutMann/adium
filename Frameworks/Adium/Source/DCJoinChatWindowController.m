@@ -113,13 +113,6 @@ static DCJoinChatWindowController *sharedJoinChatInstance = nil;
     return self;
 }
 
-- (void)dealloc
-{
-	self.joinChatViewController = nil;
-	
-	[super dealloc];
-}
-
 // Setup the window before it is displayed
 - (void)windowDidLoad
 {
@@ -131,9 +124,9 @@ static DCJoinChatWindowController *sharedJoinChatInstance = nil;
 	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
 
 	// Account menu
-	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self
-											  submenuType:AIAccountNoSubmenu
-										   showTitleVerbs:NO] retain];
+	accountMenu = [AIAccountMenu accountMenuWithDelegate:self
+											 submenuType:AIAccountNoSubmenu
+										  showTitleVerbs:NO];
 
 	[self configureForAccount:[[popUp_service selectedItem] representedObject]];
 
@@ -145,9 +138,12 @@ static DCJoinChatWindowController *sharedJoinChatInstance = nil;
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
+	/* The static holds the only reference, and -[NSWindow close] is still running and still talking
+	 * to this controller as its delegate and window controller; the pool keeps it alive until the
+	 * end of the run loop turn, which is the timing the autorelease had. */
+	CFAutorelease(CFBridgingRetain(sharedJoinChatInstance));
 	sharedJoinChatInstance = nil;
-	[accountMenu release]; accountMenu = nil;
-    [self autorelease]; //Close the shared instance
+	accountMenu = nil;
 }
 
 #pragma mark DCJoinChatViewController delegate

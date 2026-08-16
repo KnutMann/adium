@@ -31,10 +31,10 @@
 	IBOutlet NSTextField	*label_Action;
 
 	AIActionDetailsPane		*detailsPane;
-	NSView					*detailsView;
+	__unsafe_unretained NSView	*detailsView;	//detailsPane owns its view
 	NSMutableDictionary		*alert;
 
-	id				target;
+	__unsafe_unretained id	target;
 	NSDictionary	*oldAlert;
 	
 	AIListObject	*listObject;

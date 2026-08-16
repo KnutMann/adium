@@ -38,6 +38,7 @@
 // For the KEY_SHOW_OFFLINE_CONTACTS and PREF_GROUP_CONTACT_LIST_DISPLAY
 #import "AIContactController.h"
 #import "AIInterfaceController.h"
+#import <Adium/AIStatus.h>
 
 #define STATUS_ITEM_MARGIN 8
 
@@ -63,14 +64,14 @@
 
 + (CBStatusMenuItemController *)statusMenuItemController
 {
-	return [[[self alloc] init] autorelease];
+	return [[self alloc] init];
 }
 
 - (id)init
 {
 	if ((self = [super init])) {
 		//Create and set up the status item
-		statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+		statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
 		statusItem.button.imagePosition = NSImageLeft;
 		
 		unviewedContent = NO;
@@ -95,10 +96,10 @@
 		accountsMenuNeedsUpdate = YES;
 		optionsMenuNeedsUpdate = YES;
 		
-		self.contactsMenuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Contacts",nil)
+		self.contactsMenuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Contacts",nil)
 																					  target:self
 																					  action:nil
-																			   keyEquivalent:@""] autorelease];
+																			   keyEquivalent:@""];
 
 		NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
 		//Register to recieve chat opened and chat closed notifications
@@ -151,16 +152,16 @@
 		                         object:nil];
 		
 		//Register ourself for the status menu items
-		statusMenu = [[AIStatusMenu statusMenuWithDelegate:self] retain];
-		
+		statusMenu = [AIStatusMenu statusMenuWithDelegate:self];
+
 		//Account menu
-		accountMenu = [[AIAccountMenu accountMenuWithDelegate:self
-												  submenuType:AIAccountStatusSubmenu
-											   showTitleVerbs:YES] retain];
-		
+		accountMenu = [AIAccountMenu accountMenuWithDelegate:self
+												 submenuType:AIAccountStatusSubmenu
+											  showTitleVerbs:YES];
+
 		//Contact menu
-		contactMenu = [[AIContactMenu contactMenuWithDelegate:self
-										  forContactsInObject:nil] retain];
+		contactMenu = [AIContactMenu contactMenuWithDelegate:self
+										 forContactsInObject:nil];
 	}
 	
 	return self;
@@ -177,32 +178,11 @@
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	
-	//Release our objects
 	[[statusItem statusBar] removeStatusItem:statusItem];
 
-	// All the temporary NSMutableArrays we store
-	[accountMenuItemsArray release];
-	[stateMenuItemsArray release];
-	[openChatsArray release];
-	
-	// The menus
-	[mainMenu release];
-	[mainAccountsMenu release];
-	[mainOptionsMenu release];
-	
-	// Release our various menus.
-	[accountMenu setDelegate:nil]; [accountMenu release];
-	[contactMenu setDelegate:nil]; [contactMenu release];
-	[statusMenu setDelegate:nil]; [statusMenu release];
-
-	// Release our AIMenuBarIcons bundle
-	[menuIcons release];
-	
-	// Can't release this because it causes a crash on quit. rdar://4139755, rdar://4160625, and #743. --boredzo
-	// [statusItem release];
-	
-	//To the superclass, Robin!
-	[super dealloc];
+	[accountMenu setDelegate:nil];
+	[contactMenu setDelegate:nil];
+	[statusMenu setDelegate:nil];
 }
 
 #pragma mark Icon State
@@ -242,7 +222,6 @@
 							  resourceFolderName:RESOURCE_MENU_BAR_ICONS];
 	}
 	
-	[menuIcons release];
 	menuIcons = [[AIMenuBarIcons alloc] initWithURL:[NSURL fileURLWithPath:menuIconPath]];
 	
 	[self updateMenuIcons];
@@ -290,7 +269,7 @@
 {
 	currentlyIgnoringUnviewed = NO;
 	[unviewedContentFlash invalidate];
-	[unviewedContentFlash release]; unviewedContentFlash = nil;
+	unviewedContentFlash = nil;
 }
 
 #define	IMAGE_TYPE_CONTENT		@"Content"
@@ -345,7 +324,7 @@
 	/* No badge: a template image is single-coloured by definition, so a badge
 	 * composited into it would flatten to a silhouette. The status is in the
 	 * icon's own shape and unread messages are the count beside it. */
-	NSImage *statusImage = [[[menuIcons imageOfType:imageName alternate:NO] copy] autorelease];
+	NSImage *statusImage = [[menuIcons imageOfType:imageName alternate:NO] copy];
 
 	/* A template image carries only a shape — its alpha channel — and the system
 	 * paints it: dark on a light menu bar, light on a dark one, light while the
@@ -385,7 +364,7 @@
 	NSImage *image = duckImage;
 	
 	if (badgeImage) {
-		image = [[duckImage copy] autorelease];
+		image = [duckImage copy];
 		
 		[image lockFocus];
 		
@@ -438,8 +417,7 @@
 		mainMenuNeedsUpdate = YES;
 	
 	
-	[accountMenuItemsArray release];
-	accountMenuItemsArray = [menuItems retain];
+	accountMenuItemsArray = menuItems;
 	
 	//We need to update next time we're clicked
 	accountsMenuNeedsUpdate = YES;
@@ -458,8 +436,7 @@
  */
 - (void)statusMenu:(AIStatusMenu *)inStatusMenu didRebuildStatusMenuItems:(NSArray *)menuItemArray
 {
-	[stateMenuItemsArray release];
-	stateMenuItemsArray = [menuItemArray retain];
+	stateMenuItemsArray = menuItemArray;
 	
 	//We need to update next time we're clicked
 	mainMenuNeedsUpdate = YES;
@@ -593,19 +570,20 @@
  */
 - (void)updateOpenChats
 {
-	[self retain];
-	
+	/* Invalidating unviewedContentFlash below drops the timer's retain on self,
+	 * which can be the last one; self must stay alive to the end of this method. */
+	CFAutorelease(CFBridgingRetain(self));
+
 	NSUInteger unviewedContentCount = [adium.chatController unviewedContentCount];
 
 	// Update our open chats
-	[openChatsArray release];
-	openChatsArray = [[adium.interfaceController openChats] retain];
+	openChatsArray = [adium.interfaceController openChats];
 	
 	// We think there's unviewed content, but there's not.
 	if (unviewedContent && unviewedContentCount == 0) {
 		// Invalidate and release the unviewed content flash timer
 		[unviewedContentFlash invalidate];
-		[unviewedContentFlash release]; unviewedContentFlash = nil;
+		unviewedContentFlash = nil;
 		currentlyIgnoringUnviewed = NO;
 		
 		// Update unviewed content
@@ -618,11 +596,11 @@
 		// If this particular Xtra wants us to flash unviewed content, start the timer up
 		if (flashUnviewed) {
 			currentlyIgnoringUnviewed = NO;
-			unviewedContentFlash = [[NSTimer scheduledTimerWithTimeInterval:1.0
-																	 target:self
-																   selector:@selector(updateUnviewedContentFlash:)
-																   userInfo:nil
-																	repeats:YES] retain];
+			unviewedContentFlash = [NSTimer scheduledTimerWithTimeInterval:1.0
+																	target:self
+																  selector:@selector(updateUnviewedContentFlash:)
+																  userInfo:nil
+																   repeats:YES];
 		}
 		
 		// Update unviewed content
@@ -635,9 +613,7 @@
 		[self updateUnreadCount];
 	}
 
-	mainMenuNeedsUpdate = YES;	
-	
-	[self release];
+	mainMenuNeedsUpdate = YES;
 }
 
 #pragma mark Menu Delegates/Actions
@@ -676,7 +652,6 @@
 			
 			[menuItem setSubmenu:mainAccountsMenu];
 			[menu addItem:menuItem];
-			[menuItem release];
 		}
 		
 		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Options",nil)
@@ -685,8 +660,7 @@
 																 keyEquivalent:@""];
 		[menuItem setSubmenu:mainOptionsMenu];
 		[menu addItem:menuItem];
-		[menuItem release];
-		
+
 		[menu addItem:[NSMenuItem separatorItem]];
 
 		//Add the state menu items
@@ -729,7 +703,6 @@
 				
 				//Add it to the menu
 				[menu addItem:menuItem];
-				[menuItem release];
 			}
 		}
 		

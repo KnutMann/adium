@@ -58,7 +58,7 @@
 	IBOutlet	NSTextField			*textField_registering;
 	
 	//Instance variables
-    AIAccount			*account;
+    __unsafe_unretained AIAccount	*account;	//The account being configured; never retained
 	NSMutableDictionary	*changedPrefDict;
 }
 

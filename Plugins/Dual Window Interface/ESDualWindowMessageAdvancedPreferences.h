@@ -20,7 +20,7 @@
 @class AISettingsFormView;
 
 @interface ESDualWindowMessageAdvancedPreferences : AIAdvancedPreferencePane {
-	AISettingsFormView	*settingsForm;					//Our view, typed; unretained (-view owns it)
+	__unsafe_unretained AISettingsFormView	*settingsForm;	//Our view, typed; unretained (-view owns it)
 
 	/* Which of the two sets of per-chat-type preferences the rows show. The nib's
 	 * tab view did not remember its selection either, so this is not a preference
@@ -28,22 +28,23 @@
 	 */
 	AIWebkitStyleType	 selectedChatType;
 
-	NSSegmentedControl	*segment_chatType;
+	//The form's view tree owns every control below; -viewWillClose clears them
+	__unsafe_unretained NSSegmentedControl	*segment_chatType;
 
 	//Per chat type: regular chats and group chats keep separate values
-	NSSwitch			*checkBox_customNameFormatting;
-	NSPopUpButton		*popUp_nameFormat;
-	NSPopUpButton		*popUp_timeStampFormat;
-	NSPopUpButton		*popUp_minimumFontSize;
-	NSSwitch			*checkBox_showTabCount;
-	NSSwitch			*checkBox_unreadMentionCount;
+	__unsafe_unretained NSSwitch			*checkBox_customNameFormatting;
+	__unsafe_unretained NSPopUpButton		*popUp_nameFormat;
+	__unsafe_unretained NSPopUpButton		*popUp_timeStampFormat;
+	__unsafe_unretained NSPopUpButton		*popUp_minimumFontSize;
+	__unsafe_unretained NSSwitch			*checkBox_showTabCount;
+	__unsafe_unretained NSSwitch			*checkBox_unreadMentionCount;
 
 	//Tabs
 
 	//Window handling
-	NSSwitch			*checkBox_hide;
-	NSSwitch			*checkBox_psychicOpen;
-	NSPopUpButton		*popUp_windowPosition;
+	__unsafe_unretained NSSwitch			*checkBox_hide;
+	__unsafe_unretained NSSwitch			*checkBox_psychicOpen;
+	__unsafe_unretained NSPopUpButton		*popUp_windowPosition;
 }
 
 @property (readonly, nonatomic) NSString *preferenceGroupForCurrentTab;

@@ -393,11 +393,11 @@ typedef enum {
 
 + (AISettingsGuestHostView *)hostForGuest:(NSView *)guest sizing:(AISettingsGuestSizing)guestSizing
 {
-	AISettingsGuestHostView *host = [[[self alloc] initWithFrame:NSZeroRect] autorelease];
+	AISettingsGuestHostView *host = [[self alloc] initWithFrame:NSZeroRect];
 
 	[host setTranslatesAutoresizingMaskIntoConstraints:NO];
 	host->sizing = guestSizing;
-	host->guestView = [guest retain];
+	host->guestView = guest;
 	host->naturalSize = AISettingsControlSize(guest);
 
 	//A guest without a frame yet starts at its natural size, as it always did
@@ -408,12 +408,6 @@ typedef enum {
 	[host addSubview:guest];
 
 	return host;
-}
-
-- (void)dealloc
-{
-	[guestView release];
-	[super dealloc];
 }
 
 - (BOOL)isFlipped
@@ -512,12 +506,6 @@ typedef enum {
 
 @implementation AISettingsRowView
 
-- (void)dealloc
-{
-	[wrappingFields release];
-	[super dealloc];
-}
-
 - (void)followWidthOfField:(NSTextField *)field
 {
 	if (!field) return;
@@ -555,7 +543,7 @@ typedef enum {
 @interface AISettingsNavigationRowView : NSView {
 	NSTextField	*labelField;
 	NSImageView	*chevron;
-	id			 target;			//Not retained, as a control's target is not
+	__unsafe_unretained id	 target;	//Not retained, as a control's target is not
 	SEL			 action;
 	BOOL		 pressed;
 }
@@ -575,7 +563,7 @@ typedef enum {
 										 [NSColor labelColor]);
 		[labelField sizeToFit];
 
-		chevron = [[NSImageView imageViewWithImage:[AISettingsFormView disclosureIndicatorImage]] retain];
+		chevron = [NSImageView imageViewWithImage:[AISettingsFormView disclosureIndicatorImage]];
 		[chevron setContentTintColor:[NSColor tertiaryLabelColor]];
 		[chevron setFrameSize:[[chevron image] size]];
 
@@ -589,14 +577,6 @@ typedef enum {
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[labelField release];
-	[chevron release];
-
-	[super dealloc];
 }
 
 - (BOOL)isFlipped
@@ -686,12 +666,6 @@ typedef enum {
 
 @implementation AISettingsCardView
 
-- (void)dealloc
-{
-	[separatorPositions release];
-	[super dealloc];
-}
-
 - (BOOL)isFlipped
 {
 	return YES;
@@ -700,8 +674,7 @@ typedef enum {
 - (void)setSeparatorPositions:(NSArray *)positions
 {
 	if (positions != separatorPositions && ![positions isEqualToArray:separatorPositions]) {
-		[separatorPositions release];
-		separatorPositions = [positions retain];
+		separatorPositions = positions;
 		[self setNeedsDisplay:YES];
 	}
 }
@@ -795,15 +768,15 @@ typedef enum {
 	 * own. A row that is edge to edge only so that its highlight covers the card still wants one. */
 	BOOL				 wantsSeparators;
 	BOOL				 labelTopAligned;		//Stretch rows: pin the label to the control's top, not its centre
-	NSControl			*enabledSource;			//Not retained; lives inside control/radioContainer
+	__unsafe_unretained NSControl	*enabledSource;	//Not retained; lives inside control/radioContainer
 
 	AISettingsRowView		*rowView;			//The row's container in the card stack
 	//Hosts are subviews of rowView and owned by it; plain pointers are enough
-	AISettingsGuestHostView	*controlHost;
-	AISettingsGuestHostView	*accessoryHost;
-	AISettingsGuestHostView	*valueHost;
-	AISettingsGuestHostView	*radioHost;
-	AISettingsGuestHostView	*fullWidthHost;
+	__unsafe_unretained AISettingsGuestHostView	*controlHost;
+	__unsafe_unretained AISettingsGuestHostView	*accessoryHost;
+	__unsafe_unretained AISettingsGuestHostView	*valueHost;
+	__unsafe_unretained AISettingsGuestHostView	*radioHost;
+	__unsafe_unretained AISettingsGuestHostView	*fullWidthHost;
 	/* Slider/stretch rows only: the shared label and readout columns of the
 	 * card, as constraints whose constants -layoutForWidth: retunes so every
 	 * slider of a card starts and ends on the same two lines. */
@@ -858,20 +831,6 @@ typedef enum {
 {
 	[enabledSource removeObserver:self forKeyPath:@"enabled" context:AISettingsRowEnabledContext];
 	enabledSource = nil;
-
-	[labelField release];
-	[detailField release];
-	[valueField release];
-	[imageView release];
-	[accessoryControl release];
-	[control release];
-	[radioButtons release];
-	[radioContainer release];
-	[fullWidthView release];
-	[rowView release];
-	[labelColumnConstraint release];
-	[valueColumnConstraint release];
-	[super dealloc];
 }
 @end
 
@@ -889,7 +848,7 @@ typedef enum {
 	NSView				*accessoryView;	//Sits below the card, outside of it; nil for most sections
 	BOOL				 accessoryTrailing;	//NO: aligned with the card's leading edge, the default
 	NSView				*accessoryWrapper;	//Card-wide strip the accessory hangs in, for the alignment
-	AISettingsGuestHostView	*accessoryHost;	//Subview of the wrapper; plain pointer
+	__unsafe_unretained AISettingsGuestHostView	*accessoryHost;	//Subview of the wrapper; plain pointer
 	NSTextField			*footnoteField;	//Below the card and below the accessory; nil for most sections
 	/* Widest slider label this card has ever held, uncapped. Never shrinks, so a
 	 * row renamed to something shorter leaves the column — and with it every
@@ -924,17 +883,6 @@ typedef enum {
 		   [cardStack.bottomAnchor constraintEqualToAnchor:cardView.bottomAnchor]]];
 	}
 	return self;
-}
-- (void)dealloc
-{
-	[headerField release];
-	[cardView release];
-	[cardStack release];
-	[rows release];
-	[accessoryView release];
-	[accessoryWrapper release];
-	[footnoteField release];
-	[super dealloc];
 }
 @end
 
@@ -994,18 +942,10 @@ typedef enum {
 		 @[[formStack.topAnchor constraintEqualToAnchor:self.topAnchor],
 		   [formStack.leadingAnchor constraintEqualToAnchor:self.leadingAnchor]]];
 
-		formWidthConstraint = [[formStack.widthAnchor constraintEqualToConstant:NSWidth(frame)] retain];
+		formWidthConstraint = [formStack.widthAnchor constraintEqualToConstant:NSWidth(frame)];
 		[formWidthConstraint setActive:YES];
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[sections release];
-	[formStack release];
-	[formWidthConstraint release];
-	[super dealloc];
 }
 
 - (BOOL)isFlipped
@@ -1020,7 +960,7 @@ typedef enum {
 	AISettingsFormSection *section = [sections lastObject];
 
 	if (!section) {
-		section = [[[AISettingsFormSection alloc] init] autorelease];
+		section = [[AISettingsFormSection alloc] init];
 		[sections addObject:section];
 		[self attachSection:section];
 	}
@@ -1067,7 +1007,7 @@ typedef enum {
 		[sections removeLastObject];
 	}
 
-	AISettingsFormSection *section = [[[AISettingsFormSection alloc] init] autorelease];
+	AISettingsFormSection *section = [[AISettingsFormSection alloc] init];
 
 	if (title.length) {
 		section->headerField = AISettingsMakeLabel(title,
@@ -1089,7 +1029,7 @@ typedef enum {
 		[section->cardView removeFromSuperview];
 		[sections removeLastObject];
 	} else if (section) {
-		AISettingsFormSection *next = [[[AISettingsFormSection alloc] init] autorelease];
+		AISettingsFormSection *next = [[AISettingsFormSection alloc] init];
 		[sections addObject:next];
 		[self attachSection:next];
 	}
@@ -1135,7 +1075,7 @@ typedef enum {
 
 - (void)addRowWithLabel:(NSString *)label control:(NSView *)control detail:(NSString *)detail
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeControl;
 	if (label.length) {
@@ -1148,7 +1088,7 @@ typedef enum {
 											   [NSFont systemFontOfSize:AISettingsDetailFontSize],
 											   [NSColor secondaryLabelColor]);
 	}
-	row->control = [control retain];
+	row->control = control;
 
 	AISettingsApplyAccessibility(control, label, detail);
 
@@ -1157,7 +1097,7 @@ typedef enum {
 
 - (void)addRowWithLabel:(NSString *)label popUpButton:(NSPopUpButton *)popUpButton accessoryButton:(NSButton *)button
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypePopUp;
 	if (label.length) {
@@ -1165,8 +1105,8 @@ typedef enum {
 											  [NSFont systemFontOfSize:AISettingsLabelFontSize],
 											  [NSColor labelColor]);
 	}
-	row->control = [popUpButton retain];
-	row->accessoryControl = [button retain];
+	row->control = popUpButton;
+	row->accessoryControl = button;
 
 	AISettingsApplyAccessibility(popUpButton, label, nil);
 	/* The accessory keeps its own title as its accessibility label — it shows one
@@ -1179,7 +1119,7 @@ typedef enum {
 
 - (void)addRowWithLabel:(NSString *)label slider:(NSSlider *)slider valueLabel:(NSTextField *)valueLabel
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeSlider;
 	if (label.length) {
@@ -1187,8 +1127,8 @@ typedef enum {
 											  [NSFont systemFontOfSize:AISettingsLabelFontSize],
 											  [NSColor labelColor]);
 	}
-	row->control = [slider retain];
-	row->valueField = [valueLabel retain];
+	row->control = slider;
+	row->valueField = valueLabel;
 
 	AISettingsApplyAccessibility(slider, label, nil);
 	/* The readout only repeats the slider's own value, which VoiceOver already
@@ -1205,7 +1145,7 @@ typedef enum {
 
 - (void)addRowWithLabel:(NSString *)label stretchingControl:(NSView *)control labelTopAligned:(BOOL)labelTopAligned
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	/* Built exactly like a slider row: the two are the same shape — a label as
 	 * wide as its text, a control taking everything left — and a stretching row
@@ -1216,7 +1156,7 @@ typedef enum {
 											  [NSFont systemFontOfSize:AISettingsLabelFontSize],
 											  [NSColor labelColor]);
 	}
-	row->control = [control retain];
+	row->control = control;
 	//A tall control - a text editor - reads better with its label beside its first line, not its middle
 	row->labelTopAligned = labelTopAligned;
 
@@ -1227,7 +1167,7 @@ typedef enum {
 
 - (void)addRadioGroupWithLabel:(NSString *)label buttons:(NSArray *)radioButtons
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeRadioGroup;
 	if (label.length) {
@@ -1271,10 +1211,10 @@ typedef enum {
 
 - (void)addFullWidthRow:(NSView *)view stretch:(BOOL)stretch
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeFullWidth;
-	row->fullWidthView = [view retain];
+	row->fullWidthView = view;
 	row->stretchesFullWidthView = stretch;
 
 	[self appendRow:row];
@@ -1282,7 +1222,7 @@ typedef enum {
 
 - (void)addEdgeToEdgeRow:(NSView *)view
 {
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	/* The view <em>is</em> the card, so it has to be clipped to the card's
 	 * rounded corners - a selected first or last row of a hosted list would
@@ -1293,7 +1233,7 @@ typedef enum {
 	[[view layer] setMasksToBounds:YES];
 
 	row->type = AISettingsRowTypeEdgeToEdge;
-	row->fullWidthView = [view retain];
+	row->fullWidthView = view;
 	row->stretchesFullWidthView = YES;
 
 	[self appendRow:row];
@@ -1304,9 +1244,9 @@ typedef enum {
  */
 - (void)addNavigationRowWithLabel:(NSString *)label target:(id)target action:(SEL)action
 {
-	AISettingsNavigationRowView *row = [[[AISettingsNavigationRowView alloc] initWithLabel:label
+	AISettingsNavigationRowView *row = [[AISettingsNavigationRowView alloc] initWithLabel:label
 																				   target:target
-																				   action:action] autorelease];
+																				   action:action];
 
 	/* Edge to edge, so the highlight covers the card rather than stopping at the inset. Unlike a
 	 * hosted list, which draws its own lines, this is one row among others and takes the card's. */
@@ -1322,7 +1262,7 @@ typedef enum {
 	 * without text would open a gap in the card. */
 	if (!text.length) return;
 
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeDetail;
 	row->detailField = AISettingsMakeDetailLabel(text);
@@ -1340,7 +1280,7 @@ typedef enum {
 	 * row without text would open a hole in the card rather than fill it. */
 	if (!text.length) return;
 
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeEmptyState;
 	row->detailField = AISettingsMakeDetailLabel(text);
@@ -1360,12 +1300,12 @@ typedef enum {
 
 - (void)addInfoRow:(NSString *)text withImage:(NSImage *)image title:(NSString *)title control:(NSView *)control
 {
-	NSImage *symbol = [AISettingsMakeInfoImage(image) autorelease];
+	NSImage *symbol = AISettingsMakeInfoImage(image);
 
 	//Nothing to show at all: an empty field still measures a blank line
 	if (!text.length && !title.length && !symbol && !control) return;
 
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeInfo;
 	/* The heading takes the row label's font rather than a section header's bold:
@@ -1384,7 +1324,7 @@ typedef enum {
 		//Selectable for the same reason a detail line is: an explanation is text worth copying
 		[row->detailField setSelectable:YES];
 	}
-	row->control = [control retain];
+	row->control = control;
 
 	/* A control showing a title of its own keeps it as its accessibility label and
 	 * only takes the heading as its help text, the way a pop up row's accessory
@@ -1415,16 +1355,16 @@ typedef enum {
 {
 	if (!imageView && !nameView && !button) return;
 
-	AISettingsFormRow *row = [[[AISettingsFormRow alloc] init] autorelease];
+	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	/* The three guests travel in the ivars the other shapes use for the same kind
 	 * of thing: the picture is the row's control, the name the view which spans the
 	 * row, the button its accessory. Adoption, the refresh of the guest metrics at
 	 * every layout and -dealloc then all reach them without a line of their own. */
 	row->type = AISettingsRowTypeProfileHeader;
-	row->control = [imageView retain];
-	row->fullWidthView = [nameView retain];
-	row->accessoryControl = [button retain];
+	row->control = imageView;
+	row->fullWidthView = nameView;
+	row->accessoryControl = button;
 
 	if (imageView) {
 		/* Round, and rounded here rather than by the caller for the reason a card's
@@ -1460,17 +1400,12 @@ typedef enum {
 	AISettingsAdoptView(view);
 	[view setAutoresizingMask:NSViewNotSizable];
 
-	//Survives the teardown below even when it is the same view handed over again
-	[view retain];
-
 	/* One accessory per card, so the old strip goes wholesale; rebuilding it is
 	 * also what makes switching between leading and trailing alignment work
 	 * without bookkeeping which constraint is currently installed. */
 	[section->accessoryWrapper removeFromSuperview];
-	[section->accessoryWrapper release];
 	section->accessoryWrapper = nil;
 	section->accessoryHost = nil;
-	[section->accessoryView release];
 	section->accessoryView = view;
 	section->accessoryTrailing = trailing;
 
@@ -1495,7 +1430,7 @@ typedef enum {
 			[host.trailingAnchor constraintEqualToAnchor:wrapper.trailingAnchor] :
 			[host.leadingAnchor constraintEqualToAnchor:wrapper.leadingAnchor])]];
 
-		section->accessoryWrapper = wrapper;	//The alloc above is the section's retain
+		section->accessoryWrapper = wrapper;
 		section->accessoryHost = host;
 
 		/* Into the stack ahead of the footnote: a footnote is drawn below the
@@ -1520,7 +1455,6 @@ typedef enum {
 	AISettingsFormSection *section = [self currentSection];
 
 	[section->footnoteField removeFromSuperview];
-	[section->footnoteField release];
 	//An empty field would still measure one blank line below the card
 	section->footnoteField = (text.length ? AISettingsMakeDetailLabel(text) : nil);
 
@@ -1617,7 +1551,7 @@ typedef enum {
 {
 	AISettingsRowView *rowView = [[AISettingsRowView alloc] initWithFrame:NSZeroRect];
 	[rowView setTranslatesAutoresizingMaskIntoConstraints:NO];
-	row->rowView = rowView;	//The alloc is the row's retain; released in -[AISettingsFormRow dealloc]
+	row->rowView = rowView;
 
 	switch (row->type) {
 		case AISettingsRowTypeControl:		[self buildControlRow:row];		break;
@@ -1658,7 +1592,7 @@ typedef enum {
  */
 - (NSLayoutGuide *)textBlockWithTop:(NSTextField *)topField bottom:(NSTextField *)bottomField inRow:(AISettingsRowView *)rowView
 {
-	NSLayoutGuide *block = [[[NSLayoutGuide alloc] init] autorelease];
+	NSLayoutGuide *block = [[NSLayoutGuide alloc] init];
 	[rowView addLayoutGuide:block];
 
 	AISettingsPrepareField(topField);
@@ -1852,7 +1786,7 @@ typedef enum {
 		[row->labelField setLineBreakMode:NSLineBreakByTruncatingTail];
 		[rowView addSubview:row->labelField];
 
-		row->labelColumnConstraint = [[row->labelField.widthAnchor constraintEqualToConstant:0.0] retain];
+		row->labelColumnConstraint = [row->labelField.widthAnchor constraintEqualToConstant:0.0];
 		[row->labelColumnConstraint setPriority:AISettingsPrioritySliderLabelColumn];
 
 		/* Beside the control's top line for a tall control, beside its middle otherwise: a
@@ -1877,7 +1811,7 @@ typedef enum {
 
 		/* The readout is stretched to the shared column; its text is right
 		 * aligned, so a wider column still ends at the card's inset. */
-		row->valueColumnConstraint = [[value.widthAnchor constraintEqualToConstant:0.0] retain];
+		row->valueColumnConstraint = [value.widthAnchor constraintEqualToConstant:0.0];
 		[row->valueColumnConstraint setPriority:AISettingsPriorityValueColumn];
 
 		[constraints addObjectsFromArray:
@@ -2163,7 +2097,7 @@ typedef enum {
 	if (row->control) {
 		NSSize					 size = [row->control frame].size;
 		CGFloat					 radius = MIN(size.width, size.height) / 2.0;
-		NSBox					*disc = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		NSBox					*disc = [[NSBox alloc] initWithFrame:NSZeroRect];
 		AISettingsGuestHostView	*host = [AISettingsGuestHostView hostForGuest:row->control
 																	   sizing:AISettingsGuestSizingKeepFrame];
 
@@ -2510,7 +2444,7 @@ typedef enum {
 
 + (NSSwitch *)switchWithTarget:(id)target action:(SEL)action
 {
-	NSSwitch *control = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+	NSSwitch *control = [[NSSwitch alloc] initWithFrame:NSZeroRect];
 
 	//System Settings uses the small switch, not the regular one
 	[control setControlSize:NSControlSizeSmall];
@@ -2523,7 +2457,7 @@ typedef enum {
 
 + (NSPopUpButton *)popUpButtonWithTitles:(NSArray *)titles target:(id)target action:(SEL)action
 {
-	NSPopUpButton *popUp = [[[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO] autorelease];
+	NSPopUpButton *popUp = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 
 	for (NSString *title in titles) [popUp addItemWithTitle:title];
 	[popUp setTarget:target];
@@ -2535,7 +2469,7 @@ typedef enum {
 
 + (NSButton *)radioButtonWithTitle:(NSString *)title target:(id)target action:(SEL)action
 {
-	NSButton *button = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	NSButton *button = [[NSButton alloc] initWithFrame:NSZeroRect];
 
 	[button setButtonType:NSButtonTypeRadio];
 	[button setTitle:(title ?: @"")];
@@ -2549,7 +2483,7 @@ typedef enum {
 
 + (NSButton *)pushButtonWithTitle:(NSString *)title target:(id)target action:(SEL)action
 {
-	NSButton *button = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	NSButton *button = [[NSButton alloc] initWithFrame:NSZeroRect];
 
 	[button setBezelStyle:NSBezelStyleRounded];
 	[button setButtonType:NSButtonTypeMomentaryPushIn];
@@ -2599,9 +2533,9 @@ typedef enum {
 	}
 	if (!image && imageName.length) image = [NSImage imageNamed:imageName];
 
-	NSButton *button = [[[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+	NSButton *button = [[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0,
 																   AISettingsInlineButtonSize,
-																   AISettingsInlineButtonSize)] autorelease];
+																   AISettingsInlineButtonSize)];
 
 	[button setButtonType:NSButtonTypeMomentaryChange];
 	[button setBordered:NO];
@@ -2620,7 +2554,7 @@ typedef enum {
 
 + (NSTextField *)valueFieldWithWidth:(CGFloat)width target:(id)target action:(SEL)action
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[field setFont:[NSFont systemFontOfSize:AISettingsLabelFontSize]];
 	[field setAlignment:NSTextAlignmentRight];
@@ -2637,7 +2571,7 @@ typedef enum {
 
 + (NSTextField *)textFieldWithTarget:(id)target action:(SEL)action
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[field setFont:[NSFont systemFontOfSize:AISettingsLabelFontSize]];
 	[field setAlignment:NSTextAlignmentLeft];
@@ -2656,7 +2590,7 @@ typedef enum {
 
 + (NSTextField *)profileNameFieldWithTarget:(id)target action:(SEL)action
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[field setFont:[NSFont systemFontOfSize:AISettingsProfileNameSize weight:NSFontWeightSemibold]];
 	[field setAlignment:NSTextAlignmentCenter];
@@ -2686,7 +2620,7 @@ typedef enum {
 
 + (NSSlider *)sliderWithMinValue:(double)minValue maxValue:(double)maxValue target:(id)target action:(SEL)action
 {
-	NSSlider *slider = [[[NSSlider alloc] initWithFrame:NSMakeRect(0.0, 0.0, AISettingsSliderMinWidth, AISettingsSliderHeight)] autorelease];
+	NSSlider *slider = [[NSSlider alloc] initWithFrame:NSMakeRect(0.0, 0.0, AISettingsSliderMinWidth, AISettingsSliderHeight)];
 
 	[slider setSliderType:NSSliderTypeLinear];
 	[slider setMinValue:minValue];
@@ -2710,9 +2644,9 @@ typedef enum {
 
 + (NSTextField *)valueLabelForWidestValue:(NSString *)widestValue
 {
-	NSTextField *field = [AISettingsMakeLabel((widestValue ?: @""),
+	NSTextField *field = AISettingsMakeLabel((widestValue ?: @""),
 											  [NSFont systemFontOfSize:AISettingsLabelFontSize],
-											  [NSColor secondaryLabelColor]) autorelease];
+											  [NSColor secondaryLabelColor]);
 
 	//One line, right up against the card's trailing inset, and never re-measured
 	[field setAlignment:NSTextAlignmentRight];
@@ -2755,7 +2689,7 @@ typedef enum {
 	}
 	if ([views count] > 1) width += spacing * ([views count] - 1);
 
-	NSView *container = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, width, height)] autorelease];
+	NSView *container = [[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, width, height)];
 	CGFloat x = 0.0;
 
 	for (NSView *view in views) {

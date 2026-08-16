@@ -32,7 +32,7 @@
 	AIAccountPlan		*plan;
 	NSMutableDictionary	*fieldsByName;
 	NSMutableDictionary	*controlsByName;
-	id					 changeTarget;			//Not retained
+	__unsafe_unretained id	 changeTarget;		//Not retained
 	SEL					 changeAction;
 }
 

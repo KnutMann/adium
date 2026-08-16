@@ -39,7 +39,7 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 
 + (AIAccountPlanField *)fieldNamed:(NSString *)inName kind:(AIAccountFieldKind)inKind
 {
-	AIAccountPlanField *field = [[[AIAccountPlanField alloc] init] autorelease];
+	AIAccountPlanField *field = [[AIAccountPlanField alloc] init];
 
 	[field setName:inName];
 	[field setKind:inKind];
@@ -51,26 +51,10 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 {
 	if ((self = [super init])) {
 		store = AIAccountFieldStoreNone;
-		preferenceGroup = [GROUP_ACCOUNT_STATUS retain];
+		preferenceGroup = GROUP_ACCOUNT_STATUS;
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[name release];
-	[label release];
-	[detail release];
-	[placeholder release];
-	[preferenceKey release];
-	[preferenceGroup release];
-	[legacyKey release];
-	[choiceTitles release];
-	[choiceValues release];
-	[defaultValue release];
-
-	[super dealloc];
 }
 
 - (NSString *)description
@@ -92,14 +76,6 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 	return self;
 }
 
-- (void)dealloc
-{
-	[identifier release];
-	[fields release];
-
-	[super dealloc];
-}
-
 - (NSArray *)fields
 {
 	return fields;
@@ -118,7 +94,7 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 - (id)initWithAccount:(AIAccount *)inAccount
 {
 	if ((self = [super init])) {
-		account = [inAccount retain];
+		account = inAccount;
 
 		/* Whether the keychain had anything to give when the page opened. Emptying the field only
 		 * means "forget it" if there was something there to begin with. */
@@ -126,14 +102,6 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[account release];
-	[cards release];
-
-	[super dealloc];
 }
 
 - (AIAccount *)account
@@ -175,7 +143,7 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 			return card;
 	}
 
-	AIAccountPlanCard *card = [[[AIAccountPlanCard alloc] init] autorelease];
+	AIAccountPlanCard *card = [[AIAccountPlanCard alloc] init];
 	[card setIdentifier:cardIdentifier];
 	[cards addObject:card];
 

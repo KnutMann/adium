@@ -156,14 +156,12 @@ static	NSMutableDictionary	*controllerDict = nil;
 - (void)setOriginalStatusState:(AIStatus *)inStatusState forType:(AIStatusType)inStatusType
 {
 	if (originalStatusState != inStatusState) {
-		[originalStatusState release];
-		originalStatusState = [inStatusState retain];
+		originalStatusState = inStatusState;
 	}
 
-	[workingStatusState release];
 	workingStatusState = (originalStatusState ?
 						  [originalStatusState mutableCopy] :
-						  [[AIStatus statusOfType:inStatusType] retain]);
+						  [AIStatus statusOfType:inStatusType]);
 
 	/* Reset to the default for this status type if we're not on it already */
 	if (workingStatusState.statusType != inStatusType) {
@@ -178,21 +176,8 @@ static	NSMutableDictionary	*controllerDict = nil;
 - (void)setAccount:(AIAccount *)inAccount
 {
 	if (inAccount != account) {
-		[account release];
-		account = [inAccount retain];
+		account = inAccount;
 	}
-}
-
-/*!
- * Deallocate
- */
-- (void)dealloc
-{
-	[originalStatusState release];
-	[workingStatusState release];
-	[account release];
-
-	[super dealloc];
 }
 
 //Window setup ---------------------------------------------------------------------------------------------------------
@@ -240,7 +225,6 @@ static	NSMutableDictionary	*controllerDict = nil;
 																				length:0 /* No length limit */
 																		 caseSensitive:NO
 																		  errorMessage:nil]];
-	[noNewlinesCharacterSet release];
 
 	[self layoutWindowContents];
 
@@ -264,7 +248,6 @@ static	NSMutableDictionary	*controllerDict = nil;
 - (void)buildForm
 {
 	form = [[AISettingsFormView alloc] initWithWidth:WINDOW_CONTENT_WIDTH];
-	[form autorelease];
 
 	//Card 1: what this status is called and which state it is
 	textField_title = [AISettingsFormView textFieldWithTarget:nil action:NULL];
@@ -276,7 +259,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 	 * betray: an empty field is not a status without a name, it is a status named after itself. */
 	[form addDetailRow:AILocalizedString(@"Clear the field to let Adium name this status after its message.","Explanation under the title field of the status editor")];
 
-	popUp_state = [[[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO] autorelease];
+	popUp_state = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 	[popUp_state setFont:[NSFont menuFontOfSize:0.0]];
 	[form addRowWithLabel:AILocalizedString(@"Status","Label of the menu holding the kind of status - available, away and so on")
 			  popUpButton:popUp_state
@@ -454,14 +437,12 @@ static	NSMutableDictionary	*controllerDict = nil;
 
 	NSNumber	*targetHash = [NSNumber numberWithUnsignedInteger:[target hash]];
 
-	//Survive the dictionary letting go of us before we get to our own autorelease
-	[[self retain] autorelease];
+	//The window is still mid-teardown; survive the dictionary letting go of us until the pool drains
+	CFAutorelease(CFBridgingRetain(self));
 
 	if ([controllerDict objectForKey:targetHash] == self) {
 		[controllerDict removeObjectForKey:targetHash];
 	}
-
-	[self autorelease];
 }
 
 //Behavior -------------------------------------------------------------------------------------------------------------
@@ -554,7 +535,7 @@ static	NSMutableDictionary	*controllerDict = nil;
 	id sender = [notification object];
 
 	if (sender == textView_statusMessage) {
-		[workingStatusState setStatusMessage:[[[textView_statusMessage textStorage] copy] autorelease]];
+		[workingStatusState setStatusMessage:[[textView_statusMessage textStorage] copy]];
 	}
 
 	[self updateTitleDisplay];

@@ -46,38 +46,29 @@ static	AICustomSocialNetworkingStatusWindowController	*sharedController = nil;
 
 	[super windowDidLoad];
 }
-- (void)dealloc
-{
-	[account release];
-	[target release];
-	
-	[super dealloc];
-}
 
 - (void)setAccount:(AIAccount *)inAccount
 {
 	if (inAccount != account) {
-		[account release];
-		account = [inAccount retain];
-	}	
+		account = inAccount;
+	}
 }
 
 - (void)setTarget:(id)inTarget
 {
 	if (inTarget != target) {
-		[target release];
-		target = [inTarget retain];
-	}	
+		target = inTarget;
+	}
 }
 
 - (void)setMessage:(NSAttributedString *)inMessage
 {
-	[[textview_message textStorage] setAttributedString:(inMessage ? inMessage : [[[NSAttributedString alloc] initWithString:@""] autorelease])];
+	[[textview_message textStorage] setAttributedString:(inMessage ? inMessage : [[NSAttributedString alloc] initWithString:@""])];
 }
 
 - (IBAction)okay:(id)sender
 {
-	[target setSocialNetworkingStatus:[[[textview_message textStorage] copy] autorelease]
+	[target setSocialNetworkingStatus:[[textview_message textStorage] copy]
 						   forAccount:account];
 
 	[self closeWindow:nil];
@@ -130,8 +121,10 @@ static	AICustomSocialNetworkingStatusWindowController	*sharedController = nil;
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[sharedController autorelease]; sharedController = nil;
+
+	//-close still talks to us after this returns; stay alive until the pool drains
+	CFAutorelease(CFBridgingRetain(sharedController));
+	sharedController = nil;
 }
 
 

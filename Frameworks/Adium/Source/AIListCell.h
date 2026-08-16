@@ -22,7 +22,7 @@
 #define DROP_HIGHLIGHT_HEIGHT_MARGIN 1.0f
 
 @interface AIListCell : NSCell {
-	AIListOutlineView	*outlineControlView;
+	__unsafe_unretained AIListOutlineView	*outlineControlView;	//The view that owns this cell; matches the assign property
     AIProxyListObject	*proxyObject;
     BOOL				isGroup;
 	

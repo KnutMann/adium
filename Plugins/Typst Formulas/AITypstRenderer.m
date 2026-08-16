@@ -91,7 +91,7 @@ static NSString * const AITypstDocumentTemplate =
 
 		for (NSString *candidate in candidates) {
 			if ([[NSFileManager defaultManager] isExecutableFileAtPath:candidate]) {
-				cachedPath = [candidate retain];
+				cachedPath = candidate;
 				break;
 			}
 		}
@@ -135,7 +135,7 @@ static NSString * const AITypstDocumentTemplate =
 
 + (NSAttributedString *)attachmentStringForImageAtPath:(NSString *)path formula:(NSString *)formula
 {
-	NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];
+	NSImage *image = [[NSImage alloc] initWithContentsOfFile:path];
 	if (!image) return nil;
 
 	/* Tell the image how large it is meant to be drawn. Left alone it answers with its pixel count,
@@ -148,7 +148,7 @@ static NSString * const AITypstDocumentTemplate =
 																(CGFloat)[rep pixelsHigh])]];
 	}
 
-	AITextAttachmentExtension *attachment = [[[AITextAttachmentExtension alloc] init] autorelease];
+	AITextAttachmentExtension *attachment = [[AITextAttachmentExtension alloc] init];
 	[attachment setPath:path];
 	[attachment setString:formula];
 	[attachment setShouldSaveImageForLogging:YES];
@@ -158,7 +158,7 @@ static NSString * const AITypstDocumentTemplate =
 	 * its layout from the cell, the message view writes its width and height from the attachment's
 	 * image, and the log writes them from the cell. Two images of differing sizes would make those
 	 * three disagree. */
-	[attachment setAttachmentCell:[[[NSTextAttachmentCell alloc] initImageCell:image] autorelease]];
+	[attachment setAttachmentCell:[[NSTextAttachmentCell alloc] initImageCell:image]];
 
 	return [NSAttributedString attributedStringWithAttachment:attachment];
 }
@@ -167,7 +167,7 @@ static NSString * const AITypstDocumentTemplate =
 						 pointSize:(CGFloat)pointSize
 						completion:(void (^)(NSString *path, NSString *errorMessage))handler
 {
-	AITypstRenderer *renderer = [[[AITypstRenderer alloc] init] autorelease];
+	AITypstRenderer *renderer = [[AITypstRenderer alloc] init];
 
 	if (![renderer beginRenderingFormula:formula pointSize:pointSize completion:handler])
 		return nil;
@@ -193,7 +193,7 @@ static NSString * const AITypstDocumentTemplate =
 	/* A directory per render. The document and its output live together and are removed together, and
 	 * two renders started a keystroke apart cannot collide. */
 	NSString *unique = [[NSProcessInfo processInfo] globallyUniqueString];
-	sourceDirectory = [[NSTemporaryDirectory() stringByAppendingPathComponent:unique] retain];
+	sourceDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:unique];
 
 	NSError *error = nil;
 	if (![[NSFileManager defaultManager] createDirectoryAtPath:sourceDirectory
@@ -206,7 +206,7 @@ static NSString * const AITypstDocumentTemplate =
 	}
 
 	NSString *documentPath = [sourceDirectory stringByAppendingPathComponent:@"formula.typ"];
-	outputPath = [[sourceDirectory stringByAppendingPathComponent:@"formula.png"] retain];
+	outputPath = [sourceDirectory stringByAppendingPathComponent:@"formula.png"];
 
 	NSString *document = [NSString stringWithFormat:AITypstDocumentTemplate, (double)pointSize];
 	if (![document writeToFile:documentPath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
@@ -261,7 +261,7 @@ static NSString * const AITypstDocumentTemplate =
 - (void)taskDidFinish
 {
 	NSData	 *errorData = [[errorPipe fileHandleForReading] readDataToEndOfFile];
-	NSString *errorText = [[[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding] autorelease];
+	NSString *errorText = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
 
 	/* The file, not the exit status, is what says whether this worked. typst reports its own failures
 	 * on standard error and simply writes nothing, and there is no sense in handing back a path to a
@@ -285,7 +285,6 @@ static NSString * const AITypstDocumentTemplate =
 			completion(nil, message);
 		}
 
-		[completion release];
 		completion = nil;
 	}
 }
@@ -299,7 +298,6 @@ static NSString * const AITypstDocumentTemplate =
 	if ([task isRunning])
 		[task terminate];
 
-	[completion release];
 	completion = nil;
 
 	[self cleanUpSourceDirectory];
@@ -309,17 +307,6 @@ static NSString * const AITypstDocumentTemplate =
 {
 	if (sourceDirectory)
 		[[NSFileManager defaultManager] removeItemAtPath:sourceDirectory error:NULL];
-}
-
-- (void)dealloc
-{
-	[completion release];
-	[task release];
-	[errorPipe release];
-	[outputPath release];
-	[sourceDirectory release];
-
-	[super dealloc];
 }
 
 @end

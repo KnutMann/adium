@@ -20,10 +20,10 @@
 	NSData						*resultData;
 	NSXMLParser					*responseParser;
 	
-	// Parsing
-	NSMutableDictionary			*lastElement;
+	// Parsing; these two only alias dictionaries the response tree keeps alive
+	__unsafe_unretained NSMutableDictionary		*lastElement;
 	NSString					*currentElementName;
-	NSMutableDictionary			*currentElement;
+	__unsafe_unretained NSMutableDictionary		*currentElement;
 	NSMutableDictionary			*response;
 }
 

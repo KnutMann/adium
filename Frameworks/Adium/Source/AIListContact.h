@@ -30,7 +30,7 @@
 
 @interface AIListContact : AIListObject {
 	AIAccount	*account;
-	AIMetaContact *metaContact;
+	__unsafe_unretained AIMetaContact *metaContact;	//The meta contains us; matches the assign property
 	NSMutableSet *m_remoteGroupNames;
 	NSString		*internalUniqueObjectID;
 	

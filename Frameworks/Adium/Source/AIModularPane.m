@@ -22,13 +22,13 @@
 //Return a new modular pane
 + (AIModularPane *)modularPane
 {
-    return [[[self alloc] init] autorelease];
+    return [[self alloc] init];
 }
 
 //Return a new modular pane, passing plugin
 + (AIModularPane *)modularPaneForPlugin:(id)inPlugin
 {
-    return [[[self alloc] initForPlugin:inPlugin] autorelease];
+    return [[self alloc] initForPlugin:inPlugin];
 }
 
 //Init, passing plugin
@@ -61,6 +61,12 @@
     if (!view) {
         //Load and configure our view
         [NSBundle ai_loadNibNamed:[self nibName] owner:self];
+		/* The loader hands every top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the strong ivar above already holds its own, so the
+		 * stray one is given up here, once, or every closed pane leaks its view tree.
+		 * Subclasses that build their view in code and never load a nib (the settings
+		 * form panes) do not pass through here and must never get such a release. */
+		if (view) CFRelease((__bridge CFTypeRef)view);
         [self viewDidLoad];
 		[self localizePane];
 		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
@@ -74,7 +80,7 @@
 {
 	if (view) {
 		[self viewWillClose];
-		[view release]; view = nil;
+		view = nil;
 	}
 }
 

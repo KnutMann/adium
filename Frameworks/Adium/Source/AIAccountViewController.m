@@ -55,7 +55,7 @@
  */
 + (id)accountViewController
 {
-    return [[[self alloc] init] autorelease];
+    return [[self alloc] init];
 }
 
 /*!
@@ -81,6 +81,19 @@
 		if (!view_options) [ourBundle ai_loadNibNamed:@"AccountOptions" owner:self];
 		if (!view_privacy) [ourBundle ai_loadNibNamed:@"AccountPrivacy" owner:self];
 
+		/* Each nib's top level view arrived with one unowned reference from
+		 * ai_loadNibNamed: (see AIBundleAdditions.h). The strong ivars hold their own;
+		 * the stray ones are given up here, once per distinct object, since a custom nib
+		 * may connect one view to several outlets. */
+		NSMutableSet *consumed = [NSMutableSet set];
+		for (NSView *nibView in [NSArray arrayWithObjects:view_setup, view_profile, view_options, view_privacy, nil]) {
+			NSValue *key = [NSValue valueWithPointer:(__bridge const void *)nibView];
+			if (![consumed containsObject:key]) {
+				[consumed addObject:key];
+				CFRelease((__bridge CFTypeRef)nibView);
+			}
+		}
+
 		[self localizeStrings];
 	}
 
@@ -91,16 +104,8 @@
  * @brief Deallocate
  */
 - (void)dealloc
-{    
-	[view_setup release];
-	[view_profile release];
-	if (view_setup != view_options)
-		[view_options release];
-	[changedPrefDict release];
-
+{
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
-    [super dealloc];
 }
 
 /*!

@@ -58,7 +58,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 - (id)initWithObjectID:(NSNumber *)inObjectID
 {
 	if ((self = [super initWithUID:[inObjectID stringValue] service:nil])) {
-		objectID = [inObjectID retain];
+		objectID = inObjectID;
 		_preferredContact = nil;
 		_listContacts = nil;
 		_listContactsIncludingOfflineAccounts = nil;
@@ -79,12 +79,6 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 {
 	//I've seen a crashlog with a delayed -updateDisplayName causing crashes due to a freed AIMetaContact, so let's cancel any pending updates
 	[[NSRunLoop currentRunLoop] cancelPerformSelectorsWithTarget:self];
-	
-	[_containedObjects release]; _containedObjects = nil;
-	[_listContacts release]; _listContacts = nil;
-	[_listContactsIncludingOfflineAccounts release]; _listContactsIncludingOfflineAccounts = nil;
-
-	[super dealloc];
 }
 
 @synthesize objectID;
@@ -92,7 +86,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 - (NSString *)internalObjectID
 {
 	if (!internalObjectID) {
-		internalObjectID = [[AIMetaContact internalObjectIDFromObjectID:objectID] retain];
+		internalObjectID = [AIMetaContact internalObjectIDFromObjectID:objectID];
 	}
 	return internalObjectID;
 }
@@ -237,8 +231,8 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 - (void)containedObjectsOrOrderDidChange
 {
 	_preferredContact = nil;
-	[_listContacts release]; _listContacts = nil;
-	[_listContactsIncludingOfflineAccounts release]; _listContactsIncludingOfflineAccounts = nil;
+	_listContacts = nil;
+	_listContactsIncludingOfflineAccounts = nil;
 	
 	//Our effective icon may have changed
 	[AIUserIcons flushCacheForObject:self];
@@ -300,8 +294,6 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 	if ([self.containedObjects containsObjectIdenticalTo:inObject]) {
 		BOOL	needToResetToRemoteGroup = NO;
 
-		[inObject retain];
-
 		BOOL	wasPreferredContact = (inObject == self.preferredContact);
 
 		[_containedObjects removeObject:inObject];
@@ -343,8 +335,6 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 			[(AIListContact *)inObject restoreGrouping];
 		}
 
-		[inObject release];
-		
 		return YES;
 	} else {
 		AILogWithSignature(@"%@: Asked to remove %@, but it's not actually contained therein", self, inObject);
@@ -356,8 +346,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 {
 	NSParameterAssert([inObject isKindOfClass:[AIListContact class]]);
 	AIListContact *contact = (AIListContact *)inObject;
-	[contact retain];
-	
+
 	[_containedObjects removeObject:inObject];
 	contact.metaContact = nil;
 	[self containedObjectsOrOrderDidChange];
@@ -365,8 +354,6 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 	//If we remove our list object, don't continue to show up in the contact list
 	if (self.countOfContainedObjects == 0)
 		[adium.contactController _moveContactLocally:self fromGroups:self.groups toGroups:[NSSet set]];
-	
-	[contact release];
 }
 
 - (AIListContact *)preferredContactForContentType:(NSString *)inType
@@ -496,7 +483,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 - (NSArray *)uniqueContainedObjects
 {
 	if (!_listContacts) {
-		_listContacts = [[self uniqueContainedListContactsIncludingOfflineAccounts:NO visibleOnly:NO] retain];
+		_listContacts = [self uniqueContainedListContactsIncludingOfflineAccounts:NO visibleOnly:NO];
 	}
 	
 	return _listContacts;
@@ -521,7 +508,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 - (NSArray *)listContactsIncludingOfflineAccounts
 {
 	if (!_listContactsIncludingOfflineAccounts) {
-		_listContactsIncludingOfflineAccounts = [[self uniqueContainedListContactsIncludingOfflineAccounts:YES visibleOnly:NO] retain];
+		_listContactsIncludingOfflineAccounts = [self uniqueContainedListContactsIncludingOfflineAccounts:YES visibleOnly:NO];
 	}
 
 	return _listContactsIncludingOfflineAccounts;
@@ -561,7 +548,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 		if (![services containsObject:listObject.service]) [services addObject:listObject.service];
 	}
 
-	return [services autorelease];
+	return services;
 }
 
 - (NSUInteger)uniqueContainedObjectsCount
@@ -607,7 +594,7 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 		}
 	}
 	
-	return [listContacts autorelease];
+	return listContacts;
 }
 
 - (BOOL)containsOnlyOneService
@@ -964,10 +951,10 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 	//Sort the containedObjects if the flag tells us it's needed
 	if (containedObjectsNeedsSort) {
 		containedObjectsNeedsSort = NO;
-		[_containedObjects sortUsingFunction:containedContactSort context:self];
+		[_containedObjects sortUsingFunction:containedContactSort context:(__bridge void *)self];
 	}
-	
-	return [[_containedObjects copy] autorelease];
+
+	return [_containedObjects copy];
 }
 - (NSUInteger)countOfContainedObjects
 {
@@ -1036,9 +1023,19 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 	[self containedObjectsOrOrderDidChange];	
 }
 
-- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackbuf count:(NSUInteger)len
+- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id __unsafe_unretained [])stackbuf count:(NSUInteger)len
 {
-	return [self.containedObjects countByEnumeratingWithState:state objects:stackbuf count:len];
+	/* The containedObjects getter answers with a copy, and under ARC that copy is gone
+	 * before this method returns, while the enumeration state the caller keeps points
+	 * into it. The price: direct for-in over this object no longer tolerates mutating it
+	 * inside the loop; a caller that removes while walking must enumerate a snapshot,
+	 * [self containedObjects]. Enumerate the ivar instead, sorted first, exactly as the getter would.
+	 */
+	if (containedObjectsNeedsSort) {
+		containedObjectsNeedsSort = NO;
+		[_containedObjects sortUsingFunction:containedContactSort context:(__bridge void *)self];
+	}
+	return [_containedObjects countByEnumeratingWithState:state objects:stackbuf count:len];
 }
 
 #pragma mark Contained Contact sorting
@@ -1048,8 +1045,8 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
  */
 NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *objectB, void *context)
 {
-	float orderIndexA = [(AIMetaContact *)context orderIndexForObject:objectA];
-	float orderIndexB = [(AIMetaContact *)context orderIndexForObject:objectB];
+	float orderIndexA = [(__bridge AIMetaContact *)context orderIndexForObject:objectA];
+	float orderIndexB = [(__bridge AIMetaContact *)context orderIndexForObject:objectB];
 	if (orderIndexA > orderIndexB) {
 		return NSOrderedDescending;
 		
@@ -1093,7 +1090,6 @@ NSComparisonResult containedContactSort(AIListContact *objectA, AIListContact *o
 		[subobjectDescs addObject:[subobject description]];
 
 	NSString *subobjectDescsDesc = [subobjectDescs description];
-	[subobjectDescs release];
 
 	return [NSString stringWithFormat:@"<%@:%p %@: %@>",NSStringFromClass([self class]), self, self.internalObjectID, subobjectDescsDesc];
 }

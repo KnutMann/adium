@@ -72,9 +72,9 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 				  submenuType:(AIAccountSubmenuType)inSubmenuType
 			   showTitleVerbs:(BOOL)inShowTitleVerbs
 {
-	return [[[self alloc] initWithDelegate:inDelegate
-							   submenuType:inSubmenuType
-							showTitleVerbs:inShowTitleVerbs] autorelease];
+	return [[self alloc] initWithDelegate:inDelegate
+							  submenuType:inSubmenuType
+						   showTitleVerbs:inShowTitleVerbs];
 }
 
 /*!
@@ -116,7 +116,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 		[[AIContactObserverManager sharedManager] registerListObjectObserver:self];
 
 		if (submenuType) {
-			statusMenu = [[AIStatusMenu statusMenuWithDelegate:self] retain];
+			statusMenu = [AIStatusMenu statusMenuWithDelegate:self];
 		}
 
 		//Rebuild our menu now
@@ -130,16 +130,11 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 {
 	if (submenuType) {
 		[NSObject cancelPreviousPerformRequestsWithTarget:statusMenu];
-		[statusMenu release]; statusMenu = nil;
 	}
 
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	delegate = nil;
-
-	[super dealloc];
 }
 
 /*!
@@ -262,7 +257,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 				[menuItem setSubmenu:[self actionsMenuForAccount:account]];
 			}
 			[menuItemArray addObject:menuItem];
-			[menuItem release];
 		}
 	}
 	
@@ -279,7 +273,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 																				 representedObject:account];
 				[self _updateMenuItem:menuItem];
 				[disabledAccountMenu addItem:menuItem];
-				[menuItem release];
 			}
 		}
 
@@ -293,10 +286,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
                                                                  representedObject:nil];
 			[menuItemArray addObject:menuItem];
 			[menuItem setSubmenu:disabledAccountMenu];
-			[menuItem release];
 		}
-		
-		[disabledAccountMenu release];
 	}
 
 	if (submenuType) {
@@ -375,7 +365,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 			NSMutableAttributedString	*title = nil;
 
 			[textAttachment setAttachmentCell:iconCell];
-			[iconCell release];
 
 			title = [plainTitle mutableCopy];
 
@@ -387,17 +376,11 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 			[SSLIconText addAttribute:NSBaselineOffsetAttributeName value:[NSNumber numberWithFloat:-3.0f] range:NSMakeRange(0, [SSLIconText length])];
 
 			[title appendAttributedString:SSLIconText];
-			[SSLIconText release];
 
 			[menuItem setAttributedTitle:title];
-			
-			[title release];
-			[textAttachment release];
 		} else {
 			[menuItem setAttributedTitle:plainTitle];
 		}
-		
-		[plainTitle release];
 
 		[account accountMenuDidUpdate:menuItem];
 
@@ -509,7 +492,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
  */
 - (NSMenu *)actionsMenuForAccount:(AIAccount *)inAccount
 {
-	NSMenu		*actionsSubmenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*actionsSubmenu = [[NSMenu alloc] init];
 	
 	[actionsSubmenu setDelegate:self];
 
@@ -556,8 +539,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 															 keyEquivalent:@""
 														 representedObject:inAccount];
 	[actionsSubmenu addItem:menuItem];
-	[menuItem release];
-	
+
 	[actionsSubmenu addItem:[NSMenuItem separatorItem]];
 	
 	//Only build a menu if we have items
@@ -566,7 +548,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 		for (menuItem in accountActionMenuItems) {
 			NSMenuItem	*newMenuItem = [menuItem copy];
 			[actionsSubmenu addItem:newMenuItem];
-			[newMenuItem release];
 		}
 		
 		//Separate the actions from our final menu items which apply to all accounts
@@ -587,7 +568,6 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 															 representedObject:inAccount];
 	}
 	[actionsSubmenu addItem:menuItem];
-	[menuItem release];
 }
 
 /*!
@@ -639,7 +619,6 @@ void updateRepresentedObjectForSubmenusOfMenuItem(NSMenuItem *menuItem, AIAccoun
 			}
 			
 			[submenuItem setRepresentedObject:newRepresentedObject];
-			[newRepresentedObject release];
 
 			//Recurse into any submenu on this menu item
 			updateRepresentedObjectForSubmenusOfMenuItem(submenuItem, account);
@@ -667,8 +646,7 @@ static NSMenu *socialNetworkingSubmenuForAccount(AIAccount *account, id target, 
 	
 	[accountSubmenu insertItem:onlineOfflineItem atIndex:0];
 	[accountSubmenu insertItem:[NSMenuItem separatorItem] atIndex:1];
-	[onlineOfflineItem release];	
-	
+
 	return accountSubmenu;
 }
 
@@ -682,7 +660,7 @@ NSMenu *statusMenuForAccountMenuItem(NSArray *menuItemArray, NSMenuItem *account
 		accountSubmenu = socialNetworkingSubmenuForAccount(account, [accountMenuItem target], [accountMenuItem action], self);
 		
 	} else {
-		accountSubmenu = [[[NSMenu alloc] init] autorelease];
+		accountSubmenu = [[NSMenu alloc] init];
 
 		//Enumerate all the menu items we were originally passed
 		for (statusMenuItem in menuItemArray) {
@@ -715,12 +693,10 @@ NSMenu *statusMenuForAccountMenuItem(NSArray *menuItemArray, NSMenuItem *account
 				NSMenuItem *newItem = [statusMenuItem copy];
 				actualMenuItem = newItem;
 				[accountSubmenu addItem:newItem];
-				[newItem release];				
 			}
-			
+
 			[actualMenuItem setRepresentedObject:newRepresentedObject];
-			[newRepresentedObject release];
-			
+
 			updateRepresentedObjectForSubmenusOfMenuItem(actualMenuItem, account);
 		}
 	}
@@ -743,9 +719,8 @@ NSMenu *statusMenuForAccountMenuItem(NSArray *menuItemArray, NSMenuItem *account
 	
 	[accountSubmenu addItem:[NSMenuItem separatorItem]];
 	[accountSubmenu addItem:enableDisableItem];
-	[enableDisableItem release];
-	
-	
+
+
 	return accountSubmenu;
 }
 

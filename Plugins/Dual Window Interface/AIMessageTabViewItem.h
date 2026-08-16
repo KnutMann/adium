@@ -19,7 +19,8 @@
 @class AIChat, AIMessageViewController, AIMessageWindowController;
 
 @interface AIMessageTabViewItem : NSTabViewItem <AIChatContainer> {
-	AIMessageWindowController	*windowController;
+	//The window controller owns this tab; the accessors never retained it
+	__unsafe_unretained AIMessageWindowController	*windowController;
 	AIMessageViewController 	*messageViewController;
 	NSImage						*tabViewItemImage;
 	NSImage						*largeImage;

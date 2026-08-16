@@ -95,10 +95,10 @@
 															withID:(NSString *)inContainerID
 															  name:(NSString *)inName
 {
-    return [[[self alloc] initWithWindowNibName:MESSAGE_WINDOW_NIB
-									  interface:inInterface
-									containerID:inContainerID
-										   containerName:inName] autorelease];
+    return [[self alloc] initWithWindowNibName:MESSAGE_WINDOW_NIB
+									 interface:inInterface
+								   containerID:inContainerID
+								 containerName:inName];
 }
 
 //init
@@ -110,9 +110,9 @@
 	if ((self = [super initWithWindowNibName:windowNibName])) {
 		NSWindow	*myWindow;
 	
-		interface = [inInterface retain];
-		containerName = [inName retain];
-		containerID = [inContainerID retain];
+		interface = inInterface;
+		containerName = inName;
+		containerID = inContainerID;
 		m_containedChats = [[NSMutableArray alloc] init];
 		
 		//Load our window
@@ -141,7 +141,6 @@
 //dealloc
 - (void)dealloc
 {
-	[tabView_tabBarBackdrop release]; tabView_tabBarBackdrop = nil;
 	AILogWithSignature(@"");
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -158,15 +157,7 @@
 
     [tabView_tabBar setDelegate:nil];
 
-	[m_containedChats release];
-	[toolbarItems release];
-	[toolbar release];
-	[containerName release];
-	[containerID release];
-
 	[adium.preferenceController unregisterPreferenceObserver:self];
-
-    [super dealloc];
 }
 
 //Human readable container name
@@ -224,7 +215,7 @@
 	[self _configureToolbar];
 
 	//Setup the tab bar
-	tabView_tabStyle = [[[MMTahoeTabStyle alloc] init] autorelease];
+	tabView_tabStyle = [[MMTahoeTabStyle alloc] init];
 	[tabView_tabBar setStyle:tabView_tabStyle];
 	[tabView_tabBar setCanCloseOnlyTab:YES];
 	[tabView_tabBar setUseOverflowMenu:NO];
@@ -322,7 +313,7 @@
 		}
 		
 		if (suppressionText) {
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"Are you sure you want to close this window?", nil)];
 			[alert setInformativeText:question];
 			[alert addButtonWithTitle:AILocalizedString(@"Close", nil)];	//NSAlertFirstButtonReturn, was the default button
@@ -468,15 +459,11 @@
 	
 	//remove the split view if the last orientation was vertical
 	if ([tabView_tabBar orientation] == MMTabBarVerticalOrientation) {
-		[tabView_messages retain];
 		[tabView_messages removeFromSuperview];
-		[tabView_tabBar retain];
 		[tabView_tabBar removeFromSuperview];
 		[tabView_splitView removeFromSuperview];
 		[[[self window] contentView] addSubview:tabView_messages];
 		[[[self window] contentView] addSubview:tabView_tabBar];
-		[tabView_messages release];
-		[tabView_tabBar release];
 	} else {
 		[tabView_horzLine removeFromSuperview];
 		tabView_horzLine = nil;
@@ -524,7 +511,7 @@
 			if (!isTabBarHidden){
 				NSRect horzLineFrame = NSMakeRect(tabBarFrame.origin.x, (tabPosition == AdiumTabPositionBottom)? NSMinY(tabViewMessagesFrame)-1 : NSMaxY(tabViewMessagesFrame)-2, NSWidth(tabViewMessagesFrame), 1);
 				NSUInteger mask = (tabPosition == AdiumTabPositionBottom)? (NSViewMaxYMargin|NSViewWidthSizable) : (NSViewMinYMargin|NSViewWidthSizable);
-				tabView_horzLine = [[[NSBox alloc] initWithFrame:horzLineFrame] autorelease];
+				tabView_horzLine = [[NSBox alloc] initWithFrame:horzLineFrame];
 				[tabView_horzLine setBorderColor:[NSColor separatorColor]];
 				[tabView_horzLine setBorderWidth:1];
 				[tabView_horzLine setBorderType:NSLineBorder];
@@ -568,7 +555,7 @@
 			 * not clip their subviews by default. The same overhang exists with the tabs along the
 			 * bottom, where nothing in it paints and nothing showed. */
 			NSRect splitViewRect = [[[self window] contentView] frame];
-			tabView_splitView = [[[AIMessageTabSplitView alloc] initWithFrame:splitViewRect] autorelease];
+			tabView_splitView = [[AIMessageTabSplitView alloc] initWithFrame:splitViewRect];
 			[tabView_splitView setDividerThickness:([tabView_tabBar isTabBarHidden] ? 0 : VERTICAL_DIVIDER_THICKNESS)];
 			[tabView_splitView setVertical:YES];
 			[tabView_splitView setDelegate:self];
@@ -765,7 +752,7 @@
 	AIChat	*chat = inTabViewItem.chat;
 
 	if ([self.containedChats indexOfObject:chat] != idx) {
-		NSMutableArray *cells = [[[tabView_tabBar attachedButtons] mutableCopy] autorelease];
+		NSMutableArray *cells = [[tabView_tabBar attachedButtons] mutableCopy];
 		
 		[cells moveObject:[cells objectAtIndex:[[tabView_tabBar visibleTabViewItems] indexOfObject:inTabViewItem]] toIndex:idx];
 		[tabView_tabBar setNeedsDisplay:YES];
@@ -790,7 +777,7 @@
 	AIMessageTabViewItem	*tabViewItem;
 
 	//Update our contained chats array to mirror the order of the tabs
-	[m_containedChats release]; m_containedChats = [[NSMutableArray alloc] init];
+	m_containedChats = [[NSMutableArray alloc] init];
 	enumerator = [[tabView_messages tabViewItems] objectEnumerator];
 	
 	while ((tabViewItem = [enumerator nextObject])) {
@@ -1088,17 +1075,17 @@
 - (NSImage *)tabView:(NSTabView *)tabView imageForTabViewItem:(NSTabViewItem *)tabViewItem offset:(NSSize *)offset styleMask:(NSUInteger *)styleMask
 {
 	// grabs whole window image
-	NSImage *viewImage = [[[NSImage alloc] init] autorelease];
+	NSImage *viewImage = [[NSImage alloc] init];
 	NSRect contentFrame = [[[self window] contentView] frame];
 	[[[self window] contentView] lockFocus];
-	NSBitmapImageRep *viewRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:contentFrame] autorelease];
+	NSBitmapImageRep *viewRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:contentFrame];
 	[viewImage addRepresentation:viewRep];
 	[[[self window] contentView] unlockFocus];
 	
     // grabs snapshot of dragged tabViewItem's view (represents content being dragged)
 	NSView *viewForImage = [tabViewItem view];
 	NSRect viewRect = [viewForImage frame];
-	NSImage *tabViewImage = [[[NSImage alloc] initWithSize:viewRect.size] autorelease];
+	NSImage *tabViewImage = [[NSImage alloc] initWithSize:viewRect.size];
 	[tabViewImage lockFocus];
 	[viewForImage drawRect:[viewForImage bounds]];
 	[tabViewImage unlockFocus];
@@ -1360,7 +1347,7 @@
     [toolbar setAutosavesConfiguration:YES];
 	
     //
-	toolbarItems = [[adium.toolbarController toolbarItemsForToolbarTypes:[NSArray arrayWithObjects:@"General", @"ListObject", @"TextEntry", @"MessageWindow", nil]] retain];
+	toolbarItems = [adium.toolbarController toolbarItemsForToolbarTypes:[NSArray arrayWithObjects:@"General", @"ListObject", @"TextEntry", @"MessageWindow", nil]];
 
 	/* Seemingly randomly, setToolbar: may throw:
 	 * Exception:	NSInternalInconsistencyException
@@ -1497,9 +1484,6 @@
 	
 	//Set the image
 	[[self window] setMiniwindowImage:miniwindowImage];
-	
-	//Cleanup
-	[miniwindowImage release];
 }
 
 - (BOOL)window:(NSWindow *)sender shouldDragDocumentWithEvent:(NSEvent *)mouseEvent from:(NSPoint)startPoint withPasteboard:(NSPasteboard *)pasteboard

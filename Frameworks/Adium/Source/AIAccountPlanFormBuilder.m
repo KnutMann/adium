@@ -38,22 +38,12 @@
 - (id)initWithPlan:(AIAccountPlan *)inPlan
 {
 	if ((self = [super init])) {
-		plan = [inPlan retain];
+		plan = inPlan;
 		fieldsByName = [[NSMutableDictionary alloc] init];
 		controlsByName = [[NSMutableDictionary alloc] init];
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[plan release];
-	[fieldsByName release];
-	[controlsByName release];
-	changeTarget = nil;
-
-	[super dealloc];
 }
 
 - (void)setChangeTarget:(id)target action:(SEL)inAction
@@ -193,7 +183,7 @@
 			if ([field secure]) {
 				/* No factory for this one: a secure field is the only control here that is not what
 				 * the form vends, and it wants exactly the same wiring. */
-				control = [[[NSSecureTextField alloc] initWithFrame:NSMakeRect(0.0, 0.0, 160.0, 22.0)] autorelease];
+				control = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0.0, 0.0, 160.0, 22.0)];
 				[control setTarget:self];
 				[control setAction:@selector(controlChanged:)];
 				[[control cell] setSendsActionOnEndEditing:YES];
@@ -229,8 +219,8 @@
 		}
 
 		case AIAccountFieldMultiline: {
-			NSScrollView *scroller = [[[NSScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 260.0, 72.0)] autorelease];
-			NSTextView *editor = [[[NSTextView alloc] initWithFrame:[[scroller contentView] bounds]] autorelease];
+			NSScrollView *scroller = [[NSScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 260.0, 72.0)];
+			NSTextView *editor = [[NSTextView alloc] initWithFrame:[[scroller contentView] bounds]];
 
 			[editor setString:(value ? value : @"")];
 			[editor setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
@@ -307,7 +297,7 @@
 		}
 
 		case AIAccountFieldEncryption: {
-			NSPopUpButton *control = [[[NSPopUpButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 200.0, 25.0)] autorelease];
+			NSPopUpButton *control = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 200.0, 25.0)];
 
 			[control setMenu:[adium.contentController encryptionMenuNotifyingTarget:nil withDefault:NO]];
 			[[control menu] setAutoenablesItems:NO];

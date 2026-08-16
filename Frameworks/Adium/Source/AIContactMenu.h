@@ -24,7 +24,7 @@
 @interface AIContactMenu : AIAbstractListObjectMenu <AIListObjectObserver,NSMenuDelegate> {
 	AIListObject			*containingObject;
 	
-	id<AIContactMenuDelegate>						delegate;
+	__unsafe_unretained id<AIContactMenuDelegate>	delegate;
 	BOOL					delegateRespondsToDidSelectContact;
 	BOOL					delegateRespondsToShouldIncludeContact;	
 	BOOL					delegateRespondsToValidateContact;

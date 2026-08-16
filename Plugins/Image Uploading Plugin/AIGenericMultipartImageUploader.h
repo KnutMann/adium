@@ -18,9 +18,9 @@
 #import <AIUtilities/AIProgressDataUploader.h>
 
 @interface AIGenericMultipartImageUploader : NSObject <AIImageUploader, AIProgressDataUploaderDelegate> {
-	AIChat						*chat;
+	__unsafe_unretained AIChat					*chat;
 	NSImage						*image;
-	AIImageUploaderPlugin		*uploader;
+	__unsafe_unretained AIImageUploaderPlugin	*uploader;
 	
 	AIProgressDataUploader		*dataUploader;
 }

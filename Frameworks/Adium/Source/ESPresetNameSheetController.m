@@ -23,13 +23,26 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 @end
 
+/* The name sheets currently on screen.
+ *
+ * -showOnWindow: is declared ns_consumes_self. Under manual counting that was decoration; counted
+ * automatically it means what it says: the caller's one reference is handed over at the call and
+ * given up when the method returns, so with nothing else holding on, the controller would die as
+ * its sheet appeared. This set is that something else, and it takes the place of a scheme in which
+ * the object was its own owner and handed itself to the pool on the way out.
+ */
+static NSMutableSet *openPresetNameSheets = nil;
+
 @implementation ESPresetNameSheetController
 
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
 	//Must be called on a window
 	NSParameterAssert(parentWindow != nil);
-	
+
+	if (!openPresetNameSheets) openPresetNameSheets = [[NSMutableSet alloc] init];
+	[openPresetNameSheets addObject:self];
+
 	[parentWindow beginSheet:self.window
 		   completionHandler:^(NSModalResponse returnCode) {
 			[self sheetDidEnd:self.window returnCode:returnCode contextInfo:NULL];
@@ -42,10 +55,10 @@
 	NSParameterAssert([inTarget respondsToSelector:@selector(presetNameSheetControllerDidEnd:returnCode:newName:userInfo:)]);
 	
 	if ((self = [super initWithWindowNibName:PRESET_NAME_SHEET])) {
-		defaultName = [inDefaultName retain];
-		explanatoryText = [inExplanatoryText retain];
-		target = [inTarget retain];
-		userInfo = [inUserInfo retain];
+		defaultName = inDefaultName;
+		explanatoryText = inExplanatoryText;
+		target = inTarget;
+		userInfo = inUserInfo;
 	}
 	
 	return self;
@@ -55,22 +68,32 @@
  * @brief Invoked as the sheet closes, dismiss the sheet
  */
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{	
+{
     [sheet orderOut:nil];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openPresetNameSheets removeObject:self];
 }
 
 /*!
-* @brief As the window closes, release this controller instance
- *
- * The instance retained itself (rather, was not autoreleased when created) so it could function independently.
+ * @brief As the window closes, leave the set of open sheets
  */
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
 
-	[self autorelease];
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openPresetNameSheets removeObject:self];
 }
 
 - (IBAction)okay:(id)sender

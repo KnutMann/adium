@@ -78,7 +78,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 static NSString *AISentenceCaseLabel(NSString *label)
 {
-	NSMutableCharacterSet	*strip = [[[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy] autorelease];
+	NSMutableCharacterSet	*strip = [[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy];
 	[strip addCharactersInString:@".…。"];
 
 	NSString	*trimmed = [label stringByTrimmingCharactersInSet:strip];
@@ -122,7 +122,10 @@ static NSString *AISentenceCaseLabel(NSString *label)
 		AISettingsFormView	*form = [self buildSettingsForm];
 
 		settingsForm = form;
-		view = [form retain];
+		/* The view ivar is declared in AIModularPane and is strong under ARC; this store is
+		 * the one reference, and -closeView's view = nil gives it up. No nib was loaded for
+		 * this view, so unlike nib panes it carries no extra unowned reference. */
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -148,7 +151,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -165,7 +167,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:MESSAGE_ADVANCED_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:MESSAGE_ADVANCED_PANE_INITIAL_WIDTH];
 
 	[form addSectionHeader:AILocalizedString(@"Messages",nil)];
 
@@ -246,7 +248,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (NSSegmentedControl *)chatTypeSegmentedControl
 {
-	NSSegmentedControl	*segment = [[[NSSegmentedControl alloc] initWithFrame:NSZeroRect] autorelease];
+	NSSegmentedControl	*segment = [[NSSegmentedControl alloc] initWithFrame:NSZeroRect];
 
 	[segment setSegmentCount:2];
 	[segment setSegmentStyle:NSSegmentStyleAutomatic];
@@ -499,7 +501,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (NSMenu *)_nameFormatMenu
 {
-	NSMenu	*menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	NSMenu	*menu = [[NSMenu alloc] initWithTitle:@""];
 
 	[menu addItemWithTitle:AILocalizedString(@"Alias", nil)
 					target:nil
@@ -530,7 +532,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (NSMenu *)_timeStampMenu
 {
-	NSMenu	*menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	NSMenu	*menu = [[NSMenu alloc] initWithTitle:@""];
 
 	//Generate all the available time stamp formats
 	//If there is no difference between the time stamp with AM/PM and the one without, the localized time stamp must
@@ -539,14 +541,12 @@ static NSString *AISentenceCaseLabel(NSString *label)
     __block NSString	*sampleStampA, *sampleStampB;
 
 	[NSDateFormatter withLocalizedDateFormatterShowingSeconds:NO showingAMorPM:YES perform:^(NSDateFormatter *noSecondsAMPM){
-		sampleStampA = [[noSecondsAMPM stringForObjectValue:[NSDate date]] retain];
+		sampleStampA = [noSecondsAMPM stringForObjectValue:[NSDate date]];
 	}];
-	[sampleStampA autorelease];
 
 	[NSDateFormatter withLocalizedDateFormatterShowingSeconds:NO showingAMorPM:NO perform:^(NSDateFormatter *noSecondsNoAMPM){
-		sampleStampB = [[noSecondsNoAMPM stringForObjectValue:[NSDate date]] retain];
+		sampleStampB = [noSecondsNoAMPM stringForObjectValue:[NSDate date]];
 	}];
-	[sampleStampB autorelease];
 
 	BOOL		noAMPM = [sampleStampA isEqualToString:sampleStampB];
 
@@ -583,17 +583,17 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (NSMenu *)_fontSizeMenu
 {
-	NSMenu		*menu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*menu = [[NSMenu alloc] init];
 	NSMenuItem	*menuItem;
 
 	NSUInteger sizes[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,18,20,22,24,36,48,64,72,96};
 	NSUInteger loopCounter;
 
 	for (loopCounter = 0; loopCounter < 23; loopCounter++) {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:[[NSNumber numberWithInteger:sizes[loopCounter]] stringValue]
-																		 target:nil
-																		 action:nil
-																  keyEquivalent:@""] autorelease];
+		menuItem = [[NSMenuItem alloc] initWithTitle:[[NSNumber numberWithInteger:sizes[loopCounter]] stringValue]
+											  target:nil
+											  action:nil
+									   keyEquivalent:@""];
 		[menuItem setTag:sizes[loopCounter]];
 		[menu addItem:menuItem];
 	}

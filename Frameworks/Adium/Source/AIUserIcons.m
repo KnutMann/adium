@@ -168,12 +168,10 @@ static NSComparisonResult compareSources(id <AIUserIconSource> sourceA, id <AIUs
 #ifdef AIUSERICON_DEBUG
 		AILogWithSignature(@"%@ provided icon for %@", inSource, inObject);
 #endif
-		[inUserIcon retain];
 		[self flushCacheForObjectAndParentOnly:inObject];
 
 		[iconCache setObject:inUserIcon forKey:internalObjectID];
 		[iconCacheOwners setObject:inSource forKey:internalObjectID];
-		[inUserIcon release];
 
 	} else {
 		id <AIUserIconSource> source = [self userIconSourceForObject:inObject];
@@ -382,7 +380,6 @@ static NSComparisonResult compareSources(id <AIUserIconSource> sourceA, id <AIUs
 	if (userIcon && inSource) {
 		NSString	*internalObjectID = inObject.internalObjectID;
 		
-		[userIcon retain];
 		[self flushCacheForObjectOnly:inObject];
 
 #ifdef AIUSERICON_DEBUG
@@ -393,7 +390,6 @@ static NSComparisonResult compareSources(id <AIUserIconSource> sourceA, id <AIUs
 					  forKey:internalObjectID];
 		[iconCacheOwners setObject:inSource
 							forKey:internalObjectID];
-		[userIcon release];
 	}
 }
 
@@ -468,7 +464,7 @@ static NSComparisonResult compareSources(id <AIUserIconSource> sourceA, id <AIUs
 												   type:AIServiceIconSmall
 											  direction:AIIconNormal];
 	
-	return [[userIcon retain] autorelease];
+	return userIcon;
 }
 
 #pragma mark -

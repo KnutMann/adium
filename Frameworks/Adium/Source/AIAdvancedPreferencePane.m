@@ -20,13 +20,13 @@
 //Return a new preference pane
 + (AIAdvancedPreferencePane *)preferencePane
 {
-    return [[[self alloc] init] autorelease];
+    return [[self alloc] init];
 }
 
 //Return a new preference pane, passing plugin
 + (AIAdvancedPreferencePane *)preferencePaneForPlugin:(id)inPlugin
 {
-    return [[[self alloc] initForPlugin:inPlugin] autorelease];
+    return [[self alloc] initForPlugin:inPlugin];
 }
 
 //Init

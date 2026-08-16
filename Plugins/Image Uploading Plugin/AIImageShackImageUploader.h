@@ -20,10 +20,10 @@
 	NSData						*resultData;
 	NSXMLParser					*responseParser;
 	
-	// Parsing
+	// Parsing; these two only alias objects the parse itself keeps alive
 	NSMutableDictionary			*lastElement;
-	NSString					*currentElementName;
-	NSMutableDictionary			*currentElement;
+	__unsafe_unretained NSString				*currentElementName;
+	__unsafe_unretained NSMutableDictionary		*currentElement;
 
 	NSMutableDictionary			*links;
 }

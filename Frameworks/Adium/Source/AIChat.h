@@ -113,7 +113,7 @@ typedef enum {
 	NSMutableDictionary	*participatingContactsAliases;
 	NSMutableArray		*participatingContacts;
 	
-	AIListContact		*preferredContact;
+	__unsafe_unretained AIListContact	*preferredContact;
 	NSString			*name;
 	NSString			*uniqueChatID;
 	id					identifier;

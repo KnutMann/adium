@@ -76,7 +76,6 @@ static inline NSMutableDictionary *_getProxyDict(void) {
 		[inListObject noteProxyObject:proxy];
 		[proxyDict setObject:proxy
 					  forKey:key];
-		[proxy release];
 	}
 
 	return proxy;
@@ -96,7 +95,9 @@ static inline NSMutableDictionary *_getProxyDict(void) {
  */
 + (void)releaseProxyObject:(AIProxyListObject *)proxyObject
 {
-	[[proxyObject retain] autorelease];
+	/* The dictionary may hold the last reference; keep the proxy alive until the pool
+	 * drains, as unretaining holders (e.g. the outline view's items) expect. */
+	CFAutorelease(CFBridgingRetain(proxyObject));
 	proxyObject.listObject = nil;
 	[proxyObject flushCache];
 	[proxyDict removeObjectForKey:proxyObject.key];
@@ -105,11 +106,6 @@ static inline NSMutableDictionary *_getProxyDict(void) {
 - (void)dealloc
 {
 	AILogWithSignature(@"%@", self);
-	self.key = nil;
-
-    [self flushCache];
-	
-	[super dealloc];
 }
 
 /* Pretend to be our listObject. I suspect being an NSProxy subclass could do this more cleanly, but my initial attempt

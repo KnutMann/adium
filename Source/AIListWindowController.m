@@ -1339,7 +1339,9 @@ static BOOL AIScreenRectEdgeAdjacentToAnyOtherScreen(NSRectEdge edge, NSScreen *
 		AIContactList *from = (AIContactList *)[self contactList];
 		AIContactList *to = (AIContactList *)[attachToBottom contactList];
 		
-		for (AIListGroup *group in from) {
+		/* A snapshot, deliberately: each move takes the group out of 'from', and
+		 * enumerating the live list would abort on the first mutation. */
+		for (AIListGroup *group in [from containedObjects]) {
 			[adium.contactController moveGroup:group fromContactList:from toContactList:to];
 		}
 		

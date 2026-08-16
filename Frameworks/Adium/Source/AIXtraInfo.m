@@ -39,61 +39,58 @@
 {
 	if(!inName) name = @"Unnamed Xtra";
 	else {
-		[inName retain];
-		[name autorelease];
 		name = inName;
 	}
 }
 
 - (NSString *) description
 {
-	return [NSString stringWithFormat:@"%@, %@, %@, retaincount=%lu", [self name], [self path], [self type], [self retainCount]];
+	return [NSString stringWithFormat:@"%@, %@, %@", [self name], [self path], [self type]];
 }
 
 + (AIXtraInfo *) infoWithURL:(NSURL *)url
 {
-	return [[[self alloc] initWithURL:url] autorelease];
+	return [[self alloc] initWithURL:url];
 }
 
 - (id) initWithURL:(NSURL *)url
 {
 	if((self = [super init]))
 	{
-		path = [[url path] retain];
-		type = [[[[url path] pathExtension] lowercaseString] retain];
+		path = [url path];
+		type = [[[url path] pathExtension] lowercaseString];
 		xtraBundle = [[NSBundle alloc] initWithPath:path];
-		version = [[xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"] retain];
-		author = [[xtraBundle objectForInfoDictionaryKey:@"OriginalAuthor"] retain];
+		version = [xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+		author = [xtraBundle objectForInfoDictionaryKey:@"OriginalAuthor"];
 		if (xtraBundle && ([[xtraBundle objectForInfoDictionaryKey:@"XtraBundleVersion"] integerValue] == 1)) { //This checks for a new-style xtra
 			[self setName:[xtraBundle objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey]];
-			resourcePath = [[xtraBundle resourcePath] retain];
+			resourcePath = [xtraBundle resourcePath];
 			icon = [[NSImage alloc] initByReferencingFile:[xtraBundle pathForResource:@"Icon" ofType:@"icns"]];
-			readMePath = [[xtraBundle pathForResource:@"ReadMe" ofType:@"rtf"] retain];
+			readMePath = [xtraBundle pathForResource:@"ReadMe" ofType:@"rtf"];
 			NSString *previewImagePath = [xtraBundle pathForImageResource:@"PreviewImage"];
 			if(previewImagePath)
 				previewImage = [[NSImage alloc] initByReferencingFile:previewImagePath];
 		}
 		else {
 			if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
-				[self autorelease];
 				return nil;
 			}
 			[self setName:[[path lastPathComponent] stringByDeletingPathExtension]];
 			resourcePath = [path copy];//root of the xtra
 		}	
 		if (!readMePath)
-			readMePath = [[[NSBundle mainBundle] pathForResource:@"DefaultXtraReadme" ofType:@"rtf"] retain];
+			readMePath = [[NSBundle mainBundle] pathForResource:@"DefaultXtraReadme" ofType:@"rtf"];
 		if (!icon) {
 			if ([[path pathExtension] caseInsensitiveCompare:@"AdiumIcon"] == NSOrderedSame) {
                 AIIconState *previewState = [adium.dockController previewStateForIconPackAtPath:path];
-				icon = [[previewState image] retain];
+				icon = [previewState image];
 
 			} else {
-				icon = [[[NSWorkspace sharedWorkspace] iconForFileType:[path pathExtension]] retain];
+				icon = [[NSWorkspace sharedWorkspace] iconForFileType:[path pathExtension]];
 			}
 		}
 		if(!previewImage)
-			previewImage = [icon retain];
+			previewImage = icon;
 		
 		/* Enabled by default */
 		enabled = YES;
@@ -104,20 +101,6 @@
 - (NSImage *) icon
 {
 	return icon;
-}
-
-- (void) dealloc
-{
-	[icon release];
-	[previewImage release];
-	[path release];
-	[name release];
-	[resourcePath release];
-	[type release];
-	[version release];
-	[author release];
-	[readMePath release];
-	[super dealloc];
 }
 
 - (NSString *)resourcePath
@@ -151,7 +134,7 @@
 				([[creator substringToIndex:[prefix length]] caseInsensitiveCompare:prefix] == NSOrderedSame))
 				creator = [creator substringFromIndex:[prefix length]];
 
-			author = [[creator stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] retain];
+			author = [creator stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		}
 	}
 

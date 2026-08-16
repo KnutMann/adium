@@ -41,12 +41,15 @@
 
 @interface AILocalizationButtonCell : NSButtonCell {
 	NSRect	originalFrame;
-	
-	IBOutlet	NSWindow	*window_anchorOnLeftSide;
-	IBOutlet	NSWindow	*window_anchorOnRightSide;
-	
-	IBOutlet	NSView		*view_anchorToLeftSide;
-	IBOutlet	NSView		*view_anchorToRightSide;
+
+	/* Unowned: NSCell copies memberwise, so a copied cell holds duplicates of these pointers without
+	 * references of its own; counting them would release the anchors out from under the original when
+	 * the copy goes away. The window and views outlive the cell, which lives inside them. */
+	IBOutlet	__unsafe_unretained NSWindow	*window_anchorOnLeftSide;
+	IBOutlet	__unsafe_unretained NSWindow	*window_anchorOnRightSide;
+
+	IBOutlet	__unsafe_unretained NSView		*view_anchorToLeftSide;
+	IBOutlet	__unsafe_unretained NSView		*view_anchorToRightSide;
 
 	AILocalizationAnchorMovementType	rightAnchorMovementType;
 	BOOL								alwaysMoveRightAnchoredWindow;

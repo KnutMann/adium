@@ -21,6 +21,7 @@
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIStatusControllerProtocol.h>
+#import <Adium/AIStatus.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 
@@ -47,7 +48,7 @@
 			 keyEquivalent:@""
 		 representedObject:inAccount];
 	
-	return [menu autorelease];
+	return menu;
 }
 
 + (NSMenuItem *)socialNetworkingSubmenuItem
@@ -58,7 +59,7 @@
 											   keyEquivalent:@""];
 	[menuItem setSubmenu:[self socialNetworkingSubmenuForAccount:nil]];
 
-	return [menuItem autorelease];	
+	return menuItem;
 }
 
 + (void)showCustomSocialNetworkingStatusWindow:(NSMenuItem *)sender

@@ -80,7 +80,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 - (id)initWithChat:(AIChat *)inChat
 {
 	if ((self = [super initWithFrame:NSMakeRect(0.0f, 0.0f, 480.0f, 260.0f)])) {
-		chat = [inChat retain];
+		chat = inChat;
 
 		[self buildInterface];
 		[self reloadHistory];
@@ -119,20 +119,11 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[self handSendingBack];
 
 	[activeRender cancel];
-	[activeRender release];
 	[thumbnailRender cancel];
-	[thumbnailRender release];
 
 	//A preview nobody used is just a file in the temporary folder
 	if (renderedPath && !renderedPathWasInserted)
 		[AITypstRenderer discardRenderAtPath:renderedPath];
-
-	[pendingThumbnails release];
-	[renderedPath release];
-	[renderedFormula release];
-	[chat release];
-
-	[super dealloc];
 }
 
 - (void)takeFocus
@@ -194,12 +185,12 @@ static NSMutableDictionary *thumbnailCache = nil;
  */
 - (void)buildInterface
 {
-	imageView_preview = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+	imageView_preview = [[NSImageView alloc] initWithFrame:NSZeroRect];
 	[imageView_preview setImageScaling:NSImageScaleProportionallyDown];
 	[imageView_preview setImageAlignment:NSImageAlignCenter];
 	[imageView_preview setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	textField_error = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	textField_error = [[NSTextField alloc] initWithFrame:NSZeroRect];
 	[textField_error setEditable:NO];
 	[textField_error setBordered:NO];
 	[textField_error setDrawsBackground:NO];
@@ -210,21 +201,21 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[textField_error setHidden:YES];
 	[textField_error setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	scrollView_history = [[[NSScrollView alloc] initWithFrame:NSZeroRect] autorelease];
+	scrollView_history = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	[scrollView_history setHasHorizontalScroller:YES];
 	[scrollView_history setHasVerticalScroller:NO];
 	[scrollView_history setBorderType:NSNoBorder];
 	[scrollView_history setDrawsBackground:NO];
 	[scrollView_history setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	NSStackView *stack_history = [[[NSStackView alloc] initWithFrame:NSZeroRect] autorelease];
+	NSStackView *stack_history = [[NSStackView alloc] initWithFrame:NSZeroRect];
 	[stack_history setOrientation:NSUserInterfaceLayoutOrientationHorizontal];
 	[stack_history setSpacing:6.0f];
 	[stack_history setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[scrollView_history setDocumentView:stack_history];
 	view_historyStrip = stack_history;
 
-	button_send = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	button_send = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[button_send setImage:[self sendButtonImage]];
 	[button_send setImagePosition:NSImageOnly];
 	[button_send setBordered:NO];
@@ -238,7 +229,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[button_send setEnabled:NO];
 	[button_send setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	NSStackView *stack_links = [[[NSStackView alloc] initWithFrame:NSZeroRect] autorelease];
+	NSStackView *stack_links = [[NSStackView alloc] initWithFrame:NSZeroRect];
 	[stack_links setOrientation:NSUserInterfaceLayoutOrientationHorizontal];
 	[stack_links setSpacing:12.0f];
 	[stack_links setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -328,7 +319,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 - (NSButton *)linkButtonWithTitle:(NSString *)title url:(NSString *)url
 {
-	NSButton *button = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	NSButton *button = [[NSButton alloc] initWithFrame:NSZeroRect];
 
 	NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:
 								[NSColor linkColor], NSForegroundColorAttributeName,
@@ -336,7 +327,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 								[NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName,
 								nil];
 
-	[button setAttributedTitle:[[[NSAttributedString alloc] initWithString:title attributes:attributes] autorelease]];
+	[button setAttributedTitle:[[NSAttributedString alloc] initWithString:title attributes:attributes]];
 	[button setBordered:NO];
 	[button setTarget:self];
 	[button setAction:@selector(openDocumentation:)];
@@ -391,15 +382,14 @@ static NSMutableDictionary *thumbnailCache = nil;
 	NSUInteger thisGeneration = renderGeneration;
 
 	[activeRender cancel];
-	[activeRender autorelease];
 
-	activeRender = [[AITypstRenderer renderFormula:formula
-										 pointSize:0.0
-										completion:^(NSString *path, NSString *errorMessage) {
+	activeRender = [AITypstRenderer renderFormula:formula
+										pointSize:0.0
+									   completion:^(NSString *path, NSString *errorMessage) {
 		if (thisGeneration != renderGeneration) return;
 
 		if (path) {
-			NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];
+			NSImage *image = [[NSImage alloc] initWithContentsOfFile:path];
 			NSImageRep *rep = [[image representations] lastObject];
 			if (rep) {
 				[image setSize:[AITypstRenderer naturalSizeForPixelSize:NSMakeSize((CGFloat)[rep pixelsWide],
@@ -417,13 +407,13 @@ static NSMutableDictionary *thumbnailCache = nil;
 			if (renderedPath && !renderedPathWasInserted)
 				[AITypstRenderer discardRenderAtPath:renderedPath];
 
-			[renderedPath release];	   renderedPath = [path retain];
-			[renderedFormula release]; renderedFormula = [formula retain];
+			renderedPath = path;
+			renderedFormula = formula;
 			renderedPathWasInserted = NO;
 		} else {
 			[self showError:errorMessage];
 		}
-	}] retain];
+	}];
 }
 
 - (void)showError:(NSString *)message
@@ -514,7 +504,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 {
 	/* Sending closes the editor and closing it is what releases it, so the receiver has to be kept
 	 * alive for the rest of this method. */
-	[[self retain] autorelease];
+	CFAutorelease(CFBridgingRetain(self));
 
 	[self insertRenderedFormula];
 
@@ -572,14 +562,13 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 - (void)reloadHistory
 {
-	for (NSView *view in [[[[view_historyStrip subviews] copy] autorelease] reverseObjectEnumerator])
+	for (NSView *view in [[[view_historyStrip subviews] copy] reverseObjectEnumerator])
 		[(NSStackView *)view_historyStrip removeView:view];
 
-	[pendingThumbnails release];
 	pendingThumbnails = [[NSMutableArray alloc] init];
 
 	for (NSString *formula in [AITypstHistory formulas]) {
-		NSButton *button = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+		NSButton *button = [[NSButton alloc] initWithFrame:NSZeroRect];
 		[button setBordered:NO];
 		[button setTarget:self];
 		[button setAction:@selector(recallFormula:)];
@@ -598,10 +587,10 @@ static NSMutableDictionary *thumbnailCache = nil;
 			[pendingThumbnails addObject:formula];
 		}
 
-		NSMenu *menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
-		NSMenuItem *forget = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Remove from History", "Context menu item on a formula in the formula editor's history strip")
-														 action:@selector(forgetFormula:)
-												  keyEquivalent:@""] autorelease];
+		NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+		NSMenuItem *forget = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Remove from History", "Context menu item on a formula in the formula editor's history strip")
+														action:@selector(forgetFormula:)
+												 keyEquivalent:@""];
 		[forget setTarget:self];
 		[forget setRepresentedObject:formula];
 		[menu addItem:forget];
@@ -625,17 +614,16 @@ static NSMutableDictionary *thumbnailCache = nil;
 	if (![pendingThumbnails count]) return;
 	if (![AITypstRenderer typstIsAvailable]) return;
 
-	NSString *formula = [[[pendingThumbnails objectAtIndex:0] retain] autorelease];
+	NSString *formula = [pendingThumbnails objectAtIndex:0];
 	[pendingThumbnails removeObjectAtIndex:0];
 
-	/* Autorelease rather than release: the call that lands here comes from the previous thumbnail's
-	 * own completion handler, so this is the object whose block is running. */
-	[thumbnailRender autorelease];
-	thumbnailRender = [[AITypstRenderer renderFormula:formula
-											pointSize:THUMBNAIL_POINT_SIZE
-										   completion:^(NSString *path, NSString *errorMessage) {
+	/* This can run inside the previous renderer's own completion handler. Replacing the ivar under
+	 * it is safe: whatever invoked the handler keeps that renderer alive until the handler returns. */
+	thumbnailRender = [AITypstRenderer renderFormula:formula
+										   pointSize:THUMBNAIL_POINT_SIZE
+										  completion:^(NSString *path, NSString *errorMessage) {
 		if (path) {
-			NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];
+			NSImage *image = [[NSImage alloc] initWithContentsOfFile:path];
 			NSImageRep *rep = [[image representations] lastObject];
 			if (image && rep) {
 				[image setSize:[AITypstRenderer naturalSizeForPixelSize:NSMakeSize((CGFloat)[rep pixelsWide],
@@ -656,7 +644,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 		}
 
 		[self renderNextThumbnail];
-	}] retain];
+	}];
 }
 
 - (void)recallFormula:(id)sender
@@ -670,7 +658,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 	NSRange range = [self formulaRange];
 	if (range.location != NSNotFound && [entry shouldChangeTextInRange:range replacementString:formula]) {
 		[[entry textStorage] replaceCharactersInRange:range withAttributedString:
-		 [[[NSAttributedString alloc] initWithString:formula attributes:[entry typingAttributes]] autorelease]];
+		 [[NSAttributedString alloc] initWithString:formula attributes:[entry typingAttributes]]];
 		[entry didChangeText];
 		[entry setSelectedRange:NSMakeRange(range.location, [formula length])];
 	}

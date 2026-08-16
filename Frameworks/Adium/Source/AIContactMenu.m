@@ -42,7 +42,7 @@
  */
 + (id)contactMenuWithDelegate:(id<AIContactMenuDelegate>)inDelegate forContactsInObject:(AIListObject *)inContainingObject
 {
-	return [[[self alloc] initWithDelegate:inDelegate forContactsInObject:inContainingObject] autorelease];
+	return [[self alloc] initWithDelegate:inDelegate forContactsInObject:inContainingObject];
 }
 
 /*!
@@ -54,7 +54,7 @@
 {
 	if ((self = [super init])) {
 		[self setDelegate:inDelegate];
-		containingObject = [inContainingObject retain];
+		containingObject = inContainingObject;
 
 		// Register as a list observer
 		[[AIContactObserverManager sharedManager] registerListObjectObserver:self];
@@ -76,10 +76,7 @@
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
-	[containingObject release]; containingObject = nil;
 	delegate = nil;
-	
-	[super dealloc];
 }
 
 /*!
@@ -89,10 +86,8 @@
  */
 - (void)setContainingObject:(AIListObject *)inContainingObject
 {
-	[containingObject release];
-	
-	containingObject = [inContainingObject retain];
-	
+	containingObject = inContainingObject;
+
 	[self rebuildMenu];
 }
 
@@ -226,9 +221,9 @@
 	if (shouldIncludeContactListMenuItem) {
 		BOOL needsSeparator = (contactMenus.count > 0);
 			
-		NSMenuItem	*aMenuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Contact List", nil) stringByAppendingEllipsis]
-															 action:@selector(toggleContactList:)
-													  keyEquivalent:@""] autorelease];
+		NSMenuItem	*aMenuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Contact List", nil) stringByAppendingEllipsis]
+															action:@selector(toggleContactList:)
+													 keyEquivalent:@""];
 		[aMenuItem setTarget:adium.interfaceController];
 		[contactMenus insertObject:aMenuItem atIndex:0];
 		 
@@ -247,7 +242,7 @@
 {
 	NSMutableArray	*listObjectArray = [NSMutableArray array];
 	
-	for (AIListObject *listObject in [[listObjects copy] autorelease]) {
+	for (__strong AIListObject *listObject in [listObjects copy]) {
 		if ([listObject isKindOfClass:[AIListContact class]]) {
 			/* Include if the delegate doesn't specify, or if the delegate approves the contact.
 			 * Note that this includes a metacontact itself, not its contained objects.
@@ -302,8 +297,6 @@
 				[menuItemArray addObject:menuItem];
 				[menuItemArray addObjectsFromArray:[self contactMenusForListObjects:containedListObjects]];
 
-				[menuItem release];
-
 			}
 		} else {
 			// Just add the menu item.
@@ -313,8 +306,7 @@
 																				 keyEquivalent:@""
 																			 representedObject:listObject];
 			[menuItemArray addObject:menuItem];
-			[menuItem release];
-			
+
 			if (populateMenuLazily) {
 				/* Note that we'll call _updateMenuItem before the item is actually displayed, to set
 				 * the title, image, etc. */										

@@ -69,15 +69,6 @@ static AIContactObserverManager *sharedObserverManager = nil;
 	
 	return self;
 }
-- (void)dealloc
-{
-	[contactObservers release]; contactObservers = nil;
-	[delayedModifiedStatusKeys release];
-	[delayedModifiedAttributeKeys release];
-	self.delayedUpdateTimer = nil;
-
-	[super dealloc];
-}
 
 //Status and Display updates -------------------------------------------------------------------------------------------
 #pragma mark Status and Display updates
@@ -323,7 +314,12 @@ static AIContactObserverManager *sharedObserverManager = nil;
 		}
     }
 
-	[changedObjects autorelease]; changedObjects = nil;
+	/* The set may hold the last reference to contacts that were removed while updates were
+	 * delayed; they must survive until the pool drains, past any redisplay this update triggered. */
+	if (changedObjects) {
+		CFAutorelease(CFBridgingRetain(changedObjects));
+		changedObjects = nil;
+	}
 }
 
 //List object observers ------------------------------------------------------------------------------------------------
@@ -371,24 +367,23 @@ static AIContactObserverManager *sharedObserverManager = nil;
 	id <NSFastEnumeration> en = contacts ?: (id)[(AIContactController *)adium.contactController contactEnumerator];
 	
 	for (AIListObject *listObject in en) {
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		NSSet	*attributes = [inObserver updateListObject:listObject keys:nil silent:YES];
-		if (attributes) [self listObjectAttributesChanged:listObject modifiedKeys:attributes];
-		
-		if ([listObject isKindOfClass:[AIListContact class]]) {
-			AIListContact *contact = (AIListContact *)listObject;
-			
-			//If this contact is within a meta contact, update the meta contact too
-			if (contact.metaContact) {
-				attributes = [inObserver updateListObject:contact.metaContact
-															keys:nil
-														  silent:YES];
-				if (attributes) [self listObjectAttributesChanged:contact.metaContact
-													 modifiedKeys:attributes];
+		@autoreleasepool {
+			NSSet	*attributes = [inObserver updateListObject:listObject keys:nil silent:YES];
+			if (attributes) [self listObjectAttributesChanged:listObject modifiedKeys:attributes];
+
+			if ([listObject isKindOfClass:[AIListContact class]]) {
+				AIListContact *contact = (AIListContact *)listObject;
+
+				//If this contact is within a meta contact, update the meta contact too
+				if (contact.metaContact) {
+					attributes = [inObserver updateListObject:contact.metaContact
+																keys:nil
+															  silent:YES];
+					if (attributes) [self listObjectAttributesChanged:contact.metaContact
+														 modifiedKeys:attributes];
+				}
 			}
 		}
-		
-		[pool release];
 	}
 	
 	[self endListObjectNotificationsDelay];
@@ -429,7 +424,7 @@ static AIContactObserverManager *sharedObserverManager = nil;
 {
 	NSMutableSet	*attrChange = nil;
 
-	for (NSValue *observerValue in [[contactObservers copy] autorelease]) {
+	for (NSValue *observerValue in [contactObservers copy]) {
 		
 		/* Skip any observer which has been removed while we were iterating over observers,
 		 * as we don't retain observers and therefore risk messaging a released object.
@@ -464,16 +459,16 @@ static AIContactObserverManager *sharedObserverManager = nil;
 
 	//If we removed any observers while informing them, we don't need that information any more
 	if (removedContactObservers) {
-		[removedContactObservers release]; removedContactObservers = nil;
+		removedContactObservers = nil;
 	}
 
-	return [attrChange autorelease];
+	return attrChange;
 }
 
 //Command all observers to apply their attributes to an object
 - (void)_updateAllAttributesOfObject:(AIListObject *)inObject
 {	
-	for (NSValue *observerValue in [[contactObservers copy] autorelease]) {
+	for (NSValue *observerValue in [contactObservers copy]) {
 		/* Skip any observer which has been removed while we were iterating over observers,
 		 * as we don't retain observers and therefore risk messaging a released object.
 		 */
@@ -487,7 +482,7 @@ static AIContactObserverManager *sharedObserverManager = nil;
 	
 	//If we removed any observers while informing them, we don't need that information any more
 	if (removedContactObservers) {
-		[removedContactObservers release]; removedContactObservers = nil;
+		removedContactObservers = nil;
 	}
 	
 	informingObservers = NO;

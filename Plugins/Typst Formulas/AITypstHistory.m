@@ -47,7 +47,7 @@ NSString *AITypstHistoryDidChangeNotification = @"AITypstHistoryDidChange";
  */
 + (void)_setFormulas:(NSArray *)formulas
 {
-	[adium.preferenceController setPreference:[[formulas copy] autorelease]
+	[adium.preferenceController setPreference:[formulas copy]
 									   forKey:KEY_FORMULA_HISTORY
 										group:PREF_GROUP_TYPST_FORMULAS];
 
@@ -60,7 +60,7 @@ NSString *AITypstHistoryDidChangeNotification = @"AITypstHistoryDidChange";
 	NSString *trimmed = [formula stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	if (![trimmed length]) return;
 
-	NSMutableArray *updated = [[[self formulas] mutableCopy] autorelease];
+	NSMutableArray *updated = [[self formulas] mutableCopy];
 
 	/* Remove before inserting, so that using a known formula again promotes it instead of leaving a
 	 * second copy further down the list. */
@@ -78,7 +78,7 @@ NSString *AITypstHistoryDidChangeNotification = @"AITypstHistoryDidChange";
 	NSArray *current = [self formulas];
 	if (![current containsObject:formula]) return;
 
-	NSMutableArray *updated = [[current mutableCopy] autorelease];
+	NSMutableArray *updated = [current mutableCopy];
 	[updated removeObject:formula];
 
 	[self _setFormulas:updated];

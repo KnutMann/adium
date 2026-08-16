@@ -143,7 +143,7 @@ static NSString *AIRowLabel(NSString *label)
 		AISettingsFormView	*form = [self buildSettingsForm];
 
 		settingsForm = form;
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -169,7 +169,6 @@ static NSString *AIRowLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -185,7 +184,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:MESSAGES_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:MESSAGES_PANE_INITIAL_WIDTH];
 
 	//What this pane is about, and the one caveat that spans all of it
 	[form addInfoRow:AILocalizedString(@"Style changes take effect for new message windows.", nil)
@@ -210,9 +209,9 @@ static NSString *AIRowLabel(NSString *label)
 	 * has been replaced wholesale by style reloads in the past, so the row hosts
 	 * a stable placeholder the WebView is dropped into, exactly as the nib did.
 	 */
-	view_previewLocation = [[[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																	 MESSAGES_PANE_INITIAL_WIDTH,
-																	 MESSAGES_PREVIEW_HEIGHT)] autorelease];
+	view_previewLocation = [[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																	MESSAGES_PANE_INITIAL_WIDTH,
+																	MESSAGES_PREVIEW_HEIGHT)];
 	[view_previewLocation setAutoresizesSubviews:YES];
 	[form addEdgeToEdgeRow:view_previewLocation];
 
@@ -252,9 +251,9 @@ static NSString *AIRowLabel(NSString *label)
 	 * nib's fixed frame because a text field in a row of views keeps whatever
 	 * frame it brought along.
 	 */
-	fontPreviewField_currentFont = [[[JVFontPreviewField alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																						 FONT_PREVIEW_FIELD_WIDTH,
-																						 FONT_PREVIEW_FIELD_HEIGHT)] autorelease];
+	fontPreviewField_currentFont = [[JVFontPreviewField alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																						FONT_PREVIEW_FIELD_WIDTH,
+																						FONT_PREVIEW_FIELD_HEIGHT)];
 	[fontPreviewField_currentFont setBezeled:NO];
 	[fontPreviewField_currentFont setDrawsBackground:NO];
 	[[fontPreviewField_currentFont cell] setLineBreakMode:NSLineBreakByTruncatingTail];
@@ -301,9 +300,9 @@ static NSString *AIRowLabel(NSString *label)
 	 * and stays clickable: clicking it opens the open panel, dragging an image
 	 * in and pressing delete work as before (see the delegate methods below).
 	 */
-	imageView_backgroundImage = [[[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																							  BACKGROUND_IMAGE_WELL_WIDTH,
-																							  BACKGROUND_IMAGE_WELL_HEIGHT)] autorelease];
+	imageView_backgroundImage = [[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																							 BACKGROUND_IMAGE_WELL_WIDTH,
+																							 BACKGROUND_IMAGE_WELL_HEIGHT)];
 	[imageView_backgroundImage setDelegate:self];
 	[imageView_backgroundImage setImageFrameStyle:NSImageFrameGrayBezel];
 	[imageView_backgroundImage setImageScaling:NSImageScaleProportionallyDown];
@@ -326,9 +325,9 @@ static NSString *AIRowLabel(NSString *label)
 				  control:[AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
 														  imageView_backgroundImage, popUp_backgroundImageType, nil]]];
 
-	colorWell_customBackgroundColor = [[[NSColorWell alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																					 COLOR_WELL_WIDTH,
-																					 COLOR_WELL_HEIGHT)] autorelease];
+	colorWell_customBackgroundColor = [[NSColorWell alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																					COLOR_WELL_WIDTH,
+																					COLOR_WELL_HEIGHT)];
 	[colorWell_customBackgroundColor setTarget:self];
 	[colorWell_customBackgroundColor setAction:@selector(changePreference:)];
 	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Color:", nil))
@@ -346,7 +345,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (NSSegmentedControl *)chatTypeSegmentedControl
 {
-	NSSegmentedControl	*segment = [[[NSSegmentedControl alloc] initWithFrame:NSZeroRect] autorelease];
+	NSSegmentedControl	*segment = [[NSSegmentedControl alloc] initWithFrame:NSZeroRect];
 
 	[segment setSegmentCount:2];
 	[segment setSegmentStyle:NSSegmentStyleAutomatic];
@@ -412,14 +411,12 @@ static NSString *AIRowLabel(NSString *label)
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	//A relayout scheduled by -menusChanged must not reach a closed pane
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-	[previewListObjectsDict release]; previewListObjectsDict = nil;
+	previewListObjectsDict = nil;
 
 	[previewController messageViewIsClosing];
-	[previewController release]; previewController = nil;
+	previewController = nil;
 	[preview removeFromSuperview];
-	[preview release]; preview = nil;
-	//Matches the retain performed in -[ESWebKitMessageViewPreferences _configureChatPreview]
-	[view_previewLocation release];
+	preview = nil;
 
 	/* The form owns every control; these are the pane's non-owning references to
 	 * them and must not outlive the view.
@@ -592,7 +589,7 @@ static NSString *AIRowLabel(NSString *label)
 		NSData	*backgroundImage = [adium.preferenceController preferenceForKey:[plugin styleSpecificKey:@"Background" forStyle:style]
 																		   group:PREF_GROUP_WEBKIT_BACKGROUND_IMAGES];
 		if (backgroundImage) {
-			[imageView_backgroundImage setImage:[[[NSImage alloc] initWithData:backgroundImage] autorelease]];
+			[imageView_backgroundImage setImage:[[NSImage alloc] initWithData:backgroundImage]];
 		} else {
 			[imageView_backgroundImage setImage:nil];
 		}
@@ -822,7 +819,6 @@ static NSString *AIRowLabel(NSString *label)
 																 keyEquivalent:@""];
 		[menuItem setRepresentedObject:[style bundleIdentifier]];
 		[menuItemArray addObject:menuItem];
-		[menuItem release];
 	}
 
 	[menuItemArray sortUsingSelector:@selector(titleCompare:)];
@@ -831,7 +827,7 @@ static NSString *AIRowLabel(NSString *label)
 		[menu addItem:menuItem];
 	}
 
-	return [menu autorelease];
+	return menu;
 }
 
 /*!
@@ -850,7 +846,7 @@ static NSString *AIRowLabel(NSString *label)
 			 representedObject:variant];
 	}
 
-	return [menu autorelease];
+	return menu;
 }
 
 /*!
@@ -866,7 +862,7 @@ static NSString *AIRowLabel(NSString *label)
 	[self _addBackgroundImageTypeChoice:BackgroundTileCenter toMenu:menu withTitle:AILocalizedString(@"Tiled (Centered)","Background image display preference: The image will be tiled and centered in the window")];
 	[self _addBackgroundImageTypeChoice:BackgroundScale toMenu:menu withTitle:AILocalizedString(@"Scaled", "Background image display preference: The image will be increased or decreased in size to fit the window")];
 
-	return [menu autorelease];
+	return menu;
 }
 - (void)_addBackgroundImageTypeChoice:(NSInteger)tag toMenu:(NSMenu *)menu withTitle:(NSString *)title
 {
@@ -875,7 +871,6 @@ static NSString *AIRowLabel(NSString *label)
 																		  keyEquivalent:@""];
 	[menuItem setTag:tag];
 	[menu addItem:menuItem];
-	[menuItem release];
 }
 
 
@@ -898,8 +893,8 @@ static NSString *AIRowLabel(NSString *label)
 
 	NSDictionary *listObjects;
 	previewChat = [self previewChatWithDictionary:previewDict fromPath:previewPath listObjects:&listObjects];
-	previewController = [(AIWebKitPreviewMessageViewController *)[AIWebKitPreviewMessageViewController messageDisplayControllerForChat:previewChat
-																					withPlugin:plugin] retain];
+	previewController = (AIWebKitPreviewMessageViewController *)[AIWebKitPreviewMessageViewController messageDisplayControllerForChat:previewChat
+																					withPlugin:plugin];
 
 	//Enable live refreshing of our preview
 	[previewController setShouldReflectPreferenceChanges:YES];
@@ -907,10 +902,9 @@ static NSString *AIRowLabel(NSString *label)
 
 	//Add fake users and content to our chat
 	[self _fillContentOfChat:previewChat withDictionary:previewDict fromPath:previewPath listObjects:listObjects];
-	[previewDict release];
 
 	//Place the preview chat in our view: fill the placeholder and track its size
-	preview = [[previewController messageView] retain];
+	preview = [previewController messageView];
 	@try {
 		[preview setValue:[NSNumber numberWithBool:NO] forKey:@"fillsContainerOnAttach"];
 	} @catch (NSException *exception) {}
@@ -919,7 +913,6 @@ static NSString *AIRowLabel(NSString *label)
 	if ([view_previewLocation respondsToSelector:@selector(setClipsToBounds:)])
 		[view_previewLocation setClipsToBounds:YES];
 	[view_previewLocation addSubview:preview];
-	[view_previewLocation retain]; //matched in viewWillClose
 
 	/* Three things the old view needed telling and this one does not. Dropping something onto the
 	 * sample conversation did something on a WebView and does nothing on a WKWebView, which handles
@@ -997,7 +990,6 @@ static NSString *AIRowLabel(NSString *label)
 		}
 
 		[listObjectDict setObject:listContact forKey:UID];
-		[listContact release];
 	}
 
 	return listObjectDict;
@@ -1018,7 +1010,7 @@ static NSString *AIRowLabel(NSString *label)
 	static NSDateFormatter *formatter;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		formatter = [[NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd HH:mm:ss ZZZ" timeZone:nil] retain];
+		formatter = [NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd HH:mm:ss ZZZ" timeZone:nil];
 	});
 	return formatter;
 }

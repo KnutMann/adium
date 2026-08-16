@@ -26,7 +26,7 @@
 	 * can tell whether the menu still shows the right ones. */
 	NSSet			*hiddenActiveStatusItems;
 
-	id<AIStatusMenuDelegate>				delegate;
+	__unsafe_unretained id<AIStatusMenuDelegate>	delegate;
 }
 
 + (id)statusMenuWithDelegate:(id<AIStatusMenuDelegate>)inDelegate;

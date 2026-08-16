@@ -35,7 +35,7 @@
     
 	AIListObject				*listObject;
 	
-	id<ESContactAlertsViewControllerDelegate> delegate;
+	__unsafe_unretained id<ESContactAlertsViewControllerDelegate> delegate;
 	
 	BOOL						configureForGlobal;
 	BOOL						showEventsInEditSheet;

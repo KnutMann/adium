@@ -43,7 +43,7 @@ typedef enum {
 #define KEY_ACCOUNT_MENU_ICON	@"Account Menu Icon"
 
 @interface AIAccountMenu : AIAbstractListObjectMenu <AIListObjectObserver, AIStatusMenuDelegate, NSMenuDelegate> {
-	id<AIAccountMenuDelegate>				delegate;
+	__unsafe_unretained id<AIAccountMenuDelegate>	delegate;
 	BOOL			delegateRespondsToDidSelectAccount;
 	BOOL			delegateRespondsToShouldIncludeAccount;	
 

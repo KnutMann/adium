@@ -54,7 +54,7 @@
 
 	//What the message field's sending looked like before this editor took it over
 	BOOL			 sendingWasTakenOver;
-	id				 previousSendTarget;
+	__unsafe_unretained id previousSendTarget;	//The field's own unretained target, remembered, not owned
 	SEL				 previousSendAction;
 	BOOL			 previousSendOnReturn;
 	BOOL			 previousSendOnEnter;

@@ -50,7 +50,7 @@
 //
 + (AIMessageTabViewItem *)messageTabWithView:(AIMessageViewController *)inMessageView
 {
-    return [[[self alloc] initWithMessageView:inMessageView] autorelease];
+    return [[self alloc] initWithMessageView:inMessageView];
 }
 
 //init
@@ -60,7 +60,7 @@
 	 * break us out of this infinite loop.  This happens in -[AIMesageWindowController removeTabViewItem:silent:].
 	 */
 	if ((self = [super initWithIdentifier:self])) {
-		messageViewController = [inMessageViewController retain];
+		messageViewController = inMessageViewController;
 		windowController = nil;
 
 		//Configure ourself for the message view
@@ -112,16 +112,8 @@
 - (void)dealloc
 {
 	AILogWithSignature(@"");
-	
+
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[tabViewItemImage release]; tabViewItemImage = nil;
-    [messageViewController release]; messageViewController = nil;
-
-	[largeImage release];
-	[largeImageSource release];
-
-    [super dealloc];
 }
 
 //Access to our message view controller
@@ -384,7 +376,6 @@
 - (void)setLargeImage:(NSImage *)inImage
 {
 	if (largeImage != inImage) {
-		[largeImage release];
 		largeImage = [inImage copy];
 	}
 }
@@ -495,8 +486,6 @@
 	NSImage *chatImage = self.chat.chatImage;
 	if (chatImage == largeImageSource && largeImage) return;
 
-	[chatImage retain];
-	[largeImageSource release];
 	largeImageSource = chatImage;
 
 	[self willChangeValueForKey:@"icon"];

@@ -305,7 +305,9 @@
 		defaultController = nil;
 	} else {
 		//Return the groups in this detached contact list to the main contact list
-		for (AIListGroup *group in windowController.contactList) {
+		/* A snapshot, deliberately: the loop below moves each group out of this list, and
+	 * enumerating the live group would abort on the first mutation. */
+	for (AIListGroup *group in [windowController.contactList containedObjects]) {
 			[adium.contactController moveGroup:group 
 							   fromContactList:(AIContactList *)windowController.contactList
 								 toContactList:adium.contactController.contactList];

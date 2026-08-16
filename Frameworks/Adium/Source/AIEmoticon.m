@@ -49,7 +49,7 @@
  */
 + (id)emoticonWithIconPath:(NSString *)inPath equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
 {
-    return [[[self alloc] initWithIconPath:inPath character:nil equivalents:inTextEquivalents name:inName pack:inPack] autorelease];
+    return [[self alloc] initWithIconPath:inPath character:nil equivalents:inTextEquivalents name:inName pack:inPack];
 }
 
 /*!
@@ -66,38 +66,24 @@
  */
 + (id)emoticonWithCharacter:(NSString *)inCharacter equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
 {
-    return [[[self alloc] initWithIconPath:nil character:inCharacter equivalents:inTextEquivalents name:inName pack:inPack] autorelease];
+    return [[self alloc] initWithIconPath:nil character:inCharacter equivalents:inTextEquivalents name:inName pack:inPack];
 }
 
 //Init
 - (AIEmoticon *)initWithIconPath:(NSString *)inPath character:(NSString *)inCharacter equivalents:(NSArray *)inTextEquivalents name:(NSString *)inName pack:(AIEmoticonPack *)inPack
 {
     if ((self = [super init])) {
-		path = [inPath retain];
+		path = inPath;
 		character = [inCharacter copy];
-		name = [inName retain];
-		textEquivalents = [inTextEquivalents retain];
-		pack = [inPack retain];
+		name = inName;
+		textEquivalents = inTextEquivalents;
+		pack = inPack;
 		imageLoaded = NO;
 		_cachedAttributedString = nil;
 		_cachedCharacterImage = nil;
     }
 
     return self;
-}
-
-//Dealloc
-- (void)dealloc
-{
-    [path release];
-	[character release];
-	[name release];
-    [textEquivalents release];
-	[pack release];
-    [_cachedAttributedString release];
-    [_cachedCharacterImage release];
-
-	[super dealloc];
 }
 
 /*!
@@ -120,8 +106,8 @@
 - (void)flushEmoticonImageCache
 {
 	imageLoaded = NO;
-    [_cachedAttributedString release]; _cachedAttributedString = nil;
-    [_cachedCharacterImage release]; _cachedCharacterImage = nil;
+    _cachedAttributedString = nil;
+    _cachedCharacterImage = nil;
 }
 
 /*!
@@ -169,15 +155,15 @@
 {
 	if (character) {
 		if (!_cachedCharacterImage) {
-			_cachedCharacterImage = [[self imageOfCharacterWithSize:NSMakeSize(EMOTICON_CHARACTER_IMAGE_SIZE,
-																			   EMOTICON_CHARACTER_IMAGE_SIZE)] retain];
+			_cachedCharacterImage = [self imageOfCharacterWithSize:NSMakeSize(EMOTICON_CHARACTER_IMAGE_SIZE,
+																			  EMOTICON_CHARACTER_IMAGE_SIZE)];
 		}
 
 		return _cachedCharacterImage;
 	}
 
 	//Packs referencing images which aren't there leave us without a path; don't hand nil to NSImage
-	return (path ? [[[NSImage alloc] initWithContentsOfFile:path] autorelease] : nil);
+	return (path ? [[NSImage alloc] initWithContentsOfFile:path] : nil);
 }
 
 /*!
@@ -195,7 +181,7 @@
 	/* The drawing handler is copied and outlives this call, and the image it returns is cached in an
 	 * ivar; capture the character in a local so that the block doesn't capture (and retain) self.
 	 */
-	NSString	*emoticonCharacter = [[character copy] autorelease];
+	NSString	*emoticonCharacter = [character copy];
 
 	return [NSImage imageWithSize:inSize flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
 		/* No font is named explicitly: the system font substitutes the color emoji font for emoji code
@@ -220,10 +206,9 @@
 - (void)setPath:(NSString *)inPath
 {
 	if (path != inPath) {
-		[path release];
-		path = [inPath retain];
+		path = inPath;
 
-		[_cachedAttributedString release]; _cachedAttributedString = nil;
+		_cachedAttributedString = nil;
 	}
 }
 
@@ -282,61 +267,57 @@
 	});
 	__block NSMutableAttributedString   *attributedString;
 	dispatch_sync(cacheQueue, ^{
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		AITextAttachmentExtension   *attachment;
+		@autoreleasepool {
+			AITextAttachmentExtension   *attachment;
 
-		/* A character emoticon is simply text, so branch out before any of the attachment handling below:
-		 * it must never take the !path branch, which would build an empty image cell for it, and it has
-		 * no image whose loading the cache would have to track.
-		 *
-		 * The string intentionally carries no attributes of its own. Our caller applies the attributes of
-		 * the text being replaced, which is what makes the character follow the font size and color of the
-		 * surrounding message.
-		 */
-		if (character) {
-			if (!_cachedAttributedString) {
-				_cachedAttributedString = [[NSAttributedString alloc] initWithString:character];
+			/* A character emoticon is simply text, so branch out before any of the attachment handling below:
+			 * it must never take the !path branch, which would build an empty image cell for it, and it has
+			 * no image whose loading the cache would have to track.
+			 *
+			 * The string intentionally carries no attributes of its own. Our caller applies the attributes of
+			 * the text being replaced, which is what makes the character follow the font size and color of the
+			 * surrounding message.
+			 */
+			if (character) {
+				if (!_cachedAttributedString) {
+					_cachedAttributedString = [[NSAttributedString alloc] initWithString:character];
+				}
+
+				//Owned, exactly as in the image case below: the pool must not be this string's last owner
+				attributedString = [_cachedAttributedString mutableCopy];
+
+				return;
 			}
 
-			//Owned, exactly as in the image case below: the pool must not be this string's last owner
+			//Cache this attachment for ourself if we don't already have a cache, or if our cache needs to have an image attached
+
+			if (!_cachedAttributedString || (!imageLoaded && attach)) {
+				AITextAttachmentExtension   *emoticonAttachment = [[AITextAttachmentExtension alloc] init];
+				if(!path || attach) {
+					NSTextAttachmentCell		*cell = [[NSTextAttachmentCell alloc] initImageCell:[self image]];
+					[emoticonAttachment setAttachmentCell:cell];
+					imageLoaded = YES;
+				}
+
+				[emoticonAttachment setPath:path];
+				[emoticonAttachment setHasAlternate:YES];
+				[emoticonAttachment setImageClass:@"emoticon"];
+
+				//Emoticons should not ever be sent out as images
+				[emoticonAttachment setShouldAlwaysSendAsText:YES];
+
+				_cachedAttributedString = [NSAttributedString attributedStringWithAttachment:emoticonAttachment];
+			}
+
+
+			//Create a copy of our cached string, and update it for the new text equivalent
 			attributedString = [_cachedAttributedString mutableCopy];
-
-			[pool release];
-			return;
+			attachment = [[attributedString attribute:NSAttachmentAttributeName atIndex:0 effectiveRange:NULL] copy];
+			[attributedString addAttribute:NSAttachmentAttributeName value:attachment range:NSMakeRange(0, [attributedString length])];
+			[attachment setString:textEquivalent];
 		}
-
-		//Cache this attachment for ourself if we don't already have a cache, or if our cache needs to have an image attached
-
-		if (!_cachedAttributedString || (!imageLoaded && attach)) {
-			[_cachedAttributedString release]; //for the second half of the conditional
-			AITextAttachmentExtension   *emoticonAttachment = [[[AITextAttachmentExtension alloc] init] autorelease];
-			if(!path || attach) {
-				NSTextAttachmentCell		*cell = [[NSTextAttachmentCell alloc] initImageCell:[self image]];
-				[emoticonAttachment setAttachmentCell:cell];
-				[cell release];
-				imageLoaded = YES;
-			} 
-			
-			[emoticonAttachment setPath:path];
-			[emoticonAttachment setHasAlternate:YES];
-			[emoticonAttachment setImageClass:@"emoticon"];
-			
-			//Emoticons should not ever be sent out as images
-			[emoticonAttachment setShouldAlwaysSendAsText:YES];
-			
-			_cachedAttributedString = [[NSAttributedString attributedStringWithAttachment:emoticonAttachment] retain];
-		}
-		
-		
-		//Create a copy of our cached string, and update it for the new text equivalent
-		attributedString = [_cachedAttributedString mutableCopy];
-		attachment = [[attributedString attribute:NSAttachmentAttributeName atIndex:0 effectiveRange:NULL] copy];
-		[attributedString addAttribute:NSAttachmentAttributeName value:attachment range:NSMakeRange(0, [attributedString length])];
-		[attachment setString:textEquivalent];
-		[attachment release];
-   		[pool release];
-    }); 
-    return [attributedString autorelease];
+    });
+    return attributedString;
 }
 
 

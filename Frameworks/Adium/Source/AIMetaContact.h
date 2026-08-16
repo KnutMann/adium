@@ -21,7 +21,10 @@
 @interface AIMetaContact : AIListContact <AIContainingObject> {
 	NSNumber					*objectID;
 
-	AIListContact		*_preferredContact;
+	/* Unowned: a cache pointing into _containedObjects, which holds the contacts; it is cleared
+	 * whenever the contents change. Said in the declaration so that counting the references does
+	 * not keep a removed contact alive through the cache. */
+	__unsafe_unretained AIListContact		*_preferredContact;
 	NSArray				*_listContacts;
 	NSArray				*_listContactsIncludingOfflineAccounts;
 	

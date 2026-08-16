@@ -24,6 +24,16 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 @end
 
+/* The preset management sheets currently on screen.
+ *
+ * -showOnWindow: is declared ns_consumes_self. Under manual counting that was decoration; counted
+ * automatically it means what it says: the caller's one reference is handed over at the call and
+ * given up when the method returns, so with nothing else holding on, the controller would die as
+ * its sheet appeared. This set is that something else, and it takes the place of a scheme in which
+ * the object was its own owner and handed itself to the pool on the way out.
+ */
+static NSMutableSet *openPresetManagementControllers = nil;
+
 /*!
  * @class ESPresetManagementController
  * @brief Generic controller for managing presets
@@ -32,6 +42,9 @@
 
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
+	if (!openPresetManagementControllers) openPresetManagementControllers = [[NSMutableSet alloc] init];
+	[openPresetManagementControllers addObject:self];
+
 	if (parentWindow) {
 		[parentWindow beginSheet:self.window
 			   completionHandler:^(NSModalResponse returnCode) {
@@ -61,23 +74,12 @@
 	NSParameterAssert([inDelegate respondsToSelector:@selector(deletePreset:inPresets:)]);
 	
     if ((self = [super initWithWindowNibName:@"PresetManagement"])) {
-		presets = [inPresets retain];
-		nameKey = [inNameKey retain];
-		delegate = [inDelegate retain];
+		presets = inPresets;
+		nameKey = inNameKey;
+		delegate = inDelegate;
 	}
-	
-	return self;	
-}
 
-/*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[presets release];
-	[nameKey release];
-	
-	[super dealloc];
+	return self;
 }
 
 /*!
@@ -113,22 +115,32 @@
  * Invoked as the sheet closes, dismiss the sheet
  */
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{	
+{
     [sheet orderOut:nil];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openPresetManagementControllers removeObject:self];
 }
 
 /*!
- * @brief As the window closes, release this controller instance
- *
- * The instance retained itself (rather, was not autoreleased when created) so it could function independently.
+ * @brief As the window closes, leave the set of open controllers
  */
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-		
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openPresetManagementControllers removeObject:self];
 }
 
 /*!
@@ -150,11 +162,11 @@
 		
 		//Inform the delegate of the duplicate request
 		NSArray	*newPresets;
-		newPresets = [delegate duplicatePreset:selectedPreset 
+		newPresets = [delegate duplicatePreset:selectedPreset
 									 inPresets:presets
 							  createdDuplicate:&duplicatePreset];
-		
-		[presets autorelease]; presets = [newPresets retain];
+
+		presets = newPresets;
 		
 		//The delegate returned a potentially changed presets array; reload table data
 		[tableView_presets reloadData];
@@ -190,7 +202,7 @@
 		//Inform the delegate of the deletion
 		NSArray	*newPresets;
 		newPresets = [delegate deletePreset:selectedPreset inPresets:presets];
-		[presets autorelease]; presets = [newPresets retain];
+		presets = newPresets;
 		
 		//The delegate returned a potentially changed presets array; reload table data
 		[tableView_presets reloadData];
@@ -286,7 +298,7 @@
 			id			renamedPreset;
 			
 			newPresets = [delegate renamePreset:preset toName:(NSString *)anObject inPresets:presets renamedPreset:&renamedPreset];
-			[presets autorelease]; presets = [newPresets retain];
+			presets = newPresets;
 			
 			//The delegate returned a potentially changed presets array; reload table data
 			[tableView_presets reloadData];
@@ -321,8 +333,7 @@
 - (BOOL)tableView:(NSTableView *)tv writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard
 {
 	if ([delegate respondsToSelector:@selector(movePreset:toIndex:inPresets:presetAfterMove:)]) {
-		[tempDragPreset release];
-		tempDragPreset = [[presets objectAtIndex:[[rows objectAtIndex:0] integerValue]] retain];
+		tempDragPreset = [presets objectAtIndex:[[rows objectAtIndex:0] integerValue]];
 		
 		[pboard declareTypes:[NSArray arrayWithObject:PRESET_DRAG_TYPE] owner:self];
 		[pboard setString:@"Preset" forType:PRESET_DRAG_TYPE]; //Arbitrary state
@@ -358,7 +369,7 @@
 		//Inform the delegate of the move; it may pass back a changed preset by reference
 		NSArray	*newPresets;
 		newPresets = [delegate movePreset:tempDragPreset toIndex:row inPresets:presets presetAfterMove:&presetAfterMove];
-		[presets autorelease]; presets = [newPresets retain];
+		presets = newPresets;
 
 		//Reload with the new data
 		[tableView_presets reloadData];
@@ -372,8 +383,8 @@
         success = YES;
     }
 	
-	[tempDragPreset release]; tempDragPreset = nil;
-	
+	tempDragPreset = nil;
+
 	return success;
 }
 

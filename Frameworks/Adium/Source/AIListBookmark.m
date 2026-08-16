@@ -156,7 +156,6 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 						   accountInternalObjectID,
 						   AIRedactedRoomID([decoder decodeObjectForKey:@"name"]),
 						   [decoder decodeObjectForKey:@"ServiceID"]);
-		[self release];
 		return nil;
 	}
 
@@ -182,16 +181,9 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 
 - (void)dealloc
 {
-	[name release]; name = nil;
-	[chatCreationDictionary release]; chatCreationDictionary = nil;
-	[password release]; password = nil;
-	[pushedDisplayName release]; pushedDisplayName = nil;
-	
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[adium.chatController unregisterChatObserver:self];
 	[self.account removeObserver:self forKeyPath:@"isOnline"];
-
-	[super dealloc];
 }
 
 /*!
@@ -280,7 +272,7 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 		NSAssert(self.account != nil, @"Null list bookmark account - make sure you didn't try to touch the internalObjectID before it was loaded.");
 		
 		// We're not like any other bookmarks by the same name.
-		internalObjectID = [[NSString stringWithFormat:@"%@.%@.%@", self.service.serviceID, self.UID, self.account.UID] retain];
+		internalObjectID = [NSString stringWithFormat:@"%@.%@.%@", self.service.serviceID, self.UID, self.account.UID];
 	}
 	
 	return internalObjectID;
@@ -342,7 +334,6 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 	if ([inDisplayName isEqualToString:chat.displayName])
 		return;
 
-	[pushedDisplayName release];
 	pushedDisplayName = [inDisplayName copy];
 
 	chat.displayName = inDisplayName;
@@ -521,12 +512,11 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 		if (repairedDictionary) {
 			AILogWithSignature(@"%@ had no chat creation dictionary; using the protocol's defaults for this room",
 							   self.logDescription);
-			[chatCreationDictionary release];
 			chatCreationDictionary = [repairedDictionary copy];
 			[adium.contactController saveContactList];
 
 		} else {
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"Unable to join bookmarked chat", nil)];
 			[alert setInformativeText:[NSString stringWithFormat:
 									   AILocalizedString(@"The bookmark %@ does not contain enough information and can not be used. Please recreate it next time you join the chat.\nWould you like to remove this bookmark?", nil),
@@ -662,7 +652,6 @@ static NSString *AIRedactedRoomID(NSString *roomID)
 
 	if (!self.chatCreationDictionary && chat.chatCreationDictionary) {
 		AILogWithSignature(@"%@ takes the join information from its open chat", self.logDescription);
-		[chatCreationDictionary release];
 		chatCreationDictionary = [chat.chatCreationDictionary copy];
 		[adium.contactController saveContactList];
 

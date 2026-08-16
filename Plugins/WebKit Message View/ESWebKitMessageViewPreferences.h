@@ -17,7 +17,7 @@
 #import <Adium/AIPreferencePane.h>
 #import "AIWebKitMessageViewPlugin.h"
 
-@class AISettingsFormView, ESWebView, AIContentObject, AIWebKitPreviewMessageViewController;
+@class AISettingsFormView, AIContentObject, AIWebKitPreviewMessageViewController;
 @class JVFontPreviewField, AIImageViewWithImagePicker;
 
 /*!
@@ -25,7 +25,7 @@
  *	@brief Handles the messages preference pane
  */
 @interface ESWebKitMessageViewPreferences : AIPreferencePane {
-	AISettingsFormView	*settingsForm;			//Our view, typed; unretained (-view owns it)
+	__unsafe_unretained AISettingsFormView	*settingsForm;			//Our view, typed; unretained (-view owns it)
 
 	/* Which of the two per-chat-type preference groups the rows show. The nib's
 	 * tab view did not remember its selection either: every pane starts on
@@ -33,31 +33,34 @@
 	 */
 	AIWebkitStyleType	 selectedChatType;
 
-	NSSegmentedControl	*segment_chatType;
-	NSSwitch			*checkBox_useRegularChatForGroup;
+	/* The form owns every control; these references are cleared in -viewWillClose
+	 * before the form goes away.
+	 */
+	__unsafe_unretained NSSegmentedControl	*segment_chatType;
+	__unsafe_unretained NSSwitch			*checkBox_useRegularChatForGroup;
 
-	NSPopUpButton		*popUp_styles;
-	NSPopUpButton		*popUp_variants;
-	NSSwitch			*checkBox_showUserIcons;
-	NSSwitch			*checkBox_showHeader;
-	NSSwitch			*checkBox_hideScrollbar;
+	__unsafe_unretained NSPopUpButton		*popUp_styles;
+	__unsafe_unretained NSPopUpButton		*popUp_variants;
+	__unsafe_unretained NSSwitch			*checkBox_showUserIcons;
+	__unsafe_unretained NSSwitch			*checkBox_showHeader;
+	__unsafe_unretained NSSwitch			*checkBox_hideScrollbar;
 
-	JVFontPreviewField	*fontPreviewField_currentFont;
-	NSButton			*button_setFont;
-	NSButton			*button_defaultFont;
-	NSSwitch			*checkBox_showMessageFonts;
-	NSSwitch			*checkBox_showMessageColors;
+	JVFontPreviewField						*fontPreviewField_currentFont;
+	__unsafe_unretained NSButton			*button_setFont;
+	__unsafe_unretained NSButton			*button_defaultFont;
+	__unsafe_unretained NSSwitch			*checkBox_showMessageFonts;
+	__unsafe_unretained NSSwitch			*checkBox_showMessageColors;
 
-	NSSwitch			*checkBox_useCustomBackground;
-	AIImageViewWithImagePicker	*imageView_backgroundImage;
-	NSPopUpButton		*popUp_backgroundImageType;
-	NSColorWell			*colorWell_customBackgroundColor;
+	__unsafe_unretained NSSwitch			*checkBox_useCustomBackground;
+	AIImageViewWithImagePicker				*imageView_backgroundImage;
+	__unsafe_unretained NSPopUpButton		*popUp_backgroundImageType;
+	NSColorWell								*colorWell_customBackgroundColor;
 
 	//Message preview
 	NSView									*view_previewLocation;
 	NSMutableDictionary						*previewListObjectsDict;
 	AIWebKitPreviewMessageViewController	*previewController;
-	ESWebView								*preview;
+	NSView									*preview;
 
 	BOOL							viewIsOpen;
 }

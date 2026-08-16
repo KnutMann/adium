@@ -17,7 +17,7 @@
 #import "AISettingsNavigationController.h"
 
 @interface AISettingsNavigationView : NSView {
-	AISettingsNavigationController *owner;	//Not retained: it owns this view
+	__unsafe_unretained AISettingsNavigationController *owner;	//Not retained: it owns this view
 }
 @property (assign, nonatomic) AISettingsNavigationController *owner;
 @end
@@ -47,14 +47,11 @@
 {
 	for (NSViewController *controller in pageControllers)
 		[self stopObservingPage:controller];
-
-	[pageControllers release];
-	[super dealloc];
 }
 
 - (void)loadView
 {
-	AISettingsNavigationView *container = [[[AISettingsNavigationView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, 100.0f, 100.0f)] autorelease];
+	AISettingsNavigationView *container = [[AISettingsNavigationView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, 100.0f, 100.0f)];
 
 	[container setOwner:self];
 	[container setAutoresizingMask:NSViewWidthSizable];
@@ -84,7 +81,7 @@
 	if (!rootController)
 		return;
 
-	for (NSViewController *controller in [[pageControllers copy] autorelease]) {
+	for (NSViewController *controller in [pageControllers copy]) {
 		[self stopObservingPage:controller];
 		[[controller view] removeFromSuperview];
 		[controller removeFromParentViewController];
@@ -190,7 +187,7 @@
 
 	NSViewController *root = [pageControllers objectAtIndex:0];
 
-	for (NSViewController *controller in [[pageControllers copy] autorelease]) {
+	for (NSViewController *controller in [pageControllers copy]) {
 		if (controller == root)
 			continue;
 

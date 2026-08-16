@@ -37,16 +37,16 @@
 - (id)copyWithZone:(NSZone *)zone
 {
 	AIListContactMockieCell *newCell = [super copyWithZone:zone];
-	newCell->lastBackgroundBezierPath = [lastBackgroundBezierPath retain];
-	
-	return newCell;
-}
 
-- (void)dealloc
-{
-	[lastBackgroundBezierPath release]; lastBackgroundBezierPath = nil;
-	
-	[super dealloc];
+	/* NSCell copies memberwise, so the new cell's path pointer already points to the one this cell
+	 * holds, holding no reference of its own. It has to be cleared without being released - a plain
+	 * assignment would give up a reference this cell never took. The cast through void * keeps the
+	 * store out of it.
+	 */
+	*(__unsafe_unretained id *)(void *)&newCell->lastBackgroundBezierPath = nil;
+	newCell->lastBackgroundBezierPath = lastBackgroundBezierPath;
+
+	return newCell;
 }
 
 //Draw the background of our cell
@@ -93,8 +93,7 @@
 		labelColor = [self labelColor];
 		[(labelColor ? labelColor : [self backgroundColor]) set];
 
-		[lastBackgroundBezierPath release];		
-		lastBackgroundBezierPath = [[self bezierPathForDrawingInRect:rect] retain];
+		lastBackgroundBezierPath = [self bezierPathForDrawingInRect:rect];
 
 		if (lastBackgroundBezierPath)
 			[lastBackgroundBezierPath fill];
@@ -109,11 +108,10 @@
 	if ([self cellIsSelected]) {
 		NSColor *highlightColor = [self.outlineControlView highlightColor];
 		NSGradient 	*gradient = (highlightColor ?
-								 [[[NSGradient alloc] initWithStartingColor:highlightColor endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] autorelease] :
+								 [[NSGradient alloc] initWithStartingColor:highlightColor endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] :
 								 [NSGradient selectedControlGradient]);
 
-		[lastBackgroundBezierPath release];
-		lastBackgroundBezierPath = [[self bezierPathForDrawingInRect:cellFrame] retain];
+		lastBackgroundBezierPath = [self bezierPathForDrawingInRect:cellFrame];
 		
 		if (lastBackgroundBezierPath)
 			[gradient drawInBezierPath:lastBackgroundBezierPath angle:90.0f];

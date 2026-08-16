@@ -61,7 +61,7 @@ void AIAddDebugMessage(NSString *debugMessage)
 	static NSDateFormatter *timeFormatter;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		timeFormatter = [[NSDateFormatter ai_fixedFormatterWithFormat:@"HH:mm:ss': '" timeZone:nil] retain];
+		timeFormatter = [NSDateFormatter ai_fixedFormatterWithFormat:@"HH:mm:ss': '" timeZone:nil];
 	});
 
 	NSString *actualMessage = [[timeFormatter stringFromDate:[NSDate date]] stringByAppendingString:debugMessage];
@@ -86,7 +86,6 @@ void AILog_impl (NSString *format, ...) {
 	debugMessage = [[NSString alloc] initWithFormat:format
 										  arguments:ap];
 	AIAddDebugMessage(debugMessage);
-	[debugMessage release];
 
 	va_end(ap); /* clean up when done */
 }
@@ -114,8 +113,7 @@ void AILogWithSignature_impl(const char *name, int line, NSString *format, ...) 
 	else
 		actualMessage = [NSString stringWithFormat:@"%s:%d: (on %s) %@", name, line, (queue ?: ""), debugMessage];
 	AIAddDebugMessage(actualMessage);
-	[debugMessage release];
-	
+
 	va_end(ap); /* clean up when done */
 }
 
@@ -129,7 +127,6 @@ void AILogWithPrefix_impl (const char *prefix, NSString *format, ...) {
 										  arguments:ap];
 	actualMessage = [NSString stringWithFormat:@"%s: %@", prefix, debugMessage];
 	AIAddDebugMessage(actualMessage);
-	[debugMessage release];
 
 	va_end(ap); /* clean up when done */
 }

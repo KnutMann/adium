@@ -50,15 +50,15 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		  leftPadding = 
 		 rightPadding = 0;
 		
-		font = [[NSFont systemFontOfSize:12] retain];
-		textColor = [[NSColor blackColor] retain];
-		invertedTextColor = [[NSColor whiteColor] retain];
-		
+		font = [NSFont systemFontOfSize:12];
+		textColor = [NSColor blackColor];
+		invertedTextColor = [NSColor whiteColor];
+
 		useAliasesAsRequested = YES;
 
 		if (!leftParagraphStyleWithTruncatingTail) {
-			leftParagraphStyleWithTruncatingTail = [[NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
-																				  lineBreakMode:NSLineBreakByTruncatingTail] retain];
+			leftParagraphStyleWithTruncatingTail = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
+																				 lineBreakMode:NSLineBreakByTruncatingTail];
 		}
 		
 	}
@@ -71,36 +71,32 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 {
 	AIListCell *newCell = [super copyWithZone:zone];
 
-	newCell->proxyObject = nil;
-	[newCell setProxyListObject:proxyObject];
+	/* NSCell copies memberwise, so the new cell's object ivars already point to the ones this cell
+	 * holds, holding no reference of their own. Each of them has to be cleared without being
+	 * released, and a plain assignment would not do that: the store gives up a reference this cell
+	 * never took, and the original loses what it was drawing with. The cast through void * is what
+	 * keeps the store out of it.
+	 */
+	*(__unsafe_unretained id *)(void *)&newCell->proxyObject = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->font = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->textColor = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->invertedTextColor = nil;
+	//A cache the new cell rebuilds on demand; it stays empty here.
+	*(__unsafe_unretained id *)(void *)&newCell->labelAttributes = nil;
 
-	[newCell->font retain];
-	[newCell->textColor retain];
-	[newCell->invertedTextColor retain];
+	[newCell setProxyListObject:proxyObject];
+	newCell->font = font;
+	newCell->textColor = textColor;
+	newCell->invertedTextColor = invertedTextColor;
 
 	return newCell;
-}
-
-//Dealloc
-- (void)dealloc
-{
-	[textColor release];
-	[invertedTextColor release];
-	
-	[font release];
-	
-	[proxyObject release];
-	[labelAttributes release];
-
-	[super dealloc];
 }
 
 //Set the list object being drawn
 - (void)setProxyListObject:(AIProxyListObject *)inProxyObject
 {
 	if (proxyObject != inProxyObject) {
-		[proxyObject release];
-		proxyObject = [inProxyObject retain];
+		proxyObject = inProxyObject;
 	}
 
 	isGroup = [[proxyObject listObject] isKindOfClass:[AIListGroup class]];
@@ -120,13 +116,12 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 - (void)setFont:(NSFont *)inFont
 {
 	if (inFont != font) {
-		[font release];
-		font = [inFont retain];
+		font = inFont;
 	}
 
 	//Calculate and cache the height of this font
-	labelFontHeight = [[[[NSLayoutManager alloc] init] autorelease] defaultLineHeightForFont:[self font]]; 
-	[labelAttributes release]; labelAttributes = nil;
+	labelFontHeight = [[[NSLayoutManager alloc] init] defaultLineHeightForFont:[self font]];
+	labelAttributes = nil;
 }
 - (NSFont *)font{
 	return font;
@@ -260,8 +255,8 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 	NSDictionary *attributes = self.labelAttributes;
 	NSString *labelString = self.labelString;
 	if (![labelAttributes isEqualToDictionary:proxyObject.cachedLabelAttributes] || ![labelString isEqualToString:proxyObject.cachedDisplayNameString]) {
-		proxyObject.cachedDisplayName = [[[NSAttributedString alloc] initWithString:labelString
-																		 attributes:attributes] autorelease];
+		proxyObject.cachedDisplayName = [[NSAttributedString alloc] initWithString:labelString
+																		attributes:attributes];
 		proxyObject.cachedDisplayNameString = labelString;
 		proxyObject.cachedLabelAttributes = attributes;
 		proxyObject.cachedDisplayNameSize = NSZeroSize;
@@ -346,11 +341,11 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 - (NSMutableDictionary *)labelAttributes
 {
 	if (!labelAttributes) {
-		labelAttributes = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
+		labelAttributes = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 												leftParagraphStyleWithTruncatingTail, NSParagraphStyleAttributeName,
 												[self font], NSFontAttributeName,
-												nil] retain];
-		
+												nil];
+
 	}
 	
 	[leftParagraphStyleWithTruncatingTail setMaximumLineHeight:(float)labelFontHeight];
@@ -398,7 +393,7 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 	NSMutableArray *attributeNames = [[super accessibilityAttributeNames] mutableCopy];
 	[attributeNames addObject:NSAccessibilityValueAttribute];
 
-	return [attributeNames autorelease];
+	return attributeNames;
 }
 
 - (id)accessibilityAttributeValue:(NSString *)attribute
@@ -425,7 +420,7 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 																			   statusType:[proxyObject listObject].statusType];
 			statusMessage = [[proxyObject listObject] statusMessageString];
 			
-			value = [[name mutableCopy] autorelease];
+			value = [name mutableCopy];
 			if (statusDescription) [value appendFormat:@"; %@", statusDescription];
 			if (statusMessage) [value appendFormat:AILocalizedString(@"; status message %@", "please keep the semicolon at the start of the line. %@ will be replaced by a status message. This is used when reading an entry in the contact list aloud, such as 'Evan Schoenberg; status message I am bouncing up and down'"), statusMessage];
 		}

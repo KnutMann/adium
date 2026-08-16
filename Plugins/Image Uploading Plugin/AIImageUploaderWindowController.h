@@ -23,8 +23,8 @@
 	IBOutlet NSProgressIndicator	*progressIndicator;
 	IBOutlet NSButton				*button_cancel;
 	
-	AIChat						*chat;
-	AIImageUploaderPlugin		*delegate;
+	__unsafe_unretained AIChat					*chat;
+	__unsafe_unretained AIImageUploaderPlugin	*delegate;
 }
 
 @property (nonatomic) BOOL indeterminate;

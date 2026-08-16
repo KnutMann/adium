@@ -161,7 +161,7 @@
  *
  *	@return	The chat with which this content is associated.
  */
-@property (nonatomic, readwrite, assign) AIChat *chat;
+@property (nonatomic, readwrite, strong) AIChat *chat;
 
 /*!	@brief	Obtain the current message in the content.
  *

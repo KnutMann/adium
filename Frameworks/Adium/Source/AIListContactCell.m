@@ -38,10 +38,20 @@
 {
 	AIListContactCell *newCell = [super copyWithZone:zone];
 
-	newCell->statusFont = [statusFont retain];
-	newCell->statusColor = [statusColor retain];
-	newCell->_statusAttributes = [_statusAttributes retain];
-	newCell->_statusAttributesInverted = [_statusAttributesInverted retain];
+	/* NSCell copies memberwise, so the new cell's object ivars already point to the ones this cell
+	 * holds, holding no reference of their own. Each of them has to be cleared without being
+	 * released - a plain assignment would give up a reference this cell never took. The cast
+	 * through void * keeps the store out of it.
+	 */
+	*(__unsafe_unretained id *)(void *)&newCell->statusFont = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->statusColor = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->_statusAttributes = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->_statusAttributesInverted = nil;
+
+	newCell->statusFont = statusFont;
+	newCell->statusColor = statusColor;
+	newCell->_statusAttributes = _statusAttributes;
+	newCell->_statusAttributesInverted = _statusAttributesInverted;
 
 	return newCell;
 }
@@ -52,7 +62,7 @@
     if ((self = [super init]))
 	{
 		backgroundOpacity = 1.0f;
-		statusFont = [[NSFont systemFontOfSize:12] retain];
+		statusFont = [NSFont systemFontOfSize:12];
 		statusColor = nil;
 		_statusAttributes = nil;
 		_statusAttributesInverted = nil;
@@ -62,19 +72,6 @@
 
 	return self;
 }
-	
-//Dealloc
-- (void)dealloc
-{
-	[statusFont release];
-	[statusColor release];
-	
-	[_statusAttributes release];
-	[_statusAttributesInverted release];
-	
-	[super dealloc];
-}
-
 
 //Cell sizing and padding ----------------------------------------------------------------------------------------------
 #pragma mark Cell sizing and padding
@@ -127,7 +124,6 @@
 		NSAttributedString *idleAttString = [[NSAttributedString alloc] initWithString:idleTimeString attributes:self.statusAttributes];
 		width += AIceil([idleAttString size].width);
 		width += NAME_STATUS_PAD;
-		[idleAttString release];
 	}
 		
 	//User icon
@@ -174,14 +170,13 @@
 - (void)setStatusFont:(NSFont *)inFont
 {
 	if (statusFont != inFont) {
-		[statusFont release];
-		statusFont = [inFont retain];
-		
+		statusFont = inFont;
+
 		//Calculate and cache the height of this font
-		statusFontHeight = [[[[NSLayoutManager alloc] init] autorelease] defaultLineHeightForFont:[self statusFont]];
-		
+		statusFontHeight = [[[NSLayoutManager alloc] init] defaultLineHeightForFont:[self statusFont]];
+
 		//Flush the status attributes cache
-		[_statusAttributes release]; _statusAttributes = nil;
+		_statusAttributes = nil;
 	}
 }
 - (NSFont *)statusFont{
@@ -192,11 +187,10 @@
 - (void)setStatusColor:(NSColor *)inColor
 {
 	if (statusColor != inColor) {
-		[statusColor release];
-		statusColor = [inColor retain];
+		statusColor = inColor;
 
 		//Flush the status attributes cache
-		[_statusAttributes release]; _statusAttributes = nil;
+		_statusAttributes = nil;
 	}
 }
 - (NSColor *)statusColor
@@ -215,10 +209,10 @@
 																				lineBreakMode:NSLineBreakByTruncatingTail];
 		[paragraphStyle setMaximumLineHeight:(float)labelFontHeight];
 		
-		_statusAttributes = [[NSDictionary dictionaryWithObjectsAndKeys:
+		_statusAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
 			paragraphStyle, NSParagraphStyleAttributeName,
 			[self statusColor], NSForegroundColorAttributeName,
-			[self statusFont], NSFontAttributeName,nil] retain];
+			[self statusFont], NSFontAttributeName,nil];
 	}
 	
 	if (backgroundColorIsEvents && [listObject boolValueForProperty:@"isEvent"]) {
@@ -228,7 +222,7 @@
 		[mutableStatusAttributes setObject:[self textColor]
 									forKey:NSForegroundColorAttributeName];
 
-		return [mutableStatusAttributes autorelease];
+		return mutableStatusAttributes;
 
 	} else {
 		return _statusAttributes;
@@ -249,7 +243,7 @@
 - (void)setTextAlignment:(NSTextAlignment)inAlignment
 {
 	[super setTextAlignment:inAlignment];
-	[_statusAttributes release]; _statusAttributes = nil;
+	_statusAttributes = nil;
 }
 
 	
@@ -625,8 +619,6 @@
 											 drawRect.size.width,
 											 drawRect.size.height - (half + offset))];
 
-			[extStatus release];
-			
 			if (drawUnder) {
 				rect.origin.y -= halfHeight;
 			}

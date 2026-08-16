@@ -24,7 +24,7 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 
 + (id)statusGroup
 {
-	return [[[self alloc] init] autorelease];
+	return [[self alloc] init];
 }
 
 + (id)statusGroupWithContainedStatusItems:(NSArray *)inContainedObjects
@@ -47,14 +47,6 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 	}
 	
 	return self;
-}
-
-- (void)dealloc
-{
-	[containedStatusItems release];
-	[_flatStatusSet release];
-
-	[super dealloc];
 }
 
 /*!
@@ -126,11 +118,10 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 - (void)setContainedStatusItems:(NSArray *)inContainedStatusItems
 {
 	if (containedStatusItems != inContainedStatusItems) {
-		[containedStatusItems release];
 		containedStatusItems = [inContainedStatusItems mutableCopy];
 
 		//Everything the flat set was built from is gone; it is rebuilt from the new contents on demand
-		[_flatStatusSet release]; _flatStatusSet = nil;
+		_flatStatusSet = nil;
 	}
 }
 
@@ -274,7 +265,7 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context)
 					return NSOrderedAscending;
 					
 				} else {
-					NSArray	*originalArray = (NSArray *)context;
+					NSArray	*originalArray = (__bridge NSArray *)context;
 					
 					//Return them in the same relative order as the original array if they are of the same type
 					NSUInteger indexA = [originalArray indexOfObjectIdenticalTo:objectA];

@@ -49,7 +49,7 @@
 		[self _init];
 
 		//
-		image = [inImage retain];
+		image = inImage;
 		overlay = inOverlay;
 	}
 
@@ -94,10 +94,10 @@
 			//init
 			delay = 0;
 			animated = NO;
-			image = [[self _compositeStates:inIconStates
-							  withBaseState:baseIconState
-							 animatingState:animatingState 
-								   forFrame:0] retain];
+			image = [self _compositeStates:inIconStates
+							 withBaseState:baseIconState
+							animatingState:animatingState
+								  forFrame:0];
 
 		} else { //Animating icon
 			//init
@@ -107,15 +107,15 @@
 			imageArray = [[NSMutableArray alloc] init];
 
 			//Hold onto some of this info so we can render the additional images later
-			iconRendering_states = [inIconStates retain];
-			iconRendering_baseState = [baseIconState retain];
-			iconRendering_animationState = [animatingState retain];
+			iconRendering_states = inIconStates;
+			iconRendering_baseState = baseIconState;
+			iconRendering_animationState = animatingState;
 
 			//Render the first image
-			image = [[self _compositeStates:inIconStates 
-							  withBaseState:baseIconState
-							 animatingState:animatingState
-								   forFrame:0] retain];
+			image = [self _compositeStates:inIconStates
+							 withBaseState:baseIconState
+							animatingState:animatingState
+								  forFrame:0];
 			[imageArray addObject:image];
 		}
 	}
@@ -139,17 +139,6 @@
     overlay = NO;
     currentFrame = 0;
     numberOfFrames = 0;
-}
-
-- (void)dealloc
-{
-    [image release];
-    [imageArray release];
-    [iconRendering_states release];
-    [iconRendering_baseState release];
-    [iconRendering_animationState release];
-    
-    [super dealloc];
 }
 
 - (NSInteger)currentFrame
@@ -178,17 +167,16 @@
 												forFrame:currentFrame]];
 			imageArrayCount++;
 
-            //After rendering the last frame, we can release our icon rendering information (it's no longer needed)
+            //After rendering the last frame, we can let go of our icon rendering information (it's no longer needed)
             if (currentFrame >= (numberOfFrames - 1)) {
-                [iconRendering_states release]; iconRendering_states = nil;
-                [iconRendering_baseState release]; iconRendering_baseState = nil;
-                [iconRendering_animationState release]; iconRendering_animationState = nil;
+                iconRendering_states = nil;
+                iconRendering_baseState = nil;
+                iconRendering_animationState = nil;
             }
         }
 
 		if (currentFrame < imageArrayCount) {
-			[image release];
-			image = [[imageArray objectAtIndex:currentFrame] retain];
+			image = [imageArray objectAtIndex:currentFrame];
 		}
     }
 }
@@ -269,8 +257,8 @@
 						 fraction:1.0f];
 	}
 	[workingImage unlockFocus];
-	
-    return [workingImage autorelease];
+
+    return workingImage;
 }
 
 @end

@@ -129,9 +129,9 @@ static NSString *AIRowLabel(NSString *label)
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		/* The ivar belongs to AIModularPane, which is still counted by hand and gives it back in
-		 * -closeView. The assignment takes the one reference that release balances.
-		 */
+		/* The view ivar is declared in AIModularPane and is strong under ARC; this store is
+		 * the one reference, and -closeView's view = nil gives it up. No nib was loaded for
+		 * this view, so unlike nib panes it carries no extra unowned reference. */
 		view = form;
 
 		[self viewDidLoad];

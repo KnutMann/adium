@@ -85,7 +85,9 @@ typedef enum {
 @end
 
 @interface AIListObject : ESObjectWithProperties {
-	AIService			*service;
+	/* Unowned: the service registry owns the services and outlives every list object. Said in the
+	 * declaration so that counting the references does not start holding on to it; matches the assign property. */
+	__unsafe_unretained AIService	*service;
 	
 	NSString			*UID;
 	NSString			*internalObjectID;

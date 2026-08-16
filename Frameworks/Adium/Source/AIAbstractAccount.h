@@ -95,7 +95,9 @@ typedef enum {
 - (void)getProxyConfigurationNotifyingTarget:(id)target selector:(SEL)selector context:(id)context;
 - (NSString *)lastDisconnectionError;
 - (void)setLastDisconnectionError:(NSString *)inError;
-- (AIReconnectDelayType)shouldAttemptReconnectAfterDisconnectionError:(NSString **)disconnectionError;
+/* __strong: the pointer aliases the caller's lastDisconnectionError ivar, and overrides read through
+ * it after mutating that ivar via -setLastDisconnectionError:, so no writeback copy is allowed. */
+- (AIReconnectDelayType)shouldAttemptReconnectAfterDisconnectionError:(NSString * __strong *)disconnectionError;
 @property (readonly, nonatomic) BOOL encrypted;
 
 //FUS Disconnecting

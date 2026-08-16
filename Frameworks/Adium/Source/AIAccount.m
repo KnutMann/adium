@@ -43,7 +43,7 @@
 #define NEW_ACCOUNT_DISPLAY_TEXT			AILocalizedString(@"<New Account>", "Placeholder displayed as the name of a new account")
 
 @interface AIAccountDeletionDialog : NSObject <AIAccountControllerRemoveConfirmationDialog> {
-	AIAccount *account;
+	__unsafe_unretained AIAccount *account;	//The account being deleted; never retained
 	NSAlert *alert;
 	id userData;
 }
@@ -61,15 +61,9 @@
 - (id)initWithAccount:(AIAccount*)ac alert:(NSAlert*)al {
 	if((self = [super init])) {
 		account = ac;
-		alert = [al retain];
+		alert = al;
 	}
 	return self;
-}
-
-- (void)dealloc {
-	[alert release];
-	[userData release];
-	[super dealloc];
 }
 
 @synthesize userData;
@@ -126,28 +120,17 @@ typedef enum
 
 - (void)dealloc
 {
-	[formattedUID release]; formattedUID = nil;
-	[accountStatus release]; accountStatus = nil;
-	[waitingToReconnect release]; waitingToReconnect = nil;
-	[connectionProgressString release]; connectionProgressString = nil;
-	[currentDisplayName release]; currentDisplayName = nil;
-
-    [lastDisconnectionError release];
-    [delayedUpdateStatusTargets release];
-    [delayedUpdateStatusTimer invalidate]; [delayedUpdateStatusTimer release];
+    [delayedUpdateStatusTimer invalidate];
 
     /* Our superclass releases internalObjectID in its dealloc, so we should set it to nil when do.
      * We could just depend upon its implementation, but this is more robust.
      */
-    [internalObjectID release]; internalObjectID = nil; 
+    internalObjectID = nil;
 
     [self _stopAttributedRefreshTimer];
-    [autoRefreshingKeys release]; autoRefreshingKeys = nil;
 
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [adium.preferenceController unregisterPreferenceObserver:self];
-
-	[super dealloc];
 }
 
 /*!
@@ -286,7 +269,7 @@ typedef enum
 	/* Buttons are added in the old default/alternate/other order, so the returnCode
 	 * mapping is: NSAlertFirstButtonReturn = Delete (was NSAlertDefaultReturn),
 	 * NSAlertSecondButtonReturn = Cancel (was NSAlertAlternateReturn). */
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:AILocalizedString(@"Delete Account",nil)];
 	[alert setInformativeText:[NSString stringWithFormat:AILocalizedString(@"Delete the account %@?",nil),
 							   ([self.formattedUID length] ? self.formattedUID : NEW_ACCOUNT_DISPLAY_TEXT)]];
@@ -312,7 +295,9 @@ typedef enum
 		[self performDelete];
 	}
 
-	[(AIAccountDeletionDialog*)dialog release];
+	/* Consumes the owned reference -confirmationDialogForAccountDeletion handed out: the caller
+	 * showed the dialog and let go, so nobody else releases it. */
+	CFRelease((__bridge CFTypeRef)dialog);
 }
 
 /*!
@@ -469,7 +454,7 @@ typedef enum
 - (NSImage *)userIcon
 {
 	NSData	*iconData = [self userIconData];
-	return (iconData ? [[[NSImage alloc] initWithData:iconData] autorelease] : nil);
+	return (iconData ? [[NSImage alloc] initWithData:iconData] : nil);
 }
 
 @synthesize isTemporary;
@@ -1047,7 +1032,7 @@ typedef enum
 #pragma mark Logging
 - (AIAccountPlan *)accountPlan
 {
-	return [[[AIAccountPlan alloc] initWithAccount:self] autorelease];
+	return [[AIAccountPlan alloc] initWithAccount:self];
 }
 
 - (BOOL)shouldLogChat:(AIChat *)chat
@@ -1080,10 +1065,10 @@ typedef enum
 	AIService *theService = self.service;
 	NSScriptObjectSpecifier *containerRef = [theService objectSpecifier];
 
-	return [[[NSUniqueIDSpecifier alloc]
+	return [[NSUniqueIDSpecifier alloc]
 			 initWithContainerClassDescription:[containerRef keyClassDescription]
 			 containerSpecifier:containerRef key:@"accounts"
-			 uniqueID:[self scriptingInternalObjectID]] autorelease];
+			 uniqueID:[self scriptingInternalObjectID]];
 }
 
 /**
@@ -1225,7 +1210,7 @@ typedef enum
 			return nil;
 		}
 		//this can take a while...
-		NSMutableArray *newParticipants = [[[NSMutableArray alloc] init] autorelease];
+		NSMutableArray *newParticipants = [[NSMutableArray alloc] init];
 		for (int i=0;i<[participants count];i++) {
 			[newParticipants addObject:[[participants objectAtIndex:i] objectsByEvaluatingSpecifier]];
 		}
@@ -1288,7 +1273,7 @@ typedef enum
 		}
 	} else {
 		if ([currentStatus mutabilityType] != AITemporaryEditableStatusState) {
-			currentStatus = [[currentStatus mutableCopy] autorelease];
+			currentStatus = [currentStatus mutableCopy];
 			[currentStatus setMutabilityType:AITemporaryEditableStatusState];
 		}
 		[currentStatus setStatusType:type];
@@ -1309,10 +1294,10 @@ typedef enum
 	AIStatus *currentStatus = self.statusState;
 	
 	if ([currentStatus mutabilityType] != AITemporaryEditableStatusState) {
-		currentStatus = [[currentStatus mutableCopy] autorelease];
+		currentStatus = [currentStatus mutableCopy];
 		[currentStatus setMutabilityType:AITemporaryEditableStatusState];
-	}	
-	
+	}
+
 	return currentStatus;
 }
 

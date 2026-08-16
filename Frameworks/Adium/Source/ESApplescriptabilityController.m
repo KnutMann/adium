@@ -39,7 +39,7 @@
 //close
 - (void)controllerWillClose
 {
-	[applescriptRunner release]; applescriptRunner = nil;
+	applescriptRunner = nil;
 }
 
 #pragma mark Convenience
@@ -110,8 +110,6 @@
 	
 	[newStatus setStatusTypeApplescript:newStatusType];
 	[self setMyStatus:newStatus];
-	
-	[newStatus release];
 }
 
 - (NSString *)myStatusMessageString
@@ -125,8 +123,6 @@
 	
 	[newStatus setStatusMessageString:inString];
 	[self setMyStatus:newStatus];
-	
-	[newStatus release];	
 }
 
 #pragma mark Controller convenience
@@ -174,17 +170,18 @@
 
 		if (target && selector) {
 			/* Never synchronously: the caller registers what it is waiting for only after we return.
-			 * Held by hand for the same reason AdiumApplescriptRunner does it -- a block releases
-			 * what it captured whenever it is destroyed, and userInfo can be an NSTextView.
+			 * The __block variables are cleared inside the block so that target and userInfo are let
+			 * go on the main queue, where the block runs -- a block frees what it captured on
+			 * whatever thread destroys it, and userInfo can be an NSTextView.
 			 */
-			__block id	blockTarget = [target retain];
-			__block id	blockUserInfo = [userInfo retain];
+			__block id	blockTarget = target;
+			__block id	blockUserInfo = userInfo;
 
 			[[NSOperationQueue mainQueue] addOperationWithBlock:^{
 				[blockTarget performSelector:selector withObject:blockUserInfo withObject:nil];
 
-				[blockTarget release]; blockTarget = nil;
-				[blockUserInfo release]; blockUserInfo = nil;
+				blockTarget = nil;
+				blockUserInfo = nil;
 			}];
 		}
 

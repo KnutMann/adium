@@ -17,7 +17,7 @@
 #import "AIImageTextCellView.h"
 
 @interface AIStatusItemView : AIImageTextCellView {
-	NSStatusItem			*statusItem;
+	__unsafe_unretained NSStatusItem	*statusItem;
 	
 	BOOL					mouseDown;
 	

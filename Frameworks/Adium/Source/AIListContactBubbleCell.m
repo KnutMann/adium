@@ -45,16 +45,16 @@
 - (AIListContactBubbleCell *)copyWithZone:(NSZone *)zone
 {
 	AIListContactBubbleCell *newCell = [super copyWithZone:zone];
-	newCell->lastBackgroundBezierPath = [lastBackgroundBezierPath retain];
-	
-	return newCell;
-}
 
-- (void)dealloc
-{
-	[lastBackgroundBezierPath release]; lastBackgroundBezierPath = nil;
-	
-	[super dealloc];
+	/* NSCell copies memberwise, so the new cell's path pointer already points to the one this cell
+	 * holds, holding no reference of its own. It has to be cleared without being released - a plain
+	 * assignment would give up a reference this cell never took. The cast through void * keeps the
+	 * store out of it.
+	 */
+	*(__unsafe_unretained id *)(void *)&newCell->lastBackgroundBezierPath = nil;
+	newCell->lastBackgroundBezierPath = lastBackgroundBezierPath;
+
+	return newCell;
 }
 
 //Give ourselves extra padding to compensate for the rounded bubble
@@ -84,13 +84,12 @@
 		if (!labelColor) labelColor = [self backgroundColor];
 		
 		//Draw our background with rounded corners, retaining the bezier path for use in drawUserIconInRect:position:
-		[lastBackgroundBezierPath release];
-		lastBackgroundBezierPath = [[NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:rect]] retain];
-		
+		lastBackgroundBezierPath = [NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:rect]];
+
 		//Draw using a (slow) AIGradient if requested, otherwise just fill
 		if (drawWithGradient) {
-			
-			NSGradient *gradient = [[[NSGradient alloc] initWithStartingColor:labelColor endingColor:[labelColor darkenAndAdjustSaturationBy:0.4f]] autorelease];
+
+			NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:labelColor endingColor:[labelColor darkenAndAdjustSaturationBy:0.4f]];
 			[gradient drawInBezierPath:lastBackgroundBezierPath angle:90.0f];
 			
 		} else {
@@ -113,11 +112,10 @@
 	if ([self cellIsSelected]) {
 		NSColor *highlightColor = [self.outlineControlView highlightColor];
 		NSGradient 	*gradient = highlightColor
-			? [[[NSGradient alloc] initWithStartingColor:highlightColor endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] autorelease]
+			? [[NSGradient alloc] initWithStartingColor:highlightColor endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]]
 			: [NSGradient selectedControlGradient];
 
-		[lastBackgroundBezierPath release];
-		lastBackgroundBezierPath = [[NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:cellFrame]] retain];
+		lastBackgroundBezierPath = [NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:cellFrame]];
 
 		//Draw our bubble with the selected control gradient
 		[gradient drawInBezierPath:lastBackgroundBezierPath angle:90.0f];

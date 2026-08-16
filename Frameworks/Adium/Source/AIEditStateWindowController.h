@@ -32,7 +32,7 @@
 	IBOutlet	AISendingTextView		*textView_statusMessage;
 	IBOutlet	AIAutoScrollView		*scrollView_statusMessage;
 
-	//Built in -windowDidLoad; the form owns them, these references do not retain
+	//Built in -windowDidLoad
 	AISettingsFormView	*form;
 	NSTextField			*textField_title;
 	NSPopUpButton		*popUp_state;
@@ -48,7 +48,8 @@
 	AIStatus	*workingStatusState;
 	AIAccount	*account;
 
-	id			target;
+	//The target owns this editor (via controllerDict), not the other way around
+	__unsafe_unretained id	target;
 
 	BOOL		showSaveCheckbox;
 

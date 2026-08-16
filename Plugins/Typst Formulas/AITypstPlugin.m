@@ -68,7 +68,7 @@
 	NSImage *icon = [NSImage imageWithSystemSymbolName:@"function" accessibilityDescription:TITLE_SHOW_EDITOR];
 	if (!icon) icon = [NSImage imageNamed:NSImageNameAdvanced];
 
-	toolbarItem_editor = [[AIToolbarUtilities toolbarItemWithIdentifier:@"FormulaEditor"
+	toolbarItem_editor = [AIToolbarUtilities toolbarItemWithIdentifier:@"FormulaEditor"
 																 label:AILocalizedString(@"Formula", "Toolbar item which opens the formula editor")
 														  paletteLabel:AILocalizedString(@"Formula Editor", nil)
 															   toolTip:AILocalizedString(@"Show or hide the formula editor", nil)
@@ -76,7 +76,7 @@
 													   settingSelector:@selector(setImage:)
 														   itemContent:icon
 																action:@selector(toggleEditor:)
-																  menu:nil] retain];
+																  menu:nil];
 
 	[adium.toolbarController registerToolbarItem:toolbarItem_editor forToolbarType:@"TextEntry"];
 }
@@ -87,9 +87,9 @@
 	[adium.menuController removeMenuItem:menuItem_renderSelection];
 	[adium.toolbarController unregisterToolbarItem:toolbarItem_editor forToolbarType:@"TextEntry"];
 
-	[menuItem_showEditor release];		menuItem_showEditor = nil;
-	[menuItem_renderSelection release];	menuItem_renderSelection = nil;
-	[toolbarItem_editor release];		toolbarItem_editor = nil;
+	menuItem_showEditor = nil;
+	menuItem_renderSelection = nil;
+	toolbarItem_editor = nil;
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
@@ -155,7 +155,6 @@
 	AITypstEditorView *editor = [[AITypstEditorView alloc] initWithChat:chat];
 	[messageViewController setShelfView:editor];
 	[editor takeFocus];
-	[editor release];
 }
 
 - (AIChat *)chatForToolbar:(NSToolbarItem *)senderItem
@@ -204,7 +203,7 @@
 
 	/* Held onto so that the range is still meaningful when the render comes back. The user may have
 	 * typed on in the meantime, which is why the insertion checks the text before replacing it. */
-	NSString *capturedFormula = [[formula copy] autorelease];
+	NSString *capturedFormula = [formula copy];
 
 	[AITypstRenderer renderFormula:formula
 						 pointSize:0.0
@@ -215,7 +214,7 @@
 					   intoTextView:textView
 						  overRange:range];
 		} else {
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"That formula could not be rendered", nil)];
 			[alert setInformativeText:errorMessage];
 			[alert runModal];
@@ -247,15 +246,6 @@
 		[[textView textStorage] replaceCharactersInRange:targetRange withAttributedString:attachment];
 		[textView didChangeText];
 	}
-}
-
-- (void)dealloc
-{
-	[menuItem_showEditor release];
-	[menuItem_renderSelection release];
-	[toolbarItem_editor release];
-
-	[super dealloc];
 }
 
 @end

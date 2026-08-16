@@ -18,8 +18,8 @@
 @protocol AIContainingObject;
 
 @interface AIProxyListObject : NSObject {
-	AIListObject *listObject;
-    ESObjectWithProperties <AIContainingObject> *containingObject;
+	__unsafe_unretained AIListObject *listObject;
+    __unsafe_unretained ESObjectWithProperties <AIContainingObject> *containingObject;
 	NSString *key;
 	NSString *cachedDisplayNameString;
 	NSAttributedString *cachedDisplayName;
