@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.adiumx.xtra.D12A8FBF-C62E-4B32-BBED-EF9609DC4985</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>CFBundleName</key>
+	<string>SimpleKnut black and white</string>
+	<key>CFBundlePackageType</key>
+	<string>AISr</string>
+	<key>XtraAuthors</key>
+	<string>KnutMann</string>
+	<key>XtraBundleVersion</key>
+	<integer>1</integer>
+	<key>XtraVersion</key>
+	<string>1.0</string>
+</dict>
+</plist>
