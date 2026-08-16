@@ -1057,6 +1057,16 @@ static NSString *const AIWKContextMenuScript =
 
 		// Track content for similarity comparison
 		_previousContent = content;
+
+		/* Keep what was shown, so that it can be shown again. A change of style or variant throws
+		 * the page away and builds a new one, and everything that was in the old page has to be
+		 * put through the new style to appear at all. Only kept while something is watching for
+		 * preference changes, which is the settings preview and a chat window that has been told
+		 * to follow them; an ordinary chat would otherwise hold its whole history twice.
+		 */
+		if (_shouldReflectPreferenceChanges) {
+			[_storedContentObjects addObject:content];
+		}
 	}
 
 	[_contentQueue removeAllObjects];
@@ -1353,6 +1363,13 @@ static NSString *const AIWKContextMenuScript =
 - (void)setShouldReflectPreferenceChanges:(BOOL)inValue
 {
 	_shouldReflectPreferenceChanges = inValue;
+
+	/* Nothing is kept unless somebody is going to ask for it again, and everything kept is dropped
+	 * the moment nobody is.
+	 */
+	if (!inValue) {
+		[_storedContentObjects removeAllObjects];
+	}
 }
 
 - (void)setIsGroupChat:(BOOL)groupChat
