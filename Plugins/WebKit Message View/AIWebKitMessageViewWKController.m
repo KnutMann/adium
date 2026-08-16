@@ -415,6 +415,7 @@ static NSString *const AIWKContextMenuScript =
 	}
 
 	_webViewIsReady = YES;
+	[self webViewIsReady];
 
 	// Set up marked scroller after the scroll view exists
 	[self setupMarkedScroller];
@@ -481,6 +482,7 @@ static NSString *const AIWKContextMenuScript =
 		// Don't re-process gate if already ready
 		if (!_webViewIsReady) {
 			_webViewIsReady = YES;
+			[self webViewIsReady];
 			[self _drainStoredContentObjects];
 			[self _processContentQueue];
 		}
@@ -635,6 +637,10 @@ static NSString *const AIWKContextMenuScript =
 
 - (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText
 {
+	if (![self allowsContextMenu]) {
+		return;
+	}
+
 	NSWindow *window = [_webView window];
 	if (window == nil) {
 		return;
@@ -1347,6 +1353,22 @@ static NSString *const AIWKContextMenuScript =
 - (void)setShouldReflectPreferenceChanges:(BOOL)inValue
 {
 	_shouldReflectPreferenceChanges = inValue;
+}
+
+- (void)setIsGroupChat:(BOOL)groupChat
+{
+	_chat.isGroupChat = groupChat;
+	_preferenceGroup = [_plugin preferenceGroupForChat:_chat];
+}
+
+- (void)webViewIsReady
+{
+	//Nothing to do; here to be overridden.
+}
+
+- (BOOL)allowsContextMenu
+{
+	return YES;
 }
 
 - (void)preferencesChangedForGroup:(NSString *)group

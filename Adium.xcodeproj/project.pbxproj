@@ -947,18 +947,15 @@
 		6318DBA40F8D93F200C5E584 /* SoulEdge.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF00063498ED0018E5D2 /* SoulEdge.png */; };
 		6318DBA50F8D93F200C5E584 /* terminator.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF01063498ED0018E5D2 /* terminator.png */; };
 		6318DBA60F8D93F200C5E584 /* Template.html in Resources */ = {isa = PBXBuildFile; fileRef = 4B03711506595A70008F5981 /* Template.html */; };
-		6318DBB40F8D940A00C5E584 /* AIWebKitMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B539C5205EFD6FB00E5921A /* AIWebKitMessageViewController.m */; };
 		ADD1E5C0DE00000000000D03 /* AIWebKitMessageViewWKController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000D02 /* AIWebKitMessageViewWKController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000D06 /* AIAdiumURLSchemeHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000D09 /* AIWebKitMessageViewWKContextMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6318DBB50F8D940A00C5E584 /* AIWebKitMessageViewPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B539C4C05EFD6CD00E5921A /* AIWebKitMessageViewPlugin.m */; };
-		6318DBB60F8D940A00C5E584 /* ESWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346C9A2405FFE3DF000F5A8A /* ESWebView.m */; };
 		6318DBB70F8D940A00C5E584 /* ESWebKitMessageViewPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C2D70406338E2E0018E5D2 /* ESWebKitMessageViewPreferences.m */; };
 		6318DBB80F8D940A00C5E584 /* AIWebkitMessageViewStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BD62D7F07CE8F240099EBA2 /* AIWebkitMessageViewStyle.m */; };
 		6318DBB90F8D940A00C5E584 /* AIPreviewChat.m in Sources */ = {isa = PBXBuildFile; fileRef = 34182F490AC2CA3C0067DEF3 /* AIPreviewChat.m */; };
-		6318DBBA0F8D940A00C5E584 /* AIWebKitDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6360B2590BF2EB93004CD99B /* AIWebKitDelegate.m */; };
 		6318DBBB0F8D940A00C5E584 /* AIPreviewContentMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 34FA28100C820C3A00FEA944 /* AIPreviewContentMessage.m */; };
-		6318DBBC0F8D940A00C5E584 /* AIWebKitPreviewMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1B59F0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.m */; };
+		6318DBBC0F8D940A00C5E584 /* AIWebKitPreviewMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1B59F0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6318DBC20F8D943A00C5E584 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C103FAE057127A500F3C158 /* WebKit.framework */; };
 		63218C500E518A3D0008E0D0 /* AdiumAuthorization.m in Sources */ = {isa = PBXBuildFile; fileRef = 3486E8A5097F24A90044C496 /* AdiumAuthorization.m */; };
 		63218C720E518A940008E0D0 /* AdiumAuthorization.h in Headers */ = {isa = PBXBuildFile; fileRef = 3486E8A4097F24A90044C496 /* AdiumAuthorization.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1881,8 +1878,6 @@
 		346BA3420774C2D200628F06 /* ESGlobalEventsPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGlobalEventsPreferences.h; path = Source/ESGlobalEventsPreferences.h; sourceTree = "<group>"; };
 		346BA3430774C2D200628F06 /* ESGlobalEventsPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGlobalEventsPreferences.m; path = Source/ESGlobalEventsPreferences.m; sourceTree = "<group>"; };
 		346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GlobalEventsPreferences.xib; path = Resources/GlobalEventsPreferences.xib; sourceTree = "<group>"; };
-		346C9A2305FFE3DE000F5A8A /* ESWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebView.h; path = "Plugins/WebKit Message View/ESWebView.h"; sourceTree = "<group>"; };
-		346C9A2405FFE3DF000F5A8A /* ESWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESWebView.m; path = "Plugins/WebKit Message View/ESWebView.m"; sourceTree = "<group>"; };
 		346C9BFA0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Buttons.strings; sourceTree = "<group>"; };
 		346C9C020E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Frameworks/Adium/Resources/hu.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		346C9C0F0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -2476,8 +2471,6 @@
 		4B422C0A05ACB248005E720B /* AISortController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISortController.m; path = Frameworks/Adium/Source/AISortController.m; sourceTree = "<group>"; };
 		4B539C4B05EFD6CD00E5921A /* AIWebKitMessageViewPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewPlugin.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewPlugin.h"; sourceTree = "<group>"; };
 		4B539C4C05EFD6CD00E5921A /* AIWebKitMessageViewPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewPlugin.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewPlugin.m"; sourceTree = "<group>"; };
-		4B539C5105EFD6FA00E5921A /* AIWebKitMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewController.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewController.h"; sourceTree = "<group>"; };
-		4B539C5205EFD6FB00E5921A /* AIWebKitMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewController.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewController.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D01 /* AIWebKitMessageViewWKController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewWKController.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKController.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D02 /* AIWebKitMessageViewWKController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewWKController.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKController.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D04 /* AIAdiumURLSchemeHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdiumURLSchemeHandler.h; path = "Plugins/WebKit Message View/AIAdiumURLSchemeHandler.h"; sourceTree = "<group>"; };
@@ -2721,8 +2714,6 @@
 		6341AEFE0E53A09C00AE1439 /* libexpat.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libexpat.dylib; path = usr/lib/libexpat.dylib; sourceTree = SDKROOT; };
 		634BCD1D0DDC1542005AF1C2 /* TestMutableStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestMutableStringAdditions.h; path = UnitTests/TestMutableStringAdditions.h; sourceTree = "<group>"; };
 		634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMutableStringAdditions.m; path = UnitTests/TestMutableStringAdditions.m; sourceTree = "<group>"; };
-		6360B2580BF2EB93004CD99B /* AIWebKitDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitDelegate.h; path = "Plugins/WebKit Message View/AIWebKitDelegate.h"; sourceTree = "<group>"; };
-		6360B2590BF2EB93004CD99B /* AIWebKitDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitDelegate.m; path = "Plugins/WebKit Message View/AIWebKitDelegate.m"; sourceTree = "<group>"; };
 		636C6E5D0ED56D0100E0E528 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		636D8C970E4E95A500E5F558 /* AIAddressBookController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookController.m; path = Frameworks/Adium/Source/AIAddressBookController.m; sourceTree = "<group>"; };
 		636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Jabber.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Jabber.scpt; sourceTree = "<group>"; };
@@ -3762,8 +3753,6 @@
 		3470663806015FB6004F0D20 /* WebKit Additions */ = {
 			isa = PBXGroup;
 			children = (
-				346C9A2305FFE3DE000F5A8A /* ESWebView.h */,
-				346C9A2405FFE3DF000F5A8A /* ESWebView.m */,
 				76C1AF9A125A906A00D269A9 /* AIAdiumURLProtocol.h */,
 				76C1AF9B125A906A00D269A9 /* AIAdiumURLProtocol.m */,
 			);
@@ -5651,10 +5640,6 @@
 				34182F490AC2CA3C0067DEF3 /* AIPreviewChat.m */,
 				34FA280F0C820C3A00FEA944 /* AIPreviewContentMessage.h */,
 				34FA28100C820C3A00FEA944 /* AIPreviewContentMessage.m */,
-				6360B2580BF2EB93004CD99B /* AIWebKitDelegate.h */,
-				6360B2590BF2EB93004CD99B /* AIWebKitDelegate.m */,
-				4B539C5105EFD6FA00E5921A /* AIWebKitMessageViewController.h */,
-				4B539C5205EFD6FB00E5921A /* AIWebKitMessageViewController.m */,
 				ADD1E5C0DE00000000000D01 /* AIWebKitMessageViewWKController.h */,
 				ADD1E5C0DE00000000000D02 /* AIWebKitMessageViewWKController.m */,
 				ADD1E5C0DE00000000000D04 /* AIAdiumURLSchemeHandler.h */,
@@ -7159,16 +7144,13 @@
 				111256190F8DA2BF00E76177 /* HTTPServer.m in Sources */,
 				1112561A0F8DA2BF00E76177 /* EKEzvIncomingFileTransfer.m in Sources */,
 				1112561B0F8DA2BF00E76177 /* EKEzvOutgoingFileTransfer.m in Sources */,
-				6318DBB40F8D940A00C5E584 /* AIWebKitMessageViewController.m in Sources */,
 				ADD1E5C0DE00000000000D03 /* AIWebKitMessageViewWKController.m in Sources */,
 				ADD1E5C0DE00000000000D06 /* AIAdiumURLSchemeHandler.m in Sources */,
 				ADD1E5C0DE00000000000D09 /* AIWebKitMessageViewWKContextMenu.m in Sources */,
 				6318DBB50F8D940A00C5E584 /* AIWebKitMessageViewPlugin.m in Sources */,
-				6318DBB60F8D940A00C5E584 /* ESWebView.m in Sources */,
 				6318DBB70F8D940A00C5E584 /* ESWebKitMessageViewPreferences.m in Sources */,
 				6318DBB80F8D940A00C5E584 /* AIWebkitMessageViewStyle.m in Sources */,
 				6318DBB90F8D940A00C5E584 /* AIPreviewChat.m in Sources */,
-				6318DBBA0F8D940A00C5E584 /* AIWebKitDelegate.m in Sources */,
 				6318DBBB0F8D940A00C5E584 /* AIPreviewContentMessage.m in Sources */,
 				6318DBBC0F8D940A00C5E584 /* AIWebKitPreviewMessageViewController.m in Sources */,
 				34BD9D4A053146CC000AB133 /* main.m in Sources */,

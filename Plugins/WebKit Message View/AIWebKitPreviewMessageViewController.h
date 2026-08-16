@@ -14,13 +14,20 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import "AIWebKitMessageViewController.h"
+#import "AIWebKitMessageViewWKController.h"
 
-@interface AIWebKitPreviewMessageViewController : AIWebKitMessageViewController {
+/*!
+ * @class AIWebKitPreviewMessageViewController
+ * @brief The sample conversation shown in the message settings
+ *
+ * A message view like any other, with three differences: it tells whoever is showing it about every
+ * preference change so the controls beside it can follow, it offers no context menu because there is
+ * nothing real to do with a sample, and it keeps its scrollbar out of sight.
+ */
+@interface AIWebKitPreviewMessageViewController : AIWebKitMessageViewWKController {
 	id							preferencesChangedDelegate;
 }
 
 - (void)setPreferencesChangedDelegate:(id)inDelegate;
-- (void)setIsGroupChat:(BOOL)groupChat;
 
 @end

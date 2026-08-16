@@ -37,7 +37,6 @@
 #import "AIMessageWindowController.h"
 #import "AIMessageWindow.h"
 #import "AIInterfaceControllerProtocol.h"
-#import "AIWebKitMessageViewController.h"
 #import "AILoggerPlugin.h"
 
 

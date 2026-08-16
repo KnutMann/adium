@@ -15,48 +15,34 @@
  */
 
 #import "AIWebKitPreviewMessageViewController.h"
-#import "ESWebView.h"
 #import "AIWebKitMessageViewPlugin.h"
 #import <Adium/AIChat.h>
+#import <WebKit/WebKit.h>
 
 @implementation AIWebKitPreviewMessageViewController
 
-- (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems
+- (BOOL)allowsContextMenu
 {
-	return [NSArray array];
-}
-
-- (void)dealloc
-{
-	[preferencesChangedDelegate release]; preferencesChangedDelegate = nil;
-
-	[super dealloc];
-}
-
-- (void)setIsGroupChat:(BOOL)groupChat
-{
-	chat.isGroupChat = groupChat;
-	preferenceGroup = [[plugin preferenceGroupForChat:chat] retain];
+	return NO;
 }
 
 - (void)setPreferencesChangedDelegate:(id)inDelegate
 {
 	if (inDelegate != preferencesChangedDelegate) {
-		[preferencesChangedDelegate release];
-		preferencesChangedDelegate = [inDelegate retain];
-		
+		preferencesChangedDelegate = inDelegate;
+
 		[preferencesChangedDelegate preferencesChangedForGroup:PREF_GROUP_WEBKIT_REGULAR_MESSAGE_DISPLAY
 														   key:nil
 														object:nil
 												preferenceDict:[adium.preferenceController preferencesForGroup:PREF_GROUP_WEBKIT_REGULAR_MESSAGE_DISPLAY]
 													 firstTime:YES];
-		
+
 		[preferencesChangedDelegate preferencesChangedForGroup:PREF_GROUP_WEBKIT_GROUP_MESSAGE_DISPLAY
 														   key:nil
 														object:nil
 												preferenceDict:[adium.preferenceController preferencesForGroup:PREF_GROUP_WEBKIT_GROUP_MESSAGE_DISPLAY]
 													 firstTime:YES];
-		
+
 		[preferencesChangedDelegate preferencesChangedForGroup:PREF_GROUP_WEBKIT_BACKGROUND_IMAGES
 														   key:nil
 														object:nil
@@ -82,32 +68,27 @@
 /*!
  * @brief Let the preview scroll, but keep its scrollbar out of the way.
  *
- * The sample conversation can run past the box, so it must be scrollable; a scrollbar in a
- * settings preview, though, reads as chrome that does not belong, and drawn beside the content
- * it clips the card's rounded corners.
+ * The sample conversation can run past the box, so it must be scrollable; a scrollbar in a settings
+ * preview, though, reads as chrome that does not belong, and drawn beside the content it clips the
+ * card's rounded corners.
  *
- * Two scrollbars can appear, and each needs its own handle. One is CSS: any overflow element in
- * the page draws a ::-webkit-scrollbar, hidden here with a rule dropped into this one web view -
- * not onto the WebPreferences the controller shares with real chat windows, so their bars are
- * untouched. The other is the main frame's, which WebKit1 draws as an AppKit scroller, not from
- * CSS; made an overlay it sits over the content inside the corners and fades when the pointer is
- * not scrolling. -webViewIsReady fires again after every reprime (a style or variant change), so
- * both are reapplied here, the CSS guarded against being added twice.
+ * One rule now, where the old view needed two. WebKit1 drew the main frame's scrollbar as an AppKit
+ * scroller that had to be restyled separately from the page; a WKWebView scrolls the page itself, so
+ * hiding it is CSS like any other overflow in the document. The rule goes into this one page rather
+ * than onto anything shared, so real chat windows keep their scrollbars, and -webViewIsReady fires
+ * again after every reprime, which is why it guards against adding itself twice.
  */
 - (void)webViewIsReady
 {
 	[super webViewIsReady];
 
-	[webView stringByEvaluatingJavaScriptFromString:
+	[_webView evaluateJavaScript:
 		@"(function(){var i='adium-preview-no-scrollbar';"
 		 "if(!document.getElementById(i)){"
 		 "var s=document.createElement('style');s.id=i;"
 		 "s.textContent='::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}';"
-		 "(document.head||document.documentElement).appendChild(s);}})();"];
-
-	NSScrollView *frameScroll = [[[[webView mainFrame] frameView] documentView] enclosingScrollView];
-	[frameScroll setScrollerStyle:NSScrollerStyleOverlay];
-	[frameScroll setAutohidesScrollers:YES];
+		 "(document.head||document.documentElement).appendChild(s);}})();"
+					   completionHandler:nil];
 }
 
 @end

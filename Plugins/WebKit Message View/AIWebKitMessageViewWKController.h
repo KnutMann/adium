@@ -60,4 +60,20 @@
 
 - (void)setShouldReflectPreferenceChanges:(BOOL)inValue;
 
+/* Which side of the preference groups this view belongs to. Kept here rather than at the one place
+ * that calls it, because the group a chat reads its style from follows from whether it is a group
+ * chat, and both facts live in this object.
+ */
+- (void)setIsGroupChat:(BOOL)groupChat;
+
+/* For subclasses. The page is loaded and can be scripted; called again after every reprime, so
+ * anything put into the page from here has to tolerate being applied twice.
+ */
+- (void)webViewIsReady;
+
+/* For subclasses. Answer NO and a right click does nothing, which is what a preview wants: it shows
+ * a conversation that is not real and offers nothing to do with it.
+ */
+- (BOOL)allowsContextMenu;
+
 @end

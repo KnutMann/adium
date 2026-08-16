@@ -19,7 +19,6 @@
 #import "AIWebkitMessageViewStyle.h"
 #import "AIWebKitPreviewMessageViewController.h"
 #import "AIPreviewChat.h"
-#import "ESWebView.h"
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
@@ -910,22 +909,14 @@ static NSString *AIRowLabel(NSString *label)
 	[view_previewLocation addSubview:preview];
 	[view_previewLocation retain]; //matched in viewWillClose
 
-	//Disable drag and drop onto the preview chat - Jeff doesn't need your porn :)
-	if ([preview respondsToSelector:@selector(setAllowsDragAndDrop:)]) {
-		[(ESWebView *)preview setAllowsDragAndDrop:NO];
-	}
-
-	//Disable forwarding of events so the preferences responder chain works properly
-	if ([preview respondsToSelector:@selector(setShouldForwardEvents:)]) {
-		[(ESWebView *)preview setShouldForwardEvents:NO];
-	}
-
-	/* The preview scrolls, so a long sample conversation can be read past the edge of the box;
-	 * its scrollbar is hidden, not its scrolling - see -[AIWebKitPreviewMessageViewController
-	 * webViewIsReady], which drops a ::-webkit-scrollbar rule into this one web view. */
-	if ([preview isKindOfClass:[WebView class]]) {
-		[[[(WebView *)preview mainFrame] frameView] setAllowsScrolling:YES];
-	}
+	/* Three things the old view needed telling and this one does not. Dropping something onto the
+	 * sample conversation did something on a WebView and does nothing on a WKWebView, which handles
+	 * drags in its own process and drops them unless a page asks for them. Events are no longer
+	 * forwarded past the view, so the responder chain in the settings works without being asked.
+	 * And the preview still scrolls with its scrollbar out of sight, which is now one CSS rule in
+	 * -[AIWebKitPreviewMessageViewController webViewIsReady] rather than a rule plus an AppKit
+	 * scroller to restyle beside it.
+	 */
 }
 
 - (AIChat *)previewChatWithDictionary:(NSDictionary *)previewDict fromPath:(NSString *)previewPath listObjects:(NSDictionary **)outListObjects
