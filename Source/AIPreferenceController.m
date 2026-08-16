@@ -539,16 +539,17 @@
 	
 	if (!userPreferredDownloadFolder) {
 		//10.5: ICGetPref() for kICDownloadFolder is useless
-		CFURLRef	urlToDefaultBrowser = NULL;
-		
+		/* Which application opens a web address. The old call asked for the viewer role of an http
+		 * URL and answered with an error code when there was none; this answers with nothing.
+		 */
+		NSURL *urlToDefaultBrowser = [[NSWorkspace sharedWorkspace]
+										URLForApplicationToOpenURL:[NSURL URLWithString:@"http://google.com"]];
+
 		//Use Safari's preference as a default if it's the default browser and it is set
-		if (LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://google.com"],
-								   kLSRolesViewer,
-								   NULL /*outAppRef*/,
-								   &urlToDefaultBrowser) != kLSApplicationNotFoundErr) {
+		if (urlToDefaultBrowser) {
 			NSString	*defaultBrowserName = nil;
 			
-			defaultBrowserName = [[NSFileManager defaultManager] displayNameAtPath:[(NSURL *)urlToDefaultBrowser path]];
+			defaultBrowserName = [[NSFileManager defaultManager] displayNameAtPath:[urlToDefaultBrowser path]];
 			
 			if ([defaultBrowserName rangeOfString:@"Safari"].location != NSNotFound) {
 				/* ICGetPref() for kICDownloadFolder returns any previously set preference, not the default ~/Downloads or the current

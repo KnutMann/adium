@@ -15,6 +15,7 @@
  */
 
 #import "AILoggerPlugin.h"
+#import <AIUtilities/AIFunctions.h>
 #import "AIChatLog.h"
 #import "AILogFromGroup.h"
 #import "AILogToGroup.h"
@@ -356,22 +357,23 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 {
 	static dispatch_once_t didResolveLogBaseAlias;
 	dispatch_once(&didResolveLogBaseAlias, ^{
-		FSRef ref;
-		Boolean isDir = true;
-		
-		OSStatus err = FSPathMakeRef((UInt8 *)[logBasePath UTF8String], &ref, &isDir);
-		if (noErr != err) {
-			NSLog(@"Warning: Couldn't obtain FSRef for transcripts folder: %s (%ld)", GetMacOSStatusCommentString(err), (long)err);
-		} else if (!isDir) {
-			Boolean wasAliased_nobodyCares;
-			err = FSResolveAliasFile(&ref, /*resolveAliasChains*/ true, &isDir, &wasAliased_nobodyCares);
-			if (noErr != err) {
-				NSLog(@"Warning: Couldn't resolve alias to transcripts folder: %s (%ld)", GetMacOSStatusCommentString(err), (long)err);
-			} else {
-				NSURL *logBaseURL = [(NSURL *)CFURLCreateFromFSRef(kCFAllocatorDefault, &ref) autorelease];
-				logBaseAliasPath = logBasePath;
-				logBasePath = [[logBaseURL path] copy];
-			}
+		/* The transcripts folder may be an alias, put there by somebody who keeps their logs on
+		 * another disk. Only then is there anything to do: a real folder resolves to nothing and is
+		 * left alone, which is what the old chain worked out from a flag saying whether the thing
+		 * had been an alias at all.
+		 *
+		 * Four Carbon calls became one. They spoke in file references and reported through status
+		 * codes that had to be turned into words to be read.
+		 */
+		NSError *error = nil;
+		NSURL *logBaseURL = [NSURL URLByResolvingAliasFileAtURL:[NSURL fileURLWithPath:logBasePath]
+														options:NSURLBookmarkResolutionWithoutUI
+														  error:&error];
+		if (logBaseURL) {
+			logBaseAliasPath = logBasePath;
+			logBasePath = [[logBaseURL path] copy];
+		} else if (error && ![[error domain] isEqualToString:NSCocoaErrorDomain]) {
+			NSLog(@"Warning: Couldn't resolve alias to transcripts folder: %@", error);
 		}
 	});
 	return logBasePath;
@@ -1441,7 +1443,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	if (self.indexingAllowed) {
 		
 		self.isIndexing = YES;
-		__block UInt32  lastUpdate = TickCount();
+		__block uint64_t lastUpdate = AITickCount();
 		__block SInt32  unsavedChanges = 0;
 		
 		AILogWithSignature(@"Cleaning %lu dirty logs", (unsigned long)[localLogSet count]);
@@ -1518,12 +1520,14 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 											OSAtomicIncrement64Barrier((int64_t *)&(bself->logsIndexed));
 											OSAtomicDecrement64Barrier((int64_t *)&_remainingLogs);
 											
-											if (lastUpdate == 0 || TickCount() > lastUpdate + LOG_INDEX_STATUS_INTERVAL || _remainingLogs == 0) {
+											if (lastUpdate == 0 || AITickCount() > lastUpdate + LOG_INDEX_STATUS_INTERVAL || _remainingLogs == 0) {
 												dispatch_async(dispatch_get_main_queue(), ^{
 													[[AILogViewerWindowController existingWindowController] logIndexingProgressUpdate];
 												});
-												UInt32 tick = TickCount();
-												OSAtomicCompareAndSwap32Barrier(lastUpdate, tick, (int32_t *)&lastUpdate);
+												uint64_t tick = AITickCount();
+												/* Sixty-four now, because the counter is. Swapped as thirty-two it would
+												 * have compared and written half of it. */
+												OSAtomicCompareAndSwap64Barrier((int64_t)lastUpdate, (int64_t)tick, (int64_t *)&lastUpdate);
 											}
 											
 											OSAtomicIncrement32Barrier((int32_t *)&unsavedChanges);

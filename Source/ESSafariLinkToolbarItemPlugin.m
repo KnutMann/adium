@@ -42,18 +42,22 @@
  */
 - (void)installPlugin
 {
-	CFURLRef	urlToDefaultBrowser = NULL;
 	NSString	*browserName = nil;
 	NSImage		*browserImage = nil;
 
-	if (LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://google.com"],
-							   kLSRolesViewer,
-							   NULL /*outAppRef*/,
-							   &urlToDefaultBrowser) != kLSApplicationNotFoundErr) {
+	/* Which application opens a web address, which is the question the old call was asked in a
+	 * roundabout way: it wanted the viewer role for an http URL and then the path out of what came
+	 * back. The workspace answers the same question directly and hands back nothing rather than an
+	 * error code when there is no answer.
+	 */
+	NSURL *urlToDefaultBrowser = [[NSWorkspace sharedWorkspace]
+									URLForApplicationToOpenURL:[NSURL URLWithString:@"http://google.com"]];
+
+	if (urlToDefaultBrowser) {
 		NSString	*defaultBrowserName;
 		NSString	*defaultBrowserPath;
 
-		defaultBrowserPath = [(NSURL *)urlToDefaultBrowser path];
+		defaultBrowserPath = [urlToDefaultBrowser path];
 		defaultBrowserName = [[NSFileManager defaultManager] displayNameAtPath:defaultBrowserPath];
 
 		//Is the default browser supported?
@@ -69,10 +73,6 @@
 				break;
 			}
 		}
-	}
-	
-	if (urlToDefaultBrowser) {
-		CFRelease(urlToDefaultBrowser);
 	}
 	
 	if (!browserName || !browserImage) {

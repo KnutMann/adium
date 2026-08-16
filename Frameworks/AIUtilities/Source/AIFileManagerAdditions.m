@@ -145,56 +145,37 @@
 }
 
 
-- (NSString *)findFolderOfType:(OSType)type inDomain:(short)domain createFolder:(BOOL)createFolder
+- (NSString *)findFolderOfType:(NSSearchPathDirectory)directory inDomain:(NSSearchPathDomainMask)domain createFolder:(BOOL)createFolder
 {
-    FSRef folderRef;
-	
-    OSErr err = FSFindFolder(domain, type, createFolder, &folderRef);
-    if (err != noErr)
-        return nil;
-    
-    /* Taken over rather than borrowed: a Create or Copy hands back something owned and nothing
-     * here ever gave it back, so this was a leak. */
-    NSURL *folderURL = CFBridgingRelease(CFURLCreateFromFSRef(kCFAllocatorSystemDefault, &folderRef));
-    if (! folderURL)
-        return nil;
-	
-	folderURL;
-    
-    return [folderURL path];
+	NSURL *folderURL = [self URLForDirectory:directory
+									inDomain:domain
+						   appropriateForURL:nil
+									  create:createFolder
+									   error:NULL];
+
+	return [folderURL path];
 }
 
 - (NSString *)userApplicationSupportFolder
 {
-    return [self findFolderOfType:kApplicationSupportFolderType inDomain:kUserDomain createFolder:YES];
+    return [self findFolderOfType:NSApplicationSupportDirectory inDomain:NSUserDomainMask createFolder:YES];
 }
 
 - (NSString *)pathByResolvingAlias:(NSString *)path
 {
 	if (!path) return nil;
 
-	NSString *resolvedPath = nil;
-	CFURLRef url;
+	/* One call where there were five. The old way turned the path into a URL, the URL into a file
+	 * reference, resolved the reference in place, and turned it back; every step in a currency the
+	 * file system stopped minting long ago. Something that is not an alias resolves to nothing here
+	 * and the path is handed back unchanged, which is what the old chain did by way of its
+	 * wasAliased flag.
+	 */
+	NSURL *resolved = [NSURL URLByResolvingAliasFileAtURL:[NSURL fileURLWithPath:path]
+												  options:NSURLBookmarkResolutionWithoutUI
+													error:NULL];
 
-	url = CFURLCreateWithFileSystemPath(/* allocator */ NULL, (__bridge CFStringRef)path,
-										kCFURLPOSIXPathStyle, /* isDir */ false);
-	if (url) {
-		FSRef fsRef;
-		if (CFURLGetFSRef(url, &fsRef)) {
-			Boolean targetIsFolder, wasAliased;
-			if (FSResolveAliasFile (&fsRef, true /*resolveAliasChains*/, 
-									&targetIsFolder, &wasAliased) == noErr && wasAliased) {
-				CFURLRef resolvedUrl = CFURLCreateFromFSRef(NULL, &fsRef);
-				if (resolvedUrl) {
-					resolvedPath = CFBridgingRelease(CFURLCopyFileSystemPath(resolvedUrl, kCFURLPOSIXPathStyle));
-					CFRelease(resolvedUrl);
-				}
-			}
-		}
-		CFRelease(url);
-	}
-	
-	return (resolvedPath ? resolvedPath : [path copy]);
+	return (resolved ? [resolved path] : [path copy]);
 }
 
 @end

@@ -15,6 +15,7 @@
  */
 
 #import "ESFileTransferProgressRow.h"
+#import <AIUtilities/AIFunctions.h>
 #import "ESFileTransferProgressView.h"
 #import "ESFileTransferProgressWindowController.h"
 #import <Adium/AIListObject.h>
@@ -158,7 +159,7 @@
 //Handle progress, bytes transferred/bytes total, rate, and time remaining
 - (void)gotUpdateForFileTransfer:(ESFileTransfer *)inFileTransfer
 {
-	UInt32				updateTick = TickCount();
+	uint64_t			updateTick = AITickCount();
 	AIFileTransferStatus	status = [inFileTransfer status];
 	
 	//Don't update continously; on a LAN transfer, for instance, we'll get almost constant updates

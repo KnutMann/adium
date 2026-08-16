@@ -23,7 +23,7 @@
 	ESFileTransfer			*fileTransfer;
 	id						owner;
 
-	UInt32					lastUpdateTick;
+	uint64_t				lastUpdateTick;
 	unsigned long long		lastBytesSent;
 	unsigned long long		size;
 	NSString				*sizeString;

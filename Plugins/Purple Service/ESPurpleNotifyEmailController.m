@@ -239,31 +239,23 @@
 {
 	if ([urlString rangeOfString:[NSString stringWithUTF8String:g_get_tmp_dir()]].location != NSNotFound) {
 		//Local HTML file
-		CFURLRef	appURL = NULL;
-		OSStatus	err;
+		NSURL		*appURL = nil;
 		
 		/* Obtain the default http:// handler. We don't care what would handle _this file_ (its extension doesn't matter)
 		 * nor what normally happens when the user opens a .html file since that is, on many systems, an HTML editor.
 		 * Instead, we want to know what application to use for viewing web pages... and then open this file in it.
 		 */
-		err = LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://www.adium.im"],
-									 kLSRolesViewer,
-									 /*outAppRef*/ NULL,
-									 &appURL);
-		if (err == noErr) {
+		appURL = [[NSWorkspace sharedWorkspace]
+					URLForApplicationToOpenURL:[NSURL URLWithString:@"http://www.adium.im"]];
+		if (appURL) {
 			[[NSWorkspace sharedWorkspace] openFile:[urlString stringByExpandingTildeInPath]
-									withApplication:[(NSURL *)appURL path]];
+									withApplication:[appURL path]];
 		} else {
 			NSURL		*url;
 			
 			//Web address
 			url = [NSURL URLWithString:urlString];
 			[[NSWorkspace sharedWorkspace] openURL:url];
-		}
-		
-		if (appURL) {
-			//LSGetApplicationForURL() requires us to release the appURL when we are done with it
-			CFRelease(appURL);
 		}
 		
 	} else {
@@ -282,18 +274,25 @@
  * @return NSString with the application's name
  */ 
 + (NSString *)mailApplicationName {
-	NSString *appName;
-	FSRef myAppRef;
-	
-	LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"mailto://"], kLSRolesAll, &myAppRef, NULL);
-	LSCopyDisplayNameForRef(&myAppRef, (CFStringRef *)&appName);
-	
-	NSRange appRange;
-	if ((appRange = [appName rangeOfString:@".app" options:(NSCaseInsensitiveSearch | NSBackwardsSearch | NSAnchoredSearch)]).location != NSNotFound) {
-		appName = [[appName substringToIndex:appRange.location] retain];
+	/* Which application handles mail addresses, and what it is called. The old pair asked Launch
+	 * Services for a file reference and then for that reference's display name, both through
+	 * structures from a file system that no longer exists. The workspace answers with a URL and the
+	 * file manager names it, which is the same two steps without the detour.
+	 */
+	NSURL *mailApplication = [[NSWorkspace sharedWorkspace]
+								URLForApplicationToOpenURL:[NSURL URLWithString:@"mailto://"]];
+	if (!mailApplication) {
+		return nil;
 	}
 
-	return [appName autorelease];
+	NSString *appName = [[NSFileManager defaultManager] displayNameAtPath:[mailApplication path]];
+
+	NSRange appRange;
+	if ((appRange = [appName rangeOfString:@".app" options:(NSCaseInsensitiveSearch | NSBackwardsSearch | NSAnchoredSearch)]).location != NSNotFound) {
+		appName = [appName substringToIndex:appRange.location];
+	}
+
+	return appName;
 }
 
 @end

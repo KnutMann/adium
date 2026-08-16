@@ -70,7 +70,11 @@
 
 - (NSString *)uniquePathForPath:(NSString *)inPath;
 
-- (NSString *)findFolderOfType:(OSType)type inDomain:(short)domain createFolder:(BOOL)createFolder;
+/*!	@brief A well known folder, by the names the file manager uses
+ *
+ *	Took a Carbon folder type and a Carbon domain before, and answered through a file reference.
+ */
+- (NSString *)findFolderOfType:(NSSearchPathDirectory)directory inDomain:(NSSearchPathDomainMask)domain createFolder:(BOOL)createFolder;
 
 /*
  * @brief Returns the pathname of the user's application support directory

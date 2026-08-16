@@ -14,6 +14,24 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#import <time.h>
+
+#pragma mark Elapsed time
+
+/*!	@brief Sixtieths of a second since the machine started
+ *
+ *	What TickCount() answered, from a clock that is still there. Kept in the same unit so that the
+ *	intervals and comparisons written against it read as they always did; a tick is a sixtieth of a
+ *	second and this counts them the same way.
+ *
+ *	Monotonic, so it does not step when the clock is set, which the old one did not either. It is
+ *	only ever used to decide that enough time has passed to redraw something.
+ */
+static inline uint64_t AITickCount(void)
+{
+	return clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / (NSEC_PER_SEC / 60);
+}
+
 #pragma mark Rect utilities
 /*!	@defgroup AIRectUtilities Rectangle utilities
  *

@@ -165,27 +165,20 @@ static void *adiumPurpleNotifyUri(const char *uri)
 												 error:NULL];
 			}
 		
-			FSRef appRef;
-			
-			//Open the HTML file with a web browser, not with an HTML editor
-			if (LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://google.com"],
-									   kLSRolesViewer,
-									   &appRef,
-									   NULL) != kLSApplicationNotFoundErr) {
-				FSRef urlRef;
+			/* Open the HTML file with a web browser, not with an HTML editor: what opens a file of
+			 * this kind is often an editor, so the browser is asked for by what it does with web
+			 * addresses and then handed the file.
+			 *
+			 * Three Carbon calls and a structure became one message. The old ones spoke in file
+			 * references, which are a way of naming files that the system stopped keeping up with
+			 * years ago, and the launch specification existed only to tie them together.
+			 */
+			NSURL *browserURL = [[NSWorkspace sharedWorkspace]
+									URLForApplicationToOpenURL:[NSURL URLWithString:@"http://google.com"]];
 
-				if (FSPathMakeRef((UInt8 *)[actualURI fileSystemRepresentation], &urlRef, NULL) == noErr) {
-					LSLaunchFSRefSpec spec;
-					
-					spec.appRef = &appRef;
-					spec.numDocs = 1;
-					spec.itemRefs = &urlRef;
-					spec.passThruParams = NULL;
-					spec.launchFlags = kLSLaunchDontAddToRecents | kLSLaunchAsync;
-					spec.asyncRefCon = NULL;
-					
-					LSOpenFromRefSpec(&spec, NULL);				
-				}
+			if (browserURL) {
+				[[NSWorkspace sharedWorkspace] openFile:actualURI
+										withApplication:[browserURL path]];
 			}
 		} else {
 			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:passedURI]];

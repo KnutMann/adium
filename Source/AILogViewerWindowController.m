@@ -15,6 +15,7 @@
  */
 
 #import "AILogViewerWindowController.h"
+#import <AIUtilities/AIFunctions.h>
 
 #import "AIAccountController.h"
 #import "AIChatLog.h"
@@ -1767,7 +1768,7 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 //Perform a filter search based on source name, destination name, or date
 - (void)_logFilter:(NSString *)searchString searchID:(NSInteger)searchID mode:(LogSearchMode)mode
 {
-    UInt32		lastUpdate = TickCount();
+    uint64_t	lastUpdate = AITickCount();
     
     NSDate	*searchStringDate = nil;
 	
@@ -1816,11 +1817,11 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 								[resultsLock unlock];
 								
 								//Update our status
-								if (lastUpdate == 0 || TickCount() > lastUpdate + LOG_SEARCH_STATUS_INTERVAL) {
+								if (lastUpdate == 0 || AITickCount() > lastUpdate + LOG_SEARCH_STATUS_INTERVAL) {
 									[self performSelectorOnMainThread:@selector(updateProgressDisplay)
 														   withObject:nil
 														waitUntilDone:NO];
-									lastUpdate = TickCount();
+									lastUpdate = AITickCount();
 								}
 							}
 						}
@@ -2592,7 +2593,7 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 {
 	AIChatLog		*aLog;
 	NSFileManager	*fileManager = [NSFileManager defaultManager];
-	NSString		*trashPath = [fileManager findFolderOfType:kTrashFolderType inDomain:kUserDomain createFolder:NO];
+	NSString		*trashPath = [fileManager findFolderOfType:NSTrashDirectory inDomain:NSUserDomainMask createFolder:NO];
 
 	for (aLog in deletedLogs) {
 		NSString *logPath = [[AILoggerPlugin logBasePath] stringByAppendingPathComponent:[aLog relativePath]];
@@ -2728,7 +2729,7 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 {
 	AILogToGroup	*toGroup;
 	NSFileManager	*fileManager = [NSFileManager defaultManager];
-	NSString		*trashPath = [fileManager findFolderOfType:kTrashFolderType inDomain:kUserDomain createFolder:NO];
+	NSString		*trashPath = [fileManager findFolderOfType:NSTrashDirectory inDomain:NSUserDomainMask createFolder:NO];
 	NSString		*logBasePath = [AILoggerPlugin logBasePath];
 
 	for (toGroup in toGroups) {

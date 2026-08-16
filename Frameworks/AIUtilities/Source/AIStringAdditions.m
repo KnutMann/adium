@@ -85,8 +85,6 @@ enum {
 //Random alphanumeric string
 + (id)randomStringOfLength:(unsigned int)inLength
 {
-	srandom(TickCount());
-
 	if (!inLength) return [self string];
 
 	NSString *string = nil;
@@ -102,7 +100,9 @@ enum {
 		};
 		unsigned remaining = inLength;
 		while (remaining--) {
-			buf[remaining] = alphanumeric[random() % sizeof(alphanumeric)];
+			/* Seeded by nobody and needing no seed: the old pair drew from a generator sown with the
+			 * time since boot, which is neither unpredictable nor uniform. */
+			buf[remaining] = alphanumeric[arc4random_uniform(sizeof(alphanumeric))];
 		}
 		string = [self stringWithBytes:buf length:inLength encoding:NSASCIIStringEncoding];
 		free(buf);
