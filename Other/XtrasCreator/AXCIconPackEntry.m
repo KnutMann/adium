@@ -19,7 +19,9 @@
 {
 	if((self = [super init])) {
 		key = [newKey copy];
+		displayName = [newKey copy];
 		path = [newPath copy];
+		supported = YES;
 	}
 	return self;
 }
@@ -29,6 +31,25 @@
 - (NSString *) key
 {
 	return key;
+}
+
+- (NSString *) displayName
+{
+	return displayName;
+}
+- (void) setDisplayName:(NSString *)newDisplayName
+{
+	[displayName release];
+	displayName = [newDisplayName copy];
+}
+
+- (BOOL) isSupported
+{
+	return supported;
+}
+- (void) setSupported:(BOOL)isSupported
+{
+	supported = isSupported;
 }
 
 - (NSString *) path
@@ -42,6 +63,15 @@
 }
 
 #pragma mark -
+
+- (void) dealloc
+{
+	[key release];
+	[path release];
+	[displayName release];
+
+	[super dealloc];
+}
 
 - (NSString *) description
 {

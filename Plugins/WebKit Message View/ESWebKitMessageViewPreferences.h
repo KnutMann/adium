@@ -36,24 +36,24 @@
 	/* The form owns every control; these references are cleared in -viewWillClose
 	 * before the form goes away.
 	 */
-	__unsafe_unretained NSSegmentedControl	*segment_chatType;
-	__unsafe_unretained NSSwitch			*checkBox_useRegularChatForGroup;
+	NSSegmentedControl	*segment_chatType;
+	NSSwitch			*checkBox_useRegularChatForGroup;
 
-	__unsafe_unretained NSPopUpButton		*popUp_styles;
-	__unsafe_unretained NSPopUpButton		*popUp_variants;
-	__unsafe_unretained NSSwitch			*checkBox_showUserIcons;
-	__unsafe_unretained NSSwitch			*checkBox_showHeader;
-	__unsafe_unretained NSSwitch			*checkBox_hideScrollbar;
+	NSPopUpButton		*popUp_styles;
+	NSPopUpButton		*popUp_variants;
+	NSSwitch			*checkBox_showUserIcons;
+	NSSwitch			*checkBox_showHeader;
+	NSSwitch			*checkBox_hideScrollbar;
 
 	JVFontPreviewField						*fontPreviewField_currentFont;
-	__unsafe_unretained NSButton			*button_setFont;
-	__unsafe_unretained NSButton			*button_defaultFont;
-	__unsafe_unretained NSSwitch			*checkBox_showMessageFonts;
-	__unsafe_unretained NSSwitch			*checkBox_showMessageColors;
+	NSButton			*button_setFont;
+	NSButton			*button_defaultFont;
+	NSSwitch			*checkBox_showMessageFonts;
+	NSSwitch			*checkBox_showMessageColors;
 
-	__unsafe_unretained NSSwitch			*checkBox_useCustomBackground;
+	NSSwitch			*checkBox_useCustomBackground;
 	AIImageViewWithImagePicker				*imageView_backgroundImage;
-	__unsafe_unretained NSPopUpButton		*popUp_backgroundImageType;
+	NSPopUpButton		*popUp_backgroundImageType;
 	NSColorWell								*colorWell_customBackgroundColor;
 
 	//Message preview

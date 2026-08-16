@@ -146,6 +146,13 @@ What the review caught, so the next batch looks for it up front:
   conversion rightly deleted, so the consumption must come back as
   `CFRelease((__bridge CFTypeRef)view)` at the load site, and only there: panes that build their
   view in code never had the extra reference.
+- **The silent twin of the compiler warning.** Assigning a METHOD RESULT to an
+  `__unsafe_unretained` ivar produces no warning at all, and it is fine only while the callee is
+  MRR: its real autorelease parks the object in the pool. The moment the callee is ARC too, the
+  return-value handshake sees the unsafe assignment as `objc_unsafeClaimAutoreleasedReturnValue`
+  and frees the object on the spot; the settings-form panes crashed exactly there, on factory
+  calls one line above the use. After a batch, sweep every ARC file for `unsafeIvar = [` - the
+  alloc/init variant warns, this one does not.
 - **Anchor outlets.** Controls that hold IBOutlets to their own window or to sibling views must
   keep them `__unsafe_unretained`, or the nib connection becomes a cycle that keeps whole panels
   alive.

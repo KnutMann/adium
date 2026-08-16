@@ -29,22 +29,22 @@
 	AIWebkitStyleType	 selectedChatType;
 
 	//The form's view tree owns every control below; -viewWillClose clears them
-	__unsafe_unretained NSSegmentedControl	*segment_chatType;
+	NSSegmentedControl	*segment_chatType;
 
 	//Per chat type: regular chats and group chats keep separate values
-	__unsafe_unretained NSSwitch			*checkBox_customNameFormatting;
-	__unsafe_unretained NSPopUpButton		*popUp_nameFormat;
-	__unsafe_unretained NSPopUpButton		*popUp_timeStampFormat;
-	__unsafe_unretained NSPopUpButton		*popUp_minimumFontSize;
-	__unsafe_unretained NSSwitch			*checkBox_showTabCount;
-	__unsafe_unretained NSSwitch			*checkBox_unreadMentionCount;
+	NSSwitch			*checkBox_customNameFormatting;
+	NSPopUpButton		*popUp_nameFormat;
+	NSPopUpButton		*popUp_timeStampFormat;
+	NSPopUpButton		*popUp_minimumFontSize;
+	NSSwitch			*checkBox_showTabCount;
+	NSSwitch			*checkBox_unreadMentionCount;
 
 	//Tabs
 
 	//Window handling
-	__unsafe_unretained NSSwitch			*checkBox_hide;
-	__unsafe_unretained NSSwitch			*checkBox_psychicOpen;
-	__unsafe_unretained NSPopUpButton		*popUp_windowPosition;
+	NSSwitch			*checkBox_hide;
+	NSSwitch			*checkBox_psychicOpen;
+	NSPopUpButton		*popUp_windowPosition;
 }
 
 @property (readonly, nonatomic) NSString *preferenceGroupForCurrentTab;

@@ -176,7 +176,7 @@
 	if ([categoryNames indexOfObjectIdenticalTo:item] != NSNotFound)
 		return isKeyColumn ? item : [NSNumber numberWithInt:-1];
 	else
-		return isKeyColumn ? (NSObject *)[item key] : (NSObject *)[NSNumber numberWithUnsignedInteger:[resources indexOfObject:[item path]]];
+		return isKeyColumn ? (NSObject *)[item displayName] : (NSObject *)[NSNumber numberWithUnsignedInteger:[resources indexOfObject:[item path]]];
 }
 - (void) outlineView:(NSOutlineView *)outlineView setObjectValue:(id)newValue forTableColumn:(NSTableColumn *)col byItem:(id)item
 {
@@ -231,6 +231,15 @@
 			else //because we just changed the menu of the cell...
 				[cell selectItemAtIndex:[resources indexOfObject:[item path]]];
 		}
+	}
+	else if ([[tableColumn identifier] isEqualToString:KEY_COLUMN_NAME]
+			 && [cell isKindOfClass:[NSTextFieldCell class]]) {
+		NSColor *textColor = [NSColor labelColor];
+		if ([item isKindOfClass:[AXCIconPackEntry class]]
+			&& ![(AXCIconPackEntry *)item isSupported]) {
+			textColor = [NSColor secondaryLabelColor];
+		}
+		[(NSTextFieldCell *)cell setTextColor:textColor];
 	}
 }
 
