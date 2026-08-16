@@ -1,25 +1,8 @@
-diff --git a/account-data.cpp b/account-data.cpp
-index d8c156d..2010ace 100644
---- a/account-data.cpp
-+++ b/account-data.cpp
-@@ -40,7 +40,11 @@ UserId purpleBuddyNameToUserId(const char *s)
- 
- SecretChatId purpleBuddyNameToSecretChatId(const char *s)
- {
--    if (strncmp(s, "secret", 2))
-+    /* Compare all six characters of the prefix the number is then read past. Comparing two accepted
-+     * anything starting with "se" and went on to parse from offset 6 regardless, so a username such
-+     * as "setup12345" came back as secret chat 12345 - a name the user typed, silently mistaken for
-+     * one of ours. */
-+    if (strncmp(s, "secret", 6))
-         return SecretChatId::invalid;
-     return SecretChatId::fromString(s+6);
- }
 diff --git a/client-utils.cpp b/client-utils.cpp
-index ad0611e..243d996 100644
+index e734c82..3ab3aeb 100644
 --- a/client-utils.cpp
 +++ b/client-utils.cpp
-@@ -336,6 +336,22 @@ void updatePrivateChat(TdAccountData &account, const td::td_api::chat *chat, con
+@@ -505,6 +505,22 @@ void updatePrivateChat(TdAccountData &account, const td::td_api::chat *chat, con
              purple_buddy_icons_set_for_user(account.purpleAccount, purpleUserName.c_str(), NULL, 0, NULL);
          }
      }
@@ -42,200 +25,18 @@ index ad0611e..243d996 100644
  }
  
  static void updateGroupChat(TdAccountData &account, const td::td_api::chat &chat,
-@@ -931,7 +947,7 @@ AccountThread::AccountThread(PurpleAccount* purpleAccount)
- void AccountThread::threadFunc()
- {
-     run();
--    g_idle_add(&AccountThread::mainThreadCallback, this);
-+    purple_timeout_add(0, &AccountThread::mainThreadCallback, this);
- }
- 
- static bool g_singleThread = false;
-diff --git a/file-transfer.cpp b/file-transfer.cpp
-index a9c85c0..368b95d 100644
---- a/file-transfer.cpp
-+++ b/file-transfer.cpp
-@@ -485,7 +485,7 @@ static void standardDownloadResponse(TdAccountData *account, uint64_t requestId,
-             if (AccountThread::isSingleThread()) {
-                 while (wrapupDownload(idleData) == G_SOURCE_CONTINUE) ;
-             } else
--                g_idle_add(wrapupDownload, idleData);
-+                purple_timeout_add(0, wrapupDownload, idleData);
-         } else {
-             if (!path.empty()) {
-                 // Unlikely error message not worth translating
 diff --git a/purple-info.h b/purple-info.h
-index df47657..2aa450f 100644
+index 07efd5d..12039fd 100644
 --- a/purple-info.h
 +++ b/purple-info.h
-@@ -56,6 +56,11 @@ namespace AccountOptions {
+@@ -59,6 +59,10 @@ namespace AccountOptions {
  
  namespace BuddyOptions {
      constexpr const char *ProfilePhotoId = "tdlib-profile-photo-id";
 +    /* Deliberately not prefixed like the one above. That one is this plugin talking to itself about
 +     * a photo it downloaded; this one is a fact about the person that any user interface might want,
-+     * and a name only this plugin knows is a fact nobody can use. Adium reads exactly this key to
-+     * offer the contact an address book card. */
++     * and a name only this plugin knows is a fact nobody can use. */
 +    constexpr const char *PhoneNumber = "phone-number";
  };
  
  unsigned getAutoDownloadLimitKb(PurpleAccount *account);
-diff --git a/td-client.cpp b/td-client.cpp
-index 5b54cf7..e550fbb 100644
---- a/td-client.cpp
-+++ b/td-client.cpp
-@@ -1435,7 +1435,7 @@ static int failedContactIdle(gpointer userdata)
- 
- static void notifyFailedContactDeferred(const std::string &message)
- {
--    g_idle_add(failedContactIdle, strdup(message.c_str()));
-+    purple_timeout_add(0, failedContactIdle, strdup(message.c_str()));
- }
- 
- void PurpleTdClient::addContact(const std::string &purpleName, const std::string &alias,
-diff --git a/tdlib-purple.cpp b/tdlib-purple.cpp
-index 2dea5e6..db0aa5c 100644
---- a/tdlib-purple.cpp
-+++ b/tdlib-purple.cpp
-@@ -316,7 +316,7 @@ conversation_updated_cb(PurpleConversation *conv, PurpleConvUpdateType type)
-         arg->accountName = purple_account_get_username(account);
-         arg->convName = purple_conversation_get_name(conv);
-         arg->type = purple_conversation_get_type(conv);
--        g_timeout_add(500, sendConversationReadReceipts, arg);
-+        purple_timeout_add(500, sendConversationReadReceipts, arg);
-     }
- }
- 
-@@ -412,6 +412,16 @@ static void tgprpl_add_buddy (PurpleConnection *gc, PurpleBuddy *buddy, PurpleGr
-     const char  *alias       = purple_buddy_get_alias(buddy);
-     const char  *groupName   = group ? purple_group_get_name(group) : NULL;
- 
-+    /* A name already in our own id<n> form belongs to someone tdlib has told us about, so this is
-+     * not a request to add a contact at all: it is the UI filing a buddy it already has into
-+     * another group. Telegram has no contact groups to file anything into, so there is nothing to
-+     * send. Sending it regardless asks Telegram to look up a *username* spelled "id7970490280" and
-+     * earns a 400 USERNAME_NOT_OCCUPIED - and by then the blist node removed below is already gone.
-+     */
-+    if (purpleBuddyNameToUserId(phoneNumber).valid() ||
-+        purpleBuddyNameToSecretChatId(phoneNumber).valid())
-+        return;
-+
-     std::string  phoneNumberStr = phoneNumber;
-     std::string  aliasStr       = alias ? alias : "";
- 
-@@ -436,18 +446,40 @@ static void tgprpl_request_delete_contact (PurpleConnection *gc, PurpleBuddy *bu
- {
-     g_return_if_fail(buddy);
- 
--    RequestData *data = new RequestData(purple_connection_get_account(gc));
--    data->stringData = purple_buddy_get_name(buddy);
-+    PurpleAccount *account   = purple_connection_get_account(gc);
-+    const char    *buddyName = purple_buddy_get_name(buddy);
-+
-+    /* libpurple keeps one node per group, and calls us while the node being dropped is still in the
-+     * list. More than one node therefore means the contact goes on living in the other groups, so
-+     * this is an unfiling and not a removal - and since Telegram has no groups to unfile from,
-+     * there is nothing to send. Without this, taking a contact out of one of its groups would
-+     * delete the contact and its history outright.
-+     */
-+    GSList *nodes = purple_find_buddies(account, buddyName);
-+    guint   nodeCount = g_slist_length(nodes);
-+    g_slist_free(nodes);
-+
-+    if (nodeCount > 1)
-+        return;
-+
-+    RequestData *data = new RequestData(account);
-+    data->stringData = buddyName;
- 
-+    /* Ask first. This deletes the contact from the account and wipes the conversation from
-+     * Telegram's servers for good; there is no undo, and it is reachable from a single button in
-+     * some UIs, so it must never happen on its own.
-+     */
-     // TRANSLATOR: Buddy deletion confirmation, title
--//     purple_request_yes_no(gc, _("Remove contact"),
--//                           // TRANSLATOR: Buddy deletion confirmation, content
--//                           _("Remove from global contact list and delete chat history from the server?\n"),
--//                           NULL,
--//                           0, purple_connection_get_account(gc), purple_buddy_get_name(buddy),
--//                           NULL, data, request_delete_contact_on_server_yes,
--//                           cancelRequest);
--    request_delete_contact_on_server_yes(data, 0);
-+    purple_request_action(gc, _("Remove contact"),
-+                          // TRANSLATOR: Buddy deletion confirmation, primary content
-+                          _("Remove from global contact list and delete chat history from the server?"),
-+                          // TRANSLATOR: Buddy deletion confirmation, secondary content
-+                          _("This cannot be undone."),
-+                          1, account, buddyName, NULL, data, 2,
-+                          // TRANSLATOR: Buddy deletion confirmation, alternative is "_Cancel"
-+                          _("_Delete"), request_delete_contact_on_server_yes,
-+                          // TRANSLATOR: Buddy deletion confirmation, alternative is "_Delete"
-+                          _("_Cancel"), cancelRequest);
- }
- 
- static std::array<const char *, 3> invitePrefixes {
-@@ -941,7 +973,7 @@ static gboolean tdlibFatalErrorHandler(void *data)
- 
- static void tdlibFatalErrorCallback(const char *message)
- {
--    g_idle_add(tdlibFatalErrorHandler, strdup(message));
-+    purple_timeout_add(0, tdlibFatalErrorHandler, strdup(message));
-     // The error must have come either from the poll thread or from one of the threads created by tdlib.
-     // So, hang the thread to avoid crash. All other accounts will be unaffected until an attempt to
-     // disconnect this account is made, because then TdTransceiver destructor will wait forever for
-@@ -1115,7 +1147,7 @@ static void setTwoFactorAuth(RequestData *data, PurpleRequestFields* fields)
-             RequestData *newRequest = new RequestData(request->account);
-             if (email)
-                 newRequest->stringData = email;
--            g_idle_add(reRequestTwoFactorAuth, newRequest);
-+            purple_timeout_add(0, reRequestTwoFactorAuth, newRequest);
-         } else if (tdClient)
-             tdClient->setTwoFactorAuth(oldPass, password1, hint, email);
-     }
-diff --git a/transceiver.cpp b/transceiver.cpp
-index 73aeb69..42d180b 100644
---- a/transceiver.cpp
-+++ b/transceiver.cpp
-@@ -64,7 +64,7 @@ void TdTransceiverImpl::cancelTimer(uint64_t requestId)
-                                [requestId](const TimerInfo &timer) { return (timer.data->requestId == requestId); });
-     if (pTimer != m_timers.end()) {
-         if (!m_testBackend)
--            g_source_remove(pTimer->timerId);
-+            purple_timeout_remove(pTimer->timerId);
-         else
-             m_testBackend->cancelTimer(pTimer->timerId);
-         m_timers.erase(pTimer);
-@@ -100,7 +100,7 @@ TdTransceiver::~TdTransceiver()
- {
-     for (const TimerInfo &timer: m_impl->m_timers) {
-         if (!m_testBackend)
--            g_source_remove(timer.timerId);
-+            purple_timeout_remove(timer.timerId);
-         else
-             m_testBackend->cancelTimer(timer.timerId);
-     }
-@@ -150,7 +150,14 @@ void TdTransceiver::pollThreadLoop()
-                 std::unique_lock<std::mutex> lock(m_impl->m_rxMutex);
-                 implRef = queueResponse(std::move(response));
-             }
--            g_idle_add(TdTransceiverImpl::rxCallback, implRef);
-+            /* purple_timeout_add, not g_idle_add: a UI may run libpurple without ever driving a glib
-+             * main loop, and Adium is such a one - it installs its own PurpleEventLoopUiOps backed by
-+             * GCD, so a source added straight to glib is never dispatched. This is the only way a
-+             * response reaches the main thread, so on such a UI nothing at all happens: no login, no
-+             * message, no error either, the account just sits there connecting forever. An interval of
-+             * zero is the idle equivalent, and the callback returns false, so it runs exactly once.
-+             */
-+            purple_timeout_add(0, TdTransceiverImpl::rxCallback, implRef);
-         }
-     }
- }
-@@ -254,7 +261,7 @@ void TdTransceiver::setQueryTimer(uint64_t queryId, ResponseCb2 handler, unsigne
- 
-     guint timerId;
-     if (!m_testBackend)
--        timerId = g_timeout_add_seconds(timeoutSeconds, timerCallback, data);
-+        timerId = purple_timeout_add_seconds(timeoutSeconds, timerCallback, data);
-     else
-         timerId = m_testBackend->addTimeout(timeoutSeconds, timerCallback, data);
- 

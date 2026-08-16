@@ -60,7 +60,7 @@ Current version: **1.6.0**.
 ### Messaging and services
 
 * **New: Telegram** (via the bundled
-  [tdlib-purple](https://github.com/BenWiederhake/tdlib-purple) plugin)
+  [tdlib-purple](https://github.com/adrighem/tdlib-purple) plugin)
   **and WhatsApp** (via
   [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)),
   with inline images and voice notes, reactions, typing, read markers,
@@ -133,8 +133,8 @@ listed here:
 | Binary | Project | Revision | License |
 | --- | --- | --- | --- |
 | `PurplePlugins/libwhatsmeow.so` | [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp) | `5a436315caefd3b89c2b631a7b8028742e58f047` | GPL v3 |
-| `PurplePlugins/libtelegram-tdlib.so` | [tdlib-purple](https://github.com/BenWiederhake/tdlib-purple) | `43e6cc2f14ccd08171b1515f6216f4bbf84eed80` | GPL v2 |
-| (statically inside `libtelegram-tdlib.so`) | [TDLib](https://github.com/tdlib/td) | `8d08b34e22a08e58db8341839c4e18ee06c516c5` | Boost 1.0 |
+| `PurplePlugins/libtelegram-tdlib.so` | [tdlib-purple](https://github.com/adrighem/tdlib-purple) 2.1.0 | `b277ac1941dbed946444454f67b89265541237b7` | GPL v2 |
+| (statically inside `libtelegram-tdlib.so`) | [TDLib](https://github.com/tdlib/td) 1.8.65 | `a8f21f5230172634becc1739050ef23ecd6ea291` | Boost 1.0 |
 | `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL 3](https://www.openssl.org) | Homebrew build | Apache 2.0 |
 | `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) | Homebrew build | BSD 3-Clause |
 | `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) | Homebrew build | libpng/zlib |
