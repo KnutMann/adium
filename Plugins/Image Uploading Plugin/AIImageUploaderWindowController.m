@@ -37,11 +37,10 @@
 																				delegate:inDelegate
 																					chat:inChat] autorelease];
 
-	[NSApp beginSheet:newController.window
-	   modalForWindow:window
-		modalDelegate:newController
-	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-		  contextInfo:nil];
+	[window beginSheet:newController.window
+		   completionHandler:^(NSModalResponse returnCode) {
+			[newController sheetDidEnd:newController.window returnCode:returnCode contextInfo:NULL];
+		}];
 	
 	return newController;
 }

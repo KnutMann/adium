@@ -624,11 +624,10 @@ static NSString *AIRowLabel(NSString *label)
 	 */
 	logByAccountWindowController = [[AILogByAccountWindowController alloc] initWithWindowNibName:@"AILogByAccountWindow"];
 
-	[NSApp beginSheet:logByAccountWindowController.window
-	   modalForWindow:self.view.window
-		modalDelegate:self
-	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-		  contextInfo:nil];
+	[self.view.window beginSheet:logByAccountWindowController.window
+		   completionHandler:^(NSModalResponse returnCode) {
+			[self sheetDidEnd:logByAccountWindowController.window returnCode:returnCode contextInfo:NULL];
+		}];
 }
 
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo

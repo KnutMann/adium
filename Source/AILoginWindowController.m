@@ -140,13 +140,16 @@
 {
 	[self disableLoginTimeout];
 
-    [NSApp beginSheet:panel_userListEditor modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:) contextInfo:nil];
+    [[self window] beginSheet:panel_userListEditor
+    	   completionHandler:^(NSModalResponse returnCode) {
+    		[self sheetDidEnd:panel_userListEditor returnCode:returnCode contextInfo:NULL];
+    	}];
 }
 
 // Close the user list edit sheet
 - (IBAction)doneEditing:(id)sender
 {
-    [NSApp endSheet:panel_userListEditor];
+    [[panel_userListEditor sheetParent] endSheet:panel_userListEditor];
 }
 
 // Called as the user list edit sheet closes, dismisses the sheet

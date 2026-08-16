@@ -30,11 +30,10 @@
 	//Must be called on a window
 	NSParameterAssert(parentWindow != nil);
 	
-	[NSApp beginSheet:self.window
-	   modalForWindow:parentWindow
-		modalDelegate:self
-	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-		  contextInfo:nil];
+	[parentWindow beginSheet:self.window
+		   completionHandler:^(NSModalResponse returnCode) {
+			[self sheetDidEnd:self.window returnCode:returnCode contextInfo:NULL];
+		}];
 }
 
 - (id)initWithDefaultName:(NSString *)inDefaultName explanatoryText:(NSString *)inExplanatoryText notifyingTarget:(id)inTarget userInfo:(id)inUserInfo

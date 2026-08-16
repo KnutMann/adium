@@ -75,7 +75,7 @@ objectValueForTableColumn:(NSTableColumn *)aTableColumn
 
 - (IBAction)done:(id)sender
 {
-	[NSApp endSheet:self.window];
+	[[self.window sheetParent] endSheet:self.window];
 }
 
 @end

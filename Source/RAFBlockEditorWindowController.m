@@ -164,17 +164,16 @@ static RAFBlockEditorWindowController *sharedInstance = nil;
 												showTitleVerbs:NO] retain];
 	[self selectAccountInSheet:[[popUp_sheetAccounts selectedItem] representedObject]];
 	
-	[NSApp beginSheet:sheet 
-	   modalForWindow:[self window]
-		modalDelegate:self 
-	   didEndSelector:@selector(didEndSheet:returnCode:contextInfo:)
-		  contextInfo:nil];
+	[[self window] beginSheet:sheet
+		   completionHandler:^(NSModalResponse returnCode) {
+			[self didEndSheet:sheet returnCode:returnCode contextInfo:NULL];
+		}];
 }
 
 
 - (IBAction)cancelBlockSheet:(id)sender
 {
-    [NSApp endSheet:sheet];
+    [[sheet sheetParent] endSheet:sheet];
 }
 
 - (void)addObject:(AIListContact *)inContact
@@ -205,7 +204,7 @@ static RAFBlockEditorWindowController *sharedInstance = nil;
 		[table reloadData];
 	}
 
-    [NSApp endSheet:sheet];
+    [[sheet sheetParent] endSheet:sheet];
 }
 
 

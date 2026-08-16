@@ -39,11 +39,10 @@
 - (void)showOnWindow:(id)parentWindow
 {
 	if (parentWindow) {
-		[NSApp beginSheet:self.window
-		   modalForWindow:parentWindow
-			modalDelegate:self
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
+		[parentWindow beginSheet:self.window
+			   completionHandler:^(NSModalResponse returnCode) {
+				[self sheetDidEnd:self.window returnCode:returnCode contextInfo:NULL];
+			}];
 	} else {
 		[self showWindow:nil];
 	}

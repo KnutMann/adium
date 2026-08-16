@@ -464,26 +464,6 @@ static	NSMutableDictionary	*controllerDict = nil;
 	[self autorelease];
 }
 
-/*!
- * @brief Close the window, or end it if it is a sheet
- *
- * AIWindowController's version reaches for the long deprecated -[NSApp endSheet:], which knows
- * nothing of the completion handler this editor is dismissed through.
- */
-- (IBAction)closeWindow:(id)sender
-{
-	if (![self windowShouldClose:nil]) return;
-
-	NSWindow	*window = [self window];
-	NSWindow	*parentWindow = [window sheetParent];
-
-	if (parentWindow) {
-		[parentWindow endSheet:window];
-	} else {
-		[window close];
-	}
-}
-
 //Behavior -------------------------------------------------------------------------------------------------------------
 #pragma mark Behavior
 /*!

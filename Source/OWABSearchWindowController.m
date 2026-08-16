@@ -70,11 +70,10 @@ static	ABAddressBook	*sharedAddressBook = nil;
 	newABSearchWindow = [[self alloc] initWithWindowNibName:AB_SEARCH_NIB initialService:inService];
 	
 	if (parentWindow) {
-		[NSApp beginSheet:[newABSearchWindow window]
-		   modalForWindow:parentWindow
-			modalDelegate:newABSearchWindow
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
+		[parentWindow beginSheet:[newABSearchWindow window]
+			   completionHandler:^(NSModalResponse returnCode) {
+				[newABSearchWindow sheetDidEnd:[newABSearchWindow window] returnCode:returnCode contextInfo:NULL];
+			}];
 		[newABSearchWindow _setCarryingWindow:parentWindow];
 	} else {
 		[newABSearchWindow showWindow:nil];
@@ -213,7 +212,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
 {
 	if ([self windowShouldClose:self.window]) {
 		if ([[self window] isSheet]) {
-			[NSApp endSheet:[self window] returnCode:NSModalResponseCancel];
+			[[[self window] sheetParent] endSheet:[self window] returnCode:NSModalResponseCancel];
 		} else {
 			[[self window] close];
 		}
@@ -238,7 +237,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
 	//Close our window
 	if ([self windowShouldClose:self.window]) {
 		if ([[self window] isSheet]) {
-			[NSApp endSheet:[self window] returnCode:NSModalResponseOK];
+			[[[self window] sheetParent] endSheet:[self window] returnCode:NSModalResponseOK];
 		} else {
 			[[self window] close];
 			if (delegate)
@@ -261,11 +260,10 @@ static	ABAddressBook	*sharedAddressBook = nil;
 	
 	//and show it
 	if (carryingWindow) {
-		[NSApp beginSheet:newContactPanel
-		   modalForWindow:carryingWindow
-			modalDelegate:self
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
+		[carryingWindow beginSheet:newContactPanel
+			   completionHandler:^(NSModalResponse returnCode) {
+				[self sheetDidEnd:newContactPanel returnCode:returnCode contextInfo:NULL];
+			}];
 	} else {
 		[self showWindow:nil];
 		[[self window] center];
@@ -334,7 +332,7 @@ static	ABAddressBook	*sharedAddressBook = nil;
 				//Close our window
 				if ([self windowShouldClose:self.window]) {
 					if ([[self window] isSheet]) {
-						[NSApp endSheet:[self window] returnCode:NSModalResponseOK];
+						[[[self window] sheetParent] endSheet:[self window] returnCode:NSModalResponseOK];
 					} else {
 						[[self window] close];
 						if (delegate)

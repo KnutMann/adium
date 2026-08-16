@@ -292,11 +292,10 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 		}
 	}
 	
-	[NSApp beginSheet:window_registerServer
-	   modalForWindow:[sender window]
-		modalDelegate:self
-	   didEndSelector:@selector(registrationSheetDidEnd:returnCode:contextInfo:)
-		  contextInfo:NULL];
+	[[sender window] beginSheet:window_registerServer
+		   completionHandler:^(NSModalResponse returnCode) {
+			[self registrationSheetDidEnd:window_registerServer returnCode:returnCode contextInfo:NULL];
+		}];
 }
 
 - (void)registrationSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
@@ -330,8 +329,7 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 }
 
 - (IBAction)registerCancel:(id)sender {
-	[window_registerServer orderOut:nil];
-	[NSApp endSheet:window_registerServer];
+	[[window_registerServer sheetParent] endSheet:window_registerServer];
 }
 
 - (IBAction)registerRequestAccount:(id)sender {
@@ -358,8 +356,7 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 
 	[account filterAndSetUID:newUID];
 	
-	[window_registerServer orderOut:nil];
-	[NSApp endSheet:window_registerServer];
+	[[window_registerServer sheetParent] endSheet:window_registerServer];
 	
 	[account performRegisterWithPassword:[textField_password stringValue]];
 	[self didBeginRegistration];

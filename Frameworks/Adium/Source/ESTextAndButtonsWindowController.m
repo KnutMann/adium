@@ -20,7 +20,7 @@
 
 @interface ESTextAndButtonsWindowController ()
 - (void)configureWindow;
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo;
 @end
 
 @implementation ESTextAndButtonsWindowController
@@ -89,11 +89,10 @@
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
 	if (parentWindow) {
-		[NSApp beginSheet:self.window
-		   modalForWindow:parentWindow
-			modalDelegate:self
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
+		[parentWindow beginSheet:self.window
+			   completionHandler:^(NSModalResponse returnCode) {
+				[self sheetDidEnd:self.window returnCode:returnCode contextInfo:NULL];
+			}];
 		
 	} else {
 		[self show];
@@ -273,7 +272,7 @@
 /*!
  * @brief Invoked as the sheet closes, dismiss the sheet
  */
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
 	

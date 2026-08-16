@@ -200,16 +200,23 @@ static NSRect screenBoundariesRect = { {0.0f, 0.0f}, {0.0f, 0.0f} };
 
 
 /*!
- * @brief Close the window
+ * @brief Close the window, or end it if it is a sheet
+ *
+ * A sheet is ended through the window it hangs from, not closed: ending it runs the completion
+ * handler it was begun with, where controllers of this kind do their tidying up. Closing it instead
+ * would send -windowWillClose:, which a sheet never gets, and skip the handler entirely.
  */
 - (IBAction)closeWindow:(id)sender
 {
-    if ([self windowShouldClose:nil]) {
-		if ([[self window] isSheet]) {
-			[NSApp endSheet:[self window]];
-		} else {
-			[[self window] close];
-		}
+	if (![self windowShouldClose:nil]) return;
+
+	NSWindow *window = [self window];
+	NSWindow *parentWindow = [window sheetParent];
+
+	if (parentWindow) {
+		[parentWindow endSheet:window];
+	} else {
+		[window close];
 	}
 }
 

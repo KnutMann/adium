@@ -64,11 +64,10 @@
 																			   defaultEventID:inDefaultEventID];
 	
 	if (parentWindow) {
-		[NSApp beginSheet:[newController window]
-		   modalForWindow:parentWindow
-			modalDelegate:newController
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
+		[parentWindow beginSheet:[newController window]
+			   completionHandler:^(NSModalResponse returnCode) {
+				[newController sheetDidEnd:[newController window] returnCode:returnCode contextInfo:NULL];
+			}];
 	} else {
 		[newController showWindow:nil];
 	}

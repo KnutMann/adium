@@ -149,18 +149,13 @@ LNAboutBoxController *sharedAboutBoxInstance = nil;
 														 encoding:NSUTF8StringEncoding
 															error:NULL]];
 	
-	[NSApp beginSheet:panel_licenseSheet
-	   modalForWindow:[self window]
-		modalDelegate:nil
-	   didEndSelector:nil
-		  contextInfo:nil];
+	[[self window] beginSheet:panel_licenseSheet completionHandler:nil];
 }
 
 // Close the software license sheet
 - (IBAction)hideLicense:(id)sender
 {
-    [panel_licenseSheet orderOut:nil];
-    [NSApp endSheet:panel_licenseSheet returnCode:0];
+    [[panel_licenseSheet sheetParent] endSheet:panel_licenseSheet];
 }
 
 #pragma mark Sillyness
