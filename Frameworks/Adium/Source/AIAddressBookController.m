@@ -778,6 +778,22 @@ static NSString *AIEmailKey(NSString *address)
 					person = (ABPerson *)found;
 			}
 
+			/* And a number the contact brought with it rather than wears as a name. Telegram names
+			 * a contact after a Telegram user id and knows the telephone number separately, when
+			 * the person shares it; the protocol leaves it on the contact and it is looked up the
+			 * same way as a name that is a number. Asking what the contact carries, rather than
+			 * reading its name harder, is also what keeps the two apart: the last nine digits of a
+			 * Telegram user id would match somebody's real number sooner or later. */
+			if (!person && [inObject isKindOfClass:[AIListContact class]]) {
+				NSString *carried = [inObject valueForProperty:KEY_CONTACT_PHONE_NUMBER];
+				NSString *key = ([carried length] ? AIPhoneNumberKey(carried) : nil);
+				NSString *uniqueId = (key ? [[addressBookDict objectForKey:AB_PHONE_NUMBERS] objectForKey:key] : nil);
+				ABRecord *found = (uniqueId ? [sharedAddressBook recordForUniqueId:uniqueId] : nil);
+
+				if ([found isKindOfClass:[ABPerson class]])
+					person = (ABPerson *)found;
+			}
+
 			//The same again for a service whose names are email addresses, Teams above all
 			if (!person && inObject.service.userNamesAreEmailAddresses) {
 				NSString *key = AIEmailKey(UID);

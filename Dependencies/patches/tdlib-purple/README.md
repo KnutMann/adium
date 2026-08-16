@@ -104,3 +104,20 @@ tdlib 1.8.65 has to be built from the commit the tree pins; Homebrew carries 1.8
 One thing to know before switching back: tdlib 1.8.65 upgrades the session database in place, and
 1.8.35 may not read it afterwards. Take a copy of
 `~/Library/Application Support/Adium 2.0/Users/Default/libpurple/tdlib` first.
+
+**A contact's phone number is written where an interface can find it**, in `client-utils.cpp` and
+`purple-info.h`. Two lines and a constant.
+
+A buddy here is named after the Telegram user id, because a name has to be stable and unique and a
+phone number is neither. The number is known all the same, and it went only into the info dialog, as
+a line of text assembled when somebody opens it. That is a fine place to read it and no place at all
+to look it up, so an interface wanting to match this person against an address book had nothing to
+match on. It is now left on the buddy as `phone-number`, deliberately without the `tdlib-` prefix the
+neighbouring setting carries: that one is this plugin talking to itself about a photo it downloaded,
+this one is a fact about the person that any user interface might want, and a name only this plugin
+understands is a fact nobody can use.
+
+Telegram hands out a contact's number only when they share it, so the setting is often absent, and
+absent is written as no setting rather than an empty string.
+
+Worth offering upstream.

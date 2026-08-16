@@ -20,6 +20,12 @@
 
 #define KEY_AB_UNIQUE_ID		@"ABUniqueID"
 
+/* A telephone number for this person, where the service knows one and it is not the name.
+ * Set by whatever speaks the protocol; read here to offer an address book card. Absent for
+ * most contacts, because most services either have no such number or make the name out of it.
+ */
+#define KEY_CONTACT_PHONE_NUMBER	@"Phone Number"
+
 @class ABPerson, AIListGroup, AIMetaContact;
 
 @interface AIListContact : AIListObject {

@@ -37,6 +37,22 @@ static void buddy_event_cb(PurpleBuddy *buddy, PurpleBuddyEvent event)
 		CBPurpleAccount	*account = accountLookup(purple_buddy_get_account(buddy));
 		AIListContact   *theContact = contactLookupFromBuddy(buddy);
 
+		/* A protocol whose names are not phone numbers may still know one, and where it does, it
+		 * leaves it on the buddy under this name. Telegram is the case that prompted it: a contact
+		 * there is named after a Telegram user id, so nothing about the name says who the person is
+		 * to their telephone, and the number went only into the info dialog where nothing could look
+		 * it up. Read on every event rather than on one, because the number arrives whenever the
+		 * protocol learns it, which is not tied to signing on. */
+		const char *storedNumber = purple_blist_node_get_string(&buddy->node, "phone-number");
+		NSString   *number = (storedNumber ? [NSString stringWithUTF8String:storedNumber] : nil);
+
+		NSString   *known = [theContact valueForProperty:KEY_CONTACT_PHONE_NUMBER];
+
+		/* Both absent counts as unchanged. Comparing them with isEqualToString: would not say so,
+		 * because a message to nothing answers no, and this runs on every event. */
+		if (!((number == nil && known == nil) || [number isEqualToString:known]))
+			[theContact setValue:number forProperty:KEY_CONTACT_PHONE_NUMBER notify:NotifyLater];
+
 		switch (event) {
 			case PURPLE_BUDDY_SIGNON: {
 				updateSelector = @selector(updateSignon:withData:);

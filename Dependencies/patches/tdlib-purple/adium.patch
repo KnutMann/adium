@@ -16,10 +16,33 @@ index d8c156d..2010ace 100644
      return SecretChatId::fromString(s+6);
  }
 diff --git a/client-utils.cpp b/client-utils.cpp
-index ad0611e..58b8b03 100644
+index ad0611e..243d996 100644
 --- a/client-utils.cpp
 +++ b/client-utils.cpp
-@@ -931,7 +931,7 @@ AccountThread::AccountThread(PurpleAccount* purpleAccount)
+@@ -336,6 +336,22 @@ void updatePrivateChat(TdAccountData &account, const td::td_api::chat *chat, con
+             purple_buddy_icons_set_for_user(account.purpleAccount, purpleUserName.c_str(), NULL, 0, NULL);
+         }
+     }
++
++    /* Note the phone number down where a user interface can find it.
++     *
++     * A buddy here is named after the Telegram user id, because a name has to be stable and unique
++     * and a phone number is neither. The number is known all the same, and until now it went only
++     * into the info dialog, as a line of text assembled when someone opens it. That is a fine place
++     * to read it and no place at all to look it up: an interface that wants to match this person
++     * against an address book has nothing to match on.
++     *
++     * Telegram hands out a contact's number only when they share it, so this is often empty, and
++     * empty is written as the absence of the setting rather than as a blank string. */
++    if (user.phone_number_.empty())
++        purple_blist_node_remove_setting(PURPLE_BLIST_NODE(buddy), BuddyOptions::PhoneNumber);
++    else
++        purple_blist_node_set_string(PURPLE_BLIST_NODE(buddy), BuddyOptions::PhoneNumber,
++                                     user.phone_number_.c_str());
+ }
+ 
+ static void updateGroupChat(TdAccountData &account, const td::td_api::chat &chat,
+@@ -931,7 +947,7 @@ AccountThread::AccountThread(PurpleAccount* purpleAccount)
  void AccountThread::threadFunc()
  {
      run();
@@ -41,6 +64,22 @@ index a9c85c0..368b95d 100644
          } else {
              if (!path.empty()) {
                  // Unlikely error message not worth translating
+diff --git a/purple-info.h b/purple-info.h
+index df47657..2aa450f 100644
+--- a/purple-info.h
++++ b/purple-info.h
+@@ -56,6 +56,11 @@ namespace AccountOptions {
+ 
+ namespace BuddyOptions {
+     constexpr const char *ProfilePhotoId = "tdlib-profile-photo-id";
++    /* Deliberately not prefixed like the one above. That one is this plugin talking to itself about
++     * a photo it downloaded; this one is a fact about the person that any user interface might want,
++     * and a name only this plugin knows is a fact nobody can use. Adium reads exactly this key to
++     * offer the contact an address book card. */
++    constexpr const char *PhoneNumber = "phone-number";
+ };
+ 
+ unsigned getAutoDownloadLimitKb(PurpleAccount *account);
 diff --git a/td-client.cpp b/td-client.cpp
 index 5b54cf7..e550fbb 100644
 --- a/td-client.cpp
