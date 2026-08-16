@@ -23,8 +23,18 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIListObject.h>
 
+/* How long a host has to stay reachable before an account is connected to it, in seconds.
+ *
+ * Long enough that the route is usable by the time anything dials, short enough that nobody
+ * notices the wait. The cost of being wrong is asymmetric: too short and a connection attempt
+ * hangs until the system gives up, which took seventy-five seconds when it was measured; too long
+ * and reconnecting feels sluggish by exactly this much.
+ */
+#define NETWORK_SETTLE_DELAY 2.0
+
 @interface ESAccountNetworkConnectivityPlugin ()
 - (void)handleConnectivityForAccount:(AIAccount *)account reachable:(BOOL)reachable;
+- (void)connectAccountAfterNetworkSettled:(AIAccount *)account;
 - (BOOL)_accountsAreOnlineOrDisconnecting:(BOOL)considerConnecting;
 
 - (void)adiumFinishedLaunching:(NSNotification *)notification;
@@ -76,6 +86,13 @@
  */
 - (void)uninstallPlugin
 {
+	/* Any connection still waiting out the settling delay is dropped here, or it would arrive after
+	 * this object has stopped listening and connect an account nobody is watching over any more.
+	 * The blanket form, because the three argument one matches on the argument as well and every
+	 * one of these was scheduled with an account.
+	 */
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 }
@@ -174,7 +191,35 @@
 			[accountsToNotConnect removeObject:account];
 		} else {
 			if ([[account host] isEqualToString:host]) {
-				[self handleConnectivityForAccount:account reachable:networkIsReachable];
+				/* A pending connection attempt is always dropped first, whichever way this went:
+				 * a network that comes back and goes again before the wait is over should not
+				 * leave a connection scheduled for a network that is gone.
+				 */
+				[NSObject cancelPreviousPerformRequestsWithTarget:self
+														 selector:@selector(connectAccountAfterNetworkSettled:)
+														   object:account];
+
+				if (networkIsReachable) {
+					/* Not at once. Reachability turns true as soon as the interface has an address,
+					 * and connecting in that instant is how an attempt ends up waiting for the
+					 * system's own timeout rather than for a server: name resolution already works
+					 * while there is still no way out to the host, and the connection then sits
+					 * there for over a minute before anyone is told. Measured on a rejoining
+					 * wireless network: reachable at 12:28:15, "Operation timed out" at 12:29:30,
+					 * and the retry five seconds after that connected immediately.
+					 *
+					 * So the news is believed and acted on a moment later, which is also what makes
+					 * a flapping network harmless: each report cancels the one before it, and only
+					 * a network that stays reachable causes a connection.
+					 */
+					[self performSelector:@selector(connectAccountAfterNetworkSettled:)
+							   withObject:account
+							   afterDelay:NETWORK_SETTLE_DELAY];
+				} else {
+					//Going away is acted on at once: there is nothing to wait for and the account
+					//should stop pretending it is online.
+					[self handleConnectivityForAccount:account reachable:NO];
+				}
 			}
 		}
 	}
@@ -184,6 +229,16 @@
 											 selector:@selector(networkDidChange)
 											   object:nil];
 	[self performSelector:@selector(networkDidChange) withObject:nil afterDelay:1.0];
+}
+
+/*!
+ * @brief Connect an account once the network has stayed reachable for a moment
+ *
+ * Scheduled by -hostReachabilityChanged:forHost: rather than called from it. See the note there.
+ */
+- (void)connectAccountAfterNetworkSettled:(AIAccount *)account
+{
+	[self handleConnectivityForAccount:account reachable:YES];
 }
 
 #pragma mark AIHostReachabilityObserver compliance
