@@ -50,6 +50,7 @@
 #import "AIListOutlineView.h"
 
 #import "AIMessageViewController.h"
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define ERROR_MESSAGE_WINDOW_TITLE		AILocalizedString(@"Adium : Error","Error message window title")
 #define LABEL_ENTRY_SPACING				4.0f
@@ -1856,7 +1857,7 @@ withAttributedDescription:[[[NSAttributedString alloc] initWithString:inDesc
 		NSFontPanel	*fontPanel = [NSFontPanel sharedFontPanel];
 		
 		if (!fontPanelAccessoryView) {
-			[NSBundle loadNibNamed:@"FontPanelAccessoryView" owner:self];
+			[NSBundle ai_loadNibNamed:@"FontPanelAccessoryView" owner:self];
 			[fontPanel setAccessoryView:fontPanelAccessoryView];
 			
 			[button_fontPanelSetAsDefault setTitle:AILocalizedString(@"Save This Setting As My Default Font", "Appears in the Format > Show Fonts window. You are limited for horizontal space, so try to keep it at most the length of the English string.")];

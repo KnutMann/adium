@@ -35,6 +35,7 @@
 #import <AIUtilities/AITextAttributes.h>
 #import "AIContactInfoImageViewWithImagePicker.h"
 #import <AIUtilities/AIDelayedTextField.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define WIDTH_PROFILE_HEADER	 100.0f
 
@@ -57,7 +58,7 @@
 	self = [super init];
 	if (self != nil) {
 		//Load Bundle
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 		//Register as AIListObjectObserver
 		[[AIContactObserverManager sharedManager] registerListObjectObserver:self];
 		//Setup for userIcon

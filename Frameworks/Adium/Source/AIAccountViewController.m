@@ -25,6 +25,7 @@
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <AIUtilities/AIStringFormatter.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define KEY_DISABLE_TYPING_NOTIFICATIONS		@"Disable Typing Notifications"
 
@@ -63,8 +64,7 @@
 - (id)init
 {
 	NSBundle		*ourBundle = [NSBundle bundleForClass:[AIAccountViewController class]];
-	NSDictionary	*nameTable = [NSDictionary dictionaryWithObject:self forKey:@"NSOwner"];
-	
+
     if ((self = [super init]))
 	{
 		account = nil;
@@ -72,14 +72,14 @@
 
 		//Load custom views for our subclass (If our subclass specifies a nib name)
 		if ([self nibName]) {
-			[NSBundle loadNibNamed:[self nibName] owner:self];
+			[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 		}
 		
 		//Load our default views if necessary
-		if (!view_setup) [ourBundle loadNibFile:@"AccountSetup" externalNameTable:nameTable withZone:nil];
-		if (!view_profile) [ourBundle loadNibFile:@"AccountProfile" externalNameTable:nameTable withZone:nil];
-		if (!view_options) [ourBundle loadNibFile:@"AccountOptions" externalNameTable:nameTable withZone:nil];
-		if (!view_privacy) [ourBundle loadNibFile:@"AccountPrivacy" externalNameTable:nameTable withZone:nil];
+		if (!view_setup) [ourBundle ai_loadNibNamed:@"AccountSetup" owner:self];
+		if (!view_profile) [ourBundle ai_loadNibNamed:@"AccountProfile" owner:self];
+		if (!view_options) [ourBundle ai_loadNibNamed:@"AccountOptions" owner:self];
+		if (!view_privacy) [ourBundle ai_loadNibNamed:@"AccountPrivacy" owner:self];
 
 		[self localizeStrings];
 	}

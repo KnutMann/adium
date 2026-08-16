@@ -24,6 +24,7 @@
 #import <Adium/AIStatusMenu.h>
 #import <Adium/AIStatusGroup.h>
 #import <Adium/AISettingsFormView.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 /* Width of the three minute fields. Wide enough for more digits than the stepper can produce: a
  * setting made before this pane had a stepper at all may be any number of minutes, and the field
@@ -139,7 +140,7 @@
 - (NSView *)view
 {
 	if (!view) {
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
 		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
 		 * that reference over rather than retaining it again; it keeps the nib alive while we use

@@ -19,6 +19,7 @@
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <Adium/AIAccount.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 @interface AIAccountProxySettings ()
 - (void)configureControlDimming;
@@ -46,7 +47,7 @@
 {
 	if ((self = [super init])) {
 		//Load our view
-		[NSBundle loadNibNamed:@"AccountProxy" owner:self];
+		[NSBundle ai_loadNibNamed:@"AccountProxy" owner:self];
 
 		//Localized text for the single-nib pane
 		[checkBox_useProxy setTitle:AILocalizedString(@"Connect using proxy", nil)];

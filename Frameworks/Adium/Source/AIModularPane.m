@@ -15,6 +15,7 @@
  */
 
 #import <Adium/AIModularPane.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 @implementation AIModularPane
 
@@ -59,7 +60,7 @@
 {
     if (!view) {
         //Load and configure our view
-        [NSBundle loadNibNamed:[self nibName] owner:self];
+        [NSBundle ai_loadNibNamed:[self nibName] owner:self];
         [self viewDidLoad];
 		[self localizePane];
 		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];

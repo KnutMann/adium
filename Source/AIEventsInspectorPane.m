@@ -19,6 +19,7 @@
 #import <Adium/AIListContact.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/ESContactAlertsViewController.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define EVENTS_NIB_NAME (@"AIEventsInspectorPane")
 
@@ -28,7 +29,7 @@
 {
 	self = [super init];
 	if (self != nil) {
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 		//Other init goes here.
 	}
 	return self;

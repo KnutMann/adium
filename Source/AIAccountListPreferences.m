@@ -42,6 +42,7 @@
 #import <Adium/AIStatusIcons.h>
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 /* Horizontal margin the settings form leaves inside its cards, mirrored here
  * so the account rows line their dividers up with every other pane. */
@@ -674,7 +675,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 - (NSView *)view
 {
 	if (!view) {
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
 		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
 		 * that reference over rather than retaining it again; it keeps the nib alive while we use

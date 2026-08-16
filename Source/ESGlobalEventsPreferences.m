@@ -33,6 +33,7 @@
 #import <AIUtilities/AIArrayAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageTextCell.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define PREF_GROUP_EVENT_PRESETS	@"Event Presets"
 #define CUSTOM_TITLE				AILocalizedString(@"Custom",nil)
@@ -135,7 +136,7 @@ static NSString *AIRowLabel(NSString *label)
 - (NSView *)view
 {
 	if (!view) {
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
 		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
 		 * that reference over rather than retaining it again; it keeps the nib alive while we use

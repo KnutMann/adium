@@ -76,7 +76,7 @@
 	if ([[url host] isEqualToString:@"xtras.adium.im"] || [[url host] isEqualToString:@"www.adiumxtras.com"] || ALLOW_UNTRUSTED_XTRAS) {
 		NSURL	*urlToDownload;
 
-		[NSBundle loadNibNamed:@"XtraProgressWindow" owner:self];
+		[NSBundle ai_loadNibNamed:@"XtraProgressWindow" owner:self];
 		[progressBar setUsesThreadedAnimation:YES];
 		
 		xtraName = nil;

@@ -33,6 +33,7 @@
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <AIUtilities/AIOSCompatibility.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 //Heights and Widths
 #define MESSAGE_VIEW_MIN_HEIGHT_RATIO		0.5f					// Mininum height ratio of the message view
@@ -109,7 +110,7 @@
 		suppressSendLaterPrompt = NO;
 		
 		//Load the view containing our controls
-		[NSBundle loadNibNamed:MESSAGE_VIEW_NIB owner:self];
+		[NSBundle ai_loadNibNamed:MESSAGE_VIEW_NIB owner:self];
 		
 		//Register for the various notification we need
 		[[NSNotificationCenter defaultCenter] addObserver:self

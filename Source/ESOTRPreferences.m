@@ -29,6 +29,7 @@
 
 /* Adium OTR headers */
 #import "ESOTRFingerprintDetailsWindowController.h"
+#import <AIUtilities/AIBundleAdditions.h>
 
 //Metrics of the fingerprint list
 #define FINGERPRINT_ROW_HEIGHT				24.0f	//A nib row of 17pt is a line of type, not a list row
@@ -102,7 +103,7 @@ static NSString *AIRowLabel(NSString *label)
 - (NSView *)view
 {
 	if (!view) {
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
 		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
 		 * that reference over rather than retaining it again; it keeps the controls the form does

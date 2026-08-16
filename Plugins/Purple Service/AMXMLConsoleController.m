@@ -17,6 +17,7 @@
 #import "AMXMLConsoleController.h"
 #import <libpurple/jabber.h>
 #import <AIUtilities/AIAutoScrollView.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define XML_PREFIX @"<?xml version='1.0' encoding='UTF-8' ?>\n"
 
@@ -116,7 +117,7 @@ xmlnode_sent_cb(PurpleConnection *gc, char **packet, gpointer this)
 - (IBAction)showWindow:(id)sender {
 	if (!xmlConsoleWindow) {
 		//Load the window if it's not already loaded
-		[NSBundle loadNibNamed:@"AMPurpleJabberXMLConsole" owner:self];
+		[NSBundle ai_loadNibNamed:@"AMPurpleJabberXMLConsole" owner:self];
 		if (!xmlConsoleWindow) AILog(@"Unable to load AMPurpleJabberXMLConsole!");
 		
 		

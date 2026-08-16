@@ -19,6 +19,7 @@
 #import <Adium/AISortController.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <AIUtilities/AIStringAdditions.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define KEY_RESOLVE_ALPHABETICALLY  @"Status:Resolve Alphabetically"
 
@@ -104,7 +105,7 @@ static NSMutableArray *sortControllers = nil;
 - (NSView *)configureView
 {
 	if (!configureView)
-		[NSBundle loadNibNamed:[self configureNibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self configureNibName] owner:self];
 	
 	[self viewDidLoad];
 	

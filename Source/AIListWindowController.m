@@ -41,6 +41,7 @@
 #import <AIUtilities/AIOSCompatibility.h>
 
 #import "AISearchFieldCell.h"
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define	KEY_HIDE_CONTACT_LIST_GROUPS			@"Hide Contact List Groups"
 
@@ -99,7 +100,7 @@ static NSMutableDictionary *screenSlideBoundaryRectDictionary = nil;
 		previousAlpha = 0;
 		typeToFindEnabled = ![[NSUserDefaults standardUserDefaults] boolForKey:@"AIDisableContactListTypeToFind"];
 
-		[NSBundle loadNibNamed:@"Filter Bar" owner:self];
+		[NSBundle ai_loadNibNamed:@"Filter Bar" owner:self];
 		
 		[self setContactList:contactList];
 	}

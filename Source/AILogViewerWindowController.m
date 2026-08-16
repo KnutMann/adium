@@ -54,6 +54,7 @@
 #import <AIUtilities/AITextAttributes.h>
 #import <AIUtilities/AIToolbarUtilities.h>
 #import <AIUtilities/AIDividedAlternatingRowOutlineView.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 
 #define KEY_LOG_VIEWER_WINDOW_FRAME		@"Log Viewer Frame"
@@ -2298,7 +2299,7 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 
 - (void)installToolbar
 {	
-	[NSBundle loadNibNamed:[self dateItemNibName] owner:self];
+	[NSBundle ai_loadNibNamed:[self dateItemNibName] owner:self];
 
     NSToolbar 		*toolbar = [[[NSToolbar alloc] initWithIdentifier:TOOLBAR_LOG_VIEWER] autorelease];
     NSToolbarItem	*toolbarItem;

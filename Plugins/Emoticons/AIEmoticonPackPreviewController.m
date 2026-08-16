@@ -19,6 +19,7 @@
 #import "AIEmoticonPack.h"
 #import "AIEmoticonController.h"
 #import "AIEmoticonPreferences.h"
+#import <AIUtilities/AIBundleAdditions.h>
 
 @interface AIEmoticonPackPreviewController ()
 - (id)initForPack:(AIEmoticonPack *)inPack preferences:(AIEmoticonPreferences *)inPreferences;
@@ -37,7 +38,7 @@
 		emoticonPack = inPack;
 		preferences = inPreferences;
 
-		[NSBundle loadNibNamed:@"EmoticonPackPreview" owner:self];
+		[NSBundle ai_loadNibNamed:@"EmoticonPackPreview" owner:self];
 	}
 	
 	return self;

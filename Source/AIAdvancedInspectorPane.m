@@ -37,6 +37,7 @@
 
 #import <Adium/AIAccountMenu.h>
 #import <Adium/AIContactMenu.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define ADVANCED_NIB_NAME (@"AIAdvancedInspectorPane")
 
@@ -56,7 +57,7 @@
 {
 	self = [super init];
 	if (self != nil) {
-		[NSBundle loadNibNamed:[self nibName] owner:self];
+		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
 		//The xib is monolingual (English) and uses plain controls; set all visible strings from code
 		[label_account setStringValue:AILocalizedString(@"Account:", "Label beside the account popup in the Advanced tab of the Get Info window")];

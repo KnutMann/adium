@@ -23,6 +23,7 @@
 #import <Adium/AIMetaContact.h>
 #import <Adium/DCJoinChatViewController.h>
 #import <AIUtilities/AIStringAdditions.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 @interface DCJoinChatViewController ()
 - (NSString *)impliedCompletion:(NSString *)aString;
@@ -48,7 +49,7 @@
 		NSString	*nibName = [self nibName];
 		if (nibName)
 		{
-			[NSBundle loadNibNamed:nibName owner:self];
+			[NSBundle ai_loadNibNamed:nibName owner:self];
 		}
 	}
 	

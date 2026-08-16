@@ -27,6 +27,7 @@
 #import <AIUtilities/AIOSCompatibility.h>
 
 #import <AIUtilities/IKRecentPicture.h> //10.5+, private
+#import <AIUtilities/AIBundleAdditions.h>
 
 #pragma mark AIContactListUserPictureMenuController
 
@@ -61,12 +62,19 @@
  */
 - (id)initWithNibName:(NSString *)nibName imagePicker:(AIContactListImagePicker *)picker
 {
-	if ([[NSBundle mainBundle] loadNibFile:nibName
-						 externalNameTable:[NSDictionary dictionaryWithObjectsAndKeys:self, NSNibOwner, AI_topLevelObjects, NSNibTopLevelObjects, nil]
-								  withZone:nil]) {
+	/* AI_topLevelObjects was handed to the nib loader as the array to fill and was never created,
+	 * so it stayed nil, nothing was collected into it, and the release below and the one in -dealloc
+	 * both did nothing. The objects have been leaking since this was written.
+	 *
+	 * They still are, and on purpose. +popUpMenuForImagePicker: throws this controller into the
+	 * autorelease pool the moment it has built the menu, so the menu outlives it by a wide margin.
+	 * The unowned reference each top level object carries is the only thing keeping the menu on
+	 * screen. Giving the array ownership of them, which is plainly what was meant here, would take
+	 * the menu apart at the next drain.
+	 */
+	AI_topLevelObjects = [[[NSBundle mainBundle] ai_loadNibNamed:nibName owner:self] mutableCopy];
 
-		// Release top level objects, release AI_topLevelObjects in -dealloc
-		[AI_topLevelObjects makeObjectsPerformSelector:@selector(release)];
+	if (AI_topLevelObjects) {
 		
 		[self setImagePicker:picker];
 		[imagePicker setMaxSize:NSMakeSize(128.0f, 128.0f)];

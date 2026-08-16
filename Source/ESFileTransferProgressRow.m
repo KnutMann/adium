@@ -23,6 +23,7 @@
 #import "ESFileTransfer.h"
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
+#import <AIUtilities/AIBundleAdditions.h>
 
 #define	BYTES_RECEIVED		[NSString stringWithFormat:AILocalizedString(@"%@ received","%@ will be replaced by a string such as '5 MB' in the file transfer window"),bytesString]
 #define	BYTES_SENT			[NSString stringWithFormat:AILocalizedString(@"%@ sent","%@ will be replaced by a string such as '5 MB' in the file transfer window"),bytesString]
@@ -56,7 +57,7 @@
 		bytesSentQueue = [[NSMutableArray alloc] init];
 		updateTickQueue = [[NSMutableArray alloc] init];
 
-		[NSBundle loadNibNamed:@"ESFileTransferProgressView" owner:self];
+		[NSBundle ai_loadNibNamed:@"ESFileTransferProgressView" owner:self];
 	}
 	
 	return self;

@@ -18,6 +18,32 @@
 
 @implementation NSBundle (AIBundleAdditions)
 
+- (NSArray *)ai_loadNibNamed:(NSString *)nibName owner:(id)owner
+{
+	NSArray *topLevelObjects = nil;
+
+	if (![self loadNibNamed:nibName owner:owner topLevelObjects:&topLevelObjects])
+		return nil;
+
+	/* This file counts references by itself, so the retain has to be spelled as a bridge to the
+	 * other side and back. The result is dropped on purpose: that unowned reference is the whole
+	 * point, see the header. */
+	for (id object in topLevelObjects)
+		(void)CFBridgingRetain(object);
+
+	return topLevelObjects;
+}
+
++ (NSArray *)ai_loadNibNamed:(NSString *)nibName owner:(id)owner
+{
+	NSArray *topLevelObjects = [[NSBundle bundleForClass:[owner class]] ai_loadNibNamed:nibName owner:owner];
+
+	if (!topLevelObjects)
+		topLevelObjects = [[NSBundle mainBundle] ai_loadNibNamed:nibName owner:owner];
+
+	return topLevelObjects;
+}
+
 - (NSString *)name
 {
 	NSDictionary	*info = [self localizedInfoDictionary];
