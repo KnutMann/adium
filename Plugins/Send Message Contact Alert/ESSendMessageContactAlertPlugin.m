@@ -44,7 +44,7 @@
 
 - (void)uninstallPlugin
 {
-    [attributes release];
+    attributes = nil;
 }
 
 

@@ -86,10 +86,9 @@
 						NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
 						[set addCharactersInString:@"#"];
 						allowedCharacters = [set copy];
-						[set release];
 					}
 
-					if (!filteredMessage) filteredMessage = [[inAttributedString mutableCopy] autorelease];
+					if (!filteredMessage) filteredMessage = [inAttributedString mutableCopy];
 					escapedLinkURLString = [result stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];
 					newURL = (escapedLinkURLString ? [NSURL URLWithString:escapedLinkURLString] : nil);
 
@@ -163,7 +162,7 @@
 		}
 
 		if (replacement) {
-			if (!newAttributedString) newAttributedString = [[attributedString mutableCopy] autorelease];
+			if (!newAttributedString) newAttributedString = [attributedString mutableCopy];
 			
 			[newAttributedString replaceOccurrencesOfString:@"%n"
 												 withString:replacement
@@ -177,11 +176,10 @@
 		NSDate	*currentDate = [NSDate date];
 		__block NSString *calendarFormat;
 		[NSDateFormatter withLocalizedShortDateFormatterPerform:^(NSDateFormatter *dateFormatter){
-			calendarFormat = [[dateFormatter dateFormat] retain];
+			calendarFormat = [dateFormatter dateFormat];
 		}];
-		[calendarFormat autorelease];
 
-		if (!newAttributedString) newAttributedString = [[attributedString mutableCopy] autorelease];
+		if (!newAttributedString) newAttributedString = [attributedString mutableCopy];
 		
 		[newAttributedString replaceOccurrencesOfString:@"%d"
 											 withString:[currentDate descriptionWithCalendarFormat:calendarFormat timeZone:nil locale:nil]
@@ -193,7 +191,7 @@
 	if ([self string:str containsValidKeyword:@"%t"]) {
 		NSDate 	*currentDate = [NSDate date];
 		
-		if (!newAttributedString) newAttributedString = [[attributedString mutableCopy] autorelease];
+		if (!newAttributedString) newAttributedString = [attributedString mutableCopy];
 
 		[NSDateFormatter withLocalizedDateFormatterShowingSeconds:YES showingAMorPM:YES perform:^(NSDateFormatter *localDateFormatter){
 			[newAttributedString replaceOccurrencesOfString:@"%t"
