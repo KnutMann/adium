@@ -23,13 +23,6 @@
 @interface NSFileManager (AIFileManagerAdditions)
 
 /*
- * @brief Determine the state of FileVault
- *
- * @result YES if FileVault is turned on; NO if it is not.
- */
-- (BOOL)isFileVaultEnabled;
-
-/*
  * @brief Move a file or directory to the trash
  *
  * sourcePath does not need to be tildeExpanded; it will be expanded if necessary.

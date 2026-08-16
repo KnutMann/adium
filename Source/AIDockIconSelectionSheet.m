@@ -82,9 +82,17 @@
 	[self setPreviousIndex:NSNotFound];
 	
 	// Set-up collection view
+	/* Deprecated grid properties, deliberately kept: this is the legacy cell-based
+	 * collection view (itemPrototype + content bindings in the xib), which on current
+	 * macOS runs with a nil collectionViewLayout and reads exactly these properties.
+	 * Installing an NSCollectionViewGridLayout kills item creation (see the matching
+	 * comment in AIImageCollectionView.m). */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 	[[self imageCollectionView] setMaxNumberOfColumns:7];
 	[[self imageCollectionView] setMaxItemSize:NSMakeSize(64.0f, 64.0f)];
 	[[self imageCollectionView] setMinItemSize:NSMakeSize(64.0f, 64.0f)];
+#pragma clang diagnostic pop
 	[[self imageCollectionView] setHighlightStyle:AIImageCollectionViewHighlightBackgroundStyle];
 	[[self imageCollectionView] setHighlightCornerRadius:4.0f];
 	

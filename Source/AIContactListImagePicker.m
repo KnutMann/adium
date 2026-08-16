@@ -220,12 +220,9 @@
 			trackRect.size.width = myFrame.size.width;
 		}
 		
-    NSPoint localPoint = [self convertPoint:[[self window] convertScreenToBase:[NSEvent mouseLocation]]
-                                   fromView:nil];
-// FIX - replacement for deprecation; reverted for 10.11 fix.
-//		NSPoint	localPoint = [self convertPoint:[[self window] convertPointFromScreen:[NSEvent mouseLocation]]
-//									   fromView:nil];
-    
+		NSPoint screenPoint = [NSEvent mouseLocation];
+		NSPoint localPoint = [self convertPoint:[[self window] convertRectFromScreen:NSMakeRect(screenPoint.x, screenPoint.y, 0.0, 0.0)].origin
+									   fromView:nil];
 		BOOL	mouseInside = NSPointInRect(localPoint, myFrame);
 
 		trackingTag = [self addTrackingRect:trackRect owner:self userData:nil assumeInside:mouseInside];

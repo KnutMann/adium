@@ -59,7 +59,6 @@
 	BOOL								completedApplicationLoad;
 	NSString							*advancedPrefsName;	
 	BOOL								isQuitting;
-	NSConnection						*connection;
 }
 
 - (IBAction)showAboutBox:(id)sender;

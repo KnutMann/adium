@@ -9,11 +9,14 @@
 #import "AXCAbstractXtraDocument.h"
 
 #import "AXCFileCell.h"
-#import "IconFamily.h"
-#import "NSFileManager+BundleBit.h"
 #import "NSMutableArrayAdditions.h"
 
 #define THUMBNAIL_SIZE 16.0
+
+static NSString *AXCLegacyBundleIdentifier(void)
+{
+	return [NSString stringWithFormat:@"com.adiumx.xtra.%@", [[NSUUID UUID] UUIDString]];
+}
 
 @implementation AXCAbstractXtraDocument
 
@@ -22,6 +25,7 @@
 	if ((self = [super init])) {
 		resources = [[NSMutableArray alloc] init];
 		resourcesSet = [[NSMutableSet alloc] init];
+		readmeIsRichText = YES;
 	}
 	return self;
 }
@@ -31,10 +35,15 @@
 	[name release];
 	[author release];
 	[version release];
+	[bundleID release];
+	[bundle release];
 	[icon release];
+	[readme release];
 	
 	[resources release];
 	[resourcesSet release];
+	[imagePreviews release];
+	[displayNames release];
 
 	[super dealloc];
 }
@@ -206,117 +215,174 @@
 {
 	NSString * bundlePath = fileName;
 	NSFileManager * manager = [NSFileManager defaultManager];
-	if(![manager fileExistsAtPath:bundlePath])
-	{
-		[manager createDirectoryAtPath:bundlePath attributes:nil];
+	if ([manager fileExistsAtPath:bundlePath])
+		return NO;
 
-		NSString *contentsPath = [bundlePath stringByAppendingPathComponent:@"Contents"];
-		[manager createDirectoryAtPath:contentsPath attributes:nil];
+	NSString *contentsPath = [bundlePath stringByAppendingPathComponent:@"Contents"];
+	NSString *resourcesPath = [contentsPath stringByAppendingPathComponent:@"Resources"];
+	NSError *writeError = nil;
+	if (![manager createDirectoryAtPath:resourcesPath
+							 withIntermediateDirectories:YES
+													attributes:nil
+														 error:&writeError]) {
+		NSLog(@"Unable to create Xtra at %@: %@", bundlePath, writeError);
+		return NO;
+	}
 
-		NSDictionary *infoPlist = [self infoPlistDictionary];
-		[infoPlist writeToFile:[contentsPath stringByAppendingPathComponent:@"Info.plist"] atomically:YES];
+	NSDictionary *infoPlist = [self infoPlistDictionary];
+	NSString *infoPlistPath = [contentsPath stringByAppendingPathComponent:@"Info.plist"];
+	if (![infoPlist writeToFile:infoPlistPath atomically:YES]) {
+		NSLog(@"Unable to write Xtra metadata at %@", infoPlistPath);
+		return NO;
+	}
 
-		NSString *resourcesPath = [contentsPath stringByAppendingPathComponent:@"Resources"];
-		[manager createDirectoryAtPath:resourcesPath attributes:nil];
-
-		NSEnumerator * resourceEnu = [resources objectEnumerator];
-		NSString * resourcePath;
-		while ((resourcePath = [resourceEnu nextObject]))
-		{
-			NSString *resourceSrcPath = nil;
-			if ([manager fileExistsAtPath:resourcePath])
-				resourceSrcPath = resourcePath;
-			else {
-				NSString *resourceFilename = [resourcePath lastPathComponent];
-				resourceSrcPath = [bundle pathForResource:[resourceFilename stringByDeletingPathExtension] ofType:[resourceFilename pathExtension]];
-			}
-			resourceSrcPath = [resourceSrcPath stringByStandardizingPath];
-
-			NSString *resourceDestPath = [resourcesPath stringByAppendingPathComponent:[resourcePath lastPathComponent]];
-
-			//if these are not the same file...
-			if (![resourceSrcPath isEqualToString:resourceDestPath]) {
-				[manager copyPath:resourceSrcPath 
-						   toPath:resourceDestPath
-						  handler:nil];
-			}
+	NSEnumerator *resourceEnu = [resources objectEnumerator];
+	NSString *resourcePath;
+	while ((resourcePath = [resourceEnu nextObject])) {
+		NSString *resourceSrcPath = nil;
+		if ([manager fileExistsAtPath:resourcePath])
+			resourceSrcPath = resourcePath;
+		else {
+			NSString *resourceFilename = [resourcePath lastPathComponent];
+			resourceSrcPath = [bundle pathForResource:[resourceFilename stringByDeletingPathExtension]
+																 ofType:[resourceFilename pathExtension]];
+		}
+		if (!resourceSrcPath || ![manager fileExistsAtPath:resourceSrcPath]) {
+			NSLog(@"Unable to find Xtra resource %@ while writing %@", resourcePath, bundlePath);
+			return NO;
 		}
 
-		IconFamily* iconFamily = [IconFamily iconFamilyWithThumbnailsOfImage:icon]; //check on error handling for this
-		[iconFamily setAsCustomIconForFile:fileName];
+		resourceSrcPath = [resourceSrcPath stringByStandardizingPath];
+		NSString *resourceDestPath = [resourcesPath stringByAppendingPathComponent:[resourcePath lastPathComponent]];
+		if (![resourceSrcPath isEqualToString:resourceDestPath]
+			&& ![manager copyItemAtPath:resourceSrcPath toPath:resourceDestPath error:&writeError]) {
+			NSLog(@"Unable to copy Xtra resource %@: %@", resourceSrcPath, writeError);
+			return NO;
+		}
+	}
 
-		NSRange readmeRange = { 0, [[readmeView textStorage] length] };
-		if ([readmeView isRichText])
-			[[readmeView RTFFromRange:readmeRange] writeToFile:[resourcesPath stringByAppendingPathComponent:@"ReadMe.rtf"] atomically:YES];
-		else
-			[[[readmeView string] dataUsingEncoding:NSUTF8StringEncoding] writeToFile:[resourcesPath stringByAppendingPathComponent:@"ReadMe.txt"] atomically:YES];
-
-		//all Xtras are bundles
-		[manager setBundleBitOfFile:bundlePath toBool:YES];
-
-		return YES;
-	}	
-	else
+	if (icon && ![[NSWorkspace sharedWorkspace] setIcon:icon
+													 forFile:bundlePath
+													 options:NSExcludeQuickDrawElementsIconCreationOption]) {
+		NSLog(@"Unable to set custom icon for Xtra at %@", bundlePath);
 		return NO;
+	}
+
+	NSAttributedString *readmeText = readmeView ? [readmeView textStorage] : readme;
+	BOOL shouldWriteRichText = readmeView ? [readmeView isRichText] : readmeIsRichText;
+	if ([readmeText length] > 0) {
+		NSRange readmeRange = NSMakeRange(0, [readmeText length]);
+		NSData *readmeData = shouldWriteRichText
+			? [readmeText dataFromRange:readmeRange
+						 documentAttributes:[NSDictionary dictionaryWithObject:NSRTFTextDocumentType
+																	 forKey:NSDocumentTypeDocumentAttribute]
+																			 error:&writeError]
+			: [[readmeText string] dataUsingEncoding:NSUTF8StringEncoding];
+		NSString *readmeFilename = shouldWriteRichText ? @"ReadMe.rtf" : @"ReadMe.txt";
+		if (!readmeData || ![readmeData writeToFile:[resourcesPath stringByAppendingPathComponent:readmeFilename] atomically:YES]) {
+			NSLog(@"Unable to write Xtra ReadMe at %@: %@", bundlePath, writeError);
+			return NO;
+		}
+	}
+
+	NSURL *bundleURL = [NSURL fileURLWithPath:bundlePath isDirectory:YES];
+	NSError *packageError = nil;
+	if (![bundleURL setResourceValue:[NSNumber numberWithBool:YES]
+													 forKey:NSURLIsPackageKey
+													  error:&packageError]) {
+		NSLog(@"Unable to mark Xtra at %@ as a package: %@", bundlePath, packageError);
+		return NO;
+	}
+
+	return YES;
 }
 - (BOOL)writeToURL:(NSURL *)URL ofType:(NSString *)typeName error:(NSError **)outError
 {
 	NSString * path = [URL path];
-	return [self writeToFile:path ofType:typeName];
+	BOOL didWrite = [self writeToFile:path ofType:typeName];
+	if (!didWrite && outError) {
+		*outError = [NSError errorWithDomain:NSCocoaErrorDomain
+											 code:NSFileWriteUnknownError
+										 userInfo:[NSDictionary dictionaryWithObject:path forKey:NSFilePathErrorKey]];
+	}
+	return didWrite;
 }
 
 - (BOOL) readFromFile:(NSString *)path ofType:(NSString *)type
 {
 	NSBundle *bundleAtPath = [NSBundle bundleWithPath:path];
-	if (bundleAtPath && ([[bundleAtPath objectForInfoDictionaryKey:@"XtraBundleVersion"] intValue] == 1)) {
-		NSString *bundleName = [bundleAtPath objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];
-		NSString *bundleAuthor = [bundleAtPath objectForInfoDictionaryKey:@"XtraAuthors"];
-		if (bundleName && bundleAuthor) {
-			[bundle release];
-			bundle = [bundleAtPath retain];
+	if (!bundleAtPath)
+		return NO;
 
-			[self setName:bundleName];
-			[self setAuthor:bundleAuthor];
-			[self setVersion:[bundle objectForInfoDictionaryKey:@"XtraVersion"]];
-			[self setBundleID:[bundle objectForInfoDictionaryKey:(NSString *)kCFBundleIdentifierKey]];
+	NSDictionary *infoPlist = [bundleAtPath infoDictionary];
+	BOOL isCurrentBundle = ([[infoPlist objectForKey:@"XtraBundleVersion"] intValue] == 1);
+	NSDictionary *legacyIconsPlist = [NSDictionary dictionaryWithContentsOfFile:[[bundleAtPath resourcePath] stringByAppendingPathComponent:@"Icons.plist"]];
+	BOOL isLegacyIconPack = (!isCurrentBundle
+		&& ([[legacyIconsPlist objectForKey:@"AdiumSetVersion"] intValue] == 1));
+	if (!isCurrentBundle && !isLegacyIconPack)
+		return NO;
 
-			[self setResources:[[NSFileManager defaultManager] directoryContentsAtPath:[bundle resourcePath]]];
+	[bundle release];
+	bundle = [bundleAtPath retain];
 
-			BOOL isRichText = YES;
-			NSString *readmePath = [bundle pathForResource:@"ReadMe" ofType:@"rtf"];
-			if (!readmePath) {
-				readmePath = [bundle pathForResource:@"ReadMe" ofType:@"rtfd"];
-				if (!readmePath) {
-					readmePath = [bundle pathForResource:@"ReadMe" ofType:@"txt"];
-					isRichText = NO;
-				}
+	NSString *fallbackName = [[path lastPathComponent] stringByDeletingPathExtension];
+	[self setName:isCurrentBundle ? [infoPlist objectForKey:(NSString *)kCFBundleNameKey] : fallbackName];
+	if (!name)
+		[self setName:fallbackName];
+	[self setAuthor:isCurrentBundle ? [infoPlist objectForKey:@"XtraAuthors"] : @""];
+	if (!author)
+		[self setAuthor:@""];
+	[self setVersion:isCurrentBundle ? [infoPlist objectForKey:@"XtraVersion"] : @"1.0"];
+	if (!version)
+		[self setVersion:@"1.0"];
+	[self setBundleID:isCurrentBundle ? [infoPlist objectForKey:(NSString *)kCFBundleIdentifierKey] : AXCLegacyBundleIdentifier()];
+	if (!bundleID)
+		[self setBundleID:AXCLegacyBundleIdentifier()];
+
+	NSMutableArray *resourceNames = [[[NSFileManager defaultManager] directoryContentsAtPath:[bundle resourcePath]] mutableCopy];
+	if (!resourceNames)
+		return NO;
+	[resourceNames removeObject:@".DS_Store"];
+	[self setResources:resourceNames];
+	[resourceNames release];
+
+	NSString *readmePath = nil;
+	BOOL isRichText = NO;
+	NSArray *preferredReadmeExtensions = [NSArray arrayWithObjects:@"rtf", @"rtfd", @"txt", nil];
+	NSEnumerator *extensionEnumerator = [preferredReadmeExtensions objectEnumerator];
+	NSString *preferredExtension;
+	while (!readmePath && (preferredExtension = [extensionEnumerator nextObject])) {
+		NSEnumerator *resourceEnumerator = [resources objectEnumerator];
+		NSString *resourceName;
+		while ((resourceName = [resourceEnumerator nextObject])) {
+			if ([[resourceName stringByDeletingPathExtension] caseInsensitiveCompare:@"ReadMe"] == NSOrderedSame
+				&& [[resourceName pathExtension] caseInsensitiveCompare:preferredExtension] == NSOrderedSame) {
+				readmePath = [[bundle resourcePath] stringByAppendingPathComponent:resourceName];
+				isRichText = ![preferredExtension isEqualToString:@"txt"];
+				break;
 			}
-			if (readmePath) {
-				NSAttributedString *readmeTemp;
-				if (isRichText) {
-					readmeTemp = [[NSAttributedString alloc] initWithPath:readmePath documentAttributes:nil];
-				} else {
-					NSData *plainTextData = [[NSData alloc] initWithContentsOfFile:readmePath];
-					NSString *plainText = [[NSString alloc] initWithData:plainTextData encoding:NSUTF8StringEncoding];
-					readmeTemp = [[NSAttributedString alloc] initWithString:plainText];
-					[plainText release];
-					[plainTextData release];
-				}
-
-				[self willChangeValueForKey:@"readme"];
-				readme = readmeTemp;
-				[self  didChangeValueForKey:@"readme"];
-
-				[self removeResource:[readmePath lastPathComponent]];
-			}
-
-			return YES;
 		}
 	}
-	else {
-		//XXX This code will be hit if they open an old-format xtra, so it'd be cool if we could offer to upgrade it.
+	if (readmePath) {
+		NSAttributedString *readmeTemp;
+		if (isRichText) {
+			readmeTemp = [[NSAttributedString alloc] initWithPath:readmePath documentAttributes:nil];
+		} else {
+			NSData *plainTextData = [[NSData alloc] initWithContentsOfFile:readmePath];
+			NSString *plainText = [[NSString alloc] initWithData:plainTextData encoding:NSUTF8StringEncoding];
+			readmeTemp = [[NSAttributedString alloc] initWithString:plainText];
+			[plainText release];
+			[plainTextData release];
+		}
+		if (readmeTemp) {
+			[self setReadme:readmeTemp];
+			readmeIsRichText = isRichText;
+			[readmeTemp release];
+			[self removeResource:[readmePath lastPathComponent]];
+		}
 	}
-    return NO;
+
+	return YES;
 }
 
 - (void) printShowingPrintPanel:(BOOL)flag
@@ -468,13 +534,13 @@
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 		@"English", kCFBundleDevelopmentRegionKey,
-		name, kCFBundleNameKey,
+		name ? name : @"Untitled Xtra", kCFBundleNameKey,
 		[self OSType], @"CFBundlePackageType",
-		bundleID, kCFBundleIdentifierKey,
+		bundleID ? bundleID : AXCLegacyBundleIdentifier(), kCFBundleIdentifierKey,
 		[NSNumber numberWithInt:1], @"XtraBundleVersion",
 		@"1.0", kCFBundleInfoDictionaryVersionKey,
-		version, @"XtraVersion",
-		author, @"XtraAuthors",
+		version ? version : @"1.0", @"XtraVersion",
+		author ? author : @"", @"XtraAuthors",
 		nil];
 }
 

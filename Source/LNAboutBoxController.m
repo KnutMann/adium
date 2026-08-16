@@ -60,8 +60,10 @@ LNAboutBoxController *sharedAboutBoxInstance = nil;
     NSAttributedString *creditsString;
     
     // Credits
-    creditsString = [[[NSAttributedString alloc] initWithPath:[[NSBundle mainBundle] pathForResource:@"Credits" ofType:@"rtf"]
-										   documentAttributes:nil] autorelease];
+    creditsString = [[[NSAttributedString alloc] initWithURL:[[NSBundle mainBundle] URLForResource:@"Credits" withExtension:@"rtf"]
+													 options:@{}
+											  documentAttributes:nil
+														   error:NULL] autorelease];
 	[textView_credits loadText:creditsString];
 	
     // Setup the build date / version

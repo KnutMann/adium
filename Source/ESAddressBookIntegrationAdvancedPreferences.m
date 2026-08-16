@@ -515,9 +515,9 @@
 - (NSTokenStyle)tokenField:(NSTokenField *)tokenField styleForRepresentedObject:(id)representedObject
 {
 	if ([representedObject hasPrefix:@"%["] && [representedObject hasSuffix:@"]"]) {
-		return NSRoundedTokenStyle;
+		return NSTokenStyleRounded;
 	} else {
-		return NSPlainTextTokenStyle;
+		return NSTokenStyleNone;
 	}
 }
 

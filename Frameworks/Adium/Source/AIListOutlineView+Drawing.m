@@ -141,7 +141,6 @@
 		backgroundImage = [inImage retain];		
 	}
 	
-	[(NSClipView *)[self superview] setCopiesOnScroll:(!backgroundImage)];
 	[self setNeedsDisplay:YES];
 }
 
@@ -276,13 +275,6 @@
 	return ([[self itemAtRow:row] isKindOfClass:[AIListGroup class]] && groupsHaveBackground);
 }
 
-- (void)viewWillMoveToSuperview:(NSView *)newSuperview
-{
-	[super viewWillMoveToSuperview:newSuperview];
-	
-	[(NSClipView *)newSuperview setCopiesOnScroll:(!backgroundImage)];
-}
-
 - (void)drawRect:(NSRect)rect
 {	
 	[super drawRect:rect];
@@ -329,9 +321,7 @@
 	 forTableColumn:nil
 	 item:item];
 	
-	[self lockFocus];
 	[cell drawDropHighlightWithFrame:[self rectOfRow:rowIndex]];
-	[self unlockFocus];
 }
 
 /*!
@@ -400,9 +390,6 @@
 	NSPoint aStartPoint = NSMakePoint(NSMaxX(anAccentRect), aYPosition);
 	NSPoint anEndPoint = NSMakePoint(NSMaxX(aHighlightRect) - NSWidth(anAccentRect), aYPosition);
 	
-	//Lock focus for drawing
-	[self lockFocus];
-	
 	//Make a bezier path, add the circle and line
 	NSBezierPath *aHighlightPath = [NSBezierPath bezierPath];
 	[aHighlightPath appendBezierPathWithOvalInRect:anAccentRect];
@@ -415,9 +402,6 @@
 	[aHighlightPath setLineWidth:2.0f];
 	[[NSColor blackColor] set];
 	[aHighlightPath stroke];
-	
-	//Unlock focus
-	[self unlockFocus];
 }
 
 /*!

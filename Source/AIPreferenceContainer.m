@@ -154,7 +154,7 @@ static NSTimer				*timer_savingOfAccountCache = nil;
 {
 	NSAssert(*myGlobalPrefs == nil, @"Attempting to load global prefs when they're already loaded");
 	NSString	*objectPrefsPath = [[adium.loginController.userDirectory stringByAppendingPathComponent:globalPrefsName] stringByAppendingPathExtension:@"plist"];
-	NSString	*errorString = nil;
+	NSError		*plistError = nil;
 	NSError		*error = nil;
 	NSData		*data = [NSData dataWithContentsOfFile:objectPrefsPath
 										   options:NSUncachedRead
@@ -181,16 +181,16 @@ static NSTimer				*timer_savingOfAccountCache = nil;
 	
 	//We want to load a mutable dictioanry of mutable dictionaries.
 	if (data) {
-		*myGlobalPrefs = [[NSPropertyListSerialization propertyListFromData:data 
-														   mutabilityOption:NSPropertyListMutableContainers 
-																	 format:NULL 
-														   errorDescription:&errorString] retain];
+		*myGlobalPrefs = [[NSPropertyListSerialization propertyListWithData:data
+																	options:NSPropertyListMutableContainers
+																	 format:NULL
+																	  error:&plistError] retain];
 	}
 	
 	/* Log any error */
-	if (errorString) {
-		NSLog(@"Error reading preferences file %@: %@", objectPrefsPath, errorString);
-		AILogWithSignature(@"Error reading preferences file %@: %@", objectPrefsPath, errorString);
+	if (plistError) {
+		NSLog(@"Error reading preferences file %@: %@", objectPrefsPath, plistError);
+		AILogWithSignature(@"Error reading preferences file %@: %@", objectPrefsPath, plistError);
 	}
 	
 #ifdef PREFERENCE_CONTAINER_DEBUG

@@ -254,11 +254,6 @@ static NSString	*prefsCategory;
 															name:@"NSSystemTimeZoneDidChangeDistributedNotification"
 														  object:nil];
 	
-	//Broadcast our presence
-	connection = [[NSConnection alloc] init];
-	[connection setRootObject:self];
-	[connection registerName:@"com.adiumX.adiumX"];
-
 	[[AIContactObserverManager sharedManager] delayListObjectNotifications];
 	[[NSNotificationCenter defaultCenter] postNotificationName:AIApplicationDidFinishLoadingNotification object:nil];
 	[[NSDistributedNotificationCenter defaultCenter]  postNotificationName:AIApplicationDidFinishLoadingNotification object:nil];
@@ -337,8 +332,6 @@ static NSString	*prefsCategory;
 	//Take no action if we didn't complete the application load
 	if (!completedApplicationLoad) return;
 	
-	[connection release]; connection = nil;
-
 	isQuitting = YES;
 
 	[[NSNotificationCenter defaultCenter] postNotificationName:AIAppWillTerminateNotification object:nil];

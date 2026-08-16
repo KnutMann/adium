@@ -187,7 +187,11 @@
 										   showTitleVerbs:NO] retain];
 	[self _restoreLastAccountIfPossible];
 	[self AI_configureTextFieldForAccount:[[popUp_service selectedItem] representedObject]];
-	[self controlTextDidChange:[NSNotification notificationWithName:@"TextChanged" object:nil]];
+
+	/* Set the initial enabled state of the okay button. From here on -controlTextDidChange:
+	 * keeps it current as the field's delegate; the old fake TextChanged notification only
+	 * existed to reach this one line. */
+	[button_okay setEnabled:([[textField_handle stringValue] length] > 0)];
 
     // Center the window
     [[self window] center];
@@ -207,10 +211,6 @@
 	if ([aNotification object] == nil ||
         [aNotification object] == textField_handle) {
 		[button_okay setEnabled:([[textField_handle stringValue] length] > 0)];
-	}
-
-	if ([[AIAccountPlusFieldPromptController superclass] instancesRespondToSelector:@selector(controlTextDidChange:)]) {
-		[super controlTextDidChange:aNotification];
 	}
 }
 

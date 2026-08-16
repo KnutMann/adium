@@ -278,10 +278,21 @@
  */
 - (NSUInteger)indexAtPoint:(NSPoint)aPoint
 {
+	/* Legacy grid geometry, deliberately kept. This class is the pre-10.11 cell-based
+	 * NSCollectionView (itemPrototype + content bindings in both xibs); on current macOS
+	 * that engine runs with a nil collectionViewLayout, and these deprecated properties
+	 * are the only layout parameters it reads. Installing an NSCollectionViewGridLayout
+	 * switches the view to the modern engine and destroys item creation (measured:
+	 * AppKit aborts with "0 item nibs and 0 item classes registered" when the layout is
+	 * set before content, and items lose their views when set after). Silence the
+	 * deprecation warning instead of converting. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 	NSUInteger numberOfCols = [self maxNumberOfColumns];
 
 	NSUInteger indexX = AIceil(aPoint.x / self.maxItemSize.width);
 	NSUInteger indexY = AIceil(aPoint.y / self.maxItemSize.height);
+#pragma clang diagnostic pop
 	
 	NSUInteger anIndex = (((indexY * numberOfCols) - (numberOfCols - indexX)) - 1);
 	

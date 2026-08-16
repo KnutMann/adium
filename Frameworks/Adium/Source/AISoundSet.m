@@ -213,7 +213,7 @@
 			//Resolve bundle relative paths
 			if ([splitPath count] == 2) {
 				location = [NSString pathWithComponents:[NSArray arrayWithObjects:
-					[[NSWorkspace sharedWorkspace] absolutePathForAppBundleWithIdentifier:[splitPath objectAtIndex:0]],
+					[[[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:[splitPath objectAtIndex:0]] path],
 					[splitPath objectAtIndex:1],
 					nil]];
 			}

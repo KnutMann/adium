@@ -126,7 +126,7 @@
 		currentIcon = [NSImage imageNamed:@"default-icon" forClass:[self class]];
 	}
 	
-	/* NSScaleProportionally will lock an animated GIF into a single frame.  We therefore use NSScaleNone if
+	/* NSImageScaleProportionallyDown will lock an animated GIF into a single frame.  We therefore use NSImageScaleNone if
 	 * we are already at the right size or smaller than the right size; otherwise we scale proportionally to
 	 * fit the frame.
 	 */
@@ -134,8 +134,8 @@
 	imagePickerSize = [userIcon frame].size;
 	
 	[userIcon setImageScaling:(((userIconSize.width <= imagePickerSize.width) && (userIconSize.height <= imagePickerSize.height)) ?
-										 NSScaleNone :
-										 NSScaleProportionally)];
+										 NSImageScaleNone :
+										 NSImageScaleProportionallyDown)];
 	[userIcon setImage:currentIcon];
 	[userIcon setTitle:(inObject ?
 								  [NSString stringWithFormat:AILocalizedString(@"%@'s Image",nil),inObject.displayName] :

@@ -13,6 +13,7 @@
 	NSBundle *bundle;
 	NSString *name, *author, *version, *bundleID;
 	NSAttributedString *readme;
+	BOOL readmeIsRichText;
 	NSMutableArray * resources;
 	NSMutableSet * resourcesSet;
 	NSImage * icon;

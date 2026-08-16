@@ -22,6 +22,7 @@
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <Adium/AIAbstractListController.h>
 #import <Adium/AIListOutlineView.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface AIListThemeWindowController ()
 
@@ -504,7 +505,12 @@
 {
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setTitle:@"Background Image"];
-	[openPanel setAllowedFileTypes:[NSImage imageFileTypes]];
+	NSMutableArray *allowedTypes = [NSMutableArray array];
+	for (NSString *typeIdentifier in [NSImage imageTypes]) {
+		UTType *type = [UTType typeWithIdentifier:typeIdentifier];
+		if (type) [allowedTypes addObject:type];
+	}
+	[openPanel setAllowedContentTypes:allowedTypes];
 	 
 	if ([openPanel runModal] == NSModalResponseOK) {
 		NSString *filename = [[openPanel URL] path];

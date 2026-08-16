@@ -121,7 +121,7 @@
 										   modifierFlags:[theEvent modifierFlags]
 											   timestamp:[theEvent timestamp]
 											windowNumber:[[theEvent window] windowNumber]
-												 context:[theEvent context]
+												 context:nil
 											 eventNumber:[theEvent eventNumber]
 											  clickCount:[theEvent clickCount]
 												pressure:[theEvent pressure]];
@@ -267,11 +267,9 @@
 			trackRect.size.width = myFrame.size.width;
 		}
 
-    NSPoint localPoint = [self convertPoint:[[self window] convertScreenToBase:[NSEvent mouseLocation]]
-                                   fromView:nil];
-// FIX - replacement for deprecation; reverted for 10.11 fix.
-//		NSPoint	localPoint = [self convertPoint:[[self window] convertPointFromScreen:[NSEvent mouseLocation]]
-//									   fromView:nil];
+		NSPoint screenPoint = [NSEvent mouseLocation];
+		NSPoint localPoint = [self convertPoint:[[self window] convertRectFromScreen:NSMakeRect(screenPoint.x, screenPoint.y, 0.0, 0.0)].origin
+									   fromView:nil];
 
 		BOOL	mouseInside = NSPointInRect(localPoint, trackRect);
 

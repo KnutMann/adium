@@ -25,6 +25,7 @@
 #import <AIUtilities/AIOutlineViewAdditions.h>
 #import <AIUtilities/AIBezierPathAdditions.h>
 #import <AIUtilities/AIEventAdditions.h>
+#import <Adium/AIAbstractListController.h>
 #import "AISCLViewPlugin.h"
 
 @interface AIListOutlineView ()
@@ -349,9 +350,8 @@
 			[items addObject:[self itemAtRow:idx]];
 		}
 
-		[dataSource outlineView:self
-	                 writeItems:items
-	               toPasteboard:[NSPasteboard generalPasteboard]];
+		if ([dataSource respondsToSelector:@selector(writeListObjects:toPasteboard:)])
+			[dataSource writeListObjects:items toPasteboard:[NSPasteboard generalPasteboard]];
 	}
 }
 

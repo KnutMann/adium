@@ -485,7 +485,7 @@
 			}
 
 			if ([[self window] firstResponder] != self || ![[self window] isKeyWindow]) {
-				[[NSColor secondarySelectedControlColor] set];
+				[[NSColor unemphasizedSelectedContentBackgroundColor] set];
 			} else {
 				[[NSColor selectedContentBackgroundColor] set];
 			}

@@ -203,7 +203,7 @@
 										   modifierFlags:[theEvent modifierFlags]
 											   timestamp:[theEvent timestamp]
 											windowNumber:[[theEvent window] windowNumber]
-												 context:[theEvent context]
+												 context:nil
 											 eventNumber:[theEvent eventNumber]
 											  clickCount:[theEvent clickCount]
 												pressure:[theEvent pressure]];

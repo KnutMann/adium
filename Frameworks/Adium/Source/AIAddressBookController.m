@@ -99,6 +99,17 @@ static NSDictionary				*serviceDict;
 #define AB_EMAIL_ADDRESSES	@"\1email addresses"
 
 /*!
+ * @brief The Jabber field on a card
+ *
+ * The framework's name for it, kABJabberInstantProperty, has been on the deprecation list since
+ * 10.7 in favour of the combined kABInstantMessageProperty, whose values are shaped differently
+ * (dictionaries per service instead of plain names). This class still reads the per-service
+ * field, so the field's stored name is written out here; it is the constant's runtime value,
+ * verified against the framework.
+ */
+#define AB_JABBER_INSTANT_PROPERTY	@"JabberInstant"
+
+/*!
  * @brief What two phone numbers have to share to be the same person
  *
  * Numbers are written down every way there is: +49 157 …, 0157 …, 004915 …, with spaces, dashes and
@@ -242,7 +253,7 @@ static NSString *AIEmailKey(NSString *address)
 		 * Yahoo and Facebook are gone from Adium, and a field can only ever match a contact of a
 		 * service that exists. What the modern services are recognised by is not a field of their
 		 * own but the number or the address on the card, which is indexed separately. */
-		serviceDict = [[NSDictionary dictionaryWithObjectsAndKeys:kABJabberInstantProperty,@"Jabber", nil] retain];
+		serviceDict = [[NSDictionary dictionaryWithObjectsAndKeys:AB_JABBER_INSTANT_PROPERTY,@"Jabber", nil] retain];
 		
 		//Shared Address Book, once we are allowed to read it
 		[self openAddressBookWhenAllowed];
@@ -700,7 +711,7 @@ static NSString *AIEmailKey(NSString *address)
  */
 + (AIService *)serviceFromProperty:(NSString *)property
 {
-	NSString	*serviceID = ([property isEqualToString:kABJabberInstantProperty] ? @"Jabber" : nil);
+	NSString	*serviceID = ([property isEqualToString:AB_JABBER_INSTANT_PROPERTY] ? @"Jabber" : nil);
 
 	return (serviceID ? [adium.accountController firstServiceWithServiceID:serviceID] : nil);
 }

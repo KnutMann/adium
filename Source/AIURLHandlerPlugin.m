@@ -203,6 +203,12 @@
 - (void)setDefaultForScheme:(NSString *)inScheme toBundleID:(NSString *)bundleID
 {
 	for (NSString *scheme in [self allSchemesLikeScheme:inScheme]) {
+		/* Not a slip: LSSetDefaultHandlerForURLScheme is only soft-deprecated (API_TO_BE_DEPRECATED,
+		 * so no warning), and its successor, -[NSWorkspace setDefaultApplicationAtURL:
+		 * toOpenURLsWithScheme:completionHandler:], begins at macOS 12 and answers through a
+		 * completion handler. With a deployment target of 11.0 the direct call stays, and the
+		 * refreshTable below relies on the change having taken effect when it runs.
+		 */
 		LSSetDefaultHandlerForURLScheme((CFStringRef)scheme, (CFStringRef)bundleID);
 	}
 	
@@ -217,7 +223,16 @@
  */
 - (NSString *)defaultApplicationBundleIDForScheme:(NSString *)scheme
 {
-	return [[(NSString *)LSCopyDefaultHandlerForURLScheme((CFStringRef)scheme) autorelease] lowercaseString];
+	/* The retired LSCopyDefaultHandlerForURLScheme answered with a bundle ID out of the Launch
+	 * Services database. The workspace answers with the application's URL, and the bundle at that
+	 * URL knows its identifier, lower-cased because everything comparing against this answer
+	 * compares in lower case. A handler that is recorded but no longer on disk now answers as
+	 * whatever would actually open the URL, instead of as the stale record.
+	 */
+	NSURL *schemeURL = [NSURL URLWithString:[scheme stringByAppendingString:@":"]];
+	NSURL *appURL = (schemeURL ? [[NSWorkspace sharedWorkspace] URLForApplicationToOpenURL:schemeURL] : nil);
+
+	return (appURL ? [[[NSBundle bundleWithURL:appURL] bundleIdentifier] lowercaseString] : nil);
 }
 
 #pragma mark URL Handling

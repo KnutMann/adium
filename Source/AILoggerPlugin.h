@@ -58,8 +58,8 @@
 	// publically accessable iVars
 	BOOL                 indexIsFlushing;
 	BOOL                 isIndexing;
-	SInt64               logsToIndex;
-	SInt64               logsIndexed;
+	_Atomic(SInt64)      logsToIndex;
+	_Atomic(SInt64)      logsIndexed;
 }
 @property(assign,readonly) BOOL                 indexIsFlushing;
 @property(assign,readonly) BOOL                 isIndexing;

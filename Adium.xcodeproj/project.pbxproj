@@ -949,6 +949,7 @@
 		636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E2A2EE07B018B1006735BC /* AIAddressBookController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		636D92840E4E968A00E5F558 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 348E5ACA06D2A74C004C051C /* AddressBook.framework */; };
 		ADD1E5C0DE0000000000C102 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
+		ADD1E5C0DE0000000000C302 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */; };
 		636D92BE0E4E97AA00E5F558 /* AIAddressBookUserIconSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3403F4310D2EF01D006B08FB /* AIAddressBookUserIconSource.m */; };
 		636D92CD0E4E990500E5F558 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 348E5ACA06D2A74C004C051C /* AddressBook.framework */; };
 		636D93400E4E9ED600E5F558 /* AB Display Format Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */; };
@@ -1961,6 +1962,7 @@
 		348C47160D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageWindowOutgoingScrollView.m; path = Source/AIMessageWindowOutgoingScrollView.m; sourceTree = "<group>"; };
 		348E5ACA06D2A74C004C051C /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		ADD1E5C0DE0000000000C101 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = /System/Library/Frameworks/Contacts.framework; sourceTree = "<absolute>"; };
+		ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = /System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = "<absolute>"; };
 		348F50C00935317C00288E41 /* AIStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStatusItem.h; path = Frameworks/Adium/Source/AIStatusItem.h; sourceTree = "<group>"; };
 		348F50C10935317C00288E41 /* AIStatusItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStatusItem.m; path = Frameworks/Adium/Source/AIStatusItem.m; sourceTree = "<group>"; };
 		348FF83E09128BEB00A942A8 /* CBPurpleAccount.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CBPurpleAccount.m; path = "Plugins/Purple Service/CBPurpleAccount.m"; sourceTree = "<group>"; };
@@ -2933,6 +2935,7 @@
 				34B588A1058D833A00E7EF0D /* ExceptionHandling.framework in Frameworks */,
 				34C18B0D06CAC95400FF5FF9 /* SystemConfiguration.framework in Frameworks */,
 				11AA1EFA0BCAE9C3003DDA66 /* Quartz.framework in Frameworks */,
+				ADD1E5C0DE0000000000C302 /* UniformTypeIdentifiers.framework in Frameworks */,
 				340C1ABF0BD58FAB00D09235 /* Security.framework in Frameworks */,
 				31E0CD810C5EEF5200271DB1 /* CoreAudio.framework in Frameworks */,
 				639DF91B0F97E639003C9A32 /* libpurple.framework in Frameworks */,
@@ -5402,6 +5405,7 @@
 				815D37460A765E83009338C2 /* CoreServices.framework */,
 				348E5ACA06D2A74C004C051C /* AddressBook.framework */,
 				ADD1E5C0DE0000000000C101 /* Contacts.framework */,
+				ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */,
 				F5819CE9032124CE01A8010A /* AppKit.framework */,
 				F531836F019E40BB01A80165 /* Carbon.framework */,
 				3448758D06D1EBDF00DA778C /* Cocoa.framework */,

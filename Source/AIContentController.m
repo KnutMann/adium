@@ -665,7 +665,10 @@
 						
 						path = [tmpDir stringByAppendingPathComponent:filename];
 
-						if ([fileWrapper writeToFile:tmpDir atomically:YES updateFilenames:YES]) {
+						if ([fileWrapper writeToURL:[NSURL fileURLWithPath:tmpDir]
+											options:(NSFileWrapperWritingAtomic | NSFileWrapperWritingWithNameUpdating)
+								originalContentsURL:nil
+											  error:NULL]) {
 							AILog(@"Wrote out the file to %@ for sending",path);
 						} else {
 							NSLog(@"Failed to write out the file to %@ for sending", path);

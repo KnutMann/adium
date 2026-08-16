@@ -188,10 +188,7 @@
     }
     
     // Create prefs window
-    unsigned int styleMask = (NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskTitled);
-    if (usesTexturedWindow) {
-        styleMask = (styleMask | NSWindowStyleMaskTexturedBackground);
-    }
+    NSWindowStyleMask styleMask = (NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskTitled);
     prefsWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 350, 200)
                                               styleMask:styleMask
                                                 backing:NSBackingStoreBuffered
@@ -468,9 +465,7 @@ CGFloat ToolbarHeightForWindow(NSWindow *window)
             [item setAction:@selector(prefsToolbarItemClicked:)]; // action called when item is clicked
             [prefsToolbarItems setObject:item forKey:identifier]; // add to items
             [item release];
-        } else if ([identifier isEqual:NSToolbarSeparatorItemIdentifier]) {
-			//Don't have to do anything
-		} else {
+        } else {
             [self debugLog:[NSString stringWithFormat:@"Could not create toolbar item for preference pane \"%@\", because that pane does not exist.", identifier]];
         }
     }
@@ -597,8 +592,7 @@ CGFloat ToolbarHeightForWindow(NSWindow *window)
     NSString *name;
     
     for (name in newPanesOrder) {
-        if (([preferencePanes objectForKey:name] != nil) ||
-			([name isEqual:NSToolbarSeparatorItemIdentifier])) {
+        if ([preferencePanes objectForKey:name] != nil) {
             [panesOrder addObject:name];
         } else {
             [self debugLog:[NSString stringWithFormat:@"Did not add preference pane \"%@\" to the toolbar ordering array, because that pane does not exist.", name]];

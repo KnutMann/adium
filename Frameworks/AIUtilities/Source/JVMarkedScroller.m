@@ -101,7 +101,7 @@ struct _mark {
 	NSRectClip( NSInsetRect( [self rectForPart:NSScrollerKnobSlot], 1, 1 ) );
 	
 	if( ! [shades isEmpty ] ) {
-		[[[NSColor knobColor] colorWithAlphaComponent:0.45f] set];
+		[[[NSColor systemGrayColor] colorWithAlphaComponent:0.45f] set];
 		[shades fill];
 	}
 	
@@ -157,7 +157,7 @@ struct _mark {
 	if( ! foundNext ) _nearestNextMark = NSNotFound;
 	
 	if( ! [lines isEmpty] ) {
-		[[NSColor selectedKnobColor] set];
+		[[NSColor controlAccentColor] set];
 		[lines stroke];
 	}
 	

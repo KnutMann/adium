@@ -128,9 +128,11 @@
 		newRect = NSMakeRect(0.0f, 0.0f, size.width, size.height);
 		newImage = [[NSImage alloc] initWithSize:size];
 		
-		if (flipImage) {
-			[newImage setFlipped:YES];		
-		}
+		/* flipImage used to pre-mirror the bitmap via the deprecated -setFlipped:, a pre-10.6
+		 * workaround for drawing into flipped views. Measured on this OS: for a bitmap-data-backed
+		 * source, every real contact avatar, the flag changed nothing at all; only images built by
+		 * lockFocus came out mirrored, and mirrored was never what a caller wanted. So the flag no
+		 * longer does anything, and the parameter stays only for its callers' sake. */
 		
 		NSImageRep *bestRep;
 		

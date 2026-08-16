@@ -130,7 +130,6 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 	//Configure the scroll view
 	[scrollView setHasVerticalScroller:YES];
 	[scrollView setHasHorizontalScroller:NO];
-	[[scrollView contentView] setCopiesOnScroll:NO];
 	if ([scrollView respondsToSelector:@selector(setAutohidesScrollers:)]) {
 		[scrollView setAutohidesScrollers:YES];
 	}
@@ -323,7 +322,9 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 			if (row >= [progressRows count]) {
 				row = [progressRows count] - 1;
 			}
-			[clipView scrollToPoint:[clipView constrainScrollPoint:([outlineView rectOfRow:row].origin)]];
+			NSRect proposedBounds = [clipView bounds];
+			proposedBounds.origin = [outlineView rectOfRow:row].origin;
+			[clipView scrollToPoint:[clipView constrainBoundsRect:proposedBounds].origin];
 			
 			[self updateStatusBar];
 		}

@@ -37,11 +37,9 @@
 
 #import "AIProgressDataUploader.h"
 
-#define BUFFER_SIZE 1024
-#define UPDATE_INTERVAL 0.5
 #define TIMEOUT_INTERVAL 30.0
 
-@interface AIProgressDataUploader()
+@interface AIProgressDataUploader() <NSURLSessionDataDelegate>
 - (id)initWithData:(NSData *)inUploadData
 			   URL:(NSURL *)inUrl
 		   headers:(NSDictionary *)inHeaders
@@ -50,18 +48,7 @@
 
 // Timers
 - (void)timeoutDidOccur;
-- (void)updateProgress;
-
-// Callbacks
-- (void)streamDidOpen;
-- (void)errorDidOccur;
-- (void)uploadSucceeded;
-- (void)bytesAvailable;
 @end
-
-static void AIProgressDataUploaderCallback(CFReadStreamRef callbackStream,
-										   CFStreamEventType type,
-										   void *info);
 
 @implementation AIProgressDataUploader
 /*!
@@ -113,55 +100,32 @@ static void AIProgressDataUploaderCallback(CFReadStreamRef callbackStream,
  */
 - (void)upload
 {
-	CFHTTPMessageRef httpRequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault,
-															  CFSTR("POST"),
-															  (__bridge CFURLRef)url,
-															  kCFHTTPVersion1_1);
+	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+	[request setHTTPMethod:@"POST"];
 	
 	for (NSString *headerKey in headers) {
-		CFHTTPMessageSetHeaderFieldValue(httpRequest,
-										 (__bridge CFStringRef)headerKey, 
-										 (__bridge CFStringRef)[headers objectForKey:headerKey]);
+		[request setValue:[headers objectForKey:headerKey] forHTTPHeaderField:headerKey];
 	}
 	
-	CFHTTPMessageSetBody(httpRequest, (__bridge CFDataRef)uploadData);
+	totalSize = [uploadData length];
+	returnedData = [[NSMutableData alloc] init];
 	
-	stream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, httpRequest);
+	/* The main queue as the delegate queue keeps the callbacks on the main thread, which is where
+	 * the run-loop-scheduled stream this replaces delivered them. The ephemeral configuration keeps
+	 * shared cookies and caches out of the request, as the bare stream did. The session holds on to
+	 * its delegate (us) until it is invalidated, which every path out of the upload does. */
+	session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]
+											delegate:self
+									   delegateQueue:[NSOperationQueue mainQueue]];
 	
-	CFStreamClientContext streamClientContext = {
-		0,
-		(__bridge void *)self,
-		NULL,
-		NULL,
-		NULL
-	};
+	uploadTask = [session uploadTaskWithRequest:request fromData:uploadData];
+	[uploadTask resume];
 	
-	BOOL success = YES;
-	
-	if (CFReadStreamSetClient(stream,
-							  /* flags */ (kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), 
-							  /* callback */ AIProgressDataUploaderCallback, 
-							  /* context */ &streamClientContext)) {
-		CFReadStreamScheduleWithRunLoop(stream,
-										CFRunLoopGetCurrent(),
-										kCFRunLoopCommonModes);
-		
-		returnedData = [[NSMutableData alloc] init];
-		
-		if (CFReadStreamOpen(stream)) {
-			[self streamDidOpen];
-		} else {
-			success = NO;
-		}
-	} else {
-		success = NO;
-	}
-	
-	if (!success) {
-		[delegate uploadFailed:context];	
-	}
-	
-	CFRelease(httpRequest);
+	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:TIMEOUT_INTERVAL
+													target:self
+											  selector:@selector(timeoutDidOccur)
+											  userInfo:nil
+												   repeats:NO];
 }
 
 /*!
@@ -171,70 +135,22 @@ static void AIProgressDataUploaderCallback(CFReadStreamRef callbackStream,
  */
 - (void)cancel
 {
-	if (!stream) {
+	if (!uploadTask) {
 		return;
 	}
 	
-	CFReadStreamUnscheduleFromRunLoop(stream, 
-									  CFRunLoopGetCurrent(),
-									  kCFRunLoopCommonModes);
-	CFReadStreamClose(stream);
+	/* Forget the task before cancelling it: the completion callback still arrives, carrying
+	 * NSURLErrorCancelled, and no longer matching uploadTask is what keeps any further status
+	 * messages away from the delegate. */
+	NSURLSessionUploadTask *task = uploadTask;
+	uploadTask = nil;
+	[task cancel];
+	
+	[session invalidateAndCancel]; session = nil;
 
 	[timeoutTimer invalidate]; timeoutTimer = nil;
-	[periodicTimer invalidate]; periodicTimer = nil;
 }
 
-/*!
- * @brief Stream opened
- *
- * Called when the stream is opened.
- * Sets up our periodic timer to gather the current status of the upload
- */
-- (void)streamDidOpen
-{
-	totalSize = [uploadData length];
-	
-	periodicTimer = [NSTimer scheduledTimerWithTimeInterval:UPDATE_INTERVAL
-													  target:self
-													selector:@selector(updateProgress)
-													userInfo:nil
-													 repeats:YES];
-	
-	timeoutTimer = [[NSTimer alloc] initWithFireDate:[NSDate dateWithTimeIntervalSinceNow:TIMEOUT_INTERVAL]
-											interval:TIMEOUT_INTERVAL
-											  target:self
-											selector:@selector(timeoutDidOccur)
-											userInfo:nil
-											 repeats:NO];
-}
-
-/*!
- * @brief Update our progress
- *
- * Updates our delegate with our current upload percent.
- */
-- (void)updateProgress
-{
-	if (!stream) {
-		return;
-	}
-	
-	/* A Copy function hands back something owned, and NSMakeCollectable was how that was said
-	 * before the garbage collector went away. Taking it over says the same thing and still works. */
-	NSNumber *bytesWrittenPropertyNum = CFBridgingRelease(CFReadStreamCopyProperty(stream, kCFStreamPropertyHTTPRequestBytesWrittenCount));
-	NSInteger bytesWritten = [bytesWrittenPropertyNum integerValue];
-
-	if (bytesWritten > bytesSent) {		
-		bytesSent = bytesWritten;
-
-		[delegate updateUploadProgress:bytesSent
-								 total:totalSize
-							  context:context];
-		
-		[timeoutTimer setFireDate:[NSDate dateWithTimeIntervalSinceNow:TIMEOUT_INTERVAL]];
-	}
-}
-	
 /*!
  * @brief A timeout occured
  *
@@ -247,82 +163,91 @@ static void AIProgressDataUploaderCallback(CFReadStreamRef callbackStream,
 	[delegate uploadFailed:context];
 }
 
+#pragma mark NSURLSession delegate
+
 /*!
- * @brief Our callback function
+ * @brief Body bytes went out
  *
- * Handles events which occur during the stream, as specified in the "flags".
+ * Updates our delegate with our current upload progress and pushes the timeout back,
+ * as often as the connection reports progress.
  */
-static void AIProgressDataUploaderCallback(CFReadStreamRef callbackStream,
-										   CFStreamEventType type,
-										   void *info)
+- (void)URLSession:(NSURLSession *)inSession
+			  task:(NSURLSessionTask *)task
+   didSendBodyData:(int64_t)inBytesSent
+	totalBytesSent:(int64_t)totalBytesSent
+totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend
 {
-	AIProgressDataUploader *uploader = (__bridge AIProgressDataUploader *)info;
-	
-	switch (type) {
-		case kCFStreamEventHasBytesAvailable:
-			[uploader bytesAvailable];
-			break;
-			
-		case kCFStreamEventErrorOccurred:
-			[uploader errorDidOccur];
-			break;
-			
-		case kCFStreamEventEndEncountered:
-			[uploader uploadSucceeded];
-			break;
-			
-		case kCFStreamEventOpenCompleted:
-		case kCFStreamEventNone:
-		case kCFStreamEventCanAcceptBytes:
-			break;
+	if (task != uploadTask) {
+		return;
 	}
+	
+	if (totalBytesSent > bytesSent) {
+		bytesSent = (NSInteger)totalBytesSent;
+
+		[delegate updateUploadProgress:bytesSent
+								 total:totalSize
+							  context:context];
+		
+		[timeoutTimer setFireDate:[NSDate dateWithTimeIntervalSinceNow:TIMEOUT_INTERVAL]];
+	}
+}
+
+/*!
+ * @brief The server redirected us
+ *
+ * The stream this replaces never followed redirects; keep that, and let the body of the
+ * redirect response itself flow to the delegate like any other result.
+ */
+- (void)URLSession:(NSURLSession *)inSession
+			  task:(NSURLSessionTask *)task
+willPerformHTTPRedirection:(NSHTTPURLResponse *)response
+		newRequest:(NSURLRequest *)request
+ completionHandler:(void (^)(NSURLRequest *))completionHandler
+{
+	completionHandler(nil);
 }
 
 /*!
  * @brief Bytes are available
  *
- * Gobble up as much from the stream as we can.
+ * Collect the response body as it arrives.
  */
-- (void)bytesAvailable
+- (void)URLSession:(NSURLSession *)inSession
+		  dataTask:(NSURLSessionDataTask *)dataTask
+	didReceiveData:(NSData *)data
 {
-	UInt8 buffer[BUFFER_SIZE];
-	
-	CFIndex len = CFReadStreamRead(stream, 
-									buffer, 
-									BUFFER_SIZE);
-	
-	if (len) {
-		[returnedData appendBytes:(const void *)buffer
-						   length:(NSUInteger)len];		
+	if (dataTask != uploadTask) {
+		return;
 	}
+	
+	[returnedData appendData:data];
 }
 
 /*!
- * @brief An error occured
+ * @brief The upload finished
  *
- * Let our delegate know the upload was unsuccessful.
+ * Let our delegate know how it went, unless the upload was cancelled, in which case the
+ * delegate hears nothing further.
  */
-- (void)errorDidOccur
+- (void)URLSession:(NSURLSession *)inSession
+			  task:(NSURLSessionTask *)task
+didCompleteWithError:(NSError *)error
 {
-	[periodicTimer invalidate]; periodicTimer = nil;
+	if (task != uploadTask) {
+		return;
+	}
+	
+	uploadTask = nil;
+	
 	[timeoutTimer invalidate]; timeoutTimer = nil;
 	
-	[delegate uploadFailed:context];
-}
-
-/*!
- * @brief Upload succeeded
- *
- * Let our delegate know the unload was successful.
- */
-- (void)uploadSucceeded
-{
-	stream = NULL;
+	[session finishTasksAndInvalidate]; session = nil;
 	
-	[periodicTimer invalidate]; periodicTimer = nil;
-	[timeoutTimer invalidate]; timeoutTimer = nil;
-	
-	[delegate uploadCompleted:context result:returnedData];
+	if (error) {
+		[delegate uploadFailed:context];
+	} else {
+		[delegate uploadCompleted:context result:returnedData];
+	}
 }
 
 @end

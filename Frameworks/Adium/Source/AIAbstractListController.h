@@ -239,6 +239,7 @@ typedef enum {
 
 //Drag & Drop
 - (void)setDragItems:(NSNotification *)notification;
+- (BOOL)writeListObjects:(NSArray *)items toPasteboard:(NSPasteboard *)pboard;
 
 //find panel
 - (void)outlineViewToggleFindPanel:(NSOutlineView *)outlineView;

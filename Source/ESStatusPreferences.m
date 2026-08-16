@@ -1403,7 +1403,7 @@
 - (NSTokenStyle)tokenField:(NSTokenField *)tokenField styleForRepresentedObject:(id)representedObject
 {
 	return ([[self tokenTriggers] containsObject:representedObject] ?
-			NSRoundedTokenStyle : NSPlainTextTokenStyle);
+			NSTokenStyleRounded : NSTokenStyleNone);
 }
 
 //nil for free text lets the field show the string itself

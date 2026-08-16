@@ -80,9 +80,17 @@
 		[imagePicker setMaxSize:NSMakeSize(128.0f, 128.0f)];
 
 		// Set-up collection view
+		/* Deprecated grid properties, deliberately kept: this is the legacy cell-based
+		 * collection view (itemPrototype + content bindings in the xib), which on current
+		 * macOS runs with a nil collectionViewLayout and reads exactly these properties.
+		 * Installing an NSCollectionViewGridLayout kills item creation (see the matching
+		 * comment in AIImageCollectionView.m). */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 		[imageCollectionView setMaxNumberOfColumns:5];
 		[imageCollectionView setMaxNumberOfRows:2];
 		[imageCollectionView setMaxItemSize:NSMakeSize(36.0f, 36.0f)];
+#pragma clang diagnostic pop
 		// Disable elastic scroll
 		// Remove the check on 10.7+
 		if ([[imageCollectionView enclosingScrollView] respondsToSelector:@selector(setVerticalScrollElasticity:)]) {
@@ -102,7 +110,7 @@
 			NSImage	*emptyPicture = [[NSImage alloc] initWithSize:pictureSize];
 			
 			[emptyPicture lockFocus];
-			[[NSColor secondarySelectedControlColor] set];
+			[[NSColor unemphasizedSelectedContentBackgroundColor] set];
 			NSRectFill(NSMakeRect(0.0f, 0.0f, 32.0f, 32.0f));
 			[emptyPicture unlockFocus];
 			

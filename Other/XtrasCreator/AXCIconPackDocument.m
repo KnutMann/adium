@@ -40,7 +40,6 @@
 	[categoryNames release];
 	[categoryStorage release];
 
-	[iconPlistView release];
 	[tabViewItems release];
 
 	[super dealloc];
@@ -60,6 +59,7 @@
 	BOOL success = [super writeToFile:path ofType:docType];
 	if (success) {
 		NSMutableDictionary *iconsPlist = [NSMutableDictionary dictionaryWithCapacity:[categoryStorage count]];
+		[iconsPlist setObject:[NSNumber numberWithInt:1] forKey:@"AdiumSetVersion"];
 
 		NSEnumerator *categoryNamesEnum = [categoryStorage keyEnumerator];
 		NSString *categoryName;
@@ -88,42 +88,52 @@
 - (BOOL) readFromFile:(NSString *)path ofType:(NSString *)type
 {
 	BOOL success = [super readFromFile:path ofType:type];
-	if (success) {
-		[self removeResource:@"Icons.plist"];
+	if (!success)
+		return NO;
 
-		NSDictionary *iconsPlist = [NSDictionary dictionaryWithContentsOfFile:[bundle pathForResource:@"Icons" ofType:@"plist"]];
-		categoryNames = [[iconsPlist allKeys] retain];
+	NSDictionary *iconsPlist = [NSDictionary dictionaryWithContentsOfFile:[bundle pathForResource:@"Icons" ofType:@"plist"]];
+	if (!iconsPlist || ([[iconsPlist objectForKey:@"AdiumSetVersion"] intValue] != 1))
+		return NO;
 
-		NSMutableDictionary *storage = [[NSMutableDictionary alloc] initWithCapacity:[categoryNames count]];
+	[self removeResource:@"Icons.plist"];
 
-		NSEnumerator *categoryNamesEnum = [categoryNames objectEnumerator];
-		NSString *categoryName;
-		while ((categoryName = [categoryNamesEnum nextObject])) {
-			NSDictionary *category = [iconsPlist objectForKey:categoryName];
+	NSMutableArray *loadedCategoryNames = [[iconsPlist allKeys] mutableCopy];
+	[loadedCategoryNames removeObject:@"AdiumSetVersion"];
+	[loadedCategoryNames sortUsingSelector:@selector(caseInsensitiveCompare:)];
 
-			NSMutableArray *entries = [[NSMutableArray alloc] initWithCapacity:[category count]];
+	NSMutableDictionary *storage = [[NSMutableDictionary alloc] initWithCapacity:[loadedCategoryNames count]];
+	NSEnumerator *categoryNamesEnum = [loadedCategoryNames objectEnumerator];
+	NSString *categoryName;
+	while ((categoryName = [categoryNamesEnum nextObject])) {
+		NSDictionary *category = [iconsPlist objectForKey:categoryName];
+		if (![category isKindOfClass:[NSDictionary class]])
+			continue;
 
-			NSEnumerator *categoryKeysEnum = [category keyEnumerator];
-			NSString *key;
-			while ((key = [categoryKeysEnum nextObject])) {
-				NSString *iconPath = [category objectForKey:key];
-				if ([resourcesSet containsObject:iconPath]) {
-					AXCIconPackEntry *entry = [[AXCIconPackEntry alloc] initWithKey:key path:iconPath];
-					[entries addObject:entry];
-					[entry release];
-				} else {
-					NSLog(@"Error while loading %@: Icons.plist contains a key (%@) in category %@ whose resource path (%@) does not exist in this bundle", path, key, categoryName, iconPath);
-				}
+		NSMutableArray *entries = [[NSMutableArray alloc] initWithCapacity:[category count]];
+		NSEnumerator *categoryKeysEnum = [category keyEnumerator];
+		NSString *key;
+		while ((key = [categoryKeysEnum nextObject])) {
+			NSString *iconPath = [category objectForKey:key];
+			if ([resourcesSet containsObject:iconPath]) {
+				AXCIconPackEntry *entry = [[AXCIconPackEntry alloc] initWithKey:key path:iconPath];
+				[entries addObject:entry];
+				[entry release];
+			} else {
+				NSLog(@"Error while loading %@: Icons.plist contains a key (%@) in category %@ whose resource path (%@) does not exist in this bundle", path, key, categoryName, iconPath);
 			}
-
-			[storage setObject:entries forKey:categoryName];
-			[entries release];
 		}
 
-		[categoryStorage release];
-		 categoryStorage = [storage retain];
+		[storage setObject:entries forKey:categoryName];
+		[entries release];
 	}
-	return success;
+
+	[categoryNames release];
+	categoryNames = [loadedCategoryNames copy];
+	[loadedCategoryNames release];
+	[categoryStorage release];
+	categoryStorage = [storage copy];
+	[storage release];
+	return YES;
 }
 
 #pragma mark Bindings
@@ -136,23 +146,23 @@
 
 #pragma mark Outline view data source conformance
 
-- (id) outlineView:(NSOutlineView *)outlineView child:(int)idx ofItem:(id)item
+- (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)index ofItem:(id)item
 {
 	if (!item) //return a category name
-		return [categoryNames objectAtIndex:idx];
+		return [categoryNames objectAtIndex:index];
 	else //return category storage
-		return [[categoryStorage objectForKey:item] objectAtIndex:idx];
+		return [[categoryStorage objectForKey:item] objectAtIndex:index];
 }
 - (BOOL) outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
 {
 	return ([categoryStorage objectForKey:item] != nil);
 }
-- (int) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
+- (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
 {
 	if (!item)
 		return [categoryNames count];
 
-	NSDictionary *storage = [categoryStorage objectForKey:item];
+	NSArray *storage = [categoryStorage objectForKey:item];
 	if (storage)
 		return [storage count];
 	else
@@ -162,15 +172,17 @@
 - (id) outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)col byItem:(id)item
 {
 	BOOL isKeyColumn = [KEY_COLUMN_NAME isEqualToString:[col identifier]];
-	unsigned categoryIndex = [categoryNames indexOfObjectIdenticalTo:item];
 
-	if (categoryIndex != NSNotFound)
+	if ([categoryNames indexOfObjectIdenticalTo:item] != NSNotFound)
 		return isKeyColumn ? item : [NSNumber numberWithInt:-1];
 	else
-		return isKeyColumn ? (NSObject *)[item key] : (NSObject *)[NSNumber numberWithUnsignedInt:[resources indexOfObject:[item path]]];
+		return isKeyColumn ? (NSObject *)[item key] : (NSObject *)[NSNumber numberWithUnsignedInteger:[resources indexOfObject:[item path]]];
 }
 - (void) outlineView:(NSOutlineView *)outlineView setObjectValue:(id)newValue forTableColumn:(NSTableColumn *)col byItem:(id)item
 {
+	if (![item isKindOfClass:[AXCIconPackEntry class]])
+		return;
+
 	int index = [(NSNumber *)newValue intValue];
 	if (index > -1)
 		[(AXCIconPackEntry *)item setPath:[resources objectAtIndex:index]];
@@ -178,7 +190,7 @@
 		[(AXCIconPackEntry *)item setPath:nil];
 }
 
-- (NSDragOperation)outlineView:(NSOutlineView *)outlineView validateDrop:(id <NSDraggingInfo>)info proposedItem:(id)item proposedChildIndex:(int)index
+- (NSDragOperation)outlineView:(NSOutlineView *)outlineView validateDrop:(id <NSDraggingInfo>)info proposedItem:(id)item proposedChildIndex:(NSInteger)index
 {
 	NSArray *plist = [[info draggingPasteboard] propertyListForType:NSFilenamesPboardType];
 
@@ -190,7 +202,7 @@
 	} else
 		return NSDragOperationNone;
 }
-- (BOOL)outlineView:(NSOutlineView *)outlineView acceptDrop:(id <NSDraggingInfo>)info item:(id)item childIndex:(int)index
+- (BOOL)outlineView:(NSOutlineView *)outlineView acceptDrop:(id <NSDraggingInfo>)info item:(id)item childIndex:(NSInteger)index
 {
 	[(AXCIconPackEntry *)item setPath:[[[info draggingPasteboard] propertyListForType:NSFilenamesPboardType] objectAtIndex:0]];
 	return YES;
@@ -242,11 +254,11 @@
 
 #pragma mark NSMenu delegate conformance
 
-- (int) numberOfItemsInMenu:(NSMenu *)menu
+- (NSInteger)numberOfItemsInMenu:(NSMenu *)menu
 {
 	return [resources count];
 }
-- (BOOL) menu:(NSMenu *)menu updateItem:(NSMenuItem *)item atIndex:(int)index shouldCancel:(BOOL)shouldCancel
+- (BOOL)menu:(NSMenu *)menu updateItem:(NSMenuItem *)item atIndex:(NSInteger)index shouldCancel:(BOOL)shouldCancel
 {
 	NSString *path = [resources objectAtIndex:index];
 

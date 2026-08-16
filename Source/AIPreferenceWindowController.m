@@ -61,7 +61,6 @@ static SS_PrefsController			*prefsController = nil;
 		// Set which panes are included, and their order.
 		[prefsController setPanesOrder:[NSArray arrayWithObjects:
 			@"Accounts",
-			NSToolbarSeparatorItemIdentifier,
 			@"General", @"Personal", @"Appearance", @"Messages", @"Status", @"Events", @"File Transfer", @"Xtras", @"Advanced", nil]];
 		[prefsController setDebug:YES];
 	}

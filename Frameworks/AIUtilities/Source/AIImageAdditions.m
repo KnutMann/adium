@@ -325,19 +325,6 @@
 	return data;
 }
 
-- (NSBitmapImageRep *)getBitmap
-{
-	[self lockFocus];
-	
-	NSSize size = [self size];
-	NSRect rect = NSMakeRect(0.0f, 0.0f, size.width, size.height);
-	NSBitmapImageRep *bm = [[NSBitmapImageRep alloc] initWithFocusedViewRect:rect];
-	
-	[self unlockFocus];
-	
-	return bm;
-}
-
 /*!
  * @brief Retrieve an image rep with a maximum size
  *

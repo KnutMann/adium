@@ -10,6 +10,6 @@
 @interface NSMutableArray (NSMutableArrayAdditions)
 
 //assumes a sorted array. does the Right Thing for empty arrays.
-- (unsigned) indexForInsortingObject:(id)obj usingSelector:(SEL)compareCmd;
+- (NSUInteger) indexForInsortingObject:(id)obj usingSelector:(SEL)compareCmd;
 
 @end

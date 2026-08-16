@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		07484CB8091624B500D1A683 /* NSFileManager+BundleBit.m in Sources */ = {isa = PBXBuildFile; fileRef = 07484CB7091624B500D1A683 /* NSFileManager+BundleBit.m */; };
-		07484CBE0916254100D1A683 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 07484CBD0916254100D1A683 /* Carbon.framework */; };
 		07484D0B09162D7700D1A683 /* AXCStartingPointsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 07484D0A09162D7700D1A683 /* AXCStartingPointsController.m */; };
 		07484D1909162F8E00D1A683 /* StartingPoints.nib in Resources */ = {isa = PBXBuildFile; fileRef = 07484D1709162F8E00D1A683 /* StartingPoints.nib */; };
 		075618CD0921F0BE00CBD740 /* AXCArrayControllerWithDragAndDrop.m in Sources */ = {isa = PBXBuildFile; fileRef = 075618CC0921F0BE00CBD740 /* AXCArrayControllerWithDragAndDrop.m */; };
@@ -36,8 +34,6 @@
 		6330D82F0918AB6000DCEFDD /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 6330D82E0918AB6000DCEFDD /* Preferences.nib */; };
 		635495A30911F19900F1EB0A /* MessageStyleView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 635495A20911F19900F1EB0A /* MessageStyleView.nib */; };
 		63B88C2E0916EFDF00B2803B /* AXCAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 63B88C2D0916EFDF00B2803B /* AXCAppDelegate.m */; };
-		63D96247091616FD0041DF83 /* IconFamily.m in Sources */ = {isa = PBXBuildFile; fileRef = 63D96244091616FD0041DF83 /* IconFamily.m */; };
-		63D96248091616FD0041DF83 /* NSString+CarbonFSSpecCreation.m in Sources */ = {isa = PBXBuildFile; fileRef = 63D96246091616FD0041DF83 /* NSString+CarbonFSSpecCreation.m */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */; };
 		8D15AC2E0486D014006FF6A4 /* MyDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B4FDCFA73011CA2CEA /* MyDocument.nib */; };
@@ -48,9 +44,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		07484CB6091624B500D1A683 /* NSFileManager+BundleBit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSFileManager+BundleBit.h"; sourceTree = "<group>"; };
-		07484CB7091624B500D1A683 /* NSFileManager+BundleBit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSFileManager+BundleBit.m"; sourceTree = "<group>"; };
-		07484CBD0916254100D1A683 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		07484D0909162D7700D1A683 /* AXCStartingPointsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AXCStartingPointsController.h; sourceTree = "<group>"; };
 		07484D0A09162D7700D1A683 /* AXCStartingPointsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AXCStartingPointsController.m; sourceTree = "<group>"; };
 		07484D1809162F8E00D1A683 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/StartingPoints.nib; sourceTree = "<group>"; };
@@ -102,10 +95,6 @@
 		635495A20911F19900F1EB0A /* MessageStyleView.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = MessageStyleView.nib; path = English.lproj/MessageStyleView.nib; sourceTree = "<group>"; };
 		63B88C2C0916EFDF00B2803B /* AXCAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AXCAppDelegate.h; sourceTree = "<group>"; };
 		63B88C2D0916EFDF00B2803B /* AXCAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AXCAppDelegate.m; sourceTree = "<group>"; };
-		63D96243091616FD0041DF83 /* IconFamily.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = IconFamily.h; sourceTree = "<group>"; };
-		63D96244091616FD0041DF83 /* IconFamily.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = IconFamily.m; sourceTree = "<group>"; };
-		63D96245091616FD0041DF83 /* NSString+CarbonFSSpecCreation.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = "NSString+CarbonFSSpecCreation.h"; sourceTree = "<group>"; };
-		63D96246091616FD0041DF83 /* NSString+CarbonFSSpecCreation.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = "NSString+CarbonFSSpecCreation.m"; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* XtrasCreator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XtrasCreator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -117,7 +106,6 @@
 			files = (
 				8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */,
 				07E002780915AE6B003FE813 /* ExceptionHandling.framework in Frameworks */,
-				07484CBE0916254100D1A683 /* Carbon.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,8 +138,6 @@
 				076D85760914D8DA00D6D22C /* AXCFileCell.m */,
 				07E001B109159255003FE813 /* AXCIconPackEntry.h */,
 				07E001B209159255003FE813 /* AXCIconPackEntry.m */,
-				63D96243091616FD0041DF83 /* IconFamily.h */,
-				63D96244091616FD0041DF83 /* IconFamily.m */,
 			);
 			name = Generic;
 			sourceTree = "<group>";
@@ -172,12 +158,8 @@
 		07E0017E0915891A003FE813 /* Additions */ = {
 			isa = PBXGroup;
 			children = (
-				63D96245091616FD0041DF83 /* NSString+CarbonFSSpecCreation.h */,
-				63D96246091616FD0041DF83 /* NSString+CarbonFSSpecCreation.m */,
 				07E0018809158940003FE813 /* NSMutableArrayAdditions.h */,
 				07E0018909158940003FE813 /* NSMutableArrayAdditions.m */,
-				07484CB6091624B500D1A683 /* NSFileManager+BundleBit.h */,
-				07484CB7091624B500D1A683 /* NSFileManager+BundleBit.m */,
 				0774A7FD0920BD1000CE742F /* NSMenu+ImmediatePopulation.h */,
 				0774A7FE0920BD1000CE742F /* NSMenu+ImmediatePopulation.m */,
 			);
@@ -187,7 +169,6 @@
 		1058C7A6FEA54F5311CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				07484CBD0916254100D1A683 /* Carbon.framework */,
 				1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */,
 				07E002770915AE6B003FE813 /* ExceptionHandling.framework */,
 			);
@@ -360,10 +341,7 @@
 			files = (
 				8D15AC320486D014006FF6A4 /* main.m in Sources */,
 				07E0018A09158940003FE813 /* NSMutableArrayAdditions.m in Sources */,
-				63D96248091616FD0041DF83 /* NSString+CarbonFSSpecCreation.m in Sources */,
-				07484CB8091624B500D1A683 /* NSFileManager+BundleBit.m in Sources */,
 				0774A7FF0920BD1000CE742F /* NSMenu+ImmediatePopulation.m in Sources */,
-				63D96247091616FD0041DF83 /* IconFamily.m in Sources */,
 				075618CD0921F0BE00CBD740 /* AXCArrayControllerWithDragAndDrop.m in Sources */,
 				076D85770914D8DA00D6D22C /* AXCFileCell.m in Sources */,
 				63B88C2E0916EFDF00B2803B /* AXCAppDelegate.m in Sources */,
@@ -435,6 +413,7 @@
 		635495450911DD6200F1EB0A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -447,6 +426,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PREBINDING = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adiumx.XtrasCreator;
 				PRODUCT_NAME = XtrasCreator;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
@@ -456,6 +436,7 @@
 		635495460911DD6200F1EB0A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -466,6 +447,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PREBINDING = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adiumx.XtrasCreator;
 				PRODUCT_NAME = XtrasCreator;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
@@ -475,6 +457,7 @@
 		635495470911DD6200F1EB0A /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = XtrasCreator_Prefix.pch;
@@ -482,6 +465,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_BUNDLE_IDENTIFIER = com.adiumx.XtrasCreator;
 				PRODUCT_NAME = XtrasCreator;
 				WRAPPER_EXTENSION = app;
 			};

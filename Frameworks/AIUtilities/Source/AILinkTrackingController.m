@@ -87,7 +87,7 @@ NSRectArray _copyRectArray(NSRectArray someRects, NSUInteger arraySize);
     location = [[theEvent window] convertPointToScreen:location];
 
     //Ignore the mouse entry if our view is hidden, or our window is non-main
-    if ([window isMainWindow] && [controlView canDraw]) {
+    if ([window isMainWindow] && [controlView window] && ![controlView isHiddenOrHasHiddenAncestor]) {
         [self _setMouseOverLink:trackedLink
                         atPoint:location];
     }

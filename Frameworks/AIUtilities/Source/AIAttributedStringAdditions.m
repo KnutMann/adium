@@ -475,45 +475,79 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
 
 - (NSData *)dataRepresentation
 {
-	return [NSArchiver archivedDataWithRootObject:self];
+	/* Keyed archive, read back by +stringWithData:. Secure coding stays off because
+	 * attributed strings can carry attachment subclasses that only adopt NSCoding.
+	 */
+	NSError *error = nil;
+	NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self
+										 requiringSecureCoding:NO
+														 error:&error];
+	if (!data) {
+		NSLog(@"-[NSAttributedString(AIAttributedStringAdditions) dataRepresentation]: archiving failed: %@", error);
+	}
+	return data;
 }
 
 + (NSAttributedString *)stringWithData:(NSData *)inData
 {
 	NSAttributedString	*returnValue = nil;
 	
-	/* We use an exception handler here because NSUnarchiver can throw an NSInvalidArgumentException with a reason:
-	 *		-[NSPlaceholderDictionary initWithObjects_ex:forKeys:count:]: attempt to insert nil value
-	 * if we feed it invalid data.
+	if (!inData || ![inData length]) return nil;
+	
+	/* Current data is a keyed archive written by -dataRepresentation. If inData is not a
+	 * keyed archive, initForReadingFromData:error: returns nil and we fall through to the
+	 * legacy formats below. The exception handlers mirror the old code: unarchivers throw
+	 * NSInvalidArgumentException when fed invalid data.
 	 */
-	@try
-	{
-		if (inData && [inData length]) {
-			//If inData (which must bt non-nil) is not valid archived data, this returns nil.
-			NSUnarchiver		*unarchiver = [[NSUnarchiver alloc] initForReadingWithData:inData];
-			
-			if (unarchiver) {
-				/* NSUnarchiver's decodeObject hands back something the unarchiver owns and gives up
-				 * when it is deallocated, which is at the end of this scope. It used to be retained
-				 * and autoreleased on the spot to outlive that; returnValue holds it now, which is
-				 * the same reference by another name.
-				 */
-				returnValue = (NSAttributedString *)[unarchiver decodeObject];
-				
-			} else {
-				/* For reading previously stored NSData objects - we used to store them as RTF data, but that
-				 * method is both slower and buggier. Any modern storage will use NSUnarchiver, so leaving this
-				 * here isn't a speed problem.  We previously used AIHTMLDecoder to handle Jaguar old-data unarchiving...
-				 * but that's in Adium.framework and the cross over most certainly isn't worth it.
-				 */
-				returnValue = ([[NSAttributedString alloc] initWithRTF:inData
-													 documentAttributes:nil]);
+	@try {
+		NSKeyedUnarchiver *keyedUnarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:inData error:NULL];
+		if (keyedUnarchiver) {
+			/* Attributed strings can carry attachment subclasses that only adopt NSCoding,
+			 * so secure coding stays off, matching the write side.
+			 */
+			keyedUnarchiver.requiresSecureCoding = NO;
+			id root = [keyedUnarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+			[keyedUnarchiver finishDecoding];
+			if ([root isKindOfClass:[NSAttributedString class]]) {
+				returnValue = root;
 			}
-			
 		}
 	}
-	@catch(id exc) {	}
-			
+	@catch (id exc) {
+		returnValue = nil;
+	}
+	
+	if (!returnValue) {
+		/* Legacy data: non-keyed NSArchiver archives written by every earlier version of
+		 * Adium still live in the user's preferences (display names, profiles, saved
+		 * statuses, message alerts). NSKeyedUnarchiver cannot read those, so NSUnarchiver
+		 * stays on as their reader; the deprecation is silenced on purpose.
+		 */
+		@try {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+			NSUnarchiver *unarchiver = [[NSUnarchiver alloc] initForReadingWithData:inData];
+#pragma clang diagnostic pop
+			if (unarchiver) {
+				/* NSUnarchiver's decodeObject hands back something the unarchiver owns and gives up
+				 * when it is deallocated, which is at the end of this scope; returnValue holds it now.
+				 */
+				returnValue = (NSAttributedString *)[unarchiver decodeObject];
+			}
+		}
+		@catch (id exc) {
+			returnValue = nil;
+		}
+	}
+	
+	if (!returnValue) {
+		/* Oldest preference data was stored as RTF. This path also serves callers that pass
+		 * RTF pasteboard data straight in (see AIListController's drag handling).
+		 */
+		returnValue = [[NSAttributedString alloc] initWithRTF:inData
+										   documentAttributes:nil];
+	}
+	
 	return returnValue;
 }
 

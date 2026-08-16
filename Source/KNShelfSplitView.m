@@ -429,7 +429,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 														 modifierFlags:[anEvent modifierFlags]
 															 timestamp:[anEvent timestamp]
 														  windowNumber:[anEvent windowNumber]
-															   context:[anEvent context]
+															   context:nil
 														   eventNumber:[anEvent eventNumber]
 															clickCount:[anEvent clickCount]
 															  pressure:[anEvent pressure]
@@ -573,14 +573,11 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 					targetRect.origin.y += (actionButtonRect.size.height - targetRect.size.height) / 2.0f;
 				}
 
-        [actionButtonImage compositeToPoint:NSMakePoint(actionButtonRect.origin.x,
-                                                        actionButtonRect.origin.y)
-                                  operation:NSCompositingOperationDestinationAtop];
-// FIX - replacement for deprecation; reverted for 10.11 fix.
-//        [actionButtonImage drawAtPoint:NSMakePoint(actionButtonRect.origin.x, actionButtonRect.origin.y)
-//                              fromRect:NSZeroRect
-//                             operation:NSCompositingOperationDestinationAtop
-//                              fraction:1.0f];
+        [actionButtonImage drawAtPoint:NSMakePoint(actionButtonRect.origin.x,
+                                                   actionButtonRect.origin.y)
+                              fromRect:NSZeroRect
+                             operation:NSCompositingOperationDestinationAtop
+                              fraction:1.0f];
 			}
 		}
 		

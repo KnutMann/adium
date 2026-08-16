@@ -32,7 +32,7 @@
  */
 @implementation XtrasInstaller
 
-@synthesize dest, download, xtraName;
+@synthesize dest, session, downloadTask, xtraName;
 
 //XtrasInstaller does not autorelease because it will release itself when closed
 + (XtrasInstaller *)installer
@@ -43,7 +43,8 @@
 - (id)init
 {
 	if ((self = [super init])) {
-		self.download = nil;
+		session = nil;
+		downloadTask = nil;
 		window = nil;
 	}
 
@@ -52,7 +53,8 @@
 
 - (void)dealloc
 {
-	[download release];
+	[session release];
+	[downloadTask release];
 	[xtraName release];
 	[dest release];
 
@@ -61,13 +63,18 @@
 
 - (IBAction)cancel:(id)sender;
 {
-	if (self.download) [self.download cancel];
+	if (self.downloadTask) [self.downloadTask cancel];
 	[self closeInstaller];
 }
 
 - (void)closeInstaller
 {
 	if (window) [window close];
+	/* The session retains its delegate (us) until it is invalidated, so this must
+	 * happen before the autorelease below or the installer would never deallocate.
+	 * It also guarantees we stay alive for any delegate callback still in flight:
+	 * the session only drops its delegate after invalidation completes. */
+	[self.session invalidateAndCancel];
 	[self autorelease];	
 }
 
@@ -107,8 +114,21 @@
 		AILogWithSignature(@"Downloading %@", urlToDownload);
 		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:urlToDownload];
 		[request setHTTPShouldHandleCookies:NO];
-		self.download = [[[NSURLDownload alloc] initWithRequest:request delegate:self] autorelease];
-//		[download setDestination:dest allowOverwrite:YES];
+		/* NSURLDownload let its delegate refuse transparent Content-Encoding decoding
+		 * (shouldDecodeSourceDataOfMIMEType: returned NO); NSURLSession has no such
+		 * switch, so ask the server for raw bytes instead. Otherwise a .tgz served
+		 * with Content-Encoding: gzip would be gunzipped behind our back and the
+		 * decompression in the finish handler would fail. */
+		[request setValue:@"identity" forHTTPHeaderField:@"Accept-Encoding"];
+
+		/* Delegate callbacks arrive on the main queue: the progress UI and the
+		 * synchronous unpacking in the delegate methods expect that, exactly as
+		 * NSURLDownload delivered them. */
+		self.session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]
+													 delegate:self
+												delegateQueue:[NSOperationQueue mainQueue]];
+		self.downloadTask = [self.session downloadTaskWithRequest:request];
+		[self.downloadTask resume];
 
 		[urlToDownload release];
 
@@ -130,30 +150,27 @@
 	[infoText setStringValue:[NSString stringWithFormat:@"%@ (%lu%%)", installText, percentComplete]];
 }
 
-- (void)download:(NSURLDownload *)connection didReceiveResponse:(NSHTTPURLResponse *)response
-{	
-	self.xtraName = [[response allHeaderFields] objectForKey:@"X-Xtraname"];
-	amountDownloaded = 0;
-	downloadSize = [response expectedContentLength];
-	[progressBar setMaxValue:downloadSize];
-	[progressBar setDoubleValue:0.0];
-	NSLog(@"Beginning download of, which has size %llu", downloadSize);
-	[self updateInfoText];
-}
-
-- (void)download:(NSURLDownload *)connection decideDestinationWithSuggestedFilename:(NSString *)filename
+- (void)URLSession:(NSURLSession *)inSession downloadTask:(NSURLSessionDownloadTask *)inDownloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
-	NSString * downloadDir = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString uuid]];
-	[[NSFileManager defaultManager] createDirectoryAtPath:downloadDir withIntermediateDirectories:YES attributes:nil error:NULL];
-	self.dest = [downloadDir stringByAppendingPathComponent:filename];
-	AILogWithSignature(@"Downloading to is %@", self.dest);
-	[self.download setDestination:self.dest allowOverwrite:YES];
-}
+	/* Download tasks get no didReceiveResponse callback; the response is available on
+	 * the task once data starts arriving. -valueForHTTPHeaderField: is case-insensitive,
+	 * unlike the old allHeaderFields lookup, which relied on NSURLDownload's header
+	 * canonicalization. */
+	if (!self.xtraName) {
+		NSURLResponse *response = [inDownloadTask response];
+		if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
+			self.xtraName = [(NSHTTPURLResponse *)response valueForHTTPHeaderField:@"X-Xtraname"];
+		}
+	}
 
-- (void)download:(NSURLDownload *)download didReceiveDataOfLength:(NSUInteger)length
-{
-	amountDownloaded += (long long)length;
-	if (downloadSize != NSURLResponseUnknownLength) {
+	amountDownloaded = (unsigned long long)totalBytesWritten;
+
+	if (totalBytesExpectedToWrite != NSURLSessionTransferSizeUnknown) {
+		if (downloadSize != (unsigned long long)totalBytesExpectedToWrite) {
+			downloadSize = (unsigned long long)totalBytesExpectedToWrite;
+			[progressBar setIndeterminate:NO];
+			[progressBar setMaxValue:(double)downloadSize];
+		}
 		[progressBar setDoubleValue:(double)amountDownloaded];
 		[self updateInfoText];
 	}
@@ -161,11 +178,17 @@
 		[progressBar setIndeterminate:YES];
 }
 
-- (BOOL)download:(NSURLDownload *)download shouldDecodeSourceDataOfMIMEType:(NSString *)encodingType {
-    return NO;
-}
+- (void)URLSession:(NSURLSession *)inSession task:(NSURLSessionTask *)inTask didCompleteWithError:(NSError *)error
+{
+	/* Success: the file was already moved, unpacked, and the installer closed in
+	 * -URLSession:downloadTask:didFinishDownloadingToURL: (which also covers a failed
+	 * move, showing its own alert there). */
+	if (!error) return;
 
-- (void)download:(NSURLDownload *)inDownload didFailWithError:(NSError *)error {
+	/* Cancellation: the cancel button already cancelled the task and closed the
+	 * installer. Closing again here would over-release self. */
+	if ([[error domain] isEqualToString:NSURLErrorDomain] && [error code] == NSURLErrorCancelled) return;
+
 	NSString	*errorMsg;
 
 	errorMsg = [NSString stringWithFormat:AILocalizedString(@"An error occurred while downloading this Xtra: %@.",nil),[error localizedDescription]];
@@ -200,7 +223,37 @@
 	}
 }
 
-- (void)downloadDidFinish:(NSURLDownload *)inDownload {
+- (void)URLSession:(NSURLSession *)inSession downloadTask:(NSURLSessionDownloadTask *)inDownloadTask didFinishDownloadingToURL:(NSURL *)location
+{
+	/* The file at 'location' is only guaranteed to exist until this method returns,
+	 * so it MUST be moved out synchronously, right here, before anything else. */
+	NSString *downloadDir = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString uuid]];
+	[[NSFileManager defaultManager] createDirectoryAtPath:downloadDir withIntermediateDirectories:YES attributes:nil error:NULL];
+
+	/* -suggestedFilename derives from Content-Disposition, then the URL, the same way
+	 * NSURLDownload's decideDestinationWithSuggestedFilename: argument did; dest must
+	 * keep the real archive name because the decompression below dispatches on its
+	 * path extension (.tgz/.tar.gz/.zip). */
+	NSString *filename = [[inDownloadTask response] suggestedFilename];
+	if (![filename length]) filename = [location lastPathComponent];
+	self.dest = [downloadDir stringByAppendingPathComponent:filename];
+	AILogWithSignature(@"Downloading to is %@", self.dest);
+
+	NSError *moveError = nil;
+	if (![[NSFileManager defaultManager] moveItemAtURL:location
+												 toURL:[NSURL fileURLWithPath:self.dest]
+												 error:&moveError]) {
+		AILogWithSignature(@"Could not move %@ to %@: %@", location, self.dest, moveError);
+		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		[alert setMessageText:AILocalizedString(@"Xtra Downloading Error",nil)];
+		[alert setInformativeText:[NSString stringWithFormat:AILocalizedString(@"An error occurred while downloading this Xtra: %@.",nil),[moveError localizedDescription]]];
+		[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
+		[alert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
+			[self cancel:nil];
+		}];
+		return;
+	}
+
 	NSString		*lastPathComponent = [self.dest lastPathComponent];
 	NSString		*pathExtension = [[lastPathComponent pathExtension] lowercaseString];
 	BOOL			decompressionSuccess = YES, success = NO;
@@ -313,7 +366,7 @@
 		[quarantineProperties setObject:(NSString *)kLSQuarantineTypeWebDownload
 								 forKey:(NSString *)kLSQuarantineTypeKey];
 
-		[quarantineProperties setObject:[[self.download request] URL]
+		[quarantineProperties setObject:[[self.downloadTask originalRequest] URL]
 								 forKey:(NSString *)kLSQuarantineDataURLKey];
 
 		[self setQuarantineProperties:quarantineProperties forDirectory:destURL];

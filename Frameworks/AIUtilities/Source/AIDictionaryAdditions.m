@@ -94,10 +94,11 @@ return validated;
 	[[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL]; //make sure the path exists
 	 
 	 NSData *plistData;
-	 NSString *retainedError = nil;
-	 plistData = [NSPropertyListSerialization dataFromPropertyList:self
+	 NSError *error = nil;
+	 plistData = [NSPropertyListSerialization dataWithPropertyList:self
 															format:NSPropertyListBinaryFormat_v1_0
-												  errorDescription:&retainedError];
+														   options:0
+															 error:&error];
 	 if (plistData) {
 		 BOOL success = [plistData writeToFile:[[path stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"plist"]
 		 atomically:YES];
@@ -106,7 +107,7 @@ return validated;
 		 
 		 return success;
 	 } else {		
-		 NSLog(@"%s: Could not serialize. Error: \"%@\".", __PRETTY_FUNCTION__, retainedError);
+		 NSLog(@"%s: Could not serialize. Error: \"%@\".", __PRETTY_FUNCTION__, error);
 		 [self validateAsPropertyList];
 		 
 		 
@@ -239,14 +240,13 @@ return validated;
     NSParameterAssert(name != nil); NSParameterAssert([name length] != 0);
 	
 	NSData *plistData;
-	NSString *error;
 	
 	plistData = [[NSData alloc] initWithContentsOfFile:[[path stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"plist"]];
 	
-	dictionary = [NSPropertyListSerialization propertyListFromData:plistData
-												  mutabilityOption:NSPropertyListMutableContainers
-															format:NULL
-												  errorDescription:&error];
+	dictionary = plistData ? [NSPropertyListSerialization propertyListWithData:plistData
+																		options:NSPropertyListMutableContainers
+																		 format:NULL
+																		  error:NULL] : nil;
 
 	if (!dictionary && create) dictionary = [NSMutableDictionary dictionary];
 	

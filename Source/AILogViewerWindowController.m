@@ -1975,10 +1975,10 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 	
 	if ([selectedLogs count] > 0) {
 		NSAlert *alert = [self alertForDeletionOfLogCount:[selectedLogs count]];
-		[alert beginSheetModalForWindow:[self window] 
-						  modalDelegate:self 
-						 didEndSelector:@selector(deleteLogsAlertDidEnd:returnCode:contextInfo:) 
-							contextInfo:[selectedLogs retain]];
+		[alert beginSheetModalForWindow:[self window]
+					  completionHandler:^(NSModalResponse returnCode) {
+			[self deleteLogsAlertDidEnd:nil returnCode:returnCode contextInfo:[selectedLogs retain]];
+		}];
 	}
 }
 
@@ -2407,10 +2407,8 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
 {
     return [[toolbarItems allKeys] arrayByAddingObjectsFromArray:
-		[NSArray arrayWithObjects:NSToolbarSeparatorItemIdentifier,
-			NSToolbarSpaceItemIdentifier,
+		[NSArray arrayWithObjects:NSToolbarSpaceItemIdentifier,
 			NSToolbarFlexibleSpaceItemIdentifier,
-			NSToolbarCustomizeToolbarItemIdentifier, 
 			NSToolbarPrintItemIdentifier, nil]];
 }
 
@@ -2523,7 +2521,7 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
     NSPrintOperation    *printOperation;
     NSPrintInfo			*printInfo = [NSPrintInfo sharedPrintInfo];
 
-    [printInfo setHorizontalPagination:NSFitPagination];
+    [printInfo setHorizontalPagination:NSPrintingPaginationModeFit];
     [printInfo setHorizontallyCentered:NO];
     [printInfo setVerticallyCentered:NO];
     
@@ -2682,9 +2680,9 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 	if ([selectedLogs count] > 1) {
 		NSAlert *alert = [self alertForDeletionOfLogCount:[selectedLogs count]];
 		[alert beginSheetModalForWindow:[self window]
-						  modalDelegate:self
-						 didEndSelector:@selector(deleteLogsAlertDidEnd:returnCode:contextInfo:)
-							contextInfo:[selectedLogs retain]];
+					  completionHandler:^(NSModalResponse returnCode) {
+			[self deleteLogsAlertDidEnd:nil returnCode:returnCode contextInfo:[selectedLogs retain]];
+		}];
 	} else if ([selectedLogs count] == 1) {
 		[self deleteLogsAlertDidEnd:nil
 						 returnCode:NSAlertFirstButtonReturn
@@ -2814,9 +2812,9 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 	if (totalLogCount > 1) {
 		NSAlert *alert = [self alertForDeletionOfLogCount:totalLogCount];
 		[alert beginSheetModalForWindow:[self window]
-						  modalDelegate:self
-						 didEndSelector:@selector(deleteSelectedContactsFromSourceListAlertDidEnd:returnCode:contextInfo:)
-							contextInfo:[allSelectedToGroups retain]];
+					  completionHandler:^(NSModalResponse returnCode) {
+			[self deleteSelectedContactsFromSourceListAlertDidEnd:nil returnCode:returnCode contextInfo:[allSelectedToGroups retain]];
+		}];
 	} else {
 		[self deleteSelectedContactsFromSourceListAlertDidEnd:nil
 												   returnCode:NSAlertFirstButtonReturn

@@ -49,7 +49,7 @@
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/ISO8601DateFormatter.h>
 
-#import <libkern/OSAtomic.h>
+#include <stdatomic.h>
 
 #import "AILogFileUpgradeWindowController.h"
 
@@ -194,7 +194,31 @@ static dispatch_semaphore_t jobSemaphore;
 static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log data to N-1 ahead
 
 @implementation AILoggerPlugin
-@synthesize dirtyLogSet, indexingAllowed, loggingEnabled, logsToIndex, logsIndexed, canCloseIndex, canSaveDirtyLogSet, activeAppenders, logHTML, xhtmlDecoder, statusTranslation, isIndexing, indexIsFlushing;
+@synthesize dirtyLogSet, indexingAllowed, loggingEnabled, canCloseIndex, canSaveDirtyLogSet, activeAppenders, logHTML, xhtmlDecoder, statusTranslation, isIndexing, indexIsFlushing;
+
+/* logsToIndex and logsIndexed are _Atomic ivars. These accessors load and
+ * store them with sequentially consistent ordering, matching the full-barrier
+ * semantics of the OSAtomic*Barrier operations that used to touch the same
+ * memory. */
+- (SInt64)logsToIndex
+{
+	return atomic_load(&logsToIndex);
+}
+
+- (void)setLogsToIndex:(SInt64)newValue
+{
+	atomic_store(&logsToIndex, newValue);
+}
+
+- (SInt64)logsIndexed
+{
+	return atomic_load(&logsIndexed);
+}
+
+- (void)setLogsIndexed:(SInt64)newValue
+{
+	atomic_store(&logsIndexed, newValue);
+}
 
 #pragma mark -
 #pragma mark Public Methods
@@ -1420,7 +1444,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
  */
 - (void)_cleanDirtyLogs
 {
-	__block SInt64 _remainingLogs = 0;
+	__block _Atomic(SInt64) _remainingLogs = 0;
 	//Do nothing if we're paused
 	if (!self.indexingAllowed) return;
 	
@@ -1430,13 +1454,13 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	
 	dispatch_sync(dirtyLogSetMutationQueue, ^{
 		localLogSet = [[self.dirtyLogSet mutableCopy] autorelease];
-		OSAtomicCompareAndSwap64Barrier(bself->logsToIndex, [localLogSet count], (int64_t *)&(bself->logsToIndex));
-		OSAtomicCompareAndSwap64Barrier(_remainingLogs, bself->logsToIndex, (int64_t *)&_remainingLogs);
+		atomic_store(&bself->logsToIndex, (SInt64)[localLogSet count]);
+		atomic_store(&_remainingLogs, atomic_load(&bself->logsToIndex));
 	});
 	
 	if (self.logsToIndex == 0){
 		dispatch_async(defaultDispatchQueue, ^{
-			OSAtomicCompareAndSwap64Barrier(logsIndexed, 0, (int64_t*)&logsIndexed);
+			atomic_store(&logsIndexed, 0);
 			[bself _didCleanDirtyLogs];
 		});
 		return;
@@ -1449,13 +1473,13 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		return;
 	}
 	
-	OSAtomicCompareAndSwap64Barrier(logsIndexed, 0, (int64_t*)&logsIndexed);
+	atomic_store(&logsIndexed, 0);
 	
 	if (self.indexingAllowed) {
 		
 		self.isIndexing = YES;
-		__block uint64_t lastUpdate = AITickCount();
-		__block SInt32  unsavedChanges = 0;
+		__block _Atomic(uint64_t) lastUpdate = AITickCount();
+		__block _Atomic(SInt32) unsavedChanges = 0;
 		
 		AILogWithSignature(@"Cleaning %lu dirty logs", (unsigned long)[localLogSet count]);
 		
@@ -1528,24 +1552,22 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 										dispatch_group_async(logIndexingGroup, skQueue, ^{
 											SKIndexAddDocumentWithText(searchIndex, document, documentText, YES);
 											
-											OSAtomicIncrement64Barrier((int64_t *)&(bself->logsIndexed));
-											OSAtomicDecrement64Barrier((int64_t *)&_remainingLogs);
+											atomic_fetch_add(&bself->logsIndexed, 1);
+											atomic_fetch_sub(&_remainingLogs, 1);
 											
 											if (lastUpdate == 0 || AITickCount() > lastUpdate + LOG_INDEX_STATUS_INTERVAL || _remainingLogs == 0) {
 												dispatch_async(dispatch_get_main_queue(), ^{
 													[[AILogViewerWindowController existingWindowController] logIndexingProgressUpdate];
 												});
 												uint64_t tick = AITickCount();
-												/* Sixty-four now, because the counter is. Swapped as thirty-two it would
-												 * have compared and written half of it. */
-												OSAtomicCompareAndSwap64Barrier((int64_t)lastUpdate, (int64_t)tick, (int64_t *)&lastUpdate);
+												atomic_store(&lastUpdate, tick);
 											}
 											
-											OSAtomicIncrement32Barrier((int32_t *)&unsavedChanges);
+											atomic_fetch_add(&unsavedChanges, 1);
 											
 											if (unsavedChanges > LOG_CLEAN_SAVE_INTERVAL) {
 												[bself _saveDirtyLogSet];
-												OSAtomicCompareAndSwap32Barrier(unsavedChanges, 0, (int32_t *)&unsavedChanges);
+												atomic_store(&unsavedChanges, 0);
 											}
 											
 											dispatch_semaphore_signal(jobSemaphore);
@@ -1561,8 +1583,8 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 										
 										dispatch_semaphore_signal(jobSemaphore);
                                     } else {
-										OSAtomicIncrement64Barrier((int64_t *)&(bself->logsIndexed));
-										OSAtomicDecrement64Barrier((int64_t *)&_remainingLogs);
+										atomic_fetch_add(&bself->logsIndexed, 1);
+										atomic_fetch_sub(&_remainingLogs, 1);
 										
 										dispatch_semaphore_signal(jobSemaphore);
 									}
@@ -1581,8 +1603,8 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 								AILogWithSignature(@"Could not create document for %@ [%@]", logPath, logURL);
 							}
 							
-							OSAtomicIncrement64Barrier((int64_t *)&(bself->logsIndexed));
-							OSAtomicDecrement64Barrier((int64_t *)&_remainingLogs);
+							atomic_fetch_add(&bself->logsIndexed, 1);
+							atomic_fetch_sub(&_remainingLogs, 1);
 							
 							dispatch_semaphore_signal(jobSemaphore);
 							dispatch_semaphore_signal(logLoadingPrefetchSemaphore);
@@ -1633,7 +1655,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	NSLog(@"_didCleanDirtyLogs");
 	__block __typeof__(self) bself = self;
 	dispatch_sync(dirtyLogSetMutationQueue, ^{
-		OSAtomicCompareAndSwap64Barrier(bself->logsToIndex, [bself->dirtyLogSet count], (int64_t *)&(bself->logsToIndex));
+		atomic_store(&bself->logsToIndex, (SInt64)[bself->dirtyLogSet count]);
 	});
 	
 	//Clear the dirty status of all open chats so they will be marked dirty if they receive another message

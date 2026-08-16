@@ -326,7 +326,7 @@
 					possiblePath = [splitPath objectAtIndex:0];
 				} else {
 					NSArray *components = [NSArray arrayWithObjects:
-						[[NSWorkspace sharedWorkspace] absolutePathForAppBundleWithIdentifier:[splitPath objectAtIndex:0]],
+						[[[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier:[splitPath objectAtIndex:0]] path],
 						[splitPath objectAtIndex:1],
 						nil];
 					possiblePath = [NSString pathWithComponents:components];

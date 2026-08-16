@@ -118,7 +118,7 @@ static NSMutableSet *openEmoticonPreferences = nil;
     //Emoticons table
 	selectedEmoticonPack = nil;
 	checkCell = [[NSButtonCell alloc] init];
-	[checkCell setButtonType:NSSwitchButton];
+	[checkCell setButtonType:NSButtonTypeSwitch];
 	[checkCell setControlSize:NSControlSizeSmall];
 	[checkCell setTitle:@""];
 	[checkCell setRefusesFirstResponder:YES];

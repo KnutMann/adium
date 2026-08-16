@@ -8,45 +8,32 @@
 // This file is under the BSD License, refer to License.txt for details
 
 #import "NSMutableArrayAdditions.h"
-#include <objc/objc-runtime.h>
-
 static inline NSComparisonResult compareObjectsWithSelector(id a, id b, SEL cmd);
 
 @implementation NSMutableArray (NSMutableArrayAdditions)
 
-- (unsigned) indexForInsortingObject:(id)obj usingSelector:(SEL)compareCmd {
-	unsigned count = [self count];
-	if (!count) {
-		//bail now so we can assume a non-empty array later
-		return 0U;
-	} else if (count == 1U) {
-		//bail now so we can assume an array with more than one object later
-		return compareObjectsWithSelector(obj, [self objectAtIndex:0U], compareCmd) == NSOrderedDescending;
+- (NSUInteger) indexForInsortingObject:(id)obj usingSelector:(SEL)compareCmd {
+	NSUInteger lowerBound = 0U;
+	NSUInteger upperBound = [self count];
+
+	while (lowerBound < upperBound) {
+		NSUInteger index = lowerBound + ((upperBound - lowerBound) / 2U);
+		NSComparisonResult comparison = compareObjectsWithSelector(obj, [self objectAtIndex:index], compareCmd);
+		if (comparison == NSOrderedSame)
+			return index;
+		if (comparison == NSOrderedAscending)
+			upperBound = index;
+		else
+			lowerBound = index + 1U;
 	}
 
-	unsigned i = count / 2U;
-	NSComparisonResult initialComparison = compareObjectsWithSelector(obj, [self objectAtIndex:i], compareCmd);
-	if (initialComparison == NSOrderedSame) {
-		/*the object to be inserted is equal to the pivot, so we can just insert it
-		 *	right here.
-		 */
-		return i;
-	}
-	signed movementDirection = initialComparison;
-	i += movementDirection;
-
-	while ((i  > 0U)
-	&&     (i <  count)
-	&&     compareObjectsWithSelector(obj, [self objectAtIndex:i], compareCmd) == initialComparison
-	) {
-		i += movementDirection;
-	}
-
-	return i;
+	return lowerBound;
 }
 
 @end
 
 static inline NSComparisonResult compareObjectsWithSelector(id a, id b, SEL cmd) {
-	return (NSComparisonResult)objc_msgSend(a, cmd, b);
+	typedef NSComparisonResult (*ComparisonIMP)(id, SEL, id);
+	ComparisonIMP comparison = (ComparisonIMP)[a methodForSelector:cmd];
+	return comparison(a, cmd, b);
 }

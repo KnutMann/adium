@@ -15,19 +15,11 @@
  */
 
 #import "AIFileManagerAdditions.h"
-#import "AIStringAdditions.h"
 #import <sys/types.h>
 #import <unistd.h>
 
 
 @implementation NSFileManager (AIFileManagerAdditions)
-
-- (BOOL)isFileVaultEnabled
-{
-	NSString *homeFolder = NSHomeDirectory();
-	NSString *homeFolderVolume = [homeFolder volumePath];
-	return [homeFolder isEqualToString:homeFolderVolume];
-}
 
 //Move the target file to the trash
 - (BOOL)trashFileAtPath:(NSString *)sourcePath
@@ -37,11 +29,14 @@
 	BOOL status = NO;
 	
 	if ([self fileExistsAtPath:sourcePath]) {
-        status = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation
-                                                              source:[sourcePath stringByDeletingLastPathComponent]
-                                                         destination:@""
-                                                               files:[NSArray arrayWithObject:[sourcePath lastPathComponent]]
-                                                                 tag:NULL];
+		/* Callers read the answer, so the move has to have happened by the time this returns:
+		 * -[NSFileManager trashItemAtURL:...] is the synchronous replacement for the retired
+		 * workspace file operation. Nothing ever read the tag, and nothing reads the item's
+		 * name in the trash either.
+		 */
+		status = [self trashItemAtURL:[NSURL fileURLWithPath:sourcePath]
+					 resultingItemURL:NULL
+								error:NULL];
 	}
     
 	return status;

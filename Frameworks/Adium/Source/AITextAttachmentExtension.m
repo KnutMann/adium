@@ -249,7 +249,9 @@
 	
 	if (!myFilewrapper) {
 		if ([self path]) {
-			myFilewrapper = [[[NSFileWrapper alloc] initWithPath:[self path]] autorelease];
+			myFilewrapper = [[[NSFileWrapper alloc] initWithURL:[NSURL fileURLWithPath:[self path]]
+														options:NSFileWrapperReadingImmediate
+														  error:NULL] autorelease];
 
 		} else if ([self image]) {
 			myFilewrapper = [[[NSFileWrapper alloc] initWithSerializedRepresentation:[[self image] PNGRepresentation]] autorelease];

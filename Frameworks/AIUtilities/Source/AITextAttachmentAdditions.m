@@ -15,19 +15,30 @@
  */
 
 #import "AITextAttachmentAdditions.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @implementation NSTextAttachment (AITextAttachmentAdditions)
 
 - (BOOL)consideredImageForHFSType:(OSType)HFSTypeCode
 					pathExtension:(NSString *)pathExtension
 {
-	NSMutableArray *imageFileTypes = [[NSImage imageFileTypes] mutableCopy];
-	NSArray *removeFileTypes = [NSArray arrayWithObjects:@"pdf", @"PDF", @"psd", @"PSD", @"'PDF '", nil];
-	
-	[imageFileTypes removeObjectsInArray:removeFileTypes];
-	
-	return ([imageFileTypes containsObject:NSFileTypeForHFSTypeCode(HFSTypeCode)] ||
-			([imageFileTypes containsObject:pathExtension]));
+	/* What NSImage can open, minus PDF and Photoshop: those are "images" to NSImage but are
+	 * meant to travel as files, not be inlined, which is what the callers use this answer for.
+	 *
+	 * The old check searched the deprecated -imageFileTypes list, a mixture of filename
+	 * extensions and HFS type code strings. The type code went with that list: the modern type
+	 * system has no OSType tag any more, files have not carried one in many years, and a file
+	 * with neither an extension nor a type code was no image to the old check either.
+	 */
+	if (![pathExtension length]) return NO;
+
+	UTType *type = [UTType typeWithFilenameExtension:pathExtension];
+	if (!type) return NO;
+
+	if ([type conformsToType:UTTypePDF] ||
+		[type.identifier isEqualToString:@"com.adobe.photoshop-image"]) return NO;
+
+	return ([[NSImage imageTypes] containsObject:type.identifier] || [type conformsToType:UTTypeImage]);
 }
 
 - (BOOL)wrapsImage

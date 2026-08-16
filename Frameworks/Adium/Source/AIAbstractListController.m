@@ -867,9 +867,9 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
  * We promise @"AIListObjectUniqueIDs" which will be generated as needed as an array of uniqueObjectIDs corresponding to
  * the drag items array.
  */
-- (BOOL)outlineView:(NSOutlineView *)outlineView writeItems:(NSArray *)items toPasteboard:(NSPasteboard*)pboard
+- (BOOL)writeListObjects:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
 {
-	if (pboard == [NSPasteboard pasteboardWithName:NSDragPboard]) {
+	if (pboard == [NSPasteboard pasteboardWithName:NSPasteboardNameDrag]) {
 		//Begin the drag
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIListControllerDraggedItems"
 											  	  object:items];
@@ -953,6 +953,16 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 
 	[self setShowTooltips:NO];
 	return YES;
+}
+
+/* AppKit's drag machinery still calls the old data-source method when a drag begins in the
+ * outline view; nothing here implements -outlineView:pasteboardWriterForItem:, so removing
+ * this would silently kill contact-list dragging. The body lives in
+ * -writeListObjects:toPasteboard: so that non-drag callers, such as copying to the general
+ * pasteboard, need not go through the deprecated selector. */
+- (BOOL)outlineView:(NSOutlineView *)outlineView writeItems:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
+{
+	return [self writeListObjects:items toPasteboard:pboard];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView acceptDrop:(id <NSDraggingInfo>)info item:(AIProxyListObject *)item childIndex:(NSInteger)idx

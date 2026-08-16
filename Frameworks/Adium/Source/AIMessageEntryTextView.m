@@ -35,7 +35,6 @@
 #import <AIUtilities/AIPasteboardAdditions.h>
 #import <AIUtilities/AIBezierPathAdditions.h>
 #import <Adium/AIContactControllerProtocol.h>
-#import <WebKit/WebKit.h>
 
 #import "NSString+AIBidi.h"
 
@@ -259,7 +258,7 @@
 													modifierFlags:0
 														timestamp:[inEvent timestamp]
 													 windowNumber:[inEvent windowNumber]
-														  context:[inEvent context]
+														  context:nil
 													   characters:[inEvent characters]
 									  charactersIgnoringModifiers:charactersIgnoringModifiers
 														isARepeat:[inEvent isARepeat]
@@ -501,9 +500,16 @@
 
 #pragma mark Pasting
 
-// Forbid loading the images embedded in a string when pasting.
+// Forbid loading the resources (e.g. remote images) referenced by pasted HTML.
 // They are very unlikely to work and a privacy issue.
-- (NSURLRequest *)webView:(WebView *)sender resource:(id)identifier willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)redirectResponse fromDataSource:(WebDataSource *)dataSource
+// This is the WebResourceLoadDelegate informal-protocol method that the WebKit-based
+// HTML importer behind -initWithData:options:documentAttributes:error: consults when
+// NSWebResourceLoadDelegateDocumentOption is set. AppKit documents that without the
+// option, a default delegate is used "that will permit the loading of subsidiary
+// resources" (NSAttributedString.h), so the option must stay. Dispatch is by selector
+// only, so declaring the WebView/WebDataSource parameters as id preserves the exact
+// behaviour without importing WebKit.
+- (NSURLRequest *)webView:(id)sender resource:(id)identifier willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)redirectResponse fromDataSource:(id)dataSource
 {
 	return nil;
 }
@@ -627,19 +633,29 @@
 					attributedString = [[NSMutableAttributedString alloc] initWithRTFD:data
 																	documentAttributes:NULL];
 				} else /* NSPasteboardTypeHTML */ {
-					attributedString = [[NSMutableAttributedString alloc] initWithHTML:data
-																	documentAttributes:NULL];
+					//Same conversion and options as -handlePasteAsRichText: the resource-load
+					//delegate (-webView:resource:willSendRequest:redirectResponse:fromDataSource:)
+					//keeps the importer from fetching the remote resources the HTML references.
+					NSAttributedString *htmlString = [[NSAttributedString alloc] initWithData:data
+																					  options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
+																								NSCharacterEncodingDocumentAttribute: @(NSUTF8StringEncoding),
+																								NSWebResourceLoadDelegateDocumentOption: self}
+																			documentAttributes:NULL error:NULL];
+					attributedString = [htmlString mutableCopy];
+					[htmlString release];
 				}
 			} @catch (NSException *localException) {
-				//Error while reading the RTF or HTML data, which can happen. Fall back on plain text
+				attributedString = nil;
+			}
+
+			//Error while reading the RTF or HTML data, which can happen. Fall back on plain text
+			if (!attributedString) {
 				if ([[[NSPasteboard generalPasteboard] types] containsObject:NSPasteboardTypeString]) {
 					data = [generalPasteboard dataForType:NSPasteboardTypeString];
 					NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 					attributedString = [[NSMutableAttributedString alloc] initWithString:string
 																			  attributes:[self typingAttributes]];
 					[string release];
-				} else {
-					attributedString = nil;
 				}
 			}
 
@@ -975,11 +991,11 @@
 		// Make the indicator and set its action. It is a button with no border.
 		pushIndicator = [[NSButton alloc] initWithFrame:
             NSMakeRect(0, 0, [pushIndicatorImage size].width, [pushIndicatorImage size].height)]; 
-		[pushIndicator setButtonType:NSMomentaryPushButton];
+		[pushIndicator setButtonType:NSButtonTypeMomentaryLight];
         [pushIndicator setAutoresizingMask:(NSViewMinXMargin)];
         [pushIndicator setImage:pushIndicatorImage];
         [pushIndicator setImagePosition:NSImageOnly];
-		[pushIndicator setBezelStyle:NSRegularSquareBezelStyle];
+		[pushIndicator setBezelStyle:NSBezelStyleFlexiblePush];
 		[pushIndicator setBordered:NO];
         [[self superview] addSubview:pushIndicator];
 		[pushIndicator setTarget:self];
@@ -1653,9 +1669,10 @@
 				destinationPath = [destinationPath stringByAppendingPathComponent:preferredName];
 				
 				//Write the file out to it
-				[fileWrapper writeToFile:destinationPath
-							  atomically:NO
-						 updateFilenames:NO];
+				[fileWrapper writeToURL:[NSURL fileURLWithPath:destinationPath]
+								options:0
+					originalContentsURL:nil
+								  error:NULL];
 				
 				//Now create an AITextAttachmentExtension pointing to it
 				AITextAttachmentExtension   *textAttachment = [[AITextAttachmentExtension alloc] init];

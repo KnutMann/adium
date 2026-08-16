@@ -189,7 +189,6 @@ static NSMutableDictionary *screenSlideBoundaryRectDictionary = nil;
 
     //Exclude this window from the window menu (since we add it manually)
     [[self window] setExcludedFromWindowsMenu:YES];
-	[[self window] useOptimizedDrawing:YES];
 
 	minWindowSize = [[self window] minSize];
 	[contactListController setMinWindowSize:minWindowSize];
@@ -894,7 +893,7 @@ NSInteger levelForAIWindowLevel(AIWindowLevel windowLevel)
 	if (currentEventType == NSEventTypeLeftMouseDragged ||
 		currentEventType == NSEventTypeRightMouseDragged ||
 		currentEventType == NSEventTypeOtherMouseDragged ||
-		currentEventType == NSPeriodic) {
+		currentEventType == NSEventTypePeriodic) {
 		shouldSlideOffScreen = NO;
 	}	
 	

@@ -710,15 +710,21 @@ return nil; \
 
 - (NSString *)volumePath
 {
-	NSEnumerator *pathEnum = [[[NSWorkspace sharedWorkspace] mountedLocalVolumePaths] objectEnumerator];
-	NSString *volumePath;
-	while ((volumePath = [pathEnum nextObject])) {
-		if ([self hasPrefix:[volumePath stringByAppendingString:@"/"]])
+	/* Which mounted volume the path leads into. The old NSWorkspace call listed network volumes
+	 * as well, despite its name (its own header says so), so the replacement asks for every
+	 * mounted volume and skips none, hidden ones included. A path on no listed volume is on the
+	 * root volume, whose mount point never prefix-matches (it would need to start with "//"),
+	 * which is what the fallback is for.
+	 */
+	NSString *result = nil;
+	for (NSURL *volumeURL in [[NSFileManager defaultManager] mountedVolumeURLsIncludingResourceValuesForKeys:nil options:0]) {
+		NSString *mountPath = [volumeURL path];
+		if ([self hasPrefix:[mountPath stringByAppendingString:@"/"]]) {
+			result = mountPath;
 			break;
+		}
 	}
-	if (!volumePath)
-		volumePath = @"/";
-	return volumePath;
+	return (result ?: @"/");
 }
 
 - (unichar)lastCharacter {

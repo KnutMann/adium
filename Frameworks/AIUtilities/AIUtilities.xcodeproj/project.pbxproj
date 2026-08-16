@@ -243,6 +243,7 @@
 		633400E00F9C1501003C77A9 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633400D40F9C1501003C77A9 /* AddressBook.framework */; };
 		633400E10F9C1501003C77A9 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633400D50F9C1501003C77A9 /* AudioUnit.framework */; };
 		633400E20F9C1501003C77A9 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633400D60F9C1501003C77A9 /* AudioToolbox.framework */; };
+		ADD1E5C0DE0000000000C202 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C201 /* UniformTypeIdentifiers.framework */; };
 		633400E30F9C1501003C77A9 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633400D70F9C1501003C77A9 /* SystemConfiguration.framework */; };
 		633400E40F9C1501003C77A9 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633400D80F9C1501003C77A9 /* IOKit.framework */; };
 		633400E50F9C1501003C77A9 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633400D90F9C1501003C77A9 /* Security.framework */; };
@@ -558,6 +559,7 @@
 		633400D40F9C1501003C77A9 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		633400D50F9C1501003C77A9 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
 		633400D60F9C1501003C77A9 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
+		ADD1E5C0DE0000000000C201 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = /System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = "<absolute>"; };
 		633400D70F9C1501003C77A9 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 		633400D80F9C1501003C77A9 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		633400D90F9C1501003C77A9 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
@@ -781,6 +783,7 @@
 				633400E00F9C1501003C77A9 /* AddressBook.framework in Frameworks */,
 				633400E10F9C1501003C77A9 /* AudioUnit.framework in Frameworks */,
 				633400E20F9C1501003C77A9 /* AudioToolbox.framework in Frameworks */,
+				ADD1E5C0DE0000000000C202 /* UniformTypeIdentifiers.framework in Frameworks */,
 				633400E30F9C1501003C77A9 /* SystemConfiguration.framework in Frameworks */,
 				633400E40F9C1501003C77A9 /* IOKit.framework in Frameworks */,
 				633400E50F9C1501003C77A9 /* Security.framework in Frameworks */,
@@ -1509,6 +1512,7 @@
 				633400D40F9C1501003C77A9 /* AddressBook.framework */,
 				633400D50F9C1501003C77A9 /* AudioUnit.framework */,
 				633400D60F9C1501003C77A9 /* AudioToolbox.framework */,
+				ADD1E5C0DE0000000000C201 /* UniformTypeIdentifiers.framework */,
 				633400D70F9C1501003C77A9 /* SystemConfiguration.framework */,
 				633400D80F9C1501003C77A9 /* IOKit.framework */,
 				633400D90F9C1501003C77A9 /* Security.framework */,

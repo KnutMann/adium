@@ -16,13 +16,14 @@
 
 #import <AIUtilities/AIOSCompatibility.h>
 
-@interface XtrasInstaller : NSObject <NSURLDownloadDelegate> {
+@interface XtrasInstaller : NSObject <NSURLSessionDownloadDelegate> {
 	IBOutlet NSWindow				*window;
 	IBOutlet NSProgressIndicator	*progressBar;
 	IBOutlet NSTextField			*infoText;
 	IBOutlet NSButton				*cancelButton;
 	
-	NSURLDownload					*download;
+	NSURLSession					*session;
+	NSURLSessionDownloadTask		*downloadTask;
 	NSString						*dest;
 	NSString						*xtraName;
 
@@ -34,7 +35,8 @@
 -(void)installXtraAtURL:(NSURL *)url __attribute__((ns_consumes_self));
 +(XtrasInstaller *)installer __attribute__((objc_method_family(new)));
 
-@property (retain) NSURLDownload *download;
+@property (retain) NSURLSession *session;
+@property (retain) NSURLSessionDownloadTask *downloadTask;
 @property (retain) NSString *dest;
 @property (retain) NSString *xtraName;
 

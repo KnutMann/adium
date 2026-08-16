@@ -280,7 +280,6 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 {
     return [NSArray arrayWithObjects:
 			AUTHORIZE,
-			NSToolbarSeparatorItemIdentifier,
 			GET_INFO,
 			NSToolbarFlexibleSpaceItemIdentifier,
 			IGNORE, DENY, nil];
@@ -289,10 +288,8 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
 {
     return [[toolbarItems allKeys] arrayByAddingObjectsFromArray:
-			[NSArray arrayWithObjects:NSToolbarSeparatorItemIdentifier,
-			 NSToolbarSpaceItemIdentifier,
-			 NSToolbarFlexibleSpaceItemIdentifier,
-			 NSToolbarCustomizeToolbarItemIdentifier, nil]];
+			[NSArray arrayWithObjects:NSToolbarSpaceItemIdentifier,
+			 NSToolbarFlexibleSpaceItemIdentifier, nil]];
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem

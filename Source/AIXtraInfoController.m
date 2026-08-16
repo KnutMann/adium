@@ -26,7 +26,15 @@
 - (void)setXtra:(AIXtraInfo *)xtraInfo
 {
 	//Load the readme and set it.
-	NSAttributedString *readMeString = [[NSAttributedString alloc] initWithPath:[xtraInfo readMePath] documentAttributes:NULL];
+	NSString *readMePath = [xtraInfo readMePath];
+	NSAttributedString *readMeString = nil;
+	if (readMePath) {
+		readMeString = [[NSAttributedString alloc] initWithURL:[NSURL fileURLWithPath:readMePath]
+													   options:@{}
+											documentAttributes:NULL
+														 error:NULL];
+	}
+	if (!readMeString) readMeString = [[NSAttributedString alloc] init];
 	[[readMeView textStorage] setAttributedString:readMeString];
 	
 	//Clean up
