@@ -36,7 +36,7 @@ another effort and is out of scope here.
 | M07 | P2 | Simplify connectivity monitoring | proposed |
 | M08 | P2 | Move two legacy AppKit views to public modern APIs | proposed |
 | M09 | P1 | Modernise the standalone XtrasCreator tool | implemented; Finder UI verification pending |
-| M10 | P2 | Remove the obsolete Spotlight-importer subproject | proposed |
+| M10 | P2 | Remove the obsolete Spotlight-importer subproject | implemented; live metadata verification pending |
 | M11 | P0 | Replace the obsolete release and update-publishing pipeline | proposed |
 | M12 | P2 | Retire or rebuild unusable developer utilities | proposed |
 | M13 | P1 | Audit the shipped in-app help against supported functionality | proposed |

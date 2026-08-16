@@ -301,27 +301,6 @@
 			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
 			remoteInfo = AutoHyperlinks.framework;
 		};
-		4D9163B22577F1B300930BC8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4D9163A82577F1B200930BC8 /* AdiumSpotlightImporter.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8D576316048677EA00EA77CD;
-			remoteInfo = AdiumSpotlightImporter;
-		};
-		4D9163B42577F1B300930BC8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4D9163A82577F1B200930BC8 /* AdiumSpotlightImporter.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 345AF7D00A5D559900D7DA6F;
-			remoteInfo = AISpotlightImporterTest;
-		};
-		4D9163B62577F1B300930BC8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4D9163A82577F1B200930BC8 /* AdiumSpotlightImporter.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 31583FD2105C0C4F00E4447D;
-			remoteInfo = AdiumFauxSpotlightImporter;
-		};
 		7E78DA9B0DD135DE00B9388F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3496A8E707CE6CA30055BBAB /* AutoHyperlinks.framework.xcodeproj */;
@@ -503,7 +482,6 @@
 		4D9163A52577F1B200930BC8 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/schema.strings; sourceTree = "<group>"; };
 		4D9163A62577F1B200930BC8 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4D9163A72577F1B200930BC8 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/schema.strings; sourceTree = "<group>"; };
-		4D9163A82577F1B200930BC8 /* AdiumSpotlightImporter.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = AdiumSpotlightImporter.xcodeproj; sourceTree = "<group>"; };
 		4D9163AB2577F1B200930BC8 /* AdiumFauxSpotlightImporter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "AdiumFauxSpotlightImporter-Info.plist"; sourceTree = "<group>"; };
 		4D9163AC2577F1B200930BC8 /* AFSIAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFSIAppDelegate.m; sourceTree = "<group>"; };
 		4D9163AD2577F1B200930BC8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1381,7 +1359,6 @@
 				4D91639D2577F1B200930BC8 /* schema.xml */,
 				4D91639E2577F1B200930BC8 /* GetMetadataForHTMLLog.m */,
 				4D91639F2577F1B200930BC8 /* AdiumSpotlightImporter.h */,
-				4D9163A82577F1B200930BC8 /* AdiumSpotlightImporter.xcodeproj */,
 				4D9163AB2577F1B200930BC8 /* AdiumFauxSpotlightImporter-Info.plist */,
 				4D9163AC2577F1B200930BC8 /* AFSIAppDelegate.m */,
 				4D9163AD2577F1B200930BC8 /* Info.plist */,
@@ -1389,16 +1366,6 @@
 			);
 			name = "Adium Spotlight Importer";
 			path = "Other/Adium Spotlight Importer";
-			sourceTree = "<group>";
-		};
-		4D9163A92577F1B200930BC8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				4D9163B32577F1B300930BC8 /* AdiumSpotlightImporter.mdimporter */,
-				4D9163B52577F1B300930BC8 /* AISpotlightImporterTest */,
-				4D9163B72577F1B300930BC8 /* AdiumFauxSpotlightImporter.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		4DAA96242577B0F60000D3F7 /* AdiumApplescriptRunner */ = {
@@ -2347,10 +2314,6 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 4D9163A92577F1B200930BC8 /* Products */;
-					ProjectRef = 4D9163A82577F1B200930BC8 /* AdiumSpotlightImporter.xcodeproj */;
-				},
-				{
 					ProductGroup = 3496A8E807CE6CA30055BBAB /* Products */;
 					ProjectRef = 3496A8E707CE6CA30055BBAB /* AutoHyperlinks.framework.xcodeproj */;
 				},
@@ -2386,27 +2349,6 @@
 			fileType = wrapper.framework;
 			path = AutoHyperlinks.framework;
 			remoteRef = 3496A8ED07CE6CCB0055BBAB /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		4D9163B32577F1B300930BC8 /* AdiumSpotlightImporter.mdimporter */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = AdiumSpotlightImporter.mdimporter;
-			remoteRef = 4D9163B22577F1B300930BC8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		4D9163B52577F1B300930BC8 /* AISpotlightImporterTest */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = AISpotlightImporterTest;
-			remoteRef = 4D9163B42577F1B300930BC8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		4D9163B72577F1B300930BC8 /* AdiumFauxSpotlightImporter.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = AdiumFauxSpotlightImporter.app;
-			remoteRef = 4D9163B62577F1B300930BC8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		7E78DA9C0DD135DE00B9388F /* Test.octest */ = {
