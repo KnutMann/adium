@@ -56,9 +56,9 @@ typedef enum {
 
 + (AIDateFormatterCache *)sharedInstance;
 - (void) flushFormatterCache:(NSNotification *)dnc;
-- (NSDateFormatter **)formatterShowingSeconds:(BOOL)sec showingAMorPM:(BOOL)ampm;
-- (NSDateFormatter **)formatter;
-- (NSDateFormatter **)shortFormatter;
+- (NSDateFormatter * __strong *)formatterShowingSeconds:(BOOL)sec showingAMorPM:(BOOL)ampm;
+- (NSDateFormatter * __strong *)formatter;
+- (NSDateFormatter * __strong *)shortFormatter;
 @end
 
 static AIDateFormatterCache *sharedFormatterCache = nil;
@@ -86,7 +86,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 
 - (void) flushFormatterCache:(NSNotification *)dnc
 {
-	[sharedFormatterCache release]; sharedFormatterCache = nil;
+	sharedFormatterCache = nil;
 }
 
 + (AIDateFormatterCache *)sharedInstance
@@ -98,7 +98,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	return sharedFormatterCache;
 }
 
-- (NSDateFormatter **)formatterShowingSeconds:(BOOL)sec showingAMorPM:(BOOL)ampm
+- (NSDateFormatter * __strong *)formatterShowingSeconds:(BOOL)sec showingAMorPM:(BOOL)ampm
 {
 	if (sec && ampm)
 		return &localizedDateFormatterShowingSecondsAndAMPM;
@@ -110,26 +110,20 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 		return &localizedDateFormatterShowingNoSecondsOrAMPM;
 }
 
-- (NSDateFormatter **)formatter
+- (NSDateFormatter * __strong *)formatter
 {
 	return &localizedDateFormatter;
 }
 
-- (NSDateFormatter **)shortFormatter
+- (NSDateFormatter * __strong *)shortFormatter
 {
 	return &localizedShortDateFormatter;
 }
 
 - (void) dealloc
 {
+	/* Stays: a distributed notification registration outlives the object unless it is removed. */
 	[[NSDistributedNotificationCenter defaultCenter] removeObserver: self];
-	[localizedDateFormatter release];
-	[localizedShortDateFormatter release];
-	[localizedDateFormatterShowingSecondsAndAMPM release];
-	[localizedDateFormatterShowingAMPM release];
-	[localizedDateFormatterShowingSeconds release];
-	[localizedDateFormatterShowingNoSecondsOrAMPM release];
-	[super dealloc];
 }
 @end
 
@@ -180,7 +174,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
 	// Thursday, July 31, 2008
-	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] formatter];
+	NSDateFormatter * __strong *cachePointer = [[AIDateFormatterCache sharedInstance] formatter];
 	
 	if (!(*cachePointer)) {
 		*cachePointer = [[NSDateFormatter alloc] init];
@@ -196,7 +190,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
 	// 7/31/08
-	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] shortFormatter];
+	NSDateFormatter * __strong *cachePointer = [[AIDateFormatterCache sharedInstance] shortFormatter];
 	
 	if (!(*cachePointer)) {
 		*cachePointer = [[NSDateFormatter alloc] init];
@@ -211,7 +205,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 {
 	NSAssert(AIIsOnLocalizedFormatterQueue(), @"Wrong queue");
 	
-	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] formatterShowingSeconds:seconds showingAMorPM:showAmPm];
+	NSDateFormatter * __strong *cachePointer = [[AIDateFormatterCache sharedInstance] formatterShowingSeconds:seconds showingAMorPM:showAmPm];
 
 	if (!(*cachePointer)) {
 		[self localizedDateFormatStringShowingSeconds:seconds showingAMorPM:showAmPm];
@@ -227,12 +221,12 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	
 	if (!AIIsOnLocalizedFormatterQueue()) {
 		dispatch_sync(localizedFormatterQueue, ^{
-			formatString = [[self localizedDateFormatStringShowingSeconds:seconds showingAMorPM:showAmPm] retain];
+			formatString = [self localizedDateFormatStringShowingSeconds:seconds showingAMorPM:showAmPm];
 		});
-		return [formatString autorelease];
+		return formatString;
 	}
 	
-	NSDateFormatter **cachePointer = [[AIDateFormatterCache sharedInstance] formatterShowingSeconds:seconds showingAMorPM:showAmPm];
+	NSDateFormatter * __strong *cachePointer = [[AIDateFormatterCache sharedInstance] formatterShowingSeconds:seconds showingAMorPM:showAmPm];
 	
 	BOOL setFormat = NO;
 	
@@ -252,7 +246,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 									  options:NSBackwardsSearch | NSLiteralSearch
 										range:NSMakeRange(0,[newFormat length])];
 		
-		formatString = [newFormat autorelease];
+		formatString = newFormat;
 	} else {
 		formatString = [*cachePointer dateFormat];
 	}
@@ -437,7 +431,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	// Scan across the format string, building the strftime-style format
 	NSMutableString *newFormat = [[NSMutableString alloc] initWithCapacity:[format length]];
 	
-	NSScanner *scanner = [[[NSScanner alloc] initWithString:format] autorelease];
+	NSScanner *scanner = [[NSScanner alloc] initWithString:format];
 	[scanner setCharactersToBeSkipped:[NSCharacterSet characterSetWithRange:NSMakeRange(0, 0)]];
 	
 	NSCharacterSet *t354symbols = [NSCharacterSet characterSetWithCharactersInString:@"GyYuMwWdDFgEeahHKkmsSAzZ'%"];
@@ -628,8 +622,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	}
 
 	// Make it immutable
-	NSString *result = [[newFormat copy] autorelease];
-	[newFormat release];
+	NSString *result = [newFormat copy];
 	return result;
 
 	// http://developer.apple.com/documentation/Cocoa/Conceptual/DataFormatting/Articles/dfDateFormatterSyntax.html
@@ -652,7 +645,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	// Scan across the format string, building the strftime-style format
 	NSMutableString *newFormat = [[NSMutableString alloc] initWithCapacity:[format length]];
 	
-	NSScanner *scanner = [[[NSScanner alloc] initWithString:format] autorelease];
+	NSScanner *scanner = [[NSScanner alloc] initWithString:format];
 	[scanner setCharactersToBeSkipped:[NSCharacterSet characterSetWithRange:NSMakeRange(0, 0)]];
 		
 	while(![scanner isAtEnd]) {		
@@ -707,7 +700,6 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 			[tempFormatter setDateStyle:NSDateFormatterFullStyle];
 			[tempFormatter setTimeStyle:NSDateFormatterFullStyle];
 			[newFormat appendString:[tempFormatter dateFormat]];
-			[tempFormatter release];
 			
 		} else if (it == 'd') {
 			if (n < 2) {
@@ -785,7 +777,6 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 			[tempFormatter setDateStyle:NSDateFormatterFullStyle];
 			[tempFormatter setTimeStyle:NSDateFormatterNoStyle];
 			[newFormat appendString:[tempFormatter dateFormat]];
-			[tempFormatter release];
 			
 			
 		} else if (it == 'X') {
@@ -795,7 +786,6 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 			[tempFormatter setDateStyle:NSDateFormatterNoStyle];
 			[tempFormatter setTimeStyle:NSDateFormatterFullStyle];
 			[newFormat appendString:[tempFormatter dateFormat]];
-			[tempFormatter release];
 			
 		} else if (it == 'y' || (it == 'Y' && n <= 2)) {
 			if (n < 2) {
@@ -825,8 +815,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	}
 	
 	// Make it immutable
-	NSString *result = [[newFormat copy] autorelease];
-	[newFormat release];
+	NSString *result = [newFormat copy];
 	return result;
 	
 	// http://developer.apple.com/documentation/Cocoa/Conceptual/DataFormatting/Articles/dfDateFormatterSyntax.html

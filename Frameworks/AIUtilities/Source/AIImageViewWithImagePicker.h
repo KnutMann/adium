@@ -22,7 +22,9 @@
 @class IKPictureTakerRecentPicture; // Private 10.5+ class
 
 @interface AIImageViewWithImagePicker : NSImageView {
-	IBOutlet id		delegate;
+	/* Unowned: a delegate outlives what it is delegate for. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the two hold each other. */
+	IBOutlet __unsafe_unretained id		delegate;
 	
 	NSString		*title;
 	id				pictureTaker;
@@ -33,17 +35,22 @@
 	BOOL			shouldUpdateRecentRepository;
 
 	BOOL			shouldDrawFocusRing;
-	NSResponder		*lastResp;
+	/* Unowned: the window is the first responder's owner. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would keep a responder alive past its window. */
+	__unsafe_unretained NSResponder	*lastResp;
 	
 	NSPoint			mouseDownPos;
 	
 	NSSize			maxSize;
 }
 
-@property (readwrite, assign, nonatomic) IBOutlet id delegate;
+@property (readwrite, unsafe_unretained, nonatomic) IBOutlet id delegate;
 
 @property (retain) NSString *title;
-@property (assign) id activeRecentPicture;
+/* Owned, unlike the two above. The ivar was retained and released by hand behind a property
+ * that said otherwise, which is the shape that dangles the moment the hand written pair is
+ * removed. Declared for what it is instead. */
+@property (retain) id activeRecentPicture;
 @property (assign) BOOL usePictureTaker;
 @property (assign) BOOL presentPictureTakerAsSheet;
 @property (assign) BOOL shouldUpdateRecentRepository;

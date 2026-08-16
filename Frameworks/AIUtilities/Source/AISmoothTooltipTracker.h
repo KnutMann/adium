@@ -50,7 +50,9 @@
  */
 @interface AISmoothTooltipTracker : NSObject {
 	NSView										*view;		//View we are tracking tooltips for
-	id<AISmoothTooltipTrackerDelegate>			delegate;	//Our delegate
+	/* Unowned: a delegate outlives what it is delegate for. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the two hold each other. */
+	__unsafe_unretained id<AISmoothTooltipTrackerDelegate>			delegate;	//Our delegate
 	
 	BOOL				mouseInside;
 

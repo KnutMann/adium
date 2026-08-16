@@ -44,8 +44,6 @@
 		[self removeTrackingRect:trackingTag];
 		trackingTag = -1;
 	}
-	
-	[super dealloc];
 }
 
 #pragma mark Configuration
@@ -128,7 +126,7 @@
 		BOOL	mouseInside = NSPointInRect(localPoint, myFrame);
 		
 		trackingTag = [self addTrackingRect:trackRect owner:self userData:nil assumeInside:mouseInside];
-		if (mouseInside) [self mouseEntered:[[[NSEvent alloc] init] autorelease]];
+		if (mouseInside) [self mouseEntered:[[NSEvent alloc] init]];
 	}
 }
 

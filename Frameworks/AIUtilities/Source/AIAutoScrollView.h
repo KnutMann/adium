@@ -33,7 +33,9 @@
 
 	BOOL			alwaysDrawFocusRingIfFocused;
 	BOOL			shouldDrawFocusRing;
-	NSResponder		*lastResp;
+	/* Unowned: the window is the first responder's owner. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would keep a responder alive past its window. */
+	__unsafe_unretained NSResponder	*lastResp;
 }
 
 /*!

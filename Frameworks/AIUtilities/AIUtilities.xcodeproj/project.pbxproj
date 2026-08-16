@@ -44,7 +44,7 @@
 
 /* Begin PBXBuildFile section */
 		11AA10130FCE0969003908B6 /* AIProgressDataUploader.h in Headers */ = {isa = PBXBuildFile; fileRef = 11AA10110FCE0969003908B6 /* AIProgressDataUploader.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		11AA10140FCE0969003908B6 /* AIProgressDataUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 11AA10120FCE0969003908B6 /* AIProgressDataUploader.m */; };
+		11AA10140FCE0969003908B6 /* AIProgressDataUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 11AA10120FCE0969003908B6 /* AIProgressDataUploader.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4D9162682577EEB100930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6334FBFC0F9C11DC003C77A9 /* AIUtilities.framework */; };
 		4D9162702577EFE700930BC8 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D91626F2577EFE700930BC8 /* CoreFoundation.framework */; };
 		4D9162712577EFEB00930BC8 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA95B12577AF5F0000D3F7 /* CoreServices.framework */; };
@@ -77,7 +77,7 @@
 		5AD04C311821E910009801F8 /* ISO8601DateFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5AD04C2A1821E8D3009801F8 /* ISO8601DateFormatter.m */; };
 		633400000F9C14C2003C77A9 /* AIFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF040F9C14BF003C77A9 /* AIFunctions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400010F9C14C2003C77A9 /* JVMarkedScroller.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF070F9C14BF003C77A9 /* JVMarkedScroller.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400020F9C14C2003C77A9 /* JVMarkedScroller.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF080F9C14BF003C77A9 /* JVMarkedScroller.m */; };
+		633400020F9C14C2003C77A9 /* JVMarkedScroller.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF080F9C14BF003C77A9 /* JVMarkedScroller.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400030F9C14C2003C77A9 /* AIMutableOwnerArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF0A0F9C14BF003C77A9 /* AIMutableOwnerArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400040F9C14C2003C77A9 /* AIMutableOwnerArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF0B0F9C14BF003C77A9 /* AIMutableOwnerArray.m */; };
 		633400050F9C14C2003C77A9 /* AIToolbarUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF0D0F9C14BF003C77A9 /* AIToolbarUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -99,17 +99,17 @@
 		633400150F9C14C2003C77A9 /* AITextAttributes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF250F9C14BF003C77A9 /* AITextAttributes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400160F9C14C2003C77A9 /* AITextAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF260F9C14BF003C77A9 /* AITextAttributes.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400170F9C14C2003C77A9 /* AISmoothTooltipTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF280F9C14BF003C77A9 /* AISmoothTooltipTracker.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400180F9C14C2003C77A9 /* AISmoothTooltipTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF290F9C14BF003C77A9 /* AISmoothTooltipTracker.m */; };
+		633400180F9C14C2003C77A9 /* AISmoothTooltipTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF290F9C14BF003C77A9 /* AISmoothTooltipTracker.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400190F9C14C2003C77A9 /* AISystemNetworkDefaults.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF2B0F9C14BF003C77A9 /* AISystemNetworkDefaults.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334001A0F9C14C2003C77A9 /* AISystemNetworkDefaults.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF2C0F9C14BF003C77A9 /* AISystemNetworkDefaults.m */; };
+		6334001A0F9C14C2003C77A9 /* AISystemNetworkDefaults.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF2C0F9C14BF003C77A9 /* AISystemNetworkDefaults.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334001B0F9C14C2003C77A9 /* AITooltipUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF2E0F9C14BF003C77A9 /* AITooltipUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334001C0F9C14C2003C77A9 /* AITooltipUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF2F0F9C14BF003C77A9 /* AITooltipUtilities.m */; };
+		6334001C0F9C14C2003C77A9 /* AITooltipUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF2F0F9C14BF003C77A9 /* AITooltipUtilities.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334001D0F9C14C2003C77A9 /* AICompletingTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF320F9C14BF003C77A9 /* AICompletingTextField.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334001E0F9C14C2003C77A9 /* AICompletingTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF330F9C14BF003C77A9 /* AICompletingTextField.m */; };
+		6334001E0F9C14C2003C77A9 /* AICompletingTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF330F9C14BF003C77A9 /* AICompletingTextField.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334001F0F9C14C2003C77A9 /* AIRolloverButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF350F9C14BF003C77A9 /* AIRolloverButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400200F9C14C2003C77A9 /* AIRolloverButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF360F9C14BF003C77A9 /* AIRolloverButton.m */; };
+		633400200F9C14C2003C77A9 /* AIRolloverButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF360F9C14BF003C77A9 /* AIRolloverButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400210F9C14C2003C77A9 /* MVMenuButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF380F9C14BF003C77A9 /* MVMenuButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400220F9C14C2003C77A9 /* MVMenuButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF390F9C14BF003C77A9 /* MVMenuButton.m */; };
+		633400220F9C14C2003C77A9 /* MVMenuButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF390F9C14BF003C77A9 /* MVMenuButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400230F9C14C2003C77A9 /* AIImageButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF3B0F9C14BF003C77A9 /* AIImageButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400240F9C14C2003C77A9 /* AIImageButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF3C0F9C14BF003C77A9 /* AIImageButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400250F9C14C2003C77A9 /* AIColoredBoxView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF3E0F9C14BF003C77A9 /* AIColoredBoxView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -117,23 +117,23 @@
 		633400270F9C14C2003C77A9 /* AIDelayedTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF410F9C14BF003C77A9 /* AIDelayedTextField.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400280F9C14C2003C77A9 /* AIDelayedTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF420F9C14BF003C77A9 /* AIDelayedTextField.m */; };
 		633400290F9C14C2003C77A9 /* AIImageViewWithImagePicker.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF440F9C14BF003C77A9 /* AIImageViewWithImagePicker.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334002A0F9C14C2003C77A9 /* AIImageViewWithImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF450F9C14BF003C77A9 /* AIImageViewWithImagePicker.m */; };
+		6334002A0F9C14C2003C77A9 /* AIImageViewWithImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF450F9C14BF003C77A9 /* AIImageViewWithImagePicker.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334002B0F9C14C2003C77A9 /* AILinkTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF470F9C14BF003C77A9 /* AILinkTextView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334002C0F9C14C2003C77A9 /* AILinkTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF480F9C14BF003C77A9 /* AILinkTextView.m */; };
+		6334002C0F9C14C2003C77A9 /* AILinkTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF480F9C14BF003C77A9 /* AILinkTextView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334002D0F9C14C2003C77A9 /* AILinkTrackingController.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF490F9C14BF003C77A9 /* AILinkTrackingController.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334002E0F9C14C2003C77A9 /* AILinkTrackingController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4A0F9C14BF003C77A9 /* AILinkTrackingController.m */; };
+		6334002E0F9C14C2003C77A9 /* AILinkTrackingController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4A0F9C14BF003C77A9 /* AILinkTrackingController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334002F0F9C14C2003C77A9 /* AIFlexibleLink.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF4B0F9C14BF003C77A9 /* AIFlexibleLink.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400300F9C14C2003C77A9 /* AIFlexibleLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4C0F9C14BF003C77A9 /* AIFlexibleLink.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400310F9C14C2003C77A9 /* AIDividedAlternatingRowOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF4E0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400320F9C14C2003C77A9 /* AIDividedAlternatingRowOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4F0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400330F9C14C2003C77A9 /* AIOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF500F9C14BF003C77A9 /* AIOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400340F9C14C2003C77A9 /* AIOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF510F9C14BF003C77A9 /* AIOutlineView.m */; };
+		633400340F9C14C2003C77A9 /* AIOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF510F9C14BF003C77A9 /* AIOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400350F9C14C2003C77A9 /* AIAlternatingRowOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF520F9C14C0003C77A9 /* AIAlternatingRowOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400360F9C14C2003C77A9 /* AIAlternatingRowOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF530F9C14C0003C77A9 /* AIAlternatingRowOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400370F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF550F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400380F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF560F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400390F9C14C2003C77A9 /* AIVariableHeightOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF570F9C14C0003C77A9 /* AIVariableHeightOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334003A0F9C14C2003C77A9 /* AIVariableHeightOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF580F9C14C0003C77A9 /* AIVariableHeightOutlineView.m */; };
+		6334003A0F9C14C2003C77A9 /* AIVariableHeightOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF580F9C14C0003C77A9 /* AIVariableHeightOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334003B0F9C14C2003C77A9 /* AIMultiCellOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF590F9C14C0003C77A9 /* AIMultiCellOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334003C0F9C14C2003C77A9 /* AIMultiCellOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF5A0F9C14C0003C77A9 /* AIMultiCellOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334004D0F9C14C2003C77A9 /* AIToolbarTabView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF6E0F9C14C0003C77A9 /* AIToolbarTabView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -149,7 +149,7 @@
 		633400570F9C14C2003C77A9 /* AIFlexibleToolbarItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF7D0F9C14C0003C77A9 /* AIFlexibleToolbarItem.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400580F9C14C2003C77A9 /* AIFlexibleToolbarItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF7E0F9C14C0003C77A9 /* AIFlexibleToolbarItem.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334005B0F9C14C2003C77A9 /* AIDockingWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF830F9C14C0003C77A9 /* AIDockingWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334005C0F9C14C2003C77A9 /* AIDockingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF840F9C14C0003C77A9 /* AIDockingWindow.m */; };
+		6334005C0F9C14C2003C77A9 /* AIDockingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF840F9C14C0003C77A9 /* AIDockingWindow.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334005D0F9C14C2003C77A9 /* AIBorderlessWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF860F9C14C0003C77A9 /* AIBorderlessWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334005E0F9C14C2003C77A9 /* AIBorderlessWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF870F9C14C0003C77A9 /* AIBorderlessWindow.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334005F0F9C14C2003C77A9 /* AIGenericViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF8A0F9C14C0003C77A9 /* AIGenericViewCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -161,9 +161,9 @@
 		633400650F9C14C2003C77A9 /* AIVerticallyCenteredTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF930F9C14C0003C77A9 /* AIVerticallyCenteredTextCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400660F9C14C2003C77A9 /* AIVerticallyCenteredTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF940F9C14C0003C77A9 /* AIVerticallyCenteredTextCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400710F9C14C2003C77A9 /* AISendingTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFA30F9C14C0003C77A9 /* AISendingTextView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400720F9C14C2003C77A9 /* AISendingTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFA40F9C14C0003C77A9 /* AISendingTextView.m */; };
+		633400720F9C14C2003C77A9 /* AISendingTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFA40F9C14C0003C77A9 /* AISendingTextView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400730F9C14C2003C77A9 /* AIAutoScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFA70F9C14C0003C77A9 /* AIAutoScrollView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400740F9C14C2003C77A9 /* AIAutoScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFA80F9C14C1003C77A9 /* AIAutoScrollView.m */; };
+		633400740F9C14C2003C77A9 /* AIAutoScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFA80F9C14C1003C77A9 /* AIAutoScrollView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400770F9C14C2003C77A9 /* AIApplicationAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFAC0F9C14C1003C77A9 /* AIApplicationAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400780F9C14C2003C77A9 /* AIApplicationAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFAD0F9C14C1003C77A9 /* AIApplicationAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400790F9C14C2003C77A9 /* AIArrayAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFAE0F9C14C1003C77A9 /* AIArrayAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -185,19 +185,19 @@
 		633400890F9C14C2003C77A9 /* AIDateAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFBE0F9C14C1003C77A9 /* AIDateAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334008A0F9C14C2003C77A9 /* AIDateAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFBF0F9C14C1003C77A9 /* AIDateAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334008B0F9C14C2003C77A9 /* AIDateFormatterAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFC00F9C14C1003C77A9 /* AIDateFormatterAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334008C0F9C14C2003C77A9 /* AIDateFormatterAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC10F9C14C1003C77A9 /* AIDateFormatterAdditions.m */; };
+		6334008C0F9C14C2003C77A9 /* AIDateFormatterAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC10F9C14C1003C77A9 /* AIDateFormatterAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334008D0F9C14C2003C77A9 /* AIDictionaryAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFC20F9C14C1003C77A9 /* AIDictionaryAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334008E0F9C14C2003C77A9 /* AIDictionaryAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC30F9C14C1003C77A9 /* AIDictionaryAdditions.m */; };
+		6334008E0F9C14C2003C77A9 /* AIDictionaryAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC30F9C14C1003C77A9 /* AIDictionaryAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334008F0F9C14C2003C77A9 /* AIEventAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFC40F9C14C1003C77A9 /* AIEventAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400900F9C14C2003C77A9 /* AIEventAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC50F9C14C1003C77A9 /* AIEventAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400910F9C14C2003C77A9 /* AIFileManagerAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFC60F9C14C1003C77A9 /* AIFileManagerAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400920F9C14C2003C77A9 /* AIFileManagerAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC70F9C14C1003C77A9 /* AIFileManagerAdditions.m */; };
+		633400920F9C14C2003C77A9 /* AIFileManagerAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC70F9C14C1003C77A9 /* AIFileManagerAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400930F9C14C2003C77A9 /* AIFontAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFC80F9C14C1003C77A9 /* AIFontAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400940F9C14C2003C77A9 /* AIFontAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFC90F9C14C1003C77A9 /* AIFontAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400950F9C14C2003C77A9 /* AIFontManagerAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFCA0F9C14C1003C77A9 /* AIFontManagerAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400960F9C14C2003C77A9 /* AIFontManagerAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFCB0F9C14C1003C77A9 /* AIFontManagerAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400970F9C14C2003C77A9 /* AIImageAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFCC0F9C14C1003C77A9 /* AIImageAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400980F9C14C2003C77A9 /* AIImageAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFCD0F9C14C1003C77A9 /* AIImageAdditions.m */; };
+		633400980F9C14C2003C77A9 /* AIImageAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFCD0F9C14C1003C77A9 /* AIImageAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400990F9C14C2003C77A9 /* AIImageDrawingAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFCE0F9C14C1003C77A9 /* AIImageDrawingAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334009A0F9C14C2003C77A9 /* AIImageDrawingAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFCF0F9C14C1003C77A9 /* AIImageDrawingAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334009B0F9C14C2003C77A9 /* AIMenuAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFD00F9C14C1003C77A9 /* AIMenuAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -205,7 +205,7 @@
 		6334009D0F9C14C2003C77A9 /* AIMutableStringAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFD20F9C14C1003C77A9 /* AIMutableStringAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334009E0F9C14C2003C77A9 /* AIMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFD30F9C14C1003C77A9 /* AIMutableStringAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334009F0F9C14C2003C77A9 /* AIObjectAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFD40F9C14C1003C77A9 /* AIObjectAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400A00F9C14C2003C77A9 /* AIObjectAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFD50F9C14C1003C77A9 /* AIObjectAdditions.m */; };
+		633400A00F9C14C2003C77A9 /* AIObjectAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFD50F9C14C1003C77A9 /* AIObjectAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400A10F9C14C2003C77A9 /* AIOutlineViewAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFD60F9C14C1003C77A9 /* AIOutlineViewAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400A20F9C14C2003C77A9 /* AIOutlineViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFD70F9C14C1003C77A9 /* AIOutlineViewAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400A30F9C14C2003C77A9 /* AIParagraphStyleAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFD80F9C14C1003C77A9 /* AIParagraphStyleAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -229,7 +229,7 @@
 		633400B70F9C14C2003C77A9 /* AIURLAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFEC0F9C14C1003C77A9 /* AIURLAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400B80F9C14C2003C77A9 /* AIURLAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFED0F9C14C1003C77A9 /* AIURLAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400B90F9C14C2003C77A9 /* AIViewAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFEE0F9C14C1003C77A9 /* AIViewAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400BA0F9C14C2003C77A9 /* AIViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFEF0F9C14C1003C77A9 /* AIViewAdditions.m */; };
+		633400BA0F9C14C2003C77A9 /* AIViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFEF0F9C14C1003C77A9 /* AIViewAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400BB0F9C14C2003C77A9 /* AIWindowAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFF00F9C14C1003C77A9 /* AIWindowAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400BC0F9C14C2003C77A9 /* AIWindowAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FFF10F9C14C1003C77A9 /* AIWindowAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400BF0F9C14C2003C77A9 /* OWAddressBookAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FFF40F9C14C1003C77A9 /* OWAddressBookAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -254,7 +254,7 @@
 		63BB1CC90F9EDDB600424B80 /* AISharedWriterQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 63BB1CC80F9EDDB600424B80 /* AISharedWriterQueue.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7E959AD010E3187000C26397 /* AIMathCompatibility.h in Headers */ = {isa = PBXBuildFile; fileRef = 7E959ACF10E3187000C26397 /* AIMathCompatibility.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9718DF45136A2C5200013760 /* AIImageCollectionView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9718DF43136A2C5200013760 /* AIImageCollectionView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		9718DF46136A2C5200013760 /* AIImageCollectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9718DF44136A2C5200013760 /* AIImageCollectionView.m */; };
+		9718DF46136A2C5200013760 /* AIImageCollectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9718DF44136A2C5200013760 /* AIImageCollectionView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */

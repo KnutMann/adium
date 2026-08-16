@@ -41,7 +41,9 @@
 	NSData									*uploadData;
 	NSURL									*url;
 	NSDictionary							*headers;
-	id <AIProgressDataUploaderDelegate>		delegate;
+	/* Unowned: a delegate outlives what it is delegate for. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the two hold each other. */
+	__unsafe_unretained id <AIProgressDataUploaderDelegate>		delegate;
 	id										context;
 	
 	CFReadStreamRef							stream;

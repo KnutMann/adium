@@ -50,18 +50,11 @@
 	[newButton setDrawsArrow:drawsArrow];
 
 	//Copy super's config
-	[newButton setMenu:[[[self menu] copy] autorelease]];
+	[newButton setMenu:[[self menu] copy]];
 	
 	return newButton;
 }
 
-- (void)dealloc
-{
-	[bigImage release];
-	[arrowPath release];
-	
-	[super dealloc];
-}
 
 
 //Configure ------------------------------------------------------------------------------------------------------------
@@ -107,7 +100,7 @@
 	}
 	
 	//Reset the popup arrow path cache, we'll need to re-calculate it for the new size
-	[arrowPath release]; arrowPath = nil;
+	arrowPath = nil;
 }
 - (NSControlSize)controlSize
 {
@@ -118,8 +111,7 @@
 - (void)setImage:(NSImage *)inImage
 {
 	if (bigImage != inImage) {
-	   [bigImage release];
-	   bigImage = [inImage retain];
+	   bigImage = inImage;
     }
 	
 	//Update our control size and the displayed image
@@ -171,7 +163,7 @@
 	if (!arrowPath) {
 		NSRect	frame = [self frame];
 		
-		arrowPath = [[NSBezierPath bezierPath] retain];
+		arrowPath = [NSBezierPath bezierPath];
 		
 		if (controlSize == NSControlSizeRegular) {
 			[arrowPath moveToPoint:NSMakePoint(NSWidth(frame)-9, NSHeight(frame)-5)];

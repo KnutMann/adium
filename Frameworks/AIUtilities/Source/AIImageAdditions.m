@@ -42,7 +42,7 @@
 		image = [[NSImage alloc] initWithContentsOfFile:imagePath];
 	}
 
-    return [image autorelease];	
+    return image;	
 }
 
 // Returns an image from the owners bundle with the specified name
@@ -67,8 +67,7 @@
 			SSLIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
 		}
 		if (!SSLIcon || ![SSLIcon isValid]) {
-			[SSLIcon release];
-			SSLIcon = [[NSImage imageNamed:NSImageNameLockLockedTemplate] retain];
+			SSLIcon = [NSImage imageNamed:NSImageNameLockLockedTemplate];
 		}
 
 		/* Current systems ship this resource far larger than the 16pt of
@@ -143,7 +142,9 @@
 	NSSize				size = [self size];
 	
 	// Work with a temporary image so we don't modify self
-	tempImage = [[[NSImage allocWithZone:[self zone]] initWithSize:size] autorelease];
+	/* Zones stopped meaning anything long ago, and asking an object for its own is not something
+	 * counted code may do. */
+	tempImage = [[NSImage alloc] initWithSize:size];
 	
 	// Lock before drawing to the temporary image
 	[tempImage lockFocus];
@@ -330,7 +331,7 @@
 	
 	NSSize size = [self size];
 	NSRect rect = NSMakeRect(0.0f, 0.0f, size.width, size.height);
-	NSBitmapImageRep *bm = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:rect] autorelease];
+	NSBitmapImageRep *bm = [[NSBitmapImageRep alloc] initWithFocusedViewRect:rect];
 	
 	[self unlockFocus];
 	
@@ -371,7 +372,7 @@
 		NSUInteger height = ((CGFloat)imageRep.pixelsWide - 100.0f)*ratio;
 		
 		// Create a new rep with the lowered size
-		NSBitmapImageRep *newImageRep = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+		NSBitmapImageRep *newImageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 																				 pixelsWide:width
 																				 pixelsHigh:height
 																			  bitsPerSample:imageRep.bitsPerSample
@@ -380,7 +381,7 @@
 																				   isPlanar:imageRep.isPlanar
 																			 colorSpaceName:NSCalibratedRGBColorSpace
 																				bytesPerRow:imageRep.bytesPerRow
-																			   bitsPerPixel:imageRep.bitsPerPixel] autorelease];
+																			   bitsPerPixel:imageRep.bitsPerPixel];
 		
 		// Draw the old rep into the new rep
 		[NSGraphicsContext saveGraphicsState];

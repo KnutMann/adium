@@ -28,7 +28,8 @@
  */
 @interface AIImageCollectionView : NSCollectionView {
 @protected
-	IBOutlet NSArrayController *itemsController;
+	/* Unowned: the nib owns the controller, and the view is one of the things it feeds. */
+	IBOutlet __unsafe_unretained NSArrayController *itemsController;
 	
 	NSInteger highlightStyle;
 	CGFloat highlightSize;
@@ -39,7 +40,7 @@
 
 @property (readwrite, assign) id <AIImageCollectionViewDelegate, NSCollectionViewDelegate> delegate;
 
-@property (assign) IBOutlet NSArrayController *itemsController;
+@property (unsafe_unretained) IBOutlet NSArrayController *itemsController;
 
 @property (assign) NSInteger highlightStyle;
 @property (assign) CGFloat highlightSize;

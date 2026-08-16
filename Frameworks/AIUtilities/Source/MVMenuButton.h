@@ -24,7 +24,9 @@
 @interface MVMenuButton : NSButton <NSCopying> {
 	NSImage				*bigImage;
 	NSImage				*smallImage;
-	NSToolbarItem 		*toolbarItem;
+	/* Unowned: the toolbar owns its items and this is the item's own view. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the item and its view hold each other. */
+	__unsafe_unretained NSToolbarItem 	*toolbarItem;
 	NSBezierPath 		*arrowPath;
 	
 	BOOL				drawsArrow;

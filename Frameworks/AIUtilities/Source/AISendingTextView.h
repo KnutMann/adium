@@ -28,7 +28,9 @@
 	NSMutableArray	*returnArray;
 	BOOL			insertingText;
 
-	id				target;
+	/* Unowned: whoever set the target owns it. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the view hold its target for as long as it lives. */
+	__unsafe_unretained id				target;
 	SEL			selector;
 	BOOL			sendingEnabled;
 

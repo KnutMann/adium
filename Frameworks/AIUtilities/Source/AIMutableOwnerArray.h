@@ -49,7 +49,9 @@
 	
 	BOOL			valueIsSortedToFront;
 	
-	id				delegate;
+	/* Unowned: a delegate outlives what it is delegate for. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the two hold each other. */
+	__unsafe_unretained id				delegate;
 	BOOL			delegateRespondsToDidSetObjectWithOwnerPriorityLevel;
 }
 
@@ -176,6 +178,6 @@
  * to be notified with the \c AIMutableOwnerArray is modified.
  * @param inDelegate The delegate
  */
-@property (readwrite, nonatomic, assign) id delegate;
+@property (readwrite, nonatomic, unsafe_unretained) id delegate;
 
 @end

@@ -35,7 +35,9 @@
  * @brief An NSButton subclass which informs its delegate when the mouse is within its bounds
  */
 @interface AIRolloverButton : NSButton {
-	NSObject<AIRolloverButtonDelegate>	*delegate;
+	/* Unowned: a delegate outlives what it is delegate for. Said in the declaration so that counting the references does not start
+	 * holding on to it, which would make the two hold each other. */
+	__unsafe_unretained NSObject<AIRolloverButtonDelegate>	*delegate;
 	NSTrackingRectTag					trackingTag;	
 }
 
