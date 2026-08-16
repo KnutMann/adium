@@ -156,7 +156,7 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 		[alert setAlertStyle:NSAlertStyleInformational];
 		[alert setMessageText:[NSString stringWithFormat:AILocalizedString(@"Plugin %@ Will be Disabled", "%@ will be the name of a plugin. This is the title of the dialogue shown when an plugin is loaded on an unsupported architecture."),
 							   [[pluginPath lastPathComponent] stringByDeletingPathExtension]]];
-		[alert setInformativeText:AILocalizedString(@"This plugin does not support your native architecture.", nil)];
+		[alert setInformativeText:AILocalizedString(@"This plugin was built for Intel processors (x86_64). This version of Adium runs natively on Apple silicon, so plugins from older Adium versions cannot load and this one has been disabled. Look for a release of the plugin built for Apple silicon, or ask its maintainer for one.", "Shown when an installed plugin only contains code for the old Intel architecture. It has been moved to the disabled-plugins folder.")];
 		[alert addButtonWithTitle:AILocalizedString(@"Disable", nil)];
 		[alert runModal];
 		[self disablePlugin:pluginPath];
@@ -275,19 +275,24 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 
 + (BOOL)confirmPluginArchitectureAtPath:(NSString *)pluginPath
 {
-#ifndef CURRENT_BUNDLE_ARCH_IS_DEFINED
-	#if __LP64__
-		#define CURRENT_BUNDLE_ARCH NSBundleExecutableArchitectureX86_64
-	#elif __LP32__
-		#define CURRENT_BUNDLE_ARCH NSBundleExecutableArchitectureI386
-	#else
-		#error Unsupported Architecture!
-	#endif
-	#define CURRENT_BUNDLE_ARCH_IS_DEFINED 1
+/* The processor this build runs on, not the pointer width: the old __LP64__ test answered
+ * x86_64 on an Apple silicon build too, so an Intel-only plugin passed the gate here and then
+ * failed silently at link time, with no word to the user. */
+#if __arm64__
+	#define CURRENT_BUNDLE_ARCH NSBundleExecutableArchitectureARM64
+#elif __x86_64__
+	#define CURRENT_BUNDLE_ARCH NSBundleExecutableArchitectureX86_64
+#else
+	#error Unsupported Architecture!
 #endif
 	NSBundle *pluginBundle = [NSBundle bundleWithPath:pluginPath];
 	NSArray *pluginArchs = [pluginBundle executableArchitectures];
-	
+
+	/* No listed architectures means no executable was found at all; that is not this gate's
+	 * story to tell, the load path reports a missing principal class on its own. */
+	if (!pluginArchs)
+		return YES;
+
 	return [pluginArchs containsObject:[NSNumber numberWithInteger:CURRENT_BUNDLE_ARCH]];
 }
 

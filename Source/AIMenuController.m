@@ -71,8 +71,10 @@
 }
 
 - (void)controllerDidLoad
-{	
+{ 	
 	[self localizeMenuTitles];	
+	// Keep the bundled help out of the UI until M13 has audited its contents.
+	[[menuItem_help menu] removeItem:menuItem_help];
 }
 
 //Close
@@ -723,4 +725,3 @@ static NSDictionary *symbolNamesByAction(void)
 }
 
 @end
-
