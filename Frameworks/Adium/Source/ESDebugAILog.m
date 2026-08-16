@@ -20,6 +20,7 @@
 #import <stdio.h>
 #import <execinfo.h>
 #import <pthread.h>
+#import <AIUtilities/AIDateFormatterAdditions.h>
 
 #ifdef DEBUG_BUILD
 BOOL AIDebugLoggingEnabled = YES;
@@ -55,9 +56,15 @@ void AIAddDebugMessage(NSString *debugMessage)
 	if (mirrorToStderr == -1) mirrorToStderr = (getenv("ADIUM_PURPLE_DEBUG") != NULL);
 	if (mirrorToStderr) fprintf(stderr, "[AILog] %s\n", [debugMessage UTF8String]);
 
-	NSString *actualMessage = [[[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S: "
-																   timeZone:nil
-																	 locale:nil] stringByAppendingString:debugMessage];
+	/* One of these per debug line, from whichever thread wrote it, so the formatter is made once and
+	 * never touched again afterwards. */
+	static NSDateFormatter *timeFormatter;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		timeFormatter = [[NSDateFormatter ai_fixedFormatterWithFormat:@"HH:mm:ss': '" timeZone:nil] retain];
+	});
+
+	NSString *actualMessage = [[timeFormatter stringFromDate:[NSDate date]] stringByAppendingString:debugMessage];
 	
 	/* Be careful; we should only modify debugLogArray and the windowController's view on the main thread. */
 	if ([NSRunLoop currentRunLoop] == [NSRunLoop mainRunLoop]) {

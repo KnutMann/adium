@@ -174,17 +174,21 @@
 	//Current Date
 	if ([self string:str containsValidKeyword:@"%d"]) {
 		NSDate	*currentDate = [NSDate date];
-		__block NSString *calendarFormat;
-		[NSDateFormatter withLocalizedShortDateFormatterPerform:^(NSDateFormatter *dateFormatter){
-			calendarFormat = [dateFormatter dateFormat];
-		}];
 
 		if (!newAttributedString) newAttributedString = [attributedString mutableCopy];
-		
-		[newAttributedString replaceOccurrencesOfString:@"%d"
-											 withString:[currentDate descriptionWithCalendarFormat:calendarFormat timeZone:nil locale:nil]
-												options:NSLiteralSearch
-												  range:NSMakeRange(0, [newAttributedString length])];
+
+		/* This used to pull the pattern out of the localized formatter and hand it to a method that
+		 * reads strftime codes instead, which have nothing in common. A pattern holds no percent
+		 * signs, so nothing was substituted and %d in an alias expanded to the literal text of the
+		 * pattern: dd.MM.yy rather than a date. Ask the formatter for the date, as %t just below
+		 * has always done.
+		 */
+		[NSDateFormatter withLocalizedShortDateFormatterPerform:^(NSDateFormatter *dateFormatter){
+			[newAttributedString replaceOccurrencesOfString:@"%d"
+												 withString:[dateFormatter stringFromDate:currentDate]
+													options:NSLiteralSearch
+													  range:NSMakeRange(0, [newAttributedString length])];
+		}];
 	}
 	
 	//Current Time

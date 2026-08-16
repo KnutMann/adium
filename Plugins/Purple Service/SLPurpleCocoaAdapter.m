@@ -48,6 +48,7 @@
 
 //Purple slash command interface
 #import <libpurple/cmds.h>
+#import <AIUtilities/AIDateFormatterAdditions.h>
 
 
 @interface SLPurpleCocoaAdapter ()
@@ -631,10 +632,9 @@ PurpleConversation* convLookupFromChat(AIChat *chat, id adiumAccount)
 					
 					if (chat.lastMessageDate) {
 						NSTimeInterval lastMessageInterval = [chat.lastMessageDate timeIntervalSince1970];
-						NSString *historySince = [[NSDate dateWithTimeIntervalSince1970:lastMessageInterval + 1]
-                                                  descriptionWithCalendarFormat:@"%Y-%m-%dT%H:%M:%SZ"
-                                                                       timeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]
-                                                                         locale:nil];
+						NSDateFormatter *utcFormatter = [NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd'T'HH:mm:ss'Z'"
+																						   timeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]];
+						NSString *historySince = [utcFormatter stringFromDate:[NSDate dateWithTimeIntervalSince1970:lastMessageInterval + 1]];
 
 						g_hash_table_replace(components, g_strdup("history_since"), g_strdup([historySince UTF8String]));
 					} else {

@@ -20,6 +20,22 @@
 + (void)withLocalizedShortDateFormatterPerform:(void (^)(NSDateFormatter *))block;
 + (void)withLocalizedDateFormatterShowingSeconds:(BOOL)seconds showingAMorPM:(BOOL)showAmPm perform:(void (^)(NSDateFormatter *))block;
 + (NSString *)localizedDateFormatStringShowingSeconds:(BOOL)seconds showingAMorPM:(BOOL)showAmPm;
+/*!
+ * @brief A formatter for dates that are not for reading
+ *
+ * Pinned to the POSIX locale and the Gregorian calendar, so what comes out is the same on every
+ * machine whatever language it is set to. That is what you want for a log file name, a timestamp
+ * sent to a server, or a line in the debug window, and never what you want for anything a person
+ * reads: for that there are the localized formatters above.
+ *
+ * The result is safe to keep and to format on any thread, as long as nothing changes its settings
+ * afterwards. The localized formatters need a queue precisely because each caller reconfigures them.
+ *
+ * @param format A Unicode TR35 pattern, not a strftime one
+ * @param timeZone The zone to format in, or nil for the machine's own
+ */
++ (NSDateFormatter *)ai_fixedFormatterWithFormat:(NSString *)format timeZone:(NSTimeZone *)timeZone;
+
 + (NSString *)stringForTimeIntervalSinceDate:(NSDate *)inDate;
 + (NSString *)stringForTimeIntervalSinceDate:(NSDate *)inDate showingSeconds:(BOOL)showSeconds abbreviated:(BOOL)abbreviate;
 + (NSString *)stringForApproximateTimeIntervalBetweenDate:(NSDate *)firstDate andDate:(NSDate *)secondDate;

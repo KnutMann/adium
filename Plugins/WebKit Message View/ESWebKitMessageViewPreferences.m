@@ -1006,13 +1006,30 @@ static NSString *AIRowLabel(NSString *label)
 /*!
  * @brief Chat settings
  */
+/*!
+ * @brief The format every date in Preview.plist is written in
+ *
+ * They used to be read by asking for a date in natural language, which guesses, and guesses
+ * differently depending on what language the machine is set to. The file is ours and its dates all
+ * look like 2004-04-19 12:45:48 -0500, so it can simply be read.
+ */
++ (NSDateFormatter *)previewDateFormatter
+{
+	static NSDateFormatter *formatter;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		formatter = [[NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd HH:mm:ss ZZZ" timeZone:nil] retain];
+	});
+	return formatter;
+}
+
 - (void)_applySettings:(NSDictionary *)chatDict toChat:(AIPreviewChat *)inChat withParticipants:(NSDictionary *)participants
 {
 	NSString			*dateOpened, *type, *name, *UID;
 
 	//Date opened
 	if ((dateOpened = [chatDict objectForKey:@"Date Opened"])) {
-		[inChat setDateOpened:[NSDate dateWithNaturalLanguageString:dateOpened]];
+		[inChat setDateOpened:[[[self class] previewDateFormatter] dateFromString:dateOpened]];
 	}
 
 	//Source/Destination
@@ -1067,7 +1084,7 @@ static NSString *AIRowLabel(NSString *label)
 			content = [AIPreviewContentMessage messageInChat:inChat
 												  withSource:source
 												 destination:dest
-														date:[NSDate dateWithNaturalLanguageString:[messageDict objectForKey:@"Date"]]
+														date:[[[self class] previewDateFormatter] dateFromString:[messageDict objectForKey:@"Date"]]
 													 message:message
 												   autoreply:[[messageDict objectForKey:@"Autoreply"] boolValue]];
 
@@ -1086,7 +1103,7 @@ static NSString *AIRowLabel(NSString *label)
 			content = [AIContentEvent eventInChat:inChat
 									   withSource:source
 									  destination:nil
-											 date:[NSDate dateWithNaturalLanguageString:[messageDict objectForKey:@"Date"]]
+											 date:[[[self class] previewDateFormatter] dateFromString:[messageDict objectForKey:@"Date"]]
 										  message:message
 										 withType:statusMessageType];
 		}

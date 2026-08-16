@@ -114,9 +114,14 @@ Boolean GetMetadataForHTMLLog(NSMutableDictionary *attributes, NSString *pathToF
 	if (toUID) {
 		[attributes setObject:toUID
 					   forKey:@"com_adiumX_chatDestination"];
-		[attributes setObject:[NSString stringWithFormat:@"%@ on %@",toUID,[date descriptionWithCalendarFormat:@"%y-%m-%d"
-																									  timeZone:nil
-																										locale:nil]]
+		/* This target does not link AIUtilities, so the formatter is built here. POSIX locale, or
+		 * Spotlight shows a name in digits the machine's language happens to prefer. */
+		NSDateFormatter *dayFormatter = [[[NSDateFormatter alloc] init] autorelease];
+		dayFormatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+		dayFormatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
+		dayFormatter.dateFormat = @"yy-MM-dd";
+
+		[attributes setObject:[NSString stringWithFormat:@"%@ on %@", toUID, [dayFormatter stringFromDate:date]]
 					   forKey:(NSString *)kMDItemDisplayName];
 	}
 

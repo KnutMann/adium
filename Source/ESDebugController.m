@@ -27,6 +27,7 @@
 #import <objc/objc-runtime.h>
 
 #import <ExceptionHandling/NSExceptionHandler.h>
+#import <AIUtilities/AIDateFormatterAdditions.h>
 
 #define	CACHED_DEBUG_LOGS		100		//Number of logs to keep at any given time
 #define	KEY_DEBUG_WINDOW_OPEN	@"Debug Window Open"
@@ -213,7 +214,7 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 			*the date is in YYYY-MM-DD format. duplicates are disambiguated with
 			*' 1', ' 2', ' 3', etc. appendages.
 			*/
-		filename = dateString = [date descriptionWithCalendarFormat:@"%Y-%m-%d" timeZone:nil locale:nil];
+		filename = dateString = [[NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd" timeZone:nil] stringFromDate:date];
 		while([mgr fileExistsAtPath:(pathname = [folder stringByAppendingPathComponent:[filename stringByAppendingPathExtension:@"log"]])]) {
 			filename = [dateString stringByAppendingFormat:@" %lu", ++counter];
 		}

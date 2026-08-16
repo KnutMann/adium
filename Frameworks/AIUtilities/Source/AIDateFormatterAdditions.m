@@ -150,6 +150,18 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	});
 }
 
++ (NSDateFormatter *)ai_fixedFormatterWithFormat:(NSString *)format timeZone:(NSTimeZone *)timeZone
+{
+	NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+
+	formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+	formatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
+	formatter.dateFormat = format;
+	if (timeZone) formatter.timeZone = timeZone;
+
+	return formatter;
+}
+
 + (void)withLocalizedShortDateFormatterPerform:(void (^)(NSDateFormatter *))block
 {
 	dispatch_queue_t localizedFormatterQueue = [self localizedFormatterQueue];

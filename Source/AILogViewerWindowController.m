@@ -1772,7 +1772,15 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
     NSDate	*searchStringDate = nil;
 	
 	if ((mode == LOG_SEARCH_DATE) && (searchString != nil)) {
-		searchStringDate = [[NSDate dateWithNaturalLanguageString:searchString]  dateWithCalendarFormat:nil timeZone:nil];
+		/* Typing "yesterday" or "3/4/09" into the date field. -dateWithNaturalLanguageString: read
+		 * that, and read it in whatever language it felt like; the data detector is what does the
+		 * same job now, and it does it in the language the machine is actually set to.
+		 */
+		NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeDate error:NULL];
+		NSTextCheckingResult *match = [detector firstMatchInString:searchString
+														  options:0
+															range:NSMakeRange(0, [searchString length])];
+		searchStringDate = [match date];
 	}
 	
     //Walk through every 'from' group
@@ -2952,7 +2960,7 @@ NSString *handleSpecialCasesForUIDAndServiceClass(NSString *contactUID, NSString
 - (IBAction)selectDate:(id)sender
 {
 	[filterDate release];
-	filterDate = [[[datePicker dateValue] dateWithCalendarFormat:nil timeZone:nil] retain];
+	filterDate = [[datePicker dateValue] retain];
 	
 	[self startSearchingClearingCurrentResults:YES];
 }
@@ -3072,19 +3080,19 @@ NSString *handleSpecialCasesForUIDAndServiceClass(NSString *contactUID, NSString
 	switch (dateType) {
 		case AIDateTypeExactly:
 			filterDateType = AIDateTypeExactly;
-			filterDate = [[[datePicker dateValue] dateWithCalendarFormat:nil timeZone:nil] retain];
+			filterDate = [[datePicker dateValue] retain];
 			showDatePicker = YES;
 			break;
 			
 		case AIDateTypeBefore:
 			filterDateType = AIDateTypeBefore;
-			filterDate = [[[datePicker dateValue] dateWithCalendarFormat:nil timeZone:nil] retain];
+			filterDate = [[datePicker dateValue] retain];
 			showDatePicker = YES;
 			break;
 			
 		case AIDateTypeAfter:
 			filterDateType = AIDateTypeAfter;
-			filterDate = [[[datePicker dateValue] dateWithCalendarFormat:nil timeZone:nil] retain];
+			filterDate = [[datePicker dateValue] retain];
 			showDatePicker = YES;
 			break;
 			

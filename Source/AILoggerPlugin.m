@@ -618,7 +618,18 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 {
 	NSParameterAssert(date != nil);
 	NSParameterAssert(object != nil);
-	NSString    *dateString = [date descriptionWithCalendarFormat:@"%Y-%m-%dT%H.%M.%S%z" timeZone:nil locale:nil];
+	/* The name a transcript is filed under, and the only thing that says when it happened, so the
+	 * pattern has to produce the same characters the strftime style did: 2026-08-15T14.27.24+0200.
+	 * Pinned to the POSIX locale for that reason, or a machine set to Arabic would file its
+	 * transcripts under digits the reader cannot find again.
+	 */
+	static NSDateFormatter *logNameFormatter;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		logNameFormatter = [[NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd'T'HH.mm.ssZZZ" timeZone:nil] retain];
+	});
+
+	NSString    *dateString = [logNameFormatter stringFromDate:date];
 	
 	NSAssert2(dateString != nil, @"Date string was invalid for the chatlog for %@ on %@", object, date);
 	
@@ -1036,7 +1047,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		dispatch_group_async(logAppendingGroup, dispatch_get_main_queue(), blockWithAutoreleasePool(^{
 			BOOL			dirty = NO;
 			NSString		*contentType = [content type];
-			NSString		*date = [formatter stringFromDate:[[content date] dateWithCalendarFormat:nil timeZone:nil]];
+			NSString		*date = [formatter stringFromDate:[content date]];
 			
 			if ([contentType isEqualToString:CONTENT_MESSAGE_TYPE] ||
 				[contentType isEqualToString:CONTENT_CONTEXT_TYPE]) {
@@ -1173,7 +1184,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
 		
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
-								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[[NSDate date] dateWithCalendarFormat:nil timeZone:nil]], nil]];
+								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
 		
 		[appender appendElement:eventElement];
 		
@@ -1195,7 +1206,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
 		
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
-								 values:[NSArray arrayWithObjects:@"windowClosed", chat.account.UID, [formatter stringFromDate:[[NSDate date] dateWithCalendarFormat:nil timeZone:nil]], nil]];
+								 values:[NSArray arrayWithObjects:@"windowClosed", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
 		
 		
 		[appender appendElement:eventElement];
@@ -1255,7 +1266,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
 		
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
-								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[[NSDate date] dateWithCalendarFormat:nil timeZone:nil]], nil]];
+								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
 		
 		[appender appendElement:eventElement];
 		
