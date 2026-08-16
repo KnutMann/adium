@@ -931,7 +931,7 @@
 		4F1CB64C0D640F4F0073A1E6 /* ContactInfoInspector.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4F1CB64B0D640F4F0073A1E6 /* ContactInfoInspector.xib */; };
 		5A1781860EC1215D00BA1E04 /* AIAutoScrollTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A1781850EC1215D00BA1E04 /* AIAutoScrollTextView.m */; };
 		5A17D65D130F76B4002C852F /* AIGradientView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A17D65C130F76B4002C852F /* AIGradientView.m */; };
-		5A5F8BBD12D560E400019727 /* AIDockNameOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A5F8BBC12D560E400019727 /* AIDockNameOverlay.m */; };
+		5A5F8BBD12D560E400019727 /* AIDockNameOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A5F8BBC12D560E400019727 /* AIDockNameOverlay.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		5A799674133C3D6F0005AC6A /* MessageView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5A1FEA601334549300C14951 /* MessageView.xib */; };
 		5A94397B1279ECB800FDD81D /* AIImgurImageUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A94397A1279ECB800FDD81D /* AIImgurImageUploader.m */; };
 		5A9A9F8911F2951400328DF9 /* AIDoNothingContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A9A9F8811F2951400328DF9 /* AIDoNothingContactAlertPlugin.m */; };
