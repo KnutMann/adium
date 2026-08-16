@@ -24,6 +24,27 @@ static NSMutableDictionary	*serviceIcons[NUMBER_OF_SERVICE_ICON_TYPES][NUMBER_OF
 static NSString				*serviceIconBasePath = nil;
 static NSDictionary			*serviceIconNames[NUMBER_OF_SERVICE_ICON_TYPES];
 
+/*!
+ * @brief The size, in points, a service icon of a given type is displayed at
+ *
+ * The pixel size of the file is the pack's business: a pack may carry twice the pixels for
+ * Retina displays, or more. The point size is ours, because menus and rows draw an image at
+ * its point size, and an icon that grew points whenever a pack grew pixels would grow in the
+ * interface. 16 for the small icons and 48 for the large ones are the sizes every pack has
+ * always been drawn at.
+ */
+static NSSize canonicalServiceIconSize(AIServiceIconType iconType)
+{
+	return (iconType == AIServiceIconLarge) ? NSMakeSize(48, 48) : NSMakeSize(16, 16);
+}
+
+static NSImage *serviceIconFromFile(NSString *path, AIServiceIconType iconType)
+{
+	NSImage *icon = [[NSImage alloc] initWithContentsOfFile:path];
+	[icon setSize:canonicalServiceIconSize(iconType)];
+	return icon;
+}
+
 static NSString *resourcePathForIconPackAtPath(NSString *path)
 {
 	NSBundle *xtraBundle = [NSBundle bundleWithPath:path];
@@ -104,7 +125,7 @@ static NSString *resourcePathForIconPackAtPath(NSString *path)
 		NSString	*path = [self pathForServiceIconForServiceID:serviceID type:iconType];
 
 		if (path) {
-			serviceIcon = [[NSImage alloc] initWithContentsOfFile:path];
+			serviceIcon = serviceIconFromFile(path, iconType);
 		} else {
 			AIService *service = [adium.accountController firstServiceWithServiceID:serviceID];
 			if (service) {
@@ -315,7 +336,7 @@ static NSString *resourcePathForIconPackAtPath(NSString *path)
 			if ((thisServiceIconImageName = [defaultServiceIconNames objectForKey:serviceID])) {
 				NSString		*iconPath = [defaultPath stringByAppendingPathComponent:thisServiceIconImageName];
 				
-				defaultServiceIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
+				defaultServiceIcon = serviceIconFromFile(iconPath, type);
 			}
 		}
 	}

@@ -727,6 +727,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	NSString	*type = [xtraInfo type];
 	NSString	*path = [xtraInfo path];
+	/* Where the pack's lists live: new-style bundles keep them in Contents/Resources, flat
+	 * old-style packs at the root. AIXtraInfo already answers the right one for both. */
+	NSString	*resourcePath = [xtraInfo resourcePath];
 	NSInteger	 count = 0;
 	NSString	*one = nil;
 	NSString	*many = nil;
@@ -737,7 +740,7 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 		many = AILocalizedString(@"%li sounds", "How many sounds an Xtra holds");
 
 	} else if ([type isEqualToString:@"adiumemoticonset"]) {
-		NSString		*listPath = [path stringByAppendingPathComponent:@"Emoticons.plist"];
+		NSString		*listPath = [resourcePath stringByAppendingPathComponent:@"Emoticons.plist"];
 		NSDictionary	*list = [NSDictionary dictionaryWithContentsOfFile:listPath];
 
 		count = [[list objectForKey:@"Emoticons"] count];
@@ -758,7 +761,7 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 	} else if ([type isEqualToString:@"adiumserviceicons"] || [type isEqualToString:@"adiumstatusicons"]) {
 		/* Counted from the list that names them, not from the images: a set carrying one picture per
 		 * service in two sizes has twice as many files as it has services. */
-		NSString		*listPath = [path stringByAppendingPathComponent:@"Icons.plist"];
+		NSString		*listPath = [resourcePath stringByAppendingPathComponent:@"Icons.plist"];
 		NSDictionary	*list = [NSDictionary dictionaryWithContentsOfFile:listPath];
 
 		count = [[list objectForKey:@"List"] count];

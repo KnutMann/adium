@@ -38,6 +38,7 @@ static const AXCServiceDefinition serviceDefinitions[] = {
 	{ @"AIM",          @"AIM (unsupported)",          NO },
 	{ @"Bonjour",      @"Bonjour (unsupported)",      NO },
 	{ @"Facebook",     @"Facebook (unsupported)",     NO },
+	{ @"Gizmo",        @"Gizmo (unsupported)",        NO },
 	{ @"GTalk",        @"GTalk (unsupported)",        NO },
 	{ @"ICQ",          @"ICQ (unsupported)",          NO },
 	{ @"IRC",          @"IRC (unsupported)",          NO },
@@ -51,6 +52,7 @@ static const AXCServiceDefinition serviceDefinitions[] = {
 	{ @"Skype",        @"Skype (unsupported)",        NO },
 	{ @"Stress Test",  @"Stress Test (unsupported)",  NO },
 	{ @"Trepia",       @"Trepia (unsupported)",       NO },
+	{ @"Twitter",      @"Twitter (unsupported)",      NO },
 	{ @"Xfire",        @"Xfire (unsupported)",        NO },
 	{ @"Yahoo!",       @"Yahoo! (unsupported)",       NO },
 	{ @"Yahoo! Japan", @"Yahoo! Japan (unsupported)", NO },
@@ -71,6 +73,7 @@ static const AXCServiceDefinition *serviceDefinitionForID(NSString *serviceID)
 
 @interface AXCServiceIconPackDocument ()
 - (AXCIconPackEntry *)entryForServiceID:(NSString *)serviceID path:(NSString *)path;
+- (void)configureEntry:(AXCIconPackEntry *)entry;
 @end
 
 @implementation AXCServiceIconPackDocument
@@ -91,6 +94,21 @@ static const AXCServiceDefinition *serviceDefinitionForID(NSString *serviceID)
 		nil];
 }
 
+- (NSString *)displayNameForCategoryName:(NSString *)categoryName
+{
+	/* A service-icon entry stores one file name, and AIServiceIcons loads that
+	 * file as a single NSImage. It does not discover a sibling @2x image, so
+	 * these are the actual pixel dimensions the current format consumes. */
+	if ([categoryName isEqualToString:@"Interface-Large"])
+		return @"Interface-Large (48 x 48 px)";
+	if ([categoryName isEqualToString:@"Interface-Small"])
+		return @"Interface-Small (16 x 16 px)";
+	if ([categoryName isEqualToString:@"List"])
+		return @"List (16 x 16 px)";
+
+	return [super displayNameForCategoryName:categoryName];
+}
+
 - (NSArray *) entriesForNewDocumentInCategory:(NSString *)categoryName {
 	NSMutableArray *entries = [NSMutableArray arrayWithCapacity:serviceDefinitionCount];
 	for (NSUInteger index = 0; index < serviceDefinitionCount; index++) {
@@ -105,27 +123,62 @@ static const AXCServiceDefinition *serviceDefinitionForID(NSString *serviceID)
 	if (![super readFromFile:path ofType:type])
 		return NO;
 
-	for (NSString *categoryName in categoryNames) {
-		for (AXCIconPackEntry *entry in [categoryStorage objectForKey:categoryName]) {
-			const AXCServiceDefinition *definition = serviceDefinitionForID([entry key]);
-			if (definition) {
-				[entry setDisplayName:definition->displayName];
-				[entry setSupported:definition->supported];
-			}
-		}
+	NSMutableDictionary *updatedStorage = [categoryStorage mutableCopy];
+	NSMutableArray *updatedCategoryNames = [categoryNames mutableCopy];
+
+	for (NSArray *entries in [updatedStorage allValues]) {
+		for (AXCIconPackEntry *entry in entries)
+			[self configureEntry:entry];
 	}
 
+	/* Existing packs list only the IDs that happened to have icons when they
+	 * were made. Add missing catalogue entries to the standard categories so a
+	 * pack opened for editing can gain icons for current services as well. */
+	for (NSString *categoryName in [self categoryNames]) {
+		NSMutableArray *entries = [[updatedStorage objectForKey:categoryName] mutableCopy];
+		if (!entries) {
+			entries = [[NSMutableArray alloc] initWithCapacity:serviceDefinitionCount];
+			[updatedCategoryNames addObject:categoryName];
+		}
+
+		NSMutableSet *serviceIDs = [NSMutableSet setWithCapacity:[entries count]];
+		for (AXCIconPackEntry *entry in entries)
+			[serviceIDs addObject:[entry key]];
+
+		for (NSUInteger index = 0; index < serviceDefinitionCount; index++) {
+			NSString *serviceID = serviceDefinitions[index].serviceID;
+			if (![serviceIDs containsObject:serviceID])
+				[entries addObject:[self entryForServiceID:serviceID path:nil]];
+		}
+
+		[updatedStorage setObject:entries forKey:categoryName];
+		[entries release];
+	}
+
+	[updatedCategoryNames sortUsingSelector:@selector(caseInsensitiveCompare:)];
+	[categoryNames release];
+	categoryNames = [updatedCategoryNames copy];
+	[updatedCategoryNames release];
+	[categoryStorage release];
+	categoryStorage = [updatedStorage copy];
+	[updatedStorage release];
+
 	return YES;
+}
+
+- (void)configureEntry:(AXCIconPackEntry *)entry
+{
+	const AXCServiceDefinition *definition = serviceDefinitionForID([entry key]);
+	if (definition) {
+		[entry setDisplayName:definition->displayName];
+		[entry setSupported:definition->supported];
+	}
 }
 
 - (AXCIconPackEntry *)entryForServiceID:(NSString *)serviceID path:(NSString *)path
 {
 	AXCIconPackEntry *entry = [AXCIconPackEntry entryWithKey:serviceID path:path];
-	const AXCServiceDefinition *definition = serviceDefinitionForID(serviceID);
-	if (definition) {
-		[entry setDisplayName:definition->displayName];
-		[entry setSupported:definition->supported];
-	}
+	[self configureEntry:entry];
 
 	return entry;
 }

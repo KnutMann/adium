@@ -174,7 +174,7 @@
 	BOOL isKeyColumn = [KEY_COLUMN_NAME isEqualToString:[col identifier]];
 
 	if ([categoryNames indexOfObjectIdenticalTo:item] != NSNotFound)
-		return isKeyColumn ? item : [NSNumber numberWithInt:-1];
+		return isKeyColumn ? [self displayNameForCategoryName:item] : [NSNumber numberWithInt:-1];
 	else
 		return isKeyColumn ? (NSObject *)[item displayName] : (NSObject *)[NSNumber numberWithUnsignedInteger:[resources indexOfObject:[item path]]];
 }
@@ -320,6 +320,11 @@
 - (NSArray *) entriesForNewDocumentInCategory:(NSString *)categoryName
 {
 	return [NSArray array];
+}
+
+- (NSString *) displayNameForCategoryName:(NSString *)categoryName
+{
+	return categoryName;
 }
 
 @end

@@ -60,8 +60,12 @@
 		path = [url path];
 		type = [[[url path] pathExtension] lowercaseString];
 		xtraBundle = [[NSBundle alloc] initWithPath:path];
-		version = [xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
-		author = [xtraBundle objectForInfoDictionaryKey:@"OriginalAuthor"];
+		/* XtraVersion and XtraAuthors are what the XtrasCreator writes and what packs in the
+		 * wild carry; the other two names appear in a handful of older packs. */
+		version = [xtraBundle objectForInfoDictionaryKey:@"XtraVersion"];
+		if (![version length]) version = [xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+		author = [xtraBundle objectForInfoDictionaryKey:@"XtraAuthors"];
+		if (![author length]) author = [xtraBundle objectForInfoDictionaryKey:@"OriginalAuthor"];
 		if (xtraBundle && ([[xtraBundle objectForInfoDictionaryKey:@"XtraBundleVersion"] integerValue] == 1)) { //This checks for a new-style xtra
 			[self setName:[xtraBundle objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey]];
 			resourcePath = [xtraBundle resourcePath];
