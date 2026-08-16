@@ -38,12 +38,26 @@
 
 @end
 
+/* The editors currently on screen.
+ *
+ * -showOnWindow: is declared ns_consumes_self. Under manual counting that was decoration, there to
+ * quiet the analyser about SHLinkManagementPlugin allocating an editor and walking away from it.
+ * Counted automatically it means what it says: the caller's one reference is handed over at the
+ * call and given up when the method returns, so with nothing else holding on, the editor would die
+ * as its sheet appeared. This set is that something else, and it takes the place of a scheme in
+ * which the object was its own owner and handed itself to the pool on the way out.
+ */
+static NSMutableSet *openLinkEditors = nil;
+
 @implementation SHLinkEditorWindowController
 
 #pragma mark Init methods
 
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
+	if (!openLinkEditors) openLinkEditors = [[NSMutableSet alloc] init];
+	[openLinkEditors addObject:self];
+
 	if (parentWindow) {
 		[NSApp beginSheet:self.window
 		   modalForWindow:parentWindow
@@ -59,8 +73,8 @@
 
 {
     if ((self = [super initWithWindowNibName:LINK_EDITOR_NIB_NAME])) {
-		textView = [inTextView retain];
-		target = [inTarget retain];
+		textView = inTextView;
+		target = inTarget;
 	}
 	
 	return self;
@@ -68,10 +82,10 @@
 
 - (void)dealloc
 {
+	/* Stays: the URL field is an NSTextView with this controller as its delegate, which puts a
+	 * text-did-change registration in this object's name. The releases are gone.
+	 */
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[textView release];
-	[target release];
-    [super dealloc];
 }
 
 #pragma mark Window Methods
@@ -141,7 +155,6 @@
 				initialURL = [[NSAttributedString alloc] initWithString:tmpString];
 				[[textView_URL textStorage] setAttributedString:initialURL];
 				[textView_URL setSelectedRange:NSMakeRange(0,[initialURL length])];
-				[initialURL release];
 			}
 
 		} else if ([linkText length]) {
@@ -164,14 +177,28 @@
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends. Both exits are reached from
+	 * inside AppKit's close, which goes on addressing this controller afterwards, and dropping the
+	 * last reference here would free it underneath. It also makes the two exits harmless should
+	 * both ever run, which the pair of autoreleases that stood here would not have been.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openLinkEditors removeObject:self];
 }
 
 // Called as the sheet closes, dismisses the sheet
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends. Both exits are reached from
+	 * inside AppKit's close, which goes on addressing this controller afterwards, and dropping the
+	 * last reference here would free it underneath. It also makes the two exits harmless should
+	 * both ever run, which the pair of autoreleases that stood here would not have been.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openLinkEditors removeObject:self];
 }
 
 // Cancel
@@ -214,7 +241,6 @@
 		NSBeep();
 	}
 
-	[urlString release];
 }
 
 - (IBAction)removeURL:(id)sender
@@ -239,7 +265,7 @@
 	// We need to make sure we're getting copies of these, otherwise the fields will change them later, changing the
 	// copy in our dictionary
 	NSDictionary	*linkDict = [NSDictionary dictionaryWithObjectsAndKeys:
-		[[[textField_linkText stringValue] copy] autorelease], KEY_LINK_TITLE,
+		[[textField_linkText stringValue] copy], KEY_LINK_TITLE,
 		[textView_URL linkURL], KEY_LINK_URL,
 		nil];
 	
@@ -256,8 +282,8 @@
 	NSMutableAttributedString	*linkString;
 	
 	// Create the link string
-	linkString = [[[NSMutableAttributedString alloc] initWithString:linkTitle
-														 attributes:typingAttributes] autorelease];
+	linkString = [[NSMutableAttributedString alloc] initWithString:linkTitle
+														 attributes:typingAttributes];
     [linkString addAttribute:NSLinkAttributeName value:linkURL range:NSMakeRange(0,[linkString length])];
     
 	// Insert it into the text view, replacing the current selection
@@ -271,12 +297,12 @@
 	// If this link was inserted at the end of our text view, add a space and set the formatting back to normal
 	// This prevents the link attribute from bleeding into newly entered text
 	if (NSMaxRange([inView selectedRange]) == [textStorage length]) {
-		NSAttributedString	*tmpString = [[[NSAttributedString alloc] initWithString:@" "
-																		  attributes:typingAttributes] autorelease];
+		NSAttributedString	*tmpString = [[NSAttributedString alloc] initWithString:@" "
+																		  attributes:typingAttributes];
 		[[[inView undoManager] prepareWithInvocationTarget:textStorage]
 				replaceCharactersInRange:NSMakeRange(NSMaxRange([inView selectedRange]), 1)
-					withAttributedString:[[[NSAttributedString alloc] initWithString:@""
-																		  attributes:typingAttributes] autorelease]];
+					withAttributedString:[[NSAttributedString alloc] initWithString:@""
+																		  attributes:typingAttributes]];
 		[textStorage appendAttributedString:tmpString];
 	}
 	

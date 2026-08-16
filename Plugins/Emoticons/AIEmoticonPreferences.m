@@ -41,6 +41,16 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
 
+/* The preference sheets currently on screen.
+ *
+ * -openOnWindow: is declared ns_consumes_self. Under manual counting that was decoration, quieting
+ * the analyser about AIAppearancePreferences allocating this object and walking away. Counted
+ * automatically it means what it says: the one reference is handed over at the call and given up
+ * when the method returns, so with nothing else holding on, the sheet would die as it appeared.
+ * This set holds it instead, in place of an object that used to be its own owner.
+ */
+static NSMutableSet *openEmoticonPreferences = nil;
+
 @implementation AIEmoticonPreferences
 
 - (id)init
@@ -54,6 +64,9 @@
 
 - (void)openOnWindow:(NSWindow *)parentWindow
 {
+	if (!openEmoticonPreferences) openEmoticonPreferences = [[NSMutableSet alloc] init];
+	[openEmoticonPreferences addObject:self];
+
 	if (parentWindow) {
 		[NSApp beginSheet:self.window
 		   modalForWindow:parentWindow
@@ -78,8 +91,14 @@
 	
 	[adium.preferenceController unregisterPreferenceObserver:self];
     [adium.emoticonController flushEmoticonImageCache];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openEmoticonPreferences removeObject:self];
 }
 
 //Configure the preference view
@@ -90,7 +109,7 @@
 	[table_emoticonPacks registerForDraggedTypes:[NSArray arrayWithObject:EMOTICON_PACK_DRAG_TYPE]];
 	
 	//Configure the outline view
-	[[table_emoticonPacks tableColumnWithIdentifier:@"Emoticons"] setDataCell:[[[AIGenericViewCell alloc] init] autorelease]];
+	[[table_emoticonPacks tableColumnWithIdentifier:@"Emoticons"] setDataCell:[[AIGenericViewCell alloc] init]];
 	[table_emoticonPacks selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 	[table_emoticonPacks setToolTip:EMOTICON_PACKS_TOOLTIP];
 	[table_emoticonPacks setDelegate:self];
@@ -98,7 +117,6 @@
 	[self configurePreviewControllers];
 
     //Emoticons table
-	[selectedEmoticonPack release];
 	selectedEmoticonPack = nil;
 	checkCell = [[NSButtonCell alloc] init];
 	[checkCell setButtonType:NSSwitchButton];
@@ -110,17 +128,14 @@
 	NSImageCell *imageCell = [[NSImageCell alloc] initImageCell:nil];
 	if ([imageCell respondsToSelector:@selector(_setAnimates:)]) [imageCell _setAnimates:NO];
 	[[table_emoticons tableColumnWithIdentifier:@"Image"] setDataCell:imageCell];
-	[imageCell release];
 
 	AIVerticallyCenteredTextCell *textCell = [[AIVerticallyCenteredTextCell alloc] init];
 	[textCell setLineBreakMode:NSLineBreakByTruncatingTail];
 	[[table_emoticons tableColumnWithIdentifier:@"Name"] setDataCell:textCell];
-	[textCell release];
 	
 	textCell = [[AIVerticallyCenteredTextCell alloc] init];
 	[textCell setLineBreakMode:NSLineBreakByTruncatingTail];
 	[[table_emoticons tableColumnWithIdentifier:@"String"] setDataCell:textCell];
-	[textCell release];
 
     [table_emoticons setUsesAlternatingRowBackgroundColors:YES];
         
@@ -147,18 +162,14 @@
 	
 	[adium.preferenceController unregisterPreferenceObserver:self];
     [adium.emoticonController flushEmoticonImageCache];
-	
-	[self autorelease];
-}
 
-- (void)dealloc
-{
-	[checkCell release]; checkCell = nil;
-	[selectedEmoticonPack release]; selectedEmoticonPack = nil;
-	[emoticonPackPreviewControllers release]; emoticonPackPreviewControllers = nil;
-	[emoticonImageCache release]; emoticonImageCache = nil;
-	
-	[super dealloc];
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openEmoticonPreferences removeObject:self];
 }
 
 - (void)configurePreviewControllers
@@ -168,7 +179,7 @@
 	NSView			*view;
 	
 	//First, remove any AIEmoticonPackPreviewView instances from the table
-	enumerator = [[[[table_emoticonPacks subviews] copy] autorelease] objectEnumerator];
+	enumerator = [[[table_emoticonPacks subviews] copy] objectEnumerator];
 	while ((view = [enumerator nextObject])) {
 		if ([view isKindOfClass:[AIEmoticonPackPreviewView class]]) {
 			[view removeFromSuperviewWithoutNeedingDisplay];
@@ -176,7 +187,6 @@
 	}
 	
 	//Now [re]create the array of emoticon pack preview controlls
-	[emoticonPackPreviewControllers release];
 	emoticonPackPreviewControllers = [[NSMutableArray alloc] init];
 	
 	enumerator = [[adium.emoticonController availableEmoticonPacks] objectEnumerator];
@@ -199,8 +209,7 @@
     //Remember the selected pack
     if ([table_emoticonPacks numberOfSelectedRows] == 1 &&
 	   ((selectedRow != -1) && (selectedRow < [availableEmoticonPacks count]))) {
-		[selectedEmoticonPack release];
-        selectedEmoticonPack = [[availableEmoticonPacks objectAtIndex:selectedRow] retain];
+        selectedEmoticonPack = [availableEmoticonPacks objectAtIndex:selectedRow];
     } else {
         selectedEmoticonPack = nil;
     }
@@ -221,7 +230,6 @@
 		if (rowHeight > EMOTICON_MAX_ROW_HEIGHT) rowHeight = EMOTICON_MAX_ROW_HEIGHT;
     }
     
-	[emoticonImageCache release];
 	emoticonImageCache = [[NSMutableDictionary alloc] init];
 	
     //Update the table
@@ -259,7 +267,7 @@
 		       forKey:NSParagraphStyleAttributeName];
     }
 
-    return [[[NSAttributedString alloc] initWithString:inString attributes:attributes] autorelease];
+    return [[NSAttributedString alloc] initWithString:inString attributes:attributes];
 }
 
 #pragma mark Table view data source
@@ -415,8 +423,8 @@
 
 -(void)moveSelectedPacksToTrash
 {
-	NSString	*name = [[selectedEmoticonPack.name copy] autorelease];
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSString	*name = [selectedEmoticonPack.name copy];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:AILocalizedString(@"Delete Emoticon Pack",nil)];
 	[alert setInformativeText:[NSString stringWithFormat:
 							   AILocalizedString(@"Are you sure you want to delete the %@ Emoticon Pack? It will be moved to the Trash.",nil), name]];

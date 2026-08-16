@@ -32,11 +32,6 @@
     return [super initWithFrame:frameRect textContainer:aTextContainer];
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-}
-
 
 //Set Validation Attribs -----------------------------------------------------------------------------------------------
 #pragma mark Set Validation Attribs
@@ -113,7 +108,6 @@
 		NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
 		[set addCharactersInString:@"#"];
 		allowedCharacters = [set copy];
-		[set release];
 	}
 
 	if ([linkURL rangeOfString:@"%n"].location != NSNotFound) {
@@ -122,7 +116,7 @@
 									withString:@"%25n"
 									   options:NSLiteralSearch
 										 range:NSMakeRange(0, [newLinkURL length])];
-		linkURL = [newLinkURL autorelease];
+		linkURL = newLinkURL;
 
 	}
 

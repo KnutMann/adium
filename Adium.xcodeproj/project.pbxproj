@@ -74,7 +74,7 @@
 		114849BC0F78420300EA5264 /* AIAuthorizationRequestsWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 114849BB0F78420300EA5264 /* AIAuthorizationRequestsWindow.xib */; };
 		ADD1E5C0DE00000000001004 /* ESIRCAccountView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001003 /* ESIRCAccountView.xib */; };
 		1154F50A12E1476900B8CA27 /* AILogByAccountWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1154F50712E1476900B8CA27 /* AILogByAccountWindow.xib */; };
-		1154F50B12E1476900B8CA27 /* AILogByAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1154F50912E1476900B8CA27 /* AILogByAccountWindowController.m */; };
+		1154F50B12E1476900B8CA27 /* AILogByAccountWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1154F50912E1476900B8CA27 /* AILogByAccountWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		1164A90D0F7AD4AB00110AE4 /* AIContentTopic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1164A90B0F7AD4AB00110AE4 /* AIContentTopic.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1164A9270F7AD70700110AE4 /* AIContentTopic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1164A90C0F7AD4AB00110AE4 /* AIContentTopic.m */; };
 		117009A70F7E7D720078D6AB /* AIIRCServicesPasswordPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 117009A10F7E7D3A0078D6AB /* AIIRCServicesPasswordPlugin.m */; };
@@ -194,7 +194,7 @@
 		ADD1E5C0DF00000000000025 /* AIStatusListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000022 /* AIStatusListView.m */; };
 		3428328B07D2643F004F01C9 /* ESStatusPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */; };
 		342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */ = {isa = PBXBuildFile; fileRef = 342838ED07D2D004004F01C9 /* Shared Dock Icon Images */; };
-		342910CD07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */; };
+		342910CD07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3429BB06070378F700EED705 /* ESFileTransferMessagesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3429BB04070378F700EED705 /* ESFileTransferMessagesPlugin.m */; };
 		342F88CF0A2A74EB0001DB29 /* SGKeyCombo.m in Sources */ = {isa = PBXBuildFile; fileRef = 342F88C90A2A74EA0001DB29 /* SGKeyCombo.m */; };
 		342F88D10A2A74EB0001DB29 /* SGHotKeyCenter.m in Sources */ = {isa = PBXBuildFile; fileRef = 342F88CB0A2A74EA0001DB29 /* SGHotKeyCenter.m */; };
@@ -420,7 +420,7 @@
 		349C6E4907C96D45005EB896 /* CBContactCountingDisplayPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C6E4607C96D44005EB896 /* CBContactCountingDisplayPlugin.m */; };
 		349C6E8E07C972B2005EB896 /* AIExtendedStatusPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C6E8C07C972B2005EB896 /* AIExtendedStatusPlugin.m */; };
 		349C6F6607C99ACF005EB896 /* ESContactListAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C6F6407C99ACE005EB896 /* ESContactListAdvancedPreferences.m */; };
-		349E2E8E07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 349E2E8C07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m */; };
+		349E2E8E07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 349E2E8C07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34A1A8CA0DFB246400AC78CF /* AISocialNetworkingStatusMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A1A8C80DFB246300AC78CF /* AISocialNetworkingStatusMenu.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34A1A8CB0DFB246400AC78CF /* AISocialNetworkingStatusMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1A8C90DFB246300AC78CF /* AISocialNetworkingStatusMenu.m */; };
 		34A1A8E70DFB276E00AC78CF /* SocialNetworkingCustomStatus.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34A1A8E60DFB276E00AC78CF /* SocialNetworkingCustomStatus.xib */; };
@@ -477,11 +477,11 @@
 		34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE20007E8E11500AD984D /* AIChatCyclingPlugin.m */; };
 		34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */; };
 		34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */; };
-		34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */; };
+		34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */; };
 		34C18B0D06CAC95400FF5FF9 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34E839050583207E00F2AADB /* SystemConfiguration.framework */; };
-		34C68B260778FA1300EB423C /* ESGeneralPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C68B240778FA1300EB423C /* ESGeneralPreferencesPlugin.m */; };
-		34C68B2C0778FA5C00EB423C /* ESGeneralPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C68B2A0778FA5C00EB423C /* ESGeneralPreferences.m */; };
+		34C68B260778FA1300EB423C /* ESGeneralPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C68B240778FA1300EB423C /* ESGeneralPreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		34C68B2C0778FA5C00EB423C /* ESGeneralPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C68B2A0778FA5C00EB423C /* ESGeneralPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34C6A3BB077A8CB500EB423C /* AppearanceDefaults.plist */; };
 		34C7C62809EC4E890060FB4A /* AILibpurplePlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B3244309BA003C00029361 /* AILibpurplePlugin.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34C846AF101E515900140B4B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34C846AE101E515900140B4B /* QTKit.framework */; };
@@ -864,7 +864,7 @@
 		4BD6737406001BF00049CAF7 /* AIAccountListPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F55B413C03AB895501A8010A /* AIAccountListPreferencesPlugin.m */; };
 		4BD673B706001C5F0049CAF7 /* AIContactStatusColoringPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B31E8C104C46A9100A8010A /* AIContactStatusColoringPlugin.m */; };
 		4BD6741C06001CEF0049CAF7 /* AIMessageAliasPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F11B9622051CDB3B0000000E /* AIMessageAliasPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		4BD6742E06001D1D0049CAF7 /* AIEmoticonPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = F5F0FE9D04B12CAC01A80106 /* AIEmoticonPreferences.m */; };
+		4BD6742E06001D1D0049CAF7 /* AIEmoticonPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = F5F0FE9D04B12CAC01A80106 /* AIEmoticonPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BD6742F06001D1D0049CAF7 /* EmoticonPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = F5F0FEA004B1336C01A80106 /* EmoticonPrefs.xib */; };
 		4BD6743106001D1E0049CAF7 /* EmoticonDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = F5F0FEA204B133AB01A80106 /* EmoticonDefaults.plist */; };
 		4BD6745E06001D740049CAF7 /* ESOpenMessageWindowContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 344AB2C40579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1005,9 +1005,9 @@
 		76889DEF12D3CA40007AEF00 /* Personal.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 76889DEE12D3CA40007AEF00 /* Personal.tiff */; };
 		76C1AF9C125A906A00D269A9 /* AIAdiumURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 76C1AF9B125A906A00D269A9 /* AIAdiumURLProtocol.m */; };
 		7E824CDD06387FAF00813072 /* LinkEditor.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7E824CCE06387FAF00813072 /* LinkEditor.xib */; };
-		7E824CE106387FAF00813072 /* SHAutoValidatingTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CD206387FAF00813072 /* SHAutoValidatingTextView.m */; };
-		7E824CE306387FAF00813072 /* SHLinkEditorWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CD406387FAF00813072 /* SHLinkEditorWindowController.m */; };
-		7E824CEB06387FAF00813072 /* SHLinkManagementPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CDC06387FAF00813072 /* SHLinkManagementPlugin.m */; };
+		7E824CE106387FAF00813072 /* SHAutoValidatingTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CD206387FAF00813072 /* SHAutoValidatingTextView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		7E824CE306387FAF00813072 /* SHLinkEditorWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CD406387FAF00813072 /* SHLinkEditorWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		7E824CEB06387FAF00813072 /* SHLinkManagementPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E824CDC06387FAF00813072 /* SHLinkManagementPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		7EC033B214590E0700CF24FB /* MessageWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7EC033B114590E0700CF24FB /* MessageWindow.xib */; };
 		811033510CDE170B00EC6038 /* ssl-cdsa.c in Sources */ = {isa = PBXBuildFile; fileRef = 811033500CDE170B00EC6038 /* ssl-cdsa.c */; };
 		811034050CDE216F00EC6038 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 340C1ABE0BD58FAB00D09235 /* Security.framework */; };

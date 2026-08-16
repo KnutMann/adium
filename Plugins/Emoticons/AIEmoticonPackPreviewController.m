@@ -28,14 +28,14 @@
 
 + (id)previewControllerForPack:(AIEmoticonPack *)inPack preferences:(AIEmoticonPreferences *)inPreferences
 {
-	return [[[self alloc] initForPack:inPack preferences:inPreferences] autorelease];
+	return [[self alloc] initForPack:inPack preferences:inPreferences];
 }
 
 - (id)initForPack:(AIEmoticonPack *)inPack preferences:(AIEmoticonPreferences *)inPreferences
 {
 	if ((self = [super init])) {
-		emoticonPack = [inPack retain];
-		preferences = [inPreferences retain];
+		emoticonPack = inPack;
+		preferences = inPreferences;
 
 		[NSBundle loadNibNamed:@"EmoticonPackPreview" owner:self];
 	}
@@ -43,17 +43,12 @@
 	return self;
 }
 
-- (void)dealloc
-{
-	[emoticonPack release];
-	[preferences release];
-	
-	/* It seems like we should be releasing previewView here.  Doing so leads to a double release when the view is
-	 * removed its superview, though.. no idea what's going wrong, but it's not a leak... it's just weird. -eds */
-	//[previewView release];
-
-	[super dealloc];
-}
+/* The old dealloc released two instance variables and pointedly did not release previewView,
+ * noting that doing so double freed it once the view had left its superview. That is what an
+ * outlet is: the view belongs to whatever it was added to, and this object never owned it.
+ * Both instance variables it did release are given up on their own now, and the puzzle goes
+ * with them.
+ */
 
 - (IBAction)togglePack:(id)sender
 {

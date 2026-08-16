@@ -49,7 +49,10 @@
 #define GENERAL_PANE_INITIAL_WIDTH			540.0
 #define RECENT_MESSAGES_FIELD_WIDTH			44.0
 
-@interface ESGeneralPreferences ()
+@interface ESGeneralPreferences () {
+	/* The owner of the log-by-account sheet for as long as it is up. */
+	AILogByAccountWindowController *logByAccountWindowController;
+}
 - (NSMenu *)tabChangeKeysMenu;
 - (NSMenu *)sendKeysMenu;
 - (NSMenu *)tabPositionMenu;
@@ -112,8 +115,6 @@ static NSString *AIRowLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[establishedBindings release];
-	[super dealloc];
 }
 
 #pragma mark View
@@ -128,7 +129,10 @@ static NSString *AIRowLabel(NSString *label)
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		/* The ivar belongs to AIModularPane, which is still counted by hand and gives it back in
+		 * -closeView. The assignment takes the one reference that release balances.
+		 */
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -153,7 +157,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:GENERAL_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:GENERAL_PANE_INITIAL_WIDTH];
 	NSDictionary		*doesNotSetEnabled = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:NO]
 																		 forKey:NSConditionallySetsEnabledBindingOption];
 	/* The nib passed -1 for every placeholder of the secondary "enabled2" bindings,
@@ -218,7 +222,7 @@ static NSString *AIRowLabel(NSString *label)
 	textField_recentMessages = [AISettingsFormView valueFieldWithWidth:RECENT_MESSAGES_FIELD_WIDTH
 															   target:nil
 															   action:@selector(takeIntValueFrom:)];
-	NSNumberFormatter *recentMessagesFormatter = [[[NSNumberFormatter alloc] init] autorelease];
+	NSNumberFormatter *recentMessagesFormatter = [[NSNumberFormatter alloc] init];
 	[recentMessagesFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
 	[recentMessagesFormatter setPositiveFormat:@"0"];
 	[recentMessagesFormatter setNegativeFormat:@"-0"];
@@ -227,7 +231,7 @@ static NSString *AIRowLabel(NSString *label)
 	[textField_recentMessages setFormatter:recentMessagesFormatter];
 	[[textField_recentMessages cell] setSendsActionOnEndEditing:YES];
 
-	stepper_recentMessages = [[[NSStepper alloc] initWithFrame:NSZeroRect] autorelease];
+	stepper_recentMessages = [[NSStepper alloc] initWithFrame:NSZeroRect];
 	[stepper_recentMessages setMinValue:0.0];
 	[stepper_recentMessages setMaxValue:999.0];
 	[stepper_recentMessages setIncrement:1.0];
@@ -416,7 +420,8 @@ static NSString *AIRowLabel(NSString *label)
 	for (NSArray *boundPair in establishedBindings) {
 		[[boundPair objectAtIndex:0] unbind:[boundPair objectAtIndex:1]];
 	}
-	[establishedBindings release]; establishedBindings = nil;
+	/* Stays an assignment: -bindObject: builds the array again only when it finds none here. */
+	establishedBindings = nil;
 
 	checkBox_messagesInTabs = nil;
 	checkBox_arrangeByGroup = nil;
@@ -579,7 +584,7 @@ static NSString *AIRowLabel(NSString *label)
 			 keyEquivalent:@""
 					   tag:AIBraces];
 
-	return [menu autorelease];
+	return menu;
 }
 
 /*!
@@ -607,14 +612,19 @@ static NSString *AIRowLabel(NSString *label)
 			 keyEquivalent:@""
 					   tag:AISendOnBoth];
 
-	return [menu autorelease];
+	return menu;
 }
 
 - (IBAction)configureLogCertainAccounts:(id)sender
 {
-	AILogByAccountWindowController *windowController = [[AILogByAccountWindowController alloc] initWithWindowNibName:@"AILogByAccountWindow"];
+	/* Held in an instance variable rather than a local for the length of the sheet. The one
+	 * reference used to be carried by nobody: allocated into a local here, never given up, and
+	 * cashed in from -sheetDidEnd: through the sheet's own back pointer. A local goes out of
+	 * scope at the end of this method, which is where the sheet begins.
+	 */
+	logByAccountWindowController = [[AILogByAccountWindowController alloc] initWithWindowNibName:@"AILogByAccountWindow"];
 
-	[NSApp beginSheet:windowController.window
+	[NSApp beginSheet:logByAccountWindowController.window
 	   modalForWindow:self.view.window
 		modalDelegate:self
 	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
@@ -624,7 +634,7 @@ static NSString *AIRowLabel(NSString *label)
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
 	[sheet orderOut:nil];
-	[sheet.windowController release];
+	logByAccountWindowController = nil;
 }
 
 /*!
@@ -655,7 +665,7 @@ static NSString *AIRowLabel(NSString *label)
 			 keyEquivalent:@""
 					   tag:AIAccountMenuIconStatusOnly];
 
-	return [menu autorelease];
+	return menu;
 }
 
 - (NSMenu *)tabPositionMenu
@@ -684,7 +694,7 @@ static NSString *AIRowLabel(NSString *label)
 	 * one more arrangement to keep working for no one's benefit. A stored right is moved to bottom
 	 * when the interface opens, so nothing is left pointing at a choice that is no longer offered. */
 
-	return [menu autorelease];
+	return menu;
 }
 
 - (BOOL)chatHistoryDisplayActive
