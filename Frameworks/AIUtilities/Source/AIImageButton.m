@@ -44,7 +44,7 @@
 - (id)copyWithZone:(NSZone *)zone
 {
 	AIImageButton *newButton = [super copyWithZone:zone];
-	newButton->imageFloater = [imageFloater retain];
+	newButton->imageFloater = imageFloater;
 	[newButton setCornerRadius:[self cornerRadius]];
 
 	return newButton;
@@ -52,10 +52,10 @@
 
 - (void)dealloc
 {
+	/* Stays: this takes the panel off the screen. Letting go of the floater would not, because a
+	 * window on screen is held by the window server rather than by whoever made it.
+	 */
 	[imageFloater close:nil];
-	[imageFloater release];
-
-	[super dealloc];
 }
 
 #pragma mark Drawing
@@ -92,7 +92,6 @@
 
 		if (imageFloater) {
 			[imageFloater close:nil];
-			[imageFloater release];
 		}
 
 		// Rounded corners
@@ -111,8 +110,7 @@
 			[roundedImage unlockFocus];
 
 			[self setImage:roundedImage];
-			floaterImage = [[roundedImage retain] autorelease];
-			[roundedImage release];
+			floaterImage = roundedImage;
 		}
 
 		/* If the image would go off the right side of the screen from its origin, shift the origin left
@@ -123,7 +121,7 @@
 			point.x = maxXOrigin;
 		}
 
-		imageFloater = [[AIFloater newFloaterWithImage:floaterImage styleMask:NSWindowStyleMaskBorderless] retain];
+		imageFloater = [AIFloater newFloaterWithImage:floaterImage styleMask:NSWindowStyleMaskBorderless];
 		[imageFloater setMaxOpacity:1.0f];
 		[imageFloater moveFloaterToPoint:point];
 		[imageFloater setVisible:YES animate:NO];
@@ -176,7 +174,7 @@
 {
 	if (!imageFloaterShouldBeOpen) {
 		[imageFloater close:nil];
-		[imageFloater release]; imageFloater = nil;
+		imageFloater = nil;
 	}
 }
 

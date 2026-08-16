@@ -84,14 +84,14 @@
 		633400060F9C14C2003C77A9 /* AIToolbarUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF0E0F9C14BF003C77A9 /* AIToolbarUtilities.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400070F9C14C2003C77A9 /* AIGradientAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF100F9C14BF003C77A9 /* AIGradientAdditions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400080F9C14C2003C77A9 /* AIGradientAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF110F9C14BF003C77A9 /* AIGradientAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		633400090F9C14C2003C77A9 /* AIFloater.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF130F9C14BF003C77A9 /* AIFloater.m */; };
+		633400090F9C14C2003C77A9 /* AIFloater.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF130F9C14BF003C77A9 /* AIFloater.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334000A0F9C14C2003C77A9 /* AIFloater.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF140F9C14BF003C77A9 /* AIFloater.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334000B0F9C14C2003C77A9 /* AIStringFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF160F9C14BF003C77A9 /* AIStringFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334000C0F9C14C2003C77A9 /* AIStringFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF170F9C14BF003C77A9 /* AIStringFormatter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334000D0F9C14C2003C77A9 /* AIKeychain.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF190F9C14BF003C77A9 /* AIKeychain.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6334000E0F9C14C2003C77A9 /* AIKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF1A0F9C14BF003C77A9 /* AIKeychain.m */; };
+		6334000E0F9C14C2003C77A9 /* AIKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF1A0F9C14BF003C77A9 /* AIKeychain.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334000F0F9C14C2003C77A9 /* AIHostReachabilityMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF1C0F9C14BF003C77A9 /* AIHostReachabilityMonitor.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400100F9C14C2003C77A9 /* AIHostReachabilityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF1D0F9C14BF003C77A9 /* AIHostReachabilityMonitor.m */; };
+		633400100F9C14C2003C77A9 /* AIHostReachabilityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF1D0F9C14BF003C77A9 /* AIHostReachabilityMonitor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400110F9C14C2003C77A9 /* AISleepNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF1F0F9C14BF003C77A9 /* AISleepNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400120F9C14C2003C77A9 /* AISleepNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF200F9C14BF003C77A9 /* AISleepNotification.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400130F9C14C2003C77A9 /* AIRichTextCoercer.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF220F9C14BF003C77A9 /* AIRichTextCoercer.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -111,7 +111,7 @@
 		633400210F9C14C2003C77A9 /* MVMenuButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF380F9C14BF003C77A9 /* MVMenuButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400220F9C14C2003C77A9 /* MVMenuButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF390F9C14BF003C77A9 /* MVMenuButton.m */; };
 		633400230F9C14C2003C77A9 /* AIImageButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF3B0F9C14BF003C77A9 /* AIImageButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400240F9C14C2003C77A9 /* AIImageButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF3C0F9C14BF003C77A9 /* AIImageButton.m */; };
+		633400240F9C14C2003C77A9 /* AIImageButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF3C0F9C14BF003C77A9 /* AIImageButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400250F9C14C2003C77A9 /* AIColoredBoxView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF3E0F9C14BF003C77A9 /* AIColoredBoxView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400260F9C14C2003C77A9 /* AIColoredBoxView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF3F0F9C14BF003C77A9 /* AIColoredBoxView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400270F9C14C2003C77A9 /* AIDelayedTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF410F9C14BF003C77A9 /* AIDelayedTextField.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -153,9 +153,9 @@
 		6334005D0F9C14C2003C77A9 /* AIBorderlessWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF860F9C14C0003C77A9 /* AIBorderlessWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334005E0F9C14C2003C77A9 /* AIBorderlessWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF870F9C14C0003C77A9 /* AIBorderlessWindow.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334005F0F9C14C2003C77A9 /* AIGenericViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF8A0F9C14C0003C77A9 /* AIGenericViewCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400600F9C14C2003C77A9 /* AIGenericViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF8B0F9C14C0003C77A9 /* AIGenericViewCell.m */; };
+		633400600F9C14C2003C77A9 /* AIGenericViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF8B0F9C14C0003C77A9 /* AIGenericViewCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400610F9C14C2003C77A9 /* AIImageTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF8D0F9C14C0003C77A9 /* AIImageTextCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400620F9C14C2003C77A9 /* AIImageTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF8E0F9C14C0003C77A9 /* AIImageTextCell.m */; };
+		633400620F9C14C2003C77A9 /* AIImageTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF8E0F9C14C0003C77A9 /* AIImageTextCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400630F9C14C2003C77A9 /* AIScaledImageCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF900F9C14C0003C77A9 /* AIScaledImageCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400640F9C14C2003C77A9 /* AIScaledImageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF910F9C14C0003C77A9 /* AIScaledImageCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400650F9C14C2003C77A9 /* AIVerticallyCenteredTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF930F9C14C0003C77A9 /* AIVerticallyCenteredTextCell.h */; settings = {ATTRIBUTES = (Public, ); }; };

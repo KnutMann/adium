@@ -24,17 +24,10 @@
 
 @implementation AIGenericViewCell
 
-- (void)dealloc
-{
-	[embeddedView release];
-	[super dealloc];
-}
-
 - (void)setEmbeddedView:(NSView *)inView
 {
 	if (embeddedView != inView) {
-		[embeddedView release];
-		embeddedView = [inView retain];
+		embeddedView = inView;
 	}
 }
 
@@ -42,7 +35,14 @@
 - (id)copyWithZone:(NSZone *)zone
 {
 	AIGenericViewCell *newCell = [super copyWithZone:zone];
-	newCell->embeddedView = [embeddedView retain];
+
+	/* NSCell copies memberwise, so the new cell's embeddedView already points to the view this one holds, holding no
+	 * reference of its own. That second pointer has to be cleared without being released, and a plain assignment
+	 * would not do that: the store gives up a reference this cell never took, and the original
+	 * loses the view it is displaying. The cast through void * is what keeps the store out of it.
+	 */
+	*(__unsafe_unretained id *)(void *)&newCell->embeddedView = nil;
+	newCell->embeddedView = embeddedView;
 
 	return newCell;
 }
@@ -75,7 +75,7 @@
 	NSRect	frame = [embeddedView frame];
 	NSRect	usableFrame = NSMakeRect(0,0,frame.size.width,frame.size.height);
 
-	image = [[[NSImage alloc] initWithSize:frame.size] autorelease];
+	image = [[NSImage alloc] initWithSize:frame.size];
 	[image lockFocus];
 	[embeddedView setNeedsDisplay:YES];
 	[embeddedView drawRect:usableFrame];
@@ -89,7 +89,7 @@
 		NSRect	subUsableFrame = NSMakeRect(0, 0, subFrame.size.width, subFrame.size.height);
 
 		//Cache to an image
-		NSImage	*subImage = [[[NSImage alloc] initWithSize:subFrame.size] autorelease];
+		NSImage	*subImage = [[NSImage alloc] initWithSize:subFrame.size];
 		[subImage lockFocus];
 		[subView drawRect:subUsableFrame];
 		[subImage unlockFocus];

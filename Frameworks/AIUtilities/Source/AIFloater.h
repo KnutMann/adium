@@ -34,14 +34,13 @@
 /*!
  * @brief Create an <tt>AIFloater</tt>.
  *
- * It will handle releasing itself when closed; it need not be retained by the caller.
+ * The caller owns it, as the name says, and keeps it until it is done with it.
  *
- * Which is the whole trick, and it is worth naming: the floater hands back the one reference it was
- * made with and then gives that same reference up itself, in -close:. A caller that wants to speak
- * to it afterwards takes its own reference, as AIImageButton does. This is the only arrangement
- * under which a name beginning with "new" is honest here, and it is also the arrangement that
- * stops working the moment a caller counts references automatically, because then the reference is
- * given up twice. Whoever converts this class first has to find the floater an owner.
+ * It used to own itself: this method handed back the one reference it was made with and -close:
+ * then gave that same reference up, so a caller could drop the pointer and let the floater tidy
+ * itself away. That only worked while nobody counted references automatically, because then the one
+ * reference is given up twice. AIImageButton, the only caller, held a second reference for exactly
+ * that reason, and now holds the only one.
  */
 + (id)newFloaterWithImage:(NSImage *)inImage styleMask:(unsigned int)styleMask;
 

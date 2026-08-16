@@ -66,7 +66,7 @@
 		staticView = [[NSImageView alloc] initWithFrame:frame];
 		[staticView setImage:inImage];
 		[staticView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-		[[panel contentView] addSubview:[staticView autorelease]];
+		[[panel contentView] addSubview:staticView];
 	}
 
 	return self;
@@ -98,11 +98,14 @@
 
 - (IBAction)close:(id)sender
 {
-    [fadeAnimation stopAnimation]; [fadeAnimation release]; fadeAnimation = nil;
+    [fadeAnimation stopAnimation]; fadeAnimation = nil;
     [panel orderOut:nil];
-    [panel release]; panel = nil;
+    panel = nil;
 
-    [self release];
+    /* The floater used to give up its own last reference here, which is why nobody held one. Its
+     * one caller holds it now, from the moment it is made until it lets go, and that is the whole
+     * of the change: what this method does to the window on screen is unaltered.
+     */
 }
 
 - (void)setMaxOpacity:(CGFloat)inMaxOpacity

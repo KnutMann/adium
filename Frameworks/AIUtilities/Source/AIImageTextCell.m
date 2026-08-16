@@ -46,26 +46,21 @@
 	return self;
 }
 
-//Dealloc
-- (void)dealloc
-{
-	[font release]; font = nil;
-	[subString release];
-
-	[super dealloc];
-}
-
 //Copy
 - (id)copyWithZone:(NSZone *)zone
 {
 	AIImageTextCell *newCell = [super copyWithZone:zone];
 
-	newCell->font = nil;
-	[newCell setFont:font];
+	/* NSCell copies memberwise, so the new cell's font and subString already point to the ones this cell holds, holding no
+	 * reference of its own. Each of them has to be cleared without being released, and a plain assignment
+	 * would not do that: the store gives up a reference this cell never took, and the original
+	 * loses what it was drawing with. The cast through void * is what keeps the store out of it.
+	 */
+	*(__unsafe_unretained id *)(void *)&newCell->font = nil;
+	*(__unsafe_unretained id *)(void *)&newCell->subString = nil;
 
-	newCell->subString = nil;
+	[newCell setFont:font];
 	[newCell setSubString:subString];
-	
 	[newCell setMaxImageWidth:maxImageWidth];
 
 	return newCell;
@@ -98,8 +93,7 @@
 - (void)setFont:(NSFont *)inFont
 {
     if (font != inFont) {
-        [font release];
-        font = [inFont retain];
+        font = inFont;
     }
 }
 - (NSFont *)font
@@ -112,8 +106,7 @@
 - (void)setSubString:(NSString *)inSubString
 {
 	if (subString != inSubString) {
-		[subString release];
-		subString = [inSubString retain];
+		subString = inSubString;
 	}
 }
 
@@ -414,7 +407,6 @@
 			[NSGraphicsContext restoreGraphicsState];
 		}
 
-		[attributedMainString release];
 
 		//Draw the substring
 		if (subString) {
@@ -425,7 +417,6 @@
 			//Draw the substring
 			[attributedSubString drawInRect:cellFrame];
 		}
-		[attributedSubString release];
 	}
 
 	[NSGraphicsContext restoreGraphicsState];

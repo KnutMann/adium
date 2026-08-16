@@ -46,7 +46,7 @@ static NSString *AIKeychainProtocolString(SecProtocolType protocol)
 		(char)((protocol >> 8) & 0xFF),
 		(char)(protocol & 0xFF)
 	};
-	return [[[NSString alloc] initWithBytes:code length:4 encoding:NSMacOSRomanStringEncoding] autorelease];
+	return [[NSString alloc] initWithBytes:code length:4 encoding:NSMacOSRomanStringEncoding];
 }
 
 static NSMutableDictionary *AIKeychainInternetPasswordQuery(NSString *server, NSString *domain, NSString *account, NSString *path, u_int16_t port, SecProtocolType protocol)
@@ -173,15 +173,19 @@ static NSError *AIKeychainErrorForStatus(OSStatus err, NSString *functionName, N
 	if (err == errSecSuccess && result) {
 		NSData *passwordData = nil;
 		if (outKeychainItem) {
+			/* Borrowed, not taken over. SecItemCopyMatching hands back something owned and it is
+			 * given up at the end of this method, so the cast must convey no ownership: a transfer
+			 * here would have the same result released twice.
+			 */
 			// With both kSecReturnData and kSecReturnRef set, the result is a dictionary
-			NSDictionary *resultDict = (NSDictionary *)result;
+			NSDictionary *resultDict = (__bridge NSDictionary *)result;
 			passwordData = [resultDict objectForKey:(NSString *)kSecValueData];
-			SecKeychainItemRef item = (SecKeychainItemRef)[resultDict objectForKey:(NSString *)kSecValueRef];
+			SecKeychainItemRef item = (__bridge SecKeychainItemRef)[resultDict objectForKey:(NSString *)kSecValueRef];
 			*outKeychainItem = item ? (SecKeychainItemRef)CFRetain(item) : NULL;
 		} else {
-			passwordData = (NSData *)result;
+			passwordData = (__bridge NSData *)result;   // borrowed, as above
 		}
-		passwordString = [[[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding] autorelease];
+		passwordString = [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding];
 	} else if (outKeychainItem) {
 		*outKeychainItem = NULL;
 	}
@@ -230,10 +234,11 @@ static NSError *AIKeychainErrorForStatus(OSStatus err, NSString *functionName, N
 	}
 
 	if (err == errSecSuccess && cfResult) {
-		NSDictionary *item = (NSDictionary *)cfResult;
+		/* Borrowed again: cfResult is given up below, so this cast takes nothing. */
+		NSDictionary *item = (__bridge NSDictionary *)cfResult;
 		NSString *username = [item objectForKey:(NSString *)kSecAttrAccount];
 		NSData *passwordData = [item objectForKey:(NSString *)kSecValueData];
-		NSString *password = (passwordData ? [[[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding] autorelease] : nil);
+		NSString *password = (passwordData ? [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding] : nil);
 
 		if (username && password) {
 			result = [NSDictionary dictionaryWithObjectsAndKeys:
