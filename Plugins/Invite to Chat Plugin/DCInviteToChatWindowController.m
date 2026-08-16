@@ -68,17 +68,6 @@ static DCInviteToChatWindowController *sharedInviteToChatInstance = nil;
 }
 
 
-//Dealloc
-- (void)dealloc
-{    
-	[contact release]; contact = nil;
-	[service release]; service = nil;
-	[chat release]; chat = nil;
-	[contactMenu release];
-
-	[super dealloc];
-}
-
 //Setup the window before it is displayed
 - (void)windowDidLoad
 {
@@ -111,8 +100,7 @@ static DCInviteToChatWindowController *sharedInviteToChatInstance = nil;
 	[self window];
 		
 	//Configure the contact menu (primarily for handling metacontacts)
-	[contactMenu release];
-    contactMenu = [[AIContactMenu contactMenuWithDelegate:self forContactsInObject:contact] retain];
+    contactMenu = [AIContactMenu contactMenuWithDelegate:self forContactsInObject:contact];
 
 	if ([contact isKindOfClass:[AIMetaContact class]]) {
 		[menu_contacts selectItemWithRepresentedObject:[(AIMetaContact *)contact preferredContactWithCompatibleService:service]];
@@ -134,8 +122,8 @@ static DCInviteToChatWindowController *sharedInviteToChatInstance = nil;
 	[self setContact:inContact];
 	
 	if (chat != inChat) {
-		[chat release]; chat = [inChat retain];
-		[service release]; service = [chat.account.service retain];
+		chat = inChat;
+		service = chat.account.service;
 	}
 	
 	[self configureForChatAndContact];
@@ -144,7 +132,7 @@ static DCInviteToChatWindowController *sharedInviteToChatInstance = nil;
 - (void)setContact:(AIListContact *)inContact
 {	
 	if (contact != inContact) {
-		[contact release]; contact = [inContact retain];
+		contact = inContact;
 	}
 }
 
@@ -154,8 +142,15 @@ static DCInviteToChatWindowController *sharedInviteToChatInstance = nil;
 {
 	[super windowWillClose:sender];
 	
+	/* The shared instance goes back to nobody, but not yet. Under manual counting the static above
+	 * held no reference at all and this line freed nothing; the object was given to the pool and
+	 * died at the end of the run loop turn. Counted automatically the static owns what it points
+	 * at, so clearing it is the release, and it would land here, inside -[NSWindow close], which is
+	 * still running and still talking to this object as its delegate and its window controller.
+	 * The pool takes it over for the rest of the turn, which is the timing the autorelease had.
+	 */
+	CFAutorelease(CFBridgingRetain(sharedInviteToChatInstance));
 	sharedInviteToChatInstance = nil;
-    [self autorelease]; //Close the shared instance
 }
 
 //Close this window

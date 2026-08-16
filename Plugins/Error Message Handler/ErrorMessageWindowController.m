@@ -23,7 +23,6 @@
 @interface ErrorMessageWindowController ()
 
 - (id)initWithWindowNibName:(NSString *)windowNibName;
-- (void)dealloc;
 - (void)refreshErrorDialog;
 - (void)windowDidLoad;
 
@@ -100,15 +99,6 @@ static ErrorMessageWindowController *sharedErrorMessageInstance = nil;
 	}
 
     return self;
-}
-
-- (void)dealloc
-{
-    [errorTitleArray release]; errorTitleArray = nil;
-    [errorDescArray release]; errorDescArray = nil;
-    [errorWindowTitleArray release]; errorWindowTitleArray = nil;
-
-    [super dealloc];
 }
 
 - (void)refreshErrorDialog
@@ -205,9 +195,15 @@ static ErrorMessageWindowController *sharedErrorMessageInstance = nil;
 {
 	[super windowWillClose:sender];
 	
-    // Release the window controller (ourself)
-    sharedErrorMessageInstance = nil;
-    [self autorelease];
+	/* The shared instance goes back to nobody, but not yet. Under manual counting the static above
+	 * held no reference at all and this line freed nothing; the object was given to the pool and
+	 * died at the end of the run loop turn. Counted automatically the static owns what it points
+	 * at, so clearing it is the release, and it would land here, inside -[NSWindow close], which is
+	 * still running and still talking to this object as its delegate and its window controller.
+	 * The pool takes it over for the rest of the turn, which is the timing the autorelease had.
+	 */
+	CFAutorelease(CFBridgingRetain(sharedErrorMessageInstance));
+	sharedErrorMessageInstance = nil;
 }
 
 @end

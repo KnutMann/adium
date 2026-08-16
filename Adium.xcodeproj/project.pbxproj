@@ -829,7 +829,7 @@
 		4B97DB6706AC123A0003EE49 /* msg-insert-link.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4B97DB6606AC123A0003EE49 /* msg-insert-link.tiff */; };
 		4BA62D8E06C51257001D6B3C /* Status Icons in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 4BA62D7F06C51256001D6B3C /* Status Icons */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4BAA1B530632EF0000D8B92C /* events-error-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BAA1B500632EF0000D8B92C /* events-error-alert.tiff */; };
-		4BAA1B550632EF0000D8B92C /* ESPanelAlertDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAA1B520632EF0000D8B92C /* ESPanelAlertDetailPane.m */; };
+		4BAA1B550632EF0000D8B92C /* ESPanelAlertDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAA1B520632EF0000D8B92C /* ESPanelAlertDetailPane.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BAA1B610632EFE700D8B92C /* events-window-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BAA1B600632EFE700D8B92C /* events-window-alert.tiff */; };
 		4BAE6C1407CF9374007E2820 /* ESAnnouncerAbstractDetailPane.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C0C07CF9374007E2820 /* ESAnnouncerAbstractDetailPane.m */; };
 		4BAE6C1607CF9374007E2820 /* ESAnnouncerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C0E07CF9374007E2820 /* ESAnnouncerPlugin.m */; };
@@ -878,8 +878,8 @@
 		4BD6755006001E1D0049CAF7 /* ESDualWindowMessageAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B970BF90535B864002F28F9 /* ESDualWindowMessageAdvancedPreferences.m */; };
 		4BD6755406001E1E0049CAF7 /* DualWindowDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D43504051ADC10003B2F21 /* DualWindowDefaults.plist */; };
 		4BD6756B06001E320049CAF7 /* EventSoundDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BA5325D050FC5E800A8010A /* EventSoundDefaults.plist */; };
-		4BD6758206001E430049CAF7 /* ErrorMessageHandlerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0EEC03B5BF1000A80202 /* ErrorMessageHandlerPlugin.m */; };
-		4BD6758406001E440049CAF7 /* ErrorMessageWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0F1003B5C29E00A80202 /* ErrorMessageWindowController.m */; };
+		4BD6758206001E430049CAF7 /* ErrorMessageHandlerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0EEC03B5BF1000A80202 /* ErrorMessageHandlerPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		4BD6758406001E440049CAF7 /* ErrorMessageWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0F1003B5C29E00A80202 /* ErrorMessageWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BD6758506001E450049CAF7 /* ErrorWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 40AC0F1303B5C34800A80202 /* ErrorWindow.xib */; };
 		4BD6758806001E460049CAF7 /* AlertMessageContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */; };
 		4BDAF69907A1561000276D68 /* AIAccountProxySettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */; };
@@ -996,8 +996,8 @@
 		63EA62F0094B8705009C8453 /* AIXtraInfoController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EA62EE094B8705009C8453 /* AIXtraInfoController.m */; };
 		63EA6409094BB9A9009C8453 /* AIStatusIconPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EA6407094BB9A9009C8453 /* AIStatusIconPreviewController.m */; };
 		6E4D961406B739AC005235E9 /* DCJoinChatPanelPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E4D961206B739AC005235E9 /* DCJoinChatPanelPlugin.m */; };
-		6EC1684D06C170A000F9FAD3 /* DCInviteToChatPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684806C170A000F9FAD3 /* DCInviteToChatPlugin.m */; };
-		6EC1684F06C170A000F9FAD3 /* DCInviteToChatWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684A06C170A000F9FAD3 /* DCInviteToChatWindowController.m */; };
+		6EC1684D06C170A000F9FAD3 /* DCInviteToChatPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684806C170A000F9FAD3 /* DCInviteToChatPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		6EC1684F06C170A000F9FAD3 /* DCInviteToChatWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684A06C170A000F9FAD3 /* DCInviteToChatWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6EC1685006C170A000F9FAD3 /* InviteToChatWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6EC1684B06C170A000F9FAD3 /* InviteToChatWindow.xib */; };
 		7664EAA6162E0874008CF995 /* libffi.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7664EAA4162E086A008CF995 /* libffi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		766ABAB61306D1020049FFB7 /* AIUnreadMessagesTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 766ABAB51306D1020049FFB7 /* AIUnreadMessagesTooltip.m */; };
