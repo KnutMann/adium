@@ -8,10 +8,7 @@ syntax: glob
 build
 Icon*
 !Resources/Service Icons/Purple Defaults.AdiumServiceIcons/Icons.plist
-Docs
-# Keep the agent-maintained platform migration plan versioned on case-insensitive file systems.
-!docs/
-!docs/platform-modernisation-migration.md
+docs/
 Dependencies/build
 Dependencies/source
 Dependencies/Frameworks
