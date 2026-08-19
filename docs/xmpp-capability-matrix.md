@@ -45,4 +45,7 @@ eigenes XEP-Audit steht auf "Proposed", auch dort ist Konformität unverifiziert
 die gesamte Darstellung, hinter Carbons einreihen), 0444/0461 (Experimental und ohne ID-Zuordnung
 nicht darstellbar), Bind2/SASL2 (Kern-OP für null sichtbaren Nutzen), MIX (kein Deployment).
 
-**Empfohlene Reihenfolge: Carbons+Hints → CSI → 0402-Bookmarks; 0191 nur testen und verbuchen.**
+**Beschlossener Fahrplan (19.08.2026): Carbons+Hints → CSI → 0402-Bookmarks, in dieser Reihenfolge,
+jeweils als prpl-Patch nach dem Muster von receipt.c/chatmarker.c und mit M16-Verifikation vor dem
+nächsten Schritt. XEP-0191 wird nur getestet und als vorhanden verbucht. MAM, HTTP Upload und das
+Pro-Nachricht-Zustandsmodell bleiben eigene Projekte und beginnen nicht nebenbei.**
