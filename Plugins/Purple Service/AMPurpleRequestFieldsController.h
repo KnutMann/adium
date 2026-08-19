@@ -1,34 +1,42 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #import "ESPurpleRequestAbstractWindowController.h"
 #import <AdiumLibpurple/PurpleCommon.h>
-#import <WebKit/WebKit.h>
 
 @class CBPurpleAccount;
 
+/*!
+ * @brief The window for libpurple's request_fields: a form the protocol composed at runtime.
+ *
+ * Built entirely in code around AISettingsFormView, one row per field. This replaced a
+ * WebView that rendered the form as XHTML and read the answers back out of an intercepted
+ * form POST — the last WebView in the application. The Cocoa shape follows the never
+ * released Adium 1.6 (shtrom/adium b558e23d8); the rendering does not, because the form
+ * view already knows how to lay out labeled rows.
+ *
+ * Requests containing an image field never get here; adiumPurpleRequestFields routes them
+ * to AIPurpleImageRequestController.
+ */
 @interface AMPurpleRequestFieldsController : ESPurpleRequestAbstractWindowController {
     GCallback			okcb;
     GCallback			cancelcb;
     void				*userData;
     PurpleRequestFields *fields;
-    NSMutableDictionary *fieldobjects;
-    BOOL				wasSubmitted;
-    
-    IBOutlet WebView	*webview;
+    NSMutableArray		*fieldobjects;
 }
 
 - (id)initWithTitle:(NSString *)title

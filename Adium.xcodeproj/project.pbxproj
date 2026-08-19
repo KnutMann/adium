@@ -1025,7 +1025,6 @@
 		8181F88F0C35B70F00E802F7 /* AMPurpleJabberAdHocServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 8181F88D0C35B70F00E802F7 /* AMPurpleJabberAdHocServer.m */; };
 		8184C5A50C1B803400CB53E7 /* AMPurpleRequestFieldsController.h in Headers */ = {isa = PBXBuildFile; fileRef = 8184C5A30C1B803300CB53E7 /* AMPurpleRequestFieldsController.h */; };
 		8184C5A60C1B803400CB53E7 /* AMPurpleRequestFieldsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8184C5A40C1B803400CB53E7 /* AMPurpleRequestFieldsController.m */; };
-		8184C5B80C1B812500CB53E7 /* AMPurpleRequestFieldsWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8184C5B30C1B812500CB53E7 /* AMPurpleRequestFieldsWindow.xib */; };
 		8184CC350C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.h in Headers */ = {isa = PBXBuildFile; fileRef = 8184CC330C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.h */; };
 		8184CC360C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 8184CC340C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m */; };
 		818E96A30C16D443007623BD /* AMXMLConsoleController.h in Headers */ = {isa = PBXBuildFile; fileRef = 818E96A10C16D443007623BD /* AMXMLConsoleController.h */; };
@@ -2788,7 +2787,6 @@
 		8181F88D0C35B70F00E802F7 /* AMPurpleJabberAdHocServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocServer.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocServer.m"; sourceTree = "<group>"; };
 		8184C5A30C1B803300CB53E7 /* AMPurpleRequestFieldsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleRequestFieldsController.h; path = "Plugins/Purple Service/AMPurpleRequestFieldsController.h"; sourceTree = "<group>"; };
 		8184C5A40C1B803400CB53E7 /* AMPurpleRequestFieldsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleRequestFieldsController.m; path = "Plugins/Purple Service/AMPurpleRequestFieldsController.m"; sourceTree = "<group>"; };
-		8184C5B30C1B812500CB53E7 /* AMPurpleRequestFieldsWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AMPurpleRequestFieldsWindow.xib; path = "Plugins/Purple Service/AMPurpleRequestFieldsWindow.xib"; sourceTree = "<group>"; };
 		8184CC330C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberMoodTooltip.h; path = "Plugins/Purple Service/AMPurpleJabberMoodTooltip.h"; sourceTree = "<group>"; };
 		8184CC340C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberMoodTooltip.m; path = "Plugins/Purple Service/AMPurpleJabberMoodTooltip.m"; sourceTree = "<group>"; };
 		818E96A10C16D443007623BD /* AMXMLConsoleController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMXMLConsoleController.h; path = "Plugins/Purple Service/AMXMLConsoleController.h"; sourceTree = "<group>"; };
@@ -4050,7 +4048,6 @@
 				341E88690648FF1B00E0C828 /* ESPurpleRequestActionController.m */,
 				8184C5A30C1B803300CB53E7 /* AMPurpleRequestFieldsController.h */,
 				8184C5A40C1B803400CB53E7 /* AMPurpleRequestFieldsController.m */,
-				8184C5B30C1B812500CB53E7 /* AMPurpleRequestFieldsWindow.xib */,
 				8181EEC10C3067B500E802F7 /* AMPurpleSearchResultsController.h */,
 				8181EEC20C3067B500E802F7 /* AMPurpleSearchResultsController.m */,
 				8181EEBD0C30673E00E802F7 /* AMPurpleSearchResultsWindow.xib */,
@@ -6567,7 +6564,6 @@
 				3485DBC409EBCE7400232CC4 /* PurpleSinglelineRequestWindow.xib in Resources */,
 				3485DBD009EBCE8200232CC4 /* Localizable.strings in Resources */,
 				347E39DC0A98AA4A00961B0E /* missing_image.png in Resources */,
-				8184C5B80C1B812500CB53E7 /* AMPurpleRequestFieldsWindow.xib in Resources */,
 				8181EEBE0C30673E00E802F7 /* AMPurpleSearchResultsWindow.xib in Resources */,
 				8173C5760C4C3DB800C9E64E /* downloadprogress.png in Resources */,
 				346544DB0C8F686B0046ED68 /* AMPurpleJabberXMLConsole.xib in Resources */,

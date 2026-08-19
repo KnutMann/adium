@@ -30,17 +30,19 @@ That is how a census of 418 was published when the real figure was 441.
 
 ## The one that can actually break the application
 
-**WebKit 1.** 64 calls in 13 files: `WebView`, `WebFrame`, `DOMHTMLElement`, `DOMRange` and
-neighbours. Apple removed this from iOS years ago and keeps it on the Mac out of politeness. The
-chat window already runs on `WKWebView`; three users are left.
+**WebKit 1.** `WebView`, `WebFrame`, `DOMHTMLElement`, `DOMRange` and neighbours. Apple removed
+this from iOS years ago and keeps it on the Mac out of politeness. The chat window already runs
+on `WKWebView`; two users are left.
 
 - `Plugins/WebKit Message View/ESWebKitMessageViewPreferences.m` — the live style preview, through
   `AIWebKitPreviewMessageViewController`, which subclasses the old controller
-- `Plugins/Purple Service/AMPurpleRequestFieldsController.m` — its own `WebView` for protocol forms
 - `Plugins/WebKit Message View/AIWebKitMessageViewController.m` — kept compiled as a dormant
   fallback and reachable from nothing
 
-The third is the cheapest: deciding it is dead removes most of the 64 on its own.
+The second is the cheapest: deciding it is dead removes most of the remaining calls on its own.
+`AMPurpleRequestFieldsController` was the third and is done: the protocol form is built on
+`AISettingsFormView` now, one row per field, following the shape of the never released 1.6
+(shtrom/adium b558e23d8) without its per-type xibs.
 
 ## The rest, by how much it matters
 
