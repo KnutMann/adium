@@ -37,6 +37,18 @@
  *
  * Display arrays utilize AIMutableOwnerArray.  See its documentation in AIUtilities.framework.
  */
+/*!
+ * @brief Read an NSInteger ivar without dressing it as an object
+ *
+ * object_getIvar answers through an id, and under ARC every id a function returns is
+ * retained for the duration of the statement, integer disguise or not; retaining 25
+ * is a crash. The offset read never touches the type system.
+ */
+static NSInteger AIIntegerIvarValue(id object, Ivar ivar)
+{
+	return *(NSInteger *)(void *)((char *)(__bridge void *)object + ivar_getOffset(ivar));
+}
+
 @implementation ESObjectWithProperties
 
 - (void)_clearProxyObjects
@@ -241,7 +253,7 @@
 		
 		// attempt to wrap it, if we know how
 		if (strcmp(ivarType, @encode(NSInteger)) == 0) {
-			ret = [[NSNumber alloc] initWithInteger:(NSInteger)object_getIvar(self, ivar)];
+			ret = [[NSNumber alloc] initWithInteger:AIIntegerIvarValue(self, ivar)];
 		} else if (ivarType[0] != _C_ID) {
 			AILogWithSignature(@" *** This ivar is not an object but an %s! Should not use -valueForProperty: @\"%@\" ***", ivarType, key);
 		} else {
@@ -274,7 +286,7 @@
 			AILogWithSignature(@"%@'s %@ ivar is not an NSInteger but an %s! Will attempt to cast, but should not use -integerValueForProperty: @\"%@\"", self, key, ivarType, key);
 		}
 		
-		ret = (NSInteger)object_getIvar(self, ivar);
+		ret = AIIntegerIvarValue(self, ivar);
 	}
 	
     return ret;
