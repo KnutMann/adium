@@ -283,11 +283,29 @@
 		return;
 	}
 	
-	// Wait for the next event
-	NSEvent *nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
-													untilDate:[NSDate distantFuture]
-													   inMode:NSEventTrackingRunLoopMode
-													  dequeue:NO];
+	/* Wait for the next event. A genuine click often carries a pixel or two of
+	 * movement between press and release, and AppKit reports each of them as a
+	 * drag event with no threshold of its own. Swallow that jitter and keep
+	 * waiting for the release; only movement beyond a few points is a drag.
+	 */
+	NSEvent *nextEvent = nil;
+	for (;;) {
+		nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged)
+											   untilDate:[NSDate distantFuture]
+												  inMode:NSEventTrackingRunLoopMode
+												 dequeue:NO];
+		if ([nextEvent type] != NSEventTypeLeftMouseDragged)
+			break;
+
+		NSPoint draggedPoint = [self convertPoint:[nextEvent locationInWindow] fromView:nil];
+		if (fabs(draggedPoint.x - viewPoint.x) > 4.0 || fabs(draggedPoint.y - viewPoint.y) > 4.0)
+			break;
+
+		[[self window] nextEventMatchingMask:NSEventMaskLeftMouseDragged
+								   untilDate:[NSDate distantFuture]
+									  inMode:NSEventTrackingRunLoopMode
+									 dequeue:YES];
+	}
 	
 	// Only expand/contract if they release the mouse. Otherwise pass on the goods.
 	switch ([nextEvent type]) {
