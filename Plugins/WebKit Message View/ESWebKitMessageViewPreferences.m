@@ -188,7 +188,7 @@ static NSString *AIRowLabel(NSString *label)
 
 	//What this pane is about, and the one caveat that spans all of it
 	[form addInfoRow:AILocalizedString(@"Style changes take effect for new message windows.", nil)
-		   withImage:[self paneIcon]];
+		   withImage:[NSImage imageNamed:@"pref-messagestyle" forClass:[self class]]];
 	[form endCard];
 
 	//Which of the two per-chat-type preference sets the rows below show

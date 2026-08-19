@@ -444,6 +444,7 @@
 		34BFD7FD07E6A50C00AD984D /* msg-insert-script.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34BFD7FC07E6A50C00AD984D /* msg-insert-script.tiff */; };
 		34BFD80007E6A51D00AD984D /* GBApplescriptFiltersPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFD7FE07E6A51D00AD984D /* GBApplescriptFiltersPlugin.m */; };
 		34BFDF1807E8977D00AD984D /* SoundHigh.png in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1607E8977D00AD984D /* SoundHigh.png */; };
+		ADD1E5C0DE0000000000C700 /* pref-messagestyle.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C701 /* pref-messagestyle.png */; };
 		ADD1E5C0DE0000000000C500 /* ABSearch@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C501 /* ABSearch@2x.png */; };
 		ADD1E5C0DE0000000000C502 /* AboutDialog_bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C503 /* AboutDialog_bg@2x.png */; };
 		ADD1E5C0DE0000000000C504 /* Awake_192@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C505 /* Awake_192@2x.png */; };
@@ -2171,6 +2172,7 @@
 		34BFDB3807E7714200AD984D /* PresetNameSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PresetNameSheet.xib; path = Frameworks/Adium/Resources/PresetNameSheet.xib; sourceTree = "<group>"; };
 		34BFDDB607E7A43D00AD984D /* ja */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ja; path = Resources/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34BFDF1607E8977D00AD984D /* SoundHigh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoundHigh.png; path = Resources/SoundHigh.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C701 /* pref-messagestyle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "pref-messagestyle.png"; path = "Resources/pref-messagestyle.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C501 /* ABSearch@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ABSearch@2x.png"; path = "Resources/ABSearch@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C503 /* AboutDialog_bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "AboutDialog_bg@2x.png"; path = "Resources/AboutDialog_bg@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C505 /* Awake_192@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Awake_192@2x.png"; path = "Resources/Awake_192@2x.png"; sourceTree = "<group>"; };
@@ -3670,6 +3672,7 @@
 				4BA5325D050FC5E800A8010A /* EventSoundDefaults.plist */,
 				34C899AB07E51B18009357F6 /* BuiltInEventPresets.plist */,
 				34BFDF1607E8977D00AD984D /* SoundHigh.png */,
+				ADD1E5C0DE0000000000C701 /* pref-messagestyle.png */,
 				ADD1E5C0DE0000000000C501 /* ABSearch@2x.png */,
 				ADD1E5C0DE0000000000C503 /* AboutDialog_bg@2x.png */,
 				ADD1E5C0DE0000000000C505 /* Awake_192@2x.png */,
@@ -6679,6 +6682,7 @@
 				34C899AC07E51B18009357F6 /* BuiltInEventPresets.plist in Resources */,
 				34BFD7FD07E6A50C00AD984D /* msg-insert-script.tiff in Resources */,
 				34BFDF1807E8977D00AD984D /* SoundHigh.png in Resources */,
+				ADD1E5C0DE0000000000C700 /* pref-messagestyle.png in Resources */,
 				ADD1E5C0DE0000000000C500 /* ABSearch@2x.png in Resources */,
 				ADD1E5C0DE0000000000C502 /* AboutDialog_bg@2x.png in Resources */,
 				ADD1E5C0DE0000000000C504 /* Awake_192@2x.png in Resources */,
