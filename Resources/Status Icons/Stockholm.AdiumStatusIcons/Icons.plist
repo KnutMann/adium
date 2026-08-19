@@ -46,7 +46,7 @@
 		<key>Invisible</key>
 		<string>tab-invisible.tiff</string>
 		<key>Mobile</key>
-		<string>tab-mobile.tiff</string>
+		<string>mobile.tiff</string>
 		<key>Offline</key>
 		<string>tab-offline.tiff</string>
 		<key>Unknown</key>
