@@ -119,11 +119,15 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
  */
 - (void)windowWillClose:(id)sender
 {
-	NSString	*identifier = [AISpecialPasswordPromptController identifierForType:type name:name account:account];
-	
-	[passwordPromptControllerDict removeObjectForKey:identifier];
-	
+	/* super first: the dictionary below holds the only claim on this controller,
+	 * and -removeObjectForKey: releases immediately — running super's frame
+	 * saving after that is a use of a freed object (upstream fix for #16579).
+	 */
 	[super windowWillClose:sender];
+
+	NSString	*identifier = [AISpecialPasswordPromptController identifierForType:type name:name account:account];
+
+	[passwordPromptControllerDict removeObjectForKey:identifier];
 }
 
 /*!

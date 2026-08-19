@@ -113,16 +113,20 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 	[self.window setTitle:AUTHORIZATION_REQUESTS];
 }
 
-- (void)windowWillClose:(id)sender 
+- (void)windowWillClose:(id)sender
 {
+	/* super first: it saves the window frame, and the lines below give up the
+	 * reference that keeps this controller alive. Anything running after that
+	 * runs on borrowed time (upstream fix for #16579).
+	 */
+	[super windowWillClose:sender];
+
 	// Fade into oblivion only if we don't have any oustanding requests.
 	if (!requests.count) {
 		[sharedController autorelease]; sharedController = nil;
 	}
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
-	[super windowWillClose:sender];
 }
 
 - (void)dealloc
