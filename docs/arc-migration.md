@@ -132,7 +132,10 @@ slot before the counted store (AIListGroupMockieCell); a dealloc swizzle survive
 sel_registerName for what the compiler refuses to spell (AIToolbar); a reference crossing into
 libpurple as a ui_handle travels via CFBridgingRetain and comes home through CFRelease
 (AdiumAuthorization); an integer smuggled through object_setIvar keeps the plain setter, whose
-unsafe store is the only correct treatment of a non-pointer (ESObjectWithProperties); a controller
+unsafe store is the only correct treatment of a non-pointer, while READING one back must bypass
+the id-typed runtime call entirely, via ivar_getOffset, because under ARC every id a function
+returns is retained for the statement, integer disguise or not, and retaining 25 was a crash
+on every account connect before this sentence existed (ESObjectWithProperties); a controller
 that owns itself while shown gets a static set as its ownership home with CF deferrals at every
 exit (ESTextAndButtonsWindowController, after ESPresetNameSheetController); a self-retain until a
 notification arrives becomes CFRetain at registration and CFAutorelease in the handler
