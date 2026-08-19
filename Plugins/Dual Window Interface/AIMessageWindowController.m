@@ -1127,7 +1127,11 @@
 			break;
 	}
 	
-	*styleMask = NSWindowStyleMaskTitled;
+	/* Borderless, deliberately. Titled gave the floating preview a real, empty title bar,
+	 * which modern AppKit draws as a white strip that the drag window's own frame
+	 * compensation then displaces from the image: a white frame hovering beside the
+	 * preview. The image is the whole preview; the window around it has nothing to add. */
+	*styleMask = NSWindowStyleMaskBorderless;
 	
 	return viewImage;
 }
