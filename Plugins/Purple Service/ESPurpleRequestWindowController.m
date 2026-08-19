@@ -105,8 +105,12 @@
 		[textView_primary setDrawsBackground:NO];
 		[textView_primary setTextContainerInset:NSZeroSize];
 		[scrollView_primary setDrawsBackground:NO];
-		
+
 		[textView_primary setString:(primary ? primary : @"")];
+		/* -setString: inherits the nib placeholder's attributes, and those carry a
+		 * fixed black — over the window the background-less view shows, that text
+		 * disappeared in the dark. */
+		[textView_primary setTextColor:[NSColor labelColor]];
 		
 		//Resize the window frame to fit the error title
 		[textView_primary sizeToFit];
@@ -137,8 +141,10 @@
 		[textView_secondary setDrawsBackground:NO];
 		[textView_secondary setTextContainerInset:NSZeroSize];
 		[scrollView_secondary setDrawsBackground:NO];
-		
+
 		[textView_secondary setString:(secondary ? secondary : @"")];
+		//Same fixed black in this placeholder; see above
+		[textView_secondary setTextColor:[NSColor labelColor]];
 		
 		//Resize the window frame to fit the error title
 		[textView_secondary sizeToFit];

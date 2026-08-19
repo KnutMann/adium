@@ -43,13 +43,13 @@
                                 <textView editable="NO" verticallyResizable="YES" id="tvPrimary">
                                     <rect key="frame" x="0.0" y="0.0" width="290" height="15"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <size key="minSize" width="284" height="4"/>
                                     <size key="maxSize" width="296" height="10000000"/>
                                     <attributedString key="textStorage">
                                         <fragment content="awefweff">
                                             <attributes>
-                                                <color key="NSColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                                <color key="NSColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <font key="NSFont" size="12" name="LucidaGrande-Bold"/>
                                             </attributes>
                                         </fragment>
@@ -77,13 +77,13 @@
                                 <textView editable="NO" verticallyResizable="YES" id="tvSecondary">
                                     <rect key="frame" x="0.0" y="0.0" width="290" height="29"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <size key="minSize" width="284" height="4"/>
                                     <size key="maxSize" width="296" height="10000000"/>
                                     <attributedString key="textStorage">
                                         <fragment content="awefweff">
                                             <attributes>
-                                                <color key="NSColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                                <color key="NSColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <font key="NSFont" size="12" name="LucidaGrande"/>
                                             </attributes>
                                         </fragment>
