@@ -325,9 +325,44 @@
 	[self.enclosingScrollView scrollWheel:anEvent];
 }
 
+/*!
+ * @brief Paint the colorless runs in the appearance's own color — for display only.
+ *
+ * Text typed with the stock formatting deliberately carries no color attribute, so the
+ * message goes out colorless and the recipient renders it their way. But AppKit draws
+ * an attributeless run in plain black whatever the appearance, which made the entry
+ * view black on black in the dark. Temporary layout attributes color exactly those
+ * runs for the screen and never touch the text storage, so nothing leaks into what is
+ * sent. Runs the user gave a color keep it.
+ */
+- (void)applyAppearanceColorToColorlessText
+{
+	NSLayoutManager	*layoutManager = [self layoutManager];
+	NSTextStorage	*storage = [self textStorage];
+	NSRange			 fullRange = NSMakeRange(0, [storage length]);
+
+	if (!fullRange.length) return;
+
+	//Reset first: a run that gained an explicit color must lose the overlay
+	[layoutManager removeTemporaryAttribute:NSForegroundColorAttributeName forCharacterRange:fullRange];
+
+	[storage enumerateAttribute:NSForegroundColorAttributeName
+						inRange:fullRange
+						options:0
+					 usingBlock:^(id color, NSRange range, BOOL *stop) {
+		if (!color) {
+			[layoutManager addTemporaryAttributes:[NSDictionary dictionaryWithObject:[NSColor labelColor]
+																			  forKey:NSForegroundColorAttributeName]
+								forCharacterRange:range];
+		}
+	}];
+}
+
 //Text changed
 - (void)textDidChange:(NSNotification *)notification
 {
+	[self applyAppearanceColorToColorlessText];
+
 	//Update typing status
 	if (enableTypingNotifications) {
 		[adium.contentController userIsTypingContentForChat:chat hasEnteredText:[[self textStorage] length] > 0];
@@ -495,7 +530,10 @@
 {
 	[super setTypingAttributes:attrs];
 
-	[self setInsertionPointColor:[[attrs objectForKey:NSBackgroundColorAttributeName] contrastingColor]];
+	/* No chosen background means no color to contrast against; the label color keeps
+	 * the caret visible on whatever the appearance paints underneath. */
+	NSColor *insertionPointColor = [[attrs objectForKey:NSBackgroundColorAttributeName] contrastingColor];
+	[self setInsertionPointColor:(insertionPointColor ? insertionPointColor : [NSColor labelColor])];
 }
 
 #pragma mark Pasting
@@ -1156,8 +1194,15 @@
 		counterText = [NSString stringWithFormat:@"%@%@", characterCounterPrefix, counterText];
 	}
 	
+	/* Display only, so it may carry a color the message must not: colorless attributes
+	 * would draw the counter black on every appearance. */
+	NSMutableDictionary *counterAttributes = [[[adium.contentController defaultFormattingAttributes] mutableCopy] autorelease];
+	if (![counterAttributes objectForKey:NSForegroundColorAttributeName]) {
+		[counterAttributes setObject:[NSColor labelColor] forKey:NSForegroundColorAttributeName];
+	}
+
 	NSAttributedString *label = [[NSAttributedString alloc] initWithString:counterText
-																attributes:[adium.contentController defaultFormattingAttributes]];
+																attributes:counterAttributes];
 	[characterCounter setString:label];
 	[characterCounter setFrameSize:label.size];
 	[label release];
