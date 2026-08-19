@@ -116,7 +116,7 @@ typedef enum {
 	NSTimeInterval lastPlayerQueryTime;			//When we last actually sent something, to keep repeated triggers cheap
 	BOOL playerQueryInFlight;
 	BOOL playerQueryLearnedNothing;				//A query came back empty-handed; see -requestPlayerQueryIfNothingIsKnown
-	NSString *infoSourceBundleIdentifier;		//Which player answered for what we hold, or nil when it came over the broadcast
+	NSString *infoSourceBundleIdentifier;		//Which player answered or broadcast what we hold; nil until anything arrives
 	BOOL musicStatusWasActive;					//Previous state of the Now Playing status, so we can spot it becoming active
 }
 
@@ -182,5 +182,14 @@ typedef enum {
  * nothing to wait for here.
  */
 - (void)requestPlayerQuery;
+
+/*!
+ * @brief The user-facing name of the player behind the current information, or nil
+ *
+ * "Apple Music" or "Spotify" — brand names, not localized. Nil before anything has
+ * arrived and for a player not known by name. The Status pane puts it in front of its
+ * preview so a result says where it came from.
+ */
+- (NSString *)currentInfoSourceDisplayName;
 
 @end

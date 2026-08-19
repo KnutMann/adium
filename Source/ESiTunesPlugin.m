@@ -505,6 +505,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 
 - (void)fireUpdateiTunesInfo;
 - (void)iTunesUpdate:(NSNotification *)aNotification;
+- (void)spotifyUpdate:(NSNotification *)aNotification;
 - (void)currentTrackFormatDidChange:(NSNotification *)aNotification;
 - (void)insertUnfilteredString:(id)sender;
 - (void)insertiTMSLink;
@@ -576,14 +577,16 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 }
 
 /*!
- * @brief Store local copy of the track information
+ * @brief The user-facing name of the player behind the current information, or nil
  *
- * Retains new information, requests immediate content update and lets the plugin know what Music is doing.
+ * Brand names, deliberately untranslated. Nil when nothing has arrived yet, and for a
+ * player this plugin does not know by name — being wordless beats guessing.
  */
-- (void)setiTunesCurrentInfo:(NSDictionary *)newInfo
+- (NSString *)currentInfoSourceDisplayName
 {
-	//The broadcast does not say who sent it, and does not have to; see -setiTunesCurrentInfo:fromPlayer:
-	[self setiTunesCurrentInfo:newInfo fromPlayer:nil];
+	if ([infoSourceBundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER]) return @"Spotify";
+	if ([infoSourceBundleIdentifier isEqualToString:MUSIC_BUNDLE_IDENTIFIER]) return @"Apple Music";
+	return nil;
 }
 
 /*!
@@ -1076,6 +1079,17 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 															 object:nil];
 	}
 
+	/* Spotify does not post either of those; it broadcasts on a channel of its own,
+	 * with a payload close enough to Apple's that -spotifyUpdate: only has to trim it.
+	 * Without this the queries were the only way Spotify's track changes ever reached
+	 * us, and they only run on a deliberate act — so the status and the settings
+	 * preview stood still while Spotify played on.
+	 */
+	[[NSDistributedNotificationCenter defaultCenter] addObserver:self
+													    selector:@selector(spotifyUpdate:)
+														    name:@"com.spotify.client.PlaybackStateChanged"
+														  object:nil];
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(currentTrackFormatDidChange:)
 												 name:Adium_CurrentTrackFormatChangedNotification
@@ -1484,9 +1498,66 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
+	/* Attributed to Music by name. Strictly the channel is open — a third-party player
+	 * can post under the old iTunes name, and one that does gets mislabeled here — but
+	 * the only place the attribution surfaces is the settings preview, and the players
+	 * that used to share this channel grew channels of their own (Spotify's is below).
+	 */
 	NSDictionary *newInfo = [aNotification userInfo];
-	[self setiTunesCurrentInfo:newInfo];
-	
+	[self setiTunesCurrentInfo:newInfo fromPlayer:MUSIC_BUNDLE_IDENTIFIER];
+
+	[pool release];
+}
+
+/*!
+ * @brief A Spotify broadcast arrived
+ *
+ * Spotify stopped posting the iTunes-compatible broadcast long ago; what it posts on
+ * every start, pause, stop and track change is a channel of its own. The payload
+ * borrows Apple's key names for everything read here — Name, Artist, Album,
+ * Player State — but is not handed over verbatim: it also carries numbers whose
+ * meanings do not line up with the keys CBPurpleAccount reads (Duration in
+ * milliseconds where Total Time means milliseconds of a different clock, Playback
+ * Position, Play Count), and its Track ID is a spotify:track: URI that is only
+ * useful once it is the web address the query path already makes of it.
+ */
+- (void)spotifyUpdate:(NSNotification *)aNotification
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	NSDictionary *payload = [aNotification userInfo];
+	NSString *playerState = [payload objectForKey:KEY_ITUNES_PLAYER_STATE];
+
+	/* The same three words the query scripts are held to; see AITrackInfoFromDescriptor.
+	 * Anything else — a future Spotify, a payload without a state — is not understood
+	 * and must look like a broadcast that never arrived.
+	 */
+	if ([playerState isKindOfClass:[NSString class]] &&
+		([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
+		 [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
+		 [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
+
+		NSMutableDictionary *info = [NSMutableDictionary dictionary];
+		[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
+
+		for (NSString *key in [NSArray arrayWithObjects:KEY_ITUNES_NAME, KEY_ITUNES_ARTIST, KEY_ITUNES_ALBUM, nil]) {
+			id value = [payload objectForKey:key];
+			if ([value isKindOfClass:[NSString class]] && [value length]) [info setObject:value forKey:key];
+		}
+
+		id trackID = [payload objectForKey:@"Track ID"];
+		NSString *webURL = [trackID isKindOfClass:[NSString class]] ? AISpotifyWebURLFromURI(trackID) : nil;
+		if (webURL) [info setObject:webURL forKey:KEY_ITUNES_STORE_URL];
+
+		/* Playing, but not a word about what: the same defence the query path has, for
+		 * the same reason — the filter would send the half-empty track line the guard
+		 * in -setiTunesCurrentInfo:fromPlayer: exists to prevent.
+		 */
+		if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
+			[self setiTunesCurrentInfo:info fromPlayer:SPOTIFY_BUNDLE_IDENTIFIER];
+		}
+	}
+
 	[pool release];
 }
 

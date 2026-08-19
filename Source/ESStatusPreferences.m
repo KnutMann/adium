@@ -289,13 +289,13 @@
 
 	/* The refresh next to it asks Music and Spotify there and then. The broadcast the preview
 	 * lives on only arrives when something changes, so after a launch — or with the answer gone
-	 * stale — this button is the way to one without waiting for the next track. */
-	button_refreshPreview = [AISettingsFormView inlineSymbolButtonWithSymbolName:@"arrow.clockwise"
-															   fallbackImageName:NSImageNameRefreshTemplate
-																		  target:self
-																		  action:@selector(refreshNowPlaying:)];
+	 * stale — this button is the way to one without waiting for the next track. A titled push
+	 * button rather than the bare symbol it once was: the symbol gave no sign of having been
+	 * pressed, and a word says better than an arrow what the click does. */
+	button_refreshPreview = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Refresh", "Button next to the Now Playing preview; asks the running music players what is playing")
+															 target:self
+															 action:@selector(refreshNowPlaying:)];
 	[button_refreshPreview setToolTip:AILocalizedString(@"Ask the running music players what is playing", "Tool tip and accessibility label of the refresh button next to the Now Playing preview")];
-	[button_refreshPreview setAccessibilityLabel:AILocalizedString(@"Ask the running music players what is playing", "Tool tip and accessibility label of the refresh button next to the Now Playing preview")];
 
 	NSView *previewRow = [AISettingsFormView rowOfViews:[NSArray arrayWithObjects:
 														 textField_preview, button_refreshPreview, nil]];
@@ -1523,9 +1523,23 @@
  * Fire and done: the method carries its own restraint (nothing to a player that is not running,
  * nothing twice within seconds — see its header), and the answer comes back asynchronously as
  * Adium_iTunesTrackChangedNotification, which -trackChanged: already turns into a fresh preview.
+ *
+ * The sentence put up first is the sign that the click took: a push button alone cannot show
+ * that an asynchronous question is on its way. It cannot be left to the answer to take the
+ * sentence down again, because the answer is allowed not to come — the plugin only posts when it
+ * learns something new, and the query's own restraint may keep it from being sent at all — so a
+ * delayed -updatePreview stands behind it and repaints from whatever is known by then.
+ * -trackChanged: beats that timer whenever an answer does arrive.
  */
 - (void)refreshNowPlaying:(id)sender
 {
+	[textField_preview setStringValue:AILocalizedString(@"Fetching the current track…", "Shown as the Now Playing preview while the refresh button's question to the music players is under way")];
+	[textField_preview setTextColor:([textField_preview isEnabled] ? [NSColor secondaryLabelColor] : [NSColor disabledControlTextColor])];
+	[[self settingsForm] setToolTip:nil forRowWithControl:textField_preview];
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updatePreview) object:nil];
+	[self performSelector:@selector(updatePreview) withObject:nil afterDelay:4.0];
+
 	[[self musicPlugin] requestPlayerQuery];
 }
 
@@ -1745,16 +1759,23 @@
 
 	switch (state) {
 		case AIMusicPreviewPlaying:
-			/* Trimmed for the decision, untrimmed for the display: what is shown stays literally
-			 * what would be sent, but a result made of nothing but spaces is counted as the empty
-			 * one it looks like. It is not a contrived case — "%_track %_artist" over a payload
-			 * which says Playing and names neither (Apple Music radio, a shared library) comes to
-			 * a single space — and drawn as a result it would be a blank line in the ordinary
-			 * colour with a tool tip of spaces, which is exactly the wordless preview the
-			 * sentences below exist to prevent.
+			/* Trimmed for the decision, untrimmed for the display: the resolved text stays
+			 * literally what would be sent, but a result made of nothing but spaces is counted as
+			 * the empty one it looks like. It is not a contrived case — "%_track %_artist" over a
+			 * payload which says Playing and names neither (Apple Music radio, a shared library)
+			 * comes to a single space — and drawn as a result it would be a blank line in the
+			 * ordinary colour with a tool tip of spaces, which is exactly the wordless preview
+			 * the sentences below exist to prevent.
+			 *
+			 * The player's name goes in front of a real result, with a colon, so the line also
+			 * says where the answer came from — with Music and Spotify both open, nothing else
+			 * on the card does. The name is not part of what would be sent; only what follows
+			 * the colon is.
 			 */
 			if ([[resolved stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length]) {
-				text = resolved;
+				NSString *sourceName = [plugin currentInfoSourceDisplayName];
+
+				text = (sourceName ? [NSString stringWithFormat:@"%@: %@", sourceName, resolved] : resolved);
 				isResult = YES;
 			} else {
 				text = AILocalizedString(@"This format currently produces empty text.",
@@ -1824,6 +1845,8 @@
  */
 - (void)trackChanged:(NSNotification *)notification
 {
+	//An answer is here; the fallback timer -refreshNowPlaying: set no longer has a job
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updatePreview) object:nil];
 	[self updatePreview];
 }
 
