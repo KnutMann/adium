@@ -24,12 +24,14 @@
 #import <Adium/AIStatusControllerProtocol.h>
 #import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
+#import <Adium/AIContentMessage.h>
 #import <Adium/AIContentObject.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIStatus.h>
 #import <Adium/ESFileTransfer.h>
 #import <AIUtilities/AIImageAdditions.h>
+#import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 
 /* Keep the historical Growl action and detail keys so existing user alert configurations continue
@@ -50,6 +52,11 @@
 
 #define KEY_FILE_TRANSFER_ID	@"fileTransferUniqueID"
 #define KEY_CHAT_ID				@"uniqueChatID"
+
+/* The reply-from-the-banner category, attached to message events whose chat or
+ * contact the notification can name again later. */
+#define MESSAGE_CATEGORY_IDENTIFIER	@"AIMessageNotificationCategory"
+#define MESSAGE_ACTION_REPLY		@"AIMessageNotificationReply"
 #define KEY_LIST_OBJECT_ID		@"internalObjectID"
 
 @interface AIUserNotificationPlugin ()
@@ -76,6 +83,8 @@
 - (void)registerNotificationCategories:(UNUserNotificationCenter *)center;
 - (void)clearQueue:(NSDictionary *)callDict;
 - (void)handleNotificationClickWithContext:(NSDictionary *)clickContext;
+- (AIChat *)chatForClickContext:(NSDictionary *)clickContext;
+- (void)sendReplyText:(NSString *)replyText withContext:(NSDictionary *)clickContext;
 @end
 
 /*!
@@ -190,7 +199,21 @@
 																			   intentIdentifiers:[NSArray array]
 																						 options:UNNotificationCategoryOptionNone];
 
-	[center setNotificationCategories:[NSSet setWithObject:awayReminderCategory]];
+	/* Reply straight from the banner. The action sends in the background — answering
+	 * a message is no reason to pull Adium in front of whatever the user is doing;
+	 * whoever wants the whole conversation clicks the notification itself. */
+	UNTextInputNotificationAction *replyAction = [UNTextInputNotificationAction actionWithIdentifier:MESSAGE_ACTION_REPLY
+																							   title:AILocalizedString(@"Reply", nil)
+																							 options:UNNotificationActionOptionNone
+																				textInputButtonTitle:AILocalizedString(@"Send", nil)
+																				textInputPlaceholder:@""];
+
+	UNNotificationCategory *messageCategory = [UNNotificationCategory categoryWithIdentifier:MESSAGE_CATEGORY_IDENTIFIER
+																					 actions:[NSArray arrayWithObject:replyAction]
+																		   intentIdentifiers:[NSArray array]
+																					 options:UNNotificationCategoryOptionNone];
+
+	[center setNotificationCategories:[NSSet setWithObjects:awayReminderCategory, messageCategory, nil]];
 }
 
 #pragma mark AIActionHandler
@@ -558,6 +581,14 @@
 	content.userInfo = clickContext;
 	/* No sound: Adium's own "Play a sound" alert action handles audio. */
 
+	/* Only a message whose sender the context can name again gets the reply button;
+	 * a sign-on banner with a text field would promise something no code keeps. */
+	NSString *eventID = [clickContext objectForKey:@"eventID"];
+	if (eventID && [adium.contactAlertsController isMessageEvent:eventID] &&
+		([clickContext objectForKey:KEY_CHAT_ID] || [clickContext objectForKey:KEY_LIST_OBJECT_ID])) {
+		content.categoryIdentifier = MESSAGE_CATEGORY_IDENTIFIER;
+	}
+
 	if (!identifier)
 		identifier = [[NSProcessInfo processInfo] globallyUniqueString];
 
@@ -610,6 +641,14 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 																object:nil];
 		});
 
+	} else if ([actionIdentifier isEqualToString:MESSAGE_ACTION_REPLY] &&
+			   [response isKindOfClass:[UNTextInputNotificationResponse class]]) {
+		//Typed into the banner; sent without ever bringing Adium forward
+		NSString *replyText = [(UNTextInputNotificationResponse *)response userText];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self sendReplyText:replyText withContext:clickContext];
+		});
+
 	} else if ([actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self handleNotificationClickWithContext:clickContext];
@@ -620,7 +659,13 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 	completionHandler();
 }
 
-- (void)handleNotificationClickWithContext:(NSDictionary *)clickContext
+/*!
+ * @brief The chat a notification's context points back to.
+ *
+ * Shared between a click on the banner and a reply typed into it. A chat that closed
+ * since the notification was posted is reopened from its contact where one still exists.
+ */
+- (AIChat *)chatForClickContext:(NSDictionary *)clickContext
 {
 	NSString		*internalObjectID, *uniqueChatID;
 	AIListObject	*listObject;
@@ -652,6 +697,41 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 										  onPreferredAccount:YES];
 		}
 	}
+
+	return chat;
+}
+
+/*!
+ * @brief Send the text typed into a notification's reply field.
+ *
+ * Deliberately without activating Adium or its chat window: the whole point of the
+ * field is answering without leaving whatever the user was doing. The message still
+ * runs through the content controller, so filters, logging and the message view all
+ * see it exactly as if it had been typed into the chat.
+ */
+- (void)sendReplyText:(NSString *)replyText withContext:(NSDictionary *)clickContext
+{
+	replyText = [replyText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	if (![replyText length]) return;
+
+	AIChat *chat = [self chatForClickContext:clickContext];
+	if (!chat || !chat.account) {
+		AILogWithSignature(@"No chat to deliver a notification reply to; context: %@", clickContext);
+		return;
+	}
+
+	AIContentMessage *message = [AIContentMessage messageInChat:chat
+													 withSource:chat.account
+													destination:chat.listObject
+														   date:nil
+														message:[NSAttributedString stringWithString:replyText]
+													  autoreply:NO];
+	[adium.contentController sendContentObject:message];
+}
+
+- (void)handleNotificationClickWithContext:(NSDictionary *)clickContext
+{
+	AIChat *chat = [self chatForClickContext:clickContext];
 
 	NSString *fileTransferID;
 	if ((fileTransferID = [clickContext objectForKey:KEY_FILE_TRANSFER_ID])) {
