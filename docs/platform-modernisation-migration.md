@@ -28,7 +28,7 @@ another effort and is out of scope here.
 | ID | Priority | Scope | Status |
 | --- | --- | --- | --- |
 | M01 | P0 | AddressBook to Contacts | proposed |
-| M02 | P0 | Remove private system APIs | proposed |
+| M02 | P0 | Remove private system APIs | M02b implemented; M02a/M02c proposed |
 | M03 | P1 | Raise all owned targets to the macOS 11 baseline | proposed |
 | M04 | P1 | Replace AutoHyperlinks with a small native link detector | proposed |
 | M05 | P1 | Remove the hand-written URL query parser | proposed |

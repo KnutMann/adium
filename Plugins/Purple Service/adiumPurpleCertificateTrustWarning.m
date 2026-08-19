@@ -19,28 +19,44 @@
 
 #import <Adium/AIAccount.h>
 #import <Adium/AIAccountControllerProtocol.h>
+#import "CBPurpleAccount.h"
 #import "ESPurpleJabberAccount.h"
 
+/*!
+ * @brief The SSL plugin asks what to do with a peer's certificate chain
+ *
+ * Called for every TLS connection libpurple's cdsa plugin completes, good chains included: the
+ * verdict is made here, not before. This used to look for an owner among the Jabber accounts
+ * only, and whatever it could not place it accepted without any check at all, which meant an
+ * IRC server presenting an expired certificate connected without a word. Now every purple
+ * account is asked whether the connection is its own, an owner's stored opt-out is honoured,
+ * and everything else is verified. A connection nobody claims is still verified, only without
+ * an account to show; it is never waved through again.
+ */
 void adium_query_cert_chain(PurpleSslConnection *gsc, const char *hostname, CFArrayRef certs, void (*query_cert_cb)(gboolean trusted, void *userdata), void *userdata) {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	// only the jabber service supports this right now
-	for (ESPurpleJabberAccount *account in [adium.accountController accountsCompatibleWithService:[adium.accountController firstServiceWithServiceID:@"Jabber"]]) {
-		if([account secureConnection] == gsc) {
-			if([account shouldVerifyCertificates])
-				[AIPurpleCertificateTrustWarningAlert displayTrustWarningAlertWithAccount:account
-																				 hostname:[NSString stringWithUTF8String:hostname]
-																			 certificates:certs
-																		   resultCallback:query_cert_cb
-																				 userData:userdata];
-			else
-				query_cert_cb(true, userdata);
-			[pool release];
+	@autoreleasepool {
+		CBPurpleAccount *account = nil;
+
+		for (AIAccount *candidate in adium.accountController.accounts) {
+			if ([candidate isKindOfClass:[CBPurpleAccount class]] &&
+				[(CBPurpleAccount *)candidate secureConnection] == gsc) {
+				account = (CBPurpleAccount *)candidate;
+				break;
+			}
+		}
+
+		//The one documented opt-out: an account whose settings say not to verify
+		if (account &&
+			[account respondsToSelector:@selector(shouldVerifyCertificates)] &&
+			![(ESPurpleJabberAccount *)account shouldVerifyCertificates]) {
+			query_cert_cb(true, userdata);
 			return;
 		}
+
+		[AIPurpleCertificateTrustWarningAlert displayTrustWarningAlertWithAccount:account
+																		 hostname:[NSString stringWithUTF8String:hostname]
+																	 certificates:certs
+																   resultCallback:query_cert_cb
+																		 userData:userdata];
 	}
-	// default fallback
-	query_cert_cb(true, userdata);
-	
-	[pool release];
 }

@@ -16,10 +16,8 @@
 
 #import "AIPurpleCertificateTrustWarningAlert.h"
 #import <SecurityInterface/SFCertificateTrustPanel.h>
-#import <Security/SecureTransport.h>
-#import <Security/SecPolicySearch.h>
 #import <Security/SecPolicy.h>
-#import <Security/oidsalg.h>
+#import <Security/SecTrust.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import "ESPurpleJabberAccount.h"
 
@@ -36,10 +34,6 @@
 - (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)trustpanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
 
-@interface SFCertificateTrustPanel (SecretsIKnow)
-- (void)setInformativeText:(NSString *)inString;
-@end
-
 @implementation AIPurpleCertificateTrustWarningAlert
 
 + (void)displayTrustWarningAlertWithAccount:(AIAccount *)account
@@ -48,7 +42,8 @@
 							 resultCallback:(void (*)(gboolean trusted, void *userdata))_query_cert_cb
 								   userData:(void*)ud
 {
-	if ([hostname caseInsensitiveCompare:@"talk.google.com"] == NSOrderedSame &&
+	if (account &&
+		[hostname caseInsensitiveCompare:@"talk.google.com"] == NSOrderedSame &&
 		![[account preferenceForKey:KEY_JABBER_FORCE_OLD_SSL group:GROUP_ACCOUNT_STATUS] boolValue]) {
 		NSString *UID = account.UID;
 		NSRange startOfDomain = [UID rangeOfString:@"@"];
@@ -92,7 +87,8 @@
 
 - (void)dealloc {
 	CFRelease(certificates);
-	CFRelease(trustRef);
+	//The early error paths release self before a trust ref exists, and CFRelease(NULL) aborts
+	if (trustRef) CFRelease(trustRef);
 	
 	[hostname release];
 	
@@ -101,59 +97,35 @@
 
 - (IBAction)showWindow:(id)sender {
 	OSStatus err;
-	SecPolicySearchRef searchRef = NULL;
-	SecPolicyRef policyRef;
-	
-	CSSM_DATA data;
-	err = SecCertificateGetData((SecCertificateRef)CFArrayGetValueAtIndex(certificates, 0), &data);
-	
-	err = SecPolicySearchCreate(CSSM_CERT_X_509v3, &CSSMOID_APPLE_TP_SSL, NULL, &searchRef);
-	if(err != noErr) {
-		NSBeep();
-		[self release];
-		return;
-	}
-	
-	err = SecPolicySearchCopyNext(searchRef, &policyRef);
-	if(err != noErr) {
-		CFRelease(searchRef);
-		NSBeep();
+
+	/* An SSL evaluation policy for this hostname. This took a CSSM policy-database search and a
+	 * hand-packed options struct before; the one-call form has existed since 10.6 and is also
+	 * what the trust panel below is given. */
+	SecPolicyRef policyRef = SecPolicyCreateSSL(true, (CFStringRef)hostname);
+	if (!policyRef) {
+		/* The old code beeped and returned without ever answering libpurple, leaving the
+		 * connection waiting forever. An unanswerable question is answered with no. */
+		query_cert_cb(false, userdata);
 		[self release];
 		return;
 	}
 
-	NSAssert( UINT_MAX > [hostname length],
-					 @"More string data than libpurple can handle.  Abort." );
-	
-	CSSM_APPLE_TP_SSL_OPTIONS ssloptions = {
-		.Version = CSSM_APPLE_TP_SSL_OPTS_VERSION,
-		.ServerNameLen = (UInt32)([hostname length]+1),
-		.ServerName = [hostname cStringUsingEncoding:NSASCIIStringEncoding],
-		.Flags = 0
-	};
-	
-	CSSM_DATA theCssmData = {
-		.Length = sizeof(ssloptions),
-		.Data = (uint8*)&ssloptions 
-	};
-	
-	SecPolicySetValue(policyRef, &theCssmData); // Don't care about the error
-	
 	err = SecTrustCreateWithCertificates(certificates, policyRef, &trustRef);
 
 	if(err != noErr) {
-		CFRelease(searchRef);
 		CFRelease(policyRef);
-		NSBeep();
+		query_cert_cb(false, userdata);
 		[self release];
 		return;
 	}
-		
-	// test whether we aren't already trusting this certificate
-	SecTrustResultType result;
-	err = SecTrustEvaluate(trustRef, &result);
+
+	/* Whether the chain stands on its own. The boolean answer is not enough here: the result
+	 * type distinguishes a chain the user could choose to trust from one that is beyond asking
+	 * about, so it is read back after the evaluation. */
+	SecTrustResultType result = kSecTrustResultOtherError;
+	(void)SecTrustEvaluateWithError(trustRef, NULL);
+	err = SecTrustGetTrustResult(trustRef, &result);
 	if(err == noErr) {
-		// with help from http://lists.apple.com/archives/Apple-cdsa/2006/Apr/msg00013.html
 		switch(result) {
 			case kSecTrustResultProceed: // trust ok, go right ahead
 			case kSecTrustResultUnspecified: // trust ok, user has no particular opinion about this
@@ -162,10 +134,9 @@
 				[self autorelease];
 				break;
 #endif
-			case kSecTrustResultConfirm: // trust ok, but user asked (earlier) that you check with him before proceeding
 			case kSecTrustResultDeny: // trust ok, but user previously said not to trust it anyway
 			case kSecTrustResultRecoverableTrustFailure: // trust broken, perhaps argue with the user
-			case kSecTrustResultOtherError: // failure other than trust evaluation; e.g., internal failure of the SecTrustEvaluate function. We'll let the user decide where to go from here.
+			case kSecTrustResultOtherError: // failure other than trust evaluation; We'll let the user decide where to go from here.
 			{
 				
 #if 1
@@ -200,7 +171,6 @@
 		[self autorelease];
 	}
 
-	CFRelease(searchRef);
 	CFRelease(policyRef);
 }
 
@@ -213,17 +183,12 @@
 	//	CSSM_TP_APPLE_EVIDENCE_INFO *statusChain;
 	//	err = SecTrustGetResult(trustRef, &result, &certChain, &statusChain);
 	
-	NSString *title;
-	NSString *informativeText = [NSString stringWithFormat:AILocalizedString(@"The certificate of the server %@ is not trusted, which means that the server's identity cannot be automatically verified. Do you want to continue connecting?\n\nFor more information, click \"Show Certificate\".",nil), hostname];
-	if ([trustPanel respondsToSelector:@selector(setInformativeText:)]) {
-		[trustPanel setInformativeText:informativeText];
-		title = [NSString stringWithFormat:AILocalizedString(@"Adium can't verify the identity of \"%@\".", nil), hostname];
-	} else {
-		/* We haven't seen a version of SFCertificateTrustPanel which doesn't respond to setInformativeText:, but we're using a private
-		 * call found via class-dump, so have a sane backup strategy in case it changes.
-		 */
-		title = informativeText;
-	}
+	/* Both lines travel through the panel's public message: parameter. The informative text used
+	 * to be set through a private selector found via class-dump; the panel renders the combined
+	 * message a little less prettily and owes nobody an apology for existing. */
+	NSString *title = [NSString stringWithFormat:@"%@\n\n%@",
+					   [NSString stringWithFormat:AILocalizedString(@"Adium can't verify the identity of \"%@\".", nil), hostname],
+					   [NSString stringWithFormat:AILocalizedString(@"The certificate of the server %@ is not trusted, which means that the server's identity cannot be automatically verified. Do you want to continue connecting?\n\nFor more information, click \"Show Certificate\".",nil), hostname]];
 
 	[trustPanel setAlternateButtonTitle:AILocalizedString(@"Cancel",nil)];
 	[trustPanel setShowsHelp:YES];
