@@ -6,7 +6,7 @@ syntax: glob
 *.xcworkspace
 *.xcuserdatad
 build
-Icon*
+Icon
 docs/*.html
 Dependencies/build
 Dependencies/source
