@@ -20,6 +20,7 @@
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import "ESGlobalEventsPreferences.h"
 #import "ESGlobalEventsPreferencesPlugin.h"
+#import "AIUserNotificationPlugin.h"
 #import <Adium/AISettingsFormView.h>
 #import <Adium/ESPresetManagementController.h>
 #import <Adium/ESPresetNameSheetController.h>
@@ -66,6 +67,7 @@
 - (void)contactAlertsDidChangeForActionID:(NSString *)actionID;
 - (NSMenu *)eventPresetsMenu;
 - (IBAction)selectSoundSet:(id)sender;
+- (void)changeNotificationsEnabled:(id)sender;
 - (NSMenu *)_soundSetMenu;
 - (NSString *)_localizedTitle:(NSString *)englishTitle;
 - (void)saveCurrentEventPreset;
@@ -197,6 +199,18 @@ static NSString *AIRowLabel(NSString *label)
 
 	//Card 2: the preset and the sounds it brings along
 	[form addSectionHeader:AILocalizedString(@"Notifications", "Section header above the event preset, sound set and volume settings")];
+
+	/* The global gate for Notification Center. Everything below decides what happens per
+	 * event; this decides whether banners appear at all. An absent preference means on,
+	 * so only an explicit off is ever stored and everybody starts with the old behavior.
+	 */
+	NSNumber *notificationsEnabled = [adium.preferenceController preferenceForKey:KEY_NOTIFICATIONS_ENABLED
+																			 group:PREF_GROUP_NOTIFICATIONS];
+	switch_notifications = [AISettingsFormView switchWithTarget:self action:@selector(changeNotificationsEnabled:)];
+	[switch_notifications setState:((notificationsEnabled && ![notificationsEnabled boolValue]) ? NSControlStateValueOff : NSControlStateValueOn)];
+	[form addRowWithLabel:AILocalizedString(@"Show notifications", "Label of the global switch for Notification Center banners on the Events pane")
+				  control:switch_notifications
+				   detail:AILocalizedString(@"Banners in Notification Center for the events below. Whether macOS lets them through is decided in System Settings.", "Second line under the global notifications switch")];
 
 	/* Pop up rows rather than plain control rows: both menus are rebuilt while the pane is open —
 	 * presets as they are added and removed, sound sets as Xtras come and go — and the buttons then
@@ -491,6 +505,8 @@ static NSString *AIRowLabel(NSString *label)
 	[slider_volume setTarget:nil];
 	[button_minvolume setTarget:nil];
 	[button_maxvolume setTarget:nil];
+	[switch_notifications setTarget:nil];
+	switch_notifications = nil;
 
 	/* All of these references are non-retaining and the views behind them go away with the form or
 	 * with the nib's view, either of which may be released after us; forget them so a second
@@ -902,6 +918,49 @@ static NSString *AIRowLabel(NSString *label)
 	} else {
 		[self saveCurrentEventPreset];
 	}
+}
+
+#pragma mark Notifications
+/*!
+ * @brief The global notifications switch was flipped.
+ *
+ * Off is stored, on removes the stored preference — absent means on, so a profile
+ * that never touched the switch carries nothing. Turning it on also asks the system
+ * whether Adium may notify at all: this switch looks exactly like the one in System
+ * Settings, and standing on while macOS drops every banner would be a lie the user
+ * cannot see through here. Only an actual denial earns the hint; "not yet asked" and
+ * "allowed" stay quiet.
+ */
+- (void)changeNotificationsEnabled:(id)sender
+{
+	BOOL enabled = ([switch_notifications state] == NSControlStateValueOn);
+
+	[adium.preferenceController setPreference:(enabled ? nil : [NSNumber numberWithBool:NO])
+									   forKey:KEY_NOTIFICATIONS_ENABLED
+										group:PREF_GROUP_NOTIFICATIONS];
+
+	if (!enabled) return;
+
+	[[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *settings) {
+		if (settings.authorizationStatus != UNAuthorizationStatusDenied) return;
+
+		//The completion handler arrives on a background queue; the alert belongs on the main thread
+		dispatch_async(dispatch_get_main_queue(), ^{
+			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+
+			[alert setAlertStyle:NSAlertStyleWarning];
+			[alert setMessageText:AILocalizedString(@"macOS is blocking Adium's notifications", "Title of the alert shown when notifications are switched on here while System Settings denies them")];
+			[alert setInformativeText:AILocalizedString(@"The switch here is on, but System Settings does not allow Adium to show notifications. Allow them under Notifications in System Settings.", "Body of the alert shown when notifications are switched on here while System Settings denies them")];
+			[alert addButtonWithTitle:AILocalizedString(@"Open System Settings", "Button on the notifications alert that jumps to the Notifications pane of System Settings")];
+			[alert addButtonWithTitle:AILocalizedString(@"OK", nil)];
+
+			if ([alert runModal] == NSAlertFirstButtonReturn) {
+				NSString *deepLink = [NSString stringWithFormat:@"x-apple.systempreferences:com.apple.preference.notifications?id=%@",
+									  [[NSBundle mainBundle] bundleIdentifier]];
+				[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:deepLink]];
+			}
+		});
+	}];
 }
 
 #pragma mark Sound sets

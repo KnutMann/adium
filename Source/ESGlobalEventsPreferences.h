@@ -45,6 +45,9 @@
 	IBOutlet	NSPopUpButton	*popUp_eventPreset;
 	IBOutlet	NSPopUpButton	*popUp_soundSet;
 
+	//Code-built: the global gate for Notification Center, above the per-event list
+	NSSwitch	*switch_notifications;
+
 	/* No longer displayed: their words became the row labels. The outlets stay because the nib
 	 * still connects them, and nib loading throws on a key it cannot find. */
 	IBOutlet	NSTextField		*label_eventPreset;

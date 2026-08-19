@@ -223,6 +223,13 @@
  */
 - (BOOL)performActionID:(NSString *)actionID forListObject:(AIListObject *)listObject withDetails:(NSDictionary *)details triggeringEventID:(NSString *)eventID userInfo:(id)userInfo
 {
+	//The global switch on the Events pane; everything below is per event or per status
+	NSNumber *notificationsEnabled = [adium.preferenceController preferenceForKey:KEY_NOTIFICATIONS_ENABLED
+																			 group:PREF_GROUP_NOTIFICATIONS];
+	if (notificationsEnabled && ![notificationsEnabled boolValue]) {
+		return NO;
+	}
+
 	// Don't post notifications if the active status says to silence them.
 	if ([adium.statusController.activeStatusState silencesNotifications]) {
 		return NO;

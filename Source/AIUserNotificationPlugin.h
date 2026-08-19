@@ -17,6 +17,12 @@
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import <UserNotifications/UserNotifications.h>
 
+/* The one global gate above all per-event alerts. Absent means on: the preference is
+ * only ever written when the switch on the Events pane is turned off.
+ */
+#define PREF_GROUP_NOTIFICATIONS	@"Notifications"
+#define KEY_NOTIFICATIONS_ENABLED	@"Show Notifications"
+
 @interface AIUserNotificationPlugin : AIPlugin <AIActionHandler, UNUserNotificationCenterDelegate> {
 	NSMutableDictionary	*queuedEvents;
 }
