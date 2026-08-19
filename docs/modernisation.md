@@ -150,7 +150,11 @@ version, author and readme. An overhaul also means: the service template for a n
 still proposes the 2008 roster (AIM, Bonjour, MobileMe...) instead of asking the running app
 what it speaks; and whether the project builds on arm64 at all has not been checked. Worth doing
 if icon sets are going to be made for this fork; the sound and emoticon editors would be small,
-the message style editor is a project of its own.
+the message style editor is a project of its own. When the overhaul happens, upstream already
+converted five of the six nibs to xibs (found in jas8522/adium@6ff728a under
+`Other/XtrasCreator/`); the sixth, `IconPack_IconPlistView.nib`, was lost upstream in that
+conversion while the code still loads it by name, so our binary nib is the only surviving
+copy and has to be converted by hand.
 
 **Reproducible plugin builds.** The Telegram plugin was a binary in `PurplePlugins/` whose build
 recipe had been lost, which cost an account when it was rebuilt from what the tree actually held.

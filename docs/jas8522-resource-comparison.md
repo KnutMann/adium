@@ -287,3 +287,24 @@ Die Liste ist ein Inventar, keine Übernahmeempfehlung: die fremde Referenz stam
 | Resources/transcripts-timestamp-in.tiff | 64x64 |
 | Resources/transcripts-timestamp-out.tiff | 64x64 |
 
+
+## Nachtrag: xib-Vergleich (2026-08-19)
+
+jas8522/adium trägt 1005 xibs (je Sprache eine Kopie, alter Lokalisierungsstil) gegenüber
+unseren 95 Basis-xibs. Ergebnis des Paarvergleichs über die 87 gemeinsamen Basisnamen:
+
+- **Kein einziger eigener xib-Commit bei jas.** Seine xibs stammen unverändert aus dem
+  Upstream-Merge (adium/adium); die Konvertierung nib→xib hat Upstream gemacht, nicht er.
+- **Alle 87 Paare weichen ab, und jede Abweichung geht auf unsere Commits zurück**
+  (eigene nib→xib-Migration, Settings-Umbau, Autolayout in MainMenu, MessageWindow,
+  MessageView, ContactListWindow, AboutBox, SetupWizard, DockIconSelectionSheet u.a.).
+  In keinem Paar hat jas Autolayout oder mehr Constraints als wir. Acht xibs existieren
+  nur bei uns (Settings-Umbau). Es gibt dort nichts zu übernehmen.
+- **Einzige Ausnahme: der XtrasCreator.** Upstream hat fünf der sechs XtrasCreator-nibs
+  als xib konvertiert (MainMenu, MyDocument, MessageStyleView, StartingPoints,
+  Preferences); bei uns liegen sie noch binär. Die sechste, `IconPack_IconPlistView.nib`,
+  ist Upstream bei der Konvertierung **verloren gegangen**: der Code lädt sie weiter per
+  Name (AXCIconPackDocument.m), aber im Baum existiert weder nib noch xib. Unser binäres
+  nib ist die einzige überlebende Kopie dieser Ansicht. Fundort der fünf xibs:
+  jas8522/adium@6ff728a unter `Other/XtrasCreator/`; einsammeln lohnt erst mit dem
+  XtrasCreator-Umbau (siehe modernisation.md), die sechste dann selbst konvertieren.
