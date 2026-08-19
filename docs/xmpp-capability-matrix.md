@@ -41,7 +41,10 @@ eigenes XEP-Audit steht auf "Proposed", auch dort ist Konformität unverifiziert
    Zuordnung, dokumentiert in adiumPurpleSignals.m); wer das eine Datenmodell baut, schaltet 0308,
    0184-Haken und 0333 pro Nachricht zugleich frei.
 
-**Verlockend, aber nein:** OMEMO (ohne geprüftes Kryptodesign fahrlässig), 0393 Styling (Eingriff in
+**Verlockend, aber nein:** OMEMO (ohne geprüftes Kryptodesign fahrlässig; Nachtrag 22.08.: der
+shtrom-Fork trägt mit `Lurch4Adium-0.0.4/*` einen Port des Pidgin-lurch-Plugins — das wäre der
+Startpunkt, falls je entschieden wird, aber lurch und das darunterliegende libsignal-protocol-c
+sind seit Jahren unbetreut, das Urteil bleibt), 0393 Styling (Eingriff in
 die gesamte Darstellung, hinter Carbons einreihen), 0444/0461 (Experimental und ohne ID-Zuordnung
 nicht darstellbar), Bind2/SASL2 (Kern-OP für null sichtbaren Nutzen), MIX (kein Deployment).
 
