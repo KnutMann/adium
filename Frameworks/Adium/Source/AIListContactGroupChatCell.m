@@ -54,8 +54,29 @@
 
 - (NSColor *)textColor
 {
-    AIListObject    *listObject = [proxyObject listObject];
-	return [[AIGroupChatStatusIcons sharedIcons] colorForFlag:[chat flagsForContact:listObject]];
+	AIListObject		*listObject = [proxyObject listObject];
+	AIGroupChatFlags	 flags = [chat flagsForContact:listObject];
+
+	/* A plain member carries no role, and the role palette has nothing to say about
+	 * one: its None entry is ink black, drawn for a light list, and it overrode the
+	 * list's text color on every appearance. The list's own color knows better.
+	 */
+	if (flags == AIGroupChatNone) return [super textColor];
+
+	NSColor *roleColor = [[AIGroupChatStatusIcons sharedIcons] colorForFlag:flags];
+
+	/* The role colors are inks for a light ground too; on a dark one they nearly
+	 * vanish. Lifting them toward white keeps the hues apart and the names legible.
+	 */
+	NSAppearance *appearance = [self.outlineControlView effectiveAppearance] ?: [NSApp effectiveAppearance];
+	NSString *match = [appearance bestMatchFromAppearancesWithNames:
+					   [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil]];
+
+	if ([match isEqualToString:NSAppearanceNameDarkAqua]) {
+		roleColor = [roleColor blendedColorWithFraction:0.6f ofColor:[NSColor whiteColor]] ?: roleColor;
+	}
+
+	return roleColor;
 }
 
 - (float)imageOpacityForDrawing
