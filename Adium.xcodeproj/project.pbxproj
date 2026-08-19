@@ -255,7 +255,7 @@
 		347E39DC0A98AA4A00961B0E /* missing_image.png in Resources */ = {isa = PBXBuildFile; fileRef = 347E39DB0A98AA4A00961B0E /* missing_image.png */; };
 		347E77F407CA94FF00350507 /* ESAccountEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E77F207CA94FE00350507 /* ESAccountEvents.m */; };
 		347E781407CA961300350507 /* ESUserIconHandlingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E781207CA961300350507 /* ESUserIconHandlingPlugin.m */; };
-		347E781A07CA962100350507 /* events-contact.png in Resources */ = {isa = PBXBuildFile; fileRef = 347E781907CA962100350507 /* events-contact.png */; };
+		347E781A07CA962100350507 /* events-contact.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 347E781907CA962100350507 /* events-contact.tiff */; };
 		347E782907CA964600350507 /* AIContactSortSelectionPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E782507CA964600350507 /* AIContactSortSelectionPlugin.m */; };
 		347E782A07CA964700350507 /* ESContactSortConfigurationWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 347E782607CA964600350507 /* ESContactSortConfigurationWindowController.m */; };
 		347E783407CA967100350507 /* SortingDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 347E783307CA967100350507 /* SortingDefaults.plist */; };
@@ -444,6 +444,17 @@
 		34BFD7FD07E6A50C00AD984D /* msg-insert-script.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34BFD7FC07E6A50C00AD984D /* msg-insert-script.tiff */; };
 		34BFD80007E6A51D00AD984D /* GBApplescriptFiltersPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFD7FE07E6A51D00AD984D /* GBApplescriptFiltersPlugin.m */; };
 		34BFDF1807E8977D00AD984D /* SoundHigh.png in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1607E8977D00AD984D /* SoundHigh.png */; };
+		ADD1E5C0DE0000000000C500 /* ABSearch@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C501 /* ABSearch@2x.png */; };
+		ADD1E5C0DE0000000000C502 /* AboutDialog_bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C503 /* AboutDialog_bg@2x.png */; };
+		ADD1E5C0DE0000000000C504 /* Awake_192@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C505 /* Awake_192@2x.png */; };
+		ADD1E5C0DE0000000000C506 /* Flap_192@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C507 /* Flap_192@2x.png */; };
+		ADD1E5C0DE0000000000C508 /* SRSnapback@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C509 /* SRSnapback@2x.png */; };
+		ADD1E5C0DE0000000000C50A /* SoundFileIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C50B /* SoundFileIcon@2x.png */; };
+		ADD1E5C0DE0000000000C50C /* SoundHigh@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C50D /* SoundHigh@2x.png */; };
+		ADD1E5C0DE0000000000C50E /* SoundLow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C50F /* SoundLow@2x.png */; };
+		ADD1E5C0DE0000000000C510 /* default-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C511 /* default-icon@2x.png */; };
+		ADD1E5C0DE0000000000C512 /* emoticonBlank@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */; };
+		ADD1E5C0DE0000000000C514 /* sidebarActionWidget@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C515 /* sidebarActionWidget@2x.png */; };
 		34BFDF1907E8977D00AD984D /* SoundLow.png in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1707E8977D00AD984D /* SoundLow.png */; };
 		34BFDF2007E8978900AD984D /* SendingKeyDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1E07E8978900AD984D /* SendingKeyDefaults.plist */; };
 		34BFDF2107E8978900AD984D /* TabDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1F07E8978900AD984D /* TabDefaults.plist */; };
@@ -1860,7 +1871,7 @@
 		347E77F207CA94FE00350507 /* ESAccountEvents.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESAccountEvents.m; path = Source/ESAccountEvents.m; sourceTree = "<group>"; };
 		347E781107CA961300350507 /* ESUserIconHandlingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESUserIconHandlingPlugin.h; path = Source/ESUserIconHandlingPlugin.h; sourceTree = "<group>"; };
 		347E781207CA961300350507 /* ESUserIconHandlingPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESUserIconHandlingPlugin.m; path = Source/ESUserIconHandlingPlugin.m; sourceTree = "<group>"; };
-		347E781907CA962100350507 /* events-contact.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "events-contact.png"; path = "Resources/events-contact.png"; sourceTree = "<group>"; };
+		347E781907CA962100350507 /* events-contact.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "events-contact.tiff"; path = "Resources/events-contact.tiff"; sourceTree = "<group>"; };
 		347E782407CA964600350507 /* ESContactSortConfigurationWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESContactSortConfigurationWindowController.h; path = Source/ESContactSortConfigurationWindowController.h; sourceTree = "<group>"; };
 		347E782507CA964600350507 /* AIContactSortSelectionPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactSortSelectionPlugin.m; path = Source/AIContactSortSelectionPlugin.m; sourceTree = "<group>"; };
 		347E782607CA964600350507 /* ESContactSortConfigurationWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESContactSortConfigurationWindowController.m; path = Source/ESContactSortConfigurationWindowController.m; sourceTree = "<group>"; };
@@ -2142,6 +2153,17 @@
 		34BFDB3807E7714200AD984D /* PresetNameSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PresetNameSheet.xib; path = Frameworks/Adium/Resources/PresetNameSheet.xib; sourceTree = "<group>"; };
 		34BFDDB607E7A43D00AD984D /* ja */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = ja; path = Resources/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34BFDF1607E8977D00AD984D /* SoundHigh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoundHigh.png; path = Resources/SoundHigh.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C501 /* ABSearch@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ABSearch@2x.png"; path = "Resources/ABSearch@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C503 /* AboutDialog_bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "AboutDialog_bg@2x.png"; path = "Resources/AboutDialog_bg@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C505 /* Awake_192@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Awake_192@2x.png"; path = "Resources/Awake_192@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C507 /* Flap_192@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Flap_192@2x.png"; path = "Resources/Flap_192@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C509 /* SRSnapback@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SRSnapback@2x.png"; path = "Resources/SRSnapback@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C50B /* SoundFileIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SoundFileIcon@2x.png"; path = "Resources/SoundFileIcon@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C50D /* SoundHigh@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SoundHigh@2x.png"; path = "Resources/SoundHigh@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C50F /* SoundLow@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SoundLow@2x.png"; path = "Resources/SoundLow@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C511 /* default-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "default-icon@2x.png"; path = "Resources/default-icon@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "emoticonBlank@2x.png"; path = "Resources/emoticonBlank@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C515 /* sidebarActionWidget@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "sidebarActionWidget@2x.png"; path = "Resources/sidebarActionWidget@2x.png"; sourceTree = "<group>"; };
 		34BFDF1707E8977D00AD984D /* SoundLow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoundLow.png; path = Resources/SoundLow.png; sourceTree = "<group>"; };
 		34BFDF1E07E8978900AD984D /* SendingKeyDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = SendingKeyDefaults.plist; path = Resources/SendingKeyDefaults.plist; sourceTree = "<group>"; };
 		34BFDF1F07E8978900AD984D /* TabDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = TabDefaults.plist; path = Resources/TabDefaults.plist; sourceTree = "<group>"; };
@@ -3158,7 +3180,7 @@
 			children = (
 				347E781107CA961300350507 /* ESUserIconHandlingPlugin.h */,
 				347E781207CA961300350507 /* ESUserIconHandlingPlugin.m */,
-				347E781907CA962100350507 /* events-contact.png */,
+				347E781907CA962100350507 /* events-contact.tiff */,
 			);
 			name = "User Icon Handling";
 			sourceTree = "<group>";
@@ -3612,6 +3634,17 @@
 				4BA5325D050FC5E800A8010A /* EventSoundDefaults.plist */,
 				34C899AB07E51B18009357F6 /* BuiltInEventPresets.plist */,
 				34BFDF1607E8977D00AD984D /* SoundHigh.png */,
+				ADD1E5C0DE0000000000C501 /* ABSearch@2x.png */,
+				ADD1E5C0DE0000000000C503 /* AboutDialog_bg@2x.png */,
+				ADD1E5C0DE0000000000C505 /* Awake_192@2x.png */,
+				ADD1E5C0DE0000000000C507 /* Flap_192@2x.png */,
+				ADD1E5C0DE0000000000C509 /* SRSnapback@2x.png */,
+				ADD1E5C0DE0000000000C50B /* SoundFileIcon@2x.png */,
+				ADD1E5C0DE0000000000C50D /* SoundHigh@2x.png */,
+				ADD1E5C0DE0000000000C50F /* SoundLow@2x.png */,
+				ADD1E5C0DE0000000000C511 /* default-icon@2x.png */,
+				ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */,
+				ADD1E5C0DE0000000000C515 /* sidebarActionWidget@2x.png */,
 				34BFDF1707E8977D00AD984D /* SoundLow.png */,
 				346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */,
 			);
@@ -6508,7 +6541,7 @@
 				9EF0DBFA09D944C200FBCC1E /* msg-block-contact.tiff in Resources */,
 				9EF0DBFB09D944C200FBCC1E /* msg-unblock-contact.tiff in Resources */,
 				34E0EA0807CC53ED00A82198 /* NewMessagePrompt.xib in Resources */,
-				347E781A07CA962100350507 /* events-contact.png in Resources */,
+				347E781A07CA962100350507 /* events-contact.tiff in Resources */,
 				347E783407CA967100350507 /* SortingDefaults.plist in Resources */,
 				347E786C07CA972100350507 /* AddGroup.xib in Resources */,
 				347E787807CA975900350507 /* msg-add-contact.tiff in Resources */,
@@ -6592,6 +6625,17 @@
 				34C899AC07E51B18009357F6 /* BuiltInEventPresets.plist in Resources */,
 				34BFD7FD07E6A50C00AD984D /* msg-insert-script.tiff in Resources */,
 				34BFDF1807E8977D00AD984D /* SoundHigh.png in Resources */,
+				ADD1E5C0DE0000000000C500 /* ABSearch@2x.png in Resources */,
+				ADD1E5C0DE0000000000C502 /* AboutDialog_bg@2x.png in Resources */,
+				ADD1E5C0DE0000000000C504 /* Awake_192@2x.png in Resources */,
+				ADD1E5C0DE0000000000C506 /* Flap_192@2x.png in Resources */,
+				ADD1E5C0DE0000000000C508 /* SRSnapback@2x.png in Resources */,
+				ADD1E5C0DE0000000000C50A /* SoundFileIcon@2x.png in Resources */,
+				ADD1E5C0DE0000000000C50C /* SoundHigh@2x.png in Resources */,
+				ADD1E5C0DE0000000000C50E /* SoundLow@2x.png in Resources */,
+				ADD1E5C0DE0000000000C510 /* default-icon@2x.png in Resources */,
+				ADD1E5C0DE0000000000C512 /* emoticonBlank@2x.png in Resources */,
+				ADD1E5C0DE0000000000C514 /* sidebarActionWidget@2x.png in Resources */,
 				34BFDF1907E8977D00AD984D /* SoundLow.png in Resources */,
 				34BFDF2007E8978900AD984D /* SendingKeyDefaults.plist in Resources */,
 				34BFDF2107E8978900AD984D /* TabDefaults.plist in Resources */,
