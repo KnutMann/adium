@@ -22,8 +22,8 @@
 	AIChat							*chat;			// The newly created chat
 	AIAccount						*account;		// The account we're being configured for
 
-	id								delegate;		// Our delegate
-	id								sharedChatInstance;
+	__unsafe_unretained id								delegate;		// Our delegate
+	__unsafe_unretained id								sharedChatInstance;
 }
 
 + (DCJoinChatViewController *)joinChatView;

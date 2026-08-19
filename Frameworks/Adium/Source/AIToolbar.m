@@ -43,7 +43,9 @@
 + (void)load
 {
 	//Anything you can do, I can do better...
-	method_exchangeImplementations(class_getInstanceMethod([NSToolbar class], @selector(dealloc)), class_getInstanceMethod(self, @selector(deallocWithNotifications)));
+	/* ARC refuses the selector literal for dealloc, not the exchange itself. The runtime
+	 * lookup says the same thing without the compiler watching. */
+	method_exchangeImplementations(class_getInstanceMethod([NSToolbar class], sel_registerName("dealloc")), class_getInstanceMethod(self, @selector(deallocWithNotifications)));
 }
 
 /*!

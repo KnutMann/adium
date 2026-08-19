@@ -91,7 +91,7 @@
  */
 + (AIMessageViewController *)messageDisplayControllerForChat:(AIChat *)inChat
 {
-    return [[[self alloc] initForChat:inChat] autorelease];
+    return [[self alloc] initForChat:inChat];
 }
 
 
@@ -103,7 +103,7 @@
     if ((self = [super init])) {
 		AIListContact	*contact;
 		//Init
-		chat = [inChat retain];
+		chat = inChat;
 		contact = chat.listObject;
 		accountSelectionVisible = NO;
 		userListController = nil;
@@ -192,7 +192,7 @@
 	if (contact && initialBaseWritingDirection != [textView_outgoing baseWritingDirection])
 		[contact setBaseWritingDirection:[textView_outgoing baseWritingDirection]];
 
-	[chat release]; chat = nil;
+	chat = nil;
 
 	//remove observers
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -201,21 +201,14 @@
 	[self _destroyAccountSelectionView];
 	
 	[messageDisplayController messageViewIsClosing];
-    [messageDisplayController release];
-	[userListController release];
 	
 	/* Before the view tree goes: NSSplitView does not retain its delegate, and this one is about to
 	 * stop existing. */
 	[splitView_shelf setDelegate:nil];
-	[splitView_shelf release]; splitView_shelf = nil;
-	[view_shelf release]; view_shelf = nil;
-
-	//release menuItem
-	[showHide release];
-	[view_contents release]; view_contents = nil;
-	[undoManager release]; undoManager = nil;
-
-    [super dealloc];
+	splitView_shelf = nil;
+	view_shelf = nil;
+	view_contents = nil;
+	undoManager = nil;
 }
 
 - (void)saveUserListMinimumSize
@@ -265,7 +258,7 @@
 		[userListController contactListWillBeRemovedFromWindow];
 	}
 	
-	[messageWindowController release]; messageWindowController = nil;
+	messageWindowController = nil;
 }
 
 - (void)messageViewAddedToWindowController:(AIMessageWindowController *)inWindowController
@@ -275,8 +268,7 @@
 	}
 	
 	if (inWindowController != messageWindowController) {
-		[messageWindowController release];
-		messageWindowController = [inWindowController retain];
+		messageWindowController = inWindowController;
 		
 		[self updateGradientColors];
 	}
@@ -342,7 +334,7 @@
 - (void)_configureMessageDisplay
 {
 	//Create the message view
-	messageDisplayController = [[adium.interfaceController messageDisplayControllerForChat:chat] retain];
+	messageDisplayController = [adium.interfaceController messageDisplayControllerForChat:chat];
 
 	[scrollView_messages setDocumentView:[messageDisplayController messageView]];
 
@@ -441,8 +433,7 @@
 												 date:nil //created for us by AIContentMessage
 											  message:outgoingAttributedString
 											autoreply:NO];
-			[outgoingAttributedString release];
-			
+
 			if ([adium.contentController sendContentObject:message]) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:Interface_DidSendEnteredMessage 
 														  object:chat
@@ -458,7 +449,7 @@
 			NSImage *icon = ([listObject userIcon] ? [listObject userIcon] : [AIServiceIcons serviceIconForObject:listObject
 																											 type:AIServiceIconLarge
 																										direction:AIIconNormal]);
-			icon = [[icon copy] autorelease];
+			icon = [icon copy];
 			[alert setIcon:icon];
 			[alert setAlertStyle:NSAlertStyleInformational];
 			
@@ -518,11 +509,14 @@
 			[dontSendButton setKeyEquivalent:@"\E"];
 			[dontSendButton setKeyEquivalentModifierMask:0];
 			
+			/* The handler holds self for the sheet's lifetime, which is what the old
+			 * modalDelegate:[self retain] guarded: the chat tab may close while the sheet
+			 * is up. The sending ability travels as a captured value instead of a counted
+			 * NSNumber smuggled through a void pointer. */
 			[alert beginSheetModalForWindow:[view_contents window]
-							  modalDelegate:[self retain] /* Will release after the sheet ends */
-							 didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
-                                contextInfo:[[NSNumber numberWithInteger:messageSendingAbility] retain] /* Will release after the sheet ends */];
-			[alert release];
+						  completionHandler:^(NSModalResponse returnCode) {
+				[self alertDidEnd:alert returnCode:returnCode sendingAbility:messageSendingAbility];
+			}];
 		}
     }
 }
@@ -530,10 +524,8 @@
 /*!
  * @brief Send Later button was pressed
  */ 
-- (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
+- (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode sendingAbility:(AIChatSendingAbilityType)messageSendingAbility
 {
-	AIChatSendingAbilityType messageSendingAbility = [(NSNumber *)contextInfo intValue];
-
 	switch (returnCode) {
 		case NSAlertFirstButtonReturn:
 			/* The AIChatCanNotSendMessage dalogue has Send Later as the first choice;
@@ -564,9 +556,6 @@
 			break;
 	}
 	
-	//Retained when the alert was created to guard against a crash if the chat tab being closed while we are open
-	[self release];
-	[(NSNumber *)contextInfo release];
 }
 
 /*!
@@ -610,7 +599,7 @@
 		
 		[alertDict setObject:listContact forKey:@"TEMP-ListContact"];
 		
-		[adium.contentController filterAttributedString:[[[textView_outgoing textStorage] copy] autorelease]
+		[adium.contentController filterAttributedString:[[textView_outgoing textStorage] copy]
 										  usingFilterType:AIFilterContent
 												direction:AIFilterOutgoing
 											filterContext:listContact
@@ -634,13 +623,13 @@
 	detailsDict = [alertDict objectForKey:@"ActionDetails"];
 	[detailsDict setObject:[filteredMessage dataRepresentation] forKey:@"Message"];
 
-	listContact = [[alertDict objectForKey:@"TEMP-ListContact"] retain];
+	//The strong local carries the contact across its removal from the dictionary
+	listContact = [alertDict objectForKey:@"TEMP-ListContact"];
 	[alertDict removeObjectForKey:@"TEMP-ListContact"];
 	
 	[adium.contactAlertsController addAlert:alertDict 
 								 toListObject:listContact
 							 setAsNewDefaults:NO];
-	[listContact release];
 }
 
 //Account Selection ----------------------------------------------------------------------------------------------------
@@ -780,7 +769,7 @@
 
 	[self _createShelfSplitView];
 
-	for (NSView *existing in [[[view_shelf subviews] copy] autorelease])
+	for (NSView *existing in [[view_shelf subviews] copy])
 		[existing removeFromSuperview];
 
 	[inView setFrame:[view_shelf bounds]];
@@ -816,13 +805,10 @@
 
 	view_shelf = [[NSView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, NSWidth(frame), SHELF_DEFAULT_HEIGHT)];
 
-	/* Taken out and put back, so retain it across the move: removeFromSuperview is the only owner
-	 * releasing it. */
-	[splitView_verticalSplit retain];
+	//Taken out and put back; the strong ivar carries it across the move
 	[splitView_verticalSplit removeFromSuperview];
 	[splitView_verticalSplit setFrameOrigin:NSZeroPoint];
 	[splitView_shelf addSubview:splitView_verticalSplit];
-	[splitView_verticalSplit release];
 
 	[splitView_shelf addSubview:view_shelf];
 	[container addSubview:splitView_shelf];
@@ -842,15 +828,13 @@
 
 	[splitView_shelf setDelegate:nil];
 
-	[splitView_verticalSplit retain];
 	[splitView_verticalSplit removeFromSuperview];
 	[splitView_shelf removeFromSuperview];
 	[splitView_verticalSplit setFrame:frame];
 	[container addSubview:splitView_verticalSplit];
-	[splitView_verticalSplit release];
 
-	[splitView_shelf release]; splitView_shelf = nil;
-	[view_shelf release]; view_shelf = nil;
+	splitView_shelf = nil;
+	view_shelf = nil;
 }
 
 
@@ -1157,7 +1141,7 @@
 		
 		// If we need to add a prefix, insert it into the text, then call [textView complete:] again; return early with no completions.
 		if (prefix.length > 0) {
-			[textView.textStorage insertAttributedString:[[[NSAttributedString alloc] initWithString:prefix] autorelease] atIndex:charRange.location];
+			[textView.textStorage insertAttributedString:[[NSAttributedString alloc] initWithString:prefix] atIndex:charRange.location];
 			[textView complete:nil];
 			return nil;
 		}
@@ -1274,7 +1258,7 @@
 - (void)_showUserListView
 {
 	if (chat.isGroupChat && view_userList.superview == nil) {
-		[splitView_verticalSplit addSubview:[view_userList autorelease]];
+		[splitView_verticalSplit addSubview:view_userList];
 	}
 	[self updateUserCount];
 	[userListController reloadData];
@@ -1295,7 +1279,7 @@
 		NSRect frame = view_userList.frame;
 		frame.size.width = 0;
 		view_userList.frame = frame;
-		[view_userList retain];
+		//The strong outlet carries the view while it is out of the tree
 		[view_userList removeFromSuperview];
 	}
 	[view_userList setHidden:YES];

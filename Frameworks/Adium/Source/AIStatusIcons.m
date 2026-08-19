@@ -126,7 +126,6 @@ NSString *defaultNameForStatusType(AIStatusType statusType)
 				
 				if(![statusIcon isValid]) {
 					AILog(@"\"%@\" cannot be found.",path);
-					[statusIcon release];
 					statusIcon = [[NSImage alloc] initWithSize:NSMakeSize(8,8)];
 				}
 		
@@ -135,8 +134,6 @@ NSString *defaultNameForStatusType(AIStatusType statusType)
 					[statusIcons[iconType][iconDirection] setObject:statusIcon forKey:statusName];
 					
 				}
-				
-				[statusIcon release];
 			}
 		} else {
 			if ([statusName isEqualToString:@"Blocked"]) {
@@ -179,7 +176,7 @@ NSString *defaultNameForStatusType(AIStatusType statusType)
 							statusIconBasePath,
 							defaultStatusName];
 						
-						NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+						NSAlert *alert = [[NSAlert alloc] init];
 					[alert setAlertStyle:NSAlertStyleCritical];
 					[alert setMessageText:AILocalizedString(@"Invalid status icon pack", nil)];
 					[alert setInformativeText:errorMessage];
@@ -207,17 +204,13 @@ NSString *defaultNameForStatusType(AIStatusType statusType)
 	NSDictionary	*statusIconDict = [NSDictionary dictionaryWithContentsOfFile:[inPath stringByAppendingPathComponent:@"Icons.plist"]];
 		
 	if (statusIconDict && [[statusIconDict objectForKey:@"AdiumSetVersion"] intValue] == 1) {
-		[statusIconBasePath release];
-		statusIconBasePath = [inPath retain];
+		statusIconBasePath = inPath;
 		
-		[statusIconNames[AIStatusIconTab] release];
-		statusIconNames[AIStatusIconTab] = [[statusIconDict objectForKey:@"Tabs"] retain];
+		statusIconNames[AIStatusIconTab] = [statusIconDict objectForKey:@"Tabs"];
 		
-		[statusIconNames[AIStatusIconList] release];
-		statusIconNames[AIStatusIconList] = [[statusIconDict objectForKey:@"List"] retain];
+		statusIconNames[AIStatusIconList] = [statusIconDict objectForKey:@"List"];
 
-		[statusIconNames[AIStatusIconMenu] release];
-		statusIconNames[AIStatusIconMenu] = [statusIconNames[AIStatusIconTab] retain];
+		statusIconNames[AIStatusIconMenu] = statusIconNames[AIStatusIconTab];
 
 		//Clear out the status icon cache
 		for (unsigned i = 0; i < NUMBER_OF_STATUS_ICON_TYPES; i++) {
@@ -336,7 +329,7 @@ static NSString *statusNameForChat(AIChat *inChat)
 			NSString	*anIconPath = [inPath stringByAppendingPathComponent:[previewIconNames objectForKey:iconID]];
 			NSImage		*anIcon;
 			
-			if ((anIcon = [[[NSImage alloc] initWithContentsOfFile:anIconPath] autorelease])) {
+			if ((anIcon = [[NSImage alloc] initWithContentsOfFile:anIconPath])) {
 				NSSize	anIconSize = [anIcon size];
 				NSRect	targetRect = NSMakeRect(xOrigin, 0, PREVIEW_MENU_IMAGE_SIZE, PREVIEW_MENU_IMAGE_SIZE);
 				
@@ -366,7 +359,7 @@ static NSString *statusNameForChat(AIChat *inChat)
 		[image unlockFocus];
 	}		
 
-	return [image autorelease];
+	return image;
 }
 
 @end

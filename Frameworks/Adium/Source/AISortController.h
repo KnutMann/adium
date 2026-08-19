@@ -20,7 +20,9 @@
 typedef NSComparisonResult(*sortfunc)(id, id, BOOL, id<AIContainingObject>);
 typedef struct {
 	sortfunc function;
-	id<AIContainingObject> container;
+	/* Borrowed for the length of one synchronous sort; the caller's own reference keeps the
+	 * container alive. A struct cannot hold a counted reference, and this one never needs to. */
+	__unsafe_unretained id<AIContainingObject> container;
 } SortContext;
 
 #define PREF_GROUP_CONTACT_SORTING			@"Sorting"

@@ -74,15 +74,18 @@ static AdiumAuthorization *sharedInstance;
 
 	[[AIAuthorizationRequestsWindowController sharedController] addRequestWithDict:dictWithAccount];
 
-	// We intentionally continue to retain the dictWithAccount so we can possibly remove it later.
-	return dictWithAccount;
+	/* The dictionary crosses into libpurple as an opaque ui_handle and comes back through
+	 * +closeAuthorizationForUIHandle:, which gives this reference up. The CF detour is the
+	 * one way to hand out a reference ARC does not balance behind our back. */
+	return (__bridge id)CFBridgingRetain(dictWithAccount);
 }
 
 + (void)closeAuthorizationForUIHandle:(id)handle
 {
 	[[AIAuthorizationRequestsWindowController sharedController] removeRequest:handle];
-	
-	[handle release];
+
+	//The reference +showAuthorizationRequestWithDict:forAccount: handed across the boundary
+	CFRelease((__bridge CFTypeRef)handle);
 }
 
 #pragma mark Event descriptions
@@ -179,7 +182,7 @@ static AdiumAuthorization *sharedInstance;
 - (NSImage *)imageForEventID:(NSString *)eventID
 {
 	static NSImage	*eventImage = nil;
-	if (!eventImage) eventImage = [[NSImage imageNamed:@"default-icon" forClass:[self class]] retain];
+	if (!eventImage) eventImage = [NSImage imageNamed:@"default-icon" forClass:[self class]];
 	return eventImage;
 }
 

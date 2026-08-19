@@ -28,7 +28,11 @@
 	AIListGroupMockieCell *newCell = [super copyWithZone:zone];
 	
 	for (int i = 0; i < NUMBER_OF_GROUP_STATES; i++) {
-		newCell->_mockieGradient[i] = [_mockieGradient[i] retain];
+		/* NSCell's copy is memberwise: the slot already holds the original's pointer without
+		 * owning it, and a counted store into it would give up a reference nobody took. The
+		 * cast clears the slot without releasing; the assignment then retains properly. */
+		*(__unsafe_unretained id *)(void *)&newCell->_mockieGradient[i] = nil;
+		newCell->_mockieGradient[i] = _mockieGradient[i];
 	}
 	
 	return newCell;
@@ -48,12 +52,6 @@
 }
 
 //Dealloc
-- (void)dealloc
-{
-	[self flushGradientCache];
-	[super dealloc];
-}
-
 //Draw a regular mockie background for our cell if gradient background drawing is disabled
 - (void)drawBackgroundWithFrame:(NSRect)rect
 {
@@ -77,7 +75,7 @@
 	if ([self cellIsSelected]) {
 		NSColor *highlightColor = [self.outlineControlView highlightColor];
 		NSGradient 	*gradient = (highlightColor ?
-								 [[[NSGradient alloc] initWithStartingColor:highlightColor	endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] autorelease] :
+								 [[NSGradient alloc] initWithStartingColor:highlightColor	endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] :
 								 [NSGradient selectedControlGradient]);
 
 		if ([self.outlineControlView isItemExpanded:proxyObject]) {
@@ -94,7 +92,6 @@
 	AIGroupState state = ([self.outlineControlView isItemExpanded:proxyObject] ? AIGroupExpanded : AIGroupCollapsed);
 
 	if (!_mockieGradient[state] || !NSEqualSizes(inSize,_mockieGradientSize[state])) {
-		[_mockieGradient[state] release];
 		_mockieGradient[state] = [[NSImage alloc] initWithSize:inSize];
 		_mockieGradientSize[state] = inSize;
 		
@@ -110,7 +107,7 @@
 - (void)flushGradientCache
 {
 	for (int i = 0; i < NUMBER_OF_GROUP_STATES; i++) {
-		[_mockieGradient[i] release]; _mockieGradient[i] = nil;
+		_mockieGradient[i] = nil;
 		_mockieGradientSize[i] = NSMakeSize(0,0);
 	}
 }

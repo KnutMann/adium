@@ -43,7 +43,7 @@
 {
 	for (AIProxyListObject *proxy in proxyObjects)
 		[AIProxyListObject releaseProxyObject:proxy];
-	[proxyObjects release]; proxyObjects = nil;	
+	proxyObjects = nil;
 }
 
 /*!
@@ -52,12 +52,6 @@
 - (void)dealloc
 {
 	[self _clearProxyObjects];
-
-	[propertiesDictionary release]; propertiesDictionary = nil;
-	[changedProperties release]; changedProperties = nil;
-	[displayDictionary release]; displayDictionary = nil;
-
-	[super dealloc];
 }
 
 //Setting properties ---------------------------------------------------------------------------------------------------
@@ -132,7 +126,11 @@
 				iValue = 0;
 			}
 			
-			object_setIvar(self, ivar, (void *)iValue);
+			/* An integer smuggled through the id-typed runtime call. The plain setter is the
+			 * right one on purpose: it treats unknown memory management as unsafe and stores
+			 * without retaining, which is the only correct treatment of a non-pointer. The
+			 * bridge cast carries no ownership, it only satisfies the type system. */
+			object_setIvar(self, ivar, (__bridge id)(void *)iValue);
 			
 		}
 	}
@@ -191,8 +189,6 @@
 		[self didModifyProperties:keys silent:silent];
 		
 		[self didNotifyOfChangedPropertiesSilently:silent];
-		
-		[keys release];
     }
 }
 
@@ -245,11 +241,11 @@
 		
 		// attempt to wrap it, if we know how
 		if (strcmp(ivarType, @encode(NSInteger)) == 0) {
-			ret = [[[NSNumber alloc] initWithInteger:(NSInteger)object_getIvar(self, ivar)] autorelease];
+			ret = [[NSNumber alloc] initWithInteger:(NSInteger)object_getIvar(self, ivar)];
 		} else if (ivarType[0] != _C_ID) {
 			AILogWithSignature(@" *** This ivar is not an object but an %s! Should not use -valueForProperty: @\"%@\" ***", ivarType, key);
 		} else {
-			ret = [[object_getIvar(self, ivar) retain] autorelease];
+			ret = object_getIvar(self, ivar);
 		}
 	}
 	
@@ -382,7 +378,6 @@
         array = [[AIMutableOwnerArray alloc] init];
 		[array setDelegate:self];
         [displayDictionary setObject:array forKey:inKey];
-		[array release];
     }
 	
     return array;

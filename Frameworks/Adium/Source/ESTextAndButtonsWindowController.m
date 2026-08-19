@@ -25,6 +25,12 @@
 
 @implementation ESTextAndButtonsWindowController
 
+/* The ownership home of every shown window. -showOnWindow: consumes the caller's reference (see
+ * the header), so what keeps a shown controller alive is its place in this set; both exits leave
+ * it. The same design as ESPresetNameSheetController. */
+static NSMutableSet *openTextAndButtonsWindows = nil;
+
+
 /*!
  * @brief Show a text and buttons window which will notify a target when a button is clicked or the window is closed.
  *
@@ -88,6 +94,9 @@
 
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
+	if (!openTextAndButtonsWindows) openTextAndButtonsWindows = [[NSMutableSet alloc] init];
+	[openTextAndButtonsWindows addObject:self];
+
 	if (parentWindow) {
 		[parentWindow beginSheet:self.window
 			   completionHandler:^(NSModalResponse returnCode) {
@@ -153,27 +162,17 @@
 					 target:(id)inTarget
 				   userInfo:(id)inUserInfo
 {
-	[title release];
-	[defaultButton release];
-	[alternateButton release];
-	[otherButton release];
-	[suppression release];
-	[messageHeader release];
-	[message release];
-	[target release];
-	[userInfo release];
-	[image release];
 	
-	title = [inTitle retain];
-	defaultButton = [inDefaultButton retain];
-	alternateButton = ([inAlternateButton length] ? [inAlternateButton retain] : nil);
-	otherButton = ([inOtherButton length] ? [inOtherButton retain] : nil);
-	suppression = ([inSuppression length] ? [inSuppression retain] : nil);
-	messageHeader = ([inMessageHeader length] ? [inMessageHeader retain] : nil);
-	message = [inMessage retain];
-	target = [inTarget retain];
-	userInfo = [inUserInfo retain];
-	image = [inImage retain];
+	title = inTitle;
+	defaultButton = inDefaultButton;
+	alternateButton = ([inAlternateButton length] ? inAlternateButton : nil);
+	otherButton = ([inOtherButton length] ? inOtherButton : nil);
+	suppression = ([inSuppression length] ? inSuppression : nil);
+	messageHeader = ([inMessageHeader length] ? inMessageHeader : nil);
+	message = inMessage;
+	target = inTarget;
+	userInfo = inUserInfo;
+	image = inImage;
 
 	userClickedButton = NO;
 	allowsCloseWithoutResponse = YES;
@@ -202,8 +201,7 @@
 - (void)setImage:(NSImage *)inImage;
 {
 	if (inImage != image) {
-		[image release];
-		image = [inImage retain];
+			image = inImage;
 		[imageView setImage:image];
 	}
 }
@@ -262,11 +260,14 @@
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[self autorelease];
-	
-	//Release our target immediately to avoid a potential mutual retain (if the target is retaining us)
-	[target release]; target = nil;
+
+	/* Not before this turn of the run loop ends: we are inside AppKit's own close, which goes on
+	 * addressing this object afterwards. Harmless if the sheet exit also ran. */
+	CFAutorelease(CFBridgingRetain(self));
+	[openTextAndButtonsWindows removeObject:self];
+
+	//Let go of our target immediately to avoid a potential mutual retain (if the target is retaining us)
+	target = nil;
 }
 
 /*!
@@ -275,8 +276,9 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
-	
-	[self autorelease];
+
+	CFAutorelease(CFBridgingRetain(self));
+	[openTextAndButtonsWindows removeObject:self];
 }
 
 /*!
@@ -525,20 +527,5 @@
 	}
 }
 
-
-- (void)dealloc
-{
-	[title release];
-	[defaultButton release];
-	[target release];
-	[alternateButton release];
-	[otherButton release];
-	[messageHeader release];
-	[message release];
-	[userInfo release];
-	[image release];
-
-	[super dealloc];
-}
 
 @end

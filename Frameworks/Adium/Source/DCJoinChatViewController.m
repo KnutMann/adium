@@ -35,7 +35,7 @@
 //Create a new join chat view
 + (DCJoinChatViewController *)joinChatView
 {
-	return [[[self alloc] init] autorelease];
+	return [[self alloc] init];
 }
 
 //Init
@@ -50,18 +50,14 @@
 		if (nibName)
 		{
 			[NSBundle ai_loadNibNamed:nibName owner:self];
+			/* The loader hands every top level object one reference that belongs to nobody
+			 * (see AIBundleAdditions.h); the strong outlet holds its own, so the stray one
+			 * is given up here, or every join-chat pane leaks its view. */
+			if (view) CFRelease((__bridge CFTypeRef)view);
 		}
 	}
 	
     return self;
-}
-
-- (void)dealloc
-{
-	[view release]; view = nil;
-	[account release];
-
-	[super dealloc];
 }
 
 @synthesize view;
@@ -79,8 +75,7 @@
 - (void)configureForAccount:(AIAccount *)inAccount
 { 
 	if (inAccount != account) {
-		[account release];
-		account = [inAccount retain]; 
+		account = inAccount;
 	}
 }
 
@@ -121,7 +116,10 @@
 			[chat setValue:invitationMessage forProperty:@"InitialInivitationMessage" notify:NotifyNever];
 		}
 		
-		[[NSNotificationCenter defaultCenter] addObserver:[self retain] selector:@selector(chatDidOpen:) name:Chat_DidOpen object:chat];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatDidOpen:) name:Chat_DidOpen object:chat];
+		/* Nothing else owns this controller once its window is gone; this reference keeps it
+		 * alive until the chat opens and -chatDidOpen: gives it up. */
+		CFRetain((__bridge CFTypeRef)self);
 	}
 	
 }
@@ -136,7 +134,7 @@
 		NSMutableDictionary	*inviteUsersDict;
 		NSString			*initialInvitationMessage = [chat valueForProperty:@"InitialInivitationMessage"];
 		
-		inviteUsersDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:[[contacts mutableCopy] autorelease],@"ContactsToInvite",nil];
+		inviteUsersDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:[contacts mutableCopy],@"ContactsToInvite",nil];
 		if (initialInvitationMessage) {
 			[inviteUsersDict setObject:initialInvitationMessage
 								forKey:@"InitialInivitationMessage"];
@@ -156,7 +154,9 @@
 	
 	//We are no longer concerned with the opening of this chat.
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:Chat_DidOpen object:chat];
-	[self release];
+	/* The reference taken when the observer was added, surrendered to the pool rather than
+	 * dropped on the spot, since we are still inside a method of this object. */
+	CFAutorelease((__bridge CFTypeRef)self);
 }
 
 /*!
@@ -171,13 +171,13 @@
 	NSMutableArray		*contactArray = [userInfo objectForKey:@"ContactsToInvite"];
 
 	if ([contactArray count]) {
-		AIListContact *listContact = [[contactArray objectAtIndex:0] retain];
+		//The strong local carries the contact across its removal from the array
+		AIListContact *listContact = [contactArray objectAtIndex:0];
 		[contactArray removeObjectAtIndex:0];
 		AILog(@"Inviting %@ to %@", listContact, chat);
 
 		[chat inviteListContact:listContact
 					withMessage:[userInfo objectForKey:@"InitialInivitationMessage"]];
-		[listContact release];
 
 	} else {
 		[inTimer invalidate];
