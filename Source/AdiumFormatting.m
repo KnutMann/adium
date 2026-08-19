@@ -90,15 +90,23 @@
 		NSColor	*backgroundColor = [[adium.preferenceController preferenceForKey:KEY_FORMATTING_BACKGROUND_COLOR
 																			 group:PREF_GROUP_FORMATTING] representedColor];
 				
-		//Build formatting dict
+		/* Build formatting dict. An explicit color is only attached when the user chose
+		 * something other than the stock black on white — text without an attached color
+		 * lets every view draw it in its own appearance-correct color, and the recipient
+		 * render it in theirs.
+		 *
+		 * The baseline must be the fixed black and white the defaults register, not
+		 * -[NSColor textColor]: that one answers per appearance, so under dark it said
+		 * white, the stored black suddenly counted as a deliberate choice, and every
+		 * line was typed in explicit black on a dark entry view.
+		 */
 		_defaultAttributes = [[NSMutableDictionary dictionaryWithObject:font forKey:NSFontAttributeName] retain];
-		if (textColor && ![textColor equalToRGBColor:[NSColor textColor]]) {
-			AILog(@"TextColor is %@; -[NSColor textColor] gives %@",textColor,[NSColor textColor]);
-			[_defaultAttributes setObject:textColor forKey:NSForegroundColorAttributeName];	
-		}	
-		if (backgroundColor && ![backgroundColor equalToRGBColor:[NSColor textBackgroundColor]]) {
-			[_defaultAttributes setObject:backgroundColor forKey:AIBodyColorAttributeName];	
-			[_defaultAttributes setObject:backgroundColor forKey:NSBackgroundColorAttributeName];	
+		if (textColor && ![textColor equalToRGBColor:[NSColor blackColor]]) {
+			[_defaultAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
+		}
+		if (backgroundColor && ![backgroundColor equalToRGBColor:[NSColor whiteColor]]) {
+			[_defaultAttributes setObject:backgroundColor forKey:AIBodyColorAttributeName];
+			[_defaultAttributes setObject:backgroundColor forKey:NSBackgroundColorAttributeName];
 		}
 	}
 	
