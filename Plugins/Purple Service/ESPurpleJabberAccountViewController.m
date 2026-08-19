@@ -69,6 +69,16 @@
 	//Connect server
 	NSString *connectServer = [account preferenceForKey:KEY_JABBER_CONNECT_SERVER group:GROUP_ACCOUNT_STATUS];
 	[textField_connectServer setStringValue:(connectServer ? connectServer : @"")];
+
+	/* The field is an override and nearly everybody leaves it empty, because the server
+	 * comes out of the JID — which left no place in the interface where the server in
+	 * use could be read. The placeholder is that place: the JID's domain, greyed out,
+	 * shown only while no override stands in the field.
+	 */
+	NSRange domainSeparator = [account.UID rangeOfString:@"@" options:NSBackwardsSearch];
+	if (domainSeparator.location != NSNotFound && NSMaxRange(domainSeparator) < [account.UID length]) {
+		[[textField_connectServer cell] setPlaceholderString:[account.UID substringFromIndex:NSMaxRange(domainSeparator)]];
+	}
 	
 	// BOSH server
 	NSString *boshServer = [account preferenceForKey:KEY_JABBER_BOSH_SERVER group:GROUP_ACCOUNT_STATUS];
