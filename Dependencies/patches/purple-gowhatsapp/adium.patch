@@ -1,4 +1,4 @@
-From 9d3bb2712551ec8f85d4325c5322f61b0903b2a0 Mon Sep 17 00:00:00 2001
+From bb91ddd9b4bd3a5401a41365888abdc4dc05c6af Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 21:35:47 +0200
 Subject: [PATCH 01/11] Adium adaptations: reactions, inline media, voice
@@ -35,8 +35,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
  message_cache.go         |   6 ++-
  opusreader.c             |  61 +++++++++++++++++++++
  opusreader.h             |   4 ++
- send_file.go             |   2 +-
- 17 files changed, 262 insertions(+), 84 deletions(-)
+ 16 files changed, 261 insertions(+), 83 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 0c9a9a6..b4b9670 100644
@@ -636,24 +635,11 @@ index 0b265d7..c087d5a 100644
 +/* Decodes an Ogg/Opus file to a 16-bit PCM WAV file (48 kHz).
 + * Returns the duration in seconds, or -1 on error. */
 +int64_t opusfile_decode_file_to_wav(const char *ogg_path, const char *wav_path);
-diff --git a/send_file.go b/send_file.go
-index 4e054ee..709d012 100644
---- a/send_file.go
-+++ b/send_file.go
-@@ -44,7 +44,7 @@ func (handler *Handler) send_file_bytes(recipient types.JID, isGroup bool, data
- 	handler.log.Infof("Attachment mime type is %s.", mimetype)
- 	// TODO: redundant implementation in send_link_message. merge.
- 	switch mimetype {
--	case "image/jpeg":
-+	case "image/jpeg", "image/png":
- 		msg, err = handler.send_file_image(data, mimetype)
- 	case "application/ogg", "audio/ogg":
- 		opusfile_info := C.opusfile_get_info(C.CBytes(data), C.size_t(len(data)))
 -- 
 2.50.1 (Apple Git-155)
 
 
-From a84ebe68e04c56b24729043c9e4190e4f52e8942 Mon Sep 17 00:00:00 2001
+From 0006fdf859721b123bc694fffa9db56bb57e5086 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:13:47 +0200
 Subject: [PATCH 02/11] Location messages as Apple Maps links; no buddies for
@@ -732,7 +718,7 @@ index 2adc92f..17f7c5b 100644
 2.50.1 (Apple Git-155)
 
 
-From cf8ab6c1c6fb1e12f30bb2cc1945a05a4169fd7a Mon Sep 17 00:00:00 2001
+From a7669168486d63e10430882d6af1ceb40b8c6eee Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:25:58 +0200
 Subject: [PATCH 03/11] Auto-download documents and announce them with a file
@@ -819,7 +805,7 @@ index 47b1b89..d1a4952 100644
 2.50.1 (Apple Git-155)
 
 
-From e0302e496be8d67ddb32ac4a0afb7496a79f86d4 Mon Sep 17 00:00:00 2001
+From 606bfd39a5a6dd543d2fe3e0565b97ed83ffc5f7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:41:52 +0200
 Subject: [PATCH 04/11] Download profile pictures in full resolution by default
@@ -881,7 +867,7 @@ index 38a4281..f80b278 100644
 2.50.1 (Apple Git-155)
 
 
-From 606cc6dd8a16d5643f777b2cc25af1bb465b7947 Mon Sep 17 00:00:00 2001
+From a6aac04b8bb05a715e143a1c73ab5480d7f335b8 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 00:22:04 +0200
 Subject: [PATCH 05/11] Raise message cache default to 500
@@ -922,7 +908,7 @@ index fb5aef7..ab562a6 100644
 2.50.1 (Apple Git-155)
 
 
-From bc7de2a2c5661b67ec229457e38092e1736bacd5 Mon Sep 17 00:00:00 2001
+From aa133c032ca8124f364424bd5a07a4435efbceae Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 23:11:34 +0200
 Subject: [PATCH 06/11] Inline images of all types by default
@@ -952,7 +938,7 @@ index 051f478..205e4ca 100644
 2.50.1 (Apple Git-155)
 
 
-From 0a630f03a87dd4d9575bb426481f85fe96270b7f Mon Sep 17 00:00:00 2001
+From e0eee9ee74ec4058bd0ba24c33408829ba1321c7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 14:12:32 +0200
 Subject: [PATCH 07/11] Attribute a sent picture to the sender, not to the
@@ -1014,7 +1000,7 @@ index 64fe571..b62ef57 100644
 2.50.1 (Apple Git-155)
 
 
-From 3d9a77aea9f4e0b282e1a6c2341924d546501c9f Mon Sep 17 00:00:00 2001
+From 27bfce19a7cca2c342b4d5725e2616d959ff09d1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 17:14:00 +0200
 Subject: [PATCH 08/11] Match the Signal plug-in's device linking dialog
@@ -1085,7 +1071,7 @@ index 6b67c02..78c9f0b 100644
 2.50.1 (Apple Git-155)
 
 
-From f4c2a34eed38df9dc2ce4ae14679176bfa377d38 Mon Sep 17 00:00:00 2001
+From 3b3a989bd9dd7b686622db6ee9447680af0ce924 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 20:29:12 +0200
 Subject: [PATCH 09/11] Give a group chat its picture, on the node rather than
@@ -1232,7 +1218,7 @@ index 9de9fdf..fc71358 100644
 2.50.1 (Apple Git-155)
 
 
-From 01b9de982e518f2e4851ab19670761bc6e1e0f10 Mon Sep 17 00:00:00 2001
+From d6c419e38911dcddd12edf0a4e1c86ea6cb9ac93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Sun, 16 Aug 2026 00:52:07 +0200
 Subject: [PATCH 10/11] Keep a profile picture at the resolution that was asked
@@ -1360,7 +1346,7 @@ index f80b278..318f744 100644
 2.50.1 (Apple Git-155)
 
 
-From 9ff609f03849f3d29db59ff5ff655215926655ad Mon Sep 17 00:00:00 2001
+From 3200a4b21f6b8a6420287d8925d6e041558b0e93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 19 Aug 2026 16:35:39 +0200
 Subject: [PATCH 11/11] Resolve WhatsApp business account names

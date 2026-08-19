@@ -3,8 +3,10 @@
 `Dependencies/source` is not under version control, so this patch is the only record in this
 repository of what `PurplePlugins/libwhatsmeow.so` was built from.
 
-Base revision: `5a725916f15322751421ed07351eb9378169c062` (2026-08-10) of
-<https://github.com/hoehermann/purple-gowhatsapp>, branch `whatsmeow`. Upstream is active, so the
+Base revision: `c58fcbac9aa7210ce08cf12ef3442932730ec312` (2026-08-19) of
+<https://github.com/hoehermann/purple-gowhatsapp>, branch `whatsmeow`; that revision is upstream's merge of our PR #273 (PNGs travel as image
+messages, confirmed by the maintainer on Electron, iOS and Android; WebP is silently swallowed
+by WhatsApp itself). Upstream is active, so the
 patch is expected to be rebased rather than carried forever. The working checkout also has a remote
 `knutmann` pointing at <https://github.com/KnutMann/purple-gowhatsapp>, where the earlier single
 purpose branches were pushed. The combined branch these changes now live on is local only.
