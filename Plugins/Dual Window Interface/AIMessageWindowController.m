@@ -202,7 +202,6 @@
 
     //Exclude this window from the window menu (since we add it manually)
     [theWindow setExcludedFromWindowsMenu:YES];
-	[theWindow useOptimizedDrawing:YES];
 
 	//Vibrancy backdrop behind the tab bar (the effect view only composites in a
 	//layer-backed hierarchy).
@@ -1084,43 +1083,28 @@
 //Get an image representation of the chat
 - (NSImage *)tabView:(NSTabView *)tabView imageForTabViewItem:(NSTabViewItem *)tabViewItem offset:(NSSize *)offset styleMask:(NSUInteger *)styleMask
 {
-	// grabs whole window image
-	NSImage *viewImage = [[NSImage alloc] init];
-	NSRect contentFrame = [[[self window] contentView] frame];
-	[[[self window] contentView] lockFocus];
-	NSBitmapImageRep *viewRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:contentFrame];
+	/* One real snapshot of the window's content, drawn by the views themselves. The
+	 * 2008 form photographed the screen through lockFocus outside any draw pass, which
+	 * layer-backed macOS answers with nothing: the drag showed a white sheet, placed by
+	 * offsets computed against an image that had no size. The message view's WKWebView
+	 * renders out of process and stays blank in any snapshot; the chrome around it is
+	 * what makes the floating window recognisable. */
+	NSView *contentView = [[self window] contentView];
+	NSRect contentFrame = [contentView bounds];
+	NSBitmapImageRep *viewRep = [contentView bitmapImageRepForCachingDisplayInRect:contentFrame];
+	[contentView cacheDisplayInRect:contentFrame toBitmapImageRep:viewRep];
+	NSImage *viewImage = [[NSImage alloc] initWithSize:contentFrame.size];
 	[viewImage addRepresentation:viewRep];
-	[[[self window] contentView] unlockFocus];
-	
-    // grabs snapshot of dragged tabViewItem's view (represents content being dragged)
-	NSView *viewForImage = [tabViewItem view];
-	NSRect viewRect = [viewForImage frame];
-	NSImage *tabViewImage = [[NSImage alloc] initWithSize:viewRect.size];
-	[tabViewImage lockFocus];
-	[viewForImage drawRect:[viewForImage bounds]];
-	[tabViewImage unlockFocus];
-	
-	[viewImage lockFocus];
-	NSPoint tabOrigin = [tabView frame].origin;
-	tabOrigin.x += 10;
-	tabOrigin.y += 13;
-	[tabViewImage drawAtPoint:tabOrigin fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0];
-	[viewImage unlockFocus];
-	
-	//draw over where the tab bar would usually be
+
+	//Paint over where the tab bar sits; the floating window stands for the torn-off tab alone
 	NSRect tabFrame = [tabView_tabBar frame];
 	[viewImage lockFocus];
 	[[NSColor windowBackgroundColor] set];
 	NSRectFill(tabFrame);
-	//draw the background flipped, which is actually the right way up
-	NSAffineTransform *transform = [NSAffineTransform transform];
-	[transform scaleXBy:1.0f yBy:-1.0f];
-	[transform concat];
-	tabFrame.origin.y = -tabFrame.origin.y - tabFrame.size.height;
-	[transform invert];
-	[transform concat];
-	
 	[viewImage unlockFocus];
+
+	AILogWithSignature(@"tear-off image %@ for %@, tab bar frame %@",
+					   NSStringFromSize(contentFrame.size), tabViewItem, NSStringFromRect(tabFrame));
 	
 	id <MMTabStyle> style = [(MMTabBarView *)[tabView delegate] style];
 	
@@ -1155,7 +1139,17 @@
  * A delegate method is looked up by name at run time, so nothing ever reported it. */
 - (MMTabBarView *)tabView:(NSTabView *)tabView newTabBarViewForDraggedTabViewItem:(NSTabViewItem *)tabViewItem atPoint:(NSPoint)point
 {
+	/* This runs in the middle of MMTabDragAssistant's teardown; an exception here leaves the
+	 * assistant's floating windows on screen and the tab in limbo. Whatever goes wrong is
+	 * caught and reported to the debug log, and answering nil makes the assistant slide the
+	 * tab back instead of losing it. */
+	@try {
 	id newController = [interface openNewContainer];
+	if (!newController || ![newController window]) {
+		AILogWithSignature(@"tear-off: openNewContainer answered %@ (window %@), sliding the tab back",
+						   newController, [newController window]);
+		return nil;
+	}
 	NSRect frame;
 	id <MMTabStyle> style = [(MMTabBarView *)[tabView delegate] style];
 	
@@ -1186,7 +1180,12 @@
 	frame.origin = point;
 	[[newController window] setFrame:frame display:NO];
 	
+	AILogWithSignature(@"tear-off: new container %@ at %@", newController, NSStringFromPoint(point));
 	return [newController tabBar];
+	} @catch (NSException *exception) {
+		AILogWithSignature(@"tear-off failed mid-flight: %@", exception);
+		return nil;
+	}
 }
 
 - (void)tabView:(NSTabView *)tabView tabBarViewDidHide:(MMTabBarView *)tabBarView
@@ -1383,7 +1382,7 @@
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
 {
-    return [NSArray arrayWithObjects:@"UserIcon",@"Encryption",  NSToolbarSeparatorItemIdentifier, 
+    return [NSArray arrayWithObjects:@"UserIcon",@"Encryption",
 		@"SourceDestination", @"InsertEmoticon", @"FormulaEditor", @"BlockParticipants", @"LinkEditor", @"SafariLink", @"AddBookmark", NSToolbarShowColorsItemIdentifier,
 		NSToolbarShowFontsItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier, @"SendFile",
 		@"ShowInfo", @"LogViewer", nil];
@@ -1392,12 +1391,10 @@
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
 {
     return [[toolbarItems allKeys] arrayByAddingObjectsFromArray:
-		[NSArray arrayWithObjects:NSToolbarSeparatorItemIdentifier,
-			NSToolbarSpaceItemIdentifier,
+		[NSArray arrayWithObjects:NSToolbarSpaceItemIdentifier,
 			NSToolbarFlexibleSpaceItemIdentifier,
 			NSToolbarShowColorsItemIdentifier,
-			NSToolbarShowFontsItemIdentifier,
-			NSToolbarCustomizeToolbarItemIdentifier, nil]];
+			NSToolbarShowFontsItemIdentifier, nil]];
 }
 
 - (void)toolbarWillAddItem:(NSNotification *)notification
