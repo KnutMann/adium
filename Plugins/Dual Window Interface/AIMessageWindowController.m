@@ -1127,11 +1127,11 @@
 			break;
 	}
 	
-	/* Borderless, deliberately. Titled gave the floating preview a real, empty title bar,
-	 * which modern AppKit draws as a white strip that the drag window's own frame
-	 * compensation then displaces from the image: a white frame hovering beside the
-	 * preview. The image is the whole preview; the window around it has nothing to add. */
-	*styleMask = NSWindowStyleMaskBorderless;
+	/* Titled, so the floating preview wears a real window frame with rounded corners; the
+	 * snapshot itself is only the content. The white shape that once flew beside it was
+	 * never this title bar but the tab ghost, drawn at the size of the whole tab bar by an
+	 * imageForView whose bitmap was allocated for the wrong rect (see MMAttachedTabBarButton). */
+	*styleMask = NSWindowStyleMaskTitled;
 	
 	return viewImage;
 }
