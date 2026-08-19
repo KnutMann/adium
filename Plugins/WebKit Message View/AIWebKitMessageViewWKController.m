@@ -362,6 +362,20 @@ static NSString *const AIWKContextMenuScript =
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
 
+	/* Message styles may ship their own Template.html, and every one written before Catalina
+	 * scrolls via document.body.scrollTop, which standards-mode WebKit stopped honouring: the
+	 * chat silently stops following new messages. The era's circulating hand-fix was pasting a
+	 * nearBottom(){return 1} into one's style, which also destroyed reading the scrollback.
+	 * Redefining the two functions after the template has loaded repairs every such style with
+	 * the same semantics the bundled template has, and no style needs hand-patching again. A
+	 * style's own smooth-scroll animation is overridden along with it; on today's WebKit it was
+	 * not scrolling at all. */
+	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:
+		@"function nearBottom() { return ( window.scrollY >= ( document.body.offsetHeight - ( window.innerHeight * 1.2 ) ) ); }"
+		@"function scrollToBottom() { window.scrollTo(0, document.body.scrollHeight); }"
+																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+															 forMainFrameOnly:YES]];
+
 	config.userContentController = userContentController;
 
 	/* Let the file-origin page load file resources outside its base directory
