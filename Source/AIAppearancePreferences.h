@@ -34,6 +34,7 @@
 	NSPopUpButton	*popUp_listLayout;
 	NSPopUpButton	*popUp_colorTheme;
 	NSPopUpButton	*popUp_windowStyle;
+	NSPopUpButton	*popUp_appearanceStyle;
 
 	NSSwitch		*checkBox_verticalAutosizing;
 	NSSwitch		*checkBox_horizontalAutosizing;

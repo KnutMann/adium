@@ -54,6 +54,7 @@ typedef enum {
 
 @interface AIAppearancePreferences ()
 - (NSMenu *)_windowStyleMenu;
+- (NSMenu *)_appearanceStyleMenu;
 - (NSMenu *)_emoticonPackMenu;
 - (NSMenu *)_listLayoutMenu;
 - (NSMenu *)_colorThemeMenu;
@@ -181,6 +182,14 @@ static NSString *AIRowLabel(NSString *label)
 	 * main event of its row, which these are not. Capped to the moderate length the events pane's
 	 * volume slider has, sitting on the right by its readout. */
 	[form setMaximumSliderWidth:200.0];
+
+	/* The whole application, before any single window: light, dark, or whatever the
+	 * system says. First card, no header — the pane's own name already says Appearance.
+	 */
+	popUp_appearanceStyle = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
+	[form addRowWithLabel:AILocalizedString(@"Appearance", "Label of the menu choosing between system, light and dark appearance for the whole application")
+			  popUpButton:popUp_appearanceStyle
+		  accessoryButton:nil];
 
 	//Contact list window
 	[form addSectionHeader:AILocalizedString(@"Contact List","Section header in appearance preferences")];
@@ -323,6 +332,7 @@ static NSString *AIRowLabel(NSString *label)
 {
 	//Other list options
 	[popUp_windowStyle setMenu:[self _windowStyleMenu]];
+	[popUp_appearanceStyle setMenu:[self _appearanceStyleMenu]];
 
 	//Observe preference changes
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_EMOTICONS];
@@ -366,6 +376,7 @@ static NSString *AIRowLabel(NSString *label)
 	popUp_listLayout = nil;
 	popUp_colorTheme = nil;
 	popUp_windowStyle = nil;
+	popUp_appearanceStyle = nil;
 	checkBox_verticalAutosizing = nil;
 	checkBox_horizontalAutosizing = nil;
 	slider_windowOpacity = nil;
@@ -468,6 +479,8 @@ static NSString *AIRowLabel(NSString *label)
 													group:PREF_GROUP_APPEARANCE];
 			}
 			[popUp_windowStyle selectItemWithTag:windowStyleTag];
+			//Absent means "match the system", which is tag zero
+			[popUp_appearanceStyle selectItemWithTag:[[prefDict objectForKey:KEY_APPEARANCE_STYLE] integerValue]];
 			[checkBox_verticalAutosizing setState:[[prefDict objectForKey:KEY_LIST_LAYOUT_VERTICAL_AUTOSIZE] boolValue]];
 			[checkBox_horizontalAutosizing setState:[[prefDict objectForKey:KEY_LIST_LAYOUT_HORIZONTAL_AUTOSIZE] boolValue]];
 			[slider_windowOpacity setDoubleValue:([[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_OPACITY] doubleValue] * 100.0)];
@@ -621,6 +634,13 @@ static NSString *AIRowLabel(NSString *label)
 											 forKey:KEY_LIST_THEME_NAME
 											  group:PREF_GROUP_APPEARANCE];
 
+	} else if (sender == popUp_appearanceStyle) {
+		//The default, "match the system", is stored as nothing at all
+		NSInteger styleTag = [[sender selectedItem] tag];
+		[adium.preferenceController setPreference:(styleTag ? [NSNumber numberWithInteger:styleTag] : nil)
+										   forKey:KEY_APPEARANCE_STYLE
+											group:PREF_GROUP_APPEARANCE];
+
 	} else if (sender == popUp_windowStyle) {
 		[adium.preferenceController setPreference:[NSNumber numberWithInteger:[[sender selectedItem] tag]]
 											 forKey:KEY_LIST_LAYOUT_WINDOW_STYLE
@@ -763,6 +783,29 @@ static NSString *AIRowLabel(NSString *label)
 /*!
  *
  */
+- (NSMenu *)_appearanceStyleMenu
+{
+	NSMenu	*menu = [[NSMenu alloc] init];
+
+	//Tags are the stored values: 0 match the system (stored as nothing), 1 light, 2 dark
+	NSArray *titles = [NSArray arrayWithObjects:
+					   AILocalizedString(@"Match System", "Appearance choice: follow the system's light/dark setting"),
+					   AILocalizedString(@"Light", "Appearance choice: always light"),
+					   AILocalizedString(@"Dark", "Appearance choice: always dark"),
+					   nil];
+
+	for (NSUInteger tag = 0; tag < [titles count]; tag++) {
+		NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:[titles objectAtIndex:tag]
+													  action:nil
+											   keyEquivalent:@""];
+		[item setTag:tag];
+		[menu addItem:item];
+		[item release];
+	}
+
+	return [menu autorelease];
+}
+
 - (NSMenu *)_windowStyleMenu
 {
 	NSMenu	*menu = [[NSMenu alloc] init];

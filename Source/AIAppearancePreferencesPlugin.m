@@ -68,6 +68,20 @@
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key object:(AIListObject *)object
 					preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime
 {
+	//Light or dark, for the whole application
+	if ([group isEqualToString:PREF_GROUP_APPEARANCE] &&
+		(firstTime || [key isEqualToString:KEY_APPEARANCE_STYLE])) {
+		/* nil follows the system, a name pins every window. Applied from the observer's
+		 * first pass, so the stored choice takes hold at launch before any window shows. */
+		NSInteger		 style = [[prefDict objectForKey:KEY_APPEARANCE_STYLE] integerValue];
+		NSAppearance	*appearance = nil;
+
+		if (style == 1) appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+		else if (style == 2) appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+
+		[NSApp setAppearance:appearance];
+	}
+
 	//Status icons
 	if ([group isEqualToString:PREF_GROUP_APPEARANCE]) {
 		if (firstTime || [key isEqualToString:KEY_STATUS_ICON_PACK]) {

@@ -19,6 +19,10 @@
 #define	KEY_SERVICE_ICON_PACK		@"Service Icon Pack"
 #define KEY_MENU_BAR_ICONS			@"Menu Bar Icons"
 
+/* Light/dark choice for the whole application. Absent means "match the system";
+ * only an explicit 1 (light) or 2 (dark) is ever stored. */
+#define KEY_APPEARANCE_STYLE		@"Appearance Style"
+
 #define KEY_LIST_LAYOUT_NAME		@"List Layout Name"
 #define KEY_LIST_THEME_NAME			@"List Theme Name"
 
