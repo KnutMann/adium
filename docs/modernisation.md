@@ -85,10 +85,28 @@ at them in natural language.
 
 **Secure Transport**, now measured precisely: 31 warnings, all in
 `Plugins/Purple Service/libpurple_extensions/ssl-cdsa.c`, which is the SSL plugin the build
-actually uses (`HAVE_CDSA` is defined; the OpenSSL variant only compiles as fallback). This one
-touches every protocol connection, so it deserves care rather than speed: the modern shape is
-Network.framework or at least `tls_protocol_version_t`, and it wants its own session with live
-connection testing per protocol.
+actually uses (`HAVE_CDSA` is defined; the OpenSSL variant only compiles as fallback).
+
+Network.framework was examined for this and ruled out, deliberately (19.08.2026). The plugin does
+not open connections; it wraps a socket libpurple hands it, already tunnelled through the user's
+per-account proxy (`SSLSetConnection(ctx, gsc->fd)` on a descriptor purple_proxy produced -
+HTTP, SOCKS4 or SOCKS5, configured in Adium's own proxy pane and pushed into libpurple by
+CBPurpleAccount). NWConnection cannot adopt an existing descriptor: it would establish the
+connection itself, silently bypassing every per-account proxy, and it speaks no SOCKS4 at all,
+which Adium's UI offers. That is the "proxy behavior differs; regression risk" in one sentence,
+and for anyone routing an account through Tor it is not a nuance but the feature.
+
+The road off the deprecated API that keeps proxy semantics byte-identical is the OpenSSL backend
+this tree already compiles as fallback: it wraps the same descriptor the same way. What it lacks
+is the trust-decision hook (`register_certificate_ui_cb` is cdsa-specific), which would need the
+same IPC added to ssl-openssl.c, handing the chain over as SecCertificateRef
+(SecCertificateCreateWithData is current API) so the certificate panel and the M02b routing keep
+working unchanged. Until someone does that with live connection testing per protocol, the
+deprecated-but-functional Secure Transport stays.
+
+Where Network.framework IS the right tool is the reachability monitor, and that is already
+written down as roadmap item M07 with the correct caveats (NWPathMonitor for the global path;
+it is not a host-reachability oracle and has nothing to do with proxies).
 
 **Accessibility**, 15 calls in the old attribute style.
 
