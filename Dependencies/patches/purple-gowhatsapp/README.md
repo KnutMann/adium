@@ -11,7 +11,7 @@ purpose branches were pushed. The combined branch these changes now live on is l
 
 ## adium.patch
 
-Seven commits, all of them adjustments to what suits a Cocoa frontend rather than corrections to
+A series of commits (git counts them, this text will not), all of them adjustments to what suits a Cocoa frontend rather than corrections to
 upstream's own behaviour, with one exception noted last.
 
 **Reactions, inline media, voice notes, display names.** The largest of them. Voice notes arrive as
@@ -33,6 +33,11 @@ the reference.
 
 **Inline media by default.** The test in `gowhatsapp_handle_attachment` compares the option against
 INLINE, so the fallback value decides what every account that never touched the setting does.
+
+**Business accounts show their verified name.** They often carry no push name, so the frontend was
+left showing the bare JID. whatsmeow delivers the verified name with every message and announces
+changes as a BusinessName event; the plugin now listens to the event and lets the verified name
+stand in on the message path. Worth offering upstream.
 
 **A sent picture is attributed to the sender, not to the conversation.** This one is a plain fix and
 worth offering upstream. The inline echo of an outgoing image passed the transfer's `who` as both

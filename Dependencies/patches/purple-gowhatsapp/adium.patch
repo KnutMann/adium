@@ -1,3 +1,43 @@
+From 9d3bb2712551ec8f85d4325c5322f61b0903b2a0 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Mon, 10 Aug 2026 21:35:47 +0200
+Subject: [PATCH 01/11] Adium adaptations: reactions, inline media, voice
+ decode, names
+
+- Message cache: default size 100 (was 0, so reactions never resolved)
+  and persist after every addition to survive unclean shutdowns
+- Send image/png as a proper image message (was document)
+- Default attachment handling to inline display; voice notes are
+  decoded from Ogg/Opus to WAV (new opusfile_decode_file_to_wav) and
+  handed to the UI as a playable link
+- File transfers use the original file name when present
+- Group JIDs surfacing as buddies via transfer attribution inherit the
+  group's name from the blist chat entry
+- Echo sent images into the chat after a successful outgoing transfer
+- Group name feed and participant alias resolution (earlier work)
+- CMake: link static opusfile with its ogg/opus dependencies
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ CMakeLists.txt           | 112 +++++++++++++++++++--------------------
+ bridge.go                |  10 ++++
+ glue/blist.c             |  33 ++++++++----
+ glue/display_message.c   |   2 +-
+ glue/gowhatsapp.h        |   2 +-
+ glue/groups.c            |  24 ++++++++-
+ glue/handle_attachment.c |  34 +++++++++++-
+ glue/options.c           |   4 +-
+ glue/process_message.c   |   7 ++-
+ glue/send_file.c         |  30 +++++++++++
+ groups.go                |   7 +--
+ handler.go               |   5 +-
+ login.go                 |   3 +-
+ message_cache.go         |   6 ++-
+ opusreader.c             |  61 +++++++++++++++++++++
+ opusreader.h             |   4 ++
+ send_file.go             |   2 +-
+ 17 files changed, 262 insertions(+), 84 deletions(-)
+
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 0c9a9a6..b4b9670 100644
 --- a/CMakeLists.txt
@@ -137,10 +177,10 @@ index 875ee04..1b5cbf3 100644
  				cmessage := C.struct_gowhatsapp_message{
  					account:   account,
 diff --git a/glue/blist.c b/glue/blist.c
-index 48ccd40..ea47d09 100644
+index 48ccd40..c7bb374 100644
 --- a/glue/blist.c
 +++ b/glue/blist.c
-@@ -27,32 +27,39 @@ void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy) {
+@@ -27,32 +27,43 @@ void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy) {
   * identifier is the username (purple who)
   * name is the human readable name (purple alias).
   */
@@ -151,11 +191,15 @@ index 48ccd40..ea47d09 100644
          return NULL;
      }
  
-+    /* Groups are chats (bookmarks), not contacts: never create a buddy
-+     * for a group JID. Opening such a pseudo-contact would start a 1:1
-+     * conversation with the group JID, which silently goes nowhere. */
-+    if (purple_str_has_suffix(identifier, "@g.us")) {
-+        return NULL;
++    /* Group JIDs surface as "buddies" via file transfer attribution
++     * (group-is-file-origin). Give them the group's name from the chat
++     * entry so the contact list does not show a bare JID. */
++    if (purple_str_has_suffix(identifier, "@g.us") && (name == NULL || !*name)) {
++        PurpleChat *group_chat = purple_blist_find_chat(account, identifier);
++        if (group_chat != NULL) {
++            name = purple_chat_get_name(group_chat);
++            authoritative = FALSE;
++        }
 +    }
 +
      PurpleBuddy *buddy = purple_blist_find_buddy(account, identifier);
@@ -191,37 +235,6 @@ index 48ccd40..ea47d09 100644
          }
      }
  
-@@ -81,6 +88,30 @@ void gowhatsapp_for_all_buddies(PurpleAccount *account, void(*func)(PurpleAccoun
-     }
- }
- 
-+/*
-+ * Calls a function once on each group chat of this account.
-+ *
-+ * The counterpart of gowhatsapp_for_all_buddies, and needed because a group is deliberately not a
-+ * buddy here: a chat cannot be messaged like a contact, and a contact list row for one is a row that
-+ * leads nowhere. Anything that wants to treat groups the way contacts are treated has to walk them
-+ * separately, and the walk is the one gowhatsapp_find_blist_chat already does.
-+ */
-+void gowhatsapp_for_all_chats(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleChat *)) {
-+    g_return_if_fail(account != NULL);
-+
-+    for (PurpleBlistNode *node = purple_blist_get_root();
-+         node != NULL;
-+         node = purple_blist_node_next(node, TRUE)) {
-+        if (PURPLE_IS_CHAT(node)) {
-+            PurpleChat *chat = PURPLE_CHAT(node);
-+
-+            if (purple_chat_get_account(chat) == account) {
-+                func(account, chat);
-+            }
-+        }
-+    }
-+}
-+
- // Group chat related functions
- 
- /*
 diff --git a/glue/display_message.c b/glue/display_message.c
 index 7674529..b48b265 100644
 --- a/glue/display_message.c
@@ -236,7 +249,7 @@ index 7674529..b48b265 100644
              purple_serv_got_im(connection, remoteJid, text_with_id, flags, timestamp);
          }
 diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
-index 0945d37..2abca71 100644
+index 0945d37..d54db62 100644
 --- a/glue/gowhatsapp.h
 +++ b/glue/gowhatsapp.h
 @@ -55,7 +55,7 @@ void gowhatsapp_free_name(PurpleConversation *conv);
@@ -248,15 +261,6 @@ index 0945d37..2abca71 100644
  PurpleChat * gowhatsapp_ensure_group_chat_in_blist(PurpleAccount *account, const char *remoteJid, const char *topic);
  PurpleGroup * gowhatsapp_get_purple_group();
  PurpleChat * gowhatsapp_find_blist_chat(PurpleAccount *account, const char *jid);
-@@ -63,6 +63,8 @@ void gowhatsapp_add_buddy(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup
- void gowhatsapp_tooltip_text(PurpleBuddy *buddy, PurpleNotifyUserInfo *info, gboolean full);
- void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy);
- void gowhatsapp_for_all_buddies(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleBuddy *));
-+void gowhatsapp_for_all_chats(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleChat *));
-+void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat *chat);
- 
- // send_message
- int gowhatsapp_send_im(PurpleConnection *pc, const gchar *who, const gchar *message, PurpleMessageFlags flags);
 diff --git a/glue/groups.c b/glue/groups.c
 index 0336962..37fa2ab 100644
 --- a/glue/groups.c
@@ -304,7 +308,7 @@ index 0336962..37fa2ab 100644
  }
  
 diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
-index 31fcf0a..88ff9c2 100644
+index 31fcf0a..47b1b89 100644
 --- a/glue/handle_attachment.c
 +++ b/glue/handle_attachment.c
 @@ -1,4 +1,5 @@
@@ -313,7 +317,7 @@ index 31fcf0a..88ff9c2 100644
  #include "libwhatsmeow.h"
  #include "constants.h"
  #include "pixbuf.h"
-@@ -36,6 +37,68 @@ static void gowhatsapp_display_image_inline(gowhatsapp_message_t *gwamsg, const
+@@ -36,6 +37,30 @@ static void gowhatsapp_display_image_inline(gowhatsapp_message_t *gwamsg, const
      }
  }
  
@@ -341,48 +345,10 @@ index 31fcf0a..88ff9c2 100644
 +    g_free(wav_path);
 +}
 +
-+/* Documents (and other non-image, non-voice, non-video attachments) are
-+ * auto-downloaded to the user's download directory and announced with a
-+ * clickable file link — WhatsApp semantics, avoiding the transfer prompt
-+ * (which would target the group JID as a pseudo 1:1 contact). */
-+static void gowhatsapp_display_document_inline(gowhatsapp_message_t *gwamsg) {
-+    const char *downloads = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
-+    if (downloads == NULL) {
-+        downloads = g_get_tmp_dir();
-+    }
-+    gchar *base;
-+    if (gwamsg->filename != NULL && gwamsg->filename[0]) {
-+        base = g_strdup_printf("%s%s", gwamsg->filename, gwamsg->extension);
-+    } else {
-+        base = g_strdup_printf("%s%s", gwamsg->hash_hex, gwamsg->extension);
-+    }
-+    gchar *local_path = g_build_filename(downloads, base, NULL);
-+    for (int i = 2; g_file_test(local_path, G_FILE_TEST_EXISTS) && i < 100; i++) {
-+        g_free(local_path);
-+        gchar *numbered = g_strdup_printf("%s (%d)%s",
-+            (gwamsg->filename && gwamsg->filename[0]) ? gwamsg->filename : gwamsg->hash_hex,
-+            i, gwamsg->extension);
-+        local_path = g_build_filename(downloads, numbered, NULL);
-+        g_free(numbered);
-+    }
-+    char *error = gowhatsapp_go_download_attachment(gwamsg->account, local_path, gwamsg->download_handle);
-+    gwamsg->download_handle = 0;
-+    if (error && error[0]) {
-+        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
-+    } else {
-+        gchar *text = g_strdup_printf("<a href=\"file://%s\">%s</a>", local_path, base);
-+        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, FALSE);
-+        g_free(text);
-+    }
-+    g_free(error);
-+    g_free(local_path);
-+    g_free(base);
-+}
-+
  static void gowhatsapp_display_caption(gowhatsapp_message_t *gwamsg) {
      if (gwamsg->text && gwamsg->text[0]) {
          gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, gwamsg->text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, TRUE);
-@@ -261,7 +324,11 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+@@ -261,7 +286,11 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
      if (error && error[0]) {
          gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
      } else {
@@ -395,29 +361,18 @@ index 31fcf0a..88ff9c2 100644
          gowhatsapp_display_caption(gwamsg);
      }
      g_remove(local_path_tmp);
-@@ -269,10 +336,18 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
- }
+@@ -270,7 +299,8 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
  
  void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg) {
--    gboolean inline_only = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
+     gboolean inline_only = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
 -    inline_only &= gowhatsapp_attachment_is_inline_image(gwamsg); // only inline images which can be loaded
-+    /* Default to INLINE, not upstream's BOTH: this line tests for equality with INLINE, so the
-+     * fallback decides the behaviour of every account that never set the option. Adium shows
-+     * media in the message view, so showing it there is what it should do out of the box. */
-+    gboolean inline_mode = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
-+    gboolean is_video = (gwamsg->mimetype != NULL && g_str_has_prefix(gwamsg->mimetype, "video/"));
 +    // only media the frontend can show: images by the upstream rule, plus voice notes, which Adium plays inline
-+    gboolean inline_only = inline_mode && (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
++    inline_only &= (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
      if (inline_only) {
          download_to_temporary_directory(gwamsg);
-+    } else if (inline_mode && !is_video) {
-+        gowhatsapp_display_document_inline(gwamsg);
-+        gowhatsapp_display_caption(gwamsg);
      } else {
-         const char *local_path_template = purple_account_get_string(gwamsg->account, GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_OPTION, GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_DEFAULT);
-         if (local_path_template && local_path_template[0]) {
 diff --git a/glue/options.c b/glue/options.c
-index 074c385..205e4ca 100644
+index 074c385..40d776c 100644
 --- a/glue/options.c
 +++ b/glue/options.c
 @@ -69,7 +69,7 @@ gowhatsapp_add_account_options(GList *account_options)
@@ -425,22 +380,10 @@ index 074c385..205e4ca 100644
                  "Number of messages to cache",
                  GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION,
 -                0
-+                500
++                100
                  );
      account_options = g_list_append(account_options, option);
  
-@@ -119,9 +119,9 @@ gowhatsapp_add_account_options(GList *account_options)
-         
-     {
-         GList *choices = NULL;
--        choices = add_choice(choices, "no", GOWHATSAPP_ICONS_CHOICE_NO);
--        choices = add_choice(choices, "preview", GOWHATSAPP_ICONS_CHOICE_PREVIEW);
-         choices = add_choice(choices, "original", GOWHATSAPP_ICONS_CHOICE_ORIGINAL);
-+        choices = add_choice(choices, "preview", GOWHATSAPP_ICONS_CHOICE_PREVIEW);
-+        choices = add_choice(choices, "no", GOWHATSAPP_ICONS_CHOICE_NO);
-         option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
-             "Download user profile pictures",
-             GOWHATSAPP_ICONS_OPTION,
 @@ -132,8 +132,8 @@ gowhatsapp_add_account_options(GList *account_options)
  
      {
@@ -451,90 +394,11 @@ index 074c385..205e4ca 100644
          choices = add_choice(choices, "download to user-defined location only", GOWHATSAPP_HANDLE_IMAGES_CHOICE_ATTACHMENT);
          option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
              "How to handle images",
-@@ -209,7 +209,7 @@ gowhatsapp_add_account_options(GList *account_options)
-     option = purple_account_option_bool_new( // MEMCHECK: account_options takes ownership
-         "Inline images of all types (requires frontend support)",
-         GOWHATSAPP_INLINE_ALL_IMAGES_OPTION,
--        FALSE
-+        TRUE // Adium draws images itself and needs no gdk-pixbuf loader, so it is such a frontend
-         );
-     account_options = g_list_append(account_options, option);
- 
-diff --git a/glue/presence.c b/glue/presence.c
-index 3955255..d381ce7 100644
---- a/glue/presence.c
-+++ b/glue/presence.c
-@@ -36,6 +36,20 @@ gowhatsapp_handle_presence(PurpleAccount *account, char *remoteJid, char online,
- void
- gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg)
- {
-+    /* A group's picture cannot go where a contact's goes. purple_buddy_icons_set_for_user only keeps
-+     * an icon that some buddy or open conversation takes a reference to, and a group is neither, so
-+     * for one it would allocate the image, find no taker and free it again on the spot. What
-+     * libpurple does offer for any node in the list, chats included, is a custom icon, which also
-+     * survives a restart because the file name is written into blist.xml. */
-+    PurpleChat *chat = gowhatsapp_find_blist_chat(gwamsg->account, gwamsg->remoteJid);
-+    if (chat != NULL) {
-+        // MEMCHECK: purple_buddy_icons_node_set_custom_icon takes ownership of the blob, as set_for_user does
-+        purple_buddy_icons_node_set_custom_icon((PurpleBlistNode *)chat, (guchar *)gwamsg->blob, gwamsg->blobsize);
-+        purple_blist_node_set_string(&chat->node, "picture_id", gwamsg->messageId);
-+        purple_blist_node_set_string(&chat->node, "picture_date", gwamsg->text);
-+        return;
-+    }
-+
-     purple_buddy_icons_set_for_user(gwamsg->account, gwamsg->remoteJid, gwamsg->blob, gwamsg->blobsize, NULL);
-     // no g_free(gwamsg->blob) here – purple takes ownership
-     const char *buddy_alias = gwamsg->senderJid;
-@@ -137,10 +151,35 @@ gowhatsapp_subscribe_presence_updates(PurpleAccount *account, PurpleBuddy *buddy
-     }
- }
- 
-+/*
-+ * Ask for a group's picture, the way gowhatsapp_request_profile_picture asks for a contact's.
-+ *
-+ * whatsmeow's GetProfilePictureInfo takes a JID and does not care whether it belongs to a person or
-+ * to a group, so the Go layer needs nothing new. What differs is where the answer is put, since a
-+ * group is not a buddy; see gowhatsapp_handle_profile_picture.
-+ *
-+ * The identifier is the "name" component and not the chat's own name, which answers with the alias
-+ * once one is set.
-+ */
-+void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat *chat) {
-+    g_return_if_fail(chat != NULL);
-+
-+    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
-+        GHashTable *components = purple_chat_get_components(chat);
-+        const char *remoteJid = components ? g_hash_table_lookup(components, "name") : NULL;
-+
-+        if (remoteJid != NULL) {
-+            const char *picture_id = purple_blist_node_get_string(&chat->node, "picture_id");
-+            const char *picture_date = purple_blist_node_get_string(&chat->node, "picture_date");
-+            gowhatsapp_go_request_profile_picture(account, (char *)remoteJid, (char *)picture_date, (char *)picture_id); // cgo does not support const
-+        }
-+    }
-+}
-+
- void gowhatsapp_request_profile_picture(PurpleAccount *account, PurpleBuddy *buddy) {
-     g_return_if_fail(buddy != NULL);
- 
--    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_NO), GOWHATSAPP_ICONS_CHOICE_NO)) {
-+    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
-         const char *picture_id = purple_blist_node_get_string(&buddy->node, "picture_id");
-         const char *picture_date = purple_blist_node_get_string(&buddy->node, "picture_date");
-         gowhatsapp_go_request_profile_picture(account, buddy->name, (char *)picture_date, (char *)picture_id); // cgo does not suport const
 diff --git a/glue/process_message.c b/glue/process_message.c
-index 1d53d9b..fc71358 100644
+index 1d53d9b..9de9fdf 100644
 --- a/glue/process_message.c
 +++ b/glue/process_message.c
-@@ -35,6 +35,7 @@ static void gowhatsapp_connection_set_online(PurpleConnection *connection) {
-     gowhatsapp_set_presence(account, purple_account_get_active_status(account));
- 
-     gowhatsapp_for_all_buddies(account, gowhatsapp_request_profile_picture);
-+    gowhatsapp_for_all_chats(account, gowhatsapp_request_chat_profile_picture);
- }
- 
- /*
-@@ -105,8 +106,13 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+@@ -105,8 +105,13 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
                  gowhatsapp_connection_set_online(pc);
                  // we also want to query the room list automatically (so group chats may be added to the buddy list).
                  gowhatsapp_roomlist_get_list(pc);
@@ -549,64 +413,11 @@ index 1d53d9b..fc71358 100644
              }
              break;
          case gowhatsapp_message_type_disconnected:
-diff --git a/glue/qrcode.c b/glue/qrcode.c
-index 6b67c02..78c9f0b 100644
---- a/glue/qrcode.c
-+++ b/glue/qrcode.c
-@@ -30,34 +30,36 @@ gowhatsapp_display_qrcode(PurpleAccount *account, const char *pairing_code, cons
-         PurpleRequestField *string_code = purple_request_field_string_new("pairing_code", "Pairing Code", pairing_code, FALSE);
-         purple_request_field_group_add_field(group, string_code);
-     }
--    {
--        PurpleRequestField *string_field = purple_request_field_string_new("qr_data", "QR Code Data", qr_data, FALSE);
--        purple_request_field_group_add_field(group, string_field);
--    }
-+    /* The string the code encodes is deliberately not shown. There is nothing a person can do with
-+     * it: it is not something to type anywhere, it is the same bytes the camera is about to read. */
-     {
-         PurpleRequestField *image_field = purple_request_field_image_new("qr_image", "QR Code Image", image_data, image_data_len);
-         purple_request_field_group_add_field(group, image_field);
-     }
- 
-     const char *username = purple_account_get_username(account);
--    char *secondary = g_strdup_printf("WhatsApp account %s", username); // MEMCHECK: released here
-+    /* Worded to match the Signal plug-in's linking dialog, which does the same job. The extra
-+     * sentence is the one real difference between the two: WhatsApp offers a code to type as an
-+     * alternative to scanning, and without a word about it the number above is a mystery. */
-+    const char *secondary = "In WhatsApp, open Settings, then Linked devices, and add a device. "
-+                            "This window closes by itself once the phone has finished. "
-+                            "Instead of scanning, you can enter the code shown here.";
- 
-     gowhatsapp_close_qrcode(account);
-     purple_request_fields(
-         account, /*handle*/
--        "Logon QR Code", /*title*/
--        "Please enter pairing code or scan the QR code", /*primary*/
--        secondary, /*secondary*/
-+        "WhatsApp Device Linking", /*title*/
-+        "Scan this code with WhatsApp on your phone", /*primary*/
-+        (char *)secondary, /*secondary*/
-         fields, /*fields*/
--        "OK", G_CALLBACK(null_cb), /*OK*/
--        "Dismiss", G_CALLBACK(dismiss_cb), /*Cancel*/
-+        "Hide", G_CALLBACK(null_cb), /*OK*/
-+        "Cancel", G_CALLBACK(dismiss_cb), /*Cancel*/
-         NULL, /*account*/
-         username, /*username*/
-         NULL, /*conversation*/
-         account /*data*/
-     );
--    
--    g_free(secondary);
-+
- }
- 
- void
 diff --git a/glue/send_file.c b/glue/send_file.c
-index 7858f5c..b62ef57 100644
+index 7858f5c..64fe571 100644
 --- a/glue/send_file.c
 +++ b/glue/send_file.c
-@@ -1,5 +1,39 @@
+@@ -1,5 +1,34 @@
  #include "gowhatsapp.h"
  #include "libwhatsmeow.h"
 +#include <string.h>
@@ -631,12 +442,7 @@ index 7858f5c..b62ef57 100644
 +    if (img_id > 0) {
 +        gboolean isGroup = (strstr(who, "@g.us") != NULL);
 +        gchar *text = g_strdup_printf("<img id=\"%u\">", img_id);
-+        /* Sender and conversation are two different things, and in a group chat they are never the
-+         * same. Passing the chat as the sender labelled our own picture with the group's raw
-+         * identifier, "120363...@g.us", where every other message we send shows our name. The account
-+         * name is also what gowhatsapp_display_text_message compares against to decide that this is an
-+         * outgoing message rather than an incoming one. */
-+        gowhatsapp_display_text_message(account, purple_account_get_username(account), who, text, time(NULL), isGroup, TRUE, NULL, PURPLE_MESSAGE_IMAGES, NULL, FALSE);
++        gowhatsapp_display_text_message(account, (char *)who, (char *)who, text, time(NULL), isGroup, TRUE, NULL, PURPLE_MESSAGE_IMAGES, NULL, FALSE);
 +        g_free(text);
 +        purple_imgstore_unref_by_id(img_id);
 +    } else {
@@ -646,7 +452,7 @@ index 7858f5c..b62ef57 100644
  
  static void
  gowhatsapp_free_xfer(PurpleXfer *xfer)
-@@ -19,6 +53,7 @@ gowhatsapp_xfer_send_init(PurpleXfer *xfer)
+@@ -19,6 +48,7 @@ gowhatsapp_xfer_send_init(PurpleXfer *xfer)
      } else {
          purple_xfer_set_bytes_sent(xfer, purple_xfer_get_size(xfer));
          purple_xfer_set_completed(xfer, TRUE);
@@ -672,38 +478,6 @@ index acdf515..22a050a 100644
  			return group.Participants
  		}
  	} else {
-diff --git a/handle_message.go b/handle_message.go
-index 2adc92f..17f7c5b 100644
---- a/handle_message.go
-+++ b/handle_message.go
-@@ -159,6 +159,27 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
- 			}
- 		}
- 	}
-+	{
-+		lm := message.GetLocationMessage()
-+		if lm != nil {
-+			label := lm.GetName()
-+			if label == "" {
-+				label = lm.GetAddress()
-+			}
-+			if label == "" {
-+				label = "Shared location"
-+			}
-+			text += fmt.Sprintf("%s: https://maps.apple.com/?ll=%f,%f&q=%f,%f", label,
-+				lm.GetDegreesLatitude(), lm.GetDegreesLongitude(),
-+				lm.GetDegreesLatitude(), lm.GetDegreesLongitude())
-+		}
-+		llm := message.GetLiveLocationMessage()
-+		if llm != nil {
-+			text += fmt.Sprintf("Sharing live location (last position: https://maps.apple.com/?ll=%f,%f&q=%f,%f)",
-+				llm.GetDegreesLatitude(), llm.GetDegreesLongitude(),
-+				llm.GetDegreesLatitude(), llm.GetDegreesLongitude())
-+		}
-+	}
- 	{
- 		pcm := GetAnyPollCreationMessage(message)
- 		if pcm != nil {
 diff --git a/handler.go b/handler.go
 index f2c4dd5..28f68e1 100644
 --- a/handler.go
@@ -748,7 +522,7 @@ index fe775ef..3f1d72f 100644
  
  	if proxy_address != "" {
 diff --git a/message_cache.go b/message_cache.go
-index 758ead0..ab562a6 100644
+index 758ead0..fb5aef7 100644
 --- a/message_cache.go
 +++ b/message_cache.go
 @@ -61,9 +61,13 @@ func (handler *Handler) add_to_cache(message *waE2E.Message, id types.MessageID,
@@ -756,7 +530,7 @@ index 758ead0..ab562a6 100644
  	})
  	// from https://www.delftstack.com/howto/go/queue-implementation-in-golang/
 -	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 0) {
-+	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 500) {
++	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 100) {
  		handler.cachedMessages = handler.cachedMessages[1:]
  	}
 +	// persist after every addition so the cache survives an unclean shutdown
@@ -862,19 +636,6 @@ index 0b265d7..c087d5a 100644
 +/* Decodes an Ogg/Opus file to a 16-bit PCM WAV file (48 kHz).
 + * Returns the duration in seconds, or -1 on error. */
 +int64_t opusfile_decode_file_to_wav(const char *ogg_path, const char *wav_path);
-diff --git a/profile.go b/profile.go
-index 38a4281..f80b278 100644
---- a/profile.go
-+++ b/profile.go
-@@ -21,7 +21,7 @@ type ProfilePictureRequest struct {
- }
- 
- func (handler *Handler) request_profile_picture(jid types.JID, picture_date string, picture_id string) {
--	setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_NO)
-+	setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_ORIGINAL)
- 	if setting != C.GoString(C.GOWHATSAPP_ICONS_CHOICE_NO) {
- 		select {
- 		case handler.pictureRequests <- ProfilePictureRequest{jid: jid, picture_date: picture_date, picture_id: picture_id}:
 diff --git a/send_file.go b/send_file.go
 index 4e054ee..709d012 100644
 --- a/send_file.go
@@ -888,3 +649,782 @@ index 4e054ee..709d012 100644
  		msg, err = handler.send_file_image(data, mimetype)
  	case "application/ogg", "audio/ogg":
  		opusfile_info := C.opusfile_get_info(C.CBytes(data), C.size_t(len(data)))
+-- 
+2.50.1 (Apple Git-155)
+
+
+From a84ebe68e04c56b24729043c9e4190e4f52e8942 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Mon, 10 Aug 2026 22:13:47 +0200
+Subject: [PATCH 02/11] Location messages as Apple Maps links; no buddies for
+ group JIDs
+
+- LocationMessage/LiveLocationMessage were silently dropped; render
+  them as maps.apple.com links (opens Apple Maps natively)
+- Never create a buddy for a group JID: groups belong in the contact
+  list as chats/bookmarks; a group-JID pseudo-contact opened a 1:1
+  conversation that silently went nowhere
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/blist.c      | 14 +++++---------
+ handle_message.go | 21 +++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 9 deletions(-)
+
+diff --git a/glue/blist.c b/glue/blist.c
+index c7bb374..568cf2f 100644
+--- a/glue/blist.c
++++ b/glue/blist.c
+@@ -33,15 +33,11 @@ PurpleBuddy * gowhatsapp_ensure_buddy_in_blist(PurpleAccount *account, const cha
+         return NULL;
+     }
+ 
+-    /* Group JIDs surface as "buddies" via file transfer attribution
+-     * (group-is-file-origin). Give them the group's name from the chat
+-     * entry so the contact list does not show a bare JID. */
+-    if (purple_str_has_suffix(identifier, "@g.us") && (name == NULL || !*name)) {
+-        PurpleChat *group_chat = purple_blist_find_chat(account, identifier);
+-        if (group_chat != NULL) {
+-            name = purple_chat_get_name(group_chat);
+-            authoritative = FALSE;
+-        }
++    /* Groups are chats (bookmarks), not contacts: never create a buddy
++     * for a group JID. Opening such a pseudo-contact would start a 1:1
++     * conversation with the group JID, which silently goes nowhere. */
++    if (purple_str_has_suffix(identifier, "@g.us")) {
++        return NULL;
+     }
+ 
+     PurpleBuddy *buddy = purple_blist_find_buddy(account, identifier);
+diff --git a/handle_message.go b/handle_message.go
+index 2adc92f..17f7c5b 100644
+--- a/handle_message.go
++++ b/handle_message.go
+@@ -159,6 +159,27 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
+ 			}
+ 		}
+ 	}
++	{
++		lm := message.GetLocationMessage()
++		if lm != nil {
++			label := lm.GetName()
++			if label == "" {
++				label = lm.GetAddress()
++			}
++			if label == "" {
++				label = "Shared location"
++			}
++			text += fmt.Sprintf("%s: https://maps.apple.com/?ll=%f,%f&q=%f,%f", label,
++				lm.GetDegreesLatitude(), lm.GetDegreesLongitude(),
++				lm.GetDegreesLatitude(), lm.GetDegreesLongitude())
++		}
++		llm := message.GetLiveLocationMessage()
++		if llm != nil {
++			text += fmt.Sprintf("Sharing live location (last position: https://maps.apple.com/?ll=%f,%f&q=%f,%f)",
++				llm.GetDegreesLatitude(), llm.GetDegreesLongitude(),
++				llm.GetDegreesLatitude(), llm.GetDegreesLongitude())
++		}
++	}
+ 	{
+ 		pcm := GetAnyPollCreationMessage(message)
+ 		if pcm != nil {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From cf8ab6c1c6fb1e12f30bb2cc1945a05a4169fd7a Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Mon, 10 Aug 2026 22:25:58 +0200
+Subject: [PATCH 03/11] Auto-download documents and announce them with a file
+ link
+
+Non-image, non-voice, non-video attachments download straight to the
+user's download directory (numbered on collision) and show up in the
+chat as a clickable link. The transfer prompt used to target the group
+JID as a pseudo 1:1 contact, which Adium never displayed.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/handle_attachment.c | 46 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 44 insertions(+), 2 deletions(-)
+
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index 47b1b89..d1a4952 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -61,6 +61,44 @@ static void gowhatsapp_display_audio_inline(gowhatsapp_message_t *gwamsg, const
+     g_free(wav_path);
+ }
+ 
++/* Documents (and other non-image, non-voice, non-video attachments) are
++ * auto-downloaded to the user's download directory and announced with a
++ * clickable file link — WhatsApp semantics, avoiding the transfer prompt
++ * (which would target the group JID as a pseudo 1:1 contact). */
++static void gowhatsapp_display_document_inline(gowhatsapp_message_t *gwamsg) {
++    const char *downloads = g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD);
++    if (downloads == NULL) {
++        downloads = g_get_tmp_dir();
++    }
++    gchar *base;
++    if (gwamsg->filename != NULL && gwamsg->filename[0]) {
++        base = g_strdup_printf("%s%s", gwamsg->filename, gwamsg->extension);
++    } else {
++        base = g_strdup_printf("%s%s", gwamsg->hash_hex, gwamsg->extension);
++    }
++    gchar *local_path = g_build_filename(downloads, base, NULL);
++    for (int i = 2; g_file_test(local_path, G_FILE_TEST_EXISTS) && i < 100; i++) {
++        g_free(local_path);
++        gchar *numbered = g_strdup_printf("%s (%d)%s",
++            (gwamsg->filename && gwamsg->filename[0]) ? gwamsg->filename : gwamsg->hash_hex,
++            i, gwamsg->extension);
++        local_path = g_build_filename(downloads, numbered, NULL);
++        g_free(numbered);
++    }
++    char *error = gowhatsapp_go_download_attachment(gwamsg->account, local_path, gwamsg->download_handle);
++    gwamsg->download_handle = 0;
++    if (error && error[0]) {
++        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
++    } else {
++        gchar *text = g_strdup_printf("<a href=\"file://%s\">%s</a>", local_path, base);
++        gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, FALSE);
++        g_free(text);
++    }
++    g_free(error);
++    g_free(local_path);
++    g_free(base);
++}
++
+ static void gowhatsapp_display_caption(gowhatsapp_message_t *gwamsg) {
+     if (gwamsg->text && gwamsg->text[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, gwamsg->text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, TRUE);
+@@ -298,11 +336,15 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+ }
+ 
+ void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg) {
+-    gboolean inline_only = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
++    gboolean inline_mode = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
++    gboolean is_video = (gwamsg->mimetype != NULL && g_str_has_prefix(gwamsg->mimetype, "video/"));
+     // only media the frontend can show: images by the upstream rule, plus voice notes, which Adium plays inline
+-    inline_only &= (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
++    gboolean inline_only = inline_mode && (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
+     if (inline_only) {
+         download_to_temporary_directory(gwamsg);
++    } else if (inline_mode && !is_video) {
++        gowhatsapp_display_document_inline(gwamsg);
++        gowhatsapp_display_caption(gwamsg);
+     } else {
+         const char *local_path_template = purple_account_get_string(gwamsg->account, GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_OPTION, GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_DEFAULT);
+         if (local_path_template && local_path_template[0]) {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From e0302e496be8d67ddb32ac4a0afb7496a79f86d4 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Mon, 10 Aug 2026 22:41:52 +0200
+Subject: [PATCH 04/11] Download profile pictures in full resolution by default
+
+The get-icons option defaulted to "no", so contact and chat window
+icons stayed empty; default to "original" everywhere (option list,
+profile fetcher, presence subscription).
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/options.c  | 4 ++--
+ glue/presence.c | 2 +-
+ profile.go      | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/glue/options.c b/glue/options.c
+index 40d776c..7980ea7 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -119,9 +119,9 @@ gowhatsapp_add_account_options(GList *account_options)
+         
+     {
+         GList *choices = NULL;
+-        choices = add_choice(choices, "no", GOWHATSAPP_ICONS_CHOICE_NO);
+-        choices = add_choice(choices, "preview", GOWHATSAPP_ICONS_CHOICE_PREVIEW);
+         choices = add_choice(choices, "original", GOWHATSAPP_ICONS_CHOICE_ORIGINAL);
++        choices = add_choice(choices, "preview", GOWHATSAPP_ICONS_CHOICE_PREVIEW);
++        choices = add_choice(choices, "no", GOWHATSAPP_ICONS_CHOICE_NO);
+         option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
+             "Download user profile pictures",
+             GOWHATSAPP_ICONS_OPTION,
+diff --git a/glue/presence.c b/glue/presence.c
+index 3955255..5b1e153 100644
+--- a/glue/presence.c
++++ b/glue/presence.c
+@@ -140,7 +140,7 @@ gowhatsapp_subscribe_presence_updates(PurpleAccount *account, PurpleBuddy *buddy
+ void gowhatsapp_request_profile_picture(PurpleAccount *account, PurpleBuddy *buddy) {
+     g_return_if_fail(buddy != NULL);
+ 
+-    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_NO), GOWHATSAPP_ICONS_CHOICE_NO)) {
++    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
+         const char *picture_id = purple_blist_node_get_string(&buddy->node, "picture_id");
+         const char *picture_date = purple_blist_node_get_string(&buddy->node, "picture_date");
+         gowhatsapp_go_request_profile_picture(account, buddy->name, (char *)picture_date, (char *)picture_id); // cgo does not suport const
+diff --git a/profile.go b/profile.go
+index 38a4281..f80b278 100644
+--- a/profile.go
++++ b/profile.go
+@@ -21,7 +21,7 @@ type ProfilePictureRequest struct {
+ }
+ 
+ func (handler *Handler) request_profile_picture(jid types.JID, picture_date string, picture_id string) {
+-	setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_NO)
++	setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_ORIGINAL)
+ 	if setting != C.GoString(C.GOWHATSAPP_ICONS_CHOICE_NO) {
+ 		select {
+ 		case handler.pictureRequests <- ProfilePictureRequest{jid: jid, picture_date: picture_date, picture_id: picture_id}:
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 606cc6dd8a16d5643f777b2cc25af1bb465b7947 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Tue, 11 Aug 2026 00:22:04 +0200
+Subject: [PATCH 05/11] Raise message cache default to 500
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/options.c   | 2 +-
+ message_cache.go | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/glue/options.c b/glue/options.c
+index 7980ea7..051f478 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -69,7 +69,7 @@ gowhatsapp_add_account_options(GList *account_options)
+     option = purple_account_option_int_new(
+                 "Number of messages to cache",
+                 GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION,
+-                100
++                500
+                 );
+     account_options = g_list_append(account_options, option);
+ 
+diff --git a/message_cache.go b/message_cache.go
+index fb5aef7..ab562a6 100644
+--- a/message_cache.go
++++ b/message_cache.go
+@@ -61,7 +61,7 @@ func (handler *Handler) add_to_cache(message *waE2E.Message, id types.MessageID,
+ 		// TODO: also add FromMe and IsGroup since they are necessary for BuildPollVote
+ 	})
+ 	// from https://www.delftstack.com/howto/go/queue-implementation-in-golang/
+-	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 100) {
++	if len(handler.cachedMessages) > purple_get_int(handler.account, C.GOWHATSAPP_MESSAGE_CACHE_SIZE_OPTION, 500) {
+ 		handler.cachedMessages = handler.cachedMessages[1:]
+ 	}
+ 	// persist after every addition so the cache survives an unclean shutdown
+-- 
+2.50.1 (Apple Git-155)
+
+
+From bc7de2a2c5661b67ec229457e38092e1736bacd5 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Tue, 11 Aug 2026 23:11:34 +0200
+Subject: [PATCH 06/11] Inline images of all types by default
+
+Adium renders images in its message view rather than through a pixbuf
+loader, so the frontend support the upstream option asks about is
+present. Leaving it off would keep WebP and anything else gdk-pixbuf
+has no loader for arriving as attachments.
+---
+ glue/options.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/glue/options.c b/glue/options.c
+index 051f478..205e4ca 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -209,7 +209,7 @@ gowhatsapp_add_account_options(GList *account_options)
+     option = purple_account_option_bool_new( // MEMCHECK: account_options takes ownership
+         "Inline images of all types (requires frontend support)",
+         GOWHATSAPP_INLINE_ALL_IMAGES_OPTION,
+-        FALSE
++        TRUE // Adium draws images itself and needs no gdk-pixbuf loader, so it is such a frontend
+         );
+     account_options = g_list_append(account_options, option);
+ 
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 0a630f03a87dd4d9575bb426481f85fe96270b7f Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Fri, 14 Aug 2026 14:12:32 +0200
+Subject: [PATCH 07/11] Attribute a sent picture to the sender, not to the
+ conversation
+
+The inline echo of an outgoing image passed the transfer's "who" as both the
+sender and the conversation. For a one to one chat those happen to be the same
+string, so nothing looked wrong. In a group chat they are not: "who" is the
+group, and the picture appeared in the message view under the group's raw
+identifier, 120363...@g.us, while every other message from the same account
+showed the account holder's name.
+
+The account name is also what gowhatsapp_display_text_message compares against
+to decide whether a message is outgoing, so passing it here sets the send flag
+for the right reason rather than by accident.
+
+Also carried along: inline media becomes the default for accounts that never
+set the option, which suits a frontend that renders media in the message view.
+---
+ glue/handle_attachment.c | 5 ++++-
+ glue/send_file.c         | 7 ++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index d1a4952..88ff9c2 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -336,7 +336,10 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+ }
+ 
+ void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg) {
+-    gboolean inline_mode = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_BOTH), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
++    /* Default to INLINE, not upstream's BOTH: this line tests for equality with INLINE, so the
++     * fallback decides the behaviour of every account that never set the option. Adium shows
++     * media in the message view, so showing it there is what it should do out of the box. */
++    gboolean inline_mode = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
+     gboolean is_video = (gwamsg->mimetype != NULL && g_str_has_prefix(gwamsg->mimetype, "video/"));
+     // only media the frontend can show: images by the upstream rule, plus voice notes, which Adium plays inline
+     gboolean inline_only = inline_mode && (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
+diff --git a/glue/send_file.c b/glue/send_file.c
+index 64fe571..b62ef57 100644
+--- a/glue/send_file.c
++++ b/glue/send_file.c
+@@ -22,7 +22,12 @@ gowhatsapp_display_sent_image_inline(PurpleAccount *account, const char *who, co
+     if (img_id > 0) {
+         gboolean isGroup = (strstr(who, "@g.us") != NULL);
+         gchar *text = g_strdup_printf("<img id=\"%u\">", img_id);
+-        gowhatsapp_display_text_message(account, (char *)who, (char *)who, text, time(NULL), isGroup, TRUE, NULL, PURPLE_MESSAGE_IMAGES, NULL, FALSE);
++        /* Sender and conversation are two different things, and in a group chat they are never the
++         * same. Passing the chat as the sender labelled our own picture with the group's raw
++         * identifier, "120363...@g.us", where every other message we send shows our name. The account
++         * name is also what gowhatsapp_display_text_message compares against to decide that this is an
++         * outgoing message rather than an incoming one. */
++        gowhatsapp_display_text_message(account, purple_account_get_username(account), who, text, time(NULL), isGroup, TRUE, NULL, PURPLE_MESSAGE_IMAGES, NULL, FALSE);
+         g_free(text);
+         purple_imgstore_unref_by_id(img_id);
+     } else {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 3d9a77aea9f4e0b282e1a6c2341924d546501c9f Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Fri, 14 Aug 2026 17:14:00 +0200
+Subject: [PATCH 08/11] Match the Signal plug-in's device linking dialog
+
+Same title, same wording, same buttons, and no raw QR payload: it is not
+something to type anywhere, it is the bytes the camera is about to read.
+The one remaining difference is the sentence about the pairing code, which
+WhatsApp offers and Signal does not, and without which the number above it
+is a mystery.
+---
+ glue/qrcode.c | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
+
+diff --git a/glue/qrcode.c b/glue/qrcode.c
+index 6b67c02..78c9f0b 100644
+--- a/glue/qrcode.c
++++ b/glue/qrcode.c
+@@ -30,34 +30,36 @@ gowhatsapp_display_qrcode(PurpleAccount *account, const char *pairing_code, cons
+         PurpleRequestField *string_code = purple_request_field_string_new("pairing_code", "Pairing Code", pairing_code, FALSE);
+         purple_request_field_group_add_field(group, string_code);
+     }
+-    {
+-        PurpleRequestField *string_field = purple_request_field_string_new("qr_data", "QR Code Data", qr_data, FALSE);
+-        purple_request_field_group_add_field(group, string_field);
+-    }
++    /* The string the code encodes is deliberately not shown. There is nothing a person can do with
++     * it: it is not something to type anywhere, it is the same bytes the camera is about to read. */
+     {
+         PurpleRequestField *image_field = purple_request_field_image_new("qr_image", "QR Code Image", image_data, image_data_len);
+         purple_request_field_group_add_field(group, image_field);
+     }
+ 
+     const char *username = purple_account_get_username(account);
+-    char *secondary = g_strdup_printf("WhatsApp account %s", username); // MEMCHECK: released here
++    /* Worded to match the Signal plug-in's linking dialog, which does the same job. The extra
++     * sentence is the one real difference between the two: WhatsApp offers a code to type as an
++     * alternative to scanning, and without a word about it the number above is a mystery. */
++    const char *secondary = "In WhatsApp, open Settings, then Linked devices, and add a device. "
++                            "This window closes by itself once the phone has finished. "
++                            "Instead of scanning, you can enter the code shown here.";
+ 
+     gowhatsapp_close_qrcode(account);
+     purple_request_fields(
+         account, /*handle*/
+-        "Logon QR Code", /*title*/
+-        "Please enter pairing code or scan the QR code", /*primary*/
+-        secondary, /*secondary*/
++        "WhatsApp Device Linking", /*title*/
++        "Scan this code with WhatsApp on your phone", /*primary*/
++        (char *)secondary, /*secondary*/
+         fields, /*fields*/
+-        "OK", G_CALLBACK(null_cb), /*OK*/
+-        "Dismiss", G_CALLBACK(dismiss_cb), /*Cancel*/
++        "Hide", G_CALLBACK(null_cb), /*OK*/
++        "Cancel", G_CALLBACK(dismiss_cb), /*Cancel*/
+         NULL, /*account*/
+         username, /*username*/
+         NULL, /*conversation*/
+         account /*data*/
+     );
+-    
+-    g_free(secondary);
++
+ }
+ 
+ void
+-- 
+2.50.1 (Apple Git-155)
+
+
+From f4c2a34eed38df9dc2ce4ae14679176bfa377d38 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Fri, 14 Aug 2026 20:29:12 +0200
+Subject: [PATCH 09/11] Give a group chat its picture, on the node rather than
+ on a buddy
+
+Contacts have had pictures all along and groups have not, because the only
+sweep is over buddies and a group is deliberately not one here: a chat
+cannot be messaged like a contact, and a row for one leads nowhere.
+
+Reintroducing group buddies would be the wrong repair. libpurple attaches a
+custom icon to any node in the list, chats included, and persists the file
+name into blist.xml, so that is where a group's picture goes. Note that
+purple_buddy_icons_set_for_user cannot serve here at all: it only keeps an
+icon something takes a reference to, so for a chat it would allocate the
+image, find no taker and free it again on the spot.
+
+The Go layer needed nothing. GetProfilePictureInfo takes a JID and does not
+care whether it names a person or a group.
+---
+ glue/blist.c           | 24 ++++++++++++++++++++++++
+ glue/gowhatsapp.h      |  2 ++
+ glue/presence.c        | 39 +++++++++++++++++++++++++++++++++++++++
+ glue/process_message.c |  1 +
+ 4 files changed, 66 insertions(+)
+
+diff --git a/glue/blist.c b/glue/blist.c
+index 568cf2f..ea47d09 100644
+--- a/glue/blist.c
++++ b/glue/blist.c
+@@ -88,6 +88,30 @@ void gowhatsapp_for_all_buddies(PurpleAccount *account, void(*func)(PurpleAccoun
+     }
+ }
+ 
++/*
++ * Calls a function once on each group chat of this account.
++ *
++ * The counterpart of gowhatsapp_for_all_buddies, and needed because a group is deliberately not a
++ * buddy here: a chat cannot be messaged like a contact, and a contact list row for one is a row that
++ * leads nowhere. Anything that wants to treat groups the way contacts are treated has to walk them
++ * separately, and the walk is the one gowhatsapp_find_blist_chat already does.
++ */
++void gowhatsapp_for_all_chats(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleChat *)) {
++    g_return_if_fail(account != NULL);
++
++    for (PurpleBlistNode *node = purple_blist_get_root();
++         node != NULL;
++         node = purple_blist_node_next(node, TRUE)) {
++        if (PURPLE_IS_CHAT(node)) {
++            PurpleChat *chat = PURPLE_CHAT(node);
++
++            if (purple_chat_get_account(chat) == account) {
++                func(account, chat);
++            }
++        }
++    }
++}
++
+ // Group chat related functions
+ 
+ /*
+diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
+index d54db62..2abca71 100644
+--- a/glue/gowhatsapp.h
++++ b/glue/gowhatsapp.h
+@@ -63,6 +63,8 @@ void gowhatsapp_add_buddy(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup
+ void gowhatsapp_tooltip_text(PurpleBuddy *buddy, PurpleNotifyUserInfo *info, gboolean full);
+ void gowhatsapp_assume_buddy_away(PurpleAccount *account, PurpleBuddy *buddy);
+ void gowhatsapp_for_all_buddies(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleBuddy *));
++void gowhatsapp_for_all_chats(PurpleAccount *account, void(*func)(PurpleAccount *, PurpleChat *));
++void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat *chat);
+ 
+ // send_message
+ int gowhatsapp_send_im(PurpleConnection *pc, const gchar *who, const gchar *message, PurpleMessageFlags flags);
+diff --git a/glue/presence.c b/glue/presence.c
+index 5b1e153..d381ce7 100644
+--- a/glue/presence.c
++++ b/glue/presence.c
+@@ -36,6 +36,20 @@ gowhatsapp_handle_presence(PurpleAccount *account, char *remoteJid, char online,
+ void
+ gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg)
+ {
++    /* A group's picture cannot go where a contact's goes. purple_buddy_icons_set_for_user only keeps
++     * an icon that some buddy or open conversation takes a reference to, and a group is neither, so
++     * for one it would allocate the image, find no taker and free it again on the spot. What
++     * libpurple does offer for any node in the list, chats included, is a custom icon, which also
++     * survives a restart because the file name is written into blist.xml. */
++    PurpleChat *chat = gowhatsapp_find_blist_chat(gwamsg->account, gwamsg->remoteJid);
++    if (chat != NULL) {
++        // MEMCHECK: purple_buddy_icons_node_set_custom_icon takes ownership of the blob, as set_for_user does
++        purple_buddy_icons_node_set_custom_icon((PurpleBlistNode *)chat, (guchar *)gwamsg->blob, gwamsg->blobsize);
++        purple_blist_node_set_string(&chat->node, "picture_id", gwamsg->messageId);
++        purple_blist_node_set_string(&chat->node, "picture_date", gwamsg->text);
++        return;
++    }
++
+     purple_buddy_icons_set_for_user(gwamsg->account, gwamsg->remoteJid, gwamsg->blob, gwamsg->blobsize, NULL);
+     // no g_free(gwamsg->blob) here – purple takes ownership
+     const char *buddy_alias = gwamsg->senderJid;
+@@ -137,6 +151,31 @@ gowhatsapp_subscribe_presence_updates(PurpleAccount *account, PurpleBuddy *buddy
+     }
+ }
+ 
++/*
++ * Ask for a group's picture, the way gowhatsapp_request_profile_picture asks for a contact's.
++ *
++ * whatsmeow's GetProfilePictureInfo takes a JID and does not care whether it belongs to a person or
++ * to a group, so the Go layer needs nothing new. What differs is where the answer is put, since a
++ * group is not a buddy; see gowhatsapp_handle_profile_picture.
++ *
++ * The identifier is the "name" component and not the chat's own name, which answers with the alias
++ * once one is set.
++ */
++void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat *chat) {
++    g_return_if_fail(chat != NULL);
++
++    if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
++        GHashTable *components = purple_chat_get_components(chat);
++        const char *remoteJid = components ? g_hash_table_lookup(components, "name") : NULL;
++
++        if (remoteJid != NULL) {
++            const char *picture_id = purple_blist_node_get_string(&chat->node, "picture_id");
++            const char *picture_date = purple_blist_node_get_string(&chat->node, "picture_date");
++            gowhatsapp_go_request_profile_picture(account, (char *)remoteJid, (char *)picture_date, (char *)picture_id); // cgo does not support const
++        }
++    }
++}
++
+ void gowhatsapp_request_profile_picture(PurpleAccount *account, PurpleBuddy *buddy) {
+     g_return_if_fail(buddy != NULL);
+ 
+diff --git a/glue/process_message.c b/glue/process_message.c
+index 9de9fdf..fc71358 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -35,6 +35,7 @@ static void gowhatsapp_connection_set_online(PurpleConnection *connection) {
+     gowhatsapp_set_presence(account, purple_account_get_active_status(account));
+ 
+     gowhatsapp_for_all_buddies(account, gowhatsapp_request_profile_picture);
++    gowhatsapp_for_all_chats(account, gowhatsapp_request_chat_profile_picture);
+ }
+ 
+ /*
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 01b9de982e518f2e4851ab19670761bc6e1e0f10 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Sun, 16 Aug 2026 00:52:07 +0200
+Subject: [PATCH 10/11] Keep a profile picture at the resolution that was asked
+ for
+
+Two faults, one of them ours.
+
+The setting deciding whether to fetch a picture defaulted to the full resolution while the code
+deciding what to fetch still defaulted to the thumbnail. An account that had never been told
+otherwise therefore asked as though it wanted the full picture and downloaded the preview. Ours:
+the commit that moved the defaults to full resolution moved three of the four.
+
+The second is why changing the setting afterwards did nothing. WhatsApp identifies a picture by an
+id which says nothing about its resolution, the thumbnail and the full picture of one photograph
+carrying the same one. Sending it along gets "unchanged" back whatever is being asked for, so a
+thumbnail fetched once stayed a thumbnail for as long as the person kept the photograph.
+
+The resolution is now remembered beside the id, and the id is only offered while it still describes
+what is wanted. Where it does not, the request goes out without one and the server answers with a
+picture. A picture stored before this carries no such note, which counts as a mismatch, so the
+first connection after this refetches those once and is quiet again afterwards.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ glue/presence.c | 40 ++++++++++++++++++++++++++++++++++++----
+ profile.go      |  5 ++++-
+ 2 files changed, 40 insertions(+), 5 deletions(-)
+
+diff --git a/glue/presence.c b/glue/presence.c
+index d381ce7..f5874a0 100644
+--- a/glue/presence.c
++++ b/glue/presence.c
+@@ -29,6 +29,34 @@ gowhatsapp_handle_presence(PurpleAccount *account, char *remoteJid, char online,
+     }
+ }
+ 
++/*
++ * Which resolution a stored picture was fetched at, and whether that is still the wanted one.
++ *
++ * WhatsApp identifies a profile picture by an id which says nothing about its resolution: the
++ * thumbnail and the full picture of the same photograph carry the same one. Sending that id along
++ * with a request therefore gets "unchanged" back whichever resolution is being asked for, so a
++ * thumbnail fetched once would stay a thumbnail for as long as the person keeps the photograph,
++ * no matter what the setting is changed to afterwards.
++ *
++ * Remembering what was fetched settles it. The id is only offered while it still describes what is
++ * wanted; where it does not, the request goes out without one and the server answers with a
++ * picture rather than with "unchanged".
++ *
++ * A picture stored before this was written carries no note of its resolution, which counts as a
++ * mismatch, so the first connection after this change refetches those once and is then quiet again.
++ */
++static void gowhatsapp_remember_picture_type(PurpleAccount *account, PurpleBlistNode *node)
++{
++    purple_blist_node_set_string(node, "picture_type",
++        purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL));
++}
++
++static gboolean gowhatsapp_picture_type_still_wanted(PurpleAccount *account, PurpleBlistNode *node)
++{
++    return purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL),
++                           purple_blist_node_get_string(node, "picture_type"));
++}
++
+ /*
+  * A profile picture has been downloaded.
+  * Set icon and store date for caching.
+@@ -47,6 +75,7 @@ gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg)
+         purple_buddy_icons_node_set_custom_icon((PurpleBlistNode *)chat, (guchar *)gwamsg->blob, gwamsg->blobsize);
+         purple_blist_node_set_string(&chat->node, "picture_id", gwamsg->messageId);
+         purple_blist_node_set_string(&chat->node, "picture_date", gwamsg->text);
++        gowhatsapp_remember_picture_type(gwamsg->account, &chat->node);
+         return;
+     }
+ 
+@@ -57,6 +86,7 @@ gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg)
+     if (buddy != NULL) {
+         purple_blist_node_set_string(&buddy->node, "picture_id", gwamsg->messageId);
+         purple_blist_node_set_string(&buddy->node, "picture_date", gwamsg->text);
++        gowhatsapp_remember_picture_type(gwamsg->account, &buddy->node);
+         // TODO: use purple_buddy_icons_set_account_icon_timestamp instead of saving the time string
+         const char *alias = purple_buddy_get_alias(buddy);
+         // do not use alias if it is NULL, empty or containing directory separator (characters unfit for use in file-system are not checked or escaped)
+@@ -169,8 +199,9 @@ void gowhatsapp_request_chat_profile_picture(PurpleAccount *account, PurpleChat
+         const char *remoteJid = components ? g_hash_table_lookup(components, "name") : NULL;
+ 
+         if (remoteJid != NULL) {
+-            const char *picture_id = purple_blist_node_get_string(&chat->node, "picture_id");
+-            const char *picture_date = purple_blist_node_get_string(&chat->node, "picture_date");
++            gboolean matches = gowhatsapp_picture_type_still_wanted(account, &chat->node);
++            const char *picture_id = matches ? purple_blist_node_get_string(&chat->node, "picture_id") : NULL;
++            const char *picture_date = matches ? purple_blist_node_get_string(&chat->node, "picture_date") : NULL;
+             gowhatsapp_go_request_profile_picture(account, (char *)remoteJid, (char *)picture_date, (char *)picture_id); // cgo does not support const
+         }
+     }
+@@ -180,8 +211,9 @@ void gowhatsapp_request_profile_picture(PurpleAccount *account, PurpleBuddy *bud
+     g_return_if_fail(buddy != NULL);
+ 
+     if (!purple_strequal(purple_account_get_string(account, GOWHATSAPP_ICONS_OPTION, GOWHATSAPP_ICONS_CHOICE_ORIGINAL), GOWHATSAPP_ICONS_CHOICE_NO)) {
+-        const char *picture_id = purple_blist_node_get_string(&buddy->node, "picture_id");
+-        const char *picture_date = purple_blist_node_get_string(&buddy->node, "picture_date");
++        gboolean matches = gowhatsapp_picture_type_still_wanted(account, &buddy->node);
++        const char *picture_id = matches ? purple_blist_node_get_string(&buddy->node, "picture_id") : NULL;
++        const char *picture_date = matches ? purple_blist_node_get_string(&buddy->node, "picture_date") : NULL;
+         gowhatsapp_go_request_profile_picture(account, buddy->name, (char *)picture_date, (char *)picture_id); // cgo does not suport const
+     }
+ }
+diff --git a/profile.go b/profile.go
+index f80b278..318f744 100644
+--- a/profile.go
++++ b/profile.go
+@@ -62,7 +62,10 @@ func (handler *Handler) profile_picture_downloader() {
+ 		// check the settings for whether the user wants small previews or big original pictures
+ 		// NOTE: apart from PREVIEW, there is not only ORIGINAL, but also NO.
+ 		// NO is not accounted for here since in that case, this function should not even be executed.
+-		setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_PREVIEW)
++		// The fallback must be the same one the caller in glue/presence.c uses to decide whether to
++		// ask at all. It was PREVIEW here and ORIGINAL there, so an account that had never been told
++		// otherwise asked as if it wanted the full picture and then fetched the thumbnail.
++		setting := purple_get_string(handler.account, C.GOWHATSAPP_ICONS_OPTION, C.GOWHATSAPP_ICONS_CHOICE_ORIGINAL)
+ 		want_preview := setting == C.GoString(C.GOWHATSAPP_ICONS_CHOICE_PREVIEW)
+ 		ppi, _ := handler.client.GetProfilePictureInfo(
+ 			context.TODO(),
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 9ff609f03849f3d29db59ff5ff655215926655ad Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 19 Aug 2026 16:35:39 +0200
+Subject: [PATCH 11/11] Resolve WhatsApp business account names
+
+Business accounts often carry no push name; whatsmeow delivers their verified
+name instead, both as a field on every message and as a BusinessName event when
+the cached value changes. Handle the event by updating the buddy alias, and let
+the verified name stand in for the push name on the message path, so a business
+contact shows its name instead of its bare JID.
+---
+ handle_message.go |  7 ++++++-
+ handler.go        | 14 +++++++++++++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/handle_message.go b/handle_message.go
+index 17f7c5b..97268dc 100644
+--- a/handle_message.go
++++ b/handle_message.go
+@@ -256,7 +256,12 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
+ 			text = "[EDIT] " + text
+ 		}
+ 		// note: info.PushName always denotes the sender (not the chat)
+-		purple_display_text_message(handler.account, info.MessageSource.Chat.ToNonAD().String(), info.MessageSource.IsGroup, false, info.MessageSource.Sender.ToNonAD().String(), &info.PushName, info.Timestamp, text, &info.ID)
++		// Business accounts often have no push name; their verified name stands in.
++		senderName := info.PushName
++		if senderName == "" && info.VerifiedName != nil {
++			senderName = info.VerifiedName.Details.GetVerifiedName()
++		}
++		purple_display_text_message(handler.account, info.MessageSource.Chat.ToNonAD().String(), info.MessageSource.IsGroup, false, info.MessageSource.Sender.ToNonAD().String(), &senderName, info.Timestamp, text, &info.ID)
+ 	}
+ 	if !isEdit { // edited messages contain the changed texts, but attachments are absent since they cannot be changed
+ 		handler.handle_attachment(message, info.ID, info.MessageSource, info.Timestamp)
+diff --git a/handler.go b/handler.go
+index 28f68e1..2b14e0c 100644
+--- a/handler.go
++++ b/handler.go
+@@ -68,6 +68,14 @@ func (handler *Handler) eventHandler(rawEvt interface{}) {
+ 		// setting is regarded by whatsmeow internally
+ 		// no need to forward to purple
+ 		// TODO: find out how this is related to the PushNameSetting event
++	case *events.BusinessName:
++		log.Infof("%#v", evt)
++		// A verified business told us its name (fired on first contact and on change).
++		// Business accounts often carry no push name, so without this the UI is left
++		// showing the bare JID.
++		if evt.NewBusinessName != "" {
++			purple_update_name(handler.account, evt.JID.ToNonAD().String(), evt.NewBusinessName)
++		}
+ 	case *events.Connected:
+ 		// connected – start downloading profile pictures now.
+ 		go handler.profile_picture_downloader()
+@@ -169,7 +177,11 @@ func (handler *Handler) eventHandler(rawEvt interface{}) {
+ 		info := evt.Info
+ 		source := info.MessageSource
+ 		text := fmt.Sprintf("sent an undecryptable %s message. Check the message on your main device.", evt.UnavailableType)
+-		purple_display_text_message(handler.account, source.Chat.ToNonAD().String(), source.IsGroup, false, source.Sender.ToNonAD().String(), &info.PushName, info.Timestamp, text, &info.ID)
++		senderName := info.PushName
++		if senderName == "" && info.VerifiedName != nil {
++			senderName = info.VerifiedName.Details.GetVerifiedName()
++		}
++		purple_display_text_message(handler.account, source.Chat.ToNonAD().String(), source.IsGroup, false, source.Sender.ToNonAD().String(), &senderName, info.Timestamp, text, &info.ID)
+ 	default:
+ 		log.Warnf("Event type not handled: %#v", rawEvt)
+ 	}
+-- 
+2.50.1 (Apple Git-155)
+
