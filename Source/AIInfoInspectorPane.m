@@ -237,7 +237,7 @@
 	if (header) {
 		[text addAttribute:NSFontAttributeName value:[NSFont boldSystemFontOfSize:13] range:NSMakeRange(textLength, [text length] - textLength)];
 		[block setWidth:1.0f type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder edge:NSMaxYEdge];
-		[block setBorderColor:[NSColor darkGrayColor]];
+		[block setBorderColor:[NSColor separatorColor]];
 	} 
 	
 	if (color) {
@@ -480,7 +480,7 @@
 										  col:0
 									  colspan:1
 									   header:NO
-										color:[NSColor grayColor]
+										color:[NSColor secondaryLabelColor]
 									alignment:NSTextAlignmentRight
 						   toAttributedString:result];
 				}
@@ -505,7 +505,7 @@
 									  col:0
 								  colspan:2
 								   header:YES
-									color:[NSColor darkGrayColor]
+									color:[NSColor labelColor]
 								alignment:NSTextAlignmentLeft
 					   toAttributedString:result];
 				break;
@@ -600,16 +600,31 @@
 	NSColor		*backgroundColor = nil;
 
 	if (infoString && [infoString length]) {
-		[[textView textStorage] setAttributedString:infoString];	
+		[[textView textStorage] setAttributedString:infoString];
 		backgroundColor = [infoString attribute:AIBodyColorAttributeName
-										atIndex:0 
-						  longestEffectiveRange:nil 
+										atIndex:0
+						  longestEffectiveRange:nil
 										inRange:NSMakeRange(0,[infoString length])];
+
+		/* Most profiles carry no colors at all, and a run without a foreground color is
+		 * drawn black whatever the appearance — invisible on the semantic background
+		 * below. Only the colorless runs get the label color; a profile that chose its
+		 * colors chose its background too and keeps both.
+		 */
+		if (!backgroundColor) {
+			NSTextStorage *storage = [textView textStorage];
+			[storage enumerateAttribute:NSForegroundColorAttributeName
+								inRange:NSMakeRange(0, [storage length])
+								options:0
+							 usingBlock:^(id color, NSRange range, BOOL *stop) {
+				if (!color) [storage addAttribute:NSForegroundColorAttributeName value:[NSColor labelColor] range:range];
+			}];
+		}
 	} else {
-		[[textView textStorage] setAttributedString:[NSAttributedString stringWithString:@""]];	
+		[[textView textStorage] setAttributedString:[NSAttributedString stringWithString:@""]];
 	}
-	[textView setInsertionPointColor:(backgroundColor ? backgroundColor : [NSColor whiteColor])];
-	[textView setBackgroundColor:(backgroundColor ? backgroundColor : [NSColor whiteColor])];
+	[textView setInsertionPointColor:(backgroundColor ? backgroundColor : [NSColor textBackgroundColor])];
+	[textView setBackgroundColor:(backgroundColor ? backgroundColor : [NSColor textBackgroundColor])];
     [[NSNotificationCenter defaultCenter] postNotificationName:NSTextDidChangeNotification object:textView];
 }
 

@@ -44,7 +44,8 @@
 																			 group:PREF_GROUP_APPEARANCE] intValue];
 	
 	filterBarView.drawsBackground = YES;
-	filterBarView.backgroundColor = [NSColor whiteColor];
+	//The bar is chrome over whatever the list theme paints, so it follows the appearance
+	filterBarView.backgroundColor = [NSColor controlBackgroundColor];
 	filterBarView.backgroundIsRounded = (style == AIContactListWindowStyleContactBubbles ||
 										 style == AIContactListWindowStyleContactBubbles_Fitted ||
 										 style == AIContactListWindowStyleGroupBubbles);

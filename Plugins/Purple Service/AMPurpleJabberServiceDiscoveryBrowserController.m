@@ -272,7 +272,7 @@ static NSImage *det_triangle_closed = nil;
 
 - (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
-    NSDictionary *style = [NSDictionary dictionaryWithObject:[item identities]?[NSColor blackColor]:[NSColor grayColor] forKey:NSForegroundColorAttributeName];
+    NSDictionary *style = [NSDictionary dictionaryWithObject:[item identities]?[NSColor labelColor]:[NSColor secondaryLabelColor] forKey:NSForegroundColorAttributeName];
 	
     NSString *identifier = [tableColumn identifier];
     

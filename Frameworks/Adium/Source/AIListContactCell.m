@@ -28,8 +28,9 @@
 #define HULK_CRUSH_FACTOR 1
 
 //Selections
-#define CONTACT_INVERTED_TEXT_COLOR		[NSColor whiteColor]
-#define CONTACT_INVERTED_STATUS_COLOR	[NSColor whiteColor]
+//On-selection colors; semantic, so they follow the appearance instead of assuming light
+#define CONTACT_INVERTED_TEXT_COLOR		[NSColor alternateSelectedControlTextColor]
+#define CONTACT_INVERTED_STATUS_COLOR	[NSColor alternateSelectedControlTextColor]
 
 @implementation AIListContactCell
 

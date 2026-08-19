@@ -59,7 +59,8 @@
 	[self setUsesAlternatingRowBackgroundColors:NO];
 	drawsBackground = YES;
 	drawsGradientSelection = NO;
-	alternatingRowColor = [NSColor colorWithCalibratedRed:(237.0f/255.0f) green:(243.0f/255.0f) blue:(254.0f/255.0f) alpha:1.0f];
+	//The system's own alternate row color rather than a fixed light blue; themes override this
+	alternatingRowColor = [[NSColor alternatingContentBackgroundColors] lastObject];
 }
 
 

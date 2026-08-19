@@ -307,11 +307,11 @@
 			if ([self isEnabled]) {
 				// Draw the text regular
 				mainTextColor = [NSColor controlTextColor];
-				subStringTextColor = [NSColor colorWithCalibratedWhite:0.4f alpha:1.0f];
+				subStringTextColor = [NSColor secondaryLabelColor];
 			} else {
 				// Draw the text disabled
-				mainTextColor = [NSColor grayColor];
-				subStringTextColor = [NSColor colorWithCalibratedWhite:0.8f alpha:1.0f];
+				mainTextColor = [NSColor disabledControlTextColor];
+				subStringTextColor = [NSColor tertiaryLabelColor];
 			}
 		}
 		

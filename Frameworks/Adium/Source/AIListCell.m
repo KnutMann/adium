@@ -51,8 +51,10 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		 rightPadding = 0;
 		
 		font = [NSFont systemFontOfSize:12];
-		textColor = [NSColor blackColor];
-		invertedTextColor = [NSColor whiteColor];
+		/* Fallbacks only: every list theme brings its own colors and overrides these.
+		 * Semantic rather than fixed, so a themeless list stays readable in the dark. */
+		textColor = [NSColor labelColor];
+		invertedTextColor = [NSColor alternateSelectedControlTextColor];
 
 		useAliasesAsRequested = YES;
 
