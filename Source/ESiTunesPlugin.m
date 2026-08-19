@@ -1568,6 +1568,23 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * that used to share this channel grew channels of their own (Spotify's is below).
 	 */
 	NSDictionary *newInfo = [aNotification userInfo];
+
+	/* Music's goodbye when it quits is a payload without a player state, and the two
+	 * flags read "not stopped, not paused" as playing — so the goodbye went out as a
+	 * playing track with every field empty, which a format like "%_track - %_artist"
+	 * renders as a lone dash. A broadcast that does not say one of the three states is
+	 * the player leaving or talking about something else; Stopped is the truth of both,
+	 * and whatever track fields ride along with it are not what is playing.
+	 */
+	NSString *playerState = [newInfo objectForKey:KEY_ITUNES_PLAYER_STATE];
+
+	if (![playerState isKindOfClass:[NSString class]] ||
+		!([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
+		  [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
+		  [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
+		newInfo = [NSDictionary dictionaryWithObject:KEY_ITUNES_STOPPED forKey:KEY_ITUNES_PLAYER_STATE];
+	}
+
 	[self setiTunesCurrentInfo:newInfo fromPlayer:MUSIC_BUNDLE_IDENTIFIER];
 
 	[pool release];
