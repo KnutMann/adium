@@ -44,7 +44,11 @@
 //Preferences and files
 #define MESSAGE_VIEW_NIB					@"MessageView"				// Filename of the message view nib
 #define	USERLIST_THEME						@"UserList Theme"			// File name of the user list theme
+#define	USERLIST_THEME_DARK					@"UserList Theme Dark"		// Its dark counterpart; picked by effective appearance
 #define	USERLIST_LAYOUT						@"UserList Layout"			// File name of the user list layout
+
+//KVO context for following the effective appearance; the user list theme is picked by it
+static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 #define	KEY_ENTRY_TEXTVIEW_MIN_HEIGHT		@"Minimum Text Height"		// Preference key for text entry height
 #define	KEY_ENTRY_USER_LIST_MIN_WIDTH		@"UserList Minimum Width"	// Preference key for user list width
 #define KEY_USER_LIST_VISIBLE_PREFIX		@"Userlist Visible Chat:"	// Preference key prefix for user list visibility
@@ -67,6 +71,7 @@
 - (void)_showUserListView;
 - (void)_hideUserListView;
 - (void)_configureUserList;
+- (void)_applyUserListLayoutAndTheme;
 - (CGFloat)_userListViewDividerPositionIgnoringUserMinimum:(BOOL)ignoreUserMinimum;
 - (void)updateFramesForAccountSelectionView;
 - (NSView *)conversationContainerView;
@@ -79,7 +84,6 @@
 
 - (NSArray *)contactsMatchingBeginningString:(NSString *)partialWord;
 
-- (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 - (void)gotFilteredMessageToSendLater:(NSAttributedString *)filteredMessage receivingContext:(NSMutableDictionary *)alertDict;
 - (void)outgoingTextViewDesiredSizeDidChange:(NSNotification *)notification;
 @end
@@ -155,9 +159,20 @@
 		[self _configureTextEntryView];
 		[self _configureUserList];
 		
-		//Draw background
-		[actionBarView setBackgroundColor:[NSColor colorWithCalibratedWhite:0.98f alpha:1.0f]];
-		[actionBarView setMiddleColor:[NSColor colorWithCalibratedWhite:0.91f alpha:1.0f]];
+		/* Draw background. Semantic colors: they resolve against the appearance at
+		 * every draw, so the bar follows light and dark without further help. */
+		[actionBarView setBackgroundColor:[NSColor windowBackgroundColor]];
+		[actionBarView setMiddleColor:[NSColor underPageBackgroundColor]];
+
+		//The gear is a black bitmap; as a template the system recolors it with the appearance
+		[[performAction image] setTemplate:YES];
+
+		/* The user list carries its own light and dark theme; repaint when the effective
+		 * appearance flips, whether the system did it or the new Appearance setting. */
+		[NSApp addObserver:self
+				forKeyPath:@"effectiveAppearance"
+				   options:0
+				   context:AIMessageViewAppearanceContext];
 
 		//Set our base writing direction
 		if (contact) {
@@ -176,7 +191,8 @@
 {
 	AILogWithSignature(@"");
 	AIListContact	*contact = chat.listObject;
-	
+
+	[NSApp removeObserver:self forKeyPath:@"effectiveAppearance" context:AIMessageViewAppearanceContext];
 	[adium.preferenceController unregisterPreferenceObserver:self];
 
 	//Store our minimum height for the text entry area, and minimim width for the user list
@@ -226,8 +242,9 @@
 
 - (void)updateGradientColors
 {
-	NSColor *darkerColor = [NSColor colorWithCalibratedWhite:0.90f alpha:1.0f];
-	NSColor *lighterColor = [NSColor colorWithCalibratedWhite:0.92f alpha:1.0f];
+	//Semantic pair: both resolve per appearance at draw time
+	NSColor *darkerColor = [NSColor underPageBackgroundColor];
+	NSColor *lighterColor = [NSColor windowBackgroundColor];
 	NSColor *leftColor = nil, *rightColor = nil;
 
 	switch ([messageWindowController tabPosition]) {
@@ -1295,16 +1312,44 @@
 - (void)_configureUserList
 {
 	if (chat.isGroupChat) {
-		NSDictionary	*themeDict = [NSDictionary dictionaryNamed:USERLIST_THEME forClass:[self class]];
-		NSDictionary	*layoutDict = [NSDictionary dictionaryNamed:USERLIST_LAYOUT forClass:[self class]];
-		
 		//Create and configure a controller to manage the user list
 		userListController = [[ESChatUserListController alloc] initWithContactListView:userListView
-																		  inScrollView:scrollView_userList 
+																		  inScrollView:scrollView_userList
 																			  delegate:self];
 		[userListController setContactListRoot:chat];
-		[userListController updateLayoutFromPrefDict:layoutDict andThemeFromPrefDict:themeDict];
+		[self _applyUserListLayoutAndTheme];
 		[userListController setHideRoot:YES];
+	}
+}
+
+/*!
+ * @brief Hand the user list its layout and the theme the current appearance calls for
+ *
+ * The user list ships its own fixed theme, adjustable nowhere — so nobody but the
+ * appearance may pick between the light one and its dark counterpart. Called at setup
+ * and again whenever the effective appearance flips.
+ */
+- (void)_applyUserListLayoutAndTheme
+{
+	if (!userListController) return;
+
+	NSString *match = [[userListView effectiveAppearance] bestMatchFromAppearancesWithNames:
+					   [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil]];
+	BOOL dark = [match isEqualToString:NSAppearanceNameDarkAqua];
+
+	NSDictionary *themeDict = [NSDictionary dictionaryNamed:(dark ? USERLIST_THEME_DARK : USERLIST_THEME)
+												   forClass:[self class]];
+	NSDictionary *layoutDict = [NSDictionary dictionaryNamed:USERLIST_LAYOUT forClass:[self class]];
+
+	[userListController updateLayoutFromPrefDict:layoutDict andThemeFromPrefDict:themeDict];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+	if (context == AIMessageViewAppearanceContext) {
+		[self _applyUserListLayoutAndTheme];
+	} else {
+		[super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 	}
 }
 

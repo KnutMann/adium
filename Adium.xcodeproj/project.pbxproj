@@ -224,6 +224,7 @@
 		34607F1009B2296A000DB3D2 /* AIHoveringPopUpButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 34607F0C09B2296A000DB3D2 /* AIHoveringPopUpButtonCell.m */; };
 		34607F1209B2296A000DB3D2 /* AIHoveringPopUpButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 34607F0E09B2296A000DB3D2 /* AIHoveringPopUpButton.m */; };
 		3461621406FB482D009181D8 /* UserList Theme.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3461621006FB482C009181D8 /* UserList Theme.plist */; };
+		ADD1E5C0DE0000000000C801 /* UserList Theme Dark.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C800 /* UserList Theme Dark.plist */; };
 		3461621606FB482D009181D8 /* ESChatUserListController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3461621206FB482C009181D8 /* ESChatUserListController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3461621706FB482D009181D8 /* UserList Layout.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3461621306FB482D009181D8 /* UserList Layout.plist */; };
 		346196F20D31607500763051 /* SRSnapback.png in Resources */ = {isa = PBXBuildFile; fileRef = 346196F10D31607500763051 /* SRSnapback.png */; };
@@ -1832,6 +1833,7 @@
 		34607F0E09B2296A000DB3D2 /* AIHoveringPopUpButton.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIHoveringPopUpButton.m; path = Source/AIHoveringPopUpButton.m; sourceTree = "<group>"; };
 		34607F0F09B2296A000DB3D2 /* AIHoveringPopUpButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIHoveringPopUpButton.h; path = Source/AIHoveringPopUpButton.h; sourceTree = "<group>"; };
 		3461621006FB482C009181D8 /* UserList Theme.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "UserList Theme.plist"; path = "Plugins/Dual Window Interface/UserList Theme.plist"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C800 /* UserList Theme Dark.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "UserList Theme Dark.plist"; path = "Plugins/Dual Window Interface/UserList Theme Dark.plist"; sourceTree = "<group>"; };
 		3461621106FB482C009181D8 /* ESChatUserListController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESChatUserListController.h; path = "Plugins/Dual Window Interface/ESChatUserListController.h"; sourceTree = "<group>"; };
 		3461621206FB482C009181D8 /* ESChatUserListController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESChatUserListController.m; path = "Plugins/Dual Window Interface/ESChatUserListController.m"; sourceTree = "<group>"; };
 		3461621306FB482D009181D8 /* UserList Layout.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = "UserList Layout.plist"; path = "Plugins/Dual Window Interface/UserList Layout.plist"; sourceTree = "<group>"; };
@@ -5890,6 +5892,7 @@
 				F5793982033E756E01A8010A /* AIMessageWindowController.m */,
 				7EC033B114590E0700CF24FB /* MessageWindow.xib */,
 				3461621006FB482C009181D8 /* UserList Theme.plist */,
+				ADD1E5C0DE0000000000C800 /* UserList Theme Dark.plist */,
 				3461621306FB482D009181D8 /* UserList Layout.plist */,
 				346371050BCA0A5400AD57AD /* AIMessageTabSplitView.h */,
 				346371060BCA0A5400AD57AD /* AIMessageTabSplitView.m */,
@@ -6646,6 +6649,7 @@
 				4B97DB6706AC123A0003EE49 /* msg-insert-link.tiff in Resources */,
 				4BF98DCD06D149EE00E8781D /* ContactStatusColoringDefaults.plist in Resources */,
 				3461621406FB482D009181D8 /* UserList Theme.plist in Resources */,
+				ADD1E5C0DE0000000000C801 /* UserList Theme Dark.plist in Resources */,
 				3461621706FB482D009181D8 /* UserList Layout.plist in Resources */,
 				346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */,
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
