@@ -43,7 +43,14 @@ static NSImage *det_triangle_closed = nil;
 			[node fetchItems];
 		if (![node identities])
 			[node fetchInfo];
-        
+
+		/* Say where the browser stands. These started out empty, which read as a fault
+		 * and, worse, fed -changeServiceName: an empty JID as soon as the field lost
+		 * focus — one stray click and the tree was gone.
+		 */
+		[servicename setStringValue:([node jid] ?: @"")];
+		[nodename setStringValue:([node node] ?: @"")];
+
         [[self window] makeKeyAndOrderFront:nil];
 		
         [self retain];
@@ -71,6 +78,16 @@ static NSImage *det_triangle_closed = nil;
 	[[self window] setTitle:AILocalizedString(@"Service Discovery Browser", "Window title for the service discovery browser")];
 	[label_service setStringValue:AILocalizedString(@"Service:", nil)];
 	[label_node setStringValue:AILocalizedString(@"Node:", nil)];
+
+	/* The nib sized the labels for the English words, and a longer translation was
+	 * clipped — German "Knoten:" showed as "Knote". Each label takes the width of its
+	 * text and keeps its right edge against its field.
+	 */
+	for (NSTextField *label in [NSArray arrayWithObjects:label_service, label_node, nil]) {
+		CGFloat rightEdge = NSMaxX([label frame]);
+		[label sizeToFit];
+		[label setFrameOrigin:NSMakePoint(rightEdge - NSWidth([label frame]), NSMinY([label frame]))];
+	}
 	
 	[[[outlineview tableColumnWithIdentifier:@"name"] headerCell] setStringValue:AILocalizedString(@"Name", "Name table column header for the service discovery browser")];
 	[[[outlineview tableColumnWithIdentifier:@"jid"] headerCell] setStringValue:AILocalizedString(@"JID", "JID (Jabber ID) table column header for the service discovery browser. This may not need to be localized.")];
@@ -166,8 +183,26 @@ static NSImage *det_triangle_closed = nil;
 }
 
 - (IBAction)changeServiceName:(id)sender {
+	NSString *jid = [[servicename stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	NSString *nodeName = ([[nodename stringValue] length] > 0) ? [nodename stringValue] : nil;
+
+	/* The field's action also fires when it merely loses focus. An empty field is not
+	 * a request to browse nowhere — put back what the browser stands on.
+	 */
+	if (![jid length]) {
+		[servicename setStringValue:([node jid] ?: @"")];
+		[nodename setStringValue:([node node] ?: @"")];
+		return;
+	}
+
+	//Unchanged address: the blur alone is not a request to fetch everything again
+	if ([jid isEqualToString:([node jid] ?: @"")] &&
+		((nodeName == nil && [node node] == nil) || (nodeName && [nodeName isEqualToString:([node node] ?: @"")]))) {
+		return;
+	}
+
 	[node release];
-	node = [[AMPurpleJabberNode alloc] initWithJID:[servicename stringValue] node:([[nodename stringValue] length]>0)?[nodename stringValue]:nil name:nil connection:gc];
+	node = [[AMPurpleJabberNode alloc] initWithJID:jid node:nodeName name:nil connection:gc];
 	[node addDelegate:self];
 	[node fetchInfo];
 	[outlineview reloadData];
