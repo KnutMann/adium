@@ -173,7 +173,7 @@ static NSString *AIRunAppleScript(NSString *path, NSString *function, NSArray *a
 	 * block capture. A block retains what it captures and releases it when the block itself dies --
 	 * and the operation's block dies on a worker thread, whenever the queue gets around to it. If
 	 * both blocks held a reference, the last release would land on whichever thread finished last.
-	 * That is a coin toss we must not take: ESSafariLinkToolbarItemPlugin passes an NSTextView as
+	 * That is a coin toss we must not take: callers may pass AppKit objects such as text views as
 	 * userInfo, and an AppKit object deallocated off the main thread is a crash looking for an
 	 * excuse. __block object variables are NOT retained by a block under manual retain/release, so
 	 * the pair below is the only claim on these objects, and it is given up on the main thread.
