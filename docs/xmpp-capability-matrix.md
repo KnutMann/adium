@@ -52,3 +52,29 @@ nicht darstellbar), Bind2/SASL2 (Kern-OP für null sichtbaren Nutzen), MIX (kein
 jeweils als prpl-Patch nach dem Muster von receipt.c/chatmarker.c und mit M16-Verifikation vor dem
 nächsten Schritt. XEP-0191 wird nur getestet und als vorhanden verbucht. MAM, HTTP Upload und das
 Pro-Nachricht-Zustandsmodell bleiben eigene Projekte und beginnen nicht nebenbei.**
+
+## Nachtrag: BeagleIM/Martin als Referenz, Videotelefonie (Recherche 22.08.2026)
+
+**BeagleIM** (tigase/beagle-im, GPLv3, Swift) und seine XMPP-Bibliothek **Martin** (AGPLv3!)
+sind 2026 noch gepflegt (BeagleIM 6.0.1 vom 13.06.2026, Martin-devel vom 11.06.2026, beide im
+Ein-Mann-Tempo; GitHub ist nur noch Spiegel von tigase.dev). Direkte Code-Übernahme: null —
+Swift auf Combine-Architektur, nichts davon passt in prpl-C oder unser ObjC, und die
+GPLv3/AGPLv3-Kette würde dem Gesamtwerk die GPL2-Option nehmen. **Als rein lesende
+Protokoll-Referenz neben AdiumY aber wertvoll** für den beschlossenen Fahrplan:
+`MessageCarbonsModule.swift` (enable-Zeitpunkt nach Bind, nicht nach SM-Resume;
+Bare-JID-Filter gegen gefälschte Carbons), `ClientStateIndicationModule.swift`
+(aktiv/inaktiv-Politik), `PEPBookmarksModule.swift` (0402-Node, publish-options).
+Implementierung weiterhin gegen die XEP-Texte schreiben, nicht abschreiben.
+
+**Videotelefonie:** libpurple-2.x-Voice&Video ist auf macOS tot — farstream lief hier nie,
+unser Build setzt USE_VV nicht, und 2.14.14 kennt kein DTLS-SRTP (XEP-0320), ohne das 2026
+kein moderner Client (Conversations, Dino, Monal, BeagleIM) verhandelt. Eine separate
+Martin-Komponente mit Zweitverbindung wäre unsauber (Doppel-Login, zweite Ressource,
+AGPL im Bundle). **Der tragfähige Weg, falls Anrufe je kommen:** ein Adium-Plugin, das
+Jingle-IQs über die vorhandenen `jabber-receiving-xmlnode`/`jabber-sending-xmlnode`-Signale
+und `send_raw` auf **derselben** libpurple-Verbindung spricht (jabber.c:4019 ff., libxmpp.c:120,
+verifiziert) und nur die Medienebene an ein eingebettetes WebRTC.xcframework gibt; Signalisierung
+wäre XEP-0166/0167/0176 + 0353 (Message Initiation) + 0215 (STUN/TURN-Discovery), BeagleIMs
+`CallManager.swift`/`JingleManager.swift` und Martins `SDP.swift` als Bauplan-Lektüre (~2-3k
+Zeilen Signalisierung plus UI). Eigenes Großprojekt, klar hinter dem XEP-Fahrplan. Wermutstropfen
+bei BeagleIM selbst: dessen WebRTC-Binary steht seit 2022 auf M101.
