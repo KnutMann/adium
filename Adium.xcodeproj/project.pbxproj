@@ -451,6 +451,24 @@
 		ADD1E5C0DE0000000000C508 /* SRSnapback@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C509 /* SRSnapback@2x.png */; };
 		ADD1E5C0DE0000000000C50A /* SoundFileIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C50B /* SoundFileIcon@2x.png */; };
 		ADD1E5C0DE0000000000C50C /* SoundHigh@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C50D /* SoundHigh@2x.png */; };
+		ADD1E5C0DE0000000000C600 /* FTProgressResend@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C601 /* FTProgressResend@2x.png */; };
+		ADD1E5C0DE0000000000C602 /* FTProgressResendPressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C603 /* FTProgressResendPressed@2x.png */; };
+		ADD1E5C0DE0000000000C604 /* FTProgressResendPressed_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C605 /* FTProgressResendPressed_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C606 /* FTProgressResendRollover@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C607 /* FTProgressResendRollover@2x.png */; };
+		ADD1E5C0DE0000000000C608 /* FTProgressResendRollover_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C609 /* FTProgressResendRollover_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C60A /* FTProgressResend_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C60B /* FTProgressResend_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C60C /* FTProgressReveal@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C60D /* FTProgressReveal@2x.png */; };
+		ADD1E5C0DE0000000000C60E /* FTProgressRevealPressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C60F /* FTProgressRevealPressed@2x.png */; };
+		ADD1E5C0DE0000000000C610 /* FTProgressRevealPressed_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C611 /* FTProgressRevealPressed_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C612 /* FTProgressRevealRollover@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C613 /* FTProgressRevealRollover@2x.png */; };
+		ADD1E5C0DE0000000000C614 /* FTProgressRevealRollover_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C615 /* FTProgressRevealRollover_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C616 /* FTProgressReveal_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C617 /* FTProgressReveal_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C618 /* FTProgressStop@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C619 /* FTProgressStop@2x.png */; };
+		ADD1E5C0DE0000000000C61A /* FTProgressStopPressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C61B /* FTProgressStopPressed@2x.png */; };
+		ADD1E5C0DE0000000000C61C /* FTProgressStopPressed_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C61D /* FTProgressStopPressed_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C61E /* FTProgressStopRollover@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C61F /* FTProgressStopRollover@2x.png */; };
+		ADD1E5C0DE0000000000C620 /* FTProgressStopRollover_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C621 /* FTProgressStopRollover_Selected@2x.png */; };
+		ADD1E5C0DE0000000000C622 /* FTProgressStop_Selected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C623 /* FTProgressStop_Selected@2x.png */; };
 		ADD1E5C0DE0000000000C50E /* SoundLow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C50F /* SoundLow@2x.png */; };
 		ADD1E5C0DE0000000000C510 /* default-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C511 /* default-icon@2x.png */; };
 		ADD1E5C0DE0000000000C512 /* emoticonBlank@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */; };
@@ -2160,6 +2178,24 @@
 		ADD1E5C0DE0000000000C509 /* SRSnapback@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SRSnapback@2x.png"; path = "Resources/SRSnapback@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C50B /* SoundFileIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SoundFileIcon@2x.png"; path = "Resources/SoundFileIcon@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C50D /* SoundHigh@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SoundHigh@2x.png"; path = "Resources/SoundHigh@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C601 /* FTProgressResend@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressResend@2x.png"; path = "Resources/FTProgressResend@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C603 /* FTProgressResendPressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressResendPressed@2x.png"; path = "Resources/FTProgressResendPressed@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C605 /* FTProgressResendPressed_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressResendPressed_Selected@2x.png"; path = "Resources/FTProgressResendPressed_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C607 /* FTProgressResendRollover@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressResendRollover@2x.png"; path = "Resources/FTProgressResendRollover@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C609 /* FTProgressResendRollover_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressResendRollover_Selected@2x.png"; path = "Resources/FTProgressResendRollover_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C60B /* FTProgressResend_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressResend_Selected@2x.png"; path = "Resources/FTProgressResend_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C60D /* FTProgressReveal@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressReveal@2x.png"; path = "Resources/FTProgressReveal@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C60F /* FTProgressRevealPressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressRevealPressed@2x.png"; path = "Resources/FTProgressRevealPressed@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C611 /* FTProgressRevealPressed_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressRevealPressed_Selected@2x.png"; path = "Resources/FTProgressRevealPressed_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C613 /* FTProgressRevealRollover@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressRevealRollover@2x.png"; path = "Resources/FTProgressRevealRollover@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C615 /* FTProgressRevealRollover_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressRevealRollover_Selected@2x.png"; path = "Resources/FTProgressRevealRollover_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C617 /* FTProgressReveal_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressReveal_Selected@2x.png"; path = "Resources/FTProgressReveal_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C619 /* FTProgressStop@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressStop@2x.png"; path = "Resources/FTProgressStop@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C61B /* FTProgressStopPressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressStopPressed@2x.png"; path = "Resources/FTProgressStopPressed@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C61D /* FTProgressStopPressed_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressStopPressed_Selected@2x.png"; path = "Resources/FTProgressStopPressed_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C61F /* FTProgressStopRollover@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressStopRollover@2x.png"; path = "Resources/FTProgressStopRollover@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C621 /* FTProgressStopRollover_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressStopRollover_Selected@2x.png"; path = "Resources/FTProgressStopRollover_Selected@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000C623 /* FTProgressStop_Selected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FTProgressStop_Selected@2x.png"; path = "Resources/FTProgressStop_Selected@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C50F /* SoundLow@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SoundLow@2x.png"; path = "Resources/SoundLow@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C511 /* default-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "default-icon@2x.png"; path = "Resources/default-icon@2x.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "emoticonBlank@2x.png"; path = "Resources/emoticonBlank@2x.png"; sourceTree = "<group>"; };
@@ -3641,6 +3677,24 @@
 				ADD1E5C0DE0000000000C509 /* SRSnapback@2x.png */,
 				ADD1E5C0DE0000000000C50B /* SoundFileIcon@2x.png */,
 				ADD1E5C0DE0000000000C50D /* SoundHigh@2x.png */,
+				ADD1E5C0DE0000000000C601 /* FTProgressResend@2x.png */,
+				ADD1E5C0DE0000000000C603 /* FTProgressResendPressed@2x.png */,
+				ADD1E5C0DE0000000000C605 /* FTProgressResendPressed_Selected@2x.png */,
+				ADD1E5C0DE0000000000C607 /* FTProgressResendRollover@2x.png */,
+				ADD1E5C0DE0000000000C609 /* FTProgressResendRollover_Selected@2x.png */,
+				ADD1E5C0DE0000000000C60B /* FTProgressResend_Selected@2x.png */,
+				ADD1E5C0DE0000000000C60D /* FTProgressReveal@2x.png */,
+				ADD1E5C0DE0000000000C60F /* FTProgressRevealPressed@2x.png */,
+				ADD1E5C0DE0000000000C611 /* FTProgressRevealPressed_Selected@2x.png */,
+				ADD1E5C0DE0000000000C613 /* FTProgressRevealRollover@2x.png */,
+				ADD1E5C0DE0000000000C615 /* FTProgressRevealRollover_Selected@2x.png */,
+				ADD1E5C0DE0000000000C617 /* FTProgressReveal_Selected@2x.png */,
+				ADD1E5C0DE0000000000C619 /* FTProgressStop@2x.png */,
+				ADD1E5C0DE0000000000C61B /* FTProgressStopPressed@2x.png */,
+				ADD1E5C0DE0000000000C61D /* FTProgressStopPressed_Selected@2x.png */,
+				ADD1E5C0DE0000000000C61F /* FTProgressStopRollover@2x.png */,
+				ADD1E5C0DE0000000000C621 /* FTProgressStopRollover_Selected@2x.png */,
+				ADD1E5C0DE0000000000C623 /* FTProgressStop_Selected@2x.png */,
 				ADD1E5C0DE0000000000C50F /* SoundLow@2x.png */,
 				ADD1E5C0DE0000000000C511 /* default-icon@2x.png */,
 				ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */,
@@ -6632,6 +6686,24 @@
 				ADD1E5C0DE0000000000C508 /* SRSnapback@2x.png in Resources */,
 				ADD1E5C0DE0000000000C50A /* SoundFileIcon@2x.png in Resources */,
 				ADD1E5C0DE0000000000C50C /* SoundHigh@2x.png in Resources */,
+				ADD1E5C0DE0000000000C600 /* FTProgressResend@2x.png in Resources */,
+				ADD1E5C0DE0000000000C602 /* FTProgressResendPressed@2x.png in Resources */,
+				ADD1E5C0DE0000000000C604 /* FTProgressResendPressed_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C606 /* FTProgressResendRollover@2x.png in Resources */,
+				ADD1E5C0DE0000000000C608 /* FTProgressResendRollover_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C60A /* FTProgressResend_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C60C /* FTProgressReveal@2x.png in Resources */,
+				ADD1E5C0DE0000000000C60E /* FTProgressRevealPressed@2x.png in Resources */,
+				ADD1E5C0DE0000000000C610 /* FTProgressRevealPressed_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C612 /* FTProgressRevealRollover@2x.png in Resources */,
+				ADD1E5C0DE0000000000C614 /* FTProgressRevealRollover_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C616 /* FTProgressReveal_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C618 /* FTProgressStop@2x.png in Resources */,
+				ADD1E5C0DE0000000000C61A /* FTProgressStopPressed@2x.png in Resources */,
+				ADD1E5C0DE0000000000C61C /* FTProgressStopPressed_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C61E /* FTProgressStopRollover@2x.png in Resources */,
+				ADD1E5C0DE0000000000C620 /* FTProgressStopRollover_Selected@2x.png in Resources */,
+				ADD1E5C0DE0000000000C622 /* FTProgressStop_Selected@2x.png in Resources */,
 				ADD1E5C0DE0000000000C50E /* SoundLow@2x.png in Resources */,
 				ADD1E5C0DE0000000000C510 /* default-icon@2x.png in Resources */,
 				ADD1E5C0DE0000000000C512 /* emoticonBlank@2x.png in Resources */,
