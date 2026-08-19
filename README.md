@@ -2,20 +2,20 @@
 
 **This is a fork of the original [Adium](https://adium.im)
 ([source](https://github.com/adium/adium)) that revives and modernizes
-it for current macOS.** It began as an Apple Silicon (arm64) port —
-the original is an Intel-only binary from 2021 — and has grown into a
-broader overhaul: a rebuilt, System Settings-style preferences window,
-a WKWebView message view, Notification Center in place of Growl,
-password storage in the Keychain, Telegram and WhatsApp alongside the
-classic services, and a long list of fixes for how modern AppKit and
-WebKit behave.
+it for current macOS.** It began as an Apple Silicon (arm64) port, as
+the original is an Intel-only binary from 2021. Since then much has
+changed: **WhatsApp, Telegram, Signal and Microsoft Teams** arrived
+next to the classic services that stood the test of time, along with
+**full Dark Mode**, replies straight from Notification Center banners,
+a rebuilt System Settings-style preferences window, a WKWebView
+message view, and a long list of fixes for how modern macOS behaves.
 
 **Adium was created and developed by the Adium team.** All credit for
 the application itself belongs to the original developers; see
 [Copyright.txt](Copyright.txt). This fork is not affiliated with or
-endorsed by them. It is maintained by a long-time Adium user who simply
-wants to keep a beloved app alive after many years of use. The upstream
-project has been inactive since 2021.
+endorsed by them. It is maintained by a long-time Adium user who
+simply wants to keep a beloved app alive after many years of use. The
+upstream project has been inactive since 2021.
 
 Current version: **1.6.0**.
 
@@ -29,66 +29,84 @@ Current version: **1.6.0**.
 
 ## What this fork changes
 
-### Platform
+### Messaging and services
+
+* **WhatsApp** (via
+  [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)):
+  QR-code device linking, inline images and voice notes, reactions,
+  typing, read markers, group chats with member lists, profile
+  pictures, business account names, an optional channel filter, and
+  address-book names
+* **Telegram** (via the bundled
+  [tdlib-purple](https://github.com/adrighem/tdlib-purple) plugin)
+  with the same everyday features, plus address-book integration
+* **Signal** (via
+  [purple-presage](https://github.com/hoehermann/purple-presage)),
+  linked to your phone as an official companion device
+* **Microsoft Teams** (via
+  [purple-teams](https://github.com/EionRobb/purple-teams)), both work
+  and personal accounts
+* **IRCv3** (via
+  [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3)) with
+  typing notifications and other IRCv3 capabilities, alongside the
+  built-in IRC
+* XMPP brought forward: read markers, delivery receipts and chat
+  markers
+* OTR migrated to the libotr 4.x API
+* Removed services whose networks no longer exist: AIM, ICQ, MSN,
+  Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
+  and Meanwhile
+
+Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
+Novell GroupWise and SIMPLE**, plus OTR encryption and tabbed chats in
+a modern look.
+
+### Dark Mode and interface
+
+* **Full Dark Mode**: the application chrome follows the system
+  appearance, or a light/dark choice of its own
+* A rebuilt preferences window in the style of System Settings: a
+  source-list sidebar, cards instead of boxed groups, and a reusable
+  settings form every pane is laid out on
+* The chat message view renders with WKWebView; the last legacy
+  WebView is gone (libpurple's protocol forms are native Cocoa now)
+* Two bundled monochrome service icon sets in the plain style of
+  macOS's own symbols, one for light and one for dark
+* Tab tear-off works again: drag a chat out into its own window, or
+  back into another, with a live preview while dragging
+* A bit of nostalgia: the now-playing music status supports
+  **Apple Music, Spotify and Swinsian**
+* Modern window chrome, tab-bar vibrancy, and a sweep of fixes for
+  focus rings, scrolling, contact-list drawing and tooltips on recent
+  macOS
+
+### Notifications
+
+* Notifications go through the macOS Notification Center, replacing
+  Growl
+* **Reply straight from the banner**: message notifications carry a
+  text field, and the answer is sent without ever bringing Adium
+  forward
+
+### Platform and security
 
 * Native arm64 build; the app bundle is self-contained, with no
   Homebrew or other third-party runtime dependency
 * All bundled libraries are native arm64, built from pinned sources
 * Bundled libpurple upgraded from 2.12.0 (2017) to 2.14.14, on a
   current glib
+* **Server certificates are actually verified** (SecTrust with a
+  proper trust prompt) on every SSL connection, including IRC, where
+  the old code silently accepted anything
 * Passwords stored through the Keychain (SecItem) API
-* Removed the dead Sparkle auto-update feed; update by pulling and
-  rebuilding
-
-### User interface
-
-* A rebuilt preferences window in the style of System Settings: a
-  source-list sidebar, cards instead of boxed groups, and a reusable
-  settings form every pane is now laid out on, sizing itself with Auto
-  Layout
-* The whole app target is XIB-based; the last of the old nibs are gone
-* The chat message view renders with WKWebView
-* Modern window chrome — full-size content, tab-bar vibrancy, the
-  current tab style — and a sweep of fixes for focus rings, scrolling,
-  contact-list drawing, tabs and tooltips on recent macOS
-* Notifications go through the macOS Notification Center, including the
-  Dock badge and menu-bar unread indicators, replacing Growl
-* The menu-bar status item, the contact list's borderless window and
-  the now-playing "music status" (on Music.app, and Spotify) revived
-  and brought up to date
-
-### Messaging and services
-
-* **New: Telegram** (via the bundled
-  [tdlib-purple](https://github.com/adrighem/tdlib-purple) plugin)
-  **and WhatsApp** (via
-  [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)),
-  with inline images and voice notes, reactions, typing, read markers,
-  group chats, profile pictures and address-book names
-* XMPP modernized: read markers, delivery receipts, chat markers and
-  message carbons
-* OTR migrated to the libotr 4.x API
-* An IRC fix so anything after login is actually sent — an upstream
-  libpurple rate limiter never drained its queue under Adium's event
-  loop
-* Removed services whose networks no longer exist: AIM, ICQ, MSN,
-  Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
-  and Meanwhile
 
 ### Localization
 
-* String extraction, unrun for years, caught up: hundreds of strings
-  the app already showed but had never been extracted are now
-  translatable, filled in across the 26 shipped languages
-* Growl and other dead-feature wording renamed so it no longer misleads
+* String extraction caught up: hundreds of strings the app already
+  showed but had never been extracted are now translatable, filled in
+  across the 26 shipped languages
 
-Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
-Novell GroupWise and SIMPLE**, plus OTR
-encryption, tabbed chats, message styles, contact list themes and
-Xtras.
-
-This is a work in progress; expect rough edges. See the commit history
-for details on what has been touched.
+This is a work in progress; expect rough edges.
 
 ## System requirements
 
@@ -115,8 +133,8 @@ products, then builds the main project.
 All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
 vendored as prebuilt arm64 frameworks in the repository. Rebuilding
 them from source is only necessary when upgrading a dependency or
-patching one (as the IRC fix does); see `Dependencies/build.sh` (this
-does require a Homebrew toolchain).
+patching one; see `Dependencies/build.sh` (this does require a
+Homebrew toolchain).
 
 ## License
 
@@ -128,13 +146,17 @@ copyright the Adium team and contributors
 
 This repository ships some components as prebuilt arm64 binaries. The
 corresponding sources are publicly available at the exact revisions
-listed here:
+listed here (the `Dependencies/patches/` directories document every
+local change on top of them):
 
 | Binary | Project | Revision | License |
 | --- | --- | --- | --- |
-| `PurplePlugins/libwhatsmeow.so` | [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp) | `5a436315caefd3b89c2b631a7b8028742e58f047` | GPL v3 |
+| `PurplePlugins/libwhatsmeow.so` | [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp) | `c58fcbac9aa7210ce08cf12ef3442932730ec312` | GPL v3 |
 | `PurplePlugins/libtelegram-tdlib.so` | [tdlib-purple](https://github.com/adrighem/tdlib-purple) 2.1.0 | `b277ac1941dbed946444454f67b89265541237b7` | GPL v2 |
 | (statically inside `libtelegram-tdlib.so`) | [TDLib](https://github.com/tdlib/td) 1.8.65 | `a8f21f5230172634becc1739050ef23ecd6ea291` | Boost 1.0 |
+| `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3 |
+| `PurplePlugins/libteams.so`, `libteams-personal.so` | [purple-teams](https://github.com/EionRobb/purple-teams) | `62f6fff` | GPL v3 |
+| `PurplePlugins/libircv3.so` | [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3) | `0e73297` | GPL v2 |
 | `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL 3](https://www.openssl.org) | Homebrew build | Apache 2.0 |
 | `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) | Homebrew build | BSD 3-Clause |
 | `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) | Homebrew build | libpng/zlib |
