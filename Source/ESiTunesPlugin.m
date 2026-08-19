@@ -76,6 +76,19 @@
 #define SPOTIFY_TRACK_URI_PREFIX	@"spotify:track:"
 #define SPOTIFY_TRACK_WEB_URL		@"https://open.spotify.com/track/%@"
 
+#pragma mark -
+
+#define SWINSIAN_BUNDLE_IDENTIFIER	@"com.swinsian.Swinsian"
+
+/* One notification per player state rather than one carrying it, documented for
+ * exactly this use at swinsian.com/support/developers. The payload speaks Swinsian's
+ * own dialect — lowercase keys, "title" where Apple says Name — which
+ * -swinsianUpdate: translates.
+ */
+#define SWINSIAN_NOTIFICATION_PLAYING	@"com.swinsian.Swinsian-Track-Playing"
+#define SWINSIAN_NOTIFICATION_PAUSED	@"com.swinsian.Swinsian-Track-Paused"
+#define SWINSIAN_NOTIFICATION_STOPPED	@"com.swinsian.Swinsian-Track-Stopped"
+
 /* Several of the moments below can fire in quick succession — selecting the Now
  * Playing status changes the status of every account, and the filter runs over every
  * outgoing message. One Apple event round trip per five seconds is plenty: a real
@@ -226,6 +239,45 @@ tell application id \"com.spotify.client\"\n\
 		end try\n\
 	end if\n\
 	return {adiumState, adiumName, adiumArtist, adiumAlbum, \"\", \"\", \"\", adiumTime, adiumURL, \"\"}\n\
+end tell";
+
+/* Swinsian's scripting page documents name, artist and album on the current track, and
+ * a player state whose playing and paused enumerators are confirmed by third-party
+ * Scripting Bridge use. Nothing beyond that is in the dictionary's documentation, and
+ * an undocumented term does not fail politely at run time inside its try block — it
+ * fails the whole script at compile time. So the remaining slots stay empty here even
+ * though Swinsian's broadcast carries genre and composer; the broadcast fills those
+ * the next time a track starts.
+ */
+static NSString * const AISwinsianQueryScript = @"\
+tell application id \"com.swinsian.Swinsian\"\n\
+	set adiumState to \"Stopped\"\n\
+	try\n\
+		set adiumPS to player state\n\
+		if adiumPS is playing then\n\
+			set adiumState to \"Playing\"\n\
+		else if adiumPS is paused then\n\
+			set adiumState to \"Paused\"\n\
+		end if\n\
+	end try\n\
+	set adiumName to \"\"\n\
+	set adiumArtist to \"\"\n\
+	set adiumAlbum to \"\"\n\
+	if adiumState is not \"Stopped\" then\n\
+		try\n\
+			set adiumTrack to current track\n\
+			try\n\
+				set adiumName to (name of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumArtist to (artist of adiumTrack) as text\n\
+			end try\n\
+			try\n\
+				set adiumAlbum to (album of adiumTrack) as text\n\
+			end try\n\
+		end try\n\
+	end if\n\
+	return {adiumState, adiumName, adiumArtist, adiumAlbum, \"\", \"\", \"\", \"\", \"\", \"\"}\n\
 end tell";
 
 #pragma mark -
@@ -506,6 +558,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 - (void)fireUpdateiTunesInfo;
 - (void)iTunesUpdate:(NSNotification *)aNotification;
 - (void)spotifyUpdate:(NSNotification *)aNotification;
+- (void)swinsianUpdate:(NSNotification *)aNotification;
 - (void)currentTrackFormatDidChange:(NSNotification *)aNotification;
 - (void)insertUnfilteredString:(id)sender;
 - (void)insertiTMSLink;
@@ -586,6 +639,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 {
 	if ([infoSourceBundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER]) return @"Spotify";
 	if ([infoSourceBundleIdentifier isEqualToString:MUSIC_BUNDLE_IDENTIFIER]) return @"Apple Music";
+	if ([infoSourceBundleIdentifier isEqualToString:SWINSIAN_BUNDLE_IDENTIFIER]) return @"Swinsian";
 	return nil;
 }
 
@@ -789,7 +843,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * saying so.
 	 */
 	NSMutableArray *bundleIdentifiers = [NSMutableArray array];
-	for (NSString *bundleIdentifier in [NSArray arrayWithObjects:MUSIC_BUNDLE_IDENTIFIER, SPOTIFY_BUNDLE_IDENTIFIER, nil]) {
+	for (NSString *bundleIdentifier in [NSArray arrayWithObjects:MUSIC_BUNDLE_IDENTIFIER, SPOTIFY_BUNDLE_IDENTIFIER, SWINSIAN_BUNDLE_IDENTIFIER, nil]) {
 		if ([playersRefusingAutomation containsObject:bundleIdentifier]) continue;
 		if (!AIPlayerIsRunning(bundleIdentifier)) continue;
 
@@ -827,8 +881,10 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 			 */
 			@try {
 				BOOL			 consentRefused = NO;
-				NSString		*scriptSource = ([bundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER] ?
-												 AISpotifyQueryScript : AIMusicQueryScript);
+				NSString		*scriptSource = AIMusicQueryScript;
+
+				if ([bundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER]) scriptSource = AISpotifyQueryScript;
+				else if ([bundleIdentifier isEqualToString:SWINSIAN_BUNDLE_IDENTIFIER]) scriptSource = AISwinsianQueryScript;
 				NSDictionary	*info = AIQueryPlayer(bundleIdentifier, scriptSource, &consentRefused);
 
 				if (consentRefused) [refusals addObject:bundleIdentifier];
@@ -986,7 +1042,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	NSString		*best = nil;
 	NSInteger		 bestRank = -1;
 
-	for (NSString *bundleIdentifier in [NSArray arrayWithObjects:MUSIC_BUNDLE_IDENTIFIER, SPOTIFY_BUNDLE_IDENTIFIER, nil]) {
+	for (NSString *bundleIdentifier in [NSArray arrayWithObjects:MUSIC_BUNDLE_IDENTIFIER, SPOTIFY_BUNDLE_IDENTIFIER, SWINSIAN_BUNDLE_IDENTIFIER, nil]) {
 		NSDictionary	*info = [resultsByBundleIdentifier objectForKey:bundleIdentifier];
 		if (!info) continue;
 
@@ -1089,6 +1145,14 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 													    selector:@selector(spotifyUpdate:)
 														    name:@"com.spotify.client.PlaybackStateChanged"
 														  object:nil];
+
+	//Swinsian, three names for three states; see the defines for where they are documented
+	for (NSString *notificationName in [NSArray arrayWithObjects:SWINSIAN_NOTIFICATION_PLAYING, SWINSIAN_NOTIFICATION_PAUSED, SWINSIAN_NOTIFICATION_STOPPED, nil]) {
+		[[NSDistributedNotificationCenter defaultCenter] addObserver:self
+														   selector:@selector(swinsianUpdate:)
+															   name:notificationName
+															 object:nil];
+	}
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(currentTrackFormatDidChange:)
@@ -1556,6 +1620,57 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 		if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
 			[self setiTunesCurrentInfo:info fromPlayer:SPOTIFY_BUNDLE_IDENTIFIER];
 		}
+	}
+
+	[pool release];
+}
+
+/*!
+ * @brief A Swinsian broadcast arrived
+ *
+ * The player state is the notification's name — Swinsian posts one per state — so
+ * only the track fields come out of the payload, translated from Swinsian's dialect
+ * into the broadcast keys everything here reads. Missing tags arrive as empty
+ * strings by documented contract and are dropped, so absent stays absent. The two
+ * numbers, length and currentTime, stay behind: they are seconds, and Total Time
+ * means milliseconds to its readers.
+ */
+- (void)swinsianUpdate:(NSNotification *)aNotification
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	NSString *notificationName = [aNotification name];
+	NSString *playerState = KEY_ITUNES_STOPPED;
+
+	if ([notificationName isEqualToString:SWINSIAN_NOTIFICATION_PLAYING]) playerState = KEY_ITUNES_PLAYING;
+	else if ([notificationName isEqualToString:SWINSIAN_NOTIFICATION_PAUSED]) playerState = KEY_ITUNES_PAUSED;
+
+	NSMutableDictionary *info = [NSMutableDictionary dictionary];
+	[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
+
+	if (![playerState isEqualToString:KEY_ITUNES_STOPPED]) {
+		NSDictionary *payload = [aNotification userInfo];
+		NSDictionary *oursByTheirs = [NSDictionary dictionaryWithObjectsAndKeys:
+									  KEY_ITUNES_NAME, @"title",
+									  KEY_ITUNES_ARTIST, @"artist",
+									  KEY_ITUNES_ALBUM, @"album",
+									  KEY_ITUNES_GENRE, @"genre",
+									  KEY_ITUNES_COMPOSER, @"composer",
+									  nil];
+
+		for (NSString *theirKey in oursByTheirs) {
+			id value = [payload objectForKey:theirKey];
+			if ([value isKindOfClass:[NSString class]] && [value length]) {
+				[info setObject:value forKey:[oursByTheirs objectForKey:theirKey]];
+			}
+		}
+	}
+
+	/* Playing, but not a word about what: the same defence the other two sources have,
+	 * for the same half-empty track line.
+	 */
+	if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
+		[self setiTunesCurrentInfo:info fromPlayer:SWINSIAN_BUNDLE_IDENTIFIER];
 	}
 
 	[pool release];

@@ -287,7 +287,8 @@
 	 */
 	textField_preview = [self previewField];
 
-	/* The refresh next to it asks Music and Spotify there and then. The broadcast the preview
+	/* The refresh next to it asks the players the plugin knows — Music, Spotify,
+	 * Swinsian — there and then. The broadcast the preview
 	 * lives on only arrives when something changes, so after a launch — or with the answer gone
 	 * stale — this button is the way to one without waiting for the next track. A titled push
 	 * button rather than the bare symbol it once was: the symbol gave no sign of having been

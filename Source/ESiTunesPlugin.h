@@ -97,7 +97,7 @@ typedef enum {
 
 	/* The active query. The broadcast above only ever arrives when something
 	 * changes, so until the user next touches a player we know nothing at all;
-	 * -requestPlayerQuery asks Music and Spotify directly, but only from a moment
+	 * -requestPlayerQuery asks Music, Spotify and Swinsian directly, but only from a moment
 	 * where the user is visibly using the music status.
 	 *
 	 * One limit is worth stating where it cannot be missed: nothing is sent to an
@@ -186,9 +186,9 @@ typedef enum {
 /*!
  * @brief The user-facing name of the player behind the current information, or nil
  *
- * "Apple Music" or "Spotify" — brand names, not localized. Nil before anything has
- * arrived and for a player not known by name. The Status pane puts it in front of its
- * preview so a result says where it came from.
+ * "Apple Music", "Spotify" or "Swinsian" — brand names, not localized. Nil before
+ * anything has arrived and for a player not known by name. The Status pane puts it in
+ * front of its preview so a result says where it came from.
  */
 - (NSString *)currentInfoSourceDisplayName;
 
