@@ -984,12 +984,22 @@
     }
 }
 
-- (BOOL)tabView:(NSTabView*)tabView shouldDragTabViewItem:(NSTabViewItem *)tabViewItem fromTabBar:(MMTabBarView *)tabBarView
+- (BOOL)tabView:(NSTabView*)tabView shouldDragTabViewItem:(NSTabViewItem *)tabViewItem inTabBarView:(MMTabBarView *)tabBarView
 {
 	return YES;
 }
 
-- (BOOL)tabView:(NSTabView*)tabView shouldDropTabViewItem:(NSTabViewItem *)tabViewItem inTabBar:(MMTabBarView *)tabBarView
+- (BOOL)tabView:(NSTabView*)tabView shouldDropTabViewItem:(NSTabViewItem *)tabViewItem inTabBarView:(MMTabBarView *)tabBarView
+{
+	return YES;
+}
+
+/* Without this answer the tab bar's default is no, and the refusal is quiet and total:
+ * reordering works, but a tab can never leave its bar, so tearing one off or dragging it
+ * into another window does nothing. The whole family of drag delegates on this class had
+ * to move from the PSMTabBarControl names to the MMTabBarView ones for the same reason:
+ * a delegate is looked up by name at run time, and nothing reports the ones that go unasked. */
+- (BOOL)tabView:(NSTabView *)tabView shouldAllowTabViewItem:(NSTabViewItem *)tabViewItem toLeaveTabBarView:(MMTabBarView *)tabBarView
 {
 	return YES;
 }
@@ -1053,7 +1063,7 @@
 }
 
 //Tabs reordered
-- (void)tabView:(NSTabView*)aTabView didDropTabViewItem:(NSTabViewItem *)tabViewItem inTabBar:(MMTabBarView *)tabBarView;
+- (void)tabView:(NSTabView*)aTabView didDropTabViewItem:(NSTabViewItem *)tabViewItem inTabBarView:(MMTabBarView *)tabBarView
 {
 	[self _reloadContainedChats];
 	[adium.interfaceController chatOrderDidChange];
@@ -1179,7 +1189,7 @@
 	return [newController tabBar];
 }
 
-- (void)tabView:(NSTabView *)tabView tabBarDidHide:(MMTabBarView *)tabBarView
+- (void)tabView:(NSTabView *)tabView tabBarViewDidHide:(MMTabBarView *)tabBarView
 {
     //hide the space between the tab bar and the tab view
     NSRect frame = [tabView frame];
@@ -1218,7 +1228,7 @@
 	[[tabView_messages tabViewItems] makeObjectsPerformSelector:@selector(tabViewDidChangeVisibility)];
 }
 
-- (void)tabView:(NSTabView *)tabView tabBarDidUnhide:(MMTabBarView *)tabBarView
+- (void)tabView:(NSTabView *)tabView tabBarViewDidUnhide:(MMTabBarView *)tabBarView
 {
 	//show the space between the tab bar and the tab view
     NSRect frame = [tabView frame];
