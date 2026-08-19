@@ -531,7 +531,10 @@
 		[okButton setKeyEquivalent:@"\r"];
 		[cancelButton setKeyEquivalent:@"\033"];
 		if (!_okcb) [okButton setHidden:YES];
-		if (!_cancelcb) [cancelButton setHidden:YES];
+		/* The cancel button stays even without a cancel callback — the vCard form
+		 * arrives that way — because the window still needs a visible way to be
+		 * walked away from; cancelling then simply closes without a word to libpurple.
+		 */
 
 		[okButton setFrameOrigin:NSMakePoint(REQUEST_WINDOW_WIDTH - REQUEST_MARGIN - NSWidth([okButton frame]), y)];
 		[cancelButton setFrameOrigin:NSMakePoint(NSMinX([okButton frame]) - 8.0 - NSWidth([cancelButton frame]), y)];
@@ -551,8 +554,8 @@
 		[scrollView setAutohidesScrollers:YES];
 		[form setFrame:NSMakeRect(0, 0, REQUEST_WINDOW_WIDTH, formHeight)];
 		[scrollView setDocumentView:form];
-		//A flipped-coordinate dance is not worth it; just start at the top
-		[[scrollView documentView] scrollPoint:NSMakePoint(0, formHeight)];
+		//Start at the top, which for the flipped form view is zero, not the far end
+		[form scrollPoint:([form isFlipped] ? NSZeroPoint : NSMakePoint(0, formHeight))];
 		[content addSubview:scrollView];
 		y += formDisplayHeight + 12.0;
 
