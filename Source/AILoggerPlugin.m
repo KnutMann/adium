@@ -40,6 +40,7 @@
 #import <Adium/AIListBookmark.h>
 #import <Adium/AIService.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
+#import <AIUtilities/AIDateAdditions.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <AIUtilities/AIFileManagerAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
@@ -123,6 +124,8 @@ CFStringRef CopyTextContentForFileData(CFStringRef contentTypeUTI, NSURL *urlToF
 
 // Logging Internals
 - (AIXMLAppender *)_appenderForChat:(AIChat *)chat;
+- (AIXMLAppender *)_createAppenderForChat:(AIChat *)chat withDate:(NSDate *)chatDate;
+- (void)rotateLogs:(NSTimer *)timer;
 - (AIXMLAppender *)_existingAppenderForChat:(AIChat *)chat;
 - (NSString *)keyForChat:(AIChat *)chat;
 - (void)closeAppenderForChat:(AIChat *)chat;
@@ -283,6 +286,17 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 							  @"away",@"away_message",
 							  nil];
 	
+	/* Split transcripts at midnight: a chat left open for days used to be one file.
+	 * The interval is nominal; every firing re-anchors to the next real midnight, so
+	 * daylight saving neither drifts the timer nor rotates twice.
+	 */
+	logRotateTimer = [[NSTimer scheduledTimerWithTimeInterval:86400
+													   target:self
+													 selector:@selector(rotateLogs:)
+													 userInfo:nil
+													  repeats:YES] retain];
+	[logRotateTimer setFireDate:[NSDate midnightTomorrow]];
+
 	//Setup our preferences
 	[adium.preferenceController registerDefaults:[NSDictionary dictionaryNamed: LOGGING_DEFAULT_PREFS forClass:[self class]] forGroup:PREF_GROUP_LOGGING];
 	
@@ -341,6 +355,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 
 - (void)uninstallPlugin
 {
+	[logRotateTimer invalidate]; [logRotateTimer release]; logRotateTimer = nil;
 	[self cancelIndexing];
 	[self _closeLogIndex];
 	dispatch_group_wait(closingIndexGroup, DISPATCH_TIME_FOREVER);
@@ -1269,37 +1284,88 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 												 selector:@selector(finishClosingAppender:) 
 												   object:[self keyForChat:chat]];
 	} else {
-		//If there isn't already an appender, create a new one and add it to the dictionary
-		NSDate			*chatDate = [chat dateOpened];
-		NSString		*fullPath = [AILoggerPlugin fullPathForLogOfChat:chat onDate:chatDate];
-		
-		AIXMLElement *rootElement = [[[AIXMLElement alloc] initWithName:@"chat"] autorelease];
-		
-		[rootElement setAttributeNames:[NSArray arrayWithObjects:@"xmlns", @"account", @"service", @"adiumversion", @"buildid", nil]
-								values:[NSArray arrayWithObjects:
-										XML_LOGGING_NAMESPACE,
-										chat.account.UID,
-										chat.account.service.serviceID,
-										[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
-										[[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildIdentifier"],
-										nil]];
-		
-		appender = [AIXMLAppender documentWithPath:fullPath rootElement:rootElement];
-		
+		appender = [self _createAppenderForChat:chat withDate:nil];
+
 		//Add the window opened event now
 		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
-		
+
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
 								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
-		
+
 		[appender appendElement:eventElement];
-		
-		[activeAppenders setObject:appender forKey:[self keyForChat:chat]];
-		
-		[self _markLogDirtyAtPath:[appender path] forChat:chat];
 	}
-	
+
 	return appender;
+}
+
+/*!
+ * @brief Open a fresh transcript file for a chat and register its appender.
+ *
+ * @param chatDate The date whose file the transcript goes into; nil means the date
+ *                 the chat was opened. The midnight rotation passes now, so the
+ *                 continuation lands in the new day's file.
+ */
+- (AIXMLAppender *)_createAppenderForChat:(AIChat *)chat withDate:(NSDate *)chatDate
+{
+	if (!chatDate)
+		chatDate = [chat dateOpened];
+
+	NSString		*fullPath = [AILoggerPlugin fullPathForLogOfChat:chat onDate:chatDate];
+
+	AIXMLElement *rootElement = [[[AIXMLElement alloc] initWithName:@"chat"] autorelease];
+
+	[rootElement setAttributeNames:[NSArray arrayWithObjects:@"xmlns", @"account", @"service", @"adiumversion", @"buildid", nil]
+							values:[NSArray arrayWithObjects:
+									XML_LOGGING_NAMESPACE,
+									chat.account.UID,
+									chat.account.service.serviceID,
+									[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+									[[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildIdentifier"],
+									nil]];
+
+	AIXMLAppender *appender = [AIXMLAppender documentWithPath:fullPath rootElement:rootElement];
+
+	[activeAppenders setObject:appender forKey:[self keyForChat:chat]];
+
+	[self _markLogDirtyAtPath:[appender path] forChat:chat];
+
+	return appender;
+}
+
+/*!
+ * @brief Midnight: every open transcript is closed and continued in the new day's file.
+ *
+ * Without this a chat left open for days is one file, filed under the day it was
+ * opened, and the day-based viewer never shows the later days.
+ */
+- (void)rotateLogs:(NSTimer *)timer
+{
+	/* NSTimer may fire early, and a clock change can make it fire on the wrong side of
+	 * midnight; a firing before the due date only reschedules (upstream #6786 guard).
+	 */
+	if ([[logRotateTimer fireDate] timeIntervalSinceNow] > 0.0) {
+		[logRotateTimer setFireDate:[NSDate midnightTomorrow]];
+		return;
+	}
+
+	for (AIChat *chat in adium.chatController.openChats) {
+		if (![self _existingAppenderForChat:chat])
+			continue;
+
+		//Close the old file now; a delayed close already underway must not race the new file
+		NSString *chatKey = [self keyForChat:chat];
+		[NSObject cancelPreviousPerformRequestsWithTarget:self
+												 selector:@selector(finishClosingAppender:)
+												   object:chatKey];
+		[self finishClosingAppender:chatKey];
+
+		AIXMLAppender *appender = [self _createAppenderForChat:chat withDate:[NSDate date]];
+
+		AILogWithSignature(@"Rotated %@ to %@", chat, [appender path]);
+	}
+
+	//Re-anchor to the next real midnight; the nominal interval drifts across DST
+	[logRotateTimer setFireDate:[NSDate midnightTomorrow]];
 }
 
 - (AIXMLAppender *)_existingAppenderForChat:(AIChat *)chat

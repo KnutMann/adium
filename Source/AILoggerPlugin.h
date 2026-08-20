@@ -44,6 +44,7 @@
 	AIHTMLDecoder       *xhtmlDecoder;
 	NSDictionary        *statusTranslation;
 	BOOL                 logHTML;
+	NSTimer             *logRotateTimer;		//Splits open transcripts at midnight
 	
 	ISO8601DateFormatter *formatter;
 	

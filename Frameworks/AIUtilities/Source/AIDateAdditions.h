@@ -38,4 +38,12 @@
 
 + (BOOL)isDate:(NSDate *)date1 sameDayAsDate:(NSDate *)date2;
 
+/*!
+ * @brief The next midnight in the current calendar and time zone.
+ *
+ * Computed from calendar components rather than by adding 24 hours, so daylight
+ * saving switches land on the actual midnight.
+ */
++ (NSDate *)midnightTomorrow;
+
 @end
