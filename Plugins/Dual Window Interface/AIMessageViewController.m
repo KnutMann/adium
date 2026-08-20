@@ -161,10 +161,12 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		[self _configureTextEntryView];
 		[self _configureUserList];
 		
-		/* Draw background. Semantic colors: they resolve against the appearance at
-		 * every draw, so the bar follows light and dark without further help. */
+		/* Draw background. The historic bar was white 0.98 over 0.91, a shading of
+		 * a few percent, not a color change; underPageBackgroundColor made that a
+		 * hard two-tone split. A translucent black over the semantic base keeps
+		 * the old subtlety and still resolves against either appearance. */
 		[actionBarView setBackgroundColor:[NSColor windowBackgroundColor]];
-		[actionBarView setMiddleColor:[NSColor underPageBackgroundColor]];
+		[actionBarView setMiddleColor:[[NSColor blackColor] colorWithAlphaComponent:0.07f]];
 
 		//The gear is a black bitmap; as a template the system recolors it with the appearance
 		[[performAction image] setTemplate:YES];
