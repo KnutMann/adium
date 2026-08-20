@@ -786,6 +786,12 @@
 															   direction:[content isOutgoing] ? AIFilterOutgoing : AIFilterIncoming
 																 content:content];
 
+	/* A cleared topic travels as a placeholder string so the empty message
+	 * survives the content controller; it marks itself actuallyBlank. The
+	 * placeholder is plumbing and must never reach the reader. */
+	if ([content isKindOfClass:[AIContentTopic class]] && ((AIContentTopic *)content).actuallyBlank)
+		htmlEncodedMessage = @"";
+
 	//date
 	if ([content respondsToSelector:@selector(date)])
 		date = [(AIContentMessage *)content date];
