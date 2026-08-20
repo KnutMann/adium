@@ -39,6 +39,11 @@
 {
     return AIPref_Advanced;
 }
+/* Unlocalized, unlike the label: the sidebar grouping matches panes by this,
+ * and a match must not depend on the user's language. */
+- (NSString *)paneIdentifier{
+	return @"Confirmations";
+}
 - (NSString *)label{
     return AILocalizedString(@"Confirmations",nil);
 }

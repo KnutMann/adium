@@ -77,6 +77,11 @@ static NSString *AIRowLabel(NSString *label)
 @implementation ESOTRPreferences
 
 //Preference pane properties
+/* Unlocalized, unlike the label: the sidebar grouping matches panes by this,
+ * and a match must not depend on the user's language. */
+- (NSString *)paneIdentifier{
+	return @"Encryption";
+}
 - (NSString *)label
 {
     return AILocalizedString(@"Encryption",nil);

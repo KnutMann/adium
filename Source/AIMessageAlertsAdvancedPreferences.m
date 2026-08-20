@@ -32,6 +32,11 @@
 - (AIPreferenceCategory)category{
     return AIPref_Advanced;
 }
+/* Unlocalized, unlike the label: the sidebar grouping matches panes by this,
+ * and a match must not depend on the user's language. */
+- (NSString *)paneIdentifier{
+	return @"Message Alerts";
+}
 - (NSString *)label{
     return AILocalizedString(@"Message Alerts",nil);
 }

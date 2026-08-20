@@ -65,6 +65,11 @@
 /*!
  * @brief Label
  */
+/* Unlocalized, unlike the label: the sidebar grouping matches panes by this,
+ * and a match must not depend on the user's language. */
+- (NSString *)paneIdentifier{
+	return @"Address Book";
+}
 - (NSString *)label{
     return AILocalizedString(@"Address Book",nil);
 }

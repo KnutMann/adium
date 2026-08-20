@@ -102,6 +102,11 @@ static NSString *AISentenceCaseLabel(NSString *label)
 /*!
  * @brief Label
  */
+/* Unlocalized, unlike the label: the sidebar grouping matches panes by this,
+ * and a match must not depend on the user's language. */
+- (NSString *)paneIdentifier{
+	return @"Contact List";
+}
 - (NSString *)label{
     return AILocalizedString(@"Contact List","Name of the window which lists contacts");
 }
