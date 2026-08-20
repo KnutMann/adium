@@ -63,15 +63,12 @@
 - (void)drawRect:(NSRect)inRect
 {
 	[NSGraphicsContext saveGraphicsState];
-	
-	inRect = NSInsetRect(inRect, 1, 1);
-	
-	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:inRect radius:3];
-	
-	[[NSColor separatorColor] set];
-	[clipPath setLineWidth:1];
-	[clipPath stroke];
-	
+
+	/* Lightly rounded and unframed, the shared style of every contact picture in
+	 * the info window. Clipped against the bounds, not the dirty rect: a partial
+	 * redraw must not invent corners in the middle of the picture. */
+	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:[self bounds] radius:4];
+
 	//Ensure we have an even/odd winding rule in effect
 	[clipPath setWindingRule:NSWindingRuleEvenOdd];
 	[clipPath addClip];

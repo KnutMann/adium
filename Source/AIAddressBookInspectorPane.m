@@ -186,7 +186,11 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	cardImage = [[[NSImageView alloc] initWithFrame:NSMakeRect(0.0, summaryTop, CARD_SIDE, CARD_SIDE)] autorelease];
 	[cardImage setEditable:NO];
 	[cardImage setImageScaling:NSImageScaleProportionallyUpOrDown];
-	[cardImage setImageFrameStyle:NSImageFrameGrayBezel];
+	//Lightly rounded and unframed, matching the contact picture on the first tab
+	[cardImage setImageFrameStyle:NSImageFrameNone];
+	[cardImage setWantsLayer:YES];
+	[[cardImage layer] setCornerRadius:4.0];
+	[[cardImage layer] setMasksToBounds:YES];
 	[cardImage setAutoresizingMask:NSViewMinYMargin];
 	[summaryView addSubview:cardImage];
 
