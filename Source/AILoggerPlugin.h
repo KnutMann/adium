@@ -30,7 +30,7 @@
 
 @class AIAccount, AIHTMLDecoder, AIChat, ISO8601DateFormatter;
 
-@interface AILoggerPlugin : AIPlugin {
+@interface AILoggerPlugin : AIPlugin <NSMenuItemValidation>{
 	
 	//Log viewer menu items
 	NSMenuItem          *logViewerMenuItem;

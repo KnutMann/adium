@@ -15,7 +15,7 @@
  */
 
 
-@interface AIContactInfoWindowPlugin : AIPlugin {
+@interface AIContactInfoWindowPlugin : AIPlugin <NSMenuItemValidation, NSToolbarItemValidation>{
 	//Contact Info Menu Items
 	NSMenuItem				*menuItem_getInfo;
 	NSMenuItem				*menuItem_getInfoAlternate;

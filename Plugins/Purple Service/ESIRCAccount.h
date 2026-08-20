@@ -29,7 +29,7 @@ typedef enum {
 	AIRequiresHalfop
 } AIOperationRequirement;
 
-@interface ESIRCAccount : CBPurpleAccount <AIAccount_Files> {
+@interface ESIRCAccount : CBPurpleAccount <AIAccount_Files, NSMenuItemValidation> {
 
 }
 

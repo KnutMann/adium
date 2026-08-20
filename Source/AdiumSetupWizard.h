@@ -18,7 +18,7 @@
 
 @class SetupWizardBackgroundView;
 
-@interface AdiumSetupWizard : AIWindowController <NSTabViewDelegate> {
+@interface AdiumSetupWizard : AIWindowController <NSTabViewDelegate, NSControlTextEditingDelegate> {
 	IBOutlet SetupWizardBackgroundView	*backgroundView;
 
 	IBOutlet NSButton	*button_continue;

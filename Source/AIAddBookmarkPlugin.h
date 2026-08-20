@@ -15,7 +15,7 @@
  */
 
 
-@interface AIAddBookmarkPlugin : AIPlugin {
+@interface AIAddBookmarkPlugin : AIPlugin <NSMenuItemValidation, NSToolbarItemValidation>{
 	NSToolbarItem		*addBookmarkToolbarItem;
 	NSMenuItem			*addBookmarkMenuItem;
 	NSMenuItem			*addBookmarkContextMenuItem;

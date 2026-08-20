@@ -16,7 +16,7 @@
 
 #import <Adium/AIContentControllerProtocol.h>
 
-@interface GBApplescriptFiltersPlugin : AIPlugin <AIDelayedContentFilter> {
+@interface GBApplescriptFiltersPlugin : AIPlugin <AIDelayedContentFilter, NSMenuItemValidation> {
 	NSMenuItem				*scriptMenuItem;			//Script menu parent
 	NSMenuItem				*contextualScriptMenuItem;	//Script menu parent
 	NSMenu 					*scriptMenu;				//Submenu of scripts

@@ -15,7 +15,7 @@
  */
 
 
-@interface AINewMessagePanelPlugin : AIPlugin {
+@interface AINewMessagePanelPlugin : AIPlugin <NSMenuItemValidation>{
 
 }
 

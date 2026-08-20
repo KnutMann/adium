@@ -19,7 +19,7 @@
 
 @class AIListContact, AICompletingTextField;
 
-@interface AIAccountPlusFieldPromptController : AIWindowController <AIAccountMenuDelegate> {
+@interface AIAccountPlusFieldPromptController : AIWindowController <AIAccountMenuDelegate, NSControlTextEditingDelegate> {
     IBOutlet	AICompletingTextField	*textField_handle;
     IBOutlet	NSPopUpButton			*popUp_service;
 	

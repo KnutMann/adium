@@ -15,7 +15,7 @@
  */
 
 
-@interface AdiumFormatting : NSObject {
+@interface AdiumFormatting : NSObject <NSMenuItemValidation>{
 	NSMutableDictionary		*_defaultAttributes;
 }
 

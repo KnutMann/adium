@@ -18,7 +18,7 @@
 
 @class AIChat, AdiumChatEvents;
 
-@interface AIChatController : NSObject <AIChatController> {
+@interface AIChatController : NSObject <AIChatController, NSMenuItemValidation> {
 @private
     NSMutableSet			*openChats;
 	NSMutableArray			*chatObserverArray;

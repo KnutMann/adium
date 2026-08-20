@@ -15,7 +15,7 @@
  */
 
 
-@interface DCJoinChatPanelPlugin : AIPlugin {
+@interface DCJoinChatPanelPlugin : AIPlugin <NSMenuItemValidation>{
 	NSMenuItem	*joinChatMenuItem;
 }
 

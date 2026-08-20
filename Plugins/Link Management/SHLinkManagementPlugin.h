@@ -18,7 +18,7 @@
 
 @class SHLinkEditorWindowController, SHLinkFavoritesPreferences;
 
-@interface SHLinkManagementPlugin : AIPlugin {
+@interface SHLinkManagementPlugin : AIPlugin <NSMenuItemValidation> {
     NSToolbarItem   *toolbarItem;
 }
 

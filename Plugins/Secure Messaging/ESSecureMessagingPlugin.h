@@ -27,7 +27,7 @@ typedef enum {
 	AISecureMessagingMenu_ShowAbout
 } AISecureMessagingMenuTag;
 
-@interface ESSecureMessagingPlugin : AIPlugin <AIChatObserver> {
+@interface ESSecureMessagingPlugin : AIPlugin <AIChatObserver, NSMenuItemValidation> {
 	NSImage	*lockImage_Locked;
 	NSImage	*lockImage_Unlocked;
 	

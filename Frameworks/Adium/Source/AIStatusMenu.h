@@ -17,7 +17,7 @@
 @class AIStatusItem;
 @protocol AIStatusMenuDelegate;
 
-@interface AIStatusMenu : NSObject {
+@interface AIStatusMenu : NSObject <NSMenuItemValidation>{
 	NSMutableArray	*menuItemArray;
 	NSMutableSet	*stateMenuItemsAlreadyValidated;
 

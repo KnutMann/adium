@@ -16,7 +16,7 @@
 
 #import <Adium/AIContactControllerProtocol.h>
 
-@interface ESUserIconHandlingPlugin : AIPlugin <NSMenuDelegate> {
+@interface ESUserIconHandlingPlugin : AIPlugin <NSMenuDelegate, NSMenuItemValidation> {
 	NSMutableSet	*toolbarItems;
 	NSMutableSet	*validatedItems;
 }

@@ -27,7 +27,7 @@
  * reads like the rest of the converted interface. The nib holds the window and that one control;
  * see EditStateSheet.xib.
  */
-@interface AIEditStateWindowController : AIWindowController <NSTextViewDelegate> {
+@interface AIEditStateWindowController : AIWindowController <NSTextViewDelegate, NSControlTextEditingDelegate> {
 	//Out of the nib
 	IBOutlet	AISendingTextView		*textView_statusMessage;
 	IBOutlet	AIAutoScrollView		*scrollView_statusMessage;

@@ -23,7 +23,7 @@
 @class AIAccount, AIService;
 @class ABPerson;
 
-@interface AINewContactWindowController : AIWindowController <AIListObjectObserver> {
+@interface AINewContactWindowController : AIWindowController <AIListObjectObserver, NSControlTextEditingDelegate, NSMenuItemValidation> {
 	IBOutlet	NSPopUpButton				*popUp_contactType;
 	IBOutlet	NSPopUpButton				*popUp_targetGroup;
 	IBOutlet	NSTextField					*textField_contactName;

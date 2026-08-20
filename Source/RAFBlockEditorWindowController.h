@@ -20,7 +20,7 @@
 
 @class AIListContact, AIAccount, AICompletingTextField;
 
-@interface RAFBlockEditorWindowController : AIWindowController <AIListObjectObserver, AIAccountMenuDelegate> {
+@interface RAFBlockEditorWindowController : AIWindowController <AIListObjectObserver, AIAccountMenuDelegate, NSPasteboardTypeOwner> {
 	IBOutlet NSWindow			*window;
 	IBOutlet NSTableView		*table;
 

@@ -86,7 +86,7 @@ typedef enum {
  * would be a rename across components for no gain. Everything the user sees says
  * Music, and so do the identifiers introduced since the port.
  */
-@interface ESiTunesPlugin : AIPlugin <AIContentFilter> {
+@interface ESiTunesPlugin : AIPlugin <AIContentFilter, NSMenuItemValidation> {
 	NSDictionary *iTunesCurrentInfo;
 	NSDictionary *lastRawInfo;			//Last broadcast payload, verbatim; see -setiTunesCurrentInfo:
 

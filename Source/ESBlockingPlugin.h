@@ -16,7 +16,7 @@
 
 #import <Adium/AIContactObserverManager.h>
 
-@interface ESBlockingPlugin : AIPlugin <AIListObjectObserver> {
+@interface ESBlockingPlugin : AIPlugin <AIListObjectObserver, NSToolbarItemValidation> {
 	NSMenuItem  *blockContactMenuItem;
 	NSMenuItem  *blockContactContextualMenuItem;
 	

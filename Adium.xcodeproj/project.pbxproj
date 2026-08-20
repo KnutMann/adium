@@ -24,7 +24,6 @@
 		110763F608676CC9005987A5 /* RAFBlockEditorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 110763F208676CC9005987A5 /* RAFBlockEditorPlugin.m */; };
 		110763F808676CC9005987A5 /* RAFBlockEditorWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 110763F408676CC9005987A5 /* RAFBlockEditorWindowController.m */; };
 		110763FA08676D05005987A5 /* BlockEditorWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 110763F908676D04005987A5 /* BlockEditorWindow.xib */; };
-		11077B6F0DE647C100A4DD25 /* AIStatusItemView.m in Sources */ = {isa = PBXBuildFile; fileRef = 11077B6E0DE647C100A4DD25 /* AIStatusItemView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		1111B2300F8478500068CE51 /* Filter Bar.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1111B22F0F8478500068CE51 /* Filter Bar.xib */; };
 		1111B2680F847CAD0068CE51 /* AIFilterBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1111B2670F847CAD0068CE51 /* AIFilterBarView.m */; };
 		111D58210F7FC1B900883487 /* AIListContactGroupChatCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 111D581F0F7FC1B900883487 /* AIListContactGroupChatCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -782,8 +781,6 @@
 		34DC8AFE0A7EEEF7003E1636 /* AITextAttachmentExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F2E81907C2CD6C007EAAAB /* AITextAttachmentExtension.m */; };
 		34DC8B010A7EEEF7003E1636 /* ESFileTransfer.h in Headers */ = {isa = PBXBuildFile; fileRef = 348862CD05645E94003C9627 /* ESFileTransfer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8B020A7EEEF7003E1636 /* ESFileTransfer.m in Sources */ = {isa = PBXBuildFile; fileRef = 348862CE05645E95003C9627 /* ESFileTransfer.m */; };
-		34DC8B030A7EEEF7003E1636 /* ESFileWrapperExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E83907C2CDBD007EAAAB /* ESFileWrapperExtension.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		34DC8B040A7EEEF7003E1636 /* ESFileWrapperExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F2E83807C2CDBD007EAAAB /* ESFileWrapperExtension.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8B090A7EEEF7003E1636 /* JVFontPreviewField.m in Sources */ = {isa = PBXBuildFile; fileRef = 34D8344C07CBE6E2006466F2 /* JVFontPreviewField.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8B0A0A7EEEF7003E1636 /* JVFontPreviewField.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D8344D07CBE6E2006466F2 /* JVFontPreviewField.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DFF5FD07A63DB400B92233 /* ESSecureMessagingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34DFF46107A5EABF00B92233 /* ESSecureMessagingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1338,8 +1335,6 @@
 		110763F308676CC9005987A5 /* RAFBlockEditorWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RAFBlockEditorWindowController.h; path = Source/RAFBlockEditorWindowController.h; sourceTree = "<group>"; };
 		110763F408676CC9005987A5 /* RAFBlockEditorWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RAFBlockEditorWindowController.m; path = Source/RAFBlockEditorWindowController.m; sourceTree = "<group>"; };
 		110763F908676D04005987A5 /* BlockEditorWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = BlockEditorWindow.xib; path = Resources/BlockEditorWindow.xib; sourceTree = "<group>"; };
-		11077B6D0DE647C100A4DD25 /* AIStatusItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStatusItemView.h; path = "Plugins/Status Menu Item/AIStatusItemView.h"; sourceTree = "<group>"; };
-		11077B6E0DE647C100A4DD25 /* AIStatusItemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIStatusItemView.m; path = "Plugins/Status Menu Item/AIStatusItemView.m"; sourceTree = "<group>"; };
 		1111B22F0F8478500068CE51 /* Filter Bar.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "Filter Bar.xib"; path = "Resources/Filter Bar.xib"; sourceTree = "<group>"; };
 		1111B2660F847CAD0068CE51 /* AIFilterBarView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIFilterBarView.h; path = Source/AIFilterBarView.h; sourceTree = "<group>"; };
 		1111B2670F847CAD0068CE51 /* AIFilterBarView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIFilterBarView.m; path = Source/AIFilterBarView.m; sourceTree = "<group>"; };
@@ -2392,8 +2387,6 @@
 		34F2E81007C2CD5E007EAAAB /* AIHTMLDecoder.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIHTMLDecoder.h; path = Frameworks/Adium/Source/AIHTMLDecoder.h; sourceTree = "<group>"; };
 		34F2E81807C2CD6B007EAAAB /* AITextAttachmentExtension.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AITextAttachmentExtension.h; path = Frameworks/Adium/Source/AITextAttachmentExtension.h; sourceTree = "<group>"; };
 		34F2E81907C2CD6C007EAAAB /* AITextAttachmentExtension.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AITextAttachmentExtension.m; path = Frameworks/Adium/Source/AITextAttachmentExtension.m; sourceTree = "<group>"; };
-		34F2E83807C2CDBD007EAAAB /* ESFileWrapperExtension.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESFileWrapperExtension.m; path = Frameworks/Adium/Source/ESFileWrapperExtension.m; sourceTree = "<group>"; };
-		34F2E83907C2CDBD007EAAAB /* ESFileWrapperExtension.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESFileWrapperExtension.h; path = Frameworks/Adium/Source/ESFileWrapperExtension.h; sourceTree = "<group>"; };
 		34F312BC0ADC43CA00A4310E /* xtras_duck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = xtras_duck.png; path = Resources/xtras_duck.png; sourceTree = "<group>"; };
 		34F46779080F49C5007800AB /* Safari.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Safari.png; path = Resources/Safari.png; sourceTree = "<group>"; };
 		34F849520A4AEFA00002A017 /* LogFileUpgrade.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LogFileUpgrade.xib; path = Resources/LogFileUpgrade.xib; sourceTree = "<group>"; };
@@ -3550,8 +3543,6 @@
 				3448054E07AC5151006A7F7B /* ESDebugAILog.m */,
 				348862CD05645E94003C9627 /* ESFileTransfer.h */,
 				348862CE05645E95003C9627 /* ESFileTransfer.m */,
-				34F2E83907C2CDBD007EAAAB /* ESFileWrapperExtension.h */,
-				34F2E83807C2CDBD007EAAAB /* ESFileWrapperExtension.m */,
 			);
 			name = Other;
 			sourceTree = "<group>";
@@ -5572,8 +5563,6 @@
 		9E791D8505768A3000547562 /* Status Menu Item */ = {
 			isa = PBXGroup;
 			children = (
-				11077B6D0DE647C100A4DD25 /* AIStatusItemView.h */,
-				11077B6E0DE647C100A4DD25 /* AIStatusItemView.m */,
 				11F146090B546C1200CA91F6 /* AIMenuBarIcons.h */,
 				11F1460A0B546C1200CA91F6 /* AIMenuBarIcons.m */,
 				9E217B7706A74CA7002A3F27 /* StatusMenuItemDefaultPrefs.plist */,
@@ -6231,7 +6220,6 @@
 				34DC8AFB0A7EEEF7003E1636 /* AIPlugin.h in Headers */,
 				34DC8AFD0A7EEEF7003E1636 /* AITextAttachmentExtension.h in Headers */,
 				34DC8B010A7EEEF7003E1636 /* ESFileTransfer.h in Headers */,
-				34DC8B030A7EEEF7003E1636 /* ESFileWrapperExtension.h in Headers */,
 				34DC8B0A0A7EEEF7003E1636 /* JVFontPreviewField.h in Headers */,
 				343700A70A9C1E170028604E /* AIAdvancedPreferencePane.h in Headers */,
 				3482E0F50AB5064E00471992 /* AIAdiumProtocol.h in Headers */,
@@ -7285,7 +7273,6 @@
 				4F1CB6320D640D7F0073A1E6 /* AIEventsInspectorPane.m in Sources */,
 				632D859E0DB70FC800040EC7 /* AIMentionEventPlugin.m in Sources */,
 				34EBB2C30DCA8DE500B4CB6E /* AISearchFieldCell.m in Sources */,
-				11077B6F0DE647C100A4DD25 /* AIStatusItemView.m in Sources */,
 				34A1AB6C0DFC531000AC78CF /* AIXMLChatlogConverter.m in Sources */,
 				34A1B2C30DFDBA1200AC78CF /* AIStringDebug.m in Sources */,
 				111DDF3A0E8E7D2F00114FCA /* AIAutomaticStatus.m in Sources */,
@@ -7404,7 +7391,6 @@
 				34DC8AFC0A7EEEF7003E1636 /* AIPlugin.m in Sources */,
 				34DC8AFE0A7EEEF7003E1636 /* AITextAttachmentExtension.m in Sources */,
 				34DC8B020A7EEEF7003E1636 /* ESFileTransfer.m in Sources */,
-				34DC8B040A7EEEF7003E1636 /* ESFileWrapperExtension.m in Sources */,
 				34DC8B090A7EEEF7003E1636 /* JVFontPreviewField.m in Sources */,
 				343700A80A9C1E170028604E /* AIAdvancedPreferencePane.m in Sources */,
 				34F312F00ADC476300A4310E /* KNShelfSplitView.m in Sources */,

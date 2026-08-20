@@ -15,7 +15,7 @@
  */
 
 
-@interface AIChatConsolidationPlugin : AIPlugin {
+@interface AIChatConsolidationPlugin : AIPlugin <NSMenuItemValidation>{
 	NSMenuItem		*consolidateMenuItem;
 	NSMenuItem		*newWndowMenuItem;
 }

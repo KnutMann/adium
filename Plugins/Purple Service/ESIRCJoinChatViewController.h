@@ -16,7 +16,7 @@
 
 #import <Adium/DCJoinChatViewController.h>
 
-@interface ESIRCJoinChatViewController : DCJoinChatViewController {
+@interface ESIRCJoinChatViewController : DCJoinChatViewController <NSControlTextEditingDelegate> {
 	IBOutlet	NSTextField	*textField_channel;
 	IBOutlet	NSTextField	*textField_password;
 

@@ -16,7 +16,7 @@
 
 #import <Adium/AIContactObserverManager.h>
 
-@interface CBContactCountingDisplayPlugin : AIPlugin <AIListObjectObserver>
+@interface CBContactCountingDisplayPlugin : AIPlugin <AIListObjectObserver, NSMenuItemValidation>
 {
     BOOL		countAllObjects;
     BOOL		countOnlineObjects;

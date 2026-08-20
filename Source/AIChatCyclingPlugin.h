@@ -15,7 +15,7 @@
  */
 
 
-@interface AIChatCyclingPlugin : AIPlugin {
+@interface AIChatCyclingPlugin : AIPlugin <NSMenuItemValidation>{
 	NSMenuItem					*previousChatMenuItem;
 	NSMenuItem					*nextChatMenuItem;
 }

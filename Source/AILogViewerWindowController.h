@@ -38,7 +38,7 @@ typedef enum {
 
 @class AIAccount, AIChatLog, AIDividedAlternatingRowOutlineView, AIGradientView, AIListContact, AILoggerPlugin;
 
-@interface AILogViewerWindowController : AIWindowController <NSToolbarDelegate, NSOutlineViewDelegate, NSTableViewDelegate> {
+@interface AILogViewerWindowController : AIWindowController <NSToolbarDelegate, NSOutlineViewDelegate, NSTableViewDelegate, NSToolbarItemValidation> {
 	AILoggerPlugin					*plugin;
 
 	IBOutlet	AIDividedAlternatingRowOutlineView	*outlineView_contacts;

@@ -15,7 +15,7 @@
  */
 
 
-@interface DCInviteToChatPlugin : AIPlugin {
+@interface DCInviteToChatPlugin : AIPlugin <NSMenuItemValidation> {
 	NSMenuItem		*menuItem_inviteToChat;
 	NSMenuItem		*menuItem_inviteToChatContext;
 		

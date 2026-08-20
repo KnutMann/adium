@@ -17,7 +17,7 @@
 
 @class AIEditorListObject, AIEditorListHandle, AIEditorListGroup, AIEditorCollection;
 
-@interface AIContactListEditorPlugin : AIPlugin {
+@interface AIContactListEditorPlugin : AIPlugin <NSMenuItemValidation>{
 	NSMenuItem			*menuItem_delete;
 	NSMenuItem			*menuItem_tabAddContact;
 	NSMenuItem			*menuItem_addBookmark;

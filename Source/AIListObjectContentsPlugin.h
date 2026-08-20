@@ -16,7 +16,7 @@
 
 #import <Adium/AIInterfaceControllerProtocol.h>
 
-@interface AIListObjectContentsPlugin : AIPlugin <AIContactListTooltipEntry> {
+@interface AIListObjectContentsPlugin : AIPlugin <AIContactListTooltipEntry, NSMenuItemValidation> {
 	NSMenuItem *contextualMenuItem;
 }
 

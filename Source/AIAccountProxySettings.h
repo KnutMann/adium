@@ -17,7 +17,7 @@
 
 @class AIAccount;
 
-@interface AIAccountProxySettings : NSObject {
+@interface AIAccountProxySettings : NSObject <NSControlTextEditingDelegate>{
 	IBOutlet	NSView					*view_accountProxy;
 
 	IBOutlet	NSButton				*checkBox_useProxy;

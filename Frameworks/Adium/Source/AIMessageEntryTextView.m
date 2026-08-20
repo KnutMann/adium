@@ -19,7 +19,6 @@
 #import <Adium/AIListObject.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIMessageEntryTextView.h>
-#import <Adium/ESFileWrapperExtension.h>
 #import <Adium/AITextAttachmentExtension.h>
 
 #import <Adium/AIMenuControllerProtocol.h>

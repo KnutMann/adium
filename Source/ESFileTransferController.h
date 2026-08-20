@@ -19,7 +19,7 @@
 #import <Adium/AIControllerProtocol.h>
 
 //File transfers
-@interface ESFileTransferController : NSObject <AIFileTransferController, AIEventHandler> {
+@interface ESFileTransferController : NSObject <AIFileTransferController, AIEventHandler, NSMenuItemValidation> {
 	NSMenuItem				*menuItem_sendFile;
 	NSMenuItem				*menuItem_sendFileContext;
 	

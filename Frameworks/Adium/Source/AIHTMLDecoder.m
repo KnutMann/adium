@@ -30,7 +30,6 @@
 #import <AIUtilities/AIFileManagerAdditions.h>
 
 #import <Adium/AITextAttachmentExtension.h>
-#import <Adium/ESFileWrapperExtension.h>
 #import <Adium/AIXMLElement.h>
 
 #import "NSString+AIBidi.h"

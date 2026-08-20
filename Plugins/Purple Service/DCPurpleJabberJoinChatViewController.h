@@ -20,7 +20,7 @@
 
 #define	KEY_DEFAULT_CONFERENCE_SERVER	@"DefaultConferenceServer"
 
-@interface DCPurpleJabberJoinChatViewController  : DCJoinChatViewController {
+@interface DCPurpleJabberJoinChatViewController : DCJoinChatViewController <NSControlTextEditingDelegate> {
 	IBOutlet		NSTextField		*textField_roomName;
 	IBOutlet		NSTextField		*textField_server;
 	IBOutlet		NSTextField		*textField_handle;

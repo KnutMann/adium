@@ -19,7 +19,7 @@
 
 @class AIContactSortPreferences;
 
-@interface AIContactSortSelectionPlugin : AIPlugin {
+@interface AIContactSortSelectionPlugin : AIPlugin <NSMenuItemValidation>{
     AIContactSortPreferences	*preferences;
 	NSMenuItem					*menuItem_configureSort;
 	BOOL						enableConfigureSort;

@@ -15,7 +15,7 @@
  */
 
 
-@interface AIJumpControlPlugin : NSObject {
+@interface AIJumpControlPlugin : NSObject <NSMenuItemValidation> {
 	NSMenuItem		*menuItem_previous;
 	NSMenuItem		*menuItem_next;
 	NSMenuItem		*menuItem_focus;
