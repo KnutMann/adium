@@ -341,6 +341,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 		if ([self attachmentWasChosen]) {
 			//Forget the choice. Adium may well find one by itself again, and then says so.
 			[contact setAddressBookPerson:nil];
+			[AIAddressBookController userAssignedPerson:nil toContact:contact];
 
 		} else {
 			//Nothing stored to forget, so move on to picking one instead
@@ -353,7 +354,9 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 		if (row < 0 || row >= (NSInteger)[shown count])
 			return;
 
-		[contact setAddressBookPerson:[shown objectAtIndex:row]];
+		ABPerson *chosen = [shown objectAtIndex:row];
+		[contact setAddressBookPerson:chosen];
+		[AIAddressBookController userAssignedPerson:chosen toContact:contact];
 		choosing = NO;
 	}
 

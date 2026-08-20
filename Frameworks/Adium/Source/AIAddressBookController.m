@@ -477,87 +477,126 @@ static NSString *AIEmailKey(NSString *address)
 	listContact = (AIListContact *)inObject;
 	
     if (inModifiedKeys == nil) { //Only perform this when updating for all list objects or when a contact is created
-        ABPerson *person = [listContact addressBookPerson];
+		modifiedAttributes = [self applyPerson:[listContact addressBookPerson]
+									 toContact:listContact
+										silent:silent];
+    }
 
-		if (person && enableImport) {
-			//Load the name if appropriate
-			AIMutableOwnerArray *displayNameArray, *phoneticNameArray;
-			NSString			*displayName, *phoneticName = nil;
-			
-			displayNameArray = [listContact displayArrayForKey:@"Display Name"];
-			
-			displayName = [self nameForPerson:person phonetic:&phoneticName];
-			
-			//Apply the values 
-			NSString *oldValue = [displayNameArray objectWithOwner:self];
-			if (!oldValue || ![oldValue isEqualToString:displayName]) {
-				[displayNameArray setObject:displayName withOwner:self];
-				modifiedAttributes = [NSSet setWithObject:@"Display Name"];
+    return modifiedAttributes;
+}
+
+/*!
+ * @brief Apply (or clear) an address book card's name on a contact
+ *
+ * Shared by the observer path, which looks the person up from the stored preference, and by the
+ * inspector's explicit assignment, which passes the card it has in hand rather than trusting a
+ * fresh lookup through the deprecated framework to find what was written a moment ago.
+ */
+- (NSSet *)applyPerson:(ABPerson *)person toContact:(AIListContact *)listContact silent:(BOOL)silent
+{
+	NSSet	*modifiedAttributes = nil;
+
+	if (person && enableImport) {
+		//Load the name if appropriate
+		AIMutableOwnerArray *displayNameArray, *phoneticNameArray;
+		NSString			*displayName, *phoneticName = nil;
+
+		displayNameArray = [listContact displayArrayForKey:@"Display Name"];
+
+		displayName = [self nameForPerson:person phonetic:&phoneticName];
+
+		//Apply the values
+		NSString *oldValue = [displayNameArray objectWithOwner:self];
+		if (!oldValue || ![oldValue isEqualToString:displayName]) {
+			[displayNameArray setObject:displayName withOwner:self];
+			modifiedAttributes = [NSSet setWithObject:@"Display Name"];
+		}
+
+		if (phoneticName) {
+			phoneticNameArray = [listContact displayArrayForKey:@"Phonetic Name"];
+
+			//Apply the values
+			oldValue = [phoneticNameArray objectWithOwner:self];
+			if (!oldValue || ![oldValue isEqualToString:phoneticName]) {
+				[phoneticNameArray setObject:phoneticName withOwner:self];
+				modifiedAttributes = [NSSet setWithObjects:@"Display Name", @"Phonetic Name", nil];
 			}
-			
-			if (phoneticName) {
-				phoneticNameArray = [listContact displayArrayForKey:@"Phonetic Name"];
-				
-				//Apply the values 
-				oldValue = [phoneticNameArray objectWithOwner:self];
-				if (!oldValue || ![oldValue isEqualToString:phoneticName]) {
-					[phoneticNameArray setObject:phoneticName withOwner:self];
-					modifiedAttributes = [NSSet setWithObjects:@"Display Name", @"Phonetic Name", nil];
-				}
-			} else {
-				phoneticNameArray = [listContact displayArrayForKey:@"Phonetic Name"
-															 create:NO];
-				//Clear any stored value
-				if ([phoneticNameArray objectWithOwner:self]) {
-					[displayNameArray setObject:nil withOwner:self];
-					modifiedAttributes = [NSSet setWithObjects:@"Display Name", @"Phonetic Name", nil];
-				}					
-			}
-			
 		} else {
-			AIMutableOwnerArray *displayNameArray, *phoneticNameArray;
-			
-			displayNameArray = [listContact displayArrayForKey:@"Display Name"
-														create:NO];
-			
-			//Clear any stored value
-			if ([displayNameArray objectWithOwner:self]) {
-				[displayNameArray setObject:nil withOwner:self];
-				modifiedAttributes = [NSSet setWithObject:@"Display Name"];
-			}
-			
 			phoneticNameArray = [listContact displayArrayForKey:@"Phonetic Name"
 														 create:NO];
-			//Clear any stored value
+			/* Clear any stored value. This used to null the display name it had just set,
+			 * whenever a card without a phonetic name replaced one that had one. */
 			if ([phoneticNameArray objectWithOwner:self]) {
 				[phoneticNameArray setObject:nil withOwner:self];
 				modifiedAttributes = [NSSet setWithObjects:@"Display Name", @"Phonetic Name", nil];
-			}					
-			
-		}
-		
-		//If we changed anything, request an update of the alias / long display name
-		if (modifiedAttributes) {
-			[[NSNotificationCenter defaultCenter] postNotificationName:Contact_ApplyDisplayName
-																object:listContact
-															  userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:silent]
-																								   forKey:@"Notify"]];
-		}
-		
-		//Add this contact to the ABPerson's metacontact if it's not already there.
-		if (person) {
-			AIMetaContact *personMetaContact;
-			if ((personMetaContact = [personUniqueIdToMetaContactDict objectForKey:[person uniqueId]]) &&
-				(personMetaContact != listContact) &&
-				![personMetaContact containsObject:listContact]) {
-				AILog(@"AIAddressBookController: personMetaContact = %@; listContact = %@; performing metacontact grouping",
-					  personMetaContact, listContact);
-				[adium.contactController groupContacts:[NSArray arrayWithObjects:personMetaContact, listContact, nil]];
 			}
 		}
-    }
-    
-    return modifiedAttributes;
+
+	} else {
+		AIMutableOwnerArray *displayNameArray, *phoneticNameArray;
+
+		displayNameArray = [listContact displayArrayForKey:@"Display Name"
+													create:NO];
+
+		//Clear any stored value
+		if ([displayNameArray objectWithOwner:self]) {
+			[displayNameArray setObject:nil withOwner:self];
+			modifiedAttributes = [NSSet setWithObject:@"Display Name"];
+		}
+
+		phoneticNameArray = [listContact displayArrayForKey:@"Phonetic Name"
+													 create:NO];
+		//Clear any stored value
+		if ([phoneticNameArray objectWithOwner:self]) {
+			[phoneticNameArray setObject:nil withOwner:self];
+			modifiedAttributes = [NSSet setWithObjects:@"Display Name", @"Phonetic Name", nil];
+		}
+
+	}
+
+	//If we changed anything, request an update of the alias / long display name
+	if (modifiedAttributes) {
+		[[NSNotificationCenter defaultCenter] postNotificationName:Contact_ApplyDisplayName
+															object:listContact
+														  userInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:silent]
+																							   forKey:@"Notify"]];
+	}
+
+	//Add this contact to the ABPerson's metacontact if it's not already there.
+	if (person) {
+		AIMetaContact *personMetaContact;
+		if ((personMetaContact = [personUniqueIdToMetaContactDict objectForKey:[person uniqueId]]) &&
+			(personMetaContact != listContact) &&
+			![personMetaContact containsObject:listContact]) {
+			AILog(@"AIAddressBookController: personMetaContact = %@; listContact = %@; performing metacontact grouping",
+				  personMetaContact, listContact);
+			[adium.contactController groupContacts:[NSArray arrayWithObjects:personMetaContact, listContact, nil]];
+		}
+	}
+
+	return modifiedAttributes;
+}
+
+/*!
+ * @brief The inspector assigned a card to (or removed one from) a contact
+ *
+ * Applies the choice right away, with the very card that was picked. The preference write already
+ * ran the observer chain, but that chain finds the person by asking the framework for what was
+ * just stored, and a stale answer there left the contact list showing the old name until the next
+ * full update. Passing nil re-derives from the stored preference and search, for the removal case.
+ */
++ (void)userAssignedPerson:(ABPerson *)person toContact:(AIListContact *)contact
+{
+	if (!addressBookController || !contact) return;
+
+	AIListContact	*owner = contact.parentContact ?: contact;
+	NSSet			*modified = [addressBookController applyPerson:(person ?: [owner addressBookPerson])
+														 toContact:owner
+															silent:NO];
+
+	if (modified)
+		[[AIContactObserverManager sharedManager] listObjectAttributesChanged:owner
+																 modifiedKeys:modified];
 }
 
 /*!

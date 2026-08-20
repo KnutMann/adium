@@ -41,7 +41,7 @@
 #define FORMAT_NICK_INITIAL						@"%[NICKINITIAL]"
 #define FORMAT_NICK_FULL						@"%[NICKFULL]"
 
-@class AIService, AIAddressBookUserIconSource;
+@class AIService, AIAddressBookUserIconSource, AIListContact;
 
 typedef enum {
 	AIRequiresAddressBookEntry
@@ -71,5 +71,6 @@ typedef enum {
 + (AIService *)serviceFromProperty:(NSString *)property;
 + (NSString *)propertyFromService:(AIService *)service;
 + (ABPerson *)personForListObject:(AIListObject *)inObject;
++ (void)userAssignedPerson:(ABPerson *)person toContact:(AIListContact *)contact;
 
 @end
