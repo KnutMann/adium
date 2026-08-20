@@ -38,6 +38,15 @@
 	NSSwitch		*checkBox_reopenChats;
 	NSSwitch		*checkBox_showMenuBarStatus;
 
+	// Confirmations, folded in from the former advanced pane
+	NSSwitch		*checkBox_confirmBeforeClosing;
+	NSButton		*radio_closeConfirmAlways;		//tag AIMessageCloseAlways
+	NSButton		*radio_closeConfirmUnread;		//tag AIMessageCloseUnread
+	NSSwitch		*checkBox_quitConfirmAlways;
+	NSSwitch		*checkBox_quitConfirmFT;
+	NSSwitch		*checkBox_quitConfirmUnread;
+	NSSwitch		*checkBox_quitConfirmOpenChats;
+
 	NSButton		*button_customizeLogAccounts;
 	NSButton		*button_rebuildIndex;
 

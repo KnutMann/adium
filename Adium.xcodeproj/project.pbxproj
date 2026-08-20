@@ -30,7 +30,6 @@
 		111E89010F93FE3900A5F18B /* AIRealNameTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 111E88FE0F93FE3900A5F18B /* AIRealNameTooltip.m */; };
 		111E89020F93FE3900A5F18B /* AIUserHostTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 111E89000F93FE3900A5F18B /* AIUserHostTooltip.m */; };
 		1121B29A0F896A720047EC66 /* AIContactVisibilityControlPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1121B2990F896A720047EC66 /* AIContactVisibilityControlPlugin.m */; };
-		112939100FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 1129390F0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m */; };
 		112B47240F82DC2300690E84 /* AIGroupChatStatusIcons.h in Headers */ = {isa = PBXBuildFile; fileRef = 112B47220F82DC2300690E84 /* AIGroupChatStatusIcons.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		112B47250F82DC2300690E84 /* AIGroupChatStatusIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 112B47230F82DC2300690E84 /* AIGroupChatStatusIcons.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		112B47670F82E0FC00690E84 /* AIXtraInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 112B47650F82E0FC00690E84 /* AIXtraInfo.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1349,8 +1348,6 @@
 		111E89000F93FE3900A5F18B /* AIUserHostTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIUserHostTooltip.m; path = Source/AIUserHostTooltip.m; sourceTree = "<group>"; };
 		1121B2980F896A720047EC66 /* AIContactVisibilityControlPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactVisibilityControlPlugin.h; path = Source/AIContactVisibilityControlPlugin.h; sourceTree = "<group>"; };
 		1121B2990F896A720047EC66 /* AIContactVisibilityControlPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactVisibilityControlPlugin.m; path = Source/AIContactVisibilityControlPlugin.m; sourceTree = "<group>"; };
-		1129390E0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIConfirmationsAdvancedPreferences.h; path = Source/AIConfirmationsAdvancedPreferences.h; sourceTree = "<group>"; };
-		1129390F0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIConfirmationsAdvancedPreferences.m; path = Source/AIConfirmationsAdvancedPreferences.m; sourceTree = "<group>"; };
 		112B47220F82DC2300690E84 /* AIGroupChatStatusIcons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIGroupChatStatusIcons.h; path = Frameworks/Adium/Source/AIGroupChatStatusIcons.h; sourceTree = "<group>"; };
 		112B47230F82DC2300690E84 /* AIGroupChatStatusIcons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIGroupChatStatusIcons.m; path = Frameworks/Adium/Source/AIGroupChatStatusIcons.m; sourceTree = "<group>"; };
 		112B47650F82E0FC00690E84 /* AIXtraInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtraInfo.h; path = Frameworks/Adium/Source/AIXtraInfo.h; sourceTree = "<group>"; };
@@ -3262,8 +3259,6 @@
 		3428328307D263F0004F01C9 /* Status Preferences */ = {
 			isa = PBXGroup;
 			children = (
-				1129390E0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.h */,
-				1129390F0FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m */,
 				11A2F1200FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.h */,
 				11A2F1210FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.m */,
 				3428328407D2643E004F01C9 /* ESStatusPreferencesPlugin.h */,
@@ -7305,7 +7300,6 @@
 				1121B29A0F896A720047EC66 /* AIContactVisibilityControlPlugin.m in Sources */,
 				11A2F1220FC8FC9D00C3F05C /* AIMessageAlertsAdvancedPreferences.m in Sources */,
 				638BC1FC0FC932E000CE7600 /* AIObjectDebug.m in Sources */,
-				112939100FD5AE1400FA8F53 /* AIConfirmationsAdvancedPreferences.m in Sources */,
 				11000D041098863B0096A1E2 /* AIDefaultFontRemovalPlugin.m in Sources */,
 				5A9A9F8911F2951400328DF9 /* AIDoNothingContactAlertPlugin.m in Sources */,
 				76C1AF9C125A906A00D269A9 /* AIAdiumURLProtocol.m in Sources */,
