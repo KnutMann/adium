@@ -74,7 +74,7 @@
 
 - (void)beginSheetModalForWindow:(NSWindow*)window {
 	[alert beginSheetModalForWindow:window completionHandler:^(NSModalResponse returnCode) {
-		[self alertDidEnd:alert returnCode:returnCode contextInfo:NULL];
+		[self alertDidEnd:self->alert returnCode:returnCode contextInfo:NULL];
 	}];
 }
 

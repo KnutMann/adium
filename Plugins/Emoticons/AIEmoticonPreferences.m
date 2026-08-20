@@ -433,11 +433,11 @@ static NSMutableSet *openEmoticonPreferences = nil;
 		if (returnCode != NSAlertFirstButtonReturn)
 			return;
 
-		for (AIEmoticonPackPreviewController *previewController in [table_emoticonPacks selectedItemsFromArray:emoticonPackPreviewControllers]) {
+		for (AIEmoticonPackPreviewController *previewController in [self->table_emoticonPacks selectedItemsFromArray:self->emoticonPackPreviewControllers]) {
 			[[NSFileManager defaultManager] trashFileAtPath:previewController.emoticonPack.path];
 		}
 
-		[table_emoticonPacks deselectAll:nil];
+		[self->table_emoticonPacks deselectAll:nil];
 		//Note the changed packs
 		[adium.emoticonController xtrasChanged:nil];
 	}];

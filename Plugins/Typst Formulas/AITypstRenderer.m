@@ -237,11 +237,15 @@ static NSString * const AITypstDocumentTemplate =
 	 * called on a queue of NSTask's choosing whatever the caller was doing, which is why the work is
 	 * hopped to the main thread below rather than assumed to be on it.
 	 *
-	 * The block retains self, and self owns the task which owns the block, so the handler clears
-	 * itself once it has run. Without that the renderer would never be deallocated. */
+	 * The renderer must stay alive until the callback has run, and self owns the task
+	 * which owns the block — a deliberate cycle for the task's lifetime. The __block
+	 * reference says so out loud and is broken in the handler itself; without that the
+	 * renderer would never be deallocated. */
+	__block AITypstRenderer *keepAlive = self;
 	[task setTerminationHandler:^(NSTask *finishedTask) {
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[self taskDidFinish];
+			[keepAlive taskDidFinish];
+			keepAlive = nil;
 			[finishedTask setTerminationHandler:nil];
 		});
 	}];

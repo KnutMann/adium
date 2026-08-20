@@ -1,21 +1,20 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #import "AITemporaryIRCAccountWindowController.h"
-
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIAccount.h>
@@ -24,8 +23,164 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/AIStringFormatter.h>
 
+/* This implementation vanished once: the commit that removed the old sheet-based
+ * account editor deleted the whole file body because -displayAdvanced: opened that
+ * editor, and with it went init, show and okay — every irc:// link without a matching
+ * account crashed on an unrecognized selector. Restored from before that commit; only
+ * the advanced button changed, because the editor it opened no longer exists.
+ */
 @implementation AITemporaryIRCAccountWindowController
 
+/*!
+ * @brief Ask for a temporary IRC account for an irc:// link no existing account covers.
+ *
+ * @param newPassword The password part of the link. This is the password of the channel,
+ *                    _not_ the password of the account!
+ */
+- (id)initWithChannel:(NSString *)newChannel server:(NSString *)newServer port:(NSInteger)newPort andPassword:(NSString *)newPassword
+{
+	if((self = [super initWithWindowNibName:@"TemporaryIRCAccountWindow"])) {
+		channel = [newChannel retain];
+		server = [newServer retain];
+		port = (newPort == -1 ? 6667 : newPort);
+		password = [newPassword retain];
+	}
+	return self;
+}
+
+- (void)show
+{
+	[[self window] makeKeyAndOrderFront:nil];
+}
+
+- (void)dealloc
+{
+	[channel release];
+	[server release];
+	[password release];
+
+	[account release];
+
+	[super dealloc];
+}
+
+- (NSString *)adiumFrameAutosaveName
+{
+	return @"TemporaryIRCAccountWindow";
+}
+
+- (void)awakeFromNib
+{
+	[[self window] setTitle:AILocalizedString(@"Connect Temporary IRC Account", nil)];
+}
+
+- (void)windowDidLoad
+{
+	[super windowDidLoad];
+
+	[textField_explanation setStringValue:[NSString stringWithFormat:AILocalizedString(@"You need to create a new IRC account to connect to irc://%@%@/%@:", nil),
+										   server,
+										   (port == 6667 ? @"" : [NSString stringWithFormat:@":%li", (long)port]),
+										   channel]];
+
+	[textField_server setStringValue:server];
+
+	[label_name setStringValue:AILocalizedString(@"Nickname:", "Name for IRC user names")];
+	[label_server setStringValue:AILocalizedString(@"Server:", nil)];
+
+	[button_okay setTitle:AILocalizedString(@"Connect", nil)];
+	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
+
+	/* The sheet-based account editor this button opened left with the old preferences;
+	 * the account's full settings live on its page in the Accounts pane now, which has
+	 * no way to be opened at a particular account from outside. Nickname and server
+	 * are right here, and a remembered account can be refined in the settings.
+	 */
+	[button_advanced setHidden:YES];
+
+	[button_remember setTitle:AILocalizedString(@"Remember this account", nil)];
+
+}
+
+- (void)windowWillClose:(id)sender
+{
+	[super windowWillClose:sender];
+
+	[self autorelease];
+}
+
+- (NSString *)UID
+{
+	NSString *UID = [textField_name stringValue];
+
+	//Use the default user name if possible, if no UID is specified
+	if (!UID || ![UID length]) UID = [[adium.accountController firstServiceWithServiceID:@"IRC"] defaultUserName];
+
+	return UID;
+}
+
+- (NSString *)host
+{
+	NSString *host = [textField_server stringValue];
+
+	//Use the supplied host if the text field is empty
+	if (!host || ![host length]) host = server;
+
+	return host;
+}
+
+- (AIAccount *)account
+{
+	if (!account) {
+		account = [[adium.accountController createAccountWithService:[adium.accountController firstServiceWithServiceID:@"IRC"]
+																 UID:self.UID] retain];
+
+		[account setPreference:server forKey:KEY_CONNECT_HOST group:GROUP_ACCOUNT_STATUS];
+	}
+
+	return account;
+}
+
+- (IBAction)okay:(id)sender
+{
+	AIAccount	*theAccount = self.account;
+
+	[account filterAndSetUID:self.UID];
+
+	[theAccount setIsTemporary:([button_remember state] == NSControlStateValueOff)];
+
+	[theAccount setPreference:self.host
+					   forKey:KEY_CONNECT_HOST
+						group:GROUP_ACCOUNT_STATUS];
+
+	[adium.accountController addAccount:theAccount];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(accountConnected:)
+												 name:ACCOUNT_CONNECTED
+											   object:theAccount];
+
+	//Connect the account
+	[theAccount setPreference:[NSNumber numberWithBool:YES] forKey:@"Online" group:GROUP_ACCOUNT_STATUS];
+
+	[button_okay setEnabled:FALSE];
+}
+
+/*!
+ * @brief Kept for the nib's wiring; the button is hidden (see -windowDidLoad).
+ */
+- (IBAction)displayAdvanced:(id)sender
+{
+	if (![account.UID isEqualToString:self.UID]) {
+		[account filterAndSetUID:self.UID];
+	}
+
+	if (![account.host isEqualToString:self.host]) {
+		[account setPreference:self.host
+						forKey:KEY_CONNECT_HOST
+						 group:GROUP_ACCOUNT_STATUS];
+	}
+}
 
 - (void)accountConnected:(NSNotification *)not
 {
@@ -36,7 +191,7 @@
 										channel, @"channel",
 										password, @"password", /* may be nil, so should be last */
 										nil]];
-	
+
 	[[self window] performClose:nil];
 }
 

@@ -387,6 +387,14 @@
 
 //bindings methods for MMTabBarView
 
+/* The object-typed parameters conflict with the scalar properties on purpose, and the
+ * mismatch is the mechanism: KVC reads the setter's signature, and only an object-typed
+ * setter lets -setValue:nil pass through and fire the KVO notification the tab bindings
+ * listen for. A scalar setter would send nil into -setNilValueForKey:, which raises by
+ * default and would notify nobody if silenced. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmismatched-parameter-types"
+
 - (void)setObjectCount:(NSNumber *)number
 {
 	//method does nothing; force the tab bindings to reload -objectCount
@@ -403,6 +411,8 @@
 - (void)setShowObjectCount:(NSNumber *)number
 {
 }
+
+#pragma clang diagnostic pop
 
 /*!
  * @brief Whether the tab draws an unread badge at all

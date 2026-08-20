@@ -386,7 +386,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 	activeRender = [AITypstRenderer renderFormula:formula
 										pointSize:0.0
 									   completion:^(NSString *path, NSString *errorMessage) {
-		if (thisGeneration != renderGeneration) return;
+		if (thisGeneration != self->renderGeneration) return;
 
 		if (path) {
 			NSImage *image = [[NSImage alloc] initWithContentsOfFile:path];
@@ -396,20 +396,20 @@ static NSMutableDictionary *thumbnailCache = nil;
 																				   (CGFloat)[rep pixelsHigh])]];
 			}
 
-			[imageView_preview setImage:image];
-			[textField_error setHidden:YES];
-			[button_send setEnabled:(image != nil)];
+			[self->imageView_preview setImage:image];
+			[self->textField_error setHidden:YES];
+			[self->button_send setEnabled:(image != nil)];
 
 			/* The picture this one replaces is not needed any more, unless it went into a message: an
 			 * attachment refers to its file by name, and that file has to still be there when the
 			 * message is sent. Without this, typing a formula would leave one directory in the
 			 * temporary folder per pause in the typing. */
-			if (renderedPath && !renderedPathWasInserted)
-				[AITypstRenderer discardRenderAtPath:renderedPath];
+			if (self->renderedPath && !self->renderedPathWasInserted)
+				[AITypstRenderer discardRenderAtPath:self->renderedPath];
 
-			renderedPath = path;
-			renderedFormula = formula;
-			renderedPathWasInserted = NO;
+			self->renderedPath = path;
+			self->renderedFormula = formula;
+			self->renderedPathWasInserted = NO;
 		} else {
 			[self showError:errorMessage];
 		}
@@ -633,7 +633,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 				//The picture is in memory now, so the file has done its job
 				[AITypstRenderer discardRenderAtPath:path];
 
-				for (NSView *view in [view_historyStrip subviews]) {
+				for (NSView *view in [self->view_historyStrip subviews]) {
 					if ([view isKindOfClass:[NSButton class]] &&
 						[[(NSButton *)view toolTip] isEqualToString:formula]) {
 						[(NSButton *)view setImage:image];

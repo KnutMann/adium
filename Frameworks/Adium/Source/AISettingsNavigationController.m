@@ -134,7 +134,7 @@
 					  toViewController:controller
 							   options:NSViewControllerTransitionSlideForward
 					 completionHandler:^{
-		transitioning = NO;
+		self->transitioning = NO;
 		[[from view] removeFromSuperview];
 		[self layoutShowingPage];
 	}];
@@ -170,10 +170,10 @@
 					  toViewController:to
 							   options:NSViewControllerTransitionSlideBackward
 					 completionHandler:^{
-		transitioning = NO;
+		self->transitioning = NO;
 		[[from view] removeFromSuperview];
 		[self stopObservingPage:from];
-		[pageControllers removeObjectIdenticalTo:from];
+		[self->pageControllers removeObjectIdenticalTo:from];
 		[from removeFromParentViewController];
 		[self layoutShowingPage];
 		[self notifyStackChanged];

@@ -27,7 +27,6 @@
 
 @interface AIConfirmationsAdvancedPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
-- (NSArray *)quitConfirmTypeButtons;
 - (NSArray *)closeConfirmTypeButtons;
 - (void)selectTag:(NSInteger)tag inRadioGroup:(NSArray *)buttons;
 - (NSInteger)selectedTagInRadioGroup:(NSArray *)buttons;

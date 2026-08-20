@@ -64,10 +64,10 @@
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[icons release], icons = nil;
-	[iconsData release], iconsData = nil;
-	[animatedIconState release], animatedIconState = nil;
-	[animationTimer release], animationTimer = nil;
+	[icons release]; icons = nil;
+	[iconsData release]; iconsData = nil;
+	[animatedIconState release]; animatedIconState = nil;
+	[animationTimer release]; animationTimer = nil;
 	
 	[super dealloc];
 }

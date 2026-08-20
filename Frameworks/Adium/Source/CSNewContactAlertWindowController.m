@@ -240,7 +240,7 @@
 // Remove details view/pane
 - (void)cleanUpDetailsPane
 {
-	[detailsView removeFromSuperview], detailsView = nil;
+	[detailsView removeFromSuperview]; detailsView = nil;
 
 	[detailsPane closeView];
 	detailsPane = nil;

@@ -25,10 +25,6 @@
 #import <libpurple/accountopt.h>
 
 @interface AIPurpleGenericAccountViewController ()
-- (NSString *)preferenceKeyForSetting:(const char *)setting;
-- (void)optionSwitchChanged:(id)sender;
-- (void)optionFieldChanged:(id)sender;
-- (void)optionMenuChanged:(id)sender;
 @end
 
 @implementation AIPurpleGenericAccountViewController

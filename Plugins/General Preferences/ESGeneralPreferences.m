@@ -626,7 +626,7 @@ static NSString *AIRowLabel(NSString *label)
 
 	[self.view.window beginSheet:logByAccountWindowController.window
 		   completionHandler:^(NSModalResponse returnCode) {
-			[self sheetDidEnd:logByAccountWindowController.window returnCode:returnCode contextInfo:NULL];
+			[self sheetDidEnd:self->logByAccountWindowController.window returnCode:returnCode contextInfo:NULL];
 		}];
 }
 
