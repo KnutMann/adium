@@ -79,9 +79,26 @@ static NSString *AICardName(ABPerson *person)
 												 selector:@selector(addressBookChanged:)
 													 name:kABDatabaseChangedExternallyNotification
 												   object:nil];
+
+		/* The notification is not enough by itself: merging two cards in the Contacts app
+		 * announced a change whose answers were still the old ones when we asked, and the
+		 * pane kept showing both cards until it was closed and reopened. Reopening is just
+		 * a reload - so reload whenever the window comes back to the front, which is
+		 * exactly the moment somebody returns from editing next door. */
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(hostWindowBecameKey:)
+													 name:NSWindowDidBecomeKeyNotification
+												   object:nil];
 	}
 
 	return self;
+}
+
+- (void)hostWindowBecameKey:(NSNotification *)notification
+{
+	if ([notification object] != [inspectorContentView window]) return;
+
+	[self addressBookChanged:nil];
 }
 
 /*!
