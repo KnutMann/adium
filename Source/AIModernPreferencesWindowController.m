@@ -315,7 +315,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 			[NSArray arrayWithObjects:AILocalizedString(@"Events", nil),
 			 @"Events", @"adv:Mention", @"adv:Message Alerts", nil],
 			[NSArray arrayWithObjects:AILocalizedString(@"Advanced", nil),
-			 @"adv:Address Book", @"adv:Confirmations", @"adv:Default Client", @"adv:Encryption", @"File Transfer", @"Xtras", nil],
+			 @"adv:Address Book", @"adv:Confirmations", @"adv:Default Client", @"adv:Encryption", @"adv:Privacy", @"File Transfer", @"Xtras", nil],
 			nil];
 }
 

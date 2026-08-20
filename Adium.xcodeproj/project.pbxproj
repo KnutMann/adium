@@ -22,8 +22,6 @@
 		0CFA98C90D35C18000A077C6 /* NSDataAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0CFA98C70D35C18000A077C6 /* NSDataAdditions.m */; };
 		11000D041098863B0096A1E2 /* AIDefaultFontRemovalPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 11000D031098863B0096A1E2 /* AIDefaultFontRemovalPlugin.m */; };
 		110763F608676CC9005987A5 /* RAFBlockEditorPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 110763F208676CC9005987A5 /* RAFBlockEditorPlugin.m */; };
-		110763F808676CC9005987A5 /* RAFBlockEditorWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 110763F408676CC9005987A5 /* RAFBlockEditorWindowController.m */; };
-		110763FA08676D05005987A5 /* BlockEditorWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 110763F908676D04005987A5 /* BlockEditorWindow.xib */; };
 		1111B2300F8478500068CE51 /* Filter Bar.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1111B22F0F8478500068CE51 /* Filter Bar.xib */; };
 		1111B2680F847CAD0068CE51 /* AIFilterBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1111B2670F847CAD0068CE51 /* AIFilterBarView.m */; };
 		111D58210F7FC1B900883487 /* AIListContactGroupChatCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 111D581F0F7FC1B900883487 /* AIListContactGroupChatCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -153,6 +151,7 @@
 		341BCF850961354D00CF83F5 /* AIMessageWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BCF810961354D00CF83F5 /* AIMessageWindow.m */; };
 		341BCF870961354D00CF83F5 /* AIClickThroughThemeDocumentButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BCF830961354D00CF83F5 /* AIClickThroughThemeDocumentButton.m */; };
 		341BD55D0965E97F00CF83F5 /* ESOTRPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BD5550965E97F00CF83F5 /* ESOTRPreferences.m */; };
+		ADD1E5C0DE0000000000CD01 /* AIPrivacyPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CD03 /* AIPrivacyPreferences.m */; };
 		341BD55F0965E97F00CF83F5 /* ESOTRPrivateKeyGenerationWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BD5570965E97F00CF83F5 /* ESOTRPrivateKeyGenerationWindowController.m */; };
 		341BD5610965E97F00CF83F5 /* ESOTRUnknownFingerprintController.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BD5590965E97F00CF83F5 /* ESOTRUnknownFingerprintController.m */; };
 		341BD5630965E97F00CF83F5 /* ESOTRFingerprintDetailsWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BD55B0965E97F00CF83F5 /* ESOTRFingerprintDetailsWindowController.m */; };
@@ -1337,9 +1336,6 @@
 		11000D031098863B0096A1E2 /* AIDefaultFontRemovalPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIDefaultFontRemovalPlugin.m; path = Source/AIDefaultFontRemovalPlugin.m; sourceTree = "<group>"; };
 		110763F108676CC9005987A5 /* RAFBlockEditorPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RAFBlockEditorPlugin.h; path = Source/RAFBlockEditorPlugin.h; sourceTree = "<group>"; };
 		110763F208676CC9005987A5 /* RAFBlockEditorPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RAFBlockEditorPlugin.m; path = Source/RAFBlockEditorPlugin.m; sourceTree = "<group>"; };
-		110763F308676CC9005987A5 /* RAFBlockEditorWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RAFBlockEditorWindowController.h; path = Source/RAFBlockEditorWindowController.h; sourceTree = "<group>"; };
-		110763F408676CC9005987A5 /* RAFBlockEditorWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RAFBlockEditorWindowController.m; path = Source/RAFBlockEditorWindowController.m; sourceTree = "<group>"; };
-		110763F908676D04005987A5 /* BlockEditorWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = BlockEditorWindow.xib; path = Resources/BlockEditorWindow.xib; sourceTree = "<group>"; };
 		1111B22F0F8478500068CE51 /* Filter Bar.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "Filter Bar.xib"; path = "Resources/Filter Bar.xib"; sourceTree = "<group>"; };
 		1111B2660F847CAD0068CE51 /* AIFilterBarView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIFilterBarView.h; path = Source/AIFilterBarView.h; sourceTree = "<group>"; };
 		1111B2670F847CAD0068CE51 /* AIFilterBarView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIFilterBarView.m; path = Source/AIFilterBarView.m; sourceTree = "<group>"; };
@@ -1571,6 +1567,8 @@
 		341BCF820961354D00CF83F5 /* AIClickThroughThemeDocumentButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIClickThroughThemeDocumentButton.h; path = Source/AIClickThroughThemeDocumentButton.h; sourceTree = "<group>"; };
 		341BCF830961354D00CF83F5 /* AIClickThroughThemeDocumentButton.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIClickThroughThemeDocumentButton.m; path = Source/AIClickThroughThemeDocumentButton.m; sourceTree = "<group>"; };
 		341BD5550965E97F00CF83F5 /* ESOTRPreferences.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESOTRPreferences.m; path = Source/ESOTRPreferences.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CD02 /* AIPrivacyPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPrivacyPreferences.h; path = Source/AIPrivacyPreferences.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CD03 /* AIPrivacyPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPrivacyPreferences.m; path = Source/AIPrivacyPreferences.m; sourceTree = "<group>"; };
 		341BD5560965E97F00CF83F5 /* ESOTRFingerprintDetailsWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESOTRFingerprintDetailsWindowController.h; path = Source/ESOTRFingerprintDetailsWindowController.h; sourceTree = "<group>"; };
 		341BD5570965E97F00CF83F5 /* ESOTRPrivateKeyGenerationWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESOTRPrivateKeyGenerationWindowController.m; path = Source/ESOTRPrivateKeyGenerationWindowController.m; sourceTree = "<group>"; };
 		341BD5580965E97F00CF83F5 /* ESOTRPrivateKeyGenerationWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESOTRPrivateKeyGenerationWindowController.h; path = Source/ESOTRPrivateKeyGenerationWindowController.h; sourceTree = "<group>"; };
@@ -4107,13 +4105,12 @@
 		34C2D31006334A460018E5D2 /* Blocking */ = {
 			isa = PBXGroup;
 			children = (
-				110763F908676D04005987A5 /* BlockEditorWindow.xib */,
 				9EF0DBF309D944A300FBCC1E /* msg-block-contact.tiff */,
 				9EF0DBF409D944A300FBCC1E /* msg-unblock-contact.tiff */,
 				110763F108676CC9005987A5 /* RAFBlockEditorPlugin.h */,
 				110763F208676CC9005987A5 /* RAFBlockEditorPlugin.m */,
-				110763F308676CC9005987A5 /* RAFBlockEditorWindowController.h */,
-				110763F408676CC9005987A5 /* RAFBlockEditorWindowController.m */,
+				ADD1E5C0DE0000000000CD02 /* AIPrivacyPreferences.h */,
+				ADD1E5C0DE0000000000CD03 /* AIPrivacyPreferences.m */,
 				9E125C6307D3571400AA91C5 /* ESBlockingPlugin.h */,
 				9E125C6407D3571400AA91C5 /* ESBlockingPlugin.m */,
 			);
@@ -6733,7 +6730,6 @@
 				3474E000082550FD00BF30F0 /* Credits.rtf in Resources */,
 				071C56330827933100399C0F /* Shared Dock Icon Images in Resources */,
 				4BB9972F083D1A74006ACD6F /* ContactListShowBehavior.xib in Resources */,
-				110763FA08676D05005987A5 /* BlockEditorWindow.xib in Resources */,
 				EE147A6D0896B18800A21377 /* ABSearch.png in Resources */,
 				EE147A790896B32400A21377 /* ABSearch.xib in Resources */,
 				63C120750910A0DD00C9DB57 /* DefaultXtraReadme.rtf in Resources */,
@@ -7165,7 +7161,7 @@
 				4BB9972D083D1A5F006ACD6F /* SMContactListShowDetailsPane.m in Sources */,
 				34CF9DF5085B8B7900D87E37 /* ESiTunesPlugin.m in Sources */,
 				110763F608676CC9005987A5 /* RAFBlockEditorPlugin.m in Sources */,
-				110763F808676CC9005987A5 /* RAFBlockEditorWindowController.m in Sources */,
+				ADD1E5C0DE0000000000CD01 /* AIPrivacyPreferences.m in Sources */,
 				EE147A800896B33400A21377 /* OWABSearchWindowController.m in Sources */,
 				633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */,
 				ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */,

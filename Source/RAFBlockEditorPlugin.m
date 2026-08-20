@@ -15,6 +15,8 @@
  */
 
 #import "RAFBlockEditorPlugin.h"
+#import "AIPrivacyPreferences.h"
+#import <Adium/AIPreferenceControllerProtocol.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 #import <Adium/AIAccount.h>
@@ -31,11 +33,15 @@
 											   keyEquivalent:@"p"];
 	[blockEditorMenuItem setKeyEquivalentModifierMask:(NSEventModifierFlagOption | NSEventModifierFlagCommand)];
 	[adium.menuController addMenuItem:blockEditorMenuItem toLocation:LOC_Adium_Preferences];
+
+	//The privacy pane; registers itself with the preference controller as it initializes
+	privacyPreferences = (AIPrivacyPreferences *)[[AIPrivacyPreferences preferencePane] retain];
 }
 
 - (void)uninstallPlugin
 {
 	[blockEditorMenuItem release];
+	[privacyPreferences release];
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
@@ -50,6 +56,6 @@
 
 - (IBAction)showEditor:(id)sender
 {
-	[RAFBlockEditorWindowController showWindow];
+	[adium.preferenceController openPreferencesToCategoryWithIdentifier:@"Privacy"];
 }
 @end

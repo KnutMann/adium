@@ -15,10 +15,12 @@
  */
 
 #import <Adium/AIMenuControllerProtocol.h>
-#import "RAFBlockEditorWindowController.h"
+
+@class AIPrivacyPreferences;
 
 @interface RAFBlockEditorPlugin : AIPlugin {
-	NSMenuItem  *blockEditorMenuItem;
+	NSMenuItem				*blockEditorMenuItem;
+	AIPrivacyPreferences	*privacyPreferences;
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem;
