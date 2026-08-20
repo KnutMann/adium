@@ -320,7 +320,11 @@ static NSMutableSet *openTextAndButtonsWindows = nil;
 		[textView_messageHeader setDrawsBackground:NO];
 		[scrollView_messageHeader setDrawsBackground:NO];
 		[textView_messageHeader setString:messageHeader];
-		
+
+		/* Text layout is lazy on current macOS: without forcing it, sizeToFit
+		 * still sees the empty view, reports no growth, and the text gets cut
+		 * off at its nib height. Measured: one line instead of three. */
+		[[textView_messageHeader layoutManager] ensureLayoutForTextContainer:[textView_messageHeader textContainer]];
 		[textView_messageHeader sizeToFit];
 		heightChange += [textView_messageHeader frame].size.height - [scrollView_messageHeader documentVisibleRect].size.height;
 		messageHeaderFrame.size.height += heightChange;
@@ -357,6 +361,8 @@ static NSMutableSet *openTextAndButtonsWindows = nil;
 		[scrollView_message setDrawsBackground:NO];
 		
 		[[textView_message textStorage] setAttributedString:message];
+		//Same story as the header: force layout, or sizeToFit measures nothing
+		[[textView_message layoutManager] ensureLayoutForTextContainer:[textView_message textContainer]];
 		[textView_message sizeToFit];
 		messageHeightChange = [textView_message frame].size.height - [scrollView_message documentVisibleRect].size.height;
 		heightChange += messageHeightChange;
