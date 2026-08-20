@@ -20,6 +20,7 @@
 #import <Contacts/Contacts.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListObject.h>
+#import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 
 #define PANE_WIDTH			300.0
