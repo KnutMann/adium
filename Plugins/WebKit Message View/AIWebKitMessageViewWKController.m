@@ -406,7 +406,7 @@ static NSString *const AIWKContextMenuScript =
 		draggedTypes = [[NSArray alloc] initWithObjects:AINSPasteboardTypeFilenames, AIiTunesTrackPboardType,
 														NSPasteboardTypeTIFF, NSPasteboardTypePDF, NSPasteboardTypeHTML,
 														NSFileContentsPboardType, NSPasteboardTypeRTF,
-														NSPasteboardTypeString, NSPostScriptPboardType, nil];
+														NSPasteboardTypeString, nil];
 	}
 	[_webView registerForDraggedTypes:draggedTypes];
 }

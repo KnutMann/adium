@@ -1527,7 +1527,7 @@ GList *createListFromDictionary(NSDictionary *arguments)
 		/* purple_buddy_icons_set_account_icon() takes responsibility for the buddy icon memory */
 		NSAssert( UINT_MAX >= [buddyImageData length],
 						 @"Attempting to send more data than libPurple can handle.  Abort." );
-		purple_buddy_icons_set_account_icon(account, g_memdup([buddyImageData bytes], (unsigned int)len), len);
+		purple_buddy_icons_set_account_icon(account, g_memdup2([buddyImageData bytes], len), len);
 	}
 }
 

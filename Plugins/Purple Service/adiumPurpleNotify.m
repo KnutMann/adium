@@ -177,8 +177,10 @@ static void *adiumPurpleNotifyUri(const char *uri)
 									URLForApplicationToOpenURL:[NSURL URLWithString:@"http://google.com"]];
 
 			if (browserURL) {
-				[[NSWorkspace sharedWorkspace] openFile:actualURI
-										withApplication:[browserURL path]];
+				[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:[NSURL fileURLWithPath:actualURI]]
+								   withApplicationAtURL:browserURL
+										  configuration:[NSWorkspaceOpenConfiguration configuration]
+									  completionHandler:nil];
 			}
 		} else {
 			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:passedURI]];

@@ -65,11 +65,11 @@
 			[newbutton setTarget:self];
 			[newbutton setAction:@selector(invokeAction:)];
 			[newbutton setBordered:YES];
-			[newbutton setBezelStyle:NSRoundedBezelStyle];
+			[newbutton setBezelStyle:NSBezelStyleRounded];
 			[newbutton setImagePosition:NSNoImage];
 			[newbutton setAlignment:NSTextAlignmentCenter];
 			[[newbutton cell] setControlTint:NSDefaultControlTint];
-			[newbutton setButtonType:NSMomentaryPushInButton];
+			[newbutton setButtonType:NSButtonTypeMomentaryPushIn];
 			// determine ideal size
 			NSSize minsize = [[newbutton cell] cellSize];
 			

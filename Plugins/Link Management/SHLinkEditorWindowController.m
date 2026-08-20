@@ -137,7 +137,7 @@ static NSMutableSet *openLinkEditors = nil;
 		}
 		
 		// Get the selected text
-		linkText = [[textView attributedSubstringFromRange:selectedRange] string];
+		linkText = [[[textView textStorage] attributedSubstringFromRange:selectedRange] string];
 		
 		// Place the link title and URL in our panel. Automatically select the URL.
 		if (linkURL) {

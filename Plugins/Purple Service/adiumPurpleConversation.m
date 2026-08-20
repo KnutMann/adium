@@ -452,7 +452,7 @@ static gboolean adiumPurpleConvHasFocus(PurpleConversation *conv)
 	if (!chat || ![NSApp isActive])
 		return NO;
 
-	NSWindow *window = [[[chat chatContainer] windowController] window];
+	NSWindow *window = [(NSWindowController *)[[chat chatContainer] windowController] window];
 
 	return (window && [window isKeyWindow] &&
 			[adium.interfaceController activeChatInWindow:window] == chat);

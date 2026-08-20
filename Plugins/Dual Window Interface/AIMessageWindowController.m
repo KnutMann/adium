@@ -513,7 +513,6 @@
 				tabView_horzLine = [[NSBox alloc] initWithFrame:horzLineFrame];
 				[tabView_horzLine setBorderColor:[NSColor separatorColor]];
 				[tabView_horzLine setBorderWidth:1];
-				[tabView_horzLine setBorderType:NSLineBorder];
 				[tabView_horzLine setBoxType:NSBoxCustom];
 				[tabView_horzLine setAutoresizingMask:mask];
 				[[[self window] contentView] addSubview:tabView_horzLine];

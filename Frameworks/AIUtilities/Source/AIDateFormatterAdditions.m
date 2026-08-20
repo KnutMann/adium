@@ -654,6 +654,17 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 		return format;
 	}
 	
+	return [NSDateFormatter ai_unicodeFormatFromCalendarFormat:format];
+}
+
+/*!
+ * @brief Translate an old CalendarDate/strftime-style pattern (%H:%M) into Unicode TR35.
+ *
+ * The scanner is the long-standing instance converter, lifted out so the formats old
+ * message styles carry can be translated without ever creating a formatter through the
+ * deprecated initWithDateFormat:allowNaturalLanguage:.
+ */
++ (NSString *)ai_unicodeFormatFromCalendarFormat:(NSString *)format {
 	// Scan across the format string, building the strftime-style format
 	NSMutableString *newFormat = [[NSMutableString alloc] initWithCapacity:[format length]];
 	

@@ -42,6 +42,11 @@
 + (NSString *)stringForApproximateTimeInterval:(NSTimeInterval)interval abbreviated:(BOOL)abbreviate;
 + (NSString *)stringForTimeInterval:(NSTimeInterval)interval;
 + (NSString *)stringForTimeInterval:(NSTimeInterval)interval showingSeconds:(BOOL)showSeconds abbreviated:(BOOL)abbreviate approximated:(BOOL)approximate;
+/*!
+ * @brief Translate an old CalendarDate/strftime-style pattern (%H:%M) into Unicode TR35.
+ */
++ (NSString *)ai_unicodeFormatFromCalendarFormat:(NSString *)format;
+
 - (NSString *)dateCalendarFormat;
 - (NSString *)dateUnicodeFormat;
 @end

@@ -223,8 +223,16 @@
  * Launch the user's mail application instead of opening the webmail-page
  */ 
 + (void)startMailApplication {
-	if ([[NSWorkspace sharedWorkspace] launchApplication:[self mailApplicationName]] == NO) {
-		NSLog(@"Could not launch mail application '%@'", [self mailApplicationName]);
+	/* -mailApplicationName below derives from the mailto handler; launching by that
+	 * name only found the same application again. Open the handler's URL directly. */
+	NSURL *mailApplicationURL = [[NSWorkspace sharedWorkspace]
+									URLForApplicationToOpenURL:[NSURL URLWithString:@"mailto://"]];
+	if (mailApplicationURL) {
+		[[NSWorkspace sharedWorkspace] openApplicationAtURL:mailApplicationURL
+											  configuration:[NSWorkspaceOpenConfiguration configuration]
+										  completionHandler:nil];
+	} else {
+		NSLog(@"Could not find a mail application to launch");
 	}
 }
 
@@ -248,8 +256,10 @@
 		appURL = [[NSWorkspace sharedWorkspace]
 					URLForApplicationToOpenURL:[NSURL URLWithString:@"http://www.adium.im"]];
 		if (appURL) {
-			[[NSWorkspace sharedWorkspace] openFile:[urlString stringByExpandingTildeInPath]
-									withApplication:[appURL path]];
+			[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:[NSURL fileURLWithPath:[urlString stringByExpandingTildeInPath]]]
+							   withApplicationAtURL:appURL
+									  configuration:[NSWorkspaceOpenConfiguration configuration]
+								  completionHandler:nil];
 		} else {
 			NSURL		*url;
 			

@@ -315,13 +315,11 @@
 		format = [NSDateFormatter localizedDateFormatStringShowingSeconds:NO showingAMorPM:NO];
 	}
 
-	if ([format rangeOfString:@"%"].location != NSNotFound) {
-		/* Support strftime-style format strings, which old message styles may use */
-		timeStampFormatter = [[NSDateFormatter alloc] initWithDateFormat:format allowNaturalLanguage:NO];
-	} else {
-		timeStampFormatter = [[NSDateFormatter alloc] init];
-		[timeStampFormatter setDateFormat:format];
-	}
+	timeStampFormatter = [[NSDateFormatter alloc] init];
+	/* Old message styles speak strftime; the converter turns that into the TR35
+	 * pattern a modern NSDateFormatter reads. */
+	[timeStampFormatter setDateFormat:(([format rangeOfString:@"%"].location != NSNotFound) ?
+									   [NSDateFormatter ai_unicodeFormatFromCalendarFormat:format] : format)];
 }
 
 - (void) flushTimeFormatterCache:(id)dummy {
@@ -872,13 +870,10 @@
 					
 					NSDateFormatter *dateFormatter = [timeFormatterCache objectForKey:timeFormat];
 					if (!dateFormatter) {
-						if ([timeFormat rangeOfString:@"%"].location != NSNotFound) {
-							/* Support strftime-style format strings, which old message styles may use */
-							dateFormatter = [[NSDateFormatter alloc] initWithDateFormat:timeFormat allowNaturalLanguage:NO];
-						} else {
-							dateFormatter = [[NSDateFormatter alloc] init];
-							[dateFormatter setDateFormat:timeFormat];
-						}
+						dateFormatter = [[NSDateFormatter alloc] init];
+						//Old message styles speak strftime; translate to TR35
+						[dateFormatter setDateFormat:(([timeFormat rangeOfString:@"%"].location != NSNotFound) ?
+													  [NSDateFormatter ai_unicodeFormatFromCalendarFormat:timeFormat] : timeFormat)];
 						[timeFormatterCache setObject:dateFormatter forKey:timeFormat];
 					}
 					
@@ -1289,14 +1284,10 @@
 			if (endRange.location != NSNotFound && endRange.location > NSMaxRange(range)) {				
 				NSString		*timeFormat = [inString substringWithRange:NSMakeRange(NSMaxRange(range), (endRange.location - NSMaxRange(range)))];
 				
-				NSDateFormatter *dateFormatter;
-				if ([timeFormat rangeOfString:@"%"].location != NSNotFound) {
-					/* Support strftime-style format strings, which old message styles may use */
-					dateFormatter = [[NSDateFormatter alloc] initWithDateFormat:timeFormat allowNaturalLanguage:NO];
-				} else {
-					dateFormatter = [[NSDateFormatter alloc] init];
-					[dateFormatter setDateFormat:timeFormat];
-				}
+				NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+				//Old message styles speak strftime; translate to TR35
+				[dateFormatter setDateFormat:(([timeFormat rangeOfString:@"%"].location != NSNotFound) ?
+											  [NSDateFormatter ai_unicodeFormatFromCalendarFormat:timeFormat] : timeFormat)];
 				
 				[inString safeReplaceCharactersInRange:NSUnionRange(range, endRange)
 												withString:[dateFormatter stringFromDate:[chat dateOpened]]];

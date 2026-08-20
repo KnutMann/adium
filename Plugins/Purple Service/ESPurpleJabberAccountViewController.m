@@ -248,11 +248,14 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 				[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
 				[alert runModal];
 			} else {				
-				MachineLocation loc;
-				ReadLocation(&loc);
-				
-				CGFloat latitude = (CGFloat)(FractToFloat(loc.latitude)*(M_PI/2.0));
-				CGFloat longitude = (CGFloat)(FractToFloat(loc.longitude)*(M_PI/2.0));
+				/* ReadLocation went away with the Carbon Map control panel, and on any
+				 * modern system it answered zeros anyway. The time zone gives a
+				 * longitude good enough to rank the public servers by region, without
+				 * the permission prompt CoreLocation would cost; the latitude stays
+				 * unknown. Both in radians, as the distance formula below expects.
+				 */
+				CGFloat latitude = 0.0f;
+				CGFloat longitude = (CGFloat)((([[NSTimeZone localTimeZone] secondsFromGMT] / 3600.0) * 15.0) * (M_PI / 180.0));
 				
 				servers = [[NSMutableArray alloc] init];
 				
