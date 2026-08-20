@@ -1,12 +1,12 @@
 # Adium (revival fork)
 
-**This is a fork of the original [Adium](https://adium.im)
+This is a fork of the original [Adium](https://adium.im)
 ([source](https://github.com/adium/adium)) that revives and modernizes
-it for current macOS.** It began as an Apple Silicon (arm64) port, as
+it for current macOS. It began as an Apple Silicon (arm64) port, as
 the original is an Intel-only binary from 2021. Since then much has
-changed: **WhatsApp, Telegram, Signal and Microsoft Teams** arrived
+changed: WhatsApp, Telegram, Signal and Microsoft Teams arrived
 next to the classic services that stood the test of time, along with
-**full Dark Mode**, replies straight from Notification Center banners,
+full Dark Mode, replies straight from Notification Center banners,
 a rebuilt System Settings-style preferences window, a WKWebView
 message view, and a long list of fixes for how modern macOS behaves.
 
@@ -17,7 +17,7 @@ endorsed by them. It is maintained by a long-time Adium user who
 simply wants to keep a beloved app alive after many years of use. The
 upstream project has been inactive since 2021.
 
-Current version: **1.6.0**.
+Current version: **1.8.0**.
 
 ## Original project
 
@@ -31,27 +31,31 @@ Current version: **1.6.0**.
 
 ### Messaging and services
 
-* **WhatsApp** (via
+* WhatsApp (via
   [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)):
   QR-code device linking, inline images and voice notes, reactions,
   typing, read markers, group chats with member lists, profile
   pictures, business account names, an optional channel filter, and
   address-book names
-* **Telegram** (via the bundled
+* Telegram (via the bundled
   [tdlib-purple](https://github.com/adrighem/tdlib-purple) plugin)
   with the same everyday features, plus address-book integration
-* **Signal** (via
+* Signal (via
   [purple-presage](https://github.com/hoehermann/purple-presage)),
   linked to your phone as an official companion device
-* **Microsoft Teams** (via
+* Microsoft Teams (via
   [purple-teams](https://github.com/EionRobb/purple-teams)), both work
   and personal accounts
-* **IRCv3** (via
+* IRCv3 (via
   [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3)) with
   typing notifications and other IRCv3 capabilities, alongside the
   built-in IRC
-* XMPP brought forward: read markers, delivery receipts and chat
-  markers
+* XMPP brought forward: message carbons (XEP-0280), so a conversation
+  continued on another device shows up here too; client state
+  indication (XEP-0352), telling the server when Adium is in the
+  background; room bookmarks synchronized with other clients
+  (XEP-0402), including autojoin; plus read markers, delivery receipts
+  and chat markers
 * OTR migrated to the libotr 4.x API
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
@@ -63,7 +67,7 @@ a modern look.
 
 ### Dark Mode and interface
 
-* **Full Dark Mode**: the application chrome follows the system
+* Full Dark Mode: the application chrome follows the system
   appearance, or a light/dark choice of its own
 * A rebuilt preferences window in the style of System Settings: a
   source-list sidebar, cards instead of boxed groups, and a reusable
@@ -84,7 +88,7 @@ a modern look.
 
 * Notifications go through the macOS Notification Center, replacing
   Growl
-* **Reply straight from the banner**: message notifications carry a
+* Reply straight from the banner: message notifications carry a
   text field, and the answer is sent without ever bringing Adium
   forward
 
@@ -95,16 +99,36 @@ a modern look.
 * All bundled libraries are native arm64, built from pinned sources
 * Bundled libpurple upgraded from 2.12.0 (2017) to 2.14.14, on a
   current glib
-* **Server certificates are actually verified** (SecTrust with a
+* Server certificates are actually verified (SecTrust with a
   proper trust prompt) on every SSL connection, including IRC, where
   the old code silently accepted anything
 * Passwords stored through the Keychain (SecItem) API
+* Address book integration moved from the AddressBook framework
+  (deprecated since 2015) to the Contacts framework, with the modern
+  permission prompt; cards are matched by phone number, chat address
+  or a manual link, and Adium only reads: the old silent write-back
+  into the address book is gone
 
 ### Localization
 
 * String extraction caught up: hundreds of strings the app already
   showed but had never been extracted are now translatable, filled in
   across the 26 shipped languages
+
+### Adopted from the unreleased 1.6/1.7 line
+
+Adium's development did not stop at the last state of adium/adium:
+the Mercurial mainline and community branches continued toward an
+Adium 1.6/1.7 that was never released, preserved today in forks such
+as [shtrom/adium](https://github.com/shtrom/adium).
+
+* The emoticon picker in the message entry field, which replaces the
+  old emoticon toolbar item
+* Room configuration window for owners of XMPP chat rooms
+* OTR messages routed to the contact's most recently active device
+  instead of the best-ranked one
+* Transcripts split at midnight, so a chat left open for days shows
+  up on every day it covers
 
 This is a work in progress; expect rough edges.
 
