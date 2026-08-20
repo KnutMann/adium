@@ -324,7 +324,6 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	if (showSummary) {
 		NSData	*imageData = [person imageData];
 
-		AILogWithSignature(@"Summary for %@: %lu image bytes", person.uniqueId, (unsigned long)[imageData length]);
 		[cardImage setImage:([imageData length] ? [[[NSImage alloc] initWithData:imageData] autorelease] : nil)];
 		[cardName setStringValue:AICardName(person)];
 		[cardOrigin setStringValue:(chosen ?

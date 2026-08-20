@@ -109,8 +109,10 @@
 		}
 	}
 
-	/* The full picture when there is one; some cards carry only the thumbnail,
-	 * and a small picture beats an empty frame. */
+	/* The full picture when there is one. Some cards carry their photo only as
+	 * the thumbnail - measured on a synced card: imageDataAvailable says no,
+	 * imageData is empty, and the thumbnail holds the actual picture - so the
+	 * thumbnail is not a nicety but the only copy there is. */
 	NSData *data = withImage.imageData;
 	if (![data length] && [withImage isKeyAvailable:CNContactThumbnailImageDataKey])
 		data = withImage.thumbnailImageData;
