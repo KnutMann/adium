@@ -28,3 +28,4 @@ com.apple.DeveloperTools
 # Xcode per-user state
 xcuserdata/
 *.xcuserdatad/
+*~
