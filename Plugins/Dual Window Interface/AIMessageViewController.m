@@ -1346,7 +1346,11 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 {
 	if (!userListController) return;
 
-	NSString *match = [[userListView effectiveAppearance] bestMatchFromAppearancesWithNames:
+	/* Asked at the application, not the view: the observation fires the moment
+	 * NSApp's effective appearance changes, before the new value has trickled
+	 * down the view hierarchy. The view would still answer with the appearance
+	 * being left, and the list would flip to yesterday's theme every time. */
+	NSString *match = [[NSApp effectiveAppearance] bestMatchFromAppearancesWithNames:
 					   [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil]];
 	BOOL dark = [match isEqualToString:NSAppearanceNameDarkAqua];
 
