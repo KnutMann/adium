@@ -804,7 +804,6 @@
 {
 	NSString	*label = [(AIMessageTabViewItem *)[tabView_messages selectedTabViewItem] label];
 	NSString	*title;
-	NSButton	*button;
 	NSWindow	*window = [self window];
 	
 	//Window Title
@@ -824,19 +823,11 @@
     }
 	
 	if (title) [window setTitle:title];
-	
-	/* Window icon: the titlebar proxy icon carries the chat's state, but only
-	 * while the tabs do not show it themselves. A represented URL is what makes
-	 * AppKit reserve the icon's space, so clear it when there is no icon to draw
-	 * — otherwise the title is pushed aside for an empty placeholder whenever
-	 * the system's "show window title icons" setting is on. */
-	if ([tabView_tabBar isTabBarHidden] || [tabView_tabBar numberOfVisibleTabViewItems] < [m_containedChats count]) {
-		[window setRepresentedURL:[NSURL URLWithString:@"StatusIcon"]];
-		button = [window standardWindowButton:NSWindowDocumentIconButton];
-		[button setImage:[(AIMessageTabViewItem *)[tabView_messages selectedTabViewItem] icon]];
-	} else {
-		[window setRepresentedURL:nil];
-	}
+
+	/* No titlebar proxy icon: the status already shows in the tab, and the
+	 * represented-URL trick it was built on never survived an application
+	 * switch anyway, AppKit revalidates the fake URL and wipes the image. */
+	[window setRepresentedURL:nil];
 }
 
 - (AIChat *)activeChat
