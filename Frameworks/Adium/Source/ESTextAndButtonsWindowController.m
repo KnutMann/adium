@@ -419,7 +419,9 @@ static NSMutableSet *openTextAndButtonsWindows = nil;
 		/* Only use integral widths to keep alignment correct; round up as an extra pixel of whitespace never hurt anybody */
 		newFrame.size.width = AIround(NSWidth(newFrame) + 0.5f);
 		if (newFrame.size.width < 90) newFrame.size.width = 90;
-		newFrame.origin.x = NSMinX([button_default frame]) - NSWidth(newFrame) + 2;
+		/* The historic +2 overlapped the frames and leaned on the old bezel's inner
+		 * margin to look spaced; today's buttons fill their frame, so they touched. */
+		newFrame.origin.x = NSMinX([button_default frame]) - NSWidth(newFrame) - 8;
 
 		[button_alternate setFrame:newFrame];
 
