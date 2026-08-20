@@ -44,10 +44,11 @@
 
 #define DEFAULT_JABBER_HOST @"@jabber.org"
 
-@interface ESPurpleJabberAccount ()
+@interface ESPurpleJabberAccount () <NSMenuItemValidation>
 - (BOOL)enableXMLConsole;
 - (void)registerGateway:(NSMenuItem *)mitem;
 - (void)removeGateway:(NSMenuItem *)mitem;
+- (void)configureRoom:(NSMenuItem *)sender;
 @end
 
 @implementation ESPurpleJabberAccount
@@ -685,13 +686,76 @@
 	}
 	
 	menu = [adium.menuController contextualMenuWithLocations:[NSArray arrayWithObjects:
-															  [NSNumber numberWithInteger:Context_Contact_GroupChat_ParticipantAction],		
+															  [NSNumber numberWithInteger:Context_Contact_GroupChat_ParticipantAction],
 															  [NSNumber numberWithInteger:Context_Contact_Manage],
 															  nil]
 											   forListObject:listObject
 													  inChat:chat];
-	
+
+	if (chat.isGroupChat) {
+		[menu addItem:[NSMenuItem separatorItem]];
+
+		//Enabled through validateMenuItem: only while the room reports us as its owner
+		[menu addItemWithTitle:[AILocalizedString(@"Configure Room", nil) stringByAppendingEllipsis]
+						target:self
+						action:@selector(configureRoom:)
+				 keyEquivalent:@""
+			 representedObject:chat];
+	}
+
 	return menu;
+}
+
+/*!
+ * @brief Are we the owner of this room?
+ *
+ * Asked of libpurple directly: our own entry in the conversation's user list
+ * carries the founder flag when the room reports our affiliation as owner.
+ */
+- (BOOL)isRoomOwnerInChat:(AIChat *)chat
+{
+	PurpleConversation *conv = (chat ? convLookupFromChat(chat, self) : NULL);
+	if (!conv || (purple_conversation_get_type(conv) != PURPLE_CONV_TYPE_CHAT)) return NO;
+
+	PurpleConvChat *convChat = PURPLE_CONV_CHAT(conv);
+	const char *nick = purple_conv_chat_get_nick(convChat);
+	PurpleConvChatBuddy *cb = (nick ? purple_conv_chat_cb_find(convChat, nick) : NULL);
+
+	return (cb && (cb->flags & PURPLE_CBFLAGS_FOUNDER));
+}
+
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
+{
+	if ([menuItem action] == @selector(configureRoom:))
+		return [self isRoomOwnerInChat:[menuItem representedObject]];
+
+	return YES;
+}
+
+/*!
+ * @brief Ask the room for its configuration form
+ *
+ * libpurple fetches the XEP-0045 owner form and presents it through the
+ * request dialog, the same form the creation flow offers.
+ */
+- (void)configureRoom:(NSMenuItem *)sender
+{
+	AIChat *chat = [sender representedObject];
+	PurpleConversation *conv = (chat ? convLookupFromChat(chat, self) : NULL);
+
+	if (!conv) {
+		AILogWithSignature(@"Lookup of conversation for %@ failed", chat);
+		return;
+	}
+
+	JabberChat *jabberChat = jabber_chat_find_by_conv(conv);
+
+	if (!jabberChat) {
+		AILogWithSignature(@"Lookup of jabber chat for %@ failed", chat);
+		return;
+	}
+
+	jabber_chat_request_room_configure(jabberChat);
 }
 
 #pragma mark Status
