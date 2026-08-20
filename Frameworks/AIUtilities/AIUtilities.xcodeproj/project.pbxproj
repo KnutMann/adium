@@ -45,7 +45,6 @@
 /* Begin PBXBuildFile section */
 		11AA10130FCE0969003908B6 /* AIProgressDataUploader.h in Headers */ = {isa = PBXBuildFile; fileRef = 11AA10110FCE0969003908B6 /* AIProgressDataUploader.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11AA10140FCE0969003908B6 /* AIProgressDataUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 11AA10120FCE0969003908B6 /* AIProgressDataUploader.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		4D9162682577EEB100930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6334FBFC0F9C11DC003C77A9 /* AIUtilities.framework */; };
 		4D9162702577EFE700930BC8 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D91626F2577EFE700930BC8 /* CoreFoundation.framework */; };
 		4D9162712577EFEB00930BC8 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA95B12577AF5F0000D3F7 /* CoreServices.framework */; };
 		4D9162722577EFF000930BC8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA95782577AD9E0000D3F7 /* Foundation.framework */; };
@@ -64,6 +63,9 @@
 		4D9163FC2577F42000930BC8 /* AdiumSpotlightImporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4D9163FB2577F42000930BC8 /* AdiumSpotlightImporter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4D9164232577F70B00930BC8 /* GetMetadataForHTMLLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D91627C2577F0D700930BC8 /* GetMetadataForHTMLLog.m */; };
 		4D91642A2577F70D00930BC8 /* GetMetadataForFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D9162852577F0ED00930BC8 /* GetMetadataForFile.m */; };
+		ADD1E5C0DE0000000000C900 /* GetMetadataForFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D9162852577F0ED00930BC8 /* GetMetadataForFile.m */; };
+		ADD1E5C0DE0000000000C901 /* GetMetadataForHTMLLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D91627C2577F0D700930BC8 /* GetMetadataForHTMLLog.m */; };
+		ADD1E5C0DE0000000000C902 /* GetMetadataForHTMLLog-Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D91627B2577F0D700930BC8 /* GetMetadataForHTMLLog-Additions.m */; };
 		4D9164312577F70F00930BC8 /* GetMetadataForHTMLLog-Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D91627B2577F0D700930BC8 /* GetMetadataForHTMLLog-Additions.m */; };
 		4D91644C2577F77300930BC8 /* GetMetadataForHTMLLog-Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 4D91644A2577F77300930BC8 /* GetMetadataForHTMLLog-Additions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4D91644D2577F77300930BC8 /* GetMetadataForHTMLLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 4D91644B2577F77300930BC8 /* GetMetadataForHTMLLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -779,7 +781,6 @@
 				4D9162722577EFF000930BC8 /* Foundation.framework in Frameworks */,
 				4D9162712577EFEB00930BC8 /* CoreServices.framework in Frameworks */,
 				4D9162702577EFE700930BC8 /* CoreFoundation.framework in Frameworks */,
-				4D9162682577EEB100930BC8 /* AIUtilities.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2547,6 +2548,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5AD04C311821E910009801F8 /* ISO8601DateFormatter.m in Sources */,
+				ADD1E5C0DE0000000000C900 /* GetMetadataForFile.m in Sources */,
+				ADD1E5C0DE0000000000C901 /* GetMetadataForHTMLLog.m in Sources */,
+				ADD1E5C0DE0000000000C902 /* GetMetadataForHTMLLog-Additions.m in Sources */,
 				4D9163C62577F1B300930BC8 /* AFSIMain.m in Sources */,
 				4D9163C72577F1B300930BC8 /* main.c in Sources */,
 				4D9163CD2577F1B300930BC8 /* AFSIAppDelegate.m in Sources */,

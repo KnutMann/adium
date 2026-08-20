@@ -19,15 +19,36 @@
 
 #include <sys/stat.h>
 
-#import <AIUtilities/ISO8601DateFormatter.h>
 
 static char *gaim_markup_strip_html(const char *str);
 
 //Given an Adium log file name, return an NSDate for its creation date
+/* Same self-contained parsing as GetMetadataForFile.m, for the same reason: nothing
+ * in an mdworker resolves an @rpath framework. Log file names carry dots as the time
+ * separator. */
+static NSDate *dateFromISO8601FileName(NSString *string)
+{
+	if (![string length]) return nil;
+
+	NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+	formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+	formatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
+
+	for (NSString *pattern in [NSArray arrayWithObjects:
+							   @"yyyy-MM-dd'T'HH.mm.ssZZZZZ",
+							   @"yyyy-MM-dd'T'HH.mm.ssZZZ",
+							   @"yyyy-MM-dd",
+							   nil]) {
+		formatter.dateFormat = pattern;
+		NSDate *date = [formatter dateFromString:string];
+		if (date) return date;
+	}
+
+	return nil;
+}
+
 static NSDate *dateFromHTMLLog(NSString *pathToFile)
 {
-	ISO8601DateFormatter *formatter = [[[ISO8601DateFormatter alloc] init] autorelease];
-	formatter.timeSeparator = '.';
 	NSRange openParenRange, closeParenRange;
 	
 	if ((openParenRange = [pathToFile rangeOfString:@"(" options:NSBackwardsSearch]).location != NSNotFound) {
@@ -35,7 +56,7 @@ static NSDate *dateFromHTMLLog(NSString *pathToFile)
 		if ((closeParenRange = [pathToFile rangeOfString:@")" options:0 range:openParenRange]).location != NSNotFound) {
 			//Add and subtract one to remove the parenthesis
 			NSString *dateString = [pathToFile substringWithRange:NSMakeRange(openParenRange.location + 1, (closeParenRange.location - openParenRange.location))];
-			return [formatter dateFromString:[dateString stringByReplacingOccurrencesOfString:@"|" withString:@"-"]];
+			return dateFromISO8601FileName([dateString stringByReplacingOccurrencesOfString:@"|" withString:@"-"]);
 		}
 	}
 	return nil;

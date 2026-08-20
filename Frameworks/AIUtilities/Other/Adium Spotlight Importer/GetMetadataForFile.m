@@ -14,9 +14,9 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #import <CoreFoundation/CoreFoundation.h>
-#import <CoreServices/CoreServices.h> 
+#import <CoreServices/CoreServices.h>
+#import <Foundation/Foundation.h>
 #import "GetMetadataForHTMLLog.h"
-#import <AIUtilities/ISO8601DateFormatter.h>
 
 /*
  Relevant keys from MDItem.h we use or may want to use:
@@ -45,6 +45,36 @@ and return it as a dictionary
 ----------------------------------------------------------------------------- */
 
 Boolean GetMetadataForXMLLog(NSMutableDictionary *attributes, NSString *pathToFile);
+/* Self-contained ISO 8601 parsing: a Spotlight importer loads inside mdworker, where
+ * an @rpath framework has no chance of resolving — linking AIUtilities for its date
+ * formatter is what kept this importer from loading at all. POSIX locale and Gregorian
+ * calendar, or the parse depends on the machine's settings. The three patterns cover
+ * the offsets our writers ever produced: +02:00 or Z, +0200, and a bare date.
+ */
+static NSDate *AIDateFromISO8601(NSString *string, BOOL dotTimeSeparator)
+{
+	if (![string length]) return nil;
+
+	NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+	formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+	formatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
+
+	NSString *sep = (dotTimeSeparator ? @"." : @":");
+	NSArray *patterns = [NSArray arrayWithObjects:
+						 [NSString stringWithFormat:@"yyyy-MM-dd'T'HH%@mm%@ssZZZZZ", sep, sep],
+						 [NSString stringWithFormat:@"yyyy-MM-dd'T'HH%@mm%@ssZZZ", sep, sep],
+						 @"yyyy-MM-dd",
+						 nil];
+
+	for (NSString *pattern in patterns) {
+		formatter.dateFormat = pattern;
+		NSDate *date = [formatter dateFromString:string];
+		if (date) return date;
+	}
+
+	return nil;
+}
+
 NSString *CopyTextContentForXMLLogData(NSData *logData);
 
 Boolean GetMetadataForFile(void* thisInterface, 
@@ -175,8 +205,12 @@ Boolean GetMetadataForXMLLog(NSMutableDictionary *attributes, NSString *pathToFi
 	Boolean ret = YES;
 	NSXMLDocument *xmlDoc = nil;
 	NSError *err=nil;
-	NSURL *furl = [NSURL fileURLWithPath:(NSString *)pathToFile];
-	NSData *data = [NSData dataWithContentsOfURL:furl options:NSUncachedRead error:&err];
+	/* Through CopyDataForFile rather than reading the path raw: a modern .chatlog is a
+	 * bundle, and reading the directory itself yields nothing — which left every
+	 * transcript in Spotlight without text content, authors or dates. CopyDataForFile
+	 * already reaches for the xml inside a bundle and reads a flat legacy log as is.
+	 */
+	NSData *data = [(NSData *)CopyDataForFile((CFStringRef)@"com.adiumx.xmllog", (CFStringRef)pathToFile) autorelease];
 	if (data) {
 		xmlDoc = [[NSXMLDocument alloc] initWithData:data options:NSXMLNodePreserveCDATA error:&err];
 	}
@@ -217,16 +251,15 @@ Boolean GetMetadataForXMLLog(NSMutableDictionary *attributes, NSString *pathToFi
 
 		if ([children count]) {
 			NSString		*dateStr;
-			ISO8601DateFormatter *formatter = [[[ISO8601DateFormatter alloc] init] autorelease];
 
 			dateStr = [[(NSXMLElement *)[children objectAtIndex:0] attributeForName:@"time"] objectValue];
-			startDate = (dateStr ? [formatter dateFromString:dateStr] : nil);
+			startDate = AIDateFromISO8601(dateStr, NO);
 			if (startDate)
 				[(NSMutableDictionary *)attributes setObject:startDate
 													  forKey:(NSString *)kMDItemContentCreationDate];
 
 			dateStr = [[(NSXMLElement *)[children lastObject] attributeForName:@"time"] objectValue];
-			endDate = (dateStr ? [formatter dateFromString:dateStr] : nil);
+			endDate = AIDateFromISO8601(dateStr, NO);
 			if (endDate)
 				[(NSMutableDictionary *)attributes setObject:[NSNumber numberWithDouble:[endDate timeIntervalSinceDate:startDate]]
 													  forKey:(NSString *)kMDItemDurationSeconds];
