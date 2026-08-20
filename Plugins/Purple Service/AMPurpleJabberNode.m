@@ -39,6 +39,10 @@ static CFArrayCallBacks nonretainingArrayCallbacks = {
 @implementation AMPurpleJabberNode
 
 static void AMPurpleJabberNode_received_data_cb(PurpleConnection *gc, xmlnode **packet, gpointer this) {
+	/* Any handler on this signal may consume the stanza and leave NULL behind;
+	 * the carbons handler does. */
+	if (!packet || !*packet)
+		return;
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	AMPurpleJabberNode *self = (AMPurpleJabberNode*)this;

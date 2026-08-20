@@ -29,6 +29,10 @@
 static void
 xmlnode_received_cb(PurpleConnection *gc, xmlnode **packet, gpointer this)
 {
+	/* Any handler on this signal may consume the stanza and leave NULL behind;
+	 * the carbons handler does. */
+	if (!packet || !*packet)
+		return;
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
     AMXMLConsoleController *self = (AMXMLConsoleController *)this;
