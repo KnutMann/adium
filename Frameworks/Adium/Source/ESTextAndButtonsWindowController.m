@@ -299,9 +299,10 @@ static NSMutableSet *openTextAndButtonsWindows = nil;
 		[imageView setImage:image];
 	}
 
-	//Hide the toolbar and zoom buttons
-	[[window standardWindowButton:NSWindowToolbarButton] setFrame:NSZeroRect];
-	[[window standardWindowButton:NSWindowZoomButton]    setFrame:NSZeroRect];
+	/* Hide the zoom button properly: a zero frame confuses the grouped window
+	 * controls on current macOS into drawing a broken stub on the window edge.
+	 * The toolbar pill button this also zeroed no longer exists at all. */
+	[[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
 	
 	//Title
 	if (title) {

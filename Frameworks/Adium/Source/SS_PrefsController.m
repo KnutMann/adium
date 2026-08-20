@@ -486,7 +486,7 @@ CGFloat ToolbarHeightForWindow(NSWindow *window)
     }
 	
 	//Hide the toolbar button
-	[[prefsWindow standardWindowButton:NSWindowToolbarButton] setFrame:NSZeroRect];
+	[[prefsWindow standardWindowButton:NSWindowToolbarButton] setHidden:YES];
 }
 
 

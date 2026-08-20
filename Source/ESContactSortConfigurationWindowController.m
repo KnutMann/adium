@@ -38,10 +38,9 @@ static ESContactSortConfigurationWindowController   *sharedSortConfigInstance = 
 			sharedSortConfigInstance = [[self alloc] initWithWindowNibName:@"SortConfiguration"];
 			
 			//Remove those buttons we don't want.  removeFromSuperview will confuse the window, so just make them invisible.
-			NSButton *standardWindowButton = [[sharedSortConfigInstance window] standardWindowButton:NSWindowMiniaturizeButton];
-			[standardWindowButton setFrame:NSMakeRect(0,0,0,0)];
-			standardWindowButton = [[sharedSortConfigInstance window] standardWindowButton:NSWindowZoomButton];
-			[standardWindowButton setFrame:NSMakeRect(0,0,0,0)];
+			//Hidden, not zero-framed: a zero frame breaks the grouped window controls
+			[[[sharedSortConfigInstance window] standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+			[[[sharedSortConfigInstance window] standardWindowButton:NSWindowZoomButton] setHidden:YES];
 		}
 		
 		[sharedSortConfigInstance configureForController:controller];
