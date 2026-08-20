@@ -421,15 +421,17 @@ static NSString *AIRowLabel(NSString *label)
  * @brief Grow or shrink the card around the list to fit its rows
  *
  * The list is the edge to edge row of a card, so its height is the card's height. The height is
- * asked of the outline itself — -totalHeight is the sum of its variable row heights — rather than
- * measured off a frame mid-tiling. Converges rather than loops: a width change may re-measure the
- * rows once more, but a height already in place is left alone.
+ * the bottom of the last row, not -totalHeight: that sum adds the intercell spacing on top of row
+ * rects that already include it, so it overshoots by one spacing per row and the surplus fills
+ * with striped rows nothing lives in. Converges rather than loops: a width change may re-measure
+ * the rows once more, but a height already in place is left alone.
  */
 - (void)updateAlertsListHeight
 {
 	if (!view_alertsHost || !outlineView_alerts) return;
 
-	CGFloat		height = ceil((CGFloat)[outlineView_alerts totalHeight]);
+	NSInteger	rows = [outlineView_alerts numberOfRows];
+	CGFloat		height = (rows > 0 ? ceil(NSMaxY([outlineView_alerts rectOfRow:(rows - 1)])) : 0);
 
 	if (height < ALERTS_LIST_MINIMUM_HEIGHT) height = ALERTS_LIST_MINIMUM_HEIGHT;
 
