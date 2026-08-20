@@ -97,12 +97,25 @@
 	CNContact *withImage = contact;
 
 	if (![withImage isKeyAvailable:CNContactImageDataKey]) {
+		NSError *error = nil;
 		withImage = [[[[CNContactStore alloc] init] autorelease] unifiedContactWithIdentifier:contact.identifier
-																				  keysToFetch:[NSArray arrayWithObject:CNContactImageDataKey]
-																						error:NULL];
+																				  keysToFetch:[NSArray arrayWithObjects:
+																							   CNContactImageDataKey,
+																							   CNContactThumbnailImageDataKey, nil]
+																						error:&error];
+		if (!withImage) {
+			AILogWithSignature(@"Image fetch for %@ failed: %@", contact.identifier, error);
+			return nil;
+		}
 	}
 
-	return withImage.imageData;
+	/* The full picture when there is one; some cards carry only the thumbnail,
+	 * and a small picture beats an empty frame. */
+	NSData *data = withImage.imageData;
+	if (![data length] && [withImage isKeyAvailable:CNContactThumbnailImageDataKey])
+		data = withImage.thumbnailImageData;
+
+	return data;
 }
 
 - (NSString *)description
