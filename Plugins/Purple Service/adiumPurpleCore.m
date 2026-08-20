@@ -78,7 +78,6 @@ PurpleDebugUiOps *adium_purple_debug_get_ui_ops(void)
 // Core ------------------------------------------------------------------------------------------------------
 
 extern gboolean purple_init_ssl_plugin(void);
-extern gboolean purple_init_ssl_openssl_plugin(void);
 extern gboolean purple_init_ssl_cdsa_plugin(void);
 
 static void init_all_plugins(void)
@@ -90,11 +89,7 @@ static void init_all_plugins(void)
 #ifdef HAVE_CDSA
 	purple_init_ssl_cdsa_plugin();
 #else
-	#ifdef HAVE_OPENSSL
-		purple_init_ssl_openssl_plugin();
-	#else
-		#warning No SSL plugin!
-	#endif
+	#error The build carries no SSL plugin; HAVE_CDSA is how it gets one.
 #endif
 
 	//Load each plugin

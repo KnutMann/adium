@@ -82,7 +82,6 @@
 		11CA00110C35EC5200A6BB8D /* SS_PrefsController.h in Headers */ = {isa = PBXBuildFile; fileRef = 344836920BC8510B0083723B /* SS_PrefsController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11CA00120C35EC5200A6BB8D /* SS_PrefsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 344836900BC8510B0083723B /* SS_PrefsController.m */; };
 		11E786810F8860210014612E /* AIJumpControlPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 11E7867F0F8860210014612E /* AIJumpControlPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		11EE1B4F0CDCFAF40097F246 /* ssl-openssl.c in Sources */ = {isa = PBXBuildFile; fileRef = 11EE1B4B0CDCFAF40097F246 /* ssl-openssl.c */; };
 		11EE1B500CDCFAF40097F246 /* ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = 11EE1B4C0CDCFAF40097F246 /* ssl.c */; };
 		11EE1CD00CDD01120097F246 /* libgmodule.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC40CDAA8D400B8E233 /* libgmodule.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000002 /* libglib.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000001 /* libglib.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1451,7 +1450,6 @@
 		11C97DFC0F7D26C200E8DD37 /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = dsa_pub.pem; path = Resources/dsa_pub.pem; sourceTree = "<group>"; };
 		11E7867F0F8860210014612E /* AIJumpControlPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJumpControlPlugin.m; path = "Plugins/Dual Window Interface/AIJumpControlPlugin.m"; sourceTree = "<group>"; };
 		11E786800F8860210014612E /* AIJumpControlPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJumpControlPlugin.h; path = "Plugins/Dual Window Interface/AIJumpControlPlugin.h"; sourceTree = "<group>"; };
-		11EE1B4B0CDCFAF40097F246 /* ssl-openssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "ssl-openssl.c"; sourceTree = "<group>"; };
 		11EE1B4C0CDCFAF40097F246 /* ssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssl.c; sourceTree = "<group>"; };
 		11F145C70B546A6D00CA91F6 /* Menu Bar Icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Menu Bar Icons"; path = "Resources/Menu Bar Icons"; sourceTree = "<group>"; };
 		11F146090B546C1200CA91F6 /* AIMenuBarIcons.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMenuBarIcons.h; path = Source/AIMenuBarIcons.h; sourceTree = "<group>"; };
@@ -3131,7 +3129,6 @@
 			isa = PBXGroup;
 			children = (
 				811033500CDE170B00EC6038 /* ssl-cdsa.c */,
-				11EE1B4B0CDCFAF40097F246 /* ssl-openssl.c */,
 				11EE1B4C0CDCFAF40097F246 /* ssl.c */,
 			);
 			name = libpurple_extensions;
@@ -7025,7 +7022,6 @@
 				346545260C8F6AAD0046ED68 /* AMPurpleJabberNode.m in Sources */,
 				346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */,
 				346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */,
-				11EE1B4F0CDCFAF40097F246 /* ssl-openssl.c in Sources */,
 				11EE1B500CDCFAF40097F246 /* ssl.c in Sources */,
 				811033510CDE170B00EC6038 /* ssl-cdsa.c in Sources */,
 				811036190CDE8A2500EC6038 /* AIPurpleCertificateViewer.m in Sources */,
