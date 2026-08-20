@@ -858,6 +858,15 @@
 	//resetCacheAndPostSizeChanged can get us right back to here, resulting in an infinite loop if we're not careful
 	if (!resizing) {
 		resizing = YES;
+
+		/* The text view stretches itself back to the clip view's full width on its
+		 * own (every text edit resets the frame), which would put text underneath
+		 * the smiley button; the narrowing has to be reasserted, not trusted. Width
+		 * first, so the size below is computed against the corrected wrapping. The
+		 * update guards against setting the same width again, so this terminates. */
+		if (hasEmoticonsMenu)
+			[self updateEmoticonsMenuButton];
+
 		[self _resetCacheAndPostSizeChanged];
 		resizing = NO;
 	}
@@ -1356,6 +1365,16 @@
 													: NSMaxY([self frame]) - menuButtonSize.height - 2.0f;
 
 	[emoticonsMenuButton setFrameOrigin:NSMakePoint(NSMaxX(visibleRect) - menuButtonSize.width - INDICATOR_RIGHT_PADDING - indicatorsWidth, newPositionY)];
+
+	/* Keep the text clear of the button: the view must end where the leftmost of
+	 * the floating controls begins. Only touch the frame when it is actually off,
+	 * since setting it re-enters through the frame change notification. */
+	CGFloat pushIndicatorX = pushIndicator ? NSMinX([pushIndicator frame]) : NSMaxX([self bounds]);
+	CGFloat characterCounterX = characterCounter ? NSMinX([characterCounter frame]) : NSMaxX([self bounds]);
+	CGFloat targetWidth = AIfmin(NSMinX([emoticonsMenuButton frame]), AIfmin(pushIndicatorX, characterCounterX));
+
+	if (fabs(NSWidth([self frame]) - targetWidth) > 0.5)
+		[self setFrameSize:NSMakeSize(targetWidth, NSHeight([self frame]))];
 
 	[[self enclosingScrollView] setNeedsDisplay:YES];
 }
