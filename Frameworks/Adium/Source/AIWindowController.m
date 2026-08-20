@@ -231,47 +231,31 @@ static NSRect screenBoundariesRect = { {0.0f, 0.0f}, {0.0f, 0.0f} };
 	return YES;
 }
 
-static CGFloat ToolbarHeightForWindow(NSWindow *window)
-{
-    NSToolbar *toolbar;
-    CGFloat toolbarHeight = 0.0f;
-    NSRect windowFrame;
-
-    toolbar = [window toolbar];
-
-    if (toolbar && [toolbar isVisible]) {
-        windowFrame = [NSWindow contentRectForFrameRect:[window frame]
-											  styleMask:[window styleMask]];
-        toolbarHeight = NSHeight(windowFrame) - NSHeight([[window contentView] frame]);
-    }
-
-    return toolbarHeight;
-}
-
 /*!
  * @brief Return a string representation of the saved frame
  *
- * This is a fixed implementation of 10.5's -[NSWindow stringWithSavedFrame].  The built-in stringWithSavedFrame method
- * performs some odd behavior when the window overlaps the dock and has a toolbar visible, moving it up by the height
- * of the toolbar.
+ * The window reopens toolbar-less and grows when its toolbar attaches, so the saved frame must be
+ * the toolbar-less one. How much the toolbar region adds has changed across macOS releases; the
+ * arithmetic that used to live here undershot it by the title bar height on current macOS, so the
+ * window grew by that much on every close and reopen. Instead of computing the difference, hide
+ * the toolbar: AppKit applies the exact geometry change it will apply in reverse on the next
+ * attach, origin included. The window is closing when this is called; nobody sees the toggle.
  */
 - (NSString *)stringWithSavedFrame
 {
-	NSWindow *window = [self window];
+	NSWindow	*window = [self window];
+	NSToolbar	*toolbar = [window toolbar];
+
+	if (toolbar && [toolbar isVisible]) {
+		/* The toolbar autosaves its configuration, visibility included; this toggle is
+		 * bookkeeping, not a user choice, so it must not be remembered. The toolbar is
+		 * moments from deallocation; autosaving stays off. */
+		[toolbar setAutosavesConfiguration:NO];
+		[toolbar setVisible:NO];
+	}
+
 	NSRect frame = [window frame];
 	NSRect screenFrame = [[window screen] frame];
-	CGFloat toolbarHeight = ToolbarHeightForWindow(window);
-
-	//The window starts off without a toolbar, so we need to save its size as such
-	frame.size.height -= toolbarHeight;
-
-	/* If the window's origin overlaps the dock at the bottom of the screen, we don't want to adjust its origin
-	 * since NSToolbar takes the dock into account as it moves the window when added to it initially. Otherwise,
-	 * we need to shift the origin to make up for the change in height. This is the bit that 10.5's -[NSWindow stringWithSavedFrame]
-	 * gets wrong.
-	 */
-	if (NSMinY(frame) > NSMinY([[window screen] visibleFrame]))
-		frame.origin.y += toolbarHeight;
 
 	return [NSString stringWithFormat:@"%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f",
 			NSMinX(frame), NSMinY(frame), NSWidth(frame), NSHeight(frame),
