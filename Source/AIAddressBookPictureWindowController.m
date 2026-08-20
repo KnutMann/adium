@@ -22,7 +22,7 @@
 #import <Adium/AIService.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
-#import <AddressBook/AddressBook.h>
+#import <Contacts/Contacts.h>
 
 //Keys of one row
 #define ENTRY_PERSON		@"Person"
@@ -85,7 +85,7 @@ static AIAddressBookPictureWindowController *sharedController = nil;
 		 * that has since been replaced next door is worse than showing none. */
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(addressBookChanged:)
-													 name:kABDatabaseChangedExternallyNotification
+													 name:CNContactStoreDidChangeNotification
 												   object:nil];
 	}
 
@@ -288,10 +288,10 @@ static NSImageView *AIPictureWell(NSRect frame)
 /*!
  * @brief The name a card goes by
  */
-static NSString *AICardName(ABPerson *person)
+static NSString *AICardName(AIAddressBookPerson *person)
 {
-	NSString		*first = [person valueForProperty:kABFirstNameProperty];
-	NSString		*last = [person valueForProperty:kABLastNameProperty];
+	NSString		*first = person.firstName;
+	NSString		*last = person.lastName;
 	NSMutableArray	*parts = [NSMutableArray array];
 
 	if ([first length]) [parts addObject:first];
@@ -300,7 +300,7 @@ static NSString *AICardName(ABPerson *person)
 	if ([parts count])
 		return [parts componentsJoinedByString:@" "];
 
-	NSString *organisation = [person valueForProperty:kABOrganizationProperty];
+	NSString *organisation = person.organization;
 
 	return ([organisation length] ? organisation : AIPictureString(@"Unnamed card", "Name shown for an address book card that has no name on it"));
 }
@@ -319,7 +319,7 @@ static NSString *AICardName(ABPerson *person)
 
 	for (AIListContact *contact in adium.contactController.allContacts) {
 		AIListObject	*owner = ([contact parentContact] ? (AIListObject *)[contact parentContact] : (AIListObject *)contact);
-		ABPerson		*person = [AIAddressBookController personForListObject:owner];
+		AIAddressBookPerson	*person = [AIAddressBookController personForListObject:owner];
 
 		if (!person)
 			continue;
@@ -484,24 +484,26 @@ static NSString *AICardName(ABPerson *person)
  */
 - (void)transfer:(id)sender
 {
-	NSDictionary	*entry = [self selectedEntry];
-	AIListContact	*contact = [self shownContactForEntry:entry];
-	ABPerson		*person = [entry objectForKey:ENTRY_PERSON];
-	NSImage			*icon = [contact userIcon];
-	NSData			*data = [icon PNGRepresentation];
+	NSDictionary		*entry = [self selectedEntry];
+	AIListContact		*contact = [self shownContactForEntry:entry];
+	AIAddressBookPerson	*person = [entry objectForKey:ENTRY_PERSON];
+	NSImage				*icon = [contact userIcon];
+	NSData				*data = [icon PNGRepresentation];
 
 	if (!person || ![data length]) {
 		NSBeep();
 		return;
 	}
 
-	ABAddressBook *book = [ABAddressBook sharedAddressBook];
+	CNMutableContact	*mutableContact = [[person.contact mutableCopy] autorelease];
+	CNSaveRequest		*saveRequest = [[[CNSaveRequest alloc] init] autorelease];
 
-	[person setImageData:data];
+	mutableContact.imageData = data;
+	[saveRequest updateContact:mutableContact];
 
 	/* Nothing is said when it works: the picture on the right changes, which says it better. A
 	 * refusal has to speak up, because nothing would look any different. */
-	if (![book save]) {
+	if (![[[[CNContactStore alloc] init] autorelease] executeSaveRequest:saveRequest error:NULL]) {
 		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
 
 		[alert setMessageText:AILocalizedString(@"The Address Book would not save the picture.",

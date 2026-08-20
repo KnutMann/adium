@@ -15,7 +15,6 @@
  */
 
 #import <Adium/AIContactInfoPane.h>
-#import <AddressBook/AddressBook.h>
 
 @class AIListObject;
 

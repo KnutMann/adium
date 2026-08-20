@@ -21,7 +21,7 @@
 #define KEY_ADD_CONTACT_TO		@"Add Contacts to account"
 
 @class AIAccount, AIService;
-@class ABPerson;
+@class AIAddressBookPerson;
 
 @interface AINewContactWindowController : AIWindowController <AIListObjectObserver, NSControlTextEditingDelegate, NSMenuItemValidation> {
 	IBOutlet	NSPopUpButton				*popUp_contactType;
@@ -47,7 +47,7 @@
 	NSString						*contactName;
 	AIService						*service;
 	AIAccount						*initialAccount;
-	ABPerson						*person;
+	AIAddressBookPerson				*person;
 }
 
 - (id)initWithContactName:(NSString *)inName service:(AIService *)inService account:(AIAccount *)inAccount;

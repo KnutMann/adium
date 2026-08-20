@@ -817,11 +817,11 @@
 }
 
 #pragma mark Address Book
-- (ABPerson *)addressBookPerson
+- (AIAddressBookPerson *)addressBookPerson
 {
 	return [AIAddressBookController personForListObject:self.parentContact];	
 }
-- (void)setAddressBookPerson:(ABPerson *)inPerson
+- (void)setAddressBookPerson:(AIAddressBookPerson *)inPerson
 {
 	[self.parentContact setPreference:[inPerson uniqueId]
 								 forKey:KEY_AB_UNIQUE_ID

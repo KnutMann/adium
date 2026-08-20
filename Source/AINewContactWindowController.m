@@ -30,7 +30,6 @@
 #import <Adium/AIService.h>
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIServiceMenu.h>
-#import <AddressBook/ABPerson.h>
 
 #define ADD_CONTACT_PROMPT_NIB	@"AddContact"
 #define DEFAULT_GROUP_NAME		AILocalizedString(@"Contacts",nil)
@@ -216,7 +215,7 @@
 				
 				[account addContact:contact toGroup:group];
 				
-				//Remember the ABPerson's unique ID associated with this contact
+				//Remember the card associated with this contact
 				if (person)
 					[contact setAddressBookPerson:person];
 
@@ -251,7 +250,7 @@
  */
 - (void)absearchWindowControllerDidSelectPerson:(OWABSearchWindowController *)controller
 {
-	ABPerson *selectedPerson = [controller selectedPerson];
+	AIAddressBookPerson *selectedPerson = [controller selectedPerson];
 	
 	if (selectedPerson) {
 		NSString *selectedScreenName = [controller selectedScreenName];

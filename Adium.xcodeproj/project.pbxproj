@@ -968,12 +968,13 @@
 		ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */; };
 		634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */; };
 		636D8C980E4E95A500E5F558 /* AIAddressBookController.m in Sources */ = {isa = PBXBuildFile; fileRef = 636D8C970E4E95A500E5F558 /* AIAddressBookController.m */; };
+		ADD1E5C0DE0000000000CE01 /* AIAddressBookPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CE03 /* AIAddressBookPerson.m */; };
 		636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E2A2EE07B018B1006735BC /* AIAddressBookController.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		636D92840E4E968A00E5F558 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 348E5ACA06D2A74C004C051C /* AddressBook.framework */; };
+		ADD1E5C0DE0000000000CE00 /* AIAddressBookPerson.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CE02 /* AIAddressBookPerson.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000CE04 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C102 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C302 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */; };
 		636D92BE0E4E97AA00E5F558 /* AIAddressBookUserIconSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3403F4310D2EF01D006B08FB /* AIAddressBookUserIconSource.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		636D92CD0E4E990500E5F558 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 348E5ACA06D2A74C004C051C /* AddressBook.framework */; };
 		636D93400E4E9ED600E5F558 /* AB Display Format Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */; };
 		636D938C0E4EA23F00E5F558 /* AdiumAddressBookAction_Jabber.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */; };
 		636D93F40E4EAB7500E5F558 /* AIContactObserverManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 34555C5E0DB6BCE500649CD4 /* AIContactObserverManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1057,7 +1058,6 @@
 		C6BC7F9B15DD666600C5FF52 /* events-notification.tiff in Resources */ = {isa = PBXBuildFile; fileRef = C6BC7F9A15DD666600C5FF52 /* events-notification.tiff */; };
 		D10A3A2B122C61EF003B5A7E /* msg-source-destination.tiff in Resources */ = {isa = PBXBuildFile; fileRef = D10A3A2A122C61EF003B5A7E /* msg-source-destination.tiff */; };
 		EE147A6D0896B18800A21377 /* ABSearch.png in Resources */ = {isa = PBXBuildFile; fileRef = EE147A6C0896B18700A21377 /* ABSearch.png */; };
-		EE147A790896B32400A21377 /* ABSearch.xib in Resources */ = {isa = PBXBuildFile; fileRef = EE147A780896B32400A21377 /* ABSearch.xib */; };
 		EE147A800896B33400A21377 /* OWABSearchWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = EE147A7E0896B33400A21377 /* OWABSearchWindowController.m */; };
 		EEC461B6096D68580028632F /* OWSpellingPerContactPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = EEC461B4096D68580028632F /* OWSpellingPerContactPlugin.m */; };
 		F5F8CA4D0A1A9C9400154550 /* GBQuestionHandlerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F5F8CA4B0A1A9C9400154550 /* GBQuestionHandlerPlugin.m */; };
@@ -1967,7 +1967,6 @@
 		348B25C70A50FBF300B2B972 /* KNShelfSplitView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KNShelfSplitView.h; path = Source/KNShelfSplitView.h; sourceTree = "<group>"; };
 		348C47150D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageWindowOutgoingScrollView.h; path = Source/AIMessageWindowOutgoingScrollView.h; sourceTree = "<group>"; };
 		348C47160D3B20BE00FB6E7A /* AIMessageWindowOutgoingScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageWindowOutgoingScrollView.m; path = Source/AIMessageWindowOutgoingScrollView.m; sourceTree = "<group>"; };
-		348E5ACA06D2A74C004C051C /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		ADD1E5C0DE0000000000C101 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = /System/Library/Frameworks/Contacts.framework; sourceTree = "<absolute>"; };
 		ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = /System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = "<absolute>"; };
 		348F50C00935317C00288E41 /* AIStatusItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIStatusItem.h; path = Frameworks/Adium/Source/AIStatusItem.h; sourceTree = "<group>"; };
@@ -2696,6 +2695,8 @@
 		634BCD1D0DDC1542005AF1C2 /* TestMutableStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestMutableStringAdditions.h; path = UnitTests/TestMutableStringAdditions.h; sourceTree = "<group>"; };
 		634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMutableStringAdditions.m; path = UnitTests/TestMutableStringAdditions.m; sourceTree = "<group>"; };
 		636D8C970E4E95A500E5F558 /* AIAddressBookController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookController.m; path = Frameworks/Adium/Source/AIAddressBookController.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CE02 /* AIAddressBookPerson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAddressBookPerson.h; path = Frameworks/Adium/Source/AIAddressBookPerson.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CE03 /* AIAddressBookPerson.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookPerson.m; path = Frameworks/Adium/Source/AIAddressBookPerson.m; sourceTree = "<group>"; };
 		636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Jabber.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Jabber.scpt; sourceTree = "<group>"; };
 		638BC1FA0FC932E000CE7600 /* AIObjectDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIObjectDebug.h; path = Source/AIObjectDebug.h; sourceTree = "<group>"; };
 		638BC1FB0FC932E000CE7600 /* AIObjectDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIObjectDebug.m; path = Source/AIObjectDebug.m; sourceTree = "<group>"; };
@@ -2855,7 +2856,6 @@
 		DA9CF854080F9784000C5249 /* AIPathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPathUtilities.h; path = Frameworks/Adium/Source/AIPathUtilities.h; sourceTree = "<group>"; };
 		DA9CF855080F9784000C5249 /* AIPathUtilities.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIPathUtilities.m; path = Frameworks/Adium/Source/AIPathUtilities.m; sourceTree = "<group>"; };
 		EE147A6C0896B18700A21377 /* ABSearch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ABSearch.png; path = Resources/ABSearch.png; sourceTree = "<group>"; };
-		EE147A780896B32400A21377 /* ABSearch.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ABSearch.xib; path = Resources/ABSearch.xib; sourceTree = "<group>"; };
 		EE147A7E0896B33400A21377 /* OWABSearchWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = OWABSearchWindowController.m; path = Source/OWABSearchWindowController.m; sourceTree = "<group>"; };
 		EE147A7F0896B33400A21377 /* OWABSearchWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = OWABSearchWindowController.h; path = Source/OWABSearchWindowController.h; sourceTree = "<group>"; };
 		EEC461B4096D68580028632F /* OWSpellingPerContactPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = OWSpellingPerContactPlugin.m; path = Source/OWSpellingPerContactPlugin.m; sourceTree = "<group>"; };
@@ -2963,7 +2963,7 @@
 				4D4B485825F3F7D6000CEF01 /* libintl.8.dylib in Frameworks */,
 				3448758E06D1EBDF00DA778C /* Cocoa.framework in Frameworks */,
 				6318DBC20F8D943A00C5E584 /* WebKit.framework in Frameworks */,
-				636D92CD0E4E990500E5F558 /* AddressBook.framework in Frameworks */,
+				ADD1E5C0DE0000000000CE04 /* Contacts.framework in Frameworks */,
 				34BD9D5A053146CC000AB133 /* Carbon.framework in Frameworks */,
 				34B588A1058D833A00E7EF0D /* ExceptionHandling.framework in Frameworks */,
 				34C18B0D06CAC95400FF5FF9 /* SystemConfiguration.framework in Frameworks */,
@@ -2987,7 +2987,6 @@
 				4DAA97BB2577C4140000D3F7 /* AutoHyperlinks.framework in Frameworks */,
 				4D4A20EE2577585E008BB8E3 /* MMTabBarView.framework in Frameworks */,
 				4DAA979F2577BEE40000D3F7 /* AIUtilities.framework in Frameworks */,
-				636D92840E4E968A00E5F558 /* AddressBook.framework in Frameworks */,
 				ADD1E5C0DE0000000000C102 /* Contacts.framework in Frameworks */,
 				34D836E507CBF593006466F2 /* Carbon.framework in Frameworks */,
 				3448761406D1EC0C00DA778C /* Cocoa.framework in Frameworks */,
@@ -5324,6 +5323,8 @@
 				636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */,
 				34E2A2EE07B018B1006735BC /* AIAddressBookController.h */,
 				636D8C970E4E95A500E5F558 /* AIAddressBookController.m */,
+				ADD1E5C0DE0000000000CE02 /* AIAddressBookPerson.h */,
+				ADD1E5C0DE0000000000CE03 /* AIAddressBookPerson.m */,
 				3403F4300D2EF01D006B08FB /* AIAddressBookUserIconSource.h */,
 				3403F4310D2EF01D006B08FB /* AIAddressBookUserIconSource.m */,
 				4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */,
@@ -5451,7 +5452,6 @@
 				31E0CD800C5EEF5200271DB1 /* CoreAudio.framework */,
 				11AA1EF90BCAE9C3003DDA66 /* Quartz.framework */,
 				815D37460A765E83009338C2 /* CoreServices.framework */,
-				348E5ACA06D2A74C004C051C /* AddressBook.framework */,
 				ADD1E5C0DE0000000000C101 /* Contacts.framework */,
 				ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */,
 				F5819CE9032124CE01A8010A /* AppKit.framework */,
@@ -5742,7 +5742,6 @@
 				347E785E07CA970500350507 /* AINewGroupWindowController.m */,
 				EE147A7F0896B33400A21377 /* OWABSearchWindowController.h */,
 				EE147A7E0896B33400A21377 /* OWABSearchWindowController.m */,
-				EE147A780896B32400A21377 /* ABSearch.xib */,
 				347E786907CA972100350507 /* AddContact.xib */,
 				347E786A07CA972100350507 /* AddGroup.xib */,
 				F5361E3103058E2A01A8010A /* Images */,
@@ -6136,6 +6135,7 @@
 				63218C720E518A940008E0D0 /* AdiumAuthorization.h in Headers */,
 				636D93F40E4EAB7500E5F558 /* AIContactObserverManager.h in Headers */,
 				636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */,
+				ADD1E5C0DE0000000000CE00 /* AIAddressBookPerson.h in Headers */,
 				34DC8A440A7EEEF7003E1636 /* AIApplescriptabilityControllerProtocol.h in Headers */,
 				34DC8A450A7EEEF7003E1636 /* AIControllerProtocol.h in Headers */,
 				34DC8A460A7EEEF7003E1636 /* AIAccountControllerProtocol.h in Headers */,
@@ -6726,7 +6726,6 @@
 				071C56330827933100399C0F /* Shared Dock Icon Images in Resources */,
 				4BB9972F083D1A74006ACD6F /* ContactListShowBehavior.xib in Resources */,
 				EE147A6D0896B18800A21377 /* ABSearch.png in Resources */,
-				EE147A790896B32400A21377 /* ABSearch.xib in Resources */,
 				63C120750910A0DD00C9DB57 /* DefaultXtraReadme.rtf in Resources */,
 				ADD1E5C0DE00000000001602 /* ListThemeSheet.xib in Resources */,
 				34D0FF8509569FE500DCB678 /* PersonalPreferencesDefaults.plist in Resources */,
@@ -7416,6 +7415,7 @@
 				34A1A8EE0DFB27A800AC78CF /* AICustomSocialNetworkingStatusWindowController.m in Sources */,
 				6311F4720E340DD2004234B8 /* AISharedAdium.m in Sources */,
 				636D8C980E4E95A500E5F558 /* AIAddressBookController.m in Sources */,
+				ADD1E5C0DE0000000000CE01 /* AIAddressBookPerson.m in Sources */,
 				63DF5B220E52D77F00010E99 /* AIContactList.m in Sources */,
 				114849BA0F7841C600EA5264 /* AIAuthorizationRequestsWindowController.m in Sources */,
 				111D58220F7FC1B900883487 /* AIListContactGroupChatCell.m in Sources */,

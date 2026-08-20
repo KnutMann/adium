@@ -1,23 +1,23 @@
-/* 
+/*
  * Adium is the legal property of its developers, whose names are listed in the copyright file included
  * with this source distribution.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if not,
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import <AddressBook/AddressBook.h>
 #import <Adium/AIContactObserverManager.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIUserIcons.h>
+#import <Adium/AIAddressBookPerson.h>
 
 #define PREF_GROUP_ADDRESSBOOK					@"Address Book"
 #define KEY_AB_ENABLE_IMPORT					@"AB Enable Import"
@@ -47,21 +47,20 @@ typedef enum {
 	AIRequiresAddressBookEntry
 } AIAddressBookContextMenuTag;
 
-@interface AIAddressBookController : NSObject <AIListObjectObserver, ABImageClient, NSMenuItemValidation> {
+@interface AIAddressBookController : NSObject <AIListObjectObserver, NSMenuItemValidation> {
 @private
 	NSMenuItem			*showInABContextualMenuItem;
 	NSMenuItem			*editInABContextualMenuItem;
 
-	NSInteger			meTag;
-    
 	NSString				*displayFormat;
 	BOOL					enableImport;
 	BOOL					useFirstName;
 	BOOL					useNickNameOnly;
 	BOOL					createMetaContacts;
-	
+	BOOL					rebuildScheduled;
+
 	AIAddressBookUserIconSource *addressBookUserIconSource;
-	
+
 	NSMutableDictionary			*personUniqueIdToMetaContactDict;
 }
 
@@ -70,7 +69,11 @@ typedef enum {
 
 + (AIService *)serviceFromProperty:(NSString *)property;
 + (NSString *)propertyFromService:(AIService *)service;
-+ (ABPerson *)personForListObject:(AIListObject *)inObject;
-+ (void)userAssignedPerson:(ABPerson *)person toContact:(AIListContact *)contact;
++ (AIAddressBookPerson *)personForListObject:(AIListObject *)inObject;
++ (void)userAssignedPerson:(AIAddressBookPerson *)person toContact:(AIListContact *)contact;
+
+//Every card, unsorted; each element is an AIAddressBookPerson
++ (NSArray *)allPeople;
++ (AIAddressBookPerson *)personForUniqueId:(NSString *)uniqueId;
 
 @end

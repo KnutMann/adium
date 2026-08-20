@@ -26,7 +26,7 @@
  */
 #define KEY_CONTACT_PHONE_NUMBER	@"Phone Number"
 
-@class ABPerson, AIListGroup, AIMetaContact;
+@class AIAddressBookPerson, AIListGroup, AIMetaContact;
 
 @interface AIListContact : AIListObject {
 	AIAccount	*account;
@@ -108,7 +108,7 @@
 - (NSWritingDirection)baseWritingDirection;
 - (void)setBaseWritingDirection:(NSWritingDirection)direction;
 
-- (ABPerson *)addressBookPerson;
-- (void)setAddressBookPerson:(ABPerson *)inPerson;
+- (AIAddressBookPerson *)addressBookPerson;
+- (void)setAddressBookPerson:(AIAddressBookPerson *)inPerson;
 
 @end

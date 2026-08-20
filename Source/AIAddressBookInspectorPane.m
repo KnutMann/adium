@@ -17,6 +17,7 @@
 #import "AIAddressBookInspectorPane.h"
 
 #import <Adium/AIAddressBookController.h>
+#import <Contacts/Contacts.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListObject.h>
 #import <AIUtilities/AIStringAdditions.h>
@@ -34,7 +35,7 @@
 
 @interface AIAddressBookInspectorPane ()
 - (void)buildView;
-- (ABPerson *)attachedPerson;
+- (AIAddressBookPerson *)attachedPerson;
 - (BOOL)attachmentWasChosen;
 - (void)applyFilter;
 - (void)filterChanged:(id)sender;
@@ -50,10 +51,10 @@
 /*!
  * @brief The name a card goes by
  */
-static NSString *AICardName(ABPerson *person)
+static NSString *AICardName(AIAddressBookPerson *person)
 {
-	NSString		*first = [person valueForProperty:kABFirstNameProperty];
-	NSString		*last = [person valueForProperty:kABLastNameProperty];
+	NSString		*first = person.firstName;
+	NSString		*last = person.lastName;
 	NSMutableArray	*parts = [NSMutableArray array];
 
 	if ([first length]) [parts addObject:first];
@@ -62,7 +63,7 @@ static NSString *AICardName(ABPerson *person)
 	if ([parts count])
 		return [parts componentsJoinedByString:@" "];
 
-	NSString *organisation = [person valueForProperty:kABOrganizationProperty];
+	NSString *organisation = person.organization;
 
 	return ([organisation length] ? organisation : AICardString(@"Unnamed card", "Name shown for an address book card that has no name on it"));
 }
@@ -77,7 +78,7 @@ static NSString *AICardName(ABPerson *person)
 		 * open while somebody edits a card next door is exactly the wrong moment to be stale. */
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(addressBookChanged:)
-													 name:kABDatabaseChangedExternallyNotification
+													 name:CNContactStoreDidChangeNotification
 												   object:nil];
 
 		/* The notification is not enough by itself: merging two cards in the Contacts app
@@ -257,7 +258,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 //What is attached ------------------------------------------------------------------------------------------------
 #pragma mark What is attached
 
-- (ABPerson *)attachedPerson
+- (AIAddressBookPerson *)attachedPerson
 {
 	return (displayedObject ? [AIAddressBookController personForListObject:displayedObject] : nil);
 }
@@ -282,7 +283,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 - (void)loadPeople
 {
 	[people release];
-	people = [[[[ABAddressBook sharedAddressBook] people] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+	people = [[[AIAddressBookController allPeople] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
 		return [AICardName(a) localizedCaseInsensitiveCompare:AICardName(b)];
 	}] retain];
 }
@@ -313,7 +314,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
  */
 - (void)updateState
 {
-	ABPerson	*person = [self attachedPerson];
+	AIAddressBookPerson	*person = [self attachedPerson];
 	BOOL		 chosen = [self attachmentWasChosen];
 	BOOL		 showSummary = (person && !choosing);
 
@@ -352,7 +353,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 		return;
 
 	AIListContact	*contact = (AIListContact *)displayedObject;
-	ABPerson		*person = [self attachedPerson];
+	AIAddressBookPerson		*person = [self attachedPerson];
 
 	if (person && !choosing) {
 		if ([self attachmentWasChosen]) {
@@ -371,7 +372,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 		if (row < 0 || row >= (NSInteger)[shown count])
 			return;
 
-		ABPerson *chosen = [shown objectAtIndex:row];
+		AIAddressBookPerson *chosen = [shown objectAtIndex:row];
 		[contact setAddressBookPerson:chosen];
 		[AIAddressBookController userAssignedPerson:chosen toContact:contact];
 		choosing = NO;
@@ -395,7 +396,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	} else {
 		NSMutableArray *matching = [NSMutableArray array];
 
-		for (ABPerson *person in people) {
+		for (AIAddressBookPerson *person in people) {
 			if ([AICardName(person) rangeOfString:text
 										  options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound)
 				[matching addObject:person];
