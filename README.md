@@ -46,10 +46,10 @@ Current version: **1.8.0**.
 * Microsoft Teams (via
   [purple-teams](https://github.com/EionRobb/purple-teams)), both work
   and personal accounts
-* IRCv3 (via
-  [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3)) with
-  typing notifications and other IRCv3 capabilities, alongside the
-  built-in IRC
+* IRC modernized: the built-in IRC protocol is replaced by
+  [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3), which
+  speaks the same protocol plus typing notifications and other IRCv3
+  capabilities
 * XMPP brought forward: message carbons (XEP-0280), so a conversation
   continued on another device shows up here too; client state
   indication (XEP-0352), telling the server when Adium is in the
