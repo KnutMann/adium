@@ -65,13 +65,16 @@
 	[NSGraphicsContext saveGraphicsState];
 
 	/* Lightly rounded and unframed, the shared style of every contact picture in
-	 * the info window. Clipped against the bounds, not the dirty rect: a partial
+	 * the info window - except the placeholder, whose own border a rounded clip
+	 * would cut into. Clipped against the bounds, not the dirty rect: a partial
 	 * redraw must not invent corners in the middle of the picture. */
-	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:[self bounds] radius:4];
+	if (!squareCorners) {
+		NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:[self bounds] radius:4];
 
-	//Ensure we have an even/odd winding rule in effect
-	[clipPath setWindingRule:NSWindingRuleEvenOdd];
-	[clipPath addClip];
+		//Ensure we have an even/odd winding rule in effect
+		[clipPath setWindingRule:NSWindingRuleEvenOdd];
+		[clipPath addClip];
+	}
 	
 	[NSGraphicsContext saveGraphicsState];
 	[super drawRect:inRect];
@@ -92,6 +95,14 @@
 	}
 
 	[NSGraphicsContext restoreGraphicsState];
+}
+
+- (void)setSquareCorners:(BOOL)inSquareCorners
+{
+	if (squareCorners != inSquareCorners) {
+		squareCorners = inSquareCorners;
+		[self setNeedsDisplay:YES];
+	}
 }
 
 #pragma mark Snapback

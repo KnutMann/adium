@@ -327,8 +327,15 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 
 	if (showSummary) {
 		NSData	*imageData = [person imageData];
+		BOOL	 hasPicture = ([imageData length] > 0);
 
-		[cardImage setImage:([imageData length] ? [[[NSImage alloc] initWithData:imageData] autorelease] : nil)];
+		/* A card without a photo shows the same placeholder as the first tab, and the
+		 * placeholder keeps its square corners: it carries a border of its own, which
+		 * a rounded clip would cut into. */
+		[cardImage setImage:(hasPicture ?
+							 [[[NSImage alloc] initWithData:imageData] autorelease] :
+							 [NSImage imageNamed:@"default-icon" forClass:[self class]])];
+		[[cardImage layer] setCornerRadius:(hasPicture ? 4.0 : 0.0)];
 		[cardName setStringValue:AICardName(person)];
 		[cardOrigin setStringValue:(chosen ?
 									AILocalizedString(@"Chosen by you", "Where an attached address book card came from") :

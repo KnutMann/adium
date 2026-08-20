@@ -123,9 +123,11 @@
 	NSSize		userIconSize, imagePickerSize;
 
 	//User Icon
-	if (!(currentIcon = [inObject userIcon])) {
+	BOOL usingPlaceholder = ((currentIcon = [inObject userIcon]) == nil);
+	if (usingPlaceholder) {
 		currentIcon = [NSImage imageNamed:@"default-icon" forClass:[self class]];
 	}
+	[userIcon setSquareCorners:usingPlaceholder];
 	
 	/* NSImageScaleProportionallyDown will lock an animated GIF into a single frame.  We therefore use NSImageScaleNone if
 	 * we are already at the right size or smaller than the right size; otherwise we scale proportionally to

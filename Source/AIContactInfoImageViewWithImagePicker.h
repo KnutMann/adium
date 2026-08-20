@@ -17,11 +17,20 @@
 #import <AIUtilities/AIImageViewWithImagePicker.h>
 
 @interface AIContactInfoImageViewWithImagePicker : AIImageViewWithImagePicker {
+	BOOL				squareCorners;
 	BOOL				resetImageHovered;
 	NSTrackingRectTag	resetImageTrackingTag;
 	BOOL				showResetImageButton;
 }
 
 - (void)setShowResetImageButton:(BOOL)inShowResetImageButton;
+
+/*!
+ * @brief Draw without the rounded corners
+ *
+ * For the default placeholder picture, whose own border a rounded clip would
+ * cut into; a real contact picture keeps the rounding.
+ */
+- (void)setSquareCorners:(BOOL)inSquareCorners;
 
 @end
