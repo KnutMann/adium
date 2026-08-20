@@ -33,7 +33,7 @@
 
 @property (readonly, nonatomic) CNContact *contact;
 
-//The card's stable identifier: CNContact.identifier, a plain UUID string
+//The card's stable identifier: CNContact.identifier (on macOS: UUID plus ":ABPerson")
 @property (readonly, nonatomic) NSString *uniqueId;
 
 @property (readonly, nonatomic) NSString *firstName;

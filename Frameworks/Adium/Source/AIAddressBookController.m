@@ -83,9 +83,9 @@
  * metacontact grouping all hang off that one answer.
  *
  * The data comes from Contacts.framework. The deprecated AddressBook framework,
- * which this class grew up on, is gone from it; the stored links carry its old
- * ":ABPerson"-suffixed identifiers for a while yet, and those are translated on
- * the way in, since both frameworks agree on the UUID under the suffix.
+ * which this class grew up on, is gone from it; the stored links keep working
+ * unchanged, because the store's identifiers turn out to be the old framework's
+ * own, ":ABPerson" suffix included - see AINormalizedUniqueId.
  */
 @implementation AIAddressBookController
 
@@ -168,15 +168,17 @@ static NSString *AIEmailKey(NSString *address)
 }
 
 /*!
- * @brief A stored card identifier, brought into today's form
+ * @brief A stored card identifier, brought into the store's form
  *
- * Links written by the AddressBook years carry ":ABPerson" behind the UUID;
- * Contacts identifiers are the bare UUID of the same card.
+ * Measured, not assumed: on macOS the Contacts store hands out identifiers in
+ * the old framework's own shape, UUID plus ":ABPerson", and a lookup with the
+ * bare UUID answers "Updated Record Does Not Exist". Old links therefore fit
+ * as they are; a bare UUID from anywhere else gets the suffix put on.
  */
 static NSString *AINormalizedUniqueId(NSString *uniqueId)
 {
-	if ([uniqueId hasSuffix:@":ABPerson"])
-		return [uniqueId substringToIndex:([uniqueId length] - [@":ABPerson" length])];
+	if ([uniqueId rangeOfString:@":"].location == NSNotFound)
+		return [uniqueId stringByAppendingString:@":ABPerson"];
 
 	return uniqueId;
 }
@@ -1159,13 +1161,12 @@ static NSArray *AIContactKeysToFetch(void)
 			metaContactHint = [adium.contactController knownMetaContactForGroupingUIDs:UIDsArray
 																		 forServices:servicesArray];
 			if (!metaContactHint) {
-				/* Find a metacontact we used previously but which wasn't saved, if possible. The stored
-				 * keys may still be in the old framework's suffixed form; both forms are asked. */
+				/* Find a metacontact we used previously but which wasn't saved, if possible. The
+				 * store's identifiers wear the same ":ABPerson" suffix the stored keys always
+				 * did, so the key fits as it is. */
 				NSDictionary *prefsDict = [adium.preferenceController preferenceForKey:KEY_AB_TO_METACONTACT_DICT
 																			  group:PREF_GROUP_ADDRESSBOOK];
 				NSNumber *metaContactObjectID = [prefsDict objectForKey:uniqueId];
-				if (!metaContactObjectID)
-					metaContactObjectID = [prefsDict objectForKey:[uniqueId stringByAppendingString:@":ABPerson"]];
 				if (metaContactObjectID)
 					metaContactHint = [adium.contactController metaContactWithObjectID:metaContactObjectID];
 			}
@@ -1220,14 +1221,13 @@ static NSArray *AIContactKeysToFetch(void)
 /*!
  * @brief The Contacts app's deep link to a card
  *
- * The app still speaks the old scheme, and the old scheme's identifiers wear
- * the ":ABPerson" suffix, so it is put back on for the trip.
+ * The store's identifiers already wear the shape the scheme expects.
  */
 + (NSURL *)addressBookURLForPerson:(AIAddressBookPerson *)person edit:(BOOL)edit
 {
 	if (!person) return nil;
 
-	return [NSURL URLWithString:[NSString stringWithFormat:@"addressbook://%@:ABPerson%@",
+	return [NSURL URLWithString:[NSString stringWithFormat:@"addressbook://%@%@",
 								 person.uniqueId, (edit ? @"?edit" : @"")]];
 }
 
