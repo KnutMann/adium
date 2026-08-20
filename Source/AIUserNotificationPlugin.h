@@ -23,6 +23,10 @@
 #define PREF_GROUP_NOTIFICATIONS	@"Notifications"
 #define KEY_NOTIFICATIONS_ENABLED	@"Show Notifications"
 
+/* How the contact picture in a banner is masked. Absent means round; 1 is rounded
+ * corners. The Events pane owns the menu. */
+#define KEY_NOTIFICATION_ICON_SHAPE	@"Contact Picture Shape"
+
 @interface AIUserNotificationPlugin : AIPlugin <AIActionHandler, UNUserNotificationCenterDelegate> {
 	NSMutableDictionary	*queuedEvents;
 }

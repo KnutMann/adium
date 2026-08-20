@@ -68,6 +68,7 @@
 - (NSMenu *)eventPresetsMenu;
 - (IBAction)selectSoundSet:(id)sender;
 - (void)changeNotificationsEnabled:(id)sender;
+- (void)changeNotificationIconShape:(id)sender;
 - (NSMenu *)_soundSetMenu;
 - (NSString *)_localizedTitle:(NSString *)englishTitle;
 - (void)saveCurrentEventPreset;
@@ -211,6 +212,22 @@ static NSString *AIRowLabel(NSString *label)
 	[form addRowWithLabel:AILocalizedString(@"Show notifications", "Label of the global switch for Notification Center banners on the Events pane")
 				  control:switch_notifications
 				   detail:AILocalizedString(@"Banners in Notification Center for the events below. Whether macOS lets them through is decided in System Settings.", "Second line under the global notifications switch")];
+
+	/* The banner carries the sender's picture; this decides its mask. Absent means
+	 * round, so only the rounded-corners choice is ever stored. */
+	NSNumber *iconShape = [adium.preferenceController preferenceForKey:KEY_NOTIFICATION_ICON_SHAPE
+																 group:PREF_GROUP_NOTIFICATIONS];
+	popUp_notificationIconShape = [AISettingsFormView popUpButtonWithTitles:
+								   [NSArray arrayWithObjects:
+									AILocalizedString(@"Round", "Banner contact picture shape: a circle"),
+									AILocalizedString(@"Rounded corners", "Banner contact picture shape: a square with rounded corners"),
+									nil]
+																	 target:self
+																	 action:@selector(changeNotificationIconShape:)];
+	[popUp_notificationIconShape selectItemAtIndex:(([iconShape integerValue] == 1) ? 1 : 0)];
+	[form addRowWithLabel:AILocalizedString(@"Contact picture", "Label of the menu choosing the shape of the contact picture in notification banners")
+			  popUpButton:popUp_notificationIconShape
+		  accessoryButton:nil];
 
 	/* Pop up rows rather than plain control rows: both menus are rebuilt while the pane is open —
 	 * presets as they are added and removed, sound sets as Xtras come and go — and the buttons then
@@ -507,6 +524,8 @@ static NSString *AIRowLabel(NSString *label)
 	[button_maxvolume setTarget:nil];
 	[switch_notifications setTarget:nil];
 	switch_notifications = nil;
+	[popUp_notificationIconShape setTarget:nil];
+	popUp_notificationIconShape = nil;
 
 	/* All of these references are non-retaining and the views behind them go away with the form or
 	 * with the nib's view, either of which may be released after us; forget them so a second
@@ -961,6 +980,20 @@ static NSString *AIRowLabel(NSString *label)
 			}
 		});
 	}];
+}
+
+/*!
+ * @brief The banner picture shape was chosen.
+ *
+ * Round is the default and is stored as nothing at all.
+ */
+- (void)changeNotificationIconShape:(id)sender
+{
+	NSInteger index = [popUp_notificationIconShape indexOfSelectedItem];
+
+	[adium.preferenceController setPreference:((index == 1) ? [NSNumber numberWithInteger:1] : nil)
+									   forKey:KEY_NOTIFICATION_ICON_SHAPE
+										group:PREF_GROUP_NOTIFICATIONS];
 }
 
 #pragma mark Sound sets

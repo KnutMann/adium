@@ -29,6 +29,7 @@
 #import <Adium/AIListContact.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIStatus.h>
+#import <Adium/AIUserIcons.h>
 #import <Adium/ESFileTransfer.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
@@ -57,6 +58,7 @@
  * contact the notification can name again later. */
 #define MESSAGE_CATEGORY_IDENTIFIER	@"AIMessageNotificationCategory"
 #define MESSAGE_ACTION_REPLY		@"AIMessageNotificationReply"
+
 #define KEY_LIST_OBJECT_ID		@"internalObjectID"
 
 @interface AIUserNotificationPlugin ()
@@ -76,7 +78,9 @@
 - (void)postNotificationWithTitle:(NSString *)title
 							 body:(NSString *)body
 					 clickContext:(NSDictionary *)clickContext
-					   identifier:(NSString *)identifier;
+					   identifier:(NSString *)identifier
+					   listObject:(AIListObject *)listObject;
+- (UNNotificationAttachment *)attachmentForUserIcon:(NSImage *)userIcon;
 
 - (void)adiumFinishedLaunching:(NSNotification *)notification;
 - (void)beginNotifying;
@@ -507,7 +511,8 @@
 	[self postNotificationWithTitle:title
 							   body:description
 					   clickContext:clickContext
-						 identifier:identifier];
+						 identifier:identifier
+						 listObject:listObject];
 }
 
 - (void)postMultipleEventID:(NSString *)eventID
@@ -567,13 +572,15 @@
 	[self postNotificationWithTitle:title
 							   body:description
 					   clickContext:clickContext
-						 identifier:identifier];
+						 identifier:identifier
+						 listObject:listObject];
 }
 
 - (void)postNotificationWithTitle:(NSString *)title
 							 body:(NSString *)body
 					 clickContext:(NSDictionary *)clickContext
 					   identifier:(NSString *)identifier
+					   listObject:(AIListObject *)listObject
 {
 	UNMutableNotificationContent *content = [[[UNMutableNotificationContent alloc] init] autorelease];
 	content.title = title ? title : @"Adium";
@@ -589,6 +596,14 @@
 		content.categoryIdentifier = MESSAGE_CATEGORY_IDENTIFIER;
 	}
 
+	/* The sender's picture, masked round or with rounded corners as the Events pane
+	 * says. An attachment failing to build is no reason to hold the notification. */
+	NSImage *userIcon = (listObject ? [AIUserIcons userIconForObject:listObject] : nil);
+	if (userIcon) {
+		UNNotificationAttachment *attachment = [self attachmentForUserIcon:userIcon];
+		if (attachment) content.attachments = [NSArray arrayWithObject:attachment];
+	}
+
 	if (!identifier)
 		identifier = [[NSProcessInfo processInfo] globallyUniqueString];
 
@@ -602,6 +617,80 @@
 			AILogWithSignature(@"Error posting notification: %@", error);
 		}
 	}];
+}
+
+/*!
+ * @brief The user icon as a notification attachment, masked for the banner.
+ *
+ * The system takes ownership of the file behind an attachment — it is moved into the
+ * notification store — so every call writes a fresh one and nothing is left to clean
+ * up. Nil when anything on the way fails: a notification without a picture beats none.
+ */
+- (UNNotificationAttachment *)attachmentForUserIcon:(NSImage *)userIcon
+{
+	const CGFloat side = 192.0;
+
+	NSBitmapImageRep *rep = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+																	 pixelsWide:side
+																	 pixelsHigh:side
+																  bitsPerSample:8
+																samplesPerPixel:4
+																	   hasAlpha:YES
+																	   isPlanar:NO
+																 colorSpaceName:NSCalibratedRGBColorSpace
+																	bytesPerRow:0
+																   bitsPerPixel:0] autorelease];
+	if (!rep) return nil;
+
+	[NSGraphicsContext saveGraphicsState];
+	[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:rep]];
+
+	NSRect target = NSMakeRect(0, 0, side, side);
+
+	//Round unless the Events pane chose rounded corners; the radius is the app-icon curvature
+	BOOL roundedCorners = ([[adium.preferenceController preferenceForKey:KEY_NOTIFICATION_ICON_SHAPE
+																   group:PREF_GROUP_NOTIFICATIONS] integerValue] == 1);
+	NSBezierPath *mask = (roundedCorners ?
+						  [NSBezierPath bezierPathWithRoundedRect:target xRadius:(side * 0.225f) yRadius:(side * 0.225f)] :
+						  [NSBezierPath bezierPathWithOvalInRect:target]);
+	[mask addClip];
+
+	//Fill the square: a non-square picture is cropped centered rather than squashed
+	NSSize iconSize = [userIcon size];
+	NSRect fromRect = NSMakeRect(0, 0, iconSize.width, iconSize.height);
+	if (iconSize.width > iconSize.height) {
+		fromRect.size.width = iconSize.height;
+		fromRect.origin.x = (iconSize.width - iconSize.height) / 2.0f;
+	} else if (iconSize.height > iconSize.width) {
+		fromRect.size.height = iconSize.width;
+		fromRect.origin.y = (iconSize.height - iconSize.width) / 2.0f;
+	}
+
+	[userIcon drawInRect:target
+				fromRect:fromRect
+			   operation:NSCompositingOperationSourceOver
+				fraction:1.0f
+		  respectFlipped:NO
+				   hints:nil];
+
+	[NSGraphicsContext restoreGraphicsState];
+
+	NSData *png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:[NSDictionary dictionary]];
+	if (!png) return nil;
+
+	NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:
+					  [NSString stringWithFormat:@"adium-notification-icon-%@.png",
+					   [[NSProcessInfo processInfo] globallyUniqueString]]];
+	if (![png writeToFile:path atomically:YES]) return nil;
+
+	NSError *error = nil;
+	UNNotificationAttachment *attachment = [UNNotificationAttachment attachmentWithIdentifier:@"AIUserIconAttachment"
+																						  URL:[NSURL fileURLWithPath:path]
+																					  options:nil
+																						error:&error];
+	if (!attachment) AILogWithSignature(@"Could not attach the contact picture: %@", error);
+
+	return attachment;
 }
 
 #pragma mark UNUserNotificationCenterDelegate

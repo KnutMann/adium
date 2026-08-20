@@ -46,7 +46,8 @@
 	IBOutlet	NSPopUpButton	*popUp_soundSet;
 
 	//Code-built: the global gate for Notification Center, above the per-event list
-	NSSwitch	*switch_notifications;
+	NSSwitch		*switch_notifications;
+	NSPopUpButton	*popUp_notificationIconShape;	//Round or rounded corners for the banner's contact picture
 
 	/* No longer displayed: their words became the row labels. The outlets stay because the nib
 	 * still connects them, and nib loading throws on a key it cannot find. */
