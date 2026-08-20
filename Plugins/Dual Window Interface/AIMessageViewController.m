@@ -25,6 +25,7 @@
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
+#import <Adium/AIEmoticonControllerProtocol.h>
 #import <Adium/AIContentMessage.h>
 #import <Adium/AIMetaContact.h>
 #import <Adium/AIListOutlineView.h>
@@ -145,6 +146,7 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		//Observe general preferences for sending keys
 		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_GENERAL];
 		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_DUAL_WINDOW_INTERFACE];
+		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_EMOTICONS];
 
 		/* Update chat status and participating list objects to configure the user list if necessary
 		 * Call chatParticipatingListObjectsChanged first, which will set up the user list. This allows other sizing to match.
@@ -889,6 +891,13 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		if (firstTime || [key isEqualToString:KEY_ENTRY_USER_LIST_MIN_WIDTH]) {
 			userListMinWidth = [[prefDict objectForKey:KEY_ENTRY_USER_LIST_MIN_WIDTH] doubleValue];
 		}
+	} else if ([group isEqualToString:PREF_GROUP_EMOTICONS]) {
+		if (firstTime || [key isEqualToString:KEY_EMOTICON_MENU_ENABLED]) {
+			emoticonMenuEnabled = [[prefDict objectForKey:KEY_EMOTICON_MENU_ENABLED] boolValue];
+
+			if ([textView_outgoing chat])
+				[textView_outgoing setHasEmoticonsMenu:emoticonMenuEnabled];
+		}
 	}
 }
 
@@ -938,6 +947,8 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 	if ([[textView_outgoing enclosingScrollView] respondsToSelector:@selector(setVerticalScrollElasticity:)]) {
 		[[textView_outgoing enclosingScrollView] setVerticalScrollElasticity:1]; // Swap 1 with NSScrollElasticityNone on 10.7+
 	}
+
+	[textView_outgoing setHasEmoticonsMenu:emoticonMenuEnabled];
 }
 
 /*!

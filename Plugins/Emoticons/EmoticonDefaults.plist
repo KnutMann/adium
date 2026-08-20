@@ -6,5 +6,7 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<key>Emoticon Menu Enabled</key>
+	<true/>
 </dict>
 </plist>

@@ -971,6 +971,11 @@
 		ADD1E5C0DE0000000000CE01 /* AIAddressBookPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CE03 /* AIAddressBookPerson.m */; };
 		636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E2A2EE07B018B1006735BC /* AIAddressBookController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CE00 /* AIAddressBookPerson.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CE02 /* AIAddressBookPerson.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000CF00 /* AIMessageViewEmoticonsController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF05 /* AIMessageViewEmoticonsController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000CF01 /* AIMessageViewEmoticonsController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF06 /* AIMessageViewEmoticonsController.m */; };
+		ADD1E5C0DE0000000000CF02 /* MessageViewEmoticonsMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF07 /* MessageViewEmoticonsMenu.xib */; };
+		ADD1E5C0DE0000000000CF03 /* emoticons_menu.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF08 /* emoticons_menu.png */; };
+		ADD1E5C0DE0000000000CF04 /* emoticons_menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF09 /* emoticons_menu@2x.png */; };
 		ADD1E5C0DE0000000000CE04 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C102 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C302 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */; };
@@ -2697,6 +2702,11 @@
 		636D8C970E4E95A500E5F558 /* AIAddressBookController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookController.m; path = Frameworks/Adium/Source/AIAddressBookController.m; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CE02 /* AIAddressBookPerson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAddressBookPerson.h; path = Frameworks/Adium/Source/AIAddressBookPerson.h; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CE03 /* AIAddressBookPerson.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookPerson.m; path = Frameworks/Adium/Source/AIAddressBookPerson.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CF05 /* AIMessageViewEmoticonsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageViewEmoticonsController.h; path = Frameworks/Adium/Source/AIMessageViewEmoticonsController.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CF06 /* AIMessageViewEmoticonsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageViewEmoticonsController.m; path = Frameworks/Adium/Source/AIMessageViewEmoticonsController.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CF07 /* MessageViewEmoticonsMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MessageViewEmoticonsMenu.xib; path = Frameworks/Adium/Resources/MessageViewEmoticonsMenu.xib; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CF08 /* emoticons_menu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = emoticons_menu.png; path = Frameworks/Adium/Resources/emoticons_menu.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CF09 /* emoticons_menu@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "emoticons_menu@2x.png"; path = "Frameworks/Adium/Resources/emoticons_menu@2x.png"; sourceTree = "<group>"; };
 		636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Jabber.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Jabber.scpt; sourceTree = "<group>"; };
 		638BC1FA0FC932E000CE7600 /* AIObjectDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIObjectDebug.h; path = Source/AIObjectDebug.h; sourceTree = "<group>"; };
 		638BC1FB0FC932E000CE7600 /* AIObjectDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIObjectDebug.m; path = Source/AIObjectDebug.m; sourceTree = "<group>"; };
@@ -4575,6 +4585,11 @@
 				F55B416E03AB8C3201A8010A /* AIPasswordPromptController.h */,
 				F55B416603AB8BFC01A8010A /* AIPasswordPromptController.m */,
 				349DDD5206406A7D00542726 /* stackImage.png */,
+				ADD1E5C0DE0000000000CF05 /* AIMessageViewEmoticonsController.h */,
+				ADD1E5C0DE0000000000CF06 /* AIMessageViewEmoticonsController.m */,
+				ADD1E5C0DE0000000000CF07 /* MessageViewEmoticonsMenu.xib */,
+				ADD1E5C0DE0000000000CF08 /* emoticons_menu.png */,
+				ADD1E5C0DE0000000000CF09 /* emoticons_menu@2x.png */,
 			);
 			name = Interface;
 			sourceTree = "<group>";
@@ -6136,6 +6151,7 @@
 				636D93F40E4EAB7500E5F558 /* AIContactObserverManager.h in Headers */,
 				636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */,
 				ADD1E5C0DE0000000000CE00 /* AIAddressBookPerson.h in Headers */,
+				ADD1E5C0DE0000000000CF00 /* AIMessageViewEmoticonsController.h in Headers */,
 				34DC8A440A7EEEF7003E1636 /* AIApplescriptabilityControllerProtocol.h in Headers */,
 				34DC8A450A7EEEF7003E1636 /* AIControllerProtocol.h in Headers */,
 				34DC8A460A7EEEF7003E1636 /* AIAccountControllerProtocol.h in Headers */,
@@ -6853,6 +6869,9 @@
 				34DC8AB40A7EEEF7003E1636 /* DefaultBlockedStatusIcon.png in Resources */,
 				34DC8AD90A7EEEF7003E1636 /* JoinChatWindow.xib in Resources */,
 				34DC8AE40A7EEEF7003E1636 /* stackImage.png in Resources */,
+				ADD1E5C0DE0000000000CF02 /* MessageViewEmoticonsMenu.xib in Resources */,
+				ADD1E5C0DE0000000000CF03 /* emoticons_menu.png in Resources */,
+				ADD1E5C0DE0000000000CF04 /* emoticons_menu@2x.png in Resources */,
 				3419E2DF0A81445800C3FC68 /* Localizable.strings in Resources */,
 				340D859B0ADC82D100D05B3F /* sourceListBackground.png in Resources */,
 				34F144430BA8FF3C000473DE /* EmoticonNames.strings in Resources */,
@@ -7416,6 +7435,7 @@
 				6311F4720E340DD2004234B8 /* AISharedAdium.m in Sources */,
 				636D8C980E4E95A500E5F558 /* AIAddressBookController.m in Sources */,
 				ADD1E5C0DE0000000000CE01 /* AIAddressBookPerson.m in Sources */,
+				ADD1E5C0DE0000000000CF01 /* AIMessageViewEmoticonsController.m in Sources */,
 				63DF5B220E52D77F00010E99 /* AIContactList.m in Sources */,
 				114849BA0F7841C600EA5264 /* AIAuthorizationRequestsWindowController.m in Sources */,
 				111D58220F7FC1B900883487 /* AIListContactGroupChatCell.m in Sources */,

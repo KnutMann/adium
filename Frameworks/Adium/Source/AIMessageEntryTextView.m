@@ -33,7 +33,9 @@
 #import <AIUtilities/AIFileManagerAdditions.h>
 #import <AIUtilities/AIPasteboardAdditions.h>
 #import <AIUtilities/AIBezierPathAdditions.h>
+#import <AIUtilities/AIButtonWithCursor.h>
 #import <Adium/AIContactControllerProtocol.h>
+#import <Adium/AIMessageViewEmoticonsController.h>
 
 #import "NSString+AIBidi.h"
 
@@ -142,6 +144,8 @@
 	characterCounterPrefix = nil;
 	maxCharacters = 0;
 	savedTextColor = nil;
+	hasEmoticonsMenu = NO;
+	emoticonsMenuButton = nil;
 	
 	if ([self respondsToSelector:@selector(setAllowsUndo:)]) {
 		[self setAllowsUndo:YES];
@@ -207,6 +211,7 @@
 	[savedTextColor release];
 	[characterCounter release];
 	[characterCounterPrefix release];
+	[emoticonsMenuButton release];
     [chat release];
     [associatedView release];
     [historyArray release]; historyArray = nil;
@@ -1042,7 +1047,10 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewFrameDidChangeNotification object:[self superview]];
 		
         [self positionPushIndicator]; //Set the indicators initial position
-		
+
+		if (hasEmoticonsMenu)
+			[self updateEmoticonsMenuButton];
+
     } else if (!visible && pushIndicatorVisible) {
         pushIndicatorVisible = visible;
 
@@ -1052,15 +1060,18 @@
         [self setFrameSize:size];
 
 		//Unsubcribe, if necessary.
-		if (!characterCounter) {
+		if (!characterCounter && !hasEmoticonsMenu) {
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
 		}
 		//Remove indicator
         [pushIndicator removeFromSuperview];
         [pushIndicator release]; pushIndicator = nil;
-		
+
 		[self positionPushIndicator];
+
+		if (hasEmoticonsMenu)
+			[self updateEmoticonsMenuButton];
     }
 }
 
@@ -1089,6 +1100,8 @@
 		[self positionPushIndicator];
 	if (characterCounter)
 		[self positionCharacterCounter];
+	if (hasEmoticonsMenu)
+		[self updateEmoticonsMenuButton];
 }
 
 #pragma mark Character Counter
@@ -1117,18 +1130,21 @@
         [self setFrameSize:size];
 
 		//Unsubscribe, if necessary.
-		if (!pushIndicatorVisible) {
+		if (!pushIndicatorVisible && !hasEmoticonsMenu) {
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
 		}
 
 		[characterCounter release];
 		characterCounter = nil;
-		
+
 		// Reposition the push indicator, if necessary.
 		if (pushIndicatorVisible)
 			[self positionPushIndicator];
-		
+
+		if (hasEmoticonsMenu)
+			[self updateEmoticonsMenuButton];
+
 		[[self enclosingScrollView] setNeedsDisplay:YES];
 	}
 }
@@ -1211,17 +1227,21 @@
 	
 	//Shift the text entry view over as necessary.
 	CGFloat indent = 0;
-	if (pushIndicatorVisible || characterCounter) {
+	if (pushIndicatorVisible || characterCounter || hasEmoticonsMenu) {
 		CGFloat pushIndicatorX = pushIndicator ? NSMinX([pushIndicator frame]) : NSMaxX([self bounds]);
 		CGFloat characterCounterX = characterCounter ? NSMinX([characterCounter frame]) : NSMaxX([self bounds]);
-		indent = NSWidth(visRect) - AIfmin(pushIndicatorX, characterCounterX);
+		CGFloat emoticonsMenuButtonX = emoticonsMenuButton ? NSMinX([emoticonsMenuButton frame]) : NSMaxX([self bounds]);
+		indent = NSWidth(visRect) - AIfmin(pushIndicatorX, AIfmin(characterCounterX, emoticonsMenuButtonX));
 	}
 	[self setFrameSize:NSMakeSize(NSWidth(visRect) - indent, NSHeight([self frame]))];
-	
+
 	//Reposition the push indicator if necessary.
 	if (pushIndicatorVisible)
 		[self positionPushIndicator];
-		
+
+	if (hasEmoticonsMenu)
+		[self updateEmoticonsMenuButton];
+
 	[[self enclosingScrollView] setNeedsDisplay:YES];
 }
 
@@ -1238,6 +1258,117 @@
 												 NSMidY([self frame]) - (counterSize.height)/2)];
 	[characterCounter setFrameSize:counterSize];
 	[[self enclosingScrollView] setNeedsDisplay:YES];
+}
+
+#pragma mark Emoticons Menu
+
+/**
+ * @brief Show or hide the smiley button that opens the emoticons menu
+ *
+ * The button sits inside the entry area at its right edge; the text view is
+ * narrowed by the button's width, the same way the indicators make room for
+ * themselves, so text never runs underneath it.
+ */
+- (void)setHasEmoticonsMenu:(BOOL)hasMenu
+{
+	if (hasMenu && !emoticonsMenuButton) {
+		NSImage *emoticonsMenuIcon = [NSImage imageNamed:@"emoticons_menu" forClass:[self class]];
+
+		emoticonsMenuButton = [[AIButtonWithCursor alloc] initWithFrame:NSZeroRect];
+		[emoticonsMenuButton setFrameSize:[emoticonsMenuIcon size]];
+		[emoticonsMenuButton setAutoresizingMask:NSViewMinXMargin];
+		[emoticonsMenuButton setButtonType:NSButtonTypeMomentaryChange];
+		[(AIButtonWithCursor *)emoticonsMenuButton setCursor:[NSCursor arrowCursor]];
+		[emoticonsMenuButton setBordered:NO];
+		[emoticonsMenuButton setTarget:self];
+		[emoticonsMenuButton setAction:@selector(popUpEmoticonsMenu)];
+		[[emoticonsMenuButton cell] setImageScaling:NSImageScaleNone];
+		[emoticonsMenuButton setImage:emoticonsMenuIcon];
+
+		//A darkened copy for the pressed state
+		NSImage *alternateMenuIcon = [[emoticonsMenuIcon copy] autorelease];
+		[alternateMenuIcon lockFocus];
+		[alternateMenuIcon drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositingOperationPlusDarker fraction:0.5f];
+		[alternateMenuIcon unlockFocus];
+		[emoticonsMenuButton setAlternateImage:alternateMenuIcon];
+
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewBoundsDidChangeNotification object:[self superview]];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewFrameDidChangeNotification object:[self superview]];
+
+		//Narrow the text view to make room for the button
+		NSSize size = [self frame].size;
+		size.width -= (NSWidth([emoticonsMenuButton frame]) + INDICATOR_RIGHT_PADDING);
+		[self setFrameSize:size];
+
+		[self updateEmoticonsMenuButton];
+
+		[[self superview] addSubview:emoticonsMenuButton];
+
+	} else if (!hasMenu && emoticonsMenuButton) {
+		[emoticonsMenuButton removeFromSuperview];
+
+		//Give the text view its width back
+		NSSize size = [self frame].size;
+		size.width += (NSWidth([emoticonsMenuButton frame]) + INDICATOR_RIGHT_PADDING);
+		[self setFrameSize:size];
+
+		//Unsubscribe, if necessary.
+		if (!pushIndicatorVisible && !characterCounter) {
+			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
+			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
+		}
+
+		[emoticonsMenuButton release];
+		emoticonsMenuButton = nil;
+
+		[[self enclosingScrollView] setNeedsDisplay:YES];
+	}
+
+	hasEmoticonsMenu = hasMenu;
+}
+
+- (BOOL)hasEmoticonsMenu
+{
+	return hasEmoticonsMenu;
+}
+
+- (NSButton *)emoticonsMenuButton
+{
+	return emoticonsMenuButton;
+}
+
+/**
+ * @brief Keep the smiley button in the top right corner of the entry area
+ *
+ * When the entry area is so low that the indicators sit beside the button, it
+ * centers vertically next to them instead.
+ */
+- (void)updateEmoticonsMenuButton
+{
+	NSRect visibleRect = [[self superview] bounds];
+	NSSize menuButtonSize = [emoticonsMenuButton frame].size;
+
+	CGFloat indicatorsWidth = (characterCounter && (visibleRect.size.height / 3.0f) <= menuButtonSize.height + 4.0f) ? NSWidth([characterCounter frame]) + INDICATOR_RIGHT_PADDING : 0.0f;
+	indicatorsWidth += (pushIndicatorVisible && (visibleRect.size.height / 3.0f) <= menuButtonSize.height + 4.0f) ? NSWidth([pushIndicator frame]) + INDICATOR_RIGHT_PADDING : 0.0f;
+
+	//NSMaxY([self frame]) is necessary because visibleRect's height changes after you start typing
+	CGFloat newPositionY = (indicatorsWidth > 0.0f) ? NSMidY([self frame]) - (menuButtonSize.height / 2.0f)
+													: NSMaxY([self frame]) - menuButtonSize.height - 2.0f;
+
+	[emoticonsMenuButton setFrameOrigin:NSMakePoint(NSMaxX(visibleRect) - menuButtonSize.width - INDICATOR_RIGHT_PADDING - indicatorsWidth, newPositionY)];
+
+	[[self enclosingScrollView] setNeedsDisplay:YES];
+}
+
+- (void)popUpEmoticonsMenu
+{
+	if (!hasEmoticonsMenu) return;
+
+	NSRect menuButtonRect = [emoticonsMenuButton frame];
+
+	[AIMessageViewEmoticonsController popUpMenuForTextView:self
+												   atPoint:NSMakePoint(NSMaxX(menuButtonRect) - INDICATOR_RIGHT_PADDING,
+																	   NSMaxY(menuButtonRect))];
 }
 
 #pragma mark List Object Observer / Chat KVO

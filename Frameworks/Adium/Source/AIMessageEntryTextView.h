@@ -66,6 +66,9 @@
 	NSString			*characterCounterPrefix;
 	NSInteger					maxCharacters;
 	NSColor				*savedTextColor;
+
+	BOOL				 hasEmoticonsMenu;
+	NSButton			*emoticonsMenuButton;
 }
 
 @property (readwrite, assign, atomic) id<AIMessageEntryTextViewDelegate, NSTextDelegate> delegate;
@@ -101,5 +104,10 @@
 - (void)pushContent;
 - (void)popContent;
 - (void)swapContent;
+
+//Emoticons menu
+@property (readwrite, nonatomic) BOOL hasEmoticonsMenu;
+@property (readonly, nonatomic) NSButton *emoticonsMenuButton;
+- (void)popUpEmoticonsMenu;
 
 @end

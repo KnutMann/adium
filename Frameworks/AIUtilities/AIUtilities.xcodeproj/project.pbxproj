@@ -255,6 +255,8 @@
 		7E959AD010E3187000C26397 /* AIMathCompatibility.h in Headers */ = {isa = PBXBuildFile; fileRef = 7E959ACF10E3187000C26397 /* AIMathCompatibility.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9718DF45136A2C5200013760 /* AIImageCollectionView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9718DF43136A2C5200013760 /* AIImageCollectionView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9718DF46136A2C5200013760 /* AIImageCollectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9718DF44136A2C5200013760 /* AIImageCollectionView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000CA02 /* AIButtonWithCursor.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CA00 /* AIButtonWithCursor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000CA03 /* AIButtonWithCursor.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CA01 /* AIButtonWithCursor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -732,6 +734,8 @@
 		815D37460A765E83009338C2 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		9718DF43136A2C5200013760 /* AIImageCollectionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIImageCollectionView.h; path = Source/AIImageCollectionView.h; sourceTree = "<group>"; };
 		9718DF44136A2C5200013760 /* AIImageCollectionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIImageCollectionView.m; path = Source/AIImageCollectionView.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CA00 /* AIButtonWithCursor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIButtonWithCursor.h; path = Source/AIButtonWithCursor.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000CA01 /* AIButtonWithCursor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIButtonWithCursor.m; path = Source/AIButtonWithCursor.m; sourceTree = "<group>"; };
 		9719C92B1530EDF700217FBE /* FriBidi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FriBidi.framework; path = Frameworks/FriBidi.framework; sourceTree = "<group>"; };
 		9719C92D1530EE0C00217FBE /* ShortcutRecorder.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ShortcutRecorder.framework; path = Frameworks/ShortcutRecorder.framework; sourceTree = "<group>"; };
 		979AA6B214D5A452008730DF /* libglib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libglib.framework; path = Frameworks/libglib.framework; sourceTree = "<group>"; };
@@ -1826,6 +1830,8 @@
 			children = (
 				9718DF43136A2C5200013760 /* AIImageCollectionView.h */,
 				9718DF44136A2C5200013760 /* AIImageCollectionView.m */,
+				ADD1E5C0DE0000000000CA00 /* AIButtonWithCursor.h */,
+				ADD1E5C0DE0000000000CA01 /* AIButtonWithCursor.m */,
 			);
 			name = "View that displays images in a grid iPhoto style";
 			sourceTree = "<group>";
@@ -2173,6 +2179,7 @@
 				7E959AD010E3187000C26397 /* AIMathCompatibility.h in Headers */,
 				5A5F601E12962ECE007A2232 /* AISegmentedControl.h in Headers */,
 				9718DF45136A2C5200013760 /* AIImageCollectionView.h in Headers */,
+				ADD1E5C0DE0000000000CA02 /* AIButtonWithCursor.h in Headers */,
 				5AA2A0EE14B3EFF500B4DB65 /* AIOSCompatibility.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2526,6 +2533,7 @@
 				11AA10140FCE0969003908B6 /* AIProgressDataUploader.m in Sources */,
 				5A5F601D12962EC0007A2232 /* AISegmentedControl.m in Sources */,
 				9718DF46136A2C5200013760 /* AIImageCollectionView.m in Sources */,
+				ADD1E5C0DE0000000000CA03 /* AIButtonWithCursor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
