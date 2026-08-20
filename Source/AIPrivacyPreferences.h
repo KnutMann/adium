@@ -16,6 +16,7 @@
 
 #import <Adium/AIAdvancedPreferencePane.h>
 #import <Adium/AIContactObserverManager.h>
+#import <Adium/AIAccountMenu.h>
 
 @class AIAccountMenu, AIAccount, AICompletingTextField;
 
@@ -25,7 +26,7 @@
  * The block editor used to be a window of its own; the 1.6 line folded it into
  * the preferences, and so does this. Same brain, our settings-form body.
  */
-@interface AIPrivacyPreferences : AIAdvancedPreferencePane <AIListObjectObserver, NSTableViewDelegate, NSTableViewDataSource> {
+@interface AIPrivacyPreferences : AIAdvancedPreferencePane <AIListObjectObserver, AIAccountMenuDelegate, NSTableViewDelegate, NSTableViewDataSource> {
 	NSPopUpButton			*popUp_accounts;
 	NSPopUpButton			*popUp_privacyLevel;
 	NSTableView				*table;

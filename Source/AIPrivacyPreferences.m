@@ -27,6 +27,8 @@
 #import <Adium/AIPreferenceControllerProtocol.h>
 #import <AIUtilities/AICompletingTextField.h>
 #import <AIUtilities/AIImageTextCell.h>
+#import <AIUtilities/AIMenuAdditions.h>
+#import <AIUtilities/AIPopUpButtonAdditions.h>
 
 #define PRIVACY_TABLE_ROW_HEIGHT	20.0f
 
