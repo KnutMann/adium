@@ -94,6 +94,9 @@ static NSString *AISentenceCaseLabel(NSString *label)
 
 @implementation ESDualWindowMessageAdvancedPreferences
 
+- (NSString *)paneIdentifier{
+	return @"Chats";
+}
 - (NSString *)label{
     return AILocalizedString(@"Messages",nil);
 }

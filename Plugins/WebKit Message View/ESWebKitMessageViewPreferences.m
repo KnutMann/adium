@@ -115,7 +115,7 @@ static NSString *AIRowLabel(NSString *label)
 	return @"Messages";
 }
 - (NSString *)paneName{
-	return AILocalizedString(@"Messages", "Title of the messages preferences");
+	return AILocalizedString(@"Message View", "Title of the message display preferences");
 }
 - (NSImage *)paneIcon
 {

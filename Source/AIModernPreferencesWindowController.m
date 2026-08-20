@@ -235,7 +235,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)paneViewFrameChanged:(NSNotification *)notification;
 - (CGFloat)contentTopInset;
 - (void)navigate:(id)sender;
-- (NSString *)mainPaneOrderIdentifiers;
+- (NSArray *)sidebarGroupDefinitions;
 @end
 
 /* What a preference pane may offer beyond its own view, and what the window asks it about before
@@ -295,48 +295,81 @@ static NSImage *AIPrefPaneIcon(id pane)
 #pragma mark - Data
 
 /*!
- * @brief The main panes in their order, followed by the advanced group.
+ * @brief The sidebar's groups: the arrangement the 1.6 line settled on
  *
- * Personal leads, the way System Settings opens on the person using the Mac
- * rather than on the machinery: it is the page about the user, and the one they
- * come back to. Accounts follows, then the remaining main panes in their
- * historic order, and every advanced pane becomes its own entry under an
- * "Advanced" group header. That flattening is the System Settings idiom and
- * replaces the nested shelf container of the old Advanced pane.
+ * Four groups instead of one flat list with an Advanced annex - the structure
+ * the preferences redesign reached on the Mercurial mainline after our git
+ * lineage had already frozen. Personal still leads within its group, the way
+ * System Settings opens on the person rather than the machinery. An entry
+ * prefixed "adv:" is resolved against the advanced registry; the bare name
+ * alone would be ambiguous, since the chats pane and the message display pane
+ * both answered to "Messages" before they got told apart.
  */
-- (NSString *)mainPaneOrderIdentifiers
+- (NSArray *)sidebarGroupDefinitions
 {
-	return @"Personal,Accounts,General,Appearance,Messages,Status,Events,File Transfer,Xtras";
+	return [NSArray arrayWithObjects:
+			[NSArray arrayWithObjects:AILocalizedString(@"General", nil),
+			 @"Personal", @"Accounts", @"General", @"adv:Chats", @"Status", nil],
+			[NSArray arrayWithObjects:AILocalizedString(@"Appearance", nil),
+			 @"Appearance", @"adv:Contact List", @"Messages", nil],
+			[NSArray arrayWithObjects:AILocalizedString(@"Events", nil),
+			 @"Events", @"adv:Mention", @"adv:Message Alerts", nil],
+			[NSArray arrayWithObjects:AILocalizedString(@"Advanced", nil),
+			 @"adv:Address Book", @"adv:Confirmations", @"adv:Default Client", @"adv:Encryption", @"File Transfer", @"Xtras", nil],
+			nil];
 }
 
 - (void)buildSidebarEntries
 {
 	[sidebarEntries removeAllObjects];
 
-	NSMutableArray *mainPanes = [[[adium.preferenceController paneArray] mutableCopy] autorelease];
-	for (NSString *identifier in [[self mainPaneOrderIdentifiers] componentsSeparatedByString:@","]) {
-		for (AIPreferencePane *pane in mainPanes) {
-			if ([AIPrefPaneIdentifier(pane) isEqualToString:identifier] || [AIPrefPaneName(pane) isEqualToString:identifier]) {
-				[sidebarEntries addObject:pane];
-				[mainPanes removeObject:pane];
-				break;
-			}
-		}
-	}
-	//Anything unordered (third party panes), minus the old Advanced container we replace
-	for (AIPreferencePane *pane in mainPanes) {
-		if (![AIPrefPaneIdentifier(pane) isEqualToString:@"Advanced"]) {
-			[sidebarEntries addObject:pane];
-		}
+	NSMutableArray *mainPool = [[[adium.preferenceController paneArray] mutableCopy] autorelease];
+	NSMutableArray *advancedPool = [[[adium.preferenceController advancedPaneArray] mutableCopy] autorelease];
+
+	//The old Advanced container pane is replaced by the group structure itself
+	for (AIPreferencePane *pane in [[mainPool copy] autorelease]) {
+		if ([AIPrefPaneIdentifier(pane) isEqualToString:@"Advanced"])
+			[mainPool removeObject:pane];
 	}
 
-	NSArray *advancedPanes = [[adium.preferenceController advancedPaneArray] sortedArrayUsingComparator:
-		^NSComparisonResult(id a, id b) {
-			return [AIPrefPaneName(a) localizedCaseInsensitiveCompare:AIPrefPaneName(b)];
-		}];
-	if (advancedPanes.count) {
-		[sidebarEntries addObject:AILocalizedString(@"Advanced", nil)];
-		[sidebarEntries addObjectsFromArray:advancedPanes];
+	NSMutableArray *groupTitles = [NSMutableArray array];
+	NSMutableArray *resolvedGroups = [NSMutableArray array];
+
+	for (NSArray *definition in [self sidebarGroupDefinitions]) {
+		[groupTitles addObject:[definition objectAtIndex:0]];
+
+		NSMutableArray *resolved = [NSMutableArray array];
+		for (NSUInteger i = 1; i < definition.count; i++) {
+			NSString *wanted = [definition objectAtIndex:i];
+			BOOL advanced = [wanted hasPrefix:@"adv:"];
+			NSString *name = (advanced ? [wanted substringFromIndex:4] : wanted);
+			NSMutableArray *pool = (advanced ? advancedPool : mainPool);
+
+			for (AIPreferencePane *pane in pool) {
+				if ([AIPrefPaneIdentifier(pane) isEqualToString:name] || [AIPrefPaneName(pane) isEqualToString:name]) {
+					[resolved addObject:pane];
+					[pool removeObject:pane];
+					break;
+				}
+			}
+		}
+		[resolvedGroups addObject:resolved];
+	}
+
+	/* Whatever nobody claimed - third party panes above all - joins the advanced
+	 * group rather than vanishing. */
+	NSMutableArray *leftovers = [NSMutableArray arrayWithArray:mainPool];
+	[leftovers addObjectsFromArray:advancedPool];
+	[leftovers sortUsingComparator:^NSComparisonResult(id a, id b) {
+		return [AIPrefPaneName(a) localizedCaseInsensitiveCompare:AIPrefPaneName(b)];
+	}];
+	[[resolvedGroups lastObject] addObjectsFromArray:leftovers];
+
+	for (NSUInteger i = 0; i < resolvedGroups.count; i++) {
+		NSArray *panes = [resolvedGroups objectAtIndex:i];
+		if (![panes count]) continue;
+		[sidebarEntries addObject:[groupTitles objectAtIndex:i]];
+		[sidebarEntries addObjectsFromArray:panes];
 	}
 }
 
