@@ -139,22 +139,25 @@
 			case kSecTrustResultOtherError: // failure other than trust evaluation; We'll let the user decide where to go from here.
 			{
 				
-#if 1
-				//Show on an independent window.
+				/* The trust panel only knows how to be a sheet, and a sheet needs a window
+				 * to hang from. There is no natural one during a connect, so it gets an
+				 * anchor - but an invisible one: the sliver of title bar the old visible
+				 * anchor showed under a far larger sheet read as a glitch. With the anchor
+				 * at zero alpha only the certificate card itself is on screen, which is how
+				 * the system presents free-standing dialogs anyway. Titled, because a
+				 * borderless window could not become key for the sheet's sake. */
 #define TRUST_PANEL_WIDTH 535
-				NSWindow *fakeWindow = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TRUST_PANEL_WIDTH, 1)
-																	styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskMiniaturizable)
-																	  backing:NSBackingStoreBuffered
-																		defer:NO] autorelease];
-				[fakeWindow center];
-				[fakeWindow setTitle:AILocalizedString(@"Verify Certificate", nil)];
+				NSWindow *anchorWindow = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TRUST_PANEL_WIDTH, 1)
+																	  styleMask:NSWindowStyleMaskTitled
+																		backing:NSBackingStoreBuffered
+																		  defer:NO] autorelease];
+				[anchorWindow setReleasedWhenClosed:NO];
+				[anchorWindow setAlphaValue:0.0];
+				[anchorWindow setExcludedFromWindowsMenu:YES];
+				[anchorWindow center];
 
-				[self runTrustPanelOnWindow:fakeWindow];
-				[fakeWindow makeKeyAndOrderFront:nil];
-#else
-				//Show as a sheet on the account's preferences
-				[adium.accountController editAccount:account];
-#endif
+				[self runTrustPanelOnWindow:anchorWindow];
+				[anchorWindow makeKeyAndOrderFront:nil];
 				break;
 			}
 			default:
@@ -221,7 +224,10 @@
 
 	[trustpanel release];
 
-	[parentWindow performClose:nil];
+	/* -close, not -performClose:: the anchor has no close button, and -performClose:
+	 * refuses to close what the user could not have closed, so the invisible anchor
+	 * lived on. The autoreleased anchor is not released by closing; see above. */
+	[parentWindow close];
 	
 	[self release];
 }
