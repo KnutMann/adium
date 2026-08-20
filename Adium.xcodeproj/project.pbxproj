@@ -1036,6 +1036,8 @@
 		8184CC360C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 8184CC340C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m */; };
 		818E96A30C16D443007623BD /* AMXMLConsoleController.h in Headers */ = {isa = PBXBuildFile; fileRef = 818E96A10C16D443007623BD /* AMXMLConsoleController.h */; };
 		818E96A40C16D443007623BD /* AMXMLConsoleController.m in Sources */ = {isa = PBXBuildFile; fileRef = 818E96A20C16D443007623BD /* AMXMLConsoleController.m */; };
+		ADD1E5C0DE0000000000D100 /* AIIRCConsoleController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D102 /* AIIRCConsoleController.h */; };
+		ADD1E5C0DE0000000000D101 /* AIIRCConsoleController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D103 /* AIIRCConsoleController.m */; };
 		81DAE8720C261E8A00780E4C /* AMPurpleTuneTooltip.h in Headers */ = {isa = PBXBuildFile; fileRef = 81DAE8700C261E8A00780E4C /* AMPurpleTuneTooltip.h */; };
 		81DAE8730C261E8A00780E4C /* AMPurpleTuneTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 81DAE8710C261E8A00780E4C /* AMPurpleTuneTooltip.m */; };
 		81DAED520C26F4F700780E4C /* AMPurpleJabberServiceDiscoveryBrowsing.h in Headers */ = {isa = PBXBuildFile; fileRef = 81DAED500C26F4F700780E4C /* AMPurpleJabberServiceDiscoveryBrowsing.h */; };
@@ -2802,6 +2804,8 @@
 		8184CC340C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberMoodTooltip.m; path = "Plugins/Purple Service/AMPurpleJabberMoodTooltip.m"; sourceTree = "<group>"; };
 		818E96A10C16D443007623BD /* AMXMLConsoleController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMXMLConsoleController.h; path = "Plugins/Purple Service/AMXMLConsoleController.h"; sourceTree = "<group>"; };
 		818E96A20C16D443007623BD /* AMXMLConsoleController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMXMLConsoleController.m; path = "Plugins/Purple Service/AMXMLConsoleController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D102 /* AIIRCConsoleController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIIRCConsoleController.h; path = "Plugins/Purple Service/AIIRCConsoleController.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D103 /* AIIRCConsoleController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIIRCConsoleController.m; path = "Plugins/Purple Service/AIIRCConsoleController.m"; sourceTree = "<group>"; };
 		81DAE8700C261E8A00780E4C /* AMPurpleTuneTooltip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleTuneTooltip.h; path = "Plugins/Purple Service/AMPurpleTuneTooltip.h"; sourceTree = "<group>"; };
 		81DAE8710C261E8A00780E4C /* AMPurpleTuneTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleTuneTooltip.m; path = "Plugins/Purple Service/AMPurpleTuneTooltip.m"; sourceTree = "<group>"; };
 		81DAED500C26F4F700780E4C /* AMPurpleJabberServiceDiscoveryBrowsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberServiceDiscoveryBrowsing.h; path = "Plugins/Purple Service/AMPurpleJabberServiceDiscoveryBrowsing.h"; sourceTree = "<group>"; };
@@ -3413,6 +3417,8 @@
 				A3C0405808D744B200B48CE1 /* Google Talk */,
 				818E96A10C16D443007623BD /* AMXMLConsoleController.h */,
 				818E96A20C16D443007623BD /* AMXMLConsoleController.m */,
+				ADD1E5C0DE0000000000D102 /* AIIRCConsoleController.h */,
+				ADD1E5C0DE0000000000D103 /* AIIRCConsoleController.m */,
 				346544D90C8F686B0046ED68 /* AMPurpleJabberXMLConsole.xib */,
 				8184CC330C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.h */,
 				8184CC340C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m */,
@@ -6109,6 +6115,7 @@
 				34B1268E0B924E28003B0451 /* adiumPurpleDnsRequest.h in Headers */,
 				34A663920BF66D96008637BB /* PurpleCommon.h in Headers */,
 				818E96A30C16D443007623BD /* AMXMLConsoleController.h in Headers */,
+				ADD1E5C0DE0000000000D100 /* AIIRCConsoleController.h in Headers */,
 				8184C5A50C1B803400CB53E7 /* AMPurpleRequestFieldsController.h in Headers */,
 				8184CC350C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.h in Headers */,
 				81DAE8720C261E8A00780E4C /* AMPurpleTuneTooltip.h in Headers */,
@@ -7020,6 +7027,7 @@
 				344499EA0B23CA5D0054B761 /* adiumPurpleAccounts.m in Sources */,
 				34B1268F0B924E28003B0451 /* adiumPurpleDnsRequest.m in Sources */,
 				818E96A40C16D443007623BD /* AMXMLConsoleController.m in Sources */,
+				ADD1E5C0DE0000000000D101 /* AIIRCConsoleController.m in Sources */,
 				8184C5A60C1B803400CB53E7 /* AMPurpleRequestFieldsController.m in Sources */,
 				8184CC360C1E3C3800CB53E7 /* AMPurpleJabberMoodTooltip.m in Sources */,
 				81DAE8730C261E8A00780E4C /* AMPurpleTuneTooltip.m in Sources */,

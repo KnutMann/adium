@@ -14,19 +14,31 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import "CBPurpleAccount.h"
+#import <AdiumLibpurple/PurpleCommon.h>
 
 /*!
- * @class AIPurpleGenericAccount
- * @brief An account for a protocol described by a descriptor rather than by a class
+ * @brief A raw server console for IRC, after the pattern of the XMPP XML console
  *
- * Everything it needs it asks its service for, which asks the protocol or its descriptor. A protocol
- * with a real quirk can still subclass this and override the one thing it does differently.
+ * Shows everything sent to and received from the IRC server, and takes raw
+ * lines to send. Works for the built-in IRC protocol and the IRCv3 plugin
+ * alike; both emit the same signals.
+ *
+ * The window is the XML console's nib, retitled: the outlet and action names
+ * below are dictated by that nib and shared with AMXMLConsoleController.
  */
-@class AIIRCConsoleController;
+@interface AIIRCConsoleController : NSObject {
+    IBOutlet NSWindow *xmlConsoleWindow;
+    IBOutlet NSTextView *xmlLogView;
+    IBOutlet NSTextView *xmlInjectView;
+    IBOutlet NSButton *sendButton;
 
-@interface AIPurpleGenericAccount : CBPurpleAccount {
-	AIIRCConsoleController *consoleController;
+    PurpleConnection *gc;
 }
 
+- (IBAction)sendXML:(id)sender;
+- (IBAction)clearLog:(id)sender;
+- (IBAction)showWindow:(id)sender;
+- (void)close;
+
+- (void)setPurpleConnection:(PurpleConnection *)gc;
 @end

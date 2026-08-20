@@ -26,6 +26,7 @@
 #import <libpurple/irc.h>
 #import <libpurple/cmds.h>
 #import "SLPurpleCocoaAdapter.h"
+#import "AIIRCConsoleController.h"
 
 @interface SLPurpleCocoaAdapter ()
 - (BOOL)attemptPurpleCommandOnMessage:(NSString *)originalMessage fromAccount:(AIAccount *)sourceAccount inChat:(AIChat *)chat;
@@ -45,6 +46,15 @@
 
 @implementation ESIRCAccount
 
+- (void)dealloc
+{
+	[consoleController close];
+	[consoleController release];
+	consoleController = nil;
+
+	[super dealloc];
+}
+
 /*!
  * @brief Our explicit formatted UID contains our hostname, so we can differentiate ourself.
  */
@@ -55,6 +65,45 @@
 	} else {
 		return self.displayName;
 	}
+}
+
+#pragma mark Server console
+
+- (BOOL)enableConsole
+{
+#ifdef DEBUG_BUILD
+	//Always enable the server console for debug builds
+	return YES;
+#else
+	//For non-debug builds, only enable it if the preference is set
+	return [[NSUserDefaults standardUserDefaults] boolForKey:@"AIIRCConsole"];
+#endif
+}
+
+- (IBAction)showConsole:(id)sender
+{
+	if (consoleController)
+		[consoleController showWindow:sender];
+	else
+		NSBeep();
+}
+
+- (NSArray *)accountActionMenuItems
+{
+	NSArray *superItems = [super accountActionMenuItems];
+
+	if (![self enableConsole])
+		return superItems;
+
+	NSMenuItem *consoleMenuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Console", nil)
+															  action:@selector(showConsole:)
+													   keyEquivalent:@""] autorelease];
+	[consoleMenuItem setTarget:self];
+
+	NSMutableArray *items = [NSMutableArray arrayWithObject:consoleMenuItem];
+	if (superItems) [items addObjectsFromArray:superItems];
+
+	return items;
 }
 
 #pragma mark IRC-ism overloads
@@ -109,10 +158,22 @@
 {
 	[super didConnect];
 
+	if ([self enableConsole]) {
+		if (!consoleController) consoleController = [[AIIRCConsoleController alloc] init];
+		[consoleController setPurpleConnection:purple_account_get_connection(account)];
+	}
+
 	// Set a fake display name preference since we differ from global always.
 	[self setPreference:[[NSAttributedString stringWithString:@"Adium"] dataRepresentation]
 				 forKey:KEY_ACCOUNT_DISPLAY_NAME
 				  group:GROUP_ACCOUNT_STATUS];
+}
+
+- (void)didDisconnect
+{
+	[consoleController setPurpleConnection:NULL];
+
+	[super didDisconnect];
 }
 
 /*!

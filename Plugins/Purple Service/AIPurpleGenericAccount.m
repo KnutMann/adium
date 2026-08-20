@@ -16,15 +16,92 @@
 
 #import "AIPurpleGenericAccount.h"
 #import "AIPurpleGenericService.h"
+#import "AIIRCConsoleController.h"
 
 #import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
 
 @implementation AIPurpleGenericAccount
 
+- (void)dealloc
+{
+	[consoleController close];
+	[consoleController release];
+	consoleController = nil;
+
+	[super dealloc];
+}
+
 - (const char *)protocolPlugin
 {
 	return [(AIPurpleGenericService *)self.service prplIDCString];
+}
+
+#pragma mark Server console
+
+/*!
+ * @brief Does this account get the raw IRC server console?
+ *
+ * Only the IRCv3 protocol among the descriptor-bound ones speaks a line
+ * protocol and emits the irc-sending-text/irc-receiving-text pair the console
+ * listens on. Enabled for debug builds, otherwise behind the same hidden
+ * default the built-in IRC uses.
+ */
+- (BOOL)enableConsole
+{
+	const char *prplID = [self protocolPlugin];
+
+	if (!prplID || strcmp(prplID, "prpl-eionrobb-ircv3") != 0)
+		return NO;
+
+#ifdef DEBUG_BUILD
+	return YES;
+#else
+	return [[NSUserDefaults standardUserDefaults] boolForKey:@"AIIRCConsole"];
+#endif
+}
+
+- (IBAction)showConsole:(id)sender
+{
+	if (consoleController)
+		[consoleController showWindow:sender];
+	else
+		NSBeep();
+}
+
+- (NSArray *)accountActionMenuItems
+{
+	NSArray *superItems = [super accountActionMenuItems];
+
+	if (![self enableConsole])
+		return superItems;
+
+	NSMenuItem *consoleMenuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Console", nil)
+															  action:@selector(showConsole:)
+													   keyEquivalent:@""] autorelease];
+	[consoleMenuItem setTarget:self];
+
+	NSMutableArray *items = [NSMutableArray arrayWithObject:consoleMenuItem];
+	if (superItems) [items addObjectsFromArray:superItems];
+
+	return items;
+}
+
+- (void)didConnect
+{
+	[super didConnect];
+
+	if ([self enableConsole]) {
+		if (!consoleController) consoleController = [[AIIRCConsoleController alloc] init];
+		[consoleController setPurpleConnection:purple_account_get_connection(account)];
+	}
+}
+
+- (void)didDisconnect
+{
+	[consoleController setPurpleConnection:NULL];
+
+	[super didDisconnect];
 }
 
 /*!

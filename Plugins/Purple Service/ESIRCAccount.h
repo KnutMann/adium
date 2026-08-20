@@ -29,8 +29,10 @@ typedef enum {
 	AIRequiresHalfop
 } AIOperationRequirement;
 
-@interface ESIRCAccount : CBPurpleAccount <AIAccount_Files, NSMenuItemValidation> {
+@class AIIRCConsoleController;
 
+@interface ESIRCAccount : CBPurpleAccount <AIAccount_Files, NSMenuItemValidation> {
+	AIIRCConsoleController *consoleController;
 }
 
 @property (readonly, nonatomic) NSString *defaultUsername;
