@@ -885,7 +885,13 @@
 }
 
 - (BOOL)shouldVerifyCertificates {
-	return [[self preferenceForKey:KEY_JABBER_VERIFY_CERTS group:GROUP_ACCOUNT_STATUS] boolValue];
+	NSNumber *verify = [self preferenceForKey:KEY_JABBER_VERIFY_CERTS group:GROUP_ACCOUNT_STATUS];
+
+	/* Absent means the checkbox was never touched. The account settings show it
+	 * checked in that case, so honour what the user was shown: verify. Reading the
+	 * absence as NO made every untouched account skip certificate checks entirely,
+	 * silently, while the settings claimed otherwise. */
+	return (verify ? [verify boolValue] : YES);
 }
 
 - (NSArray *)accountActionMenuItems {
