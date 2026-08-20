@@ -44,6 +44,30 @@
 	return [userName UTF8String];
 }
 
+/* A contact who never set a profile name gives the alias nothing to show, and
+ * the display fallback chain ends at the raw JID, so a nameless business
+ * account was headed 4917...@s.whatsapp.net. Give every number@s.whatsapp.net
+ * contact its phone number in international notation as the formatted UID;
+ * any name from the server still wins, this only replaces the bare-JID
+ * fallback. Lids stay untouched: their digits are not a phone number. */
+- (AIListContact *)contactWithUID:(NSString *)sourceUID
+{
+	AIListContact *contact = [super contactWithUID:sourceUID];
+
+	if (![contact valueForProperty:KEY_FORMATTED_UID]) {
+		NSString *UID = contact.UID;
+		if ([UID hasSuffix:@"@s.whatsapp.net"]) {
+			NSString *number = [UID substringToIndex:(UID.length - @"@s.whatsapp.net".length)];
+			if (number.length &&
+				[number rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet]].location == NSNotFound) {
+				[contact setFormattedUID:[@"+" stringByAppendingString:number] notify:NotifyLater];
+			}
+		}
+	}
+
+	return contact;
+}
+
 /* There is no fixed server host whose reachability could be probed;
  * the plugin manages its own connectivity. Without this, the network
  * connectivity plugin keeps the account greyed out as "network offline". */
