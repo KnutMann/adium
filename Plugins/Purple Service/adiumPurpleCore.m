@@ -30,6 +30,7 @@
 #import "adiumPurpleSignals.h"
 #import "adiumPurpleCarbons.h"
 #import "adiumPurpleCSI.h"
+#import "adiumPurpleBookmarks.h"
 #import "adiumPurpleCertificateTrustWarning.h"
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
@@ -238,6 +239,7 @@ static void adiumPurpleCoreUiInit(void)
 	configureAdiumPurpleSignals();
 	configureAdiumPurpleCarbons();
 	configureAdiumPurpleCSI();
+	configureAdiumPurpleBookmarks();
 	
 	//Associate each libpurple account with the appropriate Adium AIAccount.
 	associateLibpurpleAccounts();

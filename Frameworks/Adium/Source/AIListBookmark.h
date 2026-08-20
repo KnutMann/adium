@@ -35,12 +35,18 @@
 }
 
 - (id)initWithChat:(AIChat *)inChat;
+- (id)initWithUID:(NSString *)inUID
+		  account:(AIAccount *)inAccount
+		  service:(AIService *)inService
+	   dictionary:(NSDictionary *)inChatCreationDictionary
+			 name:(NSString *)inName;
 
 @property (retain, nonatomic)	NSString *password;
 @property (readonly, nonatomic)	NSString *name;
 @property (readonly, nonatomic)	NSDictionary *chatCreationDictionary;
 
 - (AIChat *)openChat;
+- (AIChat *)openChatWithoutActivating;
 
 /*!
  * @brief A description of this bookmark which is safe to write into a debug log

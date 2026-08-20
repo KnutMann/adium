@@ -34,6 +34,9 @@
 #define Contact_SortSelectorListChanged			@"Contact_SortSelectorListChanged"
 
 #define Contact_ApplyDisplayName				@"Contact_ApplyDisplayName"
+//A bookmark appeared in or left the contact list; object is the AIListBookmark
+#define AIListBookmarkAddedNotification		@"AIListBookmarkAdded"
+#define AIListBookmarkRemovedNotification	@"AIListBookmarkRemoved"
 #define Contact_AddNewContact					@"Contact_AddNewContact"
 
 //A unique group name for our root group
@@ -111,6 +114,17 @@ typedef enum {
 									  onAccount:(AIAccount *)inAccount
 							   chatCreationInfo:(NSDictionary *)inCreationInfo;
 - (AIListBookmark *)bookmarkForChat:(AIChat *)inChat inGroup:(AIListGroup *)group;
+
+/*!
+ * @brief Find or create a bookmark from stored facts rather than an open chat
+ *
+ * What server-side bookmark storage delivers: a chat name, an account and the
+ * creation dictionary, with no chat anywhere in sight.
+ */
+- (AIListBookmark *)bookmarkForChatName:(NSString *)inName
+							  onAccount:(AIAccount *)inAccount
+					   chatCreationInfo:(NSDictionary *)inCreationInfo
+								inGroup:(AIListGroup *)group;
 - (void)removeBookmark:(AIListBookmark *)listBookmark;
 
 /*!

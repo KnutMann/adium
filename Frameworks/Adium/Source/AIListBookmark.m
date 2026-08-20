@@ -45,7 +45,6 @@
 	NSString	*pushedDisplayName;
 }
 - (BOOL)chatIsOurs:(AIChat *)chat;
-- (AIChat *)openChatWithoutActivating;
 - (void)restoreGrouping;
 
 - (void)claimChatIfOurs:(AIChat *)chat;

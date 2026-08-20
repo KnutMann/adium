@@ -52,6 +52,16 @@ accepts both.
                                  and typed lines go out as messages so
                                  their carbons appear in Adium
 
+    peer/run.sh bookmark add raum --autojoin --name "Mein Raum"
+    peer/run.sh bookmark remove raum
+    peer/run.sh bookmark list
+
+The bookmark commands act on the adium account's XEP-0402 storage the
+way another device would: a running Adium should see additions and
+removals appear in its contact list live, and pick everything up at the
+next connect otherwise. Rooms without an @ get @conference.localhost
+appended.
+
 ## Selftest
 
 `server.sh selftest` connects as three sessions (two on the adium

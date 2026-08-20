@@ -1386,6 +1386,9 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 		}
 
 		[bookmarkDict setObject:bookmark forKey:bookmark.internalObjectID];
+
+		[[NSNotificationCenter defaultCenter] postNotificationName:AIListBookmarkAddedNotification
+															object:bookmark];
 	}
 
 	/* No group means the caller had none to offer, not "the root list" - leave whatever we
@@ -1400,6 +1403,55 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 	//Do the update thing
 	[contactPropertiesObserverManager _updateAllAttributesOfObject:bookmark];
 	
+	return bookmark;
+}
+
+/*!
+ * @brief Find or create a bookmark from stored facts rather than an open chat
+ *
+ * The path server-side bookmark storage takes: it knows the chat name, the account and
+ * the creation dictionary, but no chat is open. Mirrors -bookmarkForChat:inGroup:.
+ */
+- (AIListBookmark *)bookmarkForChatName:(NSString *)inName
+							  onAccount:(AIAccount *)inAccount
+					   chatCreationInfo:(NSDictionary *)inCreationInfo
+								inGroup:(AIListGroup *)group
+{
+	NSString		*name = [inAccount.service normalizeChatName:inName];
+	AIListBookmark	*bookmark = [self existingBookmarkForChatName:name
+														onAccount:inAccount
+												 chatCreationInfo:inCreationInfo];
+
+	if (bookmark) {
+		AILogWithSignature(@"Reusing %@, currently in %@", bookmark.logDescription, bookmark.groups);
+
+	} else {
+		bookmark = [[[AIListBookmark alloc] initWithUID:[NSString stringWithFormat:@"Bookmark:%@", name]
+												account:inAccount
+												service:inAccount.service
+											 dictionary:inCreationInfo
+												   name:name] autorelease];
+
+		if ([bookmarkDict objectForKey:bookmark.internalObjectID]) {
+			[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]
+		   discardingPreferences:NO];
+		}
+
+		[bookmarkDict setObject:bookmark forKey:bookmark.internalObjectID];
+
+		[[NSNotificationCenter defaultCenter] postNotificationName:AIListBookmarkAddedNotification
+															object:bookmark];
+	}
+
+	if (group)
+		[bookmark setInitialGroup:group];
+
+	[bookmark restoreGrouping];
+
+	[self saveContactList];
+
+	[contactPropertiesObserverManager _updateAllAttributesOfObject:bookmark];
+
 	return bookmark;
 }
 
@@ -1461,6 +1513,9 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 
 		[self saveContactList];
 	}
+
+	[[NSNotificationCenter defaultCenter] postNotificationName:AIListBookmarkRemovedNotification
+														object:listBookmark];
 }
 
 - (AIListContact *)existingContactWithService:(AIService *)inService account:(AIAccount *)inAccount UID:(NSString *)inUID

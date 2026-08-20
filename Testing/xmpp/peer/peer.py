@@ -112,6 +112,51 @@ class SecondDevice(ClientXMPP):
             print(f"< {msg['from']}: {msg['body']}")
 
 
+class BookmarkTool(ClientXMPP):
+    """Act on the adium account's XEP-0402 bookmarks like another device would."""
+
+    def __init__(self, action, room, name=None, autojoin=False, nick=None):
+        super().__init__("adium@localhost/bookmarktool", password_for("adium"), plugin_config=SASL_INSECURE)
+        self.enable_starttls = False
+        self.enable_direct_tls = False
+        self.enable_plaintext = True
+        self.register_plugin("xep_0060")
+        self.action = action
+        self.room = room if "@" in room else f"{room}@conference.localhost"
+        self.bm_name = name
+        self.autojoin = autojoin
+        self.nick = nick
+        self.add_event_handler("session_start", self.on_start)
+
+    async def on_start(self, event):
+        from slixmpp.xmlstream import ET
+        node = "urn:xmpp:bookmarks:1"
+        try:
+            if self.action == "add":
+                attrs = f" name='{self.bm_name}'" if self.bm_name else ""
+                payload = (f"<conference xmlns='{node}'{attrs} "
+                           f"autojoin='{'true' if self.autojoin else 'false'}'>"
+                           + (f"<nick>{self.nick}</nick>" if self.nick else "")
+                           + "</conference>")
+                await self["xep_0060"].publish("adium@localhost", node,
+                                               id=self.room, payload=ET.fromstring(payload))
+                print(f"Lesezeichen gesetzt: {self.room} (autojoin={self.autojoin})")
+            elif self.action == "remove":
+                await self["xep_0060"].retract("adium@localhost", node, self.room, notify=True)
+                print(f"Lesezeichen entfernt: {self.room}")
+            elif self.action == "list":
+                items = await self["xep_0060"].get_items("adium@localhost", node)
+                found = list(items["pubsub"]["items"])
+                if not found:
+                    print("Keine Lesezeichen auf dem Server")
+                for item in found:
+                    print(f"  {item['id']}: {ET.tostring(item['payload'], encoding='unicode') if item['payload'] is not None else '(leer)'}")
+        except Exception as e:
+            print(f"Fehler: {e}")
+        finally:
+            self.disconnect()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--verbose", action="store_true", help="XMPP-Verkehr mitloggen")
@@ -127,6 +172,14 @@ def main():
 
     sub.add_parser("second-device", help="als Zweitgerät auf dem adium-Konto sitzen")
 
+    p_bm = sub.add_parser("bookmark", help="Server-Lesezeichen des adium-Kontos bearbeiten")
+    p_bm.add_argument("action", choices=["add", "remove", "list"])
+    p_bm.add_argument("room", nargs="?", default="testraum",
+                      help="Raum (ohne @ wird @conference.localhost angehängt)")
+    p_bm.add_argument("--name", help="Anzeigename des Lesezeichens")
+    p_bm.add_argument("--autojoin", action="store_true")
+    p_bm.add_argument("--nick", help="Spitzname im Raum")
+
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING,
                         format="%(levelname)-8s %(message)s")
@@ -137,10 +190,13 @@ def main():
         client = OneShotSender(args.account, args.to, args.body)
     elif args.command == "second-device":
         client = SecondDevice()
+    elif args.command == "bookmark":
+        client = BookmarkTool(args.action, args.room, name=args.name,
+                              autojoin=args.autojoin, nick=args.nick)
 
     client.connect(*SERVER)
     try:
-        if args.command == "send":
+        if args.command in ("send", "bookmark"):
             client.loop.run_until_complete(client.disconnected)
         else:
             client.loop.run_forever()
