@@ -769,13 +769,44 @@ static NSString *AIRowLabel(NSString *label)
 
 /*!
  * @brief Generate a new private key for the currently selected account
+ *
+ * Replacing an existing key asks first: the old key is gone for good, and every
+ * contact who verified the old fingerprint has to verify the new one. The guard
+ * comes from the late Mercurial mainline (adium@66367330), which the git line
+ * this fork grew from never received.
  */
 - (IBAction)generate:(id)sender
 {
 	AIAccount	*account = ([popUp_accounts numberOfItems] ? [[popUp_accounts selectedItem] representedObject] : nil);
+	if (!account) return;
 
-	otrg_plugin_create_privkey([account.internalObjectID UTF8String],
-							   [account.service.serviceCodeUniqueID UTF8String]);
+	BOOL			hasKey = NO;
+	OtrlUserState	userstate = otrg_get_userstate();
+	if (userstate) {
+		char fingerprint_buf[45];
+		hasKey = (otrl_privkey_fingerprint(userstate, fingerprint_buf,
+										   [account.internalObjectID UTF8String],
+										   [account.service.serviceCodeUniqueID UTF8String]) != NULL);
+	}
+
+	if (!hasKey) {
+		otrg_plugin_create_privkey([account.internalObjectID UTF8String],
+								   [account.service.serviceCodeUniqueID UTF8String]);
+		return;
+	}
+
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	[alert setMessageText:AILocalizedString(@"Are you sure you want to generate a new OTR key?", nil)];
+	[alert setInformativeText:AILocalizedString(@"This will permanently delete your old key and all your contacts will need to verify your fingerprint again.", "Message when regenerating an OTR key")];
+	[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
+	[alert addButtonWithTitle:AILocalizedString(@"Regenerate", nil)];
+
+	[alert beginSheetModalForWindow:[view window] completionHandler:^(NSModalResponse returnCode) {
+		if (returnCode == NSAlertSecondButtonReturn) {
+			otrg_plugin_create_privkey([account.internalObjectID UTF8String],
+									   [account.service.serviceCodeUniqueID UTF8String]);
+		}
+	}];
 }
 
 /*!
