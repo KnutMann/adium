@@ -1459,8 +1459,12 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 		SEL selector = NSSelectorFromString(key);
 		if (value == [NSNull null]) value = nil;
 		
+		/* The selector is a void setter on AITextAttributes; nothing to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[textAttributes performSelector:selector
 							 withObject:value];
+#pragma clang diagnostic pop
 	}
 }
 

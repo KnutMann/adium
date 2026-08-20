@@ -84,7 +84,7 @@
 - (void)_reloadContainedChats;
 
 - (void)tabBarFrameChanged:(NSNotification *)notification;
-- (void)closeAlertDidEnd:(NSAlert *)alert returnCode:(int)result contextInfo:(void *)contextInfo;
+- (void)closeAlertDidEnd:(NSAlert *)alert returnCode:(NSModalResponse)result contextInfo:(void *)contextInfo;
 - (void)_relayoutWindow;
 @end
 
@@ -332,7 +332,7 @@
 	return YES;
 }
 
-- (void)closeAlertDidEnd:(NSAlert *)alert returnCode:(int)result contextInfo:(void *)contextInfo;
+- (void)closeAlertDidEnd:(NSAlert *)alert returnCode:(NSModalResponse)result contextInfo:(void *)contextInfo
 {
 	
 	if ([alert suppressionButton].state == NSControlStateValueOn) {

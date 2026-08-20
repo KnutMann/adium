@@ -63,9 +63,10 @@
 
 - (void)uploadContactListToServer
 {
-#warning Temporarily disable contact list sync with servers
+	/* Contact list sync with the server has been switched off for years;
+	 * the body stays below for whoever revives it. */
 	return;
-
+#if 0
 	char *buddylist = ggp_buddylist_dump(account);
 		
 	if (buddylist) {
@@ -77,6 +78,7 @@
 		gg_userlist_request(info->session, GG_USERLIST_PUT, buddylist);
 		g_free(buddylist);
 	}
+#endif
 }
 
 - (void)moveListObjects:(NSArray *)objects toGroups:(NSSet *)groups
@@ -102,15 +104,16 @@
 
 - (void)downloadContactListFromServer
 {
-#warning Temporarily disable contact list sync with servers
+	/* See -uploadContactListToServer; sync is switched off. */
 	return;
-
+#if 0
 	// If we're connected and have no buddies, request 'em from the server.
 	PurpleConnection *gc = purple_account_get_connection(account);
 	GGPInfo *info = gc->proto_data;
 	
 	AILog(@"Requesting gadu-gadu list...");
 	gg_userlist_request(info->session, GG_USERLIST_GET, NULL);	
+#endif
 }
 
 - (void)accountConnectionConnected

@@ -509,7 +509,11 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[self insertRenderedFormula];
 
 	if (previousSendTarget && previousSendAction)
+		/* The original send action returns void; nothing to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[previousSendTarget performSelector:previousSendAction withObject:sender];
+#pragma clang diagnostic pop
 
 	/* Closed once the message is gone rather than left standing: people do not talk in formulas alone,
 	 * and the next thing typed into that field is far more likely to be a sentence. */

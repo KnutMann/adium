@@ -230,7 +230,7 @@ typedef enum {
  *
  * See registerDelayedContentFilter:ofType:direction: for registration
  */
-@protocol AIDelayedContentFilter
+@protocol AIDelayedContentFilter <NSObject>
 /*!
  * @brief Filter an attributed string over an unspecified period of time
  * 

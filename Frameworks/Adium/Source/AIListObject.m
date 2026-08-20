@@ -148,19 +148,22 @@
 //Grouping / Ownership -------------------------------------------------------------------------------------------------
 #pragma mark Grouping / Ownership
 
+/*!
+ * @brief The groups this object belongs to, as a snapshot
+ *
+ * Callers enumerate this while group membership changes underneath them, so it
+ * has to copy the set on every call; anything hot should ask m_groups directly.
+ */
 - (NSSet *) groups
 {
-#warning Very inefficient
 	return [m_groups copy];
 }
 
 - (void) addContainingGroup:(AIListGroup *)inGroup
 {
 	NSParameterAssert(inGroup && [inGroup canContainObject:self]);
-	if (![self.groups containsObject:inGroup]) {
-		
-		if (inGroup)
-			[m_groups addObject:inGroup];
+	if (inGroup && ![m_groups containsObject:inGroup]) {
+		[m_groups addObject:inGroup];
 	}
 }
 

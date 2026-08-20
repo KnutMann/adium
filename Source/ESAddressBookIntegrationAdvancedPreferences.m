@@ -22,6 +22,7 @@
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
+#import <AIUtilities/AIStringAdditions.h>
 
 //Width the form starts out at; the preferences window resizes it to its column.
 #define ADDRESS_BOOK_PANE_INITIAL_WIDTH	540.0

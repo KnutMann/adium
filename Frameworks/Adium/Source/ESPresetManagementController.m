@@ -21,7 +21,7 @@
 @interface ESPresetManagementController ()
 - (void)configureControlDimming;
 - (void)tableViewSelectionDidChange:(NSNotification *)notification;
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo;
 @end
 
 /* The preset management sheets currently on screen.
@@ -114,7 +114,7 @@ static NSMutableSet *openPresetManagementControllers = nil;
 /*!
  * Invoked as the sheet closes, dismiss the sheet
  */
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
 

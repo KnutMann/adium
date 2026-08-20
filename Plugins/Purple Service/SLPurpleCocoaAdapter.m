@@ -21,6 +21,7 @@
 #import "adiumPurpleEventloop.h"
 
 #import <Adium/AIAccountControllerProtocol.h>
+#import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AILoginControllerProtocol.h>
 #import <AIUtilities/AIObjectAdditions.h>

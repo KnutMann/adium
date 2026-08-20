@@ -30,7 +30,8 @@
  */
 - (id)performDefaultImplementation
 {
-#warning This uses a Private API
+	/* createClassDescription and subjectsSpecifier are private Foundation scripting
+	 * API; scriptable object creation has always leaned on them here. */
 	NSScriptClassDescription *newObjectDescription = [self createClassDescription];	
 	id target = [self subjectsSpecifier];
 

@@ -25,6 +25,7 @@
 #import <Adium/AIStatusGroup.h>
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIBundleAdditions.h>
+#import <AIUtilities/AIImageAdditions.h>
 
 /* Width of the three minute fields. Wide enough for more digits than the stepper can produce: a
  * setting made before this pane had a stepper at all may be any number of minutes, and the field

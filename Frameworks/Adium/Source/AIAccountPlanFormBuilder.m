@@ -378,7 +378,11 @@
 	[plan setValue:value forField:field];
 
 	if (changeTarget && changeAction && [changeTarget respondsToSelector:changeAction])
+		/* Void callback selector; no returned object to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[changeTarget performSelector:changeAction withObject:field];
+#pragma clang diagnostic pop
 }
 
 /*!

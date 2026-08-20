@@ -178,7 +178,11 @@
 			__block id	blockUserInfo = userInfo;
 
 			[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+				/* Void callback selector; no returned object to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 				[blockTarget performSelector:selector withObject:blockUserInfo withObject:nil];
+#pragma clang diagnostic pop
 
 				blockTarget = nil;
 				blockUserInfo = nil;

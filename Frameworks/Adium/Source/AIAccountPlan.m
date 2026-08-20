@@ -340,7 +340,11 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 	SEL selector = [field action];
 
 	if (selector && [self respondsToSelector:selector])
+		/* Void callback selector; no returned object to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[self performSelector:selector withObject:field];
+#pragma clang diagnostic pop
 }
 
 @end

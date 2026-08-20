@@ -84,7 +84,7 @@
 
 -(IBAction)segmentSelected:(id)sender
 {
-#warning Needs implementation
+	// TODO: never implemented; the segmented control does nothing
 }
 
 @end

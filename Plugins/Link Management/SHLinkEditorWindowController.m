@@ -28,7 +28,7 @@
 - (void)insertLinkTo:(NSURL *)urlString withText:(NSString *)linkString inView:(NSTextView *)inView;
 - (void)informTargetOfLink;
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo;
 
 @end
 
@@ -187,7 +187,7 @@ static NSMutableSet *openLinkEditors = nil;
 }
 
 // Called as the sheet closes, dismisses the sheet
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
 

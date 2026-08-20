@@ -36,7 +36,7 @@ static void adiumPurpleAccountRequestAdd(PurpleAccount *account, const char *rem
 					const char *accountID, const char *alias,
 					const char *message)
 {
-#warning Something is better than nothing, but we should display a message which includes message and alias
+	// TODO: surface the request's alias and message text in the prompt too
 	/* purple displays something like "Add remote_user to your list? remote_user (alias) has made accountID his buddy." */
 	[accountLookup(account) requestAddContactWithUID:[NSString stringWithUTF8String:remote_user]];
 }

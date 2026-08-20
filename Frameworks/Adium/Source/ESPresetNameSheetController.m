@@ -20,7 +20,7 @@
 
 @interface ESPresetNameSheetController ()
 - (void)configureExplanatoryTextWithString:(NSString *)inExplanatoryText;
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo;
 @end
 
 /* The name sheets currently on screen.
@@ -67,7 +67,7 @@ static NSMutableSet *openPresetNameSheets = nil;
 /*!
  * @brief Invoked as the sheet closes, dismiss the sheet
  */
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSModalResponse)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
 

@@ -428,7 +428,7 @@
 /*!
  * @brief Inform AIListContact instances of the user's intended privacy towards the people they represent
  */
-#warning Something similar needs to happen to update when an account privacyOptions change
+// TODO: contacts also need updating when an account's privacyOptions change after connect
 - (void)accountConnected:(NSNotification *)notification
 {
 	AIAccount		*account = [notification object];

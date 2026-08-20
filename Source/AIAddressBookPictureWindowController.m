@@ -339,7 +339,7 @@ static NSString *AICardName(ABPerson *person)
 
 		//Only a contact that actually has a picture is worth leafing to
 		if ([contact userIcon])
-			[[entry objectForKey:ENTRY_CONTACTS] addObject:contact];
+			[(NSMutableArray *)[entry objectForKey:ENTRY_CONTACTS] addObject:contact];
 	}
 
 	[entries sortUsingComparator:^NSComparisonResult(id a, id b) {
