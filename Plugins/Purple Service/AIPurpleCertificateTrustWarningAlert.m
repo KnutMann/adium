@@ -19,7 +19,10 @@
 #import <Security/SecPolicy.h>
 #import <Security/SecTrust.h>
 #import <Adium/AIAccountControllerProtocol.h>
+#import <Adium/AIPreferenceControllerProtocol.h>
 #import "ESPurpleJabberAccount.h"
+
+#define PREF_GROUP_SSL_EXCEPTIONS	@"SSL Certificate Exceptions"
 
 //#define ALWAYS_SHOW_TRUST_WARNING
 
@@ -111,6 +114,16 @@
 	}
 
 	err = SecTrustCreateWithCertificates(certificates, policyRef, &trustRef);
+
+	/* A chain the user already accepted for this host: the stored exception makes the
+	 * evaluation below succeed, and no question is asked twice. A changed certificate
+	 * is not covered by the old exception, so it asks again, as it should. */
+	if (err == noErr) {
+		NSData *storedException = [adium.preferenceController preferenceForKey:hostname
+																		 group:PREF_GROUP_SSL_EXCEPTIONS];
+		if (storedException)
+			SecTrustSetExceptions(trustRef, (CFDataRef)storedException);
+	}
 
 	if(err != noErr) {
 		CFRelease(policyRef);
@@ -219,6 +232,19 @@
 - (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)trustpanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
 	BOOL didTrustCerficate = (returnCode == NSModalResponseOK);
 	NSWindow *parentWindow = (NSWindow *)contextInfo;
+
+	/* Proceeding used to hold for one connection only, and the question returned at
+	 * every launch. The failures the user just waved through become a stored
+	 * exception for this host, applied before the next evaluation. */
+	if (didTrustCerficate) {
+		CFDataRef exceptions = SecTrustCopyExceptions(trustRef);
+		if (exceptions) {
+			[adium.preferenceController setPreference:(NSData *)exceptions
+											   forKey:hostname
+												group:PREF_GROUP_SSL_EXCEPTIONS];
+			CFRelease(exceptions);
+		}
+	}
 
 	query_cert_cb(didTrustCerficate, userdata);
 
