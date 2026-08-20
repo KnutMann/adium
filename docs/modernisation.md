@@ -174,17 +174,18 @@ be patched locally.
 **The shelf from the unreleased 1.6/1.7 line.** Surveyed in `shtrom-fork-comparison.md`, with
 commit hashes there; what has not been taken yet, in rough order of worth:
 
-- Paste privacy: pasting HTML must not load the images it embeds (shtrom a80f5d288, sixteen
-  lines in AIMessageEntryTextView). Real network requests today on every rich paste.
-- Midnight transcript rotation (#6786): our logger never rotates, a chat left open for days is
-  one file. Comes with a guard against double rotation on clock changes.
-- Transcript viewer selection after deleting a contact's logs (#11420) — state here unverified.
-- Link scanner double-scan (#16217): our AHHyperlinkScanner is structurally different; first
-  verify whether the bug class exists at all.
+- ~~Paste privacy~~ — turned out to be present already: the deprecation sweep (2506a5eff) had
+  ported it in a better form (selector-only WebResourceLoadDelegate, no WebKit import); the
+  survey's "missing" was a false negative from grepping the wrong symbols.
+- ~~Midnight transcript rotation (#6786)~~ — done, with the early-fire guard (66940ca18).
+- ~~Transcript viewer selection after deleting (#11420)~~ — done.
+- ~~Link scanner double-scan (#16217)~~ — verified absent: the newer AutoHyperlinks here already
+  carries both the minimum length and the scan-location advance.
+- ~~OTR to the most recently active resource~~ — done (OTRL_INSTAG_RECENT at all four sites).
 - The emoticon menu package (per-pack separators, a disable switch, cursor and alignment fixes)
   — belongs to the open emoticon-UI item from the UI survey.
 - Small UX: missing Edit menu items (#16416), search-with-DuckDuckGo context item, the combined
-  link/browser toolbar item (#15404), OTR messages to the most recently active resource.
+  link/browser toolbar item (#15404).
 - The fork's topic branches deserve their own pass when their subject comes up:
   `AdiumApplescriptRunnerUsingXPC` for the AppKit-objects-die-on-the-main-thread constraint in
   AdiumApplescriptRunner, `HistoricMUCMessages` and `IRCServerConsole` for their features,

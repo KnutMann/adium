@@ -342,7 +342,7 @@ static ConnContext* contextForChat(AIChat *chat)
     username = [chat.listObject.UID UTF8String];
 	
     context = otrl_context_find(otrg_plugin_userstate,
-								username, accountname, proto, OTRL_INSTAG_BEST,
+								username, accountname, proto, OTRL_INSTAG_RECENT,
 								0, NULL, NULL, NULL);
 	
 	return context;
@@ -568,7 +568,7 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 	ConnContext			*context;
 	
 	context = otrl_context_find(us, username, accountname,
-								protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
+								protocol, OTRL_INSTAG_RECENT, 0, NULL, NULL, NULL);
 	
 	if (context == NULL/* || context->msgstate != OTRL_MSGSTATE_ENCRYPTED*/) {
 		NSLog(@"otrg_adium_dialog_unknown_fingerprint: Ack!");
@@ -859,7 +859,7 @@ static OtrlMessageAppOps ui_ops = {
 		return;
 
     err = otrl_message_sending(otrg_plugin_userstate, &ui_ops, /* opData */ NULL,
-							   accountname, protocol, username, OTRL_INSTAG_BEST,
+							   accountname, protocol, username, OTRL_INSTAG_RECENT,
 							   originalMessage, /* tlvs */ NULL, &fullOutgoingMessage,
 							   OTRL_FRAGMENT_SEND_ALL_BUT_LAST, NULL,
 							   /* add_appdata cb */NULL, /* appdata */ NULL);
@@ -1076,7 +1076,7 @@ void disconnect_from_context(ConnContext *context)
 {
     otrl_message_disconnect(otrg_plugin_userstate, &ui_ops, NULL,
 							context->accountname, context->protocol, context->username,
-							OTRL_INSTAG_BEST);
+							OTRL_INSTAG_RECENT);
 	gone_insecure_cb(NULL, context);
 }
 

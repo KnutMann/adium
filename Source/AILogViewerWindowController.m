@@ -2789,7 +2789,13 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 								   selector:@selector(restoreDeletedToGroups:)
 									 object:allSelectedToGroups];
 		[undoManager setActionName:DELETE];
-		
+
+		/* Force a selection change: with a noncontiguous selection the outline keeps
+		 * pointing at rows whose logs are gone and the results pane goes stale
+		 * (upstream #11420). */
+		[outlineView_contacts selectRowIndexes:[NSIndexSet indexSetWithIndex:[outlineView_contacts selectedRow]]
+						  byExtendingSelection:NO];
+
 		[self rebuildIndices];
 		[self updateProgressDisplay];
 	}
