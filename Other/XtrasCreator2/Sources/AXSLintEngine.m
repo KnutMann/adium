@@ -52,7 +52,10 @@ static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
 	for (NSString *category in format.requiredCatalog) {
 		NSDictionary *entries = payload[category];
 		for (NSString *key in format.requiredCatalog[category]) {
-			if (![entries[key] isKindOfClass:[NSString class]] || ![entries[key] length]) {
+			id entry = entries[key];
+			BOOL missing = (!entry || ([entry isKindOfClass:[NSString class]] && ![entry length]));
+
+			if (missing) {
 				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelError
 													   message:[NSString stringWithFormat:
 																@"%@ is missing the required entry \"%@\".", category, key]]];
@@ -61,8 +64,8 @@ static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
 	}
 
 	if ([payload isKindOfClass:[NSDictionary class]]) {
-		//Entries naming files the pack does not carry
-		for (NSString *category in payload) {
+		//Entries naming files the pack does not carry, in the categories this format declares
+		for (NSString *category in format.categoryNames) {
 			if ([category isEqualToString:@"Colors"]) continue;	//color strings, not files
 
 			NSDictionary *entries = payload[category];
@@ -95,6 +98,40 @@ static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
 												   message:[NSString stringWithFormat:
 															@"Entries outside today's catalog are kept as they are: %@.",
 															[foreignKeys componentsJoinedByString:@", "]]]];
+		}
+	}
+
+	//Dock icons: every state's images, shared artwork excepted
+	if ([format.extension isEqualToString:@"AdiumIcon"]) {
+		NSDictionary *states = payload[@"State"];
+		BOOL usesSharedImages = NO;
+
+		if ([states isKindOfClass:[NSDictionary class]]) {
+			for (NSString *name in states) {
+				NSDictionary *entry = states[name];
+				if (![entry isKindOfClass:[NSDictionary class]]) continue;
+
+				NSArray *imageNames = ([entry[@"Images"] isKindOfClass:[NSArray class]] ? entry[@"Images"] :
+									   ([entry[@"Image"] isKindOfClass:[NSString class]] ? @[entry[@"Image"]] : @[]));
+
+				for (NSString *imageName in imageNames) {
+					if ([imageName hasPrefix:@"../Shared Images/"]) {
+						usesSharedImages = YES;
+						continue;
+					}
+					if (!AXSPackHasFile(document.resourcesWrapper, imageName)) {
+						[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+															   message:[NSString stringWithFormat:
+																		@"State %@ points at \"%@\", which is not in the pack.",
+																		name, imageName]]];
+					}
+				}
+			}
+		}
+
+		if (usesSharedImages) {
+			[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelInfo
+												   message:@"Uses images from Adium's shared artwork (\"../Shared Images/\"); they live in Adium, not in the pack."]];
 		}
 	}
 

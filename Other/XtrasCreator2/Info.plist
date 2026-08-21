@@ -8,6 +8,24 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Adium Dock Icon</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumIcon</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.dockicon</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Adium Status Icons</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
@@ -117,6 +135,23 @@
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.dockicon</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Dock Icon</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumIcon</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>com.adiumx.statusicons</string>

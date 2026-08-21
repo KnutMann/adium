@@ -10,6 +10,8 @@
 #import "AXSIconPackEditorViewController.h"
 #import "AXSEmoticonSetEditorViewController.h"
 #import "AXSSoundSetEditorViewController.h"
+#import "AXSDockIconCodec.h"
+#import "AXSDockIconEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -176,6 +178,24 @@
 
 			f.codec = [[AXSIconPlistCodec alloc] init];
 			f.editorClass = [AXSSoundSetEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//Dock icons: IconPack.plist with description and still or animated states
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.dockicon";
+			f.extension = @"AdiumIcon";
+			f.osType = @"AIDk";
+			f.displayName = @"Dock Icon";
+			f.supportsFlatForm = YES;
+			f.payloadFileName = @"IconPack.plist";
+			/* No categoryNames: the payload is not the flat category shape the
+			 * icon codec speaks; the catalog below only names the states. */
+			f.catalog = @{ @"State": @[@"Base", @"Preview", @"ApplicationIcon", @"Alert",
+									   @"Away", @"Idle", @"Connecting", @"Invisible"] };
+			f.requiredCatalog = @{ @"State": @[@"Base"] };
+			f.codec = [[AXSDockIconCodec alloc] init];
+			f.editorClass = [AXSDockIconEditorViewController class];
 			[building addObject:f];
 		}
 
