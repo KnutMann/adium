@@ -5,6 +5,7 @@
 
 #import "AXSApplicationDelegate.h"
 #import "AXSStartingPointsWindowController.h"
+#import "AXSSettingsWindowController.h"
 #import "AXSDocumentController.h"
 
 /* undo:/redo: travel the responder chain but are declared in no header;
@@ -16,6 +17,7 @@
 
 @implementation AXSApplicationDelegate {
 	AXSStartingPointsWindowController *startingPoints;
+	AXSSettingsWindowController *settings;
 	AXSDocumentController *documentController;
 }
 
@@ -50,6 +52,11 @@ static NSMenuItem *AXSItem(NSString *title, SEL action, NSString *key)
 	NSMenuItem *appItem = [menubar addItemWithTitle:@"XtrasCreator" action:NULL keyEquivalent:@""];
 	NSMenu *appMenu = [[NSMenu alloc] init];
 	[appMenu addItem:AXSItem(@"About XtrasCreator", @selector(orderFrontStandardAboutPanel:), @"")];
+	[appMenu addItem:[NSMenuItem separatorItem]];
+
+	NSMenuItem *settingsItem = AXSItem(@"Settings…", @selector(showSettings:), @",");
+	[settingsItem setTarget:self];
+	[appMenu addItem:settingsItem];
 	[appMenu addItem:[NSMenuItem separatorItem]];
 
 	NSMenuItem *servicesItem = [appMenu addItemWithTitle:@"Services" action:NULL keyEquivalent:@""];
@@ -116,6 +123,14 @@ static NSMenuItem *AXSItem(NSString *title, SEL action, NSString *key)
 }
 
 #pragma mark Starting points
+
+- (IBAction)showSettings:(id)sender
+{
+	if (!settings)
+		settings = [[AXSSettingsWindowController alloc] init];
+
+	[settings showWindow:sender];
+}
 
 - (IBAction)showStartingPoints:(id)sender
 {

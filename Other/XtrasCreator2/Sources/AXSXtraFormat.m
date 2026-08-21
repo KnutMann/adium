@@ -24,6 +24,8 @@
 @property (readwrite, nonatomic) NSString *extension;
 @property (readwrite, nonatomic) NSString *osType;
 @property (readwrite, nonatomic) NSString *displayName;
+@property (readwrite, nonatomic) NSString *typeDescription;
+@property (readwrite, nonatomic) NSString *iconName;
 @property (readwrite, nonatomic) BOOL supportsFlatForm;
 @property (readwrite, nonatomic) BOOL flatFormIsBarePlist;
 @property (readwrite, nonatomic) BOOL payloadLivesInInfoPlist;
@@ -60,6 +62,8 @@
 			f.extension = @"AdiumMenuBarIcons";
 			f.osType = @"AdMB";
 			f.displayName = @"Menu Bar Icons";
+			f.typeDescription = @"The little status pictures beside the clock.";
+			f.iconName = @"AdiumMenuBarIcons";
 			f.supportsFlatForm = NO;
 			f.payloadLivesInInfoPlist = YES;
 			f.categoryNames = @[@"Icons"];
@@ -79,6 +83,8 @@
 			f.extension = @"AdiumStatusIcons";
 			f.osType = @"AISt";
 			f.displayName = @"Status Icons";
+			f.typeDescription = @"Availability bullets for the contact list and chat tabs.";
+			f.iconName = @"AdiumStatusIcons";
 			f.supportsFlatForm = YES;
 			f.payloadFileName = @"Icons.plist";
 			f.categoryNames = @[@"List", @"Tabs"];
@@ -105,6 +111,8 @@
 			f.extension = @"AdiumServiceIcons";
 			f.osType = @"AISr";
 			f.displayName = @"Service Icons";
+			f.typeDescription = @"One badge per chat network, in three sizes.";
+			f.iconName = @"AdiumServiceIcons";
 			f.supportsFlatForm = YES;
 			f.payloadFileName = @"Icons.plist";
 			f.categoryNames = @[@"Interface-Large", @"Interface-Small", @"List"];
@@ -126,6 +134,8 @@
 			f.extension = @"AdiumGroupChatStatusIcons";
 			f.osType = @"AIGc";
 			f.displayName = @"Group Chat Status Icons";
+			f.typeDescription = @"Role marks and colors for chat room members.";
+			f.iconName = @"AdiumStatusIcons";
 			f.supportsFlatForm = NO;
 			f.payloadLivesInInfoPlist = YES;
 			f.categoryNames = @[@"Icons", @"Colors"];
@@ -146,6 +156,8 @@
 			f.extension = @"AdiumEmoticonset";
 			f.osType = @"AIEm";
 			f.displayName = @"Emoticon Set";
+			f.typeDescription = @"Smilies and the text that turns into them.";
+			f.iconName = @"AdiumEmoticonset";
 			f.supportsFlatForm = YES;
 			f.payloadFileName = @"Emoticons.plist";
 			f.codec = [[AXSEmoticonSetCodec alloc] init];
@@ -159,6 +171,8 @@
 			f.extension = @"AdiumSoundset";
 			f.osType = @"AISd";
 			f.displayName = @"Sound Set";
+			f.typeDescription = @"A sound for every event worth hearing.";
+			f.iconName = @"AdiumSoundset";
 			f.supportsFlatForm = YES;
 			f.payloadFileName = @"Sounds.plist";
 			f.categoryNames = @[@"Sounds"];
@@ -195,6 +209,8 @@
 			f.extension = @"AdiumIcon";
 			f.osType = @"AIDk";
 			f.displayName = @"Dock Icon";
+			f.typeDescription = @"The Adium duck, or anything else, in the Dock.";
+			f.iconName = @"AdiumIcon";
 			f.supportsFlatForm = YES;
 			f.payloadFileName = @"IconPack.plist";
 			/* No categoryNames: the payload is not the flat category shape the
@@ -209,8 +225,8 @@
 
 		{	//Contact list themes and layouts: a preference dictionary each
 			NSDictionary *plistTypes = @{
-				@"com.adiumx.contactlisttheme": @[@"ListTheme", @"AILT", @"Contact List Theme"],
-				@"com.adiumx.contactlistlayout": @[@"ListLayout", @"AILL", @"Contact List Layout"],
+				@"com.adiumx.contactlisttheme": @[@"ListTheme", @"AILT", @"Contact List Theme", @"Colors and fonts for the contact list.", @"AdiumListTheme"],
+				@"com.adiumx.contactlistlayout": @[@"ListLayout", @"AILL", @"Contact List Layout", @"Arrangement and spacing of the contact list.", @"AdiumListLayout"],
 			};
 
 			for (NSString *typeName in plistTypes) {
@@ -220,6 +236,8 @@
 				f.extension = spec[0];
 				f.osType = spec[1];
 				f.displayName = spec[2];
+				f.typeDescription = spec[3];
+				f.iconName = spec[4];
 				f.supportsFlatForm = YES;
 				f.flatFormIsBarePlist = YES;	//the flat form is the plist file itself
 				f.payloadFileName = @"Data.plist";
@@ -235,6 +253,8 @@
 			f.extension = @"AdiumMessageStyle";
 			f.osType = @"AIWK";
 			f.displayName = @"Message Style";
+			f.typeDescription = @"How conversations look: templates, stylesheets, variants.";
+			f.iconName = @"AdiumMessageStyle";
 			f.supportsFlatForm = NO;
 			f.requiresBundleIdentifier = YES;	//styles are told apart by it
 			f.infoPlistPayloadKeys = [AXSMessageStyleCodec styleKeys];
@@ -249,6 +269,8 @@
 			f.extension = @"AdiumScripts";
 			f.osType = @"AIAS";
 			f.displayName = @"Script Pack";
+			f.typeDescription = @"AppleScripts that answer to keywords typed in a chat.";
+			f.iconName = @"AdiumScripts";
 			f.supportsFlatForm = YES;
 			f.flatFormHasRootInfoPlist = YES;	//the shipped packs keep Info.plist at the root
 			f.payloadLivesInInfoPlist = YES;

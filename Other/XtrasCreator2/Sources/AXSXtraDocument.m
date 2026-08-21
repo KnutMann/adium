@@ -6,6 +6,8 @@
 #import "AXSXtraDocument.h"
 #import "AXSDocumentWindowController.h"
 #import "AXSMessageStyleCodec.h"
+#import "AXSLintEngine.h"
+#import "AXSSettingsWindowController.h"
 
 /* The Info.plist keys this application manages; everything else is preserved
  * verbatim. CFBundlePackageType is deliberately not among them: nothing reads
@@ -48,6 +50,7 @@ static NSArray *AXSManagedInfoKeys(void)
 
 		_model = [[AXSXtraModel alloc] init];
 		_model.payload = [_format.codec emptyPayloadForFormat:_format];
+		_model.authors = [[NSUserDefaults standardUserDefaults] stringForKey:AXSDefaultAuthorKey] ?: @"";
 
 		if (_format.flatFormIsBarePlist) {
 			//Born flat, the form Adium itself writes for these
@@ -388,6 +391,40 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 + (BOOL)autosavesInPlace
 {
 	return NO;
+}
+
+/*!
+ * @brief A save with outstanding errors gets one honest question first
+ *
+ * Lint errors mean Adium will refuse or reset the pack; the save still goes
+ * through if that is what its author wants - a pack under construction is
+ * allowed to be unfinished on disk.
+ */
+- (void)saveDocumentWithDelegate:(id)delegate didSaveSelector:(SEL)didSaveSelector contextInfo:(void *)contextInfo
+{
+	NSUInteger errorCount = 0;
+	for (AXSLintIssue *issue in [AXSLintEngine lintDocument:self]) {
+		if (issue.level == AXSLintLevelError) errorCount++;
+	}
+
+	if (!errorCount || ![self windowForSheet]) {
+		[super saveDocumentWithDelegate:delegate didSaveSelector:didSaveSelector contextInfo:contextInfo];
+		return;
+	}
+
+	NSAlert *alert = [[NSAlert alloc] init];
+	[alert setMessageText:@"This xtra has problems Adium will refuse"];
+	[alert setInformativeText:[NSString stringWithFormat:
+							   @"The Problems page lists %lu error(s). You can save anyway and finish later.",
+							   (unsigned long)errorCount]];
+	[alert addButtonWithTitle:@"Save Anyway"];
+	[alert addButtonWithTitle:@"Cancel"];
+
+	[alert beginSheetModalForWindow:[self windowForSheet] completionHandler:^(NSModalResponse response) {
+		if (response == NSAlertFirstButtonReturn) {
+			[super saveDocumentWithDelegate:delegate didSaveSelector:didSaveSelector contextInfo:contextInfo];
+		}
+	}];
 }
 
 - (void)noteEdited

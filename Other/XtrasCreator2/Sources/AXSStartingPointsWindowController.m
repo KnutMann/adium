@@ -7,10 +7,10 @@
 #import "AXSXtraFormat.h"
 #import "AXSDocumentController.h"
 
-#define STARTING_POINTS_WIDTH	460.0
-#define STARTING_POINTS_HEIGHT	320.0
+#define STARTING_POINTS_WIDTH	480.0
+#define STARTING_POINTS_HEIGHT	460.0
 #define MARGIN					20.0
-#define ROW_HEIGHT				30.0
+#define ROW_HEIGHT				44.0
 
 @interface AXSStartingPointsWindowController () <NSTableViewDataSource, NSTableViewDelegate>
 @end
@@ -102,16 +102,49 @@
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-	NSTextField *field = [tableView makeViewWithIdentifier:@"type" owner:self];
-	if (!field) {
-		field = [NSTextField labelWithString:@""];
-		[field setIdentifier:@"type"];
+	NSView *cell = [tableView makeViewWithIdentifier:@"type" owner:self];
+	NSImageView *icon = nil;
+	NSTextField *name = nil;
+	NSTextField *detail = nil;
+
+	if (!cell) {
+		cell = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 400, ROW_HEIGHT)];
+		[cell setIdentifier:@"type"];
+
+		icon = [[NSImageView alloc] initWithFrame:NSMakeRect(6, 6, 32, 32)];
+		[icon setImageScaling:NSImageScaleProportionallyDown];
+		[icon setIdentifier:@"icon"];
+		[icon setAutoresizingMask:NSViewMaxXMargin];
+		[cell addSubview:icon];
+
+		name = [NSTextField labelWithString:@""];
+		[name setFrame:NSMakeRect(46, 23, 380, 17)];
+		[name setFont:[NSFont systemFontOfSize:13.0 weight:NSFontWeightSemibold]];
+		[name setIdentifier:@"name"];
+		[name setAutoresizingMask:NSViewWidthSizable];
+		[cell addSubview:name];
+
+		detail = [NSTextField labelWithString:@""];
+		[detail setFrame:NSMakeRect(46, 5, 380, 15)];
+		[detail setFont:[NSFont systemFontOfSize:11.0]];
+		[detail setTextColor:[NSColor secondaryLabelColor]];
+		[detail setIdentifier:@"detail"];
+		[detail setAutoresizingMask:NSViewWidthSizable];
+		[cell addSubview:detail];
+	} else {
+		for (NSView *sub in [cell subviews]) {
+			if ([[sub identifier] isEqualToString:@"icon"]) icon = (NSImageView *)sub;
+			else if ([[sub identifier] isEqualToString:@"name"]) name = (NSTextField *)sub;
+			else if ([[sub identifier] isEqualToString:@"detail"]) detail = (NSTextField *)sub;
+		}
 	}
 
 	AXSXtraFormat *format = [AXSXtraFormat allFormats][(NSUInteger)row];
-	[field setStringValue:format.displayName];
+	[name setStringValue:format.displayName];
+	[detail setStringValue:format.typeDescription ?: @""];
+	[icon setImage:(format.iconName ? [NSImage imageNamed:format.iconName] : nil)];
 
-	return field;
+	return cell;
 }
 
 @end

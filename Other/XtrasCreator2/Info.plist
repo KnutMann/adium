@@ -9,6 +9,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Script Pack</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumScripts</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumScripts</string>
@@ -27,6 +29,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Message Style</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumMessageStyle</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumMessageStyle</string>
@@ -45,6 +49,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Contact List Layout</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumListLayout</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>ListLayout</string>
@@ -61,6 +67,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Contact List Theme</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumListTheme</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>ListTheme</string>
@@ -77,6 +85,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Dock Icon</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumIcon</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumIcon</string>
@@ -95,6 +105,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Status Icons</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumStatusIcons</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumStatusIcons</string>
@@ -113,6 +125,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Service Icons</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumServiceIcons</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumServiceIcons</string>
@@ -131,6 +145,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Sound Set</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumSoundset</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumSoundset</string>
@@ -149,6 +165,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Emoticon Set</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumEmoticonset</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumEmoticonset</string>
@@ -185,6 +203,8 @@
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Adium Menu Bar Icons</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumMenuBarIcons</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>AdiumMenuBarIcons</string>

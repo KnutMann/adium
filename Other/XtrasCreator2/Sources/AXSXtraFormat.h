@@ -23,6 +23,8 @@
 @property (readonly, nonatomic) NSString *extension;		//e.g. AdiumMenuBarIcons
 @property (readonly, nonatomic) NSString *osType;			//e.g. AdMB
 @property (readonly, nonatomic) NSString *displayName;		//e.g. Menu Bar Icons
+@property (readonly, nonatomic) NSString *typeDescription;	//one sentence for the starting points list
+@property (readonly, nonatomic) NSString *iconName;			//bundled .icns basename, or nil
 
 @property (readonly, nonatomic) BOOL supportsFlatForm;		//flat directory beside the bundle form
 @property (readonly, nonatomic) BOOL flatFormIsBarePlist;	//the xtra is a single plist file (list themes)
