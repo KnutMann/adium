@@ -5,6 +5,7 @@
 
 #import "AXSApplicationDelegate.h"
 #import "AXSStartingPointsWindowController.h"
+#import "AXSDocumentController.h"
 
 /* undo:/redo: travel the responder chain but are declared in no header;
  * naming them here keeps the compiler's undeclared-selector check honest. */
@@ -15,6 +16,17 @@
 
 @implementation AXSApplicationDelegate {
 	AXSStartingPointsWindowController *startingPoints;
+	AXSDocumentController *documentController;
+}
+
+- (instancetype)init
+{
+	if ((self = [super init])) {
+		/* The first NSDocumentController to exist becomes the shared one, so
+		 * ours has to be born before anything asks for it. */
+		documentController = [[AXSDocumentController alloc] init];
+	}
+	return self;
 }
 
 #pragma mark Menu bar

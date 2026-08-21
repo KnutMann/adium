@@ -6,7 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CAFE00000000000000000203 /* AISettingsFormView.m in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000202 /* AISettingsFormView.m */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		CAFE00000000000000000201 /* AISettingsFormView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISettingsFormView.h; path = "../../Frameworks/Adium/Source/AISettingsFormView.h"; sourceTree = "<group>"; };
+		CAFE00000000000000000202 /* AISettingsFormView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISettingsFormView.m; path = "../../Frameworks/Adium/Source/AISettingsFormView.m"; sourceTree = "<group>"; };
 		CAFE000000000000000000A0 /* XtrasCreator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XtrasCreator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -33,6 +39,8 @@
 			isa = PBXGroup;
 			children = (
 				CAFE000000000000000000B0 /* Sources */,
+				CAFE00000000000000000201 /* AISettingsFormView.h */,
+				CAFE00000000000000000202 /* AISettingsFormView.m */,
 				CAFE000000000000000000D1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +120,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAFE00000000000000000203 /* AISettingsFormView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,6 +211,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Frameworks/Adium/Source";
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumx.XtrasCreator;
@@ -215,6 +225,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Frameworks/Adium/Source";
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumx.XtrasCreator;
