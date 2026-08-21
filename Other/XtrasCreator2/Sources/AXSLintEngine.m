@@ -82,6 +82,46 @@
 		}
 	}
 
+	//Emoticon sets: what Adium's loader would silently drop or never trigger
+	if ([format.extension isEqualToString:@"AdiumEmoticonset"]) {
+		NSDictionary *emoticons = payload[@"Emoticons"];
+
+		if (![emoticons isKindOfClass:[NSDictionary class]]) {
+			[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelInfo
+												   message:@"Not an Adium-dialect set (no Emoticons dictionary); carried through untouched."]];
+		} else {
+			NSUInteger displayable = 0, withoutEquivalents = 0;
+
+			for (NSString *key in emoticons) {
+				NSDictionary *entry = emoticons[key];
+				if (![entry isKindOfClass:[NSDictionary class]]) continue;
+
+				BOOL hasCharacter = [entry[@"Character"] isKindOfClass:[NSString class]] && [entry[@"Character"] length];
+				BOOL hasImage = (resourceFiles[key] != nil);
+				if (hasCharacter || hasImage) displayable++;
+
+				NSArray *equivalents = entry[@"Equivalents"];
+				if (![equivalents isKindOfClass:[NSArray class]] || ![equivalents count])
+					withoutEquivalents++;
+			}
+
+			if ([emoticons count] && !displayable) {
+				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelError
+													   message:@"No emoticon has an image or an emoji; Adium drops such a set without a word."]];
+			}
+			if (withoutEquivalents) {
+				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+													   message:[NSString stringWithFormat:
+																@"%lu emoticon(s) have no text equivalent and can never be typed.",
+																(unsigned long)withoutEquivalents]]];
+			}
+			if (![emoticons count]) {
+				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+													   message:@"The set is empty."]];
+			}
+		}
+	}
+
 	//Adium's installer refuses a status pack that shadows its default's name
 	if ([format.extension isEqualToString:@"AdiumStatusIcons"]) {
 		NSString *savedName = [[document.fileURL lastPathComponent] stringByDeletingPathExtension];

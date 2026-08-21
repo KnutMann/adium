@@ -44,6 +44,24 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Adium Emoticon Set</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumEmoticonset</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.emoticonset</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Adium Group Chat Status Icons</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
@@ -112,6 +130,23 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>AdiumServiceIcons</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.emoticonset</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Emoticon Set</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumEmoticonset</string>
 				</array>
 			</dict>
 		</dict>

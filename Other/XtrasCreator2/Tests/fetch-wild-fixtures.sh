@@ -19,6 +19,7 @@ fixtures=(
 	"menubar:8427"		# Menu Bar Icons
 	"statusicons:8624"	# Status Icons
 	"serviceicons:8629"	# Service Icons
+	"emoticons:8772"	# Emoticons
 )
 
 for entry in $fixtures; do

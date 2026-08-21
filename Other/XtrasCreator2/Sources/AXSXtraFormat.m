@@ -5,8 +5,10 @@
 
 #import "AXSXtraFormat.h"
 #import "AXSIconPlistCodec.h"
+#import "AXSEmoticonSetCodec.h"
 #import "AXSMenuBarIconsEditorViewController.h"
 #import "AXSIconPackEditorViewController.h"
+#import "AXSEmoticonSetEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -124,6 +126,19 @@
 
 			f.codec = [[AXSIconPlistCodec alloc] init];
 			f.editorClass = [AXSIconPackEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//Emoticon sets: Emoticons.plist over images, or emoji entries without any
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.emoticonset";
+			f.extension = @"AdiumEmoticonset";
+			f.osType = @"AIEm";
+			f.displayName = @"Emoticon Set";
+			f.supportsFlatForm = YES;
+			f.payloadFileName = @"Emoticons.plist";
+			f.codec = [[AXSEmoticonSetCodec alloc] init];
+			f.editorClass = [AXSEmoticonSetEditorViewController class];
 			[building addObject:f];
 		}
 
