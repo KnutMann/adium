@@ -154,6 +154,14 @@ require a proper signing identity). `bootstrap.sh` builds the
 AIUtilities and MMTabBarView subprojects first and stages their
 products, then builds the main project.
 
+The repository also carries **XtrasCreator**, the companion app for
+making Adium xtras (emoticon sets, sound sets, icon packs, dock
+icons, message styles, contact list themes and script packs),
+rebuilt from scratch on a modern base. It reads and writes both the
+bundle form and the legacy flat pack forms, checks packs against
+what Adium's loaders actually demand, and builds separately:
+`xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
+
 All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
 vendored as prebuilt arm64 frameworks in the repository. Rebuilding
 them from source is only necessary when upgrading a dependency or
