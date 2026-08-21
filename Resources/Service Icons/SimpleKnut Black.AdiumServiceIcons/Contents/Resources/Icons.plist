@@ -65,9 +65,9 @@
 		<key>Signal</key>
 		<string>signal-small.png</string>
 		<key>Teams</key>
-		<string>Teams-small.png</string>
-		<key>teamspersonal</key>
-		<string>TeamsPersonal-small.png</string>
+		<string>teams-small.png</string>
+		<key>TeamsPersonal</key>
+		<string>teamspersonal-small.png</string>
 		<key>Telegram</key>
 		<string>telegram-small.png</string>
 		<key>WhatsApp</key>
