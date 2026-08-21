@@ -128,14 +128,25 @@ int main(int argc, char *argv[])
 						  options:NSFileWrapperWritingAtomic
 			  originalContentsURL:nil error:&error], @"lands on disk");
 
-		//The files that may legitimately be re-serialized on an untouched save
-		NSMutableArray *reserializable = [NSMutableArray arrayWithObject:@"Contents/Info.plist"];
-		if (format.payloadFileName) {
-			[reserializable addObject:[@"Contents/Resources" stringByAppendingPathComponent:format.payloadFileName]];
-			[reserializable addObject:format.payloadFileName];	//flat form
-		}
+		BOOL packIsDirectory = NO;
+		[[NSFileManager defaultManager] fileExistsAtPath:packPath isDirectory:&packIsDirectory];
 
-		compareTrees(packPath, outPath, @"", reserializable);
+		if (packIsDirectory) {
+			//The files that may legitimately be re-serialized on an untouched save
+			NSMutableArray *reserializable = [NSMutableArray arrayWithObject:@"Contents/Info.plist"];
+			if (format.payloadFileName) {
+				[reserializable addObject:[@"Contents/Resources" stringByAppendingPathComponent:format.payloadFileName]];
+				[reserializable addObject:format.payloadFileName];	//flat form
+			}
+
+			compareTrees(packPath, outPath, @"", reserializable);
+		} else {
+			//A bare-plist xtra: the file itself must survive semantically
+			NSDictionary *orig = plistAt(packPath);
+			NSDictionary *out = plistAt(outPath);
+			check(out != nil, @"bare plist still parses");
+			check([out isEqual:orig], @"bare plist survives semantically");
+		}
 
 		//Contract keys, wherever an Info.plist was written
 		NSString *infoPath = [outPath stringByAppendingPathComponent:@"Contents/Info.plist"];

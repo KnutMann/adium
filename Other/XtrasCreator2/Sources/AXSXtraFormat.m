@@ -12,6 +12,8 @@
 #import "AXSSoundSetEditorViewController.h"
 #import "AXSDockIconCodec.h"
 #import "AXSDockIconEditorViewController.h"
+#import "AXSPlistPassthroughCodec.h"
+#import "AXSPlistTableEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -197,6 +199,28 @@
 			f.codec = [[AXSDockIconCodec alloc] init];
 			f.editorClass = [AXSDockIconEditorViewController class];
 			[building addObject:f];
+		}
+
+		{	//Contact list themes and layouts: a preference dictionary each
+			NSDictionary *plistTypes = @{
+				@"com.adiumx.contactlisttheme": @[@"ListTheme", @"AILT", @"Contact List Theme"],
+				@"com.adiumx.contactlistlayout": @[@"ListLayout", @"AILL", @"Contact List Layout"],
+			};
+
+			for (NSString *typeName in plistTypes) {
+				NSArray *spec = plistTypes[typeName];
+				AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+				f.typeName = typeName;
+				f.extension = spec[0];
+				f.osType = spec[1];
+				f.displayName = spec[2];
+				f.supportsFlatForm = YES;
+				f.flatFormIsBarePlist = YES;	//the flat form is the plist file itself
+				f.payloadFileName = @"Data.plist";
+				f.codec = [[AXSPlistPassthroughCodec alloc] init];
+				f.editorClass = [AXSPlistTableEditorViewController class];
+				[building addObject:f];
+			}
 		}
 
 		formats = [building copy];

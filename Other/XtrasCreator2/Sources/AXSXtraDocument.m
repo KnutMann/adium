@@ -6,10 +6,14 @@
 #import "AXSXtraDocument.h"
 #import "AXSDocumentWindowController.h"
 
-//The Info.plist keys this application manages; everything else is preserved verbatim
+/* The Info.plist keys this application manages; everything else is preserved
+ * verbatim. CFBundlePackageType is deliberately not among them: nothing reads
+ * it, Adium's own theme writer stamps AdIM where this tool would stamp AILT,
+ * and rewriting it buys nothing - an existing value stays, only a missing one
+ * is filled with the type's own OSType. */
 static NSArray *AXSManagedInfoKeys(void)
 {
-	return @[@"CFBundleDevelopmentRegion", @"CFBundleName", @"CFBundlePackageType",
+	return @[@"CFBundleDevelopmentRegion", @"CFBundleName",
 			 @"CFBundleIdentifier", @"XtraBundleVersion", @"CFBundleInfoDictionaryVersion",
 			 @"XtraVersion", @"XtraAuthors", @"OriginalAuthor", @"CFBundleVersion"];
 }
@@ -43,9 +47,14 @@ static NSArray *AXSManagedInfoKeys(void)
 		_model = [[AXSXtraModel alloc] init];
 		_model.payload = [_format.codec emptyPayloadForFormat:_format];
 
-		//Born as a bundle, with the skeleton in place so editors can add files right away
-		_isFlatForm = NO;
-		[self buildEmptyBundleSkeleton];
+		if (_format.flatFormIsBarePlist) {
+			//Born flat, the form Adium itself writes for these
+			_isFlatForm = YES;
+		} else {
+			//Born as a bundle, with the skeleton in place so editors can add files right away
+			_isFlatForm = NO;
+			[self buildEmptyBundleSkeleton];
+		}
 	}
 	return self;
 }
@@ -114,6 +123,24 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 	}
 
 	rootWrapper = fileWrapper;
+
+	//The bare form: the xtra is one plist file, nothing around it
+	if (fileWrapper.regularFile && self.format.flatFormIsBarePlist) {
+		self.isFlatForm = YES;
+
+		id plist = [NSPropertyListSerialization propertyListWithData:[fileWrapper regularFileContents]
+															 options:NSPropertyListImmutable
+															  format:NULL
+															   error:outError];
+
+		AXSXtraModel *model = [[AXSXtraModel alloc] init];
+		model.bundleName = [[self.fileURL lastPathComponent] stringByDeletingPathExtension] ?: @"";
+		model.payload = ([plist isKindOfClass:[NSDictionary class]] ? [plist mutableCopy]
+																	: [self.format.codec emptyPayloadForFormat:self.format]);
+		self.model = model;
+
+		return YES;
+	}
 
 	//A Contents/Info.plist makes it a bundle; anything else is the flat form
 	NSFileWrapper *contents = [fileWrapper fileWrappers][@"Contents"];
@@ -202,6 +229,17 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 
 - (NSFileWrapper *)fileWrapperOfType:(NSString *)typeName error:(NSError **)outError
 {
+	//The bare form writes itself: the payload is the file
+	if (self.isFlatForm && self.format.flatFormIsBarePlist) {
+		NSData *data = [NSPropertyListSerialization dataWithPropertyList:self.model.payload
+																  format:NSPropertyListXMLFormat_v1_0
+																 options:0
+																   error:outError];
+		if (!data) return nil;
+
+		return [[NSFileWrapper alloc] initRegularFileWithContents:data];
+	}
+
 	if (!rootWrapper)
 		[self buildEmptyBundleSkeleton];
 
@@ -217,7 +255,8 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 
 	infoDict[@"CFBundleDevelopmentRegion"] = @"English";
 	infoDict[@"CFBundleName"] = self.model.bundleName ?: @"";
-	infoDict[@"CFBundlePackageType"] = self.format.osType;
+	if (!infoDict[@"CFBundlePackageType"])
+		infoDict[@"CFBundlePackageType"] = self.format.osType;
 	infoDict[@"CFBundleIdentifier"] = [self effectiveBundleIdentifier];
 	infoDict[@"XtraBundleVersion"] = @1;
 	infoDict[@"CFBundleInfoDictionaryVersion"] = @"1.0";
