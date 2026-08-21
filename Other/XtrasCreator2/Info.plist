@@ -8,6 +8,24 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Adium Message Style</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumMessageStyle</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.messagestyle</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Adium Contact List Layout</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
@@ -167,6 +185,23 @@
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.messagestyle</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Message Style</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumMessageStyle</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>com.adiumx.contactlistlayout</string>

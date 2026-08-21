@@ -14,6 +14,8 @@
 #import "AXSDockIconEditorViewController.h"
 #import "AXSPlistPassthroughCodec.h"
 #import "AXSPlistTableEditorViewController.h"
+#import "AXSMessageStyleCodec.h"
+#import "AXSMessageStyleEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -28,6 +30,7 @@
 @property (readwrite, nonatomic) NSArray<NSString *> *categoryNames;
 @property (readwrite, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *catalog;
 @property (readwrite, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *requiredCatalog;
+@property (readwrite, nonatomic) NSArray<NSString *> *infoPlistPayloadKeys;
 @property (readwrite, nonatomic) id<AXSPayloadCodec> codec;
 @property (readwrite, nonatomic) Class editorClass;
 @end
@@ -221,6 +224,20 @@
 				f.editorClass = [AXSPlistTableEditorViewController class];
 				[building addObject:f];
 			}
+		}
+
+		{	//Message styles: settings in Info.plist, substance in the template tree
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.messagestyle";
+			f.extension = @"AdiumMessageStyle";
+			f.osType = @"AIWK";
+			f.displayName = @"Message Style";
+			f.supportsFlatForm = NO;
+			f.requiresBundleIdentifier = YES;	//styles are told apart by it
+			f.infoPlistPayloadKeys = [AXSMessageStyleCodec styleKeys];
+			f.codec = [[AXSMessageStyleCodec alloc] init];
+			f.editorClass = [AXSMessageStyleEditorViewController class];
+			[building addObject:f];
 		}
 
 		formats = [building copy];

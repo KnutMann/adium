@@ -5,6 +5,7 @@
 
 #import "AXSXtraDocument.h"
 #import "AXSDocumentWindowController.h"
+#import "AXSMessageStyleCodec.h"
 
 /* The Info.plist keys this application manages; everything else is preserved
  * verbatim. CFBundlePackageType is deliberately not among them: nothing reads
@@ -14,7 +15,7 @@
 static NSArray *AXSManagedInfoKeys(void)
 {
 	return @[@"CFBundleDevelopmentRegion", @"CFBundleName",
-			 @"CFBundleIdentifier", @"XtraBundleVersion", @"CFBundleInfoDictionaryVersion",
+			 @"CFBundleIdentifier", @"XtraBundleVersion",
 			 @"XtraVersion", @"XtraAuthors", @"OriginalAuthor", @"CFBundleVersion"];
 }
 
@@ -22,6 +23,7 @@ static NSArray *AXSManagedInfoKeys(void)
 @property (readwrite, nonatomic) AXSXtraFormat *format;
 @property (readwrite, nonatomic) AXSXtraModel *model;
 @property (readwrite, nonatomic) BOOL isFlatForm;
+- (void)addResourceFileAtPath:(NSString *)relativePath contents:(NSData *)data;
 @end
 
 @implementation AXSXtraDocument {
@@ -54,6 +56,15 @@ static NSArray *AXSManagedInfoKeys(void)
 			//Born as a bundle, with the skeleton in place so editors can add files right away
 			_isFlatForm = NO;
 			[self buildEmptyBundleSkeleton];
+
+			//A new message style starts as a minimal working style, not an empty shell
+			if ([_format.extension isEqualToString:@"AdiumMessageStyle"]) {
+				NSDictionary *scaffold = [AXSMessageStyleCodec scaffoldFiles];
+				for (NSString *path in scaffold) {
+					[self addResourceFileAtPath:path
+									   contents:[scaffold[path] dataUsingEncoding:NSUTF8StringEncoding]];
+				}
+			}
 		}
 	}
 	return self;
@@ -93,6 +104,29 @@ static NSArray *AXSManagedInfoKeys(void)
 	}
 
 	return resources;
+}
+
+/*!
+ * @brief Put a file into the resources, creating intermediate directories
+ */
+- (void)addResourceFileAtPath:(NSString *)relativePath contents:(NSData *)data
+{
+	NSFileWrapper *node = [self resourcesWrapper];
+	NSArray *components = [relativePath pathComponents];
+
+	for (NSUInteger i = 0; i + 1 < [components count]; i++) {
+		NSFileWrapper *child = [node fileWrappers][components[i]];
+		if (!child.directory) {
+			child = [[NSFileWrapper alloc] initDirectoryWithFileWrappers:@{}];
+			[child setPreferredFilename:components[i]];
+			[node addFileWrapper:child];
+		}
+		node = child;
+	}
+
+	NSFileWrapper *existing = [node fileWrappers][[components lastObject]];
+	if (existing) [node removeFileWrapper:existing];
+	[node addRegularFileWithContents:data preferredFilename:[components lastObject]];
 }
 
 /*!
@@ -167,6 +201,8 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 	[unmanaged removeObjectsForKeys:AXSManagedInfoKeys()];
 	if (self.format.payloadLivesInInfoPlist)
 		[unmanaged removeObjectsForKeys:self.format.categoryNames];
+	if (self.format.infoPlistPayloadKeys)
+		[unmanaged removeObjectsForKeys:self.format.infoPlistPayloadKeys];
 	model.unmanagedInfoKeys = unmanaged;
 
 	model.payload = [self.format.codec readPayloadFromInfoDictionary:infoDict
@@ -259,7 +295,9 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 		infoDict[@"CFBundlePackageType"] = self.format.osType;
 	infoDict[@"CFBundleIdentifier"] = [self effectiveBundleIdentifier];
 	infoDict[@"XtraBundleVersion"] = @1;
-	infoDict[@"CFBundleInfoDictionaryVersion"] = @"1.0";
+	//Kept when present (Renkoo says 6.0 and nothing reads it), filled when absent
+	if (!infoDict[@"CFBundleInfoDictionaryVersion"])
+		infoDict[@"CFBundleInfoDictionaryVersion"] = @"1.0";
 	infoDict[@"XtraVersion"] = self.model.version ?: @"1.0";
 	infoDict[@"XtraAuthors"] = self.model.authors ?: @"";
 	/* The other spelling of the same two facts: released Adium versions read

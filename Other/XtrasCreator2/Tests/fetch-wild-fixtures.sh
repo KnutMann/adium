@@ -22,6 +22,7 @@ fixtures=(
 	"emoticons:8772"	# Emoticons
 	"sounds:8654"	# Sound Sets
 	"contactlist:7617"	# Contact List Styles
+	"messagestyles:8774"	# Message Styles
 	"dockicons:8779"	# Dock Icons
 )
 

@@ -208,6 +208,33 @@ static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
 											   message:@"No bundle identifier yet; a stable one is minted on the first save."]];
 	}
 
+	//Message styles: the two files nothing falls back for, and a default variant that exists
+	if ([format.extension isEqualToString:@"AdiumMessageStyle"]) {
+		for (NSString *required in @[@"Incoming/Content.html", @"main.css"]) {
+			if (!AXSPackHasFile(document.resourcesWrapper, required)) {
+				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelError
+													   message:[NSString stringWithFormat:
+																@"%@ is missing; the style cannot render without it.", required]]];
+			}
+		}
+
+		NSString *defaultVariant = [payload[@"DefaultVariant"] description];
+		if ([defaultVariant length]) {
+			NSString *variantPath = [NSString stringWithFormat:@"Variants/%@.css", defaultVariant];
+			if (!AXSPackHasFile(document.resourcesWrapper, variantPath)) {
+				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+													   message:[NSString stringWithFormat:
+																@"DefaultVariant \"%@\" has no stylesheet at %@.",
+																defaultVariant, variantPath]]];
+			}
+		}
+
+		if (!payload[@"MessageViewVersion"]) {
+			[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+												   message:@"No MessageViewVersion; Adium treats the style as the ancient version 1."]];
+		}
+	}
+
 	return issues;
 }
 

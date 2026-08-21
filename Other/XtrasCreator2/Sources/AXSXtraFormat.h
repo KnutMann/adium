@@ -44,6 +44,9 @@
 //The keys a pack cannot do without: Adium refuses or resets without them
 @property (readonly, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *requiredCatalog;
 
+//Scalar Info.plist keys the codec owns (message style settings); stripped from the unmanaged set
+@property (readonly, nonatomic) NSArray<NSString *> *infoPlistPayloadKeys;
+
 @property (readonly, nonatomic) id<AXSPayloadCodec> codec;
 @property (readonly, nonatomic) Class editorClass;
 
