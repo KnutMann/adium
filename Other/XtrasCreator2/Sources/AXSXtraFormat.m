@@ -107,6 +107,26 @@
 			[building addObject:f];
 		}
 
+		{	//Group chat status icons: role images and colors, both in Info.plist
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.groupchatstatusicons";
+			f.extension = @"AdiumGroupChatStatusIcons";
+			f.osType = @"AIGc";
+			f.displayName = @"Group Chat Status Icons";
+			f.supportsFlatForm = NO;
+			f.payloadLivesInInfoPlist = YES;
+			f.categoryNames = @[@"Icons", @"Colors"];
+
+			NSArray *roleKeys = @[@"Founder", @"Op", @"Half-op", @"Voice", @"None"];
+			f.catalog = @{ @"Icons": roleKeys, @"Colors": roleKeys };
+			//Everything falls back to None, so None is the one entry a pack needs
+			f.requiredCatalog = @{ @"Icons": @[@"None"], @"Colors": @[@"None"] };
+
+			f.codec = [[AXSIconPlistCodec alloc] init];
+			f.editorClass = [AXSIconPackEditorViewController class];
+			[building addObject:f];
+		}
+
 		formats = [building copy];
 	});
 

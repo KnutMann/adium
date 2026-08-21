@@ -91,6 +91,13 @@
 		}
 	}
 
+	//Adium's installer has no branch for this type; the pack goes in by hand
+	if ([format.extension isEqualToString:@"AdiumGroupChatStatusIcons"]) {
+		[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelInfo
+											   message:@"Adium cannot install this type by double click; place it in "
+														 "~/Library/Application Support/Adium 2.0/Group Chat Status Icons yourself."]];
+	}
+
 	//A message style without its own identifier is invisible or clobbers another
 	if (format.requiresBundleIdentifier && ![document.model.bundleIdentifier length]) {
 		[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning

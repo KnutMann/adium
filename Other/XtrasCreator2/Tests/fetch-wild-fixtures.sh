@@ -13,6 +13,8 @@ WILD="build/wild-fixtures"
 mkdir -p "$WILD"
 
 # type-directory:download-id  (one known-good specimen per category)
+# Group chat status icons have no wild specimen: adiumxtras.com predates the
+# type; the two packs shipped with Adium are the only known examples.
 fixtures=(
 	"menubar:8427"		# Menu Bar Icons
 	"statusicons:8624"	# Status Icons

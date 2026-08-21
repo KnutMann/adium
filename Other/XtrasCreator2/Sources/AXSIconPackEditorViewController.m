@@ -15,6 +15,27 @@
 @implementation AXSIconPackEditorViewController {
 	NSMutableDictionary<NSString *, NSTableView *> *tablesByCategory;
 	NSMutableDictionary<NSString *, NSArray<NSString *> *> *rowKeysByCategory;
+	NSString *colorEditingCategory;		//Which Colors row the color panel is aimed at
+	NSString *colorEditingKey;
+}
+
+/*!
+ * @brief A category whose values are "r,g,b" strings rather than file names
+ */
+static BOOL AXSIsColorCategory(NSString *category)
+{
+	return [category isEqualToString:@"Colors"];
+}
+
+static NSColor *AXSColorFromString(NSString *string)
+{
+	NSArray *parts = [string componentsSeparatedByString:@","];
+	if ([parts count] < 3) return nil;
+
+	return [NSColor colorWithSRGBRed:[parts[0] doubleValue] / 255.0
+							   green:[parts[1] doubleValue] / 255.0
+								blue:[parts[2] doubleValue] / 255.0
+							   alpha:1.0];
 }
 
 - (NSString *)tabTitle
@@ -91,7 +112,9 @@
 		[scroll setDocumentView:table];
 		[form addEdgeToEdgeRow:scroll];
 
-		NSButton *choose = [AISettingsFormView pushButtonWithTitle:@"Choose Image…" target:self action:@selector(chooseImageForSelection:)];
+		NSButton *choose = [AISettingsFormView pushButtonWithTitle:(AXSIsColorCategory(category) ? @"Choose Color…" : @"Choose Image…")
+															target:self
+															action:@selector(chooseImageForSelection:)];
 		[choose setIdentifier:category];
 		NSButton *clear = [AISettingsFormView pushButtonWithTitle:@"Clear" target:self action:@selector(clearSelection:)];
 		[clear setIdentifier:category];
@@ -134,6 +157,11 @@
 
 - (void)assignImageToKey:(NSString *)key category:(NSString *)category
 {
+	if (AXSIsColorCategory(category)) {
+		[self pickColorForKey:key category:category];
+		return;
+	}
+
 	NSOpenPanel *panel = [NSOpenPanel openPanel];
 	[panel setAllowsMultipleSelection:NO];
 	if (@available(macOS 11.0, *)) {
@@ -158,6 +186,35 @@
 		[self.document noteEdited];
 		[self reloadFromModel];
 	}];
+}
+
+- (void)pickColorForKey:(NSString *)key category:(NSString *)category
+{
+	colorEditingCategory = category;
+	colorEditingKey = key;
+
+	NSColorPanel *panel = [NSColorPanel sharedColorPanel];
+	NSColor *current = AXSColorFromString([[self entriesForCategory:category][key] description]);
+	if (current) [panel setColor:current];
+
+	[panel setTarget:self];
+	[panel setAction:@selector(colorPicked:)];
+	[panel makeKeyAndOrderFront:nil];
+}
+
+- (IBAction)colorPicked:(NSColorPanel *)panel
+{
+	if (!colorEditingKey) return;
+
+	NSColor *color = [[panel color] colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+	NSString *value = [NSString stringWithFormat:@"%d,%d,%d",
+					   (int)round([color redComponent] * 255.0),
+					   (int)round([color greenComponent] * 255.0),
+					   (int)round([color blueComponent] * 255.0)];
+
+	[self entriesForCategory:colorEditingCategory][colorEditingKey] = value;
+	[self.document noteEdited];
+	[self reloadFromModel];
 }
 
 - (IBAction)chooseImageForClickedRow:(NSTableView *)table
@@ -224,7 +281,16 @@
 		}
 
 		NSImage *image = nil;
-		if (fileName) {
+		if (AXSIsColorCategory(category)) {
+			NSColor *color = AXSColorFromString(fileName);
+			if (color) {
+				image = [NSImage imageWithSize:NSMakeSize(16, 16) flipped:NO drawingHandler:^BOOL(NSRect rect) {
+					[color setFill];
+					[[NSBezierPath bezierPathWithRoundedRect:rect xRadius:3 yRadius:3] fill];
+					return YES;
+				}];
+			}
+		} else if (fileName) {
 			NSFileWrapper *wrapper = [self.document.resourcesWrapper fileWrappers][fileName];
 			if (wrapper.regularFile)
 				image = [[NSImage alloc] initWithData:[wrapper regularFileContents]];
@@ -255,7 +321,7 @@
 			[field setTextColor:(required ? [NSColor systemRedColor] : [NSColor tertiaryLabelColor])];
 		}
 	} else {
-		[field setStringValue:[self dimensionsStringForFile:fileName]];
+		[field setStringValue:(AXSIsColorCategory(category) ? @"" : [self dimensionsStringForFile:fileName])];
 		[field setAlignment:NSTextAlignmentRight];
 		[field setTextColor:[NSColor secondaryLabelColor]];
 	}
