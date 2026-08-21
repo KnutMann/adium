@@ -9,6 +9,7 @@
 #import "AXSMetadataEditorViewController.h"
 #import "AXSResourcesEditorViewController.h"
 #import "AXSReadMeEditorViewController.h"
+#import "AXSProblemsViewController.h"
 
 #define DOCUMENT_WINDOW_WIDTH	760.0
 #define DOCUMENT_WINDOW_HEIGHT	560.0
@@ -49,6 +50,7 @@
 	[building addObject:[[AXSMetadataEditorViewController alloc] initWithDocument:document]];
 	[building addObject:[[AXSResourcesEditorViewController alloc] initWithDocument:document]];
 	[building addObject:[[AXSReadMeEditorViewController alloc] initWithDocument:document]];
+	[building addObject:[[AXSProblemsViewController alloc] initWithDocument:document]];
 
 	editors = building;
 

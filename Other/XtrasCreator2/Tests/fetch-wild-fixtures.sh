@@ -15,6 +15,8 @@ mkdir -p "$WILD"
 # type-directory:download-id  (one known-good specimen per category)
 fixtures=(
 	"menubar:8427"		# Menu Bar Icons
+	"statusicons:8624"	# Status Icons
+	"serviceicons:8629"	# Service Icons
 )
 
 for entry in $fixtures; do

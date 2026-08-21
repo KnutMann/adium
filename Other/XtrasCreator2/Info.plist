@@ -8,6 +8,42 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Adium Status Icons</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumStatusIcons</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.statusicons</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Adium Service Icons</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumServiceIcons</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.serviceicons</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Adium Menu Bar Icons</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
@@ -27,6 +63,40 @@
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.statusicons</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Status Icons</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumStatusIcons</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.serviceicons</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Service Icons</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumServiceIcons</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>com.adiumx.menubaricons</string>

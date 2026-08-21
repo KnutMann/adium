@@ -6,6 +6,7 @@
 #import "AXSXtraFormat.h"
 #import "AXSIconPlistCodec.h"
 #import "AXSMenuBarIconsEditorViewController.h"
+#import "AXSIconPackEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -19,6 +20,7 @@
 @property (readwrite, nonatomic) NSString *payloadFileName;
 @property (readwrite, nonatomic) NSArray<NSString *> *categoryNames;
 @property (readwrite, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *catalog;
+@property (readwrite, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *requiredCatalog;
 @property (readwrite, nonatomic) id<AXSPayloadCodec> codec;
 @property (readwrite, nonatomic) Class editorClass;
 @end
@@ -52,8 +54,56 @@
 			 * are required, the rest fall back to Online (measured against
 			 * CBStatusMenuItemController and AIMenuBarIcons). */
 			f.catalog = @{ @"Icons": @[@"Online", @"Offline", @"Away", @"Idle", @"Invisible", @"Content"] };
+			f.requiredCatalog = @{ @"Icons": @[@"Online", @"Offline"] };
 			f.codec = [[AXSIconPlistCodec alloc] init];
 			f.editorClass = [AXSMenuBarIconsEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//Status icons: Icons.plist with a List and a Tabs category over status names
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.statusicons";
+			f.extension = @"AdiumStatusIcons";
+			f.osType = @"AISt";
+			f.displayName = @"Status Icons";
+			f.supportsFlatForm = YES;
+			f.payloadFileName = @"Icons.plist";
+			f.categoryNames = @[@"List", @"Tabs"];
+
+			NSArray *statusKeys = @[@"Generic Available", @"Generic Away", @"Away", @"Idle",
+									@"Busy", @"DND", @"Not Available", @"Occupied", @"Free for Chat",
+									@"Invisible", @"Mobile", @"Offline", @"Unknown",
+									@"content", @"typing", @"enteredtext"];
+			f.catalog = @{ @"List": statusKeys, @"Tabs": statusKeys };
+
+			/* The four names the fallback chain lands on; a pack without them
+			 * trips Adium's "invalid status icon pack" alert (AIStatusIcons). */
+			NSArray *requiredKeys = @[@"Generic Available", @"Generic Away", @"Invisible", @"Offline"];
+			f.requiredCatalog = @{ @"List": requiredKeys, @"Tabs": requiredKeys };
+
+			f.codec = [[AXSIconPlistCodec alloc] init];
+			f.editorClass = [AXSIconPackEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//Service icons: Icons.plist keyed by service IDs, in three sizes
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.serviceicons";
+			f.extension = @"AdiumServiceIcons";
+			f.osType = @"AISr";
+			f.displayName = @"Service Icons";
+			f.supportsFlatForm = YES;
+			f.payloadFileName = @"Icons.plist";
+			f.categoryNames = @[@"Interface-Large", @"Interface-Small", @"List"];
+
+			//The services this fork runs; keys of other networks are kept but shown as legacy
+			NSArray *serviceKeys = @[@"Jabber", @"IRCv3", @"Gadu-Gadu", @"GroupWise", @"SIMPLE",
+									 @"WhatsApp", @"Signal", @"Telegram", @"Teams", @"TeamsPersonal"];
+			f.catalog = @{ @"Interface-Large": serviceKeys, @"Interface-Small": serviceKeys, @"List": serviceKeys };
+			//Missing service icons fall back to Adium's defaults; nothing is required
+
+			f.codec = [[AXSIconPlistCodec alloc] init];
+			f.editorClass = [AXSIconPackEditorViewController class];
 			[building addObject:f];
 		}
 

@@ -41,6 +41,9 @@
 @property (readonly, nonatomic) NSArray<NSString *> *categoryNames;
 @property (readonly, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *catalog;
 
+//The keys a pack cannot do without: Adium refuses or resets without them
+@property (readonly, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *requiredCatalog;
+
 @property (readonly, nonatomic) id<AXSPayloadCodec> codec;
 @property (readonly, nonatomic) Class editorClass;
 

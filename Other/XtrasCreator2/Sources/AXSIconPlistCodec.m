@@ -45,11 +45,21 @@ static NSMutableDictionary *AXSDeepMutableCategories(NSDictionary *source, NSArr
 
 	NSMutableArray *allCategories = [format.categoryNames mutableCopy];
 	for (NSString *key in plist) {
-		if ([key isEqualToString:ICON_SET_VERSION_KEY]) continue;
+		if (![plist[key] isKindOfClass:[NSDictionary class]]) continue;
 		if (![allCategories containsObject:key]) [allCategories addObject:key];
 	}
 
-	return AXSDeepMutableCategories(plist ?: @{}, allCategories);
+	NSMutableDictionary *payload = AXSDeepMutableCategories(plist ?: @{}, allCategories);
+
+	/* Top level scalars ride along verbatim; iBubble Status ships
+	 * AdiumSetVersion 1.3, which Adium's intValue check accepts, and a
+	 * round trip has no business flattening it to 1. */
+	for (NSString *key in plist) {
+		if (![plist[key] isKindOfClass:[NSDictionary class]])
+			payload[key] = plist[key];
+	}
+
+	return payload;
 }
 
 - (BOOL)writePayload:(id)payload
@@ -68,10 +78,12 @@ static NSMutableDictionary *AXSDeepMutableCategories(NSDictionary *source, NSArr
 	}
 
 	NSMutableDictionary *plist = [NSMutableDictionary dictionary];
-	plist[ICON_SET_VERSION_KEY] = @1;
-	for (NSString *category in categories) {
-		plist[category] = [categories[category] copy];
+	for (NSString *key in categories) {
+		id value = categories[key];
+		plist[key] = ([value isKindOfClass:[NSDictionary class]] ? [value copy] : value);
 	}
+	if (!plist[ICON_SET_VERSION_KEY])
+		plist[ICON_SET_VERSION_KEY] = @1;
 
 	NSData *data = [NSPropertyListSerialization dataWithPropertyList:plist
 															  format:NSPropertyListXMLFormat_v1_0
