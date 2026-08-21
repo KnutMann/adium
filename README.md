@@ -106,14 +106,26 @@ a modern look.
 * Address book integration moved from the AddressBook framework
   (deprecated since 2015) to the Contacts framework, with the modern
   permission prompt; cards are matched by phone number, chat address
-  or a manual link, and Adium only reads: the old silent write-back
-  into the address book is gone
+  or a manual link
 
 ### Localization
 
 * String extraction caught up: hundreds of strings the app already
   showed but had never been extracted are now translatable, filled in
   across the 26 shipped languages
+
+### Tools
+
+* **XtrasCreator**, the companion app for making Adium xtras, rebuilt
+  from scratch on a modern base (`Other/XtrasCreator`): it authors
+  emoticon sets, sound sets, status/service/menu-bar/group-chat icon
+  packs, dock icons, message styles, contact list themes and layouts,
+  and script packs
+* **Contact Pictures**, opened from the Address Book settings: the
+  cards linked to your chat contacts, each with the chat picture and
+  the card picture side by side, and one button that puts the chat
+  picture on the card. This is the single write Adium ever makes to
+  the address book, and it happens only when that button is pressed
 
 ### Adopted from the unreleased 1.6/1.7 line
 
@@ -154,12 +166,8 @@ require a proper signing identity). `bootstrap.sh` builds the
 AIUtilities and MMTabBarView subprojects first and stages their
 products, then builds the main project.
 
-The repository also carries **XtrasCreator**, the companion app for
-making Adium xtras (emoticon sets, sound sets, icon packs, dock
-icons, message styles, contact list themes and script packs),
-rebuilt from scratch on a modern base. It reads and writes both the
-bundle form and the legacy flat pack forms, checks packs against
-what Adium's loaders actually demand, and builds separately:
+The **XtrasCreator** companion app (see Tools above) builds
+separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
 All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
