@@ -6,6 +6,22 @@
 #import "AXSLintEngine.h"
 #import "AXSXtraDocument.h"
 
+/*!
+ * @brief Does the pack carry this file, following slashes into subfolders
+ */
+static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
+{
+	NSFileWrapper *node = root;
+
+	for (NSString *component in [relativePath pathComponents]) {
+		if ([component isEqualToString:@"/"]) continue;
+		node = [node fileWrappers][component];
+		if (!node) return NO;
+	}
+
+	return YES;
+}
+
 @interface AXSLintIssue ()
 @property (readwrite, nonatomic) AXSLintLevel level;
 @property (readwrite, nonatomic) NSString *message;
@@ -56,7 +72,7 @@
 				id value = entries[key];
 				if (![value isKindOfClass:[NSString class]] || ![value length]) continue;
 
-				if (!resourceFiles[value]) {
+				if (!AXSPackHasFile(document.resourcesWrapper, value)) {
 					[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
 														   message:[NSString stringWithFormat:
 																	@"%@/%@ points at \"%@\", which is not in the pack.",
@@ -79,6 +95,17 @@
 												   message:[NSString stringWithFormat:
 															@"Entries outside today's catalog are kept as they are: %@.",
 															[foreignKeys componentsJoinedByString:@", "]]]];
+		}
+	}
+
+	//Sound sets: the loader raises on any version but 1
+	if ([format.extension caseInsensitiveCompare:@"AdiumSoundset"] == NSOrderedSame) {
+		id setVersion = payload[@"AdiumSetVersion"];
+		if (setVersion && [setVersion intValue] != 1) {
+			[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelError
+												   message:[NSString stringWithFormat:
+															@"AdiumSetVersion is %@; Adium refuses any sound set whose version is not 1.",
+															setVersion]]];
 		}
 	}
 

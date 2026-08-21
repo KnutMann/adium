@@ -9,6 +9,7 @@
 #import "AXSMenuBarIconsEditorViewController.h"
 #import "AXSIconPackEditorViewController.h"
 #import "AXSEmoticonSetEditorViewController.h"
+#import "AXSSoundSetEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -139,6 +140,42 @@
 			f.payloadFileName = @"Emoticons.plist";
 			f.codec = [[AXSEmoticonSetCodec alloc] init];
 			f.editorClass = [AXSEmoticonSetEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//Sound sets: Sounds.plist mapping event names to audio files
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.soundset";
+			f.extension = @"AdiumSoundset";
+			f.osType = @"AISd";
+			f.displayName = @"Sound Set";
+			f.supportsFlatForm = YES;
+			f.payloadFileName = @"Sounds.plist";
+			f.categoryNames = @[@"Sounds"];
+
+			/* The keys are the events' English display names; the loader maps
+			 * them back through eventIDForEnglishDisplayName:. Harvested from
+			 * every englishGlobalShortDescriptionForEventID: in the tree. */
+			f.catalog = @{ @"Sounds": @[
+				@"Connected", @"Disconnected", @"Error", @"New Mail Received",
+				@"Contact Signed On", @"Contact Signed Off",
+				@"Contact is seen", @"Contact is no longer seen",
+				@"Contact Went Away", @"Contact Returned from Away",
+				@"Contact Went Idle", @"Contact Returned from Idle",
+				@"Contact Went Mobile", @"Contact Returns from Mobile",
+				@"Message Received", @"Message Received (New)", @"Message Received (Away)",
+				@"Message Received (Background Chat)", @"Message Received (Group Chat)",
+				@"Message Received (Background Group Chat)", @"Message Received (Away Group Chat)",
+				@"Message Sent", @"Message Sent (Group Chat)",
+				@"You Are Mentioned (Group Chat)",
+				@"Contact Joins", @"Contact Leaves", @"Contact Invites You to Chat",
+				@"File Transfer Request", @"File Transfer Began", @"File Transfer Complete",
+				@"File transfer failed", @"File Transfer Canceled Remotely",
+				@"Notification received",
+			] };
+
+			f.codec = [[AXSIconPlistCodec alloc] init];
+			f.editorClass = [AXSSoundSetEditorViewController class];
 			[building addObject:f];
 		}
 

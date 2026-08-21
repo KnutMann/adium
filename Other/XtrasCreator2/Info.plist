@@ -44,6 +44,24 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Adium Sound Set</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumSoundset</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.soundset</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Adium Emoticon Set</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
@@ -130,6 +148,23 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>AdiumServiceIcons</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.soundset</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Sound Set</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumSoundset</string>
 				</array>
 			</dict>
 		</dict>

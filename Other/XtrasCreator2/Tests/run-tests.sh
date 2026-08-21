@@ -19,7 +19,7 @@ mkdir -p build
 rm -rf "$SCRATCH"
 
 echo "== compile"
-clang -fobjc-arc -framework Cocoa -framework UniformTypeIdentifiers \
+clang -fobjc-arc -framework Cocoa -framework UniformTypeIdentifiers -framework AVFoundation \
 	-I Sources -I "$REPO_ROOT/Frameworks/Adium/Source" \
 	Tests/AXSRoundTripTest.m \
 	$(ls Sources/*.m | grep -v '/main\.m$' | tr '\n' ' ') \

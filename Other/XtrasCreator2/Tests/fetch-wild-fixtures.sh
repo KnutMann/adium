@@ -20,6 +20,7 @@ fixtures=(
 	"statusicons:8624"	# Status Icons
 	"serviceicons:8629"	# Service Icons
 	"emoticons:8772"	# Emoticons
+	"sounds:8654"	# Sound Sets
 )
 
 for entry in $fixtures; do
