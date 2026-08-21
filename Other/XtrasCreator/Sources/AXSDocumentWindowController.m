@@ -33,7 +33,10 @@
 	[window center];
 
 	if ((self = [super initWithWindow:window])) {
-		[self setDocument:document];
+		/* Deliberately not setDocument: here: that property is NSDocument's to
+		 * set, and a controller that already claims the document makes
+		 * addWindowController: return without ever registering it - measured
+		 * as a document with zero window controllers and no window on screen. */
 		[self buildPagesForDocument:document];
 	}
 	return self;

@@ -53,6 +53,11 @@
 	[table setDoubleAction:@selector(createChosenXtra:)];
 
 	NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"type"];
+	/* Without an explicit width the column keeps NSTableColumn's default
+	 * hundred points and every row is cut short; the last-column fit below
+	 * then follows the table's real width. */
+	[column setWidth:STARTING_POINTS_WIDTH];
+	[column setResizingMask:NSTableColumnAutoresizingMask];
 	[table addTableColumn:column];
 	[table setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
 	[table setDataSource:self];
@@ -66,6 +71,7 @@
 	[scroll setDocumentView:table];
 	[scroll setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	[content addSubview:scroll];
+	[table sizeLastColumnToFit];
 
 	NSButton *create = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[create setBezelStyle:NSBezelStyleRounded];
@@ -80,6 +86,20 @@
 	[create setFrame:createFrame];
 	[create setAutoresizingMask:(NSViewMinXMargin | NSViewMaxYMargin)];
 	[content addSubview:create];
+
+	//The other way in: an existing pack
+	NSButton *open = [[NSButton alloc] initWithFrame:NSZeroRect];
+	[open setBezelStyle:NSBezelStyleRounded];
+	[open setTitle:@"Open…"];
+	[open setTarget:nil];
+	[open setAction:@selector(openDocument:)];
+	[open sizeToFit];
+	NSRect openFrame = [open frame];
+	openFrame.size.width = MAX(NSWidth(openFrame), 90.0);
+	openFrame.origin = NSMakePoint(MARGIN, MARGIN);
+	[open setFrame:openFrame];
+	[open setAutoresizingMask:(NSViewMaxXMargin | NSViewMaxYMargin)];
+	[content addSubview:open];
 }
 
 - (IBAction)createChosenXtra:(id)sender
@@ -118,17 +138,19 @@
 		[cell addSubview:icon];
 
 		name = [NSTextField labelWithString:@""];
-		[name setFrame:NSMakeRect(46, 23, 380, 17)];
+		[name setFrame:NSMakeRect(46, 23, 340, 17)];
 		[name setFont:[NSFont systemFontOfSize:13.0 weight:NSFontWeightSemibold]];
 		[name setIdentifier:@"name"];
+		[name setLineBreakMode:NSLineBreakByTruncatingTail];
 		[name setAutoresizingMask:NSViewWidthSizable];
 		[cell addSubview:name];
 
 		detail = [NSTextField labelWithString:@""];
-		[detail setFrame:NSMakeRect(46, 5, 380, 15)];
+		[detail setFrame:NSMakeRect(46, 5, 340, 15)];
 		[detail setFont:[NSFont systemFontOfSize:11.0]];
 		[detail setTextColor:[NSColor secondaryLabelColor]];
 		[detail setIdentifier:@"detail"];
+		[detail setLineBreakMode:NSLineBreakByTruncatingTail];
 		[detail setAutoresizingMask:NSViewWidthSizable];
 		[cell addSubview:detail];
 	} else {
