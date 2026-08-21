@@ -23,6 +23,7 @@ fixtures=(
 	"sounds:8654"	# Sound Sets
 	"contactlist:7617"	# Contact List Styles
 	"messagestyles:8774"	# Message Styles
+	"scripts:3401"	# AppleScripts
 	"dockicons:8779"	# Dock Icons
 )
 

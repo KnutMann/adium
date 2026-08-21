@@ -26,6 +26,7 @@
 
 @property (readonly, nonatomic) BOOL supportsFlatForm;		//flat directory beside the bundle form
 @property (readonly, nonatomic) BOOL flatFormIsBarePlist;	//the xtra is a single plist file (list themes)
+@property (readonly, nonatomic) BOOL flatFormHasRootInfoPlist;	//flat form keeps an Info.plist at the root (scripts)
 @property (readonly, nonatomic) BOOL payloadLivesInInfoPlist;
 @property (readonly, nonatomic) BOOL requiresBundleIdentifier;
 

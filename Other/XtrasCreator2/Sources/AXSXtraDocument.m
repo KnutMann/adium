@@ -52,6 +52,10 @@ static NSArray *AXSManagedInfoKeys(void)
 		if (_format.flatFormIsBarePlist) {
 			//Born flat, the form Adium itself writes for these
 			_isFlatForm = YES;
+		} else if (_format.flatFormHasRootInfoPlist) {
+			//Born flat, the form the shipped script packs use
+			_isFlatForm = YES;
+			rootWrapper = [[NSFileWrapper alloc] initDirectoryWithFileWrappers:@{}];
 		} else {
 			//Born as a bundle, with the skeleton in place so editors can add files right away
 			_isFlatForm = NO;
@@ -181,6 +185,12 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 	NSFileWrapper *infoPlist = (contents.directory ? [contents fileWrappers][@"Info.plist"] : nil);
 	self.isFlatForm = (infoPlist == nil);
 
+	//Scripts keep their Info.plist at the root in the flat form
+	if (self.isFlatForm && self.format.flatFormHasRootInfoPlist) {
+		NSFileWrapper *rootInfo = [fileWrapper fileWrappers][@"Info.plist"];
+		if (rootInfo.regularFile) infoPlist = rootInfo;
+	}
+
 	NSDictionary *infoDict = @{};
 	if (infoPlist.regularFile) {
 		infoDict = [NSPropertyListSerialization propertyListWithData:[infoPlist regularFileContents]
@@ -305,14 +315,16 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 	infoDict[@"OriginalAuthor"] = self.model.authors ?: @"";
 	infoDict[@"CFBundleVersion"] = self.model.version ?: @"1.0";
 
-	if (!self.isFlatForm) {
+	if (!self.isFlatForm || self.format.flatFormHasRootInfoPlist) {
 		NSData *infoData = [NSPropertyListSerialization dataWithPropertyList:infoDict
 																	  format:NSPropertyListXMLFormat_v1_0
 																	 options:0
 																	   error:outError];
 		if (!infoData) return nil;
 
-		AXSReplaceFile([self contentsWrapper], @"Info.plist", infoData);
+		//The flat script form keeps its Info.plist at the root
+		NSFileWrapper *home = (self.isFlatForm ? rootWrapper : [self contentsWrapper]);
+		AXSReplaceFile(home, @"Info.plist", infoData);
 	}
 
 	[self writeReadMe];

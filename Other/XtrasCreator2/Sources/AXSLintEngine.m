@@ -135,6 +135,40 @@ static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
 		}
 	}
 
+	//Script packs: every entry needs its compiled script and a keyword to trigger it
+	if ([format.extension isEqualToString:@"AdiumScripts"]) {
+		NSArray *scripts = payload[@"Scripts"];
+		NSUInteger withoutKeyword = 0;
+
+		if ([scripts isKindOfClass:[NSArray class]]) {
+			for (NSDictionary *entry in scripts) {
+				if (![entry isKindOfClass:[NSDictionary class]]) continue;
+
+				NSString *file = [entry[@"File"] description];
+				if ([file length]) {
+					NSString *scptName = [file stringByAppendingPathExtension:@"scpt"];
+					if (!AXSPackHasFile(document.resourcesWrapper, scptName) &&
+						!AXSPackHasFile(document.resourcesWrapper, [@"Resources" stringByAppendingPathComponent:scptName])) {
+						[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+															   message:[NSString stringWithFormat:
+																		@"Script \"%@\" names %@, which is not in the pack.",
+																		[entry[@"Title"] description] ?: file, scptName]]];
+					}
+				}
+
+				if (![[entry[@"Keyword"] description] length])
+					withoutKeyword++;
+			}
+		}
+
+		if (withoutKeyword) {
+			[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+												   message:[NSString stringWithFormat:
+															@"%lu script(s) have no keyword and can never be triggered.",
+															(unsigned long)withoutKeyword]]];
+		}
+	}
+
 	//Sound sets: the loader raises on any version but 1
 	if ([format.extension caseInsensitiveCompare:@"AdiumSoundset"] == NSOrderedSame) {
 		id setVersion = payload[@"AdiumSetVersion"];

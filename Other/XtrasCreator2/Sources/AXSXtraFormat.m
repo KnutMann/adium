@@ -16,6 +16,8 @@
 #import "AXSPlistTableEditorViewController.h"
 #import "AXSMessageStyleCodec.h"
 #import "AXSMessageStyleEditorViewController.h"
+#import "AXSScriptSetCodec.h"
+#import "AXSScriptSetEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -31,6 +33,7 @@
 @property (readwrite, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *catalog;
 @property (readwrite, nonatomic) NSDictionary<NSString *, NSArray<NSString *> *> *requiredCatalog;
 @property (readwrite, nonatomic) NSArray<NSString *> *infoPlistPayloadKeys;
+@property (readwrite, nonatomic) BOOL flatFormHasRootInfoPlist;
 @property (readwrite, nonatomic) id<AXSPayloadCodec> codec;
 @property (readwrite, nonatomic) Class editorClass;
 @end
@@ -237,6 +240,21 @@
 			f.infoPlistPayloadKeys = [AXSMessageStyleCodec styleKeys];
 			f.codec = [[AXSMessageStyleCodec alloc] init];
 			f.editorClass = [AXSMessageStyleEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//Script packs: keyword-triggered AppleScripts, described by Info.plist
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.script";
+			f.extension = @"AdiumScripts";
+			f.osType = @"AIAS";
+			f.displayName = @"Script Pack";
+			f.supportsFlatForm = YES;
+			f.flatFormHasRootInfoPlist = YES;	//the shipped packs keep Info.plist at the root
+			f.payloadLivesInInfoPlist = YES;
+			f.infoPlistPayloadKeys = @[@"Set", @"Scripts"];
+			f.codec = [[AXSScriptSetCodec alloc] init];
+			f.editorClass = [AXSScriptSetEditorViewController class];
 			[building addObject:f];
 		}
 

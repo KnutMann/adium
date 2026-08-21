@@ -133,7 +133,8 @@ int main(int argc, char *argv[])
 
 		if (packIsDirectory) {
 			//The files that may legitimately be re-serialized on an untouched save
-			NSMutableArray *reserializable = [NSMutableArray arrayWithObject:@"Contents/Info.plist"];
+			NSMutableArray *reserializable = [NSMutableArray arrayWithObjects:@"Contents/Info.plist",
+											  @"Info.plist" /* flat script packs */, nil];
 			if (format.payloadFileName) {
 				[reserializable addObject:[@"Contents/Resources" stringByAppendingPathComponent:format.payloadFileName]];
 				[reserializable addObject:format.payloadFileName];	//flat form
