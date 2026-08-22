@@ -257,6 +257,59 @@ static NSString *const AIWKContextMenuScript =
 
 @implementation AIWebKitMessageViewWKController
 
+#pragma mark - Remote-load block
+
+/*!
+ * @brief Hand back the compiled rule list that blocks every remote load
+ *
+ * The transcript is a file page that should reach nothing but local files. A
+ * WKContentRuleList refuses every http(s)/ws(s) load the page attempts,
+ * whether from a message style, a plugin, or a tracking pixel in a received
+ * message, so the display can neither fetch remote content nor exfiltrate.
+ *
+ * Compilation is asynchronous and done once; the result is cached. On failure
+ * the completion is called with nil, and the page is loaded anyway rather than
+ * left blank (an unblocked page is the pre-existing state, not a regression).
+ * All on the main thread, where these controllers live.
+ */
++ (void)withRemoteLoadBlockRuleList:(void (^)(WKContentRuleList *ruleList))completion
+{
+	static WKContentRuleList *cachedRuleList = nil;
+	static NSMutableArray *pendingCompletions = nil;
+	static BOOL compiling = NO;
+	static BOOL compiled = NO;
+
+	if (compiled) {
+		completion(cachedRuleList);
+		return;
+	}
+
+	if (!pendingCompletions) pendingCompletions = [NSMutableArray array];
+	[pendingCompletions addObject:[completion copy]];
+
+	if (compiling) return;
+	compiling = YES;
+
+	NSString *rules = @"[{\"trigger\":{\"url-filter\":\"^https?://\"},\"action\":{\"type\":\"block\"}},"
+					   "{\"trigger\":{\"url-filter\":\"^wss?://\"},\"action\":{\"type\":\"block\"}}]";
+
+	[[WKContentRuleListStore defaultStore] compileContentRuleListForIdentifier:@"AdiumBlockRemoteLoads"
+													   encodedContentRuleList:rules
+															completionHandler:^(WKContentRuleList *ruleList, NSError *error) {
+		if (error) NSLog(@"Remote-load block rule list failed to compile: %@", error);
+
+		cachedRuleList = ruleList;
+		compiled = YES;
+		compiling = NO;
+
+		NSArray *completions = [pendingCompletions copy];
+		[pendingCompletions removeAllObjects];
+		for (void (^pending)(WKContentRuleList *) in completions) {
+			pending(ruleList);
+		}
+	}];
+}
+
 #pragma mark - Factory / Init
 
 + (AIWebKitMessageViewWKController *)messageDisplayControllerForChat:(AIChat *)inChat
@@ -378,14 +431,32 @@ static NSString *const AIWKContextMenuScript =
 
 	config.userContentController = userContentController;
 
-	/* Let the file-origin page load file resources outside its base directory
-	 * (user icons live in the caches folder). Private keys, same unlock the
-	 * legacy WebView needed via SPI. */
+	/* The transcript is display only: it never keeps state that must outlive the
+	 * window, and the file origin makes per-style LocalStorage impossible anyway.
+	 * An ephemeral data store means nothing a page (a message style, or a plugin)
+	 * does can be written to persist across launches. */
+	config.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
+
+	/* Let the file-origin page load local file resources outside its base
+	 * directory (user icons live in the caches folder). Deliberately NOT
+	 * allowUniversalAccessFromFileURLs: that one lets a file page script XHR
+	 * across origins, i.e. exfiltrate to any http host, and nothing legitimate
+	 * here needs it (measured: no bundled style loads a remote resource, inline
+	 * images arrive as local files). The remote-load block below is the other
+	 * half of the same fence. */
 	@try {
 		[config.preferences setValue:@YES forKey:@"allowFileAccessFromFileURLs"];
-		[config setValue:@YES forKey:@"allowUniversalAccessFromFileURLs"];
 	} @catch (NSException *exception) {
 		NSLog(@"WKWebView file access unlock unavailable: %@", exception);
+	}
+
+	/* Peer connections carry ICE/STUN traffic and data channels that no content
+	 * rule list governs, so they are an exfiltration path around the block below.
+	 * The transcript has no use for WebRTC; turn it off where the key exists. */
+	@try {
+		[config.preferences setValue:@NO forKey:@"peerConnectionEnabled"];
+	} @catch (NSException *exception) {
+		NSLog(@"WKWebView peer-connection key unavailable: %@", exception);
 	}
 
 	// Register adium:// scheme handler (10.13+)
@@ -445,21 +516,51 @@ static NSString *const AIWKContextMenuScript =
 	NSLog(@"WKWebView navigation failed: %@", error);
 }
 
+/*!
+ * @brief Is this a scheme the transcript may open in the browser?
+ *
+ * A user following a link should reach the web or their mail client, and
+ * nothing else. Handing every scheme to NSWorkspace, as this once did, lets a
+ * message (or a plugin injecting one) invoke any registered handler - file:,
+ * and worse - with a single click.
+ */
+static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
+{
+	NSString *lower = [scheme lowercaseString];
+	return ([lower isEqualToString:@"http"] || [lower isEqualToString:@"https"] ||
+			[lower isEqualToString:@"mailto"] || [lower isEqualToString:@"xmpp"] ||
+			[lower isEqualToString:@"aim"] || [lower isEqualToString:@"ymsgr"] ||
+			[lower isEqualToString:@"ftp"]);
+}
+
 - (void)webView:(WKWebView *)webView
 	decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 					decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
-	// Allow navigation only for our initial load and JavaScript
+	NSURL *url = [navigationAction.request URL];
+	NSString *scheme = [[url scheme] lowercaseString];
+
+	/* WKNavigationTypeOther is our own template loads and the styles' internal
+	 * navigation - but it is ALSO what a script assigning location.href produces,
+	 * so allowing it blindly lets page or plugin JS navigate the frame anywhere.
+	 * Confine it to the local page and the harmless internal schemes; a remote
+	 * document load would be blocked by the content rule list regardless, but a
+	 * navigation is cheaper to refuse here. */
 	if (navigationAction.navigationType == WKNavigationTypeOther) {
-		decisionHandler(WKNavigationActionPolicyAllow);
-	} else {
-		// Open external URLs in the default browser
-		NSURL *url = [navigationAction.request URL];
-		if (url && ![[url scheme] isEqualToString:@"about"]) {
-			[[NSWorkspace sharedWorkspace] openURL:url];
+		if (!url || [scheme isEqualToString:@"file"] || [scheme isEqualToString:@"about"] ||
+			[scheme isEqualToString:@"adium"]) {
+			decisionHandler(WKNavigationActionPolicyAllow);
+		} else {
+			decisionHandler(WKNavigationActionPolicyCancel);
 		}
-		decisionHandler(WKNavigationActionPolicyCancel);
+		return;
 	}
+
+	// A click on a link: open it in the browser, but only for schemes we trust
+	if (url && AIWebKitSchemeIsSafeToOpenExternally(scheme)) {
+		[[NSWorkspace sharedWorkspace] openURL:url];
+	}
+	decisionHandler(WKNavigationActionPolicyCancel);
 }
 
 #pragma mark - WKUIDelegate
@@ -469,9 +570,9 @@ static NSString *const AIWKContextMenuScript =
 			   forNavigationAction:(WKNavigationAction *)navigationAction
 					windowFeatures:(WKWindowFeatures *)windowFeatures
 {
-	// Open popup windows in the default browser
+	// Open popup windows in the default browser, but only for schemes we trust
 	NSURL *url = [navigationAction.request URL];
-	if (url) {
+	if (url && AIWebKitSchemeIsSafeToOpenExternally([url scheme])) {
 		[[NSWorkspace sharedWorkspace] openURL:url];
 	}
 	return nil;
@@ -981,8 +1082,20 @@ static NSString *const AIWKContextMenuScript =
 												atomically:YES
 												  encoding:NSUTF8StringEncoding
 													 error:NULL];
-	[_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
-	  allowingReadAccessToURL:[NSURL fileURLWithPath:@"/" isDirectory:YES]];
+
+	/* Attach the remote-load block before the first load, so no page ever runs
+	 * unblocked; compilation is cached, so every load after the first proceeds
+	 * without waiting. The list stays on the content controller across reloads,
+	 * hence the guard against adding it twice. */
+	[[self class] withRemoteLoadBlockRuleList:^(WKContentRuleList *ruleList) {
+		if (ruleList && !_remoteLoadBlockInstalled) {
+			[_webView.configuration.userContentController addContentRuleList:ruleList];
+			_remoteLoadBlockInstalled = YES;
+		}
+
+		[_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
+		  allowingReadAccessToURL:[NSURL fileURLWithPath:@"/" isDirectory:YES]];
+	}];
 
 	if (_chat.isGroupChat && _chat.supportsTopic) {
 		[self updateTopic];
@@ -2167,6 +2280,18 @@ static NSString *const AIWKContextMenuScript =
 	}
 
 	ESFileTransfer *fileTransfer = [ESFileTransfer existingFileTransferWithID:fileTransferID];
+
+	/* Trust the id only as far as this chat: the transfer must belong to the
+	 * account and contact this transcript is showing. Without that, a script in
+	 * the page (or a plugin reaching the page world) could accept or cancel any
+	 * transfer in the whole application by guessing an id. */
+	if (fileTransfer.account != _chat.account ||
+		(fileTransfer.contact && ![_chat.containedObjects containsObject:(id)fileTransfer.contact] &&
+		 fileTransfer.contact != _chat.listObject)) {
+		AILogWithSignature(@"Refused file-transfer action for a transfer outside this chat: %@", fileTransferID);
+		return;
+	}
+
 	ESFileTransferRequestPromptController *tc = [fileTransfer fileTransferRequestPromptController];
 	if (!tc) {
 		return;
