@@ -184,6 +184,14 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 	{
 		if ((pluginBundle = [NSBundle bundleWithPath:pluginPath])) {
 			
+			/* A JavaScript plugin carries no code to load: it is a script the
+			 * message view injects, handled by AIJSXtrasManager, not here.
+			 * External ones still pass the confirm and version gates above; this
+			 * only stops the loader looking for a principal class it hasn't got. */
+			if ([[pluginBundle objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue]) {
+				return;
+			}
+
 			if ([self pluginIsBlacklisted:pluginBundle]) {
 				NSAlert *alert = [[NSAlert alloc] init];
 				[alert setAlertStyle:NSAlertStyleInformational];

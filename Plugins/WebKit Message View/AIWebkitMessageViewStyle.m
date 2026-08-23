@@ -1124,14 +1124,29 @@
 		}
 
 		//Message (must do last)
+		/* Wrap the message body in a marker span so display plugins have one
+		 * element to find whatever markup a style splices %message% into, and so
+		 * their transforms can never reach the sender name or timestamp around
+		 * it. Topics reuse htmlEncodedMessage below through their own wrapper and
+		 * are left unmarked. */
+		NSString *messageReplacement = htmlEncodedMessage;
+		if (![content isKindOfClass:[AIContentTopic class]]) {
+			BOOL isHistory = [content isKindOfClass:[AIContentContext class]];
+			messageReplacement = [NSString stringWithFormat:
+								  @"<span data-x-adium-msg data-x-adium-dir=\"%@\" data-x-adium-history=\"%@\">%@</span>",
+								  ([content isOutgoing] ? @"outgoing" : @"incoming"),
+								  (isHistory ? @"1" : @"0"),
+								  htmlEncodedMessage];
+		}
+
 		range = [inString rangeOfString:@"%message%"];
 		while(range.location != NSNotFound) {
-			[inString safeReplaceCharactersInRange:range withString:htmlEncodedMessage];
+			[inString safeReplaceCharactersInRange:range withString:messageReplacement];
 			range = [inString rangeOfString:@"%message%"
 									options:NSLiteralSearch
-									  range:NSMakeRange(range.location + htmlEncodedMessage.length,
-														inString.length - range.location - htmlEncodedMessage.length)];
-		} 
+									  range:NSMakeRange(range.location + messageReplacement.length,
+														inString.length - range.location - messageReplacement.length)];
+		}
 		
 		// Topic replacement (if applicable)
 		if ([content isKindOfClass:[AIContentTopic class]]) {

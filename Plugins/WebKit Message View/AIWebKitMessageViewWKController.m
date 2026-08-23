@@ -17,6 +17,7 @@
 #import "AIWebKitMessageViewWKController.h"
 #import "AIAdiumURLSchemeHandler.h"
 #import "AIWebKitMessageViewPlugin.h"
+#import "AIJSXtrasManager.h"
 #import "AIWebKitMessageViewWKContextMenu.h"
 #import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIService.h>
@@ -428,6 +429,12 @@ static NSString *const AIWKContextMenuScript =
 		@"function scrollToBottom() { window.scrollTo(0, document.body.scrollHeight); }"
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
+
+	/* JavaScript plugins go in here, each into a content world of its own, before
+	 * the config is sealed. Their scripts re-inject on every load like the two
+	 * above, so a reprime needs no extra handling. The world isolates a plugin's
+	 * JS; the hardening below and the remote-load block keep it harmless. */
+	[[AIJSXtrasManager sharedManager] installIntoUserContentController:userContentController];
 
 	config.userContentController = userContentController;
 

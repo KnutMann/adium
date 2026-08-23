@@ -826,6 +826,10 @@
 		4B909C8A064D75400074C9A8 /* BGEmoticonMenuPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = C4243C930638E4EA007AD2D9 /* BGEmoticonMenuPlugin.m */; };
 		ADD1E5C0DE00000000000F03 /* AITypstRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000912 /* AITypstPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000911 /* AITypstPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000D211 /* AIJSXtrasPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D201 /* AIJSXtrasPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000D213 /* AIJSXtrasManager.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000D215 /* AIJSXtraBundle.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000D221 /* Big Emoji.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D220 /* Big Emoji.AdiumPlugin */; };
 		ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000931 /* AITypstHistory.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000921 /* AITypstEditorView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4B97DB6706AC123A0003EE49 /* msg-insert-link.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4B97DB6606AC123A0003EE49 /* msg-insert-link.tiff */; };
@@ -1312,6 +1316,17 @@
 				4D9164BC25780B2D00930BC8 /* AdiumSpotlightImporter.mdimporter in Copy Spotlight Importer */,
 			);
 			name = "Copy Spotlight Importer";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ADD1E5C0DE0000000000D2B0 /* Copy JavaScript Plugins */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "JavaScript Plugins";
+			dstSubfolderSpec = 7;
+			files = (
+				ADD1E5C0DE0000000000D221 /* Big Emoji.AdiumPlugin in Copy JavaScript Plugins */,
+			);
+			name = "Copy JavaScript Plugins";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -2847,6 +2862,13 @@
 		ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstRenderer.m; path = "Plugins/Typst Formulas/AITypstRenderer.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000903 /* AITypstRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstRenderer.h; path = "Plugins/Typst Formulas/AITypstRenderer.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000911 /* AITypstPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstPlugin.m; path = "Plugins/Typst Formulas/AITypstPlugin.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D200 /* AIJSXtrasPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtrasPlugin.h; path = "Plugins/JavaScript Xtras/AIJSXtrasPlugin.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D201 /* AIJSXtrasPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtrasPlugin.m; path = "Plugins/JavaScript Xtras/AIJSXtrasPlugin.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D202 /* AIJSXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtrasManager.h; path = "Plugins/JavaScript Xtras/AIJSXtrasManager.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtrasManager.m; path = "Plugins/JavaScript Xtras/AIJSXtrasManager.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D204 /* AIJSXtraBundle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtraBundle.h; path = "Plugins/JavaScript Xtras/AIJSXtraBundle.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtraBundle.m; path = "Plugins/JavaScript Xtras/AIJSXtraBundle.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D220 /* Big Emoji.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Big Emoji.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Big Emoji.AdiumPlugin"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000913 /* AITypstPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstPlugin.h; path = "Plugins/Typst Formulas/AITypstPlugin.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000931 /* AITypstHistory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstHistory.m; path = "Plugins/Typst Formulas/AITypstHistory.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000933 /* AITypstHistory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstHistory.h; path = "Plugins/Typst Formulas/AITypstHistory.h"; sourceTree = "<group>"; };
@@ -6064,6 +6086,20 @@
 			name = "User Questions";
 			sourceTree = "<group>";
 		};
+		ADD1E5C0DE0000000000D2A0 /* JavaScript Xtras */ = {
+			isa = PBXGroup;
+			children = (
+				ADD1E5C0DE0000000000D200 /* AIJSXtrasPlugin.h */,
+				ADD1E5C0DE0000000000D201 /* AIJSXtrasPlugin.m */,
+				ADD1E5C0DE0000000000D202 /* AIJSXtrasManager.h */,
+				ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */,
+				ADD1E5C0DE0000000000D204 /* AIJSXtraBundle.h */,
+				ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */,
+				ADD1E5C0DE0000000000D220 /* Big Emoji.AdiumPlugin */,
+			);
+			name = "JavaScript Xtras";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -6332,6 +6368,7 @@
 				34BD9D5F053146CC000AB133 /* Copy Frameworks */,
 				ADD1E5C0DE00000000000305 /* Copy Purple Plugins */,
 				4BF2E91F067CB76300743318 /* Copy Built-in Xtras */,
+				ADD1E5C0DE0000000000D2B0 /* Copy JavaScript Plugins */,
 				34BD9D6A053146CC000AB133 /* Copy AdiumPlugins */,
 				345DFF4A05564DB200CEE7B3 /* Run Generate Buildnum File Script */,
 				ADD1E5C0DE00000000009901 /* Strip Custom Icon Before Signing */,
@@ -7093,6 +7130,9 @@
 				4B909C8A064D75400074C9A8 /* BGEmoticonMenuPlugin.m in Sources */,
 				ADD1E5C0DE00000000000F03 /* AITypstRenderer.m in Sources */,
 				ADD1E5C0DE00000000000912 /* AITypstPlugin.m in Sources */,
+				ADD1E5C0DE0000000000D211 /* AIJSXtrasPlugin.m in Sources */,
+				ADD1E5C0DE0000000000D213 /* AIJSXtrasManager.m in Sources */,
+				ADD1E5C0DE0000000000D215 /* AIJSXtraBundle.m in Sources */,
 				ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */,
 				ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */,
 				9E20910E06A601AF00E33E27 /* CBStatusMenuItemController.m in Sources */,
@@ -8032,7 +8072,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREFIX_HEADER = Adium.pch;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)";
+HEADER_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -8079,7 +8119,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREFIX_HEADER = Adium.pch;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)";
+HEADER_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -8126,7 +8166,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREFIX_HEADER = Adium.pch;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)";
+HEADER_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
