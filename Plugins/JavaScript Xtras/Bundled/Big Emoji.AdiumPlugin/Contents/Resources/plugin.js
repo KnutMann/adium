@@ -1,54 +1,88 @@
 // Big Emoji - a bundled Adium JavaScript plugin.
 //
-// A message whose whole text is one to three emoji is shown enlarged, the way
-// modern messengers do. Pure style change on the message body it is handed;
-// nothing is inserted, no message text is ever read into HTML.
+// A message whose whole body is one to three emoji or emoticons is shown
+// enlarged, the way modern messengers do. Pure style change on the message
+// body it is handed; nothing is inserted, no message text is ever read into
+// HTML. Text emoji grow with the font size; emoticon images grow by height.
 
 (function () {
 	'use strict';
+
+	var GLYPH_SIZE = '2.6em';
+	var MAX_GLYPHS = 3;
 
 	var segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter)
 		? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 		: null;
 
-	function isAllEmoji(text) {
-		var trimmed = text.trim();
-		if (!trimmed) return false;
-
-		var clusters;
+	function graphemes(text) {
 		if (segmenter) {
-			clusters = [];
-			var it = segmenter.segment(trimmed)[Symbol.iterator]();
-			for (var s = it.next(); !s.done; s = it.next()) clusters.push(s.value.segment);
-		} else {
-			clusters = Array.from(trimmed);
+			var out = [];
+			var it = segmenter.segment(text)[Symbol.iterator]();
+			for (var s = it.next(); !s.done; s = it.next()) out.push(s.value.segment);
+			return out;
 		}
+		return Array.from(text);
+	}
 
-		if (clusters.length < 1 || clusters.length > 3) return false;
-
+	// Every grapheme of the text must be a pictographic emoji; returns the count, or -1
+	function emojiCount(text) {
+		var trimmed = text.trim();
+		if (!trimmed) return 0;   // whitespace contributes no glyphs
+		var clusters = graphemes(trimmed);
 		for (var i = 0; i < clusters.length; i++) {
-			// The first code point of each grapheme must be a pictographic emoji
-			if (!/^(\p{Extended_Pictographic}|\p{Emoji_Presentation})/u.test(clusters[i])) return false;
+			if (!/^(\p{Extended_Pictographic}|\p{Emoji_Presentation})/u.test(clusters[i])) return -1;
 		}
-		return true;
+		return clusters.length;
 	}
 
-	function hasOnlyTextAndBreaks(node) {
-		for (var i = 0; i < node.childNodes.length; i++) {
-			var c = node.childNodes[i];
-			if (c.nodeType === 1 && c.tagName !== 'BR') return false;
-		}
-		return true;
+	function isEmoticonImage(node) {
+		return node.nodeType === 1 && node.tagName === 'IMG' &&
+			node.classList && node.classList.contains('emoticon');
 	}
 
-	function enlarge(node) {
-		// An emoticon image, or any other embedded element, is not "just emoji"
-		if (!hasOnlyTextAndBreaks(node)) return;
-		if (!isAllEmoji(node.textContent)) return;
+	// Walk the body's children: count emoji graphemes and emoticon images, and
+	// bail on anything else. Returns {glyphs, emoticons:[...]} or null.
+	function inspect(body) {
+		var glyphs = 0;
+		var emoticons = [];
 
-		node.style.fontSize = '2.6em';
-		node.style.lineHeight = '1.25';
-		node.style.display = 'inline-block';
+		for (var i = 0; i < body.childNodes.length; i++) {
+			var node = body.childNodes[i];
+
+			if (node.nodeType === 3) {                       // text
+				var n = emojiCount(node.nodeValue);
+				if (n < 0) return null;
+				glyphs += n;
+			} else if (isEmoticonImage(node)) {              // an emoticon
+				emoticons.push(node);
+				glyphs += 1;
+			} else if (node.nodeType === 1 && node.tagName === 'BR') {
+				// harmless
+			} else {
+				return null;                                  // a link, formatting, anything else
+			}
+
+			if (glyphs > MAX_GLYPHS) return null;
+		}
+
+		return (glyphs >= 1) ? { glyphs: glyphs, emoticons: emoticons } : null;
+	}
+
+	function enlarge(body) {
+		var found = inspect(body);
+		if (!found) return;
+
+		// Text emoji grow with the font size on the body
+		body.style.fontSize = GLYPH_SIZE;
+		body.style.lineHeight = '1.25';
+		body.style.display = 'inline-block';
+
+		// Emoticon images do not follow font-size, so grow them by height
+		found.emoticons.forEach(function (img) {
+			img.style.height = GLYPH_SIZE;
+			img.style.width = 'auto';
+		});
 	}
 
 	adiumPlugin.onMessagesAdded(function (nodes) {
