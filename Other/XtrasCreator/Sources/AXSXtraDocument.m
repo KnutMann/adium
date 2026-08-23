@@ -218,12 +218,21 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 		[unmanaged removeObjectsForKeys:self.format.infoPlistPayloadKeys];
 	model.unmanagedInfoKeys = unmanaged;
 
+	/* A codec that returns nil AND sets an error is refusing this document (a
+	 * compiled plugin where a JavaScript one was expected, say); one that returns
+	 * nil with no error just has nothing to read, and an empty payload is fine. */
+	NSError *codecError = nil;
 	model.payload = [self.format.codec readPayloadFromInfoDictionary:infoDict
 														resourcesDir:[self resourcesWrapperForReading]
 															  format:self.format
-															   error:outError];
-	if (!model.payload)
+															   error:&codecError];
+	if (!model.payload) {
+		if (codecError) {
+			if (outError) *outError = codecError;
+			return NO;
+		}
 		model.payload = [self.format.codec emptyPayloadForFormat:self.format];
+	}
 
 	[self readReadMeIntoModel:model];
 

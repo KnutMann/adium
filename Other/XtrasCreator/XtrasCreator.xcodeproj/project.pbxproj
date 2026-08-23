@@ -14,6 +14,7 @@
 		CAFE00000000000000000314 /* AdiumMenuBarIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000304 /* AdiumMenuBarIcons.icns */; };
 		CAFE00000000000000000315 /* AdiumMessageStyle.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000305 /* AdiumMessageStyle.icns */; };
 		CAFE00000000000000000316 /* AdiumScripts.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000306 /* AdiumScripts.icns */; };
+		CAFE0000000000000000031A /* AdiumPlugin.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE0000000000000000030A /* AdiumPlugin.icns */; };
 		CAFE00000000000000000317 /* AdiumServiceIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000307 /* AdiumServiceIcons.icns */; };
 		CAFE00000000000000000318 /* AdiumSoundset.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000308 /* AdiumSoundset.icns */; };
 		CAFE00000000000000000319 /* AdiumStatusIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = CAFE00000000000000000309 /* AdiumStatusIcons.icns */; };
@@ -28,6 +29,7 @@
 		CAFE00000000000000000304 /* AdiumMenuBarIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumMenuBarIcons.icns"; path = "../../Resources/AdiumMenuBarIcons.icns"; sourceTree = "<group>"; };
 		CAFE00000000000000000305 /* AdiumMessageStyle.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumMessageStyle.icns"; path = "../../Resources/AdiumMessageStyle.icns"; sourceTree = "<group>"; };
 		CAFE00000000000000000306 /* AdiumScripts.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumScripts.icns"; path = "../../Resources/AdiumScripts.icns"; sourceTree = "<group>"; };
+		CAFE0000000000000000030A /* AdiumPlugin.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumPlugin.icns"; path = "../../Resources/AdiumPlugin.icns"; sourceTree = "<group>"; };
 		CAFE00000000000000000307 /* AdiumServiceIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumServiceIcons.icns"; path = "../../Resources/AdiumServiceIcons.icns"; sourceTree = "<group>"; };
 		CAFE00000000000000000308 /* AdiumSoundset.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumSoundset.icns"; path = "../../Resources/AdiumSoundset.icns"; sourceTree = "<group>"; };
 		CAFE00000000000000000309 /* AdiumStatusIcons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "AdiumStatusIcons.icns"; path = "../../Resources/AdiumStatusIcons.icns"; sourceTree = "<group>"; };
@@ -68,6 +70,7 @@
 				CAFE00000000000000000304 /* AdiumMenuBarIcons.icns */,
 				CAFE00000000000000000305 /* AdiumMessageStyle.icns */,
 				CAFE00000000000000000306 /* AdiumScripts.icns */,
+				CAFE0000000000000000030A /* AdiumPlugin.icns */,
 				CAFE00000000000000000307 /* AdiumServiceIcons.icns */,
 				CAFE00000000000000000308 /* AdiumSoundset.icns */,
 				CAFE00000000000000000309 /* AdiumStatusIcons.icns */,
@@ -147,6 +150,7 @@
 				CAFE00000000000000000314 /* AdiumMenuBarIcons.icns in Resources */,
 				CAFE00000000000000000315 /* AdiumMessageStyle.icns in Resources */,
 				CAFE00000000000000000316 /* AdiumScripts.icns in Resources */,
+				CAFE0000000000000000031A /* AdiumPlugin.icns in Resources */,
 				CAFE00000000000000000317 /* AdiumServiceIcons.icns in Resources */,
 				CAFE00000000000000000318 /* AdiumSoundset.icns in Resources */,
 				CAFE00000000000000000319 /* AdiumStatusIcons.icns in Resources */,
