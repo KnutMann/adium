@@ -134,12 +134,28 @@ static NSString * const AIJSXtrasPreamble =
 	return (value ? [value boolValue] : YES);
 }
 
+- (void)setMasterEnabled:(BOOL)enabled
+{
+	[adium.preferenceController setPreference:@(enabled) forKey:KEY_JSXTRAS_MASTER_ENABLED group:PREF_GROUP_JSXTRAS];
+	[self rescan];
+}
+
 - (BOOL)isBundleEnabled:(AIJSXtraBundle *)bundle
 {
 	NSDictionary *enabledPlugins = [adium.preferenceController preferenceForKey:KEY_JSXTRAS_ENABLED_PLUGINS
 																		 group:PREF_GROUP_JSXTRAS];
 	id value = enabledPlugins[bundle.bundleIdentifier];
 	return (value ? [value boolValue] : YES);
+}
+
+- (void)setBundle:(AIJSXtraBundle *)bundle enabled:(BOOL)enabled
+{
+	NSDictionary *stored = [adium.preferenceController preferenceForKey:KEY_JSXTRAS_ENABLED_PLUGINS
+																 group:PREF_GROUP_JSXTRAS];
+	NSMutableDictionary *enabledPlugins = [stored mutableCopy] ?: [NSMutableDictionary dictionary];
+	enabledPlugins[bundle.bundleIdentifier] = @(enabled);
+	[adium.preferenceController setPreference:enabledPlugins forKey:KEY_JSXTRAS_ENABLED_PLUGINS group:PREF_GROUP_JSXTRAS];
+	[self rescan];
 }
 
 #pragma mark Injection

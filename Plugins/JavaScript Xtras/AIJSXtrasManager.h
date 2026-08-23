@@ -50,7 +50,10 @@
 @property (readonly, nonatomic) NSArray<AIJSXtraBundle *> *allBundles;
 
 - (BOOL)masterEnabled;
+- (void)setMasterEnabled:(BOOL)enabled;
+
 - (BOOL)isBundleEnabled:(AIJSXtraBundle *)bundle;
+- (void)setBundle:(AIJSXtraBundle *)bundle enabled:(BOOL)enabled;
 
 /*!
  * @brief Add each enabled plugin's script to a message view's configuration

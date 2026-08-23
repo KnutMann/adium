@@ -562,8 +562,10 @@ static NSString	*prefsCategory;
 	 */
     if ([extension caseInsensitiveCompare:@"AdiumPlugin"] == NSOrderedSame) {
         destination = [AISearchPathForDirectories(AIPluginsDirectory) objectAtIndex:0];
-        //Plugins haven't been loaded yet if the application isn't done loading, so only request a restart if it has finished loading already 
-        requiresRestart = completedApplicationLoad;
+        //Plugins haven't been loaded yet if the application isn't done loading, so only request a restart if it has finished loading already
+        //A JavaScript plugin loads no code; the manager picks it up live, so it needs no restart
+        BOOL isJavaScriptPlugin = [[[NSBundle bundleWithPath:filename] objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue];
+        requiresRestart = (completedApplicationLoad && !isJavaScriptPlugin);
         fileDescription = AILocalizedString(@"Adium plugin",nil);
 		extension = @"AdiumPlugin";
 

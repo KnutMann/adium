@@ -16,8 +16,11 @@
 
 #import "AIJSXtrasPlugin.h"
 #import "AIJSXtrasManager.h"
+#import "AIJSXtrasPreferences.h"
 
-@implementation AIJSXtrasPlugin
+@implementation AIJSXtrasPlugin {
+	AIJSXtrasPreferences *_preferences;
+}
 
 - (void)installPlugin
 {
@@ -27,6 +30,8 @@
 
 	//Bring the manager up now so its scan has run before the first chat opens
 	[AIJSXtrasManager sharedManager];
+
+	_preferences = [AIJSXtrasPreferences preferencePane];
 
 	//A newly installed or removed plugin is picked up without a restart
 	[[NSNotificationCenter defaultCenter] addObserver:self

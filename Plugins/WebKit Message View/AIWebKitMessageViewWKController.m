@@ -379,6 +379,11 @@ static NSString *const AIWKContextMenuScript =
 												 selector:@selector(sourceOrDestinationChanged:)
 													 name:Chat_DestinationChanged
 												   object:inChat];
+
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(_javaScriptPluginsChanged:)
+													 name:AIJSXtrasDidChangeNotification
+												   object:nil];
 	}
 
 	return self;
@@ -402,15 +407,16 @@ static NSString *const AIWKContextMenuScript =
 
 #pragma mark - WebView Creation
 
-- (void)_initWebView
+/*!
+ * @brief Add the base user scripts and the enabled JavaScript plugins
+ *
+ * Shared by the initial configuration and the live rebuild: the two shims the
+ * transcript always needs, then each enabled plugin in its own content world.
+ * The caller has already put the message handler in place (it must not be added
+ * twice) and cleared any previous user scripts.
+ */
+- (void)_installUserScriptsInto:(WKUserContentController *)userContentController
 {
-	WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-
-	// User content controller with script message handler (via weak proxy to avoid retain cycle)
-	WKUserContentController *userContentController = [[WKUserContentController alloc] init];
-	_AIWKScriptMessageHandlerWeakProxy *proxy = [[_AIWKScriptMessageHandlerWeakProxy alloc] initWithTarget:self];
-	[userContentController addScriptMessageHandler:proxy name:@"adium"];
-
 	// Intercept right-clicks; WKWebView has no public context-menu hook on macOS (#119).
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:AIWKContextMenuScript
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
@@ -430,11 +436,42 @@ static NSString *const AIWKContextMenuScript =
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
 
-	/* JavaScript plugins go in here, each into a content world of its own, before
-	 * the config is sealed. Their scripts re-inject on every load like the two
-	 * above, so a reprime needs no extra handling. The world isolates a plugin's
-	 * JS; the hardening below and the remote-load block keep it harmless. */
+	/* JavaScript plugins, each into a content world of its own. Their scripts
+	 * re-inject on every load like the two above, so a reprime needs no extra
+	 * handling. The world isolates a plugin's JS; the hardening and the
+	 * remote-load block keep it harmless. */
 	[[AIJSXtrasManager sharedManager] installIntoUserContentController:userContentController];
+}
+
+/*!
+ * @brief The set of plugins changed; rebuild the scripts and redraw
+ *
+ * User scripts are fixed once injected, so a plugin turned on or off, installed
+ * or removed, only reaches an open window by rebuilding the whole set. The
+ * message handler is left in place; only the user scripts are cleared and
+ * re-added, then the view is reprimed so the new plugins see the conversation.
+ */
+- (void)_javaScriptPluginsChanged:(NSNotification *)notification
+{
+	if (!_webView) return;
+
+	WKUserContentController *userContentController = _webView.configuration.userContentController;
+	[userContentController removeAllUserScripts];
+	[self _installUserScriptsInto:userContentController];
+
+	[self _primeWebViewAndReprocessContent:YES];
+}
+
+- (void)_initWebView
+{
+	WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+
+	// User content controller with script message handler (via weak proxy to avoid retain cycle)
+	WKUserContentController *userContentController = [[WKUserContentController alloc] init];
+	_AIWKScriptMessageHandlerWeakProxy *proxy = [[_AIWKScriptMessageHandlerWeakProxy alloc] initWithTarget:self];
+	[userContentController addScriptMessageHandler:proxy name:@"adium"];
+
+	[self _installUserScriptsInto:userContentController];
 
 	config.userContentController = userContentController;
 

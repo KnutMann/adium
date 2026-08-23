@@ -829,7 +829,10 @@
 		ADD1E5C0DE0000000000D211 /* AIJSXtrasPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D201 /* AIJSXtrasPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000D213 /* AIJSXtrasManager.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000D215 /* AIJSXtraBundle.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000D217 /* AIJSXtrasPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D207 /* AIJSXtrasPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000D221 /* Big Emoji.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D220 /* Big Emoji.AdiumPlugin */; };
+		ADD1E5C0DE0000000000D223 /* Markdown Light.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D222 /* Markdown Light.AdiumPlugin */; };
+		ADD1E5C0DE0000000000D225 /* Code Blocks.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D224 /* Code Blocks.AdiumPlugin */; };
 		ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000931 /* AITypstHistory.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000921 /* AITypstEditorView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4B97DB6706AC123A0003EE49 /* msg-insert-link.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4B97DB6606AC123A0003EE49 /* msg-insert-link.tiff */; };
@@ -1325,6 +1328,8 @@
 			dstSubfolderSpec = 7;
 			files = (
 				ADD1E5C0DE0000000000D221 /* Big Emoji.AdiumPlugin in Copy JavaScript Plugins */,
+				ADD1E5C0DE0000000000D223 /* Markdown Light.AdiumPlugin in Copy JavaScript Plugins */,
+				ADD1E5C0DE0000000000D225 /* Code Blocks.AdiumPlugin in Copy JavaScript Plugins */,
 			);
 			name = "Copy JavaScript Plugins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2868,7 +2873,11 @@
 		ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtrasManager.m; path = "Plugins/JavaScript Xtras/AIJSXtrasManager.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D204 /* AIJSXtraBundle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtraBundle.h; path = "Plugins/JavaScript Xtras/AIJSXtraBundle.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtraBundle.m; path = "Plugins/JavaScript Xtras/AIJSXtraBundle.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D206 /* AIJSXtrasPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtrasPreferences.h; path = "Plugins/JavaScript Xtras/AIJSXtrasPreferences.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D207 /* AIJSXtrasPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtrasPreferences.m; path = "Plugins/JavaScript Xtras/AIJSXtrasPreferences.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D220 /* Big Emoji.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Big Emoji.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Big Emoji.AdiumPlugin"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D222 /* Markdown Light.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Markdown Light.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Markdown Light.AdiumPlugin"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D224 /* Code Blocks.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Code Blocks.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Code Blocks.AdiumPlugin"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000913 /* AITypstPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstPlugin.h; path = "Plugins/Typst Formulas/AITypstPlugin.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000931 /* AITypstHistory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstHistory.m; path = "Plugins/Typst Formulas/AITypstHistory.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000933 /* AITypstHistory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstHistory.h; path = "Plugins/Typst Formulas/AITypstHistory.h"; sourceTree = "<group>"; };
@@ -6095,7 +6104,11 @@
 				ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */,
 				ADD1E5C0DE0000000000D204 /* AIJSXtraBundle.h */,
 				ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */,
+				ADD1E5C0DE0000000000D206 /* AIJSXtrasPreferences.h */,
+				ADD1E5C0DE0000000000D207 /* AIJSXtrasPreferences.m */,
 				ADD1E5C0DE0000000000D220 /* Big Emoji.AdiumPlugin */,
+				ADD1E5C0DE0000000000D222 /* Markdown Light.AdiumPlugin */,
+				ADD1E5C0DE0000000000D224 /* Code Blocks.AdiumPlugin */,
 			);
 			name = "JavaScript Xtras";
 			sourceTree = "<group>";
@@ -7133,6 +7146,7 @@
 				ADD1E5C0DE0000000000D211 /* AIJSXtrasPlugin.m in Sources */,
 				ADD1E5C0DE0000000000D213 /* AIJSXtrasManager.m in Sources */,
 				ADD1E5C0DE0000000000D215 /* AIJSXtraBundle.m in Sources */,
+				ADD1E5C0DE0000000000D217 /* AIJSXtrasPreferences.m in Sources */,
 				ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */,
 				ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */,
 				9E20910E06A601AF00E33E27 /* CBStatusMenuItemController.m in Sources */,
