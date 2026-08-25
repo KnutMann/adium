@@ -16,6 +16,7 @@
 
 #import "AIJSXtrasManager.h"
 #import "AIJSXtraBundle.h"
+#import <Adium/AICorePluginLoader.h>
 #import <Adium/AISharedAdium.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
 
@@ -107,8 +108,17 @@ static NSString * const AIJSXtrasPreamble =
 		[self addBundleAtPath:[bundledDir stringByAppendingPathComponent:name] to:found seen:seenIdentifiers];
 	}
 
-	//User-installed plugins live beside the compiled ones; only the JS ones load here
+	/* User-installed plugins live beside the compiled ones; only the JS ones load
+	 * here, and only after the same gates a native external plugin faces. This scan
+	 * is what activates a JavaScript plugin, at startup and on live install alike,
+	 * so the question has to be asked here: a confirmed plugin passes silently, an
+	 * unknown one raises the loader's confirm dialog, and one the user disables is
+	 * moved away by the gate before it was ever injected anywhere. */
 	for (NSString *path in [adium allResourcesForName:@"PlugIns" withExtensions:@"AdiumPlugin"]) {
+		if (![[[NSBundle bundleWithPath:path] objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue])
+			continue;
+		if (![AICorePluginLoader externalPluginPassesGatesAtPath:path])
+			continue;
 		[self addBundleAtPath:path to:found seen:seenIdentifiers];
 	}
 

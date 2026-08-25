@@ -185,9 +185,13 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 		if ((pluginBundle = [NSBundle bundleWithPath:pluginPath])) {
 			
 			/* A JavaScript plugin carries no code to load: it is a script the
-			 * message view injects, handled by AIJSXtrasManager, not here.
-			 * External ones still pass the confirm and version gates above; this
-			 * only stops the loader looking for a principal class it hasn't got. */
+			 * message view injects, handled by AIJSXtrasManager, not here. The
+			 * external-plugin gates run in that manager's scan (through
+			 * externalPluginPassesGatesAtPath:), because the scan is what
+			 * actually activates such a plugin, at startup and on live install
+			 * alike; by the time this loader sees one it is already confirmed,
+			 * so the gates above pass it silently. This return only stops the
+			 * loader looking for a principal class it hasn't got. */
 			if ([[pluginBundle objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue]) {
 				return;
 			}
@@ -253,6 +257,12 @@ static  NSMutableArray		*deferredPluginPaths = nil;
 }
 
 //Confirm the presence of an external plugin with the user.  Returns YES if the plugin should be loaded.
++ (BOOL)externalPluginPassesGatesAtPath:(NSString *)pluginPath
+{
+	return [self confirmMinimumVersionMetForPluginAtPath:pluginPath] &&
+	       [self confirmPluginAtPath:pluginPath];
+}
+
 + (BOOL)confirmPluginAtPath:(NSString *)pluginPath
 {
 	BOOL	loadPlugin = YES;
