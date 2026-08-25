@@ -136,6 +136,7 @@ static CGFloat AIXtraRowHeight(void)
 - (void)setContextMenuRow:(NSInteger)row;
 - (AIXtraInfo *)xtraAtRow:(NSInteger)row;
 - (BOOL)xtraIsUsers:(AIXtraInfo *)xtraInfo;
+- (BOOL)xtraIsBundled:(AIXtraInfo *)xtraInfo;
 - (BOOL)canToggleXtra:(AIXtraInfo *)xtraInfo;
 - (BOOL)canDeleteXtra:(AIXtraInfo *)xtraInfo;
 - (NSString *)contentSummaryForXtra:(AIXtraInfo *)xtraInfo;
@@ -693,6 +694,22 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
+ * @brief Does this Xtra ship inside the app rather than in a folder on disk?
+ *
+ * A bundled Xtra is neither the user's own nor a system-wide install: it lives in the app itself.
+ * It is named as such rather than as "All Users", which would wrongly suggest it cannot be changed.
+ */
+- (BOOL)xtraIsBundled:(AIXtraInfo *)xtraInfo
+{
+	NSString	*path = [[xtraInfo path] stringByStandardizingPath];
+	NSString	*appPath = [[[NSBundle mainBundle] bundlePath] stringByStandardizingPath];
+
+	if (![path length] || ![appPath length]) return NO;
+
+	return [path hasPrefix:[appPath stringByAppendingString:@"/"]];
+}
+
+/*!
  * @brief Whether a row's switch is live, the delegate having the last word
  *
  * On its own the list only lets an Xtra it can move be switched; a delegate may know of one it
@@ -847,7 +864,13 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"Version %@", "Version of an installed Xtra, shown below its name"), version]];
 	}
 
-	if (![self xtraIsUsers:xtraInfo]) {
+	if ([self xtraIsBundled:xtraInfo]) {
+		/* Shipped inside the app: not a system-wide install the user is locked out of, so it is named
+		 * for what it is. Its switch works all the same, and it carries no delete button because there
+		 * is no file of the user's to remove. */
+		[parts addObject:AILocalizedString(@"Bundled", "Origin of an Xtra that ships inside Adium")];
+
+	} else if (![self xtraIsUsers:xtraInfo]) {
 		/* Where it came from only needs saying when it is not this user's own; that it can't be
 		 * switched off here is what the switch's tool tip explains. */
 		[parts addObject:([[xtraInfo path] hasPrefix:@"/Network/"] ?
