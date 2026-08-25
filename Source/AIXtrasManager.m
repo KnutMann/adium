@@ -104,10 +104,20 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 		AILocalizedString(@"Menu Bar Icons", "AdiumXtras category name"), @"Name",
 		[NSImage imageNamed:@"AdiumMenuBarIcons"], @"Image", nil]];
 
+	/* JavaScript plugins share the PlugIns folder with compiled ones but are a
+	 * different kind of thing, so they get a category of their own and are kept
+	 * out of the compiled Plugins one. */
 	[categories addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 						   [NSNumber numberWithInteger:AIPluginsDirectory], @"Directory",
 						   AILocalizedString(@"Plugins", "AdiumXtras category name"), @"Name",
-						   [NSImage imageNamed:@"AdiumPlugin"], @"Image", nil]];
+						   [NSImage imageNamed:@"AdiumPlugin"], @"Image",
+						   [NSNumber numberWithBool:YES], @"ExcludeJavaScript", nil]];
+
+	[categories addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+						   [NSNumber numberWithInteger:AIPluginsDirectory], @"Directory",
+						   AILocalizedString(@"JavaScript Extensions", "AdiumXtras category name"), @"Name",
+						   [NSImage imageNamed:@"AdiumPlugin"], @"Image",
+						   [NSNumber numberWithBool:YES], @"JavaScriptOnly", nil]];
 
 
 	[categories sortUsingFunction:categorySort context:NULL];
@@ -143,6 +153,20 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 
 	if (!(xtras = [xtrasDict objectForKey:@"Xtras"])) {
 		xtras = [self arrayOfXtrasAtPaths:AISearchPathForDirectories([[xtrasDict objectForKey:@"Directory"] integerValue])];
+
+		/* Two categories read the same PlugIns folder: one keeps only the
+		 * JavaScript plugins, the other keeps everything but them. */
+		if ([[xtrasDict objectForKey:@"JavaScriptOnly"] boolValue] ||
+			[[xtrasDict objectForKey:@"ExcludeJavaScript"] boolValue]) {
+			BOOL wantJavaScript = [[xtrasDict objectForKey:@"JavaScriptOnly"] boolValue];
+			NSMutableArray *filtered = [NSMutableArray array];
+			for (AIXtraInfo *xtraInfo in xtras) {
+				if ([self xtraInfoIsJavaScriptPlugin:xtraInfo] == wantJavaScript)
+					[filtered addObject:xtraInfo];
+			}
+			xtras = filtered;
+		}
+
 		NSMutableDictionary *newDictionary = [xtrasDict mutableCopy];
 		[newDictionary setObject:xtras forKey:@"Xtras"];
 		[categories replaceObjectAtIndex:inIndex
@@ -151,6 +175,14 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 	}
 
 	return xtras;
+}
+
+/*!
+ * @brief Is this xtra a JavaScript plugin rather than a compiled one?
+ */
+- (BOOL)xtraInfoIsJavaScriptPlugin:(AIXtraInfo *)xtraInfo
+{
+	return [[[xtraInfo bundle] objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue];
 }
 
 /*!
