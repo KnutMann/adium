@@ -1410,6 +1410,8 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 				[_storedContentObjects removeObjectAtIndex:0];
 			}
 		}
+
+		[self _applyRememberedStateForContent:content];
 	}
 
 	[_contentQueue removeAllObjects];
@@ -1970,6 +1972,21 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 {
 	if (!_webView || ![messageId length]) return;
 
+	/* Remember the state on the messages themselves, cumulatively up to the named
+	 * one, so a rebuilt page can draw the ticks again. Only when the named message
+	 * is actually in the store, mirroring what the page-side marking does. */
+	NSInteger level = [className isEqualToString:@"x-adium-read"] ? 3 : 2;
+	if ([self _storedMessageWithId:messageId]) {
+		for (AIContentObject *stored in _storedContentObjects) {
+			if ([stored isKindOfClass:[AIContentMessage class]] &&
+				![stored isKindOfClass:[AIContentContext class]] && [stored isOutgoing]) {
+				AIContentMessage *storedMessage = (AIContentMessage *)stored;
+				if (storedMessage.confirmation < level) storedMessage.confirmation = level;
+				if ([storedMessage.messageId isEqualToString:messageId]) break;
+			}
+		}
+	}
+
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var id=%@, cls=%@;"
@@ -1986,6 +2003,68 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
 				   }
 			   }];
+}
+
+/*!
+ * @brief The stored (replayable) message carrying this id, if any
+ */
+- (AIContentMessage *)_storedMessageWithId:(NSString *)messageId
+{
+	if (![messageId length]) return nil;
+	for (AIContentObject *stored in _storedContentObjects) {
+		if ([stored isKindOfClass:[AIContentMessage class]] &&
+			[[(AIContentMessage *)stored messageId] isEqualToString:messageId]) {
+			return (AIContentMessage *)stored;
+		}
+	}
+	return nil;
+}
+
+/*!
+ * @brief Add a state class to exactly the message carrying an id
+ */
+- (void)_addClass:(NSString *)className toMessageWithId:(NSString *)messageId
+{
+	if (![messageId length] || !_webView) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" var id=%@, cls=%@;"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
+		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add(cls); return true; } }"
+		@" return false;"
+		@"})()",
+		[self _jsStringLiteral:messageId], [self _jsStringLiteral:className]];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		if (error || ![result boolValue]) {
+			AILogWithSignature(@"%@ for %@ found no message carrying that id (%@)", className, messageId, error ?: result);
+		}
+	}];
+}
+
+/*!
+ * @brief Redraw remembered state after a message was re-rendered
+ *
+ * A page rebuild replays content objects; ticks and chips are decorations the
+ * protocol reported later, remembered on the message itself, and put back here.
+ */
+- (void)_applyRememberedStateForContent:(AIContentObject *)content
+{
+	if (![content isKindOfClass:[AIContentMessage class]]) return;
+
+	AIContentMessage *message = (AIContentMessage *)content;
+	if (![message.messageId length]) return;
+
+	static NSString * const classForConfirmation[] = { nil, @"x-adium-sent", @"x-adium-delivered", @"x-adium-read" };
+	if (message.confirmation >= 1 && message.confirmation <= 3) {
+		[self _addClass:classForConfirmation[message.confirmation] toMessageWithId:message.messageId];
+	}
+
+	for (NSString *sender in message.reactions) {
+		[self _setReactions:[message.reactions objectForKey:sender]
+				  forSender:sender
+				onMessageId:message.messageId];
+	}
 }
 
 /*!
@@ -2045,19 +2124,10 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
 	if (![messageId length]) return;
 
-	NSString *js = [NSString stringWithFormat:@"(function(){"
-		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
-		@" var id=%@;"
-		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
-		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add('x-adium-sent'); return true; } }"
-		@" return false;"
-		@"})()",
-		[self _jsStringLiteral:messageId]];
-	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if (error || ![result boolValue]) {
-			AILogWithSignature(@"sent tick for %@ found no message carrying that id (%@)", messageId, error ?: result);
-		}
-	}];
+	AIContentMessage *stored = [self _storedMessageWithId:messageId];
+	if (stored && stored.confirmation < 1) stored.confirmation = 1;
+
+	[self _addClass:@"x-adium-sent" toMessageWithId:messageId];
 }
 
 - (void)messageWasDelivered:(NSNotification *)notification
@@ -2131,6 +2201,17 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 {
 	if (![messageId length] || !_webView) return;
 
+	/* Remember the set on the message itself, so a rebuilt page redraws the chips. */
+	AIContentMessage *stored = [self _storedMessageWithId:messageId];
+	if (stored) {
+		if ([reactions count]) {
+			if (!stored.reactions) stored.reactions = [NSMutableDictionary dictionary];
+			[stored.reactions setObject:[reactions copy] forKey:sender];
+		} else {
+			[stored.reactions removeObjectForKey:sender];
+		}
+	}
+
 	NSData	 *json = [NSJSONSerialization dataWithJSONObject:(reactions ?: @[]) options:0 error:NULL];
 	NSString *reactionsLiteral = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"[]";
 
@@ -2139,7 +2220,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		@" var id=%@, sender=%@, reactions=%@;"
 		@" var nodes=document.querySelectorAll('[data-x-adium-id]'), el=null;"
 		@" for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute('data-x-adium-id')===id){ el=nodes[i]; break; } }"
-		@" if(!el) return;"
+		@" if(!el) return 'Ziel-id nicht im DOM ('+nodes.length+' mit id)';"
 		@" var box=el.querySelector('.x-adium-reactions');"
 		@" if(!box){ box=document.createElement('span'); box.className='x-adium-reactions'; box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;'; el.appendChild(box); }"
 		@" var chips=box.querySelectorAll('.x-adium-reaction');"
@@ -2155,8 +2236,8 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	[_webView evaluateJavaScript:js
 			   completionHandler:^(id result, NSError *error) {
-				   if (error) {
-					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
+				   if (error || [result isKindOfClass:[NSString class]]) {
+					   AILogWithSignature(@"reactions for %@: %@", messageId, error ?: result);
 				   }
 			   }];
 }
