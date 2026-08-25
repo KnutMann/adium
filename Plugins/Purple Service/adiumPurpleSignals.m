@@ -469,23 +469,21 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 										  const char *marker_type)
 {
 	@autoreleasepool {
-		/* Only "displayed" is worth a visible status line; "received"/"active" would be noise */
+		/* Only "displayed" says the message was read; "received"/"active" are not that */
 		if (!marker_type || strcmp(marker_type, "displayed") != 0) return;
 
 		PurpleAccount *purpleAccount = purple_connection_get_account(gc);
-		CBPurpleAccount *cbaccount = accountLookup(purpleAccount);
 		PurpleBuddy *buddy = purple_find_buddy(purpleAccount, from);
 		AIListContact *contact = buddy ? contactLookupFromBuddy(buddy) : nil;
 		AIChat *chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
 
-		if (chat && cbaccount) {
-			NSString *message = NSLocalizedStringFromTableInBundle(@"Read", nil,
-																   [NSBundle bundleForClass:[CBPurpleAccount class]],
-																   "Status line shown when the contact has read your messages");
-			[cbaccount receivedEventForChat:chat
-									message:[NSString stringWithFormat:@"\u2713\u2713 %@", message]
-									   date:[NSDate date]
-									  flags:[NSNumber numberWithInt:PURPLE_MESSAGE_NO_LINKIFY]];
+		if (chat && message_id) {
+			/* Tell the message view which of our messages was read; it marks that one and the ones
+			 * before it, a chat marker being read-up-to-here. Now that a sent message carries its id
+			 * on the page, the tick can land on the message itself instead of a line in the log. */
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasRead"
+															   object:chat
+															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:message_id] }];
 		}
 	}
 }

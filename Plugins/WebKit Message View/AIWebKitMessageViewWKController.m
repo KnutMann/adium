@@ -315,6 +315,10 @@ static NSString *const AIWKContextMenuScript =
 												 selector:@selector(messageReactionsChanged:)
 													 name:@"AIChatMessageReactionsChanged"
 												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageWasRead:)
+													 name:@"AIChatMessageWasRead"
+												   object:nil];
 
 		// Observe chat/participant changes so user icons can be refreshed on the page (#124)
 		[[NSNotificationCenter defaultCenter] addObserver:self
@@ -1680,6 +1684,43 @@ static NSString *const AIWKContextMenuScript =
 		@" }"
 		@"})()",
 		[self _jsStringLiteral:messageId], reactionsLiteral];
+
+	[_webView evaluateJavaScript:js
+			   completionHandler:^(id result, NSError *error) {
+				   if (error) {
+					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
+				   }
+			   }];
+}
+
+/*!
+ * @brief The contact has read one of the messages we sent, up to the one it names (XEP-0333)
+ *
+ * A chat marker is cumulative - read up to here - so the messages we sent up to and including the
+ * one it names all get a read tick, drawn on the message now that a sent message carries its id.
+ * Ticks are not added twice, so a later marker only reaches newer messages.
+ */
+- (void)messageWasRead:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	if (![messageId length]) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" var id=%@;"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
+		@" for(var i=0;i<outs.length;i++){"
+		@"  var el=outs[i];"
+		@"  if(!el.querySelector('.x-adium-read')){"
+		@"   var t=document.createElement('span'); t.className='x-adium-read'; t.textContent='\\u2713\\u2713';"
+		@"   t.style.cssText='display:inline-block;margin-inline-start:0.35em;font-size:0.75em;color:#34b7f1;letter-spacing:-0.15em;vertical-align:baseline;';"
+		@"   el.appendChild(t);"
+		@"  }"
+		@"  if(el.getAttribute('data-x-adium-id')===id) break;"
+		@" }"
+		@"})()",
+		[self _jsStringLiteral:messageId]];
 
 	[_webView evaluateJavaScript:js
 			   completionHandler:^(id result, NSError *error) {
