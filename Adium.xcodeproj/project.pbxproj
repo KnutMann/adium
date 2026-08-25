@@ -2874,6 +2874,7 @@
 		ADD1E5C0DE0000000000D200 /* AIJSXtrasPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtrasPlugin.h; path = "Plugins/JavaScript Xtras/AIJSXtrasPlugin.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D201 /* AIJSXtrasPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtrasPlugin.m; path = "Plugins/JavaScript Xtras/AIJSXtrasPlugin.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D202 /* AIJSXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtrasManager.h; path = "Plugins/JavaScript Xtras/AIJSXtrasManager.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000F102 /* AIJSXtrasPreamble.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtrasPreamble.h; path = "Plugins/JavaScript Xtras/AIJSXtrasPreamble.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtrasManager.m; path = "Plugins/JavaScript Xtras/AIJSXtrasManager.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D204 /* AIJSXtraBundle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJSXtraBundle.h; path = "Plugins/JavaScript Xtras/AIJSXtraBundle.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJSXtraBundle.m; path = "Plugins/JavaScript Xtras/AIJSXtraBundle.m"; sourceTree = "<group>"; };
@@ -6106,6 +6107,7 @@
 				ADD1E5C0DE0000000000D200 /* AIJSXtrasPlugin.h */,
 				ADD1E5C0DE0000000000D201 /* AIJSXtrasPlugin.m */,
 				ADD1E5C0DE0000000000D202 /* AIJSXtrasManager.h */,
+				ADD1E5C0DE0000000000F102 /* AIJSXtrasPreamble.h */,
 				ADD1E5C0DE0000000000D203 /* AIJSXtrasManager.m */,
 				ADD1E5C0DE0000000000D204 /* AIJSXtraBundle.h */,
 				ADD1E5C0DE0000000000D205 /* AIJSXtraBundle.m */,

@@ -1,22 +1,13 @@
 /* Exercises a bundled JSXtra transform the way the app does: preamble + plugin
  * injected into a content world, message-body spans appended to #Chat, then the
- * resulting DOM read back. Argv: <preamble.js path is fixed> <plugin.js> then
- * pairs of <inputHTML> <expectSubstring|!expectAbsentSubstring>. */
+ * resulting DOM read back. The preamble comes from AIJSXtrasPreamble.h, the
+ * same constant the app injects, so this harness cannot drift into testing a
+ * stale copy of the contract. Argv: <plugin.js> then pairs of
+ * <inputHTML> <expectSubstring|!expectAbsentSubstring>. */
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
-static NSString *PREAMBLE =
-@"(function(){'use strict';var callbacks=[];var seen=new WeakSet();"
-@"function collect(root){var out=[];if(!root||root.nodeType!==1)return out;"
-@"if(root.matches&&root.matches('span[data-x-adium-msg]'))out.push(root);"
-@"if(root.querySelectorAll){var q=root.querySelectorAll('span[data-x-adium-msg]');for(var i=0;i<q.length;i++)out.push(q[i]);}return out;}"
-@"function deliver(nodes){var fresh=[];for(var i=0;i<nodes.length;i++){if(!seen.has(nodes[i])){seen.add(nodes[i]);fresh.push(nodes[i]);}}"
-@"if(!fresh.length)return;for(var c=0;c<callbacks.length;c++){try{callbacks[c](fresh);}catch(e){if(window.console)console.error(e);}}}"
-@"function start(){var t=document.getElementById('Chat')||document.body;if(!t)return;"
-@"new MutationObserver(function(muts){var b=[];for(var m=0;m<muts.length;m++){var a=muts[m].addedNodes;for(var n=0;n<a.length;n++){var c=collect(a[n]);for(var k=0;k<c.length;k++)b.push(c[k]);}}if(b.length)deliver(b);}).observe(t,{childList:true,subtree:true});deliver(collect(t));}"
-@"var api={apiVersion:1,onMessagesAdded:function(cb){if(typeof cb==='function')callbacks.push(cb);}};"
-@"Object.freeze(api);Object.defineProperty(window,'adiumPlugin',{value:api});"
-@"if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();})();";
+#import "../AIJSXtrasPreamble.h"
 
 @interface Runner : NSObject <WKNavigationDelegate> @end
 @implementation Runner {
@@ -30,7 +21,7 @@ static NSString *PREAMBLE =
 		WKWebViewConfiguration *cfg = [[WKWebViewConfiguration alloc] init];
 		WKUserContentController *ucc = [[WKUserContentController alloc] init];
 		WKContentWorld *world = [WKContentWorld worldWithName:@"test"];
-		[ucc addUserScript:[[WKUserScript alloc] initWithSource:PREAMBLE injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES inContentWorld:world]];
+		[ucc addUserScript:[[WKUserScript alloc] initWithSource:AIJSXtrasPreamble injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES inContentWorld:world]];
 		[ucc addUserScript:[[WKUserScript alloc] initWithSource:pluginSource injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES inContentWorld:world]];
 		cfg.userContentController = ucc;
 		_web = [[WKWebView alloc] initWithFrame:NSMakeRect(0,0,400,400) configuration:cfg];

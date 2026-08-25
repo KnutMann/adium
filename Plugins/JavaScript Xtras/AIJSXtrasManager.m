@@ -20,14 +20,11 @@
 #import <Adium/AISharedAdium.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
 
-/*!
- * @brief The per-world preamble, injected before every plugin's own script
- *
- * Kept as a compile-time constant, not a loadable resource: it is the trusted
- * host every plugin talks to, and a file could be swapped where a constant
- * cannot. It installs a MutationObserver on the transcript and hands each
- * plugin the message-body spans as they appear, so a plugin never has to know
- * how a message style is built.
+#import "AIJSXtrasPreamble.h"
+
+/* The per-world preamble itself lives in AIJSXtrasPreamble.h, one source shared
+ * with the transform harness in Tests/, so the harness always tests the preamble
+ * the app injects. The isolation reasoning stays here, next to the injection:
  *
  * What the fences are, honestly: the content world separates JAVASCRIPT, not
  * the DOM. A plugin only receives message-body spans from here, but the DOM is
@@ -42,39 +39,6 @@
  * world, finds nothing to drive. The isolation probe in Tests/ measures every
  * one of these claims.
  */
-static NSString * const AIJSXtrasPreamble =
-@"(function () {\n"
-@"  'use strict';\n"
-@"  var callbacks = [];\n"
-@"  var seen = new WeakSet();\n"
-@"  function collect(root) {\n"
-@"    var out = [];\n"
-@"    if (!root || root.nodeType !== 1) return out;\n"
-@"    if (root.matches && root.matches('span[data-x-adium-msg]')) out.push(root);\n"
-@"    if (root.querySelectorAll) { var q = root.querySelectorAll('span[data-x-adium-msg]'); for (var i = 0; i < q.length; i++) out.push(q[i]); }\n"
-@"    return out;\n"
-@"  }\n"
-@"  function deliver(nodes) {\n"
-@"    var fresh = [];\n"
-@"    for (var i = 0; i < nodes.length; i++) { if (!seen.has(nodes[i])) { seen.add(nodes[i]); fresh.push(nodes[i]); } }\n"
-@"    if (!fresh.length) return;\n"
-@"    for (var c = 0; c < callbacks.length; c++) { try { callbacks[c](fresh); } catch (e) { if (window.console) console.error('[adiumPlugin]', e); } }\n"
-@"  }\n"
-@"  function start() {\n"
-@"    var target = document.getElementById('Chat') || document.body;\n"
-@"    if (!target) return;\n"
-@"    new MutationObserver(function (muts) {\n"
-@"      var batch = [];\n"
-@"      for (var m = 0; m < muts.length; m++) { var added = muts[m].addedNodes; for (var n = 0; n < added.length; n++) { var c = collect(added[n]); for (var k = 0; k < c.length; k++) batch.push(c[k]); } }\n"
-@"      if (batch.length) deliver(batch);\n"
-@"    }).observe(target, { childList: true, subtree: true });\n"
-@"    deliver(collect(target));\n"
-@"  }\n"
-@"  var api = { apiVersion: 1, onMessagesAdded: function (cb) { if (typeof cb === 'function') callbacks.push(cb); } };\n"
-@"  Object.freeze(api);\n"
-@"  Object.defineProperty(window, 'adiumPlugin', { value: api, writable: false, configurable: false });\n"
-@"  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();\n"
-@"})();\n";
 
 @interface AIJSXtrasManager ()
 @property (readwrite, nonatomic) NSArray<AIJSXtraBundle *> *enabledBundles;
