@@ -864,15 +864,10 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"Version %@", "Version of an installed Xtra, shown below its name"), version]];
 	}
 
-	if ([self xtraIsBundled:xtraInfo]) {
-		/* Shipped inside the app: not a system-wide install the user is locked out of, so it is named
-		 * for what it is. Its switch works all the same, and it carries no delete button because there
-		 * is no file of the user's to remove. */
-		[parts addObject:AILocalizedString(@"Bundled", "Origin of an Xtra that ships inside Adium")];
-
-	} else if (![self xtraIsUsers:xtraInfo]) {
-		/* Where it came from only needs saying when it is not this user's own; that it can't be
-		 * switched off here is what the switch's tool tip explains. */
+	/* Where it came from is only worth a word when it is neither the user's own nor shipped inside
+	 * the app: a system-wide install in /Library, which the switch cannot touch. A bundled Xtra says
+	 * nothing about where it lives - its switch plainly works, and the line would only be noise. */
+	if (![self xtraIsUsers:xtraInfo] && ![self xtraIsBundled:xtraInfo]) {
 		[parts addObject:([[xtraInfo path] hasPrefix:@"/Network/"] ?
 						  AILocalizedString(@"Network", "Origin of an Xtra installed on a network volume") :
 						  AILocalizedString(@"All Users", "Origin of an Xtra installed for every user of this Mac"))];
