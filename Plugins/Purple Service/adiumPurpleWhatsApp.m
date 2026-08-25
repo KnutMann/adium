@@ -108,9 +108,13 @@ static void whatsapp_receipt_cb(PurpleConnection *pc, GHashTable *details, gpoin
 
 		NSString *notificationName = nil;
 		if (strcmp(type, "sent") == 0) {
-			/* The server assigned our just-sent message its id; the view attaches it
-			 * to the message so later receipts and reactions can find it. */
-			notificationName = @"AIChatMessageIdAssigned";
+			/* The server assigned our just-sent message its id: the view attaches the
+			 * id to the message so later receipts and reactions can find it, and then
+			 * draws the first tick, the way the official client shows "sent". */
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageIdAssigned"
+															    object:chat
+															  userInfo:@{ @"MessageId": [NSString stringWithUTF8String:messageId] }];
+			notificationName = @"AIChatMessageWasSent";
 		} else if (strcmp(type, "delivered") == 0) {
 			notificationName = @"AIChatMessageWasDelivered";
 		} else if (strcmp(type, "read") == 0) {

@@ -1,9 +1,10 @@
 // Read Receipts - a bundled Adium JavaScript plugin.
 //
-// A message you sent gains a tick once the other side confirms it: a grey
-// double-check when the contact's client has received it (XEP-0184 delivery),
-// and a blue one when it has been read (XEP-0333 chat markers). Adium already
-// learns both from the protocol and marks such a message with an
+// A message you sent gains ticks as it travels, the way modern messengers
+// show it: a single grey tick when the server accepted it (protocols that
+// confirm this, like WhatsApp), a grey double-check when the other side's
+// client received it, and a blue one when it has been read. Adium learns all
+// of this from the protocols and marks such a message with an "x-adium-sent",
 // "x-adium-delivered" or "x-adium-read" class; this plugin is only the tick
 // those classes draw.
 //
@@ -38,8 +39,16 @@
 	var OUTGOING = '[data-x-adium-msg][data-x-adium-dir="outgoing"]';
 	var TIME_CLASSES = ['.time', '.timestamp', '.x-time', '.x-rtime', '.x-ltime'];
 
-	var GREY = '#8a949e';    /* delivered - a quiet grey */
+	var GREY = '#8a949e';    /* sent and delivered - a quiet grey */
 	var BLUE = '#34b7f1';    /* read - the read-blue, wins over grey */
+
+	// The stations in escalation order: a later class on the same message wins,
+	// which is why the rules are emitted in exactly this order.
+	var STATES = [
+		{ cls: 'x-adium-sent',      ticks: '\\2713',       color: GREY },
+		{ cls: 'x-adium-delivered', ticks: '\\2713\\2713', color: GREY },
+		{ cls: 'x-adium-read',      ticks: '\\2713\\2713', color: BLUE }
+	];
 
 	// The shared look of the pair: fixed pixel size (see header), the two ticks
 	// overlapped into one glyph pair, kept out of bidi reordering.
@@ -68,25 +77,24 @@
 	}
 
 	function buildCSS() {
-		var ticks = '\\2713\\2713';
 		if (PLACEMENT === 'message') {
-			var content = '"\\00a0' + ticks + '"';
-			return OUTGOING + '.x-adium-delivered::after, ' + OUTGOING + '.x-adium-read::after {' +
-				'  content: ' + content + ';' + TICK_STYLE + '}' +
-				OUTGOING + '.x-adium-delivered::after { color: ' + GREY + '; }' +
-				OUTGOING + '.x-adium-read::after      { color: ' + BLUE + '; }';
+			return STATES.map(function (state) {
+				return OUTGOING + '.' + state.cls + '::after {' +
+					'  content: "\\00a0' + state.ticks + '";' +
+					'  color: ' + state.color + ';' + TICK_STYLE + '}';
+			}).join('');
 		}
 
 		var side = (PLACEMENT === 'time-after') ? 'after' : 'before';
 		// A real margin keeps the gap to the timestamp, where a trailing space
 		// character would be squeezed by the ticks' negative letter-spacing.
 		var gap = (side === 'before') ? '  margin-right: 5px;' : '  margin-left: 5px;';
-		var delivered = timeSelectors('x-adium-delivered').map(function (s) { return s + '::' + side; });
-		var read = timeSelectors('x-adium-read').map(function (s) { return s + '::' + side; });
-		return delivered.concat(read).join(', ') + ' {' +
-			'  content: "' + ticks + '";' + gap + TICK_STYLE + '}' +
-			delivered.join(', ') + ' { color: ' + GREY + '; }' +
-			read.join(', ') + ' { color: ' + BLUE + '; }';
+		return STATES.map(function (state) {
+			var selectors = timeSelectors(state.cls).map(function (s) { return s + '::' + side; });
+			return selectors.join(', ') + ' {' +
+				'  content: "' + state.ticks + '";' +
+				'  color: ' + state.color + ';' + gap + TICK_STYLE + '}';
+		}).join('');
 	}
 
 	function install() {

@@ -1818,7 +1818,7 @@ index c447251..a610632 100644
 2.50.1 (Apple Git-155)
 
 
-From 10620ebced0c5127d28a6479595e4ef2c88480a3 Mon Sep 17 00:00:00 2001
+From 48009366915317072b9796ce9e5f248c4979ce3d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:37:49 +0200
 Subject: [PATCH 13/13] Emit reactions and message ids as purple signals.
@@ -1841,14 +1841,14 @@ front-ends that draw reactions from the signal instead.
  constants.h            |  7 +++++++
  docs/SETTINGS.md       |  6 ++++++
  glue/CMakeLists.txt    |  1 +
- glue/display_message.c | 19 ++++++++++++++++++-
+ glue/display_message.c | 22 +++++++++++++++++++++-
  glue/gowhatsapp.h      | 19 +++++++++++++++++++
  glue/init.c            | 10 +++++++++-
  glue/options.c         | 12 ++++++++++++
  glue/process_message.c |  2 ++
  glue/reaction.c        | 27 +++++++++++++++++++++++++++
  handle_message.go      | 10 ++++++++++
- 12 files changed, 130 insertions(+), 2 deletions(-)
+ 12 files changed, 133 insertions(+), 2 deletions(-)
  create mode 100644 glue/reaction.c
 
 diff --git a/bridge.go b/bridge.go
@@ -1947,10 +1947,10 @@ index 4787101..9daab3a 100644
      "pixbuf.h"
      "commands.c"
 diff --git a/glue/display_message.c b/glue/display_message.c
-index b48b265..d1e2358 100644
+index b48b265..3d17ede 100644
 --- a/glue/display_message.c
 +++ b/glue/display_message.c
-@@ -65,7 +65,24 @@ void gowhatsapp_display_text_message(
+@@ -65,7 +65,27 @@ void gowhatsapp_display_text_message(
      }
  
      g_free(escaped_text);
@@ -1966,7 +1966,10 @@ index b48b265..d1e2358 100644
 +        g_hash_table_insert(details, "sender", (gpointer)senderJid);
 +        g_hash_table_insert(details, "id", (gpointer)messageId);
 +        g_hash_table_insert(details, "isGroup", isGroup ? "1" : "0");
-+        g_hash_table_insert(details, "isOutgoing", (flags & PURPLE_MESSAGE_SEND) ? "1" : "0");
++        // isOutgoing is this instance's own success echo, not "from me": a message
++        // sent by another device of this account arrives with "0" here, so a
++        // consumer can treat it like any other displayed message
++        g_hash_table_insert(details, "isOutgoing", isOutgoing ? "1" : "0");
 +        g_hash_table_insert(details, "timestamp", timestamp_string);
 +        purple_signal_emit(purple_connection_get_prpl(connection), GOWHATSAPP_SIGNAL_MESSAGE_ID, connection, details);
 +        g_hash_table_destroy(details);

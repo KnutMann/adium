@@ -406,6 +406,10 @@ static NSString *const AIWKContextMenuScript =
 													 name:@"AIChatMessageIdAssigned"
 												   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageWasSent:)
+													 name:@"AIChatMessageWasSent"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageWasDelivered:)
 													 name:@"AIChatMessageWasDelivered"
 												   object:nil];
@@ -2003,6 +2007,28 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]:not([data-x-adium-id])');"
 		@" if(outs.length){ outs[0].setAttribute('data-x-adium-id', %@); }"
+		@"})()",
+		[self _jsStringLiteral:messageId]];
+	[_webView evaluateJavaScript:js completionHandler:nil];
+}
+
+/*!
+ * @brief The server accepted one message we sent (the first tick)
+ *
+ * Unlike delivered and read, "sent" is per message, not cumulative: every send
+ * earns its own confirmation, so exactly the named message is marked.
+ */
+- (void)messageWasSent:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	if (![messageId length]) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" var id=%@;"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
+		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add('x-adium-sent'); break; } }"
 		@"})()",
 		[self _jsStringLiteral:messageId]];
 	[_webView evaluateJavaScript:js completionHandler:nil];
