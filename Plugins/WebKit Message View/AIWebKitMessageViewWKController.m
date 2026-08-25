@@ -279,8 +279,11 @@ static NSString *const AIWKContextMenuScript =
  * message, so the display can neither fetch remote content nor exfiltrate.
  *
  * Compilation is asynchronous and done once; the result is cached. On failure
- * the completion is called with nil, and the page is loaded anyway rather than
- * left blank (an unblocked page is the pre-existing state, not a regression).
+ * the completion is called with nil and the next request compiles again, so a
+ * transient failure does not stay one for the whole session. The page itself is
+ * loaded anyway rather than left blank (an unblocked page is the pre-existing
+ * state, not a regression), but the caller keeps the JavaScript plugins out of
+ * an unblocked page: their harmlessness rests on this list.
  * All on the main thread, where these controllers live.
  */
 + (void)withRemoteLoadBlockRuleList:(void (^)(WKContentRuleList *ruleList))completion
@@ -310,7 +313,7 @@ static NSString *const AIWKContextMenuScript =
 		if (error) NSLog(@"Remote-load block rule list failed to compile: %@", error);
 
 		cachedRuleList = ruleList;
-		compiled = YES;
+		compiled = (ruleList != nil);
 		compiling = NO;
 
 		NSArray *completions = [pendingCompletions copy];
@@ -467,10 +470,13 @@ static NSString *const AIWKContextMenuScript =
 															 forMainFrameOnly:YES]];
 
 	/* JavaScript plugins, each into a content world of its own. Their scripts
-	 * re-inject on every load like the two above, so a reprime needs no extra
+	 * re-inject on every load like the ones above, so a reprime needs no extra
 	 * handling. The world isolates a plugin's JS; the hardening and the
-	 * remote-load block keep it harmless. */
-	[[AIJSXtrasManager sharedManager] installIntoUserContentController:userContentController];
+	 * remote-load block keep it harmless, which is why a page without the block
+	 * gets no plugins at all. */
+	if (!_remoteLoadBlockUnavailable) {
+		[[AIJSXtrasManager sharedManager] installIntoUserContentController:userContentController];
+	}
 }
 
 /*!
@@ -1174,6 +1180,21 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		if (ruleList && !_remoteLoadBlockInstalled) {
 			[_webView.configuration.userContentController addContentRuleList:ruleList];
 			_remoteLoadBlockInstalled = YES;
+		}
+
+		/* No block, no plugins. The page itself still loads (styles worked on the open
+		 * web for years), but a plugin's harmlessness rests on the rule list, so the
+		 * plugin scripts are rebuilt out of an unblocked page and back in once a later
+		 * prime gets the list compiled. */
+		BOOL blockMissing = !_remoteLoadBlockInstalled;
+		if (blockMissing != _remoteLoadBlockUnavailable) {
+			_remoteLoadBlockUnavailable = blockMissing;
+			WKUserContentController *userContentController = _webView.configuration.userContentController;
+			[userContentController removeAllUserScripts];
+			[self _installUserScriptsInto:userContentController];
+		}
+		if (blockMissing) {
+			NSLog(@"Adium: remote-load block unavailable; JavaScript plugins stay out of this page load");
 		}
 
 		[_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
