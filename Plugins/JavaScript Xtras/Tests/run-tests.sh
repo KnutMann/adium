@@ -35,7 +35,15 @@ ML="../Bundled/Markdown Light.AdiumPlugin/Contents/Resources/plugin.js"
 CB="../Bundled/Code Blocks.AdiumPlugin/Contents/Resources/plugin.js"
 
 echo "== Big Emoji"
-run "$BE" "😀😀" "+2.6em" "hello world" "-2.6em" "😀 with text" "-2.6em"
+# Emoji grow to triple (font size); emoticons to double their own pixels (a 1x1
+# data-URI stands in for an emoticon image, so doubling lands at 2px).
+PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+run "$BE" \
+	"😀😀" "+3em" \
+	"hello world" "-3em" \
+	"😀 with text" "-3em" \
+	"<img class=\"emoticon\" src=\"$PNG\">" "+width: 2px" \
+	"<img class=\"emoticon\" src=\"$PNG\"><img class=\"emoticon\" src=\"$PNG\"><img class=\"emoticon\" src=\"$PNG\"><img class=\"emoticon\" src=\"$PNG\">" "-width: 2px"
 
 echo "== Markdown Light"
 run "$ML" \

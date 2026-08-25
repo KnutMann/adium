@@ -3,12 +3,17 @@
 // A message whose whole body is one to three emoji or emoticons is shown
 // enlarged, the way modern messengers do. Pure style change on the message
 // body it is handed; nothing is inserted, no message text is ever read into
-// HTML. Text emoji grow with the font size; emoticon images grow by height.
+// HTML.
+//
+// Emoji are font glyphs and scale cleanly, so they grow to triple size.
+// Emoticons are small raster images that would blur if pushed that far, so
+// they grow to double their own edge length, no more.
 
 (function () {
 	'use strict';
 
-	var GLYPH_SIZE = '2.6em';
+	var EMOJI_SIZE = '3em';        // triple, on the body font
+	var EMOTICON_SCALE = 2;        // double the emoticon's own pixels
 	var MAX_GLYPHS = 3;
 
 	var segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter)
@@ -41,10 +46,10 @@
 			node.classList && node.classList.contains('emoticon');
 	}
 
-	// Walk the body's children: count emoji graphemes and emoticon images, and
-	// bail on anything else. Returns {glyphs, emoticons:[...]} or null.
+	// Walk the body's children, counting emoji graphemes and emoticon images and
+	// bailing on anything else. Returns {emoji, emoticons:[...]} or null.
 	function inspect(body) {
-		var glyphs = 0;
+		var emoji = 0;
 		var emoticons = [];
 
 		for (var i = 0; i < body.childNodes.length; i++) {
@@ -53,36 +58,44 @@
 			if (node.nodeType === 3) {                       // text
 				var n = emojiCount(node.nodeValue);
 				if (n < 0) return null;
-				glyphs += n;
+				emoji += n;
 			} else if (isEmoticonImage(node)) {              // an emoticon
 				emoticons.push(node);
-				glyphs += 1;
 			} else if (node.nodeType === 1 && node.tagName === 'BR') {
 				// harmless
 			} else {
 				return null;                                  // a link, formatting, anything else
 			}
 
-			if (glyphs > MAX_GLYPHS) return null;
+			if (emoji + emoticons.length > MAX_GLYPHS) return null;
 		}
 
-		return (glyphs >= 1) ? { glyphs: glyphs, emoticons: emoticons } : null;
+		return (emoji + emoticons.length >= 1) ? { emoji: emoji, emoticons: emoticons } : null;
+	}
+
+	// Double an emoticon's own edge length; wait for the image if it has not loaded yet
+	function scaleEmoticon(img) {
+		function apply() {
+			if (!img.naturalWidth) return;
+			img.style.width = (img.naturalWidth * EMOTICON_SCALE) + 'px';
+			img.style.height = (img.naturalHeight * EMOTICON_SCALE) + 'px';
+		}
+		if (img.complete && img.naturalWidth) apply();
+		else img.addEventListener('load', apply, { once: true });
 	}
 
 	function enlarge(body) {
 		var found = inspect(body);
 		if (!found) return;
 
-		// Text emoji grow with the font size on the body
-		body.style.fontSize = GLYPH_SIZE;
-		body.style.lineHeight = '1.25';
+		// Emoji are text, so tripling the body font size triples their edge length
+		if (found.emoji > 0) {
+			body.style.fontSize = EMOJI_SIZE;
+			body.style.lineHeight = '1.25';
+		}
 		body.style.display = 'inline-block';
 
-		// Emoticon images do not follow font-size, so grow them by height
-		found.emoticons.forEach(function (img) {
-			img.style.height = GLYPH_SIZE;
-			img.style.width = 'auto';
-		});
+		found.emoticons.forEach(scaleEmoticon);
 	}
 
 	adiumPlugin.onMessagesAdded(function (nodes) {
