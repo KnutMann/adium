@@ -38,6 +38,7 @@
 #define NS_CARBONS   "urn:xmpp:carbons:2"
 #define NS_FORWARD   "urn:xmpp:forward:0"
 #define NS_HINTS     "urn:xmpp:hints"
+#define NS_RECEIPTS  "urn:xmpp:receipts"
 
 static int adium_purple_carbons_handle;
 
@@ -126,8 +127,14 @@ static void carbons_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet,
 
 	if (!was_sent) {
 		/* Received elsewhere: hand the protocol the forwarded message in place of the
-		 * wrapper, and it is parsed like any other incoming message. */
+		 * wrapper, and it is parsed like any other incoming message. The receipt request
+		 * stays behind, though: it was answered by the device the message was delivered
+		 * to, and a second receipt from here would tell the sender one message arrived
+		 * twice. XEP-0280 warns against auto-responding to carbon copies. */
 		xmlnode *copy = xmlnode_copy(inner);
+		xmlnode *receiptRequest = xmlnode_get_child_with_namespace(copy, "request", NS_RECEIPTS);
+		if (receiptRequest)
+			xmlnode_free(receiptRequest);
 		xmlnode_free(node);
 		*packet = copy;
 		g_free(text);
