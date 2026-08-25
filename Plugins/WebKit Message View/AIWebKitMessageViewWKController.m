@@ -1997,8 +1997,11 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
 	if (![messageId length]) return;
 
+	/* History shown as context also renders outgoing and id-less; only a message of
+	 * this session can be the one a send just earned an id for. */
 	for (AIContentObject *stored in _storedContentObjects) {
-		if ([stored isKindOfClass:[AIContentMessage class]] && [stored isOutgoing] &&
+		if ([stored isKindOfClass:[AIContentMessage class]] &&
+			![stored isKindOfClass:[AIContentContext class]] && [stored isOutgoing] &&
 			![[(AIContentMessage *)stored messageId] length]) {
 			[(AIContentMessage *)stored setMessageId:messageId];
 			break;
@@ -2007,7 +2010,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
-		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]:not([data-x-adium-id])');"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"][data-x-adium-history=\"0\"]:not([data-x-adium-id])');"
 		@" if(outs.length){ outs[0].setAttribute('data-x-adium-id', %@); }"
 		@" return outs.length;"
 		@"})()",
