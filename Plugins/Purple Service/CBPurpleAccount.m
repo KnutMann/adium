@@ -1338,11 +1338,20 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 {
 	AILogWithSignature(@"Message: %@ inChat: %@ fromListContact: %@ flags: %d date: %@ id: %@", attributedMessage, chat, sourceContact, flags, date, messageId);
 
+	/* Whether this message is our own decides its direction, and with it everything
+	 * hanging off "outgoing": the bubble side, the ticks, the id a receipt can land
+	 * on. libpurple marks our own messages with the send flag, so trust that first;
+	 * the UID comparison stays as a fallback, but alone it misses every protocol
+	 * whose account name and wire address differ (a WhatsApp account is "+number"
+	 * while the wire says number@s.whatsapp.net, a jabber room speaks in nicks). */
+	BOOL fromSelf = ((flags & PURPLE_MESSAGE_SEND) == PURPLE_MESSAGE_SEND) ||
+					[sourceContact.UID isEqualToString:self.UID];
+
 	if ((flags & PURPLE_MESSAGE_DELAYED) == PURPLE_MESSAGE_DELAYED) {
 		// Display delayed messages as context.
 
 		AIContentContext *messageObject = [AIContentContext messageInChat:chat
-															   withSource:[sourceContact.UID isEqualToString:self.UID]? (AIListObject *)self : (AIListObject *)sourceContact
+															   withSource:fromSelf ? (AIListObject *)self : (AIListObject *)sourceContact
 															  destination:self
 																	 date:date
 																  message:attributedMessage
@@ -1355,7 +1364,7 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 
 	} else {
 		AIContentMessage *messageObject = [AIContentMessage messageInChat:chat
-															   withSource:[sourceContact.UID isEqualToString:self.UID]? (AIListObject *)self : (AIListObject *)sourceContact
+															   withSource:fromSelf ? (AIListObject *)self : (AIListObject *)sourceContact
 															  destination:self
 																	 date:date
 																  message:attributedMessage
