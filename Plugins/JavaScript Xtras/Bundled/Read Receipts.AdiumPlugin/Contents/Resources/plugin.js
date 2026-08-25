@@ -78,11 +78,13 @@
 		}
 
 		var side = (PLACEMENT === 'time-after') ? 'after' : 'before';
-		var content = (side === 'before') ? '"' + ticks + '\\00a0"' : '"\\00a0' + ticks + '"';
+		// A real margin keeps the gap to the timestamp, where a trailing space
+		// character would be squeezed by the ticks' negative letter-spacing.
+		var gap = (side === 'before') ? '  margin-right: 5px;' : '  margin-left: 5px;';
 		var delivered = timeSelectors('x-adium-delivered').map(function (s) { return s + '::' + side; });
 		var read = timeSelectors('x-adium-read').map(function (s) { return s + '::' + side; });
 		return delivered.concat(read).join(', ') + ' {' +
-			'  content: ' + content + ';' + TICK_STYLE + '}' +
+			'  content: "' + ticks + '";' + gap + TICK_STYLE + '}' +
 			delivered.join(', ') + ' { color: ' + GREY + '; }' +
 			read.join(', ') + ' { color: ' + BLUE + '; }';
 	}
