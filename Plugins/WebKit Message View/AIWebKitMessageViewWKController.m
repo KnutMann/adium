@@ -2021,8 +2021,11 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	if (![messageId length]) return;
 
 	/* History shown as context also renders outgoing and id-less; only a message of
-	 * this session can be the one a send just earned an id for. */
-	for (AIContentObject *stored in _storedContentObjects) {
+	 * this session can be the one a send just earned an id for. The NEWEST bare
+	 * message is the right one: the receipt follows its send within moments, and an
+	 * older message still bare (one that slipped past its receipt somehow) must not
+	 * soak up every id that comes after it. */
+	for (AIContentObject *stored in [_storedContentObjects reverseObjectEnumerator]) {
 		if ([stored isKindOfClass:[AIContentMessage class]] &&
 			![stored isKindOfClass:[AIContentContext class]] && [stored isOutgoing] &&
 			![[(AIContentMessage *)stored messageId] length]) {
@@ -2034,7 +2037,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"][data-x-adium-history=\"0\"]:not([data-x-adium-id])');"
-		@" if(outs.length){ outs[0].setAttribute('data-x-adium-id', %@); }"
+		@" if(outs.length){ outs[outs.length-1].setAttribute('data-x-adium-id', %@); }"
 		@" var all=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
 		@" var inv=[]; for(var i=0;i<all.length;i++){ var e=all[i];"
 		@"  inv.push((e.getAttribute('data-x-adium-history')||'?')+'/'+(e.getAttribute('data-x-adium-id')?'ID':'-')+'/'+(e.textContent||'').trim().slice(0,20)); }"

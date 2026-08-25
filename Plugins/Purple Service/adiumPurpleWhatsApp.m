@@ -194,6 +194,24 @@ static void whatsapp_reaction_cb(PurpleConnection *pc, GHashTable *details, gpoi
  * The prpl is an external plug-in; its signals exist once libpurple has loaded
  * it, which is guaranteed by the time one of its accounts signs on.
  */
+static gboolean whatsapp_connect_signals(void)
+{
+	static gboolean connected = FALSE;
+	if (connected) return TRUE;
+
+	PurplePlugin *whatsapp = purple_find_prpl(WHATSAPP_PRPL_ID);
+	if (!whatsapp) return FALSE;
+	connected = TRUE;
+
+	purple_signal_connect(whatsapp, "gowhatsapp-message-id", &adium_purple_whatsapp_handle,
+						  PURPLE_CALLBACK(whatsapp_message_id_cb), NULL);
+	purple_signal_connect(whatsapp, "gowhatsapp-receipt", &adium_purple_whatsapp_handle,
+						  PURPLE_CALLBACK(whatsapp_receipt_cb), NULL);
+	purple_signal_connect(whatsapp, "gowhatsapp-reaction", &adium_purple_whatsapp_handle,
+						  PURPLE_CALLBACK(whatsapp_reaction_cb), NULL);
+	return TRUE;
+}
+
 static void whatsapp_signed_on_cb(PurpleConnection *gc, gpointer data)
 {
 	PurpleAccount *account = purple_connection_get_account(gc);
@@ -204,23 +222,18 @@ static void whatsapp_signed_on_cb(PurpleConnection *gc, gpointer data)
 	 * rendering would say everything twice. */
 	purple_account_set_string(account, "reaction-display", "none");
 
-	static gboolean connected = FALSE;
-	if (connected) return;
-
-	PurplePlugin *whatsapp = purple_find_prpl(WHATSAPP_PRPL_ID);
-	if (!whatsapp) return;
-	connected = TRUE;
-
-	purple_signal_connect(whatsapp, "gowhatsapp-message-id", &adium_purple_whatsapp_handle,
-						  PURPLE_CALLBACK(whatsapp_message_id_cb), NULL);
-	purple_signal_connect(whatsapp, "gowhatsapp-receipt", &adium_purple_whatsapp_handle,
-						  PURPLE_CALLBACK(whatsapp_receipt_cb), NULL);
-	purple_signal_connect(whatsapp, "gowhatsapp-reaction", &adium_purple_whatsapp_handle,
-						  PURPLE_CALLBACK(whatsapp_reaction_cb), NULL);
+	whatsapp_connect_signals();
 }
 
 void configureAdiumPurpleWhatsApp(void)
 {
+	/* Connect right away: the plug-in delivers held-back messages the moment its
+	 * connection is up, which is BEFORE it reports the account as signed on (that
+	 * waits for the contact fetch), and every message missed here displays without
+	 * its id and can never earn a tick. The signed-on hook stays as the fallback
+	 * for a plug-in that was not loaded yet when this ran. */
+	whatsapp_connect_signals();
+
 	purple_signal_connect(purple_connections_get_handle(), "signed-on", &adium_purple_whatsapp_handle,
 						  PURPLE_CALLBACK(whatsapp_signed_on_cb), NULL);
 }
