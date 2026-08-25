@@ -36,22 +36,28 @@
  		} else if(purple_strequal(child->name, "event") && purple_strequal(xmlns,"http://jabber.org/protocol/pubsub#event")) {
  			xmlnode *items;
  			jm->type = JABBER_MESSAGE_EVENT;
-@@ -1097,6 +1119,9 @@
+@@ -1096,6 +1118,12 @@
+ 					jm->xhtml);
  		}
  	}
- 
++
 +	if(jm->add_receipt_request)
 +		jabber_receipt_add_request(message);
 +
++	if(jm->add_chat_marker_request)
++		jabber_chat_marker_add_markable(message);
+ 
  	jabber_send(jm->js, message);
  
- 	xmlnode_free(message);
-@@ -1208,6 +1233,9 @@
+@@ -1208,6 +1236,12 @@
  
  	g_free(xhtml);
  
 +	jm->add_receipt_request = !jbr || !jbr->caps.info ||
 +		jabber_resource_has_capability(jbr, NS_RECEIPTS);
++
++	jm->add_chat_marker_request = !jbr || !jbr->caps.info ||
++		jabber_resource_has_capability(jbr, NS_CHAT_MARKERS);
 +
  	jabber_message_send(jm);
  	jabber_message_free(jm);

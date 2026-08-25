@@ -125,3 +125,11 @@ gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who
 
 	return sent;
 }
+
+void jabber_chat_marker_add_markable(xmlnode *message)
+{
+	xmlnode *markable;
+
+	markable = xmlnode_new_child(message, "markable");
+	xmlnode_set_namespace(markable, NS_CHAT_MARKERS);
+}
