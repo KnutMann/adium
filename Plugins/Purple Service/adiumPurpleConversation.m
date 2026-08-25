@@ -15,6 +15,7 @@
  */
 
 #import "adiumPurpleConversation.h"
+#import "adiumPurpleSignals.h"
 #import <AIUtilities/AIObjectAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <Adium/AIChat.h>
@@ -156,10 +157,17 @@ static void adiumPurpleConvWriteIm(PurpleConversation *conv, const char *who,
 			//Process any purple imgstore references into real HTML tags pointing to real images
 			messageString = processPurpleImages(messageString, adiumAccount);
 			
-			messageDict = [NSDictionary dictionaryWithObjectsAndKeys:messageString,@"Message",
+			NSMutableDictionary *mutableDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:messageString,@"Message",
 						   [NSNumber numberWithInteger:flags],@"PurpleMessageFlags",
 						   [NSDate dateWithTimeIntervalSince1970:mtime],@"Date",nil];
-			
+
+			/* The id the protocol gave this message was stashed a moment ago, in the callback that
+			 * ran just before this one; take it now so it rides on the content object and a later
+			 * reaction or read marker can find the message it names. */
+			NSString *messageId = adiumTakePendingIncomingMessageId(purple_conversation_get_account(conv), who);
+			if (messageId) [mutableDict setObject:messageId forKey:@"MessageId"];
+			messageDict = mutableDict;
+
 			[adiumAccount receivedIMChatMessage:messageDict
 										 inChat:chat];
 		}

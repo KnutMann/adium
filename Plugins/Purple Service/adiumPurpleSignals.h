@@ -17,3 +17,7 @@
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
 void configureAdiumPurpleSignals(void);
+
+/* Read and clear the id stashed for the message just delivered from this sender, so the message
+ * that follows it can be tagged with the protocol's id. nil when there is none. */
+NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *from);

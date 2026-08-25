@@ -432,6 +432,8 @@ void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
 typedef void (*jabber_reactions_cb)(PurpleConnection *gc, const char *from,
 									const char *target_id, GList *emojis);
 void jabber_set_reactions_cb(jabber_reactions_cb cb);
+typedef void (*jabber_message_id_cb)(PurpleConnection *gc, const char *from, const char *id);
+void jabber_set_message_id_cb(jabber_message_id_cb cb);
 void jabber_add_feature(const char *xmlns, void *enabled_cb);
 
 /*!
@@ -510,6 +512,38 @@ static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
 			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
 			  target_id ? target_id : "(no id)",
 			  [list componentsJoinedByString:@" "]);
+	}
+}
+
+/* The id of an incoming message, kept just long enough for the conversation callback that runs
+ * right after it - synchronously, within the same libpurple message - to read it off and hang it
+ * on the content object. Keyed by account and sender, and taken out as it is read, so none lingers. */
+static NSMutableDictionary *pendingIncomingMessageIds = nil;
+
+static NSString *pendingMessageIdKey(PurpleAccount *account, const char *from)
+{
+	return [NSString stringWithFormat:@"%p\x1f%s", (void *)account, from ? from : ""];
+}
+
+NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *from)
+{
+	if (!account || !from || !pendingIncomingMessageIds) return nil;
+
+	NSString *key = pendingMessageIdKey(account, from);
+	NSString *msgid = [pendingIncomingMessageIds objectForKey:key];
+	if (msgid) [pendingIncomingMessageIds removeObjectForKey:key];
+	return msgid;
+}
+
+static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from, const char *msgid)
+{
+	@autoreleasepool {
+		PurpleAccount *account = purple_connection_get_account(gc);
+		if (!account || !from || !msgid) return;
+
+		if (!pendingIncomingMessageIds) pendingIncomingMessageIds = [[NSMutableDictionary alloc] init];
+		[pendingIncomingMessageIds setObject:[NSString stringWithUTF8String:msgid]
+									  forKey:pendingMessageIdKey(account, from)];
 	}
 }
 
@@ -593,6 +627,7 @@ void configureAdiumPurpleSignals(void)
 	jabber_set_receipt_cb(adiumJabberReceiptReceived);
 	jabber_set_chat_marker_cb(adiumJabberChatMarkerReceived);
 	jabber_set_reactions_cb(adiumJabberReactionReceived);
+	jabber_set_message_id_cb(adiumJabberIncomingMessageId);
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
 	jabber_add_feature("urn:xmpp:reactions:0", NULL);

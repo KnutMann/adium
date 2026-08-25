@@ -36,6 +36,7 @@
 	BOOL		isAutoreply;
 	NSString	*encodedMessage;
 	id			encodedMessageAccountData;
+	NSString	*messageId;
 }
 
 /*!	@brief	Create and autorelease an AIContentMessage.
@@ -83,6 +84,14 @@
  *	@return	The object associated with this message.
  */
 @property (readwrite, nonatomic, retain) id encodedMessageAccountData;
+
+/*!	@brief	The protocol's id for this message, when it has one.
+ *
+ *	@par	For XMPP this is the stanza id. It is what a later reaction or read marker names to say
+ *	which message it is about, so the message view can find the one already on screen and mark it.
+ *	nil on protocols or messages that carry no id.
+ */
+@property (readwrite, nonatomic, copy) NSString *messageId;
 
 /*!
  * @brief The prefix string for the sender of this message.

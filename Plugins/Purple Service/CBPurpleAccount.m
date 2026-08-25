@@ -83,7 +83,7 @@
 - (NSString *)_mapIncomingGroupName:(NSString *)name;
 - (NSString *)_mapOutgoingGroupName:(NSString *)name;
 - (void)setTypingFlagOfChat:(AIChat *)inChat to:(NSNumber *)typingState;
-- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date;
+- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date messageId:(NSString *)messageId;
 - (NSNumber *)shouldCheckMail;
 - (void)configurePurpleAccountNotifyingTarget:(id)target selector:(SEL)selector;
 - (void)configureProtocolOptions;
@@ -1264,10 +1264,11 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	[self setTypingFlagOfChat:chat to:nil];
 	
 	[self _receivedMessage:attributedMessage
-					inChat:chat 
+					inChat:chat
 		   fromListContact:listContact
 					 flags:flags
-					  date:[messageDict objectForKey:@"Date"]];
+					  date:[messageDict objectForKey:@"Date"]
+				 messageId:[messageDict objectForKey:@"MessageId"]];
 }
 
 /*!
@@ -1290,7 +1291,8 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 					inChat:chat
 		   fromListContact:[self contactWithUID:self.UID]
 					 flags:flags
-					  date:[messageDict objectForKey:@"Date"]];
+					  date:[messageDict objectForKey:@"Date"]
+				 messageId:[messageDict objectForKey:@"MessageId"]];
 }
 
 - (void)receivedEventForChat:(AIChat *)chat
@@ -1323,17 +1325,18 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	NSString			*source = [messageDict objectForKey:@"Source"];
 	
 	[self _receivedMessage:attributedMessage
-					inChat:chat 
+					inChat:chat
 		   fromListContact:[self contactWithUID:source]
 					 flags:flags
-					  date:[messageDict objectForKey:@"Date"]];
+					  date:[messageDict objectForKey:@"Date"]
+				 messageId:[messageDict objectForKey:@"MessageId"]];
   }
 }
 
-- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date
+- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date messageId:(NSString *)messageId
 {
-	AILogWithSignature(@"Message: %@ inChat: %@ fromListContact: %@ flags: %d date: %@", attributedMessage, chat, sourceContact, flags, date);
-	
+	AILogWithSignature(@"Message: %@ inChat: %@ fromListContact: %@ flags: %d date: %@ id: %@", attributedMessage, chat, sourceContact, flags, date, messageId);
+
 	if ((flags & PURPLE_MESSAGE_DELAYED) == PURPLE_MESSAGE_DELAYED) {
 		// Display delayed messages as context.
 
@@ -1343,11 +1346,12 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 																	 date:date
 																  message:attributedMessage
 																autoreply:(flags & PURPLE_MESSAGE_AUTO_RESP) != 0];
-		
+
+		messageObject.messageId = messageId;
 		messageObject.trackContent = NO;
-		
+
 		[adium.contentController receiveContentObject:messageObject];
-		
+
 	} else {
 		AIContentMessage *messageObject = [AIContentMessage messageInChat:chat
 															   withSource:[sourceContact.UID isEqualToString:self.UID]? (AIListObject *)self : (AIListObject *)sourceContact
@@ -1355,7 +1359,8 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 																	 date:date
 																  message:attributedMessage
 																autoreply:(flags & PURPLE_MESSAGE_AUTO_RESP) != 0];
-		[adium.contentController receiveContentObject:messageObject];	
+		messageObject.messageId = messageId;
+		[adium.contentController receiveContentObject:messageObject];
 	}
 }
 
