@@ -23,8 +23,13 @@
  * that ends up running there, whatever put it there, has a native side to reach. The
  * bridge script is installed into that world and forwards exactly three signals:
  *
- * - "ready", once the document is parsed. Posted from here rather than the template,
- *   so a third-party style shipping its own Template.html signals readiness too.
+ * - "ready", once the document's own scripts have run (DOMContentLoaded; the template
+ *   script is deferred, so announcing at injection time would be too early and the app
+ *   would draw into a page whose display machinery does not exist yet). Posted from
+ *   here rather than the template, so a third-party style shipping its own
+ *   Template.html signals readiness too. It carries the page generation the app
+ *   stamped into the document, so a ready from a page a newer load already doomed
+ *   is recognizable and ignored instead of triggering a draw against the wrong page.
  * - "zoomImage" for a genuine click on a content-sized image; window.client.zoomImage
  *   in the page keeps only the size arithmetic the styles' click handlers consult.
  * - "fileTransfer" for a genuine click on a transfer button. The styles wire those as
@@ -49,11 +54,21 @@ __attribute__((unused)) static NSString *const AIWKGestureBridgeScript =
 	@"    var bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adium;\n"
 	@"    if (!bridge) return;\n"
 	@"\n"
-	@"    function announceReady() { bridge.postMessage({type: 'ready'}); }\n"
-	@"    if (document.readyState === 'loading')\n"
-	@"        document.addEventListener('DOMContentLoaded', announceReady);\n"
-	@"    else\n"
+	@"    var announced = false;\n"
+	@"    function announceReady() {\n"
+	@"        if (announced) return;\n"
+	@"        announced = true;\n"
+	@"        var marker = document.getElementById('x-adium-generation');\n"
+	@"        bridge.postMessage({type: 'ready', generation: marker ? (marker.getAttribute('data-generation') || '') : ''});\n"
+	@"    }\n"
+	@"    /* Not before DOMContentLoaded: the template's script is deferred, and ready must\n"
+	@"       mean its functions exist. The load fallback covers a late injection. */\n"
+	@"    if (document.readyState === 'complete')\n"
 	@"        announceReady();\n"
+	@"    else {\n"
+	@"        document.addEventListener('DOMContentLoaded', announceReady);\n"
+	@"        window.addEventListener('load', announceReady);\n"
+	@"    }\n"
 	@"\n"
 	@"    var transferPattern = /client\\.handleFileTransfer\\('(Save|SaveAs|Cancel)', '([^']*)'\\)/;\n"
 	@"    document.addEventListener('click', function(event) {\n"

@@ -706,6 +706,15 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	}
 
 	if ([type isEqualToString:@"ready"]) {
+		/* Only the current page's ready counts: a page a newer prime already doomed can
+		 * still deliver its signal, and drawing on it appends against the wrong page. */
+		NSString *generation = [body objectForKey:@"generation"];
+		NSString *expected = [NSString stringWithFormat:@"%lu", (unsigned long)_pageGeneration];
+		if (![generation isKindOfClass:[NSString class]] || ![generation isEqualToString:expected]) {
+			AILogWithSignature(@"Ignoring ready from page generation %@ (current %@)", generation, expected);
+			return;
+		}
+
 		// Don't re-process gate if already ready
 		if (!_webViewIsReady) {
 			_webViewIsReady = YES;
@@ -1218,10 +1227,28 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 											   attributes:nil
 													error:NULL];
 	NSString *pagePath = [pageDirectory stringByAppendingPathComponent:@"messages.html"];
-	[[_messageStyle baseTemplateForChat:_chat] writeToFile:pagePath
-												atomically:YES
-												  encoding:NSUTF8StringEncoding
-													 error:NULL];
+
+	/* Stamp the page with this prime's generation, and only honour the "ready" that
+	 * carries it back. Primes can follow each other quickly (window restore at launch,
+	 * a preference pass, a plugin rescan), and a page already doomed by a newer load
+	 * can still get its "ready" delivered; drawing on that stale signal is how a
+	 * conversation ends up appended against the wrong page, lost, or doubled. */
+	_pageGeneration++;
+	NSString *page = [_messageStyle baseTemplateForChat:_chat];
+	NSString *generationMarker = [NSString stringWithFormat:
+								  @"<div id=\"x-adium-generation\" data-generation=\"%lu\" hidden></div>",
+								  (unsigned long)_pageGeneration];
+	NSRange bodyEnd = [page rangeOfString:@"</body>" options:(NSBackwardsSearch | NSCaseInsensitiveSearch)];
+	if (bodyEnd.location != NSNotFound) {
+		page = [page stringByReplacingCharactersInRange:bodyEnd
+											 withString:[generationMarker stringByAppendingString:@"</body>"]];
+	} else {
+		page = [page stringByAppendingString:generationMarker];
+	}
+	[page writeToFile:pagePath
+		   atomically:YES
+			 encoding:NSUTF8StringEncoding
+				error:NULL];
 
 	/* Attach the remote-load block before the first load, so no page ever runs
 	 * unblocked; compilation is cached, so every load after the first proceeds
@@ -1814,8 +1841,10 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
  */
 - (void)chatDidFinishAddingUntrackedContent:(NSNotification *)notification
 {
-	// Tell the CoalescedHTML to output everything
-	[_webView evaluateJavaScript:@"if(coalescedHTML)coalescedHTML.cancel()"
+	/* Tell the CoalescedHTML to output everything. Window-qualified: before the
+	 * template's deferred script has run the name does not exist at all, and a bare
+	 * reference would throw instead of quietly doing nothing. */
+	[_webView evaluateJavaScript:@"if(window.coalescedHTML)coalescedHTML.cancel()"
 			   completionHandler:^(id result, NSError *error) {
 				   if (error) {
 					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
