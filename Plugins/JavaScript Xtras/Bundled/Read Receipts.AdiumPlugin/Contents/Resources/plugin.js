@@ -1,34 +1,35 @@
 // Read Receipts - a bundled Adium JavaScript plugin.
 //
-// A message you sent is marked with a read tick once the other side's client
-// reports having displayed it. Adium already sets a "tracked" class on such a
-// message (XEP-0333 chat markers, the same thing the read marker rides on);
-// this plugin is only the tick that class draws. It reads no message text,
-// touches no network, and never marks a message the app has not marked itself.
+// A message you sent gains a tick once the other side confirms it: a grey
+// double-check when the contact's client has received it (XEP-0184 delivery),
+// and a blue one when it has been read (XEP-0333 chat markers). Adium already
+// learns both from the protocol and marks such a message with a "delivered" or
+// "tracked" class; this plugin is only the tick those classes draw.
 //
-// Only your own outgoing messages are ever tracked - a read receipt is about a
-// message you sent - so the tick lands where it belongs and nowhere else.
-// "Delivered but not yet read" is not surfaced by the app, so there is a single
-// state to show, not the sent/delivered/read ladder of some messengers.
+// It reads no message text, touches no network, and never marks a message the
+// app has not. Only your own outgoing messages are ever confirmed, so a tick
+// lands where a receipt belongs and nowhere else. Read paints over delivered,
+// so a read message shows one blue pair, not two.
 
 (function () {
 	'use strict';
 
 	var STYLE_ID = 'x-adium-read-receipts';
 
-	// A small blue double-check trailing a read message, the shape modern
-	// messengers settled on. It rides at the end of the message, a size down
-	// and in the read-blue, out of the way of the text.
+	// A small double-check trailing a confirmed message, the shape modern
+	// messengers settled on: grey for delivered, the read-blue for read. The
+	// blue rule comes second so that on a message carrying both classes it wins.
 	var CSS =
-		'.tracked::after {' +
+		'.delivered::after, .tracked::after {' +
 		'  content: "\\00a0\\2713\\2713";' +   /* nbsp then two check marks */
-		'  color: #34b7f1;' +
 		'  font-size: 0.75em;' +
 		'  letter-spacing: -0.18em;' +          /* draw the two ticks as one overlapping pair */
 		'  vertical-align: baseline;' +
 		'  white-space: nowrap;' +
 		'  unicode-bidi: isolate;' +
-		'}';
+		'}' +
+		'.delivered::after { color: #8a949e; }' +   /* delivered - a quiet grey */
+		'.tracked::after   { color: #34b7f1; }';    /* read - the read-blue, wins over grey */
 
 	function install() {
 		if (document.getElementById(STYLE_ID)) return;

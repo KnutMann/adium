@@ -366,6 +366,14 @@ static NSString *const AIWKContextMenuScript =
 												 selector:@selector(stanzaWasTracked:)
 													 name:@"AIMessageStanzaTracked"
 												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messagesWereDelivered:)
+													 name:@"AIChatMessagesWereDelivered"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messagesWereRead:)
+													 name:@"AIChatMessagesWereRead"
+												   object:nil];
 
 		// Observe chat/participant changes so user icons can be refreshed on the page (#124)
 		[[NSNotificationCenter defaultCenter] addObserver:self
@@ -1796,6 +1804,37 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	[_contentQueue addObject:content];
 	[self _processContentQueue];
+}
+
+/*!
+ * @brief Mark the messages we sent with a delivery/read state
+ *
+ * Adds a class to every outgoing message body the receipt or marker has caught up to, which a
+ * display plugin (Read Receipts) turns into a tick: "delivered" a grey tick, "tracked" (read) a blue
+ * one that paints over it. This marks the messages the view can see rather than the one the receipt
+ * named by its id - keeping a stanza-id to DOM-element map is the foundation reactions and per-id
+ * receipts both wait on, and a "up to here" receipt is cumulative anyway, so marking the outgoing
+ * messages so far is right in the common case.
+ */
+- (void)_markOutgoingMessagesWithClass:(NSString *)className forChat:(AIChat *)chat
+{
+	if (chat != _chat || !_webView) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+					@" var m=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]:not(.%@)');"
+					@" for(var i=0;i<m.length;i++){ m[i].classList.add('%@'); }"
+					@"})()", className, className];
+	[_webView evaluateJavaScript:js completionHandler:nil];
+}
+
+- (void)messagesWereDelivered:(NSNotification *)notification
+{
+	[self _markOutgoingMessagesWithClass:@"delivered" forChat:[notification object]];
+}
+
+- (void)messagesWereRead:(NSNotification *)notification
+{
+	[self _markOutgoingMessagesWithClass:@"tracked" forChat:[notification object]];
 }
 
 - (void)stanzaWasTracked:(NSNotification *)notification

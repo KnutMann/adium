@@ -434,26 +434,24 @@ void jabber_add_feature(const char *xmlns, void *enabled_cb);
 /*!
  * @brief A contact's client confirmed it received one of our messages (XEP-0184)
  *
- * Nothing is shown yet, deliberately. A delivery receipt names one message by its id, and
- * saying "delivered" in the conversation the way the read marker says "read" would be wrong:
- * it would arrive once per message rather than once per conversation, and it says less than
- * the read marker already says whenever both are in play.
- *
- * Showing it properly means marking the one message it refers to, and for that Adium would
- * first need to remember which displayed message carries which id - the message view keeps no
- * such map today. That is the work this hook is waiting for; until then it logs, so the
- * exchange can be watched in the debug window and the ids seen to line up.
+ * Tells the message view, which marks the messages we sent as delivered; a display plugin draws the
+ * grey tick, the step below the blue "read" tick a chat marker brings. As with the read marker, the
+ * one message this names by its id is not singled out yet - that waits on the view keeping an
+ * id->element map, the same map a reaction needs - so the view marks the outgoing messages it can
+ * see, and a later "read" simply paints over "delivered".
  */
 static void adiumJabberReceiptReceived(PurpleConnection *gc, const char *from, const char *message_id)
 {
 	@autoreleasepool {
 		PurpleAccount	*purpleAccount = purple_connection_get_account(gc);
-		CBPurpleAccount	*cbaccount = accountLookup(purpleAccount);
+		PurpleBuddy		*buddy = purple_find_buddy(purpleAccount, from);
+		AIListContact	*contact = buddy ? contactLookupFromBuddy(buddy) : nil;
+		AIChat			*chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
 
-		AILog(@"XEP-0184: %@ confirmed delivery of message %s from %@",
-			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
-			  message_id ? message_id : "(no id)",
-			  cbaccount);
+		if (chat) {
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessagesWereDelivered"
+															   object:chat];
+		}
 	}
 }
 
@@ -461,23 +459,22 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 										  const char *marker_type)
 {
 	@autoreleasepool {
-		/* Only "displayed" is worth a visible status line; "received"/"active" would be noise */
+		/* Only "displayed" says anything worth showing; "received"/"active" would be noise */
 		if (!marker_type || strcmp(marker_type, "displayed") != 0) return;
 
 		PurpleAccount *purpleAccount = purple_connection_get_account(gc);
-		CBPurpleAccount *cbaccount = accountLookup(purpleAccount);
 		PurpleBuddy *buddy = purple_find_buddy(purpleAccount, from);
 		AIListContact *contact = buddy ? contactLookupFromBuddy(buddy) : nil;
 		AIChat *chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
 
-		if (chat && cbaccount) {
-			NSString *message = NSLocalizedStringFromTableInBundle(@"Read", nil,
-																   [NSBundle bundleForClass:[CBPurpleAccount class]],
-																   "Status line shown when the contact has read your messages");
-			[cbaccount receivedEventForChat:chat
-									message:[NSString stringWithFormat:@"\u2713\u2713 %@", message]
-									   date:[NSDate date]
-									  flags:[NSNumber numberWithInt:PURPLE_MESSAGE_NO_LINKIFY]];
+		if (chat) {
+			/* The contact has read our messages up to here. Tell the message view, which marks the
+			 * messages we sent as read; a display plugin (Read Receipts) draws the tick. Marking the
+			 * one message this refers to by its id waits on the view keeping an id->element map - the
+			 * same map a reaction needs to find its target - so until then we mark the outgoing
+			 * messages the view can see, which is what a cumulative "read up to here" marker means. */
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessagesWereRead"
+															   object:chat];
 		}
 	}
 }
