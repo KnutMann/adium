@@ -1964,6 +1964,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	if (!_webView || ![messageId length]) return;
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var id=%@, cls=%@;"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
 		@" var upto=-1;"
@@ -2005,11 +2006,15 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	}
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]:not([data-x-adium-id])');"
 		@" if(outs.length){ outs[0].setAttribute('data-x-adium-id', %@); }"
+		@" return outs.length;"
 		@"})()",
 		[self _jsStringLiteral:messageId]];
-	[_webView evaluateJavaScript:js completionHandler:nil];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		AILogWithSignature(@"id %@ -> unmarkierte ausgehende Wrapper: %@ (Fehler: %@)", messageId, result, error);
+	}];
 }
 
 /*!
@@ -2026,12 +2031,16 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	if (![messageId length]) return;
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var id=%@;"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
-		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add('x-adium-sent'); break; } }"
+		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add('x-adium-sent'); return 'markiert'; } }"
+		@" return 'id nicht im DOM ('+outs.length+' ausgehende)';"
 		@"})()",
 		[self _jsStringLiteral:messageId]];
-	[_webView evaluateJavaScript:js completionHandler:nil];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		AILogWithSignature(@"sent-Haken fuer %@: %@ (Fehler: %@)", messageId, result, error);
+	}];
 }
 
 - (void)messageWasDelivered:(NSNotification *)notification
@@ -2109,6 +2118,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSString *reactionsLiteral = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"[]";
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var id=%@, sender=%@, reactions=%@;"
 		@" var nodes=document.querySelectorAll('[data-x-adium-id]'), el=null;"
 		@" for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute('data-x-adium-id')===id){ el=nodes[i]; break; } }"
