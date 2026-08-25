@@ -619,16 +619,23 @@ static NSString *const AIWKContextMenuScript =
 		}
 	}
 
-	_webViewIsReady = YES;
-	[self webViewIsReady];
-
 	// Set up marked scroller after the scroll view exists
 	[self setupMarkedScroller];
 
-	// Content that arrived while the view was loading was parked in _storedContentObjects
-	[self _drainStoredContentObjects];
+	/* The gesture bridge announces readiness at DOMContentLoaded, which arrives before
+	 * this delegate does (a navigation finishes only after subresources). Processing
+	 * here unconditionally replayed everything the retention had re-stored during that
+	 * first pass, so a window restored with parked history drew its conversation
+	 * twice. This is now only the fallback for a page whose ready never arrives. */
+	if (!_webViewIsReady) {
+		_webViewIsReady = YES;
+		[self webViewIsReady];
 
-	[self _processContentQueue];
+		// Content that arrived while the view was loading was parked in _storedContentObjects
+		[self _drainStoredContentObjects];
+
+		[self _processContentQueue];
+	}
 }
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error
@@ -725,6 +732,9 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 		// Don't re-process gate if already ready
 		if (!_webViewIsReady) {
+			AILogWithSignature(@"READY gen=%@ chat=%@ queue=%lu stored=%lu",
+							   generation, _chat.name,
+							   (unsigned long)[_contentQueue count], (unsigned long)[_storedContentObjects count]);
 			_webViewIsReady = YES;
 			[self webViewIsReady];
 			[self _drainStoredContentObjects];
@@ -1241,6 +1251,9 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	 * a preference pass, a plugin rescan), and a page already doomed by a newer load
 	 * can still get its "ready" delivered; drawing on that stale signal is how a
 	 * conversation ends up appended against the wrong page, lost, or doubled. */
+	AILogWithSignature(@"PRIME chat=%@ reprocess=%d gen->%lu queue=%lu stored=%lu",
+					   _chat.name, reprocessContent, (unsigned long)(_pageGeneration + 1),
+					   (unsigned long)[_contentQueue count], (unsigned long)[_storedContentObjects count]);
 	_pageGeneration++;
 	NSString *page = [_messageStyle baseTemplateForChat:_chat];
 	NSString *generationMarker = [NSString stringWithFormat:
@@ -1325,6 +1338,16 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	}
 
 	NSInteger contentCount = [_contentQueue count];
+	if (contentCount) {
+		NSMutableArray *batch = [NSMutableArray array];
+		for (AIContentObject *c in _contentQueue) {
+			[batch addObject:[NSString stringWithFormat:@"%@%@:%.12@",
+							  [c isKindOfClass:[AIContentContext class]] ? @"CTX" : @"MSG",
+							  [c isOutgoing] ? @">" : @"<", [[c message] string]]];
+		}
+		AILogWithSignature(@"BATCH chat=%@ n=%ld [%@]", _chat.name, (long)contentCount,
+						   [batch componentsJoinedByString:@" | "]);
+	}
 	if (contentCount == 0) {
 		return;
 	}
@@ -2012,7 +2035,10 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"][data-x-adium-history=\"0\"]:not([data-x-adium-id])');"
 		@" if(outs.length){ outs[0].setAttribute('data-x-adium-id', %@); }"
-		@" return outs.length;"
+		@" var all=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
+		@" var inv=[]; for(var i=0;i<all.length;i++){ var e=all[i];"
+		@"  inv.push((e.getAttribute('data-x-adium-history')||'?')+'/'+(e.getAttribute('data-x-adium-id')?'ID':'-')+'/'+(e.textContent||'').trim().slice(0,20)); }"
+		@" return outs.length+' | '+inv.join(' || ');"
 		@"})()",
 		[self _jsStringLiteral:messageId]];
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
