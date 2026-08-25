@@ -512,6 +512,20 @@ static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
 			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
 			  target_id ? target_id : "(no id)",
 			  [list componentsJoinedByString:@" "]);
+
+		/* Tell the message view, which finds the message this names by its id and shows the set as
+		 * chips. XEP-0444 sends the whole set each time, so this replaces whatever was there. */
+		PurpleAccount	*purpleAccount = purple_connection_get_account(gc);
+		PurpleBuddy		*buddy = purple_find_buddy(purpleAccount, from);
+		AIListContact	*contact = buddy ? contactLookupFromBuddy(buddy) : nil;
+		AIChat			*chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
+
+		if (chat && target_id) {
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageReactionsChanged"
+															   object:chat
+															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:target_id],
+																		 @"Reactions": list }];
+		}
 	}
 }
 

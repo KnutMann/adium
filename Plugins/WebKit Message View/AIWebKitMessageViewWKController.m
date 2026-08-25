@@ -311,6 +311,10 @@ static NSString *const AIWKContextMenuScript =
 												 selector:@selector(stanzaWasTracked:)
 													 name:@"AIMessageStanzaTracked"
 												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageReactionsChanged:)
+													 name:@"AIChatMessageReactionsChanged"
+												   object:nil];
 
 		// Observe chat/participant changes so user icons can be refreshed on the page (#124)
 		[[NSNotificationCenter defaultCenter] addObserver:self
@@ -1631,6 +1635,52 @@ static NSString *const AIWKContextMenuScript =
 											  @" if(e&&!e.classList.contains('tracked')){e.classList.add('tracked');}"
 											  @"})()",
 											  escapedDomId];
+	[_webView evaluateJavaScript:js
+			   completionHandler:^(id result, NSError *error) {
+				   if (error) {
+					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
+				   }
+			   }];
+}
+
+/*!
+ * @brief A contact's reactions to one of the messages on screen changed (XEP-0444)
+ *
+ * Finds the message the reaction names by the id carried on its wrapper and replaces its chips with
+ * the set just received - XEP-0444 sends the whole set each time, so an empty one clears them. The
+ * message is matched by the attribute value rather than a selector built from an id we did not
+ * choose. Only messages that carry an id can be found; a message we sent does not carry one yet.
+ */
+- (void)messageReactionsChanged:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString	*messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	NSArray		*reactions = [[notification userInfo] objectForKey:@"Reactions"];
+	if (![messageId length]) return;
+
+	NSData		*json = [NSJSONSerialization dataWithJSONObject:(reactions ?: @[]) options:0 error:NULL];
+	NSString	*reactionsLiteral = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"[]";
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" var id=%@, reactions=%@;"
+		@" var nodes=document.querySelectorAll('[data-x-adium-id]'), el=null;"
+		@" for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute('data-x-adium-id')===id){ el=nodes[i]; break; } }"
+		@" if(!el) return;"
+		@" var old=el.querySelector('.x-adium-reactions'); if(old) old.parentNode.removeChild(old);"
+		@" if(reactions && reactions.length){"
+		@"  var box=document.createElement('span'); box.className='x-adium-reactions';"
+		@"  box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;';"
+		@"  for(var j=0;j<reactions.length;j++){"
+		@"   var chip=document.createElement('span'); chip.className='x-adium-reaction'; chip.textContent=reactions[j];"
+		@"   chip.style.cssText='display:inline-block;font-size:0.85em;line-height:1.4;padding:0 0.35em;margin-inline-end:0.2em;border:1px solid rgba(128,128,128,0.45);border-radius:0.8em;';"
+		@"   box.appendChild(chip);"
+		@"  }"
+		@"  el.appendChild(box);"
+		@" }"
+		@"})()",
+		[self _jsStringLiteral:messageId], reactionsLiteral];
+
 	[_webView evaluateJavaScript:js
 			   completionHandler:^(id result, NSError *error) {
 				   if (error) {
