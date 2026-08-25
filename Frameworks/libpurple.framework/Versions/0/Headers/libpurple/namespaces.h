@@ -119,4 +119,7 @@
 /* XEP-0333 Chat Markers */
 #define NS_CHAT_MARKERS "urn:xmpp:chat-markers:0"
 
+/* XEP-0444 Message Reactions */
+#define NS_REACTIONS "urn:xmpp:reactions:0"
+
 #endif /* PURPLE_JABBER_NAMESPACES_H_ */

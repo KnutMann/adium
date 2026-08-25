@@ -50,6 +50,8 @@ build_libpurple() {
 		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/chatmarker.h" \
 		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/receipt.c" \
 		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/receipt.h" \
+		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/reactions.c" \
+		      "$ROOTDIR/patches/pidgin-2.14.14/jabber/reactions.h" \
 		      "$ROOTDIR/source/libpurple/libpurple/protocols/jabber/"
 		for jabber_patch in "$ROOTDIR/patches/pidgin-2.14.14/jabber/"*.patch; do
 			patch -d "$ROOTDIR/source/libpurple" -p1 -N < "$jabber_patch"

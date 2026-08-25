@@ -1,15 +1,17 @@
 --- a/libpurple/protocols/jabber/Makefile.am
 +++ b/libpurple/protocols/jabber/Makefile.am
-@@ -23,6 +23,8 @@
+@@ -23,6 +23,10 @@
  			  caps.h \
  			  chat.c \
  			  chat.h \
 +			  chatmarker.c \
 +			  chatmarker.h \
++			  reactions.c \
++			  reactions.h \
  			  data.c \
  			  data.h \
  			  disco.c \
-@@ -76,6 +78,8 @@
+@@ -76,6 +80,8 @@
  			  ping.h \
  			  presence.c \
  			  presence.h \

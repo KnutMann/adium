@@ -429,6 +429,9 @@ void jabber_set_receipt_cb(jabber_receipt_cb cb);
 typedef void (*jabber_chat_marker_cb)(PurpleConnection *gc, const char *from, const char *message_id,
 									  const char *marker_type);
 void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
+typedef void (*jabber_reactions_cb)(PurpleConnection *gc, const char *from,
+									const char *target_id, GList *emojis);
+void jabber_set_reactions_cb(jabber_reactions_cb cb);
 void jabber_add_feature(const char *xmlns, void *enabled_cb);
 
 /*!
@@ -479,6 +482,34 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 									   date:[NSDate date]
 									  flags:[NSNumber numberWithInt:PURPLE_MESSAGE_NO_LINKIFY]];
 		}
+	}
+}
+
+/*!
+ * @brief A contact reacted to one of our messages, or changed their reaction (XEP-0444)
+ *
+ * Logged for now, deliberately. A reaction names the message it is about by that message's id, and
+ * showing it means finding the one already-displayed message it refers to - the id to DOM element
+ * map the message view does not keep yet. That is the work this hook is waiting for; until then it
+ * logs, so the set the contact sent can be watched in the debug window and the ids seen to line up.
+ * XEP-0444 sends the full set each time, so @a emojis is the contact's whole current reaction, and
+ * an empty list means they took it back.
+ */
+static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
+										const char *target_id, GList *emojis)
+{
+	@autoreleasepool {
+		NSMutableArray	*list = [NSMutableArray array];
+
+		for (GList *l = emojis; l; l = l->next) {
+			if (l->data)
+				[list addObject:[NSString stringWithUTF8String:(const char *)l->data]];
+		}
+
+		AILog(@"XEP-0444: %@ reacted to message %s with [%@]",
+			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
+			  target_id ? target_id : "(no id)",
+			  [list componentsJoinedByString:@" "]);
 	}
 }
 
@@ -561,7 +592,9 @@ void configureAdiumPurpleSignals(void)
 	 * receipts + markers support so peers request/send them */
 	jabber_set_receipt_cb(adiumJabberReceiptReceived);
 	jabber_set_chat_marker_cb(adiumJabberChatMarkerReceived);
+	jabber_set_reactions_cb(adiumJabberReactionReceived);
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
+	jabber_add_feature("urn:xmpp:reactions:0", NULL);
 
 }

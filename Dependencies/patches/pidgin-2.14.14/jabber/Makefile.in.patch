@@ -1,14 +1,15 @@
---- a/libpurple/protocols/jabber/Makefile.in	2026-07-11 14:49:20
-+++ b/libpurple/protocols/jabber/Makefile.in	2026-07-11 14:54:46
-@@ -142,6 +142,7 @@
+--- a/libpurple/protocols/jabber/Makefile.in
++++ b/libpurple/protocols/jabber/Makefile.in
+@@ -142,6 +142,8 @@
  	auth_scram.c auth_scram.h buddy.c buddy.h bosh.c bosh.h caps.c \
  	caps.h chat.c chat.h data.c data.h disco.c disco.h \
  	google/gmail.c google/gmail.h google/google.c google/google.h \
 +	chatmarker.c chatmarker.h \
++	reactions.c reactions.h \
  	google/google_presence.c google/google_presence.h \
  	google/google_roster.c google/google_roster.h \
  	google/google_session.c google/google_session.h \
-@@ -155,6 +156,7 @@
+@@ -155,6 +157,7 @@
  	namespaces.h oob.c oob.h parser.c parser.h pep.c pep.h ping.c \
  	ping.h presence.c presence.h roster.c roster.h si.c si.h \
  	stream_management.c stream_management.h useravatar.c \
@@ -16,15 +17,16 @@
  	useravatar.h usermood.c usermood.h usernick.c usernick.h \
  	usertune.c usertune.h xdata.c xdata.h auth_cyrus.c libxmpp.c
  @USE_CYRUS_SASL_TRUE@am__objects_1 = libjabber_la-auth_cyrus.lo
-@@ -163,6 +165,7 @@
+@@ -163,6 +166,8 @@
  	libjabber_la-auth_scram.lo libjabber_la-buddy.lo \
  	libjabber_la-bosh.lo libjabber_la-caps.lo libjabber_la-chat.lo \
  	libjabber_la-data.lo libjabber_la-disco.lo \
 +	libjabber_la-chatmarker.lo \
++	libjabber_la-reactions.lo \
  	libjabber_la-gmail.lo libjabber_la-google.lo \
  	libjabber_la-google_presence.lo libjabber_la-google_roster.lo \
  	libjabber_la-google_session.lo libjabber_la-jingleinfo.lo \
-@@ -175,6 +178,7 @@
+@@ -175,6 +180,7 @@
  	libjabber_la-oob.lo libjabber_la-parser.lo libjabber_la-pep.lo \
  	libjabber_la-ping.lo libjabber_la-presence.lo \
  	libjabber_la-roster.lo libjabber_la-si.lo \
@@ -32,15 +34,16 @@
  	libjabber_la-stream_management.lo libjabber_la-useravatar.lo \
  	libjabber_la-usermood.lo libjabber_la-usernick.lo \
  	libjabber_la-usertune.lo libjabber_la-xdata.lo \
-@@ -582,6 +586,7 @@
+@@ -582,6 +588,8 @@
  	auth_scram.h buddy.c buddy.h bosh.c bosh.h caps.c caps.h \
  	chat.c chat.h data.c data.h disco.c disco.h google/gmail.c \
  	google/gmail.h google/google.c google/google.h \
 +	chatmarker.c chatmarker.h \
++	reactions.c reactions.h \
  	google/google_presence.c google/google_presence.h \
  	google/google_roster.c google/google_roster.h \
  	google/google_session.c google/google_session.h \
-@@ -595,6 +600,7 @@
+@@ -595,6 +603,7 @@
  	namespaces.h oob.c oob.h parser.c parser.h pep.c pep.h ping.c \
  	ping.h presence.c presence.h roster.c roster.h si.c si.h \
  	stream_management.c stream_management.h useravatar.c \
@@ -48,8 +51,11 @@
  	useravatar.h usermood.c usermood.h usernick.c usernick.h \
  	usertune.c usertune.h xdata.c xdata.h $(am__append_1)
  AM_CFLAGS = $(st)
-@@ -869,2 +869,9 @@
- 
+@@ -866,6 +875,20 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='disco.c' object='libjabber_la-disco.lo' libtool=yes @AMDEPBACKSLASH@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -c -o libjabber_la-disco.lo `test -f 'disco.c' || echo '$(srcdir)/'`disco.c
++
 +libjabber_la-chatmarker.lo: chatmarker.c
 +@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -MT libjabber_la-chatmarker.lo -MD -MP -MF $(DEPDIR)/libjabber_la-chatmarker.Tpo -c -o libjabber_la-chatmarker.lo `test -f 'chatmarker.c' || echo '$(srcdir)/'`chatmarker.c
 +@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjabber_la-chatmarker.Tpo $(DEPDIR)/libjabber_la-chatmarker.Plo
@@ -57,8 +63,18 @@
 +@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 +@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -c -o libjabber_la-chatmarker.lo `test -f 'chatmarker.c' || echo '$(srcdir)/'`chatmarker.c
 +
++libjabber_la-reactions.lo: reactions.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -MT libjabber_la-reactions.lo -MD -MP -MF $(DEPDIR)/libjabber_la-reactions.Tpo -c -o libjabber_la-reactions.lo `test -f 'reactions.c' || echo '$(srcdir)/'`reactions.c
++@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjabber_la-reactions.Tpo $(DEPDIR)/libjabber_la-reactions.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reactions.c' object='libjabber_la-reactions.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -c -o libjabber_la-reactions.lo `test -f 'reactions.c' || echo '$(srcdir)/'`reactions.c
+ 
  libjabber_la-gmail.lo: google/gmail.c
-@@ -1051,2 +1058,9 @@
+ @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -MT libjabber_la-gmail.lo -MD -MP -MF $(DEPDIR)/libjabber_la-gmail.Tpo -c -o libjabber_la-gmail.lo `test -f 'google/gmail.c' || echo '$(srcdir)/'`google/gmail.c
+@@ -1049,6 +1072,13 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -c -o libjabber_la-si.lo `test -f 'si.c' || echo '$(srcdir)/'`si.c
  
 +libjabber_la-receipt.lo: receipt.c
 +@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -MT libjabber_la-receipt.lo -MD -MP -MF $(DEPDIR)/libjabber_la-receipt.Tpo -c -o libjabber_la-receipt.lo `test -f 'receipt.c' || echo '$(srcdir)/'`receipt.c
@@ -68,3 +84,5 @@
 +@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -c -o libjabber_la-receipt.lo `test -f 'receipt.c' || echo '$(srcdir)/'`receipt.c
 +
  libjabber_la-stream_management.lo: stream_management.c
+ @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjabber_la_CFLAGS) $(CFLAGS) -MT libjabber_la-stream_management.lo -MD -MP -MF $(DEPDIR)/libjabber_la-stream_management.Tpo -c -o libjabber_la-stream_management.lo `test -f 'stream_management.c' || echo '$(srcdir)/'`stream_management.c
+ @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjabber_la-stream_management.Tpo $(DEPDIR)/libjabber_la-stream_management.Plo
