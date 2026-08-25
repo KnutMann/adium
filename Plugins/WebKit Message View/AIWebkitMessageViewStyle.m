@@ -1124,18 +1124,28 @@
 		}
 
 		//Message (must do last)
-		/* Wrap the message body in a marker span so display plugins have one
-		 * element to find whatever markup a style splices %message% into, and so
-		 * their transforms can never reach the sender name or timestamp around
-		 * it. Topics reuse htmlEncodedMessage below through their own wrapper and
-		 * are left unmarked. */
+		/* Wrap the message body in a marker span, so there is one element to find whatever markup a
+		 * style splices %message% into: a display plugin transforms only message bodies through it,
+		 * and a reaction or read marker that names a message by its id finds it by the id carried
+		 * here. Topics reuse htmlEncodedMessage through their own wrapper and are left unmarked. */
 		NSString *messageReplacement = htmlEncodedMessage;
 		if (![content isKindOfClass:[AIContentTopic class]]) {
-			BOOL isHistory = [content isKindOfClass:[AIContentContext class]];
+			BOOL		isHistory = [content isKindOfClass:[AIContentContext class]];
+			NSString	*msgId = [content isKindOfClass:[AIContentMessage class]] ? [(AIContentMessage *)content messageId] : nil;
+			NSString	*idAttr = @"";
+
+			if ([msgId length]) {
+				NSString *escapedId = [[[msgId stringByReplacingOccurrencesOfString:@"&" withString:@"&amp;"]
+										stringByReplacingOccurrencesOfString:@"\"" withString:@"&quot;"]
+									   stringByReplacingOccurrencesOfString:@"<" withString:@"&lt;"];
+				idAttr = [NSString stringWithFormat:@" data-x-adium-id=\"%@\"", escapedId];
+			}
+
 			messageReplacement = [NSString stringWithFormat:
-								  @"<span data-x-adium-msg data-x-adium-dir=\"%@\" data-x-adium-history=\"%@\">%@</span>",
+								  @"<span data-x-adium-msg data-x-adium-dir=\"%@\" data-x-adium-history=\"%@\"%@>%@</span>",
 								  ([content isOutgoing] ? @"outgoing" : @"incoming"),
 								  (isHistory ? @"1" : @"0"),
+								  idAttr,
 								  htmlEncodedMessage];
 		}
 

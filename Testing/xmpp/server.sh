@@ -7,6 +7,7 @@
 #   ./server.sh logs       follow the server log
 #   ./server.sh reset      stop and DELETE the data volume (accounts, archive, certificate)
 #   ./server.sh selftest   run the automated feature checks (see peer/selftest.py)
+#   ./server.sh muc-reactions  group-chat reaction checks (see peer/muc_reactions.py)
 #
 # Test accounts (password matches user name with "-pw" appended):
 #   adium@localhost   the account to configure in Adium
@@ -84,12 +85,18 @@ selftest() {
 	exec ./peer/run.sh selftest
 }
 
+muc_reactions() {
+	start
+	exec ./peer/run.sh muc-reactions
+}
+
 case "$1" in
-	start)    start ;;
-	stop)     stop ;;
-	status)   status ;;
-	logs)     logs ;;
-	reset)    reset ;;
-	selftest) selftest ;;
-	*)        sed -n '2,17p' "$0"; exit 1 ;;
+	start)         start ;;
+	stop)          stop ;;
+	status)        status ;;
+	logs)          logs ;;
+	reset)         reset ;;
+	selftest)      selftest ;;
+	muc-reactions) muc_reactions ;;
+	*)             sed -n '2,17p' "$0"; exit 1 ;;
 esac

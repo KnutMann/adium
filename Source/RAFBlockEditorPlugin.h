@@ -14,16 +14,12 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import <Adium/AIMenuControllerProtocol.h>
+#import <Adium/AIPlugin.h>
 
 @class AIPrivacyPreferences;
 
 @interface RAFBlockEditorPlugin : AIPlugin {
-	NSMenuItem				*blockEditorMenuItem;
 	AIPrivacyPreferences	*privacyPreferences;
 }
-
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem;
-- (IBAction)showEditor:(id)sender;
 
 @end

@@ -15,6 +15,7 @@
  */
 
 #import "adiumPurpleConversation.h"
+#import "adiumPurpleSignals.h"
 #import <AIUtilities/AIObjectAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <Adium/AIChat.h>
@@ -97,18 +98,20 @@ static void adiumPurpleConvWriteChat(PurpleConversation *conv, const char *who,
 			NSAttributedString	*attributedMessage = [AIHTMLDecoder decodeHTML:messageString];
 			NSNumber			*purpleMessageFlags = [NSNumber numberWithInteger:flags];
 			NSString			*normalizedUID = get_real_name_for_account_conv_buddy(purpleAccount, conv, (char *)who);
-			
-			if (normalizedUID.length) {
-				messageDict = [NSDictionary dictionaryWithObjectsAndKeys:attributedMessage, @"AttributedMessage",
-							   normalizedUID, @"Source",
-							   purpleMessageFlags, @"PurpleMessageFlags",
-							   date, @"Date",nil];
-				
-			} else {
-				messageDict = [NSDictionary dictionaryWithObjectsAndKeys:attributedMessage, @"AttributedMessage",
-							   purpleMessageFlags, @"PurpleMessageFlags",
-							   date, @"Date",nil];
-			}
+
+			NSMutableDictionary *mutableChatDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+												   attributedMessage, @"AttributedMessage",
+												   purpleMessageFlags, @"PurpleMessageFlags",
+												   date, @"Date", nil];
+			if (normalizedUID.length) [mutableChatDict setObject:normalizedUID forKey:@"Source"];
+
+			/* The room stamped this message with a stanza-id, stashed in the callback that ran just
+			 * before this one; take it now so it rides on the content object and a reaction naming
+			 * the message by that id can find it. */
+			NSString *messageId = adiumTakePendingIncomingGroupchatMessageId(purpleAccount);
+			if (messageId) [mutableChatDict setObject:messageId forKey:@"MessageId"];
+
+			messageDict = mutableChatDict;
 
 			[accountLookup(purple_conversation_get_account(conv)) receivedMultiChatMessage:messageDict inChat:groupChatLookupFromConv(conv)];
 		}
@@ -156,10 +159,17 @@ static void adiumPurpleConvWriteIm(PurpleConversation *conv, const char *who,
 			//Process any purple imgstore references into real HTML tags pointing to real images
 			messageString = processPurpleImages(messageString, adiumAccount);
 			
-			messageDict = [NSDictionary dictionaryWithObjectsAndKeys:messageString,@"Message",
+			NSMutableDictionary *mutableDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:messageString,@"Message",
 						   [NSNumber numberWithInteger:flags],@"PurpleMessageFlags",
 						   [NSDate dateWithTimeIntervalSince1970:mtime],@"Date",nil];
-			
+
+			/* The id the protocol gave this message was stashed a moment ago, in the callback that
+			 * ran just before this one; take it now so it rides on the content object and a later
+			 * reaction or read marker can find the message it names. */
+			NSString *messageId = adiumTakePendingIncomingMessageId(purple_conversation_get_account(conv), who);
+			if (messageId) [mutableDict setObject:messageId forKey:@"MessageId"];
+			messageDict = mutableDict;
+
 			[adiumAccount receivedIMChatMessage:messageDict
 										 inChat:chat];
 		}

@@ -21,6 +21,7 @@
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIListContact.h>
+#import <Adium/AIContentMessage.h>
 #import <Adium/ESFileTransfer.h>
 
 static void buddy_status_changed_cb(PurpleBuddy *buddy, PurpleStatus *oldstatus, PurpleStatus *status, PurpleBuddyEvent event);
@@ -429,16 +430,24 @@ void jabber_set_receipt_cb(jabber_receipt_cb cb);
 typedef void (*jabber_chat_marker_cb)(PurpleConnection *gc, const char *from, const char *message_id,
 									  const char *marker_type);
 void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
+typedef void (*jabber_reactions_cb)(PurpleConnection *gc, const char *from,
+									const char *target_id, GList *emojis);
+void jabber_set_reactions_cb(jabber_reactions_cb cb);
+void jabber_reactions_send(void *js, const char *to, const char *target_id, GList *emojis, gboolean groupchat);
+typedef void (*jabber_message_id_cb)(PurpleConnection *gc, const char *from, const char *id);
+void jabber_set_message_id_cb(jabber_message_id_cb cb);
+typedef void (*jabber_outgoing_message_id_cb)(PurpleConnection *gc, const char *to, const char *id);
+void jabber_set_outgoing_message_id_cb(jabber_outgoing_message_id_cb cb);
+typedef void (*jabber_groupchat_message_id_cb)(PurpleConnection *gc, const char *id);
+void jabber_set_groupchat_message_id_cb(jabber_groupchat_message_id_cb cb);
 void jabber_add_feature(const char *xmlns, void *enabled_cb);
 
 /*!
  * @brief A contact's client confirmed it received one of our messages (XEP-0184)
  *
- * Tells the message view, which marks the messages we sent as delivered; a display plugin draws the
- * grey tick, the step below the blue "read" tick a chat marker brings. As with the read marker, the
- * one message this names by its id is not singled out yet - that waits on the view keeping an
- * id->element map, the same map a reaction needs - so the view marks the outgoing messages it can
- * see, and a later "read" simply paints over "delivered".
+ * Tells the message view which of our messages arrived; the view marks that one and the ones
+ * before it as delivered (a receipt is cumulative in effect), and the Read Receipts display
+ * plugin draws the grey tick, the step below the blue "read" tick a chat marker brings.
  */
 static void adiumJabberReceiptReceived(PurpleConnection *gc, const char *from, const char *message_id)
 {
@@ -448,9 +457,10 @@ static void adiumJabberReceiptReceived(PurpleConnection *gc, const char *from, c
 		AIListContact	*contact = buddy ? contactLookupFromBuddy(buddy) : nil;
 		AIChat			*chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
 
-		if (chat) {
-			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessagesWereDelivered"
-															   object:chat];
+		if (chat && message_id) {
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasDelivered"
+															   object:chat
+															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:message_id] }];
 		}
 	}
 }
@@ -459,7 +469,7 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 										  const char *marker_type)
 {
 	@autoreleasepool {
-		/* Only "displayed" says anything worth showing; "received"/"active" would be noise */
+		/* Only "displayed" says the message was read; "received"/"active" are not that */
 		if (!marker_type || strcmp(marker_type, "displayed") != 0) return;
 
 		PurpleAccount *purpleAccount = purple_connection_get_account(gc);
@@ -467,16 +477,180 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 		AIListContact *contact = buddy ? contactLookupFromBuddy(buddy) : nil;
 		AIChat *chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
 
-		if (chat) {
-			/* The contact has read our messages up to here. Tell the message view, which marks the
-			 * messages we sent as read; a display plugin (Read Receipts) draws the tick. Marking the
-			 * one message this refers to by its id waits on the view keeping an id->element map - the
-			 * same map a reaction needs to find its target - so until then we mark the outgoing
-			 * messages the view can see, which is what a cumulative "read up to here" marker means. */
-			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessagesWereRead"
-															   object:chat];
+		if (chat && message_id) {
+			/* Tell the message view which of our messages was read; it marks that one and the ones
+			 * before it, a chat marker being read-up-to-here, and the Read Receipts display plugin
+			 * draws the blue tick over the grey delivered one. */
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasRead"
+															   object:chat
+															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:message_id] }];
 		}
 	}
+}
+
+/*!
+ * @brief A contact reacted to one of our messages, or changed their reaction (XEP-0444)
+ *
+ * A reaction names the message it is about by that message's id; the message view finds the one
+ * already-displayed message carrying that id on its wrapper and shows the set as chips. XEP-0444
+ * sends the full set each time, so @a emojis is the sender's whole current reaction, and an empty
+ * list means they took it back.
+ */
+static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
+										const char *target_id, GList *emojis)
+{
+	@autoreleasepool {
+		NSMutableArray	*list = [NSMutableArray array];
+
+		for (GList *l = emojis; l; l = l->next) {
+			if (l->data)
+				[list addObject:[NSString stringWithUTF8String:(const char *)l->data]];
+		}
+
+		AILog(@"XEP-0444: %@ reacted to message %s with [%@]",
+			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
+			  target_id ? target_id : "(no id)",
+			  [list componentsJoinedByString:@" "]);
+
+		/* Tell the message view, which finds the message this names by its id and shows the set as
+		 * chips. XEP-0444 sends the whole set each time, so this replaces whatever was there for the
+		 * sender: "them" in a one-to-one chat, and the occupant's nick in a room so several people's
+		 * reactions can sit on the same message at once. */
+		PurpleAccount	*purpleAccount = purple_connection_get_account(gc);
+		AIChat			*chat = nil;
+		NSString		*sender = @"them";
+
+		PurpleBuddy		*buddy = purple_find_buddy(purpleAccount, from);
+		if (buddy) {
+			AIListContact *contact = contactLookupFromBuddy(buddy);
+			chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
+		} else if (from) {
+			/* A room occupant reacted: from is room@service/nick. Find the room by its bare jid and
+			 * mark the bucket "me" when the room is echoing our own reaction back to us. */
+			NSString *fromStr = [NSString stringWithUTF8String:from];
+			NSRange slash = [fromStr rangeOfString:@"/"];
+			NSString *roomBare = (slash.location != NSNotFound) ? [fromStr substringToIndex:slash.location] : fromStr;
+			NSString *nick = (slash.location != NSNotFound) ? [fromStr substringFromIndex:slash.location + 1] : nil;
+
+			PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT,
+																			 [roomBare UTF8String], purpleAccount);
+			if (conv) {
+				chat = groupChatLookupFromConv(conv);
+				const char *myNick = purple_conv_chat_get_nick(PURPLE_CONV_CHAT(conv));
+				if ([nick length] && myNick && strcmp([nick UTF8String], myNick) == 0)
+					sender = @"me";
+				else if ([nick length])
+					sender = nick;
+			}
+		}
+
+		if (chat && target_id) {
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageReactionsChanged"
+															   object:chat
+															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:target_id],
+																		 @"Reactions": list,
+																		 @"Sender": sender }];
+		}
+	}
+}
+
+/* The id of an incoming message, kept just long enough for the conversation callback that runs
+ * right after it - synchronously, within the same libpurple message - to read it off and hang it
+ * on the content object. Keyed by account and sender, and taken out as it is read, so none lingers. */
+static NSMutableDictionary *pendingIncomingMessageIds = nil;
+
+static NSString *pendingMessageIdKey(PurpleAccount *account, const char *from)
+{
+	return [NSString stringWithFormat:@"%p\x1f%s", (void *)account, from ? from : ""];
+}
+
+NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *from)
+{
+	if (!account || !from || !pendingIncomingMessageIds) return nil;
+
+	NSString *key = pendingMessageIdKey(account, from);
+	NSString *msgid = [pendingIncomingMessageIds objectForKey:key];
+	if (msgid) [pendingIncomingMessageIds removeObjectForKey:key];
+	return msgid;
+}
+
+static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from, const char *msgid)
+{
+	@autoreleasepool {
+		PurpleAccount *account = purple_connection_get_account(gc);
+		if (!account || !from || !msgid) return;
+
+		if (!pendingIncomingMessageIds) pendingIncomingMessageIds = [[NSMutableDictionary alloc] init];
+		[pendingIncomingMessageIds setObject:[NSString stringWithUTF8String:msgid]
+									  forKey:pendingMessageIdKey(account, from)];
+	}
+}
+
+/* The same brief hand-off for a room message, keyed only by account: a room delivers one message at
+ * a time, and the room-write callback reads this off synchronously in the same libpurple message, so
+ * one slot per account is enough. The stanza-id (XEP-0359) here is what a reaction in the room names. */
+static NSMutableDictionary *pendingIncomingGroupchatIds = nil;
+
+NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account)
+{
+	if (!account || !pendingIncomingGroupchatIds) return nil;
+
+	NSString *key = [NSString stringWithFormat:@"%p", (void *)account];
+	NSString *msgid = [pendingIncomingGroupchatIds objectForKey:key];
+	if (msgid) [pendingIncomingGroupchatIds removeObjectForKey:key];
+	return msgid;
+}
+
+static void adiumJabberIncomingGroupchatMessageId(PurpleConnection *gc, const char *msgid)
+{
+	@autoreleasepool {
+		PurpleAccount *account = purple_connection_get_account(gc);
+		if (!account || !msgid) return;
+
+		if (!pendingIncomingGroupchatIds) pendingIncomingGroupchatIds = [[NSMutableDictionary alloc] init];
+		[pendingIncomingGroupchatIds setObject:[NSString stringWithUTF8String:msgid]
+										forKey:[NSString stringWithFormat:@"%p", (void *)account]];
+	}
+}
+
+/* A message we send is handed to the account synchronously, and the id is minted deeper down in the
+ * same call; the account names the message it is about to send here so the callback below, firing
+ * during that send, can hang the id on it before it is shown. */
+static AIContentMessage *pendingOutgoingContentMessage = nil;
+
+void adiumSetPendingOutgoingContentMessage(AIContentMessage *message)
+{
+	pendingOutgoingContentMessage = message;
+}
+
+static void adiumJabberOutgoingMessageId(PurpleConnection *gc, const char *to, const char *msgid)
+{
+	@autoreleasepool {
+		if (pendingOutgoingContentMessage && msgid && ![pendingOutgoingContentMessage messageId])
+			pendingOutgoingContentMessage.messageId = [NSString stringWithUTF8String:msgid];
+	}
+}
+
+void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis, BOOL groupChat)
+{
+	if (!account || !to || !target_id) return;
+
+	/* Only the jabber plugin speaks XEP-0444; on anything else the connection's protocol data is
+	 * not a JabberStream and must not be handed to it. */
+	const char *protocol = purple_account_get_protocol_id(account);
+	if (!protocol || strcmp(protocol, "prpl-jabber") != 0) return;
+
+	PurpleConnection	*gc = purple_account_get_connection(account);
+	void				*js = gc ? purple_connection_get_protocol_data(gc) : NULL;
+	if (!js) return;
+
+	GList *list = NULL;
+	for (NSString *emoji in emojis) {
+		if ([emoji length]) list = g_list_append(list, g_strdup([emoji UTF8String]));
+	}
+
+	jabber_reactions_send(js, to, target_id, list, groupChat ? TRUE : FALSE);
+	g_list_free_full(list, g_free);
 }
 
 void configureAdiumPurpleSignals(void)
@@ -558,7 +732,12 @@ void configureAdiumPurpleSignals(void)
 	 * receipts + markers support so peers request/send them */
 	jabber_set_receipt_cb(adiumJabberReceiptReceived);
 	jabber_set_chat_marker_cb(adiumJabberChatMarkerReceived);
+	jabber_set_reactions_cb(adiumJabberReactionReceived);
+	jabber_set_message_id_cb(adiumJabberIncomingMessageId);
+	jabber_set_outgoing_message_id_cb(adiumJabberOutgoingMessageId);
+	jabber_set_groupchat_message_id_cb(adiumJabberIncomingGroupchatMessageId);
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
+	jabber_add_feature("urn:xmpp:reactions:0", NULL);
 
 }

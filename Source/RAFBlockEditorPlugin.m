@@ -16,46 +16,20 @@
 
 #import "RAFBlockEditorPlugin.h"
 #import "AIPrivacyPreferences.h"
-#import <Adium/AIPreferenceControllerProtocol.h>
-#import <AIUtilities/AIMenuAdditions.h>
-#import <AIUtilities/AIStringAdditions.h>
-#import <Adium/AIAccount.h>
-#import <Adium/AIAccountControllerProtocol.h>
 
 @implementation RAFBlockEditorPlugin
 
 - (void)installPlugin
 {
-	//Install the Block menu items
-	blockEditorMenuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Privacy Settings", nil) stringByAppendingEllipsis]
-													  target:self
-													  action:@selector(showEditor:)
-											   keyEquivalent:@"p"];
-	[blockEditorMenuItem setKeyEquivalentModifierMask:(NSEventModifierFlagOption | NSEventModifierFlagCommand)];
-	[adium.menuController addMenuItem:blockEditorMenuItem toLocation:LOC_Adium_Preferences];
-
-	//The privacy pane; registers itself with the preference controller as it initializes
+	/* The privacy settings live in the preferences now, reached like every other
+	 * pane; the standalone "Privacy Settings" menu item that opened them is gone.
+	 * The pane registers itself with the preference controller as it initializes. */
 	privacyPreferences = (AIPrivacyPreferences *)[[AIPrivacyPreferences preferencePane] retain];
 }
 
 - (void)uninstallPlugin
 {
-	[blockEditorMenuItem release];
 	[privacyPreferences release];
 }
 
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
-{
-	for (AIAccount *account in adium.accountController.accounts) {
-		if(account.online && [account conformsToProtocol:@protocol(AIAccount_Privacy)])
-			return YES;
-	}
-
-	return NO;
-}
-
-- (IBAction)showEditor:(id)sender
-{
-	[adium.preferenceController openPreferencesToCategoryWithIdentifier:@"Privacy"];
-}
 @end

@@ -1,9 +1,14 @@
 --- a/libpurple/protocols/jabber/message.h
 +++ b/libpurple/protocols/jabber/message.h
-@@ -62,6 +62,7 @@ typedef struct _JabberMessage {
+@@ -62,6 +62,11 @@
+ 	} chat_state;
  	GList *etc;
  	GList *eventitems;
 +	gboolean add_receipt_request;
++	gboolean add_chat_marker_request;
++	char *stanza_id;
++	gboolean has_reactions;
++	gboolean has_reactions_fallback;
  } JabberMessage;
-
+ 
  void jabber_message_free(JabberMessage *jm);

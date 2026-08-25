@@ -17,3 +17,21 @@
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
 void configureAdiumPurpleSignals(void);
+
+/* Read and clear the id stashed for the message just delivered from this sender, so the message
+ * that follows it can be tagged with the protocol's id. nil when there is none. */
+NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *from);
+
+/* The same for the message just delivered into a room: read and clear its stanza-id (XEP-0359), the
+ * id a reaction in the room names. Keyed by account only, since a room delivers one at a time. */
+NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account);
+
+@class AIContentMessage;
+
+/* Name the message an account is about to send, so the id minted during the send can be hung on it.
+ * Set it before the send and clear it (nil) after. */
+void adiumSetPendingOutgoingContentMessage(AIContentMessage *message);
+
+/* Send our reaction (a set of emoji; empty clears it) to a message by its id, on a jabber account.
+ * A no-op on any other protocol. In a room, groupChat is YES so it goes as type='groupchat'. */
+void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis, BOOL groupChat);

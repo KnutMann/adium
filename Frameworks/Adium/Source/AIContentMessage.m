@@ -119,4 +119,9 @@
  */
 @synthesize encodedMessageAccountData;
 
+/*!
+ * @brief The protocol's id for this message (e.g. an XMPP stanza id), or nil
+ */
+@synthesize messageId;
+
 @end

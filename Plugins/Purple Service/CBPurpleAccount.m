@@ -26,6 +26,7 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIContentMessage.h>
+#import "adiumPurpleSignals.h"
 #import <Adium/AIContentTopic.h>
 #import <Adium/AIContentEvent.h>
 #import <Adium/AIContentContext.h>
@@ -83,7 +84,7 @@
 - (NSString *)_mapIncomingGroupName:(NSString *)name;
 - (NSString *)_mapOutgoingGroupName:(NSString *)name;
 - (void)setTypingFlagOfChat:(AIChat *)inChat to:(NSNumber *)typingState;
-- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date;
+- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date messageId:(NSString *)messageId;
 - (NSNumber *)shouldCheckMail;
 - (void)configurePurpleAccountNotifyingTarget:(id)target selector:(SEL)selector;
 - (void)configureProtocolOptions;
@@ -1264,10 +1265,11 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	[self setTypingFlagOfChat:chat to:nil];
 	
 	[self _receivedMessage:attributedMessage
-					inChat:chat 
+					inChat:chat
 		   fromListContact:listContact
 					 flags:flags
-					  date:[messageDict objectForKey:@"Date"]];
+					  date:[messageDict objectForKey:@"Date"]
+				 messageId:[messageDict objectForKey:@"MessageId"]];
 }
 
 /*!
@@ -1290,7 +1292,8 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 					inChat:chat
 		   fromListContact:[self contactWithUID:self.UID]
 					 flags:flags
-					  date:[messageDict objectForKey:@"Date"]];
+					  date:[messageDict objectForKey:@"Date"]
+				 messageId:[messageDict objectForKey:@"MessageId"]];
 }
 
 - (void)receivedEventForChat:(AIChat *)chat
@@ -1323,17 +1326,18 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	NSString			*source = [messageDict objectForKey:@"Source"];
 	
 	[self _receivedMessage:attributedMessage
-					inChat:chat 
+					inChat:chat
 		   fromListContact:[self contactWithUID:source]
 					 flags:flags
-					  date:[messageDict objectForKey:@"Date"]];
+					  date:[messageDict objectForKey:@"Date"]
+				 messageId:[messageDict objectForKey:@"MessageId"]];
   }
 }
 
-- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date
+- (void)_receivedMessage:(NSAttributedString *)attributedMessage inChat:(AIChat *)chat fromListContact:(AIListContact *)sourceContact flags:(PurpleMessageFlags)flags date:(NSDate *)date messageId:(NSString *)messageId
 {
-	AILogWithSignature(@"Message: %@ inChat: %@ fromListContact: %@ flags: %d date: %@", attributedMessage, chat, sourceContact, flags, date);
-	
+	AILogWithSignature(@"Message: %@ inChat: %@ fromListContact: %@ flags: %d date: %@ id: %@", attributedMessage, chat, sourceContact, flags, date, messageId);
+
 	if ((flags & PURPLE_MESSAGE_DELAYED) == PURPLE_MESSAGE_DELAYED) {
 		// Display delayed messages as context.
 
@@ -1343,11 +1347,12 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 																	 date:date
 																  message:attributedMessage
 																autoreply:(flags & PURPLE_MESSAGE_AUTO_RESP) != 0];
-		
+
+		messageObject.messageId = messageId;
 		messageObject.trackContent = NO;
-		
+
 		[adium.contentController receiveContentObject:messageObject];
-		
+
 	} else {
 		AIContentMessage *messageObject = [AIContentMessage messageInChat:chat
 															   withSource:[sourceContact.UID isEqualToString:self.UID]? (AIListObject *)self : (AIListObject *)sourceContact
@@ -1355,7 +1360,8 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 																	 date:date
 																  message:attributedMessage
 																autoreply:(flags & PURPLE_MESSAGE_AUTO_RESP) != 0];
-		[adium.contentController receiveContentObject:messageObject];	
+		messageObject.messageId = messageId;
+		[adium.contentController receiveContentObject:messageObject];
 	}
 }
 
@@ -1384,12 +1390,32 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 		inContentMessage.displayContent = NO;
 	}
 
+	/* Name the message we are about to send so the jabber plugin's id, minted synchronously inside
+	 * this send, is hung on it before it is shown; cleared straight after so nothing else picks it up. */
+	adiumSetPendingOutgoingContentMessage(inContentMessage);
+
 	[purpleAdapter sendEncodedMessage:[inContentMessage encodedMessage]
 						 fromAccount:self
 							  inChat:inContentMessage.chat
 						   withFlags:flags];
 
+	adiumSetPendingOutgoingContentMessage(nil);
+
 	return YES;
+}
+
+/*!
+ * @brief Send our reaction to a message (XEP-0444), an empty set to take it back
+ */
+- (void)sendReaction:(NSArray *)emojis toMessageId:(NSString *)messageId inChat:(AIChat *)chat
+{
+	/* In a room the reaction goes to the room itself as type='groupchat'; one-to-one it goes to the
+	 * contact. The target id is a room stanza-id (XEP-0359) in a room, the message's own id otherwise. */
+	BOOL		groupChat = chat.isGroupChat;
+	NSString	*to = groupChat ? chat.name : chat.listObject.UID;
+
+	if ([messageId length] && [to length])
+		adiumJabberSendReaction([self purpleAccount], [to UTF8String], [messageId UTF8String], emojis, groupChat);
 }
 
 - (BOOL)supportsSendingNotifications

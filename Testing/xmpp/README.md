@@ -20,9 +20,19 @@ not required, so both the TLS and the plaintext path can be exercised.
     ./server.sh logs       follow the server log
     ./server.sh reset      stop and delete all data, certificate included
     ./server.sh selftest   run the automated feature checks
+    ./server.sh muc-reactions  group-chat reaction checks (XEP-0444 with XEP-0359)
 
 Docker comes from colima on this machine; `colima start` brings the
 daemon up if `server.sh` complains that it cannot connect.
+
+`muc-reactions` verifies, without Adium involved, the wire behaviour Adium's
+group-chat reactions rely on: two sessions join a room, one sends a message and
+the other reacts to it, and the check confirms the room stamps a stanza-id, that
+a reaction named against that id is reflected to the other occupant carrying the
+same id and emoji, and that an empty set takes it back. It also pins down the
+part that is easy to get wrong: a room relays only messages with a body, so the
+reaction must ship a fallback body (hidden by an XEP-0428 marker) or it never
+arrives.
 
 ## Accounts
 
@@ -55,6 +65,9 @@ accepts both.
     peer/run.sh bookmark add raum --autojoin --name "Mein Raum"
     peer/run.sh bookmark remove raum
     peer/run.sh bookmark list
+
+    peer/run.sh selftest         automated feature checks against the server
+    peer/run.sh muc-reactions    group-chat reaction checks (XEP-0444/0359)
 
 The bookmark commands act on the adium account's XEP-0402 storage the
 way another device would: a running Adium should see additions and

@@ -46,4 +46,8 @@ gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who
 
 void jabber_chat_marker_send(JabberStream *js, const char *to, const char *message_id, const char *marker_type);
 
+/* Add a <markable/> to an outgoing message so the recipient's client may return
+ * a "displayed" marker for it. */
+void jabber_chat_marker_add_markable(xmlnode *message);
+
 #endif /* PURPLE_JABBER_CHATMARKER_H_ */

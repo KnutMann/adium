@@ -1,57 +1,174 @@
 --- a/libpurple/protocols/jabber/message.c
 +++ b/libpurple/protocols/jabber/message.c
-@@ -36,6 +36,8 @@
+@@ -36,9 +36,44 @@
  #include "pep.h"
  #include "smiley.h"
  #include "iq.h"
 +#include "receipt.h"
 +#include "chatmarker.h"
++#include "reactions.h"
  
  #include <string.h>
  
-@@ -719,6 +721,26 @@
++/* Adium: hand a delivered message's id up to the UI just before the body, so a
++ * reaction or a read marker that later names the message by that id can be tied
++ * back to the one that was shown. The id is dropped by serv_got_im otherwise. */
++typedef void (*jabber_message_id_cb)(PurpleConnection *gc, const char *from, const char *id);
++static jabber_message_id_cb message_id_cb = NULL;
++
++void jabber_set_message_id_cb(jabber_message_id_cb cb)
++{
++	message_id_cb = cb;
++}
++
++/* Adium: the same for a message we send. The id is minted here and never returned to the UI, so a
++ * reaction the other side sends back to our message would have nothing to match; hand it up. */
++typedef void (*jabber_outgoing_message_id_cb)(PurpleConnection *gc, const char *to, const char *id);
++static jabber_outgoing_message_id_cb outgoing_message_id_cb = NULL;
++
++void jabber_set_outgoing_message_id_cb(jabber_outgoing_message_id_cb cb)
++{
++	outgoing_message_id_cb = cb;
++}
++
++/* Adium: a room message carries no id of its own that anyone else can name; the room stamps its
++ * own stanza-id (XEP-0359) and that is what a reaction in the room points at. Hand that up before
++ * the message is shown, so the reaction can find it the same way the one-to-one id does. */
++typedef void (*jabber_groupchat_message_id_cb)(PurpleConnection *gc, const char *id);
++static jabber_groupchat_message_id_cb groupchat_message_id_cb = NULL;
++
++void jabber_set_groupchat_message_id_cb(jabber_groupchat_message_id_cb cb)
++{
++	groupchat_message_id_cb = cb;
++}
++
+ static GString *jm_body_with_oob(JabberMessage *jm) {
+ 	GList *etc;
+ 	GString *body = g_string_new("");
+@@ -92,6 +127,7 @@
+ 	g_free(jm->password);
+ 	g_free(jm->error);
+ 	g_free(jm->thread_id);
++	g_free(jm->stanza_id);
+ 	g_list_free(jm->etc);
+ 	g_list_free(jm->eventitems);
+ 
+@@ -206,7 +242,15 @@
+ 			jbr->thread_id = g_strdup(jm->thread_id);
+ 		}
+ 
+-		serv_got_im(gc, jm->from, body->str, 0, jm->sent);
++		/* A reaction's body is only dropped when the sender marked it as a fallback
++		 * (XEP-0428); a message that genuinely says something and carries a reaction
++		 * on the side keeps its text. */
++		if (!(jm->has_reactions && jm->has_reactions_fallback)) {
++			if (message_id_cb && jm->id)
++				message_id_cb(gc, jm->from, jm->id);
++
++			serv_got_im(gc, jm->from, body->str, 0, jm->sent);
++		}
+ 	}
+ 
+ 	jabber_id_free(jid);
+@@ -264,11 +308,15 @@
+ 		}
+ 	}
+ 
+-	if(jm->xhtml || jm->body) {
+-		if(jid->resource)
++	if((jm->xhtml || jm->body) && !(jm->has_reactions && jm->has_reactions_fallback)) {
++		if(jid->resource) {
++			if (groupchat_message_id_cb && jm->stanza_id)
++				groupchat_message_id_cb(jm->js->gc, jm->stanza_id);
++
+ 			serv_got_chat_in(jm->js->gc, chat->id, jid->resource,
+ 							jm->delayed ? PURPLE_MESSAGE_DELAYED : 0,
+ 							jm->xhtml ? jm->xhtml : jm->body, jm->sent);
++		}
+ 		else if(chat->muc)
+ 			purple_conv_chat_write(PURPLE_CONV_CHAT(chat->conv), "",
+ 							jm->xhtml ? jm->xhtml : jm->body,
+@@ -719,6 +767,48 @@
  			jm->chat_state = JM_STATE_INACTIVE;
  		} else if(purple_strequal(child->name, "gone") && purple_strequal(xmlns,"http://jabber.org/protocol/chatstates")) {
  			jm->chat_state = JM_STATE_GONE;
-+		} else if(jabber_receipt_parse(js, from, child)) {
-+			/* XEP-0184: delivery receipt consumed */
++		} else if(jm->type != JABBER_MESSAGE_ERROR && jabber_receipt_parse(js, from, child)) {
++			/* XEP-0184: delivery receipt consumed. A bounced error can carry a receipt
++			 * element back to us; that is not a delivery and must not count as one. */
 +		} else if(purple_strequal(child->name, "request") && purple_strequal(xmlns, NS_RECEIPTS)) {
-+			/* XEP-0184: auto-send delivery receipt */
-+			if (jm->id) {
-+				xmlnode *recv_msg, *recv;
-+				recv_msg = xmlnode_new("message");
-+				xmlnode_set_attrib(recv_msg, "to", jm->from);
-+				xmlnode_set_attrib(recv_msg, "id", jabber_get_next_id(js));
-+				recv = xmlnode_new_child(recv_msg, "received");
-+				xmlnode_set_namespace(recv, NS_RECEIPTS);
-+				xmlnode_set_attrib(recv, "id", jm->id);
-+				jabber_send(js, recv_msg);
-+				xmlnode_free(recv_msg);
-+			}
-+		} else if(jabber_chat_marker_parse(js, from, child)) {
-+			/* XEP-0333: chat marker consumed */
++			/* XEP-0184: answer with a delivery receipt, but only for a real direct
++			 * message. A bounced error carries our own request back to us, and a
++			 * groupchat copy asks the room, not this occupant; the XEP forbids
++			 * answering either. Who may be answered at all is decided in receipt.c. */
++			if (jm->id && (jm->type == JABBER_MESSAGE_CHAT || jm->type == JABBER_MESSAGE_NORMAL))
++				jabber_receipt_send_received(js, jm->from, jm->id);
++		} else if(jm->type != JABBER_MESSAGE_ERROR && jabber_chat_marker_parse(js, from, child)) {
++			/* XEP-0333: chat marker consumed; a marker mirrored in an error is not one */
 +		} else if(purple_strequal(child->name, "markable") && purple_strequal(xmlns, NS_CHAT_MARKERS)) {
-+			/* XEP-0333: sender allows chat markers; remember the id for "displayed" */
-+			jabber_chat_marker_note_markable(js->gc, jm->from, jm->id);
++			/* XEP-0333: sender allows chat markers; remember the id for "displayed".
++			 * Only for a direct message: a bounce carries our own markable back, and a
++			 * room copy would have "displayed" sent to one occupant in private. */
++			if (jm->type == JABBER_MESSAGE_CHAT || jm->type == JABBER_MESSAGE_NORMAL)
++				jabber_chat_marker_note_markable(js->gc, jm->from, jm->id);
++		} else if(jm->type != JABBER_MESSAGE_ERROR && jabber_reactions_parse(js, from, child)) {
++			/* XEP-0444: message reaction consumed. In a bounced error the reaction is our
++			 * own coming back and must not be shown as the contact's. */
++			jm->has_reactions = TRUE;
++		} else if(purple_strequal(child->name, "fallback") && purple_strequal(xmlns, "urn:xmpp:fallback:0")) {
++			/* XEP-0428: the body is a stand-in for something else. When it stands in for
++			 * a reaction (the fallback a room needs so it will relay the stanza), the
++			 * body is not a message and must not be shown. */
++			if (purple_strequal(xmlnode_get_attrib(child, "for"), NS_REACTIONS))
++				jm->has_reactions_fallback = TRUE;
++		} else if(purple_strequal(child->name, "stanza-id") && purple_strequal(xmlns, "urn:xmpp:sid:0")) {
++			/* XEP-0359: a room message has no id anyone else can name, but the room stamps its own
++			 * stanza-id; that is the id a reaction in the room points at. Keep the one stamped by the
++			 * room (by == the room's bare jid), falling back to any if none names the room. */
++			const char *sid = xmlnode_get_attrib(child, "id");
++			const char *by = xmlnode_get_attrib(child, "by");
++			if (sid) {
++				char *bare = jm->from ? jabber_get_bare_jid(jm->from) : NULL;
++				if (!jm->stanza_id || (by && bare && purple_strequal(by, bare))) {
++					g_free(jm->stanza_id);
++					jm->stanza_id = g_strdup(sid);
++				}
++				g_free(bare);
++			}
  		} else if(purple_strequal(child->name, "event") && purple_strequal(xmlns,"http://jabber.org/protocol/pubsub#event")) {
  			xmlnode *items;
  			jm->type = JABBER_MESSAGE_EVENT;
-@@ -1097,6 +1119,9 @@
+@@ -1097,6 +1187,12 @@
  		}
  	}
  
 +	if(jm->add_receipt_request)
 +		jabber_receipt_add_request(message);
 +
++	if(jm->add_chat_marker_request)
++		jabber_chat_marker_add_markable(message);
++
  	jabber_send(jm->js, message);
  
  	xmlnode_free(message);
-@@ -1208,6 +1233,9 @@
+@@ -1172,6 +1268,9 @@
+ 	jm->to = g_strdup(who);
+ 	jm->id = jabber_get_next_id(jm->js);
+ 
++	if (outgoing_message_id_cb && jm->id)
++		outgoing_message_id_cb(gc, jm->to, jm->id);
++
+ 	if(jbr) {
+ 		if(jbr->thread_id) {
+ 			jm->thread_id = g_strdup(jbr->thread_id);
+@@ -1208,6 +1307,12 @@
  
  	g_free(xhtml);
  
 +	jm->add_receipt_request = !jbr || !jbr->caps.info ||
 +		jabber_resource_has_capability(jbr, NS_RECEIPTS);
++
++	jm->add_chat_marker_request = !jbr || !jbr->caps.info ||
++		jabber_resource_has_capability(jbr, NS_CHAT_MARKERS);
 +
  	jabber_message_send(jm);
  	jabber_message_free(jm);

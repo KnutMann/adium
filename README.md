@@ -54,8 +54,9 @@ Current version: **1.8.0**.
   continued on another device shows up here too; client state
   indication (XEP-0352), telling the server when Adium is in the
   background; room bookmarks synchronized with other clients
-  (XEP-0402), including autojoin; plus read markers, delivery receipts
-  and chat markers
+  (XEP-0402), including autojoin; delivery receipts (XEP-0184) and read
+  markers (XEP-0333), the latter now requested on outgoing messages too,
+  so a message you send can be confirmed delivered and then read
 * OTR migrated to the libotr 4.x API
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
