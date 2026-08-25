@@ -94,6 +94,24 @@ static void whatsapp_message_id_cb(PurpleConnection *pc, GHashTable *details, gp
 	} else {
 		adiumStashPendingIncomingMessageId(account, chat, messageId);
 	}
+
+	/* An own message arriving from another device has, by arriving here, proven it
+	 * reached the server: it earns the first tick. No receipt will ever say so, the
+	 * "sent" receipt went to the device that sent it. Posted on the next runloop
+	 * pass so the message is on the page before the tick looks for it. */
+	const char *sender = whatsapp_detail(details, "sender");
+	if (sender && messageId &&
+		purple_strequal(purple_account_get_username(account), sender)) {
+		AIChat *ownChat = whatsapp_chat_for_details(pc, details);
+		NSString *mid = [NSString stringWithUTF8String:messageId];
+		if (ownChat) {
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasSent"
+																   object:ownChat
+																 userInfo:@{ @"MessageId": mid }];
+			});
+		}
+	}
 }
 
 static void whatsapp_receipt_cb(PurpleConnection *pc, GHashTable *details, gpointer data)
