@@ -12,7 +12,8 @@
 (function () {
 	'use strict';
 
-	var EMOJI_SIZE = '3em';        // triple, on the body font
+	var EMOJI_SCALE = 3;           // triple the emoji's own edge length
+	var EMOJI_FLOOR = 48;          // ...but at least this, so a small chat font still reads as jumbo
 	var EMOTICON_SCALE = 2;        // double the emoticon's own pixels
 	var MAX_GLYPHS = 3;
 
@@ -88,9 +89,12 @@
 		var found = inspect(body);
 		if (!found) return;
 
-		// Emoji are text, so tripling the body font size triples their edge length
+		// Emoji are text: triple the font size actually in effect (an em would only
+		// triple whatever the style already shrank it to), with a floor so a small
+		// chat font still lands somewhere jumbo and clear of the doubled emoticons.
 		if (found.emoji > 0) {
-			body.style.fontSize = EMOJI_SIZE;
+			var base = parseFloat(getComputedStyle(body).fontSize) || 16;
+			body.style.fontSize = Math.max(base * EMOJI_SCALE, EMOJI_FLOOR) + 'px';
 			body.style.lineHeight = '1.25';
 		}
 		body.style.display = 'inline-block';

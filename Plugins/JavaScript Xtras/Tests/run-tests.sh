@@ -39,9 +39,9 @@ echo "== Big Emoji"
 # data-URI stands in for an emoticon image, so doubling lands at 2px).
 PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 run "$BE" \
-	"😀😀" "+3em" \
-	"hello world" "-3em" \
-	"😀 with text" "-3em" \
+	"😀😀" "+font-size: 48px" \
+	"hello world" "-font-size" \
+	"😀 with text" "-font-size" \
 	"<img class=\"emoticon\" src=\"$PNG\">" "+width: 2px" \
 	"<img class=\"emoticon\" src=\"$PNG\"><img class=\"emoticon\" src=\"$PNG\"><img class=\"emoticon\" src=\"$PNG\"><img class=\"emoticon\" src=\"$PNG\">" "-width: 2px"
 
