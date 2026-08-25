@@ -1864,8 +1864,11 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
  * @brief Mark the messages we sent with a delivery/read state
  *
  * Adds a class to every outgoing message body the receipt or marker has caught up to, which a
- * display plugin (Read Receipts) turns into a tick: "delivered" a grey tick, "tracked" (read) a blue
- * one that paints over it. This marks the messages the view can see rather than the one the receipt
+ * display plugin (Read Receipts) turns into a tick: "x-adium-delivered" a grey tick, "x-adium-read"
+ * a blue one that paints over it. The names are namespaced like the wrapper's own attributes, so
+ * they can never collide with a class a message style or the correction tracker already uses
+ * ("tracked" burned us: stanzaWasTracked has owned it since long before this path existed). This
+ * marks the messages the view can see rather than the one the receipt
  * named by its id - keeping a stanza-id to DOM-element map is the foundation reactions and per-id
  * receipts both wait on, and a "up to here" receipt is cumulative anyway, so marking the outgoing
  * messages so far is right in the common case.
@@ -1883,12 +1886,12 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 - (void)messagesWereDelivered:(NSNotification *)notification
 {
-	[self _markOutgoingMessagesWithClass:@"delivered" forChat:[notification object]];
+	[self _markOutgoingMessagesWithClass:@"x-adium-delivered" forChat:[notification object]];
 }
 
 - (void)messagesWereRead:(NSNotification *)notification
 {
-	[self _markOutgoingMessagesWithClass:@"tracked" forChat:[notification object]];
+	[self _markOutgoingMessagesWithClass:@"x-adium-read" forChat:[notification object]];
 }
 
 - (void)stanzaWasTracked:(NSNotification *)notification
