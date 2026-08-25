@@ -85,6 +85,13 @@
 		}
 		if (close === -1) return false;
 
+		// Only a message that IS one fenced block becomes a <pre>. Text after the
+		// closing fence means there was more to say, and replacing the wrapper
+		// would silently delete it, so such a message keeps the inline pass.
+		for (var k = close + 1; k < lines.length; k++) {
+			if (lines[k].trim() !== '') return false;
+		}
+
 		var body = lines.slice(1, close).join('\n');
 		var pre = document.createElement('pre');
 		pre.className = 'x-adium-pre';

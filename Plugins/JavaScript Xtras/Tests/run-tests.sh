@@ -54,10 +54,14 @@ run "$ML" \
 	"&lt;em&gt;typed&lt;/em&gt;" "-<em>typed</em>"
 
 echo "== Code Blocks"
+# The last case guards against silent loss: text after the closing fence means
+# the message is not one block, so nothing of it may be thrown away.
 run "$CB" \
 	"run \`ls -la\` now" "+<code class=\"x-adium-code\">ls -la</code>" \
 	"no code here" "-x-adium-code" \
-	"\`\`\`<br>line1<br>line2<br>\`\`\`" "+<pre"
+	"\`\`\`<br>line1<br>line2<br>\`\`\`" "+<pre" \
+	"\`\`\`<br>line1<br>\`\`\`<br>siehe oben" "+siehe oben" \
+	"\`\`\`<br>line1<br>\`\`\`<br>siehe oben" "-x-adium-pre"
 
 echo
 if [ $fails -gt 0 ]; then
