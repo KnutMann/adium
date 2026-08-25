@@ -1701,8 +1701,13 @@ static NSString *const AIWKContextMenuScript =
 {
 	if ([notification object] != _chat) return;
 
+	/* The sender names whose set this is: "them" in a one-to-one chat, or a room occupant's nick
+	 * (and "me" when the room echoes our own) so several people's reactions coexist on a message. */
+	NSString *sender = [[notification userInfo] objectForKey:@"Sender"];
+	if (![sender length]) sender = @"them";
+
 	[self _setReactions:[[notification userInfo] objectForKey:@"Reactions"]
-			  forSender:@"them"
+			  forSender:sender
 			onMessageId:[[notification userInfo] objectForKey:@"MessageId"]];
 }
 
@@ -1727,8 +1732,8 @@ static NSString *const AIWKContextMenuScript =
 		@" if(!el) return;"
 		@" var box=el.querySelector('.x-adium-reactions');"
 		@" if(!box){ box=document.createElement('span'); box.className='x-adium-reactions'; box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;'; el.appendChild(box); }"
-		@" var mine=box.querySelectorAll('.x-adium-reaction[data-sender=\"'+sender+'\"]');"
-		@" for(var k=0;k<mine.length;k++) mine[k].parentNode.removeChild(mine[k]);"
+		@" var chips=box.querySelectorAll('.x-adium-reaction');"
+		@" for(var k=chips.length-1;k>=0;k--){ if(chips[k].getAttribute('data-sender')===sender) chips[k].parentNode.removeChild(chips[k]); }"
 		@" for(var j=0;j<reactions.length;j++){"
 		@"  var chip=document.createElement('span'); chip.className='x-adium-reaction'; chip.setAttribute('data-sender',sender); chip.textContent=reactions[j];"
 		@"  chip.style.cssText='display:inline-block;font-size:0.85em;line-height:1.4;padding:0 0.35em;margin-inline-end:0.2em;border:1px solid rgba(128,128,128,0.45);border-radius:0.8em;';"

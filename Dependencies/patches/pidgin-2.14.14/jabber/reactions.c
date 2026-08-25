@@ -68,15 +68,41 @@ gboolean jabber_reactions_parse(JabberStream *js, const char *from, xmlnode *chi
 }
 
 void jabber_reactions_send(JabberStream *js, const char *to,
-                           const char *target_id, GList *emojis)
+                           const char *target_id, GList *emojis,
+                           gboolean groupchat)
 {
 	xmlnode *msg, *reactions, *reaction;
 	GList *l;
 
 	msg = xmlnode_new("message");
 	xmlnode_set_attrib(msg, "to", to);
-	xmlnode_set_attrib(msg, "type", "chat");
+	xmlnode_set_attrib(msg, "type", groupchat ? "groupchat" : "chat");
 	xmlnode_set_attrib(msg, "id", jabber_get_next_id(js));
+
+	/* A room broadcasts only messages that carry a body, so a reaction sent to a room needs a
+	 * plain-text fallback of the emoji - a bare space when the set is empty, so a reaction taken
+	 * back still reaches everyone - plus an XEP-0428 marker so clients that understand reactions
+	 * hide the body. A one-to-one message needs none of this and goes without. */
+	if (groupchat) {
+		xmlnode *body, *fallback;
+		GString *text = g_string_new(NULL);
+
+		for (l = emojis; l; l = l->next) {
+			if (text->len)
+				g_string_append_c(text, ' ');
+			g_string_append(text, (const char *)l->data);
+		}
+		if (!text->len)
+			g_string_append_c(text, ' ');
+
+		body = xmlnode_new_child(msg, "body");
+		xmlnode_insert_data(body, text->str, -1);
+		g_string_free(text, TRUE);
+
+		fallback = xmlnode_new_child(msg, "fallback");
+		xmlnode_set_namespace(fallback, "urn:xmpp:fallback:0");
+		xmlnode_set_attrib(fallback, "for", NS_REACTIONS);
+	}
 
 	reactions = xmlnode_new_child(msg, "reactions");
 	xmlnode_set_namespace(reactions, NS_REACTIONS);

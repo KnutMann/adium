@@ -433,11 +433,13 @@ void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
 typedef void (*jabber_reactions_cb)(PurpleConnection *gc, const char *from,
 									const char *target_id, GList *emojis);
 void jabber_set_reactions_cb(jabber_reactions_cb cb);
-void jabber_reactions_send(void *js, const char *to, const char *target_id, GList *emojis);
+void jabber_reactions_send(void *js, const char *to, const char *target_id, GList *emojis, gboolean groupchat);
 typedef void (*jabber_message_id_cb)(PurpleConnection *gc, const char *from, const char *id);
 void jabber_set_message_id_cb(jabber_message_id_cb cb);
 typedef void (*jabber_outgoing_message_id_cb)(PurpleConnection *gc, const char *to, const char *id);
 void jabber_set_outgoing_message_id_cb(jabber_outgoing_message_id_cb cb);
+typedef void (*jabber_groupchat_message_id_cb)(PurpleConnection *gc, const char *id);
+void jabber_set_groupchat_message_id_cb(jabber_groupchat_message_id_cb cb);
 void jabber_add_feature(const char *xmlns, void *enabled_cb);
 
 /*!
@@ -516,17 +518,43 @@ static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
 			  [list componentsJoinedByString:@" "]);
 
 		/* Tell the message view, which finds the message this names by its id and shows the set as
-		 * chips. XEP-0444 sends the whole set each time, so this replaces whatever was there. */
+		 * chips. XEP-0444 sends the whole set each time, so this replaces whatever was there for the
+		 * sender: "them" in a one-to-one chat, and the occupant's nick in a room so several people's
+		 * reactions can sit on the same message at once. */
 		PurpleAccount	*purpleAccount = purple_connection_get_account(gc);
+		AIChat			*chat = nil;
+		NSString		*sender = @"them";
+
 		PurpleBuddy		*buddy = purple_find_buddy(purpleAccount, from);
-		AIListContact	*contact = buddy ? contactLookupFromBuddy(buddy) : nil;
-		AIChat			*chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
+		if (buddy) {
+			AIListContact *contact = contactLookupFromBuddy(buddy);
+			chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
+		} else if (from) {
+			/* A room occupant reacted: from is room@service/nick. Find the room by its bare jid and
+			 * mark the bucket "me" when the room is echoing our own reaction back to us. */
+			NSString *fromStr = [NSString stringWithUTF8String:from];
+			NSRange slash = [fromStr rangeOfString:@"/"];
+			NSString *roomBare = (slash.location != NSNotFound) ? [fromStr substringToIndex:slash.location] : fromStr;
+			NSString *nick = (slash.location != NSNotFound) ? [fromStr substringFromIndex:slash.location + 1] : nil;
+
+			PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT,
+																			 [roomBare UTF8String], purpleAccount);
+			if (conv) {
+				chat = groupChatLookupFromConv(conv);
+				const char *myNick = purple_conv_chat_get_nick(PURPLE_CONV_CHAT(conv));
+				if ([nick length] && myNick && strcmp([nick UTF8String], myNick) == 0)
+					sender = @"me";
+				else if ([nick length])
+					sender = nick;
+			}
+		}
 
 		if (chat && target_id) {
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageReactionsChanged"
 															   object:chat
 															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:target_id],
-																		 @"Reactions": list }];
+																		 @"Reactions": list,
+																		 @"Sender": sender }];
 		}
 	}
 }
@@ -563,6 +591,33 @@ static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from,
 	}
 }
 
+/* The same brief hand-off for a room message, keyed only by account: a room delivers one message at
+ * a time, and the room-write callback reads this off synchronously in the same libpurple message, so
+ * one slot per account is enough. The stanza-id (XEP-0359) here is what a reaction in the room names. */
+static NSMutableDictionary *pendingIncomingGroupchatIds = nil;
+
+NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account)
+{
+	if (!account || !pendingIncomingGroupchatIds) return nil;
+
+	NSString *key = [NSString stringWithFormat:@"%p", (void *)account];
+	NSString *msgid = [pendingIncomingGroupchatIds objectForKey:key];
+	if (msgid) [pendingIncomingGroupchatIds removeObjectForKey:key];
+	return msgid;
+}
+
+static void adiumJabberIncomingGroupchatMessageId(PurpleConnection *gc, const char *msgid)
+{
+	@autoreleasepool {
+		PurpleAccount *account = purple_connection_get_account(gc);
+		if (!account || !msgid) return;
+
+		if (!pendingIncomingGroupchatIds) pendingIncomingGroupchatIds = [[NSMutableDictionary alloc] init];
+		[pendingIncomingGroupchatIds setObject:[NSString stringWithUTF8String:msgid]
+										forKey:[NSString stringWithFormat:@"%p", (void *)account]];
+	}
+}
+
 /* A message we send is handed to the account synchronously, and the id is minted deeper down in the
  * same call; the account names the message it is about to send here so the callback below, firing
  * during that send, can hang the id on it before it is shown. */
@@ -581,7 +636,7 @@ static void adiumJabberOutgoingMessageId(PurpleConnection *gc, const char *to, c
 	}
 }
 
-void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis)
+void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis, BOOL groupChat)
 {
 	if (!account || !to || !target_id) return;
 
@@ -599,7 +654,7 @@ void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char 
 		if ([emoji length]) list = g_list_append(list, g_strdup([emoji UTF8String]));
 	}
 
-	jabber_reactions_send(js, to, target_id, list);
+	jabber_reactions_send(js, to, target_id, list, groupChat ? TRUE : FALSE);
 	g_list_free_full(list, g_free);
 }
 
@@ -685,6 +740,7 @@ void configureAdiumPurpleSignals(void)
 	jabber_set_reactions_cb(adiumJabberReactionReceived);
 	jabber_set_message_id_cb(adiumJabberIncomingMessageId);
 	jabber_set_outgoing_message_id_cb(adiumJabberOutgoingMessageId);
+	jabber_set_groupchat_message_id_cb(adiumJabberIncomingGroupchatMessageId);
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
 	jabber_add_feature("urn:xmpp:reactions:0", NULL);

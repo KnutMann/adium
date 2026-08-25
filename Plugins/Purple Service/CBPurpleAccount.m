@@ -1409,10 +1409,13 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
  */
 - (void)sendReaction:(NSArray *)emojis toMessageId:(NSString *)messageId inChat:(AIChat *)chat
 {
-	NSString *to = chat.listObject.UID;
+	/* In a room the reaction goes to the room itself as type='groupchat'; one-to-one it goes to the
+	 * contact. The target id is a room stanza-id (XEP-0359) in a room, the message's own id otherwise. */
+	BOOL		groupChat = chat.isGroupChat;
+	NSString	*to = groupChat ? chat.name : chat.listObject.UID;
 
 	if ([messageId length] && [to length])
-		adiumJabberSendReaction([self purpleAccount], [to UTF8String], [messageId UTF8String], emojis);
+		adiumJabberSendReaction([self purpleAccount], [to UTF8String], [messageId UTF8String], emojis, groupChat);
 }
 
 - (BOOL)supportsSendingNotifications

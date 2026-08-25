@@ -41,8 +41,10 @@ void jabber_set_reactions_cb(jabber_reactions_cb cb);
 gboolean jabber_reactions_parse(JabberStream *js, const char *from, xmlnode *child);
 
 /* Send our full current set of reactions to a message. An empty or NULL list
- * clears them, which is how XEP-0444 removes a reaction. */
+ * clears them, which is how XEP-0444 removes a reaction. In a room, groupchat
+ * is TRUE so the message goes as type='groupchat' to the room itself. */
 void jabber_reactions_send(JabberStream *js, const char *to,
-                           const char *target_id, GList *emojis);
+                           const char *target_id, GList *emojis,
+                           gboolean groupchat);
 
 #endif /* PURPLE_JABBER_REACTIONS_H_ */
