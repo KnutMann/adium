@@ -221,6 +221,7 @@ static NSString *const AIWKContextMenuScript =
 - (NSURL *)_fileURLForDisplayedImageURLString:(NSString *)imageURLString;
 - (void)_markCurrentLocation;
 - (void)_processContentQueue;
+- (BOOL)_shouldRetainContentForReplay;
 - (void)_updateVariantWithoutPrimingView;
 - (void)_appendContentWithScript:(NSString *)js shouldScroll:(BOOL)shouldScroll;
 - (void)_drainStoredContentObjects;
@@ -459,7 +460,13 @@ static NSString *const AIWKContextMenuScript =
 	[userContentController removeAllUserScripts];
 	[self _installUserScriptsInto:userContentController];
 
-	[self _primeWebViewAndReprocessContent:YES];
+	/* Reloading redraws the conversation from what was kept for exactly this. A window that kept
+	 * nothing - an empty chat, or one open since before its content was worth keeping - has nothing
+	 * to redraw, and reloading would only blank it; leave it standing, and the new set of plugins
+	 * takes hold the next time it is opened. */
+	if (_shouldReflectPreferenceChanges || [_storedContentObjects count] || [_contentQueue count]) {
+		[self _primeWebViewAndReprocessContent:YES];
+	}
 }
 
 - (void)_initWebView
@@ -1244,13 +1251,15 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		// Track content for similarity comparison
 		_previousContent = content;
 
-		/* Keep what was shown, so that it can be shown again. A change of style or variant throws
-		 * the page away and builds a new one, and everything that was in the old page has to be
-		 * put through the new style to appear at all. Only kept while something is watching for
-		 * preference changes, which is the settings preview and a chat window that has been told
-		 * to follow them; an ordinary chat would otherwise hold its whole history twice.
+		/* Keep what was shown, so that it can be shown again. A change of style or variant, or a
+		 * JavaScript plugin turned on or off, throws the page away and builds a new one, and
+		 * everything that was in the old page has to be put through it again to appear at all. Kept
+		 * for the settings preview, for a chat window told to follow preference changes, and for any
+		 * window while JavaScript plugins are installed, since one may be switched at any time and
+		 * the reload that follows has nothing else to draw from. Without either, an ordinary chat
+		 * would hold its whole history twice, so then it is not kept.
 		 */
-		if (_shouldReflectPreferenceChanges) {
+		if ([self _shouldRetainContentForReplay]) {
 			[_storedContentObjects addObject:content];
 		}
 	}
@@ -1264,6 +1273,21 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 								 @"if (window.adiumFitImages) { adiumFitImages(); setTimeout(adiumFitImages, 250); "
 								 @"setTimeout(adiumFitImages, 1000); setTimeout(adiumFitImages, 3000); }"
 			   completionHandler:nil];
+}
+
+/*!
+ * @brief Whether this view keeps its content around so it can be drawn again after a reload
+ *
+ * A reload has to replay the conversation from what was kept, and there are two reasons to keep it:
+ * the view follows preference changes (the settings preview), or JavaScript plugins are installed
+ * and so one may be switched on or off at any time, each of which rebuilds the page. With neither,
+ * nothing reloads this view and holding its history a second time would be waste.
+ */
+- (BOOL)_shouldRetainContentForReplay
+{
+	if (_shouldReflectPreferenceChanges) return YES;
+
+	return ([[[AIJSXtrasManager sharedManager] allBundles] count] > 0);
 }
 
 /*!
