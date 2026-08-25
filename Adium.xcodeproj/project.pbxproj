@@ -833,6 +833,7 @@
 		ADD1E5C0DE0000000000D223 /* Markdown Light.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D222 /* Markdown Light.AdiumPlugin */; };
 		ADD1E5C0DE0000000000D225 /* Code Blocks.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D224 /* Code Blocks.AdiumPlugin */; };
 		ADD1E5C0DE0000000000D227 /* Read Receipts.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D226 /* Read Receipts.AdiumPlugin */; };
+		ADD1E5C0DE0000000000D229 /* Reaction Chips.AdiumPlugin in Copy JavaScript Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D228 /* Reaction Chips.AdiumPlugin */; };
 		ADD1E5C0DE00000000000932 /* AITypstHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000931 /* AITypstHistory.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000922 /* AITypstEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000921 /* AITypstEditorView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4B97DB6706AC123A0003EE49 /* msg-insert-link.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4B97DB6606AC123A0003EE49 /* msg-insert-link.tiff */; };
@@ -1331,6 +1332,7 @@
 				ADD1E5C0DE0000000000D223 /* Markdown Light.AdiumPlugin in Copy JavaScript Plugins */,
 				ADD1E5C0DE0000000000D225 /* Code Blocks.AdiumPlugin in Copy JavaScript Plugins */,
 				ADD1E5C0DE0000000000D227 /* Read Receipts.AdiumPlugin in Copy JavaScript Plugins */,
+				ADD1E5C0DE0000000000D229 /* Reaction Chips.AdiumPlugin in Copy JavaScript Plugins */,
 			);
 			name = "Copy JavaScript Plugins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2878,6 +2880,7 @@
 		ADD1E5C0DE0000000000D222 /* Markdown Light.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Markdown Light.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Markdown Light.AdiumPlugin"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D224 /* Code Blocks.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Code Blocks.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Code Blocks.AdiumPlugin"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000D226 /* Read Receipts.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Read Receipts.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Read Receipts.AdiumPlugin"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000D228 /* Reaction Chips.AdiumPlugin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Reaction Chips.AdiumPlugin"; path = "Plugins/JavaScript Xtras/Bundled/Reaction Chips.AdiumPlugin"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000913 /* AITypstPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstPlugin.h; path = "Plugins/Typst Formulas/AITypstPlugin.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000931 /* AITypstHistory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AITypstHistory.m; path = "Plugins/Typst Formulas/AITypstHistory.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000933 /* AITypstHistory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AITypstHistory.h; path = "Plugins/Typst Formulas/AITypstHistory.h"; sourceTree = "<group>"; };
@@ -6108,6 +6111,7 @@
 				ADD1E5C0DE0000000000D222 /* Markdown Light.AdiumPlugin */,
 				ADD1E5C0DE0000000000D224 /* Code Blocks.AdiumPlugin */,
 				ADD1E5C0DE0000000000D226 /* Read Receipts.AdiumPlugin */,
+				ADD1E5C0DE0000000000D228 /* Reaction Chips.AdiumPlugin */,
 			);
 			name = "JavaScript Xtras";
 			sourceTree = "<group>";
