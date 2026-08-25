@@ -368,16 +368,82 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context)
 }
 
 #pragma mark -
+/* An OTR handshake that cannot complete - a version or key mismatch, a stuck
+ * state, a bug on one side - otherwise loops without end: every error the peer
+ * sends starts a fresh AKE (OTRL_POLICY_ERROR_START_AKE), which fails again and
+ * draws another error. Left alone it floods the conversation with a cryptic
+ * line nobody can act on. These track the errors per contact so the loop can be
+ * broken: after a few in a short window, auto-restart is switched off for a
+ * cool-down and one plain-language message stands in for the flood. */
+#define OTR_LOOP_WINDOW		12.0	// seconds an error still counts toward the flood
+#define OTR_LOOP_THRESHOLD	3		// errors within the window that trip the breaker
+#define OTR_LOOP_COOLDOWN	120.0	// seconds auto-restart stays off after tripping
+
+static NSMutableDictionary *otrRecentErrorTimes = nil;	// key -> NSMutableArray<NSNumber time>
+static NSMutableDictionary *otrCooldownUntil = nil;		// key -> NSNumber time
+
+static NSString *otrLoopKey(const char *accountname, const char *username)
+{
+	return [NSString stringWithFormat:@"%s\x1f%s", accountname ? accountname : "", username ? username : ""];
+}
+
+/* Whether this contact is inside the cool-down, where OTR must not auto-restart */
+static BOOL otrHandshakeIsInCooldown(const char *accountname, const char *username)
+{
+	if (!accountname || !username || !otrCooldownUntil) return NO;
+
+	NSNumber *until = [otrCooldownUntil objectForKey:otrLoopKey(accountname, username)];
+	return (until && CFAbsoluteTimeGetCurrent() < [until doubleValue]);
+}
+
+/* Record one handshake error for this contact and return YES the moment it
+ * crosses the threshold, so the caller shows the plain-language message once. */
+static BOOL otrHandshakeErrorTrippedBreaker(const char *accountname, const char *username)
+{
+	if (!accountname || !username) return NO;
+
+	if (!otrRecentErrorTimes) otrRecentErrorTimes = [[NSMutableDictionary alloc] init];
+	if (!otrCooldownUntil)    otrCooldownUntil    = [[NSMutableDictionary alloc] init];
+
+	/* Already broken: the count is not rebuilt until the cool-down lapses, so a
+	 * relentless peer cannot keep re-tripping it. */
+	if (otrHandshakeIsInCooldown(accountname, username)) return NO;
+
+	NSString		*key = otrLoopKey(accountname, username);
+	CFAbsoluteTime	 now = CFAbsoluteTimeGetCurrent();
+	NSMutableArray	*times = [otrRecentErrorTimes objectForKey:key];
+
+	if (!times) { times = [NSMutableArray array]; [otrRecentErrorTimes setObject:times forKey:key]; }
+
+	while ([times count] && (now - [[times objectAtIndex:0] doubleValue] > OTR_LOOP_WINDOW))
+		[times removeObjectAtIndex:0];
+	[times addObject:[NSNumber numberWithDouble:now]];
+
+	if ([times count] >= OTR_LOOP_THRESHOLD) {
+		[otrCooldownUntil setObject:[NSNumber numberWithDouble:now + OTR_LOOP_COOLDOWN] forKey:key];
+		[times removeAllObjects];
+		return YES;
+	}
+
+	return NO;
+}
+
 /* Return the OTR policy for the given context. */
 
 static OtrlPolicy policy_cb(void *opdata, ConnContext *context)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	OtrlPolicy ret = policyForContact(contactForContext(context));
-	
+
+	/* A handshake stuck in the error loop has tripped the breaker; take away the
+	 * flags that let an error or a whitespace tag start a fresh AKE, so libotr
+	 * stops answering the peer's retries until the cool-down lapses. */
+	if (context && otrHandshakeIsInCooldown(context->accountname, context->username))
+		ret &= ~(OTRL_POLICY_ERROR_START_AKE | OTRL_POLICY_WHITESPACE_START_AKE);
+
 	[pool release];
-	
+
 	return ret;
 }
 
@@ -769,6 +835,31 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 		default:
 			AILog(@"OTR message event %u for %@ (err %u)", msg_event, displayName, err);
 			break;
+	}
+
+	/* These are the events a handshake that cannot complete throws over and over.
+	 * Rather than repeat the raw, cryptic line each time, count them: once a few
+	 * arrive in quick succession the breaker trips (and policy_cb stops the auto-
+	 * restart), and we show one message that says what happened and what to do -
+	 * then stay quiet through the rest of the flood. A lone error still shows as
+	 * before; only a flood is collapsed. */
+	BOOL isHandshakeError = (msg_event == OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR ||
+							 msg_event == OTRL_MSGEVENT_RCVDMSG_MALFORMED ||
+							 msg_event == OTRL_MSGEVENT_RCVDMSG_UNREADABLE ||
+							 msg_event == OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED ||
+							 msg_event == OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE ||
+							 msg_event == OTRL_MSGEVENT_SETUP_ERROR ||
+							 msg_event == OTRL_MSGEVENT_ENCRYPTION_ERROR);
+
+	if (isHandshakeError && context && context->accountname && context->username) {
+		if (otrHandshakeIsInCooldown(context->accountname, context->username)) {
+			/* Loop already broken and explained; hold quiet through the flood. */
+			[pool release];
+			return;
+		}
+		if (otrHandshakeErrorTrippedBreaker(context->accountname, context->username)) {
+			text = [NSString stringWithFormat:OTRLocalizedString(@"The encrypted (OTR) conversation with %@ could not be set up: the two programs could not agree on a private session, most often a version or key mismatch. Encryption has been paused for this conversation. You can keep chatting unencrypted, or reset the private conversation from the lock menu to try again.", nil), displayName];
+		}
 	}
 
 	if (text) display_otr_message_for_context(context, text);
