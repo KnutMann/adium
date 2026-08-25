@@ -568,8 +568,10 @@ NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *
 {
 	if (!account || !from || !pendingIncomingMessageIds) return nil;
 
+	/* This file is MRC, and the dictionary holds the only reference: removing the entry
+	 * would free the string under the caller. Keep it alive past the removal. */
 	NSString *key = pendingMessageIdKey(account, from);
-	NSString *msgid = [pendingIncomingMessageIds objectForKey:key];
+	NSString *msgid = [[[pendingIncomingMessageIds objectForKey:key] retain] autorelease];
 	if (msgid) [pendingIncomingMessageIds removeObjectForKey:key];
 	return msgid;
 }
@@ -595,8 +597,9 @@ NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account)
 {
 	if (!account || !pendingIncomingGroupchatIds) return nil;
 
+	/* Same MRC care as above: keep the string alive past its removal from the dictionary. */
 	NSString *key = [NSString stringWithFormat:@"%p", (void *)account];
-	NSString *msgid = [pendingIncomingGroupchatIds objectForKey:key];
+	NSString *msgid = [[[pendingIncomingGroupchatIds objectForKey:key] retain] autorelease];
 	if (msgid) [pendingIncomingGroupchatIds removeObjectForKey:key];
 	return msgid;
 }
