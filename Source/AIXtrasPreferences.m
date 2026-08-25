@@ -371,7 +371,9 @@
 {
 	/* A JavaScript plugin is not moved on disk to switch it - it is injected live, and the plugins
 	 * that ship inside the app could not be moved anyway. Its switch is a preference the manager
-	 * keeps and reads; write it, and the plugin turns on or off in every open message view at once. */
+	 * keeps and reads; writing it makes the manager re-scan and redraw every open message view on
+	 * its own, so nothing here posts a further "the Xtras changed" of its own - that would only make
+	 * the manager re-scan and every window redraw a second time, drawing the conversation twice. */
 	if ([self xtraIsJavaScript:xtraInfo]) {
 		NSString *identifier = [[xtraInfo bundle] bundleIdentifier];
 
@@ -379,7 +381,6 @@
 			[[AIJSXtrasManager sharedManager] setPluginWithIdentifier:identifier enabled:enabled];
 
 		[xtraInfo setEnabled:enabled];
-		[self postXtrasDidChangeForType:[xtraInfo type]];
 		return;
 	}
 
