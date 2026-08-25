@@ -74,6 +74,11 @@
 
 static NSArray *draggedTypes = nil;
 
+/* How many shown content objects a view keeps for replay after a page rebuild (style
+ * change, plugin toggle). Enough for a session's scrollback; past it the oldest drop
+ * out, so no window ever holds its unbounded history twice. */
+static const NSUInteger AIWKStoredContentReplayLimit = 500;
+
 /* JavaScript installed into every loaded message view. WKWebView exposes no public context-menu
  * hook on macOS, so we intercept right-clicks here and forward the hit-test result to the "adium"
  * script message handler (see docs/design/webkit-to-wkwebview-transition.md §4).
@@ -1306,14 +1311,16 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 		/* Keep what was shown, so that it can be shown again. A change of style or variant, or a
 		 * JavaScript plugin turned on or off, throws the page away and builds a new one, and
-		 * everything that was in the old page has to be put through it again to appear at all. Kept
-		 * for the settings preview, for a chat window told to follow preference changes, and for any
-		 * window while JavaScript plugins are installed, since one may be switched at any time and
-		 * the reload that follows has nothing else to draw from. Without either, an ordinary chat
-		 * would hold its whole history twice, so then it is not kept.
-		 */
+		 * everything that was in the old page has to be put through it again to appear at all.
+		 * Since plugins ship with the app, this is in practice every window, which is why the
+		 * kept run is bounded: past the limit the oldest drop out, so a very long session keeps
+		 * a window's worth of scrollback for replay rather than doubling its whole history. A
+		 * replay after that starts at the cut. */
 		if ([self _shouldRetainContentForReplay]) {
 			[_storedContentObjects addObject:content];
+			while ([_storedContentObjects count] > AIWKStoredContentReplayLimit) {
+				[_storedContentObjects removeObjectAtIndex:0];
+			}
 		}
 	}
 
@@ -1333,8 +1340,10 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
  *
  * A reload has to replay the conversation from what was kept, and there are two reasons to keep it:
  * the view follows preference changes (the settings preview), or JavaScript plugins are installed
- * and so one may be switched on or off at any time, each of which rebuilds the page. With neither,
- * nothing reloads this view and holding its history a second time would be waste.
+ * and so one may be switched on or off at any time, each of which rebuilds the page. Plugins ship
+ * with the app, so the second reason holds for every window in practice; the honest reading of
+ * this method is "yes, but bounded", and the bound lives where the objects are added. The bundle
+ * check stays so that a build without bundled plugins goes back to keeping nothing.
  */
 - (BOOL)_shouldRetainContentForReplay
 {
