@@ -27,3 +27,7 @@ NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *
 /* Name the message an account is about to send, so the id minted during the send can be hung on it.
  * Set it before the send and clear it (nil) after. */
 void adiumSetPendingOutgoingContentMessage(AIContentMessage *message);
+
+/* Send our reaction (a set of emoji; empty clears it) to a message by its id, on a jabber account.
+ * A no-op on any other protocol. */
+void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis);

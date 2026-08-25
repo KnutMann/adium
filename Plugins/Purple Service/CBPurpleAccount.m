@@ -1404,6 +1404,17 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	return YES;
 }
 
+/*!
+ * @brief Send our reaction to a message (XEP-0444), an empty set to take it back
+ */
+- (void)sendReaction:(NSArray *)emojis toMessageId:(NSString *)messageId inChat:(AIChat *)chat
+{
+	NSString *to = chat.listObject.UID;
+
+	if ([messageId length] && [to length])
+		adiumJabberSendReaction([self purpleAccount], [to UTF8String], [messageId UTF8String], emojis);
+}
+
 - (BOOL)supportsSendingNotifications
 {
 	return (account ? ((PURPLE_PLUGIN_PROTOCOL_INFO(purple_find_prpl(purple_account_get_protocol_id(account)))->send_attention) != NULL) : NO);

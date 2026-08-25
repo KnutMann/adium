@@ -109,12 +109,20 @@ static NSString *const AIWKContextMenuScript =
 	@"                }\n"
 	@"            }\n"
 	@"        }\n"
+	@"        var messageId = null;\n"
+	@"        var mnode = event.target;\n"
+	@"        if (mnode && mnode.nodeType === 3) mnode = mnode.parentNode;\n"
+	@"        if (mnode && mnode.closest) {\n"
+	@"            var wrap = mnode.closest('[data-x-adium-id]');\n"
+	@"            if (wrap) messageId = wrap.getAttribute('data-x-adium-id');\n"
+	@"        }\n"
 	@"        window.webkit.messageHandlers.adium.postMessage({\n"
 	@"            type: 'contextMenu',\n"
 	@"            x: event.clientX,\n"
 	@"            y: event.clientY,\n"
 	@"            imageURL: imageURL,\n"
-	@"            messageText: messageText\n"
+	@"            messageText: messageText,\n"
+	@"            messageId: messageId\n"
 	@"        });\n"
 	@"    }, false);\n"
 	@"})();\n";
@@ -224,8 +232,8 @@ static NSString *const AIWKContextMenuScript =
 - (void)_appendContentWithScript:(NSString *)js shouldScroll:(BOOL)shouldScroll;
 - (void)_drainStoredContentObjects;
 - (void)_handleFileTransferAction:(NSString *)action fileTransferID:(NSString *)fileTransferID;
-- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText;
-- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText;
+- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText messageId:(NSString *)messageId;
+- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText messageId:(NSString *)messageId;
 - (NSString *)_replyTokenForMessageText:(NSString *)messageText;
 - (void)replyToMessage:(id)sender;
 - (AIMessageEntryTextView *)_messageEntryTextViewInView:(NSView *)view;
@@ -253,6 +261,12 @@ static NSString *const AIWKContextMenuScript =
 - (void)participatingListObjectsChanged:(NSNotification *)notification;
 - (void)sourceOrDestinationChanged:(NSNotification *)notification;
 - (void)listObjectAttributesChanged:(NSNotification *)notification;
+@end
+
+/* Sending a reaction is a jabber-only method on the purple account; declare it so this file can name
+ * the selector, gated at the call site by -respondsToSelector:. */
+@interface AIAccount (AIReactionSending)
+- (void)sendReaction:(NSArray *)emojis toMessageId:(NSString *)messageId inChat:(AIChat *)chat;
 @end
 
 @implementation AIWebKitMessageViewWKController
@@ -526,7 +540,8 @@ static NSString *const AIWKContextMenuScript =
 
 		[self _presentContextMenuAtClientPoint:NSMakePoint(contextMenuMessage.x, contextMenuMessage.y)
 								imageURLString:contextMenuMessage.imageURLString
-								   messageText:contextMenuMessage.messageText];
+								   messageText:contextMenuMessage.messageText
+									 messageId:contextMenuMessage.messageId];
 	}
 }
 
@@ -657,7 +672,7 @@ static NSString *const AIWKContextMenuScript =
 
 #pragma mark - Context Menu
 
-- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText
+- (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText messageId:(NSString *)messageId
 {
 	if (![self allowsContextMenu]) {
 		return;
@@ -674,14 +689,41 @@ static NSString *const AIWKContextMenuScript =
 	NSView *contentView = [window contentView];
 	NSPoint location = [_webView convertPoint:NSMakePoint(clientPoint.x, flippedY) toView:contentView];
 
-	NSMenu *menu = [self _contextMenuForImageURLString:imageURLString messageText:messageText];
+	NSMenu *menu = [self _contextMenuForImageURLString:imageURLString messageText:messageText messageId:messageId];
 	[menu popUpMenuPositioningItem:nil atLocation:location inView:contentView];
 }
 
-- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText
+- (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText messageId:(NSString *)messageId
 {
 	NSMenu *menu = [[NSMenu alloc] init];
 	NSMenuItem *menuItem;
+
+	/* A message that carries a protocol id can be reacted to. Only jabber threads an id onto its
+	 * messages so far, so an id present means a jabber message; offer a short set of reactions and
+	 * a way to take one back. Sending replaces our set, XEP-0444 style. */
+	if ([messageId length]) {
+		NSMenu *reactMenu = [[NSMenu alloc] init];
+
+		for (NSString *emoji in @[@"\U0001F44D", @"❤️", @"\U0001F602", @"\U0001F62E", @"\U0001F622", @"\U0001F64F"]) {
+			NSMenuItem *emojiItem = [[NSMenuItem alloc] initWithTitle:emoji action:@selector(reactToMessage:) keyEquivalent:@""];
+			[emojiItem setTarget:self];
+			[emojiItem setRepresentedObject:@{ @"MessageId": messageId, @"Emoji": emoji }];
+			[reactMenu addItem:emojiItem];
+		}
+		[reactMenu addItem:[NSMenuItem separatorItem]];
+
+		NSMenuItem *removeItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Remove Reaction", nil)
+														   action:@selector(reactToMessage:)
+													keyEquivalent:@""];
+		[removeItem setTarget:self];
+		[removeItem setRepresentedObject:@{ @"MessageId": messageId, @"Emoji": @"" }];
+		[reactMenu addItem:removeItem];
+
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"React", nil) action:NULL keyEquivalent:@""];
+		[menuItem setSubmenu:reactMenu];
+		[menu addItem:menuItem];
+		[menu addItem:[NSMenuItem separatorItem]];
+	}
 
 	/* WhatsApp can reply to (quote) a specific message: the prpl accepts
 	 * "?reply <token> <text>" and resolves the token against its recent
@@ -1657,33 +1699,44 @@ static NSString *const AIWKContextMenuScript =
  */
 - (void)messageReactionsChanged:(NSNotification *)notification
 {
-	if ([notification object] != _chat || !_webView) return;
+	if ([notification object] != _chat) return;
 
-	NSString	*messageId = [[notification userInfo] objectForKey:@"MessageId"];
-	NSArray		*reactions = [[notification userInfo] objectForKey:@"Reactions"];
-	if (![messageId length]) return;
+	[self _setReactions:[[notification userInfo] objectForKey:@"Reactions"]
+			  forSender:@"them"
+			onMessageId:[[notification userInfo] objectForKey:@"MessageId"]];
+}
 
-	NSData		*json = [NSJSONSerialization dataWithJSONObject:(reactions ?: @[]) options:0 error:NULL];
-	NSString	*reactionsLiteral = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"[]";
+/*!
+ * @brief Put one side's set of reactions on a message, replacing that side's previous chips
+ *
+ * A message can carry reactions from either side, so each chip remembers whose it is and setting
+ * one side's leaves the other's alone. XEP-0444 sends the whole set each time, so an empty set
+ * clears that side's chips. The message is matched by the id on its wrapper.
+ */
+- (void)_setReactions:(NSArray *)reactions forSender:(NSString *)sender onMessageId:(NSString *)messageId
+{
+	if (![messageId length] || !_webView) return;
+
+	NSData	 *json = [NSJSONSerialization dataWithJSONObject:(reactions ?: @[]) options:0 error:NULL];
+	NSString *reactionsLiteral = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"[]";
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
-		@" var id=%@, reactions=%@;"
+		@" var id=%@, sender=%@, reactions=%@;"
 		@" var nodes=document.querySelectorAll('[data-x-adium-id]'), el=null;"
 		@" for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute('data-x-adium-id')===id){ el=nodes[i]; break; } }"
 		@" if(!el) return;"
-		@" var old=el.querySelector('.x-adium-reactions'); if(old) old.parentNode.removeChild(old);"
-		@" if(reactions && reactions.length){"
-		@"  var box=document.createElement('span'); box.className='x-adium-reactions';"
-		@"  box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;';"
-		@"  for(var j=0;j<reactions.length;j++){"
-		@"   var chip=document.createElement('span'); chip.className='x-adium-reaction'; chip.textContent=reactions[j];"
-		@"   chip.style.cssText='display:inline-block;font-size:0.85em;line-height:1.4;padding:0 0.35em;margin-inline-end:0.2em;border:1px solid rgba(128,128,128,0.45);border-radius:0.8em;';"
-		@"   box.appendChild(chip);"
-		@"  }"
-		@"  el.appendChild(box);"
+		@" var box=el.querySelector('.x-adium-reactions');"
+		@" if(!box){ box=document.createElement('span'); box.className='x-adium-reactions'; box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;'; el.appendChild(box); }"
+		@" var mine=box.querySelectorAll('.x-adium-reaction[data-sender=\"'+sender+'\"]');"
+		@" for(var k=0;k<mine.length;k++) mine[k].parentNode.removeChild(mine[k]);"
+		@" for(var j=0;j<reactions.length;j++){"
+		@"  var chip=document.createElement('span'); chip.className='x-adium-reaction'; chip.setAttribute('data-sender',sender); chip.textContent=reactions[j];"
+		@"  chip.style.cssText='display:inline-block;font-size:0.85em;line-height:1.4;padding:0 0.35em;margin-inline-end:0.2em;border:1px solid rgba(128,128,128,0.45);border-radius:0.8em;';"
+		@"  box.appendChild(chip);"
 		@" }"
+		@" if(!box.children.length) box.parentNode.removeChild(box);"
 		@"})()",
-		[self _jsStringLiteral:messageId], reactionsLiteral];
+		[self _jsStringLiteral:messageId], [self _jsStringLiteral:sender], reactionsLiteral];
 
 	[_webView evaluateJavaScript:js
 			   completionHandler:^(id result, NSError *error) {
@@ -1691,6 +1744,27 @@ static NSString *const AIWKContextMenuScript =
 					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
 				   }
 			   }];
+}
+
+/*!
+ * @brief Send a reaction to the right-clicked message and show it at once
+ *
+ * A reaction we send is not echoed back to us, so it is shown here rather than waited for. The
+ * sender's represented object carries the target message's id and the emoji ("" to take it back).
+ */
+- (void)reactToMessage:(id)sender
+{
+	NSDictionary	*info = [sender representedObject];
+	NSString		*messageId = [info objectForKey:@"MessageId"];
+	NSString		*emoji = [info objectForKey:@"Emoji"];
+	if (![messageId length]) return;
+
+	NSArray *emojis = [emoji length] ? @[emoji] : @[];
+
+	if ([_chat.account respondsToSelector:@selector(sendReaction:toMessageId:inChat:)])
+		[(id)_chat.account sendReaction:emojis toMessageId:messageId inChat:_chat];
+
+	[self _setReactions:emojis forSender:@"me" onMessageId:messageId];
 }
 
 /*!

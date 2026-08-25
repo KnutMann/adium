@@ -433,6 +433,7 @@ void jabber_set_chat_marker_cb(jabber_chat_marker_cb cb);
 typedef void (*jabber_reactions_cb)(PurpleConnection *gc, const char *from,
 									const char *target_id, GList *emojis);
 void jabber_set_reactions_cb(jabber_reactions_cb cb);
+void jabber_reactions_send(void *js, const char *to, const char *target_id, GList *emojis);
 typedef void (*jabber_message_id_cb)(PurpleConnection *gc, const char *from, const char *id);
 void jabber_set_message_id_cb(jabber_message_id_cb cb);
 typedef void (*jabber_outgoing_message_id_cb)(PurpleConnection *gc, const char *to, const char *id);
@@ -578,6 +579,28 @@ static void adiumJabberOutgoingMessageId(PurpleConnection *gc, const char *to, c
 		if (pendingOutgoingContentMessage && msgid && ![pendingOutgoingContentMessage messageId])
 			pendingOutgoingContentMessage.messageId = [NSString stringWithUTF8String:msgid];
 	}
+}
+
+void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis)
+{
+	if (!account || !to || !target_id) return;
+
+	/* Only the jabber plugin speaks XEP-0444; on anything else the connection's protocol data is
+	 * not a JabberStream and must not be handed to it. */
+	const char *protocol = purple_account_get_protocol_id(account);
+	if (!protocol || strcmp(protocol, "prpl-jabber") != 0) return;
+
+	PurpleConnection	*gc = purple_account_get_connection(account);
+	void				*js = gc ? purple_connection_get_protocol_data(gc) : NULL;
+	if (!js) return;
+
+	GList *list = NULL;
+	for (NSString *emoji in emojis) {
+		if ([emoji length]) list = g_list_append(list, g_strdup([emoji UTF8String]));
+	}
+
+	jabber_reactions_send(js, to, target_id, list);
+	g_list_free_full(list, g_free);
 }
 
 void configureAdiumPurpleSignals(void)

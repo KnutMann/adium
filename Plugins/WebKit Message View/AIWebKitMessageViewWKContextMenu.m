@@ -103,6 +103,12 @@ AIWKContextMenuMessage AIWKContextMenuMessageFromBody(id body)
 		imageURLString = nil;
 	}
 
+	NSString *messageId = [dict objectForKey:@"messageId"];
+	if (![messageId isKindOfClass:[NSString class]] || [messageId length] == 0) {
+		messageId = nil;
+	}
+	message.messageId = messageId;
+
 	message.x = [clientX doubleValue];
 	message.y = [clientY doubleValue];
 	message.imageURLString = imageURLString;

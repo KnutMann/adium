@@ -28,6 +28,8 @@ typedef struct {
 	NSString *imageURLString;
 	/// Plain text of the message block that was right-clicked, or nil; capped at 400 characters.
 	NSString *messageText;
+	/// The protocol id of the message that was right-clicked, or nil; used to react to it.
+	NSString *messageId;
 	/// YES when the body is a well-formed contextMenu message; see AIWKContextMenuMessageFromBody.
 	BOOL valid;
 } AIWKContextMenuMessage;
