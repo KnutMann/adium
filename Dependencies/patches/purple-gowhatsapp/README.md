@@ -16,6 +16,13 @@ purpose branches were pushed. The combined branch these changes now live on is l
 A series of commits (git counts them, this text will not), all of them adjustments to what suits a Cocoa frontend rather than corrections to
 upstream's own behaviour, with one exception noted last.
 
+**Two of the commits are meant for upstream.** "Forward incoming receipts and
+sent-message ids." and "Emit reactions and message ids as purple signals." exist
+as clean branches `receipt-signals` and `reaction-signals` on the upstream base,
+prepared as pull requests to hoehermann/purple-gowhatsapp; Adium consumes their
+signals in `Plugins/Purple Service/adiumPurpleWhatsApp.m`. Once they are merged
+upstream, they leave this patch and the base revision moves forward.
+
 **Reactions, inline media, voice notes, display names.** The largest of them. Voice notes arrive as
 Ogg/Opus, which WebKit will not play, so they are decoded to WAV next to the temporary file and
 announced as a link the message view turns into a player. Adium renders media itself, so images are

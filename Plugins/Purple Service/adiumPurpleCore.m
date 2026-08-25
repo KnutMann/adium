@@ -29,6 +29,7 @@
 #import "adiumPurpleRoomlist.h"
 #import "adiumPurpleSignals.h"
 #import "adiumPurpleCarbons.h"
+#import "adiumPurpleWhatsApp.h"
 #import "adiumPurpleCSI.h"
 #import "adiumPurpleBookmarks.h"
 #import "adiumPurpleCertificateTrustWarning.h"
@@ -235,6 +236,7 @@ static void adiumPurpleCoreUiInit(void)
 	configureAdiumPurpleCarbons();
 	configureAdiumPurpleCSI();
 	configureAdiumPurpleBookmarks();
+	configureAdiumPurpleWhatsApp();
 	
 	//Associate each libpurple account with the appropriate Adium AIAccount.
 	associateLibpurpleAccounts();

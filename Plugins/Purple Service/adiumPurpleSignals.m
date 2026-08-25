@@ -576,16 +576,20 @@ NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *
 	return msgid;
 }
 
-static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from, const char *msgid)
+void adiumStashPendingIncomingMessageId(PurpleAccount *account, const char *from, const char *msgid)
 {
 	@autoreleasepool {
-		PurpleAccount *account = purple_connection_get_account(gc);
 		if (!account || !from || !msgid) return;
 
 		if (!pendingIncomingMessageIds) pendingIncomingMessageIds = [[NSMutableDictionary alloc] init];
 		[pendingIncomingMessageIds setObject:[NSString stringWithUTF8String:msgid]
 									  forKey:pendingMessageIdKey(account, from)];
 	}
+}
+
+static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from, const char *msgid)
+{
+	adiumStashPendingIncomingMessageId(purple_connection_get_account(gc), from, msgid);
 }
 
 /* The same brief hand-off for a room message, keyed only by account: a room delivers one message at
@@ -604,16 +608,20 @@ NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account)
 	return msgid;
 }
 
-static void adiumJabberIncomingGroupchatMessageId(PurpleConnection *gc, const char *msgid)
+void adiumStashPendingIncomingGroupchatMessageId(PurpleAccount *account, const char *msgid)
 {
 	@autoreleasepool {
-		PurpleAccount *account = purple_connection_get_account(gc);
 		if (!account || !msgid) return;
 
 		if (!pendingIncomingGroupchatIds) pendingIncomingGroupchatIds = [[NSMutableDictionary alloc] init];
 		[pendingIncomingGroupchatIds setObject:[NSString stringWithUTF8String:msgid]
 										forKey:[NSString stringWithFormat:@"%p", (void *)account]];
 	}
+}
+
+static void adiumJabberIncomingGroupchatMessageId(PurpleConnection *gc, const char *msgid)
+{
+	adiumStashPendingIncomingGroupchatMessageId(purple_connection_get_account(gc), msgid);
 }
 
 /* A message we send is handed to the account synchronously, and the id is minted deeper down in the

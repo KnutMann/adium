@@ -26,6 +26,11 @@ NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *
  * id a reaction in the room names. Keyed by account only, since a room delivers one at a time. */
 NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account);
 
+/* Fill the two stashes above. Any protocol whose incoming path can name a message's id right
+ * before the conversation write may stash it here; the write callbacks take it out again. */
+void adiumStashPendingIncomingMessageId(PurpleAccount *account, const char *from, const char *msgid);
+void adiumStashPendingIncomingGroupchatMessageId(PurpleAccount *account, const char *msgid);
+
 @class AIContentMessage;
 
 /* Name the message an account is about to send, so the id minted during the send can be hung on it.

@@ -1,7 +1,7 @@
 From bb91ddd9b4bd3a5401a41365888abdc4dc05c6af Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 21:35:47 +0200
-Subject: [PATCH 01/11] Adium adaptations: reactions, inline media, voice
+Subject: [PATCH 01/13] Adium adaptations: reactions, inline media, voice
  decode, names
 
 - Message cache: default size 100 (was 0, so reactions never resolved)
@@ -642,7 +642,7 @@ index 0b265d7..c087d5a 100644
 From 0006fdf859721b123bc694fffa9db56bb57e5086 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:13:47 +0200
-Subject: [PATCH 02/11] Location messages as Apple Maps links; no buddies for
+Subject: [PATCH 02/13] Location messages as Apple Maps links; no buddies for
  group JIDs
 
 - LocationMessage/LiveLocationMessage were silently dropped; render
@@ -721,7 +721,7 @@ index 2adc92f..17f7c5b 100644
 From a7669168486d63e10430882d6af1ceb40b8c6eee Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:25:58 +0200
-Subject: [PATCH 03/11] Auto-download documents and announce them with a file
+Subject: [PATCH 03/13] Auto-download documents and announce them with a file
  link
 
 Non-image, non-voice, non-video attachments download straight to the
@@ -808,7 +808,7 @@ index 47b1b89..d1a4952 100644
 From 606bfd39a5a6dd543d2fe3e0565b97ed83ffc5f7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:41:52 +0200
-Subject: [PATCH 04/11] Download profile pictures in full resolution by default
+Subject: [PATCH 04/13] Download profile pictures in full resolution by default
 
 The get-icons option defaulted to "no", so contact and chat window
 icons stayed empty; default to "original" everywhere (option list,
@@ -870,7 +870,7 @@ index 38a4281..f80b278 100644
 From a6aac04b8bb05a715e143a1c73ab5480d7f335b8 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 00:22:04 +0200
-Subject: [PATCH 05/11] Raise message cache default to 500
+Subject: [PATCH 05/13] Raise message cache default to 500
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ---
@@ -911,7 +911,7 @@ index fb5aef7..ab562a6 100644
 From aa133c032ca8124f364424bd5a07a4435efbceae Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 23:11:34 +0200
-Subject: [PATCH 06/11] Inline images of all types by default
+Subject: [PATCH 06/13] Inline images of all types by default
 
 Adium renders images in its message view rather than through a pixbuf
 loader, so the frontend support the upstream option asks about is
@@ -941,7 +941,7 @@ index 051f478..205e4ca 100644
 From e0eee9ee74ec4058bd0ba24c33408829ba1321c7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 14:12:32 +0200
-Subject: [PATCH 07/11] Attribute a sent picture to the sender, not to the
+Subject: [PATCH 07/13] Attribute a sent picture to the sender, not to the
  conversation
 
 The inline echo of an outgoing image passed the transfer's "who" as both the
@@ -1003,7 +1003,7 @@ index 64fe571..b62ef57 100644
 From 27bfce19a7cca2c342b4d5725e2616d959ff09d1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 17:14:00 +0200
-Subject: [PATCH 08/11] Match the Signal plug-in's device linking dialog
+Subject: [PATCH 08/13] Match the Signal plug-in's device linking dialog
 
 Same title, same wording, same buttons, and no raw QR payload: it is not
 something to type anywhere, it is the bytes the camera is about to read.
@@ -1074,7 +1074,7 @@ index 6b67c02..78c9f0b 100644
 From 3b3a989bd9dd7b686622db6ee9447680af0ce924 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 20:29:12 +0200
-Subject: [PATCH 09/11] Give a group chat its picture, on the node rather than
+Subject: [PATCH 09/13] Give a group chat its picture, on the node rather than
  on a buddy
 
 Contacts have had pictures all along and groups have not, because the only
@@ -1221,7 +1221,7 @@ index 9de9fdf..fc71358 100644
 From d6c419e38911dcddd12edf0a4e1c86ea6cb9ac93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Sun, 16 Aug 2026 00:52:07 +0200
-Subject: [PATCH 10/11] Keep a profile picture at the resolution that was asked
+Subject: [PATCH 10/13] Keep a profile picture at the resolution that was asked
  for
 
 Two faults, one of them ours.
@@ -1349,7 +1349,7 @@ index f80b278..318f744 100644
 From 3200a4b21f6b8a6420287d8925d6e041558b0e93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 19 Aug 2026 16:35:39 +0200
-Subject: [PATCH 11/11] Resolve WhatsApp business account names
+Subject: [PATCH 11/13] Resolve WhatsApp business account names
 
 Business accounts often carry no push name; whatsmeow delivers their verified
 name instead, both as a field on every message and as a BusinessName event when
@@ -1411,6 +1411,723 @@ index 28f68e1..2b14e0c 100644
  	default:
  		log.Warnf("Event type not handled: %#v", rawEvt)
  	}
+-- 
+2.50.1 (Apple Git-155)
+
+
+From d31ba408a3ab9f38c40e2dfc4dc6f35f669a4272 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 00:35:03 +0200
+Subject: [PATCH 12/13] Forward incoming receipts and sent-message ids.
+
+Incoming events.Receipt used to be logged and dropped. Now every receipt
+is handed to the purple part as a new receipt message type, one call per
+message ID (their order is platform dependent), with the same LID to
+phone number mapping the message path applies. Successful sends report a
+"sent" receipt carrying the ID the server assigned, since without it a
+consumer could never match a later delivered or read receipt to the
+message it confirms. The C part always emits the registered
+"gowhatsapp-receipt" signal with a hash table of the details, so
+front-ends and plug-ins can draw ticks; behind the new receipt-display
+account option (off by default) a read receipt is also shown as a system
+message in the conversation window, as suggested by the README's planned
+features list.
+---
+ bridge.go              | 19 +++++++++++++++
+ bridge.h               | 18 ++++++++++++++
+ constants.h            |  7 ++++++
+ docs/SETTINGS.md       |  6 +++++
+ glue/gowhatsapp.h      | 12 ++++++++++
+ glue/init.c            |  6 +++++
+ glue/options.c         | 12 ++++++++++
+ glue/process_message.c |  3 +++
+ glue/receipt.c         | 46 +++++++++++++++++++++++++++++++++++
+ handle_receipt.go      | 54 ++++++++++++++++++++++++++++++++++++++++++
+ handler.go             |  6 +----
+ send_file.go           |  1 +
+ send_message.go        |  2 ++
+ 13 files changed, 187 insertions(+), 5 deletions(-)
+ create mode 100644 handle_receipt.go
+
+diff --git a/bridge.go b/bridge.go
+index 1b5cbf3..7272a62 100644
+--- a/bridge.go
++++ b/bridge.go
+@@ -450,6 +450,25 @@ func purple_display_text_message(account *PurpleAccount, remoteJid string, isGro
+ 	C.gowhatsapp_process_message_bridge(cmessage)
+ }
+ 
++/*
++ * This hands a receipt to the C part: one station of one message's life
++ * (sent, delivered, read, read_self – see gowhatsapp_receipt_type).
++ * One call per message ID, since a single receipt event may confirm many messages.
++ */
++func purple_receipt(account *PurpleAccount, chat string, sender string, isGroup bool, timestamp time.Time, receiptType C.char, messageId string) {
++	cmessage := C.struct_gowhatsapp_message{
++		account:   account,
++		msgtype:   C.char(C.gowhatsapp_message_type_receipt),
++		subtype:   receiptType,
++		remoteJid: C.CString(chat),
++		senderJid: C.CString(sender),
++		messageId: C.CString(messageId),
++		timestamp: C.time_t(timestamp.Unix()),
++		isGroup:   bool_to_Cchar(isGroup),
++	}
++	C.gowhatsapp_process_message_bridge(cmessage)
++}
++
+ /*
+  * This will display a system message.
+  * For soft errors regarding a specific conversation.
+diff --git a/bridge.h b/bridge.h
+index ec97e45..786c9be 100644
+--- a/bridge.h
++++ b/bridge.h
+@@ -26,6 +26,7 @@
+     MESSAGE_TYPE(attachment) \
+     MESSAGE_TYPE(profile_picture) \
+     MESSAGE_TYPE(group) \
++    MESSAGE_TYPE(receipt) \
+     MESSAGE_TYPE(max) \
+ 
+ #define GENERATE_MESSAGE_ENUM(ENUM) gowhatsapp_message_type_##ENUM,
+@@ -49,6 +50,23 @@ enum gowhatsapp_attachment_type {
+     FOREACH_ATTACHMENT_TYPE(GENERATE_ATTACHMENT_ENUM)
+ };
+ 
++// The stations of a message's life, mirroring the ticks in the official client:
++// sent is this instance's own message having reached the server (the id becomes known here),
++// delivered and read are the remote end confirming, read_self is another device of this
++// account having read an incoming message.
++#define FOREACH_RECEIPT_TYPE(RECEIPT_TYPE) \
++    RECEIPT_TYPE(sent) \
++    RECEIPT_TYPE(delivered) \
++    RECEIPT_TYPE(read) \
++    RECEIPT_TYPE(read_self) \
++    RECEIPT_TYPE(max) \
++
++#define GENERATE_RECEIPT_ENUM(ENUM) gowhatsapp_receipt_type_##ENUM,
++
++enum gowhatsapp_receipt_type {
++    FOREACH_RECEIPT_TYPE(GENERATE_RECEIPT_ENUM)
++};
++
+ // Structure to communicate go → purple.
+ // This holds all data for incoming messages, error messages, login data, etc.
+ // NOTE: If the cgo and gcc compilers disagree on padding or alignment, chaos will ensue.
+diff --git a/constants.h b/constants.h
+index 0db48da..5af0980 100644
+--- a/constants.h
++++ b/constants.h
+@@ -47,6 +47,7 @@ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_PATH_TEMPLATE_DEFAULT, "");
+ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_URL_TEMPLATE_OPTION, "attachment-url-template");
+ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_URL_TEMPLATE_DEFAULT, "");
+ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_SYMLINK_OPTION, "attachment-symlink");
++CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_OPTION, "receipt-display");
+ 
+ /*
+  * Choices for GOWHATSAPP_SEND_RECEIPT_OPTION.
+@@ -56,6 +57,12 @@ CHARCONSTANT(GOWHATSAPP_SEND_RECEIPT_CHOICE_ON_INTERACT, "on-interact");
+ CHARCONSTANT(GOWHATSAPP_SEND_RECEIPT_CHOICE_ON_ANSWER, "on-answer");
+ CHARCONSTANT(GOWHATSAPP_SEND_RECEIPT_CHOICE_NEVER, "never");
+ 
++/*
++ * Choices for GOWHATSAPP_RECEIPT_DISPLAY_OPTION.
++ */
++CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_NONE, "none");
++CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_TEXT, "text");
++
+ /*
+  * Choices for GOWHATSAPP_HANDLE_IMAGES_OPTION.
+  */
+diff --git a/docs/SETTINGS.md b/docs/SETTINGS.md
+index f9b0bd9..797f456 100644
+--- a/docs/SETTINGS.md
++++ b/docs/SETTINGS.md
+@@ -23,6 +23,12 @@
+     * `on-answer`: as soon as the user sends an answer (default)
+     * `never`: never
+   
++* `receipt-display` string choice  
++  Selects how receipts received for own sent messages are shown:
++  
++    * `none`: not at all (default). Front-ends and plug-ins can still draw them by listening to the `gowhatsapp-receipt` signal.
++    * `text`: a read receipt appears as a system message in the conversation window (can be chatty when many messages are read at once)
++  
+ * `message-cache-size` int  
+   Stores a number (default: 0) of messages in local volatile memory. Cached messages are used to provide context when displaying reactions or quoting the message while replying to a specific message. See the [notes](./NOTES.md) for details on how to use the reply feature.  
+   Note: Cached messages are persisted to the purple home directory as `username.json`.
+diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
+index 2abca71..846fa62 100644
+--- a/glue/gowhatsapp.h
++++ b/glue/gowhatsapp.h
+@@ -4,6 +4,17 @@
+ #define GOWHATSAPP_NAME "whatsmeow"  // name to refer to this plug-in (in logs)
+ #define GOWHATSAPP_PRPL_ID "prpl-hehoe-whatsmeow"
+ 
++/*
++ * Signal emitted on the protocol plug-in (find it via purple_find_prpl or
++ * purple_connection_get_prpl) whenever a receipt comes in: a message was sent
++ * by this instance, delivered to the remote end, read there, or read by
++ * another device of this account. Arguments: the PurpleConnection and a
++ * GHashTable of borrowed strings with the keys
++ * chat, sender, id, type (a gowhatsapp_receipt_type name), isGroup ("0"/"1"),
++ * timestamp (seconds since the epoch, as decimal string).
++ */
++#define GOWHATSAPP_SIGNAL_RECEIPT "gowhatsapp-receipt"
++
+ #define GOWHATSAPP_STATUS_STR_AVAILABLE "available" // this must match whatsmeow's types.PresenceAvailable
+ #define GOWHATSAPP_STATUS_STR_AWAY      "unavailable" // this must match whatsmeow's types.PresenceUnavailable
+ #define GOWHATSAPP_STATUS_STR_OFFLINE   "offline"
+@@ -91,6 +102,7 @@ void gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg);
+ 
+ // receipts
+ void gowhatsapp_receipts_init(PurpleConnection *pc);
++void gowhatsapp_handle_receipt(PurpleConnection *pc, gowhatsapp_message_t *gwamsg);
+ 
+ // commands
+ enum gowhatsapp_command {
+diff --git a/glue/init.c b/glue/init.c
+index 5db04f0..6871df4 100644
+--- a/glue/init.c
++++ b/glue/init.c
+@@ -94,6 +94,11 @@ static GList * actions(PurplePlugin *plugin, gpointer context) {
+ static gboolean
+ libpurple2_plugin_load(PurplePlugin *plugin)
+ {
++    // see the GOWHATSAPP_SIGNAL_RECEIPT comment in gowhatsapp.h for the semantics
++    purple_signal_register(plugin, GOWHATSAPP_SIGNAL_RECEIPT,
++        purple_marshal_VOID__POINTER_POINTER, NULL, 2,
++        purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONNECTION),
++        purple_value_new(PURPLE_TYPE_POINTER));
+     return TRUE;
+ }
+ 
+@@ -101,6 +106,7 @@ static gboolean
+ libpurple2_plugin_unload(PurplePlugin *plugin)
+ {
+     purple_signals_disconnect_by_handle(plugin);
++    purple_signals_unregister_by_instance(plugin);
+     return TRUE;
+ }
+ 
+diff --git a/glue/options.c b/glue/options.c
+index 205e4ca..44e8dcf 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -44,6 +44,18 @@ gowhatsapp_add_account_options(GList *account_options)
+         );
+         account_options = g_list_append(account_options, option);
+     }
++
++    {
++        GList *choices = NULL;
++        choices = add_choice(choices, "None", GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_NONE);
++        choices = add_choice(choices, "Text", GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_TEXT);
++        option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
++            "Display received receipts",
++            GOWHATSAPP_RECEIPT_DISPLAY_OPTION,
++            choices
++        );
++        account_options = g_list_append(account_options, option);
++    }
+     
+     {
+         GList *choices = NULL;
+diff --git a/glue/process_message.c b/glue/process_message.c
+index fc71358..9c45ec0 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -147,6 +147,9 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+         case gowhatsapp_message_type_group:
+             gowhatsapp_handle_group(pc, gwamsg);
+             break;
++        case gowhatsapp_message_type_receipt:
++            gowhatsapp_handle_receipt(pc, gwamsg);
++            break;
+         default:
+             purple_debug_info(GOWHATSAPP_NAME, "Handling this message type is not implemented.\n");
+             g_free(gwamsg->blob);
+diff --git a/glue/receipt.c b/glue/receipt.c
+index 8969a79..04ded75 100644
+--- a/glue/receipt.c
++++ b/glue/receipt.c
+@@ -31,6 +31,52 @@ static void conversation_updated(PurpleConversation *conv, PurpleConversationUpd
+ /*
+  * This registers a call-back: This prpl shall be notified every time a conversation is updated.
+  */
++/*
++ * An incoming receipt: one station of one message's life (sent, delivered,
++ * read, read_self – see gowhatsapp_receipt_type in bridge.h).
++ *
++ * libpurple has no native concept of receipts, so this is offered two ways:
++ * the GOWHATSAPP_SIGNAL_RECEIPT signal always fires, with a string-to-string
++ * hash table of the details, for front-ends and plug-ins that can draw ticks
++ * themselves; and behind the receipt-display account option (off by default)
++ * the read receipt is shown as a system message in the conversation window.
++ */
++void
++gowhatsapp_handle_receipt(PurpleConnection *pc, gowhatsapp_message_t *gwamsg) {
++    static const char *receipt_type_names[] = { FOREACH_RECEIPT_TYPE(GENERATE_STRING) };
++    if (gwamsg->subtype < 0 || gwamsg->subtype >= gowhatsapp_receipt_type_max) {
++        purple_debug_info(GOWHATSAPP_NAME, "received invalid receipt type %d.\n", gwamsg->subtype);
++        return;
++    }
++
++    {
++        gchar *timestamp = g_strdup_printf("%ld", (long)gwamsg->timestamp);
++        GHashTable *details = g_hash_table_new(g_str_hash, g_str_equal); // MEMCHECK: values are borrowed, receivers must copy
++        g_hash_table_insert(details, "chat", gwamsg->remoteJid);
++        g_hash_table_insert(details, "sender", gwamsg->senderJid);
++        g_hash_table_insert(details, "id", gwamsg->messageId);
++        g_hash_table_insert(details, "type", (gpointer)receipt_type_names[(int)gwamsg->subtype]);
++        g_hash_table_insert(details, "isGroup", gwamsg->isGroup ? "1" : "0");
++        g_hash_table_insert(details, "timestamp", timestamp);
++        purple_signal_emit(purple_connection_get_prpl(pc), GOWHATSAPP_SIGNAL_RECEIPT, pc, details);
++        g_hash_table_destroy(details);
++        g_free(timestamp);
++    }
++
++    if (gwamsg->subtype == gowhatsapp_receipt_type_read) {
++        const char *setting = purple_account_get_string(gwamsg->account, GOWHATSAPP_RECEIPT_DISPLAY_OPTION, GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_NONE);
++        if (purple_strequal(setting, GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_TEXT)) {
++            PurpleConversation *conv = purple_find_conversation_with_account(
++                gwamsg->isGroup ? PURPLE_CONV_TYPE_CHAT : PURPLE_CONV_TYPE_IM,
++                gwamsg->remoteJid, gwamsg->account);
++            if (conv != NULL) {
++                purple_conversation_write(conv, NULL, "✓✓ Your message has been read.",
++                                          PURPLE_MESSAGE_SYSTEM | PURPLE_MESSAGE_NO_LOG, time(NULL));
++            }
++        }
++    }
++}
++
+ void
+ gowhatsapp_receipts_init(PurpleConnection *pc) {
+     if (!conversation_updated_signal) {
+diff --git a/handle_receipt.go b/handle_receipt.go
+new file mode 100644
+index 0000000..05cb8f3
+--- /dev/null
++++ b/handle_receipt.go
+@@ -0,0 +1,54 @@
++package main
++
++/*
++#include "bridge.h"
++*/
++import "C"
++
++import (
++	"go.mau.fi/whatsmeow"
++	"go.mau.fi/whatsmeow/types"
++	"go.mau.fi/whatsmeow/types/events"
++)
++
++/*
++ * Forwards an incoming receipt to the purple part, one call per message ID
++ * (a single event may confirm many messages, and their order is platform
++ * dependent, so no order is implied).
++ *
++ * Only the receipt types a conversation window can meaningfully show are
++ * forwarded: delivered, read and read-self. Retry and played receipts are
++ * of no use to a chat UI and are dropped here.
++ */
++func (handler *Handler) handle_receipt(evt *events.Receipt) {
++	var receiptType C.char
++	switch evt.Type {
++	case types.ReceiptTypeDelivered:
++		receiptType = C.char(C.gowhatsapp_receipt_type_delivered)
++	case types.ReceiptTypeRead:
++		receiptType = C.char(C.gowhatsapp_receipt_type_read)
++	case types.ReceiptTypeReadSelf:
++		receiptType = C.char(C.gowhatsapp_receipt_type_read_self)
++	default:
++		handler.log.Debugf("Ignoring receipt of type %s from %s.", evt.Type, evt.SourceString())
++		return
++	}
++	// same LID to phone number mapping the message path applies, else the JIDs
++	// in a receipt would not match the conversations they belong to
++	chat := handler.lidToPn(evt.Chat, "handling receipt chat")
++	sender := handler.lidToPn(evt.Sender, "handling receipt sender")
++	for _, id := range evt.MessageIDs {
++		purple_receipt(handler.account, chat.ToNonAD().String(), sender.ToNonAD().String(), evt.IsGroup, evt.Timestamp, receiptType, id)
++	}
++}
++
++/*
++ * Reports this instance's own message as sent (the first tick): the server has
++ * accepted it and assigned the ID all future receipts will refer to. Without
++ * this a consumer could never match a delivered or read receipt to the message
++ * it confirms.
++ */
++func (handler *Handler) receipt_sent(recipient types.JID, isGroup bool, send_response whatsmeow.SendResponse) {
++	ownJid := handler.client.Store.ID.ToNonAD().String()
++	purple_receipt(handler.account, recipient.ToNonAD().String(), ownJid, isGroup, send_response.Timestamp, C.char(C.gowhatsapp_receipt_type_sent), send_response.ID)
++}
+diff --git a/handler.go b/handler.go
+index 2b14e0c..bee12fd 100644
+--- a/handler.go
++++ b/handler.go
+@@ -103,11 +103,7 @@ func (handler *Handler) eventHandler(rawEvt interface{}) {
+ 	case *events.Message:
+ 		handler.handle_message(evt.Message, evt.Info, evt)
+ 	case *events.Receipt:
+-		if evt.Type == types.ReceiptTypeRead || evt.Type == types.ReceiptTypeReadSelf {
+-			log.Infof("%v was read by %s at %s", evt.MessageIDs, evt.SourceString(), evt.Timestamp)
+-		} else if evt.Type == types.ReceiptTypeDelivered {
+-			log.Infof("%s was delivered to %s at %s", evt.MessageIDs[0], evt.SourceString(), evt.Timestamp)
+-		}
++		handler.handle_receipt(evt)
+ 	case *events.Presence:
+ 		handler.handle_presence(evt)
+ 	case *events.ChatPresence:
+diff --git a/send_file.go b/send_file.go
+index 709d012..45f1053 100644
+--- a/send_file.go
++++ b/send_file.go
+@@ -81,6 +81,7 @@ func (handler *Handler) send_file_bytes(recipient types.JID, isGroup bool, data
+ 		return fmt.Errorf("error sending file: %v", err)
+ 	}
+ 	handler.add_to_cache(msg, send_response.ID, recipient, send_response.Sender, send_response.Timestamp)
++	handler.receipt_sent(recipient, recipient.Server == types.GroupServer, send_response)
+ 	return nil
+ }
+ 
+diff --git a/send_message.go b/send_message.go
+index c447251..a610632 100644
+--- a/send_message.go
++++ b/send_message.go
+@@ -120,6 +120,7 @@ func (handler *Handler) send_text_message(recipient types.JID, isGroup bool, mes
+ 			purple_display_text_message(handler.account, recipientJid, isGroup, true, ownJid, nil, send_response.Timestamp, message, &msgID)
+ 		}
+ 		handler.add_to_cache(msg, send_response.ID, recipient, send_response.Sender, send_response.Timestamp)
++		handler.receipt_sent(recipient, isGroup, send_response)
+ 		return true
+ 	}
+ }
+@@ -270,6 +271,7 @@ func (handler *Handler) send_link_message(recipient types.JID, isGroup bool, lin
+ 		purple_display_system_message(handler.account, recipient.ToNonAD().String(), isGroup, fmt.Sprintf("%s has been forwarded.", link)) // TODO: do not omit message ID in this particular case
+ 		msg.Conversation = &link                                                                                                           // hack to preserve link in cache
+ 		handler.add_to_cache(msg, send_response.ID, recipient, send_response.Sender, send_response.Timestamp)
++		handler.receipt_sent(recipient, isGroup, send_response)
+ 		return true
+ 	}
+ }
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 10620ebced0c5127d28a6479595e4ef2c88480a3 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 00:37:49 +0200
+Subject: [PATCH 13/13] Emit reactions and message ids as purple signals.
+
+An incoming reaction used to exist only as the rendered sentence
+"reacted with X to message Y", where Y falls back to "unknown message"
+for anything without text or outside the cache (issue #247). The reaction
+now also reaches the purple part structurally: a new reaction message
+type carries chat, sender, the id of the message it names and the emoji
+(empty when a reaction is removed), and the C part emits the registered
+"gowhatsapp-reaction" signal with a hash table of the details. To let a
+consumer resolve that id, the "gowhatsapp-message-id" signal fires right
+before any message is written into a conversation, since the conversation
+write APIs cannot carry an id themselves. The textual rendering stays the
+default; the new reaction-display account option can turn it off for
+front-ends that draw reactions from the signal instead.
+---
+ bridge.go              | 18 ++++++++++++++++++
+ bridge.h               |  1 +
+ constants.h            |  7 +++++++
+ docs/SETTINGS.md       |  6 ++++++
+ glue/CMakeLists.txt    |  1 +
+ glue/display_message.c | 19 ++++++++++++++++++-
+ glue/gowhatsapp.h      | 19 +++++++++++++++++++
+ glue/init.c            | 10 +++++++++-
+ glue/options.c         | 12 ++++++++++++
+ glue/process_message.c |  2 ++
+ glue/reaction.c        | 27 +++++++++++++++++++++++++++
+ handle_message.go      | 10 ++++++++++
+ 12 files changed, 130 insertions(+), 2 deletions(-)
+ create mode 100644 glue/reaction.c
+
+diff --git a/bridge.go b/bridge.go
+index 7272a62..a2503b8 100644
+--- a/bridge.go
++++ b/bridge.go
+@@ -469,6 +469,24 @@ func purple_receipt(account *PurpleAccount, chat string, sender string, isGroup
+ 	C.gowhatsapp_process_message_bridge(cmessage)
+ }
+ 
++/*
++ * This hands a reaction to the C part: sender put emoji onto the message
++ * identified by messageId. An empty emoji means the reaction was removed.
++ */
++func purple_reaction(account *PurpleAccount, chat string, isGroup bool, sender string, messageId string, emoji string, timestamp time.Time) {
++	cmessage := C.struct_gowhatsapp_message{
++		account:   account,
++		msgtype:   C.char(C.gowhatsapp_message_type_reaction),
++		remoteJid: C.CString(chat),
++		senderJid: C.CString(sender),
++		messageId: C.CString(messageId),
++		text:      C.CString(emoji),
++		timestamp: C.time_t(timestamp.Unix()),
++		isGroup:   bool_to_Cchar(isGroup),
++	}
++	C.gowhatsapp_process_message_bridge(cmessage)
++}
++
+ /*
+  * This will display a system message.
+  * For soft errors regarding a specific conversation.
+diff --git a/bridge.h b/bridge.h
+index 786c9be..3f307c0 100644
+--- a/bridge.h
++++ b/bridge.h
+@@ -27,6 +27,7 @@
+     MESSAGE_TYPE(profile_picture) \
+     MESSAGE_TYPE(group) \
+     MESSAGE_TYPE(receipt) \
++    MESSAGE_TYPE(reaction) \
+     MESSAGE_TYPE(max) \
+ 
+ #define GENERATE_MESSAGE_ENUM(ENUM) gowhatsapp_message_type_##ENUM,
+diff --git a/constants.h b/constants.h
+index 5af0980..5b7acef 100644
+--- a/constants.h
++++ b/constants.h
+@@ -48,6 +48,7 @@ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_URL_TEMPLATE_OPTION, "attachment-url-template
+ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_URL_TEMPLATE_DEFAULT, "");
+ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_SYMLINK_OPTION, "attachment-symlink");
+ CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_OPTION, "receipt-display");
++CHARCONSTANT(GOWHATSAPP_REACTION_DISPLAY_OPTION, "reaction-display");
+ 
+ /*
+  * Choices for GOWHATSAPP_SEND_RECEIPT_OPTION.
+@@ -63,6 +64,12 @@ CHARCONSTANT(GOWHATSAPP_SEND_RECEIPT_CHOICE_NEVER, "never");
+ CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_NONE, "none");
+ CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_CHOICE_TEXT, "text");
+ 
++/*
++ * Choices for GOWHATSAPP_REACTION_DISPLAY_OPTION.
++ */
++CHARCONSTANT(GOWHATSAPP_REACTION_DISPLAY_CHOICE_TEXT, "text");
++CHARCONSTANT(GOWHATSAPP_REACTION_DISPLAY_CHOICE_NONE, "none");
++
+ /*
+  * Choices for GOWHATSAPP_HANDLE_IMAGES_OPTION.
+  */
+diff --git a/docs/SETTINGS.md b/docs/SETTINGS.md
+index 797f456..2ac05c0 100644
+--- a/docs/SETTINGS.md
++++ b/docs/SETTINGS.md
+@@ -29,6 +29,12 @@
+     * `none`: not at all (default). Front-ends and plug-ins can still draw them by listening to the `gowhatsapp-receipt` signal.
+     * `text`: a read receipt appears as a system message in the conversation window (can be chatty when many messages are read at once)
+   
++* `reaction-display` string choice  
++  Selects how incoming reactions are shown:
++  
++    * `text`: as a plain message like "reacted with X to message Y" (default, previous behaviour)
++    * `none`: not at all. Front-ends and plug-ins can still draw them by listening to the `gowhatsapp-reaction` signal, which also resolves messages the textual rendering can only call "unknown".
++  
+ * `message-cache-size` int  
+   Stores a number (default: 0) of messages in local volatile memory. Cached messages are used to provide context when displaying reactions or quoting the message while replying to a specific message. See the [notes](./NOTES.md) for details on how to use the reply feature.  
+   Note: Cached messages are persisted to the purple home directory as `username.json`.
+diff --git a/glue/CMakeLists.txt b/glue/CMakeLists.txt
+index 4787101..9daab3a 100644
+--- a/glue/CMakeLists.txt
++++ b/glue/CMakeLists.txt
+@@ -17,6 +17,7 @@ add_library(${TARGET_NAME} SHARED
+     "presence.c"
+     "options.c"
+     "receipt.c"
++    "reaction.c"
+     "pixbuf.c"
+     "pixbuf.h"
+     "commands.c"
+diff --git a/glue/display_message.c b/glue/display_message.c
+index b48b265..d1e2358 100644
+--- a/glue/display_message.c
++++ b/glue/display_message.c
+@@ -65,7 +65,24 @@ void gowhatsapp_display_text_message(
+     }
+ 
+     g_free(escaped_text);
+-    
++
++    // Let consumers associate the conversation line that is about to appear with
++    // the protocol-level id later reactions refer to; the conversation write APIs
++    // below cannot carry it.
++    if (messageId != NULL && messageId[0] != 0 && connection != NULL) {
++        gchar *timestamp_string = g_strdup_printf("%ld", (long)timestamp);
++        GHashTable *details = g_hash_table_new(g_str_hash, g_str_equal); // MEMCHECK: values are borrowed, receivers must copy
++        g_hash_table_insert(details, "chat", (gpointer)remoteJid);
++        g_hash_table_insert(details, "sender", (gpointer)senderJid);
++        g_hash_table_insert(details, "id", (gpointer)messageId);
++        g_hash_table_insert(details, "isGroup", isGroup ? "1" : "0");
++        g_hash_table_insert(details, "isOutgoing", (flags & PURPLE_MESSAGE_SEND) ? "1" : "0");
++        g_hash_table_insert(details, "timestamp", timestamp_string);
++        purple_signal_emit(purple_connection_get_prpl(connection), GOWHATSAPP_SIGNAL_MESSAGE_ID, connection, details);
++        g_hash_table_destroy(details);
++        g_free(timestamp_string);
++    }
++
+     if (isGroup) {
+         gowhatsapp_enter_group_chat(connection, remoteJid, NULL);
+         purple_serv_got_chat_in(connection, g_str_hash(remoteJid), senderJid, flags, text_with_id, timestamp);
+diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
+index 846fa62..923669a 100644
+--- a/glue/gowhatsapp.h
++++ b/glue/gowhatsapp.h
+@@ -15,6 +15,22 @@
+  */
+ #define GOWHATSAPP_SIGNAL_RECEIPT "gowhatsapp-receipt"
+ 
++/*
++ * Two more signals with the same calling convention.
++ *
++ * GOWHATSAPP_SIGNAL_MESSAGE_ID fires right before a message is written into a
++ * conversation, so consumers can associate the line that is about to appear
++ * with the protocol-level id later reactions refer to. Keys:
++ * chat, sender, id, isGroup ("0"/"1"), isOutgoing ("0"/"1"),
++ * timestamp (seconds since the epoch, as decimal string).
++ *
++ * GOWHATSAPP_SIGNAL_REACTION fires when a reaction comes in: sender put emoji
++ * onto the message named by id, or took it back (empty emoji). Keys:
++ * chat, sender, id, emoji, isGroup ("0"/"1"), timestamp.
++ */
++#define GOWHATSAPP_SIGNAL_MESSAGE_ID "gowhatsapp-message-id"
++#define GOWHATSAPP_SIGNAL_REACTION "gowhatsapp-reaction"
++
+ #define GOWHATSAPP_STATUS_STR_AVAILABLE "available" // this must match whatsmeow's types.PresenceAvailable
+ #define GOWHATSAPP_STATUS_STR_AWAY      "unavailable" // this must match whatsmeow's types.PresenceUnavailable
+ #define GOWHATSAPP_STATUS_STR_OFFLINE   "offline"
+@@ -104,6 +120,9 @@ void gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg);
+ void gowhatsapp_receipts_init(PurpleConnection *pc);
+ void gowhatsapp_handle_receipt(PurpleConnection *pc, gowhatsapp_message_t *gwamsg);
+ 
++// reactions
++void gowhatsapp_handle_reaction(PurpleConnection *pc, gowhatsapp_message_t *gwamsg);
++
+ // commands
+ enum gowhatsapp_command {
+     GOWHATSAPP_COMMAND_NONE = 0,
+diff --git a/glue/init.c b/glue/init.c
+index 6871df4..c5a3189 100644
+--- a/glue/init.c
++++ b/glue/init.c
+@@ -94,11 +94,19 @@ static GList * actions(PurplePlugin *plugin, gpointer context) {
+ static gboolean
+ libpurple2_plugin_load(PurplePlugin *plugin)
+ {
+-    // see the GOWHATSAPP_SIGNAL_RECEIPT comment in gowhatsapp.h for the semantics
++    // see the GOWHATSAPP_SIGNAL_* comments in gowhatsapp.h for the semantics
+     purple_signal_register(plugin, GOWHATSAPP_SIGNAL_RECEIPT,
+         purple_marshal_VOID__POINTER_POINTER, NULL, 2,
+         purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONNECTION),
+         purple_value_new(PURPLE_TYPE_POINTER));
++    purple_signal_register(plugin, GOWHATSAPP_SIGNAL_MESSAGE_ID,
++        purple_marshal_VOID__POINTER_POINTER, NULL, 2,
++        purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONNECTION),
++        purple_value_new(PURPLE_TYPE_POINTER));
++    purple_signal_register(plugin, GOWHATSAPP_SIGNAL_REACTION,
++        purple_marshal_VOID__POINTER_POINTER, NULL, 2,
++        purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONNECTION),
++        purple_value_new(PURPLE_TYPE_POINTER));
+     return TRUE;
+ }
+ 
+diff --git a/glue/options.c b/glue/options.c
+index 44e8dcf..ad628a2 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -57,6 +57,18 @@ gowhatsapp_add_account_options(GList *account_options)
+         account_options = g_list_append(account_options, option);
+     }
+     
++    {
++        GList *choices = NULL;
++        choices = add_choice(choices, "Text", GOWHATSAPP_REACTION_DISPLAY_CHOICE_TEXT);
++        choices = add_choice(choices, "None", GOWHATSAPP_REACTION_DISPLAY_CHOICE_NONE);
++        option = purple_account_option_list_new( // MEMCHECK: account_options takes ownership
++            "Display reactions",
++            GOWHATSAPP_REACTION_DISPLAY_OPTION,
++            choices
++        );
++        account_options = g_list_append(account_options, option);
++    }
++
+     {
+         GList *choices = NULL;
+         choices = add_choice(choices, "Internal", GOWHATSAPP_ECHO_CHOICE_INTERNAL);
+diff --git a/glue/process_message.c b/glue/process_message.c
+index 9c45ec0..dd09132 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -149,6 +149,8 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+             break;
+         case gowhatsapp_message_type_receipt:
+             gowhatsapp_handle_receipt(pc, gwamsg);
++        case gowhatsapp_message_type_reaction:
++            gowhatsapp_handle_reaction(pc, gwamsg);
+             break;
+         default:
+             purple_debug_info(GOWHATSAPP_NAME, "Handling this message type is not implemented.\n");
+diff --git a/glue/reaction.c b/glue/reaction.c
+new file mode 100644
+index 0000000..ff7bcef
+--- /dev/null
++++ b/glue/reaction.c
+@@ -0,0 +1,27 @@
++#include "gowhatsapp.h"
++#include "constants.h"
++
++/*
++ * An incoming reaction: sender put an emoji onto the message named by its id,
++ * or took it back again (empty emoji).
++ *
++ * libpurple has no native concept of reactions, so this emits the
++ * GOWHATSAPP_SIGNAL_REACTION signal for front-ends and plug-ins that can
++ * attach the emoji to the message it names. The classic textual rendering
++ * ("reacted with … to …") lives in the Go part and stays the default, see the
++ * reaction-display account option.
++ */
++void
++gowhatsapp_handle_reaction(PurpleConnection *pc, gowhatsapp_message_t *gwamsg) {
++    gchar *timestamp = g_strdup_printf("%ld", (long)gwamsg->timestamp);
++    GHashTable *details = g_hash_table_new(g_str_hash, g_str_equal); // MEMCHECK: values are borrowed, receivers must copy
++    g_hash_table_insert(details, "chat", gwamsg->remoteJid);
++    g_hash_table_insert(details, "sender", gwamsg->senderJid);
++    g_hash_table_insert(details, "id", gwamsg->messageId);
++    g_hash_table_insert(details, "emoji", gwamsg->text);
++    g_hash_table_insert(details, "isGroup", gwamsg->isGroup ? "1" : "0");
++    g_hash_table_insert(details, "timestamp", timestamp);
++    purple_signal_emit(purple_connection_get_prpl(pc), GOWHATSAPP_SIGNAL_REACTION, pc, details);
++    g_hash_table_destroy(details);
++    g_free(timestamp);
++}
+diff --git a/handle_message.go b/handle_message.go
+index 97268dc..33cb86f 100644
+--- a/handle_message.go
++++ b/handle_message.go
+@@ -115,6 +115,16 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
+ 	{
+ 		rm := message.GetReactionMessage()
+ 		if rm != nil && rm.Text != nil && rm.Key != nil && rm.Key.ID != nil {
++			// always hand the structured reaction to the purple part: front-ends and
++			// plug-ins listening to the gowhatsapp-reaction signal attach it to the
++			// message it names by id, which works even where the textual rendering
++			// below can only say "unknown message" (messages without text, or
++			// messages that have left the cache)
++			purple_reaction(handler.account, info.MessageSource.Chat.ToNonAD().String(), info.MessageSource.IsGroup, info.MessageSource.Sender.ToNonAD().String(), rm.Key.GetID(), *rm.Text, info.Timestamp)
++			setting := purple_get_string(handler.account, C.GOWHATSAPP_REACTION_DISPLAY_OPTION, C.GOWHATSAPP_REACTION_DISPLAY_CHOICE_TEXT)
++			if setting != C.GoString(C.GOWHATSAPP_REACTION_DISPLAY_CHOICE_TEXT) {
++				return
++			}
+ 			quote := fmt.Sprintf("unknown message with ID %s", rm.Key.GetID())
+ 			cached_message := handler.lookup_cached_message_by_id(rm.Key.GetID())
+ 			if cached_message != nil {
 -- 
 2.50.1 (Apple Git-155)
 

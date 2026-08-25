@@ -402,6 +402,10 @@ static NSString *const AIWKContextMenuScript =
 													 name:@"AIChatMessageReactionsChanged"
 												   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageIdAssigned:)
+													 name:@"AIChatMessageIdAssigned"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageWasDelivered:)
 													 name:@"AIChatMessageWasDelivered"
 												   object:nil];
@@ -1970,6 +1974,38 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
 				   }
 			   }];
+}
+
+/*!
+ * @brief A protocol assigned an id to a message we just sent; attach it
+ *
+ * Some protocols (WhatsApp) only learn a sent message's id asynchronously, after
+ * the message is already on the page without one. The id lands on the oldest
+ * outgoing message still lacking one, in the page and in the replay store alike,
+ * so receipts and reactions that name it can find the message, also after a
+ * rebuild. Sends complete in order for one chat, so oldest-first matches.
+ */
+- (void)messageIdAssigned:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	if (![messageId length]) return;
+
+	for (AIContentObject *stored in _storedContentObjects) {
+		if ([stored isKindOfClass:[AIContentMessage class]] && [stored isOutgoing] &&
+			![[(AIContentMessage *)stored messageId] length]) {
+			[(AIContentMessage *)stored setMessageId:messageId];
+			break;
+		}
+	}
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]:not([data-x-adium-id])');"
+		@" if(outs.length){ outs[0].setAttribute('data-x-adium-id', %@); }"
+		@"})()",
+		[self _jsStringLiteral:messageId]];
+	[_webView evaluateJavaScript:js completionHandler:nil];
 }
 
 - (void)messageWasDelivered:(NSNotification *)notification
