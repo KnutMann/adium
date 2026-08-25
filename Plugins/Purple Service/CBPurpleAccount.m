@@ -26,6 +26,7 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIContentMessage.h>
+#import "adiumPurpleSignals.h"
 #import <Adium/AIContentTopic.h>
 #import <Adium/AIContentEvent.h>
 #import <Adium/AIContentContext.h>
@@ -1389,10 +1390,16 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 		inContentMessage.displayContent = NO;
 	}
 
+	/* Name the message we are about to send so the jabber plugin's id, minted synchronously inside
+	 * this send, is hung on it before it is shown; cleared straight after so nothing else picks it up. */
+	adiumSetPendingOutgoingContentMessage(inContentMessage);
+
 	[purpleAdapter sendEncodedMessage:[inContentMessage encodedMessage]
 						 fromAccount:self
 							  inChat:inContentMessage.chat
 						   withFlags:flags];
+
+	adiumSetPendingOutgoingContentMessage(nil);
 
 	return YES;
 }

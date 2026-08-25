@@ -21,3 +21,9 @@ void configureAdiumPurpleSignals(void);
 /* Read and clear the id stashed for the message just delivered from this sender, so the message
  * that follows it can be tagged with the protocol's id. nil when there is none. */
 NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *from);
+
+@class AIContentMessage;
+
+/* Name the message an account is about to send, so the id minted during the send can be hung on it.
+ * Set it before the send and clear it (nil) after. */
+void adiumSetPendingOutgoingContentMessage(AIContentMessage *message);

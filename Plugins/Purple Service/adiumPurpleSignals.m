@@ -21,6 +21,7 @@
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIListContact.h>
+#import <Adium/AIContentMessage.h>
 #import <Adium/ESFileTransfer.h>
 
 static void buddy_status_changed_cb(PurpleBuddy *buddy, PurpleStatus *oldstatus, PurpleStatus *status, PurpleBuddyEvent event);
@@ -434,6 +435,8 @@ typedef void (*jabber_reactions_cb)(PurpleConnection *gc, const char *from,
 void jabber_set_reactions_cb(jabber_reactions_cb cb);
 typedef void (*jabber_message_id_cb)(PurpleConnection *gc, const char *from, const char *id);
 void jabber_set_message_id_cb(jabber_message_id_cb cb);
+typedef void (*jabber_outgoing_message_id_cb)(PurpleConnection *gc, const char *to, const char *id);
+void jabber_set_outgoing_message_id_cb(jabber_outgoing_message_id_cb cb);
 void jabber_add_feature(const char *xmlns, void *enabled_cb);
 
 /*!
@@ -561,6 +564,24 @@ static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from,
 	}
 }
 
+/* A message we send is handed to the account synchronously, and the id is minted deeper down in the
+ * same call; the account names the message it is about to send here so the callback below, firing
+ * during that send, can hang the id on it before it is shown. */
+static AIContentMessage *pendingOutgoingContentMessage = nil;
+
+void adiumSetPendingOutgoingContentMessage(AIContentMessage *message)
+{
+	pendingOutgoingContentMessage = message;
+}
+
+static void adiumJabberOutgoingMessageId(PurpleConnection *gc, const char *to, const char *msgid)
+{
+	@autoreleasepool {
+		if (pendingOutgoingContentMessage && msgid && ![pendingOutgoingContentMessage messageId])
+			pendingOutgoingContentMessage.messageId = [NSString stringWithUTF8String:msgid];
+	}
+}
+
 void configureAdiumPurpleSignals(void)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -642,6 +663,7 @@ void configureAdiumPurpleSignals(void)
 	jabber_set_chat_marker_cb(adiumJabberChatMarkerReceived);
 	jabber_set_reactions_cb(adiumJabberReactionReceived);
 	jabber_set_message_id_cb(adiumJabberIncomingMessageId);
+	jabber_set_outgoing_message_id_cb(adiumJabberOutgoingMessageId);
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
 	jabber_add_feature("urn:xmpp:reactions:0", NULL);
