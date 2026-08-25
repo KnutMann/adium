@@ -26,8 +26,20 @@
  * host every plugin talks to, and a file could be swapped where a constant
  * cannot. It installs a MutationObserver on the transcript and hands each
  * plugin the message-body spans as they appear, so a plugin never has to know
- * how a message style is built, and can never reach past a message body to its
- * sender or timestamp.
+ * how a message style is built.
+ *
+ * What the fences are, honestly: the content world separates JAVASCRIPT, not
+ * the DOM. A plugin only receives message-body spans from here, but the DOM is
+ * shared, so a plugin that walks it can read the whole displayed transcript,
+ * senders and timestamps included, and can vandalize the display; installing a
+ * plugin means trusting it with what is on screen. What a plugin cannot do is
+ * leave or escalate: the rule list blocks every network egress, the navigation
+ * policy pins the page to its file origin, other worlds' globals are out of
+ * reach, and the page world holds no native handler; the app listens in its
+ * own bridge world and only forwards real user gestures (event.isTrusted), so
+ * even a script element written into the shared DOM, which runs in the page
+ * world, finds nothing to drive. The isolation probe in Tests/ measures every
+ * one of these claims.
  */
 static NSString * const AIJSXtrasPreamble =
 @"(function () {\n"

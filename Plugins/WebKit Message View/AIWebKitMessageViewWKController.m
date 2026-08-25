@@ -19,6 +19,7 @@
 #import "AIWebKitMessageViewPlugin.h"
 #import "AIJSXtrasManager.h"
 #import "AIWebKitMessageViewWKContextMenu.h"
+#import "AIWKGestureBridge.h"
 #import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIService.h>
 #import "AIWebkitMessageViewStyle.h"
@@ -77,10 +78,18 @@ static NSArray *draggedTypes = nil;
  * hook on macOS, so we intercept right-clicks here and forward the hit-test result to the "adium"
  * script message handler (see docs/design/webkit-to-wkwebview-transition.md §4).
  */
+/* The one content world that can reach the native side; the script it runs and the
+ * reasoning live in AIWKGestureBridge.h, shared with the isolation probe. */
+static WKContentWorld *AIWKBridgeWorld(void)
+{
+	return [WKContentWorld worldWithName:AIWKBridgeWorldName];
+}
+
 static NSString *const AIWKContextMenuScript =
 	@""
 	@"(function() {\n"
 	@"    document.addEventListener('contextmenu', function(event) {\n"
+	@"        if (!event.isTrusted) return;\n"
 	@"        event.preventDefault();\n"
 	@"        var imageURL = null;\n"
 	@"        var node = event.target;\n"
@@ -411,7 +420,7 @@ static NSString *const AIWKContextMenuScript =
 
 	[_webView setNavigationDelegate:nil];
 	[_webView setUIDelegate:nil];
-	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium"];
+	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium" contentWorld:AIWKBridgeWorld()];
 }
 
 #pragma mark - WebView Creation
@@ -426,10 +435,21 @@ static NSString *const AIWKContextMenuScript =
  */
 - (void)_installUserScriptsInto:(WKUserContentController *)userContentController
 {
+	/* The two scripts that talk to the app live in the bridge world, the only world
+	 * whose messages the handler hears; the DOM they read is shared, so nothing they
+	 * observe changes by not being in the page world. */
+
 	// Intercept right-clicks; WKWebView has no public context-menu hook on macOS (#119).
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:AIWKContextMenuScript
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-															 forMainFrameOnly:YES]];
+															 forMainFrameOnly:YES
+															   inContentWorld:AIWKBridgeWorld()]];
+
+	// Readiness and user-gesture forwarding (image zoom, file-transfer buttons).
+	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:AIWKGestureBridgeScript
+																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+															 forMainFrameOnly:YES
+															   inContentWorld:AIWKBridgeWorld()]];
 
 	/* Message styles may ship their own Template.html, and every one written before Catalina
 	 * scrolls via document.body.scrollTop, which standards-mode WebKit stopped honouring: the
@@ -438,7 +458,8 @@ static NSString *const AIWKContextMenuScript =
 	 * Redefining the two functions after the template has loaded repairs every such style with
 	 * the same semantics the bundled template has, and no style needs hand-patching again. A
 	 * style's own smooth-scroll animation is overridden along with it; on today's WebKit it was
-	 * not scrolling at all. */
+	 * not scrolling at all. Deliberately in the page world: the template's own
+	 * scripts are the callers, and it posts nothing. */
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:
 		@"function nearBottom() { return ( window.scrollY >= ( document.body.offsetHeight - ( window.innerHeight * 1.2 ) ) ); }"
 		@"function scrollToBottom() { window.scrollTo(0, document.body.scrollHeight); }"
@@ -481,10 +502,13 @@ static NSString *const AIWKContextMenuScript =
 {
 	WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
 
-	// User content controller with script message handler (via weak proxy to avoid retain cycle)
+	/* User content controller with the script message handler (via weak proxy to avoid a
+	 * retain cycle). Registered in the bridge world only: the page world never sees
+	 * window.webkit.messageHandlers.adium, so no script that ends up running there,
+	 * whatever put it there, has a native side to reach. */
 	WKUserContentController *userContentController = [[WKUserContentController alloc] init];
 	_AIWKScriptMessageHandlerWeakProxy *proxy = [[_AIWKScriptMessageHandlerWeakProxy alloc] initWithTarget:self];
-	[userContentController addScriptMessageHandler:proxy name:@"adium"];
+	[userContentController addScriptMessageHandler:proxy contentWorld:AIWKBridgeWorld() name:@"adium"];
 
 	[self _installUserScriptsInto:userContentController];
 
@@ -1100,7 +1124,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	[_webView stopLoading];
 	[_webView setNavigationDelegate:nil];
 	[_webView setUIDelegate:nil];
-	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium"];
+	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium" contentWorld:AIWKBridgeWorld()];
 
 	// Cancel any pending performRequests
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];

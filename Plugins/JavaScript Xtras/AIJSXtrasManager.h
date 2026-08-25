@@ -32,9 +32,13 @@
  * Finds the bundled and user-installed JavaScript plugins, keeps the validated,
  * enabled set, and installs each one's script into a content world of its own
  * inside a message view's configuration. The content world isolates a plugin's
- * JavaScript from the page, the message style, and every other plugin; the
- * message view's own hardening keeps a plugin off the network and off the local
- * filesystem.
+ * JavaScript from the page, the message style, and every other plugin; the DOM
+ * itself is shared, so a plugin can read and restyle everything the transcript
+ * displays. What it cannot do is leave or escalate: the message view's
+ * hardening keeps it off the network, pinned to the file origin, and away from
+ * the native side, whose handler lives in a bridge world the page never sees
+ * (the fences are spelled out at the preamble in AIJSXtrasManager.m and
+ * measured by Tests/isolation-probe.m).
  */
 @interface AIJSXtrasManager : NSObject
 

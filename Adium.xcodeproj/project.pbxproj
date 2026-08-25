@@ -2489,6 +2489,7 @@
 		ADD1E5C0DE00000000000D04 /* AIAdiumURLSchemeHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdiumURLSchemeHandler.h; path = "Plugins/WebKit Message View/AIAdiumURLSchemeHandler.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdiumURLSchemeHandler.m; path = "Plugins/WebKit Message View/AIAdiumURLSchemeHandler.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D07 /* AIWebKitMessageViewWKContextMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewWKContextMenu.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000F101 /* AIWKGestureBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWKGestureBridge.h; path = "Plugins/WebKit Message View/AIWKGestureBridge.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewWKContextMenu.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = WebKitPreferencesView.xib; path = "Plugins/WebKit Message View/Resources/WebKitPreferencesView.xib"; sourceTree = "<group>"; };
 		4B5827E80613CE9D0004BD25 /* AIMessageEntryTextView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMessageEntryTextView.h; path = Frameworks/Adium/Source/AIMessageEntryTextView.h; sourceTree = "<group>"; };
@@ -5583,6 +5584,7 @@
 				ADD1E5C0DE00000000000D04 /* AIAdiumURLSchemeHandler.h */,
 				ADD1E5C0DE00000000000D05 /* AIAdiumURLSchemeHandler.m */,
 				ADD1E5C0DE00000000000D07 /* AIWebKitMessageViewWKContextMenu.h */,
+				ADD1E5C0DE0000000000F101 /* AIWKGestureBridge.h */,
 				ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */,
 				34A1B59E0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.h */,
 				34A1B59F0E03409F00AC78CF /* AIWebKitPreviewMessageViewController.m */,
