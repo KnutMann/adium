@@ -16,5 +16,6 @@ fi
 
 case "$1" in
 	selftest) shift; exec ./.venv/bin/python selftest.py "$@" ;;
+	sendfile) shift; exec ./.venv/bin/python sendfile.py "$@" ;;
 	*)        exec ./.venv/bin/python peer.py "$@" ;;
 esac
