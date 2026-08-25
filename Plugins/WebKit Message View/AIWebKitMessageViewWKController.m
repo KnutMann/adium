@@ -732,9 +732,6 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 		// Don't re-process gate if already ready
 		if (!_webViewIsReady) {
-			AILogWithSignature(@"READY gen=%@ chat=%@ queue=%lu stored=%lu",
-							   generation, _chat.name,
-							   (unsigned long)[_contentQueue count], (unsigned long)[_storedContentObjects count]);
 			_webViewIsReady = YES;
 			[self webViewIsReady];
 			[self _drainStoredContentObjects];
@@ -1251,9 +1248,6 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	 * a preference pass, a plugin rescan), and a page already doomed by a newer load
 	 * can still get its "ready" delivered; drawing on that stale signal is how a
 	 * conversation ends up appended against the wrong page, lost, or doubled. */
-	AILogWithSignature(@"PRIME chat=%@ reprocess=%d gen->%lu queue=%lu stored=%lu",
-					   _chat.name, reprocessContent, (unsigned long)(_pageGeneration + 1),
-					   (unsigned long)[_contentQueue count], (unsigned long)[_storedContentObjects count]);
 	_pageGeneration++;
 	NSString *page = [_messageStyle baseTemplateForChat:_chat];
 	NSString *generationMarker = [NSString stringWithFormat:
@@ -1338,16 +1332,6 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	}
 
 	NSInteger contentCount = [_contentQueue count];
-	if (contentCount) {
-		NSMutableArray *batch = [NSMutableArray array];
-		for (AIContentObject *c in _contentQueue) {
-			[batch addObject:[NSString stringWithFormat:@"%@%@:%.12@",
-							  [c isKindOfClass:[AIContentContext class]] ? @"CTX" : @"MSG",
-							  [c isOutgoing] ? @">" : @"<", [[c message] string]]];
-		}
-		AILogWithSignature(@"BATCH chat=%@ n=%ld [%@]", _chat.name, (long)contentCount,
-						   [batch componentsJoinedByString:@" | "]);
-	}
 	if (contentCount == 0) {
 		return;
 	}
@@ -2038,14 +2022,13 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"][data-x-adium-history=\"0\"]:not([data-x-adium-id])');"
 		@" if(outs.length){ outs[outs.length-1].setAttribute('data-x-adium-id', %@); }"
-		@" var all=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
-		@" var inv=[]; for(var i=0;i<all.length;i++){ var e=all[i];"
-		@"  inv.push((e.getAttribute('data-x-adium-history')||'?')+'/'+(e.getAttribute('data-x-adium-id')?'ID':'-')+'/'+(e.textContent||'').trim().slice(0,20)); }"
-		@" return outs.length+' | '+inv.join(' || ');"
+		@" return outs.length;"
 		@"})()",
 		[self _jsStringLiteral:messageId]];
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		AILogWithSignature(@"id %@ -> unmarkierte ausgehende Wrapper: %@ (Fehler: %@)", messageId, result, error);
+		if (error || [result integerValue] == 0) {
+			AILogWithSignature(@"id %@ found no bare outgoing message (%@)", messageId, error ?: result);
+		}
 	}];
 }
 
@@ -2066,12 +2049,14 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var id=%@;"
 		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
-		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add('x-adium-sent'); return 'markiert'; } }"
-		@" return 'id nicht im DOM ('+outs.length+' ausgehende)';"
+		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add('x-adium-sent'); return true; } }"
+		@" return false;"
 		@"})()",
 		[self _jsStringLiteral:messageId]];
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		AILogWithSignature(@"sent-Haken fuer %@: %@ (Fehler: %@)", messageId, result, error);
+		if (error || ![result boolValue]) {
+			AILogWithSignature(@"sent tick for %@ found no message carrying that id (%@)", messageId, error ?: result);
+		}
 	}];
 }
 

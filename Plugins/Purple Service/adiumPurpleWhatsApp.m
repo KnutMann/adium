@@ -122,12 +122,11 @@ static void whatsapp_receipt_cb(PurpleConnection *pc, GHashTable *details, gpoin
 		if (!type || !messageId) return;
 
 		AIChat *chat = whatsapp_chat_for_details(pc, details);
-		AILog(@"WhatsApp receipt: type=%s id=%s chat=%s isGroup=%s -> %@",
-			  type, messageId,
-			  whatsapp_detail(details, "chat") ?: "(null)",
-			  whatsapp_detail(details, "isGroup") ?: "(null)",
-			  chat ?: (id)@"KEIN AIChat gefunden");
-		if (!chat) return;
+		if (!chat) {
+			AILog(@"WhatsApp receipt %s for %s found no open chat for %s",
+				  type, messageId, whatsapp_detail(details, "chat") ?: "(null)");
+			return;
+		}
 
 		NSString *notificationName = nil;
 		if (strcmp(type, "sent") == 0) {
