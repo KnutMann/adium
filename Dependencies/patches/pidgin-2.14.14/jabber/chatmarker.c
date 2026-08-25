@@ -58,10 +58,13 @@ void jabber_chat_marker_send(JabberStream *js, const char *to,
                              const char *message_id, const char *marker_type)
 {
 	xmlnode *marker_msg, *marker;
+	char *id;
 
 	marker_msg = xmlnode_new("message");
 	xmlnode_set_attrib(marker_msg, "to", to);
-	xmlnode_set_attrib(marker_msg, "id", jabber_get_next_id(js));
+	id = jabber_get_next_id(js);
+	xmlnode_set_attrib(marker_msg, "id", id);
+	g_free(id);
 
 	marker = xmlnode_new_child(marker_msg, marker_type);
 	xmlnode_set_namespace(marker, NS_CHAT_MARKERS);

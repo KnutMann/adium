@@ -73,11 +73,14 @@ void jabber_reactions_send(JabberStream *js, const char *to,
 {
 	xmlnode *msg, *reactions, *reaction;
 	GList *l;
+	char *id;
 
 	msg = xmlnode_new("message");
 	xmlnode_set_attrib(msg, "to", to);
 	xmlnode_set_attrib(msg, "type", groupchat ? "groupchat" : "chat");
-	xmlnode_set_attrib(msg, "id", jabber_get_next_id(js));
+	id = jabber_get_next_id(js);
+	xmlnode_set_attrib(msg, "id", id);
+	g_free(id);
 
 	/* A room broadcasts only messages that carry a body, so a reaction sent to a room needs a
 	 * plain-text fallback of the emoji - a bare space when the set is empty, so a reaction taken

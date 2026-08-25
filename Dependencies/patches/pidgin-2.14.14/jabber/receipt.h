@@ -37,4 +37,10 @@ gboolean jabber_receipt_parse(JabberStream *js, const char *from, xmlnode *child
 
 void jabber_receipt_add_request(xmlnode *message);
 
+/* Answer a receipt request for one message we received, but only when the sender is
+ * subscribed to our presence and not blocked; a receipt is an "I am online" to whoever
+ * asked, and the XEP restricts it to senders allowed to know that. */
+void jabber_receipt_send_received(JabberStream *js, const char *from,
+                                  const char *message_id);
+
 #endif /* PURPLE_JABBER_RECEIPT_H_ */

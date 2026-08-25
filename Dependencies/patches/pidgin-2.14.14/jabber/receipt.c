@@ -23,6 +23,10 @@
 
 #include "internal.h"
 
+#include "privacy.h"
+
+#include "buddy.h"
+#include "jutil.h"
 #include "receipt.h"
 
 static jabber_receipt_cb receipt_cb = NULL;
@@ -56,4 +60,44 @@ void jabber_receipt_add_request(xmlnode *message)
 
 	request = xmlnode_new_child(message, "request");
 	xmlnode_set_namespace(request, NS_RECEIPTS);
+}
+
+void jabber_receipt_send_received(JabberStream *js, const char *from,
+                                  const char *message_id)
+{
+	xmlnode *recv_msg, *recv;
+	JabberBuddy *jb;
+	char *bare, *id;
+
+	if (!from || !message_id)
+		return;
+
+	/* A receipt tells the sender we are online right now, so it is not for everyone
+	 * who asks: the XEP's Security Considerations restrict it to senders that may see
+	 * our presence anyway. That means a subscription of "from" or "both", and nobody
+	 * the account's privacy settings block. */
+	bare = jabber_get_bare_jid(from);
+	if (!bare)
+		return;
+
+	jb = jabber_buddy_find(js, bare, FALSE);
+	if (!jb || !(jb->subscription & JABBER_SUB_FROM) ||
+	    !purple_privacy_check(purple_connection_get_account(js->gc), bare)) {
+		g_free(bare);
+		return;
+	}
+	g_free(bare);
+
+	recv_msg = xmlnode_new("message");
+	xmlnode_set_attrib(recv_msg, "to", from);
+	id = jabber_get_next_id(js);
+	xmlnode_set_attrib(recv_msg, "id", id);
+	g_free(id);
+
+	recv = xmlnode_new_child(recv_msg, "received");
+	xmlnode_set_namespace(recv, NS_RECEIPTS);
+	xmlnode_set_attrib(recv, "id", message_id);
+
+	jabber_send(js, recv_msg);
+	xmlnode_free(recv_msg);
 }
