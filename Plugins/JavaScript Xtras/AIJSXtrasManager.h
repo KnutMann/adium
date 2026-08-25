@@ -55,6 +55,11 @@
 - (BOOL)isBundleEnabled:(AIJSXtraBundle *)bundle;
 - (void)setBundle:(AIJSXtraBundle *)bundle enabled:(BOOL)enabled;
 
+//The same enablement, keyed by a plugin's CFBundleIdentifier, for the Xtras pane which holds an
+//AIXtraInfo rather than one of our validated bundles
+- (BOOL)isPluginEnabledWithIdentifier:(NSString *)identifier;
+- (void)setPluginWithIdentifier:(NSString *)identifier enabled:(BOOL)enabled;
+
 /*!
  * @brief Add each enabled plugin's script to a message view's configuration
  *

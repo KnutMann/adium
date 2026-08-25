@@ -17,6 +17,7 @@
 #import "AIXtrasManager.h"
 #import "AIXtraInfo.h"
 #import "AIXtrasPreferences.h"
+#import "AIJSXtrasManager.h"
 #import <Adium/AIPathUtilities.h>
 
 @implementation AIXtrasManager
@@ -152,20 +153,38 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 	NSArray			*xtras;
 
 	if (!(xtras = [xtrasDict objectForKey:@"Xtras"])) {
-		xtras = [self arrayOfXtrasAtPaths:AISearchPathForDirectories([[xtrasDict objectForKey:@"Directory"] integerValue])];
+		NSArray			*scanned = [self arrayOfXtrasAtPaths:AISearchPathForDirectories([[xtrasDict objectForKey:@"Directory"] integerValue])];
+		BOOL			 javaScriptOnly = [[xtrasDict objectForKey:@"JavaScriptOnly"] boolValue];
+		BOOL			 excludeJavaScript = [[xtrasDict objectForKey:@"ExcludeJavaScript"] boolValue];
+		NSMutableArray	*built = [NSMutableArray array];
 
-		/* Two categories read the same PlugIns folder: one keeps only the
-		 * JavaScript plugins, the other keeps everything but them. */
-		if ([[xtrasDict objectForKey:@"JavaScriptOnly"] boolValue] ||
-			[[xtrasDict objectForKey:@"ExcludeJavaScript"] boolValue]) {
-			BOOL wantJavaScript = [[xtrasDict objectForKey:@"JavaScriptOnly"] boolValue];
-			NSMutableArray *filtered = [NSMutableArray array];
-			for (AIXtraInfo *xtraInfo in xtras) {
-				if ([self xtraInfoIsJavaScriptPlugin:xtraInfo] == wantJavaScript)
-					[filtered addObject:xtraInfo];
+		/* Two categories read the same PlugIns folder: one keeps only the JavaScript plugins, the
+		 * other keeps everything but them. Every other category takes what it found unchanged. */
+		if (javaScriptOnly || excludeJavaScript) {
+			for (AIXtraInfo *xtraInfo in scanned) {
+				if ([self xtraInfoIsJavaScriptPlugin:xtraInfo] == javaScriptOnly)
+					[built addObject:xtraInfo];
 			}
-			xtras = filtered;
+		} else {
+			[built addObjectsFromArray:scanned];
 		}
+
+		if (javaScriptOnly) {
+			/* The plugins that ship with Adium sit inside the app, outside every Xtras search path,
+			 * so they would never turn up here; add them by hand, and mark each row with the on/off
+			 * state the manager keeps, since a JavaScript plugin is switched by preference rather
+			 * than by being moved into a "(Disabled)" folder. */
+			[self appendBundledJavaScriptPluginsTo:built];
+
+			AIJSXtrasManager *jsManager = [AIJSXtrasManager sharedManager];
+			for (AIXtraInfo *xtraInfo in built) {
+				NSString *identifier = [[xtraInfo bundle] bundleIdentifier];
+				if (identifier)
+					[xtraInfo setEnabled:[jsManager isPluginEnabledWithIdentifier:identifier]];
+			}
+		}
+
+		xtras = built;
 
 		NSMutableDictionary *newDictionary = [xtrasDict mutableCopy];
 		[newDictionary setObject:xtras forKey:@"Xtras"];
@@ -183,6 +202,40 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 - (BOOL)xtraInfoIsJavaScriptPlugin:(AIXtraInfo *)xtraInfo
 {
 	return [[[xtraInfo bundle] objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue];
+}
+
+/*!
+ * @brief Is the category at this index the one that gathers JavaScript plugins?
+ *
+ * The Xtras pane asks so it can leave the "restart Adium" footnote off that one card: a JavaScript
+ * plugin is injected live and needs no restart, unlike a compiled plug-in.
+ */
+- (BOOL)categoryAtIndexIsJavaScript:(NSInteger)inIndex
+{
+	if (inIndex < 0 || inIndex >= (NSInteger)[self numberOfCategories]) return NO;
+
+	return [[[categories objectAtIndex:inIndex] objectForKey:@"JavaScriptOnly"] boolValue];
+}
+
+/*!
+ * @brief Add the JavaScript plugins that ship inside the app to @a xtras
+ *
+ * They live in Contents/Resources/JavaScript Plugins, which no Xtras search path reaches, so the
+ * one category that shows them has to look there itself.
+ */
+- (void)appendBundledJavaScriptPluginsTo:(NSMutableArray *)xtras
+{
+	NSString		*bundledDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JavaScript Plugins"];
+	NSFileManager	*fileManager = [NSFileManager defaultManager];
+
+	for (NSString *name in [fileManager contentsOfDirectoryAtPath:bundledDir error:NULL]) {
+		if ([name hasPrefix:@"."]) continue;
+
+		AIXtraInfo *xtraInfo = [AIXtraInfo infoWithURL:[NSURL fileURLWithPath:[bundledDir stringByAppendingPathComponent:name]]];
+
+		if (xtraInfo && [self xtraInfoIsJavaScriptPlugin:xtraInfo])
+			[xtras addObject:xtraInfo];
+	}
 }
 
 /*!

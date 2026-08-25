@@ -68,6 +68,14 @@
 - (NSUInteger)directoryOfCategoryAtIndex:(NSInteger)inIndex;
 
 /*!
+ * @brief Whether the category at this index is the one gathering JavaScript plugins
+ *
+ * Two categories are read from the plug-ins folder; this tells them apart so the pane can treat the
+ * JavaScript one differently, most of all in leaving off the "restart to take effect" footnote.
+ */
+- (BOOL)categoryAtIndexIsJavaScript:(NSInteger)inIndex;
+
+/*!
  * @brief The AIXtraInfos installed in a category, switched off ones included
  */
 - (NSArray *)xtrasForCategoryAtIndex:(NSInteger)inIndex;

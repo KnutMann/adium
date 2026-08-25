@@ -136,6 +136,8 @@ static CGFloat AIXtraRowHeight(void)
 - (void)setContextMenuRow:(NSInteger)row;
 - (AIXtraInfo *)xtraAtRow:(NSInteger)row;
 - (BOOL)xtraIsUsers:(AIXtraInfo *)xtraInfo;
+- (BOOL)canToggleXtra:(AIXtraInfo *)xtraInfo;
+- (BOOL)canDeleteXtra:(AIXtraInfo *)xtraInfo;
 - (NSString *)contentSummaryForXtra:(AIXtraInfo *)xtraInfo;
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo;
 - (NSMenu *)menuForRow:(NSInteger)row;
@@ -691,6 +693,33 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
+ * @brief Whether a row's switch is live, the delegate having the last word
+ *
+ * On its own the list only lets an Xtra it can move be switched; a delegate may know of one it
+ * switches another way. See the protocol.
+ */
+- (BOOL)canToggleXtra:(AIXtraInfo *)xtraInfo
+{
+	BOOL	movable = [self xtraIsUsers:xtraInfo];
+
+	if ([listDelegate respondsToSelector:@selector(xtraListView:canToggleXtra:whenMovable:)])
+		return [listDelegate xtraListView:self canToggleXtra:xtraInfo whenMovable:movable];
+
+	return movable;
+}
+
+/*!
+ * @brief Whether a row keeps its ⊖, the delegate having the last word
+ */
+- (BOOL)canDeleteXtra:(AIXtraInfo *)xtraInfo
+{
+	if ([listDelegate respondsToSelector:@selector(xtraListView:canDeleteXtra:whenMovable:)])
+		return [listDelegate xtraListView:self canDeleteXtra:xtraInfo whenMovable:[self xtraIsUsers:xtraInfo]];
+
+	return YES;
+}
+
+/*!
  * @brief How many files of these kinds an Xtra holds
  */
 static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
@@ -850,7 +879,8 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 	if (!xtraInfo) return;
 
 	BOOL		 enabled = [xtraInfo enabled];
-	BOOL		 usersOwn = [self xtraIsUsers:xtraInfo];
+	BOOL		 canToggle = [self canToggleXtra:xtraInfo];
+	BOOL		 canDelete = [self canDeleteXtra:xtraInfo];
 	NSString	*name = [xtraInfo name];
 	NSString	*detail = [self detailLineForXtra:xtraInfo];
 
@@ -878,15 +908,17 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 		[[cellView enabledSwitch] setState:switchState];
 	}
 
-	[[cellView enabledSwitch] setEnabled:usersOwn];
+	[[cellView enabledSwitch] setEnabled:canToggle];
 	[[cellView enabledSwitch] setTarget:self];
 	[[cellView enabledSwitch] setAction:@selector(toggleXtraEnabled:)];
-	[[cellView enabledSwitch] setToolTip:(usersOwn ?
+	[[cellView enabledSwitch] setToolTip:(canToggle ?
 										  nil :
 										  AILocalizedString(@"This Xtra was installed for all users and cannot be changed here.",
 															"Tool tip of the disabled switch of an Xtra which is not in the user's own Xtras folder"))];
 	[[cellView enabledSwitch] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"Enable %@", "Accessibility label of the switch which enables an Xtra. %@ is the name of the Xtra."), (name ?: @"")]];
 
+	//A plugin that ships inside the app has no file of the user's to trash, so it is shown without a ⊖
+	[[cellView removeButton] setHidden:!canDelete];
 	[[cellView removeButton] setTarget:self];
 	[[cellView removeButton] setAction:@selector(removeXtraFromRowButton:)];
 	[[cellView removeButton] setToolTip:AILocalizedStringFromTable(@"Delete", @"Buttons", "Verb 'delete' on a button")];
@@ -1075,7 +1107,7 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 									keyEquivalent:@""] autorelease];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
-	[menuItem setEnabled:[self xtraIsUsers:xtraInfo]];
+	[menuItem setEnabled:[self canToggleXtra:xtraInfo]];
 	[menu addItem:menuItem];
 
 	[menu addItem:[NSMenuItem separatorItem]];
@@ -1085,6 +1117,7 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 									keyEquivalent:@""] autorelease];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
+	[menuItem setEnabled:[self canDeleteXtra:xtraInfo]];
 	[menu addItem:menuItem];
 
 	return menu;

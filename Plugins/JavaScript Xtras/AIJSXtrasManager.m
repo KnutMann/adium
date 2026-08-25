@@ -142,18 +142,32 @@ static NSString * const AIJSXtrasPreamble =
 
 - (BOOL)isBundleEnabled:(AIJSXtraBundle *)bundle
 {
-	NSDictionary *enabledPlugins = [adium.preferenceController preferenceForKey:KEY_JSXTRAS_ENABLED_PLUGINS
-																		 group:PREF_GROUP_JSXTRAS];
-	id value = enabledPlugins[bundle.bundleIdentifier];
-	return (value ? [value boolValue] : YES);
+	return [self isPluginEnabledWithIdentifier:bundle.bundleIdentifier];
 }
 
 - (void)setBundle:(AIJSXtraBundle *)bundle enabled:(BOOL)enabled
 {
+	[self setPluginWithIdentifier:bundle.bundleIdentifier enabled:enabled];
+}
+
+- (BOOL)isPluginEnabledWithIdentifier:(NSString *)identifier
+{
+	if (![identifier length]) return YES;
+
+	NSDictionary *enabledPlugins = [adium.preferenceController preferenceForKey:KEY_JSXTRAS_ENABLED_PLUGINS
+																		 group:PREF_GROUP_JSXTRAS];
+	id value = enabledPlugins[identifier];
+	return (value ? [value boolValue] : YES);
+}
+
+- (void)setPluginWithIdentifier:(NSString *)identifier enabled:(BOOL)enabled
+{
+	if (![identifier length]) return;
+
 	NSDictionary *stored = [adium.preferenceController preferenceForKey:KEY_JSXTRAS_ENABLED_PLUGINS
 																 group:PREF_GROUP_JSXTRAS];
 	NSMutableDictionary *enabledPlugins = [stored mutableCopy] ?: [NSMutableDictionary dictionary];
-	enabledPlugins[bundle.bundleIdentifier] = @(enabled);
+	enabledPlugins[identifier] = @(enabled);
 	[adium.preferenceController setPreference:enabledPlugins forKey:KEY_JSXTRAS_ENABLED_PLUGINS group:PREF_GROUP_JSXTRAS];
 	[self rescan];
 }

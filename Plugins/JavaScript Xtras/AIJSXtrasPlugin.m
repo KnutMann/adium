@@ -16,11 +16,8 @@
 
 #import "AIJSXtrasPlugin.h"
 #import "AIJSXtrasManager.h"
-#import "AIJSXtrasPreferences.h"
 
-@implementation AIJSXtrasPlugin {
-	AIJSXtrasPreferences *_preferences;
-}
+@implementation AIJSXtrasPlugin
 
 - (void)installPlugin
 {
@@ -28,10 +25,10 @@
 	[adium.preferenceController registerDefaults:@{ KEY_JSXTRAS_MASTER_ENABLED: @YES }
 										forGroup:PREF_GROUP_JSXTRAS];
 
-	//Bring the manager up now so its scan has run before the first chat opens
+	//Bring the manager up now so its scan has run before the first chat opens.
+	//The plugins are listed and switched in the Xtras pane, under "JavaScript Extensions", so this
+	//feature keeps no preference pane of its own.
 	[AIJSXtrasManager sharedManager];
-
-	_preferences = [AIJSXtrasPreferences preferencePane];
 
 	//A newly installed or removed plugin is picked up without a restart
 	[[NSNotificationCenter defaultCenter] addObserver:self
