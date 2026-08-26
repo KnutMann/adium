@@ -641,6 +641,16 @@ static NSString *AIRowLabel(NSString *label)
 		for (context = otrg_plugin_userstate->context_root; context != NULL;
 			 context = context->next) {
 
+			/* Masters only. Version 3 keeps one context per device pair and a
+			 * master beside them; the fingerprint list hangs off the master,
+			 * so children contribute nothing here - and asking the master
+			 * whether it is encrypted always answers no, which is how this
+			 * column used to read "Not private" through an open, verified
+			 * session. The conversations are the master's children, so each
+			 * fingerprint asks every instance below and reports the best state
+			 * of one actually using it, the way the reference does. */
+			if (context->m_context != context) continue;
+
 			fingerprint = context->fingerprint_root.next;
 			/* If there's no fingerprint, don't add it to the known
 				* fingerprints list */
@@ -652,13 +662,33 @@ static NSString *AIRowLabel(NSString *label)
 
 				UID = [NSString stringWithUTF8String:context->username];
 
-				if (context->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
-					context->active_fingerprint != fingerprint) {
+				TrustLevel	bestLevel = TRUST_NOT_PRIVATE;
+				BOOL		inUse = NO;
+
+				/* The master itself is in this walk on purpose: a legacy
+				 * version 2 peer without instance tags converses on the master
+				 * directly. */
+				for (ConnContext *instance = context->m_context;
+					 instance && instance->m_context == context->m_context;
+					 instance = instance->next) {
+					if (instance->active_fingerprint != fingerprint) continue;
+
+					TrustLevel thisLevel = otrg_plugin_context_to_trust(instance);
+
+					inUse = YES;
+					if (thisLevel == TRUST_PRIVATE) {
+						bestLevel = TRUST_PRIVATE;
+					} else if (thisLevel == TRUST_UNVERIFIED && bestLevel != TRUST_PRIVATE) {
+						bestLevel = TRUST_UNVERIFIED;
+					} else if (thisLevel == TRUST_FINISHED && bestLevel == TRUST_NOT_PRIVATE) {
+						bestLevel = TRUST_FINISHED;
+					}
+				}
+
+				if (!inUse) {
 					state = AILocalizedString(@"Unused","Word to describe an encryption fingerprint which is not currently being used");
 				} else {
-					TrustLevel trustLevel = otrg_plugin_context_to_trust(context);
-
-					switch (trustLevel) {
+					switch (bestLevel) {
 						case TRUST_NOT_PRIVATE:
 							state = AILocalizedString(@"Not private",nil);
 							break;
