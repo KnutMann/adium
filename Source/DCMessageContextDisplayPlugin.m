@@ -29,6 +29,7 @@
 
 //omg crawsslinkz
 #import "AILoggerPlugin.h"
+#import "AIMessageStateStore.h"
 
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/ISO8601DateFormatter.h>
@@ -348,6 +349,21 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 				//Don't log this object
 				[message setPostProcessContent:NO];
 				[message setTrackContent:NO];
+
+				/* Give the line back the id the protocol gave it, and with the id
+				 * whatever became of the message afterwards: that it was
+				 * delivered, that it was read, what people put on it. The
+				 * transcript cannot hold any of that, since all of it arrives
+				 * after the line was written. */
+				NSString *messageId = [[element attributeForName:@"messageid"] stringValue];
+				if ([messageId length]) {
+					AIMessageStateStore *store = [AIMessageStateStore sharedStore];
+					message.messageId = messageId;
+					message.confirmation = [store confirmationForMessageId:messageId];
+
+					NSDictionary *reactions = [store reactionsForMessageId:messageId];
+					if (reactions) message.reactions = [[reactions mutableCopy] autorelease];
+				}
 
 				//Add it to the array (in front, since we're working backwards, and we want the array in forward order)
 				[foundMessages insertObject:message atIndex:0];

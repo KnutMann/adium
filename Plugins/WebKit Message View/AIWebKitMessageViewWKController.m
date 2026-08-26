@@ -20,6 +20,7 @@
 #import "AIJSXtrasManager.h"
 #import "AIWebKitMessageViewWKContextMenu.h"
 #import "AIWKGestureBridge.h"
+#import "AIMessageStateStore.h"
 #import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIService.h>
 #import "AIWebkitMessageViewStyle.h"
@@ -1980,8 +1981,10 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		for (AIContentObject *stored in _storedContentObjects) {
 			if (![stored isKindOfClass:[AIContentMessage class]]) continue;
 			AIContentMessage *storedMessage = (AIContentMessage *)stored;
-			if ([stored isOutgoing] && storedMessage.confirmation < level)
+			if ([stored isOutgoing] && storedMessage.confirmation < level) {
 				storedMessage.confirmation = level;
+				[[AIMessageStateStore sharedStore] setConfirmation:level forMessageId:storedMessage.messageId];
+			}
 			/* The named message ends the run whatever it is. History fetched from
 			 * the service arrives as context and carries an id, so testing the id
 			 * before the outgoing test is what keeps the run from swallowing every
@@ -2129,6 +2132,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
 	if (stored && stored.confirmation < 1) stored.confirmation = 1;
+	[[AIMessageStateStore sharedStore] setConfirmation:1 forMessageId:messageId];
 
 	[self _addClass:@"x-adium-sent" toMessageWithId:messageId];
 }
@@ -2204,7 +2208,10 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 {
 	if (![messageId length] || !_webView) return;
 
-	/* Remember the set on the message itself, so a rebuilt page redraws the chips. */
+	/* Remember the set on the message itself, so a rebuilt page redraws the chips,
+	 * and on disk, so a conversation reopened another day redraws them too. */
+	[[AIMessageStateStore sharedStore] setReactions:reactions forSender:sender messageId:messageId];
+
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
 	if (stored) {
 		if ([reactions count]) {
