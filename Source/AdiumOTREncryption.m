@@ -127,6 +127,7 @@ static void display_otr_message_for_context(ConnContext *context, NSString *mess
 	 * world-readable; otr.fingerprints names every account and every
 	 * correspondent of an encrypted conversation. Tightened once here, cheaply
 	 * and idempotently, before anything reads them. */
+	chmod(PRIVKEY_PATH, S_IRUSR | S_IWUSR);
 	chmod(STORE_PATH, S_IRUSR | S_IWUSR);
 	chmod(INSTAG_PATH, S_IRUSR | S_IWUSR);
 
@@ -223,7 +224,22 @@ static NSDictionary* details_for_context(ConnContext *context)
 	NSDictionary		*securityDetailsDict;
 	Fingerprint *fprint = context->active_fingerprint;
 
-    if (!fprint || !(fprint->fingerprint)) return nil;
+	if (!fprint || !(fprint->fingerprint)) {
+		/* A FINISHED context has no active key left - force_finished takes it
+		 * away - but the state is exactly what the lock has to show: the
+		 * session is over and every send is refused until it is ended or
+		 * restarted. Without this the lock fell back to "not encrypted", which
+		 * reads as ordinary and is not: sends do not go through. */
+		if (context->msgstate == OTRL_MSGSTATE_FINISHED) {
+			return [NSDictionary dictionaryWithObjectsAndKeys:
+					[NSNumber numberWithInteger:EncryptionStatus_Finished], @"EncryptionStatus",
+					[adium.accountController accountWithInternalObjectID:[NSString stringWithUTF8String:context->accountname]], @"AIAccount",
+					[NSString stringWithUTF8String:context->username], @"who",
+					nil];
+		}
+
+		return nil;
+	}
 
 	/* The fingerprint is deliberately not followed home to the context it
 	 * belongs to. Version 3 of the protocol keeps one context per pair of
@@ -523,8 +539,10 @@ void otrg_plugin_create_privkey(const char *accountname,
 	[ESOTRPrivateKeyGenerationWindowController startedGeneratingForIdentifier:identifier];
 	
     /* Generate the key */
+	mode_t oldMask = umask(0077);
     otrl_privkey_generate(otrg_plugin_userstate, PRIVKEY_PATH,
 						  accountname, protocol);
+	umask(oldMask);
     otrg_ui_update_keylist();
 	
     /* Mark the dialog as done. */
@@ -698,28 +716,38 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 								   unsigned char fingerprint[20])
 {
 	@autoreleasepool {
-		ConnContext			*context;
+		/* The prompt is built from the callback's own arguments and from
+		 * nothing else. This callback fires from inside go_encrypted BEFORE the
+		 * library sets active_fingerprint and marks the context encrypted, so
+		 * any context looked up here still reads as plaintext with no active
+		 * key: asking it would show no prompt at all for a first-time contact,
+		 * and the PREVIOUS key for a contact who just rekeyed. The twenty bytes
+		 * in hand are the new key, the whole reason this callback exists, and
+		 * they are what the reference builds its dialog from too. Only the
+		 * dictionary crosses the runloop turn. */
+		char	theirHash[45];
+		char	ourHash[45];
 
-		/* The AKE that hands us this fingerprint has just marked its context
-		 * encrypted, which is exactly what BEST selects; see contextForChat. */
-		context = otrl_context_find(us, username, accountname,
-									protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
+		otrl_privkey_hash_to_human(theirHash, fingerprint);
 
-		if (context == NULL) {
-			AILog(@"new_fingerprint_cb: no context for %s", username);
+		if (!otrl_privkey_fingerprint(us, ourHash, accountname, protocol)) {
+			strlcpy(ourHash, "?", sizeof(ourHash));
+		}
+
+		AIAccount	*account = accountFromAccountID(accountname);
+
+		if (!account) {
+			AILog(@"new_fingerprint_cb: no account for %s", accountname);
 			return;
 		}
 
-		/* Everything the prompt will show is read out NOW, while the context is
-		 * the library's argument and certainly alive, and only the dictionary
-		 * crosses the runloop turn - not a raw ConnContext*, which nothing
-		 * would keep alive on the way. */
-		NSDictionary	*responseInfo = details_for_context(context);
-
-		if (!responseInfo) {
-			AILog(@"new_fingerprint_cb: no details for %s", username);
-			return;
-		}
+		NSDictionary	*responseInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+			[NSString stringWithUTF8String:theirHash], @"Their Fingerprint",
+			[NSData dataWithBytes:fingerprint length:20], @"Their Fingerprint Bytes",
+			[NSString stringWithUTF8String:ourHash], @"Our Fingerprint",
+			account, @"AIAccount",
+			[NSString stringWithUTF8String:username], @"who",
+			nil];
 
 		[adiumOTREncryption performSelector:@selector(verifyUnknownFingerprint:)
 								 withObject:responseInfo
@@ -1231,7 +1259,12 @@ static void otrg_plugin_abort_smp(ConnContext *context)
 - (void)promptToVerifyEncryptionIdentityInChat:(AIChat *)inChat
 {
 	ConnContext		*context = contextForChat(inChat);
-	NSDictionary	*responseInfo = details_for_context(context);;
+	NSDictionary	*responseInfo = details_for_context(context);
+
+	/* Only with a key to verify. A FINISHED session yields details without one
+	 * - state, no key material - and a prompt built from that would show blanks
+	 * and could accept nothing. */
+	if (![responseInfo objectForKey:@"Their Fingerprint Bytes"]) return;
 
 	[ESOTRUnknownFingerprintController showVerifyFingerprintPromptWithResponseInfo:responseInfo];	
 }
@@ -1281,7 +1314,13 @@ void update_security_details_for_chat(AIChat *inChat)
 	if (inChat) {
 		NSMutableDictionary	*fullSecurityDetailsDict;
 		
-		if (securityDetailsDict) {
+		if (securityDetailsDict && ![securityDetailsDict objectForKey:@"Their Fingerprint"]) {
+			//A FINISHED session: state without key material; see details_for_context
+			fullSecurityDetailsDict = [securityDetailsDict mutableCopy];
+			[fullSecurityDetailsDict setObject:AILocalizedString(@"The encrypted conversation has ended. End or restart encryption to send messages again.", nil)
+										forKey:@"Description"];
+
+		} else if (securityDetailsDict) {
 			NSString				*format, *description;
 			fullSecurityDetailsDict = [securityDetailsDict mutableCopy];
 			
@@ -1467,6 +1506,8 @@ OtrlUserState otrg_get_userstate(void)
 		localizedOTRMessage = [NSString stringWithFormat:
 			AILocalizedString(@"%@ is no longer using encryption; you should cancel encryption on your side.", "Message when the remote contact cancels his half of an encrypted conversation. %s will be a name."),
 			username];
+		//Every further send is refused from here on; that must not depend on a window being open
+		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
 
 	} else if ([message isEqualToString:@"The following message was <b>not encrypted</b>: "]) {
 		localizedOTRMessage = AILocalizedString(@"The following message was <b>not encrypted</b>: ", nil);
