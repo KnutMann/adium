@@ -217,12 +217,17 @@ static NSDictionary* details_for_context(ConnContext *context)
 	if (!context) return nil;
 
 	NSDictionary		*securityDetailsDict;
-	Fingerprint *fprint = context->active_fingerprint;	
+	Fingerprint *fprint = context->active_fingerprint;
 
     if (!fprint || !(fprint->fingerprint)) return nil;
-    context = fprint->context;
-    if (!context) return nil;
 
+	/* The fingerprint is deliberately not followed home to the context it
+	 * belongs to. Version 3 of the protocol keeps one context per pair of
+	 * devices, with a master context beside them holding what is common to all
+	 * of them: the list of fingerprints hangs off the master, while the
+	 * conversation, whether it is encrypted, and its session id belong to the
+	 * child. Asking the master whether it is encrypted always answers no.
+	 */
     TrustLevel			level = otrg_plugin_context_to_trust(context);
 	AIEncryptionStatus	encryptionStatus;
 	AIAccount			*account;
