@@ -97,8 +97,12 @@
 {
 	if (![self menu]) {
 		if (doubleAction && (([theEvent clickCount] % 2) == 0)) {
+			/* A target/action pair, which returns nothing that could leak. */
+			#pragma clang diagnostic push
+			#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 			[[self target] performSelector:doubleAction
 								withObject:self];
+			#pragma clang diagnostic pop
 		} else {
 			[super mouseDown:theEvent];
 		}

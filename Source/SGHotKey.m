@@ -46,7 +46,11 @@
 }
 
 - (void)invoke {
+  /* A target/action pair, which returns nothing that could leak. */
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
   [self.target performSelector:self.action withObject:self];
+  #pragma clang diagnostic pop
 }
 
 - (void)setKeyCombo:(SGKeyCombo *)theKeyCombo {
