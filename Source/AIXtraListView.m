@@ -121,12 +121,6 @@ static CGFloat AIXtraRowHeight(void)
 /* Drawn behind the row while its context menu is open: with no selection, this is the only thing
  * which says which Xtra "Move to Trash" is about to ask about. */
 @property (nonatomic, assign) BOOL				 contextHighlighted;
-/* Drawn the same way while the row is held down; see -mouseDown: */
-@property (nonatomic, assign) BOOL				 pressed;
-/* Where the row itself leads, which is where its chevron leads. Non-retaining, like every other
- * target here: it is the list, which owns the table this row lives in. */
-@property (nonatomic, assign) id				 rowTarget;
-@property (nonatomic, assign) SEL				 rowAction;
 - (void)updateTextColors;
 @end
 
@@ -149,7 +143,9 @@ static CGFloat AIXtraRowHeight(void)
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo;
 - (NSMenu *)menuForRow:(NSInteger)row;
 - (void)deleteXtra:(AIXtraInfo *)xtraInfo;
+- (void)showDetailsForXtra:(AIXtraInfo *)xtraInfo;
 - (IBAction)showDetailsFromRow:(id)sender;
+- (IBAction)rowClicked:(id)sender;
 @end
 
 @implementation AIXtraListCellView
@@ -273,16 +269,11 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
- * @brief Only the switch swallows clicks
+ * @brief Only the switch and the chevron swallow clicks
  *
- * Everything else is the row, which is itself a target now: -mouseDown: below tracks the press and
- * opens the Xtra's page. The chevron is deliberately not excepted, though it is a real button: a
- * button pressed by the mouse would darken its own nine points of glyph while a press anywhere else
- * on the row darkens the row, and one row cannot answer a press two ways. The button stays a button
- * for the keyboard and for VoiceOver, neither of which comes through here.
- *
- * A right click anywhere - including on the switch, which supplies no context menu of its own - is
- * handed to the table view all the same, so that it still reaches the row's own menu.
+ * Everything else is handed to the table view, which is what opens the Xtra's page: see
+ * -rowClicked:. A right click anywhere - including on one of those two controls, neither of which
+ * supplies a context menu - goes there as well, so that it still reaches the row's own menu.
  */
 - (NSView *)hitTest:(NSPoint)aPoint
 {
@@ -298,56 +289,12 @@ static CGFloat AIXtraRowHeight(void)
 								  (([currentEvent modifierFlags] & NSEventModifierFlagControl) != 0)));
 
 	if (!contextClick &&
-		(hitView == [self enabledSwitch] || [hitView isDescendantOf:[self enabledSwitch]])) {
+		(hitView == [self enabledSwitch] || [hitView isDescendantOf:[self enabledSwitch]] ||
+		 hitView == [self disclosureButton] || [hitView isDescendantOf:[self disclosureButton]])) {
 		return hitView;
 	}
 
 	return self;
-}
-
-/*!
- * @brief Track a press on the row and open its page
- *
- * A row with a chevron is a target everywhere, not only under the chevron. Tracked here rather than
- * by making the row selectable: nothing acts on a selection in this list, and a selected row would
- * stay drawn after the page it opened has slid in. Held down it darkens, dragged off it goes back,
- * released outside it does nothing - the same few lines AISettingsFormView's navigation row uses.
- *
- * A control click never gets this far as a press: it is the context menu's, and -hitTest: has
- * already handed it to the table view.
- */
-- (void)mouseDown:(NSEvent *)event
-{
-	if (!_rowTarget || !_rowAction || (([event modifierFlags] & NSEventModifierFlagControl) != 0)) {
-		[super mouseDown:event];
-		return;
-	}
-
-	BOOL	inside = YES;
-
-	[self setPressed:YES];
-
-	while (YES) {
-		NSEvent *next = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged)];
-
-		/* A window taken away underneath us stops answering. Asking it again would spin the whole
-		 * application, and nil reads back as neither a mouse up nor a point on this row, so the
-		 * press ends here and opens nothing. */
-		if (!next) {
-			inside = NO;
-			break;
-		}
-
-		inside = NSPointInRect([self convertPoint:[next locationInWindow] fromView:nil], [self bounds]);
-
-		if ([next type] == NSEventTypeLeftMouseUp) break;
-
-		[self setPressed:inside];
-	}
-
-	[self setPressed:NO];
-
-	if (inside) [NSApp sendAction:_rowAction to:_rowTarget from:self];
 }
 
 /*!
@@ -380,16 +327,8 @@ static CGFloat AIXtraRowHeight(void)
 	[self setNeedsDisplay:YES];
 }
 
-- (void)setPressed:(BOOL)inPressed
-{
-	if (_pressed == inPressed) return;
-
-	_pressed = inPressed;
-	[self setNeedsDisplay:YES];
-}
-
 /*!
- * @brief Draw the row's highlight: held down, or pointed at by its context menu
+ * @brief Draw the context menu highlight
  *
  * A row is not selectable, so nothing else ever marks one. The shape is the one a list in System
  * Settings uses: the full width of the row, rounded, in the unemphasized selection color - the row
@@ -399,7 +338,7 @@ static CGFloat AIXtraRowHeight(void)
 {
 	[super drawRect:dirtyRect];
 
-	if (!_contextHighlighted && !_pressed) return;
+	if (!_contextHighlighted) return;
 
 	NSBezierPath	*highlight = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect([self bounds], 0.0f, 1.0f)
 																 xRadius:6.0f
@@ -476,11 +415,19 @@ static CGFloat AIXtraRowHeight(void)
 	[tableView setUsesAlternatingRowBackgroundColors:NO];
 	[tableView setBackgroundColor:[NSColor clearColor]];
 	[tableView setRowSizeStyle:NSTableViewRowSizeStyleCustom];
-	/* Rows are not selectable: every action a row offers sits on the row itself - its switch, its
-	 * chevron, its context menu, the press the row tracks by hand. -tableView:shouldSelectRow: is
-	 * what refuses the selection; the highlight style is left alone all the same, because
+	/* Rows are not selectable: every action a row offers works on the row the pointer is on rather
+	 * than on a selection - its switch, its chevron, its context menu, and the click on the row
+	 * itself, which -clickedRow answers for. -tableView:shouldSelectRow: is what refuses the
+	 * selection; the highlight style is left alone all the same, because
 	 * NSTableViewSelectionHighlightStyleNone also turns off the feedback a drag draws. */
 	[tableView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
+
+	/* A click anywhere on a row opens the Xtra's page. It is the TABLE which is asked, not the row:
+	 * a cell view is not a control, and a table view keeps the mouse for itself unless what was hit
+	 * is one - which is why the switch and the chevron work by themselves and why nothing a row
+	 * could implement ever hears the click. The accounts list opens an account exactly this way. */
+	[tableView setTarget:self];
+	[tableView setAction:@selector(rowClicked:)];
 	[tableView setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
 	[tableView setAllowsMultipleSelection:NO];
 	[tableView setAllowsEmptySelection:YES];
@@ -581,6 +528,7 @@ static CGFloat AIXtraRowHeight(void)
 	[tableView setDelegate:nil];
 	[tableView setDataSource:nil];
 	[tableView setTarget:nil];
+	[tableView setAction:NULL];
 }
 
 #pragma mark Geometry
@@ -979,10 +927,6 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 	 * already in the accessibility label. The switch keeps its own; that one appears only over a
 	 * small control and explains something not written anywhere else. */
 
-	/* The whole row leads to the Xtra's page, chevron or not; see -[AIXtraListCellView mouseDown:] */
-	[cellView setRowTarget:self];
-	[cellView setRowAction:@selector(showDetailsFromRow:)];
-
 	/* Setting the state unconditionally would interfere with the switch's own click handling, which
 	 * is still tracking while the list is rebuilt underneath it. */
 	NSControlStateValue	switchState = (enabled ? NSControlStateValueOn : NSControlStateValueOff);
@@ -1049,15 +993,32 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 }
 
 /*!
- * @brief A row was clicked, or its chevron was
+ * @brief A row's chevron was clicked
  *
- * Both send this, and @a sender is a view of the row either way - the row itself or the button in
- * it - so the same lookup finds the Xtra for both.
+ * The button is a view of the row, so the row it sits in is what the table is asked for.
  */
 - (IBAction)showDetailsFromRow:(id)sender
 {
-	AIXtraInfo	*xtraInfo = [self xtraAtRow:[tableView rowForView:(NSView *)sender]];
+	[self showDetailsForXtra:[self xtraAtRow:[tableView rowForView:(NSView *)sender]]];
+}
 
+/*!
+ * @brief The table was clicked, which means a row was: open that row's Xtra
+ *
+ * Sent by the table rather than by the row, because a row is not a control and a table view keeps
+ * the mouse to itself unless what was hit is one. The two controls a row does carry - its switch
+ * and its chevron - never get this far; -[AIXtraListCellView hitTest:] hands those to the control,
+ * so a click which arrives here landed on the row itself.
+ *
+ * A click on the empty space below the last row reports -1, which is not a row.
+ */
+- (IBAction)rowClicked:(id)sender
+{
+	[self showDetailsForXtra:[self xtraAtRow:[tableView clickedRow]]];
+}
+
+- (void)showDetailsForXtra:(AIXtraInfo *)xtraInfo
+{
 	if (xtraInfo && [listDelegate respondsToSelector:@selector(xtraListView:showDetailsForXtra:)]) {
 		[listDelegate xtraListView:self showDetailsForXtra:xtraInfo];
 	}
