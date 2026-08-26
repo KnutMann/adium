@@ -396,6 +396,19 @@
 			 * to it, and the link becomes a player. Only file: links with that
 			 * marker, so a pasted URL that happens to end in .mp4 stays a link
 			 * (the view could not load it anyway: remote loads are blocked). */
+			/* Images replayed from history arrive as links at the file the
+			 * live path kept, under the whatsapp_image_ name; they become
+			 * pictures again. Live images never pass here - they arrive
+			 * through the image store - so nothing is converted twice. */
+			@"  var pics = document.querySelectorAll('a[href^=\"file://\"][href*=\"whatsapp_image_\"]');"
+			@"  for (var i = 0; i < pics.length; i++) {"
+			@"    var a = pics[i];"
+			@"    var img = document.createElement('img');"
+			@"    img.src = a.href;"
+			@"    img.style.maxWidth = '100%';"
+			@"    img.style.height = 'auto';"
+			@"    a.parentNode.replaceChild(img, a);"
+			@"  }"
 			@"  var vids = document.querySelectorAll('a[href^=\"file://\"][href*=\"AdiumVideo_\"]');"
 			@"  for (var i = 0; i < vids.length; i++) {"
 			@"    var a = vids[i];"
