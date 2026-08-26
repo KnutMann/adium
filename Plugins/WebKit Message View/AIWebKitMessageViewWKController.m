@@ -253,8 +253,9 @@ static NSString *const AIWKContextMenuScript =
 - (void)_handleFileTransferAction:(NSString *)action fileTransferID:(NSString *)fileTransferID;
 - (void)_presentContextMenuAtClientPoint:(NSPoint)clientPoint imageURLString:(NSString *)imageURLString messageText:(NSString *)messageText messageId:(NSString *)messageId;
 - (NSMenu *)_contextMenuForImageURLString:(NSString *)imageURLString messageText:(NSString *)messageText messageId:(NSString *)messageId;
-- (NSString *)_replyTokenForMessageText:(NSString *)messageText;
 - (void)replyToMessage:(id)sender;
+- (void)_markReplyPendingOnMessageId:(NSString *)messageId;
+- (void)pendingReplyConsumed:(NSNotification *)notification;
 - (AIMessageEntryTextView *)_messageEntryTextViewInView:(NSView *)view;
 - (void)openImage:(id)sender;
 - (void)saveImageAs:(id)sender;
@@ -419,6 +420,10 @@ static NSString *const AIWKContextMenuScript =
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageWasRead:)
 													 name:@"AIChatMessageWasRead"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(pendingReplyConsumed:)
+													 name:@"AIChatPendingReplyConsumed"
 												   object:nil];
 
 		// Observe chat/participant changes so user icons can be refreshed on the page (#124)
@@ -832,44 +837,69 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 
 #pragma mark - Reply (quote)
 
-/*!
- * @brief Pick a lookup token from the clicked message's text.
- *
- * The prpl resolves the token by substring search over its recent message
- * cache (most recent first, same chat), so a single distinctive word is
- * enough. Prefer the longest alphanumeric word.
- */
-- (NSString *)_replyTokenForMessageText:(NSString *)messageText
-{
-	if (![messageText length]) {
-		return nil;
-	}
-
-	NSString *best = nil;
-	for (NSString *word in [messageText componentsSeparatedByCharactersInSet:
-							[[NSCharacterSet alphanumericCharacterSet] invertedSet]]) {
-		if ([word length] >= 3 && [word length] > [best length]) {
-			best = word;
-		}
-	}
-	return best;
-}
-
 - (void)replyToMessage:(id)sender
 {
-	NSString *token = [sender representedObject];
-	if (![token length]) {
+	NSString *messageId = [sender representedObject];
+	if (![messageId isKindOfClass:[NSString class]] || ![messageId length]) {
 		return;
 	}
+
+	/* The same message a second time disarms the reply. */
+	if ([messageId isEqualToString:[_chat valueForProperty:@"PendingReplyToken"]]) {
+		[_chat setValue:nil forProperty:@"PendingReplyToken" notify:NotifyNever];
+		[self _markReplyPendingOnMessageId:nil];
+		return;
+	}
+
+	[_chat setValue:messageId forProperty:@"PendingReplyToken" notify:NotifyNever];
+	[self _markReplyPendingOnMessageId:messageId];
 
 	AIMessageEntryTextView *entryView = [self _messageEntryTextViewInView:[[_webView window] contentView]];
-	if (!entryView) {
-		return;
+	if (entryView) {
+		[[entryView window] makeFirstResponder:entryView];
 	}
+}
 
-	[entryView setString:[NSString stringWithFormat:@"?reply %@ ", token]];
-	[[entryView window] makeFirstResponder:entryView];
-	[entryView setSelectedRange:NSMakeRange([[entryView string] length], 0)];
+/*!
+ * @brief Mark the message a pending reply will quote, or clear the marking
+ *
+ * The armed state would otherwise be invisible, since the command is added at
+ * sending time and never shows in the entry field. A green bar along the
+ * message's edge stands in for the compose-box quote the official client
+ * shows. Passing nil clears; arming another message moves the bar.
+ */
+- (void)_markReplyPendingOnMessageId:(NSString *)messageId
+{
+	if (!_webView) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" var old=document.querySelectorAll('[data-x-adium-replying]');"
+		@" for(var i=0;i<old.length;i++){ old[i].removeAttribute('data-x-adium-replying');"
+		@"   old[i].style.boxShadow=''; old[i].style.paddingLeft=''; }"
+		@" var id=%@; if(!id) return true;"
+		@" var msgs=document.querySelectorAll('[data-x-adium-msg]');"
+		@" for(var i=0;i<msgs.length;i++){ if(msgs[i].getAttribute('data-x-adium-id')===id){"
+		@"   msgs[i].setAttribute('data-x-adium-replying','1');"
+		@"   msgs[i].style.boxShadow='-3px 0 0 0 #25D366'; msgs[i].style.paddingLeft='6px';"
+		@"   return true; } }"
+		@" return false;"
+		@"})()",
+		[self _jsStringLiteral:([messageId length] ? messageId : @"")]];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		if (error || ![result boolValue]) {
+			AILogWithSignature(@"Reply marker for %@ found no message carrying that id (%@)", messageId, error ?: result);
+		}
+	}];
+}
+
+/*!
+ * @brief The account sent the armed reply; its quote bar has served its purpose
+ */
+- (void)pendingReplyConsumed:(NSNotification *)notification
+{
+	if (notification.object != _chat) return;
+	[self _markReplyPendingOnMessageId:nil];
 }
 
 - (AIMessageEntryTextView *)_messageEntryTextViewInView:(NSView *)view
@@ -1011,19 +1041,25 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	}
 
 	/* WhatsApp can reply to (quote) a specific message: the prpl accepts
-	 * "?reply <token> <text>" and resolves the token against its recent
-	 * message cache. Offer that on right-clicked messages. */
-	if ([_chat.account.service.serviceID isEqualToString:@"WhatsApp"]) {
-		NSString *replyToken = [self _replyTokenForMessageText:messageText];
-		if (replyToken) {
-			menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Reply", nil)
-												  action:@selector(replyToMessage:)
-										   keyEquivalent:@""];
-			[menuItem setTarget:self];
-			[menuItem setRepresentedObject:replyToken];
-			[menu addItem:menuItem];
-			[menu addItem:[NSMenuItem separatorItem]];
-		}
+	 * "?reply <id> <text>" and resolves the id against its recent message
+	 * cache. Only a message that carries its protocol id is offered, so the
+	 * quote is exact, media included (a substring guess could name the wrong
+	 * message); and not in an encrypted chat, where the command would be
+	 * sealed into the ciphertext instead of stripped. Choosing the item arms
+	 * the reply; the command itself is prepended at the moment of sending, in
+	 * the account, so neither the entry field nor the displayed message carry
+	 * it. */
+	if ([messageId length] && !_chat.isSecure &&
+		[_chat.account.service.serviceID isEqualToString:@"WhatsApp"]) {
+		BOOL armedHere = [messageId isEqualToString:[_chat valueForProperty:@"PendingReplyToken"]];
+		menuItem = [[NSMenuItem alloc] initWithTitle:(armedHere ? AILocalizedString(@"Cancel Reply", nil)
+															   : AILocalizedString(@"Reply", nil))
+											  action:@selector(replyToMessage:)
+									   keyEquivalent:@""];
+		[menuItem setTarget:self];
+		[menuItem setRepresentedObject:messageId];
+		[menu addItem:menuItem];
+		[menu addItem:[NSMenuItem separatorItem]];
 	}
 
 	NSURL *imageURL = AIWKImageURLFromString(imageURLString);
@@ -2143,6 +2179,13 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		[self _setReactions:[reactions objectForKey:sender]
 				  forSender:sender
 				onMessageId:message.messageId];
+	}
+
+	/* The armed reply's quote bar is chat state, not message state: a rebuild
+	 * wiped it from the page while the pending token survived on the chat, so
+	 * put it back when the quoted message itself is re-rendered. */
+	if ([message.messageId isEqualToString:[_chat valueForProperty:@"PendingReplyToken"]]) {
+		[self _markReplyPendingOnMessageId:message.messageId];
 	}
 }
 

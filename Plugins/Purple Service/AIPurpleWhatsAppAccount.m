@@ -16,6 +16,7 @@
 
 #import "AIPurpleWhatsAppAccount.h"
 #import <Adium/AIChat.h>
+#import <Adium/AIContentMessage.h>
 #import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
 #import "AIWhatsAppAccountViewController.h"
@@ -167,6 +168,60 @@
 			return;
 	}
 	[super receivedIMChatMessage:messageDict inChat:chat];
+}
+
+/* The libpurple contract the prpl builds on is HTML: glue/send_message.c runs
+ * purple_markup_strip_html over every outgoing text. Adium encodes outgoing
+ * text raw, so a literal "<" swallowed everything up to the next ">" on the
+ * wire and newlines arrived flattened to spaces. Escape into exactly the HTML
+ * that strip inverts: entities for the three metacharacters, <br> for line
+ * breaks. */
+static NSString *escapedForWhatsAppWire(NSString *text)
+{
+	NSMutableString *escaped = [[text mutableCopy] autorelease];
+
+	[escaped replaceOccurrencesOfString:@"&" withString:@"&amp;" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
+	[escaped replaceOccurrencesOfString:@"<" withString:@"&lt;" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
+	[escaped replaceOccurrencesOfString:@">" withString:@"&gt;" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
+	[escaped replaceOccurrencesOfString:@"\r\n" withString:@"<br>" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
+	[escaped replaceOccurrencesOfString:@"\n" withString:@"<br>" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
+	[escaped replaceOccurrencesOfString:@"\r" withString:@"<br>" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
+
+	return escaped;
+}
+
+/* A reply armed in the message view rides in front of the escaped text as the
+ * prpl's "?reply <id> " command, added here at the purple boundary so that
+ * neither the entry field nor the displayed message ever contain it. The prpl
+ * resolves the id against its cache, strips the command, and sends the rest
+ * with the quote attached. Armed state is one send long, whatever that send
+ * turns out to be. */
+- (NSString *)encodedAttributedStringForSendingContentMessage:(AIContentMessage *)inContentMessage
+{
+	NSString	*encoded = [super encodedAttributedStringForSendingContentMessage:inContentMessage];
+	AIChat		*chat = inContentMessage.chat;
+	NSString	*token = [chat valueForProperty:@"PendingReplyToken"];
+
+	if ([encoded length]) {
+		encoded = escapedForWhatsAppWire(encoded);
+	}
+
+	if ([token length]) {
+		/* A token with whitespace would shift the command's parts; ids never
+		 * carry any, so refusing is purely defensive. An OTR-encrypted chat
+		 * gets no prefix either (the menu no longer offers one there): the
+		 * encryptor runs after this and would seal the command into the
+		 * ciphertext, where the prpl cannot strip it and the recipient would
+		 * read it as literal text. */
+		if ([encoded length] && !chat.isSecure &&
+			[token rangeOfCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].location == NSNotFound) {
+			encoded = [NSString stringWithFormat:@"?reply %@ %@", token, encoded];
+		}
+		[chat setValue:nil forProperty:@"PendingReplyToken" notify:NotifyNever];
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatPendingReplyConsumed" object:chat];
+	}
+
+	return encoded;
 }
 
 /* WhatsApp is store-and-forward: files can be sent regardless of the contact's
