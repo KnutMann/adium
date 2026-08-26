@@ -8,14 +8,30 @@
 // Emoji are font glyphs and scale cleanly, so they grow to triple size.
 // Emoticons are small raster images that would blur if pushed that far, so
 // they grow to double their own edge length, no more.
+//
+// How far the emoji grow, and how many of them still count as "a short
+// message", are settings on this extension's page in Adium's Xtras settings.
+// The floor and the emoticon factor are not: the floor is what keeps a small
+// chat font jumbo, the factor is where raster pictures start to blur, and
+// neither of them is taste.
 
 (function () {
 	'use strict';
 
-	var EMOJI_SCALE = 3;           // triple the emoji's own edge length
-	var EMOJI_FLOOR = 48;          // ...but at least this, so a small chat font still reads as jumbo
-	var EMOTICON_SCALE = 2;        // double the emoticon's own pixels
-	var MAX_GLYPHS = 3;
+	var SETTINGS = (window.adiumPlugin && adiumPlugin.settings) || {};
+
+	// A setting arrives as one of the strings the manifest listed; map it to the
+	// number that string names. Guarded rather than trusting the host: an
+	// unexpected token must not become NaN in a font size, and a plain
+	// SCALES[token] would hand back a function for a token like "constructor".
+	function pick(map, value, fallback) {
+		return Object.prototype.hasOwnProperty.call(map, value) ? map[value] : fallback;
+	}
+
+	var EMOJI_SCALE = pick({ '2': 2, '3': 3, '4': 4 }, SETTINGS.emojiScale, 3);   // the emoji's own edge length, times this
+	var EMOJI_FLOOR = 48;          // not a setting: at least this, so a small chat font still reads as jumbo
+	var EMOTICON_SCALE = 2;        // not a setting: raster emoticons blur past double their own pixels
+	var MAX_GLYPHS = pick({ '1': 1, '2': 2, '3': 3 }, SETTINGS.maxGlyphs, 3);
 
 	var segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter)
 		? new Intl.Segmenter(undefined, { granularity: 'grapheme' })

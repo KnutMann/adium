@@ -17,12 +17,16 @@
 #import "AIXtraDetailsPage.h"
 #import "AIXtraInfo.h"
 #import <Adium/AISettingsFormView.h>
+#import "AIJSXtrasManager.h"
+#import "AIJSXtraBundle.h"
 
 //Width the form starts out at; the preferences window resizes it to its column
 #define XTRA_PAGE_INITIAL_WIDTH		540.0f
 
 @interface AIXtraDetailsPage ()
+@property (nonatomic) NSArray *settingDeclarations;
 - (void)buildForm;
+- (void)addSettingsCard;
 - (BOOL)addValueRowWithLabel:(NSString *)label value:(NSString *)value;
 - (NSString *)manifestStringForKey:(NSString *)key;
 @end
@@ -109,6 +113,12 @@ static NSTextField *AIXtraDetailValue(NSString *value)
 			   title:[xtraInfo name]
 			 control:nil];
 
+	/* What the extension itself offers to change. Before the manifest facts rather than after them:
+	 * it is the only thing on this page anybody came here to do, and reference material has no
+	 * business sitting above a control. It also lands directly under the description, so the
+	 * sentence naming the setting and the menu which is the setting are two rows apart. */
+	if (isJavaScript) [self addSettingsCard];
+
 	//Everything the manifest actually says. A field it does not carry is left out, not shown empty.
 	[form endCard];
 
@@ -173,6 +183,87 @@ static NSTextField *AIXtraDetailValue(NSString *value)
 }
 
 /*!
+ * @brief The card of settings a JavaScript extension declares, or nothing at all
+ *
+ * Nothing for an extension declaring none - three of the five Adium ships declare none - and
+ * nothing for one whose manifest the plugin manager refused, which is also not running. Both are
+ * this page's established habit of leaving something out rather than showing it empty, and a card
+ * with a header and no rows would be drawn as a bold heading above nothing.
+ *
+ * Shown whether the extension is switched on or off. Somebody who has just turned something off is
+ * exactly the person who wants to look at why, and a value chosen while it is off takes hold when
+ * it comes back on.
+ *
+ * A card of its own, under a header Adium wrote, and that is a security decision rather than a
+ * taste one: a manifest-supplied title sits in the same visual grammar as Adium's own row labels,
+ * so mixed into the facts card an author could write a row reading "Identifier" or "Requires" and
+ * have it read as something Adium said.
+ */
+- (void)addSettingsCard
+{
+	NSString	*identifier = [[xtraInfo bundle] bundleIdentifier];
+
+	[self setSettingDeclarations:[[AIJSXtrasManager sharedManager] settingsForPluginWithIdentifier:identifier]];
+
+	if (![[self settingDeclarations] count]) return;
+
+	[form addSectionHeader:AILocalizedString(@"Settings", "Header of the card on a JavaScript extension's page holding the settings its manifest declares")];
+
+	NSUInteger	index = 0;
+
+	for (AIJSXtraSetting *setting in [self settingDeclarations]) {
+		NSPopUpButton	*popUp = [AISettingsFormView popUpButtonWithTitles:[setting optionTitles]
+																	target:self
+																	action:@selector(changedSetting:)];
+
+		/* A menu built from titles is only as long as the titles are distinct: -[NSPopUpButton
+		 * addItemWithTitle:] REMOVES an item already carrying that title. The validator refuses a
+		 * manifest whose options read alike, so this cannot happen; if it ever does, the row is
+		 * left out rather than drawn over options it no longer lines up with. */
+		if ([[popUp itemArray] count] != [[setting optionValues] count]) {
+			NSLog(@"JSXtra: the menu for %@ does not match its options; leaving the row out", [setting key]);
+			index++;
+			continue;
+		}
+
+		/* What each item stands for, so that reading the choice back never depends on where the
+		 * item sits. The tag says which setting the menu belongs to. */
+		NSUInteger	option = 0;
+
+		for (NSMenuItem *item in [popUp itemArray]) {
+			[item setRepresentedObject:[[setting optionValues] objectAtIndex:option]];
+			option++;
+		}
+
+		[popUp setTag:(NSInteger)index];
+
+		NSUInteger	selected = [[setting optionValues] indexOfObject:
+								[[AIJSXtrasManager sharedManager] valueForSettingKey:[setting key]
+															   pluginWithIdentifier:identifier]];
+
+		//Never NSNotFound: the manager coerces a stored value back into the declared list on read
+		if (selected != NSNotFound) [popUp selectItemAtIndex:(NSInteger)selected];
+
+		/* addRowWithLabel:control:detail: rather than addRowWithLabel:popUpButton:accessoryButton:,
+		 * which re-measures its menu at every layout for menus rebuilt on the fly and offers no
+		 * detail line: this menu is built once from a manifest that cannot change while the page is
+		 * open. */
+		[form addRowWithLabel:[setting title] control:popUp detail:[setting detail]];
+
+		index++;
+	}
+
+	/* Two sentences, and the first is the honest one: these are the only rows in Adium's settings
+	 * whose labels a stranger wrote. The second says what the list behind this page already says
+	 * about JavaScript extensions, in the same voice, and it is a real warning, because a change
+	 * reloads and replays every open transcript. */
+	[form addFootnote:AILocalizedString(@"What can be changed here is whatever the extension offers; the wording is its author's, not Adium's. A change takes effect immediately in every open conversation.",
+										"Footnote below the settings card on a JavaScript extension's page")];
+
+	[form endCard];
+}
+
+/*!
  * @brief Add a row reading "@a label … @a value", or nothing at all where there is no value
  *
  * @return YES if a row was added
@@ -213,6 +304,32 @@ static NSTextField *AIXtraDetailValue(NSString *value)
 - (IBAction)deleteXtra:(id)sender
 {
 	[pageDelegate xtraDetailsPage:self deleteXtra:xtraInfo];
+}
+
+/*!
+ * @brief A menu on the settings card was used
+ *
+ * Writes a preference of Adium's. Nothing here touches the bundle, which is why this is the one
+ * thing the page does without asking the pane: the delegate exists for the two actions that move
+ * files, and this moves none.
+ *
+ * The chosen value comes off the menu item rather than from its position, so a menu which is not
+ * the shape the declarations expect can write nothing rather than write the wrong thing.
+ */
+- (IBAction)changedSetting:(id)sender
+{
+	NSUInteger	index = (NSUInteger)[sender tag];
+
+	if (index >= [[self settingDeclarations] count]) return;
+
+	AIJSXtraSetting	*setting = [[self settingDeclarations] objectAtIndex:index];
+	NSString		*value = [[sender selectedItem] representedObject];
+
+	if (![value isKindOfClass:[NSString class]]) return;
+
+	[[AIJSXtrasManager sharedManager] setValue:value
+								 forSettingKey:[setting key]
+						  pluginWithIdentifier:[[xtraInfo bundle] bundleIdentifier]];
 }
 
 @end

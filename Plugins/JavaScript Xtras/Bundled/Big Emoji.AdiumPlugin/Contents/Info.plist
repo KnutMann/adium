@@ -8,6 +8,73 @@
 	<string>plugin.js</string>
 	<key>AIJavaScriptPluginAPIVersion</key>
 	<integer>1</integer>
+	<key>AIJavaScriptPluginSettings</key>
+	<array>
+		<dict>
+			<key>Key</key>
+			<string>emojiScale</string>
+			<key>Type</key>
+			<string>choice</string>
+			<key>Title</key>
+			<string>Emoji size</string>
+			<key>Detail</key>
+			<string>How far an emoji-only message grows. Emoticon pictures grow half as far whatever this says, because they blur past that.</string>
+			<key>Default</key>
+			<string>3</string>
+			<key>Options</key>
+			<array>
+				<dict>
+					<key>Value</key>
+					<string>2</string>
+					<key>Title</key>
+					<string>Double</string>
+				</dict>
+				<dict>
+					<key>Value</key>
+					<string>3</string>
+					<key>Title</key>
+					<string>Triple</string>
+				</dict>
+				<dict>
+					<key>Value</key>
+					<string>4</string>
+					<key>Title</key>
+					<string>Quadruple</string>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>Key</key>
+			<string>maxGlyphs</string>
+			<key>Type</key>
+			<string>choice</string>
+			<key>Title</key>
+			<string>Enlarge messages of up to</string>
+			<key>Default</key>
+			<string>3</string>
+			<key>Options</key>
+			<array>
+				<dict>
+					<key>Value</key>
+					<string>1</string>
+					<key>Title</key>
+					<string>One emoji</string>
+				</dict>
+				<dict>
+					<key>Value</key>
+					<string>2</string>
+					<key>Title</key>
+					<string>Two emoji</string>
+				</dict>
+				<dict>
+					<key>Value</key>
+					<string>3</string>
+					<key>Title</key>
+					<string>Three emoji</string>
+				</dict>
+			</array>
+		</dict>
+	</array>
 	<key>AIMinimumAdiumVersionRequirement</key>
 	<string>1.8.0</string>
 	<key>CFBundleDevelopmentRegion</key>

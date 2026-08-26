@@ -18,6 +18,7 @@
 #import <WebKit/WebKit.h>
 
 #import "../../WebKit Message View/AIWKGestureBridge.h"
+#import "../AIJSXtrasPreamble.h"
 
 static NSString *PROBE =
 @"(async function(){\n"
@@ -51,6 +52,12 @@ static NSString *PROBE =
 @"  record('pageworld-handler-via-dom-script', document.documentElement.getAttribute('data-probe-pageworld') !== 'handler');\n"
 @"  // 10. leave a marker for the cross-world check; another world must not see it\n"
 @"  window.__probeWorldMarker = 'A';\n"
+@"  // 10b. by the time a plugin runs, the temporary settings global must be gone and what is left frozen\n"
+@"  record('settings-global-deleted', typeof window.__adiumXtraSettings === 'undefined');\n"
+@"  var frozen = false;\n"
+@"  try { adiumPlugin.settings.probe = 'tampered'; } catch(e) {}\n"
+@"  try { frozen = Object.isFrozen(adiumPlugin.settings) && adiumPlugin.settings.probe === 'value'; } catch(e) {}\n"
+@"  record('settings-frozen', frozen);\n"
 @"  // 11. synthetic click on a transfer button; the gesture bridge must ignore it\n"
 @"  var btn=document.getElementById('probe-transfer'); if (btn) btn.click();\n"
 @"  // publish results into the shared DOM for the native side to read\n"
@@ -94,6 +101,18 @@ static NSString *PROBE =
 
 		// The probe in its own content world, as the manager injects a plugin
 		WKContentWorld *world = [WKContentWorld worldWithName:@"adium.jsxtra.probe"];
+
+		/* The settings blob and the preamble ahead of it, in the manager's own order, so the probe
+		 * can measure what the trusted host does with a value before any plugin sees it. */
+		[ucc addUserScript:[[WKUserScript alloc] initWithSource:AIJSXtrasSettingsScript(@{ @"probe": @"value" })
+												 injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+											  forMainFrameOnly:YES
+												inContentWorld:world]];
+		[ucc addUserScript:[[WKUserScript alloc] initWithSource:AIJSXtrasPreamble
+												 injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+											  forMainFrameOnly:YES
+												inContentWorld:world]];
+
 		[ucc addUserScript:[[WKUserScript alloc] initWithSource:PROBE
 												 injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 											  forMainFrameOnly:YES
@@ -169,20 +188,20 @@ static NSString *PROBE =
 			if ([out isEqualToString:@"no results"]) self.fails++;
 
 			// Page world: no handler, and no sight of the plugin world's marker
-			[wv evaluateJavaScript:@"[(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adium) ? 'handler' : 'nothing', typeof window.__probeWorldMarker].join('|')"
+			[wv evaluateJavaScript:@"[(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adium) ? 'handler' : 'nothing', typeof window.__probeWorldMarker, typeof window.__adiumXtraSettings].join('|')"
 				 completionHandler:^(id pw, NSError *e2) {
 				NSString *pageWorld = [pw isKindOfClass:[NSString class]] ? pw : @"";
-				BOOL pageClean = [pageWorld isEqualToString:@"nothing|undefined"];
+				BOOL pageClean = [pageWorld isEqualToString:@"nothing|undefined|undefined"];
 				printf("%s pageworld-clean (%s)\n", pageClean ? "BLOCKED" : "LEAKED ", pageWorld.UTF8String);
 				if (!pageClean) self.fails++;
 
 				// A second plugin world: the first world's marker must be invisible
 				WKContentWorld *worldB = [WKContentWorld worldWithName:@"adium.jsxtra.probe-b"];
-				[wv evaluateJavaScript:@"typeof window.__probeWorldMarker"
+				[wv evaluateJavaScript:@"[typeof window.__probeWorldMarker, typeof window.__adiumXtraSettings].join('|')"
 							   inFrame:nil
 						inContentWorld:worldB
 					 completionHandler:^(id wb, NSError *e3) {
-					BOOL isolated = [wb isKindOfClass:[NSString class]] && [wb isEqualToString:@"undefined"];
+					BOOL isolated = [wb isKindOfClass:[NSString class]] && [wb isEqualToString:@"undefined|undefined"];
 					printf("%s cross-world-globals\n", isolated ? "BLOCKED" : "LEAKED ");
 					if (!isolated) self.fails++;
 

@@ -9,16 +9,22 @@
 // those classes draw.
 //
 // WHERE the tick sits is a taste question each message style answers
-// differently, so it is a setting right here:
+// differently, so it is a setting on this extension's own page, in Adium's
+// Xtras settings. It arrives as adiumPlugin.settings.placement:
 //
-//   PLACEMENT = 'time-before'  the tick sits just left of the timestamp
-//               'time-after'   just right of the timestamp
-//               'message'      trailing the message text itself
+//   'time-before'  the tick sits just left of the timestamp
+//   'time-after'   just right of the timestamp
+//   'message'      trailing the message text itself
+//
+// The constant below is only the fallback, for an Adium too old to send a
+// setting at all.
 //
 // The timestamp is found by the class names the styles conventionally use
 // (.time and friends; the bundled Smooth Operator and Mockie both match). A
-// style that names its timestamp differently can be added to TIME_CLASSES, or
-// set PLACEMENT to 'message', which needs no timestamp at all.
+// style that names its timestamp differently can be added to TIME_CLASSES -
+// which really is a source-level thing and not a setting, because it is a list
+// of selectors spliced into a stylesheet - or choose "After the message",
+// which needs no timestamp at all.
 //
 // The ticks keep a fixed pixel size on purpose: Big Emoji scales a short
 // emoji message up with an em-based font size, and an em-sized tick would
@@ -33,7 +39,8 @@
 (function () {
 	'use strict';
 
-	var PLACEMENT = 'time-before';   // 'time-before' | 'time-after' | 'message'
+	var SETTINGS = (window.adiumPlugin && adiumPlugin.settings) || {};
+	var PLACEMENT = SETTINGS.placement || 'time-before';
 
 	var STYLE_ID = 'x-adium-read-receipts';
 	var OUTGOING = '[data-x-adium-msg][data-x-adium-dir="outgoing"]';
