@@ -41,6 +41,9 @@
 
 #define PRIVKEY_PATH [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"otr.private_key"] UTF8String]
 #define STORE_PATH	 [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"otr.fingerprints"] UTF8String]
+/* Named as the reference implementation names it, and written in the same
+ * format by the same library call, so the file can be carried between the two. */
+#define INSTAG_PATH	 [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"otr.instance_tags"] UTF8String]
 
 #define CLOSED_CONNECTION_MESSAGE "has closed his private connection to you"
 
@@ -148,8 +151,21 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 	}
 
 	otrg_ui_update_fingerprint();
-	
-	
+
+	/* This computer's instance tag, one per account, which version 3 of the
+	 * protocol puts in every message so the far side can tell which of a
+	 * person's devices it is talking to. It has to be read before anything is
+	 * generated: generating rewrites the whole file from what is in memory, so
+	 * an unread file would be replaced by a file holding one account's tag. */
+	err = otrl_instag_read(otrg_plugin_userstate, INSTAG_PATH);
+	if (err) {
+		const char *errMsg = gpg_strerror(err);
+
+		if (errMsg && strcmp(errMsg, "No such file or directory")) {
+			NSLog(@"Error reading %s: %s", INSTAG_PATH, errMsg);
+		}
+	}
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(adiumWillTerminate:)
 									   name:AIAppWillTerminateNotification
@@ -474,6 +490,37 @@ static void create_privkey_cb(void *opdata, const char *accountname,
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	otrg_plugin_create_privkey(accountname, protocol);
+	[pool release];
+}
+
+/* Give this computer an instance tag for the given accountname/protocol
+ *
+ * Version 3 of the protocol names the device a message came from, and every
+ * message carries the name. It has to be the same name tomorrow as today, so it
+ * is written down: generating rewrites the file from every tag the library is
+ * holding, which is why the file is read at startup.
+ */
+void otrg_plugin_create_instag(const char *accountname, const char *protocol)
+{
+	/* The library adds a tag without looking whether the account already has
+	 * one, and hands out the first it finds afterwards, so asking twice would
+	 * leave a name in the file that nothing will ever answer to again. */
+	OtrlInsTag *existing = otrl_instag_find(otrg_plugin_userstate, accountname, protocol);
+	if (existing && existing->instag >= OTRL_MIN_VALID_INSTAG) return;
+
+	gcry_error_t err = otrl_instag_generate(otrg_plugin_userstate, INSTAG_PATH,
+											accountname, protocol);
+	if (err) {
+		NSLog(@"Error writing %s: %s", INSTAG_PATH, gpg_strerror(err));
+	}
+}
+
+/* Create an instance tag for the given accountname/protocol if desired. */
+static void create_instag_cb(void *opdata, const char *accountname,
+							 const char *protocol)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	otrg_plugin_create_instag(accountname, protocol);
 	[pool release];
 }
 
@@ -927,7 +974,7 @@ static OtrlMessageAppOps ui_ops = {
 	.resent_msg_prefix_free = NULL,
 	.handle_smp_event = handle_smp_event_cb,
 	.handle_msg_event = handle_msg_event_cb,
-	.create_instag = NULL,
+	.create_instag = create_instag_cb,
 	.convert_msg = NULL,
 	.convert_free = NULL,
 	.timer_control = NULL,
