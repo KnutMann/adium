@@ -34,21 +34,6 @@
 }
 
 //Copy
-- (id)copyWithZone:(NSZone *)zone
-{
-	AIListContactMockieCell *newCell = [super copyWithZone:zone];
-
-	/* NSCell copies memberwise, so the new cell's path pointer already points to the one this cell
-	 * holds, holding no reference of its own. It has to be cleared without being released - a plain
-	 * assignment would give up a reference this cell never took. The cast through void * keeps the
-	 * store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->lastBackgroundBezierPath = nil;
-	newCell->lastBackgroundBezierPath = lastBackgroundBezierPath;
-
-	return newCell;
-}
-
 //Draw the background of our cell
 - (NSBezierPath *)bezierPathForDrawingInRect:(NSRect)rect
 {

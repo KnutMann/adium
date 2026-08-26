@@ -47,25 +47,6 @@
 }
 
 //Copy
-- (id)copyWithZone:(NSZone *)zone
-{
-	AIImageTextCell *newCell = [super copyWithZone:zone];
-
-	/* NSCell copies memberwise, so the new cell's font and subString already point to the ones this cell holds, holding no
-	 * reference of its own. Each of them has to be cleared without being released, and a plain assignment
-	 * would not do that: the store gives up a reference this cell never took, and the original
-	 * loses what it was drawing with. The cast through void * is what keeps the store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->font = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->subString = nil;
-
-	[newCell setFont:font];
-	[newCell setSubString:subString];
-	[newCell setMaxImageWidth:maxImageWidth];
-
-	return newCell;
-}
-
 #pragma mark Accessors
 
 /*! @brief Set whether the strings are considered highlighted even if the window is not key

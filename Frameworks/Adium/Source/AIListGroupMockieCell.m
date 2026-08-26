@@ -23,21 +23,6 @@
 @implementation AIListGroupMockieCell
 
 //Copy
-- (id)copyWithZone:(NSZone *)zone
-{
-	AIListGroupMockieCell *newCell = [super copyWithZone:zone];
-	
-	for (int i = 0; i < NUMBER_OF_GROUP_STATES; i++) {
-		/* NSCell's copy is memberwise: the slot already holds the original's pointer without
-		 * owning it, and a counted store into it would give up a reference nobody took. The
-		 * cast clears the slot without releasing; the assignment then retains properly. */
-		*(__unsafe_unretained id *)(void *)&newCell->_mockieGradient[i] = nil;
-		newCell->_mockieGradient[i] = _mockieGradient[i];
-	}
-	
-	return newCell;
-}
-
 //Init
 - (id)init
 {

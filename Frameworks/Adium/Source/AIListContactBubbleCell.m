@@ -41,22 +41,6 @@
 	return self;
 }
 
-//Copy
-- (AIListContactBubbleCell *)copyWithZone:(NSZone *)zone
-{
-	AIListContactBubbleCell *newCell = [super copyWithZone:zone];
-
-	/* NSCell copies memberwise, so the new cell's path pointer already points to the one this cell
-	 * holds, holding no reference of its own. It has to be cleared without being released - a plain
-	 * assignment would give up a reference this cell never took. The cast through void * keeps the
-	 * store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->lastBackgroundBezierPath = nil;
-	newCell->lastBackgroundBezierPath = lastBackgroundBezierPath;
-
-	return newCell;
-}
-
 //Give ourselves extra padding to compensate for the rounded bubble
 - (CGFloat)leftPadding{
 	return [super leftPadding] + EDGE_INDENT;
