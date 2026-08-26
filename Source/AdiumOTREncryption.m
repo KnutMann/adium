@@ -68,7 +68,7 @@
 - (void)adiumFinishedLaunching:(NSNotification *)inNotification;
 - (void)adiumWillTerminate:(NSNotification *)inNotification;
 - (void)updateSecurityDetails:(NSNotification *)inNotification;
-- (void)verifyUnknownFingerprint:(NSValue *)contextValue;
+- (void)verifyUnknownFingerprint:(NSDictionary *)responseInfo;
 - (void)otrPollTimerFired:(NSTimer *)inTimer;
 @end
 
@@ -263,8 +263,17 @@ static NSDictionary* details_for_context(ConnContext *context)
 
 	account = [adium.accountController accountWithInternalObjectID:[NSString stringWithUTF8String:context->accountname]];
 
+	/* The raw twenty bytes ride along beside the human-readable hash. Whoever
+	 * answers a prompt built from this dictionary must act on exactly the key
+	 * that was shown, and the only way to guarantee that across the time a
+	 * window stays open is to carry the bytes themselves: the context's
+	 * active_fingerprint is whatever is active WHEN THE ANSWER COMES, which
+	 * after a re-handshake, or with a peer on two devices, is not necessarily
+	 * what the user read. The reference implementation pins the same bytes into
+	 * its dialog data for the same reason. */
 	securityDetailsDict = [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSString stringWithUTF8String:their_hash], @"Their Fingerprint",
+		[NSData dataWithBytes:fprint->fingerprint length:20], @"Their Fingerprint Bytes",
 		[NSString stringWithUTF8String:our_hash], @"Our Fingerprint",
 		[NSNumber numberWithInteger:encryptionStatus], @"EncryptionStatus",
 		account, @"AIAccount",
@@ -712,13 +721,24 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 		context = otrl_context_find(us, username, accountname,
 									protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
 
-		if (context == NULL/* || context->msgstate != OTRL_MSGSTATE_ENCRYPTED*/) {
-			NSLog(@"otrg_adium_dialog_unknown_fingerprint: Ack!");
+		if (context == NULL) {
+			AILog(@"new_fingerprint_cb: no context for %s", username);
+			return;
+		}
+
+		/* Everything the prompt will show is read out NOW, while the context is
+		 * the library's argument and certainly alive, and only the dictionary
+		 * crosses the runloop turn - not a raw ConnContext*, which nothing
+		 * would keep alive on the way. */
+		NSDictionary	*responseInfo = details_for_context(context);
+
+		if (!responseInfo) {
+			AILog(@"new_fingerprint_cb: no details for %s", username);
 			return;
 		}
 
 		[adiumOTREncryption performSelector:@selector(verifyUnknownFingerprint:)
-								 withObject:[NSValue valueWithPointer:context]
+								 withObject:responseInfo
 								 afterDelay:0];
 	}
 }
@@ -1346,20 +1366,9 @@ OtrlUserState otrg_get_userstate(void)
 
 #pragma mark -
 
-- (void)verifyUnknownFingerprint:(NSValue *)contextValue
+- (void)verifyUnknownFingerprint:(NSDictionary *)responseInfo
 {
-	NSDictionary		*responseInfo;
-	
-	responseInfo = details_for_context([contextValue pointerValue]);
-	
-	if (responseInfo) {
-		[ESOTRUnknownFingerprintController showUnknownFingerprintPromptWithResponseInfo:responseInfo];
-	} else {
-		/* This means either context, context->active_fingerprint, context->active_fingerprint-fingerprint
-		 * or context->active_fingerprint->context was NULL.
-		 */
-		AILogWithSignature(@"Got a nil details_for_context for %p", [contextValue pointerValue]);
-	}
+	[ESOTRUnknownFingerprintController showUnknownFingerprintPromptWithResponseInfo:responseInfo];
 }
 
 /*!

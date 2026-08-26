@@ -21,6 +21,9 @@
 #import "AIHTMLDecoder.h"
 #import <Adium/AIServiceIcons.h>
 #import <Adium/AIAccountControllerProtocol.h>
+#import <Adium/AIChatControllerProtocol.h>
+#import <Adium/AIContactControllerProtocol.h>
+#import <Adium/AIListContact.h>
 
 #import "AdiumOTREncryption.h"
 
@@ -159,34 +162,58 @@
 {
 	AIAccount	*account = [responseInfo objectForKey:@"AIAccount"];
 	NSString	*who = [responseInfo objectForKey:@"who"];
-	
+	NSData		*shownFingerprint = [responseInfo objectForKey:@"Their Fingerprint Bytes"];
+
+	if ([shownFingerprint length] != 20) {
+		AILog(@"Warning: ESOTRUnknownFingerprintController: no pinned fingerprint in %@", responseInfo);
+		return;
+	}
+
+	/* The MASTER context: version 3 keeps the fingerprint list there, one list
+	 * for all of a contact's devices, and trust is a property of the key, not
+	 * of whichever conversation happens to be up. */
 	ConnContext *context = otrl_context_find(otrg_get_userstate(),
 											 [who UTF8String], [account.internalObjectID UTF8String],
 											 [account.service.serviceCodeUniqueID UTF8String],
-											 OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
-    Fingerprint *fprint;
-    BOOL oldtrust;
-	
+											 OTRL_INSTAG_MASTER, 0, NULL, NULL, NULL);
+
     if (context == NULL) {
 		AILog(@"Warning: ESOTRUnknownFingerprintController: NULL context for %@",responseInfo);
 		return;
 	}
-	
-	fprint = context->active_fingerprint;
+
+	/* Exactly the key the user read, or nothing. The context's
+	 * active_fingerprint at answer time is whatever a re-handshake or a second
+	 * device has made active since the window opened; writing trust there would
+	 * verify a key nobody ever looked at. If the shown key has meanwhile been
+	 * forgotten, the honest answer is to do nothing rather than to guess. */
+	Fingerprint *fprint = otrl_context_find_fingerprint(context,
+														(unsigned char *)[shownFingerprint bytes],
+														0, NULL);
 
     if (fprint == NULL) {
-		AILog(@"Warning: ESOTRUnknownFingerprintController: NULL fprint for %@",responseInfo);
+		AILog(@"Warning: ESOTRUnknownFingerprintController: the shown fingerprint is gone from %@", who);
 		return;
 	}
-	
-    oldtrust = (fprint->trust && fprint->trust[0]);
-	
+
+    BOOL oldtrust = (fprint->trust && fprint->trust[0]);
+
     /* See if anything's changed */
     if (fingerprintAccepted != oldtrust) {
 		otrl_context_set_trust(fprint, fingerprintAccepted ? "verified" : "");
 		//Write the new info to disk, redraw the UI
 		otrg_plugin_write_fingerprints();
 		otrg_ui_update_keylist();
+
+		/* And the open conversation: its lock reads Unverified until somebody
+		 * recomputes it, and the trust that just changed is exactly what it is
+		 * computed from. */
+		AIListContact	*contact = [adium.contactController contactWithService:account.service
+																	   account:account
+																		   UID:who];
+		AIChat			*chat = (contact ? [adium.chatController existingChatWithContact:contact] : nil);
+
+		if (chat) update_security_details_for_chat(chat);
     }	
 }
 

@@ -47,6 +47,9 @@ void otrg_ui_update_keylist(void);
 
 TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 
+/* Recompute and redraw a chat's lock from its current OTR context */
+void update_security_details_for_chat(AIChat *chat);
+
 /* Generate a private key for the given accountname/protocol */
 void otrg_plugin_create_privkey(const char *accountname,
 								const char *protocol);
