@@ -69,6 +69,7 @@
 - (void)adiumWillTerminate:(NSNotification *)inNotification;
 - (void)updateSecurityDetails:(NSNotification *)inNotification;
 - (void)verifyUnknownFingerprint:(NSValue *)contextValue;
+- (void)otrPollTimerFired:(NSTimer *)inTimer;
 @end
 
 @implementation AdiumOTREncryption
@@ -449,6 +450,7 @@ static BOOL otrHandshakeErrorTrippedBreaker(const char *accountname, const char 
 	return NO;
 }
 
+
 /* Return the OTR policy for the given context. */
 
 static OtrlPolicy policy_cb(void *opdata, ConnContext *context)
@@ -713,7 +715,7 @@ static void gone_secure_cb(void *opdata, ConnContext *context)
 
     update_security_details_for_chat(chat);
 	otrg_ui_update_fingerprint();
-	
+
 	[pool release];
 }
 
@@ -959,6 +961,35 @@ static void handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_event, ConnContex
 	[pool release];
 }
 
+/* The library has periodic work to do: private state that has served its turn
+ * is thrown away, so that somebody who takes this computer tomorrow cannot read
+ * what was said today. It asks for a timer here and does the work when
+ * otrl_message_poll is called. A port that answers neither leaves that state
+ * lying around for the life of the process.
+ */
+static NSTimer *otrPollTimer = nil;
+
+static void timer_control_cb(void *opdata, unsigned int interval)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	[otrPollTimer invalidate];
+	[otrPollTimer release];
+	otrPollTimer = nil;
+
+	/* Nought means there is nothing left to do for now; the library asks again
+	 * when there is. */
+	if (interval > 0) {
+		otrPollTimer = [[NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)interval
+														 target:adiumOTREncryption
+													   selector:@selector(otrPollTimerFired:)
+													   userInfo:nil
+														repeats:YES] retain];
+	}
+
+	[pool release];
+}
+
 static OtrlMessageAppOps ui_ops = {
 	.policy = policy_cb,
 	.create_privkey = create_privkey_cb,
@@ -982,8 +1013,13 @@ static OtrlMessageAppOps ui_ops = {
 	.create_instag = create_instag_cb,
 	.convert_msg = NULL,
 	.convert_free = NULL,
-	.timer_control = NULL,
+	.timer_control = timer_control_cb,
 };
+
+- (void)otrPollTimerFired:(NSTimer *)inTimer
+{
+	otrl_message_poll(otrg_plugin_userstate, &ui_ops, NULL);
+}
 
 #pragma mark -
 
@@ -1127,6 +1163,10 @@ void otrg_plugin_continue_smp(ConnContext *context,
  */
 - (void)adiumWillTerminate:(NSNotification *)inNotification
 {
+	[otrPollTimer invalidate];
+	[otrPollTimer release];
+	otrPollTimer = nil;
+
 	ConnContext *context = otrg_plugin_userstate->context_root;
 	while(context) {
 		ConnContext *next = context->next;
