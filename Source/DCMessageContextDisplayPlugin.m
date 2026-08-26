@@ -130,7 +130,12 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 - (void)addContextDisplayToWindow:(NSNotification *)notification
 {
 	AIChat	*chat = (AIChat *)[notification object];
-	
+
+	/* An account that fetches the conversation's earlier messages from the
+	 * service itself says so; replaying our transcript on top of that would
+	 * show the same lines twice, and ours know nothing of delivery state. */
+	if ([chat.account providesConversationHistory]) return;
+
 	NSArray	*context = [self contextForChat:chat];
 
 	if (context && [context count] > 0 && shouldDisplay) {

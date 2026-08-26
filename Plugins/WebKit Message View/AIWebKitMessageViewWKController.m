@@ -1978,12 +1978,15 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSInteger level = [className isEqualToString:@"x-adium-read"] ? 3 : 2;
 	if ([self _storedMessageWithId:messageId]) {
 		for (AIContentObject *stored in _storedContentObjects) {
-			if ([stored isKindOfClass:[AIContentMessage class]] &&
-				![stored isKindOfClass:[AIContentContext class]] && [stored isOutgoing]) {
-				AIContentMessage *storedMessage = (AIContentMessage *)stored;
-				if (storedMessage.confirmation < level) storedMessage.confirmation = level;
-				if ([storedMessage.messageId isEqualToString:messageId]) break;
-			}
+			if (![stored isKindOfClass:[AIContentMessage class]]) continue;
+			AIContentMessage *storedMessage = (AIContentMessage *)stored;
+			if ([stored isOutgoing] && storedMessage.confirmation < level)
+				storedMessage.confirmation = level;
+			/* The named message ends the run whatever it is. History fetched from
+			 * the service arrives as context and carries an id, so testing the id
+			 * before the outgoing test is what keeps the run from swallowing every
+			 * message that came after it. */
+			if ([storedMessage.messageId isEqualToString:messageId]) break;
 		}
 	}
 

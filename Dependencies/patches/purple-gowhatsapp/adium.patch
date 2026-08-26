@@ -1,7 +1,7 @@
 From bb91ddd9b4bd3a5401a41365888abdc4dc05c6af Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 21:35:47 +0200
-Subject: [PATCH 01/13] Adium adaptations: reactions, inline media, voice
+Subject: [PATCH 01/15] Adium adaptations: reactions, inline media, voice
  decode, names
 
 - Message cache: default size 100 (was 0, so reactions never resolved)
@@ -642,7 +642,7 @@ index 0b265d7..c087d5a 100644
 From 0006fdf859721b123bc694fffa9db56bb57e5086 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:13:47 +0200
-Subject: [PATCH 02/13] Location messages as Apple Maps links; no buddies for
+Subject: [PATCH 02/15] Location messages as Apple Maps links; no buddies for
  group JIDs
 
 - LocationMessage/LiveLocationMessage were silently dropped; render
@@ -721,7 +721,7 @@ index 2adc92f..17f7c5b 100644
 From a7669168486d63e10430882d6af1ceb40b8c6eee Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:25:58 +0200
-Subject: [PATCH 03/13] Auto-download documents and announce them with a file
+Subject: [PATCH 03/15] Auto-download documents and announce them with a file
  link
 
 Non-image, non-voice, non-video attachments download straight to the
@@ -808,7 +808,7 @@ index 47b1b89..d1a4952 100644
 From 606bfd39a5a6dd543d2fe3e0565b97ed83ffc5f7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:41:52 +0200
-Subject: [PATCH 04/13] Download profile pictures in full resolution by default
+Subject: [PATCH 04/15] Download profile pictures in full resolution by default
 
 The get-icons option defaulted to "no", so contact and chat window
 icons stayed empty; default to "original" everywhere (option list,
@@ -870,7 +870,7 @@ index 38a4281..f80b278 100644
 From a6aac04b8bb05a715e143a1c73ab5480d7f335b8 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 00:22:04 +0200
-Subject: [PATCH 05/13] Raise message cache default to 500
+Subject: [PATCH 05/15] Raise message cache default to 500
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ---
@@ -911,7 +911,7 @@ index fb5aef7..ab562a6 100644
 From aa133c032ca8124f364424bd5a07a4435efbceae Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 23:11:34 +0200
-Subject: [PATCH 06/13] Inline images of all types by default
+Subject: [PATCH 06/15] Inline images of all types by default
 
 Adium renders images in its message view rather than through a pixbuf
 loader, so the frontend support the upstream option asks about is
@@ -941,7 +941,7 @@ index 051f478..205e4ca 100644
 From e0eee9ee74ec4058bd0ba24c33408829ba1321c7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 14:12:32 +0200
-Subject: [PATCH 07/13] Attribute a sent picture to the sender, not to the
+Subject: [PATCH 07/15] Attribute a sent picture to the sender, not to the
  conversation
 
 The inline echo of an outgoing image passed the transfer's "who" as both the
@@ -1003,7 +1003,7 @@ index 64fe571..b62ef57 100644
 From 27bfce19a7cca2c342b4d5725e2616d959ff09d1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 17:14:00 +0200
-Subject: [PATCH 08/13] Match the Signal plug-in's device linking dialog
+Subject: [PATCH 08/15] Match the Signal plug-in's device linking dialog
 
 Same title, same wording, same buttons, and no raw QR payload: it is not
 something to type anywhere, it is the bytes the camera is about to read.
@@ -1074,7 +1074,7 @@ index 6b67c02..78c9f0b 100644
 From 3b3a989bd9dd7b686622db6ee9447680af0ce924 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 20:29:12 +0200
-Subject: [PATCH 09/13] Give a group chat its picture, on the node rather than
+Subject: [PATCH 09/15] Give a group chat its picture, on the node rather than
  on a buddy
 
 Contacts have had pictures all along and groups have not, because the only
@@ -1221,7 +1221,7 @@ index 9de9fdf..fc71358 100644
 From d6c419e38911dcddd12edf0a4e1c86ea6cb9ac93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Sun, 16 Aug 2026 00:52:07 +0200
-Subject: [PATCH 10/13] Keep a profile picture at the resolution that was asked
+Subject: [PATCH 10/15] Keep a profile picture at the resolution that was asked
  for
 
 Two faults, one of them ours.
@@ -1349,7 +1349,7 @@ index f80b278..318f744 100644
 From 3200a4b21f6b8a6420287d8925d6e041558b0e93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 19 Aug 2026 16:35:39 +0200
-Subject: [PATCH 11/13] Resolve WhatsApp business account names
+Subject: [PATCH 11/15] Resolve WhatsApp business account names
 
 Business accounts often carry no push name; whatsmeow delivers their verified
 name instead, both as a field on every message and as a BusinessName event when
@@ -1418,7 +1418,7 @@ index 28f68e1..2b14e0c 100644
 From d31ba408a3ab9f38c40e2dfc4dc6f35f669a4272 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:35:03 +0200
-Subject: [PATCH 12/13] Forward incoming receipts and sent-message ids.
+Subject: [PATCH 12/15] Forward incoming receipts and sent-message ids.
 
 Incoming events.Receipt used to be logged and dropped. Now every receipt
 is handed to the purple part as a new receipt message type, one call per
@@ -1821,7 +1821,7 @@ index c447251..a610632 100644
 From 48009366915317072b9796ce9e5f248c4979ce3d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:37:49 +0200
-Subject: [PATCH 13/13] Emit reactions and message ids as purple signals.
+Subject: [PATCH 13/15] Emit reactions and message ids as purple signals.
 
 An incoming reaction used to exist only as the rendered sentence
 "reacted with X to message Y", where Y falls back to "unknown message"
@@ -2131,6 +2131,659 @@ index 97268dc..33cb86f 100644
  			quote := fmt.Sprintf("unknown message with ID %s", rm.Key.GetID())
  			cached_message := handler.lookup_cached_message_by_id(rm.Key.GetID())
  			if cached_message != nil {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 62e3daa35e0fa8c9334d6399c82a17f7f93bd31a Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 02:18:17 +0200
+Subject: [PATCH 14/15] Give the receipt case back its break
+
+The union-style conflict resolution that stacked the receipt and
+reaction commits onto this branch sliced the break statement out from
+between the two cases. Every receipt fell through into the reaction
+handler and emitted a gowhatsapp-reaction signal with a NULL emoji,
+which a front-end reads as: this sender removed their reaction. A
+receipt arriving for a message someone had reacted to could silently
+clear the chip. The pull request branches both carry their breaks;
+only this combined branch had lost one.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/process_message.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/glue/process_message.c b/glue/process_message.c
+index dd09132..4af3005 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -149,6 +149,7 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+             break;
+         case gowhatsapp_message_type_receipt:
+             gowhatsapp_handle_receipt(pc, gwamsg);
++            break;
+         case gowhatsapp_message_type_reaction:
+             gowhatsapp_handle_reaction(pc, gwamsg);
+             break;
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 812cdfee4d01c48784a0e4553e5d058807399f64 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 02:37:47 +0200
+Subject: [PATCH 15/15] Fetch the history the phone still remembers
+
+WhatsApp keeps no readable history on its servers; the primary device
+does. whatsmeow can ask it for the messages preceding a known one, and
+the answer arrives as a HistorySync of type ON_DEMAND carrying whole
+WebMessageInfo records: the message, the reactions it gathered, and how
+far it travelled. The plug-in threw all of that away, with the
+maintainer's own TODO marking the spot.
+
+A conversation coming into being now asks the phone for what came
+before, behind the new fetch-history-on-open account option (off by
+default). The message cache supplies the anchor the request needs, and
+holds the recent messages the phone will not repeat, so the two are
+merged and sorted before display. Fetched lines travel the ordinary
+display path, marked delayed, so they carry their message id like any
+other message and a front-end can tell old news from new. Afterwards
+the state the phone remembers is reported through the receipt and
+reaction signals: a message reopened in a window can show its ticks
+and its reaction chips again, the way it looks on the phone.
+
+The phone answers only while WhatsApp runs there, and answers
+asynchronously or not at all, so this stays opt-in and silent when it
+fails.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ bridge.go              |  33 ++++++
+ bridge.h               |   7 ++
+ constants.h            |   1 +
+ docs/SETTINGS.md       |   3 +
+ glue/CMakeLists.txt    |   1 +
+ glue/gowhatsapp.h      |   4 +
+ glue/history.c         |  60 ++++++++++
+ glue/login.c           |   1 +
+ glue/options.c         |   7 ++
+ glue/process_message.c |   6 +-
+ glue/receipt.c         |   3 -
+ handle_history.go      | 255 +++++++++++++++++++++++++++++++++++++++++
+ handler.go             |   9 +-
+ login.go               |   2 +
+ 14 files changed, 387 insertions(+), 5 deletions(-)
+ create mode 100644 glue/history.c
+ create mode 100644 handle_history.go
+
+diff --git a/bridge.go b/bridge.go
+index a2503b8..f68c9aa 100644
+--- a/bridge.go
++++ b/bridge.go
+@@ -163,6 +163,16 @@ func gowhatsapp_go_mark_read_conversation(account *PurpleAccount, who *C.char) {
+ 	}
+ }
+ 
++//export gowhatsapp_go_request_history
++func gowhatsapp_go_request_history(account *PurpleAccount, who *C.char, count C.int) {
++	handler, ok := handlers[account]
++	if ok {
++		handler.request_history(C.GoString(who), int(count))
++	} else {
++		// no connection, fail silently
++	}
++}
++
+ //export gowhatsapp_go_send_presence
+ func gowhatsapp_go_send_presence(account *PurpleAccount, presence *C.char) {
+ 	handler, ok := handlers[account]
+@@ -450,6 +460,29 @@ func purple_display_text_message(account *PurpleAccount, remoteJid string, isGro
+ 	C.gowhatsapp_process_message_bridge(cmessage)
+ }
+ 
++/*
++ * This will display one message fetched from the primary device's history.
++ * It travels the same path as a live text message, but marked as history so
++ * the C part shows it as a delayed replay instead of fresh news.
++ */
++func purple_display_history_message(account *PurpleAccount, remoteJid string, isGroup bool, senderJid string, pushName *string, timestamp time.Time, text string, id string) {
++	cmessage := C.struct_gowhatsapp_message{
++		account:   account,
++		msgtype:   C.char(C.gowhatsapp_message_type_text),
++		subtype:   C.char(C.gowhatsapp_text_subtype_history),
++		remoteJid: C.CString(remoteJid),
++		senderJid: C.CString(senderJid),
++		messageId: C.CString(id),
++		timestamp: C.time_t(timestamp.Unix()),
++		text:      C.CString(text),
++		isGroup:   bool_to_Cchar(isGroup),
++	}
++	if pushName != nil {
++		cmessage.name = C.CString(*pushName)
++	}
++	C.gowhatsapp_process_message_bridge(cmessage)
++}
++
+ /*
+  * This hands a receipt to the C part: one station of one message's life
+  * (sent, delivered, read, read_self – see gowhatsapp_receipt_type).
+diff --git a/bridge.h b/bridge.h
+index 3f307c0..0d12a7b 100644
+--- a/bridge.h
++++ b/bridge.h
+@@ -68,6 +68,13 @@ enum gowhatsapp_receipt_type {
+     FOREACH_RECEIPT_TYPE(GENERATE_RECEIPT_ENUM)
+ };
+ 
++// Subtypes of a text message: a live message just arrived, a history message
++// is an old one replayed from the primary device and is displayed as such.
++enum gowhatsapp_text_subtype {
++    gowhatsapp_text_subtype_live = 0,
++    gowhatsapp_text_subtype_history,
++};
++
+ // Structure to communicate go → purple.
+ // This holds all data for incoming messages, error messages, login data, etc.
+ // NOTE: If the cgo and gcc compilers disagree on padding or alignment, chaos will ensue.
+diff --git a/constants.h b/constants.h
+index 5b7acef..5b8a4af 100644
+--- a/constants.h
++++ b/constants.h
+@@ -49,6 +49,7 @@ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_URL_TEMPLATE_DEFAULT, "");
+ CHARCONSTANT(GOWHATSAPP_ATTACHMENT_SYMLINK_OPTION, "attachment-symlink");
+ CHARCONSTANT(GOWHATSAPP_RECEIPT_DISPLAY_OPTION, "receipt-display");
+ CHARCONSTANT(GOWHATSAPP_REACTION_DISPLAY_OPTION, "reaction-display");
++CHARCONSTANT(GOWHATSAPP_FETCH_HISTORY_OPTION, "fetch-history-on-open");
+ 
+ /*
+  * Choices for GOWHATSAPP_SEND_RECEIPT_OPTION.
+diff --git a/docs/SETTINGS.md b/docs/SETTINGS.md
+index 2ac05c0..e98b282 100644
+--- a/docs/SETTINGS.md
++++ b/docs/SETTINGS.md
+@@ -35,6 +35,9 @@
+     * `text`: as a plain message like "reacted with X to message Y" (default, previous behaviour)
+     * `none`: not at all. Front-ends and plug-ins can still draw them by listening to the `gowhatsapp-reaction` signal, which also resolves messages the textual rendering can only call "unknown".
+   
++* `fetch-history-on-open` int  
++  Asks the primary device for this many messages preceding the newest known message whenever a conversation comes into being (default: 0, off). The phone answers only while WhatsApp is running on it, and answers asynchronously; there is no error when it does not. The recommended request size is 50. Fetched messages are shown as delayed messages, and the reactions and delivery state the phone remembers for them are reported through the `gowhatsapp-reaction` and `gowhatsapp-receipt` signals. Requires cached messages to anchor on, see `message-cache-size`.
++  
+ * `message-cache-size` int  
+   Stores a number (default: 0) of messages in local volatile memory. Cached messages are used to provide context when displaying reactions or quoting the message while replying to a specific message. See the [notes](./NOTES.md) for details on how to use the reply feature.  
+   Note: Cached messages are persisted to the purple home directory as `username.json`.
+diff --git a/glue/CMakeLists.txt b/glue/CMakeLists.txt
+index 9daab3a..328b9c1 100644
+--- a/glue/CMakeLists.txt
++++ b/glue/CMakeLists.txt
+@@ -18,6 +18,7 @@ add_library(${TARGET_NAME} SHARED
+     "options.c"
+     "receipt.c"
+     "reaction.c"
++    "history.c"
+     "pixbuf.c"
+     "pixbuf.h"
+     "commands.c"
+diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
+index 923669a..b7f5ad7 100644
+--- a/glue/gowhatsapp.h
++++ b/glue/gowhatsapp.h
+@@ -123,6 +123,10 @@ void gowhatsapp_handle_receipt(PurpleConnection *pc, gowhatsapp_message_t *gwams
+ // reactions
+ void gowhatsapp_handle_reaction(PurpleConnection *pc, gowhatsapp_message_t *gwamsg);
+ 
++// history fetched from the primary device
++void gowhatsapp_history_init(PurpleConnection *pc);
++void gowhatsapp_display_history_message(gowhatsapp_message_t *gwamsg);
++
+ // commands
+ enum gowhatsapp_command {
+     GOWHATSAPP_COMMAND_NONE = 0,
+diff --git a/glue/history.c b/glue/history.c
+new file mode 100644
+index 0000000..76027d2
+--- /dev/null
++++ b/glue/history.c
+@@ -0,0 +1,60 @@
++#include "gowhatsapp.h"
++#include "constants.h"
++#include "libwhatsmeow.h"
++
++static gulong conversation_created_signal = 0;
++
++/*
++ * A message the primary device sent back in answer to a history request.
++ *
++ * It travels the ordinary display path so it carries its message id like any
++ * other message, but marked PURPLE_MESSAGE_DELAYED: a front-end can then show
++ * it as the old news it is rather than announcing it. Its text arrives
++ * pre-composed from the Go part and is escaped here like any other.
++ */
++void
++gowhatsapp_display_history_message(gowhatsapp_message_t *gwamsg) {
++    gowhatsapp_display_text_message(
++        gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, gwamsg->text,
++        gwamsg->timestamp, gwamsg->isGroup, FALSE, gwamsg->name,
++        PURPLE_MESSAGE_DELAYED, gwamsg->messageId, TRUE
++    );
++}
++
++/*
++ * A conversation just came into being, either because the user opened it or
++ * because a message arrived. Ask the primary device for what came before.
++ *
++ * The Go part holds off requests it has answered recently, so a conversation
++ * being re-created (and the messages fetched here creating it again) does not
++ * turn into a loop.
++ */
++static void conversation_created(PurpleConversation *conv, gpointer data) {
++    PurpleAccount *account = purple_conversation_get_account(conv);
++    if (!purple_strequal(purple_account_get_protocol_id(account), GOWHATSAPP_PRPL_ID)) {
++        return;
++    }
++    int count = purple_account_get_int(account, GOWHATSAPP_FETCH_HISTORY_OPTION, 0);
++    if (count <= 0) {
++        return;
++    }
++    char *who = (char *)purple_conversation_get_name(conv); // cgo does not suport const
++    gowhatsapp_go_request_history(account, who, count); // this does all other checks (e.g. connection state)
++}
++
++/*
++ * This registers a call-back: This prpl shall be notified every time a
++ * conversation comes into being.
++ */
++void
++gowhatsapp_history_init(PurpleConnection *pc) {
++    if (!conversation_created_signal) {
++        conversation_created_signal = purple_signal_connect(
++            purple_conversations_get_handle(),
++            "conversation-created",
++            purple_connection_get_protocol(pc),
++            PURPLE_CALLBACK(conversation_created),
++            NULL
++        );
++    }
++}
+diff --git a/glue/login.c b/glue/login.c
+index 3f82f44..0ed6182 100644
+--- a/glue/login.c
++++ b/glue/login.c
+@@ -64,6 +64,7 @@ gowhatsapp_login(PurpleAccount *account)
+     g_free(proxy_address);
+     
+     gowhatsapp_receipts_init(pc);
++    gowhatsapp_history_init(pc);
+ }
+ 
+ void
+diff --git a/glue/options.c b/glue/options.c
+index ad628a2..146d8ba 100644
+--- a/glue/options.c
++++ b/glue/options.c
+@@ -97,6 +97,13 @@ gowhatsapp_add_account_options(GList *account_options)
+                 );
+     account_options = g_list_append(account_options, option);
+ 
++    option = purple_account_option_int_new(
++                "History to fetch from phone when a conversation opens (0 to disable)",
++                GOWHATSAPP_FETCH_HISTORY_OPTION,
++                0
++                );
++    account_options = g_list_append(account_options, option);
++
+     option = purple_account_option_int_new( // MEMCHECK: account_options takes ownership
+         "QR code size (pixels)",
+         GOWHATSAPP_QRCODE_SIZE_OPTION,
+diff --git a/glue/process_message.c b/glue/process_message.c
+index 4af3005..af860bf 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -120,7 +120,11 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+             gowhatsapp_close_qrcode(gwamsg->account);
+             break;
+         case gowhatsapp_message_type_text:
+-            if (!gowhatsapp_message_is_old(gwamsg)) {
++            if (gwamsg->subtype == gowhatsapp_text_subtype_history) {
++                // a replay requested from the primary device, not fresh news;
++                // deliberately exempt from the discard-old-messages gate
++                gowhatsapp_display_history_message(gwamsg);
++            } else if (!gowhatsapp_message_is_old(gwamsg)) {
+                 gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, gwamsg->text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, TRUE);
+             }
+             break;
+diff --git a/glue/receipt.c b/glue/receipt.c
+index 04ded75..4fb80e3 100644
+--- a/glue/receipt.c
++++ b/glue/receipt.c
+@@ -28,9 +28,6 @@ static void conversation_updated(PurpleConversation *conv, PurpleConversationUpd
+     }
+ }
+ 
+-/*
+- * This registers a call-back: This prpl shall be notified every time a conversation is updated.
+- */
+ /*
+  * An incoming receipt: one station of one message's life (sent, delivered,
+  * read, read_self – see gowhatsapp_receipt_type in bridge.h).
+diff --git a/handle_history.go b/handle_history.go
+new file mode 100644
+index 0000000..3f7cfc5
+--- /dev/null
++++ b/handle_history.go
+@@ -0,0 +1,255 @@
++package main
++
++/*
++#include "constants.h"
++#include "bridge.h"
++*/
++import "C"
++
++import (
++	"context"
++	"sort"
++	"time"
++
++	"go.mau.fi/whatsmeow/proto/waE2E"
++	"go.mau.fi/whatsmeow/proto/waHistorySync"
++	"go.mau.fi/whatsmeow/proto/waWeb"
++	"go.mau.fi/whatsmeow/types"
++)
++
++/*
++ * Asks the primary device for the messages preceding the newest message this
++ * client knows of the given conversation. The phone answers asynchronously
++ * (and only while WhatsApp is running there) with an events.HistorySync of
++ * type ON_DEMAND, handled by handle_history_sync below.
++ *
++ * The request needs a real anchor message (chat, id, sender and timestamp);
++ * the message cache provides it. Without a cached message for the chat there
++ * is nothing to anchor on and the request is skipped.
++ */
++func (handler *Handler) request_history(chatJid string, count int) {
++	chat, err := types.ParseJID(chatJid)
++	if err != nil || count <= 0 {
++		return
++	}
++	if last, ok := handler.historyRequests[chatJid]; ok && time.Since(last) < time.Minute {
++		// a conversation being re-created in quick succession is not a new request
++		return
++	}
++	handler.historyRequests[chatJid] = time.Now()
++	anchor := handler.newest_cached_message(chat)
++	if anchor == nil {
++		handler.log.Infof("No cached message to anchor a history request for %s on.", chatJid)
++		return
++	}
++	ownJid := handler.client.Store.ID.ToNonAD()
++	info := types.MessageInfo{
++		MessageSource: types.MessageSource{
++			Chat:     anchor.Chat,
++			Sender:   anchor.Sender,
++			IsFromMe: anchor.Sender.ToNonAD() == ownJid,
++			IsGroup:  anchor.Chat.Server == types.GroupServer,
++		},
++		ID:        anchor.ID,
++		Timestamp: anchor.Timestamp,
++	}
++	request := handler.client.BuildHistorySyncRequest(&info, count)
++	go func() {
++		_, err := handler.client.SendPeerMessage(context.Background(), request)
++		if err != nil {
++			handler.log.Warnf("Unable to request history for %s: %v", chatJid, err)
++		}
++	}()
++}
++
++func (handler *Handler) newest_cached_message(chat types.JID) *CachedMessage {
++	// the cache appends chronologically, so the last match is the newest
++	for i := len(handler.cachedMessages) - 1; i >= 0; i-- {
++		if handler.cachedMessages[i].Chat.ToNonAD() == chat.ToNonAD() {
++			return &handler.cachedMessages[i]
++		}
++	}
++	return nil
++}
++
++// one conversation line reconstructed from the phone's history or the cache
++type historyEntry struct {
++	id        string
++	sender    types.JID
++	timestamp time.Time
++	text      string
++	pushName  string
++	webMsg    *waWeb.WebMessageInfo // nil for entries replayed from the cache
++}
++
++/*
++ * The phone's answer to request_history: conversations full of WebMessageInfo.
++ * Each is turned back into a displayable line, merged with what the cache
++ * knows (the anchor and anything newer), sorted chronologically and displayed
++ * as history. Afterwards the state the phone remembers about each message is
++ * reported through the same signals live events use: reactions, and delivery
++ * or read confirmations for own messages.
++ */
++func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
++	for _, conversation := range data.GetConversations() {
++		chat, err := types.ParseJID(conversation.GetID())
++		if err != nil {
++			handler.log.Warnf("History sync for unparseable conversation %s: %v", conversation.GetID(), err)
++			continue
++		}
++		chat = handler.lidToPn(chat, "handling history conversation")
++		isGroup := chat.Server == types.GroupServer
++
++		entries := []historyEntry{}
++		seen := map[string]bool{}
++		for _, historyMsg := range conversation.GetMessages() {
++			webMsg := historyMsg.GetMessage()
++			evt, err := handler.client.ParseWebMessage(chat, webMsg)
++			if err != nil {
++				handler.log.Warnf("Dropping unparseable history message in %s: %v", chat, err)
++				continue
++			}
++			text := history_text(evt.Message)
++			if text == "" {
++				continue
++			}
++			sender := handler.lidToPn(evt.Info.Sender, "handling history sender")
++			entries = append(entries, historyEntry{
++				id:        evt.Info.ID,
++				sender:    sender,
++				timestamp: evt.Info.Timestamp,
++				text:      text,
++				pushName:  evt.Info.PushName,
++				webMsg:    webMsg,
++			})
++			seen[evt.Info.ID] = true
++		}
++
++		// the phone sends what lies before the anchor; the anchor itself and
++		// anything newer the cache remembers fills the gap up to the present
++		for i := range handler.cachedMessages {
++			cached := &handler.cachedMessages[i]
++			if cached.Chat.ToNonAD() != chat.ToNonAD() || seen[cached.ID] {
++				continue
++			}
++			text := history_text(&cached.Message)
++			if text == "" {
++				continue
++			}
++			entries = append(entries, historyEntry{
++				id:        cached.ID,
++				sender:    cached.Sender,
++				timestamp: cached.Timestamp,
++				text:      text,
++			})
++		}
++
++		sort.SliceStable(entries, func(i, j int) bool {
++			return entries[i].timestamp.Before(entries[j].timestamp)
++		})
++
++		ownJid := handler.client.Store.ID.ToNonAD()
++		for _, entry := range entries {
++			var pushName *string
++			if entry.pushName != "" {
++				name := entry.pushName
++				pushName = &name
++			}
++			purple_display_history_message(handler.account, chat.ToNonAD().String(), isGroup, entry.sender.ToNonAD().String(), pushName, entry.timestamp, entry.text, entry.id)
++		}
++		for _, entry := range entries {
++			if entry.webMsg == nil {
++				continue
++			}
++			handler.report_history_state(chat, isGroup, ownJid, entry)
++		}
++	}
++}
++
++/*
++ * Reports what the phone remembers about one historical message: reactions it
++ * gathered, and how far an own message travelled (delivered, read). These use
++ * the same signals as live receipts and reactions, so a front-end that draws
++ * ticks and reaction chips restores them on the historical lines too.
++ */
++func (handler *Handler) report_history_state(chat types.JID, isGroup bool, ownJid types.JID, entry historyEntry) {
++	chatJid := chat.ToNonAD().String()
++	for _, reaction := range entry.webMsg.GetReactions() {
++		emoji := reaction.GetText()
++		if emoji == "" {
++			// a removed reaction was never shown; nothing to take back
++			continue
++		}
++		var sender types.JID
++		key := reaction.GetKey()
++		if key.GetFromMe() {
++			sender = ownJid
++		} else if participant := key.GetParticipant(); participant != "" {
++			parsed, err := types.ParseJID(participant)
++			if err != nil {
++				continue
++			}
++			sender = handler.lidToPn(parsed, "handling history reaction sender")
++		} else {
++			sender = chat
++		}
++		timestamp := time.UnixMilli(reaction.GetSenderTimestampMS())
++		purple_reaction(handler.account, chatJid, isGroup, sender.ToNonAD().String(), entry.id, emoji, timestamp)
++	}
++
++	if entry.webMsg.GetKey().GetFromMe() {
++		var receiptType C.char
++		switch entry.webMsg.GetStatus() {
++		case waWeb.WebMessageInfo_DELIVERY_ACK:
++			receiptType = C.char(C.gowhatsapp_receipt_type_delivered)
++		case waWeb.WebMessageInfo_READ, waWeb.WebMessageInfo_PLAYED:
++			receiptType = C.char(C.gowhatsapp_receipt_type_read)
++		default:
++			return
++		}
++		purple_receipt(handler.account, chatJid, ownJid.ToNonAD().String(), isGroup, entry.timestamp, receiptType, entry.id)
++	}
++}
++
++/*
++ * The line of text a historical message displays as. Text carries over as-is;
++ * media becomes a short placeholder (historical attachments are not
++ * downloaded), keeping its caption if it had one.
++ */
++func history_text(message *waE2E.Message) string {
++	if message == nil {
++		return ""
++	}
++	if text := message.GetConversation(); text != "" {
++		return text
++	}
++	if text := message.GetExtendedTextMessage().GetText(); text != "" {
++		return text
++	}
++	if m := message.GetImageMessage(); m != nil {
++		return history_placeholder("an image", m.GetCaption())
++	}
++	if m := message.GetVideoMessage(); m != nil {
++		return history_placeholder("a video", m.GetCaption())
++	}
++	if message.GetPtvMessage() != nil {
++		return "[Sent a video message.]"
++	}
++	if message.GetAudioMessage() != nil {
++		return "[Sent a voice message.]"
++	}
++	if message.GetStickerMessage() != nil {
++		return "[Sent a sticker.]"
++	}
++	if m := message.GetDocumentMessage(); m != nil {
++		return history_placeholder("a file: "+m.GetFileName(), m.GetCaption())
++	}
++	return ""
++}
++
++func history_placeholder(what string, caption string) string {
++	if caption != "" {
++		return "[Sent " + what + ".] " + caption
++	}
++	return "[Sent " + what + ".]"
++}
+diff --git a/handler.go b/handler.go
+index bee12fd..36a6adf 100644
+--- a/handler.go
++++ b/handler.go
+@@ -9,9 +9,11 @@ import (
+ 	"context"
+ 	"fmt"
+ 	"net/http"
++	"time"
+ 
+ 	"go.mau.fi/whatsmeow"
+ 	"go.mau.fi/whatsmeow/appstate"
++	"go.mau.fi/whatsmeow/proto/waHistorySync"
+ 	"go.mau.fi/whatsmeow/store/sqlstore"
+ 	"go.mau.fi/whatsmeow/types"
+ 	"go.mau.fi/whatsmeow/types/events"
+@@ -33,6 +35,7 @@ type Handler struct {
+ 	pictureRequests  chan ProfilePictureRequest
+ 	httpClient       *http.Client // for executing picture requests
+ 	blocklist        *types.Blocklist
++	historyRequests  map[string]time.Time // chats a history request was recently sent for, see request_history
+ }
+ 
+ /*
+@@ -121,7 +124,11 @@ func (handler *Handler) eventHandler(rawEvt interface{}) {
+ 				}
+ 			}
+ 		}
+-		// TODO: handle historical conversations obtained by evt.Data.GetConversations() utilising client.ParseWebMessage
++		if evt.Data.GetSyncType() == waHistorySync.HistorySync_ON_DEMAND {
++			// the phone answering a request_history call, see handle_history.go
++			handler.handle_history_sync(evt.Data)
++		}
++		// TODO: handle the initial historical conversations (INITIAL_BOOTSTRAP, RECENT) the same way
+ 	case *events.AppState:
+ 		log.Debugf("App state event: %+v / %+v", evt.Index, evt.SyncActionValue)
+ 	case *events.LoggedOut:
+diff --git a/login.go b/login.go
+index 3f1d72f..105f06a 100644
+--- a/login.go
++++ b/login.go
+@@ -12,6 +12,7 @@ import (
+ 	"path/filepath"
+ 	"strconv"
+ 	"strings"
++	"time"
+ 
+ 	_ "github.com/lib/pq"
+ 	"github.com/mdp/qrterminal/v3"
+@@ -159,6 +160,7 @@ func login(account *PurpleAccount, purple_user_dir string, username string, cred
+ 		client:           whatsmeow.NewClient(device, PurpleLogger(account, "Client")),
+ 		deferredReceipts: make(map[types.JID]map[types.JID][]types.MessageID),
+ 		pictureRequests:  make(chan ProfilePictureRequest, 1000), // I hope that no user has more than 1000 contacts
++		historyRequests:  make(map[string]time.Time),
+ 	}
+ 	handlers[account] = &handler
+ 	handler.cacheFilePath = filepath.Join(purple_user_dir, username+".json")
 -- 
 2.50.1 (Apple Git-155)
 

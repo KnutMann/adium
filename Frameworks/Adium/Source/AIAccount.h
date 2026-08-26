@@ -268,6 +268,7 @@ typedef enum {
 - (BOOL)groupChatsSupportTopic;
 - (void)setTopic:(NSString *)topic forChat:(AIChat *)chat;
 - (BOOL)shouldDisplayOutgoingMUCMessages;
+- (BOOL)providesConversationHistory;
 //Presence Tracking
 @property (readonly, nonatomic) BOOL contactListEditable;
 - (void)addContact:(AIListContact *)contact toGroup:(AIListGroup *)group;
