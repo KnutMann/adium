@@ -46,6 +46,20 @@
  * otherwise have to be looked for.
  */
 - (NSString *)author;
+
+/*!
+ * @brief What the Xtra says it is, in a sentence, or nil where it says nothing
+ *
+ * Read from XtraDescription, which is where an Xtra that means to describe itself puts it, and
+ * failing that from CFBundleGetInfoString - a key which the Xtras of this world fill in with all
+ * sorts of things, the version number and the name among them, so it is used only where it says
+ * something neither of those two already says.
+ *
+ * Most Xtras in the wild carry neither, which is why this is allowed to be nil rather than made up
+ * out of the fields that are there.
+ */
+- (NSString *)xtraDescription;
+
 - (NSString *)resourcePath;
 - (NSString *)readMePath;
 - (NSImage *)icon;

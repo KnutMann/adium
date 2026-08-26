@@ -22,6 +22,8 @@
 	<string>AdIM</string>
 	<key>XtraBundleVersion</key>
 	<integer>1</integer>
+	<key>XtraDescription</key>
+	<string>Shows a message which is nothing but one to three emoji at three times the size, the way phone messengers do. Emoticon images grow to double their own size instead, because they are pictures and would blur any further.</string>
 	<key>XtraVersion</key>
 	<string>1.0</string>
 	<key>XtraAuthors</key>

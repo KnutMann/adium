@@ -22,6 +22,8 @@
 	<string>AdIM</string>
 	<key>XtraBundleVersion</key>
 	<integer>1</integer>
+	<key>XtraDescription</key>
+	<string>A softer look for the reactions Adium draws under a message: rounded pills with a quiet fill that brightens under the pointer, and your own reactions picked out in the blue of the read tick.</string>
 	<key>XtraVersion</key>
 	<string>1.0</string>
 	<key>XtraAuthors</key>

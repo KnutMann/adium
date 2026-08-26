@@ -22,6 +22,8 @@
 	<string>AdIM</string>
 	<key>XtraBundleVersion</key>
 	<integer>1</integer>
+	<key>XtraDescription</key>
+	<string>Draws the ticks a message you sent collects on its way: one grey tick when the server took it, a grey double tick when it arrived, a blue one when it was read. Where the ticks sit is a setting at the top of the plugin.</string>
 	<key>XtraVersion</key>
 	<string>1.0</string>
 	<key>XtraAuthors</key>

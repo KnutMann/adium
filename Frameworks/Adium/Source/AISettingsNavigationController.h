@@ -76,6 +76,17 @@
 - (BOOL)canGoBack;
 
 /*!
+ * @brief Whether a slide between two pages is running right now
+ *
+ * A push and a pop both refuse to start while one is, so a host which acts on the stack by itself -
+ * throwing a page away because what it described has changed on disk - has to wait for the slide to
+ * end rather than reach into it. @c popToRootViewController does not refuse, and rearranging the
+ * stack under a running slide leaves the container empty: the slide's own completion still takes
+ * away the view it was sliding away from, which by then is the one showing.
+ */
+- (BOOL)isTransitioning;
+
+/*!
  * @brief The showing page changed its own height
  */
 - (void)noteContentHeightChanged;

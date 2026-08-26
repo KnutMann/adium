@@ -974,6 +974,7 @@
 		632D859E0DB70FC800040EC7 /* AIMentionEventPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 632D859D0DB70FC800040EC7 /* AIMentionEventPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 633F175908F905A700C76383 /* AIXtrasManager.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000002 /* AIXtraListView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DF00000000000105 /* AIXtraDetailsPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000102 /* AIXtraDetailsPage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */; };
@@ -2724,9 +2725,11 @@
 		633F175808F905A700C76383 /* AIXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtrasManager.h; path = Source/AIXtrasManager.h; sourceTree = "<group>"; };
 		633F175908F905A700C76383 /* AIXtrasManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIXtrasManager.m; path = Source/AIXtrasManager.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000001 /* AIXtraListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtraListView.h; path = Source/AIXtraListView.h; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000101 /* AIXtraDetailsPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtraDetailsPage.h; path = Source/AIXtraDetailsPage.h; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000011 /* AIPassthroughScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPassthroughScrollView.h; path = Source/AIPassthroughScrollView.h; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPassthroughScrollView.m; path = Source/AIPassthroughScrollView.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000002 /* AIXtraListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtraListView.m; path = Source/AIXtraListView.m; sourceTree = "<group>"; };
+		ADD1E5C0DF00000000000102 /* AIXtraDetailsPage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtraDetailsPage.m; path = Source/AIXtraDetailsPage.m; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIXtrasPreferences.h; path = Source/AIXtrasPreferences.h; sourceTree = "<group>"; };
 		ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIXtrasPreferences.m; path = Source/AIXtrasPreferences.m; sourceTree = "<group>"; };
 		634BCD1D0DDC1542005AF1C2 /* TestMutableStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestMutableStringAdditions.h; path = UnitTests/TestMutableStringAdditions.h; sourceTree = "<group>"; };
@@ -5305,9 +5308,11 @@
 				ADD1E5C0DF00000000000003 /* AIXtrasPreferences.h */,
 				ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */,
 				ADD1E5C0DF00000000000001 /* AIXtraListView.h */,
+				ADD1E5C0DF00000000000101 /* AIXtraDetailsPage.h */,
 				ADD1E5C0DF00000000000011 /* AIPassthroughScrollView.h */,
 				ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */,
 				ADD1E5C0DF00000000000002 /* AIXtraListView.m */,
+				ADD1E5C0DF00000000000102 /* AIXtraDetailsPage.m */,
 				112B47650F82E0FC00690E84 /* AIXtraInfo.h */,
 				112B47660F82E0FC00690E84 /* AIXtraInfo.m */,
 				34F312BC0ADC43CA00A4310E /* xtras_duck.png */,
@@ -7258,6 +7263,7 @@
 				633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */,
 				ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */,
 				ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */,
+				ADD1E5C0DF00000000000105 /* AIXtraDetailsPage.m in Sources */,
 				ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */,
 				632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */,
 				63EA62CA094B832D009C8453 /* AIEmoticonPreviewController.m in Sources */,

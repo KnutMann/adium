@@ -145,6 +145,36 @@
 	return author;
 }
 
+/*!
+ * @brief What the Xtra says it is; see the header for where it is read from
+ */
+- (NSString *)xtraDescription
+{
+	/* Asked for as an id and checked, not asked for as an NSString: the manifest belongs to whoever
+	 * made the Xtra, and a key written as a number rather than a string would otherwise be sent
+	 * -length. */
+	id			 written = [xtraBundle objectForInfoDictionaryKey:@"XtraDescription"];
+	NSString	*summary = ([written isKindOfClass:[NSString class]] ? written : nil);
+
+	if ([summary length]) return summary;
+
+	written = [xtraBundle objectForInfoDictionaryKey:@"CFBundleGetInfoString"];
+	summary = ([written isKindOfClass:[NSString class]] ? written : nil);
+
+	if (![summary length]) return nil;
+
+	/* Half of the message styles Adium ships write their version number in here and one of the
+	 * script packs writes its own name; either would be a sentence which says nothing, standing
+	 * where the description belongs. The rest of them say something real, so the key is worth
+	 * reading - just not worth believing on its own. */
+	if ([summary isEqualToString:([self version] ?: @"")] ||
+		[summary isEqualToString:([self name] ?: @"")] ||
+		[summary isEqual:[xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"]])
+		return nil;
+
+	return summary;
+}
+
 - (NSBundle *)bundle
 {
 	return xtraBundle;

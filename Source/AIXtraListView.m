@@ -104,8 +104,8 @@ static CGFloat AIXtraRowHeight(void)
  * @class AIXtraListCellView
  * @brief View based row of an Xtra list
  *
- * Layout: [icon] [name / detail line] [switch] [⊖], with a hairline along the bottom edge. All
- * subviews are owned by the view hierarchy, which is why the properties below are non-retaining:
+ * Layout: [icon] [name / detail line] [switch] [chevron], with a hairline along the bottom edge.
+ * All subviews are owned by the view hierarchy, which is why the properties below are non-retaining:
  * every one of them is set only after the row already holds the view it names.
  *
  * Private to the list on purpose: no pane ever builds one, and nothing outside this file has any
@@ -114,13 +114,19 @@ static CGFloat AIXtraRowHeight(void)
 @interface AIXtraListCellView : NSTableCellView
 @property (nonatomic, assign) NSTextField		*detailField;
 @property (nonatomic, assign) NSSwitch			*enabledSwitch;
-@property (nonatomic, assign) NSButton			*removeButton;
+@property (nonatomic, assign) NSButton			*disclosureButton;
 @property (nonatomic, assign) NSBox				*separator;
 @property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
 @property (nonatomic, assign) BOOL				 dimmed;
 /* Drawn behind the row while its context menu is open: with no selection, this is the only thing
  * which says which Xtra "Move to Trash" is about to ask about. */
 @property (nonatomic, assign) BOOL				 contextHighlighted;
+/* Drawn the same way while the row is held down; see -mouseDown: */
+@property (nonatomic, assign) BOOL				 pressed;
+/* Where the row itself leads, which is where its chevron leads. Non-retaining, like every other
+ * target here: it is the list, which owns the table this row lives in. */
+@property (nonatomic, assign) id				 rowTarget;
+@property (nonatomic, assign) SEL				 rowAction;
 - (void)updateTextColors;
 @end
 
@@ -143,6 +149,7 @@ static CGFloat AIXtraRowHeight(void)
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo;
 - (NSMenu *)menuForRow:(NSInteger)row;
 - (void)deleteXtra:(AIXtraInfo *)xtraInfo;
+- (IBAction)showDetailsFromRow:(id)sender;
 @end
 
 @implementation AIXtraListCellView
@@ -185,18 +192,28 @@ static CGFloat AIXtraRowHeight(void)
 		[self addSubview:enabledSwitch];
 		[self setEnabledSwitch:enabledSwitch];
 
-		/* The ⊖ which throws the Xtra away. Built by the settings form's factory, so it is the same
-		 * control as the (i) of an account row - down to its tint and its size, which is read back
-		 * here rather than repeated as a number of our own. */
-		NSButton *removeButton = [AISettingsFormView inlineSymbolButtonWithSymbolName:@"minus.circle"
-																   fallbackImageName:@"remove"
-																			  target:nil
-																			  action:NULL];
-		NSSize	 removeButtonSize = [removeButton frame].size;
+		/* The chevron which leads to this Xtra's own page. A button rather than the image view a
+		 * navigation row carries, so that it is in the keyboard loop and gives VoiceOver something
+		 * to press: the row itself opens the page too, but a row is not a control and cannot be
+		 * reached without a pointer. The mouse never gets as far as this button all the same - see
+		 * -hitTest: - because a press on the chevron and a press an inch to its left should look the
+		 * same, and what the row draws is the whole row darkening.
+		 *
+		 * The image is the form's, so it is the same chevron at the same size as every other row
+		 * which leads somewhere. */
+		NSButton *disclosureButton = [[NSButton alloc] initWithFrame:NSZeroRect];
+		NSImage	 *chevron = [AISettingsFormView disclosureIndicatorImage];
 
-		[removeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-		[self addSubview:removeButton];
-		[self setRemoveButton:removeButton];
+		[disclosureButton setImage:chevron];
+		[disclosureButton setImagePosition:NSImageOnly];
+		[disclosureButton setBordered:NO];
+		[disclosureButton setButtonType:NSButtonTypeMomentaryChange];
+		[disclosureButton setContentTintColor:[NSColor tertiaryLabelColor]];
+		[disclosureButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:disclosureButton];
+		[self setDisclosureButton:disclosureButton];
+
+		NSSize	 chevronSize = [chevron size];
 
 		//Hairline separating this row from the next one
 		NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
@@ -218,14 +235,14 @@ static CGFloat AIXtraRowHeight(void)
 			[[iconView widthAnchor] constraintEqualToConstant:XTRA_ICON_SIZE],
 			[[iconView heightAnchor] constraintEqualToConstant:XTRA_ICON_SIZE],
 
-			//Remove button
-			[[removeButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
-			[[removeButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
-			[[removeButton widthAnchor] constraintEqualToConstant:removeButtonSize.width],
-			[[removeButton heightAnchor] constraintEqualToConstant:removeButtonSize.height],
+			//Chevron
+			[[disclosureButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
+			[[disclosureButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+			[[disclosureButton widthAnchor] constraintEqualToConstant:chevronSize.width],
+			[[disclosureButton heightAnchor] constraintEqualToConstant:chevronSize.height],
 
 			//Switch
-			[[enabledSwitch trailingAnchor] constraintEqualToAnchor:[removeButton leadingAnchor] constant:-CONTROL_GAP],
+			[[enabledSwitch trailingAnchor] constraintEqualToAnchor:[disclosureButton leadingAnchor] constant:-CONTROL_GAP],
 			[[enabledSwitch centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
 
 			//Text block
@@ -256,11 +273,16 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
- * @brief Only the switch and the ⊖ swallow clicks
+ * @brief Only the switch swallows clicks
  *
- * Everything else is handed to the table view so that a right click anywhere on the row - including
- * on one of those two controls, neither of which supplies a context menu - still reaches the row's
- * own menu.
+ * Everything else is the row, which is itself a target now: -mouseDown: below tracks the press and
+ * opens the Xtra's page. The chevron is deliberately not excepted, though it is a real button: a
+ * button pressed by the mouse would darken its own nine points of glyph while a press anywhere else
+ * on the row darkens the row, and one row cannot answer a press two ways. The button stays a button
+ * for the keyboard and for VoiceOver, neither of which comes through here.
+ *
+ * A right click anywhere - including on the switch, which supplies no context menu of its own - is
+ * handed to the table view all the same, so that it still reaches the row's own menu.
  */
 - (NSView *)hitTest:(NSPoint)aPoint
 {
@@ -276,12 +298,56 @@ static CGFloat AIXtraRowHeight(void)
 								  (([currentEvent modifierFlags] & NSEventModifierFlagControl) != 0)));
 
 	if (!contextClick &&
-		(hitView == [self enabledSwitch] || [hitView isDescendantOf:[self enabledSwitch]] ||
-		 hitView == [self removeButton] || [hitView isDescendantOf:[self removeButton]])) {
+		(hitView == [self enabledSwitch] || [hitView isDescendantOf:[self enabledSwitch]])) {
 		return hitView;
 	}
 
 	return self;
+}
+
+/*!
+ * @brief Track a press on the row and open its page
+ *
+ * A row with a chevron is a target everywhere, not only under the chevron. Tracked here rather than
+ * by making the row selectable: nothing acts on a selection in this list, and a selected row would
+ * stay drawn after the page it opened has slid in. Held down it darkens, dragged off it goes back,
+ * released outside it does nothing - the same few lines AISettingsFormView's navigation row uses.
+ *
+ * A control click never gets this far as a press: it is the context menu's, and -hitTest: has
+ * already handed it to the table view.
+ */
+- (void)mouseDown:(NSEvent *)event
+{
+	if (!_rowTarget || !_rowAction || (([event modifierFlags] & NSEventModifierFlagControl) != 0)) {
+		[super mouseDown:event];
+		return;
+	}
+
+	BOOL	inside = YES;
+
+	[self setPressed:YES];
+
+	while (YES) {
+		NSEvent *next = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged)];
+
+		/* A window taken away underneath us stops answering. Asking it again would spin the whole
+		 * application, and nil reads back as neither a mouse up nor a point on this row, so the
+		 * press ends here and opens nothing. */
+		if (!next) {
+			inside = NO;
+			break;
+		}
+
+		inside = NSPointInRect([self convertPoint:[next locationInWindow] fromView:nil], [self bounds]);
+
+		if ([next type] == NSEventTypeLeftMouseUp) break;
+
+		[self setPressed:inside];
+	}
+
+	[self setPressed:NO];
+
+	if (inside) [NSApp sendAction:_rowAction to:_rowTarget from:self];
 }
 
 /*!
@@ -314,8 +380,16 @@ static CGFloat AIXtraRowHeight(void)
 	[self setNeedsDisplay:YES];
 }
 
+- (void)setPressed:(BOOL)inPressed
+{
+	if (_pressed == inPressed) return;
+
+	_pressed = inPressed;
+	[self setNeedsDisplay:YES];
+}
+
 /*!
- * @brief Draw the context menu highlight
+ * @brief Draw the row's highlight: held down, or pointed at by its context menu
  *
  * A row is not selectable, so nothing else ever marks one. The shape is the one a list in System
  * Settings uses: the full width of the row, rounded, in the unemphasized selection color - the row
@@ -325,7 +399,7 @@ static CGFloat AIXtraRowHeight(void)
 {
 	[super drawRect:dirtyRect];
 
-	if (!_contextHighlighted) return;
+	if (!_contextHighlighted && !_pressed) return;
 
 	NSBezierPath	*highlight = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect([self bounds], 0.0f, 1.0f)
 																 xRadius:6.0f
@@ -351,9 +425,9 @@ static CGFloat AIXtraRowHeight(void)
 	[[self detailField] setTextColor:(emphasized ?
 									  [NSColor alternateSelectedControlTextColor] :
 									  [NSColor secondaryLabelColor])];
-	[[self removeButton] setContentTintColor:(emphasized ?
-											  [NSColor alternateSelectedControlTextColor] :
-											  [NSColor secondaryLabelColor])];
+	[[self disclosureButton] setContentTintColor:(emphasized ?
+												  [NSColor alternateSelectedControlTextColor] :
+												  [NSColor tertiaryLabelColor])];
 }
 
 @end
@@ -403,9 +477,9 @@ static CGFloat AIXtraRowHeight(void)
 	[tableView setBackgroundColor:[NSColor clearColor]];
 	[tableView setRowSizeStyle:NSTableViewRowSizeStyleCustom];
 	/* Rows are not selectable: every action a row offers sits on the row itself - its switch, its
-	 * ⊖, its context menu. -tableView:shouldSelectRow: is what refuses the selection; the highlight
-	 * style is left alone all the same, because NSTableViewSelectionHighlightStyleNone also turns
-	 * off the feedback a drag draws. */
+	 * chevron, its context menu, the press the row tracks by hand. -tableView:shouldSelectRow: is
+	 * what refuses the selection; the highlight style is left alone all the same, because
+	 * NSTableViewSelectionHighlightStyleNone also turns off the feedback a drag draws. */
 	[tableView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
 	[tableView setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
 	[tableView setAllowsMultipleSelection:NO];
@@ -572,8 +646,8 @@ static CGFloat AIXtraRowHeight(void)
  * @brief Keep the single column as wide as the room the list has
  *
  * A table does not reliably re-tile its columns when it is widened, and a column left behind lays
- * every row out narrower than the card - which puts the switch and the ⊖ in the middle of the row
- * and stops the hairline short of the card's edge. A column left <em>wider</em> than the clip view
+ * every row out narrower than the card - which puts the switch and the chevron in the middle of
+ * the row and stops the hairline short of the card's edge. A column left <em>wider</em> than the clip view
  * is worse still, because the list has no scrollers and the trailing end of every row would then
  * simply be unreachable. So the column is set from the width of the clip view rather than left to
  * the table, and the margin the table style wants around it is measured off the table itself.
@@ -714,7 +788,7 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
- * @brief Whether a row keeps its ⊖, the delegate having the last word
+ * @brief Whether a row offers "Move to Trash", the delegate having the last word
  */
 - (BOOL)canDeleteXtra:(AIXtraInfo *)xtraInfo
 {
@@ -886,7 +960,6 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	BOOL		 enabled = [xtraInfo enabled];
 	BOOL		 canToggle = [self canToggleXtra:xtraInfo];
-	BOOL		 canDelete = [self canDeleteXtra:xtraInfo];
 	NSString	*name = [xtraInfo name];
 	NSString	*detail = [self detailLineForXtra:xtraInfo];
 
@@ -903,8 +976,12 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 	/* No tool tip on the row. One covering the whole row swallows scroll events for as long as it
 	 * is showing, so the pane cannot be scrolled while the pointer rests on a list - and it said
 	 * little worth that: the folder has a button of its own in the card above, and the name is
-	 * already in the accessibility label. The switch and the remove button keep theirs; those
-	 * appear only over a small control and explain something not written anywhere else. */
+	 * already in the accessibility label. The switch keeps its own; that one appears only over a
+	 * small control and explains something not written anywhere else. */
+
+	/* The whole row leads to the Xtra's page, chevron or not; see -[AIXtraListCellView mouseDown:] */
+	[cellView setRowTarget:self];
+	[cellView setRowAction:@selector(showDetailsFromRow:)];
 
 	/* Setting the state unconditionally would interfere with the switch's own click handling, which
 	 * is still tracking while the list is rebuilt underneath it. */
@@ -923,12 +1000,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 															"Tool tip of the disabled switch of an Xtra which is not in the user's own Xtras folder"))];
 	[[cellView enabledSwitch] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"Enable %@", "Accessibility label of the switch which enables an Xtra. %@ is the name of the Xtra."), (name ?: @"")]];
 
-	//A plugin that ships inside the app has no file of the user's to trash, so it is shown without a ⊖
-	[[cellView removeButton] setHidden:!canDelete];
-	[[cellView removeButton] setTarget:self];
-	[[cellView removeButton] setAction:@selector(removeXtraFromRowButton:)];
-	[[cellView removeButton] setToolTip:AILocalizedStringFromTable(@"Delete", @"Buttons", "Verb 'delete' on a button")];
-	[[cellView removeButton] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"Delete %@", "Accessibility label of the button which deletes an Xtra. %@ is the name of the Xtra."), (name ?: @"")]];
+	[[cellView disclosureButton] setTarget:self];
+	[[cellView disclosureButton] setAction:@selector(showDetailsFromRow:)];
+	[[cellView disclosureButton] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"About %@", "Accessibility label of the chevron which opens an Xtra's own page. %@ is the name of the Xtra."), (name ?: @"")]];
 
 	/* The hairline sits between two rows, so there is none below the last one. It runs from the
 	 * text indent out to the card's edge - past the trailing edge of the cell, which the inset
@@ -975,11 +1049,18 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 }
 
 /*!
- * @brief The ⊖ of a row was clicked
+ * @brief A row was clicked, or its chevron was
+ *
+ * Both send this, and @a sender is a view of the row either way - the row itself or the button in
+ * it - so the same lookup finds the Xtra for both.
  */
-- (IBAction)removeXtraFromRowButton:(id)sender
+- (IBAction)showDetailsFromRow:(id)sender
 {
-	[self deleteXtra:[self xtraAtRow:[tableView rowForView:(NSView *)sender]]];
+	AIXtraInfo	*xtraInfo = [self xtraAtRow:[tableView rowForView:(NSView *)sender]];
+
+	if (xtraInfo && [listDelegate respondsToSelector:@selector(xtraListView:showDetailsForXtra:)]) {
+		[listDelegate xtraListView:self showDetailsForXtra:xtraInfo];
+	}
 }
 
 - (void)deleteXtra:(AIXtraInfo *)xtraInfo
@@ -1026,8 +1107,8 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 /*!
  * @brief Rows cannot be selected
  *
- * Nothing acts on a selection: the switch, the ⊖ and the context menu each work on the row the
- * pointer is on.
+ * Nothing acts on a selection: the switch, the chevron and the context menu each work on the row
+ * the pointer is on.
  */
 - (BOOL)tableView:(NSTableView *)inTableView shouldSelectRow:(NSInteger)row
 {

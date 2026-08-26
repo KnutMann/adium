@@ -23,6 +23,13 @@
 #import <AIUtilities/AIFileManagerAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 
+/* What the preferences window asks of a pane which can drill into something, and what it offers such
+ * a pane in return. Declared the same way the accounts pane declares it, next to the only other pane
+ * which has pages of its own. */
+@protocol AIPreferencePaneNavigationHost <NSObject>
+- (void)paneNavigationChanged;
+@end
+
 /* xtras.adium.im still resolves and still serves the site, but its certificate is issued for
  * adiumxtras.com, so a browser opens it with a security warning. The paragraph shows the host
  * of whatever stands here, so both the sentence and the button follow this one line. */
@@ -42,6 +49,7 @@
 - (void)xtrasChanged:(NSNotification *)notification;
 - (void)rebuildFormSoon;
 - (void)rebuildForm;
+- (void)confirmDeleteXtra:(AIXtraInfo *)xtraInfo;
 - (void)trashXtra:(AIXtraInfo *)xtraInfo;
 - (void)postXtrasDidChangeForType:(NSString *)type;
 - (void)reportFailure:(NSString *)message forXtra:(AIXtraInfo *)xtraInfo error:(NSError *)error;
@@ -88,14 +96,28 @@
 - (NSView *)view
 {
 	if (!view) {
-		AISettingsFormView	*form = [self buildSettingsForm];
+		listForm = [self buildSettingsForm];
 
-		view = form;
+		NSViewController	*listPage = [[NSViewController alloc] init];
+
+		[listPage setView:listForm];
+
+		navigationController = [[AISettingsNavigationController alloc] init];
+		[navigationController setDelegate:self];
+
+		/* The view is claimed before the first page goes in, and that order matters:
+		 * -setRootViewController: ends by telling its delegate that the stack changed, and this pane
+		 * answers that by asking for its own window. With the ivar still empty, -view would build a
+		 * second pane inside the first one's constructor and never stop. The accounts pane survives
+		 * the same sequence only because its nib has already filled the ivar in. */
+		view = [navigationController view];
+
+		[navigationController setRootViewController:listPage];
 
 		[self viewDidLoad];
 		[self localizePane];
 
-		[form layoutForWidth:NSWidth([form frame])];
+		[listForm layoutForWidth:NSWidth([listForm frame])];
 
 		if (![self resizable]) [view setAutoresizingMask:(NSViewMaxYMargin)];
 	}
@@ -104,11 +126,13 @@
 }
 
 /*!
- * @brief The settings form we live in, or nil before -view built it
+ * @brief The settings form holding the lists, or nil before -view built it
+ *
+ * The pane's own view is the navigation controller's container; this is its first page.
  */
 - (AISettingsFormView *)settingsForm
 {
-	return ([view isKindOfClass:[AISettingsFormView class]] ? (AISettingsFormView *)view : nil);
+	return listForm;
 }
 
 - (AISettingsFormView *)buildSettingsForm
@@ -140,6 +164,7 @@
 	NSString		*website = ([[NSURL URLWithString:ADIUM_XTRAS_PAGE] host] ?: ADIUM_XTRAS_PAGE);
 
 	if (!listViews) listViews = [[NSMutableArray alloc] init];
+	if (!listCategoryNames) listCategoryNames = [[NSMutableArray alloc] init];
 
 	[manager loadXtras];
 
@@ -168,21 +193,24 @@
 				   detail:[[adium applicationSupportDirectory] stringByAbbreviatingWithTildeInPath]];
 
 	for (NSInteger index = 0; index < (NSInteger)[manager numberOfCategories]; index++) {
-		NSArray	*xtras = [manager xtrasForCategoryAtIndex:index];
+		NSArray		*xtras = [manager xtrasForCategoryAtIndex:index];
+		NSString	*category = [manager nameOfCategoryAtIndex:index];
 
 		if (![xtras count]) continue;
 
 		foundAny = YES;
 
-		[form addSectionHeader:[manager nameOfCategoryAtIndex:index]];
+		[form addSectionHeader:category];
 
 		/* The list is the card: it fills it edge to edge and its height decides how tall the card
-		 * is. Everything a row does - its switch, its ⊖, its context menu - comes back to us
-		 * through AIXtraListViewDelegate. */
+		 * is. Everything a row does - its switch, its chevron, its context menu - comes back to us
+		 * through AIXtraListViewDelegate. The category's name is kept alongside because a row's own
+		 * page names it, and the Xtra itself knows only its file extension. */
 		AIXtraListView	*listView = [[AIXtraListView alloc] initWithXtras:xtras];
 
 		[listView setListDelegate:self];
 		[listViews addObject:listView];
+		[listCategoryNames addObject:(category ?: @"")];
 		[form addEdgeToEdgeRow:listView];
 
 		if ([manager categoryAtIndexIsJavaScript:index]) {
@@ -240,6 +268,15 @@
 	rebuildScheduled = NO;
 
 	[self releaseListViews];
+
+	[detailPage tearDown];
+	detailPage = nil;
+
+	/* The controller's delegate is a non-retaining reference to us and it may outlive this pane by a
+	 * moment, the way the form's views do. */
+	[navigationController setDelegate:nil];
+	navigationController = nil;
+	listForm = nil;
 }
 
 /*!
@@ -268,6 +305,7 @@
 	}
 
 	[listViews removeAllObjects];
+	[listCategoryNames removeAllObjects];
 }
 
 #pragma mark Keeping up to date
@@ -306,6 +344,27 @@
 	AISettingsFormView	*form = [self settingsForm];
 
 	if (!form) return;
+
+	/* An open page is about one Xtra read off disk a moment ago, and the reason we are here is that
+	 * what is on disk changed: the Xtra may have been switched into a folder of another name, or
+	 * moved to the Trash by the page itself. Rather than leave a page standing which quietly no
+	 * longer describes anything, go back to the list, which is about to say what is really there.
+	 *
+	 * This costs nothing in the ordinary case, because nothing on an open page rebuilds the list
+	 * except its own "Move to Trash" - the switches are all in the list behind it. */
+	if (detailPage) {
+		/* Not while the page is still sliding, though: the stack would be rearranged under a
+		 * running slide, whose own ending then takes away the view it was sliding away from - which
+		 * by that point is the list. The pane would be left empty. Wait for the slide instead; an
+		 * Xtra which arrived from the web can wait a quarter of a second. */
+		if ([navigationController isTransitioning]) {
+			rebuildScheduled = YES;
+			[self performSelector:@selector(rebuildForm) withObject:nil afterDelay:0.25];
+			return;
+		}
+
+		[navigationController popToRootViewController];
+	}
 
 	/* Where the scrolling column stands now: the form is empty for a moment while it is rebuilt,
 	 * which drags the column back to the top. An Xtra arriving from the web must not make the page
@@ -353,6 +412,73 @@
 - (void)xtraListView:(AIXtraListView *)listView revealXtra:(AIXtraInfo *)xtraInfo
 {
 	[[NSWorkspace sharedWorkspace] selectFile:[xtraInfo path] inFileViewerRootedAtPath:@""];
+}
+
+/*!
+ * @brief A row was clicked: slide in the page about that Xtra
+ *
+ * The category comes from which list the row is in, because that is the only place it is known: an
+ * AIXtraInfo carries its file extension, not the name of the group Adium files it under.
+ */
+- (void)xtraListView:(AIXtraListView *)listView showDetailsForXtra:(AIXtraInfo *)xtraInfo
+{
+	if (!navigationController || !xtraInfo) return;
+
+	/* A page is already up, or one is still sliding in. Either way the list is not what the user is
+	 * looking at, and the controller refuses a second slide anyway - so a second click must not get
+	 * as far as replacing the page, which would leave the one on screen holding no Xtra and no way
+	 * back to this pane. That is what a double click on a row used to do. */
+	if (detailPage) return;
+
+	NSUInteger			 index = [listViews indexOfObjectIdenticalTo:listView];
+	NSString			*category = ((index != NSNotFound && index < [listCategoryNames count]) ?
+									 [listCategoryNames objectAtIndex:index] :
+									 nil);
+	AIXtraDetailsPage	*page = [[AIXtraDetailsPage alloc] initWithXtra:xtraInfo
+														   categoryName:category
+															   delegate:self];
+
+	[navigationController pushViewController:page animated:YES];
+
+	//Refused all the same: then nothing was pushed, and there is nothing to hold on to
+	if ([navigationController topViewController] != page) {
+		[page tearDown];
+		return;
+	}
+
+	detailPage = page;
+}
+
+/*!
+ * @brief "Move to Trash" was chosen from a row's context menu
+ */
+- (void)xtraListView:(AIXtraListView *)listView deleteXtra:(AIXtraInfo *)xtraInfo
+{
+	[self confirmDeleteXtra:xtraInfo];
+}
+
+#pragma mark Xtra page delegate
+
+- (void)xtraDetailsPage:(AIXtraDetailsPage *)page revealXtra:(AIXtraInfo *)xtraInfo
+{
+	[[NSWorkspace sharedWorkspace] selectFile:[xtraInfo path] inFileViewerRootedAtPath:@""];
+}
+
+/*!
+ * @brief The open page asked for its Xtra to be thrown away
+ *
+ * Straight to the same sheet a row's context menu raises. Nothing here goes back to the list first:
+ * the page stays up while the question is on screen, because the answer may well be no, and it is
+ * the rebuild which follows a yes that takes the page away.
+ */
+- (void)xtraDetailsPage:(AIXtraDetailsPage *)page deleteXtra:(AIXtraInfo *)xtraInfo
+{
+	[self confirmDeleteXtra:xtraInfo];
+}
+
+- (BOOL)xtraDetailsPage:(AIXtraDetailsPage *)page canDeleteXtra:(AIXtraInfo *)xtraInfo
+{
+	return ![self xtraIsBundled:xtraInfo];
 }
 
 /*!
@@ -477,7 +603,7 @@
  * back to the default, the icon packs fall back to theirs), but the file itself is in the Trash and
  * nothing but this sheet stands between the user and that.
  */
-- (void)xtraListView:(AIXtraListView *)listView deleteXtra:(AIXtraInfo *)xtraInfo
+- (void)confirmDeleteXtra:(AIXtraInfo *)xtraInfo
 {
 	NSAlert		*warning = [[NSAlert alloc] init];
 	NSWindow	*sheetParent = [view window];
@@ -531,6 +657,49 @@
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:AIXtrasDidChangeNotification
 														object:([type length] ? type : nil)];
+}
+
+//What the window asks of a pane which can drill into something -------------------------------------------------------
+#pragma mark Navigation
+
+/*!
+ * @brief The stack changed: the list is showing again, so the page can go
+ */
+- (void)settingsNavigationControllerDidChangeStack:(AISettingsNavigationController *)controller
+{
+	if (![controller canGoBack] && detailPage) {
+		[detailPage tearDown];
+		detailPage = nil;
+	}
+
+	/* Before the pane has a view there is no window to tell, and asking for one would build the
+	 * pane a second time; see -view. Nothing is lost, because the window asks a pane about its back
+	 * arrow when it puts it on screen. */
+	if (!view) return;
+
+	//The window draws the back arrow and the title, so it has to be told
+	id	windowController = [[[self view] window] windowController];
+
+	if ([windowController respondsToSelector:@selector(paneNavigationChanged)])
+		[(id<AIPreferencePaneNavigationHost>)windowController paneNavigationChanged];
+}
+
+- (BOOL)preferencePaneCanNavigateBack
+{
+	return [navigationController canGoBack];
+}
+
+- (void)preferencePaneNavigateBack
+{
+	[navigationController popViewControllerAnimated:YES];
+}
+
+/*!
+ * @brief What the window should call itself while a page is open
+ */
+- (NSString *)preferencePaneNavigationTitle
+{
+	return (detailPage ? [[detailPage xtra] name] : nil);
 }
 
 /*!
