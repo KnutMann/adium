@@ -721,6 +721,19 @@ typedef enum
 	return YES;
 }
 
+/*!
+ * @brief Does this account fetch a conversation's earlier messages itself?
+ *
+ * An account that answers YES delivers the messages preceding an opening
+ * conversation from the service, and asks Adium to hold back the excerpt it
+ * would otherwise replay from its own transcripts, which would say the same
+ * thing twice and without the delivery state the service knows.
+ */
+- (BOOL)providesConversationHistory
+{
+	return NO;
+}
+
 //Presence Tracking ----------------------------------------------------------------------------------------------------
 #pragma mark Presence Tracking
 /*!

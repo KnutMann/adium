@@ -13,7 +13,7 @@
 		"options": ["device-name"]
 	},
 
-	"options": ["ignore-status-broadcast", "ignore-newsletters", "get-icons"],
+	"options": ["ignore-status-broadcast", "ignore-newsletters", "get-icons", "fetch-history-on-open"],
 
 	"legacy": {
 		"WhatsApp:Ignore Status Broadcasts": "ignore-status-broadcast",

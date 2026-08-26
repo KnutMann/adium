@@ -242,6 +242,24 @@ static BOOL AXSPackHasFile(NSFileWrapper *root, NSString *relativePath)
 											   message:@"No bundle identifier yet; a stable one is minted on the first save."]];
 	}
 
+	//JavaScript plugins: the source, and the one habit that would let message text become markup
+	if ([format.typeName isEqualToString:@"com.adiumx.javascriptplugin"]) {
+		NSString *source = [payload[@"source"] description] ?: @"";
+
+		if (![[source stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length]) {
+			[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+												   message:@"The script is empty; the plugin does nothing."]];
+		}
+
+		for (NSString *sink in @[@"innerHTML", @"outerHTML", @"insertAdjacentHTML"]) {
+			if ([source rangeOfString:sink].location != NSNotFound) {
+				[issues addObject:[AXSLintIssue issueWithLevel:AXSLintLevelWarning
+													   message:[NSString stringWithFormat:
+																@"The script uses %@; message text assigned to it becomes markup. Build nodes with createElement and textContent instead.", sink]]];
+			}
+		}
+	}
+
 	//Message styles: the two files nothing falls back for, and a default variant that exists
 	if ([format.extension isEqualToString:@"AdiumMessageStyle"]) {
 		for (NSString *required in @[@"Incoming/Content.html", @"main.css"]) {

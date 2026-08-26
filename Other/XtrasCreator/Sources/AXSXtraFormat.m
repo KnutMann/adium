@@ -18,6 +18,8 @@
 #import "AXSMessageStyleEditorViewController.h"
 #import "AXSScriptSetCodec.h"
 #import "AXSScriptSetEditorViewController.h"
+#import "AXSJavaScriptPluginCodec.h"
+#import "AXSJavaScriptPluginEditorViewController.h"
 
 @interface AXSXtraFormat ()
 @property (readwrite, nonatomic) NSString *typeName;
@@ -277,6 +279,22 @@
 			f.infoPlistPayloadKeys = @[@"Set", @"Scripts"];
 			f.codec = [[AXSScriptSetCodec alloc] init];
 			f.editorClass = [AXSScriptSetEditorViewController class];
+			[building addObject:f];
+		}
+
+		{	//JavaScript plugins: a script the message view injects, in an .AdiumPlugin bundle
+			AXSXtraFormat *f = [[AXSXtraFormat alloc] init];
+			f.typeName = @"com.adiumx.javascriptplugin";
+			f.extension = @"AdiumPlugin";
+			f.osType = @"AdIM";
+			f.displayName = @"JavaScript Plugin";
+			f.typeDescription = @"JavaScript that reshapes how messages are displayed.";
+			f.iconName = @"AdiumPlugin";
+			f.supportsFlatForm = NO;
+			f.requiresBundleIdentifier = YES;	//plugins are told apart by it
+			f.infoPlistPayloadKeys = [AXSJavaScriptPluginCodec manifestKeys];
+			f.codec = [[AXSJavaScriptPluginCodec alloc] init];
+			f.editorClass = [AXSJavaScriptPluginEditorViewController class];
 			[building addObject:f];
 		}
 

@@ -37,6 +37,8 @@
 	NSString	*encodedMessage;
 	id			encodedMessageAccountData;
 	NSString	*messageId;
+	NSInteger	confirmation;
+	NSMutableDictionary *reactions;
 }
 
 /*!	@brief	Create and autorelease an AIContentMessage.
@@ -92,6 +94,24 @@
  *	nil on protocols or messages that carry no id.
  */
 @property (readwrite, nonatomic, copy) NSString *messageId;
+
+/*!
+ * @brief How far this message is known to have travelled
+ *
+ * 0 nothing confirmed, 1 the server accepted it, 2 delivered to the other
+ * side, 3 read there. Kept on the message rather than only in the view, so a
+ * rebuilt page (a style change, a display plugin toggled) can draw the tick
+ * again from what the protocol already said.
+ */
+@property (readwrite, nonatomic, assign) NSInteger confirmation;
+
+/*!
+ * @brief Reactions on this message: sender bucket to array of emoji strings
+ *
+ * nil until somebody reacts. Kept on the message for the same reason as
+ * confirmation: a rebuilt page redraws the chips from here.
+ */
+@property (readwrite, nonatomic, retain) NSMutableDictionary *reactions;
 
 /*!
  * @brief The prefix string for the sender of this message.

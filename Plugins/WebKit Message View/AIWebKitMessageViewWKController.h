@@ -46,6 +46,9 @@
 	BOOL _nextMessageFocus;
 	BOOL _nextMessageRegainedFocus;
 	BOOL _isUpdatingView;
+	BOOL _remoteLoadBlockInstalled;
+	BOOL _remoteLoadBlockUnavailable;
+	NSUInteger _pageGeneration;
 }
 
 + (instancetype)messageDisplayControllerForChat:(AIChat *)inChat withPlugin:(AIWebKitMessageViewPlugin *)inPlugin;

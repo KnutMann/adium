@@ -445,26 +445,23 @@ void jabber_add_feature(const char *xmlns, void *enabled_cb);
 /*!
  * @brief A contact's client confirmed it received one of our messages (XEP-0184)
  *
- * Nothing is shown yet, deliberately. A delivery receipt names one message by its id, and
- * saying "delivered" in the conversation the way the read marker says "read" would be wrong:
- * it would arrive once per message rather than once per conversation, and it says less than
- * the read marker already says whenever both are in play.
- *
- * Showing it properly means marking the one message it refers to, and for that Adium would
- * first need to remember which displayed message carries which id - the message view keeps no
- * such map today. That is the work this hook is waiting for; until then it logs, so the
- * exchange can be watched in the debug window and the ids seen to line up.
+ * Tells the message view which of our messages arrived; the view marks that one and the ones
+ * before it as delivered (a receipt is cumulative in effect), and the Read Receipts display
+ * plugin draws the grey tick, the step below the blue "read" tick a chat marker brings.
  */
 static void adiumJabberReceiptReceived(PurpleConnection *gc, const char *from, const char *message_id)
 {
 	@autoreleasepool {
 		PurpleAccount	*purpleAccount = purple_connection_get_account(gc);
-		CBPurpleAccount	*cbaccount = accountLookup(purpleAccount);
+		PurpleBuddy		*buddy = purple_find_buddy(purpleAccount, from);
+		AIListContact	*contact = buddy ? contactLookupFromBuddy(buddy) : nil;
+		AIChat			*chat = contact ? [adium.chatController existingChatWithContact:contact] : nil;
 
-		AILog(@"XEP-0184: %@ confirmed delivery of message %s from %@",
-			  from ? [NSString stringWithUTF8String:from] : @"(unknown)",
-			  message_id ? message_id : "(no id)",
-			  cbaccount);
+		if (chat && message_id) {
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasDelivered"
+															   object:chat
+															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:message_id] }];
+		}
 	}
 }
 
@@ -482,8 +479,8 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 
 		if (chat && message_id) {
 			/* Tell the message view which of our messages was read; it marks that one and the ones
-			 * before it, a chat marker being read-up-to-here. Now that a sent message carries its id
-			 * on the page, the tick can land on the message itself instead of a line in the log. */
+			 * before it, a chat marker being read-up-to-here, and the Read Receipts display plugin
+			 * draws the blue tick over the grey delivered one. */
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasRead"
 															   object:chat
 															 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:message_id] }];
@@ -494,12 +491,10 @@ static void adiumJabberChatMarkerReceived(PurpleConnection *gc, const char *from
 /*!
  * @brief A contact reacted to one of our messages, or changed their reaction (XEP-0444)
  *
- * Logged for now, deliberately. A reaction names the message it is about by that message's id, and
- * showing it means finding the one already-displayed message it refers to - the id to DOM element
- * map the message view does not keep yet. That is the work this hook is waiting for; until then it
- * logs, so the set the contact sent can be watched in the debug window and the ids seen to line up.
- * XEP-0444 sends the full set each time, so @a emojis is the contact's whole current reaction, and
- * an empty list means they took it back.
+ * A reaction names the message it is about by that message's id; the message view finds the one
+ * already-displayed message carrying that id on its wrapper and shows the set as chips. XEP-0444
+ * sends the full set each time, so @a emojis is the sender's whole current reaction, and an empty
+ * list means they took it back.
  */
 static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
 										const char *target_id, GList *emojis)
@@ -573,22 +568,28 @@ NSString *adiumTakePendingIncomingMessageId(PurpleAccount *account, const char *
 {
 	if (!account || !from || !pendingIncomingMessageIds) return nil;
 
+	/* This file is MRC, and the dictionary holds the only reference: removing the entry
+	 * would free the string under the caller. Keep it alive past the removal. */
 	NSString *key = pendingMessageIdKey(account, from);
-	NSString *msgid = [pendingIncomingMessageIds objectForKey:key];
+	NSString *msgid = [[[pendingIncomingMessageIds objectForKey:key] retain] autorelease];
 	if (msgid) [pendingIncomingMessageIds removeObjectForKey:key];
 	return msgid;
 }
 
-static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from, const char *msgid)
+void adiumStashPendingIncomingMessageId(PurpleAccount *account, const char *from, const char *msgid)
 {
 	@autoreleasepool {
-		PurpleAccount *account = purple_connection_get_account(gc);
 		if (!account || !from || !msgid) return;
 
 		if (!pendingIncomingMessageIds) pendingIncomingMessageIds = [[NSMutableDictionary alloc] init];
 		[pendingIncomingMessageIds setObject:[NSString stringWithUTF8String:msgid]
 									  forKey:pendingMessageIdKey(account, from)];
 	}
+}
+
+static void adiumJabberIncomingMessageId(PurpleConnection *gc, const char *from, const char *msgid)
+{
+	adiumStashPendingIncomingMessageId(purple_connection_get_account(gc), from, msgid);
 }
 
 /* The same brief hand-off for a room message, keyed only by account: a room delivers one message at
@@ -600,22 +601,27 @@ NSString *adiumTakePendingIncomingGroupchatMessageId(PurpleAccount *account)
 {
 	if (!account || !pendingIncomingGroupchatIds) return nil;
 
+	/* Same MRC care as above: keep the string alive past its removal from the dictionary. */
 	NSString *key = [NSString stringWithFormat:@"%p", (void *)account];
-	NSString *msgid = [pendingIncomingGroupchatIds objectForKey:key];
+	NSString *msgid = [[[pendingIncomingGroupchatIds objectForKey:key] retain] autorelease];
 	if (msgid) [pendingIncomingGroupchatIds removeObjectForKey:key];
 	return msgid;
 }
 
-static void adiumJabberIncomingGroupchatMessageId(PurpleConnection *gc, const char *msgid)
+void adiumStashPendingIncomingGroupchatMessageId(PurpleAccount *account, const char *msgid)
 {
 	@autoreleasepool {
-		PurpleAccount *account = purple_connection_get_account(gc);
 		if (!account || !msgid) return;
 
 		if (!pendingIncomingGroupchatIds) pendingIncomingGroupchatIds = [[NSMutableDictionary alloc] init];
 		[pendingIncomingGroupchatIds setObject:[NSString stringWithUTF8String:msgid]
 										forKey:[NSString stringWithFormat:@"%p", (void *)account]];
 	}
+}
+
+static void adiumJabberIncomingGroupchatMessageId(PurpleConnection *gc, const char *msgid)
+{
+	adiumStashPendingIncomingGroupchatMessageId(purple_connection_get_account(gc), msgid);
 }
 
 /* A message we send is handed to the account synchronously, and the id is minted deeper down in the

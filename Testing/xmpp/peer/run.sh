@@ -6,6 +6,7 @@
 #   ./run.sh second-device            sit on the adium account as a second device
 #   ./run.sh selftest                 automated feature checks against the server
 #   ./run.sh muc-reactions            group-chat reaction checks (XEP-0444/0359)
+#   ./run.sh sendfile <datei>         offer the running Adium a file (SI + IBB)
 
 set -e
 cd "$(dirname "$0")"
@@ -18,5 +19,6 @@ fi
 case "$1" in
 	selftest)      shift; exec ./.venv/bin/python selftest.py "$@" ;;
 	muc-reactions) shift; exec ./.venv/bin/python muc_reactions.py "$@" ;;
+	sendfile)      shift; exec ./.venv/bin/python sendfile.py "$@" ;;
 	*)             exec ./.venv/bin/python peer.py "$@" ;;
 esac

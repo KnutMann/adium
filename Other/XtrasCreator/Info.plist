@@ -8,6 +8,26 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Adium JavaScript Plugin</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>AdiumPlugin</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>AdiumPlugin</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adiumx.plugin</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>AXSXtraDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Adium Script Pack</string>
 			<key>CFBundleTypeIconFile</key>
 			<string>AdiumScripts</string>
@@ -223,6 +243,23 @@
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.adiumx.plugin</string>
+			<key>UTTypeDescription</key>
+			<string>Adium Plugin</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>AdiumPlugin</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>com.adiumx.script</string>

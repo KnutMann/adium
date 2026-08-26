@@ -17,6 +17,7 @@
 #import "AIXtrasPreferences.h"
 #import "AIXtrasManager.h"
 #import "AIXtraInfo.h"
+#import "AIJSXtrasManager.h"
 #import <Adium/AIPathUtilities.h>
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIFileManagerAdditions.h>
@@ -44,6 +45,8 @@
 - (void)trashXtra:(AIXtraInfo *)xtraInfo;
 - (void)postXtrasDidChangeForType:(NSString *)type;
 - (void)reportFailure:(NSString *)message forXtra:(AIXtraInfo *)xtraInfo error:(NSError *)error;
+- (BOOL)xtraIsJavaScript:(AIXtraInfo *)xtraInfo;
+- (BOOL)xtraIsBundled:(AIXtraInfo *)xtraInfo;
 @end
 
 @implementation AIXtrasPreferences
@@ -182,7 +185,11 @@
 		[listViews addObject:listView];
 		[form addEdgeToEdgeRow:listView];
 
-		if ([manager directoryOfCategoryAtIndex:index] == AIPluginsDirectory) {
+		if ([manager categoryAtIndexIsJavaScript:index]) {
+			//JavaScript plugins are injected live, so a change shows in every open message view at once
+			[form addFootnote:AILocalizedString(@"JavaScript extensions take effect immediately.",
+												"Footnote below the list of installed JavaScript extension Xtras")];
+		} else if ([manager directoryOfCategoryAtIndex:index] == AIPluginsDirectory) {
 			//Plugins are loaded once, at startup; switching one off here changes nothing until then
 			[form addFootnote:AILocalizedString(@"Changes to plug-ins take effect after Adium is restarted.",
 												"Footnote below the list of installed plug-in Xtras")];
@@ -362,6 +369,21 @@
  */
 - (void)xtraListView:(AIXtraListView *)listView setEnabled:(BOOL)enabled forXtra:(AIXtraInfo *)xtraInfo
 {
+	/* A JavaScript plugin is not moved on disk to switch it - it is injected live, and the plugins
+	 * that ship inside the app could not be moved anyway. Its switch is a preference the manager
+	 * keeps and reads; writing it makes the manager re-scan and redraw every open message view on
+	 * its own, so nothing here posts a further "the Xtras changed" of its own - that would only make
+	 * the manager re-scan and every window redraw a second time, drawing the conversation twice. */
+	if ([self xtraIsJavaScript:xtraInfo]) {
+		NSString *identifier = [[xtraInfo bundle] bundleIdentifier];
+
+		if ([identifier length])
+			[[AIJSXtrasManager sharedManager] setPluginWithIdentifier:identifier enabled:enabled];
+
+		[xtraInfo setEnabled:enabled];
+		return;
+	}
+
 	NSFileManager	*fileManager = [NSFileManager defaultManager];
 	NSString		*path = [xtraInfo path];
 	NSString		*folder = [path stringByDeletingLastPathComponent];
@@ -401,6 +423,52 @@
 
 	[xtraInfo setEnabled:enabled];
 	[self postXtrasDidChangeForType:[xtraInfo type]];
+}
+
+/*!
+ * @brief Whether a row's switch is live
+ *
+ * A JavaScript plugin is switched by preference, so its switch works wherever the plugin lives -
+ * the app's own bundle included, where nothing can be moved. Every other Xtra follows the list's
+ * own rule, that only one in the user's folder may be switched off.
+ */
+- (BOOL)xtraListView:(AIXtraListView *)listView canToggleXtra:(AIXtraInfo *)xtraInfo whenMovable:(BOOL)movable
+{
+	if ([self xtraIsJavaScript:xtraInfo]) return YES;
+
+	return movable;
+}
+
+/*!
+ * @brief Whether a row keeps its ⊖
+ *
+ * A plugin that ships inside the app has no file of the user's to throw away; everything else can be
+ * deleted, just as it always could.
+ */
+- (BOOL)xtraListView:(AIXtraListView *)listView canDeleteXtra:(AIXtraInfo *)xtraInfo whenMovable:(BOOL)movable
+{
+	return ![self xtraIsBundled:xtraInfo];
+}
+
+/*!
+ * @brief Is this Xtra a JavaScript plugin?
+ */
+- (BOOL)xtraIsJavaScript:(AIXtraInfo *)xtraInfo
+{
+	return [[[xtraInfo bundle] objectForInfoDictionaryKey:@"AIJavaScriptPlugin"] boolValue];
+}
+
+/*!
+ * @brief Does this Xtra ship inside the app rather than in a folder of the user's?
+ */
+- (BOOL)xtraIsBundled:(AIXtraInfo *)xtraInfo
+{
+	NSString	*path = [[xtraInfo path] stringByStandardizingPath];
+	NSString	*appPath = [[[NSBundle mainBundle] bundlePath] stringByStandardizingPath];
+
+	if (![path length] || ![appPath length]) return NO;
+
+	return [path hasPrefix:[appPath stringByAppendingString:@"/"]];
 }
 
 /*!

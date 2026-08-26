@@ -25,4 +25,15 @@
 + (void)loadPluginAtPath:(NSString *)pluginName confirmLoading:(BOOL)confirmLoading pluginArray:(NSMutableArray *)pluginArray;
 - (id <AIPlugin>)pluginWithClassName:(NSString *)className;
 
+/*!
+ * @brief Run the external-plugin gates for a plugin something other than the loader activates
+ *
+ * The version gate and the confirm-with-the-user gate, exactly as loadPluginAtPath: runs
+ * them for a native plugin. JavaScript plugins are activated by AIJSXtrasManager's scan,
+ * not by this loader, so the scan asks here before taking an external bundle in; a plugin
+ * the user has already confirmed passes silently, and one the user disables is moved away
+ * by the gate itself, so a NO needs no further cleanup by the caller.
+ */
++ (BOOL)externalPluginPassesGatesAtPath:(NSString *)pluginPath;
+
 @end

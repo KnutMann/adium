@@ -16,6 +16,23 @@ purpose branches were pushed. The combined branch these changes now live on is l
 A series of commits (git counts them, this text will not), all of them adjustments to what suits a Cocoa frontend rather than corrections to
 upstream's own behaviour, with one exception noted last.
 
+**Three of the commits are meant for upstream.** "Forward incoming receipts and
+sent-message ids." and "Emit reactions and message ids as purple signals." exist
+as clean branches `receipt-signals` and `reaction-signals` on the upstream base,
+prepared as pull requests to hoehermann/purple-gowhatsapp; Adium consumes their
+signals in `Plugins/Purple Service/adiumPurpleWhatsApp.m`. Once they are merged
+upstream, they leave this patch and the base revision moves forward.
+
+"Fetch the history the phone still remembers." is the third, and it builds on
+both of the others, so it can only become a branch of its own once they have
+landed. It answers the maintainer's own TODO in `handler.go` and the open
+request in upstream issue #263: a conversation coming into being asks the
+primary device for the messages before the newest one known, behind the
+`fetch-history-on-open` account option. The reactions and delivery state the
+phone remembers travel back through the two signals above, which is what lets a
+reopened window show its ticks and reaction chips again. The phone answers only
+while WhatsApp is running on it, so the option is off by default.
+
 **Reactions, inline media, voice notes, display names.** The largest of them. Voice notes arrive as
 Ogg/Opus, which WebKit will not play, so they are decoded to WAV next to the temporary file and
 announced as a link the message view turns into a player. Adium renders media itself, so images are

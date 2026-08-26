@@ -48,6 +48,26 @@
  * follow along.
  */
 - (void)xtraListViewDidChangeHeight:(AIXtraListView *)listView;
+
+@optional
+/*!
+ * @brief Whether a row's switch may be flipped at all
+ *
+ * @a movable is the list's own answer - true only for an Xtra in the user's own folder, the only
+ * kind it can move into a "(Disabled)" folder. A delegate returns it unchanged for the ordinary
+ * case and overrides it for an Xtra it switches some other way: a JavaScript plugin is turned on
+ * and off by preference, so its switch works wherever the plugin lives, the app's own bundle
+ * included. Left out, @a movable stands.
+ */
+- (BOOL)xtraListView:(AIXtraListView *)listView canToggleXtra:(AIXtraInfo *)xtra whenMovable:(BOOL)movable;
+/*!
+ * @brief Whether a row may be thrown away
+ *
+ * @a movable is the list's own answer as above. A delegate returns YES for anything it can delete
+ * and NO for one it cannot - a plugin that ships inside the app has no file of the user's to trash.
+ * Left out, every row keeps its ⊖.
+ */
+- (BOOL)xtraListView:(AIXtraListView *)listView canDeleteXtra:(AIXtraInfo *)xtra whenMovable:(BOOL)movable;
 @end
 
 /*!

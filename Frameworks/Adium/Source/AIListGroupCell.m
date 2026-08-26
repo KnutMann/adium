@@ -28,32 +28,6 @@
 @implementation AIListGroupCell
 
 //Copy
-- (id)copyWithZone:(NSZone *)zone
-{
-	AIListGroupCell *newCell = [super copyWithZone:zone];
-
-	/* NSCell copies memberwise, so the new cell's object ivars already point to the ones this cell
-	 * holds, holding no reference of their own. Each of them has to be cleared without being
-	 * released, and a plain assignment would not do that: the store gives up a reference this cell
-	 * never took, and the original loses what it was drawing with. The cast through void * is what
-	 * keeps the store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->shadowColor = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->backgroundColor = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->gradientColor = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->_gradient = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->layoutManager = nil;
-
-	newCell->shadowColor = shadowColor;
-	newCell->backgroundColor = backgroundColor;
-	newCell->gradientColor = gradientColor;
-	newCell->_gradient = _gradient;
-	newCell->layoutManager = layoutManager;
-	newCell->drawsGradientEdges = drawsGradientEdges;
-
-	return newCell;
-}
-
 //Init
 - (id)init
 {

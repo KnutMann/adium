@@ -32,21 +32,6 @@
 }
 
 //Copy
-- (id)copyWithZone:(NSZone *)zone
-{
-	AIGenericViewCell *newCell = [super copyWithZone:zone];
-
-	/* NSCell copies memberwise, so the new cell's embeddedView already points to the view this one holds, holding no
-	 * reference of its own. That second pointer has to be cleared without being released, and a plain assignment
-	 * would not do that: the store gives up a reference this cell never took, and the original
-	 * loses the view it is displaying. The cast through void * is what keeps the store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->embeddedView = nil;
-	newCell->embeddedView = embeddedView;
-
-	return newCell;
-}
-
 - (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
 	if ([embeddedView respondsToSelector:@selector(setIsHighlighted:)]) {

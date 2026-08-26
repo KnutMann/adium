@@ -1,0 +1,113 @@
+// Read Receipts - a bundled Adium JavaScript plugin.
+//
+// A message you sent gains ticks as it travels, the way modern messengers
+// show it: a single grey tick when the server accepted it (protocols that
+// confirm this, like WhatsApp), a grey double-check when the other side's
+// client received it, and a blue one when it has been read. Adium learns all
+// of this from the protocols and marks such a message with an "x-adium-sent",
+// "x-adium-delivered" or "x-adium-read" class; this plugin is only the tick
+// those classes draw.
+//
+// WHERE the tick sits is a taste question each message style answers
+// differently, so it is a setting right here:
+//
+//   PLACEMENT = 'time-before'  the tick sits just left of the timestamp
+//               'time-after'   just right of the timestamp
+//               'message'      trailing the message text itself
+//
+// The timestamp is found by the class names the styles conventionally use
+// (.time and friends; the bundled Smooth Operator and Mockie both match). A
+// style that names its timestamp differently can be added to TIME_CLASSES, or
+// set PLACEMENT to 'message', which needs no timestamp at all.
+//
+// The ticks keep a fixed pixel size on purpose: Big Emoji scales a short
+// emoji message up with an em-based font size, and an em-sized tick would
+// balloon along with it. Only the emoji should be big.
+//
+// It reads no message text, touches no network, and never marks a message the
+// app has not: every rule is pinned to the app's own outgoing message wrapper
+// and its namespaced classes, so a message style using a generic name like
+// "delivered" for something of its own can never grow a tick. Read paints
+// over delivered, so a read message shows one blue pair, not two.
+
+(function () {
+	'use strict';
+
+	var PLACEMENT = 'time-before';   // 'time-before' | 'time-after' | 'message'
+
+	var STYLE_ID = 'x-adium-read-receipts';
+	var OUTGOING = '[data-x-adium-msg][data-x-adium-dir="outgoing"]';
+	var TIME_CLASSES = ['.time', '.timestamp', '.x-time', '.x-rtime', '.x-ltime'];
+
+	var GREY = '#8a949e';    /* sent and delivered - a quiet grey */
+	var BLUE = '#34b7f1';    /* read - the read-blue, wins over grey */
+
+	// The stations in escalation order: a later class on the same message wins,
+	// which is why the rules are emitted in exactly this order.
+	var STATES = [
+		{ cls: 'x-adium-sent',      ticks: '\\2713',       color: GREY },
+		{ cls: 'x-adium-delivered', ticks: '\\2713\\2713', color: GREY },
+		{ cls: 'x-adium-read',      ticks: '\\2713\\2713', color: BLUE }
+	];
+
+	// The shared look of the pair: fixed pixel size (see header), the two ticks
+	// overlapped into one glyph pair, kept out of bidi reordering.
+	var TICK_STYLE =
+		'  font-size: 11px;' +
+		'  letter-spacing: -2px;' +
+		'  vertical-align: baseline;' +
+		'  white-space: nowrap;' +
+		'  unicode-bidi: isolate;';
+
+	// For a given state class, every way a timestamp can relate to the marked
+	// message inside one message block: the time element before the message in
+	// the DOM (it then needs :has to look ahead), or after it (plain sibling
+	// combinators). Both directions feed the same pseudo-element, so the visual
+	// side is chosen by PLACEMENT alone, not by the style's DOM order.
+	function timeSelectors(stateClass) {
+		var marked = OUTGOING + '.' + stateClass;
+		var out = [];
+		TIME_CLASSES.forEach(function (t) {
+			out.push(t + ':has(~ ' + marked + ')');            // time first, wrapper is a later sibling
+			out.push(t + ':has(~ * ' + marked + ')');          // time first, wrapper nested in a later sibling
+			out.push(marked + ' ~ ' + t);                      // wrapper first, time is a later sibling
+			out.push('*:has(> ' + marked + ') ~ ' + t);        // wrapper nested, its parent precedes the time
+		});
+		return out;
+	}
+
+	function buildCSS() {
+		if (PLACEMENT === 'message') {
+			return STATES.map(function (state) {
+				return OUTGOING + '.' + state.cls + '::after {' +
+					'  content: "\\00a0' + state.ticks + '";' +
+					'  color: ' + state.color + ';' + TICK_STYLE + '}';
+			}).join('');
+		}
+
+		var side = (PLACEMENT === 'time-after') ? 'after' : 'before';
+		// A real margin keeps the gap to the timestamp, where a trailing space
+		// character would be squeezed by the ticks' negative letter-spacing.
+		var gap = (side === 'before') ? '  margin-right: 5px;' : '  margin-left: 5px;';
+		return STATES.map(function (state) {
+			var selectors = timeSelectors(state.cls).map(function (s) { return s + '::' + side; });
+			return selectors.join(', ') + ' {' +
+				'  content: "' + state.ticks + '";' +
+				'  color: ' + state.color + ';' + gap + TICK_STYLE + '}';
+		}).join('');
+	}
+
+	function install() {
+		if (document.getElementById(STYLE_ID)) return;
+
+		var style = document.createElement('style');
+		style.id = STYLE_ID;
+		style.textContent = buildCSS();
+		(document.head || document.documentElement).appendChild(style);
+	}
+
+	if (document.readyState === 'loading')
+		document.addEventListener('DOMContentLoaded', install);
+	else
+		install();
+})();

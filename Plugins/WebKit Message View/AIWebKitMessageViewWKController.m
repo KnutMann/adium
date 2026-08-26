@@ -17,7 +17,10 @@
 #import "AIWebKitMessageViewWKController.h"
 #import "AIAdiumURLSchemeHandler.h"
 #import "AIWebKitMessageViewPlugin.h"
+#import "AIJSXtrasManager.h"
 #import "AIWebKitMessageViewWKContextMenu.h"
+#import "AIWKGestureBridge.h"
+#import "AIMessageStateStore.h"
 #import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIService.h>
 #import "AIWebkitMessageViewStyle.h"
@@ -72,14 +75,27 @@
 
 static NSArray *draggedTypes = nil;
 
+/* How many shown content objects a view keeps for replay after a page rebuild (style
+ * change, plugin toggle). Enough for a session's scrollback; past it the oldest drop
+ * out, so no window ever holds its unbounded history twice. */
+static const NSUInteger AIWKStoredContentReplayLimit = 500;
+
 /* JavaScript installed into every loaded message view. WKWebView exposes no public context-menu
  * hook on macOS, so we intercept right-clicks here and forward the hit-test result to the "adium"
  * script message handler (see docs/design/webkit-to-wkwebview-transition.md §4).
  */
+/* The one content world that can reach the native side; the script it runs and the
+ * reasoning live in AIWKGestureBridge.h, shared with the isolation probe. */
+static WKContentWorld *AIWKBridgeWorld(void)
+{
+	return [WKContentWorld worldWithName:AIWKBridgeWorldName];
+}
+
 static NSString *const AIWKContextMenuScript =
 	@""
 	@"(function() {\n"
 	@"    document.addEventListener('contextmenu', function(event) {\n"
+	@"        if (!event.isTrusted) return;\n"
 	@"        event.preventDefault();\n"
 	@"        var imageURL = null;\n"
 	@"        var node = event.target;\n"
@@ -228,6 +244,7 @@ static NSString *const AIWKContextMenuScript =
 - (NSURL *)_fileURLForDisplayedImageURLString:(NSString *)imageURLString;
 - (void)_markCurrentLocation;
 - (void)_processContentQueue;
+- (BOOL)_shouldRetainContentForReplay;
 - (void)_updateVariantWithoutPrimingView;
 - (void)_appendContentWithScript:(NSString *)js shouldScroll:(BOOL)shouldScroll;
 - (void)_drainStoredContentObjects;
@@ -270,6 +287,62 @@ static NSString *const AIWKContextMenuScript =
 @end
 
 @implementation AIWebKitMessageViewWKController
+
+#pragma mark - Remote-load block
+
+/*!
+ * @brief Hand back the compiled rule list that blocks every remote load
+ *
+ * The transcript is a file page that should reach nothing but local files. A
+ * WKContentRuleList refuses every http(s)/ws(s) load the page attempts,
+ * whether from a message style, a plugin, or a tracking pixel in a received
+ * message, so the display can neither fetch remote content nor exfiltrate.
+ *
+ * Compilation is asynchronous and done once; the result is cached. On failure
+ * the completion is called with nil and the next request compiles again, so a
+ * transient failure does not stay one for the whole session. The page itself is
+ * loaded anyway rather than left blank (an unblocked page is the pre-existing
+ * state, not a regression), but the caller keeps the JavaScript plugins out of
+ * an unblocked page: their harmlessness rests on this list.
+ * All on the main thread, where these controllers live.
+ */
++ (void)withRemoteLoadBlockRuleList:(void (^)(WKContentRuleList *ruleList))completion
+{
+	static WKContentRuleList *cachedRuleList = nil;
+	static NSMutableArray *pendingCompletions = nil;
+	static BOOL compiling = NO;
+	static BOOL compiled = NO;
+
+	if (compiled) {
+		completion(cachedRuleList);
+		return;
+	}
+
+	if (!pendingCompletions) pendingCompletions = [NSMutableArray array];
+	[pendingCompletions addObject:[completion copy]];
+
+	if (compiling) return;
+	compiling = YES;
+
+	NSString *rules = @"[{\"trigger\":{\"url-filter\":\"^https?://\"},\"action\":{\"type\":\"block\"}},"
+					   "{\"trigger\":{\"url-filter\":\"^wss?://\"},\"action\":{\"type\":\"block\"}}]";
+
+	[[WKContentRuleListStore defaultStore] compileContentRuleListForIdentifier:@"AdiumBlockRemoteLoads"
+													   encodedContentRuleList:rules
+															completionHandler:^(WKContentRuleList *ruleList, NSError *error) {
+		if (error) NSLog(@"Remote-load block rule list failed to compile: %@", error);
+
+		cachedRuleList = ruleList;
+		compiled = (ruleList != nil);
+		compiling = NO;
+
+		NSArray *completions = [pendingCompletions copy];
+		[pendingCompletions removeAllObjects];
+		for (void (^pending)(WKContentRuleList *) in completions) {
+			pending(ruleList);
+		}
+	}];
+}
 
 #pragma mark - Factory / Init
 
@@ -330,6 +403,18 @@ static NSString *const AIWKContextMenuScript =
 													 name:@"AIChatMessageReactionsChanged"
 												   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageIdAssigned:)
+													 name:@"AIChatMessageIdAssigned"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageWasSent:)
+													 name:@"AIChatMessageWasSent"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageWasDelivered:)
+													 name:@"AIChatMessageWasDelivered"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageWasRead:)
 													 name:@"AIChatMessageWasRead"
 												   object:nil];
@@ -347,6 +432,11 @@ static NSString *const AIWKContextMenuScript =
 												 selector:@selector(sourceOrDestinationChanged:)
 													 name:Chat_DestinationChanged
 												   object:inChat];
+
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(_javaScriptPluginsChanged:)
+													 name:AIJSXtrasDidChangeNotification
+												   object:nil];
 	}
 
 	return self;
@@ -365,24 +455,36 @@ static NSString *const AIWKContextMenuScript =
 
 	[_webView setNavigationDelegate:nil];
 	[_webView setUIDelegate:nil];
-	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium"];
+	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium" contentWorld:AIWKBridgeWorld()];
 }
 
 #pragma mark - WebView Creation
 
-- (void)_initWebView
+/*!
+ * @brief Add the base user scripts and the enabled JavaScript plugins
+ *
+ * Shared by the initial configuration and the live rebuild: the two shims the
+ * transcript always needs, then each enabled plugin in its own content world.
+ * The caller has already put the message handler in place (it must not be added
+ * twice) and cleared any previous user scripts.
+ */
+- (void)_installUserScriptsInto:(WKUserContentController *)userContentController
 {
-	WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-
-	// User content controller with script message handler (via weak proxy to avoid retain cycle)
-	WKUserContentController *userContentController = [[WKUserContentController alloc] init];
-	_AIWKScriptMessageHandlerWeakProxy *proxy = [[_AIWKScriptMessageHandlerWeakProxy alloc] initWithTarget:self];
-	[userContentController addScriptMessageHandler:proxy name:@"adium"];
+	/* The two scripts that talk to the app live in the bridge world, the only world
+	 * whose messages the handler hears; the DOM they read is shared, so nothing they
+	 * observe changes by not being in the page world. */
 
 	// Intercept right-clicks; WKWebView has no public context-menu hook on macOS (#119).
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:AIWKContextMenuScript
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-															 forMainFrameOnly:YES]];
+															 forMainFrameOnly:YES
+															   inContentWorld:AIWKBridgeWorld()]];
+
+	// Readiness and user-gesture forwarding (image zoom, file-transfer buttons).
+	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:AIWKGestureBridgeScript
+																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+															 forMainFrameOnly:YES
+															   inContentWorld:AIWKBridgeWorld()]];
 
 	/* Message styles may ship their own Template.html, and every one written before Catalina
 	 * scrolls via document.body.scrollTop, which standards-mode WebKit stopped honouring: the
@@ -391,23 +493,91 @@ static NSString *const AIWKContextMenuScript =
 	 * Redefining the two functions after the template has loaded repairs every such style with
 	 * the same semantics the bundled template has, and no style needs hand-patching again. A
 	 * style's own smooth-scroll animation is overridden along with it; on today's WebKit it was
-	 * not scrolling at all. */
+	 * not scrolling at all. Deliberately in the page world: the template's own
+	 * scripts are the callers, and it posts nothing. */
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:
 		@"function nearBottom() { return ( window.scrollY >= ( document.body.offsetHeight - ( window.innerHeight * 1.2 ) ) ); }"
 		@"function scrollToBottom() { window.scrollTo(0, document.body.scrollHeight); }"
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
 
+	/* JavaScript plugins, each into a content world of its own. Their scripts
+	 * re-inject on every load like the ones above, so a reprime needs no extra
+	 * handling. The world isolates a plugin's JS; the hardening and the
+	 * remote-load block keep it harmless, which is why a page without the block
+	 * gets no plugins at all. */
+	if (!_remoteLoadBlockUnavailable) {
+		[[AIJSXtrasManager sharedManager] installIntoUserContentController:userContentController];
+	}
+}
+
+/*!
+ * @brief The set of plugins changed; rebuild the scripts and redraw
+ *
+ * User scripts are fixed once injected, so a plugin turned on or off, installed
+ * or removed, only reaches an open window by rebuilding the whole set. The
+ * message handler is left in place; only the user scripts are cleared and
+ * re-added, then the view is reprimed so the new plugins see the conversation.
+ */
+- (void)_javaScriptPluginsChanged:(NSNotification *)notification
+{
+	if (!_webView) return;
+
+	WKUserContentController *userContentController = _webView.configuration.userContentController;
+	[userContentController removeAllUserScripts];
+	[self _installUserScriptsInto:userContentController];
+
+	/* Reloading redraws the conversation from what was kept for exactly this. A window that kept
+	 * nothing - an empty chat, or one open since before its content was worth keeping - has nothing
+	 * to redraw, and reloading would only blank it; leave it standing, and the new set of plugins
+	 * takes hold the next time it is opened. */
+	if (_shouldReflectPreferenceChanges || [_storedContentObjects count] || [_contentQueue count]) {
+		[self _primeWebViewAndReprocessContent:YES];
+	}
+}
+
+- (void)_initWebView
+{
+	WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+
+	/* User content controller with the script message handler (via weak proxy to avoid a
+	 * retain cycle). Registered in the bridge world only: the page world never sees
+	 * window.webkit.messageHandlers.adium, so no script that ends up running there,
+	 * whatever put it there, has a native side to reach. */
+	WKUserContentController *userContentController = [[WKUserContentController alloc] init];
+	_AIWKScriptMessageHandlerWeakProxy *proxy = [[_AIWKScriptMessageHandlerWeakProxy alloc] initWithTarget:self];
+	[userContentController addScriptMessageHandler:proxy contentWorld:AIWKBridgeWorld() name:@"adium"];
+
+	[self _installUserScriptsInto:userContentController];
+
 	config.userContentController = userContentController;
 
-	/* Let the file-origin page load file resources outside its base directory
-	 * (user icons live in the caches folder). Private keys, same unlock the
-	 * legacy WebView needed via SPI. */
+	/* The transcript is display only: it never keeps state that must outlive the
+	 * window, and the file origin makes per-style LocalStorage impossible anyway.
+	 * An ephemeral data store means nothing a page (a message style, or a plugin)
+	 * does can be written to persist across launches. */
+	config.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
+
+	/* Let the file-origin page load local file resources outside its base
+	 * directory (user icons live in the caches folder). Deliberately NOT
+	 * allowUniversalAccessFromFileURLs: that one lets a file page script XHR
+	 * across origins, i.e. exfiltrate to any http host, and nothing legitimate
+	 * here needs it (measured: no bundled style loads a remote resource, inline
+	 * images arrive as local files). The remote-load block below is the other
+	 * half of the same fence. */
 	@try {
 		[config.preferences setValue:@YES forKey:@"allowFileAccessFromFileURLs"];
-		[config setValue:@YES forKey:@"allowUniversalAccessFromFileURLs"];
 	} @catch (NSException *exception) {
 		NSLog(@"WKWebView file access unlock unavailable: %@", exception);
+	}
+
+	/* Peer connections carry ICE/STUN traffic and data channels that no content
+	 * rule list governs, so they are an exfiltration path around the block below.
+	 * The transcript has no use for WebRTC; turn it off where the key exists. */
+	@try {
+		[config.preferences setValue:@NO forKey:@"peerConnectionEnabled"];
+	} @catch (NSException *exception) {
+		NSLog(@"WKWebView peer-connection key unavailable: %@", exception);
 	}
 
 	// Register adium:// scheme handler (10.13+)
@@ -450,16 +620,23 @@ static NSString *const AIWKContextMenuScript =
 		}
 	}
 
-	_webViewIsReady = YES;
-	[self webViewIsReady];
-
 	// Set up marked scroller after the scroll view exists
 	[self setupMarkedScroller];
 
-	// Content that arrived while the view was loading was parked in _storedContentObjects
-	[self _drainStoredContentObjects];
+	/* The gesture bridge announces readiness at DOMContentLoaded, which arrives before
+	 * this delegate does (a navigation finishes only after subresources). Processing
+	 * here unconditionally replayed everything the retention had re-stored during that
+	 * first pass, so a window restored with parked history drew its conversation
+	 * twice. This is now only the fallback for a page whose ready never arrives. */
+	if (!_webViewIsReady) {
+		_webViewIsReady = YES;
+		[self webViewIsReady];
 
-	[self _processContentQueue];
+		// Content that arrived while the view was loading was parked in _storedContentObjects
+		[self _drainStoredContentObjects];
+
+		[self _processContentQueue];
+	}
 }
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error
@@ -467,21 +644,51 @@ static NSString *const AIWKContextMenuScript =
 	NSLog(@"WKWebView navigation failed: %@", error);
 }
 
+/*!
+ * @brief Is this a scheme the transcript may open in the browser?
+ *
+ * A user following a link should reach the web or their mail client, and
+ * nothing else. Handing every scheme to NSWorkspace, as this once did, lets a
+ * message (or a plugin injecting one) invoke any registered handler - file:,
+ * and worse - with a single click.
+ */
+static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
+{
+	NSString *lower = [scheme lowercaseString];
+	return ([lower isEqualToString:@"http"] || [lower isEqualToString:@"https"] ||
+			[lower isEqualToString:@"mailto"] || [lower isEqualToString:@"xmpp"] ||
+			[lower isEqualToString:@"aim"] || [lower isEqualToString:@"ymsgr"] ||
+			[lower isEqualToString:@"ftp"]);
+}
+
 - (void)webView:(WKWebView *)webView
 	decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 					decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
-	// Allow navigation only for our initial load and JavaScript
+	NSURL *url = [navigationAction.request URL];
+	NSString *scheme = [[url scheme] lowercaseString];
+
+	/* WKNavigationTypeOther is our own template loads and the styles' internal
+	 * navigation - but it is ALSO what a script assigning location.href produces,
+	 * so allowing it blindly lets page or plugin JS navigate the frame anywhere.
+	 * Confine it to the local page and the harmless internal schemes; a remote
+	 * document load would be blocked by the content rule list regardless, but a
+	 * navigation is cheaper to refuse here. */
 	if (navigationAction.navigationType == WKNavigationTypeOther) {
-		decisionHandler(WKNavigationActionPolicyAllow);
-	} else {
-		// Open external URLs in the default browser
-		NSURL *url = [navigationAction.request URL];
-		if (url && ![[url scheme] isEqualToString:@"about"]) {
-			[[NSWorkspace sharedWorkspace] openURL:url];
+		if (!url || [scheme isEqualToString:@"file"] || [scheme isEqualToString:@"about"] ||
+			[scheme isEqualToString:@"adium"]) {
+			decisionHandler(WKNavigationActionPolicyAllow);
+		} else {
+			decisionHandler(WKNavigationActionPolicyCancel);
 		}
-		decisionHandler(WKNavigationActionPolicyCancel);
+		return;
 	}
+
+	// A click on a link: open it in the browser, but only for schemes we trust
+	if (url && AIWebKitSchemeIsSafeToOpenExternally(scheme)) {
+		[[NSWorkspace sharedWorkspace] openURL:url];
+	}
+	decisionHandler(WKNavigationActionPolicyCancel);
 }
 
 #pragma mark - WKUIDelegate
@@ -491,9 +698,9 @@ static NSString *const AIWKContextMenuScript =
 			   forNavigationAction:(WKNavigationAction *)navigationAction
 					windowFeatures:(WKWindowFeatures *)windowFeatures
 {
-	// Open popup windows in the default browser
+	// Open popup windows in the default browser, but only for schemes we trust
 	NSURL *url = [navigationAction.request URL];
-	if (url) {
+	if (url && AIWebKitSchemeIsSafeToOpenExternally([url scheme])) {
 		[[NSWorkspace sharedWorkspace] openURL:url];
 	}
 	return nil;
@@ -515,6 +722,15 @@ static NSString *const AIWKContextMenuScript =
 	}
 
 	if ([type isEqualToString:@"ready"]) {
+		/* Only the current page's ready counts: a page a newer prime already doomed can
+		 * still deliver its signal, and drawing on it appends against the wrong page. */
+		NSString *generation = [body objectForKey:@"generation"];
+		NSString *expected = [NSString stringWithFormat:@"%lu", (unsigned long)_pageGeneration];
+		if (![generation isKindOfClass:[NSString class]] || ![generation isEqualToString:expected]) {
+			AILogWithSignature(@"Ignoring ready from page generation %@ (current %@)", generation, expected);
+			return;
+		}
+
 		// Don't re-process gate if already ready
 		if (!_webViewIsReady) {
 			_webViewIsReady = YES;
@@ -990,7 +1206,7 @@ static NSString *const AIWKContextMenuScript =
 	[_webView stopLoading];
 	[_webView setNavigationDelegate:nil];
 	[_webView setUIDelegate:nil];
-	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium"];
+	[_webView.configuration.userContentController removeScriptMessageHandlerForName:@"adium" contentWorld:AIWKBridgeWorld()];
 
 	// Cancel any pending performRequests
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
@@ -1027,12 +1243,57 @@ static NSString *const AIWKContextMenuScript =
 											   attributes:nil
 													error:NULL];
 	NSString *pagePath = [pageDirectory stringByAppendingPathComponent:@"messages.html"];
-	[[_messageStyle baseTemplateForChat:_chat] writeToFile:pagePath
-												atomically:YES
-												  encoding:NSUTF8StringEncoding
-													 error:NULL];
-	[_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
-	  allowingReadAccessToURL:[NSURL fileURLWithPath:@"/" isDirectory:YES]];
+
+	/* Stamp the page with this prime's generation, and only honour the "ready" that
+	 * carries it back. Primes can follow each other quickly (window restore at launch,
+	 * a preference pass, a plugin rescan), and a page already doomed by a newer load
+	 * can still get its "ready" delivered; drawing on that stale signal is how a
+	 * conversation ends up appended against the wrong page, lost, or doubled. */
+	_pageGeneration++;
+	NSString *page = [_messageStyle baseTemplateForChat:_chat];
+	NSString *generationMarker = [NSString stringWithFormat:
+								  @"<div id=\"x-adium-generation\" data-generation=\"%lu\" hidden></div>",
+								  (unsigned long)_pageGeneration];
+	NSRange bodyEnd = [page rangeOfString:@"</body>" options:(NSBackwardsSearch | NSCaseInsensitiveSearch)];
+	if (bodyEnd.location != NSNotFound) {
+		page = [page stringByReplacingCharactersInRange:bodyEnd
+											 withString:[generationMarker stringByAppendingString:@"</body>"]];
+	} else {
+		page = [page stringByAppendingString:generationMarker];
+	}
+	[page writeToFile:pagePath
+		   atomically:YES
+			 encoding:NSUTF8StringEncoding
+				error:NULL];
+
+	/* Attach the remote-load block before the first load, so no page ever runs
+	 * unblocked; compilation is cached, so every load after the first proceeds
+	 * without waiting. The list stays on the content controller across reloads,
+	 * hence the guard against adding it twice. */
+	[[self class] withRemoteLoadBlockRuleList:^(WKContentRuleList *ruleList) {
+		if (ruleList && !_remoteLoadBlockInstalled) {
+			[_webView.configuration.userContentController addContentRuleList:ruleList];
+			_remoteLoadBlockInstalled = YES;
+		}
+
+		/* No block, no plugins. The page itself still loads (styles worked on the open
+		 * web for years), but a plugin's harmlessness rests on the rule list, so the
+		 * plugin scripts are rebuilt out of an unblocked page and back in once a later
+		 * prime gets the list compiled. */
+		BOOL blockMissing = !_remoteLoadBlockInstalled;
+		if (blockMissing != _remoteLoadBlockUnavailable) {
+			_remoteLoadBlockUnavailable = blockMissing;
+			WKUserContentController *userContentController = _webView.configuration.userContentController;
+			[userContentController removeAllUserScripts];
+			[self _installUserScriptsInto:userContentController];
+		}
+		if (blockMissing) {
+			NSLog(@"Adium: remote-load block unavailable; JavaScript plugins stay out of this page load");
+		}
+
+		[_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
+		  allowingReadAccessToURL:[NSURL fileURLWithPath:@"/" isDirectory:YES]];
+	}];
 
 	if (_chat.isGroupChat && _chat.supportsTopic) {
 		[self updateTopic];
@@ -1137,15 +1398,21 @@ static NSString *const AIWKContextMenuScript =
 		// Track content for similarity comparison
 		_previousContent = content;
 
-		/* Keep what was shown, so that it can be shown again. A change of style or variant throws
-		 * the page away and builds a new one, and everything that was in the old page has to be
-		 * put through the new style to appear at all. Only kept while something is watching for
-		 * preference changes, which is the settings preview and a chat window that has been told
-		 * to follow them; an ordinary chat would otherwise hold its whole history twice.
-		 */
-		if (_shouldReflectPreferenceChanges) {
+		/* Keep what was shown, so that it can be shown again. A change of style or variant, or a
+		 * JavaScript plugin turned on or off, throws the page away and builds a new one, and
+		 * everything that was in the old page has to be put through it again to appear at all.
+		 * Since plugins ship with the app, this is in practice every window, which is why the
+		 * kept run is bounded: past the limit the oldest drop out, so a very long session keeps
+		 * a window's worth of scrollback for replay rather than doubling its whole history. A
+		 * replay after that starts at the cut. */
+		if ([self _shouldRetainContentForReplay]) {
 			[_storedContentObjects addObject:content];
+			while ([_storedContentObjects count] > AIWKStoredContentReplayLimit) {
+				[_storedContentObjects removeObjectAtIndex:0];
+			}
 		}
+
+		[self _applyRememberedStateForContent:content];
 	}
 
 	[_contentQueue removeAllObjects];
@@ -1157,6 +1424,23 @@ static NSString *const AIWKContextMenuScript =
 								 @"if (window.adiumFitImages) { adiumFitImages(); setTimeout(adiumFitImages, 250); "
 								 @"setTimeout(adiumFitImages, 1000); setTimeout(adiumFitImages, 3000); }"
 			   completionHandler:nil];
+}
+
+/*!
+ * @brief Whether this view keeps its content around so it can be drawn again after a reload
+ *
+ * A reload has to replay the conversation from what was kept, and there are two reasons to keep it:
+ * the view follows preference changes (the settings preview), or JavaScript plugins are installed
+ * and so one may be switched on or off at any time, each of which rebuilds the page. Plugins ship
+ * with the app, so the second reason holds for every window in practice; the honest reading of
+ * this method is "yes, but bounded", and the bound lives where the objects are added. The bundle
+ * check stays so that a build without bundled plugins goes back to keeping nothing.
+ */
+- (BOOL)_shouldRetainContentForReplay
+{
+	if (_shouldReflectPreferenceChanges) return YES;
+
+	return ([[[AIJSXtrasManager sharedManager] allBundles] count] > 0);
 }
 
 /*!
@@ -1575,8 +1859,10 @@ static NSString *const AIWKContextMenuScript =
  */
 - (void)chatDidFinishAddingUntrackedContent:(NSNotification *)notification
 {
-	// Tell the CoalescedHTML to output everything
-	[_webView evaluateJavaScript:@"if(coalescedHTML)coalescedHTML.cancel()"
+	/* Tell the CoalescedHTML to output everything. Window-qualified: before the
+	 * template's deferred script has run the name does not exist at all, and a bare
+	 * reference would throw instead of quietly doing nothing. */
+	[_webView evaluateJavaScript:@"if(window.coalescedHTML)coalescedHTML.cancel()"
 			   completionHandler:^(id result, NSError *error) {
 				   if (error) {
 					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
@@ -1667,6 +1953,211 @@ static NSString *const AIWKContextMenuScript =
 	[self _processContentQueue];
 }
 
+/*!
+ * @brief Mark the messages we sent up to one message id with a delivery/read state
+ *
+ * A receipt or chat marker is cumulative - delivered, or read, up to here - so every
+ * outgoing message body up to and including the one carrying the named id gains the
+ * class: "x-adium-delivered" for the grey tick, "x-adium-read" for the blue one that
+ * paints over it. If the named message is not on the page (scrolled out of the kept
+ * run, or sent in another session), nothing is marked rather than everything.
+ *
+ * The class is all this method adds. The Read Receipts display plugin draws the tick
+ * and decides where it sits (beside the timestamp, by default), so look and placement
+ * stay a display concern. The class names are namespaced like the wrapper's own
+ * attributes and can never collide with a name a message style or the correction
+ * tracker already uses ("tracked" burned us once: stanzaWasTracked has owned that one
+ * since long before this path existed).
+ */
+- (void)_markOutgoingMessagesWithClass:(NSString *)className upToMessageId:(NSString *)messageId
+{
+	if (!_webView || ![messageId length]) return;
+
+	/* Remember the state on the messages themselves, cumulatively up to the named
+	 * one, so a rebuilt page can draw the ticks again. Only when the named message
+	 * is actually in the store, mirroring what the page-side marking does. */
+	NSInteger level = [className isEqualToString:@"x-adium-read"] ? 3 : 2;
+	if ([self _storedMessageWithId:messageId]) {
+		for (AIContentObject *stored in _storedContentObjects) {
+			if (![stored isKindOfClass:[AIContentMessage class]]) continue;
+			AIContentMessage *storedMessage = (AIContentMessage *)stored;
+			if ([stored isOutgoing] && storedMessage.confirmation < level) {
+				storedMessage.confirmation = level;
+				[[AIMessageStateStore sharedStore] setConfirmation:level forMessageId:storedMessage.messageId inChat:_chat];
+				[[AIMessageStateStore sharedStore] rememberMessage:storedMessage inChat:_chat];
+			}
+			/* The named message ends the run whatever it is. History fetched from
+			 * the service arrives as context and carries an id, so testing the id
+			 * before the outgoing test is what keeps the run from swallowing every
+			 * message that came after it. */
+			if ([storedMessage.messageId isEqualToString:messageId]) break;
+		}
+	}
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" var id=%@, cls=%@;"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
+		@" var upto=-1;"
+		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ upto=i; break; } }"
+		@" for(var j=0;j<=upto;j++){ outs[j].classList.add(cls); }"
+		@"})()",
+		[self _jsStringLiteral:messageId], [self _jsStringLiteral:className]];
+
+	[_webView evaluateJavaScript:js
+			   completionHandler:^(id result, NSError *error) {
+				   if (error) {
+					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
+				   }
+			   }];
+}
+
+/*!
+ * @brief The stored (replayable) message carrying this id, if any
+ */
+- (AIContentMessage *)_storedMessageWithId:(NSString *)messageId
+{
+	if (![messageId length]) return nil;
+	for (AIContentObject *stored in _storedContentObjects) {
+		if ([stored isKindOfClass:[AIContentMessage class]] &&
+			[[(AIContentMessage *)stored messageId] isEqualToString:messageId]) {
+			return (AIContentMessage *)stored;
+		}
+	}
+	return nil;
+}
+
+/*!
+ * @brief Add a state class to exactly the message carrying an id
+ */
+- (void)_addClass:(NSString *)className toMessageWithId:(NSString *)messageId
+{
+	if (![messageId length] || !_webView) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" var id=%@, cls=%@;"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
+		@" for(var i=0;i<outs.length;i++){ if(outs[i].getAttribute('data-x-adium-id')===id){ outs[i].classList.add(cls); return true; } }"
+		@" return false;"
+		@"})()",
+		[self _jsStringLiteral:messageId], [self _jsStringLiteral:className]];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		if (error || ![result boolValue]) {
+			AILogWithSignature(@"%@ for %@ found no message carrying that id (%@)", className, messageId, error ?: result);
+		}
+	}];
+}
+
+/*!
+ * @brief Redraw remembered state after a message was re-rendered
+ *
+ * A page rebuild replays content objects; ticks and chips are decorations the
+ * protocol reported later, remembered on the message itself, and put back here.
+ */
+- (void)_applyRememberedStateForContent:(AIContentObject *)content
+{
+	if (![content isKindOfClass:[AIContentMessage class]]) return;
+
+	AIContentMessage *message = (AIContentMessage *)content;
+	if (![message.messageId length]) return;
+
+	static NSString * const classForConfirmation[] = { nil, @"x-adium-sent", @"x-adium-delivered", @"x-adium-read" };
+	if (message.confirmation >= 1 && message.confirmation <= 3) {
+		[self _addClass:classForConfirmation[message.confirmation] toMessageWithId:message.messageId];
+	}
+
+	/* Over a copy: drawing a chip writes the set back onto this very message,
+	 * and a message reacted to by two people would be mutated mid-walk. */
+	NSDictionary *reactions = [message.reactions copy];
+	for (NSString *sender in reactions) {
+		[self _setReactions:[reactions objectForKey:sender]
+				  forSender:sender
+				onMessageId:message.messageId];
+	}
+}
+
+/*!
+ * @brief A protocol assigned an id to a message we just sent; attach it
+ *
+ * Some protocols (WhatsApp) only learn a sent message's id asynchronously, after
+ * the message is already on the page without one. The id lands on the oldest
+ * outgoing message still lacking one, in the page and in the replay store alike,
+ * so receipts and reactions that name it can find the message, also after a
+ * rebuild. Sends complete in order for one chat, so oldest-first matches.
+ */
+- (void)messageIdAssigned:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	if (![messageId length]) return;
+
+	/* History shown as context also renders outgoing and id-less; only a message of
+	 * this session can be the one a send just earned an id for. The NEWEST bare
+	 * message is the right one: the receipt follows its send within moments, and an
+	 * older message still bare (one that slipped past its receipt somehow) must not
+	 * soak up every id that comes after it. */
+	for (AIContentObject *stored in [_storedContentObjects reverseObjectEnumerator]) {
+		if ([stored isKindOfClass:[AIContentMessage class]] &&
+			![stored isKindOfClass:[AIContentContext class]] && [stored isOutgoing] &&
+			![[(AIContentMessage *)stored messageId] length]) {
+			[(AIContentMessage *)stored setMessageId:messageId];
+			break;
+		}
+	}
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"][data-x-adium-history=\"0\"]:not([data-x-adium-id])');"
+		@" if(outs.length){ outs[outs.length-1].setAttribute('data-x-adium-id', %@); }"
+		@" return outs.length;"
+		@"})()",
+		[self _jsStringLiteral:messageId]];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		if (error || [result integerValue] == 0) {
+			AILogWithSignature(@"id %@ found no bare outgoing message (%@)", messageId, error ?: result);
+		}
+	}];
+}
+
+/*!
+ * @brief The server accepted one message we sent (the first tick)
+ *
+ * Unlike delivered and read, "sent" is per message, not cumulative: every send
+ * earns its own confirmation, so exactly the named message is marked.
+ */
+- (void)messageWasSent:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	if (![messageId length]) return;
+
+	AIContentMessage *stored = [self _storedMessageWithId:messageId];
+	if (stored && stored.confirmation < 1) stored.confirmation = 1;
+	[[AIMessageStateStore sharedStore] setConfirmation:1 forMessageId:messageId inChat:_chat];
+	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
+
+	[self _addClass:@"x-adium-sent" toMessageWithId:messageId];
+}
+
+- (void)messageWasDelivered:(NSNotification *)notification
+{
+	if ([notification object] != _chat) return;
+
+	[self _markOutgoingMessagesWithClass:@"x-adium-delivered"
+						   upToMessageId:[[notification userInfo] objectForKey:@"MessageId"]];
+}
+
+- (void)messageWasRead:(NSNotification *)notification
+{
+	if ([notification object] != _chat) return;
+
+	[self _markOutgoingMessagesWithClass:@"x-adium-read"
+						   upToMessageId:[[notification userInfo] objectForKey:@"MessageId"]];
+}
+
 - (void)stanzaWasTracked:(NSNotification *)notification
 {
 	NSDictionary *userInfo = [notification userInfo];
@@ -1722,14 +2213,30 @@ static NSString *const AIWKContextMenuScript =
 {
 	if (![messageId length] || !_webView) return;
 
+	/* Remember the set on the message itself, so a rebuilt page redraws the chips,
+	 * and on disk, so a conversation reopened another day redraws them too. */
+	[[AIMessageStateStore sharedStore] setReactions:reactions forSender:sender messageId:messageId inChat:_chat];
+
+	AIContentMessage *stored = [self _storedMessageWithId:messageId];
+	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
+	if (stored) {
+		if ([reactions count]) {
+			if (!stored.reactions) stored.reactions = [NSMutableDictionary dictionary];
+			[stored.reactions setObject:[reactions copy] forKey:sender];
+		} else {
+			[stored.reactions removeObjectForKey:sender];
+		}
+	}
+
 	NSData	 *json = [NSJSONSerialization dataWithJSONObject:(reactions ?: @[]) options:0 error:NULL];
 	NSString *reactionsLiteral = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"[]";
 
 	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
 		@" var id=%@, sender=%@, reactions=%@;"
 		@" var nodes=document.querySelectorAll('[data-x-adium-id]'), el=null;"
 		@" for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute('data-x-adium-id')===id){ el=nodes[i]; break; } }"
-		@" if(!el) return;"
+		@" if(!el) return 'Ziel-id nicht im DOM ('+nodes.length+' mit id)';"
 		@" var box=el.querySelector('.x-adium-reactions');"
 		@" if(!box){ box=document.createElement('span'); box.className='x-adium-reactions'; box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;'; el.appendChild(box); }"
 		@" var chips=box.querySelectorAll('.x-adium-reaction');"
@@ -1745,8 +2252,8 @@ static NSString *const AIWKContextMenuScript =
 
 	[_webView evaluateJavaScript:js
 			   completionHandler:^(id result, NSError *error) {
-				   if (error) {
-					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
+				   if (error || [result isKindOfClass:[NSString class]]) {
+					   AILogWithSignature(@"reactions for %@: %@", messageId, error ?: result);
 				   }
 			   }];
 }
@@ -1770,43 +2277,6 @@ static NSString *const AIWKContextMenuScript =
 		[(id)_chat.account sendReaction:emojis toMessageId:messageId inChat:_chat];
 
 	[self _setReactions:emojis forSender:@"me" onMessageId:messageId];
-}
-
-/*!
- * @brief The contact has read one of the messages we sent, up to the one it names (XEP-0333)
- *
- * A chat marker is cumulative - read up to here - so the messages we sent up to and including the
- * one it names all get a read tick, drawn on the message now that a sent message carries its id.
- * Ticks are not added twice, so a later marker only reaches newer messages.
- */
-- (void)messageWasRead:(NSNotification *)notification
-{
-	if ([notification object] != _chat || !_webView) return;
-
-	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
-	if (![messageId length]) return;
-
-	NSString *js = [NSString stringWithFormat:@"(function(){"
-		@" var id=%@;"
-		@" var outs=document.querySelectorAll('[data-x-adium-msg][data-x-adium-dir=\"outgoing\"]');"
-		@" for(var i=0;i<outs.length;i++){"
-		@"  var el=outs[i];"
-		@"  if(!el.querySelector('.x-adium-read')){"
-		@"   var t=document.createElement('span'); t.className='x-adium-read'; t.textContent='\\u2713\\u2713';"
-		@"   t.style.cssText='display:inline-block;margin-inline-start:0.35em;font-size:0.75em;color:#34b7f1;letter-spacing:-0.15em;vertical-align:baseline;';"
-		@"   el.appendChild(t);"
-		@"  }"
-		@"  if(el.getAttribute('data-x-adium-id')===id) break;"
-		@" }"
-		@"})()",
-		[self _jsStringLiteral:messageId]];
-
-	[_webView evaluateJavaScript:js
-			   completionHandler:^(id result, NSError *error) {
-				   if (error) {
-					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
-				   }
-			   }];
 }
 
 - (void)updateTopic
@@ -2337,6 +2807,18 @@ static NSString *const AIWKContextMenuScript =
 	}
 
 	ESFileTransfer *fileTransfer = [ESFileTransfer existingFileTransferWithID:fileTransferID];
+
+	/* Trust the id only as far as this chat: the transfer must belong to the
+	 * account and contact this transcript is showing. Without that, a script in
+	 * the page (or a plugin reaching the page world) could accept or cancel any
+	 * transfer in the whole application by guessing an id. */
+	if (fileTransfer.account != _chat.account ||
+		(fileTransfer.contact && ![_chat.containedObjects containsObject:(id)fileTransfer.contact] &&
+		 fileTransfer.contact != _chat.listObject)) {
+		AILogWithSignature(@"Refused file-transfer action for a transfer outside this chat: %@", fileTransferID);
+		return;
+	}
+
 	ESFileTransferRequestPromptController *tc = [fileTransfer fileTransferRequestPromptController];
 	if (!tc) {
 		return;

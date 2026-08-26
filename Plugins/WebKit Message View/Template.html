@@ -2,44 +2,41 @@
 <html>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta http-equiv="x-dns-prefetch-control" content="off" />
 	<base href="%@">
 	<script type="text/javascript" defer="defer">
 		// NOTE:
 		// Any percent signs in this file must be escaped!
 		// Use two escape signs (%%) to display it, this is passed through a format call!
 
-		// Adium bridge shim — replaces WebScriptObject (WebView) window.client with
-		// a pure-JS / postMessage variant for WKWebView.
-		// On legacy WebView the native bridge is set before this script runs, so the
-		// guard below skips the shim and the old ObjC bridge continues to work.
+		// window.client compatibility stub. Message styles call these entry points,
+		// so they must exist, but none of them reaches the app any more: the page
+		// world has no native message handler at all. The app listens in a private
+		// content world for real user gestures instead (see AIWKGestureBridgeScript),
+		// so a script injected into this world finds nothing here worth driving.
 		(function() {
-			var adiumBridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adium;
 			if (window.client) return;
 
 			window.client = {
 				zoomImage: function(node) {
-					/* Emoticon-sized images keep the legacy click-to-text behavior */
-					if (node.width <= 64 && node.height <= 64)
-						return false;
-					/* Content images: ask the native side to toggle a Quick Look preview */
-					if (adiumBridge)
-						adiumBridge.postMessage({type: 'zoomImage', imageURL: node.currentSrc || node.getAttribute('src') || ''});
-					return true;
+					/* Only the size arithmetic remains: emoticon-sized images keep the
+					   legacy click-to-text behavior (return false), content images are
+					   reported handled; the actual Quick Look toggle is triggered by the
+					   app's own gesture listener seeing the same click. */
+					return !(node.width <= 64 && node.height <= 64);
 				},
 				handleFileTransfer: function(action, fileTransferID) {
-					if (adiumBridge) adiumBridge.postMessage({type: 'fileTransfer', action: action, fileTransferID: fileTransferID});
+					/* The transfer buttons stay wired to this name so every style keeps
+					   working; the app reads the action out of the button's own attribute
+					   when a real click lands on it. */
 				},
 				debugLog: function(message) {
 					console.log('Adium:', message);
 				},
 				_setDocumentReady: function() {
-					if (adiumBridge) adiumBridge.postMessage({type: 'ready'});
+					/* Readiness is announced by the app's gesture bridge. */
 				}
 			};
-
-			document.addEventListener('DOMContentLoaded', function() {
-				if (adiumBridge) adiumBridge.postMessage({type: 'ready'});
-			});
 		})();
 
 		function appendHTML(html) {
