@@ -1,7 +1,7 @@
 From bb91ddd9b4bd3a5401a41365888abdc4dc05c6af Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 21:35:47 +0200
-Subject: [PATCH 01/24] Adium adaptations: reactions, inline media, voice
+Subject: [PATCH 01/33] Adium adaptations: reactions, inline media, voice
  decode, names
 
 - Message cache: default size 100 (was 0, so reactions never resolved)
@@ -642,7 +642,7 @@ index 0b265d7..c087d5a 100644
 From 0006fdf859721b123bc694fffa9db56bb57e5086 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:13:47 +0200
-Subject: [PATCH 02/24] Location messages as Apple Maps links; no buddies for
+Subject: [PATCH 02/33] Location messages as Apple Maps links; no buddies for
  group JIDs
 
 - LocationMessage/LiveLocationMessage were silently dropped; render
@@ -721,7 +721,7 @@ index 2adc92f..17f7c5b 100644
 From a7669168486d63e10430882d6af1ceb40b8c6eee Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:25:58 +0200
-Subject: [PATCH 03/24] Auto-download documents and announce them with a file
+Subject: [PATCH 03/33] Auto-download documents and announce them with a file
  link
 
 Non-image, non-voice, non-video attachments download straight to the
@@ -808,7 +808,7 @@ index 47b1b89..d1a4952 100644
 From 606bfd39a5a6dd543d2fe3e0565b97ed83ffc5f7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:41:52 +0200
-Subject: [PATCH 04/24] Download profile pictures in full resolution by default
+Subject: [PATCH 04/33] Download profile pictures in full resolution by default
 
 The get-icons option defaulted to "no", so contact and chat window
 icons stayed empty; default to "original" everywhere (option list,
@@ -870,7 +870,7 @@ index 38a4281..f80b278 100644
 From a6aac04b8bb05a715e143a1c73ab5480d7f335b8 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 00:22:04 +0200
-Subject: [PATCH 05/24] Raise message cache default to 500
+Subject: [PATCH 05/33] Raise message cache default to 500
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ---
@@ -911,7 +911,7 @@ index fb5aef7..ab562a6 100644
 From aa133c032ca8124f364424bd5a07a4435efbceae Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 23:11:34 +0200
-Subject: [PATCH 06/24] Inline images of all types by default
+Subject: [PATCH 06/33] Inline images of all types by default
 
 Adium renders images in its message view rather than through a pixbuf
 loader, so the frontend support the upstream option asks about is
@@ -941,7 +941,7 @@ index 051f478..205e4ca 100644
 From e0eee9ee74ec4058bd0ba24c33408829ba1321c7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 14:12:32 +0200
-Subject: [PATCH 07/24] Attribute a sent picture to the sender, not to the
+Subject: [PATCH 07/33] Attribute a sent picture to the sender, not to the
  conversation
 
 The inline echo of an outgoing image passed the transfer's "who" as both the
@@ -1003,7 +1003,7 @@ index 64fe571..b62ef57 100644
 From 27bfce19a7cca2c342b4d5725e2616d959ff09d1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 17:14:00 +0200
-Subject: [PATCH 08/24] Match the Signal plug-in's device linking dialog
+Subject: [PATCH 08/33] Match the Signal plug-in's device linking dialog
 
 Same title, same wording, same buttons, and no raw QR payload: it is not
 something to type anywhere, it is the bytes the camera is about to read.
@@ -1074,7 +1074,7 @@ index 6b67c02..78c9f0b 100644
 From 3b3a989bd9dd7b686622db6ee9447680af0ce924 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 20:29:12 +0200
-Subject: [PATCH 09/24] Give a group chat its picture, on the node rather than
+Subject: [PATCH 09/33] Give a group chat its picture, on the node rather than
  on a buddy
 
 Contacts have had pictures all along and groups have not, because the only
@@ -1221,7 +1221,7 @@ index 9de9fdf..fc71358 100644
 From d6c419e38911dcddd12edf0a4e1c86ea6cb9ac93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Sun, 16 Aug 2026 00:52:07 +0200
-Subject: [PATCH 10/24] Keep a profile picture at the resolution that was asked
+Subject: [PATCH 10/33] Keep a profile picture at the resolution that was asked
  for
 
 Two faults, one of them ours.
@@ -1349,7 +1349,7 @@ index f80b278..318f744 100644
 From 3200a4b21f6b8a6420287d8925d6e041558b0e93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 19 Aug 2026 16:35:39 +0200
-Subject: [PATCH 11/24] Resolve WhatsApp business account names
+Subject: [PATCH 11/33] Resolve WhatsApp business account names
 
 Business accounts often carry no push name; whatsmeow delivers their verified
 name instead, both as a field on every message and as a BusinessName event when
@@ -1418,7 +1418,7 @@ index 28f68e1..2b14e0c 100644
 From d31ba408a3ab9f38c40e2dfc4dc6f35f669a4272 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:35:03 +0200
-Subject: [PATCH 12/24] Forward incoming receipts and sent-message ids.
+Subject: [PATCH 12/33] Forward incoming receipts and sent-message ids.
 
 Incoming events.Receipt used to be logged and dropped. Now every receipt
 is handed to the purple part as a new receipt message type, one call per
@@ -1821,7 +1821,7 @@ index c447251..a610632 100644
 From 48009366915317072b9796ce9e5f248c4979ce3d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:37:49 +0200
-Subject: [PATCH 13/24] Emit reactions and message ids as purple signals.
+Subject: [PATCH 13/33] Emit reactions and message ids as purple signals.
 
 An incoming reaction used to exist only as the rendered sentence
 "reacted with X to message Y", where Y falls back to "unknown message"
@@ -2138,7 +2138,7 @@ index 97268dc..33cb86f 100644
 From 62e3daa35e0fa8c9334d6399c82a17f7f93bd31a Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 02:18:17 +0200
-Subject: [PATCH 14/24] Give the receipt case back its break
+Subject: [PATCH 14/33] Give the receipt case back its break
 
 The union-style conflict resolution that stacked the receipt and
 reaction commits onto this branch sliced the break statement out from
@@ -2173,7 +2173,7 @@ index dd09132..4af3005 100644
 From 812cdfee4d01c48784a0e4553e5d058807399f64 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 02:37:47 +0200
-Subject: [PATCH 15/24] Fetch the history the phone still remembers
+Subject: [PATCH 15/33] Fetch the history the phone still remembers
 
 WhatsApp keeps no readable history on its servers; the primary device
 does. whatsmeow can ask it for the messages preceding a known one, and
@@ -2791,7 +2791,7 @@ index 3f1d72f..105f06a 100644
 From bc25e8f10890aebe16b921b909411081c783313c Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 03:45:47 +0200
-Subject: [PATCH 16/24] Ask only when the user opens a conversation, and only
+Subject: [PATCH 16/33] Ask only when the user opens a conversation, and only
  once linked
 
 Two things the first cut got wrong. A conversation also comes into being
@@ -2920,7 +2920,7 @@ index 3f7cfc5..667aa8c 100644
 From c98dbaf18cd3944133196bd86b4ab1d623e67908 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:04:09 +0200
-Subject: [PATCH 17/24] Ask even when no message of the conversation is known
+Subject: [PATCH 17/33] Ask even when no message of the conversation is known
 
 The request points at a message and asks for what came before it, and
 the message cache was the only place it looked for one. The cache holds
@@ -3000,7 +3000,7 @@ index 667aa8c..55c504e 100644
 From 12e90e3b7ff2e4511caa78664685c81bdf27b81d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:09:34 +0200
-Subject: [PATCH 18/24] Say at linking time that this device can take history
+Subject: [PATCH 18/33] Say at linking time that this device can take history
  on demand
 
 The request went out and the server acknowledged it, and the phone never
@@ -3065,7 +3065,7 @@ index 105f06a..63bb3a1 100644
 From 3cd4a2fca11f6152575a6423ce595b61c687917d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:16:45 +0200
-Subject: [PATCH 19/24] Fill only the gap the phone leaves, and only as much as
+Subject: [PATCH 19/33] Fill only the gap the phone leaves, and only as much as
  was asked
 
 The first fetch that actually reached a phone showed the merge for what
@@ -3148,7 +3148,7 @@ index 55c504e..7c0d6be 100644
 From ab99e1fc595680d8b67cdf83404f23ccd85fbb2b Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:18:52 +0200
-Subject: [PATCH 20/24] Seat ourselves once in a room we fetched history for
+Subject: [PATCH 20/33] Seat ourselves once in a room we fetched history for
 
 A group chat with fetched history showed the same person twice: some
 messages named their author by phone number, others by the hidden lid
@@ -3210,7 +3210,7 @@ index 7c0d6be..2030a5f 100644
 From 42525c186af14c3c712dee27618823ccfee6c250 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:24:39 +0200
-Subject: [PATCH 21/24] Carry the reactions the history brings, instead of
+Subject: [PATCH 21/33] Carry the reactions the history brings, instead of
  dropping them
 
 A reaction is a message here, one that names another message rather than
@@ -3327,7 +3327,7 @@ index 2030a5f..99dc183 100644
 From 6821893f499bbb9026de77e1f42d8b9d9decbfdd Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:29:37 +0200
-Subject: [PATCH 22/24] Say what an answer actually held, and let reactions
+Subject: [PATCH 22/33] Say what an answer actually held, and let reactions
  stand alone
 
 A fetch that came back with nothing to show said only that, which left
@@ -3441,7 +3441,7 @@ index 99dc183..edc534f 100644
 From f420ec69e33b95a602698e49b4e86ba4f075d1e2 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:37:15 +0200
-Subject: [PATCH 23/24] Lock the message cache against the thread that now
+Subject: [PATCH 23/33] Lock the message cache against the thread that now
  reads it
 
 The cache belonged to the connection's own goroutine and was reached
@@ -3560,7 +3560,7 @@ index ab562a6..3947682 100644
 From 06d7c405a5b5dd2faa6f6baecbbb3838296b1e10 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:50:38 +0200
-Subject: [PATCH 24/24] Answer the review of the history fetch
+Subject: [PATCH 24/33] Answer the review of the history fetch
 
 Nine findings from an adversarial reading, all of them about the same
 thing: a conversation coming into being is a weaker signal than it
@@ -3799,6 +3799,1013 @@ index b1fae52..96e2b2d 100644
  	return ""
  }
  
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 9496126591d431f2fe921f8742a68b6931595328 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 19:37:01 +0200
+Subject: [PATCH 25/33] A video plays where it was sent, not behind a transfer
+ prompt
+
+Videos were the one kind of media still routed through the file transfer
+mechanism: an accept-first prompt whose sender is deliberately rewritten to the
+group JID, because libpurple transfers know no groups. In Adium that came out
+as "120363...@g.us offers to send the file ef7dc...mp4" - your own video, sent
+from your own phone, presented as a stranger's incoming file named after a
+hash. The transfer prompt also writes its offer line on a later runloop turn,
+outside the window during which history requests are suppressed, so the
+conversation it created counted as user-opened and pulled the whole history in
+UNDER the offer lines.
+
+A video now takes the inline path the other media already take: downloaded to
+the temporary directory (deduplicated by content hash), kept there for
+playback, and announced as a file link under the AdiumVideo_ name - the same
+convention the voice notes established, which the front-end swaps for a player.
+Because the line goes through the ordinary message path, the sender stays the
+real sender: a video of one's own reads as one's own, a video in a group names
+the person, and the conversation it may create counts as message-created, which
+keeps the history fetch out from under it.
+
+Attachment mode still hands every file to the transfer mechanism, untouched.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/handle_attachment.c | 60 ++++++++++++++++++++++++++++++++++------
+ 1 file changed, 52 insertions(+), 8 deletions(-)
+
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index 88ff9c2..de9e879 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -317,22 +317,63 @@ void download_to_templated_destination(gowhatsapp_message_t *gwamsg, const char
+     g_free(local_path);
+ }
+ 
++static gboolean gowhatsapp_is_video_mimetype(const char *mimetype) {
++    return mimetype != NULL && g_str_has_prefix(mimetype, "video/");
++}
++
++/* Videos play right in the message view: the file is kept in the temporary
++ * directory (the same place the voice notes' WAVs live, which the view already
++ * reads from) and announced as a file link the view swaps for a player - the
++ * same convention as voice notes, told apart by the AdiumVideo_ name. The
++ * sender stays the real sender, so a video of one's own reads as one's own and
++ * a video in a group names the person, not the group. */
++static void gowhatsapp_display_video_inline(gowhatsapp_message_t *gwamsg, const char *local_file_path) {
++    gchar *text = g_strdup_printf("<a href=\"file://%s\">Video message</a>", local_file_path);
++    gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, FALSE);
++    g_free(text);
++}
++
+ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+-    char *local_path_tmp = g_strdup(g_build_filename(g_get_tmp_dir(), g_strdup_printf("whatsapp_image_%s%s", gwamsg->hash_hex, gwamsg->extension), NULL));
+-    char *error = gowhatsapp_go_download_attachment(gwamsg->account, local_path_tmp, gwamsg->download_handle);
+-    gowhatsapp_go_delete_handle(gwamsg->download_handle);
++    const gboolean is_video = gowhatsapp_is_video_mimetype(gwamsg->mimetype);
++    gchar *base;
++    if (is_video) {
++        //The name is the contract with the message view; see gowhatsapp_display_video_inline
++        base = g_strdup_printf("AdiumVideo_%s%s", gwamsg->hash_hex, gwamsg->extension);
++    } else {
++        base = g_strdup_printf("whatsapp_image_%s%s", gwamsg->hash_hex, gwamsg->extension);
++    }
++    char *local_path_tmp = g_build_filename(g_get_tmp_dir(), base, NULL);
++    g_free(base);
++
++    char *error = NULL;
++    if (is_video && g_file_test(local_path_tmp, G_FILE_TEST_EXISTS)) {
++        //The very same bytes, by content hash; no need to fetch them twice
++        gowhatsapp_go_delete_handle(gwamsg->download_handle);
++    } else {
++        error = gowhatsapp_go_download_attachment(gwamsg->account, local_path_tmp, gwamsg->download_handle);
++        gowhatsapp_go_delete_handle(gwamsg->download_handle);
++    }
++    gwamsg->download_handle = 0;
++
+     if (error && error[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
+     } else {
+         if (gowhatsapp_is_voice_mimetype(gwamsg->mimetype)) {
+             gowhatsapp_display_audio_inline(gwamsg, local_path_tmp);
++        } else if (is_video) {
++            gowhatsapp_display_video_inline(gwamsg, local_path_tmp);
+         } else {
+             gowhatsapp_display_image_inline(gwamsg, local_path_tmp);
+         }
+         gowhatsapp_display_caption(gwamsg);
+     }
+-    g_remove(local_path_tmp);
++    if (!is_video) {
++        //The player needs its file; images are in the imgstore by now, voice notes in their WAV
++        g_remove(local_path_tmp);
++    }
++    g_free(error);
+     g_free(local_path_tmp);
++    return TRUE;
+ }
+ 
+ void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg) {
+@@ -340,12 +381,15 @@ void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg) {
+      * fallback decides the behaviour of every account that never set the option. Adium shows
+      * media in the message view, so showing it there is what it should do out of the box. */
+     gboolean inline_mode = purple_strequal(purple_account_get_string(gwamsg->account, GOWHATSAPP_HANDLE_IMAGES_OPTION, GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE), GOWHATSAPP_HANDLE_IMAGES_CHOICE_INLINE);
+-    gboolean is_video = (gwamsg->mimetype != NULL && g_str_has_prefix(gwamsg->mimetype, "video/"));
+-    // only media the frontend can show: images by the upstream rule, plus voice notes, which Adium plays inline
+-    gboolean inline_only = inline_mode && (gowhatsapp_attachment_is_inline_image(gwamsg) || gowhatsapp_is_voice_mimetype(gwamsg->mimetype));
++    // media the frontend can show right in the view: images by the upstream
++    // rule, voice notes as players, and videos as players too - the transfer
++    // prompt is what used to make a video an accept-first file from the group
++    gboolean inline_only = inline_mode && (gowhatsapp_attachment_is_inline_image(gwamsg)
++                                           || gowhatsapp_is_voice_mimetype(gwamsg->mimetype)
++                                           || gowhatsapp_is_video_mimetype(gwamsg->mimetype));
+     if (inline_only) {
+         download_to_temporary_directory(gwamsg);
+-    } else if (inline_mode && !is_video) {
++    } else if (inline_mode) {
+         gowhatsapp_display_document_inline(gwamsg);
+         gowhatsapp_display_caption(gwamsg);
+     } else {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 289b6406b9c6a06f25f9a442bbee009542768656 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 19:52:34 +0200
+Subject: [PATCH 26/33] A history replay shows the media it already has
+
+A conversation replayed from the phone rendered every attachment as a
+placeholder line, "[Sent a video.]", even when the video in question had just
+arrived live and its file was still lying in the temporary directory. The
+history handler now looks exactly there before settling for the placeholder:
+videos and images stay on disk under their content-hash names (the one file
+still removed is the voice note's downloaded Opus, whose decoded WAV beside it
+is what playback uses), so a replayed line can point at the very file the live
+message showed. Where the file is not there - never received live, or the
+directory was cleaned - the placeholder stands as before.
+
+Such a line is ready-made HTML, a link at a local file with the caption
+escaped beside it, and everything else the history emits is prose for the
+display path to escape. The history entry therefore says which of the two it
+carries, a new text subtype carries that through the bridge, and the display
+glue skips the escaping for the one and keeps it for the other.
+
+Images gain from the same look-up: a replayed image message links its kept
+file, which the front-end swaps back into a picture.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ bridge.go                |  8 +++--
+ bridge.h                 |  3 ++
+ glue/handle_attachment.c | 13 +++++---
+ glue/history.c           |  5 ++-
+ glue/process_message.c   |  3 +-
+ handle_history.go        | 70 ++++++++++++++++++++++++++++++++++++++--
+ 6 files changed, 91 insertions(+), 11 deletions(-)
+
+diff --git a/bridge.go b/bridge.go
+index f68c9aa..25f7870 100644
+--- a/bridge.go
++++ b/bridge.go
+@@ -465,11 +465,15 @@ func purple_display_text_message(account *PurpleAccount, remoteJid string, isGro
+  * It travels the same path as a live text message, but marked as history so
+  * the C part shows it as a delayed replay instead of fresh news.
+  */
+-func purple_display_history_message(account *PurpleAccount, remoteJid string, isGroup bool, senderJid string, pushName *string, timestamp time.Time, text string, id string) {
++func purple_display_history_message(account *PurpleAccount, remoteJid string, isGroup bool, senderJid string, pushName *string, timestamp time.Time, text string, id string, isHTML bool) {
++	subtype := C.char(C.gowhatsapp_text_subtype_history)
++	if isHTML {
++		subtype = C.char(C.gowhatsapp_text_subtype_history_html)
++	}
+ 	cmessage := C.struct_gowhatsapp_message{
+ 		account:   account,
+ 		msgtype:   C.char(C.gowhatsapp_message_type_text),
+-		subtype:   C.char(C.gowhatsapp_text_subtype_history),
++		subtype:   subtype,
+ 		remoteJid: C.CString(remoteJid),
+ 		senderJid: C.CString(senderJid),
+ 		messageId: C.CString(id),
+diff --git a/bridge.h b/bridge.h
+index 0d12a7b..29025b0 100644
+--- a/bridge.h
++++ b/bridge.h
+@@ -73,6 +73,9 @@ enum gowhatsapp_receipt_type {
+ enum gowhatsapp_text_subtype {
+     gowhatsapp_text_subtype_live = 0,
+     gowhatsapp_text_subtype_history,
++    /* a history line whose text is ready-made HTML (a media link pointing at a
++     * file the live path already downloaded); displayed without escaping */
++    gowhatsapp_text_subtype_history_html,
+ };
+ 
+ // Structure to communicate go → purple.
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index de9e879..55fc633 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -335,6 +335,12 @@ static void gowhatsapp_display_video_inline(gowhatsapp_message_t *gwamsg, const
+ 
+ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+     const gboolean is_video = gowhatsapp_is_video_mimetype(gwamsg->mimetype);
++    const gboolean is_voice = gowhatsapp_is_voice_mimetype(gwamsg->mimetype);
++    /* Videos and images stay on disk under their content-hash names: a history
++     * replay looks exactly there and shows the media again instead of a
++     * placeholder. The voice note's downloaded Opus is the one file removed,
++     * because what playback and replay use is the decoded WAV beside it. */
++    const gboolean keep = !is_voice;
+     gchar *base;
+     if (is_video) {
+         //The name is the contract with the message view; see gowhatsapp_display_video_inline
+@@ -346,7 +352,7 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+     g_free(base);
+ 
+     char *error = NULL;
+-    if (is_video && g_file_test(local_path_tmp, G_FILE_TEST_EXISTS)) {
++    if (keep && g_file_test(local_path_tmp, G_FILE_TEST_EXISTS)) {
+         //The very same bytes, by content hash; no need to fetch them twice
+         gowhatsapp_go_delete_handle(gwamsg->download_handle);
+     } else {
+@@ -358,7 +364,7 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+     if (error && error[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
+     } else {
+-        if (gowhatsapp_is_voice_mimetype(gwamsg->mimetype)) {
++        if (is_voice) {
+             gowhatsapp_display_audio_inline(gwamsg, local_path_tmp);
+         } else if (is_video) {
+             gowhatsapp_display_video_inline(gwamsg, local_path_tmp);
+@@ -367,8 +373,7 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+         }
+         gowhatsapp_display_caption(gwamsg);
+     }
+-    if (!is_video) {
+-        //The player needs its file; images are in the imgstore by now, voice notes in their WAV
++    if (!keep) {
+         g_remove(local_path_tmp);
+     }
+     g_free(error);
+diff --git a/glue/history.c b/glue/history.c
+index 2c4a731..e21caaf 100644
+--- a/glue/history.c
++++ b/glue/history.c
+@@ -31,10 +31,13 @@ gowhatsapp_history_suppress_requests(gboolean suppress) {
+  */
+ void
+ gowhatsapp_display_history_message(gowhatsapp_message_t *gwamsg) {
++    /* A media replay arrives as ready-made HTML - a link at a file the live
++     * path already downloaded - and must not be escaped into visible tags. */
++    gboolean escape = (gwamsg->subtype != gowhatsapp_text_subtype_history_html);
+     gowhatsapp_display_text_message(
+         gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, gwamsg->text,
+         gwamsg->timestamp, gwamsg->isGroup, FALSE, gwamsg->name,
+-        PURPLE_MESSAGE_DELAYED, gwamsg->messageId, TRUE
++        PURPLE_MESSAGE_DELAYED, gwamsg->messageId, escape
+     );
+ }
+ 
+diff --git a/glue/process_message.c b/glue/process_message.c
+index 1c1a08b..26abc90 100644
+--- a/glue/process_message.c
++++ b/glue/process_message.c
+@@ -135,7 +135,8 @@ gowhatsapp_process_message(gowhatsapp_message_t *gwamsg)
+             gowhatsapp_close_qrcode(gwamsg->account);
+             break;
+         case gowhatsapp_message_type_text:
+-            if (gwamsg->subtype == gowhatsapp_text_subtype_history) {
++            if (gwamsg->subtype == gowhatsapp_text_subtype_history ||
++                gwamsg->subtype == gowhatsapp_text_subtype_history_html) {
+                 // a replay requested from the primary device, not fresh news;
+                 // deliberately exempt from the discard-old-messages gate
+                 gowhatsapp_display_history_message(gwamsg);
+diff --git a/handle_history.go b/handle_history.go
+index 96e2b2d..fbdf0b7 100644
+--- a/handle_history.go
++++ b/handle_history.go
+@@ -8,8 +8,13 @@ import "C"
+ 
+ import (
+ 	"context"
++	"encoding/hex"
+ 	"fmt"
++	"html"
++	"os"
++	"path/filepath"
+ 	"sort"
++	"strings"
+ 	"time"
+ 
+ 	"go.mau.fi/whatsmeow/proto/waE2E"
+@@ -121,6 +126,7 @@ type historyEntry struct {
+ 	sender    types.JID
+ 	timestamp time.Time
+ 	text      string
++	isHTML    bool // the text is a ready-made media link, not prose to escape
+ 	pushName  string
+ 	webMsg    *waWeb.WebMessageInfo // nil for entries replayed from the cache
+ }
+@@ -192,7 +198,7 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 				continue
+ 			}
+ 
+-			text := history_text(evt.Message)
++			text, isHTML := history_line(evt.Message)
+ 			if text == "" {
+ 				unshowable++
+ 				continue
+@@ -213,6 +219,7 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 				sender:    sender,
+ 				timestamp: evt.Info.Timestamp,
+ 				text:      text,
++				isHTML:    isHTML,
+ 				pushName:  evt.Info.PushName,
+ 				webMsg:    webMsg,
+ 			})
+@@ -236,7 +243,7 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 				if seen[cached.ID] || cached.Timestamp.Before(newestFromPhone) {
+ 					continue
+ 				}
+-				text := history_text(&cached.Message)
++				text, isHTML := history_line(&cached.Message)
+ 				if text == "" {
+ 					continue
+ 				}
+@@ -245,6 +252,7 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 					sender:    cached.Sender,
+ 					timestamp: cached.Timestamp,
+ 					text:      text,
++					isHTML:    isHTML,
+ 				})
+ 			}
+ 		}
+@@ -264,7 +272,7 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 				name := entry.pushName
+ 				pushName = &name
+ 			}
+-			purple_display_history_message(handler.account, chat.ToNonAD().String(), isGroup, entry.sender.ToNonAD().String(), pushName, entry.timestamp, entry.text, entry.id)
++			purple_display_history_message(handler.account, chat.ToNonAD().String(), isGroup, entry.sender.ToNonAD().String(), pushName, entry.timestamp, entry.text, entry.id, entry.isHTML)
+ 		}
+ 		for _, entry := range entries {
+ 			if entry.webMsg == nil {
+@@ -329,6 +337,62 @@ func (handler *Handler) report_history_state(chat types.JID, isGroup bool, ownJi
+ 	}
+ }
+ 
++/*
++ * The line a historical message displays as, preferring substance over a
++ * placeholder: where the live path already downloaded the attachment - videos
++ * and images stay in the temporary directory under content-hash names, voice
++ * notes leave their decoded WAV there - the line becomes the same media link
++ * the live message showed, and the front-end swaps it for a player or a
++ * picture again. Where no file is lying around (never received live, or the
++ * directory was cleaned), the plain placeholder stands as before.
++ *
++ * The link is ready-made HTML and says so, since everything else this file
++ * emits is prose for the display path to escape.
++ */
++func history_line(message *waE2E.Message) (string, bool) {
++	if link := history_media_link(message); link != "" {
++		return link, true
++	}
++	return history_text(message), false
++}
++
++// the media file the live path would have left behind for this message, or ""
++func history_media_file(message *waE2E.Message) (path string, label string, caption string) {
++	if m := message.GetVideoMessage(); m != nil && len(m.GetFileSHA256()) > 0 {
++		name := "AdiumVideo_" + hex.EncodeToString(m.GetFileSHA256()) + extension_from_mimetype(m.Mimetype)
++		return filepath.Join(os.TempDir(), name), "Video message", m.GetCaption()
++	}
++	if m := message.GetPtvMessage(); m != nil && len(m.GetFileSHA256()) > 0 {
++		name := "AdiumVideo_" + hex.EncodeToString(m.GetFileSHA256()) + extension_from_mimetype(m.Mimetype)
++		return filepath.Join(os.TempDir(), name), "Video message", m.GetCaption()
++	}
++	if m := message.GetAudioMessage(); m != nil && len(m.GetFileSHA256()) > 0 {
++		name := "AdiumVoice_" + hex.EncodeToString(m.GetFileSHA256()) + ".wav"
++		return filepath.Join(os.TempDir(), name), "Voice message", ""
++	}
++	if m := message.GetImageMessage(); m != nil && len(m.GetFileSHA256()) > 0 {
++		name := "whatsapp_image_" + hex.EncodeToString(m.GetFileSHA256()) + extension_from_mimetype(m.Mimetype)
++		return filepath.Join(os.TempDir(), name), "Image", m.GetCaption()
++	}
++	return "", "", ""
++}
++
++func history_media_link(message *waE2E.Message) string {
++	path, label, caption := history_media_file(message)
++	if path == "" {
++		return ""
++	}
++	if _, err := os.Stat(path); err != nil {
++		return ""
++	}
++	link := fmt.Sprintf("<a href=\"file://%s\">%s</a>", path, label)
++	if caption != "" {
++		//The caption is the sender's text and must not become markup
++		link += " " + strings.ReplaceAll(html.EscapeString(caption), "\n", "<br>")
++	}
++	return link
++}
++
+ /*
+  * The line of text a historical message displays as. Text carries over as-is;
+  * media becomes a short placeholder (historical attachments are not
+-- 
+2.50.1 (Apple Git-155)
+
+
+From d8319c1decc2cc3d766ef6bb239aebe048c5b641 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 20:12:22 +0200
+Subject: [PATCH 27/33] The plug-in shares Adium's libpurple instead of
+ bringing its own
+
+Adium loads its libpurple and glib from frameworks inside the app bundle.
+This plug-in's link line records the build-tree paths instead, so inside
+Adium it dragged in a SECOND copy of each and registered its protocol there,
+where the application never looks. Nothing fails loudly on that road: the
+plug-in probes cleanly, loads cleanly, reports no error, and WhatsApp simply
+never connects, because the libpurple Adium asks for the protocol is not the
+libpurple the protocol registered with.
+
+Proven outside the application with a harness that mirrors libpurple's own
+plug-in directory scan against the bundle's frameworks: linked at build-tree
+paths, the plug-in loads and purple_find_prpl still answers nothing; with the
+references rewritten to the bundle's frameworks, the same binary is found.
+Every other protocol plug-in shipped beside it already points at the bundle's
+frameworks, which is what made the difference visible.
+
+The rewrite is now a post-build step of the target itself, followed by the
+ad-hoc codesign that keeps the application's copy phase from stripping the Go
+runtime out of the binary. gdk-pixbuf deliberately keeps its Homebrew path
+for now: it exchanges no libpurple or GObject state with the host and has
+worked that way all along; folding it into the bundle is the known,
+separately-tracked duplicate-library chore.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/CMakeLists.txt | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/glue/CMakeLists.txt b/glue/CMakeLists.txt
+index 328b9c1..76566c9 100644
+--- a/glue/CMakeLists.txt
++++ b/glue/CMakeLists.txt
+@@ -35,6 +35,24 @@ if (WIN32 AND CMAKE_C_COMPILER_ID STREQUAL GNU AND CMAKE_C_COMPILER_VERSION VERS
+ endif()
+ if (APPLE)
+     target_link_libraries(${TARGET_NAME} PRIVATE "-framework CoreFoundation" "-framework Security" resolv)
++
++    # Adium loads its OWN libpurple and glib from the app bundle. Left at the
++    # build-tree paths the linker records, this plug-in would drag in a SECOND
++    # copy of each and register its protocol there, where the application never
++    # looks: it probes and loads without a single error and WhatsApp simply
++    # never connects. Rewriting the references to the bundle's frameworks makes
++    # it share one instance, like every other bundled protocol plug-in. The
++    # ad-hoc codesign afterwards is what keeps Xcode's copy phase from
++    # stripping the Go runtime out of the binary on its way into the bundle.
++    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
++        COMMAND install_name_tool
++            -change "${PURPLE_LIBRARY_DIRS}/libpurple.0.dylib" "@executable_path/../Frameworks/libpurple.framework/Versions/0/libpurple"
++            -change "${PURPLE_LIBRARY_DIRS}/libglib-2.0.0.dylib" "@executable_path/../Frameworks/libglib.framework/Versions/2.0.0/libglib"
++            -change "${PURPLE_LIBRARY_DIRS}/libgobject-2.0.0.dylib" "@executable_path/../Frameworks/libgobject.framework/Versions/2.0.0/libgobject"
++            -change "/opt/homebrew/opt/gettext/lib/libintl.8.dylib" "@executable_path/../Frameworks/libintl.framework/Versions/8/libintl"
++            "$<TARGET_FILE:${TARGET_NAME}>"
++        COMMAND codesign --force --sign - "$<TARGET_FILE:${TARGET_NAME}>"
++        COMMENT "Pointing ${TARGET_NAME} at the app bundle's libpurple and glib, then signing")
+ endif()
+ 
+ if (WIN32)
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 06843ca1042c41cb5550247aa0ed312c13fe240e Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 20:38:26 +0200
+Subject: [PATCH 28/33] Nothing this plug-in links resolves outside the bundle
+ any more
+
+gdk-pixbuf was the last reference still pointing at Homebrew; the bundle ships
+its own copy, wired to the bundle's glib, and the post-build rewrite now covers
+it with the rest. With this the rule the verifier enforces holds without an
+exception: every load command resolves inside the bundle or the system.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/glue/CMakeLists.txt b/glue/CMakeLists.txt
+index 76566c9..5f14e81 100644
+--- a/glue/CMakeLists.txt
++++ b/glue/CMakeLists.txt
+@@ -50,6 +50,7 @@ if (APPLE)
+             -change "${PURPLE_LIBRARY_DIRS}/libglib-2.0.0.dylib" "@executable_path/../Frameworks/libglib.framework/Versions/2.0.0/libglib"
+             -change "${PURPLE_LIBRARY_DIRS}/libgobject-2.0.0.dylib" "@executable_path/../Frameworks/libgobject.framework/Versions/2.0.0/libgobject"
+             -change "/opt/homebrew/opt/gettext/lib/libintl.8.dylib" "@executable_path/../Frameworks/libintl.framework/Versions/8/libintl"
++            -change "/opt/homebrew/opt/gdk-pixbuf/lib/libgdk_pixbuf-2.0.0.dylib" "@executable_path/../Frameworks/libgdk_pixbuf-2.0.0.dylib"
+             "$<TARGET_FILE:${TARGET_NAME}>"
+         COMMAND codesign --force --sign - "$<TARGET_FILE:${TARGET_NAME}>"
+         COMMENT "Pointing ${TARGET_NAME} at the app bundle's libpurple and glib, then signing")
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 8c388bc6e3b1b186d3b315b1d651c047a888c6e5 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 21:03:39 +0200
+Subject: [PATCH 29/33] The document link is a well-formed URI, and the sender
+ names no paths
+
+Two hardenings around the auto-downloaded document link, found while making it
+clickable on the Adium side.
+
+The file name and extension arrive from the remote sender, and a '/' in either
+would have let g_build_filename write outside the download directory - a
+sender-controlled path traversal on the WRITE side, strictly worse than a dead
+link. Both are flattened before any path is built.
+
+The link itself was "file://%s" around a raw path, which truncates at the
+first '#' and breaks on spaces; it now goes through g_filename_to_uri, and the
+sender-chosen label through markup escaping, since this display call hands
+HTML through unescaped. Neither is a trust signal: the message view re-checks
+the path natively, from resolved filesystem state alone, when the link is
+clicked.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/handle_attachment.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
+
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index 55fc633..b078602 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -70,18 +70,18 @@ static void gowhatsapp_display_document_inline(gowhatsapp_message_t *gwamsg) {
+     if (downloads == NULL) {
+         downloads = g_get_tmp_dir();
+     }
+-    gchar *base;
+-    if (gwamsg->filename != NULL && gwamsg->filename[0]) {
+-        base = g_strdup_printf("%s%s", gwamsg->filename, gwamsg->extension);
+-    } else {
+-        base = g_strdup_printf("%s%s", gwamsg->hash_hex, gwamsg->extension);
+-    }
++    /* Name and extension are chosen by the remote sender; a '/' in either
++     * would let g_build_filename write outside the download directory. */
++    gchar *stem = g_strdup((gwamsg->filename != NULL && gwamsg->filename[0])
++                           ? gwamsg->filename : gwamsg->hash_hex);
++    gchar *ext = g_strdup(gwamsg->extension != NULL ? gwamsg->extension : "");
++    g_strdelimit(stem, "/", '_');
++    g_strdelimit(ext, "/", '_');
++    gchar *base = g_strdup_printf("%s%s", stem, ext);
+     gchar *local_path = g_build_filename(downloads, base, NULL);
+     for (int i = 2; g_file_test(local_path, G_FILE_TEST_EXISTS) && i < 100; i++) {
+         g_free(local_path);
+-        gchar *numbered = g_strdup_printf("%s (%d)%s",
+-            (gwamsg->filename && gwamsg->filename[0]) ? gwamsg->filename : gwamsg->hash_hex,
+-            i, gwamsg->extension);
++        gchar *numbered = g_strdup_printf("%s (%d)%s", stem, i, ext);
+         local_path = g_build_filename(downloads, numbered, NULL);
+         g_free(numbered);
+     }
+@@ -90,13 +90,24 @@ static void gowhatsapp_display_document_inline(gowhatsapp_message_t *gwamsg) {
+     if (error && error[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
+     } else {
+-        gchar *text = g_strdup_printf("<a href=\"file://%s\">%s</a>", local_path, base);
++        /* g_filename_to_uri percent-encodes spaces, '#' and '%' - a raw
++         * "file://%s" href truncates at the first '#'. The label is markup-
++         * escaped because the display call does not escape (final FALSE) and
++         * the name is sender-chosen. Neither is a trust signal: the message
++         * view re-checks the path natively when the link is clicked. */
++        gchar *uri = g_filename_to_uri(local_path, NULL, NULL);
++        gchar *label = g_markup_escape_text(base, -1);
++        gchar *text = g_strdup_printf("<a href=\"%s\">%s</a>", uri != NULL ? uri : "", label);
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, text, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, 0, gwamsg->messageId, FALSE);
+         g_free(text);
++        g_free(label);
++        g_free(uri);
+     }
+     g_free(error);
+     g_free(local_path);
+     g_free(base);
++    g_free(stem);
++    g_free(ext);
+ }
+ 
+ static void gowhatsapp_display_caption(gowhatsapp_message_t *gwamsg) {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From d88650a918bbfd1e0e880a5318c882683559d00f Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 21:10:41 +0200
+Subject: [PATCH 30/33] Downloaded files carry the quarantine mark a browser
+ download carries
+
+The Go side writes attachments with a plain file create, which leaves no
+com.apple.quarantine on disk: a received document double-clicked in Finder
+opened without Gatekeeper ever interposing, unlike the same file saved by a
+browser. Every path that lands a file - the Downloads document, the transfer
+mechanism, the templated destination, the temporary media files - now stamps
+it through the supported Foundation API, so the record's format stays whatever
+the system says it is; verified on disk, the attribute reads exactly like a
+browser's, agent "Adium", timestamp and identifier filled in by the system.
+
+Inline display is unaffected on purpose: quarantine gates opening through
+LaunchServices, not reading bytes, so pictures still render and players still
+play. What changes is the later double-click in Finder, which now gets the
+same second look any other download gets.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/CMakeLists.txt      |  4 +++-
+ glue/gowhatsapp.h        |  5 +++++
+ glue/handle_attachment.c | 10 ++++++++++
+ glue/quarantine.m        | 41 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 59 insertions(+), 1 deletion(-)
+ create mode 100644 glue/quarantine.m
+
+diff --git a/glue/CMakeLists.txt b/glue/CMakeLists.txt
+index 5f14e81..5e78c76 100644
+--- a/glue/CMakeLists.txt
++++ b/glue/CMakeLists.txt
+@@ -13,6 +13,7 @@ add_library(${TARGET_NAME} SHARED
+     "blist.c"
+     "send_message.c"
+     "handle_attachment.c"
++    "quarantine.m"
+     "send_file.c"
+     "presence.c"
+     "options.c"
+@@ -34,7 +35,8 @@ if (WIN32 AND CMAKE_C_COMPILER_ID STREQUAL GNU AND CMAKE_C_COMPILER_VERSION VERS
+     target_link_options(${TARGET_NAME} PRIVATE "-static-libgcc")
+ endif()
+ if (APPLE)
+-    target_link_libraries(${TARGET_NAME} PRIVATE "-framework CoreFoundation" "-framework Security" resolv)
++    target_link_libraries(${TARGET_NAME} PRIVATE "-framework CoreFoundation" "-framework Security" "-framework Foundation" "-framework CoreServices" resolv)
++    set_source_files_properties("quarantine.m" PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+ 
+     # Adium loads its OWN libpurple and glib from the app bundle. Left at the
+     # build-tree paths the linker records, this plug-in would drag in a SECOND
+diff --git a/glue/gowhatsapp.h b/glue/gowhatsapp.h
+index b235eb5..8955d65 100644
+--- a/glue/gowhatsapp.h
++++ b/glue/gowhatsapp.h
+@@ -102,6 +102,11 @@ int gowhatsapp_send_chat(PurpleConnection *pc, int id, const gchar *message, Pur
+ 
+ // handle_attachment
+ void gowhatsapp_handle_attachment(gowhatsapp_message_t *gwamsg);
++
++/* Stamps the system quarantine attribute on a file the plug-in downloaded, so
++ * Gatekeeper interposes on a later open, as it would for a browser download.
++ * Implemented in quarantine.m; a no-op on error, which is only ever logged. */
++void gowhatsapp_quarantine_downloaded_file(const char *local_path);
+ char * gowhatsapp_attachment_fill_template(const char *template, time_t timestamp, const char *hash, const char *filename, const char *extension, const char *remote, const char *sender, const char *title, const char *alias, const char *messageid, PurpleMessageFlags flags);
+ 
+ // send_file
+diff --git a/glue/handle_attachment.c b/glue/handle_attachment.c
+index b078602..776d941 100644
+--- a/glue/handle_attachment.c
++++ b/glue/handle_attachment.c
+@@ -90,6 +90,7 @@ static void gowhatsapp_display_document_inline(gowhatsapp_message_t *gwamsg) {
+     if (error && error[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
+     } else {
++        gowhatsapp_quarantine_downloaded_file(local_path);
+         /* g_filename_to_uri percent-encodes spaces, '#' and '%' - a raw
+          * "file://%s" href truncates at the first '#'. The label is markup-
+          * escaped because the display call does not escape (final FALSE) and
+@@ -123,6 +124,9 @@ static void xfer_init(PurpleXfer *xfer) {
+     PurpleAccount *account = purple_xfer_get_account(xfer);
+     char *error = gowhatsapp_go_download_attachment(account, (char *)local_file_name, gwamsg->download_handle);
+     // NOTE: gowhatsapp_go_delete_handle(gwamsg->download_handle) will be called via xfer_release
++    if (error == NULL || error[0] == 0) {
++        gowhatsapp_quarantine_downloaded_file(local_file_name);
++    }
+     if (error && error[0]) {
+         purple_xfer_error(purple_xfer_get_type(xfer), account, xfer->who, error); 
+         purple_xfer_cancel_local(xfer);
+@@ -309,6 +313,7 @@ void download_to_templated_destination(gowhatsapp_message_t *gwamsg, const char
+     if (error && error[0]) {
+         gowhatsapp_display_text_message(gwamsg->account, gwamsg->senderJid, gwamsg->remoteJid, error, gwamsg->timestamp, gwamsg->isGroup, gwamsg->isOutgoing, gwamsg->name, PURPLE_MESSAGE_ERROR, gwamsg->messageId, TRUE);
+     } else {
++        gowhatsapp_quarantine_downloaded_file(local_path);
+         #ifndef WIN32
+             if (purple_account_get_bool(gwamsg->account, GOWHATSAPP_ATTACHMENT_SYMLINK_OPTION, TRUE)) {
+                 create_symlinks(gwamsg->account, local_path_template, gwamsg->timestamp, gwamsg->hash_hex, gwamsg->filename, gwamsg->extension, gwamsg->remoteJid, gwamsg->senderJid, chat_alias, buddy_alias, gwamsg->messageId, flags);
+@@ -369,6 +374,11 @@ static gboolean download_to_temporary_directory(gowhatsapp_message_t *gwamsg) {
+     } else {
+         error = gowhatsapp_go_download_attachment(gwamsg->account, local_path_tmp, gwamsg->download_handle);
+         gowhatsapp_go_delete_handle(gwamsg->download_handle);
++        if (error == NULL || error[0] == 0) {
++            /* Inline display reads bytes and is not gated by quarantine, but
++             * the kept files can be double-clicked in Finder later. */
++            gowhatsapp_quarantine_downloaded_file(local_path_tmp);
++        }
+     }
+     gwamsg->download_handle = 0;
+ 
+diff --git a/glue/quarantine.m b/glue/quarantine.m
+new file mode 100644
+index 0000000..280483d
+--- /dev/null
++++ b/glue/quarantine.m
+@@ -0,0 +1,41 @@
++/* Marks a downloaded file with the system's quarantine attribute.
++ *
++ * The Go side writes attachments with a plain os.Create, which leaves no
++ * com.apple.quarantine on the file - so when the user later double-clicks a
++ * received document in Finder, Gatekeeper never interposes, unlike a browser
++ * download. This stamps the file through the supported Foundation API rather
++ * than hand-writing the xattr, so the format stays whatever the system says
++ * it is; the system fills in the timestamp and identifier itself.
++ *
++ * Called from plain C, kept free of ARC-or-not assumptions: nothing here
++ * outlives the autorelease pool.
++ */
++
++#import <Foundation/Foundation.h>
++#import <CoreServices/CoreServices.h>
++
++#include "gowhatsapp.h"
++
++void gowhatsapp_quarantine_downloaded_file(const char *local_path)
++{
++    if (local_path == NULL || local_path[0] == 0) {
++        return;
++    }
++    @autoreleasepool {
++        NSString *path = [[NSFileManager defaultManager] stringWithFileSystemRepresentation:local_path
++                                                                                     length:strlen(local_path)];
++        if (path == nil) {
++            return;
++        }
++        NSURL *url = [NSURL fileURLWithPath:path];
++        NSDictionary *properties = @{
++            (__bridge NSString *)kLSQuarantineAgentNameKey: @"Adium",
++            (__bridge NSString *)kLSQuarantineTypeKey: (__bridge NSString *)kLSQuarantineTypeOtherDownload,
++        };
++        NSError *error = nil;
++        if (![url setResourceValue:properties forKey:NSURLQuarantinePropertiesKey error:&error]) {
++            purple_debug_warning(GOWHATSAPP_NAME, "Could not quarantine %s: %s\n",
++                                 local_path, error.localizedDescription.UTF8String ?: "unknown");
++        }
++    }
++}
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 49d8c04bdc9ea9e990bc13106a7ae83b1bd7d8e6 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 21:56:48 +0200
+Subject: [PATCH 31/33] Two dormant slips: a directory nobody can write, an
+ else that went missing
+
+The profile-picture persist folder was created with mode 0x755. That is hex,
+not octal: permission 03525, owner r-x, no write, so the file the directory
+was made for could never be put into it. Upstream filed this against itself
+as issue #260 and then fixed the Go side, where the mode was already octal
+and correct; the C literal is the one that bites.
+
+Next to it, the bridge-compatibility branch in send_message duplicated the
+raw message and then fell straight into the strip-HTML block, because the
+else between them was never written. The duplicate leaked and the bridge
+behaviour was dead on arrival.
+
+Neither is reachable under Adium defaults, the path template stays empty and
+the bridge option is never set, but both are wrong in any tree that carries
+them, and this tree carried both.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ glue/presence.c     | 2 +-
+ glue/send_message.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/glue/presence.c b/glue/presence.c
+index f5874a0..b0f1cfd 100644
+--- a/glue/presence.c
++++ b/glue/presence.c
+@@ -102,7 +102,7 @@ gowhatsapp_handle_profile_picture(gowhatsapp_message_t *gwamsg)
+         char *hash = ""; // not set for profile pictures
+         char *local_file_path = gowhatsapp_attachment_fill_template(local_path_template, timestamp, hash, "profile", ".jpg", gwamsg->remoteJid, gwamsg->remoteJid, buddy_alias, buddy_alias, gwamsg->messageId, PURPLE_MESSAGE_RECV);
+         char *local_directory = g_path_get_dirname(local_file_path);
+-        if (0 == g_mkdir_with_parents(local_directory, 0x755)) {
++        if (0 == g_mkdir_with_parents(local_directory, 0755)) {
+             GError* error;
+             gboolean success = g_file_set_contents(local_file_path, gwamsg->blob, gwamsg->blobsize, &error);
+             // success not checked, errors ignored silently
+diff --git a/glue/send_message.c b/glue/send_message.c
+index 3a08315..5b33a57 100644
+--- a/glue/send_message.c
++++ b/glue/send_message.c
+@@ -8,7 +8,7 @@ send_message(PurpleConnection *pc, const gchar *who, const gchar *message, gbool
+         // Bridge Mode: Spectrum allegedly does not do HTML and bitlbee is probably plain-text anyways, so use message as it is, preserving new-lines
+         // see https://github.com/hoehermann/purple-gowhatsapp/issues/257
+         msg = g_strdup(message);
+-    } {
++    } else {
+         // Strip HTML similar to these reasons: https://github.com/majn/telegram-purple/issues/12 and https://github.com/majn/telegram-purple/commit/fffe7519d7269cf4e5029a65086897c77f5283ac
+         // Note: This turns newlines into spaces and <br> tags into newlines
+         msg = purple_markup_strip_html(message);
+-- 
+2.50.1 (Apple Git-155)
+
+
+From 28a93176fe428c4e3872caf7bfef6a3911ac9681 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 21:56:48 +0200
+Subject: [PATCH 32/33] An undecryptable message is asked for again, from the
+ phone
+
+When a Signal session goes stale, the plug-in showed a notice telling the
+user to check the message on their main device. whatsmeow can do that step
+itself: with AutomaticMessageRerequestFromPhone set, an undecryptable
+message is re-requested from the primary phone and arrives normally a moment
+later. Upstream issue #239 dead-ends at "nothing the plug-in can do"; this
+flag is the something. The notice stays, for the case where the phone does
+not answer.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ login.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/login.go b/login.go
+index 63bb3a1..a72a17e 100644
+--- a/login.go
++++ b/login.go
+@@ -169,6 +169,10 @@ func login(account *PurpleAccount, purple_user_dir string, username string, cred
+ 	handler.cacheFilePath = filepath.Join(purple_user_dir, username+".json")
+ 	handler.LoadCachedMessages(handler.cacheFilePath)
+ 	handler.client.AddEventHandler(handler.eventHandler)
++	// When a message cannot be decrypted (stale Signal session, missing sender key),
++	// ask the primary phone to resend it instead of leaving the user with a notice
++	// telling them to check their main device. See https://github.com/hoehermann/purple-gowhatsapp/issues/239.
++	handler.client.AutomaticMessageRerequestFromPhone = true
+ 
+ 	if proxy_address != "" {
+ 		handler.client.SetProxyAddress(proxy_address)
+-- 
+2.50.1 (Apple Git-155)
+
+
+From a617a6be2caed33d0111488eef65f157df7ee745 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 21:56:48 +0200
+Subject: [PATCH 33/33] A shared contact card shows its name and numbers
+
+A contact shared into a chat arrives as a ContactMessage, or several inside
+a ContactsArrayMessage, and neither carries conversation text, so the chat
+showed nothing at all: the one message type that vanished without a trace
+(upstream issue #207). Now the display name and the telephone numbers from
+the vCard become a line of text, in live messages and in replayed history
+alike, and a reaction to such a message calls it a contact card instead of
+a message of unknown type.
+
+The vCard is read only as far as that: lines are unfolded per RFC 2425,
+group prefixes like item1.TEL are accepted, and the TEL values are carried
+over verbatim, never interpreted.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ handle_contact.go | 83 +++++++++++++++++++++++++++++++++++++++++++++++
+ handle_history.go |  3 ++
+ handle_message.go |  4 +++
+ 3 files changed, 90 insertions(+)
+ create mode 100644 handle_contact.go
+
+diff --git a/handle_contact.go b/handle_contact.go
+new file mode 100644
+index 0000000..30f42c9
+--- /dev/null
++++ b/handle_contact.go
+@@ -0,0 +1,83 @@
++package main
++
++import (
++	"strings"
++
++	"go.mau.fi/whatsmeow/proto/waE2E"
++)
++
++/*
++ * A shared contact arrives as a ContactMessage (one vCard) or a
++ * ContactsArrayMessage (several). Neither carries conversation text, so
++ * without this they display as nothing at all. The vCard stays on the phone;
++ * what a chat line can usefully carry is the name and the telephone numbers.
++ * See https://github.com/hoehermann/purple-gowhatsapp/issues/207.
++ */
++func contact_message_text(message *waE2E.Message) string {
++	if m := message.GetContactMessage(); m != nil {
++		return contact_card_text(m)
++	}
++	if m := message.GetContactsArrayMessage(); m != nil {
++		cards := []string{}
++		for _, contact := range m.GetContacts() {
++			if card := contact_card_text(contact); card != "" {
++				cards = append(cards, card)
++			}
++		}
++		return strings.Join(cards, "\n")
++	}
++	return ""
++}
++
++func contact_card_text(m *waE2E.ContactMessage) string {
++	name := m.GetDisplayName()
++	numbers := vcard_telephone_numbers(m.GetVcard())
++	if name == "" && len(numbers) == 0 {
++		return ""
++	}
++	text := "[CONTACT] " + name
++	if len(numbers) > 0 {
++		if name != "" {
++			text += ": "
++		}
++		text += strings.Join(numbers, ", ")
++	}
++	return text
++}
++
++/*
++ * The values of the TEL properties of a vCard, in order. A property line looks
++ * like "TEL;type=CELL;waid=49123456789:+49 123 456789" and may carry a group
++ * prefix ("item1.TEL;…"). Values are never interpreted, only carried over.
++ */
++func vcard_telephone_numbers(vcard string) []string {
++	numbers := []string{}
++	for _, line := range vcard_unfold(vcard) {
++		property, value, found := strings.Cut(line, ":")
++		if !found || value == "" {
++			continue
++		}
++		name, _, _ := strings.Cut(property, ";")
++		if dot := strings.LastIndex(name, "."); dot >= 0 {
++			name = name[dot+1:]
++		}
++		if strings.EqualFold(name, "TEL") {
++			numbers = append(numbers, strings.TrimSpace(value))
++		}
++	}
++	return numbers
++}
++
++// vCard 3.0 folds long lines by continuing them after CRLF plus one space or
++// tab (RFC 2425 section 5.8.1); undo that so every property is one line
++func vcard_unfold(vcard string) []string {
++	lines := []string{}
++	for _, line := range strings.Split(strings.ReplaceAll(vcard, "\r\n", "\n"), "\n") {
++		if len(line) > 0 && (line[0] == ' ' || line[0] == '\t') && len(lines) > 0 {
++			lines[len(lines)-1] += line[1:]
++		} else {
++			lines = append(lines, line)
++		}
++	}
++	return lines
++}
+diff --git a/handle_history.go b/handle_history.go
+index fbdf0b7..b8b5a46 100644
+--- a/handle_history.go
++++ b/handle_history.go
+@@ -448,6 +448,9 @@ func history_text(message *waE2E.Message) string {
+ 	if m := GetAnyPollCreationMessage(message); m != nil {
+ 		return "[POLL] " + m.GetName()
+ 	}
++	if text := contact_message_text(message); text != "" {
++		return text
++	}
+ 	/* Everything else, group events and calls and votes among them, has nothing
+ 	 * to say as a line of conversation and is left out on purpose. */
+ 	return ""
+diff --git a/handle_message.go b/handle_message.go
+index 33cb86f..5d6d580 100644
+--- a/handle_message.go
++++ b/handle_message.go
+@@ -159,6 +159,9 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
+ 					if cached_message.Message.DocumentMessage != nil {
+ 						message_type = "document"
+ 					}
++					if cached_message.Message.ContactMessage != nil || cached_message.Message.ContactsArrayMessage != nil {
++						message_type = "contact card"
++					}
+ 					quote = fmt.Sprintf("%s from %s", message_type, cached_message.Timestamp.Format(time.RFC822))
+ 				}
+ 			}
+@@ -190,6 +193,7 @@ func (handler *Handler) handle_message(message *waE2E.Message, info types.Messag
+ 				llm.GetDegreesLatitude(), llm.GetDegreesLongitude())
+ 		}
+ 	}
++	text += contact_message_text(message)
+ 	{
+ 		pcm := GetAnyPollCreationMessage(message)
+ 		if pcm != nil {
 -- 
 2.50.1 (Apple Git-155)
 
