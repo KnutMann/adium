@@ -166,15 +166,18 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 }
 
 /*!
- * @brief Something reached the chat, so it is not sitting there empty
+ * @brief The fetched history arrived, so the excerpt is not needed
  *
- * Whether it is the fetched history or a fresh message makes no difference:
- * either way the excerpt would now be landing underneath content instead of in
- * front of it, which is not what an excerpt is for.
+ * Only history ends the wait. A live message arriving in the meantime is not
+ * what was being waited for, and cancelling on it would leave a conversation
+ * opened by an incoming message with no excerpt at all.
  */
 - (void)contentArrivedInChat:(NSNotification *)notification
 {
 	AIChat *chat = (AIChat *)[notification object];
+	AIContentObject *content = [[notification userInfo] objectForKey:@"AIContentObject"];
+
+	if (![content isKindOfClass:[AIContentContext class]]) return;
 
 	if (chat && [chatsAwaitingHistory containsObject:chat]) {
 		[chatsAwaitingHistory removeObject:chat];
@@ -192,6 +195,11 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	if (![chatsAwaitingHistory containsObject:chat]) return;
 
 	[chatsAwaitingHistory removeObject:chat];
+
+	/* Displaying into a chat the user closed while we waited would open its
+	 * window again, which is a strange thing for an excerpt to do. */
+	if (!chat.isOpen) return;
+
 	[self displayContextForChat:chat];
 }
 
