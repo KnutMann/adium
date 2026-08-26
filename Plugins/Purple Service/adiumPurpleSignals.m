@@ -231,7 +231,16 @@ static void buddy_removed_cb(PurpleBuddy *buddy)
 		CBPurpleAccount	*account = accountLookup(purpleAccount);
 		PurpleGroup		*g = purple_buddy_get_group(buddy);
 		NSString		*groupName = ((g && purple_group_get_name(g)) ? [NSString stringWithUTF8String:purple_group_get_name(g)] : nil);
-		AIListContact	*listContact = contactLookupFromBuddy(buddy);
+		/* Not contactLookupFromBuddy: the remove ui op already released this
+		 * node's ui_data, and the lookup would retain the contact back into a
+		 * node libpurple frees right after this signal, leaking one reference
+		 * per removal and flushing the live contact's icon cache with it.
+		 * Resolve the contact without touching the dying node. */
+		AIListContact	*listContact = (AIListContact *)buddy->node.ui_data;
+		if (!listContact) {
+			NSString *UID = [NSString stringWithUTF8String:purple_normalize(purpleAccount, purple_buddy_get_name(buddy))];
+			listContact = [account contactWithUID:UID];
+		}
 		/* We pass in purple_buddy_get_name(buddy) directly (without filtering or normalizing it) as it may indicate a 
 		 * formatted version of the UID.  We have a signal for when a rename occurs, but passing here lets us get
 		 * formatted names which are originally formatted in a way which differs from the results of normalization.
