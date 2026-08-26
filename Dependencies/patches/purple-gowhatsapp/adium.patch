@@ -1,7 +1,7 @@
 From bb91ddd9b4bd3a5401a41365888abdc4dc05c6af Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 21:35:47 +0200
-Subject: [PATCH 01/16] Adium adaptations: reactions, inline media, voice
+Subject: [PATCH 01/17] Adium adaptations: reactions, inline media, voice
  decode, names
 
 - Message cache: default size 100 (was 0, so reactions never resolved)
@@ -642,7 +642,7 @@ index 0b265d7..c087d5a 100644
 From 0006fdf859721b123bc694fffa9db56bb57e5086 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:13:47 +0200
-Subject: [PATCH 02/16] Location messages as Apple Maps links; no buddies for
+Subject: [PATCH 02/17] Location messages as Apple Maps links; no buddies for
  group JIDs
 
 - LocationMessage/LiveLocationMessage were silently dropped; render
@@ -721,7 +721,7 @@ index 2adc92f..17f7c5b 100644
 From a7669168486d63e10430882d6af1ceb40b8c6eee Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:25:58 +0200
-Subject: [PATCH 03/16] Auto-download documents and announce them with a file
+Subject: [PATCH 03/17] Auto-download documents and announce them with a file
  link
 
 Non-image, non-voice, non-video attachments download straight to the
@@ -808,7 +808,7 @@ index 47b1b89..d1a4952 100644
 From 606bfd39a5a6dd543d2fe3e0565b97ed83ffc5f7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:41:52 +0200
-Subject: [PATCH 04/16] Download profile pictures in full resolution by default
+Subject: [PATCH 04/17] Download profile pictures in full resolution by default
 
 The get-icons option defaulted to "no", so contact and chat window
 icons stayed empty; default to "original" everywhere (option list,
@@ -870,7 +870,7 @@ index 38a4281..f80b278 100644
 From a6aac04b8bb05a715e143a1c73ab5480d7f335b8 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 00:22:04 +0200
-Subject: [PATCH 05/16] Raise message cache default to 500
+Subject: [PATCH 05/17] Raise message cache default to 500
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ---
@@ -911,7 +911,7 @@ index fb5aef7..ab562a6 100644
 From aa133c032ca8124f364424bd5a07a4435efbceae Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 23:11:34 +0200
-Subject: [PATCH 06/16] Inline images of all types by default
+Subject: [PATCH 06/17] Inline images of all types by default
 
 Adium renders images in its message view rather than through a pixbuf
 loader, so the frontend support the upstream option asks about is
@@ -941,7 +941,7 @@ index 051f478..205e4ca 100644
 From e0eee9ee74ec4058bd0ba24c33408829ba1321c7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 14:12:32 +0200
-Subject: [PATCH 07/16] Attribute a sent picture to the sender, not to the
+Subject: [PATCH 07/17] Attribute a sent picture to the sender, not to the
  conversation
 
 The inline echo of an outgoing image passed the transfer's "who" as both the
@@ -1003,7 +1003,7 @@ index 64fe571..b62ef57 100644
 From 27bfce19a7cca2c342b4d5725e2616d959ff09d1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 17:14:00 +0200
-Subject: [PATCH 08/16] Match the Signal plug-in's device linking dialog
+Subject: [PATCH 08/17] Match the Signal plug-in's device linking dialog
 
 Same title, same wording, same buttons, and no raw QR payload: it is not
 something to type anywhere, it is the bytes the camera is about to read.
@@ -1074,7 +1074,7 @@ index 6b67c02..78c9f0b 100644
 From 3b3a989bd9dd7b686622db6ee9447680af0ce924 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 20:29:12 +0200
-Subject: [PATCH 09/16] Give a group chat its picture, on the node rather than
+Subject: [PATCH 09/17] Give a group chat its picture, on the node rather than
  on a buddy
 
 Contacts have had pictures all along and groups have not, because the only
@@ -1221,7 +1221,7 @@ index 9de9fdf..fc71358 100644
 From d6c419e38911dcddd12edf0a4e1c86ea6cb9ac93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Sun, 16 Aug 2026 00:52:07 +0200
-Subject: [PATCH 10/16] Keep a profile picture at the resolution that was asked
+Subject: [PATCH 10/17] Keep a profile picture at the resolution that was asked
  for
 
 Two faults, one of them ours.
@@ -1349,7 +1349,7 @@ index f80b278..318f744 100644
 From 3200a4b21f6b8a6420287d8925d6e041558b0e93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 19 Aug 2026 16:35:39 +0200
-Subject: [PATCH 11/16] Resolve WhatsApp business account names
+Subject: [PATCH 11/17] Resolve WhatsApp business account names
 
 Business accounts often carry no push name; whatsmeow delivers their verified
 name instead, both as a field on every message and as a BusinessName event when
@@ -1418,7 +1418,7 @@ index 28f68e1..2b14e0c 100644
 From d31ba408a3ab9f38c40e2dfc4dc6f35f669a4272 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:35:03 +0200
-Subject: [PATCH 12/16] Forward incoming receipts and sent-message ids.
+Subject: [PATCH 12/17] Forward incoming receipts and sent-message ids.
 
 Incoming events.Receipt used to be logged and dropped. Now every receipt
 is handed to the purple part as a new receipt message type, one call per
@@ -1821,7 +1821,7 @@ index c447251..a610632 100644
 From 48009366915317072b9796ce9e5f248c4979ce3d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:37:49 +0200
-Subject: [PATCH 13/16] Emit reactions and message ids as purple signals.
+Subject: [PATCH 13/17] Emit reactions and message ids as purple signals.
 
 An incoming reaction used to exist only as the rendered sentence
 "reacted with X to message Y", where Y falls back to "unknown message"
@@ -2138,7 +2138,7 @@ index 97268dc..33cb86f 100644
 From 62e3daa35e0fa8c9334d6399c82a17f7f93bd31a Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 02:18:17 +0200
-Subject: [PATCH 14/16] Give the receipt case back its break
+Subject: [PATCH 14/17] Give the receipt case back its break
 
 The union-style conflict resolution that stacked the receipt and
 reaction commits onto this branch sliced the break statement out from
@@ -2173,7 +2173,7 @@ index dd09132..4af3005 100644
 From 812cdfee4d01c48784a0e4553e5d058807399f64 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 02:37:47 +0200
-Subject: [PATCH 15/16] Fetch the history the phone still remembers
+Subject: [PATCH 15/17] Fetch the history the phone still remembers
 
 WhatsApp keeps no readable history on its servers; the primary device
 does. whatsmeow can ask it for the messages preceding a known one, and
@@ -2791,7 +2791,7 @@ index 3f1d72f..105f06a 100644
 From bc25e8f10890aebe16b921b909411081c783313c Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 03:45:47 +0200
-Subject: [PATCH 16/16] Ask only when the user opens a conversation, and only
+Subject: [PATCH 16/17] Ask only when the user opens a conversation, and only
  once linked
 
 Two things the first cut got wrong. A conversation also comes into being
@@ -2910,6 +2910,86 @@ index 3f7cfc5..667aa8c 100644
 +	if handler.client.Store.ID == nil {
 +		return
 +	}
+ 	for _, conversation := range data.GetConversations() {
+ 		chat, err := types.ParseJID(conversation.GetID())
+ 		if err != nil {
+-- 
+2.50.1 (Apple Git-155)
+
+
+From c98dbaf18cd3944133196bd86b4ab1d623e67908 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 04:04:09 +0200
+Subject: [PATCH 17/17] Ask even when no message of the conversation is known
+
+The request points at a message and asks for what came before it, and
+the message cache was the only place it looked for one. The cache holds
+a few hundred messages across every conversation, so a chat nobody has
+spoken in since this client started is simply not in it, and the fetch
+gave up before it began: the very conversation whose history is worth
+having is the one the cache has never heard of.
+
+Such a request now points at the present moment and names no message.
+Whether the phone answers that is the phone's business, and the log says
+which of the two kinds of request went out, and whether an answer came,
+since this is a feature whose failure is otherwise silence.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ handle_history.go | 33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
+
+diff --git a/handle_history.go b/handle_history.go
+index 667aa8c..55c504e 100644
+--- a/handle_history.go
++++ b/handle_history.go
+@@ -41,21 +41,28 @@ func (handler *Handler) request_history(chatJid string, count int) {
+ 		return
+ 	}
+ 	handler.historyRequests[chatJid] = time.Now()
+-	anchor := handler.newest_cached_message(chat)
+-	if anchor == nil {
+-		handler.log.Infof("No cached message to anchor a history request for %s on.", chatJid)
+-		return
+-	}
+-	ownJid := handler.client.Store.ID.ToNonAD()
++
++	/* The request points at a message and asks for what came before it. The
++	 * cache supplies that anchor where it can; a conversation nobody has spoken
++	 * in since this client started is not in the cache, and rather than give up
++	 * there the request points at the present moment and names no message. The
++	 * phone decides whether it will answer that. */
+ 	info := types.MessageInfo{
+ 		MessageSource: types.MessageSource{
+-			Chat:     anchor.Chat,
+-			Sender:   anchor.Sender,
+-			IsFromMe: anchor.Sender.ToNonAD() == ownJid,
+-			IsGroup:  anchor.Chat.Server == types.GroupServer,
++			Chat:    chat,
++			IsGroup: chat.Server == types.GroupServer,
+ 		},
+-		ID:        anchor.ID,
+-		Timestamp: anchor.Timestamp,
++		Timestamp: time.Now(),
++	}
++	if anchor := handler.newest_cached_message(chat); anchor != nil {
++		ownJid := handler.client.Store.ID.ToNonAD()
++		info.Chat = anchor.Chat
++		info.Sender = anchor.Sender
++		info.IsFromMe = anchor.Sender.ToNonAD() == ownJid
++		info.ID = anchor.ID
++		info.Timestamp = anchor.Timestamp
++	} else {
++		handler.log.Infof("Requesting history for %s with no anchor message; the cache knows none.", chatJid)
+ 	}
+ 	request := handler.client.BuildHistorySyncRequest(&info, count)
+ 	go func() {
+@@ -98,6 +105,8 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 	if handler.client.Store.ID == nil {
+ 		return
+ 	}
++	// the phone answers asynchronously or not at all, so say when it did
++	handler.log.Infof("History sync answer for %d conversation(s).", len(data.GetConversations()))
  	for _, conversation := range data.GetConversations() {
  		chat, err := types.ParseJID(conversation.GetID())
  		if err != nil {

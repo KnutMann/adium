@@ -39,6 +39,11 @@
 
 static DCMessageContextDisplayPlugin *sharedInstance = nil;
 
+/* How long an account that fetches its own history is given before the
+ * transcript excerpt is shown anyway. Long enough for a phone to be woken and
+ * answer, short enough that a conversation does not sit empty. */
+#define DISPLAY_HISTORY_WAIT	5.0
+
 /**
  * @class DCMessageContextDisplayPlugin
  * @brief Component to display in-window message history
@@ -50,6 +55,9 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 							object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime;
 - (NSArray *)contextForChat:(AIChat *)chat;
 - (void)addContextDisplayToWindow:(NSNotification *)notification;
+- (void)displayContextForChat:(AIChat *)chat;
+- (void)historyDeadlineForChat:(AIChat *)chat;
+- (void)contentArrivedInChat:(NSNotification *)notification;
 + (DCMessageContextDisplayPlugin *)sharedInstance;
 @end
 
@@ -78,6 +86,12 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	
 	sharedInstance = self;
 	formatter = [[ISO8601DateFormatter alloc] init];
+
+	chatsAwaitingHistory = [[NSMutableSet alloc] init];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(contentArrivedInChat:)
+												 name:Content_ContentObjectAdded
+											   object:nil];
 }
 
 /**
@@ -85,6 +99,8 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
  */
 - (void)uninstallPlugin
 {
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+	[chatsAwaitingHistory release]; chatsAwaitingHistory = nil;
 	[formatter release];
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -132,10 +148,54 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	AIChat	*chat = (AIChat *)[notification object];
 
 	/* An account that fetches the conversation's earlier messages from the
-	 * service itself says so; replaying our transcript on top of that would
-	 * show the same lines twice, and ours know nothing of delivery state. */
-	if ([chat.account providesConversationHistory]) return;
+	 * service itself is given a moment to do so, since replaying our transcript
+	 * on top of that would show the same lines twice, and ours know nothing of
+	 * what was delivered or reacted to. The service answers over the network or
+	 * not at all, so this is a wait and not a surrender: if nothing has appeared
+	 * by the time it is up, the excerpt is shown after all. */
+	if ([chat.account providesConversationHistory]) {
+		[chatsAwaitingHistory addObject:chat];
+		[self performSelector:@selector(historyDeadlineForChat:)
+				   withObject:chat
+				   afterDelay:DISPLAY_HISTORY_WAIT];
+		return;
+	}
 
+	[self displayContextForChat:chat];
+}
+
+/*!
+ * @brief Something reached the chat, so it is not sitting there empty
+ *
+ * Whether it is the fetched history or a fresh message makes no difference:
+ * either way the excerpt would now be landing underneath content instead of in
+ * front of it, which is not what an excerpt is for.
+ */
+- (void)contentArrivedInChat:(NSNotification *)notification
+{
+	AIChat *chat = (AIChat *)[notification object];
+
+	if (chat && [chatsAwaitingHistory containsObject:chat]) {
+		[chatsAwaitingHistory removeObject:chat];
+		[NSObject cancelPreviousPerformRequestsWithTarget:self
+												 selector:@selector(historyDeadlineForChat:)
+												   object:chat];
+	}
+}
+
+/*!
+ * @brief The wait for fetched history is over and nothing came
+ */
+- (void)historyDeadlineForChat:(AIChat *)chat
+{
+	if (![chatsAwaitingHistory containsObject:chat]) return;
+
+	[chatsAwaitingHistory removeObject:chat];
+	[self displayContextForChat:chat];
+}
+
+- (void)displayContextForChat:(AIChat *)chat
+{
 	NSArray	*context = [self contextForChat:chat];
 
 	if (context && [context count] > 0 && shouldDisplay) {
