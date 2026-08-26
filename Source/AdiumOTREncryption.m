@@ -450,6 +450,20 @@ static BOOL otrHandshakeErrorTrippedBreaker(const char *accountname, const char 
 	return NO;
 }
 
+/* A handshake that succeeded settles the account: whatever the errors were
+ * about, they were survivable. This matters for the ordinary case of a contact
+ * who restarted and lost the conversation while we still had it: everything we
+ * send draws an error until the two sides agree again, and several messages in
+ * a row would otherwise look exactly like a loop and switch off the very
+ * restart that repairs it. */
+static void otrHandshakeSucceeded(const char *accountname, const char *username)
+{
+	if (!accountname || !username) return;
+
+	NSString *key = otrLoopKey(accountname, username);
+	[otrRecentErrorTimes removeObjectForKey:key];
+	[otrCooldownUntil removeObjectForKey:key];
+}
 
 /* Return the OTR policy for the given context. */
 
@@ -712,6 +726,8 @@ static void gone_secure_cb(void *opdata, ConnContext *context)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	AIChat *chat = chatForContext(context);
+
+	if (context) otrHandshakeSucceeded(context->accountname, context->username);
 
     update_security_details_for_chat(chat);
 	otrg_ui_update_fingerprint();
