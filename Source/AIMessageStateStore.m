@@ -16,6 +16,9 @@
 
 #import "AIMessageStateStore.h"
 #import <Adium/AILoginControllerProtocol.h>
+#import <Adium/AIChat.h>
+#import <Adium/AIContentMessage.h>
+#import <Adium/AIListObject.h>
 
 #define MESSAGE_STATE_FILE_NAME		@"MessageState.plist"
 
@@ -36,8 +39,14 @@
  * marks every message before it, which arrives here as a burst. */
 #define MESSAGE_STATE_SAVE_DELAY	5.0
 
+/* The two halves of the file: what is known about a message, and which line of
+ * a transcript stands for which message. */
+#define KEY_STATES					@"states"
+#define KEY_IDENTITIES				@"identities"
+
 @interface AIMessageStateStore ()
 - (NSMutableDictionary *)recordForMessageId:(NSString *)messageId creating:(BOOL)creating;
+- (NSString *)identityForChat:(AIChat *)chat date:(NSDate *)date sender:(NSString *)senderUID;
 - (NSString *)storePath;
 - (void)scheduleSave;
 - (void)save;
@@ -58,7 +67,14 @@
 - (id)init
 {
 	if ((self = [super init])) {
-		NSDictionary *stored = [NSDictionary dictionaryWithContentsOfFile:[self storePath]];
+		NSDictionary *file = [NSDictionary dictionaryWithContentsOfFile:[self storePath]];
+		NSDictionary *stored = [file objectForKey:KEY_STATES];
+		if (![stored isKindOfClass:[NSDictionary class]]) stored = nil;
+
+		NSDictionary *storedIdentities = [file objectForKey:KEY_IDENTITIES];
+		identities = [storedIdentities isKindOfClass:[NSDictionary class]] ?
+					 [storedIdentities mutableCopy] : [[NSMutableDictionary alloc] init];
+
 		states = [[NSMutableDictionary alloc] initWithCapacity:[stored count] + 64];
 
 		/* The file holds immutable containers; the reaction buckets are written
@@ -99,6 +115,7 @@
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[states release];
+	[identities release];
 	[super dealloc];
 }
 
@@ -158,6 +175,40 @@
 	[self scheduleSave];
 }
 
+/*!
+ * @brief One conversation, one second, one sender
+ *
+ * Coarse on purpose: it has to be worked out twice, once from a message and
+ * once from a line of a transcript, and the second is all the two have in
+ * common. Two messages from the same sender inside one second would be told
+ * apart by nothing here, which costs one message the other one's ticks.
+ */
+- (NSString *)identityForChat:(AIChat *)chat date:(NSDate *)date sender:(NSString *)senderUID
+{
+	if (!chat || !date || ![senderUID length]) return nil;
+
+	return [NSString stringWithFormat:@"%@\x1f%.0f\x1f%@",
+			chat.uniqueChatID, floor([date timeIntervalSince1970]), senderUID];
+}
+
+- (void)rememberMessage:(AIContentMessage *)message inChat:(AIChat *)chat
+{
+	if (![message.messageId length]) return;
+
+	NSString *identity = [self identityForChat:chat date:message.date sender:[[message source] UID]];
+	if (!identity) return;
+
+	if ([[identities objectForKey:identity] isEqualToString:message.messageId]) return;
+
+	[identities setObject:message.messageId forKey:identity];
+	[self scheduleSave];
+}
+
+- (NSString *)messageIdInChat:(AIChat *)chat date:(NSDate *)date sender:(NSString *)senderUID
+{
+	return [identities objectForKey:[self identityForChat:chat date:date sender:senderUID]];
+}
+
 - (NSInteger)confirmationForMessageId:(NSString *)messageId
 {
 	return [[[self recordForMessageId:messageId creating:NO] objectForKey:KEY_CONFIRMATION] integerValue];
@@ -200,7 +251,18 @@
 		[states removeObjectsForKeys:[oldestFirst subarrayWithRange:NSMakeRange(0, [states count] - MESSAGE_STATE_LIMIT)]];
 	}
 
-	if (![states writeToFile:[self storePath] atomically:YES])
+	/* An identity is only worth keeping while the message it names still is. */
+	NSMutableArray *orphaned = [NSMutableArray array];
+	for (NSString *identity in identities) {
+		if (![states objectForKey:[identities objectForKey:identity]]) [orphaned addObject:identity];
+	}
+	[identities removeObjectsForKeys:orphaned];
+
+	NSDictionary *file = [NSDictionary dictionaryWithObjectsAndKeys:
+						  states, KEY_STATES,
+						  identities, KEY_IDENTITIES,
+						  nil];
+	if (![file writeToFile:[self storePath] atomically:YES])
 		AILogWithSignature(@"could not write %@", [self storePath]);
 }
 

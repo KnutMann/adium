@@ -363,9 +363,17 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 				 * delivered, that it was read, what people put on it. The
 				 * transcript cannot hold any of that, since all of it arrives
 				 * after the line was written. */
+				AIMessageStateStore *store = [AIMessageStateStore sharedStore];
+
+				/* A message sent from here reached the transcript before the
+				 * server said what id it had given it, so its line names none.
+				 * The store recognises such a line by when it was said and by
+				 * whom. */
 				NSString *messageId = [[element attributeForName:@"messageid"] stringValue];
+				if (![messageId length])
+					messageId = [store messageIdInChat:chat date:timeVal sender:(sentByMe ? account.UID : senderUID)];
+
 				if ([messageId length]) {
-					AIMessageStateStore *store = [AIMessageStateStore sharedStore];
 					message.messageId = messageId;
 					message.confirmation = [store confirmationForMessageId:messageId];
 

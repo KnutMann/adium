@@ -1984,6 +1984,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 			if ([stored isOutgoing] && storedMessage.confirmation < level) {
 				storedMessage.confirmation = level;
 				[[AIMessageStateStore sharedStore] setConfirmation:level forMessageId:storedMessage.messageId];
+				[[AIMessageStateStore sharedStore] rememberMessage:storedMessage inChat:_chat];
 			}
 			/* The named message ends the run whatever it is. History fetched from
 			 * the service arrives as context and carries an id, so testing the id
@@ -2133,6 +2134,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
 	if (stored && stored.confirmation < 1) stored.confirmation = 1;
 	[[AIMessageStateStore sharedStore] setConfirmation:1 forMessageId:messageId];
+	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
 
 	[self _addClass:@"x-adium-sent" toMessageWithId:messageId];
 }
@@ -2213,6 +2215,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	[[AIMessageStateStore sharedStore] setReactions:reactions forSender:sender messageId:messageId];
 
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
+	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
 	if (stored) {
 		if ([reactions count]) {
 			if (!stored.reactions) stored.reactions = [NSMutableDictionary dictionary];

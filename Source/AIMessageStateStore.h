@@ -31,12 +31,30 @@
  * Only messages that have an id can be remembered, which today means the
  * protocols that carry one.
  */
+@class AIChat, AIContentMessage;
+
 @interface AIMessageStateStore : NSObject {
 	NSMutableDictionary	*states;
+	NSMutableDictionary	*identities;
 	BOOL				 saveScheduled;
 }
 
 + (AIMessageStateStore *)sharedStore;
+
+/*!
+ * @brief Note which message in a transcript carries which id
+ *
+ * A message sent from here is written to the transcript before the server has
+ * said what id it gave it, so the line on file names no id and could never be
+ * matched to what became of it. It can still be recognised: one conversation,
+ * one second, one sender. That is what this remembers.
+ */
+- (void)rememberMessage:(AIContentMessage *)message inChat:(AIChat *)chat;
+
+/*!
+ * @brief The id of the message a transcript line stands for, if it is known
+ */
+- (NSString *)messageIdInChat:(AIChat *)chat date:(NSDate *)date sender:(NSString *)senderUID;
 
 /*!
  * @brief Remember how far a message travelled
