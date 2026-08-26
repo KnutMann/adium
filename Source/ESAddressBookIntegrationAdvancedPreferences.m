@@ -98,7 +98,7 @@
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -121,7 +121,6 @@
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -143,7 +142,7 @@
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:ADDRESS_BOOK_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:ADDRESS_BOOK_PANE_INITIAL_WIDTH];
 
 	/* What this pane is about, before any switch: the pane's name says "Address
 	 * Book" but not what Adium does with it. No header over this card: it would
@@ -234,7 +233,7 @@
  */
 - (NSTokenField *)formatTokenField
 {
-	NSTokenField *field = [[[NSTokenField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTokenField *field = [[NSTokenField alloc] initWithFrame:NSZeroRect];
 
 	[field setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
 	[field setDelegate:self];
@@ -268,7 +267,7 @@
  */
 - (NSPopUpButton *)insertNameElementPopUpButton
 {
-	NSPopUpButton	*popUp = [[[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES] autorelease];
+	NSPopUpButton	*popUp = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES];
 	NSArray			*titles = [NSArray arrayWithObjects:
 							   AILocalizedString(@"First", "First name token"),
 							   AILocalizedString(@"Middle", "Middle name token"),
@@ -285,9 +284,9 @@
 	[popUp addItemWithTitle:AILocalizedString(@"Insert", nil)];
 
 	for (NSUInteger i = 0; i < [elements count]; i++) {
-		NSMenuItem *item = [[[NSMenuItem alloc] initWithTitle:[titles objectAtIndex:i]
-													   action:@selector(insertNameElement:)
-												keyEquivalent:@""] autorelease];
+		NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:[titles objectAtIndex:i]
+													  action:@selector(insertNameElement:)
+											   keyEquivalent:@""];
 
 		[item setTarget:self];
 		[item setRepresentedObject:[elements objectAtIndex:i]];
@@ -414,7 +413,7 @@
 		 */
 		[tokenField_format validateEditing];
 	} else {
-		NSMutableArray	*tokens = [[[tokenField_format objectValue] mutableCopy] autorelease];
+		NSMutableArray	*tokens = [[tokenField_format objectValue] mutableCopy];
 
 		if (!tokens) tokens = [NSMutableArray array];
 		[tokens addObject:[NSMutableString stringWithString:element]];
@@ -471,7 +470,7 @@
 												  group:PREF_GROUP_ADDRESSBOOK];
 
 		} else {
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"Disabling automatic contact consolidation will also unconsolidate all existing metacontacts, including any created manually.  You will need to recreate any manually-created metacontacts if you proceed.",nil)];
 			[alert addButtonWithTitle:AILocalizedString(@"Unconsolidate all metacontacts",nil)];	//NSAlertFirstButtonReturn, was the default button
 			[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
@@ -581,7 +580,7 @@
 
 - (NSMenu *)tokenField:(NSTokenField *)tokenField menuForRepresentedObject:(id)representedObject
 {
-	NSMenu *menu = [[[NSMenu alloc] init] autorelease];
+	NSMenu *menu = [[NSMenu alloc] init];
 
 	if (!representedObject)
 		return nil;
@@ -656,7 +655,7 @@
 			}
 		}
 
-		[tokens addObject:[[[string substringWithRange:NSMakeRange(start, i - start)] mutableCopy] autorelease]];
+		[tokens addObject:[[string substringWithRange:NSMakeRange(start, i - start)] mutableCopy]];
 	}
 
 	return tokens;

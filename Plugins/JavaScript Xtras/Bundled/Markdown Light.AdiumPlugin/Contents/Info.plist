@@ -22,6 +22,8 @@
 	<string>AdIM</string>
 	<key>XtraBundleVersion</key>
 	<integer>1</integer>
+	<key>XtraDescription</key>
+	<string>Renders the three marks people already type in chat: *emphasis*, **strong** and ~strikethrough~. A pair has to open and close in the same run of text, so a stray asterisk is left alone.</string>
 	<key>XtraVersion</key>
 	<string>1.0</string>
 	<key>XtraAuthors</key>

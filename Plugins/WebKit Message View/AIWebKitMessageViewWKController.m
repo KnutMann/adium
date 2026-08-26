@@ -40,6 +40,8 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/JVMarkedScroller.h>
 
+#include <limits.h>	/* PATH_MAX for realpath(3) in AIWebKitRevealReceivedFileURL */
+
 #import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIContactControllerProtocol.h>
@@ -661,6 +663,68 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 			[lower isEqualToString:@"ftp"]);
 }
 
+/*!
+ * @brief Reveal a received file in Finder - never open it
+ *
+ * file: stays off the open-externally list on purpose (see above): a click in
+ * the transcript must never invoke a document or URL-scheme handler. But the
+ * WhatsApp plug-in downloads documents into the Downloads folder (media into
+ * the temporary directory) and links them, and a dead link is the wrong answer
+ * for a file the user genuinely received. Selecting the file in Finder hands
+ * control to nothing: no handler runs, nothing launches or mounts, and the
+ * user sees the true name, extension and icon before deciding to double-click
+ * in trusted UI.
+ *
+ * The href carries no authority. The path is canonicalized through realpath(3)
+ * - every symlink and ".." resolved, nonexistent paths fail - and must be a
+ * strict child of the REAL Downloads or temporary directory, both pushed
+ * through realpath as well because /var is a symlink to /private/var. A forged
+ * link, whether from a message, a restyled %message% or a JavaScript xtra,
+ * gets the identical treatment; the worst it can achieve is selecting an
+ * existing file in a folder received files live in.
+ */
+static void AIWebKitRevealReceivedFileURL(NSURL *url)
+{
+	if (![url isFileURL]) return;
+	if (url.host.length > 0 && ![url.host isEqualToString:@"localhost"]) return;
+	if (url.path.length == 0) return;
+
+	char resolvedC[PATH_MAX];
+	if (!realpath(url.path.fileSystemRepresentation, resolvedC)) return;
+
+	NSFileManager	*fm = [NSFileManager defaultManager];
+	NSString		*resolved = [fm stringWithFileSystemRepresentation:resolvedC length:strlen(resolvedC)];
+
+	BOOL isDirectory = NO;
+	if (![fm fileExistsAtPath:resolved isDirectory:&isDirectory] || isDirectory) return;
+
+	BOOL contained = NO;
+	NSArray<NSString *> *roots = [NSArray arrayWithObjects:
+		([NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject] ?: @""),
+		(NSTemporaryDirectory() ?: @""),
+		nil];
+
+	for (NSString *root in roots) {
+		if (!root.length) continue;
+
+		char rootC[PATH_MAX];
+		if (!realpath(root.fileSystemRepresentation, rootC)) continue;
+
+		NSString *prefix = [[fm stringWithFileSystemRepresentation:rootC length:strlen(rootC)]
+							stringByAppendingString:@"/"];
+
+		if ([resolved hasPrefix:prefix]) { contained = YES; break; }
+	}
+
+	if (!contained) {
+		AILogWithSignature(@"Refusing to reveal file outside received-file roots: %@", url);
+		return;
+	}
+
+	[[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:
+		[NSArray arrayWithObject:[NSURL fileURLWithPath:resolved]]];
+}
+
 - (void)webView:(WKWebView *)webView
 	decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 					decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
@@ -684,9 +748,14 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		return;
 	}
 
-	// A click on a link: open it in the browser, but only for schemes we trust
+	/* A click on a link: open it in the browser, but only for schemes we
+	 * trust. A file: link is never opened; a real click on one reveals the
+	 * file in Finder, and only when it lives where received files land. */
 	if (url && AIWebKitSchemeIsSafeToOpenExternally(scheme)) {
 		[[NSWorkspace sharedWorkspace] openURL:url];
+	} else if (url && [url isFileURL] &&
+			   navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+		AIWebKitRevealReceivedFileURL(url);
 	}
 	decisionHandler(WKNavigationActionPolicyCancel);
 }

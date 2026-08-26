@@ -76,6 +76,11 @@
 	return ([pageControllers count] > 1);
 }
 
+- (BOOL)isTransitioning
+{
+	return transitioning;
+}
+
 - (void)setRootViewController:(NSViewController *)rootController
 {
 	if (!rootController)

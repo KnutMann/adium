@@ -101,8 +101,8 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 - (void)uninstallPlugin
 {
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-	[chatsAwaitingHistory release]; chatsAwaitingHistory = nil;
-	[formatter release];
+	chatsAwaitingHistory = nil;
+	formatter = nil;
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
@@ -296,14 +296,14 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 		NSData *xmlData = [NSData dataWithContentsOfFile:xmlFilePath];
 		if (![xmlData length]) continue;
 
-		NSXMLDocument *document = [[[NSXMLDocument alloc] initWithData:xmlData
-															   options:NSXMLNodePreserveCDATA
-																 error:NULL] autorelease];
+		NSXMLDocument *document = [[NSXMLDocument alloc] initWithData:xmlData
+															  options:NSXMLNodePreserveCDATA
+																error:NULL];
 		if (!document) {
 			//The log may be malformed (e.g. truncated after a crash); the tidying parser copes with that
-			document = [[[NSXMLDocument alloc] initWithData:xmlData
-													options:NSXMLDocumentTidyXML
-													  error:NULL] autorelease];
+			document = [[NSXMLDocument alloc] initWithData:xmlData
+												   options:NSXMLDocumentTidyXML
+													 error:NULL];
 		}
 		if (!document) continue;
 
@@ -378,7 +378,7 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 					message.confirmation = [store confirmationForMessageId:messageId inChat:chat];
 
 					NSDictionary *reactions = [store reactionsForMessageId:messageId inChat:chat];
-					if (reactions) message.reactions = [[reactions mutableCopy] autorelease];
+					if (reactions) message.reactions = [reactions mutableCopy];
 				}
 
 				//Add it to the array (in front, since we're working backwards, and we want the array in forward order)
@@ -388,7 +388,7 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 				NSString *timeString = [[element attributeForName:@"time"] stringValue];
 				if (timeString) {
 					NSDate *timeVal = [formatter dateFromString:timeString];
-					AIContentStatus *status = [[[AIContentStatus alloc] initWithChat:chat source:nil destination:nil date:timeVal] autorelease];
+					AIContentStatus *status = [[AIContentStatus alloc] initWithChat:chat source:nil destination:nil date:timeVal];
 					[foundMessages insertObject:status atIndex:0];
 				}
 			}

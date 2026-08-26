@@ -140,25 +140,6 @@ typedef enum {
 }
 
 /*!
- * Deallocate
- */
-- (void)dealloc
-{
-	// State information
-	[accountsToReconnect release]; 
-	[previousStatus release];
-	
-	// Stored status IDs
-	[fastUserSwitchID release];
-	[screenSaverID release];
-	[idleStatusID release];
-	
-	[oldStatusID release];
-	
-	[super dealloc];
-}
-
-/*!
  * @brief Preferences changed
  *
  * Note the status IDs, interval information, and enabled information for our preferences
@@ -181,16 +162,13 @@ typedef enum {
 	idleInterval = [[prefDict objectForKey:KEY_STATUS_REPORT_IDLE_INTERVAL] doubleValue];
 
 	// Idle status change
-	[idleStatusID release];
-	idleStatusID = [[prefDict objectForKey:KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID] retain];
+	idleStatusID = [prefDict objectForKey:KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID];
 
 	// Fast user switch
-	[fastUserSwitchID release];
-	fastUserSwitchID = [[prefDict objectForKey:KEY_STATUS_FUS_STATUS_STATE_ID] retain];
+	fastUserSwitchID = [prefDict objectForKey:KEY_STATUS_FUS_STATUS_STATE_ID];
 
 	// Screensaver
-	[screenSaverID release];
-	screenSaverID = [[prefDict objectForKey:KEY_STATUS_SS_STATUS_STATE_ID] retain];
+	screenSaverID = [prefDict objectForKey:KEY_STATUS_SS_STATUS_STATE_ID];
 
 	/* Whoever throws the switch while already idle would otherwise stay idle until the next
 	 * keystroke: nobody clears up afterwards, since the machine is active event is what does that
@@ -401,8 +379,7 @@ typedef enum {
 		}
 	}
 	
-	[oldStatusID release];
-	oldStatusID = [statusID retain];
+	oldStatusID = statusID;
 }
 
 /*!
@@ -438,7 +415,6 @@ typedef enum {
 	 * standing whenever that reason's menu says "Do not change", and clearing AIAwayIdle here would
 	 * throw away a still valid reason while the user goes on being idle. */
 
-	[oldStatusID release];
 	oldStatusID = nil;
 }
 

@@ -22,6 +22,8 @@
 	<string>AdIM</string>
 	<key>XtraBundleVersion</key>
 	<integer>1</integer>
+	<key>XtraDescription</key>
+	<string>Sets `inline code` in a monospaced face and turns a message which is one fenced ```block``` into an indented one.</string>
 	<key>XtraVersion</key>
 	<string>1.0</string>
 	<key>XtraAuthors</key>

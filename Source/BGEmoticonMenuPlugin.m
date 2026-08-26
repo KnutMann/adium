@@ -60,12 +60,10 @@
 	tempMenu = [[NSMenu alloc] init];
 	[tempMenu setDelegate:self];
 	[quickMenuItem setSubmenu:tempMenu];
-	[tempMenu release];
-	
+
 	tempMenu = [[NSMenu alloc] init];
 	[tempMenu setDelegate:self];
 	[quickContextualMenuItem setSubmenu:tempMenu];
-	[tempMenu release];
 
     //add the items to their menus.
     [adium.menuController addContextualMenuItem:quickContextualMenuItem toLocation:Context_TextView_Edit];
@@ -113,12 +111,11 @@
             [newItem setImage:[[anEmoticon image] imageByScalingForMenuItem]];
 			[newItem setRepresentedObject:anEmoticon];
 			[packMenu addItem:newItem];
-			[newItem release];
         }
     }
     
 	
-    return [packMenu autorelease];
+    return packMenu;
 }
 
 

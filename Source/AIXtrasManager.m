@@ -36,15 +36,7 @@ static AIXtrasManager *manager;
 	/* The manager is a singleton which lives until Adium quits; a preference pane is built and torn
 	 * down again every time the preferences window opens and closes. So the pane is its own object
 	 * rather than this one. */
-	xtrasPreferences = [(AIXtrasPreferences *)[AIXtrasPreferences preferencePaneForPlugin:self] retain];
-}
-
-- (void)dealloc
-{
-	[xtrasPreferences release];
-	[categories release];
-
-	[super dealloc];
+	xtrasPreferences = (AIXtrasPreferences *)[AIXtrasPreferences preferencePaneForPlugin:self];
 }
 
 #pragma mark Categories
@@ -56,7 +48,6 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 
 - (void)loadXtras
 {
-	[categories release];
 	categories = [[NSMutableArray alloc] init];
 
 	[categories addObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -190,7 +181,6 @@ NSInteger categorySort(id categoryA, id categoryB, void * context)
 		[newDictionary setObject:xtras forKey:@"Xtras"];
 		[categories replaceObjectAtIndex:inIndex
 							  withObject:newDictionary];
-		[newDictionary release];
 	}
 
 	return xtras;

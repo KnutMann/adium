@@ -26,7 +26,12 @@
 	NSString		*type;
 	NSString		*readMePath;
 	NSBundle		*xtraBundle;
-	
+	/* The manifest of an Xtra which keeps its Info.plist at the root rather than in Contents/, where
+	 * NSBundle does not look; see -manifestStringForKey:. nil for every other kind. */
+	NSDictionary	*flatInfoDictionary;
+	/* What a sound set writes about itself in its own Sounds.plist; nil for every other kind */
+	NSString		*soundSetInfo;
+
 	BOOL			enabled;
 }
 
@@ -46,6 +51,20 @@
  * otherwise have to be looked for.
  */
 - (NSString *)author;
+
+/*!
+ * @brief What the Xtra says it is, in a sentence, or nil where it says nothing
+ *
+ * Read from XtraDescription, which is where an Xtra that means to describe itself puts it, and
+ * failing that from CFBundleGetInfoString - a key which the Xtras of this world fill in with all
+ * sorts of things, the version number, the bundle name and the folder name among them, so it is
+ * used only where it says something none of those already says.
+ *
+ * Most Xtras in the wild carry neither, which is why this is allowed to be nil rather than made up
+ * out of the fields that are there.
+ */
+- (NSString *)xtraDescription;
+
 - (NSString *)resourcePath;
 - (NSString *)readMePath;
 - (NSImage *)icon;

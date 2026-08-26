@@ -93,10 +93,10 @@
 																			   keyEquivalent:@""];
 	[adium.menuController addContextualMenuItem:menuItem_addContactContext toLocation:Context_Group_Manage];
 	
-	menuItem_tabAddContact = [[[NSMenuItem alloc] initWithTitle:ADD_CONTACT_ELLIPSIS
+	menuItem_tabAddContact = [[NSMenuItem alloc] initWithTitle:ADD_CONTACT_ELLIPSIS
 																				   target:self 
 																				   action:@selector(addContactFromTab:)
-																			keyEquivalent:@""] autorelease];
+																			keyEquivalent:@""];
     [adium.menuController addContextualMenuItem:menuItem_tabAddContact toLocation:Context_Contact_Stranger_ChatAction];
 
 	[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -118,10 +118,10 @@
 																	keyEquivalent:@"\b"];
     [adium.menuController addMenuItem:menuItem_delete toLocation:LOC_Contact_Manage];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:DELETE_CONTACT_CONTEXT_ELLIPSIS
+	menuItem = [[NSMenuItem alloc] initWithTitle:DELETE_CONTACT_CONTEXT_ELLIPSIS
 																	 target:self
 																	 action:@selector(deleteSelectionFromTab:) 
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[adium.menuController addContextualMenuItem:menuItem toLocation:Context_Contact_NegativeAction];
 	
 	//Add Contact toolbar item
@@ -346,7 +346,7 @@
 	[NSApp activateIgnoringOtherApps:YES];
 	
 	//Guard deletion with a warning prompt
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:AILocalizedString(@"Remove from list?",nil)];
 	[alert setInformativeText:[NSString stringWithFormat:
 							   AILocalizedString(@"Removing any contacts from their last group will permanently remove them from your contact list.\n\n%@", nil),

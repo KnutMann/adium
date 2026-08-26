@@ -55,8 +55,8 @@ static SS_PrefsController			*prefsController = nil;
 + (SS_PrefsController *)sharedPrefsController
 {
 	if (!prefsController) {
-		prefsController = [[SS_PrefsController preferencesWithPanes:[adium.preferenceController paneArray]
-														   delegate:self] retain];
+		prefsController = [SS_PrefsController preferencesWithPanes:[adium.preferenceController paneArray]
+														 delegate:self];
 
 		// Set which panes are included, and their order.
 		[prefsController setPanesOrder:[NSArray arrayWithObjects:
@@ -106,12 +106,17 @@ static SS_PrefsController			*prefsController = nil;
 {
 	[AIModernPreferencesWindowController closeSharedController];
 	[prefsController destroyPreferencesWindow];
-	[prefsController release]; prefsController = nil;
+	prefsController = nil;
 }
 
 + (void)prefsWindowWillClose:(SS_PrefsController *)inPrefsController
 {
-	[prefsController release]; prefsController = nil;
+	/* This static holds the only reference, and we are called from the controller's own
+	 * -windowWillClose:, which its window goes on talking through afterwards. Let it die
+	 * with the pool rather than under its own feet.
+	 */
+	if (prefsController) CFAutorelease(CFBridgingRetain(prefsController));
+	prefsController = nil;
 }
 
 //Panes ---------------------------------------------------------------------------------------------------------------

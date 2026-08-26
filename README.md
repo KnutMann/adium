@@ -76,6 +76,10 @@ a modern look.
 * A rebuilt preferences window in the style of System Settings: a
   source-list sidebar, cards instead of boxed groups, and a reusable
   settings form every pane is laid out on
+* Installed xtras are managed in that window rather than in a window of
+  their own, one card per category, and every row opens a page about
+  that xtra: its icon, what it says it is, and the fields its manifest
+  fills in
 * The chat message view renders with WKWebView; the last legacy
   WebView is gone (libpurple's protocol forms are native Cocoa now)
 * Two bundled monochrome service icon sets in the plain style of
@@ -145,7 +149,8 @@ a modern look.
   from scratch on a modern base (`Other/XtrasCreator`): it authors
   emoticon sets, sound sets, status/service/menu-bar/group-chat icon
   packs, dock icons, message styles, contact list themes and layouts,
-  and script packs
+  and script packs, and writes the description Adium shows on an
+  xtra's page
 * **Contact Pictures**, opened from the Address Book settings: the
   cards linked to your chat contacts, each with the chat picture and
   the card picture side by side, and one button that puts the chat
@@ -190,6 +195,20 @@ on the machine that built it; distributing binaries to others would
 require a proper signing identity). `bootstrap.sh` builds the
 AIUtilities and MMTabBarView subprojects first and stages their
 products, then builds the main project.
+
+### Building it yourself
+
+One command from a fresh checkout to an installed application:
+
+    ./install.sh
+
+Everything beyond Xcode is checked into the repository as prebuilt arm64
+binaries. The script verifies the bundled protocol plug-ins (including a
+functional probe that asks libpurple itself whether every plug-in's protocol
+registers - the failure mode it guards against is silent), builds the app,
+verifies the result and installs it to /Applications. `--build-only` skips the
+install, `--debug` builds the Debug configuration. The same verification runs
+as a phase of every Xcode build.
 
 The **XtrasCreator** companion app (see Tools above) builds
 separately:

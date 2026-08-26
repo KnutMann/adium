@@ -33,7 +33,7 @@
 
 - (void)controllerWillClose
 {
-	[toolbarItems release];
+	toolbarItems = nil;
 }
 
 - (void)registerToolbarItem:(NSToolbarItem *)item forToolbarType:(NSString *)type

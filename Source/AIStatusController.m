@@ -185,17 +185,6 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 }
 
-/*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[_rootStateGroup release]; _rootStateGroup = nil;
-	[_sortedFullStateArray release]; _sortedFullStateArray = nil;
-	[_hiddenStatusIDs release]; _hiddenStatusIDs = nil;
-	[super dealloc];
-}
-
 #pragma mark Status registration
 /*!
  * @brief Register a status for a service
@@ -266,7 +255,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		}
 	}
 
-	return [menu autorelease];
+	return menu;
 }
 
 /*!
@@ -323,7 +312,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 	[menuItems sortUsingSelector:@selector(titleCompare:)];
 
-	return [menuItems autorelease];
+	return menuItems;
 }
 
 /*!
@@ -370,7 +359,6 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 			[menuItem setImage:image];
 			[menuItem setEnabled:YES];
 			[menuItems addObject:menuItem];
-			[menuItem release];
 
 			[alreadyAddedTitles addObject:title];
 		}
@@ -382,7 +370,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 {
 	static NSDictionary	*coreLocalizedStatusDescriptions = nil;
 	if(!coreLocalizedStatusDescriptions){
-		coreLocalizedStatusDescriptions = [[NSDictionary dictionaryWithObjectsAndKeys:
+		coreLocalizedStatusDescriptions = [NSDictionary dictionaryWithObjectsAndKeys:
 			AILocalizedStringFromTable(@"Available", @"Statuses", "Name of a status"), STATUS_NAME_AVAILABLE,
 			AILocalizedStringFromTable(@"Free for chat", @"Statuses", "Name of a status"), STATUS_NAME_FREE_FOR_CHAT,
 			AILocalizedStringFromTable(@"Available for friends only", @"Statuses", "Name of a status"), STATUS_NAME_AVAILABLE_FRIENDS_ONLY,
@@ -403,7 +391,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 			AILocalizedStringFromTable(@"Stepped out", @"Statuses", "Name of a status"), STATUS_NAME_STEPPED_OUT,
 			AILocalizedStringFromTable(@"Invisible", @"Statuses", "Name of a status"), STATUS_NAME_INVISIBLE,
 			AILocalizedStringFromTable(@"Offline", @"Statuses", "Name of a status"), STATUS_NAME_OFFLINE,
-			nil] retain];
+			nil];
 	}
 	
 	return (statusName ? [coreLocalizedStatusDescriptions objectForKey:statusName] : nil);
@@ -515,8 +503,8 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 - (void)_resetActiveStatusState
 {
 	//Clear the active status state.  It will be rebuilt next time it is requested
-	[_activeStatusState release]; _activeStatusState = nil;
-	[_allActiveStatusStates release]; _allActiveStatusStates = nil;
+	_activeStatusState = nil;
+	_allActiveStatusStates = nil;
 
 	//Let observers know the active state has changed
 	if (!activeStatusUpdateDelays) {
@@ -637,7 +625,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 	}
 
 	//Any objects in the temporary state array which aren't the state we just set should now be removed.
-	for (aStatusState in [[temporaryStateArray copy] autorelease]) {
+	for (aStatusState in [temporaryStateArray copy]) {
 		if (aStatusState != statusState) {
 			[temporaryStateArray removeObject:aStatusState];
 			shouldRebuild = YES;
@@ -674,15 +662,15 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 			if ([archivedObject isKindOfClass:[AIStatusGroup class]]) {
 				//Adium 1.0 archives an AIStatusGroup
-				_rootStateGroup = [archivedObject retain];
-			
+				_rootStateGroup = archivedObject;
+
 			} else if  ([archivedObject isKindOfClass:[NSArray class]]) {
 				//Adium 0.8x archived an NSArray
-				_rootStateGroup = [[AIStatusGroup statusGroupWithContainedStatusItems:archivedObject] retain];
+				_rootStateGroup = [AIStatusGroup statusGroupWithContainedStatusItems:archivedObject];
 			}
 		}
 
-		if (!_rootStateGroup) _rootStateGroup = [[AIStatusGroup statusGroup] retain];
+		if (!_rootStateGroup) _rootStateGroup = [AIStatusGroup statusGroup];
 
 		/* Groups of statuses are no longer a concept of Adium's, so any a previous version saved are
 		 * dissolved here - before the first reader (the per-account "LastStatus" lookup of
@@ -926,8 +914,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 
 			//Store a reference to our offline state if we just loaded it
 			if (status.statusType == AIOfflineStatusType) {
-				[offlineStatusState release];
-				offlineStatusState = [status retain];
+				offlineStatusState = status;
 			}
 		}
 	}
@@ -1025,15 +1012,13 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		[tempArray addObjectsFromArray:[temporaryStateArray allObjects]];
 
 		//Pass the original array so its indexes can be used for comparison of saved state ordering
-		[AIStatusGroup sortArrayOfStatusItems:tempArray context:originalStateArray];
+		[AIStatusGroup sortArrayOfStatusItems:tempArray context:(__bridge void *)originalStateArray];
 
 		/* Assign only if nobody beat us to it. -rootStateGroup above migrates on the first call and
 		 * notifies while doing so, and an observer which answers that notification by asking for
 		 * this array again gets here first and leaves a finished array behind - which a plain
 		 * assignment would overwrite and, without ARC, leak. Its contents are ours either way. */
-		if (_sortedFullStateArray) {
-			[tempArray release];
-		} else {
+		if (!_sortedFullStateArray) {
 			_sortedFullStateArray = tempArray;
 		}
 	}
@@ -1056,9 +1041,7 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 		[tempArray addObjectsFromArray:[temporaryStateArray allObjects]];
 
 		//Same re-entrancy through -rootStateGroup as in -sortedFullStateArray, and the same answer
-		if (_flatStatusSet) {
-			[tempArray release];
-		} else {
+		if (!_flatStatusSet) {
 			_flatStatusSet = tempArray;
 		}
 	}
@@ -1100,10 +1083,10 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 				}
 			}
 
-			_activeStatusState = (bestStatusState ? [bestStatusState retain]: [offlineStatusState retain]);
+			_activeStatusState = (bestStatusState ? bestStatusState : offlineStatusState);
 
 		} else {
-			_activeStatusState = [offlineStatusState retain];
+			_activeStatusState = offlineStatusState;
 		}
 	}
 
@@ -1307,8 +1290,8 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 - (void)notifyOfChangedStatusArray
 {
 	//Clear the sorted menu items array since our state array changed.
-	[_sortedFullStateArray release]; _sortedFullStateArray = nil;
-	[_flatStatusSet release]; _flatStatusSet = nil;
+	_sortedFullStateArray = nil;
+	_flatStatusSet = nil;
 
 	if (!statusMenuRebuildDelays) {
 		[[NSNotificationCenter defaultCenter] postNotificationName:AIStatusStateArrayChangedNotification object:nil];	
@@ -1381,8 +1364,8 @@ static 	NSMutableSet			*temporaryStateArray = nil;
 {
 	NSMutableDictionary *lastStatusStates;
 	
-	lastStatusStates = [[[adium.preferenceController preferenceForKey:@"LastStatusStates"
-																  group:PREF_GROUP_STATUS_PREFERENCES] mutableCopy] autorelease];
+	lastStatusStates = [[adium.preferenceController preferenceForKey:@"LastStatusStates"
+																 group:PREF_GROUP_STATUS_PREFERENCES] mutableCopy];
 	if (!lastStatusStates) lastStatusStates = [NSMutableDictionary dictionary];
 	
 	[lastStatusStates setObject:[NSKeyedArchiver archivedDataWithObject:statusState]

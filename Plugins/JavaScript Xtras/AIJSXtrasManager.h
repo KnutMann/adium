@@ -20,11 +20,12 @@
 #define PREF_GROUP_JSXTRAS				@"JSXtras"
 #define KEY_JSXTRAS_MASTER_ENABLED		@"Master Enabled"
 #define KEY_JSXTRAS_ENABLED_PLUGINS		@"Enabled Plugins"
+#define KEY_JSXTRAS_PLUGIN_SETTINGS		@"Plugin Settings"
 
-//Posted when the set of plugins, or their enablement, changes
+//Posted when the set of plugins, their enablement, or one of their settings changes
 #define AIJSXtrasDidChangeNotification	@"AIJSXtrasDidChange"
 
-@class AIJSXtraBundle;
+@class AIJSXtraBundle, AIJSXtraSetting;
 
 /*!
  * @brief Discovers JavaScript plugins and injects them into message views
@@ -63,6 +64,23 @@
 //AIXtraInfo rather than one of our validated bundles
 - (BOOL)isPluginEnabledWithIdentifier:(NSString *)identifier;
 - (void)setPluginWithIdentifier:(NSString *)identifier enabled:(BOOL)enabled;
+
+/*!
+ * @brief The settings one plugin declares, and the value in force for each
+ *
+ * Keyed by CFBundleIdentifier for the same reason the enablement pair above is: the Xtras pane
+ * holds an AIXtraInfo rather than one of our validated bundles. It matters twice over here, because
+ * a bundle object is replaced wholesale by every -rescan, and the settings page outlives several of
+ * those.
+ *
+ * -settingsForPluginWithIdentifier: is empty for an identifier we have no validated bundle for,
+ * which covers a non-JavaScript Xtra and one whose manifest was refused, neither of which is
+ * running either. -setValue:... refuses a key the current manifest does not declare and a value it
+ * does not offer, so nothing but declared, validated tokens ever reaches the preference file.
+ */
+- (NSArray<AIJSXtraSetting *> *)settingsForPluginWithIdentifier:(NSString *)identifier;
+- (NSString *)valueForSettingKey:(NSString *)settingKey pluginWithIdentifier:(NSString *)identifier;
+- (void)setValue:(NSString *)value forSettingKey:(NSString *)settingKey pluginWithIdentifier:(NSString *)identifier;
 
 /*!
  * @brief Add each enabled plugin's script to a message view's configuration

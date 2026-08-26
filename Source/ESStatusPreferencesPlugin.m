@@ -62,13 +62,13 @@
 	
 	/* One pane, not two: the Advanced pane of the same name held only the Now Playing format,
 	 * which lives on the main Status pane now, beside the list its status is switched on in. */
-    preferences = [(ESStatusPreferences *)[ESStatusPreferences preferencePaneForPlugin:self] retain];
+    preferences = (ESStatusPreferences *)[ESStatusPreferences preferencePaneForPlugin:self];
 
 	//Add our menu item
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Status Menu",nil) stringByAppendingEllipsis]
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Status Menu",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(showStatusPreferences:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[adium.menuController addMenuItem:menuItem toLocation:LOC_Status_Additions];
 	
 	//Register defaults

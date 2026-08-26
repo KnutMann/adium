@@ -96,20 +96,12 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 							 notifyingTarget:inTarget
 									selector:inSelector
 									 context:inContext])) {
-		account = [inAccount retain];
+		account = inAccount;
 		type = inType;
-		name = [inName retain];
+		name = inName;
 	}
-	
-    return self;
-}
 
-- (void)dealloc
-{
-	[account release];
-	[name release];
-	
-	[super dealloc];
+    return self;
 }
 
 /*!
@@ -122,11 +114,14 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 	/* super first: the dictionary below holds the only claim on this controller,
 	 * and -removeObjectForKey: releases immediately — running super's frame
 	 * saving after that is a use of a freed object (upstream fix for #16579).
+	 * The claim is then given up a run loop turn late, for the same reason:
+	 * -[NSWindow close] goes on addressing this object after we return.
 	 */
 	[super windowWillClose:sender];
 
 	NSString	*identifier = [AISpecialPasswordPromptController identifierForType:type name:name account:account];
 
+	CFAutorelease(CFBridgingRetain(self));
 	[passwordPromptControllerDict removeObjectForKey:identifier];
 }
 

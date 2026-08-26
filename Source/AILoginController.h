@@ -23,7 +23,7 @@
     NSString					*currentUser;			//The current logged in username
     NSString					*userDirectory;			//The current user's Adium home directory
     AILoginWindowController		*loginWindowController;	//The login select window
-    id							target;					//Used to send our owner a 'login complete'
+    __unsafe_unretained id		target;					//Used to send our owner a 'login complete'; never retained
     SEL							selector;				//
 }
 

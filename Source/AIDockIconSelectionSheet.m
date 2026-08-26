@@ -49,6 +49,12 @@
 
 - (void)openOnWindow:(NSWindow *)parentWindow
 {
+	/* From here until it closes, the sheet is its own owner: the caller hands its reference over
+	 * (see the declaration) and forgets us, and nothing else holds on. The reference taken here is
+	 * what keeps us alive, and -sheetDidEnd:... and -windowWillClose: give it back - deferred,
+	 * because both run while AppKit is still talking to us as the window's delegate. */
+	CFBridgingRetain(self);
+
 	if (parentWindow) {
 		[parentWindow beginSheet:self.window
 			   completionHandler:^(NSModalResponse returnCode) {
@@ -64,12 +70,6 @@
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[icons release]; icons = nil;
-	[iconsData release]; iconsData = nil;
-	[animatedIconState release]; animatedIconState = nil;
-	[animationTimer release]; animationTimer = nil;
-	
-	[super dealloc];
 }
 
 // Setup our preference view
@@ -112,9 +112,9 @@
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
+
     [self setAnimatedDockIconAtIndex:NSNotFound];
-	[self autorelease];
+	CFAutorelease((__bridge CFTypeRef)self);
 }
 
 #pragma mark -
@@ -123,9 +123,9 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
-	
+
     [self setAnimatedDockIconAtIndex:NSNotFound];
-	[self autorelease];
+	CFAutorelease((__bridge CFTypeRef)self);
 }
 
 // When the xtras are changed, update our icons
@@ -143,7 +143,6 @@
 		}
 		
 		[self setIcons:dockIcons];
-		[dockIcons release];
 
 		[self selectIconWithName:[adium.preferenceController preferenceForKey:KEY_ACTIVE_DOCK_ICON
 																		group:PREF_GROUP_APPEARANCE]];
@@ -220,10 +219,10 @@
 	NSDictionary *iconPackDict = [adium.dockController iconPackAtPath:path];
 	NSDictionary *stateDict = [iconPackDict objectForKey:@"State"];
 	
-	return [[[AIIconState alloc] initByCompositingStates:[NSArray arrayWithObjects:[stateDict objectForKey:@"Base"],
-																					[stateDict objectForKey:@"Online"],
-														  							[stateDict objectForKey:@"Alert"],
-														  							nil]] autorelease];
+	return [[AIIconState alloc] initByCompositingStates:[NSArray arrayWithObjects:[stateDict objectForKey:@"Base"],
+																				  [stateDict objectForKey:@"Online"],
+																				  [stateDict objectForKey:@"Alert"],
+																				  nil]];
 }
 
 // Animate the hovered icon
@@ -293,7 +292,7 @@
 	
 	// We need at least one icon installed, so prevent the user from deleting the default icon
 	if (![name isEqualToString:DEFAULT_DOCK_ICON_NAME]) {
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:AILocalizedString(@"Delete Dock Icon",nil)];
 		[alert setInformativeText:[NSString stringWithFormat:
 								   AILocalizedString(@"Are you sure you want to delete the %@ Dock Icon? It will be moved to the Trash.", nil), name]];

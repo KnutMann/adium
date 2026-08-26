@@ -36,8 +36,9 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 @interface KNShelfSplitView : NSView {
 	IBOutlet NSView *			shelfView;
 	IBOutlet NSView *			contentView;
-	IBOutlet id					delegate;
-	IBOutlet id					target;
+	//The nib wires both of these to the File's Owner, which owns us
+	IBOutlet __unsafe_unretained id	delegate;
+	IBOutlet __unsafe_unretained id	target;
 	SEL							action;
 	
 	NSString *					autosaveName;

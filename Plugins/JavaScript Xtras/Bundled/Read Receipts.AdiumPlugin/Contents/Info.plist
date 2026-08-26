@@ -8,6 +8,42 @@
 	<string>plugin.js</string>
 	<key>AIJavaScriptPluginAPIVersion</key>
 	<integer>1</integer>
+	<key>AIJavaScriptPluginSettings</key>
+	<array>
+		<dict>
+			<key>Key</key>
+			<string>placement</string>
+			<key>Type</key>
+			<string>choice</string>
+			<key>Title</key>
+			<string>Tick position</string>
+			<key>Detail</key>
+			<string>Beside the timestamp, or after the message text for a style whose timestamp this extension cannot find.</string>
+			<key>Default</key>
+			<string>time-before</string>
+			<key>Options</key>
+			<array>
+				<dict>
+					<key>Value</key>
+					<string>time-before</string>
+					<key>Title</key>
+					<string>Before the time</string>
+				</dict>
+				<dict>
+					<key>Value</key>
+					<string>time-after</string>
+					<key>Title</key>
+					<string>After the time</string>
+				</dict>
+				<dict>
+					<key>Value</key>
+					<string>message</string>
+					<key>Title</key>
+					<string>After the message</string>
+				</dict>
+			</array>
+		</dict>
+	</array>
 	<key>AIMinimumAdiumVersionRequirement</key>
 	<string>1.8.0</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -22,6 +58,8 @@
 	<string>AdIM</string>
 	<key>XtraBundleVersion</key>
 	<integer>1</integer>
+	<key>XtraDescription</key>
+	<string>Draws the ticks a message you sent collects on its way: one grey tick when the server took it, a grey double tick when it arrived, a blue one when it was read. Where the ticks sit is up to you.</string>
 	<key>XtraVersion</key>
 	<string>1.0</string>
 	<key>XtraAuthors</key>

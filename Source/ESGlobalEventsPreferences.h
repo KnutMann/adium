@@ -59,8 +59,8 @@
 	IBOutlet	NSButton		*button_maxvolume;
 
 	/* The alerts view controller's container and outline view, reached through the outlets the
-	 * nib wired into that controller. Non-retaining references, cleared by -tearDown: the
-	 * container is owned by the form once it has been handed over. */
+	 * nib wired into that controller. Let go of again by -tearDown: the container belongs to the
+	 * form once it has been handed over. */
 	NSView										*view_alertsHost;
 	AIVariableHeightFlexibleColumnsOutlineView	*outlineView_alerts;
 

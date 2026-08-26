@@ -167,12 +167,40 @@ What the review caught, so the next batch looks for it up front:
   keep them `__unsafe_unretained`, or the nib connection becomes a cycle that keeps whole panels
   alive.
 
+## Round two: Source/
+
+All 233 files of `Source/` that the application target compiles, in two commits, on a branch of
+its own. The clusters were sixteen agents working the rules above; none of the files defeated
+them. What recurred, beyond what batch one already recorded:
+
+- **Back-pointers the headers had already documented.** A good many ivars carried a comment
+  saying "not retained" and an `assign` property to match. Those became `__unsafe_unretained`
+  rather than quietly strong, because the comment was usually right about a cycle.
+- **Two methods that hand out a reference from a name the compiler cannot read as owning.**
+  `+[XtrasInstaller installer]` and `-[AIAccount confirmationDialogForAccountDeletion]` are
+  spelled with `objc_method_family(new)`, which is what makes the +1 legal; their callers'
+  conversions depend on the attribute staying there.
+- **`goto` over a strong local is an error, not a warning.** Two `goto ohno` statements in
+  `AIXMLChatlogConverter` jumped past the initialisation of six locals that ARC now owns.
+
+Three things only the flag revealed, all of them silent beforehand: a `for-in` variable being
+reassigned inside its own loop; `[NSValue valueWithPointer:]` given an object pointer, which
+needs the cast that says the pointer is an identity and not a reference; and a message sent to a
+class the file had only ever seen forward-declared, which counting turns from a warning into an
+error.
+
 ## Where this stands, and what waits
 
-149 of 494 files in the main project count automatically; AIUtilities is done but for its
-deliberate exception. The two remaining rounds are Source/ (235 files) and the Purple service
-(69 files, where C callbacks and void* contexts cross the language boundary on nearly every
-page). Both are deliberately parked: the next step is a stretch of ordinary use of what is
-already converted, not more conversion. When a round is picked up again, run it like batch one:
-clusters, the playbook, central flag-flipping, the compiler pass, then the adversarial review,
-whose finding classes are all recorded above.
+`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception),
+AutoHyperlinks and five plugins count automatically. What remains is the Purple service (69
+files, where C callbacks and `void *` contexts cross the language boundary on nearly every page)
+and the plugins named as deliberately manual at the top of this file. The service is not a
+mechanical round and should not be run as one.
+
+Run any future round like the two before it: clusters, the playbook, central flag-flipping, the
+compiler pass, then the adversarial review, whose finding classes are all recorded above. Two
+pieces of logistics learned the hard way in round two: a fresh worktree needs
+`git submodule update --init Dependencies/MMTabBarView` before it can build at all, and when an
+agent run dies in the middle, every file it did not report must be taken back with
+`git checkout --`, because a file that has given up its retains without the flag owns nothing it
+thinks it owns.

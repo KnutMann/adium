@@ -69,7 +69,7 @@
 @interface AIStatusListView : AIPassthroughScrollView <NSTableViewDataSource, NSTableViewDelegate> {
 	NSTableView					 *tableView;		//Owned by the view hierarchy
 	NSArray						 *statusItems;		//AIStatusItem, in display order
-	id<AIStatusListViewDelegate>  listDelegate;		//Not retained
+	__unsafe_unretained id<AIStatusListViewDelegate>  listDelegate;		//Not retained
 	/* Width the rows were last laid out for; see -listFrameChanged: */
 	CGFloat						  cachedLayoutWidth;
 	/* Room the table keeps between its own edge and its column, measured off the table itself */

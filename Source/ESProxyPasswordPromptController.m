@@ -45,7 +45,6 @@ static NSMutableDictionary	*proxyPasswordPromptControllerDict = nil;
 		[controller setTarget:inTarget selector:inSelector context:inContext];
 		
 	} else {
-		// Do not trust the static analyzer, look at the superclass. This is not a leak.
 		if ((controller = [[self alloc] initWithWindowNibName:PROXY_PASSWORD_PROMPT_NIB
 											   forProxyServer:inServer
 													 userName:inUserName
@@ -64,19 +63,11 @@ static NSMutableDictionary	*proxyPasswordPromptControllerDict = nil;
 - (id)initWithWindowNibName:(NSString *)windowNibName forProxyServer:(NSString *)inServer userName:(NSString *)inUserName notifyingTarget:(id)inTarget selector:(SEL)inSelector context:(id)inContext
 {
 	if ((self = [super initWithWindowNibName:windowNibName password:nil notifyingTarget:inTarget selector:inSelector context:inContext])) {
-		server   = [inServer   retain];
-		userName = [inUserName retain];
+		server   = inServer;
+		userName = inUserName;
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[server   release];
-	[userName release];
-	
-	[super dealloc];
 }
 
 /*!
@@ -88,8 +79,13 @@ static NSMutableDictionary	*proxyPasswordPromptControllerDict = nil;
 {
 	NSString	*identifier = [NSString stringWithFormat:@"%@.%@.%p",server,userName,target];
 
+	/* The dictionary holds the only reference to us, and -windowWillClose: runs from inside
+	 * -[NSWindow close], which keeps talking to the controller afterwards. Stay alive until
+	 * the pool drains.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
 	[proxyPasswordPromptControllerDict removeObjectForKey:identifier];
-	
+
 	[super windowWillClose:sender];
 }
 

@@ -85,7 +85,8 @@ typedef enum {
 	NSViewAnimation						*windowAnimation;
 	CGFloat								previousAlpha;
 	
-	AIListWindowController				*attachToBottom;
+	//The window we snapped underneath, borrowed from its window's delegate and never owned
+	__unsafe_unretained AIListWindowController	*attachToBottom;
 	
 	// Filter bar
 	BOOL									filterBarExpandedGroups;

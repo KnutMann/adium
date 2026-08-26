@@ -48,6 +48,10 @@
 	if ((self = [super init])) {
 		//Load our view
 		[NSBundle ai_loadNibNamed:@"AccountProxy" owner:self];
+		/* The loader hands every top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the strong ivar holds its own, so the stray one is
+		 * given up here, once. */
+		if (view_accountProxy) CFRelease((__bridge CFTypeRef)view_accountProxy);
 
 		//Localized text for the single-nib pane
 		[checkBox_useProxy setTitle:AILocalizedString(@"Connect using proxy", nil)];
@@ -71,17 +75,6 @@
 {
 	return view_accountProxy;
 }
-
-/*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[view_accountProxy release];
-
-	[super dealloc];
-}
-
 
 /*!
  * @brief Toggle proxy
@@ -111,8 +104,7 @@
 - (void)configureForAccount:(AIAccount *)inAccount
 {
 	if (account != inAccount) {
-		[account release];
-		account = [inAccount retain];
+		account = inAccount;
 
 		//Enabled & Type
 		[checkBox_useProxy setState:[[account preferenceForKey:KEY_ACCOUNT_PROXY_ENABLED
@@ -269,7 +261,7 @@
 	[proxyMenu addItem:[self _proxyMenuItemWithTitle:@"SOCKS5" tag:Adium_Proxy_SOCKS5]];
 	[proxyMenu addItem:[self _proxyMenuItemWithTitle:@"HTTP" tag:Adium_Proxy_HTTP]];
 	
-	return [proxyMenu autorelease];
+	return proxyMenu;
 }
 
 /*!
@@ -286,8 +278,8 @@
 																	action:@selector(changeProxyType:)
 															 keyEquivalent:@""];
     [menuItem setTag:tag];
-	
-	return [menuItem autorelease];
+
+	return menuItem;
 }
 
 @end

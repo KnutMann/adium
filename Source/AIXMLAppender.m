@@ -87,7 +87,7 @@ enum {
  */
 + (id)documentWithPath:(NSString *)path rootElement:(AIXMLElement *)root
 {
-	return [[[self alloc] initWithPath:path rootElement:root] autorelease];
+	return [[self alloc] initWithPath:path rootElement:root];
 }
 
 /*!
@@ -112,17 +112,6 @@ enum {
 	}
 
 	return self;
-}
-
-/*!
- * @brief Clean up.
- */
-- (void)dealloc
-{
-	self.path = nil;
-	self.fileHandle = nil; //This will also close the fd, since we set the closeOnDealloc flag to YES
-	self.rootElement = nil;
-	[super dealloc];
 }
 
 #pragma mark -
@@ -209,7 +198,7 @@ enum {
 		//Get the root element name and set initialized
 		NSString *rootElementName = [self rootElementNameForFileAtPath:self.path];
 		if (rootElementName)
-			self.rootElement = [[[AIXMLElement alloc] initWithName:rootElementName] autorelease];
+			self.rootElement = [[AIXMLElement alloc] initWithName:rootElementName];
 		self.initialized = (rootElementName != nil);				
 		
 	} else {
@@ -234,7 +223,7 @@ enum {
 		AILog(@"Couldn't open log file %@ (%s - length %lu) for writing!",
 			  self.path, pathCString, (pathCString ? strlen(pathCString) : 0));
 	} else {
-		self.fileHandle = [[[NSFileHandle alloc] initWithFileDescriptor:fd closeOnDealloc:YES] autorelease];
+		self.fileHandle = [[NSFileHandle alloc] initWithFileDescriptor:fd closeOnDealloc:YES];
 		if (self.initialized) {
 			struct stat sb;
 			fstat(fd, &sb);
@@ -293,8 +282,8 @@ enum {
 	NSScanner *scanner = nil;
 	do {
 		//Read a block of arbitrary size
-		NSString *block = [[[NSString alloc] initWithData:[handle readDataOfLength:XML_APPENDER_BLOCK_SIZE]
-												 encoding:NSUTF8StringEncoding] autorelease];
+		NSString *block = [[NSString alloc] initWithData:[handle readDataOfLength:XML_APPENDER_BLOCK_SIZE]
+												encoding:NSUTF8StringEncoding];
 		//If we read 0 characters, then we have reached the end of the file, so return
 		if ([block length] == 0) {
 			[handle closeFile];
@@ -322,8 +311,8 @@ enum {
 		if (found)
 			break;
 			
-		NSString *block = [[[NSString alloc] initWithData:[handle readDataOfLength:XML_APPENDER_BLOCK_SIZE]
-												 encoding:NSUTF8StringEncoding] autorelease];
+		NSString *block = [[NSString alloc] initWithData:[handle readDataOfLength:XML_APPENDER_BLOCK_SIZE]
+												encoding:NSUTF8StringEncoding];
 		//Again, if we've reached the end of the file, we aren't initialized, so return nil
 		if ([block length] == 0) {
 			[handle closeFile];

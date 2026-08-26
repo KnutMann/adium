@@ -78,7 +78,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 static NSString *AISentenceCaseLabel(NSString *label)
 {
-	NSMutableCharacterSet	*strip = [[[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy] autorelease];
+	NSMutableCharacterSet	*strip = [[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy];
 	[strip addCharactersInString:@".…。"];
 
 	NSString	*trimmed = [label stringByTrimmingCharactersInSet:strip];
@@ -136,7 +136,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -164,7 +164,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -187,7 +186,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:CONTACT_LIST_ADVANCED_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:CONTACT_LIST_ADVANCED_PANE_INITIAL_WIDTH];
 
 	//The nib's "Appearance" label, kept as the card's section header
 	[form addSectionHeader:AILocalizedString(@"Appearance",nil)];

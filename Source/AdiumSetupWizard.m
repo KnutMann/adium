@@ -37,7 +37,7 @@ enum{
 };
 
 @interface AdiumSetupWizard ()
-- (void)show __attribute__((ns_consumes_self));
+- (void)show;
 @end
 
 /*!
@@ -46,16 +46,18 @@ enum{
  */
 @implementation AdiumSetupWizard
 
+/* Nothing else holds the wizard between +runWizard and -windowWillClose:, so this is where it
+ * lives while it is on screen. */
+static AdiumSetupWizard *runningWizard = nil;
+
 /*!
  * @brief Run the wizard
  */
 + (void)runWizard
 {
-	AdiumSetupWizard *setupWizardWindowController;
-	
-	setupWizardWindowController = [[self alloc] initWithWindowNibName:@"SetupWizard"];
-	
-	[setupWizardWindowController show];
+	runningWizard = [[self alloc] initWithWindowNibName:@"SetupWizard"];
+
+	[runningWizard show];
 }
 
 - (void)show
@@ -111,8 +113,11 @@ enum{
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[self autorelease];
+
+	/* Not before this turn of the run loop ends: we are inside AppKit's own close, which goes on
+	 * addressing this object afterwards. */
+	CFAutorelease(CFBridgingRetain(self));
+	runningWizard = nil;
 }
 
 /*!

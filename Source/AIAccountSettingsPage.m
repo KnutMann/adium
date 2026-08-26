@@ -39,13 +39,13 @@
 - (id)initWithAccount:(AIAccount *)inAccount backTarget:(id)inTarget action:(SEL)inAction
 {
 	if ((self = [super initWithNibName:nil bundle:nil])) {
-		account = [inAccount retain];
+		account = inAccount;
 		backTarget = inTarget;
 		backAction = inAction;
 
 		/* A fresh one per drill down: a plan reads the account's values as it is built, and the window
 		 * this replaces made a new controller each time it opened too. */
-		plan = [[account accountPlan] retain];
+		plan = [account accountPlan];
 		builder = [[AIAccountPlanFormBuilder alloc] initWithPlan:plan];
 		[builder setChangeTarget:self action:@selector(fieldChanged:)];
 
@@ -67,17 +67,16 @@
 - (void)dealloc
 {
 	[self tearDown];
-	[super dealloc];
 }
 
 - (void)tearDown
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
-	[builder release]; builder = nil;
-	[plan release]; plan = nil;
-	[form release]; form = nil;
-	[account release]; account = nil;
+	builder = nil;
+	plan = nil;
+	form = nil;
+	account = nil;
 	backTarget = nil;
 }
 
@@ -193,8 +192,8 @@
  */
 - (void)showMoreOptions:(id)sender
 {
-	AIAccountOptionsPage *page = [[[AIAccountOptionsPage alloc] initWithBuilder:builder
-																		  card:AIAccountCardMore] autorelease];
+	AIAccountOptionsPage *page = [[AIAccountOptionsPage alloc] initWithBuilder:builder
+																		 card:AIAccountCardMore];
 
 	//The stack this page is in is the one it was pushed onto, so there is nothing to hand around
 	id parent = [self parentViewController];

@@ -72,7 +72,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 static NSString *AISentenceCaseLabel(NSString *label)
 {
-	NSMutableCharacterSet	*strip = [[[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy] autorelease];
+	NSMutableCharacterSet	*strip = [[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy];
 	[strip addCharactersInString:@".…。"];
 
 	NSString	*trimmed = [label stringByTrimmingCharactersInSet:strip];
@@ -110,8 +110,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[establishedBindings release];
-	[super dealloc];
 }
 
 #pragma mark View
@@ -127,7 +125,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 		AISettingsFormView	*form = [self buildSettingsForm];
 
 		settingsForm = form;
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -151,7 +149,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:FILE_TRANSFER_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:FILE_TRANSFER_PANE_INITIAL_WIDTH];
 
 	/* The nib's two-line explanation of "safe" files becomes a detail line,
 	 * which wraps by itself: its hard line break would only fold the text twice.
@@ -246,7 +244,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	for (NSArray *boundPair in establishedBindings) {
 		[[boundPair objectAtIndex:0] unbind:[boundPair objectAtIndex:1]];
 	}
-	[establishedBindings release]; establishedBindings = nil;
+	establishedBindings = nil;
 
 	settingsForm = nil;
 	popUp_downloadLocation = nil;
@@ -326,15 +324,15 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	NSMenuItem	*menuItem;
 	NSString	*userPreferredDownloadFolder;
 
-	menu = [[[NSMenu alloc] init] autorelease];
+	menu = [[NSMenu alloc] init];
 	[menu setAutoenablesItems:NO];
 
 	//Create the menu item for the current download folder
 	userPreferredDownloadFolder = [adium.preferenceController userPreferredDownloadFolder];
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[[NSFileManager defaultManager] displayNameAtPath:userPreferredDownloadFolder]
+	menuItem = [[NSMenuItem alloc] initWithTitle:[[NSFileManager defaultManager] displayNameAtPath:userPreferredDownloadFolder]
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menuItem setRepresentedObject:userPreferredDownloadFolder];
 	[menuItem setImage:[[[NSWorkspace sharedWorkspace] iconForFile:userPreferredDownloadFolder] imageByScalingForMenuItem]];
 	[menu addItem:menuItem];
@@ -342,10 +340,10 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	[menu addItem:[NSMenuItem separatorItem]];
 
 	//Create the menu item for changing the current download folder
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Other",nil) stringByAppendingEllipsis]
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Other",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(selectOtherDownloadFolder:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menuItem setRepresentedObject:userPreferredDownloadFolder];
 	[menu addItem:menuItem];
 

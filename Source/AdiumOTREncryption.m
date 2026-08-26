@@ -25,15 +25,14 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIService.h>
-#import <Adium/AIContentMessage.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIListContact.h>
 #import "AIHTMLDecoder.h"
 
-#import <AIUtilities/AIStringAdditions.h>
 
 #import "ESOTRPrivateKeyGenerationWindowController.h"
 #import "ESOTRPreferences.h"
+#import <sys/stat.h>
 #import "ESOTRUnknownFingerprintController.h"
 #import "OTRCommon.h"
 
@@ -61,14 +60,12 @@
 
 - (void)setSecurityDetails:(NSDictionary *)securityDetailsDict forChat:(AIChat *)inChat;
 - (NSString *)localizedOTRMessage:(NSString *)message withUsername:(NSString *)username isWorthOpeningANewChat:(BOOL *)isWorthOpeningANewChat;
-- (void)notifyWithTitle:(NSString *)title primary:(NSString *)primary secondary:(NSString *)secondary;
 
-- (void)upgradeOTRIfNeeded;
 
 - (void)adiumFinishedLaunching:(NSNotification *)inNotification;
 - (void)adiumWillTerminate:(NSNotification *)inNotification;
 - (void)updateSecurityDetails:(NSNotification *)inNotification;
-- (void)verifyUnknownFingerprint:(NSValue *)contextValue;
+- (void)verifyUnknownFingerprint:(NSDictionary *)responseInfo;
 - (void)otrPollTimerFired:(NSTimer *)inTimer;
 @end
 
@@ -84,14 +81,17 @@ void send_default_query_to_chat(AIChat *inChat);
 void disconnect_from_chat(AIChat *inChat);
 void disconnect_from_context(ConnContext *context);
 TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
+static void display_otr_message_for_context(ConnContext *context, NSString *message);
+
+/* AILocalizedString needs self; these run in C callbacks */
+#define OTRLocalizedString(key, comment) \
+	NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleForClass:[AdiumOTREncryption class]], (comment))
 
 - (id)init
 {
 	//Singleton
 	if (adiumOTREncryption) {
-		[self release];
-		
-		return [adiumOTREncryption retain];
+		return adiumOTREncryption;
 	}
 
 	if ((self = [super init])) {
@@ -123,7 +123,14 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 	/* Initialize the OTR library */
 	OTRL_INIT;
 
-	[self upgradeOTRIfNeeded];
+	/* Files written before this build learned to set an umask are lying around
+	 * world-readable; otr.fingerprints names every account and every
+	 * correspondent of an encrypted conversation. Tightened once here, cheaply
+	 * and idempotently, before anything reads them. */
+	chmod(PRIVKEY_PATH, S_IRUSR | S_IWUSR);
+	chmod(STORE_PATH, S_IRUSR | S_IWUSR);
+	chmod(INSTAG_PATH, S_IRUSR | S_IWUSR);
+
 
 	/* Make our OtrlUserState; we'll only use the one. */
 	otrg_plugin_userstate = otrl_userstate_create();
@@ -186,15 +193,12 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 									 object:nil];
 
 	//Add the Encryption preferences
-	OTRPrefs = [(ESOTRPreferences *)[ESOTRPreferences preferencePane] retain];
+	OTRPrefs = (ESOTRPreferences *)[ESOTRPreferences preferencePane];
 }
 
 - (void)dealloc
 {
-	[OTRPrefs release];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[super dealloc];
 }
 
 
@@ -220,7 +224,22 @@ static NSDictionary* details_for_context(ConnContext *context)
 	NSDictionary		*securityDetailsDict;
 	Fingerprint *fprint = context->active_fingerprint;
 
-    if (!fprint || !(fprint->fingerprint)) return nil;
+	if (!fprint || !(fprint->fingerprint)) {
+		/* A FINISHED context has no active key left - force_finished takes it
+		 * away - but the state is exactly what the lock has to show: the
+		 * session is over and every send is refused until it is ended or
+		 * restarted. Without this the lock fell back to "not encrypted", which
+		 * reads as ordinary and is not: sends do not go through. */
+		if (context->msgstate == OTRL_MSGSTATE_FINISHED) {
+			return [NSDictionary dictionaryWithObjectsAndKeys:
+					[NSNumber numberWithInteger:EncryptionStatus_Finished], @"EncryptionStatus",
+					[adium.accountController accountWithInternalObjectID:[NSString stringWithUTF8String:context->accountname]], @"AIAccount",
+					[NSString stringWithUTF8String:context->username], @"who",
+					nil];
+		}
+
+		return nil;
+	}
 
 	/* The fingerprint is deliberately not followed home to the context it
 	 * belongs to. Version 3 of the protocol keeps one context per pair of
@@ -251,8 +270,12 @@ static NSDictionary* details_for_context(ConnContext *context)
 	
     char our_hash[45], their_hash[45];
 
-	otrl_privkey_fingerprint(otrg_get_userstate(), our_hash,
-							 context->accountname, context->protocol);
+	/* NULL when this account has no key, and the buffer is then uninitialized
+	 * stack; a question mark is at least honest. */
+	if (!otrl_privkey_fingerprint(otrg_get_userstate(), our_hash,
+								  context->accountname, context->protocol)) {
+		strlcpy(our_hash, "?", sizeof(our_hash));
+	}
 	
     otrl_privkey_hash_to_human(their_hash, fprint->fingerprint);
 
@@ -268,8 +291,17 @@ static NSDictionary* details_for_context(ConnContext *context)
 
 	account = [adium.accountController accountWithInternalObjectID:[NSString stringWithUTF8String:context->accountname]];
 
+	/* The raw twenty bytes ride along beside the human-readable hash. Whoever
+	 * answers a prompt built from this dictionary must act on exactly the key
+	 * that was shown, and the only way to guarantee that across the time a
+	 * window stays open is to carry the bytes themselves: the context's
+	 * active_fingerprint is whatever is active WHEN THE ANSWER COMES, which
+	 * after a re-handshake, or with a peer on two devices, is not necessarily
+	 * what the user read. The reference implementation pins the same bytes into
+	 * its dialog data for the same reason. */
 	securityDetailsDict = [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSString stringWithUTF8String:their_hash], @"Their Fingerprint",
+		[NSData dataWithBytes:fprint->fingerprint length:20], @"Their Fingerprint Bytes",
 		[NSString stringWithUTF8String:our_hash], @"Our Fingerprint",
 		[NSNumber numberWithInteger:encryptionStatus], @"EncryptionStatus",
 		account, @"AIAccount",
@@ -319,33 +351,30 @@ static AIChat* chatForContext(ConnContext *context)
 
 static OtrlPolicy policyForContact(AIListContact *contact)
 {
+	/* The user's word, and nothing overriding it. A branch from the AIM era
+	 * used to force Manual for every UID starting with "+", so that SMS
+	 * gateways were never offered encryption - and with AIM gone it silently
+	 * ate the preference of anyone whose contact happens to be a phone
+	 * number. */
 	OtrlPolicy		policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
-	
-	//Force OTRL_POLICY_MANUAL when interacting with mobile numbers
-	if ([contact.UID hasPrefix:@"+"]) {
-		policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
-		
-	} else {
-		AIEncryptedChatPreference	pref = contact.encryptedChatPreferences;
-		switch (pref) {
-				case EncryptedChat_Never:
-					policy = OTRL_POLICY_NEVER;
-					break;
-				case EncryptedChat_Manually:
-				case EncryptedChat_Default:
-					policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
-					break;
-				case EncryptedChat_Automatically:
-					policy = OTRL_POLICY_OPPORTUNISTIC;
-					break;
-				case EncryptedChat_RejectUnencryptedMessages:
-					policy = OTRL_POLICY_ALWAYS;
-					break;
-		}
+
+	switch (contact.encryptedChatPreferences) {
+			case EncryptedChat_Never:
+				policy = OTRL_POLICY_NEVER;
+				break;
+			case EncryptedChat_Manually:
+			case EncryptedChat_Default:
+				policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
+				break;
+			case EncryptedChat_Automatically:
+				policy = OTRL_POLICY_OPPORTUNISTIC;
+				break;
+			case EncryptedChat_RejectUnencryptedMessages:
+				policy = OTRL_POLICY_ALWAYS;
+				break;
 	}
-	
+
 	return policy;
-	
 }
 
 //Return the ConnContext for a Conversation, or NULL if none exists
@@ -363,8 +392,22 @@ static ConnContext* contextForChat(AIChat *chat)
 	proto = [account.service.serviceCodeUniqueID UTF8String];
     username = [chat.listObject.UID UTF8String];
 	
+	/* OTRL_INSTAG_BEST, as the reference implementation chooses and as this port
+	 * originally did. An attempt to route to the most recently active instance
+	 * instead (OTRL_INSTAG_RECENT, after Adium 1.6's resource routing) ran into
+	 * two things the library does not forgive. A master context created by the
+	 * SENDING path keeps recent_child unset - only a lookup with
+	 * OTRL_INSTAG_MASTER or a real instance tag initialises it - so the RECENT
+	 * lookup answers NULL for a contact we have only ever written to, and
+	 * otrl_message_sending dereferences its context without a guard: the second
+	 * consecutive message to such a contact crashed. And every received message
+	 * repoints recent_child, whatever its encryption, so one plaintext message
+	 * from a second device would shadow an established encrypted instance and
+	 * the next message would leave in the clear. BEST prefers the secure
+	 * instance and falls back to the master itself, which is what a lock icon
+	 * and a send path both want. */
     context = otrl_context_find(otrg_plugin_userstate,
-								username, accountname, proto, OTRL_INSTAG_RECENT,
+								username, accountname, proto, OTRL_INSTAG_BEST,
 								0, NULL, NULL, NULL);
 	
 	return context;
@@ -469,17 +512,17 @@ static void otrHandshakeSucceeded(const char *accountname, const char *username)
 
 static OtrlPolicy policy_cb(void *opdata, ConnContext *context)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	OtrlPolicy ret;
 
-	OtrlPolicy ret = policyForContact(contactForContext(context));
+	@autoreleasepool {
+		ret = policyForContact(contactForContext(context));
 
-	/* A handshake stuck in the error loop has tripped the breaker; take away the
-	 * flags that let an error or a whitespace tag start a fresh AKE, so libotr
-	 * stops answering the peer's retries until the cool-down lapses. */
-	if (context && otrHandshakeIsInCooldown(context->accountname, context->username))
-		ret &= ~(OTRL_POLICY_ERROR_START_AKE | OTRL_POLICY_WHITESPACE_START_AKE);
-
-	[pool release];
+		/* A handshake stuck in the error loop has tripped the breaker; take away the
+		 * flags that let an error or a whitespace tag start a fresh AKE, so libotr
+		 * stops answering the peer's retries until the cool-down lapses. */
+		if (context && otrHandshakeIsInCooldown(context->accountname, context->username))
+			ret &= ~(OTRL_POLICY_ERROR_START_AKE | OTRL_POLICY_WHITESPACE_START_AKE);
+	}
 
 	return ret;
 }
@@ -496,8 +539,10 @@ void otrg_plugin_create_privkey(const char *accountname,
 	[ESOTRPrivateKeyGenerationWindowController startedGeneratingForIdentifier:identifier];
 	
     /* Generate the key */
+	mode_t oldMask = umask(0077);
     otrl_privkey_generate(otrg_plugin_userstate, PRIVKEY_PATH,
 						  accountname, protocol);
+	umask(oldMask);
     otrg_ui_update_keylist();
 	
     /* Mark the dialog as done. */
@@ -509,9 +554,9 @@ void otrg_plugin_create_privkey(const char *accountname,
 static void create_privkey_cb(void *opdata, const char *accountname,
 							  const char *protocol)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	otrg_plugin_create_privkey(accountname, protocol);
-	[pool release];
+	@autoreleasepool {
+		otrg_plugin_create_privkey(accountname, protocol);
+	}
 }
 
 /* Give this computer an instance tag for the given accountname/protocol
@@ -529,8 +574,14 @@ void otrg_plugin_create_instag(const char *accountname, const char *protocol)
 	OtrlInsTag *existing = otrl_instag_find(otrg_plugin_userstate, accountname, protocol);
 	if (existing && existing->instag >= OTRL_MIN_VALID_INSTAG) return;
 
+	/* Owner-only, which the library grants the private key but not this file:
+	 * its path-based writers are a bare fopen. The reference implementation
+	 * brackets its stores in umask(0077) the same way. */
+	mode_t oldMask = umask(0077);
 	gcry_error_t err = otrl_instag_generate(otrg_plugin_userstate, INSTAG_PATH,
 											accountname, protocol);
+	umask(oldMask);
+
 	if (err) {
 		NSLog(@"Error writing %s: %s", INSTAG_PATH, gpg_strerror(err));
 	}
@@ -540,9 +591,9 @@ void otrg_plugin_create_instag(const char *accountname, const char *protocol)
 static void create_instag_cb(void *opdata, const char *accountname,
 							 const char *protocol)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	otrg_plugin_create_instag(accountname, protocol);
-	[pool release];
+	@autoreleasepool {
+		otrg_plugin_create_instag(accountname, protocol);
+	}
 }
 
 /* Report whether you think the given user is online.  Return 1 if
@@ -554,17 +605,16 @@ static void create_instag_cb(void *opdata, const char *accountname,
 static int is_logged_in_cb(void *opdata, const char *accountname,
 						   const char *protocol, const char *recipient)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	AIListContact *contact = contactFromInfo(accountname, protocol, recipient);
 	int ret;
-	if ([contact statusSummary] == AIUnknownStatus)
-		ret = -1;
-	else
-		ret = (contact.online ? 1 : 0);
-	
-	[pool release];
-	
+
+	@autoreleasepool {
+		AIListContact *contact = contactFromInfo(accountname, protocol, recipient);
+		if ([contact statusSummary] == AIUnknownStatus)
+			ret = -1;
+		else
+			ret = (contact.online ? 1 : 0);
+	}
+
 	return ret;
 }
 
@@ -573,10 +623,10 @@ static int is_logged_in_cb(void *opdata, const char *accountname,
 static void inject_message_cb(void *opdata, const char *accountname,
 							  const char *protocol, const char *recipient, const char *message)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	[adium.contentController sendRawMessage:[NSString stringWithUTF8String:message]
-															 toContact:contactFromInfo(accountname, protocol, recipient)];
-	[pool release];
+	@autoreleasepool {
+		[adium.contentController sendRawMessage:[NSString stringWithUTF8String:message]
+																 toContact:contactFromInfo(accountname, protocol, recipient)];
+	}
 }
 
 /*!
@@ -592,7 +642,6 @@ static int display_otr_message(const char *accountname, const char *protocol,
 	NSString			*message;
 	AIListContact		*listContact = contactFromInfo(accountname, protocol, username);
 	AIChat				*chat;
-	AIContentMessage	*messageObject;
 	
 	//We couldn't determine a listContact, so return that we didn't handle the message
 	if (!listContact) return 1;
@@ -601,38 +650,8 @@ static int display_otr_message(const char *accountname, const char *protocol,
 	
 	message = [NSString stringWithUTF8String:msg];
 	AILog(@"display_otr_message: %s %s %s: %s",accountname,protocol,username, msg);
-	 
-	if (([message rangeOfString:@"<b>The following message received from"].location != NSNotFound) &&
-		([message rangeOfString:@"was <i>not</i> encrypted: ["].location != NSNotFound)) {
-		/*
-		 * If we receive an unencrypted message, display it as a normal incoming message with the bolded warning that
-		 * the message was not encrypted
-		 */		
-		NSRange			endRange = [message rangeOfString:@"was <i>not</i> encrypted: ["];
-		
-		/* The message will be formatted as:
-		 * <b>The following message received from tekjew was <i>not</i> encrypted: [</b>MESSAGE_HERE - POTENTIALLY HTML<b>]</b>
-		 */
-		NSString *OTRMessage = [adiumOTREncryption localizedOTRMessage:@"The following message was <b>not encrypted</b>: "
-														  withUsername:nil
-												isWorthOpeningANewChat:NULL];
-		message = [OTRMessage stringByAppendingString:
-			[message substringWithRange:NSMakeRange(NSMaxRange(endRange),
-													([message length] - NSMaxRange(endRange) - [@"<b>]</b>" length]))]];
-	
-		//Create a new chat if necessary
-		if (!chat) chat = [adium.chatController chatWithContact:listContact];
 
-		messageObject = [AIContentMessage messageInChat:chat
-											 withSource:listContact
-											destination:chat.account
-												   date:nil
-												message:[AIHTMLDecoder decodeHTML:message]
-											  autoreply:NO];
-		
-		[adium.contentController receiveContentObject:messageObject];
-		
-	} else {
+	{
 		BOOL		isWorthOpeningANewChat = NO;
 
 		//All other OTR messages should be displayed as status messages; decode the message to strip any HTML
@@ -666,23 +685,21 @@ static int display_otr_message(const char *accountname, const char *protocol,
  * state), this is called so the UI can be updated. */
 static void update_context_list_cb(void *opdata)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	otrg_ui_update_keylist();
-	
-	[pool release];
+	@autoreleasepool {
+		otrg_ui_update_keylist();
+	}
 }
 
 /* Return a newly allocated string containing a human-friendly
  * representation for the given account */
 static const char *account_display_name_cb(void *opdata, const char *accountname, const char *protocol)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	const char *ret = strdup([[accountFromAccountID(accountname) formattedUID] UTF8String]);
-	
-	[pool release];
-	
+	const char *ret;
+
+	@autoreleasepool {
+		ret = strdup([[accountFromAccountID(accountname) formattedUID] UTF8String]);
+	}
+
 	return ret;
 }
 
@@ -698,68 +715,94 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 								   const char *accountname, const char *protocol, const char *username,
 								   unsigned char fingerprint[20])
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	ConnContext			*context;
-	
-	context = otrl_context_find(us, username, accountname,
-								protocol, OTRL_INSTAG_RECENT, 0, NULL, NULL, NULL);
-	
-	if (context == NULL/* || context->msgstate != OTRL_MSGSTATE_ENCRYPTED*/) {
-		NSLog(@"otrg_adium_dialog_unknown_fingerprint: Ack!");
-		return;
+	@autoreleasepool {
+		/* The prompt is built from the callback's own arguments and from
+		 * nothing else. This callback fires from inside go_encrypted BEFORE the
+		 * library sets active_fingerprint and marks the context encrypted, so
+		 * any context looked up here still reads as plaintext with no active
+		 * key: asking it would show no prompt at all for a first-time contact,
+		 * and the PREVIOUS key for a contact who just rekeyed. The twenty bytes
+		 * in hand are the new key, the whole reason this callback exists, and
+		 * they are what the reference builds its dialog from too. Only the
+		 * dictionary crosses the runloop turn. */
+		char	theirHash[45];
+		char	ourHash[45];
+
+		otrl_privkey_hash_to_human(theirHash, fingerprint);
+
+		if (!otrl_privkey_fingerprint(us, ourHash, accountname, protocol)) {
+			strlcpy(ourHash, "?", sizeof(ourHash));
+		}
+
+		AIAccount	*account = accountFromAccountID(accountname);
+
+		if (!account) {
+			AILog(@"new_fingerprint_cb: no account for %s", accountname);
+			return;
+		}
+
+		NSDictionary	*responseInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+			[NSString stringWithUTF8String:theirHash], @"Their Fingerprint",
+			[NSData dataWithBytes:fingerprint length:20], @"Their Fingerprint Bytes",
+			[NSString stringWithUTF8String:ourHash], @"Our Fingerprint",
+			account, @"AIAccount",
+			[NSString stringWithUTF8String:username], @"who",
+			nil];
+
+		[adiumOTREncryption performSelector:@selector(verifyUnknownFingerprint:)
+								 withObject:responseInfo
+								 afterDelay:0];
 	}
-	
-	[adiumOTREncryption performSelector:@selector(verifyUnknownFingerprint:)
-							 withObject:[NSValue valueWithPointer:context]
-							 afterDelay:0];
-	[pool release];
 }
 
 /* The list of known fingerprints has changed.  Write them to disk. */
 static void write_fingerprints_cb(void *opdata)
 {
-	otrg_plugin_write_fingerprints();
+	//The only ObjC-touching callback that had no pool of its own
+	@autoreleasepool {
+		otrg_plugin_write_fingerprints();
+	}
 }
 
 /* A ConnContext has entered a secure state. */
 static void gone_secure_cb(void *opdata, ConnContext *context)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AIChat *chat = chatForContext(context);
+	@autoreleasepool {
+		AIChat *chat = chatForContext(context);
 
-	if (context) otrHandshakeSucceeded(context->accountname, context->username);
+		if (context) otrHandshakeSucceeded(context->accountname, context->username);
 
-    update_security_details_for_chat(chat);
-	otrg_ui_update_fingerprint();
-
-	[pool release];
+		update_security_details_for_chat(chat);
+		otrg_ui_update_fingerprint();
+	}
 }
 
 /* A ConnContext has left a secure state. */
 static void gone_insecure_cb(void *opdata, ConnContext *context)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	AIChat *chat = chatForContext(context);
+	@autoreleasepool {
+		AIChat *chat = chatForContext(context);
 
-    update_security_details_for_chat(chat);
-	otrg_ui_update_fingerprint();
-	
-	[pool release];
+		update_security_details_for_chat(chat);
+		otrg_ui_update_fingerprint();
+	}
 }
 
 /* We have completed an authentication, using the D-H keys we
  * already knew.  is_reply indicates whether we initiated the AKE. */
 static void still_secure_cb(void *opdata, ConnContext *context, int is_reply)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-    if (is_reply == 0) {
-		//		otrg_dialog_stillconnected(context);
-		AILog(@"Still secure...");
-    }
-	
-	[pool release];
+	@autoreleasepool {
+		if (is_reply == 0) {
+			/* Refreshing an established session used to say nothing at all, so
+			 * the menu item looked broken. One line, as the reference shows one. */
+			AIListContact	*listContact = (context ? contactForContext(context) : nil);
+
+			display_otr_message_for_context(context,
+				[NSString stringWithFormat:OTRLocalizedString(@"Successfully refreshed the private conversation with %@.", nil),
+				 (listContact.displayName ?: @"?")]);
+		}
+	}
 }
 
 /*!
@@ -776,40 +819,79 @@ static void still_secure_cb(void *opdata, ConnContext *context, int is_reply)
  */
 int max_message_size_cb(void *opdata, ConnContext *context)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	AIChat *chat = chatForContext(context);
-	
-	/* Values from https://otr.cypherpunks.ca/UPGRADING-libotr-3.1.0.txt */
-	static NSDictionary *maxSizeByServiceClassDict = nil;
-	if (!maxSizeByServiceClassDict) {
-		maxSizeByServiceClassDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-									 [NSNumber numberWithInteger:1999], @"Gadu-Gadu",
-									 [NSNumber numberWithInteger:417], @"IRC",
-									 nil];
+	int ret;
+
+	@autoreleasepool {
+		/* The account answers directly; the chat used to be asked, which OPENED
+		 * one as a side effect for every fragmented send to a closed window. */
+		AIAccount *account = accountFromAccountID(context->accountname);
+
+		/* Values from https://otr.cypherpunks.ca/UPGRADING-libotr-3.1.0.txt and
+		 * the reference implementation's table. XMPP and SIMPLE are absent on
+		 * purpose, exactly as they are absent from the reference: those
+		 * transports carry any length, and returning 0 disables fragmentation
+		 * for the message. GroupWise was missing for years while the reference
+		 * fragmented it at 1792, which cut off every longer encrypted message
+		 * there. */
+		static NSDictionary *maxSizeByServiceClassDict = nil;
+		if (!maxSizeByServiceClassDict) {
+			maxSizeByServiceClassDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+										 [NSNumber numberWithInteger:1999], @"Gadu-Gadu",
+										 [NSNumber numberWithInteger:417], @"IRC",
+										 [NSNumber numberWithInteger:1792], @"GroupWise",
+										 nil];
+		}
+
+		ret = [[maxSizeByServiceClassDict objectForKey:account.service.serviceClass] intValue];
 	}
 
-	/* This will return 0 if we don't know (unknown protocol) or don't need it (Jabber),
-	 * which will disable fragmentation.
-	 */
-	int ret = [[maxSizeByServiceClassDict objectForKey:chat.account.service.serviceClass] intValue];
-	
-	[pool release];
-	
 	return ret;
 }
-
-/* AILocalizedString needs self; these run in C callbacks */
-#define OTRLocalizedString(key, comment) \
-	NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleForClass:[AdiumOTREncryption class]], (comment))
 
 /* Forward declaration; defined with the other SMP helpers below */
 static void otrg_plugin_abort_smp(ConnContext *context);
 
-/* Display a status message in the chat belonging to the given context */
+/* An incoming message arrived readable where the policy expected encryption.
+ * Shown as a normal incoming message behind a localized bold warning, in a
+ * chat that is opened when it is not: the text is real and the user must see
+ * it, only its protection is missing. */
+static void display_unencrypted_incoming(ConnContext *context, NSString *body)
+{
+	AIListContact	*listContact = contactForContext(context);
+
+	if (!listContact || !body) return;
+
+	AIChat			*chat = chatForContext(context);
+
+	if (!chat) return;
+
+	NSString		*warning = [adiumOTREncryption localizedOTRMessage:@"The following message was <b>not encrypted</b>: "
+														  withUsername:nil
+												isWorthOpeningANewChat:NULL];
+	AIContentMessage *messageObject = [AIContentMessage messageInChat:chat
+														   withSource:listContact
+														  destination:chat.account
+																 date:nil
+															  message:[AIHTMLDecoder decodeHTML:[warning stringByAppendingString:body]]
+															autoreply:NO];
+
+	[adium.contentController receiveContentObject:messageObject];
+}
+
+/* Display a status message in the chat belonging to the given context.
+ *
+ * The chat is opened when it is not: everything routed through here is an
+ * event the user has to see - "your message was not sent" above all - and the
+ * reference forces the conversation open for exactly these. A closed window
+ * used to swallow them. */
 static void display_otr_message_for_context(ConnContext *context, NSString *message)
 {
 	if (!context || !message) return;
+
+	AIListContact *listContact = contactForContext(context);
+
+	if (listContact) [adium.chatController chatWithContact:listContact];
+
 	display_otr_message(context->accountname, context->protocol, context->username, [message UTF8String]);
 }
 
@@ -844,97 +926,116 @@ static void otr_error_message_free_cb(void *opdata, const char *err_msg)
 
 /* Handle and display OTR message events; replaces the notify/display
  * callbacks of libotr 3.x, so errors reach the user again. */
+/* Whether the previous message event was already "for another instance";
+ * consecutive repeats of that one are collapsed. Deliberately global rather
+ * than per contact: the point is to break the flood a parallel conversation on
+ * another device causes, and interleaved events from a second contact reset it
+ * exactly as the reference's per-conversation marker would. */
+static BOOL lastEventWasForOtherInstance = NO;
+
 static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnContext *context,
 								const char *message, gcry_error_t err)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AIListContact *listContact = (context ? contactFromInfo(context->accountname, context->protocol, context->username) : nil);
-	NSString *displayName = (listContact.displayName ?: @"?");
-	NSString *text = nil;
+	@autoreleasepool {
+		AIListContact *listContact = (context ? contactFromInfo(context->accountname, context->protocol, context->username) : nil);
+		NSString *displayName = (listContact.displayName ?: @"?");
+		NSString *text = nil;
 
-	switch (msg_event) {
-		case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: your policy requires encryption, but you are not currently in a private conversation with %@. Attempting to start one...", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_ENCRYPTION_ERROR:
-			text = OTRLocalizedString(@"An error occurred while encrypting your message. The message was not sent.", nil);
-			break;
-		case OTRL_MSGEVENT_CONNECTION_ENDED:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: %@ has already closed the private connection. End or restart your private conversation.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_SETUP_ERROR:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"Error setting up the private conversation with %@.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_MSG_REFLECTED:
-			text = OTRLocalizedString(@"You are receiving your own OTR messages: either you are trying to talk to yourself, or someone is reflecting your messages back at you.", nil);
-			break;
-		case OTRL_MSGEVENT_MSG_RESENT:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"The last message to %@ was resent.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"An unreadable encrypted message from %@ was received.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"A malformed message from %@ was received.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
-			if (message) text = [NSString stringWithUTF8String:message];
-			break;
-		case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
-			/* Format matches what display_otr_message() parses to show the
-			 * plaintext as a normal incoming message with a warning. */
-			if (context && message) {
-				char *formatted = NULL;
-				if (asprintf(&formatted, "<b>The following message received from %s was <i>not</i> encrypted: [</b>%s<b>]</b>",
-							 context->username, message) >= 0 && formatted) {
-					display_otr_message(context->accountname, context->protocol, context->username, formatted);
-					free(formatted);
+		switch (msg_event) {
+			case OTRL_MSGEVENT_ENCRYPTION_REQUIRED:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: your policy requires encryption, but you are not currently in a private conversation with %@. Attempting to start one...", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_ENCRYPTION_ERROR:
+				text = OTRLocalizedString(@"An error occurred while encrypting your message. The message was not sent.", nil);
+				break;
+			case OTRL_MSGEVENT_CONNECTION_ENDED:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: %@ has already closed the private connection. End or restart your private conversation.", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_SETUP_ERROR:
+				/* The gcry error is the only diagnostic the library gives for a
+				 * failed handshake; the reference prints it too. A zero error
+				 * still means a malformed message, per its convention. */
+				text = [NSString stringWithFormat:OTRLocalizedString(@"Error setting up the private conversation with %@: %s", nil),
+						displayName, gpg_strerror(err ? err : GPG_ERR_INV_VALUE)];
+				break;
+			case OTRL_MSGEVENT_MSG_REFLECTED:
+				text = OTRLocalizedString(@"You are receiving your own OTR messages: either you are trying to talk to yourself, or someone is reflecting your messages back at you.", nil);
+				break;
+			case OTRL_MSGEVENT_MSG_RESENT:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"The last message to %@ was resent.", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"An unreadable encrypted message from %@ was received.", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_MALFORMED:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"A malformed message from %@ was received.", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR:
+				if (message) text = [NSString stringWithUTF8String:message];
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
+				/* Shown as a normal incoming message behind a bold warning, so
+				 * the text is not lost - it just was not protected. Displayed
+				 * directly: this used to be built as the 3.x library's English
+				 * sentence for display_otr_message to parse apart again, three
+				 * places coupled to one string's exact wording, and a parser
+				 * for markup that could also arrive from the wire. */
+				if (context && message) {
+					display_unencrypted_incoming(context, [NSString stringWithUTF8String:message]);
 				}
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"An unrecognized OTR message from %@ was received.", nil), displayName];
+				break;
+			case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
+				/* Somebody's messages are going to another of this user's
+				 * devices; without a line here they simply vanish. Consecutive
+				 * repeats are collapsed the way the reference collapses them,
+				 * because every message of a long conversation held on the
+				 * other device raises this once. */
+				if (!lastEventWasForOtherInstance) {
+					text = [NSString stringWithFormat:OTRLocalizedString(@"%@ has sent a message intended for a different session. If you are logged in multiple times, another session may have received the message.", nil), displayName];
+				}
+				break;
+			case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
+			case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
+			case OTRL_MSGEVENT_NONE:
+			default:
+				AILog(@"OTR message event %u for %@ (err %u)", msg_event, displayName, err);
+				break;
+		}
+
+		lastEventWasForOtherInstance = (msg_event == OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE);
+
+		/* These are the events a handshake that cannot complete throws over and over.
+		 * Rather than repeat the raw, cryptic line each time, count them: once a few
+		 * arrive in quick succession the breaker trips (and policy_cb stops the auto-
+		 * restart), and we show one message that says what happened and what to do -
+		 * then stay quiet through the rest of the flood. A lone error still shows as
+		 * before; only a flood is collapsed. */
+		BOOL isHandshakeError = (msg_event == OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR ||
+								 msg_event == OTRL_MSGEVENT_RCVDMSG_MALFORMED ||
+								 msg_event == OTRL_MSGEVENT_RCVDMSG_UNREADABLE ||
+								 msg_event == OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED ||
+								 msg_event == OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE ||
+								 msg_event == OTRL_MSGEVENT_SETUP_ERROR ||
+								 msg_event == OTRL_MSGEVENT_ENCRYPTION_ERROR);
+
+		if (isHandshakeError && context && context->accountname && context->username) {
+			if (otrHandshakeIsInCooldown(context->accountname, context->username)) {
+				/* Loop already broken and explained; hold quiet through the flood. */
+				return;
 			}
-			break;
-		case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"An unrecognized OTR message from %@ was received.", nil), displayName];
-			break;
-		case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
-		case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
-		case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
-		case OTRL_MSGEVENT_NONE:
-		default:
-			AILog(@"OTR message event %u for %@ (err %u)", msg_event, displayName, err);
-			break;
-	}
-
-	/* These are the events a handshake that cannot complete throws over and over.
-	 * Rather than repeat the raw, cryptic line each time, count them: once a few
-	 * arrive in quick succession the breaker trips (and policy_cb stops the auto-
-	 * restart), and we show one message that says what happened and what to do -
-	 * then stay quiet through the rest of the flood. A lone error still shows as
-	 * before; only a flood is collapsed. */
-	BOOL isHandshakeError = (msg_event == OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR ||
-							 msg_event == OTRL_MSGEVENT_RCVDMSG_MALFORMED ||
-							 msg_event == OTRL_MSGEVENT_RCVDMSG_UNREADABLE ||
-							 msg_event == OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED ||
-							 msg_event == OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE ||
-							 msg_event == OTRL_MSGEVENT_SETUP_ERROR ||
-							 msg_event == OTRL_MSGEVENT_ENCRYPTION_ERROR);
-
-	if (isHandshakeError && context && context->accountname && context->username) {
-		if (otrHandshakeIsInCooldown(context->accountname, context->username)) {
-			/* Loop already broken and explained; hold quiet through the flood. */
-			[pool release];
-			return;
+			if (otrHandshakeErrorTrippedBreaker(context->accountname, context->username)) {
+				text = [NSString stringWithFormat:OTRLocalizedString(@"The encrypted (OTR) conversation with %@ could not be set up: the two programs could not agree on a private session, most often a version or key mismatch. Encryption has been paused for this conversation. You can keep chatting unencrypted, or reset the private conversation from the lock menu to try again.", nil), displayName];
+			}
 		}
-		if (otrHandshakeErrorTrippedBreaker(context->accountname, context->username)) {
-			text = [NSString stringWithFormat:OTRLocalizedString(@"The encrypted (OTR) conversation with %@ could not be set up: the two programs could not agree on a private session, most often a version or key mismatch. Encryption has been paused for this conversation. You can keep chatting unencrypted, or reset the private conversation from the lock menu to try again.", nil), displayName];
-		}
+
+		if (text) display_otr_message_for_context(context, text);
 	}
-
-	if (text) display_otr_message_for_context(context, text);
-
-	[pool release];
 }
 
 /* Handle SMP (Socialist Millionaires' Protocol) events. Adium has no SMP
@@ -943,38 +1044,37 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 static void handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_event, ConnContext *context,
 								unsigned short progress_percent, char *question)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AIListContact *listContact = (context ? contactFromInfo(context->accountname, context->protocol, context->username) : nil);
-	NSString *displayName = (listContact.displayName ?: @"?");
-	NSString *text = nil;
+	@autoreleasepool {
+		AIListContact *listContact = (context ? contactFromInfo(context->accountname, context->protocol, context->username) : nil);
+		NSString *displayName = (listContact.displayName ?: @"?");
+		NSString *text = nil;
 
-	switch (smp_event) {
-		case OTRL_SMPEVENT_ASK_FOR_SECRET:
-		case OTRL_SMPEVENT_ASK_FOR_ANSWER:
-			otrg_plugin_abort_smp(context);
-			text = [NSString stringWithFormat:OTRLocalizedString(@"%@ requested identity verification via a shared secret, which Adium does not support. The request was cancelled; please verify the fingerprint instead.", nil), displayName];
-			break;
-		case OTRL_SMPEVENT_SUCCESS:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"Identity verification with %@ succeeded.", nil), displayName];
-			break;
-		case OTRL_SMPEVENT_FAILURE:
-		case OTRL_SMPEVENT_CHEATED:
-		case OTRL_SMPEVENT_ERROR:
-			if (smp_event != OTRL_SMPEVENT_FAILURE) otrg_plugin_abort_smp(context);
-			text = [NSString stringWithFormat:OTRLocalizedString(@"Identity verification with %@ failed.", nil), displayName];
-			break;
-		case OTRL_SMPEVENT_ABORT:
-			text = [NSString stringWithFormat:OTRLocalizedString(@"%@ aborted identity verification.", nil), displayName];
-			break;
-		case OTRL_SMPEVENT_IN_PROGRESS:
-		case OTRL_SMPEVENT_NONE:
-		default:
-			break;
+		switch (smp_event) {
+			case OTRL_SMPEVENT_ASK_FOR_SECRET:
+			case OTRL_SMPEVENT_ASK_FOR_ANSWER:
+				otrg_plugin_abort_smp(context);
+				text = [NSString stringWithFormat:OTRLocalizedString(@"%@ requested identity verification via a shared secret, which Adium does not support. The request was cancelled; please verify the fingerprint instead.", nil), displayName];
+				break;
+			case OTRL_SMPEVENT_SUCCESS:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"Identity verification with %@ succeeded.", nil), displayName];
+				break;
+			case OTRL_SMPEVENT_FAILURE:
+			case OTRL_SMPEVENT_CHEATED:
+			case OTRL_SMPEVENT_ERROR:
+				if (smp_event != OTRL_SMPEVENT_FAILURE) otrg_plugin_abort_smp(context);
+				text = [NSString stringWithFormat:OTRLocalizedString(@"Identity verification with %@ failed.", nil), displayName];
+				break;
+			case OTRL_SMPEVENT_ABORT:
+				text = [NSString stringWithFormat:OTRLocalizedString(@"%@ aborted identity verification.", nil), displayName];
+				break;
+			case OTRL_SMPEVENT_IN_PROGRESS:
+			case OTRL_SMPEVENT_NONE:
+			default:
+				break;
+		}
+
+		if (text) display_otr_message_for_context(context, text);
 	}
-
-	if (text) display_otr_message_for_context(context, text);
-
-	[pool release];
 }
 
 /* The library has periodic work to do: private state that has served its turn
@@ -987,23 +1087,20 @@ static NSTimer *otrPollTimer = nil;
 
 static void timer_control_cb(void *opdata, unsigned int interval)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		[otrPollTimer invalidate];
+		otrPollTimer = nil;
 
-	[otrPollTimer invalidate];
-	[otrPollTimer release];
-	otrPollTimer = nil;
-
-	/* Nought means there is nothing left to do for now; the library asks again
-	 * when there is. */
-	if (interval > 0) {
-		otrPollTimer = [[NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)interval
-														 target:adiumOTREncryption
-													   selector:@selector(otrPollTimerFired:)
-													   userInfo:nil
-														repeats:YES] retain];
+		/* Nought means there is nothing left to do for now; the library asks
+		 * again when there is. */
+		if (interval > 0) {
+			otrPollTimer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)interval
+															target:adiumOTREncryption
+														  selector:@selector(otrPollTimerFired:)
+														  userInfo:nil
+														   repeats:YES];
+		}
 	}
-
-	[pool release];
 }
 
 static OtrlMessageAppOps ui_ops = {
@@ -1053,8 +1150,9 @@ static OtrlMessageAppOps ui_ops = {
     if (!username || !originalMessage)
 		return;
 
+	//OTRL_INSTAG_BEST, not RECENT: see contextForChat for why RECENT crashes here
     err = otrl_message_sending(otrg_plugin_userstate, &ui_ops, /* opData */ NULL,
-							   accountname, protocol, username, OTRL_INSTAG_RECENT,
+							   accountname, protocol, username, OTRL_INSTAG_BEST,
 							   originalMessage, /* tlvs */ NULL, &fullOutgoingMessage,
 							   OTRL_FRAGMENT_SEND_ALL_BUT_LAST, NULL,
 							   /* add_appdata cb */NULL, /* appdata */ NULL);
@@ -1079,25 +1177,9 @@ static OtrlMessageAppOps ui_ops = {
  * are received. */
 static void otrg_plugin_abort_smp(ConnContext *context)
 {
+	if (!context) return;
+
 	otrl_message_abort_smp(otrg_plugin_userstate, &ui_ops, NULL, context);
-}
-
-/* Start the Socialist Millionaires' Protocol over the current connection,
- * using the given initial secret. */
-void otrg_plugin_start_smp(ConnContext *context,
-						   const unsigned char *secret, size_t secretlen)
-{
-    otrl_message_initiate_smp(otrg_plugin_userstate, &ui_ops, NULL,
-							  context, secret, secretlen);	
-}
-
-/* Continue the Socialist Millionaires' Protocol over the current connection,
- * using the given initial secret (ie finish step 2). */
-void otrg_plugin_continue_smp(ConnContext *context,
-							  const unsigned char *secret, size_t secretlen)
-{
-	otrl_message_respond_smp(otrg_plugin_userstate, &ui_ops, NULL,
-							 context, secret, secretlen);
 }
 
 - (NSString *)decryptIncomingMessage:(NSString *)inString fromContact:(AIListContact *)inListContact onAccount:(AIAccount *)inAccount
@@ -1145,6 +1227,16 @@ void otrg_plugin_continue_smp(ConnContext *context,
 		/* Notify the user that the other side disconnected. */
 		display_otr_message(accountname, protocol, username, CLOSED_CONNECTION_MESSAGE);
 
+		/* And show it. The library has just moved the context to FINISHED
+		 * without telling any callback - gone_insecure is never called on this
+		 * path - so the lock is ours to update, exactly as the reference
+		 * implementation calls its otrg_dialog_finished here. Without this the
+		 * indicator keeps claiming an encrypted session whose every further
+		 * send the library refuses. */
+		AIChat *chat = [adium.chatController existingChatWithContact:contactFromInfo(accountname, protocol, username)];
+
+		if (chat) update_security_details_for_chat(chat);
+
 		otrg_ui_update_keylist();
     }
 
@@ -1167,7 +1259,12 @@ void otrg_plugin_continue_smp(ConnContext *context,
 - (void)promptToVerifyEncryptionIdentityInChat:(AIChat *)inChat
 {
 	ConnContext		*context = contextForChat(inChat);
-	NSDictionary	*responseInfo = details_for_context(context);;
+	NSDictionary	*responseInfo = details_for_context(context);
+
+	/* Only with a key to verify. A FINISHED session yields details without one
+	 * - state, no key material - and a prompt built from that would show blanks
+	 * and could accept nothing. */
+	if (![responseInfo objectForKey:@"Their Fingerprint Bytes"]) return;
 
 	[ESOTRUnknownFingerprintController showVerifyFingerprintPromptWithResponseInfo:responseInfo];	
 }
@@ -1180,7 +1277,6 @@ void otrg_plugin_continue_smp(ConnContext *context,
 - (void)adiumWillTerminate:(NSNotification *)inNotification
 {
 	[otrPollTimer invalidate];
-	[otrPollTimer release];
 	otrPollTimer = nil;
 
 	ConnContext *context = otrg_plugin_userstate->context_root;
@@ -1218,9 +1314,15 @@ void update_security_details_for_chat(AIChat *inChat)
 	if (inChat) {
 		NSMutableDictionary	*fullSecurityDetailsDict;
 		
-		if (securityDetailsDict) {
+		if (securityDetailsDict && ![securityDetailsDict objectForKey:@"Their Fingerprint"]) {
+			//A FINISHED session: state without key material; see details_for_context
+			fullSecurityDetailsDict = [securityDetailsDict mutableCopy];
+			[fullSecurityDetailsDict setObject:AILocalizedString(@"The encrypted conversation has ended. End or restart encryption to send messages again.", nil)
+										forKey:@"Description"];
+
+		} else if (securityDetailsDict) {
 			NSString				*format, *description;
-			fullSecurityDetailsDict = [[securityDetailsDict mutableCopy] autorelease];
+			fullSecurityDetailsDict = [securityDetailsDict mutableCopy];
 			
 			/* Encrypted by Off-the-Record Messaging
 				*
@@ -1263,7 +1365,8 @@ void send_default_query_to_chat(AIChat *inChat)
 	char *msg = otrl_proto_default_query_msg([inChat.account.formattedUID UTF8String],
 											 policyForContact([inChat listObject]));
 	
-	[adium.contentController sendRawMessage:[NSString stringWithUTF8String:(msg ? msg : "?OTRv2?")]
+	//The fallback offers both versions the policies speak, as the generated query does
+	[adium.contentController sendRawMessage:[NSString stringWithUTF8String:(msg ? msg : "?OTRv23?")]
 															 toContact:[inChat listObject]];
 	if (msg)
 		free(msg);
@@ -1273,9 +1376,21 @@ void send_default_query_to_chat(AIChat *inChat)
 * appropriate. */
 void disconnect_from_context(ConnContext *context)
 {
+	if (!context) return;
+
+	/* The instance of the context we were handed, not a selector: the quit
+	 * path walks every encrypted child of a multi-device peer and disconnects
+	 * each in turn, and a selector would resolve every one of those calls to
+	 * the same sibling - the others would keep their session open without ever
+	 * seeing a disconnect notice. The reference implementation passes
+	 * their_instance here for the same reason.
+	 *
+	 * The manual gone_insecure afterwards is not a redundancy: the library's
+	 * disconnect only announces update_context_list, never gone_insecure, so
+	 * without this the lock would stay closed. */
     otrl_message_disconnect(otrg_plugin_userstate, &ui_ops, NULL,
 							context->accountname, context->protocol, context->username,
-							OTRL_INSTAG_RECENT);
+							context->their_instance);
 	gone_insecure_cb(NULL, context);
 }
 
@@ -1293,12 +1408,18 @@ void otrg_ui_forget_fingerprint(Fingerprint *fingerprint)
 
 	/* Don't forget a fingerprint a conversation is relying on right now. The
 	 * fingerprint belongs to the master context, which is never itself
-	 * encrypted, so asking it would always have answered no; the conversations
-	 * are its children, and the library will name the most private of them.
-	 */
-	ConnContext *inUse = otrl_context_find_recent_secure_instance(fingerprint->context);
-	if (inUse && inUse->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
-		inUse->active_fingerprint == fingerprint) return;
+	 * encrypted, so asking it would always answer no; the conversations are its
+	 * children, and EVERY one of them is asked, the way the reference does. A
+	 * peer on two devices has two encrypted children with two keys, and the
+	 * most private of them is not necessarily the one using this key: freeing
+	 * a key another child still points at would leave that conversation - and
+	 * the library itself, on the next message - reading freed memory. */
+	for (ConnContext *child = fingerprint->context->m_context;
+		 child && child->m_context == fingerprint->context->m_context;
+		 child = child->next) {
+		if (child->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
+			child->active_fingerprint == fingerprint) return;
+	}
 
     otrl_context_forget_fingerprint(fingerprint, 1);
     otrg_plugin_write_fingerprints();
@@ -1306,7 +1427,11 @@ void otrg_ui_forget_fingerprint(Fingerprint *fingerprint)
 
 void otrg_plugin_write_fingerprints(void)
 {
+	//Owner-only; see otrg_plugin_create_instag for why the library does not do this itself
+	mode_t oldMask = umask(0077);
     otrl_privkey_write_fingerprints(otrg_plugin_userstate, STORE_PATH);
+	umask(oldMask);
+
 	otrg_ui_update_fingerprint();
 }
 
@@ -1327,20 +1452,9 @@ OtrlUserState otrg_get_userstate(void)
 
 #pragma mark -
 
-- (void)verifyUnknownFingerprint:(NSValue *)contextValue
+- (void)verifyUnknownFingerprint:(NSDictionary *)responseInfo
 {
-	NSDictionary		*responseInfo;
-	
-	responseInfo = details_for_context([contextValue pointerValue]);
-	
-	if (responseInfo) {
-		[ESOTRUnknownFingerprintController showUnknownFingerprintPromptWithResponseInfo:responseInfo];
-	} else {
-		/* This means either context, context->active_fingerprint, context->active_fingerprint-fingerprint
-		 * or context->active_fingerprint->context was NULL.
-		 */
-		AILogWithSignature(@"Got a nil details_for_context for %p", [contextValue pointerValue]);
-	}
+	[ESOTRUnknownFingerprintController showUnknownFingerprintPromptWithResponseInfo:responseInfo];
 }
 
 /*!
@@ -1373,14 +1487,16 @@ OtrlUserState otrg_get_userstate(void)
 	NSString	*localizedOTRMessage = nil;
 	if (isWorthOpeningANewChat) *isWorthOpeningANewChat = NO;
 
-	if (([message rangeOfString:@"You sent unencrypted data to"].location != NSNotFound) &&
+	/* Three producers reach this matcher today, and only three. Our own receive
+	 * path hands in CLOSED_CONNECTION_MESSAGE; our unencrypted-message display
+	 * hands in its warning prefix; and OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR hands
+	 * in whatever error text the PEER'S client put on the wire - for an
+	 * English-locale reference client, the sentence matched below. Five more
+	 * branches used to match display strings of the 3.x library, which spoke
+	 * English at its host; the 4.x library speaks events, those sentences have
+	 * no producer left, and the branches are gone. */
+	if (([message rangeOfString:@"You sent encrypted data to"].location != NSNotFound) &&
 		([message rangeOfString:@"who wasn't expecting it"].location != NSNotFound)) {
-		localizedOTRMessage = [NSString stringWithFormat:
-			AILocalizedString(@"You sent an unencrypted message, but %@ was expecting encryption.", "Message when sending unencrypted messages to a contact expecting encrypted ones. %s will be a name."),
-			username];
-		
-	} else if (([message rangeOfString:@"You sent encrypted data to"].location != NSNotFound) &&
-			   ([message rangeOfString:@"who wasn't expecting it"].location != NSNotFound)) {
 		localizedOTRMessage = [NSString stringWithFormat:
 			AILocalizedString(@"You sent an encrypted message, but %@ was not expecting encryption.", "Message when sending encrypted messages to a contact expecting unencrypted ones. %s will be a name."),
 			username];
@@ -1390,292 +1506,15 @@ OtrlUserState otrg_get_userstate(void)
 		localizedOTRMessage = [NSString stringWithFormat:
 			AILocalizedString(@"%@ is no longer using encryption; you should cancel encryption on your side.", "Message when the remote contact cancels his half of an encrypted conversation. %s will be a name."),
 			username];
-		
-	} else if ([message isEqualToString:@"Private connection closed"]) {
-		localizedOTRMessage = AILocalizedString(@"Private connection closed", nil);
-
-	} else if ([message rangeOfString:@"has already closed his private connection to you"].location != NSNotFound) {
-		localizedOTRMessage = [NSString stringWithFormat:
-			AILocalizedString(@"%@'s private connection to you is closed.", "Statement that someone's private (encrypted) connection is closed."),
-			username];
-
-	} else if ([message isEqualToString:@"Your message was not sent.  Either close your private connection to him, or refresh it."]) {
-		localizedOTRMessage = AILocalizedString(@"Your message was not sent. You should end the encrypted chat on your side or re-request encryption.", nil);
+		//Every further send is refused from here on; that must not depend on a window being open
 		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
 
 	} else if ([message isEqualToString:@"The following message was <b>not encrypted</b>: "]) {
 		localizedOTRMessage = AILocalizedString(@"The following message was <b>not encrypted</b>: ", nil);
 		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
-
-	} else if ([message rangeOfString:@"received an unreadable encrypted"].location != NSNotFound) {
-		localizedOTRMessage = [NSString stringWithFormat:
-			AILocalizedString(@"An encrypted message from %@ could not be decrypted.", nil),
-			username];
-		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
 	}
 
 	return (localizedOTRMessage ? localizedOTRMessage : message);
-}
-
-/*!
- * @brief Display a message (independent of a chat)
- *
- * @param title The window title
- * @param primary The main information for the message
- * @param secondary Additional information for the message
- */
-- (void)notifyWithTitle:(NSString *)title primary:(NSString *)primary secondary:(NSString *)secondary
-{
-	//XXX todo: search on ops->notify in message.c in libotr and handle / localize the error messages
-	[adium.interfaceController handleMessage:primary
-							   withDescription:secondary
-							   withWindowTitle:title];
-}
-
-#pragma mark Upgrading gaim-otr --> Adium-otr
-/*!
- * @brief Construct a dictionary converting libpurple prpl names to Adium serviceIDs for the purpose of fingerprint upgrading
- */
-- (NSDictionary *)prplDict
-{
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-		@"libpurple-OSCAR-AIM", @"prpl-oscar",
-		@"libpurple-Gadu-Gadu", @"prpl-gg",
-		@"libpurple-Jabber", @"prpl-jabber",
-		@"libpurple-MSN", @"prpl-msn",
-		@"libpurple-GroupWise", @"prpl-novell",
-		@"libpurple-Yahoo!", @"prpl-yahoo", nil];
-}
-
-- (NSString *)upgradedFingerprintsFromFile:(NSString *)inPath
-{
-	NSString		*sourceFingerprints = [NSString stringWithContentsOfUTF8File:inPath];
-	
-	if (!sourceFingerprints  || ![sourceFingerprints length]) return nil;
-
-	NSScanner		*scanner = [NSScanner scannerWithString:sourceFingerprints];
-	NSMutableString *outFingerprints = [NSMutableString string];
-	NSCharacterSet	*tabAndNewlineSet = [NSCharacterSet characterSetWithCharactersInString:@"\t\n\r"];
-	
-	//Skip quotes
-	[scanner setCharactersToBeSkipped:[NSCharacterSet characterSetWithCharactersInString:@"\""]];
-	
-	NSDictionary	*prplDict = [self prplDict];
-
-	while (![scanner isAtEnd]) {
-		//username     accountname  protocol      key	trusted\n
-		NSString		*chunk;
-		NSString		*username = nil, *accountname = nil, *protocol = nil, *key = nil, *trusted = nil;
-		
-		//username
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&username];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];
-		
-		//accountname
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&accountname];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];
-		
-		//protocol
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&protocol];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];
-		
-		//key
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&key];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:&chunk];
-		
-		//We have a trusted entry
-		if ([chunk isEqualToString:@"\t"]) {
-			//key
-			[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&trusted];
-			[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];		
-		} else {
-			trusted = nil;
-		}
-		
-		if (username && accountname && protocol && key) {
-			for (AIAccount *account in adium.accountController.accounts) {
-				//Hit every possibile name for this account along the way
-				if ([[NSSet setWithObjects:account.UID,account.formattedUID,[account.UID compactedString], nil] containsObject:accountname]) {
-					if ([account.service.serviceCodeUniqueID isEqualToString:[prplDict objectForKey:protocol]]) {
-						[outFingerprints appendString:
-							[NSString stringWithFormat:@"%@\t%@\t%@\t%@", username, account.internalObjectID, account.service.serviceCodeUniqueID, key]];
-						if (trusted) {
-							[outFingerprints appendString:@"\t"];
-							[outFingerprints appendString:trusted];
-						}
-						[outFingerprints appendString:@"\n"];
-					}
-				}
-			}
-		}
-	}
-	
-	return outFingerprints;
-}
-
-- (NSString *)upgradedPrivateKeyFromFile:(NSString *)inPath
-{
-	NSMutableString	*sourcePrivateKey = [[[NSString stringWithContentsOfUTF8File:inPath] mutableCopy] autorelease];
-	AILog(@"Upgrading private keys at %@ gave %@",inPath,sourcePrivateKey);
-	if (!sourcePrivateKey || ![sourcePrivateKey length]) return nil;
-
-	/*
-	 * Gaim used the account name for the name and the prpl id for the protocol.
-	 * We will use the internalObjectID for the name and the service's uniqueID for the protocol.
-	 */
-
-	/* Remove Jabber resources... from the private key list
-	 * If you used a non-default resource, no upgrade for you.
-	 */
-	[sourcePrivateKey replaceOccurrencesOfString:@"/Adium"
-									  withString:@""
-										 options:NSLiteralSearch
-										   range:NSMakeRange(0, [sourcePrivateKey length])];
-
-	NSDictionary	*prplDict = [self prplDict];
-
-	for (AIAccount *account in adium.accountController.accounts) {
-		//Hit every possibile name for this account along the way
-		NSString		*accountInternalObjectID = [NSString stringWithFormat:@"\"%@\"",account.internalObjectID];
-
-		for (NSString *accountName in [NSSet setWithObjects:account.UID,account.formattedUID,[account.UID compactedString], nil]) {
-			NSRange			accountNameRange = NSMakeRange(0, 0);
-			NSRange			searchRange = NSMakeRange(0, [sourcePrivateKey length]);
-
-			while (accountNameRange.location != NSNotFound &&
-				   (NSMaxRange(searchRange) <= [sourcePrivateKey length])) {
-				//Find the next place this account name is located
-				accountNameRange = [sourcePrivateKey rangeOfString:accountName
-														   options:NSLiteralSearch
-															 range:searchRange];
-
-				if (accountNameRange.location != NSNotFound) {
-					//Update our search range
-					searchRange.location = NSMaxRange(accountNameRange);
-					searchRange.length = [sourcePrivateKey length] - searchRange.location;
-
-					//Make sure that this account name actually begins and finishes a name; otherwise (name TekJew2) matches (name TekJew)
-					if ((![[sourcePrivateKey substringWithRange:NSMakeRange(accountNameRange.location - 6, 6)] isEqualToString:@"(name "] &&
-						 ![[sourcePrivateKey substringWithRange:NSMakeRange(accountNameRange.location - 7, 7)] isEqualToString:@"(name \""]) ||
-						(![[sourcePrivateKey substringWithRange:NSMakeRange(NSMaxRange(accountNameRange), 1)] isEqualToString:@")"] &&
-						 ![[sourcePrivateKey substringWithRange:NSMakeRange(NSMaxRange(accountNameRange), 2)] isEqualToString:@"\")"])) {
-						continue;
-					}
-
-					/* Within that range, find the next "(protocol " which encloses
-						* a string of the form "(protocol protocol-name)"
-						*/
-					NSRange protocolRange = [sourcePrivateKey rangeOfString:@"(protocol "
-																	options:NSLiteralSearch
-																	  range:searchRange];
-					if (protocolRange.location != NSNotFound) {
-						//Update our search range
-						searchRange.location = NSMaxRange(protocolRange);
-						searchRange.length = [sourcePrivateKey length] - searchRange.location;
-
-						NSRange nextClosingParen = [sourcePrivateKey rangeOfString:@")"
-																		   options:NSLiteralSearch
-																			 range:searchRange];
-						NSRange protocolNameRange = NSMakeRange(NSMaxRange(protocolRange),
-																nextClosingParen.location - NSMaxRange(protocolRange));
-						NSString *protocolName = [sourcePrivateKey substringWithRange:protocolNameRange];
-						//Remove a trailing quote if necessary
-						if ([[protocolName substringFromIndex:([protocolName length]-1)] isEqualToString:@"\""]) {
-							protocolName = [protocolName substringToIndex:([protocolName length]-1)];
-						}
-
-						NSString *uniqueServiceID = [prplDict objectForKey:protocolName];
-
-						if ([account.service.serviceCodeUniqueID isEqualToString:uniqueServiceID]) {
-							//Replace the protocol name first
-							[sourcePrivateKey replaceCharactersInRange:protocolNameRange
-															withString:uniqueServiceID];
-
-							//Then replace the account name which was before it (so the range hasn't changed)
-							if ([sourcePrivateKey characterAtIndex:(accountNameRange.location - 1)] == '\"') {
-								accountNameRange.location -= 1;
-								accountNameRange.length += 1;
-							}
-							
-							if ([sourcePrivateKey characterAtIndex:(accountNameRange.location + accountNameRange.length + 1)] == '\"') {
-								accountNameRange.length += 1;
-							}
-							
-							[sourcePrivateKey replaceCharactersInRange:accountNameRange
-															withString:accountInternalObjectID];
-						}
-					}
-				}
-				
-				AILog(@"%@ - %@",accountName, sourcePrivateKey);
-			}
-		}			
-	}
-	
-	return sourcePrivateKey;
-}
-
-- (void)upgradeOTRIfNeeded
-{
-	if (![[adium.preferenceController preferenceForKey:@"GaimOTR_to_AdiumOTR_Update"
-												   group:@"OTR"] boolValue]) {
-		NSString	  *destinationPath = [adium.loginController userDirectory];
-		NSString	  *sourcePath = [destinationPath stringByAppendingPathComponent:@"libpurple"];
-		
-		NSString *privateKey = [self upgradedPrivateKeyFromFile:[sourcePath stringByAppendingPathComponent:@"otr.private_key"]];
-		if (privateKey && [privateKey length]) {
-			[privateKey writeToFile:[destinationPath stringByAppendingPathComponent:@"otr.private_key"]
-						 atomically:NO
-						   encoding:NSUTF8StringEncoding
-							  error:NULL];
-		}
-
-		NSString *fingerprints = [self upgradedFingerprintsFromFile:[sourcePath stringByAppendingPathComponent:@"otr.fingerprints"]];
-		if (fingerprints && [fingerprints length]) {
-			[fingerprints writeToFile:[destinationPath stringByAppendingPathComponent:@"otr.fingerprints"]
-						   atomically:NO
-							 encoding:NSUTF8StringEncoding
-								error:NULL];
-		}
-
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
-											 forKey:@"GaimOTR_to_AdiumOTR_Update"
-											  group:@"OTR"];
-	}
-	
-	if (![[adium.preferenceController preferenceForKey:@"Libgaim_to_Libpurple_Update"
-												   group:@"OTR"] boolValue]) {
-		NSString	*destinationPath = [adium.loginController userDirectory];
-		
-		NSString	*privateKeyPath = [destinationPath stringByAppendingPathComponent:@"otr.private_key"];
-		NSString	*fingerprintsPath = [destinationPath stringByAppendingPathComponent:@"otr.fingerprints"];
-
-		NSMutableString *privateKeys = [[NSString stringWithContentsOfUTF8File:privateKeyPath] mutableCopy];
-		[privateKeys replaceOccurrencesOfString:@"libgaim"
-									 withString:@"libpurple"
-										options:NSLiteralSearch
-										  range:NSMakeRange(0, [privateKeys length])];
-		[privateKeys writeToFile:privateKeyPath
-					  atomically:YES
-						encoding:NSUTF8StringEncoding
-						   error:NULL];
-		[privateKeys release];
-
-		NSMutableString *fingerprints = [[NSString stringWithContentsOfUTF8File:fingerprintsPath] mutableCopy];
-		[fingerprints replaceOccurrencesOfString:@"libgaim"
-									 withString:@"libpurple"
-										options:NSLiteralSearch
-										  range:NSMakeRange(0, [fingerprints length])];
-		[fingerprints writeToFile:fingerprintsPath
-					   atomically:YES
-						 encoding:NSUTF8StringEncoding
-							error:NULL];
-		[fingerprints release];
-
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
-											 forKey:@"Libgaim_to_Libpurple_Update"
-											  group:@"OTR"];
-	}
 }
 
 @end

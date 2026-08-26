@@ -143,12 +143,13 @@
 	if (!view) {
 		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
-		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
-		 * that reference over rather than retaining it again; it keeps the nib alive while we use
-		 * its controls, and -tearDown releases it. */
-		[nibView release];
+		/* The nib set the inherited 'view' outlet to its own top level view. The loader hands every
+		 * top level object one reference that belongs to nobody (see AIBundleAdditions.h) and the
+		 * ivar already holds its own, so the stray one is given up here, once. nibView then keeps
+		 * the nib alive while we use its controls, and -tearDown lets go. */
+		if (view) CFRelease((__bridge CFTypeRef)view);
 		nibView = view;
-		view = [[self buildSettingsForm] retain];
+		view = [self buildSettingsForm];
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -189,7 +190,7 @@
 {
 	/* No width of our own: the form falls back to a usable one and the preferences window hands it
 	 * its column width right afterwards. */
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:0.0f] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:0.0f];
 
 	/* The form lays everything out by frame, and a view out of a nib saved without Auto Layout
 	 * arrives with translatesAutoresizingMaskIntoConstraints turned off - the layout engine owns it
@@ -207,9 +208,8 @@
 	 * user saved, and only those - the built-in ones are deliberately not in here. */
 	[form addSectionHeader:AILocalizedString(@"Custom Statuses", "Section title above the list of statuses the user has saved")];
 
-	/* The list is the card: it fills it edge to edge and its height decides how tall the card is.
-	 * The form owns it from here on; listView_states is a non-retaining reference. */
-	listView_states = [[[AIStatusListView alloc] initWithStatusItems:[self statusItemsForList]] autorelease];
+	/* The list is the card: it fills it edge to edge and its height decides how tall the card is. */
+	listView_states = [[AIStatusListView alloc] initWithStatusItems:[self statusItemsForList]];
 	[listView_states setListDelegate:self];
 	[form addEdgeToEdgeRow:listView_states];
 
@@ -463,12 +463,11 @@
 	for (NSPopUpButton *popUp in [NSArray arrayWithObjects:
 								  popUp_autoAwayStatusState, popUp_fastUserSwitchingStatusState,
 								  popUp_screenSaverStatusState, popUp_insertToken, nil]) {
-		[popUp setMenu:[[[NSMenu alloc] initWithTitle:@""] autorelease]];
+		[popUp setMenu:[[NSMenu alloc] initWithTitle:@""]];
 	}
 
-	/* All of these references are non-retaining and the views behind them go away with the form,
-	 * which may be released after us; forget them so a second -tearDown cannot message freed
-	 * memory. */
+	/* The views behind these go away with the form, which may be released after us; forget them so
+	 * a second -tearDown cannot message a view nobody is holding any more. */
 	listView_states = nil;
 	button_addOrRemoveState = nil;
 	checkBox_idle = nil;
@@ -496,7 +495,7 @@
 	 * sent, and they hold for the whole launch. */
 	hasAskedPlayers = NO;
 
-	[nibView release]; nibView = nil;
+	nibView = nil;
 }
 
 /*!
@@ -505,7 +504,6 @@
 - (void)dealloc
 {
 	[self tearDown];
-	[super dealloc];
 }
 
 #pragma mark Status list and controls
@@ -524,10 +522,10 @@
 - (NSArray *)statusItemsForList
 {
 	NSArray			*originalStateArray = [[adium.statusController rootStateGroup] containedStatusItems];
-	NSMutableArray	*sortedItems = [[originalStateArray mutableCopy] autorelease];
+	NSMutableArray	*sortedItems = [originalStateArray mutableCopy];
 
 	//The original array's indexes are what keeps statuses of one kind in the order they were saved in
-	[AIStatusGroup sortArrayOfStatusItems:sortedItems context:originalStateArray];
+	[AIStatusGroup sortArrayOfStatusItems:sortedItems context:(__bridge void *)originalStateArray];
 
 	return sortedItems;
 }
@@ -593,7 +591,7 @@
 						stepper:(NSStepper *)stepper
 					  unitLabel:(NSTextField *)unitLabel
 {
-	NSNumberFormatter	*formatter = [[[NSNumberFormatter alloc] init] autorelease];
+	NSNumberFormatter	*formatter = [[NSNumberFormatter alloc] init];
 
 	/* Plain digits, and deliberately no minimum and no maximum. A formatter which rejects what
 	 * stands in the field refuses to let editing end, and with no
@@ -750,7 +748,7 @@
  */
 - (void)deleteStatus:(AIStatusItem *)statusItem
 {
-	NSAlert		*warning = [[[NSAlert alloc] init] autorelease];
+	NSAlert		*warning = [[NSAlert alloc] init];
 	NSWindow	*sheetParent = [[self view] window];
 
 	[warning setMessageText:AILocalizedString(@"Delete Status?", "Title of the confirmation before deleting a saved status")];
@@ -914,11 +912,11 @@
 
 	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedFastUserSwitchingStatus:)];
 	[self prependDoNotChangeItemToMenu:statusStatesMenu action:@selector(changedFastUserSwitchingStatus:)];
-	[popUp_fastUserSwitchingStatusState setMenu:[[statusStatesMenu copy] autorelease]];
+	[popUp_fastUserSwitchingStatusState setMenu:[statusStatesMenu copy]];
 
 	statusStatesMenu = [AIStatusMenu staticStatusStatesMenuNotifyingTarget:self selector:@selector(changedScreenSaverStatus:)];
 	[self prependDoNotChangeItemToMenu:statusStatesMenu action:@selector(changedScreenSaverStatus:)];
-	[popUp_screenSaverStatusState setMenu:[[statusStatesMenu copy] autorelease]];
+	[popUp_screenSaverStatusState setMenu:[statusStatesMenu copy]];
 
 	//Now select the proper state, or deselect all items if there is no chosen state or the chosen state doesn't exist
 	targetUniqueStatusIDNumber = [adium.preferenceController preferenceForKey:KEY_STATUS_AUTO_AWAY_STATUS_STATE_ID
@@ -948,9 +946,9 @@
  */
 - (void)prependDoNotChangeItemToMenu:(NSMenu *)menu action:(SEL)action
 {
-	NSMenuItem	*doNotChange = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Do not change","First entry of the menus choosing a status Adium sets on its own; it means: leave the status alone")
+	NSMenuItem	*doNotChange = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Do not change","First entry of the menus choosing a status Adium sets on its own; it means: leave the status alone")
 														  action:action
-												   keyEquivalent:@""] autorelease];
+												   keyEquivalent:@""];
 
 	[doNotChange setTarget:self];
 
@@ -1340,7 +1338,7 @@
  */
 - (NSTokenField *)formatTokenField
 {
-	NSTokenField *field = [[[NSTokenField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTokenField *field = [[NSTokenField alloc] initWithFrame:NSZeroRect];
 
 	[field setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
 	[field setDelegate:self];
@@ -1367,14 +1365,14 @@
  */
 - (NSPopUpButton *)insertTokenPopUpButton
 {
-	NSPopUpButton	*popUp = [[[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES] autorelease];
+	NSPopUpButton	*popUp = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES];
 
 	[popUp addItemWithTitle:AILocalizedString(@"Insert", nil)];
 
 	for (NSString *trigger in [self tokenTriggers]) {
-		NSMenuItem *item = [[[NSMenuItem alloc] initWithTitle:[self displayNameForTrigger:trigger]
+		NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:[self displayNameForTrigger:trigger]
 													  action:@selector(insertToken:)
-											   keyEquivalent:@""] autorelease];
+											   keyEquivalent:@""];
 
 		[item setTarget:self];
 		[item setRepresentedObject:trigger];
@@ -1458,7 +1456,7 @@
  */
 - (NSTextField *)previewField
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[field setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
 	[field setEditable:NO];
@@ -1600,7 +1598,7 @@
 		[textField_format validateEditing];
 	} else {
 		//No window to edit in; appending beats losing the token
-		NSMutableArray	*tokens = [[[textField_format objectValue] mutableCopy] autorelease];
+		NSMutableArray	*tokens = [[textField_format objectValue] mutableCopy];
 
 		if (!tokens) tokens = [NSMutableArray array];
 		[tokens addObject:token];

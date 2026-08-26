@@ -29,12 +29,12 @@
  * beside it is now one ordinary pop up row per scheme — there are two of them,
  * and a two row table was never worth its own height arithmetic.
  *
- * The controls below are owned by the view hierarchy, exactly as the nib's
- * outlets were; the ivars are unretained references to them. The scheme list and
- * the per-scheme cache are ours and are retained.
+ * The controls below live in the view hierarchy, exactly as the nib's outlets
+ * did; the ivars hold a reference of their own, which -viewWillClose gives up
+ * along with the scheme list and the per-scheme cache.
  */
 @interface AIURLHandlerAdvancedPreferences : AIAdvancedPreferencePane {
-	AISettingsFormView	*settingsForm;			//Our view, typed; unretained (-view owns it)
+	AISettingsFormView	*settingsForm;			//Our view, typed; -view holds it too
 
 	NSButton			*button_setDefault;
 	NSSwitch			*checkBox_enforceDefault;

@@ -87,9 +87,8 @@
 			NSMutableDictionary *mutableRecord = [record mutableCopy];
 			NSDictionary *reactions = [record objectForKey:KEY_REACTIONS];
 			if ([reactions isKindOfClass:[NSDictionary class]])
-				[mutableRecord setObject:[[reactions mutableCopy] autorelease] forKey:KEY_REACTIONS];
+				[mutableRecord setObject:[reactions mutableCopy] forKey:KEY_REACTIONS];
 			[states setObject:mutableRecord forKey:messageId];
-			[mutableRecord release];
 		}
 
 		/* Writes are collected for a few seconds, and quitting is exactly the
@@ -115,9 +114,6 @@
 {
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[states release];
-	[identities release];
-	[super dealloc];
 }
 
 /* A file written by a later version, or damaged, must not be able to send a

@@ -36,7 +36,7 @@
  */
 - (void)installPlugin
 {
-	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self submenuType:AIAccountOptionsSubmenu showTitleVerbs:YES] retain];
+	accountMenu = [AIAccountMenu accountMenuWithDelegate:self submenuType:AIAccountOptionsSubmenu showTitleVerbs:YES];
 }
 
 /*!
@@ -44,7 +44,7 @@
  */
 - (void)uninstallPlugin
 {
-	[accountMenu release];
+	accountMenu = nil;
 }
 
 /*!
@@ -69,8 +69,7 @@
     }
 	
 	//Remember the installed items so we can remove them later
-	[installedMenuItems release]; 
-	installedMenuItems = [menuItems retain];
+	installedMenuItems = menuItems;
 }
 - (void)accountMenu:(AIAccountMenu *)inAccountMenu didSelectAccount:(AIAccount *)inAccount {
 	[inAccount toggleOnline];
@@ -88,7 +87,7 @@
 																				action:@selector(connectAllAccounts:)
 																		 keyEquivalent:@"R"];
 	[menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
-	return [menuItem autorelease];
+	return menuItem;
 }
 
 /*!

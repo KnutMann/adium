@@ -81,7 +81,7 @@
 		AISettingsFormView	*form = [self buildSettingsForm];
 
 		settingsForm = form;
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -100,21 +100,13 @@
 /*!
  * @brief Undo everything -view built.
  *
- * -closeView releases the view and is idempotent; without it a deallocated pane
+ * -closeView lets go of the view and is idempotent; without it a deallocated pane
  * would leave the form's rows — and the KVO observations they register on their
- * controls — alive. The releases below are the ones -viewWillClose has already
- * done when the view was ever built; a release of nil costs nothing and covers
- * the pane which was never shown.
+ * controls — alive.
  */
 - (void)dealloc
 {
 	[self closeView];
-
-	[servicesList release];
-	[services release];
-	[popUpButtons release];
-
-	[super dealloc];
 }
 
 /*!
@@ -133,14 +125,13 @@
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:URL_HANDLER_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:URL_HANDLER_PANE_INITIAL_WIDTH];
 
 	/* The schemes decide how many rows there are, so the list is settled here and
 	 * not in -viewDidLoad: a card already on screen cannot grow a row. -uniqueSchemes
 	 * is a constant list, so there is nothing to re-read later either.
 	 */
-	[servicesList release];
-	servicesList = [[(AIURLHandlerPlugin *)plugin uniqueSchemes] retain];
+	servicesList = [(AIURLHandlerPlugin *)plugin uniqueSchemes];
 	[self initializeServiceInformationForSchemes:servicesList];
 
 	//Adium as the default, once and for all
@@ -173,7 +164,6 @@
 	if ([servicesList count]) {
 		[form addSectionHeader:AILocalizedString(@"Chat Links", "Section header above the choice of which application opens which kind of chat link")];
 
-		[popUpButtons release];
 		popUpButtons = [[NSMutableArray alloc] init];
 
 		for (NSString *scheme in servicesList) {
@@ -254,9 +244,9 @@
 	 * applications is worth asking LaunchServices for again the next time the pane
 	 * is opened anyway.
 	 */
-	[popUpButtons release]; popUpButtons = nil;
-	[services release]; services = nil;
-	[servicesList release]; servicesList = nil;
+	popUpButtons = nil;
+	services = nil;
+	servicesList = nil;
 
 	[super viewWillClose];
 }
@@ -374,7 +364,7 @@
 
 - (void)initializeServiceInformationForSchemes:(NSArray *)schemes
 {
-	[services release]; services = [[NSMutableDictionary alloc] init];
+	services = [[NSMutableDictionary alloc] init];
 
 	for (NSString *scheme in schemes) {
 		[services setObject:[NSMutableDictionary dictionary] forKey:scheme];
@@ -387,7 +377,7 @@
 	NSMenu					*menu = [servicesInformation objectForKey:@"applicationsMenu"];
 
 	if (!menu) {
-		menu = [[[NSMenu alloc] init] autorelease];
+		menu = [[NSMenu alloc] init];
 
 		for (NSDictionary *application in [self applicationDictionaryArrayForScheme:scheme]) {
 			NSMenuItem *menuItem = [menu addItemWithTitle:[application objectForKey:@"ApplicationName"]
@@ -491,7 +481,7 @@
 	 * is about, so the wider one is left as it is rather than guessing at which
 	 * roles the newer call keeps.
 	 */
-	return [(NSArray *)LSCopyApplicationURLsForURL((CFURLRef)url, kLSRolesAll) autorelease];
+	return (__bridge_transfer NSArray *)LSCopyApplicationURLsForURL((__bridge CFURLRef)url, kLSRolesAll);
 }
 
 /*!

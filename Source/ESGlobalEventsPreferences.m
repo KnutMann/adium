@@ -141,10 +141,8 @@ static NSString *AIRowLabel(NSString *label)
 	if (!view) {
 		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
-		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
-		 * that reference over rather than retaining it again; it keeps the nib alive while we use
-		 * its controls, and -tearDown releases it. */
-		[nibView release];
+		/* The nib set the inherited 'view' outlet to its own top level view. nibView takes it over;
+		 * it keeps the nib alive while we use its controls, and -tearDown lets go of it. */
 		nibView = view;
 		view = nil;
 
@@ -152,7 +150,7 @@ static NSString *AIRowLabel(NSString *label)
 		 * rows measure their buttons in the layout pass below. */
 		[self viewDidLoad];
 
-		view = [[self buildSettingsForm] retain];
+		view = [self buildSettingsForm];
 
 		[self localizePane];
 
@@ -182,7 +180,7 @@ static NSString *AIRowLabel(NSString *label)
 {
 	/* No width of our own: the form falls back to a usable one and the preferences window hands it
 	 * its column width right afterwards. */
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:0.0f] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:0.0f];
 
 	/* The form lays everything out by frame, and a view out of a nib saved without Auto Layout
 	 * arrives with translatesAutoresizingMaskIntoConstraints turned off. Every way into the form
@@ -293,7 +291,8 @@ static NSString *AIRowLabel(NSString *label)
 	const CGFloat	gap = 6.0f;
 	const CGFloat	sliderWidth = 200.0f;
 
-	struct { NSButton *button; NSString *symbol; } speakers[] = {
+	/* Borrowed, both of them: the buttons belong to the nib and the symbol names are literals. */
+	struct { __unsafe_unretained NSButton *button; __unsafe_unretained NSString *symbol; } speakers[] = {
 		{ button_minvolume, @"speaker.fill" },
 		{ button_maxvolume, @"speaker.wave.3.fill" },
 	};
@@ -317,7 +316,7 @@ static NSString *AIRowLabel(NSString *label)
 	NSRect		sliderFrame = [slider_volume frame];
 	CGFloat		height = ceil(fmax(NSHeight(sliderFrame), fmax(NSHeight(minFrame), NSHeight(maxFrame))));
 	CGFloat		width = NSWidth(minFrame) + gap + sliderWidth + gap + NSWidth(maxFrame);
-	NSView		*row = [[[NSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)] autorelease];
+	NSView		*row = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
 
 	for (NSView *view in [NSArray arrayWithObjects:button_minvolume, slider_volume, button_maxvolume, nil]) {
 		[view setTranslatesAutoresizingMaskIntoConstraints:YES];
@@ -357,11 +356,7 @@ static NSString *AIRowLabel(NSString *label)
 	outlineView_alerts = [contactAlertsViewController valueForKey:@"outlineView_summary"];
 
 	NSScrollView			*nibScrollView = [outlineView_alerts enclosingScrollView];
-	AIPassthroughScrollView	*scrollView = [[[AIPassthroughScrollView alloc] initWithFrame:[view_alertsHost bounds]] autorelease];
-
-	/* Held across the reparenting below: leaving the nib's clip view is what would otherwise
-	 * release the outline before the new scroll view owns it. */
-	[[outlineView_alerts retain] autorelease];
+	AIPassthroughScrollView	*scrollView = [[AIPassthroughScrollView alloc] initWithFrame:[view_alertsHost bounds]];
 
 	[scrollView setDocumentView:outlineView_alerts];
 	[nibScrollView removeFromSuperview];
@@ -512,12 +507,12 @@ static NSString *AIRowLabel(NSString *label)
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
 	[contactAlertsViewController viewWillClose];
-	[contactAlertsViewController release]; contactAlertsViewController = nil;
+	contactAlertsViewController = nil;
 
 	/* Every item of these menus carries our address as its target, so the menus go rather than
 	 * outlive us on a button the form has not released yet. */
 	for (NSPopUpButton *popUp in [NSArray arrayWithObjects:popUp_eventPreset, popUp_soundSet, nil]) {
-		[popUp setMenu:[[[NSMenu alloc] initWithTitle:@""] autorelease]];
+		[popUp setMenu:[[NSMenu alloc] initWithTitle:@""]];
 	}
 
 	//The nib wired these three to us; a control which outlives us must not still point at us
@@ -529,9 +524,9 @@ static NSString *AIRowLabel(NSString *label)
 	[popUp_notificationIconShape setTarget:nil];
 	popUp_notificationIconShape = nil;
 
-	/* All of these references are non-retaining and the views behind them go away with the form or
-	 * with the nib's view, either of which may be released after us; forget them so a second
-	 * -tearDown cannot message freed memory. */
+	/* The views behind all of these belong to the form or to the nib's view, either of which may be
+	 * released after us; forget them so a second -tearDown cannot message a view which is on its
+	 * way out. */
 	popUp_eventPreset = nil;
 	popUp_soundSet = nil;
 	label_eventPreset = nil;
@@ -542,7 +537,7 @@ static NSString *AIRowLabel(NSString *label)
 	view_alertsHost = nil;
 	outlineView_alerts = nil;
 
-	[nibView release]; nibView = nil;
+	nibView = nil;
 }
 
 /*!
@@ -554,7 +549,6 @@ static NSString *AIRowLabel(NSString *label)
 	[self closeView];
 	//...so tear down again for the pane which never showed itself. -tearDown is idempotent.
 	[self tearDown];
-	[super dealloc];
 }
 
 /*!
@@ -635,10 +629,10 @@ static NSString *AIRowLabel(NSString *label)
 		NSString		*name = [eventPreset objectForKey:@"Name"];
 
 		//Add a menu item for the set
-		menuItem = [[[NSMenuItem alloc] initWithTitle:[self _localizedTitle:name]
+		menuItem = [[NSMenuItem alloc] initWithTitle:[self _localizedTitle:name]
 																		 target:self
 																		 action:@selector(selectEventPreset:)
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[menuItem setRepresentedObject:eventPreset];
 		[eventPresetsMenu addItem:menuItem];
 	}
@@ -652,10 +646,10 @@ static NSString *AIRowLabel(NSString *label)
 			NSString		*name = [eventPreset objectForKey:@"Name"];
 
 			//Add a menu item for the set
-			menuItem = [[[NSMenuItem alloc] initWithTitle:name
+			menuItem = [[NSMenuItem alloc] initWithTitle:name
 																			 target:self
 																			 action:@selector(selectEventPreset:)
-																	  keyEquivalent:@""] autorelease];
+																	  keyEquivalent:@""];
 			[menuItem setRepresentedObject:eventPreset];
 			[eventPresetsMenu addItem:menuItem];
 		}
@@ -664,19 +658,19 @@ static NSString *AIRowLabel(NSString *label)
 	//Edit Presets
 	[eventPresetsMenu addItem:[NSMenuItem separatorItem]];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Preset",nil) stringByAppendingEllipsis]
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Preset",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(addNewPreset:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[eventPresetsMenu addItem:menuItem];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Presets",nil) stringByAppendingEllipsis]
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Presets",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(editPresets:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[eventPresetsMenu addItem:menuItem];
 
-	return [eventPresetsMenu autorelease];
+	return eventPresetsMenu;
 }
 
 - (void)selectActiveEventInPopUp
@@ -771,7 +765,7 @@ static NSString *AIRowLabel(NSString *label)
 - (NSArray *)renamePreset:(NSDictionary *)preset toName:(NSString *)newName inPresets:(NSArray *)presets renamedPreset:(id *)renamedPreset
 {
 	NSString				*oldPresetName = [preset objectForKey:@"Name"];
-	NSMutableDictionary		*newPreset = [[preset mutableCopy] autorelease];
+	NSMutableDictionary		*newPreset = [preset mutableCopy];
 	NSString				*localizedCurrentName = [self _localizedTitle:[adium.preferenceController preferenceForKey:KEY_ACTIVE_EVENT_SET
 																												   group:PREF_GROUP_EVENT_PRESETS]];
 	[newPreset setObject:newName
@@ -808,10 +802,7 @@ static NSString *AIRowLabel(NSString *label)
 	[plugin saveEventPreset:newEventPreset];
 
 	//Return the created duplicate by reference
-	if (duplicatePreset != NULL) *duplicatePreset = [[newEventPreset retain] autorelease];
-
-	//Cleanup
-	[newEventPreset release];
+	if (duplicatePreset != NULL) *duplicatePreset = newEventPreset;
 
 	//Return an updated presets array
 	return [plugin storedEventPresetsArray];
@@ -847,8 +838,7 @@ static NSString *AIRowLabel(NSString *label)
 
 	//Now save the new preset
 	[plugin saveEventPreset:newEventPreset];
-	if (presetAfterMove != NULL) *presetAfterMove = [[newEventPreset retain] autorelease];
-	[newEventPreset release];
+	if (presetAfterMove != NULL) *presetAfterMove = newEventPreset;
 
 	//Return an updated presets array
 	return [plugin storedEventPresetsArray];
@@ -967,7 +957,7 @@ static NSString *AIRowLabel(NSString *label)
 
 		//The completion handler arrives on a background queue; the alert belongs on the main thread
 		dispatch_async(dispatch_get_main_queue(), ^{
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 
 			[alert setAlertStyle:NSAlertStyleWarning];
 			[alert setMessageText:AILocalizedString(@"macOS is blocking Adium's notifications", "Title of the alert shown when notifications are switched on here while System Settings denies them")];
@@ -1044,7 +1034,7 @@ static NSString *AIRowLabel(NSString *label)
 - (NSMutableDictionary *)currentEventSetForSaving
 {
 	NSDictionary		*eventPreset = [[popUp_eventPreset selectedItem] representedObject];
-	NSMutableDictionary	*currentEventSetForSaving = [[eventPreset mutableCopy] autorelease];
+	NSMutableDictionary	*currentEventSetForSaving = [eventPreset mutableCopy];
 
 	//Set the sound set, which is just stored here for ease of preference pane display
 	NSString			*soundSetName = [[[popUp_soundSet selectedItem] representedObject] name];
@@ -1238,12 +1228,10 @@ static NSString *AIRowLabel(NSString *label)
 								   representedObject:soundSet];
 
 		if ([[menuItem title] isEqualToString:NONE]) {
-			[noneMenuItem release];
 			noneMenuItem = menuItem;
 
 		} else {
 			[menuItemArray addObject:menuItem];
-			[menuItem release];
 		}
 	}
 
@@ -1256,10 +1244,9 @@ static NSString *AIRowLabel(NSString *label)
 	if (noneMenuItem) {
 		[soundSetMenu addItem:[NSMenuItem separatorItem]];
 		[soundSetMenu addItem:noneMenuItem];
-		[noneMenuItem release];
 	}
 
-    return [soundSetMenu autorelease];
+    return soundSetMenu;
 }
 
 #pragma mark Common menu methods

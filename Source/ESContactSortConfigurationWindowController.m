@@ -34,7 +34,7 @@ static ESContactSortConfigurationWindowController   *sharedSortConfigInstance = 
 {
 	if ([controller configureSortWindowTitle]) {
 		if (!sharedSortConfigInstance) {
-			//Load the window controller if necessary. We retain ourselves, closing when our window closes.
+			//Load the window controller if necessary. The static owns it until its window closes.
 			sharedSortConfigInstance = [[self alloc] initWithWindowNibName:@"SortConfiguration"];
 			
 			//Remove those buttons we don't want.  removeFromSuperview will confuse the window, so just make them invisible.
@@ -50,8 +50,9 @@ static ESContactSortConfigurationWindowController   *sharedSortConfigInstance = 
 	} else {
 		//Configuring for a controller which has no configuration view...
 		if (sharedSortConfigInstance) {
+			//-windowWillClose: lets go of the static from inside the close
 			[sharedSortConfigInstance closeWindow:nil];
-			[sharedSortConfigInstance autorelease]; sharedSortConfigInstance = nil;
+			sharedSortConfigInstance = nil;
 		}
 	}
 	
@@ -97,7 +98,9 @@ static ESContactSortConfigurationWindowController   *sharedSortConfigInstance = 
 {
 	[super windowWillClose:sender];
 
-	[sharedSortConfigInstance autorelease]; sharedSortConfigInstance = nil;
+	//-close still talks to us after this returns; stay alive until the pool drains
+	CFAutorelease(CFBridgingRetain(sharedSortConfigInstance));
+	sharedSortConfigInstance = nil;
 }
 
 @end

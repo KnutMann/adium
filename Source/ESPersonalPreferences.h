@@ -28,9 +28,9 @@
  * only below all of that the ordinary card rows for what is left, the profile
  * contacts are shown and whether the picture is sent at all.
  *
- * Every control below is created by -buildSettingsForm and owned by that form
- * (which the inherited 'view' ivar retains), so the references here are
- * non-owning and are cleared again in -viewWillClose. There is no nib.
+ * Every control below is created by -buildSettingsForm and handed to that form
+ * (which the inherited 'view' ivar holds), so the references here are given up
+ * again in -viewWillClose. There is no nib.
  *
  * The pane is its own text delegate on purpose: the name field and the profile
  * view have no action to fall back on, and the preferences window only calls

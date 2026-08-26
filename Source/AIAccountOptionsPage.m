@@ -25,20 +25,11 @@
 - (id)initWithBuilder:(AIAccountPlanFormBuilder *)inBuilder card:(NSString *)inCardIdentifier
 {
 	if ((self = [super initWithNibName:nil bundle:nil])) {
-		builder = [inBuilder retain];
+		builder = inBuilder;
 		cardIdentifier = [inCardIdentifier copy];
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[builder release];
-	[form release];
-	[cardIdentifier release];
-
-	[super dealloc];
 }
 
 /*!

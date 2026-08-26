@@ -87,17 +87,17 @@
  *
  * Layout: [service icon] [name / status line] [switch] [info button], with a hairline separator
  * along the bottom edge. All subviews are owned by the view hierarchy; the properties below are
- * non-retaining references for convenience (manual retain/release).
+ * non-retaining references for convenience.
  */
 @interface AIAccountListCellView : NSTableCellView
-@property (nonatomic, assign) NSTextField		*statusField;
-@property (nonatomic, assign) NSImageView		*statusDot;
-@property (nonatomic, assign) NSImageView		*lockView;
-@property (nonatomic, assign) NSSwitch			*enabledSwitch;
-@property (nonatomic, assign) NSButton			*infoButton;
-@property (nonatomic, assign) NSBox				*separator;
-@property (nonatomic, retain) NSLayoutConstraint *lockWidthConstraint;
-@property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
+@property (nonatomic, unsafe_unretained) NSTextField	*statusField;
+@property (nonatomic, unsafe_unretained) NSImageView	*statusDot;
+@property (nonatomic, unsafe_unretained) NSImageView	*lockView;
+@property (nonatomic, unsafe_unretained) NSSwitch		*enabledSwitch;
+@property (nonatomic, unsafe_unretained) NSButton		*infoButton;
+@property (nonatomic, unsafe_unretained) NSBox			*separator;
+@property (nonatomic, strong) NSLayoutConstraint *lockWidthConstraint;
+@property (nonatomic, strong) NSLayoutConstraint *separatorTrailingConstraint;
 @property (nonatomic, assign) BOOL				 dimmed;
 /* Drawn behind the row while its context menu is open: with no selection, this is the only thing
  * which says which account "Remove Account..." is about to ask about. */
@@ -167,7 +167,7 @@ static void AIAddAccountToStatusMenu(NSMenu *menu, AIAccount *account)
 	for (NSMenuItem *menuItem in [menu itemArray]) {
 		if ([menuItem isSeparatorItem]) continue;
 
-		NSMutableDictionary	*info = [[[menuItem representedObject] mutableCopy] autorelease];
+		NSMutableDictionary	*info = [[menuItem representedObject] mutableCopy];
 
 		if (!info) info = [NSMutableDictionary dictionary];
 		[info setObject:account forKey:@"AIAccount"];
@@ -203,7 +203,7 @@ static NSMenuItem *AICustomStatusMenuItem(AIStatusType statusType, AIAccount *ac
 	[menuItem setTag:statusType];
 	[menuItem setRepresentedObject:[NSDictionary dictionaryWithObject:account forKey:@"AIAccount"]];
 
-	return [menuItem autorelease];
+	return menuItem;
 }
 
 /*!
@@ -293,7 +293,6 @@ static CGFloat AIAccountSwitchWidth(void)
 		NSSwitch *sizingSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
 		[sizingSwitch setControlSize:NSControlSizeSmall];
 		switchWidth = [sizingSwitch intrinsicContentSize].width;
-		[sizingSwitch release];
 
 		if (switchWidth <= 0.0f) switchWidth = 38.0f;
 	}
@@ -331,7 +330,7 @@ static NSImage *AIStatusDotImage(void)
 			[image setTemplate:YES];
 		}
 
-		dotImage = [image retain];
+		dotImage = image;
 	}
 
 	return dotImage;
@@ -342,7 +341,7 @@ static NSImage *AIStatusDotImage(void)
  */
 static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
-	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[label setEditable:NO];
@@ -366,7 +365,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setIdentifier:ACCOUNT_CELL_IDENTIFIER];
 
 		//Service icon
-		NSImageView *serviceIcon = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSImageView *serviceIcon = [[NSImageView alloc] initWithFrame:NSZeroRect];
 		[serviceIcon setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[serviceIcon setImageScaling:NSImageScaleProportionallyUpOrDown];
 		[serviceIcon setEditable:NO];
@@ -376,7 +375,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setImageView:serviceIcon];
 
 		//Container holding the two lines of text, vertically centered as a block
-		NSView *textContainer = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSView *textContainer = [[NSView alloc] initWithFrame:NSZeroRect];
 		[textContainer setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self addSubview:textContainer];
 
@@ -389,7 +388,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setTextField:nameField];
 
 		//Encryption indicator, shown right after the name
-		NSImageView *lockView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSImageView *lockView = [[NSImageView alloc] initWithFrame:NSZeroRect];
 		[lockView setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[lockView setImageScaling:NSImageScaleProportionallyDown];
 		[lockView setEditable:NO];
@@ -397,7 +396,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setLockView:lockView];
 
 		//Colored status dot; its meaning is spelled out by the status line right next to it
-		NSImageView *statusDot = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSImageView *statusDot = [[NSImageView alloc] initWithFrame:NSZeroRect];
 		[statusDot setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[statusDot setImageScaling:NSImageScaleProportionallyDown];
 		[statusDot setEditable:NO];
@@ -417,7 +416,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setStatusField:statusField];
 
 		//Enabled switch
-		NSSwitch *enabledSwitch = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+		NSSwitch *enabledSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
 		//System Settings uses the small switch, not the regular one
 		[enabledSwitch setControlSize:NSControlSizeSmall];
 		[enabledSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -441,7 +440,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setInfoButton:infoButton];
 
 		//Hairline separating this row from the next one
-		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
 		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[separator setBoxType:NSBoxSeparator];
 		[self addSubview:separator];
@@ -508,13 +507,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[_lockWidthConstraint release];
-	[_separatorTrailingConstraint release];
-	[super dealloc];
 }
 
 /*!
@@ -676,26 +668,29 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	if (!view) {
 		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
+		/* The loader hands every top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the strong outlet holds its own, so the stray one is
+		 * given up here, once. */
+		if (view) CFRelease((__bridge CFTypeRef)view);
 
-		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
-		 * that reference over rather than retaining it again; it keeps the nib alive while we use
-		 * its controls, and -tearDown releases it. */
-		[nibView release];
+		/* The nib set the inherited 'view' outlet to its own top level view. We hold on to it here
+		 * because the outlet is about to point somewhere else; it keeps the nib alive while we use
+		 * its controls, and -tearDown lets it go. */
 		nibView = view;
 
 		/* The form is no longer the pane's view but its first page. What the pane hands out is the
 		 * navigation controller's container, so that an account's own settings can slide in over the
 		 * list without the window having to know that anything moved. */
-		listForm = [[self buildSettingsForm] retain];
+		listForm = [self buildSettingsForm];
 
-		NSViewController *listPage = [[[NSViewController alloc] init] autorelease];
+		NSViewController *listPage = [[NSViewController alloc] init];
 		[listPage setView:listForm];
 
 		navigationController = [[AISettingsNavigationController alloc] init];
 		[navigationController setDelegate:self];
 		[navigationController setRootViewController:listPage];
 
-		view = [[navigationController view] retain];
+		view = [navigationController view];
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -713,7 +708,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	/* No width of our own: the form falls back to a usable one and the preferences window hands it
 	 * its column width right afterwards. */
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:0.0f] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:0.0f];
 
 	/* Row heights are measured against the table's width, so the table has to follow the width the
 	 * form gives the scroll view from the very first layout - the nib leaves it non-resizable. */
@@ -881,32 +876,31 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[tableView_accountList setAction:NULL];
 	[scrollView_accountList removeFromSuperview];
 
-	/* Both outlets are non-retaining and the views behind them go away with the form, which may be
-	 * released after us; forget them so a second -tearDown cannot message freed memory. */
+	/* The views behind both outlets belong to the form now, which may be released after us; let go
+	 * of them here so a second -tearDown has nothing left to touch. */
 	tableView_accountList = nil;
 	scrollView_accountList = nil;
 
-	[nibView release]; nibView = nil;
+	nibView = nil;
 
 	[detailPage tearDown];
-	[detailPage release]; detailPage = nil;
+	detailPage = nil;
 
 	[navigationController setDelegate:nil];
-	[navigationController release]; navigationController = nil;
-	[listForm release]; listForm = nil;
+	navigationController = nil;
+	listForm = nil;
 
-	[accountArray release]; accountArray = nil;
-	[requiredHeightDict release]; requiredHeightDict = nil;
+	accountArray = nil;
+	requiredHeightDict = nil;
 
 	// Cancel our auto-refreshing reconnect countdown.
 	[reconnectTimeUpdater invalidate];
-	[reconnectTimeUpdater release]; reconnectTimeUpdater = nil;
+	reconnectTimeUpdater = nil;
 }
 
 - (void)dealloc
 {
 	[self tearDown];
-	[super dealloc];
 }
 
 /*!
@@ -1028,7 +1022,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		return;
 
 	[detailPage tearDown];
-	[detailPage release];
 
 	detailPage = [[AIAccountSettingsPage alloc] initWithAccount:inAccount
 													 backTarget:self
@@ -1094,7 +1087,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[detailPage commit];
 		newAccountBeingCreated = nil;
 		[detailPage tearDown];
-		[detailPage release]; detailPage = nil;
+		detailPage = nil;
 	}
 
 	//The window draws the back arrow and the title, so it has to be told
@@ -1228,7 +1221,14 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 {
 	if (!inAccount) return;
 
-	[[inAccount confirmationDialogForAccountDeletion] beginSheetModalForWindow:[[self view] window]];
+	id<AIAccountControllerRemoveConfirmationDialog> dialog = [inAccount confirmationDialogForAccountDeletion];
+
+	/* The one reference the dialog was handed belongs to nobody here: -alertForAccountDeletion:didReturn:
+	 * gives it up when the sheet is answered. Counting references would hand it back at the end of this
+	 * method instead, so it is passed out of their reach first. */
+	(void)CFBridgingRetain(dialog);
+
+	[dialog beginSheetModalForWindow:[[self view] window]];
 }
 
 /*!
@@ -1291,11 +1291,11 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	}
 
 	//Replace the legacy cell based columns with a single, full width column
-	for (NSTableColumn *tableColumn in [[[tableView_accountList tableColumns] copy] autorelease]) {
+	for (NSTableColumn *tableColumn in [[tableView_accountList tableColumns] copy]) {
 		[tableView_accountList removeTableColumn:tableColumn];
 	}
 
-	NSTableColumn *accountColumn = [[[NSTableColumn alloc] initWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER] autorelease];
+	NSTableColumn *accountColumn = [[NSTableColumn alloc] initWithIdentifier:ACCOUNT_COLUMN_IDENTIFIER];
 	[accountColumn setResizingMask:NSTableColumnAutoresizingMask];
 	[accountColumn setEditable:NO];
 	[accountColumn setMinWidth:80.0f];
@@ -1355,7 +1355,6 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
     /* Update our list of accounts. This has to be a snapshot: the account controller hands out its
 	 * own mutable array, which would change underneath the table between a change to the account
 	 * list and the reload below. */
-    [accountArray release];
 	accountArray = [adium.accountController.accounts copy];
 
 	//Row heights have to be known before the table asks for them
@@ -1526,7 +1525,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 				lastStatusStateOfThisType.statusMessage = baseStatusState.statusMessage;
 			}
 
-			baseStatusState = [[lastStatusStateOfThisType retain] autorelease];
+			baseStatusState = lastStatusStateOfThisType;
 		}
 	}
 
@@ -1597,7 +1596,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 	if (!account) return nil;
 
-	NSMenu		*optionsMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*optionsMenu = [[NSMenu alloc] init];
 
 	//Set Status: the states and their "Custom..." items, and nothing else
 	NSMenuItem	*statusMenuItem = [optionsMenu addItemWithTitle:AILocalizedString(@"Set Status", "Used in the context menu for the accounts list for the sub menu to set status in.")
@@ -1633,7 +1632,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 
 		for (NSMenuItem *menuItem in accountActions) {
 			//Use copies of the menu items rather than moving the actual items, as we may want to use them again
-			[optionsMenu addItem:[[menuItem copy] autorelease]];
+			[optionsMenu addItem:[menuItem copy]];
 		}
 	}
 
@@ -1685,14 +1684,14 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	}
 
 	if (moreUpdatesNeeded && reconnectTimeUpdater == nil) {
-		reconnectTimeUpdater = [[NSTimer scheduledTimerWithTimeInterval:1.0
-																 target:self 
-															   selector:@selector(updateReconnectTime:) 
-															   userInfo:nil
-																repeats:YES] retain];
+		reconnectTimeUpdater = [NSTimer scheduledTimerWithTimeInterval:1.0
+																target:self
+															  selector:@selector(updateReconnectTime:)
+															  userInfo:nil
+															   repeats:YES];
 	} else if (!moreUpdatesNeeded && reconnectTimeUpdater != nil) {
 		[reconnectTimeUpdater invalidate];
-		[reconnectTimeUpdater release]; reconnectTimeUpdater = nil;
+		reconnectTimeUpdater = nil;
 	}
 }
 
@@ -1718,7 +1717,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		statusMessage = [[account valueForProperty:@"connectionProgressString"] stringByAppendingFormat:@" (%2.f%%)", [[account valueForProperty:@"connectionProgressPercent"] doubleValue]];
 	} else if ([account lastDisconnectionError] && ![account boolValueForProperty:@"isOnline"] && ![account boolValueForProperty:@"isConnecting"]) {
 		// If there's an error and we're not online and not connecting
-		NSMutableString *returnedMessage = [[[account lastDisconnectionError] mutableCopy] autorelease];
+		NSMutableString *returnedMessage = [[account lastDisconnectionError] mutableCopy];
 		
 		// Replace the LibPurple error prefixes
 		[returnedMessage replaceOccurrencesOfString:@"Could not establish a connection with the server:\n"
@@ -1998,10 +1997,10 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	static NSTextField	*statusSizingField = nil;
 
 	if (!nameSizingField) {
-		nameSizingField = [AIAccountListLabel(NAME_FONT_SIZE, [NSColor labelColor]) retain];
+		nameSizingField = AIAccountListLabel(NAME_FONT_SIZE, [NSColor labelColor]);
 		[[nameSizingField cell] setLineBreakMode:NSLineBreakByTruncatingTail];
 
-		statusSizingField = [AIAccountListLabel(STATUS_FONT_SIZE, [NSColor secondaryLabelColor]) retain];
+		statusSizingField = AIAccountListLabel(STATUS_FONT_SIZE, [NSColor secondaryLabelColor]);
 		[[statusSizingField cell] setLineBreakMode:NSLineBreakByWordWrapping];
 		[[statusSizingField cell] setWraps:YES];
 		[statusSizingField setMaximumNumberOfLines:0];
@@ -2100,7 +2099,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	 * laid out at before anything is measured against it */
 	[self synchronizeAccountColumnWidth];
 
-	[requiredHeightDict release]; requiredHeightDict = [[NSMutableDictionary alloc] init];
+	requiredHeightDict = [[NSMutableDictionary alloc] init];
 
 	for (accountNumber = 0; accountNumber < [accountArray count]; accountNumber++) {
 		[self calculateHeightForRow:accountNumber];
@@ -2155,9 +2154,9 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 																						    owner:self];
 
 	if (![cellView isKindOfClass:[AIAccountListCellView class]]) {
-		cellView = [[[AIAccountListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																			NSWidth([tableView bounds]),
-																			MINIMUM_ROW_HEIGHT)] autorelease];
+		cellView = [[AIAccountListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																		   NSWidth([tableView bounds]),
+																		   MINIMUM_ROW_HEIGHT)];
 	}
 
 	[self configureCellView:cellView forRow:row];

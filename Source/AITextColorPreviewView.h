@@ -16,13 +16,14 @@
 
 @interface AITextColorPreviewView : NSView {
 
-	IBOutlet	NSButton		*textColorEnabled;
-	IBOutlet	NSColorWell		*textColor;
-	IBOutlet	NSButton		*textShadowColorEnabled;
-	IBOutlet	NSColorWell		*textShadowColor;
-	IBOutlet	NSButton		*backgroundEnabled;
-	IBOutlet	NSColorWell		*backgroundColor;
-	IBOutlet	NSColorWell		*backgroundGradientColor;
+	//The wells and checkboxes we read are our siblings in the nib; they outlive us and are never ours
+	IBOutlet	__unsafe_unretained NSButton	*textColorEnabled;
+	IBOutlet	__unsafe_unretained NSColorWell	*textColor;
+	IBOutlet	__unsafe_unretained NSButton	*textShadowColorEnabled;
+	IBOutlet	__unsafe_unretained NSColorWell	*textShadowColor;
+	IBOutlet	__unsafe_unretained NSButton	*backgroundEnabled;
+	IBOutlet	__unsafe_unretained NSColorWell	*backgroundColor;
+	IBOutlet	__unsafe_unretained NSColorWell	*backgroundGradientColor;
 
 	NSColor		*backColorOverride;
 }

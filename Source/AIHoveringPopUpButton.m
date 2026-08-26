@@ -64,7 +64,7 @@
 {
 	AIHoveringPopUpButton	*newButton = [[[self class] allocWithZone:zone] initWithFrame:[self frame]];
 	
-	[newButton setMenu:[[[self menu] copy] autorelease]];
+	[newButton setMenu:[[self menu] copy]];
 	
 	return newButton;
 }
@@ -88,8 +88,6 @@
 		[self removeTrackingRect:trackingTag];
 		trackingTag = -1;
 	}
-	
-	[super dealloc];
 }
 
 //Mouse Tracking -------------------------------------------------------------------------------------------------------
@@ -99,8 +97,12 @@
 {
 	if (![self menu]) {
 		if (doubleAction && (([theEvent clickCount] % 2) == 0)) {
+			/* A target/action pair, which returns nothing that could leak. */
+			#pragma clang diagnostic push
+			#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 			[[self target] performSelector:doubleAction
 								withObject:self];
+			#pragma clang diagnostic pop
 		} else {
 			[super mouseDown:theEvent];
 		}
@@ -275,9 +277,9 @@
 
 		trackingTag = [self addTrackingRect:trackRect owner:self userData:nil assumeInside:mouseInside];
 		if (mouseInside) {
-			[self mouseEntered:[[[NSEvent alloc] init] autorelease]];
+			[self mouseEntered:[[NSEvent alloc] init]];
 		} else {
-			[self mouseExited:[[[NSEvent alloc] init] autorelease]];
+			[self mouseExited:[[NSEvent alloc] init]];
 		}
 	}
 }

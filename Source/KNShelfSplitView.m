@@ -90,7 +90,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 		
 		drawLine = YES;
 		
-		background = [[NSImage imageNamed:@"sourceListBackground" forClass:[self class]] retain];
+		background = [NSImage imageNamed:@"sourceListBackground" forClass:[self class]];
 		backgroundSize = [background size];
 
 		[self setDelegate: nil];
@@ -103,16 +103,6 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 	return self;
 }
 
-
--(void)dealloc{
-	if( autosaveName ){ [autosaveName release]; }
-	if( contextButtonImage ){ [contextButtonImage release]; }
-	if( actionButtonImage ){ [actionButtonImage release]; }
-	if( shelfBackgroundColor ){ [shelfBackgroundColor release]; }
-	if( background ){ [background release]; }
-
-	[super dealloc];
-}
 
 -(void)setDelegate:(id)aDelegate{
 	delegate = aDelegate;
@@ -263,10 +253,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 }
 
 -(void)setAutosaveName:(NSString *)aName{
-	if( autosaveName ){
-		[autosaveName autorelease];
-	}
-	autosaveName = [aName retain];
+	autosaveName = aName;
 }
 
 -(NSString *)autosaveName{
@@ -349,11 +336,10 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 -(void)setShelfIsVisible:(BOOL)visible{
 	if( shelfView ){
 		if( isShelfVisible && !visible ){
-			[shelfView retain];
+			//The ivar is what keeps it alive while it has no superview
 			[shelfView removeFromSuperview];
 		} else if( !isShelfVisible && visible ){
 			[self addSubview: shelfView];
-			[shelfView release];
 		}
 	}
 
@@ -362,12 +348,8 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 }
 
 -(void)setActionButtonImage:(NSImage *)anImage{
-	if( actionButtonImage ){
-		[actionButtonImage autorelease];
-	}
-	
-	actionButtonImage = [anImage retain];
-	
+	actionButtonImage = anImage;
+
 	[self setNeedsDisplayInRect: controlRect];
 }
 
@@ -376,12 +358,8 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 }
 
 -(void)setContextButtonImage:(NSImage *)anImage{
-	if( contextButtonImage ){
-		[contextButtonImage autorelease];
-	}
-	
-	contextButtonImage = [anImage retain];
-	
+	contextButtonImage = anImage;
+
 	[self setNeedsDisplayInRect: controlRect];
 }
 
@@ -390,11 +368,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 }
 
 -(void)setShelfBackgroundColor:(NSColor *)aColor{
-	if( shelfBackgroundColor ){
-		[shelfBackgroundColor autorelease];
-	}
-	
-	shelfBackgroundColor = [aColor retain];
+	shelfBackgroundColor = aColor;
 	[self setNeedsDisplay: YES];
 }
 
@@ -518,7 +492,11 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 						if( (activeControlPart == CONTROL_PART_ACTION_BUTTON) && NSPointInRect( currentLocation, actionButtonRect ) ){
 							// trigger an action
 							if( target && action && [target respondsToSelector:action]){
+								/* The selector names a void action method; no returned object to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 								[target performSelector: action withObject: self];
+#pragma clang diagnostic pop
 							}
 						}					
 						stillMouseDown = NO;
@@ -714,7 +692,6 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 - (void)setResizeThumbStringValue:(NSString *)inString
 {
 	if (!(attributedStringValue && [inString isEqualToString:[attributedStringValue string]])) {		
-		if(attributedStringValue) [attributedStringValue release];
 		if (inString) {
 			NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:
 				[NSParagraphStyle styleWithAlignment:NSTextAlignmentLeft

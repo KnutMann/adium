@@ -18,25 +18,11 @@
 
 @implementation AIMessageTabSplitView
 
-- (void)dealloc
-{
-	[leftColor release];
-	[rightColor release];
-	[super dealloc];
-}
-
 - (void)setLeftColor:(NSColor *)inLeftColor rightColor:(NSColor *)inRightColor
 {
-	if (leftColor != inLeftColor) {
-		[leftColor release];
-		leftColor = [inLeftColor retain];
-	}
+	leftColor = inLeftColor;
+	rightColor = inRightColor;
 
-	if (rightColor != inRightColor) {
-		[rightColor release];
-		rightColor = [inRightColor retain];
-	}
-	
 	[self setNeedsDisplay:YES];
 }
 
@@ -54,7 +40,6 @@
 		 * everything the split view covers, so any part of it a subview did not reach, and there is
 		 * always some, came out as a grey band. */
 		[gradient drawInRect:aRect angle:90.0];
-		[gradient release];
 		NSBezierPath *line = nil;
 		
 		if (position == AIMessageSplitTabPositionLeft) {

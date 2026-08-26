@@ -63,15 +63,11 @@
 																				 action:@selector(restoreDefaultFormat:)
 																		  keyEquivalent:@""];
 	[adium.menuController addMenuItem:menuItem toLocation:LOC_Format_Additions];
-	[menuItem release];
 }
 
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[_defaultAttributes release]; _defaultAttributes = nil;
-	
-	[super dealloc];
 }
 
 /*!
@@ -100,7 +96,7 @@
 		 * white, the stored black suddenly counted as a deliberate choice, and every
 		 * line was typed in explicit black on a dark entry view.
 		 */
-		_defaultAttributes = [[NSMutableDictionary dictionaryWithObject:font forKey:NSFontAttributeName] retain];
+		_defaultAttributes = [NSMutableDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
 		if (textColor && ![textColor equalToRGBColor:[NSColor blackColor]]) {
 			[_defaultAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
 		}
@@ -119,7 +115,6 @@
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key object:(AIListObject *)object
 					preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime
 {
-	[_defaultAttributes release];
 	_defaultAttributes = nil;
 }
 

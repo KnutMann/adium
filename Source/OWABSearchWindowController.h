@@ -31,8 +31,10 @@
 	NSButton			*selectButton;
 	NSButton			*cancelButton;
 
-	NSWindow			*carryingWindow;
-	id					delegate;
+	//Both point back out of the sheet at things which outlive it, so neither is owned here
+	__unsafe_unretained NSWindow	*carryingWindow;
+	__unsafe_unretained id			delegate;
+
 	AIAddressBookPerson	*person;
 	AIService			*service;
 

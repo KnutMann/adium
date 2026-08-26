@@ -50,7 +50,7 @@
  * code, so nothing here is ever connected by Interface Builder.
  */
 @interface AIMentionAdvancedPreferences : AIAdvancedPreferencePane <NSTableViewDataSource, NSTableViewDelegate, NSTextFieldDelegate> {
-	AISettingsFormView		*settingsForm;		//Our view, typed; unretained (-view owns it)
+	__unsafe_unretained AISettingsFormView	*settingsForm;	//Our view, typed; unretained (-view owns it)
 
 	AIPassthroughScrollView	*scrollView;		//The list's container; retained (the form holds its own reference)
 	NSTableView				*tableView;			//Owned by the scroll view, which is its document view's owner

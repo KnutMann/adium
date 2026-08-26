@@ -47,7 +47,7 @@
 																forClass:[self class]] 
 	                              forGroup:PREF_GROUP_APPEARANCE];
 
-	preferences = [(AIAppearancePreferences *)[AIAppearancePreferences preferencePaneForPlugin:self] retain];	
+	preferences = (AIAppearancePreferences *)[AIAppearancePreferences preferencePaneForPlugin:self];
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(invalidStatusSetActivated:)
@@ -219,7 +219,7 @@
 		
 		return YES;
 	} else {
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:AILocalizedString(@"Error Saving Theme",nil)];
 		[alert setInformativeText:[NSString stringWithFormat:AILocalizedString(@"Unable to write file %@ to %@",nil), fileName, path]];
 		[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
@@ -293,7 +293,8 @@ NSInteger availableSetSort(NSDictionary *objectA, NSDictionary *objectB, void *c
 	NSMutableArray	*setArray = [NSMutableArray array];
 	NSMutableSet	*alreadyAddedArray = [NSMutableSet set];
 	
-    for (NSString *filePath in [adium allResourcesForName:folder withExtensions:extension]) {
+    for (NSString *resourcePath in [adium allResourcesForName:folder withExtensions:extension]) {
+		NSString		*filePath = resourcePath;
 		NSString		*name;
 		NSBundle		*xtraBundle;
 		NSDictionary 	*themeDict;

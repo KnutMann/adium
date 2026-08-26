@@ -56,18 +56,6 @@ static	NSMutableDictionary		*globalOnlyEventHandlersByGroup[EVENT_HANDLER_GROUP_
 	
 }
 
-/*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[globalOnlyEventHandlers release]; globalOnlyEventHandlers = nil;
-	[eventHandlers release]; eventHandlers = nil;
-	[actionHandlers release]; actionHandlers = nil;
-	
-	[super dealloc];
-}
-
 
 //Events ---------------------------------------------------------------------------------------------------------------
 #pragma mark Events
@@ -145,8 +133,8 @@ static	NSMutableDictionary		*globalOnlyEventHandlersByGroup[EVENT_HANDLER_GROUP_
 	for (NSMenuItem *item in [self arrayOfMenuItemsForEventsWithTarget:target forGlobalMenu:global]) {
 		[menu addItem:item];
 	}
-	
-	return [menu autorelease];
+
+	return menu;
 }
 
 - (NSArray *)arrayOfMenuItemsForEventsWithTarget:(id)target forGlobalMenu:(BOOL)global
@@ -205,7 +193,6 @@ static	NSMutableDictionary		*globalOnlyEventHandlersByGroup[EVENT_HANDLER_GROUP_
 																 keyEquivalent:@""];
         [menuItem setRepresentedObject:eventID];
 		[menuItemArray addObject:menuItem];
-		[menuItem release];
     }
 }
 
@@ -292,7 +279,7 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 	
 	if (alerts && [alerts count]) {
 		performedActionIDs = (previouslyPerformedActionIDs ?
-							  [[previouslyPerformedActionIDs mutableCopy] autorelease]:
+							  [previouslyPerformedActionIDs mutableCopy]:
 							  [NSMutableSet set]);
 		
 		//We go from contact->group->root; a given action will only fire once for this event
@@ -539,9 +526,8 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 																 keyEquivalent:@""];
         [menuItem setRepresentedObject:actionID];
 		[menuItem setImage:[[actionHandler imageForActionID:actionID] imageByScalingForMenuItem]];
-		
+
         [menuItemArray addObject:menuItem];
-		[menuItem release];
     }
 
 	//Sort the array of menuItems alphabetically by title	
@@ -550,11 +536,9 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 	for (NSMenuItem	*menuItem in menuItemArray) {
 		[menu addItem:menuItem];
 	}
-	
-	[menuItemArray release];
 
-	return [menu autorelease];
-}	
+	return menu;
+}
 
 /*!
  * @brief Return the default action ID for a new alert
@@ -667,13 +651,9 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 											  group:PREF_GROUP_CONTACT_ALERTS];
 		[adium.preferenceController setPreference:[newAlert objectForKey:KEY_ACTION_ID]
 											 forKey:KEY_DEFAULT_ACTION_ID
-											  group:PREF_GROUP_CONTACT_ALERTS];	
+											  group:PREF_GROUP_CONTACT_ALERTS];
 	}
-	
-	//Cleanup
-	[contactAlerts release];
-	[eventArray release];
-	
+
 	[adium.preferenceController delayPreferenceChangedNotifications:NO];
 }
 
@@ -717,8 +697,6 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 										 forKey:KEY_CONTACT_ALERTS
 										  group:PREF_GROUP_CONTACT_ALERTS
 										 object:listObject];
-	[eventArray release];
-	[contactAlerts release];
 }
 
 /*!
@@ -766,18 +744,14 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 			if ([newEventArray count]) {
 				[newContactAlerts setObject:newEventArray forKey:victimEventID];
 			} else {
-				[newContactAlerts removeObjectForKey:victimEventID];	
+				[newContactAlerts removeObjectForKey:victimEventID];
 			}
-			
-			//Clean up
-			[newEventArray release];
 		}
 	}
-	
+
 	[adium.preferenceController setPreference:newContactAlerts
 										 forKey:KEY_CONTACT_ALERTS
 										  group:PREF_GROUP_CONTACT_ALERTS];
-	[newContactAlerts release];
 }
 
 /*!
@@ -813,7 +787,6 @@ NSInteger eventIDSort(id objectA, id objectB, void *context) {
 										 forKey:KEY_CONTACT_ALERTS
 										  group:PREF_GROUP_CONTACT_ALERTS
 										 object:nil];
-	[contactAlerts release];
 
 	[adium.preferenceController delayPreferenceChangedNotifications:NO];
 	

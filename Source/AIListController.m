@@ -120,15 +120,11 @@
 	//Stop observing
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[adium.preferenceController unregisterPreferenceObserver:self];
-
-	[self autorelease];
 }
 
 - (void)dealloc
 {
 	[contactListView removeObserver:self forKeyPath:@"desiredHeight"];
-	
-	[super dealloc];
 }
 
 
@@ -705,7 +701,7 @@
 			}
 			
 			//We will release this when the drag is completed
-			dragItems = [arrayOfDragItems retain];
+			dragItems = arrayOfDragItems;
 		}		
 		
 		[[AIContactObserverManager sharedManager] delayListObjectNotifications];
@@ -814,20 +810,18 @@
 				files = [[info draggingPasteboard] filesFromITunesDragPasteboard];
 			}
 
-			NSMutableAttributedString *mutableString = [[[NSMutableAttributedString alloc] initWithString:@""] autorelease];
-			
+			NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:@""];
+
 			for (file in files) {
 				AITextAttachmentExtension   *attachment = [[AITextAttachmentExtension alloc] init];
 				[attachment setPath:file];
 				[attachment setString:[file lastPathComponent]];
-				
+
 				NSTextAttachmentCell		*cell = [[NSTextAttachmentCell alloc] initImageCell:[attachment iconImage]];
 				[attachment setHasAlternate:NO];
 				[attachment setAttachmentCell:cell];
-				[cell release];
-				
+
 				[mutableString appendAttributedString:[NSAttributedString attributedStringWithAttachment:attachment]];
-				[attachment release];
 			}
 		
 			AIChat *chat = [adium.chatController openChatWithContact:(AIListContact *)(item.listObject)
@@ -893,7 +887,7 @@
 	for (AIListContact *listContact in [items arrayByAddingObject:inContact]) {
 		// Make sure all of the items can join the contact.
 		if (!listContact.canJoinMetaContacts) {
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"Unable to Combine", nil)];
 			[alert setInformativeText:[NSString stringWithFormat:
 									   AILocalizedString(@"%@ is not able to be combined into a meta contact.", nil),
@@ -920,7 +914,7 @@
 								inContact, @"destinationListContact",
 								items, @"dragitems", nil];
 	
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setAlertStyle:NSAlertStyleInformational];
 	[alert setMessageText:promptTitle];
 	[alert setInformativeText:AILocalizedString(@"Once combined, Adium will treat these contacts as a single individual both on your contact list and when sending messages.\n\nYou may un-combine these contacts by getting info on the combined contact.","Explanation of metacontact creation")];

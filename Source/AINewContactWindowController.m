@@ -59,8 +59,16 @@
  */
 @implementation AINewContactWindowController
 
+/* The ownership home of every shown window. -showOnWindow: consumes the caller's reference (see
+ * the header), so what keeps a shown controller alive is its place in this set; both exits leave
+ * it. The same design as ESTextAndButtonsWindowController. */
+static NSMutableSet *openNewContactWindows = nil;
+
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
+	if (!openNewContactWindows) openNewContactWindows = [[NSMutableSet alloc] init];
+	[openNewContactWindows addObject:self];
+
 	if (parentWindow) {
 		[parentWindow makeKeyAndOrderFront:nil];
 		
@@ -85,9 +93,9 @@
 - (id)initWithContactName:(NSString *)inName service:(AIService *)inService account:(AIAccount *)inAccount
 {
     if ((self = [super initWithWindowNibName:ADD_CONTACT_PROMPT_NIB])) {
-		service = [inService retain];
-		initialAccount = [inAccount retain];
-		contactName = [inName retain];
+		service = inService;
+		initialAccount = inAccount;
+		contactName = inName;
 		person = nil;
 	}
 	
@@ -101,17 +109,6 @@
 {
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
-	[accounts release];
-	[contactName release];
-	[service release];
-	[initialAccount release];
-	[person release];
-	[checkedAccounts release];
-
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[super dealloc];
 }
 
 /*!
@@ -155,8 +152,14 @@
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openNewContactWindows removeObject:self];
 }
 
 /*!
@@ -165,8 +168,14 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
     [sheet orderOut:nil];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openNewContactWindows removeObject:self];
 }
 
 /*!
@@ -240,8 +249,10 @@
 - (IBAction)searchInAB:(id)sender
 {
 	OWABSearchWindowController *abSearchWindow;
-	abSearchWindow = [[OWABSearchWindowController promptForNewPersonSearchOnWindow:[self window]
-																	initialService:service] retain];
+	abSearchWindow = [OWABSearchWindowController promptForNewPersonSearchOnWindow:[self window]
+																   initialService:service];
+	/* Held until the search window reports back, where the reference is given up again. */
+	CFRetain((__bridge CFTypeRef)abSearchWindow);
 	[abSearchWindow setDelegate:self];
 }
 
@@ -268,14 +279,14 @@
 			[self selectServiceType:nil];
 		}
 		
-		[person release];
-		person = [selectedPerson retain];
-		
+		person = selectedPerson;
+
 		[self configureControlDimming];
 	}
-	
-	//Clean up
-	[controller release];
+
+	/* The reference taken in -searchInAB:, surrendered to the pool rather than dropped on the
+	 * spot, since the controller is the one calling us. */
+	CFAutorelease((__bridge CFTypeRef)controller);
 }
 
 - (void)controlTextDidChange:(NSNotification *)aNotification
@@ -362,10 +373,7 @@
  */
 - (void)_setServiceType:(AIService *)inService
 {
-	if (inService != service) {
-		[service release];
-		service = [inService retain];
-	}
+	service = inService;
 }
 
 /*
@@ -484,10 +492,8 @@
  */
 - (void)updateAccountList
 {	
-	[accounts release];
-	accounts = [[adium.accountController accountsCompatibleWithService:service] retain];
-	
-	[checkedAccounts release];
+	accounts = [adium.accountController accountsCompatibleWithService:service];
+
 	checkedAccounts = [[NSMutableSet alloc] init];
 
 	if (initialAccount && [accounts containsObject:initialAccount]) {

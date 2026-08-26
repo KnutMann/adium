@@ -2,8 +2,13 @@
  * injected into a content world, message-body spans appended to #Chat, then the
  * resulting DOM read back. The preamble comes from AIJSXtrasPreamble.h, the
  * same constant the app injects, so this harness cannot drift into testing a
- * stale copy of the contract. Argv: <plugin.js> then pairs of
- * <inputHTML> <expectSubstring|!expectAbsentSubstring>. */
+ * stale copy of the contract. Argv: [--settings <json>] <plugin.js> then pairs
+ * of <inputHTML> <expectSubstring|!expectAbsentSubstring>.
+ *
+ * With --settings, the blob is built by the app's own AIJSXtrasSettingsScript
+ * and injected ahead of the preamble, exactly as AIJSXtrasManager does it: the
+ * harness must not own a second, kinder way of turning data into source, or it
+ * stops testing the injection the app performs. */
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
@@ -15,12 +20,16 @@
 	NSArray *_cases;   // array of @[inputHTML, assertion]
 	int _fails;
 }
-- (instancetype)initWithPluginSource:(NSString *)pluginSource cases:(NSArray *)cases {
+- (instancetype)initWithPluginSource:(NSString *)pluginSource settings:(NSDictionary *)settings cases:(NSArray *)cases {
 	if ((self = [super init])) {
 		_cases = cases;
 		WKWebViewConfiguration *cfg = [[WKWebViewConfiguration alloc] init];
 		WKUserContentController *ucc = [[WKUserContentController alloc] init];
 		WKContentWorld *world = [WKContentWorld worldWithName:@"test"];
+		NSString *settingsScript = AIJSXtrasSettingsScript(settings);
+		if ([settings count] && !settingsScript) { printf("FAIL: settings could not be serialized\n"); exit(1); }
+		if (settingsScript)
+			[ucc addUserScript:[[WKUserScript alloc] initWithSource:settingsScript injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES inContentWorld:world]];
 		[ucc addUserScript:[[WKUserScript alloc] initWithSource:AIJSXtrasPreamble injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES inContentWorld:world]];
 		[ucc addUserScript:[[WKUserScript alloc] initWithSource:pluginSource injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES inContentWorld:world]];
 		cfg.userContentController = ucc;
@@ -47,7 +56,11 @@
 		[self jsLiteral:input]];
 	[_web evaluateJavaScript:appendJS completionHandler:^(id r, NSError *e) {
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			[_web evaluateJavaScript:@"document.getElementById('Chat').lastChild.outerHTML" completionHandler:^(id html, NSError *e2) {
+			/* The head as well as the message: a plugin whose entire output is a <style>
+			 * - Read Receipts, Reaction Chips - puts nothing into #Chat at all, and until
+			 * the stylesheet was read back neither could be asserted on. The cost is that a
+			 * needle can now match inside a stylesheet when it was meant for the message. */
+			[_web evaluateJavaScript:@"document.getElementById('Chat').lastChild.outerHTML + '\\n<!--head-->\\n' + document.head.innerHTML" completionHandler:^(id html, NSError *e2) {
 				NSString *out = [html isKindOfClass:[NSString class]] ? html : @"";
 				BOOL want = [assertion hasPrefix:@"+"];
 				NSString *needle = [assertion substringFromIndex:1];
@@ -71,12 +84,22 @@
 int main(int argc, char *argv[]) {
 	@autoreleasepool {
 		[NSApplication sharedApplication];
-		NSString *pluginPath = [NSString stringWithUTF8String:argv[1]];
+		int arg = 1;
+		NSDictionary *settings = nil;
+
+		if (argc > 2 && strcmp(argv[arg], "--settings") == 0) {
+			NSData *json = [[NSString stringWithUTF8String:argv[arg + 1]] dataUsingEncoding:NSUTF8StringEncoding];
+			settings = [NSJSONSerialization JSONObjectWithData:json options:0 error:NULL];
+			if (![settings isKindOfClass:[NSDictionary class]]) { printf("FAIL: --settings is not an object\n"); return 1; }
+			arg += 2;
+		}
+
+		NSString *pluginPath = [NSString stringWithUTF8String:argv[arg++]];
 		NSString *src = [NSString stringWithContentsOfFile:pluginPath encoding:NSUTF8StringEncoding error:NULL];
 		NSMutableArray *cases = [NSMutableArray array];
-		for (int i = 2; i + 1 < argc; i += 2)
+		for (int i = arg; i + 1 < argc; i += 2)
 			[cases addObject:@[[NSString stringWithUTF8String:argv[i]], [NSString stringWithUTF8String:argv[i+1]]]];
-		Runner *r = [[Runner alloc] initWithPluginSource:src cases:cases];
+		Runner *r = [[Runner alloc] initWithPluginSource:src settings:settings cases:cases];
 		(void)r;
 		[[NSRunLoop currentRunLoop] run];
 	}

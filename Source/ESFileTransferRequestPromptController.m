@@ -41,9 +41,11 @@
 									 notifyingTarget:(id)inTarget
 											selector:(SEL)inSelector
 {	
-	[[[self alloc] initForFileTransfer:inFileTransfer
-					   notifyingTarget:inTarget
-							  selector:inSelector] autorelease];
+	/* No one holds the result here: -init hands the prompt to the file transfer, which is its
+	 * owner from then until it is answered. */
+	(void)[[self alloc] initForFileTransfer:inFileTransfer
+							notifyingTarget:inTarget
+								   selector:inSelector];
 }
 
 - (id)initForFileTransfer:(ESFileTransfer *)inFileTransfer
@@ -51,8 +53,8 @@
 				 selector:(SEL)inSelector
 {
 	if ((self = [super init])) {
-		fileTransfer = [inFileTransfer retain];
-		target       = [inTarget retain];
+		fileTransfer = inFileTransfer;
+		target       = inTarget;
 		selector     =  inSelector;
 		
 		[fileTransfer setFileTransferRequestPromptController:self];
@@ -66,26 +68,20 @@
 	return self;
 }
 
-- (void)dealloc
-{
-	[fileTransfer release];
-	[target release];
-
-	[super dealloc];
-}
-
 /*!
  * @brief The user did something with the file transfer request
  */
 - (void)handleFileTransferAction:(AIFileTransferAction)action
 {
-	[self retain];
+	/* Both of these can be taken away in the middle of this method: the transfer holds the only
+	 * reference to us and gives it up below, and the transfer itself can be stopped from the other
+	 * side while the save panel is on screen. Held here for as long as the method runs. */
+	CFTypeRef	selfRef = CFBridgingRetain(self);
+	CFTypeRef	fileTransferRef = CFBridgingRetain(fileTransfer);
 
 	NSString	*localFilename = [[adium.preferenceController userPreferredDownloadFolder] stringByAppendingPathComponent:[fileTransfer remoteFilename]];;
 	BOOL		finished = NO;
-	
-	[fileTransfer retain];
-	
+
 	switch (action) {			
 		case AISaveFile: /* Save */
 		{
@@ -122,20 +118,26 @@
 	}
 	
 	BOOL remotelyCanceled = [fileTransfer isStopped];
-	[fileTransfer release];
 	if(remotelyCanceled) {
-		[self release];
+		CFRelease(fileTransferRef);
+		CFRelease(selfRef);
 		return;
 	}
-	
+
 	if (finished) {
+		/* Void callback selector; no returned object to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[target performSelector:selector
 					 withObject:fileTransfer
 					 withObject:localFilename];
-		
+#pragma clang diagnostic pop
+
 		[fileTransfer setFileTransferRequestPromptController:nil];
-		[self release];
 	}
+
+	CFRelease(fileTransferRef);
+	CFRelease(selfRef);
 }
 
 - (ESFileTransfer *)fileTransfer

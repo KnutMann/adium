@@ -120,7 +120,7 @@ static ESFileTransferPreferences *preferences;
     
     //Observe pref changes
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_FILE_TRANSFER];
-	preferences = [(ESFileTransferPreferences *)[ESFileTransferPreferences preferencePane] retain];
+	preferences = (ESFileTransferPreferences *)[ESFileTransferPreferences preferencePane];
 	
 	//Set up the file transfer progress window
 	[self configureFileTransferProgressWindow];
@@ -129,27 +129,6 @@ static ESFileTransferPreferences *preferences;
 - (void)controllerWillClose
 {
     [adium.preferenceController unregisterPreferenceObserver:self];
-}
-
-- (void)dealloc
-{
-	/* Two of these were released after the call to super, which frees the object they were being
-	 * read out of. Nothing has gone wrong so far only because nothing ever gets here: the
-	 * application holds this controller from the moment it makes it and never lets go.
-	 *
-	 * The three menu items were not given up at all. They are made here and this class owns them,
-	 * so they belong in the same list, and an object counting references automatically would free
-	 * all five without being asked. Leaving two of them out was the sort of gap that turns into a
-	 * difference the day it is converted.
-	 */
-	[menuItem_sendFile release]; menuItem_sendFile = nil;
-	[menuItem_sendFileContext release]; menuItem_sendFileContext = nil;
-	[menuItem_showFileTransferProgress release]; menuItem_showFileTransferProgress = nil;
-
-	[safeFileExtensions release]; safeFileExtensions = nil;
-	[fileTransferArray release]; fileTransferArray = nil;
-
-	[super dealloc];
 }
 
 #pragma mark Access to file transfer objects
@@ -360,7 +339,6 @@ static ESFileTransferPreferences *preferences;
 			if (!success) pathToArchive = nil;
 			AILog(@"-[ESFileTransferController pathToArchiveOfFolder:]: Success %i (%i), so pathToArchive is %@",
 				  success, [zipTask terminationStatus], pathToArchive);
-			[zipTask release];
 		}
 	}
 
@@ -526,7 +504,7 @@ static ESFileTransferPreferences *preferences;
 	if (autoOpenSafe &&
 	   ([fileTransfer fileTransferType] == Incoming_FileTransfer)) {
 		
-		if (!safeFileExtensions) safeFileExtensions = [SAFE_FILE_EXTENSIONS_SET retain];		
+		if (!safeFileExtensions) safeFileExtensions = SAFE_FILE_EXTENSIONS_SET;
 
 		shouldOpen = [safeFileExtensions containsObject:[[[fileTransfer localFilename] pathExtension] lowercaseString]];
 	}
@@ -609,7 +587,7 @@ static ESFileTransferPreferences *preferences;
 	
 	//If we created a safe file extensions set and no longer need it, desroy it
 	if (!autoOpenSafe && safeFileExtensions) {
-		[safeFileExtensions release]; safeFileExtensions = nil;
+		safeFileExtensions = nil;
 	}
 	
 	showProgressWindow = [[prefDict objectForKey:KEY_FT_SHOW_PROGRESS_WINDOW] boolValue];
@@ -828,7 +806,7 @@ static ESFileTransferPreferences *preferences;
 - (NSImage *)imageForEventID:(NSString *)eventID
 {
 	static NSImage	*eventImage = nil;
-	if (!eventImage) eventImage = [[NSImage imageNamed:@"pref-file-transfer" forClass:[self class]] retain];
+	if (!eventImage) eventImage = [NSImage imageNamed:@"pref-file-transfer" forClass:[self class]];
 	return eventImage;
 }
 

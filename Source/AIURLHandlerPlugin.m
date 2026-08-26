@@ -63,7 +63,7 @@
  */
 - (void)installPlugin
 {
-	preferences = [(AIURLHandlerAdvancedPreferences *)[AIURLHandlerAdvancedPreferences preferencePaneForPlugin:self] retain];
+	preferences = (AIURLHandlerAdvancedPreferences *)[AIURLHandlerAdvancedPreferences preferencePaneForPlugin:self];
 	
 	[self checkHandledSchemes];
 	
@@ -80,7 +80,7 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
-	[preferences release];
+	preferences = nil;
 }
 
 #pragma mark Scheme enforcement
@@ -209,7 +209,7 @@
 		 * completion handler. With a deployment target of 11.0 the direct call stays, and the
 		 * refreshTable below relies on the change having taken effect when it runs.
 		 */
-		LSSetDefaultHandlerForURLScheme((CFStringRef)scheme, (CFStringRef)bundleID);
+		LSSetDefaultHandlerForURLScheme((__bridge CFStringRef)scheme, (__bridge CFStringRef)bundleID);
 	}
 	
 	[preferences refreshTable];

@@ -21,7 +21,8 @@
 
 @interface ESFileTransferProgressRow : NSObject<FileTransferDelegate> {
 	ESFileTransfer			*fileTransfer;
-	id						owner;
+	/* The progress window holds its rows; a row only points back at it */
+	__unsafe_unretained id	owner;
 
 	uint64_t				lastUpdateTick;
 	unsigned long long		lastBytesSent;

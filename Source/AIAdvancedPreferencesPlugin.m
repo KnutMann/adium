@@ -25,7 +25,7 @@
 	[AIAdvancedPreferences preferencePane];
 	
 	// Generic advanced panes with no specific plugins.
-	messageAlertsPreferences = [(AIMessageAlertsAdvancedPreferences *)[AIMessageAlertsAdvancedPreferences preferencePane] retain];
+	messageAlertsPreferences = (AIMessageAlertsAdvancedPreferences *)[AIMessageAlertsAdvancedPreferences preferencePane];
 }
 
 @end

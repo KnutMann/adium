@@ -50,7 +50,7 @@
  */
 static NSTextField *AIXtraListLabel(CGFloat fontSize, NSColor *textColor)
 {
-	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[label setEditable:NO];
@@ -104,9 +104,9 @@ static CGFloat AIXtraRowHeight(void)
  * @class AIXtraListCellView
  * @brief View based row of an Xtra list
  *
- * Layout: [icon] [name / detail line] [switch] [⊖], with a hairline along the bottom edge. All
- * subviews are owned by the view hierarchy; the properties below are non-retaining references for
- * convenience (manual retain/release).
+ * Layout: [icon] [name / detail line] [switch] [chevron], with a hairline along the bottom edge.
+ * All subviews are owned by the view hierarchy, which is why the properties below are non-retaining:
+ * every one of them is set only after the row already holds the view it names.
  *
  * Private to the list on purpose: no pane ever builds one, and nothing outside this file has any
  * business knowing what an Xtra row is made of.
@@ -114,7 +114,7 @@ static CGFloat AIXtraRowHeight(void)
 @interface AIXtraListCellView : NSTableCellView
 @property (nonatomic, assign) NSTextField		*detailField;
 @property (nonatomic, assign) NSSwitch			*enabledSwitch;
-@property (nonatomic, assign) NSButton			*removeButton;
+@property (nonatomic, assign) NSButton			*disclosureButton;
 @property (nonatomic, assign) NSBox				*separator;
 @property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
 @property (nonatomic, assign) BOOL				 dimmed;
@@ -143,6 +143,9 @@ static CGFloat AIXtraRowHeight(void)
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo;
 - (NSMenu *)menuForRow:(NSInteger)row;
 - (void)deleteXtra:(AIXtraInfo *)xtraInfo;
+- (void)showDetailsForXtra:(AIXtraInfo *)xtraInfo;
+- (IBAction)showDetailsFromRow:(id)sender;
+- (IBAction)rowClicked:(id)sender;
 @end
 
 @implementation AIXtraListCellView
@@ -153,7 +156,7 @@ static CGFloat AIXtraRowHeight(void)
 		[self setIdentifier:XTRA_CELL_IDENTIFIER];
 
 		//The Xtra's icon
-		NSImageView *iconView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSImageView *iconView = [[NSImageView alloc] initWithFrame:NSZeroRect];
 		[iconView setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[iconView setImageScaling:NSImageScaleProportionallyUpOrDown];
 		[iconView setEditable:NO];
@@ -163,7 +166,7 @@ static CGFloat AIXtraRowHeight(void)
 		[self setImageView:iconView];
 
 		//Container holding the two lines of text, vertically centered as a block
-		NSView *textContainer = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSView *textContainer = [[NSView alloc] initWithFrame:NSZeroRect];
 		[textContainer setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self addSubview:textContainer];
 
@@ -172,34 +175,44 @@ static CGFloat AIXtraRowHeight(void)
 		[textContainer addSubview:nameField];
 		[self setTextField:nameField];
 
-		//Version, origin and state
+		//What it holds, who made it, where it lives and whether it is on
 		NSTextField *detailField = AIXtraListLabel(DETAIL_FONT_SIZE, [NSColor secondaryLabelColor]);
 		[textContainer addSubview:detailField];
 		[self setDetailField:detailField];
 
 		//Enabled switch
-		NSSwitch *enabledSwitch = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+		NSSwitch *enabledSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
 		//System Settings uses the small switch, not the regular one
 		[enabledSwitch setControlSize:NSControlSizeSmall];
 		[enabledSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self addSubview:enabledSwitch];
 		[self setEnabledSwitch:enabledSwitch];
 
-		/* The ⊖ which throws the Xtra away. Built by the settings form's factory, so it is the same
-		 * control as the (i) of an account row - down to its tint and its size, which is read back
-		 * here rather than repeated as a number of our own. */
-		NSButton *removeButton = [AISettingsFormView inlineSymbolButtonWithSymbolName:@"minus.circle"
-																   fallbackImageName:@"remove"
-																			  target:nil
-																			  action:NULL];
-		NSSize	 removeButtonSize = [removeButton frame].size;
+		/* The chevron which leads to this Xtra's own page. A button rather than the image view a
+		 * navigation row carries, so that it is in the keyboard loop and gives VoiceOver something
+		 * to press: the row itself opens the page too, but a row is not a control and cannot be
+		 * reached without a pointer. The mouse never gets as far as this button all the same - see
+		 * -hitTest: - because a press on the chevron and a press an inch to its left should look the
+		 * same, and what the row draws is the whole row darkening.
+		 *
+		 * The image is the form's, so it is the same chevron at the same size as every other row
+		 * which leads somewhere. */
+		NSButton *disclosureButton = [[NSButton alloc] initWithFrame:NSZeroRect];
+		NSImage	 *chevron = [AISettingsFormView disclosureIndicatorImage];
 
-		[removeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-		[self addSubview:removeButton];
-		[self setRemoveButton:removeButton];
+		[disclosureButton setImage:chevron];
+		[disclosureButton setImagePosition:NSImageOnly];
+		[disclosureButton setBordered:NO];
+		[disclosureButton setButtonType:NSButtonTypeMomentaryChange];
+		[disclosureButton setContentTintColor:[NSColor tertiaryLabelColor]];
+		[disclosureButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:disclosureButton];
+		[self setDisclosureButton:disclosureButton];
+
+		NSSize	 chevronSize = [chevron size];
 
 		//Hairline separating this row from the next one
-		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
 		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[separator setBoxType:NSBoxSeparator];
 		[self addSubview:separator];
@@ -218,14 +231,14 @@ static CGFloat AIXtraRowHeight(void)
 			[[iconView widthAnchor] constraintEqualToConstant:XTRA_ICON_SIZE],
 			[[iconView heightAnchor] constraintEqualToConstant:XTRA_ICON_SIZE],
 
-			//Remove button
-			[[removeButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
-			[[removeButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
-			[[removeButton widthAnchor] constraintEqualToConstant:removeButtonSize.width],
-			[[removeButton heightAnchor] constraintEqualToConstant:removeButtonSize.height],
+			//Chevron
+			[[disclosureButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
+			[[disclosureButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
+			[[disclosureButton widthAnchor] constraintEqualToConstant:chevronSize.width],
+			[[disclosureButton heightAnchor] constraintEqualToConstant:chevronSize.height],
 
 			//Switch
-			[[enabledSwitch trailingAnchor] constraintEqualToAnchor:[removeButton leadingAnchor] constant:-CONTROL_GAP],
+			[[enabledSwitch trailingAnchor] constraintEqualToAnchor:[disclosureButton leadingAnchor] constant:-CONTROL_GAP],
 			[[enabledSwitch centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
 
 			//Text block
@@ -255,18 +268,12 @@ static CGFloat AIXtraRowHeight(void)
 	return self;
 }
 
-- (void)dealloc
-{
-	[_separatorTrailingConstraint release];
-	[super dealloc];
-}
-
 /*!
- * @brief Only the switch and the ⊖ swallow clicks
+ * @brief Only the switch and the chevron swallow clicks
  *
- * Everything else is handed to the table view so that a right click anywhere on the row - including
- * on one of those two controls, neither of which supplies a context menu - still reaches the row's
- * own menu.
+ * Everything else is handed to the table view, which is what opens the Xtra's page: see
+ * -rowClicked:. A right click anywhere - including on one of those two controls, neither of which
+ * supplies a context menu - goes there as well, so that it still reaches the row's own menu.
  */
 - (NSView *)hitTest:(NSPoint)aPoint
 {
@@ -283,7 +290,7 @@ static CGFloat AIXtraRowHeight(void)
 
 	if (!contextClick &&
 		(hitView == [self enabledSwitch] || [hitView isDescendantOf:[self enabledSwitch]] ||
-		 hitView == [self removeButton] || [hitView isDescendantOf:[self removeButton]])) {
+		 hitView == [self disclosureButton] || [hitView isDescendantOf:[self disclosureButton]])) {
 		return hitView;
 	}
 
@@ -357,9 +364,9 @@ static CGFloat AIXtraRowHeight(void)
 	[[self detailField] setTextColor:(emphasized ?
 									  [NSColor alternateSelectedControlTextColor] :
 									  [NSColor secondaryLabelColor])];
-	[[self removeButton] setContentTintColor:(emphasized ?
-											  [NSColor alternateSelectedControlTextColor] :
-											  [NSColor secondaryLabelColor])];
+	[[self disclosureButton] setContentTintColor:(emphasized ?
+												  [NSColor alternateSelectedControlTextColor] :
+												  [NSColor tertiaryLabelColor])];
 }
 
 @end
@@ -374,7 +381,7 @@ static CGFloat AIXtraRowHeight(void)
 		xtras = [inXtras copy];
 		/* Only an Xtra of this user's own folder can be moved into a "(Disabled)" folder beside it;
 		 * everything else lives somewhere we may well not be allowed to write. */
-		userDirectory = [[[adium applicationSupportDirectory] stringByStandardizingPath] retain];
+		userDirectory = [[adium applicationSupportDirectory] stringByStandardizingPath];
 		cachedLayoutWidth = 0.0f;
 		columnMargin = INSET_STYLE_MARGIN;
 		contextMenuRow = -1;
@@ -390,11 +397,6 @@ static CGFloat AIXtraRowHeight(void)
 - (void)dealloc
 {
 	[self tearDown];
-
-	[xtras release];
-	[userDirectory release];
-
-	[super dealloc];
 }
 
 /*!
@@ -402,7 +404,7 @@ static CGFloat AIXtraRowHeight(void)
  */
 - (void)configureList
 {
-	tableView = [[[NSTableView alloc] initWithFrame:[self bounds]] autorelease];
+	tableView = [[NSTableView alloc] initWithFrame:[self bounds]];
 
 	[tableView setDataSource:self];
 	[tableView setDelegate:self];
@@ -413,11 +415,19 @@ static CGFloat AIXtraRowHeight(void)
 	[tableView setUsesAlternatingRowBackgroundColors:NO];
 	[tableView setBackgroundColor:[NSColor clearColor]];
 	[tableView setRowSizeStyle:NSTableViewRowSizeStyleCustom];
-	/* Rows are not selectable: every action a row offers sits on the row itself - its switch, its
-	 * ⊖, its context menu. -tableView:shouldSelectRow: is what refuses the selection; the highlight
-	 * style is left alone all the same, because NSTableViewSelectionHighlightStyleNone also turns
-	 * off the feedback a drag draws. */
+	/* Rows are not selectable: every action a row offers works on the row the pointer is on rather
+	 * than on a selection - its switch, its chevron, its context menu, and the click on the row
+	 * itself, which -clickedRow answers for. -tableView:shouldSelectRow: is what refuses the
+	 * selection; the highlight style is left alone all the same, because
+	 * NSTableViewSelectionHighlightStyleNone also turns off the feedback a drag draws. */
 	[tableView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
+
+	/* A click anywhere on a row opens the Xtra's page. It is the TABLE which is asked, not the row:
+	 * a cell view is not a control, and a table view keeps the mouse for itself unless what was hit
+	 * is one - which is why the switch and the chevron work by themselves and why nothing a row
+	 * could implement ever hears the click. The accounts list opens an account exactly this way. */
+	[tableView setTarget:self];
+	[tableView setAction:@selector(rowClicked:)];
 	[tableView setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
 	[tableView setAllowsMultipleSelection:NO];
 	[tableView setAllowsEmptySelection:YES];
@@ -430,7 +440,7 @@ static CGFloat AIXtraRowHeight(void)
 		[tableView setStyle:NSTableViewStyleInset];
 	}
 
-	NSTableColumn *xtraColumn = [[[NSTableColumn alloc] initWithIdentifier:XTRA_COLUMN_IDENTIFIER] autorelease];
+	NSTableColumn *xtraColumn = [[NSTableColumn alloc] initWithIdentifier:XTRA_COLUMN_IDENTIFIER];
 	[xtraColumn setResizingMask:NSTableColumnAutoresizingMask];
 	[xtraColumn setEditable:NO];
 	[xtraColumn setMinWidth:80.0f];
@@ -478,7 +488,6 @@ static CGFloat AIXtraRowHeight(void)
 {
 	if (xtras == inXtras) return;
 
-	[xtras release];
 	xtras = [inXtras copy];
 
 	contextMenuRow = -1;
@@ -519,6 +528,7 @@ static CGFloat AIXtraRowHeight(void)
 	[tableView setDelegate:nil];
 	[tableView setDataSource:nil];
 	[tableView setTarget:nil];
+	[tableView setAction:NULL];
 }
 
 #pragma mark Geometry
@@ -584,8 +594,8 @@ static CGFloat AIXtraRowHeight(void)
  * @brief Keep the single column as wide as the room the list has
  *
  * A table does not reliably re-tile its columns when it is widened, and a column left behind lays
- * every row out narrower than the card - which puts the switch and the ⊖ in the middle of the row
- * and stops the hairline short of the card's edge. A column left <em>wider</em> than the clip view
+ * every row out narrower than the card - which puts the switch and the chevron in the middle of
+ * the row and stops the hairline short of the card's edge. A column left <em>wider</em> than the clip view
  * is worse still, because the list has no scrollers and the trailing end of every row would then
  * simply be unreachable. So the column is set from the width of the clip view rather than left to
  * the table, and the margin the table style wants around it is measured off the table itself.
@@ -726,7 +736,7 @@ static CGFloat AIXtraRowHeight(void)
 }
 
 /*!
- * @brief Whether a row keeps its ⊖, the delegate having the last word
+ * @brief Whether a row offers "Move to Trash", the delegate having the last word
  */
 - (BOOL)canDeleteXtra:(AIXtraInfo *)xtraInfo
 {
@@ -833,19 +843,21 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 }
 
 /*!
- * @brief The second line of a row: version, origin and state, joined by " · "
+ * @brief The second line of a row: what it holds, who made it, origin and state, joined by " · "
+ *
+ * The version is deliberately not here. It is a fact about a file rather than something to tell two
+ * rows apart, and it stands on the Xtra's own page now, where the rest of the manifest is.
  *
  * Never empty, because every row is two lines tall and the row height is the constant
  * AIXtraRowHeight() promises it is. An Xtra that says nothing about itself falls back to its
  * filename extension, which merely repeats the group it is standing in; that is the last resort
- * and not the usual case, since most name an author or a version.
+ * and not the usual case, since most name an author or say what they hold.
  */
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo
 {
 	NSMutableArray	*parts = [NSMutableArray array];
 	NSString		*summary = [self contentSummaryForXtra:xtraInfo];
 	NSString		*author = [xtraInfo author];
-	NSString		*version = [xtraInfo version];
 
 	/* What is in it and who made it, read as one phrase rather than two, so that a row saying both
 	 * does not look like a different kind of row from one saying either. Neither is always there:
@@ -858,10 +870,6 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	} else if ([author length]) {
 		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"by %@", "Author of an installed Xtra, shown below its name"), author]];
-	}
-
-	if ([version length]) {
-		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"Version %@", "Version of an installed Xtra, shown below its name"), version]];
 	}
 
 	/* Where it came from is only worth a word when it is neither the user's own nor shipped inside
@@ -898,7 +906,6 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	BOOL		 enabled = [xtraInfo enabled];
 	BOOL		 canToggle = [self canToggleXtra:xtraInfo];
-	BOOL		 canDelete = [self canDeleteXtra:xtraInfo];
 	NSString	*name = [xtraInfo name];
 	NSString	*detail = [self detailLineForXtra:xtraInfo];
 
@@ -915,8 +922,8 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 	/* No tool tip on the row. One covering the whole row swallows scroll events for as long as it
 	 * is showing, so the pane cannot be scrolled while the pointer rests on a list - and it said
 	 * little worth that: the folder has a button of its own in the card above, and the name is
-	 * already in the accessibility label. The switch and the remove button keep theirs; those
-	 * appear only over a small control and explain something not written anywhere else. */
+	 * already in the accessibility label. The switch keeps its own; that one appears only over a
+	 * small control and explains something not written anywhere else. */
 
 	/* Setting the state unconditionally would interfere with the switch's own click handling, which
 	 * is still tracking while the list is rebuilt underneath it. */
@@ -935,12 +942,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 															"Tool tip of the disabled switch of an Xtra which is not in the user's own Xtras folder"))];
 	[[cellView enabledSwitch] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"Enable %@", "Accessibility label of the switch which enables an Xtra. %@ is the name of the Xtra."), (name ?: @"")]];
 
-	//A plugin that ships inside the app has no file of the user's to trash, so it is shown without a ⊖
-	[[cellView removeButton] setHidden:!canDelete];
-	[[cellView removeButton] setTarget:self];
-	[[cellView removeButton] setAction:@selector(removeXtraFromRowButton:)];
-	[[cellView removeButton] setToolTip:AILocalizedStringFromTable(@"Delete", @"Buttons", "Verb 'delete' on a button")];
-	[[cellView removeButton] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"Delete %@", "Accessibility label of the button which deletes an Xtra. %@ is the name of the Xtra."), (name ?: @"")]];
+	[[cellView disclosureButton] setTarget:self];
+	[[cellView disclosureButton] setAction:@selector(showDetailsFromRow:)];
+	[[cellView disclosureButton] setAccessibilityLabel:[NSString stringWithFormat:AILocalizedString(@"About %@", "Accessibility label of the chevron which opens an Xtra's own page. %@ is the name of the Xtra."), (name ?: @"")]];
 
 	/* The hairline sits between two rows, so there is none below the last one. It runs from the
 	 * text indent out to the card's edge - past the trailing edge of the cell, which the inset
@@ -987,11 +991,35 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 }
 
 /*!
- * @brief The ⊖ of a row was clicked
+ * @brief A row's chevron was clicked
+ *
+ * The button is a view of the row, so the row it sits in is what the table is asked for.
  */
-- (IBAction)removeXtraFromRowButton:(id)sender
+- (IBAction)showDetailsFromRow:(id)sender
 {
-	[self deleteXtra:[self xtraAtRow:[tableView rowForView:(NSView *)sender]]];
+	[self showDetailsForXtra:[self xtraAtRow:[tableView rowForView:(NSView *)sender]]];
+}
+
+/*!
+ * @brief The table was clicked, which means a row was: open that row's Xtra
+ *
+ * Sent by the table rather than by the row, because a row is not a control and a table view keeps
+ * the mouse to itself unless what was hit is one. The two controls a row does carry - its switch
+ * and its chevron - never get this far; -[AIXtraListCellView hitTest:] hands those to the control,
+ * so a click which arrives here landed on the row itself.
+ *
+ * A click on the empty space below the last row reports -1, which is not a row.
+ */
+- (IBAction)rowClicked:(id)sender
+{
+	[self showDetailsForXtra:[self xtraAtRow:[tableView clickedRow]]];
+}
+
+- (void)showDetailsForXtra:(AIXtraInfo *)xtraInfo
+{
+	if (xtraInfo && [listDelegate respondsToSelector:@selector(xtraListView:showDetailsForXtra:)]) {
+		[listDelegate xtraListView:self showDetailsForXtra:xtraInfo];
+	}
 }
 
 - (void)deleteXtra:(AIXtraInfo *)xtraInfo
@@ -1038,8 +1066,8 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 /*!
  * @brief Rows cannot be selected
  *
- * Nothing acts on a selection: the switch, the ⊖ and the context menu each work on the row the
- * pointer is on.
+ * Nothing acts on a selection: the switch, the chevron and the context menu each work on the row
+ * the pointer is on.
  */
 - (BOOL)tableView:(NSTableView *)inTableView shouldSelectRow:(NSInteger)row
 {
@@ -1069,9 +1097,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 																						owner:self];
 
 	if (![cellView isKindOfClass:[AIXtraListCellView class]]) {
-		cellView = [[[AIXtraListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																		 NSWidth([inTableView bounds]),
-																		 AIXtraRowHeight())] autorelease];
+		cellView = [[AIXtraListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																		NSWidth([inTableView bounds]),
+																		AIXtraRowHeight())];
 	}
 
 	[self configureCellView:cellView forRow:row];
@@ -1105,24 +1133,24 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	if (!xtraInfo) return nil;
 
-	NSMenu		*menu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*menu = [[NSMenu alloc] init];
 	NSMenuItem	*menuItem;
 
 	//Items are enabled by hand: "Disable" is not offered for an Xtra we may not move
 	[menu setAutoenablesItems:NO];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show in Finder", nil)
-										   action:@selector(revealXtraFromMenu:)
-									keyEquivalent:@""] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show in Finder", nil)
+										  action:@selector(revealXtraFromMenu:)
+								   keyEquivalent:@""];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
 	[menu addItem:menuItem];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:([xtraInfo enabled] ?
-												   AILocalizedString(@"Disable", nil) :
-												   AILocalizedString(@"Enable", nil))
-										   action:@selector(toggleXtraEnabledFromMenu:)
-									keyEquivalent:@""] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:([xtraInfo enabled] ?
+												  AILocalizedString(@"Disable", nil) :
+												  AILocalizedString(@"Enable", nil))
+										  action:@selector(toggleXtraEnabledFromMenu:)
+								   keyEquivalent:@""];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
 	[menuItem setEnabled:[self canToggleXtra:xtraInfo]];
@@ -1130,9 +1158,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	[menu addItem:[NSMenuItem separatorItem]];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Move to Trash", "Context menu item which deletes an installed Xtra")
-										   action:@selector(deleteXtraFromMenu:)
-									keyEquivalent:@""] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Move to Trash", "Context menu item which deletes an installed Xtra")
+										  action:@selector(deleteXtraFromMenu:)
+								   keyEquivalent:@""];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
 	[menuItem setEnabled:[self canDeleteXtra:xtraInfo]];

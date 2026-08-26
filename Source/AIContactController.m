@@ -175,18 +175,6 @@
 - (void)dealloc
 {
 	[adium.preferenceController unregisterPreferenceObserver:self];
-		
-	[contactDict release];
-	[groupDict release];
-	[metaContactDict release];
-	[contactToMetaContactLookupDict release];
-	[contactLists release];
-	[bookmarkDict release];
-	[unloadableBookmarks release];
-	
-	[contactPropertiesObserverManager release];
-
-	[super dealloc];
 }
 
 - (void)clearAllMetaContactData
@@ -195,15 +183,18 @@
 		[contactPropertiesObserverManager delayListObjectNotifications];
 		
 		//Remove all the metaContacts to get any existing objects out of them
-		for (AIMetaContact *metaContact in [[[metaContactDict copy] autorelease] objectEnumerator]) {
+		/* The snapshot needs a name of its own: -explodeMetaContact: empties metaContactDict as
+		 * we walk, and an unnamed copy would not outlive the expression which made it. */
+		NSDictionary *metaContacts = [metaContactDict copy];
+		for (AIMetaContact *metaContact in [metaContacts objectEnumerator]) {
 			[self explodeMetaContact:metaContact];
 		}
 		
 		[contactPropertiesObserverManager endListObjectNotificationsDelay];
 	}
 	
-	[metaContactDict release]; metaContactDict = [[NSMutableDictionary alloc] init];
-	[contactToMetaContactLookupDict release]; contactToMetaContactLookupDict = [[NSMutableDictionary alloc] init];
+	metaContactDict = [[NSMutableDictionary alloc] init];
+	contactToMetaContactLookupDict = [[NSMutableDictionary alloc] init];
 	
 	//Clear the preferences for good measure
 	[adium.preferenceController setPreference:nil
@@ -294,11 +285,11 @@
 
 - (void)_loadBookmarks
 {
-	/* The preference container hands out its own array, neither retained nor autoreleased.
-	 * Anything in the loop below which reaches -setPreference: for this key would release it
-	 * under us and leave the enumeration walking freed memory. */
-	NSArray			*storedBookmarks = [[[adium.preferenceController preferenceForKey:KEY_BOOKMARKS
-																				group:PREF_GROUP_CONTACT_LIST] retain] autorelease];
+	/* The preference container hands out its own array, and anything in the loop below which
+	 * reaches -setPreference: for this key would replace it under us. The local holds a
+	 * reference of its own, so the enumeration keeps walking the array it started on. */
+	NSArray			*storedBookmarks = [adium.preferenceController preferenceForKey:KEY_BOOKMARKS
+																			  group:PREF_GROUP_CONTACT_LIST];
 	NSUInteger		loaded = 0;
 
 	/* "0 of 0" reads the same whether the key was never written or was written empty, and
@@ -343,10 +334,10 @@
 - (void)_loadMetaContactsFromArray:(NSArray *)array
 {	
 	for (NSString *identifier in array) {
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		NSNumber *objectID = [NSNumber numberWithInteger:[[[identifier componentsSeparatedByString:@"-"] objectAtIndex:1] integerValue]];
-		[self metaContactWithObjectID:objectID];
-		[pool release];
+		@autoreleasepool {
+			NSNumber *objectID = [NSNumber numberWithInteger:[[[identifier componentsSeparatedByString:@"-"] objectAtIndex:1] integerValue]];
+			[self metaContactWithObjectID:objectID];
+		}
 	}
 }
 
@@ -357,7 +348,7 @@
 	BOOL			performedGrouping = NO;
 	
 	//Protect with a retain while we are removing and adding the contact to our arrays
-	[listContact retain];
+	if (listContact) CFAutorelease(CFBridgingRetain(listContact));
 	
 	if (listContact.canJoinMetaContacts) {
 		AIListObject *existingObject = [localGroup objectWithService:listContact.service UID:listContact.UID];
@@ -391,9 +382,6 @@
 		//Add
 		[self _didChangeContainer:localGroup object:listContact];
 	}
-	
-	//Cleanup
-	[listContact release];
 }
 
 /*!
@@ -408,7 +396,7 @@
 {
 	if (![oldGroups isEqualToSet:groups]) {
 		//Protect with a retain while we are removing and adding the contact to our arrays
-		[listContact retain];
+		if (listContact) CFAutorelease(CFBridgingRetain(listContact));
 		
 		[contactPropertiesObserverManager delayListObjectNotifications];
 		
@@ -429,8 +417,6 @@
 			[self _addContactLocally:listContact toGroup:group];
 		
 		[contactPropertiesObserverManager endListObjectNotificationsDelay];
-		
-		[listContact release];
 	}
 }
 
@@ -572,8 +558,6 @@
 		 * this object's existence.
 		 */
 		[contactPropertiesObserverManager _updateAllAttributesOfObject:metaContact];
-		
-		[metaContact release];
 	}
 	
 	return metaContact;
@@ -738,9 +722,6 @@
 		
 		AILogWithSignature(@"Updated %@'s containedContactsArray: %@", metaContact, containedContactsArray);
 	}
-	
-	[allMetaContactsDict release];
-	[containedContactsArray release];
 }
 
 /*!
@@ -824,9 +805,6 @@
 								   forKey:metaContactInternalObjectID];
 		
 		[self _saveMetaContacts:newAllMetaContactsDict];
-		
-		[newContainedContactsArray release];
-		[newAllMetaContactsDict release];
 	}
 
 	/* Remove all contacts matching this service/UID from the metacontact */
@@ -929,8 +907,6 @@
 		}
 	}
 
-	[internalObjectIDs release];
-	
 	return metaContact;
 }
 
@@ -1009,7 +985,7 @@
 	//Then, procede to remove the metaContact
 	
 	//Protect!
-	[metaContact retain];
+	if (metaContact) CFAutorelease(CFBridgingRetain(metaContact));
 	
 	//Remove it from its containing groups (no contained contacts == present in no groups)
 	[metaContact restoreGrouping];
@@ -1026,10 +1002,6 @@
 	[self _saveMetaContacts:allMetaContactsDict];
 	
 	[contactPropertiesObserverManager endListObjectNotificationsDelay];
-	
-	//Protection is overrated.
-	[metaContact release];
-	[allMetaContactsDict release];
 }
 
 - (void)_saveMetaContacts:(NSDictionary *)allMetaContactsDict
@@ -1143,7 +1115,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
  */
 - (NSArray *)allContacts
 {
-	NSMutableArray *result = [[[NSMutableArray alloc] init] autorelease];
+	NSMutableArray *result = [[NSMutableArray alloc] init];
 
 	for (AIListContact *contact in self.contactEnumerator) {
 		/* We want only contacts, not metacontacts. For a given contact, -[contact parentContact] could be used to access the meta. */
@@ -1159,7 +1131,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
  */
 - (NSArray *)allBookmarks
 {
-	return [[[bookmarkDict allValues] copy] autorelease];
+	return [[bookmarkDict allValues] copy];
 }
 
 /*!
@@ -1223,7 +1195,6 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
                                                                                  keyEquivalent:@""];
             [menuItem setRepresentedObject:group];
             [menu addItem:menuItem];
-            [menuItem release];
         }
                 
         i++;
@@ -1236,7 +1207,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
     }
     
 	
-	return [menu autorelease];
+	return menu;
 }
 
 #pragma mark Retrieving Specific Contacts
@@ -1252,7 +1223,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
  */
 - (void)setUID:(NSString *)UID forContact:(AIListContact *)contact
 {
-	[contact retain];
+	if (contact) CFAutorelease(CFBridgingRetain(contact));
 	
 	// Remove the old value, its internal ID is going to change.
 	[contactDict removeObjectForKey:contact.internalUniqueObjectID];
@@ -1262,8 +1233,6 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 	
 	// Add it back int othe dict.
 	[contactDict setObject:contact forKey:contact.internalUniqueObjectID];
-	
-	[contact release];
 }
 
 - (AIListContact *)contactWithService:(AIService *)inService account:(AIAccount *)inAccount UID:(NSString *)inUID
@@ -1299,8 +1268,6 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 
 		//Do the update thing
 		[contactPropertiesObserverManager _updateAllAttributesOfObject:contact];
-
-		[contact release];
 	}
 	
 	return contact;
@@ -1308,7 +1275,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 
 - (void)accountDidStopTrackingContact:(AIListContact *)inContact
 {
-	[[inContact retain] autorelease];
+	if (inContact) CFAutorelease(CFBridgingRetain(inContact));
 
 	for (id<AIContainingObject> container in inContact.containingObjects) {
 		[container removeObjectAfterAccountStopsTracking:inContact];
@@ -1377,7 +1344,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 		AILogWithSignature(@"Reusing %@, currently in %@", bookmark.logDescription, bookmark.groups);
 
 	} else {
-		bookmark = [[[AIListBookmark alloc] initWithChat:inChat] autorelease];
+		bookmark = [[AIListBookmark alloc] initWithChat:inChat];
 
 		if ([bookmarkDict objectForKey:bookmark.internalObjectID]) {
 			// In case we end up with two bookmarks with the same internalObjectID; this should be almost impossible.
@@ -1426,11 +1393,11 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 		AILogWithSignature(@"Reusing %@, currently in %@", bookmark.logDescription, bookmark.groups);
 
 	} else {
-		bookmark = [[[AIListBookmark alloc] initWithUID:[NSString stringWithFormat:@"Bookmark:%@", name]
-												account:inAccount
-												service:inAccount.service
-											 dictionary:inCreationInfo
-												   name:name] autorelease];
+		bookmark = [[AIListBookmark alloc] initWithUID:[NSString stringWithFormat:@"Bookmark:%@", name]
+											   account:inAccount
+											   service:inAccount.service
+											dictionary:inCreationInfo
+												  name:name];
 
 		if ([bookmarkDict objectForKey:bookmark.internalObjectID]) {
 			[self removeBookmark:[bookmarkDict objectForKey:bookmark.internalObjectID]
@@ -1486,7 +1453,7 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 					   (unsigned long)bookmarkDict.count);
 	AILogBacktrace();
 
-	[[listBookmark retain] autorelease];
+	if (listBookmark) CFAutorelease(CFBridgingRetain(listBookmark));
 
 	/* Out of the dictionary first, and by identity rather than by key: the dictionary is what
 	 * -saveContactList writes, so a bookmark which survives here survives on disk - and then
@@ -1603,7 +1570,6 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 																service:theService];
 	AIAccount		*account = [adium.accountController preferredAccountForSendingContentType:CONTENT_MESSAGE_TYPE
 																				 toContact:tempListContact];
-	[tempListContact release];
 
 	return [self contactWithService:theService account:account UID:inUID];
 }
@@ -1660,7 +1626,6 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 		//Add to the contact list
 		[contactList addObject:group];
 		[self _didChangeContainer:contactList object:group];
-		[group release];
 	}
 	
 	return group;
@@ -1709,11 +1674,10 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 	}
 	
 	//Then, procede to delete the group
-	[group retain];
+	if (group) CFAutorelease(CFBridgingRetain(group));
 	[containingObject removeObject:group];
 	[groupDict removeObjectForKey:[group.UID lowercaseString]];
 	[self _didChangeContainer:containingObject object:group];
-	[group release];
 }
 
 - (void)requestAddContactWithUID:(NSString *)contactUID service:(AIService *)inService account:(AIAccount *)inAccount
@@ -1796,7 +1760,6 @@ NSInteger contactDisplayNameSort(AIListObject *objectA, AIListObject *objectB, v
 	static NSInteger count = 0;
 	AIContactList *list = [[AIContactList alloc] initWithUID:[NSString stringWithFormat:@"Detached%ld",count++]];
 	[contactLists addObject:list];
-	[list release];
 	return list;
 }
 

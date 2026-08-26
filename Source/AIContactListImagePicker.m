@@ -80,10 +80,6 @@
 		[self removeTrackingRect:trackingTag];
 		trackingTag = -1;
 	}
-	
-	[imageMenu release]; imageMenu = nil;
-	
-	[super dealloc];
 }
 
 #pragma mark Drawing
@@ -226,7 +222,7 @@
 		BOOL	mouseInside = NSPointInRect(localPoint, myFrame);
 
 		trackingTag = [self addTrackingRect:trackRect owner:self userData:nil assumeInside:mouseInside];
-		if (mouseInside) [self mouseEntered:[[[NSEvent alloc] init] autorelease]];
+		if (mouseInside) [self mouseEntered:[[NSEvent alloc] init]];
 	}
 }
 

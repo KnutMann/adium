@@ -9,6 +9,7 @@
 	NSTextField *nameField;
 	NSTextField *versionField;
 	NSTextField *authorsField;
+	NSTextField *descriptionField;
 	NSTextField *identifierField;
 }
 
@@ -33,6 +34,12 @@
 	authorsField = [AISettingsFormView textFieldWithTarget:self action:@selector(changedAuthors:)];
 	[form addRowWithLabel:@"Author" stretchingControl:authorsField];
 
+	descriptionField = [AISettingsFormView textFieldWithTarget:self action:@selector(changedDescription:)];
+	[form addRowWithLabel:@"Description" stretchingControl:descriptionField];
+	[form addFootnote:@"A sentence or two saying what this xtra does. "
+					  @"Adium shows it on the xtra's own page in its Xtras settings, "
+					  @"beside the icon and under the name."];
+
 	[form addSectionHeader:@"Bundle"];
 
 	identifierField = [AISettingsFormView textFieldWithTarget:self action:@selector(changedIdentifier:)];
@@ -49,6 +56,7 @@
 	[nameField setStringValue:model.bundleName ?: @""];
 	[versionField setStringValue:model.version ?: @""];
 	[authorsField setStringValue:model.authors ?: @""];
+	[descriptionField setStringValue:model.xtraDescription ?: @""];
 	[identifierField setStringValue:model.bundleIdentifier ?: @""];
 }
 
@@ -72,6 +80,13 @@
 {
 	if ([self.document.model.authors isEqualToString:[authorsField stringValue]]) return;
 	self.document.model.authors = [authorsField stringValue];
+	[self.document noteEdited];
+}
+
+- (IBAction)changedDescription:(id)sender
+{
+	if ([self.document.model.xtraDescription isEqualToString:[descriptionField stringValue]]) return;
+	self.document.model.xtraDescription = [descriptionField stringValue];
 	[self.document noteEdited];
 }
 

@@ -96,7 +96,7 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 - (void)windowDidLoad
 {
 	//We store the reference to the mutableString of the textStore for efficiency
-	mutableDebugString = [[[textView_debug textStorage] mutableString] retain];
+	mutableDebugString = [[textView_debug textStorage] mutableString];
 	fullDebugLogArray = [[NSMutableArray alloc] init];
 
 	debugParagraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
@@ -158,10 +158,13 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 	[super windowWillClose:sender];
 	
 	//Close down
-	[mutableDebugString release]; mutableDebugString = nil;
-	[fullDebugLogArray release]; fullDebugLogArray = nil;
-	[debugParagraphStyle release]; debugParagraphStyle = nil;
-    [self autorelease]; sharedDebugWindowInstance = nil;
+	mutableDebugString = nil;
+	fullDebugLogArray = nil;
+	debugParagraphStyle = nil;
+
+	//-close still talks to us after this returns; stay alive until the pool drains
+	CFAutorelease(CFBridgingRetain(sharedDebugWindowInstance));
+	sharedDebugWindowInstance = nil;
 }
 
 - (IBAction)toggleLogWriting:(id)sender
@@ -184,7 +187,6 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 - (void)setFilter:(NSString *)inFilter
 {
 	if (inFilter != filter) {
-		[filter release];
 		filter = [inFilter copy];
 
 		[self performFilter];

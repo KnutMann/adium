@@ -122,7 +122,7 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 {
 	if (sharedContactInfoInstance) {
 		[sharedContactInfoInstance closeWindow:nil];
-		[sharedContactInfoInstance release]; sharedContactInfoInstance = nil;
+		sharedContactInfoInstance = nil;
 	}
 }
 
@@ -133,13 +133,7 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 
 	[self setDisplayedListObject:nil];
 
-	[displayedObject release]; displayedObject = nil;
-	[loadedContent release]; loadedContent = nil;
-	[contentController release]; contentController = nil;
-
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[super dealloc];
 }
 
 
@@ -154,11 +148,11 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 	
 	//If we are on Leopard, we want our panel to have a finder-esque look.
 
-	contentController = [[AIContactInfoContentController defaultInfoContentController] retain];
+	contentController = [AIContactInfoContentController defaultInfoContentController];
 
 	if(!loadedContent) {
 		//Load the content array from the content controller.
-		loadedContent = [[contentController loadedPanes] retain];
+		loadedContent = [contentController loadedPanes];
 	}
 	
 	//Monitor the selected contact
@@ -179,13 +173,12 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 	 * forced display or direct layer coloring. A freshly created view at
 	 * the same position renders fine, so swap it out. */
 	{
-		NSView *fresh = [[[NSView alloc] initWithFrame:[inspectorContent frame]] autorelease];
+		NSView *fresh = [[NSView alloc] initWithFrame:[inspectorContent frame]];
 		[fresh setAutoresizingMask:[inspectorContent autoresizingMask]];
 		NSView *host = [inspectorContent superview];
 		[inspectorContent removeFromSuperview];
 		[host addSubview:fresh];
-		/* The outlet reference is not ours to release. */
-		inspectorContent = [fresh retain];
+		inspectorContent = fresh;
 	}
 
 	//Localization
@@ -215,7 +208,13 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 										  forKey:KEY_INFO_SELECTED_CATEGORY
 										   group:PREF_GROUP_WINDOW_POSITIONS];
 	
-	[sharedContactInfoInstance autorelease]; sharedContactInfoInstance = nil;
+	/* The static holds the only reference, and -[NSWindow close] is still running and still
+	 * talking to this controller as its delegate and window controller; the pool keeps it alive
+	 * until the end of the run loop turn, which is the timing the autorelease had. It is this
+	 * controller that has to survive, not whatever the static happens to point at, and self is
+	 * never nil, which CFAutorelease does not tolerate. */
+	CFAutorelease(CFBridgingRetain(self));
+	if (sharedContactInfoInstance == self) sharedContactInfoInstance = nil;
 
 	[super windowWillClose:inNotification];
 }
@@ -281,9 +280,7 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 		if (inObject)
 			[notificationUserInfo setObject:inObject
 									 forKey:KEY_NEW_INSPECTED_OBJECT];
-		[displayedObject release];
-
-		displayedObject = [inObject retain];
+		displayedObject = inObject;
 
 		if (!deallocating) {
 			//Ensure our window is loaded
@@ -368,8 +365,6 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 	
 	//Start it
 	[viewAnim startAnimation];
-	
-	[viewAnim release];
 }
 
 -(void)animateViewOut:(NSView *)aView;
@@ -392,8 +387,6 @@ static AIContactInfoWindowController *sharedContactInfoInstance = nil;
 	
 	//Start it
 	[viewAnim startAnimation];
-	
-	[viewAnim release];
 }
 
 

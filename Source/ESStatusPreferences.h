@@ -48,8 +48,8 @@
 	 * of everything we did not move — alive for as long as we use its controls. */
 	NSView								*nibView;
 
-	/* The status list. Built in code and owned by the form once it has been handed over; this is a
-	 * non-retaining reference, cleared by -tearDown. */
+	/* The status list. Built in code and handed to the form, which holds it as well; cleared by
+	 * -tearDown. */
 	AIStatusListView					*listView_states;
 	//The one button under the list, the nib's segmented control cut down to a single "+"
 	IBOutlet	NSSegmentedControl		*button_addOrRemoveState;
@@ -82,7 +82,7 @@
 	 * AppKit; -stateArrayChanged: says so. */
 	BOOL						refreshScheduled;
 
-	/* The music status card. All built in code; non-retaining references, cleared by -tearDown. */
+	/* The music status card. All built in code and handed to the form; cleared by -tearDown. */
 	NSSwitch			*checkBox_musicStatus;
 	/* A token field: the %_ triggers show as pills named after what they stand for, free text
 	 * between them stays free text. What is stored is still the plain %_ format string. */

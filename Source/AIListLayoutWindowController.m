@@ -42,10 +42,24 @@
 
 @end
 
+/*!
+ * @brief Where an open editor lives
+ *
+ * -showOnWindow: is declared ns_consumes_self. Under manual counting that was decoration; counted
+ * automatically, the reference the caller allocated is given up when the method returns, so with
+ * nothing else holding on, the editor would die as its sheet appeared. This set is that something
+ * else, and it takes the place of a scheme in which the object was its own owner and handed itself
+ * to the pool on the way out.
+ */
+static NSMutableSet *openListLayoutEditors = nil;
+
 @implementation AIListLayoutWindowController
 
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
+	if (!openListLayoutEditors) openListLayoutEditors = [[NSMutableSet alloc] init];
+	[openListLayoutEditors addObject:self];
+
 	if (parentWindow) {
 		[parentWindow beginSheet:self.window
 			   completionHandler:^(NSModalResponse returnCode) {
@@ -62,25 +76,16 @@
 		NSParameterAssert(inTarget && [inTarget respondsToSelector:@selector(listLayoutEditorWillCloseWithChanges:forLayoutNamed:)]);
 	
 		target = inTarget;
-		layoutName = [inName retain];
+		layoutName = inName;
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[layoutName release];
-    [super dealloc];
 }
 
 #pragma mark Window Methods
 
 - (void)windowDidLoad
 {
-	// We'll be adding/removing this from our view
-	[tabViewItem_advancedContactBubbles retain];
-
 	// Localized text for the single-nib editor
 	[button_okay setTitle:AILocalizedString(@"OK", nil)];
 	[button_cancel setTitle:AILocalizedString(@"Cancel", nil)];
@@ -138,16 +143,27 @@
 	
 	// No longer allow alpha in our color pickers
 	[[NSColorPanel sharedColorPanel] setShowsAlpha:NO];
-	
-	[tabViewItem_advancedContactBubbles autorelease];
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openListLayoutEditors removeObject:self];
 }
 
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openListLayoutEditors removeObject:self];
 }
 
 // Cancel
@@ -558,7 +574,7 @@
 
 - (NSMenu *)alignmentMenuWithChoices:(NSInteger [])alignmentChoices
 {
-    NSMenu		*alignmentMenu = [[[NSMenu alloc] init] autorelease];
+    NSMenu		*alignmentMenu = [[NSMenu alloc] init];
 	NSMenuItem	*menuItem;
 
 	NSUInteger	i = 0;
@@ -574,10 +590,10 @@
 			case NSTextAlignmentRight:	menuTitle = AILocalizedString(@"Right",nil);
 				break;
 		}
-		menuItem = [[[NSMenuItem alloc] initWithTitle:menuTitle
+		menuItem = [[NSMenuItem alloc] initWithTitle:menuTitle
 																		 target:nil
 																		 action:nil
-																  keyEquivalent:@""] autorelease];
+																 keyEquivalent:@""];
 		[menuItem setTag:alignmentChoices[i]];
 		[alignmentMenu addItem:menuItem];
 		
@@ -590,7 +606,7 @@
 
 - (NSMenu *)positionMenuWithChoices:(NSInteger [])positionChoices
 {
-    NSMenu		*positionMenu = [[[NSMenu alloc] init] autorelease];
+    NSMenu		*positionMenu = [[NSMenu alloc] init];
     NSMenuItem	*menuItem;
     
 	NSUInteger	i = 0;
@@ -614,10 +630,10 @@
 			case LIST_POSITION_BADGE_RIGHT: menuTitle = AILocalizedString(@"Badge (Lower Right)",nil);
 				break;
 		}
-		menuItem = [[[NSMenuItem alloc] initWithTitle:menuTitle
+		menuItem = [[NSMenuItem alloc] initWithTitle:menuTitle
 																		 target:nil
 																		 action:nil
-																  keyEquivalent:@""] autorelease];
+																 keyEquivalent:@""];
 		[menuItem setTag:positionChoices[i]];
 		[positionMenu addItem:menuItem];
 		
@@ -629,27 +645,27 @@
 
 - (NSMenu *)extendedStatusPositionMenu
 {
-	NSMenu		*extendedStatusPositionMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*extendedStatusPositionMenu = [[NSMenu alloc] init];
     NSMenuItem	*menuItem;
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Below Name",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Below Name",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:EXTENDED_STATUS_POSITION_BELOW_NAME];
 	[extendedStatusPositionMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Beside Name",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Beside Name",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:EXTENDED_STATUS_POSITION_BESIDE_NAME];
 	[extendedStatusPositionMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Idle Beside, Status Below",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Idle Beside, Status Below",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:EXTENDED_STATUS_POSITION_BOTH];
 	[extendedStatusPositionMenu addItem:menuItem];
 	
@@ -658,27 +674,27 @@
 
 - (NSMenu *)extendedStatusStyleMenu
 {
-    NSMenu		*extendedStatusStyleMenu = [[[NSMenu alloc] init] autorelease];
+    NSMenu		*extendedStatusStyleMenu = [[NSMenu alloc] init];
     NSMenuItem	*menuItem;
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Status",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Status",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:STATUS_ONLY];
 	[extendedStatusStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Idle Time",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Idle Time",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:IDLE_ONLY];
 	[extendedStatusStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Idle and Status",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Idle and Status",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:IDLE_AND_STATUS];
 	[extendedStatusStyleMenu addItem:menuItem];
 	

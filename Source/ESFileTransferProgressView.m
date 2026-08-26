@@ -49,7 +49,6 @@
 	[label_to setStringValue:AILocalizedString(@"To:", "Label for the recipient in the file transfer window's details view")];
 		
 	showingDetails = NO;
-	[view_details retain];
 
 	[button_stopResume setDelegate:self];
 	[button_reveal setDelegate:self];
@@ -57,13 +56,6 @@
 	buttonStopResumeIsHovered = NO;
     buttonStopResumeIsResend = NO;
 	buttonRevealIsHovered = NO;
-}
-
-- (void)dealloc
-{
-	[view_details release];
-	
-	[super dealloc];
 }
 
 #pragma mark Source and destination
@@ -178,8 +170,6 @@
 			   remainingStatus:(NSString *)inTransferRemainingStatus
 				   speedStatus:(NSString *)inTransferSpeedStatus
 {
-	[transferStatus release];
-	
 	if (inTransferBytesStatus && inTransferRemainingStatus) {
 		transferStatus = [NSString stringWithFormat:@"%@ - %@",
 			inTransferBytesStatus,
@@ -191,9 +181,7 @@
 	} else {
 		transferStatus = @"";
 	}
-	
-	[transferStatus retain];
-	
+
 //	[textField_transferStatus setStringValue:transferStatus];
 	[self setNeedsDisplayInRect:[box_transferStatusFrame frame]];
 	[textField_rate setStringValue:(inTransferSpeedStatus ? inTransferSpeedStatus : @"")];
@@ -414,10 +402,10 @@ static NSDictionary	*transferStatusSelectedAttributes = nil;
 																					lineBreakMode:NSLineBreakByTruncatingTail];
 			[paragraphStyle setMaximumLineHeight:[box_transferStatusFrame frame].size.height];
 			
-			transferStatusSelectedAttributes = [[NSDictionary dictionaryWithObjectsAndKeys:
+			transferStatusSelectedAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
 				paragraphStyle, NSParagraphStyleAttributeName,
-				[NSFont systemFontOfSize:9], NSFontAttributeName, 
-				SELECTED_TEXT_COLOR, NSForegroundColorAttributeName, nil] retain];
+				[NSFont systemFontOfSize:9], NSFontAttributeName,
+				SELECTED_TEXT_COLOR, NSForegroundColorAttributeName, nil];
 		}
 		
 		attributes = transferStatusSelectedAttributes;
@@ -427,10 +415,10 @@ static NSDictionary	*transferStatusSelectedAttributes = nil;
 																					lineBreakMode:NSLineBreakByTruncatingTail];
 			[paragraphStyle setMaximumLineHeight:[box_transferStatusFrame frame].size.height];
 			
-			transferStatusAttributes = [[NSDictionary dictionaryWithObjectsAndKeys:
+			transferStatusAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
 				paragraphStyle, NSParagraphStyleAttributeName,
-				[NSFont systemFontOfSize:9], NSFontAttributeName, 
-				TRANSFER_STATUS_COLOR, NSForegroundColorAttributeName, nil] retain];
+				[NSFont systemFontOfSize:9], NSFontAttributeName,
+				TRANSFER_STATUS_COLOR, NSForegroundColorAttributeName, nil];
 		}
 		
 		attributes = transferStatusAttributes;

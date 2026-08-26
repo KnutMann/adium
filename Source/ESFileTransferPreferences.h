@@ -29,10 +29,10 @@
  * exact action it had in the nib.
  *
  * The controls below are owned by the view hierarchy, exactly as the nib's
- * outlets were; the ivars are unretained references to them.
+ * outlets were; the ivars hold them as well and let go in -viewWillClose.
  */
 @interface ESFileTransferPreferences : AIPreferencePane {
-	AISettingsFormView	*settingsForm;			//Our view, typed; unretained (-view owns it)
+	AISettingsFormView	*settingsForm;			//Our view, typed; -view holds the same object
 
 	NSPopUpButton		*popUp_downloadLocation;
 	NSSwitch			*checkBox_autoAcceptFiles;

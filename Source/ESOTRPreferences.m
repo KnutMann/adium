@@ -110,11 +110,10 @@ static NSString *AIRowLabel(NSString *label)
 	if (!view) {
 		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
 
-		/* The nib set the inherited 'view' outlet to its own top level view, retaining it. We take
-		 * that reference over rather than retaining it again; it keeps the controls the form does
-		 * not host - the three labels and the private key field - alive, and -tearDown releases it.
+		/* The nib set the inherited 'view' outlet to its own top level view. nibView takes it over;
+		 * it keeps the controls the form does not host - the three labels and the private key
+		 * field - alive, and -tearDown lets go of it.
 		 */
-		[nibView release];
 		nibView = view;
 		view = nil;
 
@@ -125,7 +124,7 @@ static NSString *AIRowLabel(NSString *label)
 		 */
 		[self viewDidLoad];
 
-		view = [[self buildSettingsForm] retain];
+		view = [self buildSettingsForm];
 
 		[self localizePane];
 
@@ -154,7 +153,7 @@ static NSString *AIRowLabel(NSString *label)
 {
 	/* No width of our own: the form falls back to a usable one and the preferences window hands it
 	 * its column width right afterwards. */
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:0.0f] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:0.0f];
 
 	[self populateForm:form];
 
@@ -232,7 +231,6 @@ static NSString *AIRowLabel(NSString *label)
 
 	builtWithAccountRow = hasAccounts;
 	builtWithFingerprintList = hasFingerprints;
-	[builtPrivateKeyDescription release];
 	builtPrivateKeyDescription = [privateKeyDescription copy];
 }
 
@@ -343,9 +341,6 @@ static NSString *AIRowLabel(NSString *label)
 	viewIsOpen = YES;
 
 	//Localize the interface; the xib is unlocalized
-	[label_privateKeys setStringValue:AILocalizedString(@"Private Keys", nil)];
-	[label_account setStringValue:AILocalizedString(@"Account:", nil)];
-	[label_knownFingerprints setStringValue:AILocalizedString(@"Known Fingerprints", nil)];
 	[button_showFingerprint setTitle:[AILocalizedString(@"Show Fingerprint", nil) stringByAppendingEllipsis]];
 	[button_forgetFingerprint setTitle:AILocalizedString(@"Forget Fingerprint", nil)];
 	[[[tableView_fingerprints tableColumnWithIdentifier:@"UID"] headerCell] setStringValue:AILocalizedString(@"Name", nil)];
@@ -357,9 +352,9 @@ static NSString *AIRowLabel(NSString *label)
 	/* Account Menu. The pop up and the Generate button have to exist first: AIAccountMenu rebuilds
 	 * its menu inside its own initializer, so -accountMenu:didRebuildMenuItems: reaches us before
 	 * the assignment below comes back. In the nib world that went without saying. */
-	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self
-											  submenuType:AIAccountNoSubmenu
-										   showTitleVerbs:NO] retain];
+	accountMenu = [AIAccountMenu accountMenuWithDelegate:self
+											 submenuType:AIAccountNoSubmenu
+										  showTitleVerbs:NO];
 
 	//Fingerprints
 	[self updateFingerprintsList];
@@ -495,16 +490,16 @@ static NSString *AIRowLabel(NSString *label)
 	[button_forgetFingerprint setTarget:nil];
 
 	[accountMenu setDelegate:nil];
-	[accountMenu release]; accountMenu = nil;
+	accountMenu = nil;
 
 	for (NSView *hosted in hostedViews) {
 		[hosted removeFromSuperview];
 	}
-	[hostedViews release]; hostedViews = nil;
+	hostedViews = nil;
 
-	/* Every outlet is non-retaining and the views behind them go away with the form or with the
-	 * nib's view, either of which may be released after us; forget them so a second -tearDown
-	 * cannot message freed memory. */
+	/* The views behind these outlets belong to the form or to the nib's view, either of which may
+	 * be released after us; forget them so a second -tearDown cannot message a view which is on
+	 * its way out. */
 	popUp_accounts = nil;
 	button_generate = nil;
 	textField_privateKey = nil;
@@ -512,21 +507,12 @@ static NSString *AIRowLabel(NSString *label)
 	tableView_fingerprints = nil;
 	button_showFingerprint = nil;
 	button_forgetFingerprint = nil;
-	label_privateKeys = nil;
-	label_account = nil;
-	label_knownFingerprints = nil;
 
-	[fingerprintDictArray release]; fingerprintDictArray = nil;
-	[privateKeyDescription release]; privateKeyDescription = nil;
-	[builtPrivateKeyDescription release]; builtPrivateKeyDescription = nil;
+	fingerprintDictArray = nil;
+	privateKeyDescription = nil;
+	builtPrivateKeyDescription = nil;
 
-	/* Left over from the nib era: no observer has ever been registered under this name, here or in
-	 * any superclass. Kept because taking behaviour away is not this change's business. */
-	[[NSNotificationCenter defaultCenter] removeObserver:self
-											  name:Account_ListChanged
-											object:nil];
-
-	[nibView release]; nibView = nil;
+	nibView = nil;
 }
 
 /*!
@@ -543,8 +529,6 @@ static NSString *AIRowLabel(NSString *label)
 	 * preference controller both hold on to us), and a blanket unregistration on every close would
 	 * quietly tear off any observer a future -init registers, with nothing to register it again. */
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[super dealloc];
 }
 
 #pragma mark Fingerprint list height
@@ -640,11 +624,20 @@ static NSString *AIRowLabel(NSString *label)
 		ConnContext		*context;
 		Fingerprint		*fingerprint;
 
-		[fingerprintDictArray release];
 		fingerprintDictArray = [[NSMutableArray alloc] init];
 
 		for (context = otrg_plugin_userstate->context_root; context != NULL;
 			 context = context->next) {
+
+			/* Masters only. Version 3 keeps one context per device pair and a
+			 * master beside them; the fingerprint list hangs off the master,
+			 * so children contribute nothing here - and asking the master
+			 * whether it is encrypted always answers no, which is how this
+			 * column used to read "Not private" through an open, verified
+			 * session. The conversations are the master's children, so each
+			 * fingerprint asks every instance below and reports the best state
+			 * of one actually using it, the way the reference does. */
+			if (context->m_context != context) continue;
 
 			fingerprint = context->fingerprint_root.next;
 			/* If there's no fingerprint, don't add it to the known
@@ -657,13 +650,33 @@ static NSString *AIRowLabel(NSString *label)
 
 				UID = [NSString stringWithUTF8String:context->username];
 
-				if (context->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
-					context->active_fingerprint != fingerprint) {
+				TrustLevel	bestLevel = TRUST_NOT_PRIVATE;
+				BOOL		inUse = NO;
+
+				/* The master itself is in this walk on purpose: a legacy
+				 * version 2 peer without instance tags converses on the master
+				 * directly. */
+				for (ConnContext *instance = context->m_context;
+					 instance && instance->m_context == context->m_context;
+					 instance = instance->next) {
+					if (instance->active_fingerprint != fingerprint) continue;
+
+					TrustLevel thisLevel = otrg_plugin_context_to_trust(instance);
+
+					inUse = YES;
+					if (thisLevel == TRUST_PRIVATE) {
+						bestLevel = TRUST_PRIVATE;
+					} else if (thisLevel == TRUST_UNVERIFIED && bestLevel != TRUST_PRIVATE) {
+						bestLevel = TRUST_UNVERIFIED;
+					} else if (thisLevel == TRUST_FINISHED && bestLevel == TRUST_NOT_PRIVATE) {
+						bestLevel = TRUST_FINISHED;
+					}
+				}
+
+				if (!inUse) {
 					state = AILocalizedString(@"Unused","Word to describe an encryption fingerprint which is not currently being used");
 				} else {
-					TrustLevel trustLevel = otrg_plugin_context_to_trust(context);
-
-					switch (trustLevel) {
+					switch (bestLevel) {
 						case TRUST_NOT_PRIVATE:
 							state = AILocalizedString(@"Not private",nil);
 							break;
@@ -756,9 +769,7 @@ static NSString *AIRowLabel(NSString *label)
 		 * pane which ever shows it again shows something the user can copy. */
 		[textField_privateKey setStringValue:description];
 
-		NSString	*previousDescription = privateKeyDescription;
 		privateKeyDescription = [description copy];
-		[previousDescription release];
 
 		/* "Generate" and "Regenerate" are not the same width, and a pop up row lays its accessory
 		 * button out at the frame the button carries: refit it and ask for a fresh layout. */
@@ -800,7 +811,7 @@ static NSString *AIRowLabel(NSString *label)
 		return;
 	}
 
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:AILocalizedString(@"Are you sure you want to generate a new OTR key?", nil)];
 	[alert setInformativeText:AILocalizedString(@"This will permanently delete your old key and all your contacts will need to verify your fingerprint again.", "Message when regenerating an OTR key")];
 	[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];

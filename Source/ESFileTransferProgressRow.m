@@ -40,7 +40,7 @@
 
 + (ESFileTransferProgressRow *)rowForFileTransfer:(ESFileTransfer *)inFileTransfer withOwner:(id)inOwner
 {
-	return [[[ESFileTransferProgressRow alloc] initForFileTransfer:inFileTransfer withOwner:inOwner] autorelease];
+	return [[ESFileTransferProgressRow alloc] initForFileTransfer:inFileTransfer withOwner:inOwner];
 }
 
 - (id)initForFileTransfer:(ESFileTransfer *)inFileTransfer withOwner:(id)inOwner
@@ -49,7 +49,7 @@
 		sizeString = nil;
 		forceUpdate = NO;
 
-		fileTransfer = [inFileTransfer retain];
+		fileTransfer = inFileTransfer;
 		[fileTransfer setDelegate:self];
 
 		owner = inOwner;
@@ -57,24 +57,20 @@
 		bytesSentQueue = [[NSMutableArray alloc] init];
 		updateTickQueue = [[NSMutableArray alloc] init];
 
-		[NSBundle ai_loadNibNamed:@"ESFileTransferProgressView" owner:self];
+		/* The loader hands EVERY top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the outlets hold their own, so each stray one is
+		 * given up here. This nib has two views, and giving up only the one named by an
+		 * outlet of ours left the details view behind on every finished transfer. */
+		for (id object in [NSBundle ai_loadNibNamed:@"ESFileTransferProgressView" owner:self])
+			CFRelease((__bridge CFTypeRef)object);
 	}
-	
+
 	return self;
 }
 
 - (void)dealloc
 {
-	owner = nil;
 	[fileTransfer setDelegate:nil];
-	[fileTransfer release];
-	[view release]; view = nil;
-	[sizeString release]; sizeString = nil;
-	
-	[bytesSentQueue release]; bytesSentQueue = nil;
-	[updateTickQueue release]; updateTickQueue = nil;
-
-	[super dealloc];
 }
 
 - (ESFileTransfer *)fileTransfer
@@ -129,9 +125,8 @@
 - (void)fileTransfer:(ESFileTransfer *)inFileTransfer didSetSize:(unsigned long long)inSize
 {
 	size = inSize;
-	
-	[sizeString release];
-	sizeString = [[adium.fileTransferController stringForSize:size] retain];
+
+	sizeString = [adium.fileTransferController stringForSize:size];
 }
 
 - (void)fileTransfer:(ESFileTransfer *)inFileTransfer didSetLocalFilename:(NSString *)inLocalFilename
@@ -174,9 +169,8 @@
 	
 	if (!size) {
 		size = [inFileTransfer size];
-		
-		[sizeString release];
-		sizeString = [[adium.fileTransferController stringForSize:size] retain];
+
+		sizeString = [adium.fileTransferController stringForSize:size];
 	}
 
 	switch (status) {
@@ -391,35 +385,35 @@
 	//Allow open and show in finder on complete incoming transfers and all outgoing transfers
 	if (([fileTransfer status] == Complete_FileTransfer) ||
 	   ([fileTransfer fileTransferType] == Outgoing_FileTransfer)) {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Open",nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Open",nil)
 																		 target:self
 																		 action:@selector(openFileAction:)
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[contextualMenu addItem:menuItem];
 
-		menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show in Finder",nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show in Finder",nil)
 																		 target:self
 																		 action:@selector(revealAction:)
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[contextualMenu addItem:menuItem];
 		
 	}	
 
 	if ([fileTransfer isStopped]) {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Remove from List",nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Remove from List",nil)
 																		 target:self
 																		 action:@selector(removeRowAction:)
-																  keyEquivalent:@""] autorelease];
-		[contextualMenu addItem:menuItem];	
+																  keyEquivalent:@""];
+		[contextualMenu addItem:menuItem];
 	} else {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Cancel",nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Cancel",nil)
 																		 target:self
 																		 action:@selector(stopResumeAction:)
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[contextualMenu addItem:menuItem];
-	}	
-	
-	return [contextualMenu autorelease];
+	}
+
+	return contextualMenu;
 }
 
 //Pass height change information on to our owner
@@ -446,7 +440,7 @@
 	
 	if ( secs < 0 ) secs *= -1;
 	
-	breaks = [[[desc allKeys] mutableCopy] autorelease];
+	breaks = [[desc allKeys] mutableCopy];
 	[breaks sortUsingSelector:@selector( compare: )];
 	
 	while ( i < [breaks count] && secs >= (NSTimeInterval) [[breaks objectAtIndex:i] unsignedIntegerValue] ) i++;

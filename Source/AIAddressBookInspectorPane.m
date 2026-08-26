@@ -130,13 +130,6 @@ static NSString *AICardName(AIAddressBookPerson *person)
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-
-	[displayedObject release];
-	[people release];
-	[shown release];
-	[inspectorContentView release];
-
-	[super dealloc];
 }
 
 //Building --------------------------------------------------------------------------------------------------------
@@ -144,7 +137,7 @@ static NSString *AICardName(AIAddressBookPerson *person)
 
 static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:frame] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:frame];
 
 	[field setEditable:NO];
 	[field setSelectable:NO];
@@ -178,13 +171,13 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	NSRect contentFrame = NSMakeRect(MARGIN, contentBottom, innerWidth, PANE_HEIGHT - contentBottom - MARGIN);
 
 	//The card that is attached
-	summaryView = [[[NSView alloc] initWithFrame:contentFrame] autorelease];
+	summaryView = [[NSView alloc] initWithFrame:contentFrame];
 	[summaryView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	[inspectorContentView addSubview:summaryView];
 
 	CGFloat summaryTop = NSHeight(contentFrame) - CARD_SIDE;
 
-	cardImage = [[[NSImageView alloc] initWithFrame:NSMakeRect(0.0, summaryTop, CARD_SIDE, CARD_SIDE)] autorelease];
+	cardImage = [[NSImageView alloc] initWithFrame:NSMakeRect(0.0, summaryTop, CARD_SIDE, CARD_SIDE)];
 	[cardImage setEditable:NO];
 	[cardImage setImageScaling:NSImageScaleProportionallyUpOrDown];
 	//Lightly rounded and unframed, matching the contact picture on the first tab
@@ -211,13 +204,13 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	[summaryView addSubview:cardOrigin];
 
 	//Finding one
-	chooserView = [[[NSView alloc] initWithFrame:contentFrame] autorelease];
+	chooserView = [[NSView alloc] initWithFrame:contentFrame];
 	[chooserView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	[inspectorContentView addSubview:chooserView];
 
 	CGFloat filterTop = NSHeight(contentFrame) - 22.0;
 
-	filterField = [[[NSSearchField alloc] initWithFrame:NSMakeRect(0.0, filterTop, innerWidth, 22.0)] autorelease];
+	filterField = [[NSSearchField alloc] initWithFrame:NSMakeRect(0.0, filterTop, innerWidth, 22.0)];
 	[[filterField cell] setPlaceholderString:AILocalizedString(@"Filter", "Placeholder of the field which narrows the list of cards")];
 	[filterField setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
 	[filterField setTarget:self];
@@ -225,13 +218,13 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	[filterField setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
 	[chooserView addSubview:filterField];
 
-	NSScrollView *scroll = [[[NSScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0, innerWidth, filterTop - 6.0)] autorelease];
+	NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0, innerWidth, filterTop - 6.0)];
 	[scroll setHasVerticalScroller:YES];
 	[scroll setAutohidesScrollers:YES];
 	[scroll setBorderType:NSBezelBorder];
 	[scroll setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 
-	table = [[[NSTableView alloc] initWithFrame:[[scroll contentView] bounds]] autorelease];
+	table = [[NSTableView alloc] initWithFrame:[[scroll contentView] bounds]];
 	[table setUsesAlternatingRowBackgroundColors:YES];
 	[table setAllowsMultipleSelection:NO];
 	[table setHeaderView:nil];
@@ -239,7 +232,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	[table setDataSource:self];
 	[table setDelegate:self];
 
-	NSTableColumn *column = [[[NSTableColumn alloc] initWithIdentifier:@"card"] autorelease];
+	NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"card"];
 	[column setWidth:innerWidth - 4.0];
 	[table addTableColumn:column];
 
@@ -247,7 +240,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	[chooserView addSubview:scroll];
 
 	//The one button, whose meaning follows the state above it
-	actionButton = [[[NSButton alloc] initWithFrame:NSMakeRect(MARGIN, MARGIN, innerWidth, BUTTON_HEIGHT)] autorelease];
+	actionButton = [[NSButton alloc] initWithFrame:NSMakeRect(MARGIN, MARGIN, innerWidth, BUTTON_HEIGHT)];
 	[actionButton setBezelStyle:NSBezelStyleRounded];
 	[actionButton setTarget:self];
 	[actionButton setAction:@selector(performAction:)];
@@ -287,10 +280,9 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
  */
 - (void)loadPeople
 {
-	[people release];
-	people = [[[AIAddressBookController allPeople] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+	people = [[AIAddressBookController allPeople] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
 		return [AICardName(a) localizedCaseInsensitiveCompare:AICardName(b)];
-	}] retain];
+	}];
 }
 
 - (void)updateForListObject:(AIListObject *)inObject
@@ -300,8 +292,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 						   (AIListObject *)[(AIListContact *)inObject parentContact] :
 						   inObject);
 
-	[displayedObject release];
-	displayedObject = [owner retain];
+	displayedObject = owner;
 
 	choosing = NO;
 
@@ -334,7 +325,7 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 		 * placeholder keeps its square corners: it carries a border of its own, which
 		 * a rounded clip would cut into. */
 		[cardImage setImage:(hasPicture ?
-							 [[[NSImage alloc] initWithData:imageData] autorelease] :
+							 [[NSImage alloc] initWithData:imageData] :
 							 [NSImage imageNamed:@"default-icon" forClass:[self class]])];
 		[[cardImage layer] setCornerRadius:(hasPicture ? 4.0 : 0.0)];
 		[cardName setStringValue:AICardName(person)];
@@ -399,8 +390,6 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 - (void)applyFilter
 {
 	NSString *text = [[filterField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-
-	[shown release];
 
 	if (![text length]) {
 		shown = [people copy];
