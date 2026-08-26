@@ -206,6 +206,7 @@
 		3456232F0A37723400E7FC97 /* LogViewer.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3456232E0A37723400E7FC97 /* LogViewer.xib */; };
 		345623380A3773C300E7FC97 /* LoggingDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 345623370A3773C300E7FC97 /* LoggingDefaults.plist */; };
 		3456233F0A3773D100E7FC97 /* AILoggerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3456233D0A3773D000E7FC97 /* AILoggerPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		F2010003000000000000AD01 /* AIMessageStateStore.m in Sources */ = {isa = PBXBuildFile; fileRef = F2010001000000000000AD01 /* AIMessageStateStore.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34575E3707CBA874004A4FFF /* DebugWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E3607CBA874004A4FFF /* DebugWindow.xib */; };
 		34575E3907CBA88E004A4FFF /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E3807CBA88E004A4FFF /* MainMenu.xib */; };
 		AE7A5D1000000000000000A3 /* AIAwayReminderPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = AE7A5D1000000000000000A2 /* AIAwayReminderPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1802,6 +1803,8 @@
 		3456232E0A37723400E7FC97 /* LogViewer.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LogViewer.xib; path = Resources/LogViewer.xib; sourceTree = "<group>"; };
 		345623370A3773C300E7FC97 /* LoggingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = LoggingDefaults.plist; path = Resources/LoggingDefaults.plist; sourceTree = "<group>"; };
 		3456233D0A3773D000E7FC97 /* AILoggerPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AILoggerPlugin.m; path = Source/AILoggerPlugin.m; sourceTree = "<group>"; };
+		F2010001000000000000AD01 /* AIMessageStateStore.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIMessageStateStore.m; path = Source/AIMessageStateStore.m; sourceTree = "<group>"; };
+		F2010002000000000000AD01 /* AIMessageStateStore.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMessageStateStore.h; path = Source/AIMessageStateStore.h; sourceTree = "<group>"; };
 		3456233E0A3773D000E7FC97 /* AILoggerPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AILoggerPlugin.h; path = Source/AILoggerPlugin.h; sourceTree = "<group>"; };
 		34575E2B07CBA70D004A4FFF /* FileTransferProgressWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = FileTransferProgressWindow.xib; path = Resources/FileTransferProgressWindow.xib; sourceTree = "<group>"; };
 		34575E2C07CBA70D004A4FFF /* FileTransferPrefs.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = FileTransferPrefs.plist; path = Resources/FileTransferPrefs.plist; sourceTree = "<group>"; };
@@ -5572,6 +5575,8 @@
 				4BE666CC0577AFA0007E115C /* Log Viewer */,
 				3456233E0A3773D000E7FC97 /* AILoggerPlugin.h */,
 				3456233D0A3773D000E7FC97 /* AILoggerPlugin.m */,
+				F2010002000000000000AD01 /* AIMessageStateStore.h */,
+				F2010001000000000000AD01 /* AIMessageStateStore.m */,
 				345F58C6081990FF001F733C /* msg-log-viewer.tiff */,
 				345623370A3773C300E7FC97 /* LoggingDefaults.plist */,
 			);
@@ -7287,6 +7292,7 @@
 				3456232A0A3771F400E7FC97 /* AILogToGroup.m in Sources */,
 				3456232C0A3771F400E7FC97 /* AILogFromGroup.m in Sources */,
 				3456233F0A3773D100E7FC97 /* AILoggerPlugin.m in Sources */,
+				F2010003000000000000AD01 /* AIMessageStateStore.m in Sources */,
 				34F849590A4AF04D0002A017 /* AILogFileUpgradeWindowController.m in Sources */,
 				348B250D0A50A1C900B2B972 /* ESSourceListBackgroundView.m in Sources */,
 				340670A90A55A4B4004E22AC /* ESGlassSplitView.m in Sources */,

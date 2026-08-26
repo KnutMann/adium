@@ -20,6 +20,7 @@
 #import "AIJSXtrasManager.h"
 #import "AIWebKitMessageViewWKContextMenu.h"
 #import "AIWKGestureBridge.h"
+#import "AIMessageStateStore.h"
 #import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIService.h>
 #import "AIWebkitMessageViewStyle.h"
@@ -1978,12 +1979,18 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 	NSInteger level = [className isEqualToString:@"x-adium-read"] ? 3 : 2;
 	if ([self _storedMessageWithId:messageId]) {
 		for (AIContentObject *stored in _storedContentObjects) {
-			if ([stored isKindOfClass:[AIContentMessage class]] &&
-				![stored isKindOfClass:[AIContentContext class]] && [stored isOutgoing]) {
-				AIContentMessage *storedMessage = (AIContentMessage *)stored;
-				if (storedMessage.confirmation < level) storedMessage.confirmation = level;
-				if ([storedMessage.messageId isEqualToString:messageId]) break;
+			if (![stored isKindOfClass:[AIContentMessage class]]) continue;
+			AIContentMessage *storedMessage = (AIContentMessage *)stored;
+			if ([stored isOutgoing] && storedMessage.confirmation < level) {
+				storedMessage.confirmation = level;
+				[[AIMessageStateStore sharedStore] setConfirmation:level forMessageId:storedMessage.messageId inChat:_chat];
+				[[AIMessageStateStore sharedStore] rememberMessage:storedMessage inChat:_chat];
 			}
+			/* The named message ends the run whatever it is. History fetched from
+			 * the service arrives as context and carries an id, so testing the id
+			 * before the outgoing test is what keeps the run from swallowing every
+			 * message that came after it. */
+			if ([storedMessage.messageId isEqualToString:messageId]) break;
 		}
 	}
 
@@ -2060,8 +2067,11 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		[self _addClass:classForConfirmation[message.confirmation] toMessageWithId:message.messageId];
 	}
 
-	for (NSString *sender in message.reactions) {
-		[self _setReactions:[message.reactions objectForKey:sender]
+	/* Over a copy: drawing a chip writes the set back onto this very message,
+	 * and a message reacted to by two people would be mutated mid-walk. */
+	NSDictionary *reactions = [message.reactions copy];
+	for (NSString *sender in reactions) {
+		[self _setReactions:[reactions objectForKey:sender]
 				  forSender:sender
 				onMessageId:message.messageId];
 	}
@@ -2126,6 +2136,8 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
 	if (stored && stored.confirmation < 1) stored.confirmation = 1;
+	[[AIMessageStateStore sharedStore] setConfirmation:1 forMessageId:messageId inChat:_chat];
+	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
 
 	[self _addClass:@"x-adium-sent" toMessageWithId:messageId];
 }
@@ -2201,8 +2213,12 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 {
 	if (![messageId length] || !_webView) return;
 
-	/* Remember the set on the message itself, so a rebuilt page redraws the chips. */
+	/* Remember the set on the message itself, so a rebuilt page redraws the chips,
+	 * and on disk, so a conversation reopened another day redraws them too. */
+	[[AIMessageStateStore sharedStore] setReactions:reactions forSender:sender messageId:messageId inChat:_chat];
+
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
+	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
 	if (stored) {
 		if ([reactions count]) {
 			if (!stored.reactions) stored.reactions = [NSMutableDictionary dictionary];

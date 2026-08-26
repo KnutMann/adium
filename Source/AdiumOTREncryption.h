@@ -51,4 +51,8 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 void otrg_plugin_create_privkey(const char *accountname,
 								const char *protocol);
 
+/* Give this computer an instance tag for the given accountname/protocol */
+void otrg_plugin_create_instag(const char *accountname,
+							   const char *protocol);
+
 @end

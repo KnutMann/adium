@@ -41,6 +41,9 @@
 
 #define PRIVKEY_PATH [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"otr.private_key"] UTF8String]
 #define STORE_PATH	 [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"otr.fingerprints"] UTF8String]
+/* Named as the reference implementation names it, and written in the same
+ * format by the same library call, so the file can be carried between the two. */
+#define INSTAG_PATH	 [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"otr.instance_tags"] UTF8String]
 
 #define CLOSED_CONNECTION_MESSAGE "has closed his private connection to you"
 
@@ -66,6 +69,7 @@
 - (void)adiumWillTerminate:(NSNotification *)inNotification;
 - (void)updateSecurityDetails:(NSNotification *)inNotification;
 - (void)verifyUnknownFingerprint:(NSValue *)contextValue;
+- (void)otrPollTimerFired:(NSTimer *)inTimer;
 @end
 
 @implementation AdiumOTREncryption
@@ -146,8 +150,21 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 	}
 
 	otrg_ui_update_fingerprint();
-	
-	
+
+	/* This computer's instance tag, one per account, which version 3 of the
+	 * protocol puts in every message so the far side can tell which of a
+	 * person's devices it is talking to. It has to be read before anything is
+	 * generated: generating rewrites the whole file from what is in memory, so
+	 * an unread file would be replaced by a file holding one account's tag. */
+	err = otrl_instag_read(otrg_plugin_userstate, INSTAG_PATH);
+	if (err) {
+		const char *errMsg = gpg_strerror(err);
+
+		if (errMsg && strcmp(errMsg, "No such file or directory")) {
+			NSLog(@"Error reading %s: %s", INSTAG_PATH, errMsg);
+		}
+	}
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(adiumWillTerminate:)
 									   name:AIAppWillTerminateNotification
@@ -196,12 +213,17 @@ static NSDictionary* details_for_context(ConnContext *context)
 	if (!context) return nil;
 
 	NSDictionary		*securityDetailsDict;
-	Fingerprint *fprint = context->active_fingerprint;	
+	Fingerprint *fprint = context->active_fingerprint;
 
     if (!fprint || !(fprint->fingerprint)) return nil;
-    context = fprint->context;
-    if (!context) return nil;
 
+	/* The fingerprint is deliberately not followed home to the context it
+	 * belongs to. Version 3 of the protocol keeps one context per pair of
+	 * devices, with a master context beside them holding what is common to all
+	 * of them: the list of fingerprints hangs off the master, while the
+	 * conversation, whether it is encrypted, and its session id belong to the
+	 * child. Asking the master whether it is encrypted always answers no.
+	 */
     TrustLevel			level = otrg_plugin_context_to_trust(context);
 	AIEncryptionStatus	encryptionStatus;
 	AIAccount			*account;
@@ -423,6 +445,21 @@ static BOOL otrHandshakeErrorTrippedBreaker(const char *accountname, const char 
 	return NO;
 }
 
+/* A handshake that succeeded settles the account: whatever the errors were
+ * about, they were survivable. This matters for the ordinary case of a contact
+ * who restarted and lost the conversation while we still had it: everything we
+ * send draws an error until the two sides agree again, and several messages in
+ * a row would otherwise look exactly like a loop and switch off the very
+ * restart that repairs it. */
+static void otrHandshakeSucceeded(const char *accountname, const char *username)
+{
+	if (!accountname || !username) return;
+
+	NSString *key = otrLoopKey(accountname, username);
+	[otrRecentErrorTimes removeObjectForKey:key];
+	[otrCooldownUntil removeObjectForKey:key];
+}
+
 /* Return the OTR policy for the given context. */
 
 static OtrlPolicy policy_cb(void *opdata, ConnContext *context)
@@ -469,6 +506,37 @@ static void create_privkey_cb(void *opdata, const char *accountname,
 {
 	@autoreleasepool {
 		otrg_plugin_create_privkey(accountname, protocol);
+	}
+}
+
+/* Give this computer an instance tag for the given accountname/protocol
+ *
+ * Version 3 of the protocol names the device a message came from, and every
+ * message carries the name. It has to be the same name tomorrow as today, so it
+ * is written down: generating rewrites the file from every tag the library is
+ * holding, which is why the file is read at startup.
+ */
+void otrg_plugin_create_instag(const char *accountname, const char *protocol)
+{
+	/* The library adds a tag without looking whether the account already has
+	 * one, and hands out the first it finds afterwards, so asking twice would
+	 * leave a name in the file that nothing will ever answer to again. */
+	OtrlInsTag *existing = otrl_instag_find(otrg_plugin_userstate, accountname, protocol);
+	if (existing && existing->instag >= OTRL_MIN_VALID_INSTAG) return;
+
+	gcry_error_t err = otrl_instag_generate(otrg_plugin_userstate, INSTAG_PATH,
+											accountname, protocol);
+	if (err) {
+		NSLog(@"Error writing %s: %s", INSTAG_PATH, gpg_strerror(err));
+	}
+}
+
+/* Create an instance tag for the given accountname/protocol if desired. */
+static void create_instag_cb(void *opdata, const char *accountname,
+							 const char *protocol)
+{
+	@autoreleasepool {
+		otrg_plugin_create_instag(accountname, protocol);
 	}
 }
 
@@ -650,6 +718,8 @@ static void gone_secure_cb(void *opdata, ConnContext *context)
 {
 	@autoreleasepool {
 		AIChat *chat = chatForContext(context);
+
+		if (context) otrHandshakeSucceeded(context->accountname, context->username);
 
 		update_security_details_for_chat(chat);
 		otrg_ui_update_fingerprint();
@@ -891,6 +961,32 @@ static void handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_event, ConnContex
 	}
 }
 
+/* The library has periodic work to do: private state that has served its turn
+ * is thrown away, so that somebody who takes this computer tomorrow cannot read
+ * what was said today. It asks for a timer here and does the work when
+ * otrl_message_poll is called. A port that answers neither leaves that state
+ * lying around for the life of the process.
+ */
+static NSTimer *otrPollTimer = nil;
+
+static void timer_control_cb(void *opdata, unsigned int interval)
+{
+	@autoreleasepool {
+		[otrPollTimer invalidate];
+		otrPollTimer = nil;
+
+		/* Nought means there is nothing left to do for now; the library asks
+		 * again when there is. */
+		if (interval > 0) {
+			otrPollTimer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)interval
+															target:adiumOTREncryption
+														  selector:@selector(otrPollTimerFired:)
+														  userInfo:nil
+														   repeats:YES];
+		}
+	}
+}
+
 static OtrlMessageAppOps ui_ops = {
 	.policy = policy_cb,
 	.create_privkey = create_privkey_cb,
@@ -911,11 +1007,16 @@ static OtrlMessageAppOps ui_ops = {
 	.resent_msg_prefix_free = NULL,
 	.handle_smp_event = handle_smp_event_cb,
 	.handle_msg_event = handle_msg_event_cb,
-	.create_instag = NULL,
+	.create_instag = create_instag_cb,
 	.convert_msg = NULL,
 	.convert_free = NULL,
-	.timer_control = NULL,
+	.timer_control = timer_control_cb,
 };
+
+- (void)otrPollTimerFired:(NSTimer *)inTimer
+{
+	otrl_message_poll(otrg_plugin_userstate, &ui_ops, NULL);
+}
 
 #pragma mark -
 
@@ -1059,6 +1160,9 @@ void otrg_plugin_continue_smp(ConnContext *context,
  */
 - (void)adiumWillTerminate:(NSNotification *)inNotification
 {
+	[otrPollTimer invalidate];
+	otrPollTimer = nil;
+
 	ConnContext *context = otrg_plugin_userstate->context_root;
 	while(context) {
 		ConnContext *next = context->next;
@@ -1165,14 +1269,17 @@ void disconnect_from_chat(AIChat *inChat)
 /* Forget a fingerprint */
 void otrg_ui_forget_fingerprint(Fingerprint *fingerprint)
 {
-    ConnContext *context;
+	if (!fingerprint) return;
 
-    /* Don't do anything with the active fingerprint if we're in the
-	 * ENCRYPTED state. */
-    context = (fingerprint ? fingerprint->context : NULL);
-    if (context && (context->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
-					context->active_fingerprint == fingerprint)) return;
-	
+	/* Don't forget a fingerprint a conversation is relying on right now. The
+	 * fingerprint belongs to the master context, which is never itself
+	 * encrypted, so asking it would always have answered no; the conversations
+	 * are its children, and the library will name the most private of them.
+	 */
+	ConnContext *inUse = otrl_context_find_recent_secure_instance(fingerprint->context);
+	if (inUse && inUse->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
+		inUse->active_fingerprint == fingerprint) return;
+
     otrl_context_forget_fingerprint(fingerprint, 1);
     otrg_plugin_write_fingerprints();
 }

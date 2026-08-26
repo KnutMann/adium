@@ -56,7 +56,10 @@ Current version: **1.8.0**.
   background; room bookmarks synchronized with other clients
   (XEP-0402), including autojoin; delivery receipts (XEP-0184) and read
   markers (XEP-0333), the latter now requested on outgoing messages too,
-  so a message you send can be confirmed delivered and then read
+  so a message you send can be confirmed delivered and then read;
+  message reactions (XEP-0444), sent from the message's context menu
+  and delivered to the exact message they name, in direct chats and
+  rooms alike
 * OTR migrated to the libotr 4.x API
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
@@ -84,6 +87,27 @@ a modern look.
 * Modern window chrome, tab-bar vibrancy, and a sweep of fixes for
   focus rings, scrolling, contact-list drawing and tooltips on recent
   macOS
+
+### JavaScript plugins for the message view
+
+* A new xtra type: an `.AdiumPlugin` bundle carrying one JavaScript
+  file that changes how messages are displayed. It works in every
+  message style, needs no compiled code, and therefore never worries
+  about processor architectures
+* Five such plugins come bundled: **Read Receipts** draws the familiar
+  ticks next to the timestamp as a sent message advances (one grey
+  tick when the server has it, a grey pair once delivered, a blue pair
+  once read); **Reaction Chips** gathers emoji reactions as small
+  chips on the message they belong to; **Big Emoji** enlarges short
+  emoji-only messages; **Markdown Light** renders the usual asterisk
+  and tilde markers as bold, italic and strikethrough; **Code Blocks**
+  sets backticked spans and fenced blocks in monospace
+* Built security first: every plugin runs in its own isolated script
+  world, the message window refuses all remote network loads, and a
+  plugin only ever sees the rendered display, never the text you send,
+  your logs, or the network
+* XtrasCreator authors the new type, with a scaffold to start from,
+  an editor, and a lint pass that catches the common mistakes
 
 ### Notifications
 

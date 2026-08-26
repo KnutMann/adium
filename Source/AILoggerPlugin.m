@@ -1095,12 +1095,21 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 				}
 				
 				NSString *displayName = [chat displayNameForContact:content.source];
-				
+
 				if (![[[content source] UID] isEqualToString:displayName]) {
 					[attributeKeys addObject:@"alias"];
 					[attributeValues addObject:displayName];
 				}
-				
+
+				/* The id the protocol gave this message, where it gave one. It is
+				 * what lets a replayed excerpt ask what became of the message
+				 * afterwards, which arrives too late to be written down here. */
+				NSString *messageId = [content isKindOfClass:[AIContentMessage class]] ? [content messageId] : nil;
+				if ([messageId length]) {
+					[attributeKeys addObject:@"messageid"];
+					[attributeValues addObject:messageId];
+				}
+
 				AIXMLElement *messageElement = [[AIXMLElement alloc] initWithName:@"message"];
 				
 				[messageElement addEscapedObject:[xhtmlDecoder encodeHTML:[content message]

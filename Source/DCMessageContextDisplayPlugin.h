@@ -27,12 +27,13 @@
 
 @class SMSQLiteLoggerPlugin, ISO8601DateFormatter;
 
-@interface DCMessageContextDisplayPlugin : AIPlugin {	
+@interface DCMessageContextDisplayPlugin : AIPlugin {
 	BOOL							isObserving;
 	BOOL							shouldDisplay;
 	BOOL							dimRecentContext;
 	NSInteger						linesToDisplay;
 	ISO8601DateFormatter			*formatter;
+	NSMutableSet					*chatsAwaitingHistory;
 }
 
 + (DCMessageContextDisplayPlugin *)sharedInstance;

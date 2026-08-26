@@ -29,6 +29,7 @@
 
 //omg crawsslinkz
 #import "AILoggerPlugin.h"
+#import "AIMessageStateStore.h"
 
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/ISO8601DateFormatter.h>
@@ -38,6 +39,11 @@
 #define RESTORED_CHAT_CONTEXT_LINE_NUMBER 50
 
 static DCMessageContextDisplayPlugin *sharedInstance = nil;
+
+/* How long an account that fetches its own history is given before the
+ * transcript excerpt is shown anyway. Long enough for a phone to be woken and
+ * answer, short enough that a conversation does not sit empty. */
+#define DISPLAY_HISTORY_WAIT	5.0
 
 /**
  * @class DCMessageContextDisplayPlugin
@@ -50,6 +56,9 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 							object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime;
 - (NSArray *)contextForChat:(AIChat *)chat;
 - (void)addContextDisplayToWindow:(NSNotification *)notification;
+- (void)displayContextForChat:(AIChat *)chat;
+- (void)historyDeadlineForChat:(AIChat *)chat;
+- (void)contentArrivedInChat:(NSNotification *)notification;
 + (DCMessageContextDisplayPlugin *)sharedInstance;
 @end
 
@@ -78,6 +87,12 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	
 	sharedInstance = self;
 	formatter = [[ISO8601DateFormatter alloc] init];
+
+	chatsAwaitingHistory = [[NSMutableSet alloc] init];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(contentArrivedInChat:)
+												 name:Content_ContentObjectAdded
+											   object:nil];
 }
 
 /**
@@ -85,6 +100,8 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
  */
 - (void)uninstallPlugin
 {
+	[NSObject cancelPreviousPerformRequestsWithTarget:self];
+	chatsAwaitingHistory = nil;
 	formatter = nil;
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -130,7 +147,64 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 - (void)addContextDisplayToWindow:(NSNotification *)notification
 {
 	AIChat	*chat = (AIChat *)[notification object];
-	
+
+	/* An account that fetches the conversation's earlier messages from the
+	 * service itself is given a moment to do so, since replaying our transcript
+	 * on top of that would show the same lines twice, and ours know nothing of
+	 * what was delivered or reacted to. The service answers over the network or
+	 * not at all, so this is a wait and not a surrender: if nothing has appeared
+	 * by the time it is up, the excerpt is shown after all. */
+	if ([chat.account providesConversationHistory]) {
+		[chatsAwaitingHistory addObject:chat];
+		[self performSelector:@selector(historyDeadlineForChat:)
+				   withObject:chat
+				   afterDelay:DISPLAY_HISTORY_WAIT];
+		return;
+	}
+
+	[self displayContextForChat:chat];
+}
+
+/*!
+ * @brief The fetched history arrived, so the excerpt is not needed
+ *
+ * Only history ends the wait. A live message arriving in the meantime is not
+ * what was being waited for, and cancelling on it would leave a conversation
+ * opened by an incoming message with no excerpt at all.
+ */
+- (void)contentArrivedInChat:(NSNotification *)notification
+{
+	AIChat *chat = (AIChat *)[notification object];
+	AIContentObject *content = [[notification userInfo] objectForKey:@"AIContentObject"];
+
+	if (![content isKindOfClass:[AIContentContext class]]) return;
+
+	if (chat && [chatsAwaitingHistory containsObject:chat]) {
+		[chatsAwaitingHistory removeObject:chat];
+		[NSObject cancelPreviousPerformRequestsWithTarget:self
+												 selector:@selector(historyDeadlineForChat:)
+												   object:chat];
+	}
+}
+
+/*!
+ * @brief The wait for fetched history is over and nothing came
+ */
+- (void)historyDeadlineForChat:(AIChat *)chat
+{
+	if (![chatsAwaitingHistory containsObject:chat]) return;
+
+	[chatsAwaitingHistory removeObject:chat];
+
+	/* Displaying into a chat the user closed while we waited would open its
+	 * window again, which is a strange thing for an excerpt to do. */
+	if (!chat.isOpen) return;
+
+	[self displayContextForChat:chat];
+}
+
+- (void)displayContextForChat:(AIChat *)chat
+{
 	NSArray	*context = [self contextForChat:chat];
 
 	if (context && [context count] > 0 && shouldDisplay) {
@@ -283,6 +357,29 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 				//Don't log this object
 				[message setPostProcessContent:NO];
 				[message setTrackContent:NO];
+
+				/* Give the line back the id the protocol gave it, and with the id
+				 * whatever became of the message afterwards: that it was
+				 * delivered, that it was read, what people put on it. The
+				 * transcript cannot hold any of that, since all of it arrives
+				 * after the line was written. */
+				AIMessageStateStore *store = [AIMessageStateStore sharedStore];
+
+				/* A message sent from here reached the transcript before the
+				 * server said what id it had given it, so its line names none.
+				 * The store recognises such a line by when it was said and by
+				 * whom. */
+				NSString *messageId = [[element attributeForName:@"messageid"] stringValue];
+				if (![messageId length])
+					messageId = [store messageIdInChat:chat date:timeVal sender:(sentByMe ? account.UID : senderUID)];
+
+				if ([messageId length]) {
+					message.messageId = messageId;
+					message.confirmation = [store confirmationForMessageId:messageId inChat:chat];
+
+					NSDictionary *reactions = [store reactionsForMessageId:messageId inChat:chat];
+					if (reactions) message.reactions = [reactions mutableCopy];
+				}
 
 				//Add it to the array (in front, since we're working backwards, and we want the array in forward order)
 				[foundMessages insertObject:message atIndex:0];

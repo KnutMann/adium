@@ -1360,6 +1360,12 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 		messageObject.messageId = messageId;
 		messageObject.trackContent = NO;
 
+		/* An account that fetches its own history hands us the same messages
+		 * again every time a conversation is opened. Writing those to the
+		 * transcript would copy the conversation into it once per opening, and
+		 * the copy would then be replayed alongside the fetch forever after. */
+		if ([self providesConversationHistory]) messageObject.postProcessContent = NO;
+
 		[adium.contentController receiveContentObject:messageObject];
 
 	} else {

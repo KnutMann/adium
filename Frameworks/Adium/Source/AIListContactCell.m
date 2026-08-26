@@ -35,28 +35,6 @@
 @implementation AIListContactCell
 
 //Copy
-- (id)copyWithZone:(NSZone *)zone
-{
-	AIListContactCell *newCell = [super copyWithZone:zone];
-
-	/* NSCell copies memberwise, so the new cell's object ivars already point to the ones this cell
-	 * holds, holding no reference of their own. Each of them has to be cleared without being
-	 * released - a plain assignment would give up a reference this cell never took. The cast
-	 * through void * keeps the store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->statusFont = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->statusColor = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->_statusAttributes = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->_statusAttributesInverted = nil;
-
-	newCell->statusFont = statusFont;
-	newCell->statusColor = statusColor;
-	newCell->_statusAttributes = _statusAttributes;
-	newCell->_statusAttributesInverted = _statusAttributesInverted;
-
-	return newCell;
-}
-
 //Init
 - (id)init
 {

@@ -73,23 +73,11 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 {
 	AIListCell *newCell = [super copyWithZone:zone];
 
-	/* NSCell copies memberwise, so the new cell's object ivars already point to the ones this cell
-	 * holds, holding no reference of their own. Each of them has to be cleared without being
-	 * released, and a plain assignment would not do that: the store gives up a reference this cell
-	 * never took, and the original loses what it was drawing with. The cast through void * is what
-	 * keeps the store out of it.
-	 */
-	*(__unsafe_unretained id *)(void *)&newCell->proxyObject = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->font = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->textColor = nil;
-	*(__unsafe_unretained id *)(void *)&newCell->invertedTextColor = nil;
-	//A cache the new cell rebuilds on demand; it stays empty here.
-	*(__unsafe_unretained id *)(void *)&newCell->labelAttributes = nil;
-
-	[newCell setProxyListObject:proxyObject];
-	newCell->font = font;
-	newCell->textColor = textColor;
-	newCell->invertedTextColor = invertedTextColor;
+	/* The copy arrives holding everything this cell holds, and holding it properly:
+	 * a counted class has the runtime retain its object ivars as it copies them,
+	 * so there is nothing here to hand over. Only the cache is dropped, since the
+	 * new cell rebuilds it from whatever it is asked to draw. */
+	newCell->labelAttributes = nil;
 
 	return newCell;
 }

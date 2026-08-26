@@ -96,6 +96,15 @@
 							  [[NSString stringWithFormat:@"Adium on %@", computerName] UTF8String]);
 }
 
+/* With the fetch-history option set, the phone supplies the messages before an
+ * opening conversation, complete with their ids, ticks and reactions. Adium's
+ * own transcript excerpt would repeat those lines without any of that, so it
+ * steps aside. */
+- (BOOL)providesConversationHistory
+{
+	return account && purple_account_get_int(account, "fetch-history-on-open", 0) > 0;
+}
+
 /* Adopt the WhatsApp profile name as this account's display name, so outgoing
  * messages show it instead of the bare phone number. The plugin stores it as an
  * account string once the contact sync delivers it; the user's own display-name

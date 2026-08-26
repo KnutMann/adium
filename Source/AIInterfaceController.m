@@ -1203,14 +1203,26 @@
     NSResponder	*responder = [[[NSApplication sharedApplication] mainWindow] firstResponder];
     //Check the first responder
     if ([responder respondsToSelector:selector]) {
+        /* Every selector reaching here is a plain getter (listObject,
+         * preferredListObject, arrayOfListObjects and friends); none belongs to a
+         * naming family that returns an owned object, so there is nothing to leak. */
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
         return [responder performSelector:selector];
+        #pragma clang diagnostic pop
     }
 	
     //Search the responder chain
     do{
         responder = [responder nextResponder];
         if ([responder respondsToSelector:selector]) {
+            /* Every selector reaching here is a plain getter (listObject,
+             * preferredListObject, arrayOfListObjects and friends); none belongs to a
+             * naming family that returns an owned object, so there is nothing to leak. */
+            #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
             return [responder performSelector:selector];
+            #pragma clang diagnostic pop
         }
 		
     } while (responder != nil);
@@ -1223,14 +1235,26 @@
 	NSResponder *responder = [[[NSApplication sharedApplication] mainWindow] firstResponder];
 	//Check the first responder
 	if ([responder conformsToProtocol:protocol] && [responder respondsToSelector:selector]) {
+		/* Every selector reaching here is a plain getter (listObject,
+		 * preferredListObject, arrayOfListObjects and friends); none belongs to a
+		 * naming family that returns an owned object, so there is nothing to leak. */
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		return [responder performSelector:selector];
+		#pragma clang diagnostic pop
 	}
 	
     //Search the responder chain
     do{
         responder = [responder nextResponder];
         if ([responder conformsToProtocol:protocol] && [responder respondsToSelector:selector]) {
+            /* Every selector reaching here is a plain getter (listObject,
+             * preferredListObject, arrayOfListObjects and friends); none belongs to a
+             * naming family that returns an owned object, so there is nothing to leak. */
+            #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
             return [responder performSelector:selector];
+            #pragma clang diagnostic pop
         }
 		
     } while (responder != nil);
@@ -1781,8 +1805,12 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
 
 	if (selector) {
 		[keyWin makeFirstResponder:responder];
+		/* A void action such as paste:; nothing is returned that could leak. */
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[responder performSelector:selector
 						withObject:sender];
+		#pragma clang diagnostic pop
 	}
 }
 
