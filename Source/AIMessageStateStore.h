@@ -60,7 +60,7 @@
  * @brief Remember how far a message travelled
  * @param confirmation 0 nothing confirmed, 1 the server accepted it, 2 delivered, 3 read
  */
-- (void)setConfirmation:(NSInteger)confirmation forMessageId:(NSString *)messageId;
+- (void)setConfirmation:(NSInteger)confirmation forMessageId:(NSString *)messageId inChat:(AIChat *)chat;
 
 /*!
  * @brief Remember the emoji one sender put on a message
@@ -68,9 +68,9 @@
  * The whole set for that sender, as the message view holds it: an empty array
  * means the sender took their reaction back.
  */
-- (void)setReactions:(NSArray *)reactions forSender:(NSString *)sender messageId:(NSString *)messageId;
+- (void)setReactions:(NSArray *)reactions forSender:(NSString *)sender messageId:(NSString *)messageId inChat:(AIChat *)chat;
 
-- (NSInteger)confirmationForMessageId:(NSString *)messageId;
-- (NSDictionary *)reactionsForMessageId:(NSString *)messageId;
+- (NSInteger)confirmationForMessageId:(NSString *)messageId inChat:(AIChat *)chat;
+- (NSDictionary *)reactionsForMessageId:(NSString *)messageId inChat:(AIChat *)chat;
 
 @end

@@ -375,9 +375,9 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 
 				if ([messageId length]) {
 					message.messageId = messageId;
-					message.confirmation = [store confirmationForMessageId:messageId];
+					message.confirmation = [store confirmationForMessageId:messageId inChat:chat];
 
-					NSDictionary *reactions = [store reactionsForMessageId:messageId];
+					NSDictionary *reactions = [store reactionsForMessageId:messageId inChat:chat];
 					if (reactions) message.reactions = [[reactions mutableCopy] autorelease];
 				}
 

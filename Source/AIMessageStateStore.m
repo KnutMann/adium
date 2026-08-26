@@ -45,7 +45,8 @@
 #define KEY_IDENTITIES				@"identities"
 
 @interface AIMessageStateStore ()
-- (NSMutableDictionary *)recordForMessageId:(NSString *)messageId creating:(BOOL)creating;
+- (NSString *)keyForMessageId:(NSString *)messageId inChat:(AIChat *)chat;
+- (NSMutableDictionary *)recordForKey:(NSString *)key creating:(BOOL)creating;
 - (NSString *)identityForChat:(AIChat *)chat date:(NSDate *)date sender:(NSString *)senderUID;
 - (NSString *)storePath;
 - (void)scheduleSave;
@@ -119,19 +120,41 @@
 	[super dealloc];
 }
 
+/* A file written by a later version, or damaged, must not be able to send a
+ * selector to something that cannot answer it. */
+static NSTimeInterval AITouchedValue(NSDictionary *record)
+{
+	NSNumber *touched = [record objectForKey:KEY_TOUCHED];
+	return [touched isKindOfClass:[NSNumber class]] ? [touched doubleValue] : 0.0;
+}
+
 - (NSString *)storePath
 {
 	return [[adium.loginController userDirectory] stringByAppendingPathComponent:MESSAGE_STATE_FILE_NAME];
 }
 
-- (NSMutableDictionary *)recordForMessageId:(NSString *)messageId creating:(BOOL)creating
+/*!
+ * @brief A message id names a message only within its own conversation
+ *
+ * Two protocols, or two rooms, are free to hand out the same id, and one
+ * conversation's ticks turning up on another's message is the kind of thing
+ * nobody would think to look for.
+ */
+- (NSString *)keyForMessageId:(NSString *)messageId inChat:(AIChat *)chat
 {
-	if (![messageId length]) return nil;
+	if (![messageId length] || !chat) return nil;
 
-	NSMutableDictionary *record = [states objectForKey:messageId];
+	return [NSString stringWithFormat:@"%@\x1f%@", chat.uniqueChatID, messageId];
+}
+
+- (NSMutableDictionary *)recordForKey:(NSString *)key creating:(BOOL)creating
+{
+	if (![key length]) return nil;
+
+	NSMutableDictionary *record = [states objectForKey:key];
 	if (!record && creating) {
 		record = [NSMutableDictionary dictionary];
-		[states setObject:record forKey:messageId];
+		[states setObject:record forKey:key];
 	}
 	if (record && creating)
 		[record setObject:[NSNumber numberWithDouble:[NSDate timeIntervalSinceReferenceDate]] forKey:KEY_TOUCHED];
@@ -139,26 +162,27 @@
 	return record;
 }
 
-- (void)setConfirmation:(NSInteger)confirmation forMessageId:(NSString *)messageId
+- (void)setConfirmation:(NSInteger)confirmation forMessageId:(NSString *)messageId inChat:(AIChat *)chat
 {
 	if (confirmation <= 0) return;
 
-	NSMutableDictionary *record = [self recordForMessageId:messageId creating:YES];
+	NSMutableDictionary *record = [self recordForKey:[self keyForMessageId:messageId inChat:chat] creating:YES];
 	if (!record) return;
 
 	/* A message only ever travels forwards, and the confirmations for one
 	 * message can arrive out of order when several land at once. */
-	if ([[record objectForKey:KEY_CONFIRMATION] integerValue] >= confirmation) return;
+	NSNumber *known = [record objectForKey:KEY_CONFIRMATION];
+	if ([known isKindOfClass:[NSNumber class]] && [known integerValue] >= confirmation) return;
 
 	[record setObject:[NSNumber numberWithInteger:confirmation] forKey:KEY_CONFIRMATION];
 	[self scheduleSave];
 }
 
-- (void)setReactions:(NSArray *)reactions forSender:(NSString *)sender messageId:(NSString *)messageId
+- (void)setReactions:(NSArray *)reactions forSender:(NSString *)sender messageId:(NSString *)messageId inChat:(AIChat *)chat
 {
 	if (![sender length]) return;
 
-	NSMutableDictionary *record = [self recordForMessageId:messageId creating:YES];
+	NSMutableDictionary *record = [self recordForKey:[self keyForMessageId:messageId inChat:chat] creating:YES];
 	if (!record) return;
 
 	NSMutableDictionary *buckets = [record objectForKey:KEY_REACTIONS];
@@ -166,6 +190,9 @@
 		buckets = [NSMutableDictionary dictionary];
 		[record setObject:buckets forKey:KEY_REACTIONS];
 	}
+
+	NSArray *known = [buckets objectForKey:sender];
+	if ((![reactions count] && !known) || (known && [known isEqualToArray:reactions])) return;
 
 	if ([reactions count])
 		[buckets setObject:reactions forKey:sender];
@@ -196,27 +223,35 @@
 	if (![message.messageId length]) return;
 
 	NSString *identity = [self identityForChat:chat date:message.date sender:[[message source] UID]];
-	if (!identity) return;
+	NSString *key = [self keyForMessageId:message.messageId inChat:chat];
+	if (!identity || !key) return;
 
-	if ([[identities objectForKey:identity] isEqualToString:message.messageId]) return;
+	if ([[identities objectForKey:identity] isEqualToString:key]) return;
 
-	[identities setObject:message.messageId forKey:identity];
+	/* The scoped key rather than the bare id, so that an identity can be dropped
+	 * along with the record it names. */
+	[identities setObject:key forKey:identity];
 	[self scheduleSave];
 }
 
 - (NSString *)messageIdInChat:(AIChat *)chat date:(NSDate *)date sender:(NSString *)senderUID
 {
-	return [identities objectForKey:[self identityForChat:chat date:date sender:senderUID]];
+	NSString *key = [identities objectForKey:[self identityForChat:chat date:date sender:senderUID]];
+	NSRange separator = [key rangeOfString:@"\x1f"];
+
+	return (separator.location == NSNotFound) ? nil : [key substringFromIndex:NSMaxRange(separator)];
 }
 
-- (NSInteger)confirmationForMessageId:(NSString *)messageId
+- (NSInteger)confirmationForMessageId:(NSString *)messageId inChat:(AIChat *)chat
 {
-	return [[[self recordForMessageId:messageId creating:NO] objectForKey:KEY_CONFIRMATION] integerValue];
+	NSNumber *confirmation = [[self recordForKey:[self keyForMessageId:messageId inChat:chat] creating:NO] objectForKey:KEY_CONFIRMATION];
+	return [confirmation isKindOfClass:[NSNumber class]] ? [confirmation integerValue] : 0;
 }
 
-- (NSDictionary *)reactionsForMessageId:(NSString *)messageId
+- (NSDictionary *)reactionsForMessageId:(NSString *)messageId inChat:(AIChat *)chat
 {
-	NSDictionary *buckets = [[self recordForMessageId:messageId creating:NO] objectForKey:KEY_REACTIONS];
+	NSDictionary *buckets = [[self recordForKey:[self keyForMessageId:messageId inChat:chat] creating:NO] objectForKey:KEY_REACTIONS];
+	if (![buckets isKindOfClass:[NSDictionary class]]) return nil;
 	return [buckets count] ? buckets : nil;
 }
 
@@ -235,15 +270,15 @@
 	NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
 	NSMutableArray *expired = [NSMutableArray array];
 	for (NSString *messageId in states) {
-		NSTimeInterval touched = [[[states objectForKey:messageId] objectForKey:KEY_TOUCHED] doubleValue];
-		if (now - touched > MESSAGE_STATE_MAX_AGE) [expired addObject:messageId];
+		if (now - AITouchedValue([states objectForKey:messageId]) > MESSAGE_STATE_MAX_AGE)
+			[expired addObject:messageId];
 	}
 	[states removeObjectsForKeys:expired];
 
 	if ([states count] > MESSAGE_STATE_LIMIT) {
 		NSArray *oldestFirst = [[states allKeys] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-			double ta = [[[states objectForKey:a] objectForKey:KEY_TOUCHED] doubleValue];
-			double tb = [[[states objectForKey:b] objectForKey:KEY_TOUCHED] doubleValue];
+			double ta = AITouchedValue([states objectForKey:a]);
+			double tb = AITouchedValue([states objectForKey:b]);
 			if (ta < tb) return NSOrderedAscending;
 			if (ta > tb) return NSOrderedDescending;
 			return NSOrderedSame;
@@ -262,8 +297,10 @@
 						  states, KEY_STATES,
 						  identities, KEY_IDENTITIES,
 						  nil];
-	if (![file writeToFile:[self storePath] atomically:YES])
+	if (![file writeToFile:[self storePath] atomically:YES]) {
 		AILogWithSignature(@"could not write %@", [self storePath]);
+		[self scheduleSave];
+	}
 }
 
 @end

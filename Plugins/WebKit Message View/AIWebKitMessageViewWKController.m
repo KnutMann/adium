@@ -1983,7 +1983,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 			AIContentMessage *storedMessage = (AIContentMessage *)stored;
 			if ([stored isOutgoing] && storedMessage.confirmation < level) {
 				storedMessage.confirmation = level;
-				[[AIMessageStateStore sharedStore] setConfirmation:level forMessageId:storedMessage.messageId];
+				[[AIMessageStateStore sharedStore] setConfirmation:level forMessageId:storedMessage.messageId inChat:_chat];
 				[[AIMessageStateStore sharedStore] rememberMessage:storedMessage inChat:_chat];
 			}
 			/* The named message ends the run whatever it is. History fetched from
@@ -2067,8 +2067,11 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 		[self _addClass:classForConfirmation[message.confirmation] toMessageWithId:message.messageId];
 	}
 
-	for (NSString *sender in message.reactions) {
-		[self _setReactions:[message.reactions objectForKey:sender]
+	/* Over a copy: drawing a chip writes the set back onto this very message,
+	 * and a message reacted to by two people would be mutated mid-walk. */
+	NSDictionary *reactions = [message.reactions copy];
+	for (NSString *sender in reactions) {
+		[self _setReactions:[reactions objectForKey:sender]
 				  forSender:sender
 				onMessageId:message.messageId];
 	}
@@ -2133,7 +2136,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
 	if (stored && stored.confirmation < 1) stored.confirmation = 1;
-	[[AIMessageStateStore sharedStore] setConfirmation:1 forMessageId:messageId];
+	[[AIMessageStateStore sharedStore] setConfirmation:1 forMessageId:messageId inChat:_chat];
 	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
 
 	[self _addClass:@"x-adium-sent" toMessageWithId:messageId];
@@ -2212,7 +2215,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 
 	/* Remember the set on the message itself, so a rebuilt page redraws the chips,
 	 * and on disk, so a conversation reopened another day redraws them too. */
-	[[AIMessageStateStore sharedStore] setReactions:reactions forSender:sender messageId:messageId];
+	[[AIMessageStateStore sharedStore] setReactions:reactions forSender:sender messageId:messageId inChat:_chat];
 
 	AIContentMessage *stored = [self _storedMessageWithId:messageId];
 	[[AIMessageStateStore sharedStore] rememberMessage:stored inChat:_chat];
