@@ -816,21 +816,27 @@ int max_message_size_cb(void *opdata, ConnContext *context)
 	int ret;
 
 	@autoreleasepool {
-		AIChat *chat = chatForContext(context);
+		/* The account answers directly; the chat used to be asked, which OPENED
+		 * one as a side effect for every fragmented send to a closed window. */
+		AIAccount *account = accountFromAccountID(context->accountname);
 
-		/* Values from https://otr.cypherpunks.ca/UPGRADING-libotr-3.1.0.txt */
+		/* Values from https://otr.cypherpunks.ca/UPGRADING-libotr-3.1.0.txt and
+		 * the reference implementation's table. XMPP and SIMPLE are absent on
+		 * purpose, exactly as they are absent from the reference: those
+		 * transports carry any length, and returning 0 disables fragmentation
+		 * for the message. GroupWise was missing for years while the reference
+		 * fragmented it at 1792, which cut off every longer encrypted message
+		 * there. */
 		static NSDictionary *maxSizeByServiceClassDict = nil;
 		if (!maxSizeByServiceClassDict) {
 			maxSizeByServiceClassDict = [[NSDictionary alloc] initWithObjectsAndKeys:
 										 [NSNumber numberWithInteger:1999], @"Gadu-Gadu",
 										 [NSNumber numberWithInteger:417], @"IRC",
+										 [NSNumber numberWithInteger:1792], @"GroupWise",
 										 nil];
 		}
 
-		/* This will return 0 if we don't know (unknown protocol) or don't need it (Jabber),
-		 * which will disable fragmentation.
-		 */
-		ret = [[maxSizeByServiceClassDict objectForKey:chat.account.service.serviceClass] intValue];
+		ret = [[maxSizeByServiceClassDict objectForKey:account.service.serviceClass] intValue];
 	}
 
 	return ret;
