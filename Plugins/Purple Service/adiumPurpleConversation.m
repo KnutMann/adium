@@ -182,10 +182,17 @@ static void adiumPurpleConvWriteIm(PurpleConversation *conv, const char *who,
 		AIChat			*chat = chatLookupFromConv(conv);
 		NSString		*messageString = processPurpleImages([NSString stringWithUTF8String:message], adiumAccount);
 
-		NSDictionary *messageDict = [NSDictionary dictionaryWithObjectsAndKeys:
-									 messageString, @"Message",
-									 [NSNumber numberWithInteger:flags], @"PurpleMessageFlags",
-									 [NSDate dateWithTimeIntervalSince1970:mtime], @"Date", nil];
+		NSMutableDictionary *messageDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+											messageString, @"Message",
+											[NSNumber numberWithInteger:flags], @"PurpleMessageFlags",
+											[NSDate dateWithTimeIntervalSince1970:mtime], @"Date", nil];
+
+		/* Our own message needs its id as much as anyone's: it is the one a read
+		 * marker or a reaction will name. Fetched history is where this shows,
+		 * since nothing else ever tells us the id of a message we did not send
+		 * from here. */
+		NSString *messageId = adiumTakePendingIncomingMessageId(purple_conversation_get_account(conv), who);
+		if (messageId) [messageDict setObject:messageId forKey:@"MessageId"];
 
 		[adiumAccount receivedIMChatMessageSentRemotely:messageDict inChat:chat];
 	}
