@@ -358,8 +358,22 @@ static ConnContext* contextForChat(AIChat *chat)
 	proto = [account.service.serviceCodeUniqueID UTF8String];
     username = [chat.listObject.UID UTF8String];
 	
+	/* OTRL_INSTAG_BEST, as the reference implementation chooses and as this port
+	 * originally did. An attempt to route to the most recently active instance
+	 * instead (OTRL_INSTAG_RECENT, after Adium 1.6's resource routing) ran into
+	 * two things the library does not forgive. A master context created by the
+	 * SENDING path keeps recent_child unset - only a lookup with
+	 * OTRL_INSTAG_MASTER or a real instance tag initialises it - so the RECENT
+	 * lookup answers NULL for a contact we have only ever written to, and
+	 * otrl_message_sending dereferences its context without a guard: the second
+	 * consecutive message to such a contact crashed. And every received message
+	 * repoints recent_child, whatever its encryption, so one plaintext message
+	 * from a second device would shadow an established encrypted instance and
+	 * the next message would leave in the clear. BEST prefers the secure
+	 * instance and falls back to the master itself, which is what a lock icon
+	 * and a send path both want. */
     context = otrl_context_find(otrg_plugin_userstate,
-								username, accountname, proto, OTRL_INSTAG_RECENT,
+								username, accountname, proto, OTRL_INSTAG_BEST,
 								0, NULL, NULL, NULL);
 	
 	return context;
@@ -693,8 +707,10 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 	@autoreleasepool {
 		ConnContext			*context;
 
+		/* The AKE that hands us this fingerprint has just marked its context
+		 * encrypted, which is exactly what BEST selects; see contextForChat. */
 		context = otrl_context_find(us, username, accountname,
-									protocol, OTRL_INSTAG_RECENT, 0, NULL, NULL, NULL);
+									protocol, OTRL_INSTAG_BEST, 0, NULL, NULL, NULL);
 
 		if (context == NULL/* || context->msgstate != OTRL_MSGSTATE_ENCRYPTED*/) {
 			NSLog(@"otrg_adium_dialog_unknown_fingerprint: Ack!");
@@ -1034,8 +1050,9 @@ static OtrlMessageAppOps ui_ops = {
     if (!username || !originalMessage)
 		return;
 
+	//OTRL_INSTAG_BEST, not RECENT: see contextForChat for why RECENT crashes here
     err = otrl_message_sending(otrg_plugin_userstate, &ui_ops, /* opData */ NULL,
-							   accountname, protocol, username, OTRL_INSTAG_RECENT,
+							   accountname, protocol, username, OTRL_INSTAG_BEST,
 							   originalMessage, /* tlvs */ NULL, &fullOutgoingMessage,
 							   OTRL_FRAGMENT_SEND_ALL_BUT_LAST, NULL,
 							   /* add_appdata cb */NULL, /* appdata */ NULL);
@@ -1253,9 +1270,21 @@ void send_default_query_to_chat(AIChat *inChat)
 * appropriate. */
 void disconnect_from_context(ConnContext *context)
 {
+	if (!context) return;
+
+	/* The instance of the context we were handed, not a selector: the quit
+	 * path walks every encrypted child of a multi-device peer and disconnects
+	 * each in turn, and a selector would resolve every one of those calls to
+	 * the same sibling - the others would keep their session open without ever
+	 * seeing a disconnect notice. The reference implementation passes
+	 * their_instance here for the same reason.
+	 *
+	 * The manual gone_insecure afterwards is not a redundancy: the library's
+	 * disconnect only announces update_context_list, never gone_insecure, so
+	 * without this the lock would stay closed. */
     otrl_message_disconnect(otrg_plugin_userstate, &ui_ops, NULL,
 							context->accountname, context->protocol, context->username,
-							OTRL_INSTAG_RECENT);
+							context->their_instance);
 	gone_insecure_cb(NULL, context);
 }
 
