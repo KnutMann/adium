@@ -1,7 +1,7 @@
 # purple2-ircv3
 
 <https://github.com/EionRobb/purple2-ircv3>, a fork of libpurple's built in IRC protocol that adds
-IRCv3 capabilities. Built here at `0e73297`.
+IRCv3 capabilities. Built here at `1f21133`.
 
 Not shipped yet. The plugin builds and loads, but Adium has no service and account class for it, so
 nothing offers it when adding an account. That is task 21, the generic service binding; this
@@ -14,6 +14,13 @@ protocol is its first candidate.
 * `metadata-2` gives user avatars
 * `echo-message` and `labeled-response` stop own messages appearing twice
 * `invite-notify`, `utf8-only`, and an attempt at STS
+
+Upstream has since grown well past that list: `monitor` replaces the ISON polling for buddy
+presence, `chathistory` refetches what a bouncer saw while the client was away, mIRC formatting
+goes out as well as in, the common slash commands and services shortcuts are there, a BEL comes
+through as a libpurple attention event, and SASL EXTERNAL authenticates with a TLS client
+certificate. That last one reaches into the SSL plugin's private data and only knows NSS and
+GnuTLS, so against our ssl-cdsa it logs a warning and does nothing.
 
 It also carries the fix from `../pidgin-2.14.14/irc/irc.c.patch`, which its author ported after
 seeing it: the send queue was driven by a raw GLib timeout, so under a user interface with its own

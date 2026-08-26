@@ -18,6 +18,7 @@ pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(ZLIB REQUIRED zlib)
 
 add_library(ircv3 MODULE
+    cert.c
     cmds.c
     dcc_send.c
     irc.c
