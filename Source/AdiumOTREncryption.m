@@ -34,6 +34,7 @@
 
 #import "ESOTRPrivateKeyGenerationWindowController.h"
 #import "ESOTRPreferences.h"
+#import <sys/stat.h>
 #import "ESOTRUnknownFingerprintController.h"
 #import "OTRCommon.h"
 
@@ -120,6 +121,13 @@ TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
 {
 	/* Initialize the OTR library */
 	OTRL_INIT;
+
+	/* Files written before this build learned to set an umask are lying around
+	 * world-readable; otr.fingerprints names every account and every
+	 * correspondent of an encrypted conversation. Tightened once here, cheaply
+	 * and idempotently, before anything reads them. */
+	chmod(STORE_PATH, S_IRUSR | S_IWUSR);
+	chmod(INSTAG_PATH, S_IRUSR | S_IWUSR);
 
 	[self upgradeOTRIfNeeded];
 
@@ -547,8 +555,14 @@ void otrg_plugin_create_instag(const char *accountname, const char *protocol)
 	OtrlInsTag *existing = otrl_instag_find(otrg_plugin_userstate, accountname, protocol);
 	if (existing && existing->instag >= OTRL_MIN_VALID_INSTAG) return;
 
+	/* Owner-only, which the library grants the private key but not this file:
+	 * its path-based writers are a bare fopen. The reference implementation
+	 * brackets its stores in umask(0077) the same way. */
+	mode_t oldMask = umask(0077);
 	gcry_error_t err = otrl_instag_generate(otrg_plugin_userstate, INSTAG_PATH,
 											accountname, protocol);
+	umask(oldMask);
+
 	if (err) {
 		NSLog(@"Error writing %s: %s", INSTAG_PATH, gpg_strerror(err));
 	}
@@ -1351,7 +1365,11 @@ void otrg_ui_forget_fingerprint(Fingerprint *fingerprint)
 
 void otrg_plugin_write_fingerprints(void)
 {
+	//Owner-only; see otrg_plugin_create_instag for why the library does not do this itself
+	mode_t oldMask = umask(0077);
     otrl_privkey_write_fingerprints(otrg_plugin_userstate, STORE_PATH);
+	umask(oldMask);
+
 	otrg_ui_update_fingerprint();
 }
 
