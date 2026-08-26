@@ -1233,14 +1233,17 @@ void disconnect_from_chat(AIChat *inChat)
 /* Forget a fingerprint */
 void otrg_ui_forget_fingerprint(Fingerprint *fingerprint)
 {
-    ConnContext *context;
+	if (!fingerprint) return;
 
-    /* Don't do anything with the active fingerprint if we're in the
-	 * ENCRYPTED state. */
-    context = (fingerprint ? fingerprint->context : NULL);
-    if (context && (context->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
-					context->active_fingerprint == fingerprint)) return;
-	
+	/* Don't forget a fingerprint a conversation is relying on right now. The
+	 * fingerprint belongs to the master context, which is never itself
+	 * encrypted, so asking it would always have answered no; the conversations
+	 * are its children, and the library will name the most private of them.
+	 */
+	ConnContext *inUse = otrl_context_find_recent_secure_instance(fingerprint->context);
+	if (inUse && inUse->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
+		inUse->active_fingerprint == fingerprint) return;
+
     otrl_context_forget_fingerprint(fingerprint, 1);
     otrg_plugin_write_fingerprints();
 }
