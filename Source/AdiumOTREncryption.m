@@ -1332,12 +1332,18 @@ void otrg_ui_forget_fingerprint(Fingerprint *fingerprint)
 
 	/* Don't forget a fingerprint a conversation is relying on right now. The
 	 * fingerprint belongs to the master context, which is never itself
-	 * encrypted, so asking it would always have answered no; the conversations
-	 * are its children, and the library will name the most private of them.
-	 */
-	ConnContext *inUse = otrl_context_find_recent_secure_instance(fingerprint->context);
-	if (inUse && inUse->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
-		inUse->active_fingerprint == fingerprint) return;
+	 * encrypted, so asking it would always answer no; the conversations are its
+	 * children, and EVERY one of them is asked, the way the reference does. A
+	 * peer on two devices has two encrypted children with two keys, and the
+	 * most private of them is not necessarily the one using this key: freeing
+	 * a key another child still points at would leave that conversation - and
+	 * the library itself, on the next message - reading freed memory. */
+	for (ConnContext *child = fingerprint->context->m_context;
+		 child && child->m_context == fingerprint->context->m_context;
+		 child = child->next) {
+		if (child->msgstate == OTRL_MSGSTATE_ENCRYPTED &&
+			child->active_fingerprint == fingerprint) return;
+	}
 
     otrl_context_forget_fingerprint(fingerprint, 1);
     otrg_plugin_write_fingerprints();
