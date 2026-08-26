@@ -26,7 +26,10 @@
 	NSString		*type;
 	NSString		*readMePath;
 	NSBundle		*xtraBundle;
-	
+	/* The manifest of an Xtra which keeps its Info.plist at the root rather than in Contents/, where
+	 * NSBundle does not look; see -manifestObjectForKey:. nil for every other kind. */
+	NSDictionary	*flatInfoDictionary;
+
 	BOOL			enabled;
 }
 

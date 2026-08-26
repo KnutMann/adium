@@ -18,6 +18,10 @@
 #import <Adium/AIDockControllerProtocol.h>
 #import "AIIconState.h"
 
+@interface AIXtraInfo ()
+- (NSString *)manifestStringForKey:(NSString *)key;
+@end
+
 @implementation AIXtraInfo
 
 - (NSString *)type
@@ -60,12 +64,22 @@
 		path = [url path];
 		type = [[[url path] pathExtension] lowercaseString];
 		xtraBundle = [[NSBundle alloc] initWithPath:path];
+
+		/* An Xtra can keep its Info.plist at the root of its folder rather than in Contents/, where
+		 * NSBundle is the only thing that ever looks. The script packs Adium itself ships are built
+		 * that way, and GBApplescriptFiltersPlugin reads their plist by hand for exactly this
+		 * reason; without the same step here such an Xtra would name no author, no version and no
+		 * description, however carefully its maker filled them in. */
+		if (![[xtraBundle objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey] length]) {
+			flatInfoDictionary = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"Info.plist"]];
+		}
+
 		/* XtraVersion and XtraAuthors are what the XtrasCreator writes and what packs in the
 		 * wild carry; the other two names appear in a handful of older packs. */
-		version = [xtraBundle objectForInfoDictionaryKey:@"XtraVersion"];
-		if (![version length]) version = [xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
-		author = [xtraBundle objectForInfoDictionaryKey:@"XtraAuthors"];
-		if (![author length]) author = [xtraBundle objectForInfoDictionaryKey:@"OriginalAuthor"];
+		version = [self manifestStringForKey:@"XtraVersion"];
+		if (![version length]) version = [self manifestStringForKey:@"CFBundleVersion"];
+		author = [self manifestStringForKey:@"XtraAuthors"];
+		if (![author length]) author = [self manifestStringForKey:@"OriginalAuthor"];
 		if (xtraBundle && ([[xtraBundle objectForInfoDictionaryKey:@"XtraBundleVersion"] integerValue] == 1)) { //This checks for a new-style xtra
 			[self setName:[xtraBundle objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey]];
 			resourcePath = [xtraBundle resourcePath];
@@ -96,6 +110,18 @@
 		if(!previewImage)
 			previewImage = icon;
 		
+		/* A script pack's real name is the name of the SET its scripts go into. That is what Adium
+		 * puts in the script menu (GBApplescriptFiltersPlugin reads the same key), so a pack whose
+		 * folder happens to be called "chuck" is listed here as "chuck" while the menu calls it
+		 * "Chuck Norris Random Fact Generator". The set name is the one the maker wrote for people
+		 * to read, so it wins - for script packs, which are the only kind carrying the key. */
+		if ([type isEqualToString:@"adiumscripts"]) {
+			NSString	*setName = [[xtraBundle localizedInfoDictionary] objectForKey:@"Set"];
+
+			if (![setName isKindOfClass:[NSString class]]) setName = [self manifestStringForKey:@"Set"];
+			if ([setName length]) [self setName:setName];
+		}
+
 		/* Enabled by default */
 		enabled = YES;
 	}
@@ -146,20 +172,31 @@
 }
 
 /*!
+ * @brief A manifest key as a string, wherever this Xtra keeps its manifest and whatever it wrote
+ *
+ * Asked for as an id and checked rather than asked for as an NSString: the manifest belongs to
+ * whoever made the Xtra, and a key written as a number where a string belongs would otherwise be
+ * sent -length. The flat Info.plist is consulted for the Xtras which keep one; see -initWithURL:.
+ */
+- (NSString *)manifestStringForKey:(NSString *)key
+{
+	id	written = [xtraBundle objectForInfoDictionaryKey:key];
+
+	if (![written isKindOfClass:[NSString class]]) written = [flatInfoDictionary objectForKey:key];
+
+	return ([written isKindOfClass:[NSString class]] ? written : nil);
+}
+
+/*!
  * @brief What the Xtra says it is; see the header for where it is read from
  */
 - (NSString *)xtraDescription
 {
-	/* Asked for as an id and checked, not asked for as an NSString: the manifest belongs to whoever
-	 * made the Xtra, and a key written as a number rather than a string would otherwise be sent
-	 * -length. */
-	id			 written = [xtraBundle objectForInfoDictionaryKey:@"XtraDescription"];
-	NSString	*summary = ([written isKindOfClass:[NSString class]] ? written : nil);
+	NSString	*summary = [self manifestStringForKey:@"XtraDescription"];
 
 	if ([summary length]) return summary;
 
-	written = [xtraBundle objectForInfoDictionaryKey:@"CFBundleGetInfoString"];
-	summary = ([written isKindOfClass:[NSString class]] ? written : nil);
+	summary = [self manifestStringForKey:@"CFBundleGetInfoString"];
 
 	if (![summary length]) return nil;
 
@@ -169,7 +206,7 @@
 	 * reading - just not worth believing on its own. */
 	if ([summary isEqualToString:([self version] ?: @"")] ||
 		[summary isEqualToString:([self name] ?: @"")] ||
-		[summary isEqual:[xtraBundle objectForInfoDictionaryKey:@"CFBundleVersion"]])
+		[summary isEqualToString:([self manifestStringForKey:@"CFBundleVersion"] ?: @"")])
 		return nil;
 
 	return summary;
