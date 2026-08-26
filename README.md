@@ -76,6 +76,10 @@ a modern look.
 * A rebuilt preferences window in the style of System Settings: a
   source-list sidebar, cards instead of boxed groups, and a reusable
   settings form every pane is laid out on
+* Installed xtras are managed in that window rather than in a window of
+  their own, one card per category, and every row opens a page about
+  that xtra: its icon, what it says it is, and the fields its manifest
+  fills in
 * The chat message view renders with WKWebView; the last legacy
   WebView is gone (libpurple's protocol forms are native Cocoa now)
 * Two bundled monochrome service icon sets in the plain style of
@@ -145,7 +149,8 @@ a modern look.
   from scratch on a modern base (`Other/XtrasCreator`): it authors
   emoticon sets, sound sets, status/service/menu-bar/group-chat icon
   packs, dock icons, message styles, contact list themes and layouts,
-  and script packs
+  and script packs, and writes the description Adium shows on an
+  xtra's page
 * **Contact Pictures**, opened from the Address Book settings: the
   cards linked to your chat contacts, each with the chat picture and
   the card picture side by side, and one button that puts the chat

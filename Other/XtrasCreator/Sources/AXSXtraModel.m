@@ -13,6 +13,7 @@
 		_bundleName = @"";
 		_version = @"1.0";
 		_authors = @"";
+		_xtraDescription = @"";
 		_bundleIdentifier = @"";
 		_unmanagedInfoKeys = [NSMutableDictionary dictionary];
 	}

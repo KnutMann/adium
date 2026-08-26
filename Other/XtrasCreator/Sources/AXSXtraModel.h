@@ -17,6 +17,8 @@
 @property (copy, nonatomic) NSString *bundleName;		//CFBundleName; the name the xtra goes by
 @property (copy, nonatomic) NSString *version;			//written as XtraVersion AND CFBundleVersion
 @property (copy, nonatomic) NSString *authors;			//written as XtraAuthors AND OriginalAuthor
+//XtraDescription; the sentence Adium's Xtras pane puts beside the icon. May be empty
+@property (copy, nonatomic) NSString *xtraDescription;
 @property (copy, nonatomic) NSString *bundleIdentifier;
 
 //Info.plist keys outside our management, preserved verbatim on save

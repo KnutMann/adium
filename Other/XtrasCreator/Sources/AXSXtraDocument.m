@@ -18,7 +18,8 @@ static NSArray *AXSManagedInfoKeys(void)
 {
 	return @[@"CFBundleDevelopmentRegion", @"CFBundleName",
 			 @"CFBundleIdentifier", @"XtraBundleVersion",
-			 @"XtraVersion", @"XtraAuthors", @"OriginalAuthor", @"CFBundleVersion"];
+			 @"XtraVersion", @"XtraAuthors", @"OriginalAuthor", @"CFBundleVersion",
+			 @"XtraDescription"];
 }
 
 @interface AXSXtraDocument ()
@@ -207,6 +208,7 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 	model.bundleName = [infoDict[@"CFBundleName"] description] ?: [[self.fileURL lastPathComponent] stringByDeletingPathExtension] ?: @"";
 	model.version = [infoDict[@"XtraVersion"] description] ?: [infoDict[@"CFBundleVersion"] description] ?: @"1.0";
 	model.authors = [infoDict[@"XtraAuthors"] description] ?: [infoDict[@"OriginalAuthor"] description] ?: @"";
+	model.xtraDescription = [infoDict[@"XtraDescription"] description] ?: @"";
 	model.bundleIdentifier = [infoDict[@"CFBundleIdentifier"] description] ?: @"";
 
 	//Everything not ours to manage is preserved verbatim
@@ -326,6 +328,12 @@ static void AXSReplaceFile(NSFileWrapper *directory, NSString *name, NSData *dat
 	 * only OriginalAuthor and CFBundleVersion, so both pairs are written. */
 	infoDict[@"OriginalAuthor"] = self.model.authors ?: @"";
 	infoDict[@"CFBundleVersion"] = self.model.version ?: @"1.0";
+	/* Written only when there is one. An empty XtraDescription in every pack this
+	 * tool ever saved would be a key which promises a sentence and carries none;
+	 * Adium reads the key's absence and its emptiness the same way, so leaving it
+	 * out keeps the manifest honest. */
+	if ([self.model.xtraDescription length])
+		infoDict[@"XtraDescription"] = self.model.xtraDescription;
 
 	if (!self.isFlatForm || self.format.flatFormHasRootInfoPlist) {
 		NSData *infoData = [NSPropertyListSerialization dataWithPropertyList:infoDict
