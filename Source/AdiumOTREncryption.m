@@ -85,6 +85,11 @@ void send_default_query_to_chat(AIChat *inChat);
 void disconnect_from_chat(AIChat *inChat);
 void disconnect_from_context(ConnContext *context);
 TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
+static void display_otr_message_for_context(ConnContext *context, NSString *message);
+
+/* AILocalizedString needs self; these run in C callbacks */
+#define OTRLocalizedString(key, comment) \
+	NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleForClass:[AdiumOTREncryption class]], (comment))
 
 - (id)init
 {
@@ -254,8 +259,12 @@ static NSDictionary* details_for_context(ConnContext *context)
 	
     char our_hash[45], their_hash[45];
 
-	otrl_privkey_fingerprint(otrg_get_userstate(), our_hash,
-							 context->accountname, context->protocol);
+	/* NULL when this account has no key, and the buffer is then uninitialized
+	 * stack; a question mark is at least honest. */
+	if (!otrl_privkey_fingerprint(otrg_get_userstate(), our_hash,
+								  context->accountname, context->protocol)) {
+		strlcpy(our_hash, "?", sizeof(our_hash));
+	}
 	
     otrl_privkey_hash_to_human(their_hash, fprint->fingerprint);
 
@@ -331,33 +340,30 @@ static AIChat* chatForContext(ConnContext *context)
 
 static OtrlPolicy policyForContact(AIListContact *contact)
 {
+	/* The user's word, and nothing overriding it. A branch from the AIM era
+	 * used to force Manual for every UID starting with "+", so that SMS
+	 * gateways were never offered encryption - and with AIM gone it silently
+	 * ate the preference of anyone whose contact happens to be a phone
+	 * number. */
 	OtrlPolicy		policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
-	
-	//Force OTRL_POLICY_MANUAL when interacting with mobile numbers
-	if ([contact.UID hasPrefix:@"+"]) {
-		policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
-		
-	} else {
-		AIEncryptedChatPreference	pref = contact.encryptedChatPreferences;
-		switch (pref) {
-				case EncryptedChat_Never:
-					policy = OTRL_POLICY_NEVER;
-					break;
-				case EncryptedChat_Manually:
-				case EncryptedChat_Default:
-					policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
-					break;
-				case EncryptedChat_Automatically:
-					policy = OTRL_POLICY_OPPORTUNISTIC;
-					break;
-				case EncryptedChat_RejectUnencryptedMessages:
-					policy = OTRL_POLICY_ALWAYS;
-					break;
-		}
+
+	switch (contact.encryptedChatPreferences) {
+			case EncryptedChat_Never:
+				policy = OTRL_POLICY_NEVER;
+				break;
+			case EncryptedChat_Manually:
+			case EncryptedChat_Default:
+				policy = OTRL_POLICY_MANUAL_AND_RESPOND_TO_WHITESPACE;
+				break;
+			case EncryptedChat_Automatically:
+				policy = OTRL_POLICY_OPPORTUNISTIC;
+				break;
+			case EncryptedChat_RejectUnencryptedMessages:
+				policy = OTRL_POLICY_ALWAYS;
+				break;
 	}
-	
+
 	return policy;
-	
 }
 
 //Return the ConnContext for a Conversation, or NULL if none exists
@@ -623,7 +629,6 @@ static int display_otr_message(const char *accountname, const char *protocol,
 	NSString			*message;
 	AIListContact		*listContact = contactFromInfo(accountname, protocol, username);
 	AIChat				*chat;
-	AIContentMessage	*messageObject;
 	
 	//We couldn't determine a listContact, so return that we didn't handle the message
 	if (!listContact) return 1;
@@ -632,38 +637,8 @@ static int display_otr_message(const char *accountname, const char *protocol,
 	
 	message = [NSString stringWithUTF8String:msg];
 	AILog(@"display_otr_message: %s %s %s: %s",accountname,protocol,username, msg);
-	 
-	if (([message rangeOfString:@"<b>The following message received from"].location != NSNotFound) &&
-		([message rangeOfString:@"was <i>not</i> encrypted: ["].location != NSNotFound)) {
-		/*
-		 * If we receive an unencrypted message, display it as a normal incoming message with the bolded warning that
-		 * the message was not encrypted
-		 */		
-		NSRange			endRange = [message rangeOfString:@"was <i>not</i> encrypted: ["];
-		
-		/* The message will be formatted as:
-		 * <b>The following message received from tekjew was <i>not</i> encrypted: [</b>MESSAGE_HERE - POTENTIALLY HTML<b>]</b>
-		 */
-		NSString *OTRMessage = [adiumOTREncryption localizedOTRMessage:@"The following message was <b>not encrypted</b>: "
-														  withUsername:nil
-												isWorthOpeningANewChat:NULL];
-		message = [OTRMessage stringByAppendingString:
-			[message substringWithRange:NSMakeRange(NSMaxRange(endRange),
-													([message length] - NSMaxRange(endRange) - [@"<b>]</b>" length]))]];
-	
-		//Create a new chat if necessary
-		if (!chat) chat = [adium.chatController chatWithContact:listContact];
 
-		messageObject = [AIContentMessage messageInChat:chat
-											 withSource:listContact
-											destination:chat.account
-												   date:nil
-												message:[AIHTMLDecoder decodeHTML:message]
-											  autoreply:NO];
-		
-		[adium.contentController receiveContentObject:messageObject];
-		
-	} else {
+	{
 		BOOL		isWorthOpeningANewChat = NO;
 
 		//All other OTR messages should be displayed as status messages; decode the message to strip any HTML
@@ -760,7 +735,10 @@ static void new_fingerprint_cb(void *opdata, OtrlUserState us,
 /* The list of known fingerprints has changed.  Write them to disk. */
 static void write_fingerprints_cb(void *opdata)
 {
-	otrg_plugin_write_fingerprints();
+	//The only ObjC-touching callback that had no pool of its own
+	@autoreleasepool {
+		otrg_plugin_write_fingerprints();
+	}
 }
 
 /* A ConnContext has entered a secure state. */
@@ -793,8 +771,13 @@ static void still_secure_cb(void *opdata, ConnContext *context, int is_reply)
 {
 	@autoreleasepool {
 		if (is_reply == 0) {
-			//		otrg_dialog_stillconnected(context);
-			AILog(@"Still secure...");
+			/* Refreshing an established session used to say nothing at all, so
+			 * the menu item looked broken. One line, as the reference shows one. */
+			AIListContact	*listContact = (context ? contactForContext(context) : nil);
+
+			display_otr_message_for_context(context,
+				[NSString stringWithFormat:OTRLocalizedString(@"Successfully refreshed the private conversation with %@.", nil),
+				 (listContact.displayName ?: @"?")]);
 		}
 	}
 }
@@ -842,17 +825,50 @@ int max_message_size_cb(void *opdata, ConnContext *context)
 	return ret;
 }
 
-/* AILocalizedString needs self; these run in C callbacks */
-#define OTRLocalizedString(key, comment) \
-	NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleForClass:[AdiumOTREncryption class]], (comment))
-
 /* Forward declaration; defined with the other SMP helpers below */
 static void otrg_plugin_abort_smp(ConnContext *context);
 
-/* Display a status message in the chat belonging to the given context */
+/* An incoming message arrived readable where the policy expected encryption.
+ * Shown as a normal incoming message behind a localized bold warning, in a
+ * chat that is opened when it is not: the text is real and the user must see
+ * it, only its protection is missing. */
+static void display_unencrypted_incoming(ConnContext *context, NSString *body)
+{
+	AIListContact	*listContact = contactForContext(context);
+
+	if (!listContact || !body) return;
+
+	AIChat			*chat = chatForContext(context);
+
+	if (!chat) return;
+
+	NSString		*warning = [adiumOTREncryption localizedOTRMessage:@"The following message was <b>not encrypted</b>: "
+														  withUsername:nil
+												isWorthOpeningANewChat:NULL];
+	AIContentMessage *messageObject = [AIContentMessage messageInChat:chat
+														   withSource:listContact
+														  destination:chat.account
+																 date:nil
+															  message:[AIHTMLDecoder decodeHTML:[warning stringByAppendingString:body]]
+															autoreply:NO];
+
+	[adium.contentController receiveContentObject:messageObject];
+}
+
+/* Display a status message in the chat belonging to the given context.
+ *
+ * The chat is opened when it is not: everything routed through here is an
+ * event the user has to see - "your message was not sent" above all - and the
+ * reference forces the conversation open for exactly these. A closed window
+ * used to swallow them. */
 static void display_otr_message_for_context(ConnContext *context, NSString *message)
 {
 	if (!context || !message) return;
+
+	AIListContact *listContact = contactForContext(context);
+
+	if (listContact) [adium.chatController chatWithContact:listContact];
+
 	display_otr_message(context->accountname, context->protocol, context->username, [message UTF8String]);
 }
 
@@ -887,6 +903,13 @@ static void otr_error_message_free_cb(void *opdata, const char *err_msg)
 
 /* Handle and display OTR message events; replaces the notify/display
  * callbacks of libotr 3.x, so errors reach the user again. */
+/* Whether the previous message event was already "for another instance";
+ * consecutive repeats of that one are collapsed. Deliberately global rather
+ * than per contact: the point is to break the flood a parallel conversation on
+ * another device causes, and interleaved events from a second contact reset it
+ * exactly as the reference's per-conversation marker would. */
+static BOOL lastEventWasForOtherInstance = NO;
+
 static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnContext *context,
 								const char *message, gcry_error_t err)
 {
@@ -906,7 +929,11 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 				text = [NSString stringWithFormat:OTRLocalizedString(@"Your message was not sent: %@ has already closed the private connection. End or restart your private conversation.", nil), displayName];
 				break;
 			case OTRL_MSGEVENT_SETUP_ERROR:
-				text = [NSString stringWithFormat:OTRLocalizedString(@"Error setting up the private conversation with %@.", nil), displayName];
+				/* The gcry error is the only diagnostic the library gives for a
+				 * failed handshake; the reference prints it too. A zero error
+				 * still means a malformed message, per its convention. */
+				text = [NSString stringWithFormat:OTRLocalizedString(@"Error setting up the private conversation with %@: %s", nil),
+						displayName, gpg_strerror(err ? err : GPG_ERR_INV_VALUE)];
 				break;
 			case OTRL_MSGEVENT_MSG_REFLECTED:
 				text = OTRLocalizedString(@"You are receiving your own OTR messages: either you are trying to talk to yourself, or someone is reflecting your messages back at you.", nil);
@@ -927,28 +954,38 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 				if (message) text = [NSString stringWithUTF8String:message];
 				break;
 			case OTRL_MSGEVENT_RCVDMSG_UNENCRYPTED:
-				/* Format matches what display_otr_message() parses to show the
-				 * plaintext as a normal incoming message with a warning. */
+				/* Shown as a normal incoming message behind a bold warning, so
+				 * the text is not lost - it just was not protected. Displayed
+				 * directly: this used to be built as the 3.x library's English
+				 * sentence for display_otr_message to parse apart again, three
+				 * places coupled to one string's exact wording, and a parser
+				 * for markup that could also arrive from the wire. */
 				if (context && message) {
-					char *formatted = NULL;
-					if (asprintf(&formatted, "<b>The following message received from %s was <i>not</i> encrypted: [</b>%s<b>]</b>",
-								 context->username, message) >= 0 && formatted) {
-						display_otr_message(context->accountname, context->protocol, context->username, formatted);
-						free(formatted);
-					}
+					display_unencrypted_incoming(context, [NSString stringWithUTF8String:message]);
 				}
 				break;
 			case OTRL_MSGEVENT_RCVDMSG_UNRECOGNIZED:
 				text = [NSString stringWithFormat:OTRLocalizedString(@"An unrecognized OTR message from %@ was received.", nil), displayName];
 				break;
+			case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
+				/* Somebody's messages are going to another of this user's
+				 * devices; without a line here they simply vanish. Consecutive
+				 * repeats are collapsed the way the reference collapses them,
+				 * because every message of a long conversation held on the
+				 * other device raises this once. */
+				if (!lastEventWasForOtherInstance) {
+					text = [NSString stringWithFormat:OTRLocalizedString(@"%@ has sent a message intended for a different session. If you are logged in multiple times, another session may have received the message.", nil), displayName];
+				}
+				break;
 			case OTRL_MSGEVENT_LOG_HEARTBEAT_RCVD:
 			case OTRL_MSGEVENT_LOG_HEARTBEAT_SENT:
-			case OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE:
 			case OTRL_MSGEVENT_NONE:
 			default:
 				AILog(@"OTR message event %u for %@ (err %u)", msg_event, displayName, err);
 				break;
 		}
+
+		lastEventWasForOtherInstance = (msg_event == OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE);
 
 		/* These are the events a handshake that cannot complete throws over and over.
 		 * Rather than repeat the raw, cryptic line each time, count them: once a few
@@ -1117,6 +1154,8 @@ static OtrlMessageAppOps ui_ops = {
  * are received. */
 static void otrg_plugin_abort_smp(ConnContext *context)
 {
+	if (!context) return;
+
 	otrl_message_abort_smp(otrg_plugin_userstate, &ui_ops, NULL, context);
 }
 
@@ -1310,7 +1349,8 @@ void send_default_query_to_chat(AIChat *inChat)
 	char *msg = otrl_proto_default_query_msg([inChat.account.formattedUID UTF8String],
 											 policyForContact([inChat listObject]));
 	
-	[adium.contentController sendRawMessage:[NSString stringWithUTF8String:(msg ? msg : "?OTRv2?")]
+	//The fallback offers both versions the policies speak, as the generated query does
+	[adium.contentController sendRawMessage:[NSString stringWithUTF8String:(msg ? msg : "?OTRv23?")]
 															 toContact:[inChat listObject]];
 	if (msg)
 		free(msg);
