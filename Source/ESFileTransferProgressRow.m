@@ -57,11 +57,12 @@
 		bytesSentQueue = [[NSMutableArray alloc] init];
 		updateTickQueue = [[NSMutableArray alloc] init];
 
-		[NSBundle ai_loadNibNamed:@"ESFileTransferProgressView" owner:self];
-		/* The loader hands every top level object one reference that belongs to nobody
-		 * (see AIBundleAdditions.h); the outlet above already holds its own, so the stray
-		 * one is given up here, once, or every finished row leaves its view behind. */
-		if (view) CFRelease((__bridge CFTypeRef)view);
+		/* The loader hands EVERY top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the outlets hold their own, so each stray one is
+		 * given up here. This nib has two views, and giving up only the one named by an
+		 * outlet of ours left the details view behind on every finished transfer. */
+		for (id object in [NSBundle ai_loadNibNamed:@"ESFileTransferProgressView" owner:self])
+			CFRelease((__bridge CFTypeRef)object);
 	}
 
 	return self;

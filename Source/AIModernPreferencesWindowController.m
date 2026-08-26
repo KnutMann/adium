@@ -1064,9 +1064,11 @@ static NSImage *AIPrefPaneIcon(id pane)
 
 	/* The static holds the only reference, and -[NSWindow close] is still running and still
 	 * talking to this controller as its delegate and window controller; the pool keeps it alive
-	 * until the end of the run loop turn, which is the timing the autorelease had. */
-	CFAutorelease(CFBridgingRetain(sharedModernPrefsController));
-	sharedModernPrefsController = nil;
+	 * until the end of the run loop turn, which is the timing the autorelease had. It is this
+	 * controller that has to survive, not whatever the static happens to point at, and self is
+	 * never nil, which CFAutorelease does not tolerate. */
+	CFAutorelease(CFBridgingRetain(self));
+	if (sharedModernPrefsController == self) sharedModernPrefsController = nil;
 }
 
 @end

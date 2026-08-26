@@ -19,23 +19,6 @@
 
 @implementation AISearchFieldCell
 
-/*!
- * @brief NSCell's copy is memberwise
- *
- * The new cell comes back holding our colour in its slot without owning it, and a counted store
- * into that slot would give up a reference nobody took. The cast clears it without releasing;
- * the assignment then retains properly.
- */
-- (id)copyWithZone:(NSZone *)zone
-{
-	AISearchFieldCell *newCell = [super copyWithZone:zone];
-
-	*(__unsafe_unretained id *)(void *)&newCell->backgroundColor = nil;
-	newCell->backgroundColor = backgroundColor;
-
-	return newCell;
-}
-
 - (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
 	if (backgroundColor) {
