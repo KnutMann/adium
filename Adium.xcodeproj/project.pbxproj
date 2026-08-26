@@ -1226,6 +1226,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		ADD1E5C0DF00000000000901 /* Verify Purple Plugins */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Verify Purple Plugins";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/Utilities/verify-purple-plugins.sh\" --app \"$TARGET_BUILD_DIR/$WRAPPER_NAME\" --quick\n";
+			showEnvVarsInLog = 0;
+		};
 		ADD1E5C0DE00000000000305 /* Copy Purple Plugins */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -6402,6 +6417,7 @@
 				F51BCD3E0A156281000FDC06 /* Copy Spotlight Importer */,
 				34BD9D5F053146CC000AB133 /* Copy Frameworks */,
 				ADD1E5C0DE00000000000305 /* Copy Purple Plugins */,
+				ADD1E5C0DF00000000000901 /* Verify Purple Plugins */,
 				4BF2E91F067CB76300743318 /* Copy Built-in Xtras */,
 				ADD1E5C0DE0000000000D2B0 /* Copy JavaScript Plugins */,
 				34BD9D6A053146CC000AB133 /* Copy AdiumPlugins */,

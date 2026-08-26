@@ -196,6 +196,20 @@ require a proper signing identity). `bootstrap.sh` builds the
 AIUtilities and MMTabBarView subprojects first and stages their
 products, then builds the main project.
 
+### Building it yourself
+
+One command from a fresh checkout to an installed application:
+
+    ./install.sh
+
+Everything beyond Xcode is checked into the repository as prebuilt arm64
+binaries. The script verifies the bundled protocol plug-ins (including a
+functional probe that asks libpurple itself whether every plug-in's protocol
+registers - the failure mode it guards against is silent), builds the app,
+verifies the result and installs it to /Applications. `--build-only` skips the
+install, `--debug` builds the Debug configuration. The same verification runs
+as a phase of every Xcode build.
+
 The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
