@@ -20,6 +20,8 @@
 
 @interface AIXtraInfo ()
 - (NSString *)manifestStringForKey:(NSString *)key;
+- (NSString *)soundSetCreator;
+- (NSString *)soundSetDescription;
 @end
 
 @implementation AIXtraInfo
@@ -115,6 +117,18 @@
 
 		if ([written length]) [self setName:written];
 
+		/* A sound set writes what it says about itself into its own Sounds.plist rather than into a
+		 * bundle manifest, as one block of prose: who made it, what it is, and where it came from,
+		 * in that order and separated by blank lines. Every set Adium ships is written that way and
+		 * so is every one on the Xtras site. Read once here, because both the author and the
+		 * description are cut out of it. */
+		if ([type isEqualToString:@"adiumsoundset"]) {
+			NSDictionary	*soundSet = [NSDictionary dictionaryWithContentsOfFile:[resourcePath stringByAppendingPathComponent:@"Sounds.plist"]];
+			id				 prose = [soundSet objectForKey:@"Info"];
+
+			if ([prose isKindOfClass:[NSString class]]) soundSetInfo = prose;
+		}
+
 		if (!readMePath)
 			readMePath = [[NSBundle mainBundle] pathForResource:@"DefaultXtraReadme" ofType:@"rtf"];
 		if (!icon) {
@@ -172,6 +186,8 @@
 	/* A dock icon pack keeps who made it in its own list rather than in the bundle's, under a key
 	 * of its own, and every one of them fills it in where hardly any other kind does. Some write
 	 * "Created by" in front of the name, which would read twice over once the line says "by". */
+	if (!author) author = [self soundSetCreator];
+
 	if (!author) {
 		NSDictionary	*iconPack = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"IconPack.plist"]];
 		NSString		*creator = [[iconPack objectForKey:@"Description"] objectForKey:@"Creator"];
@@ -188,6 +204,60 @@
 	}
 
 	return author;
+}
+
+/*!
+ * @brief Who a sound set says made it, or nil where it does not say
+ *
+ * The first line of its prose, and only when that line really is the sentence every set writes
+ * there: a set whose text opens with something else keeps all of it as its description rather than
+ * having its opening line taken away and shown as somebody's name. The trailing full stop of
+ * "Created by America Online." goes; a name does not end in one.
+ */
+- (NSString *)soundSetCreator
+{
+	if (![soundSetInfo length]) return nil;
+
+	NSRange		 firstBreak = [soundSetInfo rangeOfString:@"\n"];
+	NSString	*firstLine = ((firstBreak.location == NSNotFound) ?
+							  soundSetInfo :
+							  [soundSetInfo substringToIndex:firstBreak.location]);
+	NSString	*prefix = @"created by ";
+
+	if (([firstLine length] <= [prefix length]) ||
+		([[firstLine substringToIndex:[prefix length]] caseInsensitiveCompare:prefix] != NSOrderedSame))
+		return nil;
+
+	NSString	*creator = [[firstLine substringFromIndex:[prefix length]]
+						    stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t."]];
+
+	return ([creator length] ? creator : nil);
+}
+
+/*!
+ * @brief What a sound set says it is, or nil where it says nothing
+ *
+ * Its prose without the line naming its maker, which -soundSetCreator has already taken for the
+ * author. What is left is a sentence and, usually, the address the set came from; both belong in a
+ * description, and neither is written anywhere else.
+ */
+- (NSString *)soundSetDescription
+{
+	if (![soundSetInfo length]) return nil;
+
+	NSString	*remainder = soundSetInfo;
+
+	if ([self soundSetCreator]) {
+		NSRange	firstBreak = [soundSetInfo rangeOfString:@"\n"];
+
+		remainder = ((firstBreak.location == NSNotFound) ?
+					 @"" :
+					 [soundSetInfo substringFromIndex:NSMaxRange(firstBreak)]);
+	}
+
+	remainder = [remainder stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+	return ([remainder length] ? remainder : nil);
 }
 
 /*!
@@ -212,6 +282,11 @@
 - (NSString *)xtraDescription
 {
 	NSString	*summary = [self manifestStringForKey:@"XtraDescription"];
+
+	if ([summary length]) return summary;
+
+	//A sound set's own prose, which is the only place it ever describes itself
+	summary = [self soundSetDescription];
 
 	if ([summary length]) return summary;
 

@@ -27,8 +27,10 @@
 	NSString		*readMePath;
 	NSBundle		*xtraBundle;
 	/* The manifest of an Xtra which keeps its Info.plist at the root rather than in Contents/, where
-	 * NSBundle does not look; see -manifestObjectForKey:. nil for every other kind. */
+	 * NSBundle does not look; see -manifestStringForKey:. nil for every other kind. */
 	NSDictionary	*flatInfoDictionary;
+	/* What a sound set writes about itself in its own Sounds.plist; nil for every other kind */
+	NSString		*soundSetInfo;
 
 	BOOL			enabled;
 }
