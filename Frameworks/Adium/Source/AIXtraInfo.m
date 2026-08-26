@@ -95,7 +95,26 @@
 			}
 			[self setName:[[path lastPathComponent] stringByDeletingPathExtension]];
 			resourcePath = [path copy];//root of the xtra
-		}	
+		}
+
+		/* The name its maker wrote, whether or not the Xtra is new-style. Only an Xtra declaring
+		 * XtraBundleVersion 1 was ever asked, so a message style whose folder is called
+		 * "renkooNaked" was listed here as "renkooNaked" while the style chooser two windows away
+		 * called it "Renkoo Naked" - the chooser asks -[NSBundle name], which reads the localized
+		 * CFBundleName first and the plain one second, and AISoundSet reads the same key. The
+		 * fallback stays the file name rather than -[NSBundle name]'s bundle identifier, which is
+		 * no name to show anybody.
+		 *
+		 * Emoticon packs are the one kind that names itself after its folder no matter what
+		 * (AIEmoticonPack.m); none of the ones in the wild carries CFBundleName, so there is
+		 * nothing here for the two to disagree about yet. */
+		NSString	*written = [[xtraBundle localizedInfoDictionary] objectForKey:(NSString *)kCFBundleNameKey];
+
+		if (![written isKindOfClass:[NSString class]])
+			written = [self manifestStringForKey:(NSString *)kCFBundleNameKey];
+
+		if ([written length]) [self setName:written];
+
 		if (!readMePath)
 			readMePath = [[NSBundle mainBundle] pathForResource:@"DefaultXtraReadme" ofType:@"rtf"];
 		if (!icon) {
@@ -200,14 +219,24 @@
 
 	if (![summary length]) return nil;
 
-	/* Half of the message styles Adium ships write their version number in here and one of the
-	 * script packs writes its own name; either would be a sentence which says nothing, standing
-	 * where the description belongs. The rest of them say something real, so the key is worth
-	 * reading - just not worth believing on its own. */
-	if ([summary isEqualToString:([self version] ?: @"")] ||
-		[summary isEqualToString:([self name] ?: @"")] ||
-		[summary isEqualToString:([self manifestStringForKey:@"CFBundleVersion"] ?: @"")])
-		return nil;
+	/* Half of the message styles Adium ships write their version number in here, and a script pack
+	 * writes the folder it lives in; either would be a sentence which says nothing, standing where
+	 * the description belongs. The rest of them say something real, so the key is worth reading,
+	 * just not worth believing on its own: anything which merely repeats a name or a number this
+	 * Xtra already carries somewhere else is thrown away.
+	 *
+	 * The file name is among them because a pack can be listed under a name of its own now - the
+	 * set name of a script pack, say - which leaves the folder name free to turn up here and read
+	 * as a description. */
+	NSArray		*saidElsewhere = [NSArray arrayWithObjects:
+								  ([self version] ?: @""),
+								  ([self manifestStringForKey:@"CFBundleVersion"] ?: @""),
+								  ([self name] ?: @""),
+								  ([self manifestStringForKey:(NSString *)kCFBundleNameKey] ?: @""),
+								  ([[path lastPathComponent] stringByDeletingPathExtension] ?: @""),
+								  nil];
+
+	if ([saidElsewhere containsObject:summary]) return nil;
 
 	return summary;
 }
