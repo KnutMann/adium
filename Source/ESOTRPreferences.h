@@ -27,10 +27,6 @@
 	IBOutlet	NSButton		*button_showFingerprint;
 	IBOutlet	NSButton		*button_forgetFingerprint;
 
-	IBOutlet	NSTextField		*label_privateKeys;
-	IBOutlet	NSTextField		*label_account;
-	IBOutlet	NSTextField		*label_knownFingerprints;
-
 	//The nib's own top level view; retained, and the home of every control the form does not host
 	NSView						*nibView;
 	//Nib controls the form's cards hold: the cards retain them, but a rebuild throws the cards away

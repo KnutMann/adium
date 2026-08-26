@@ -25,12 +25,10 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIChat.h>
 #import <Adium/AIService.h>
-#import <Adium/AIContentMessage.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIListContact.h>
 #import "AIHTMLDecoder.h"
 
-#import <AIUtilities/AIStringAdditions.h>
 
 #import "ESOTRPrivateKeyGenerationWindowController.h"
 #import "ESOTRPreferences.h"
@@ -62,9 +60,7 @@
 
 - (void)setSecurityDetails:(NSDictionary *)securityDetailsDict forChat:(AIChat *)inChat;
 - (NSString *)localizedOTRMessage:(NSString *)message withUsername:(NSString *)username isWorthOpeningANewChat:(BOOL *)isWorthOpeningANewChat;
-- (void)notifyWithTitle:(NSString *)title primary:(NSString *)primary secondary:(NSString *)secondary;
 
-- (void)upgradeOTRIfNeeded;
 
 - (void)adiumFinishedLaunching:(NSNotification *)inNotification;
 - (void)adiumWillTerminate:(NSNotification *)inNotification;
@@ -134,7 +130,6 @@ static void display_otr_message_for_context(ConnContext *context, NSString *mess
 	chmod(STORE_PATH, S_IRUSR | S_IWUSR);
 	chmod(INSTAG_PATH, S_IRUSR | S_IWUSR);
 
-	[self upgradeOTRIfNeeded];
 
 	/* Make our OtrlUserState; we'll only use the one. */
 	otrg_plugin_userstate = otrl_userstate_create();
@@ -1159,24 +1154,6 @@ static void otrg_plugin_abort_smp(ConnContext *context)
 	otrl_message_abort_smp(otrg_plugin_userstate, &ui_ops, NULL, context);
 }
 
-/* Start the Socialist Millionaires' Protocol over the current connection,
- * using the given initial secret. */
-void otrg_plugin_start_smp(ConnContext *context,
-						   const unsigned char *secret, size_t secretlen)
-{
-    otrl_message_initiate_smp(otrg_plugin_userstate, &ui_ops, NULL,
-							  context, secret, secretlen);	
-}
-
-/* Continue the Socialist Millionaires' Protocol over the current connection,
- * using the given initial secret (ie finish step 2). */
-void otrg_plugin_continue_smp(ConnContext *context,
-							  const unsigned char *secret, size_t secretlen)
-{
-	otrl_message_respond_smp(otrg_plugin_userstate, &ui_ops, NULL,
-							 context, secret, secretlen);
-}
-
 - (NSString *)decryptIncomingMessage:(NSString *)inString fromContact:(AIListContact *)inListContact onAccount:(AIAccount *)inAccount
 {
 	NSString	*decryptedMessage = nil;
@@ -1471,14 +1448,16 @@ OtrlUserState otrg_get_userstate(void)
 	NSString	*localizedOTRMessage = nil;
 	if (isWorthOpeningANewChat) *isWorthOpeningANewChat = NO;
 
-	if (([message rangeOfString:@"You sent unencrypted data to"].location != NSNotFound) &&
+	/* Three producers reach this matcher today, and only three. Our own receive
+	 * path hands in CLOSED_CONNECTION_MESSAGE; our unencrypted-message display
+	 * hands in its warning prefix; and OTRL_MSGEVENT_RCVDMSG_GENERAL_ERR hands
+	 * in whatever error text the PEER'S client put on the wire - for an
+	 * English-locale reference client, the sentence matched below. Five more
+	 * branches used to match display strings of the 3.x library, which spoke
+	 * English at its host; the 4.x library speaks events, those sentences have
+	 * no producer left, and the branches are gone. */
+	if (([message rangeOfString:@"You sent encrypted data to"].location != NSNotFound) &&
 		([message rangeOfString:@"who wasn't expecting it"].location != NSNotFound)) {
-		localizedOTRMessage = [NSString stringWithFormat:
-			AILocalizedString(@"You sent an unencrypted message, but %@ was expecting encryption.", "Message when sending unencrypted messages to a contact expecting encrypted ones. %s will be a name."),
-			username];
-		
-	} else if (([message rangeOfString:@"You sent encrypted data to"].location != NSNotFound) &&
-			   ([message rangeOfString:@"who wasn't expecting it"].location != NSNotFound)) {
 		localizedOTRMessage = [NSString stringWithFormat:
 			AILocalizedString(@"You sent an encrypted message, but %@ was not expecting encryption.", "Message when sending encrypted messages to a contact expecting unencrypted ones. %s will be a name."),
 			username];
@@ -1488,290 +1467,13 @@ OtrlUserState otrg_get_userstate(void)
 		localizedOTRMessage = [NSString stringWithFormat:
 			AILocalizedString(@"%@ is no longer using encryption; you should cancel encryption on your side.", "Message when the remote contact cancels his half of an encrypted conversation. %s will be a name."),
 			username];
-		
-	} else if ([message isEqualToString:@"Private connection closed"]) {
-		localizedOTRMessage = AILocalizedString(@"Private connection closed", nil);
-
-	} else if ([message rangeOfString:@"has already closed his private connection to you"].location != NSNotFound) {
-		localizedOTRMessage = [NSString stringWithFormat:
-			AILocalizedString(@"%@'s private connection to you is closed.", "Statement that someone's private (encrypted) connection is closed."),
-			username];
-
-	} else if ([message isEqualToString:@"Your message was not sent.  Either close your private connection to him, or refresh it."]) {
-		localizedOTRMessage = AILocalizedString(@"Your message was not sent. You should end the encrypted chat on your side or re-request encryption.", nil);
-		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
 
 	} else if ([message isEqualToString:@"The following message was <b>not encrypted</b>: "]) {
 		localizedOTRMessage = AILocalizedString(@"The following message was <b>not encrypted</b>: ", nil);
 		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
-
-	} else if ([message rangeOfString:@"received an unreadable encrypted"].location != NSNotFound) {
-		localizedOTRMessage = [NSString stringWithFormat:
-			AILocalizedString(@"An encrypted message from %@ could not be decrypted.", nil),
-			username];
-		if (isWorthOpeningANewChat) *isWorthOpeningANewChat = YES;
 	}
 
 	return (localizedOTRMessage ? localizedOTRMessage : message);
-}
-
-/*!
- * @brief Display a message (independent of a chat)
- *
- * @param title The window title
- * @param primary The main information for the message
- * @param secondary Additional information for the message
- */
-- (void)notifyWithTitle:(NSString *)title primary:(NSString *)primary secondary:(NSString *)secondary
-{
-	//XXX todo: search on ops->notify in message.c in libotr and handle / localize the error messages
-	[adium.interfaceController handleMessage:primary
-							   withDescription:secondary
-							   withWindowTitle:title];
-}
-
-#pragma mark Upgrading gaim-otr --> Adium-otr
-/*!
- * @brief Construct a dictionary converting libpurple prpl names to Adium serviceIDs for the purpose of fingerprint upgrading
- */
-- (NSDictionary *)prplDict
-{
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-		@"libpurple-OSCAR-AIM", @"prpl-oscar",
-		@"libpurple-Gadu-Gadu", @"prpl-gg",
-		@"libpurple-Jabber", @"prpl-jabber",
-		@"libpurple-MSN", @"prpl-msn",
-		@"libpurple-GroupWise", @"prpl-novell",
-		@"libpurple-Yahoo!", @"prpl-yahoo", nil];
-}
-
-- (NSString *)upgradedFingerprintsFromFile:(NSString *)inPath
-{
-	NSString		*sourceFingerprints = [NSString stringWithContentsOfUTF8File:inPath];
-	
-	if (!sourceFingerprints  || ![sourceFingerprints length]) return nil;
-
-	NSScanner		*scanner = [NSScanner scannerWithString:sourceFingerprints];
-	NSMutableString *outFingerprints = [NSMutableString string];
-	NSCharacterSet	*tabAndNewlineSet = [NSCharacterSet characterSetWithCharactersInString:@"\t\n\r"];
-	
-	//Skip quotes
-	[scanner setCharactersToBeSkipped:[NSCharacterSet characterSetWithCharactersInString:@"\""]];
-	
-	NSDictionary	*prplDict = [self prplDict];
-
-	while (![scanner isAtEnd]) {
-		//username     accountname  protocol      key	trusted\n
-		NSString		*chunk;
-		NSString		*username = nil, *accountname = nil, *protocol = nil, *key = nil, *trusted = nil;
-		
-		//username
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&username];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];
-		
-		//accountname
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&accountname];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];
-		
-		//protocol
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&protocol];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];
-		
-		//key
-		[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&key];
-		[scanner scanCharactersFromSet:tabAndNewlineSet intoString:&chunk];
-		
-		//We have a trusted entry
-		if ([chunk isEqualToString:@"\t"]) {
-			//key
-			[scanner scanUpToCharactersFromSet:tabAndNewlineSet intoString:&trusted];
-			[scanner scanCharactersFromSet:tabAndNewlineSet intoString:NULL];		
-		} else {
-			trusted = nil;
-		}
-		
-		if (username && accountname && protocol && key) {
-			for (AIAccount *account in adium.accountController.accounts) {
-				//Hit every possibile name for this account along the way
-				if ([[NSSet setWithObjects:account.UID,account.formattedUID,[account.UID compactedString], nil] containsObject:accountname]) {
-					if ([account.service.serviceCodeUniqueID isEqualToString:[prplDict objectForKey:protocol]]) {
-						[outFingerprints appendString:
-							[NSString stringWithFormat:@"%@\t%@\t%@\t%@", username, account.internalObjectID, account.service.serviceCodeUniqueID, key]];
-						if (trusted) {
-							[outFingerprints appendString:@"\t"];
-							[outFingerprints appendString:trusted];
-						}
-						[outFingerprints appendString:@"\n"];
-					}
-				}
-			}
-		}
-	}
-	
-	return outFingerprints;
-}
-
-- (NSString *)upgradedPrivateKeyFromFile:(NSString *)inPath
-{
-	NSMutableString	*sourcePrivateKey = [[NSString stringWithContentsOfUTF8File:inPath] mutableCopy];
-	AILog(@"Upgrading private keys at %@ gave %@",inPath,sourcePrivateKey);
-	if (!sourcePrivateKey || ![sourcePrivateKey length]) return nil;
-
-	/*
-	 * Gaim used the account name for the name and the prpl id for the protocol.
-	 * We will use the internalObjectID for the name and the service's uniqueID for the protocol.
-	 */
-
-	/* Remove Jabber resources... from the private key list
-	 * If you used a non-default resource, no upgrade for you.
-	 */
-	[sourcePrivateKey replaceOccurrencesOfString:@"/Adium"
-									  withString:@""
-										 options:NSLiteralSearch
-										   range:NSMakeRange(0, [sourcePrivateKey length])];
-
-	NSDictionary	*prplDict = [self prplDict];
-
-	for (AIAccount *account in adium.accountController.accounts) {
-		//Hit every possibile name for this account along the way
-		NSString		*accountInternalObjectID = [NSString stringWithFormat:@"\"%@\"",account.internalObjectID];
-
-		for (NSString *accountName in [NSSet setWithObjects:account.UID,account.formattedUID,[account.UID compactedString], nil]) {
-			NSRange			accountNameRange = NSMakeRange(0, 0);
-			NSRange			searchRange = NSMakeRange(0, [sourcePrivateKey length]);
-
-			while (accountNameRange.location != NSNotFound &&
-				   (NSMaxRange(searchRange) <= [sourcePrivateKey length])) {
-				//Find the next place this account name is located
-				accountNameRange = [sourcePrivateKey rangeOfString:accountName
-														   options:NSLiteralSearch
-															 range:searchRange];
-
-				if (accountNameRange.location != NSNotFound) {
-					//Update our search range
-					searchRange.location = NSMaxRange(accountNameRange);
-					searchRange.length = [sourcePrivateKey length] - searchRange.location;
-
-					//Make sure that this account name actually begins and finishes a name; otherwise (name TekJew2) matches (name TekJew)
-					if ((![[sourcePrivateKey substringWithRange:NSMakeRange(accountNameRange.location - 6, 6)] isEqualToString:@"(name "] &&
-						 ![[sourcePrivateKey substringWithRange:NSMakeRange(accountNameRange.location - 7, 7)] isEqualToString:@"(name \""]) ||
-						(![[sourcePrivateKey substringWithRange:NSMakeRange(NSMaxRange(accountNameRange), 1)] isEqualToString:@")"] &&
-						 ![[sourcePrivateKey substringWithRange:NSMakeRange(NSMaxRange(accountNameRange), 2)] isEqualToString:@"\")"])) {
-						continue;
-					}
-
-					/* Within that range, find the next "(protocol " which encloses
-						* a string of the form "(protocol protocol-name)"
-						*/
-					NSRange protocolRange = [sourcePrivateKey rangeOfString:@"(protocol "
-																	options:NSLiteralSearch
-																	  range:searchRange];
-					if (protocolRange.location != NSNotFound) {
-						//Update our search range
-						searchRange.location = NSMaxRange(protocolRange);
-						searchRange.length = [sourcePrivateKey length] - searchRange.location;
-
-						NSRange nextClosingParen = [sourcePrivateKey rangeOfString:@")"
-																		   options:NSLiteralSearch
-																			 range:searchRange];
-						NSRange protocolNameRange = NSMakeRange(NSMaxRange(protocolRange),
-																nextClosingParen.location - NSMaxRange(protocolRange));
-						NSString *protocolName = [sourcePrivateKey substringWithRange:protocolNameRange];
-						//Remove a trailing quote if necessary
-						if ([[protocolName substringFromIndex:([protocolName length]-1)] isEqualToString:@"\""]) {
-							protocolName = [protocolName substringToIndex:([protocolName length]-1)];
-						}
-
-						NSString *uniqueServiceID = [prplDict objectForKey:protocolName];
-
-						if ([account.service.serviceCodeUniqueID isEqualToString:uniqueServiceID]) {
-							//Replace the protocol name first
-							[sourcePrivateKey replaceCharactersInRange:protocolNameRange
-															withString:uniqueServiceID];
-
-							//Then replace the account name which was before it (so the range hasn't changed)
-							if ([sourcePrivateKey characterAtIndex:(accountNameRange.location - 1)] == '\"') {
-								accountNameRange.location -= 1;
-								accountNameRange.length += 1;
-							}
-							
-							if ([sourcePrivateKey characterAtIndex:(accountNameRange.location + accountNameRange.length + 1)] == '\"') {
-								accountNameRange.length += 1;
-							}
-							
-							[sourcePrivateKey replaceCharactersInRange:accountNameRange
-															withString:accountInternalObjectID];
-						}
-					}
-				}
-				
-				AILog(@"%@ - %@",accountName, sourcePrivateKey);
-			}
-		}			
-	}
-	
-	return sourcePrivateKey;
-}
-
-- (void)upgradeOTRIfNeeded
-{
-	if (![[adium.preferenceController preferenceForKey:@"GaimOTR_to_AdiumOTR_Update"
-												   group:@"OTR"] boolValue]) {
-		NSString	  *destinationPath = [adium.loginController userDirectory];
-		NSString	  *sourcePath = [destinationPath stringByAppendingPathComponent:@"libpurple"];
-		
-		NSString *privateKey = [self upgradedPrivateKeyFromFile:[sourcePath stringByAppendingPathComponent:@"otr.private_key"]];
-		if (privateKey && [privateKey length]) {
-			[privateKey writeToFile:[destinationPath stringByAppendingPathComponent:@"otr.private_key"]
-						 atomically:NO
-						   encoding:NSUTF8StringEncoding
-							  error:NULL];
-		}
-
-		NSString *fingerprints = [self upgradedFingerprintsFromFile:[sourcePath stringByAppendingPathComponent:@"otr.fingerprints"]];
-		if (fingerprints && [fingerprints length]) {
-			[fingerprints writeToFile:[destinationPath stringByAppendingPathComponent:@"otr.fingerprints"]
-						   atomically:NO
-							 encoding:NSUTF8StringEncoding
-								error:NULL];
-		}
-
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
-											 forKey:@"GaimOTR_to_AdiumOTR_Update"
-											  group:@"OTR"];
-	}
-	
-	if (![[adium.preferenceController preferenceForKey:@"Libgaim_to_Libpurple_Update"
-												   group:@"OTR"] boolValue]) {
-		NSString	*destinationPath = [adium.loginController userDirectory];
-		
-		NSString	*privateKeyPath = [destinationPath stringByAppendingPathComponent:@"otr.private_key"];
-		NSString	*fingerprintsPath = [destinationPath stringByAppendingPathComponent:@"otr.fingerprints"];
-
-		NSMutableString *privateKeys = [[NSString stringWithContentsOfUTF8File:privateKeyPath] mutableCopy];
-		[privateKeys replaceOccurrencesOfString:@"libgaim"
-									 withString:@"libpurple"
-										options:NSLiteralSearch
-										  range:NSMakeRange(0, [privateKeys length])];
-		[privateKeys writeToFile:privateKeyPath
-					  atomically:YES
-						encoding:NSUTF8StringEncoding
-						   error:NULL];
-
-		NSMutableString *fingerprints = [[NSString stringWithContentsOfUTF8File:fingerprintsPath] mutableCopy];
-		[fingerprints replaceOccurrencesOfString:@"libgaim"
-									 withString:@"libpurple"
-										options:NSLiteralSearch
-										  range:NSMakeRange(0, [fingerprints length])];
-		[fingerprints writeToFile:fingerprintsPath
-					   atomically:YES
-						 encoding:NSUTF8StringEncoding
-							error:NULL];
-
-		[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
-											 forKey:@"Libgaim_to_Libpurple_Update"
-											  group:@"OTR"];
-	}
 }
 
 @end

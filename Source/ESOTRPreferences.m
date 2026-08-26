@@ -341,9 +341,6 @@ static NSString *AIRowLabel(NSString *label)
 	viewIsOpen = YES;
 
 	//Localize the interface; the xib is unlocalized
-	[label_privateKeys setStringValue:AILocalizedString(@"Private Keys", nil)];
-	[label_account setStringValue:AILocalizedString(@"Account:", nil)];
-	[label_knownFingerprints setStringValue:AILocalizedString(@"Known Fingerprints", nil)];
 	[button_showFingerprint setTitle:[AILocalizedString(@"Show Fingerprint", nil) stringByAppendingEllipsis]];
 	[button_forgetFingerprint setTitle:AILocalizedString(@"Forget Fingerprint", nil)];
 	[[[tableView_fingerprints tableColumnWithIdentifier:@"UID"] headerCell] setStringValue:AILocalizedString(@"Name", nil)];
@@ -510,19 +507,10 @@ static NSString *AIRowLabel(NSString *label)
 	tableView_fingerprints = nil;
 	button_showFingerprint = nil;
 	button_forgetFingerprint = nil;
-	label_privateKeys = nil;
-	label_account = nil;
-	label_knownFingerprints = nil;
 
 	fingerprintDictArray = nil;
 	privateKeyDescription = nil;
 	builtPrivateKeyDescription = nil;
-
-	/* Left over from the nib era: no observer has ever been registered under this name, here or in
-	 * any superclass. Kept because taking behaviour away is not this change's business. */
-	[[NSNotificationCenter defaultCenter] removeObserver:self
-											  name:Account_ListChanged
-											object:nil];
 
 	nibView = nil;
 }
