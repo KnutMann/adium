@@ -1143,6 +1143,16 @@ void otrg_plugin_continue_smp(ConnContext *context,
 		/* Notify the user that the other side disconnected. */
 		display_otr_message(accountname, protocol, username, CLOSED_CONNECTION_MESSAGE);
 
+		/* And show it. The library has just moved the context to FINISHED
+		 * without telling any callback - gone_insecure is never called on this
+		 * path - so the lock is ours to update, exactly as the reference
+		 * implementation calls its otrg_dialog_finished here. Without this the
+		 * indicator keeps claiming an encrypted session whose every further
+		 * send the library refuses. */
+		AIChat *chat = [adium.chatController existingChatWithContact:contactFromInfo(accountname, protocol, username)];
+
+		if (chat) update_security_details_for_chat(chat);
+
 		otrg_ui_update_keylist();
     }
 
