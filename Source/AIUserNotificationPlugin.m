@@ -132,13 +132,6 @@
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (void)dealloc
-{
-	[queuedEvents release]; queuedEvents = nil;
-
-	[super dealloc];
-}
-
 - (void)adiumFinishedLaunching:(NSNotification *)notification
 {
 	[self performSelector:@selector(beginNotifying)
@@ -478,8 +471,6 @@
 		NSDate *dateStamp = (contentObject) ? [contentObject date] : [NSDate date];
 
 		description = [NSString stringWithFormat:AILocalizedString(@"[%@] %@", "A notification with a timestamp. The first %@ is the timestamp, the second is the main string"), [timeStampFormatter stringFromDate:dateStamp], description];
-
-		[timeStampFormatter release];
 	}
 
 	if (([eventID isEqualToString:CONTACT_STATUS_ONLINE_YES] ||
@@ -582,7 +573,7 @@
 					   identifier:(NSString *)identifier
 					   listObject:(AIListObject *)listObject
 {
-	UNMutableNotificationContent *content = [[[UNMutableNotificationContent alloc] init] autorelease];
+	UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
 	content.title = title ? title : @"Adium";
 	content.body = body ? body : @"";
 	content.userInfo = clickContext;
@@ -630,16 +621,16 @@
 {
 	const CGFloat side = 192.0;
 
-	NSBitmapImageRep *rep = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-																	 pixelsWide:side
-																	 pixelsHigh:side
-																  bitsPerSample:8
-																samplesPerPixel:4
-																	   hasAlpha:YES
-																	   isPlanar:NO
-																 colorSpaceName:NSCalibratedRGBColorSpace
-																	bytesPerRow:0
-																   bitsPerPixel:0] autorelease];
+	NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+																	pixelsWide:side
+																	pixelsHigh:side
+																 bitsPerSample:8
+															   samplesPerPixel:4
+																	  hasAlpha:YES
+																	  isPlanar:NO
+																colorSpaceName:NSCalibratedRGBColorSpace
+																   bytesPerRow:0
+																  bitsPerPixel:0];
 	if (!rep) return nil;
 
 	[NSGraphicsContext saveGraphicsState];

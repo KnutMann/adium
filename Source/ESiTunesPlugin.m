@@ -291,7 +291,7 @@ end tell";
  */
 static NSString *AIEscapedForHTML(NSString *string)
 {
-	NSMutableString *escaped = [[string mutableCopy] autorelease];
+	NSMutableString *escaped = [string mutableCopy];
 
 	//Ampersand first, or it would escape the ampersands the others introduce
 	[escaped replaceOccurrencesOfString:@"&" withString:@"&amp;" options:NSLiteralSearch range:NSMakeRange(0, [escaped length])];
@@ -405,7 +405,7 @@ static NSDictionary *AITrackInfoFromDescriptor(NSAppleEventDescriptor *result, N
 	[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
 
 	//Nothing playing: a lone player state, which is precisely what a stop broadcast carries
-	if ([playerState isEqualToString:KEY_ITUNES_STOPPED]) return [[info copy] autorelease];
+	if ([playerState isEqualToString:KEY_ITUNES_STOPPED]) return [info copy];
 
 	/* Playing, but not a word about what: Music does this for anything outside the
 	 * user's own library, where 'current track' raises -1728 while the player state
@@ -455,7 +455,7 @@ static NSDictionary *AITrackInfoFromDescriptor(NSAppleEventDescriptor *result, N
 	}
 	if (storeURL) [info setObject:storeURL forKey:KEY_ITUNES_STORE_URL];
 
-	return [[info copy] autorelease];
+	return [info copy];
 }
 
 /*!
@@ -499,14 +499,14 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * -[ESStatusPreferences askPlayersOnFirstInteraction] waits for the caret
 	 * or the Insert menu rather than asking from -viewDidLoad.
 	 */
-	/* Autoreleased into the worker's pool rather than released at the end: the caller
-	 * treats an exception out of here as possible and catches it, and an unwind would
-	 * walk straight past a manual release. The compiled script and its descriptor are
-	 * not small, and -requestPlayerQueryIfNothingIsKnown will come back again, so a
-	 * reproducible raise would leak one of these per attempt for the whole launch.
+	/* Owned by the worker's pool rather than by this scope: the caller treats an exception
+	 * out of here as possible and catches it, and an unwind walks straight past a release
+	 * bound to a scope. The compiled script and its descriptor are not small, and
+	 * -requestPlayerQueryIfNothingIsKnown will come back again, so a reproducible raise
+	 * would leak one of these per attempt for the whole launch.
 	 */
 	NSDictionary			*errorInfo = nil;
-	NSAppleScript			*script = [[[NSAppleScript alloc] initWithSource:scriptSource] autorelease];
+	__unsafe_unretained NSAppleScript *script = (__bridge NSAppleScript *)CFAutorelease(CFBridgingRetain([[NSAppleScript alloc] initWithSource:scriptSource]));
 	NSAppleEventDescriptor	*result = [script executeAndReturnError:&errorInfo];
 	NSDictionary			*info = nil;
 
@@ -688,7 +688,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 */
 	playerQueryLearnedNothing = NO;
 
-	[infoSourceBundleIdentifier release];
 	infoSourceBundleIdentifier = [bundleIdentifier copy];
 
 	/* Every change arrives twice: Music broadcasts under its own name and under
@@ -699,11 +698,9 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 */
 	if (lastRawInfo && [lastRawInfo isEqualToDictionary:newInfo]) return;
 
-	[lastRawInfo release];
 	lastRawInfo = [newInfo copy];
 
  	if (newInfo != iTunesCurrentInfo) {
- 		[iTunesCurrentInfo release];
  		NSMutableDictionary *mutableNewInfo = [newInfo mutableCopy];
 
 		//If we get a stream title, use that as the track name
@@ -857,65 +854,58 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	playerQueryInFlight = YES;
 
 	NSUInteger	 generationAtRequest = infoGeneration;
-	NSArray		*targets = [[bundleIdentifiers copy] autorelease];
+	NSArray		*targets = [bundleIdentifiers copy];
 
-	/* Held by hand rather than captured, exactly as AdiumApplescriptRunner does it:
-	 * under manual retain/release a __block object variable is not retained by the
-	 * block, so this pair is the only claim on the plugin, and it is given up on the
-	 * main thread. An Apple event can take seconds; the plugin must not be able to go
+	/* The block's own claim on the plugin is the only one there is, and it is given up on
+	 * the main thread. An Apple event can take seconds; the plugin must not be able to go
 	 * away underneath the answer.
 	 */
-	__block id blockSelf = [self retain];
-
 	[playerQueryQueue addOperationWithBlock:^{
-		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-		NSMutableDictionary	*results = [NSMutableDictionary dictionary];
-		NSMutableSet		*refusals = [NSMutableSet set];
+		@autoreleasepool {
+			NSMutableDictionary	*results = [NSMutableDictionary dictionary];
+			NSMutableSet		*refusals = [NSMutableSet set];
 
-		for (NSString *bundleIdentifier in targets) {
-			/* Swallowed rather than rethrown, and deliberately not @finally: unwinding
-			 * out of here would take the worker thread with it, and the callback below
-			 * has to happen whatever else does — it is what clears playerQueryInFlight.
-			 * Inside the loop rather than around it, so that one player raising costs
-			 * us that player's answer and not the other one's.
-			 */
-			@try {
-				BOOL			 consentRefused = NO;
-				NSString		*scriptSource = AIMusicQueryScript;
-
-				if ([bundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER]) scriptSource = AISpotifyQueryScript;
-				else if ([bundleIdentifier isEqualToString:SWINSIAN_BUNDLE_IDENTIFIER]) scriptSource = AISwinsianQueryScript;
-				NSDictionary	*info = AIQueryPlayer(bundleIdentifier, scriptSource, &consentRefused);
-
-				if (consentRefused) [refusals addObject:bundleIdentifier];
-				if (info) [results setObject:info forKey:bundleIdentifier];
-
-				/* Someone is playing, and -bestPlayerOfResults: settles ties in favour of
-				 * whoever came first — in the same order this loop walks. Nothing a later
-				 * player could say would be chosen over this, so asking it would be an
-				 * Apple event whose answer is thrown away, and, the first time, an
-				 * automation dialog for a player we had no reason to disturb.
+			for (NSString *bundleIdentifier in targets) {
+				/* Swallowed rather than rethrown, and deliberately not @finally: unwinding
+				 * out of here would take the worker thread with it, and the callback below
+				 * has to happen whatever else does — it is what clears playerQueryInFlight.
+				 * Inside the loop rather than around it, so that one player raising costs
+				 * us that player's answer and not the other one's.
 				 */
-				if ([[info objectForKey:KEY_ITUNES_PLAYER_STATE] isEqualToString:KEY_ITUNES_PLAYING]) break;
+				@try {
+					BOOL			 consentRefused = NO;
+					NSString		*scriptSource = AIMusicQueryScript;
+
+					if ([bundleIdentifier isEqualToString:SPOTIFY_BUNDLE_IDENTIFIER]) scriptSource = AISpotifyQueryScript;
+					else if ([bundleIdentifier isEqualToString:SWINSIAN_BUNDLE_IDENTIFIER]) scriptSource = AISwinsianQueryScript;
+					NSDictionary	*info = AIQueryPlayer(bundleIdentifier, scriptSource, &consentRefused);
+
+					if (consentRefused) [refusals addObject:bundleIdentifier];
+					if (info) [results setObject:info forKey:bundleIdentifier];
+
+					/* Someone is playing, and -bestPlayerOfResults: settles ties in favour of
+					 * whoever came first — in the same order this loop walks. Nothing a later
+					 * player could say would be chosen over this, so asking it would be an
+					 * Apple event whose answer is thrown away, and, the first time, an
+					 * automation dialog for a player we had no reason to disturb.
+					 */
+					if ([[info objectForKey:KEY_ITUNES_PLAYER_STATE] isEqualToString:KEY_ITUNES_PLAYING]) break;
+				}
+				@catch (NSException *exception) {
+					//Quietly, into the log: a failed query is not something to trouble the user with
+					NSLog(@"ESiTunesPlugin: asking %@ failed: %@: %@", bundleIdentifier, [exception name], [exception reason]);
+				}
 			}
-			@catch (NSException *exception) {
-				//Quietly, into the log: a failed query is not something to trouble the user with
-				NSLog(@"ESiTunesPlugin: asking %@ failed: %@: %@", bundleIdentifier, [exception name], [exception reason]);
-			}
+
+			/* Back to the main thread. Copying this block retains results and refusals, so
+			 * they outlive the pool drained below.
+			 */
+			[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+				[self finishPlayerQueryWithResults:results
+										  refusals:refusals
+								 requestGeneration:generationAtRequest];
+			}];
 		}
-
-		/* Back to the main thread. Copying this block retains results and refusals, so
-		 * they outlive the pool released below.
-		 */
-		[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-			[blockSelf finishPlayerQueryWithResults:results
-										   refusals:refusals
-								  requestGeneration:generationAtRequest];
-
-			[blockSelf release]; blockSelf = nil;
-		}];
-
-		[pool release];
 	}];
 }
 
@@ -1007,7 +997,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 							   (knownArtist && queriedArtist && [knownArtist isEqualToString:queriedArtist]));
 
 	if (knownName && queriedName && [knownName isEqualToString:queriedName] && sameArtist) {
-		NSMutableDictionary *merged = [[iTunesCurrentInfo mutableCopy] autorelease];
+		NSMutableDictionary *merged = [iTunesCurrentInfo mutableCopy];
 
 		[merged setObject:queriedState forKey:KEY_ITUNES_PLAYER_STATE];
 
@@ -1209,10 +1199,10 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * already checks for, so nothing it brings back will be written. Dropping the queue
 	 * stops any further query from starting; the operation which is running holds the
 	 * queue alive until it is finished with it, and the plugin itself is held by the
-	 * retain in -requestPlayerQuery.
+	 * block in -requestPlayerQuery.
 	 */
 	infoGeneration++;
-	[playerQueryQueue release]; playerQueryQueue = nil;
+	playerQueryQueue = nil;
 }
 
 #pragma mark -
@@ -1226,7 +1216,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 - (void)createiTunesCurrentTrackStatusState
 {
 	//create a Now Playing status of state "Available" with default available status settings
-	AIStatus		   *currentiTunesStatusState = [[AIStatus statusOfType:AIAvailableStatusType] retain];
+	AIStatus		   *currentiTunesStatusState = [AIStatus statusOfType:AIAvailableStatusType];
 	
 	//set status attributes
 	NSAttributedString *trackAndArtist = [NSAttributedString stringWithString:TRIGGER_CURRENT_TRACK];
@@ -1238,7 +1228,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 
 	//give it to the AIStatusController
 	[adium.statusController addStatusState:currentiTunesStatusState];
-	[currentiTunesStatusState release];
 }
 
 /*!
@@ -1306,25 +1295,17 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 		currentITunesTrackFormat = @"";
 	}
 
-	/* The preference pane now writes while the user types, so this runs far more
-	 * often than once per launch: without the release the old dictionary leaked
-	 * on every rebuild.
-	 *
-	 * Built first, swapped in, and only then released — never released first. The
-	 * ivar is read without a lock by -filterAttributedString:context:, which may run
-	 * off the main thread (see the comment there), and it hands the pointer on to
+	/* Built first, swapped in only then — never the other way round. The ivar is read
+	 * without a lock by -filterAttributedString:context:, which may run off the main
+	 * thread (see the comment there), and it hands the pointer on to
 	 * -attributedStringByReplacingMusicTriggersIn:… for the whole two-stage
-	 * replacement. Releasing before building would leave the ivar pointing at freed
-	 * memory for the length of -phraseSubstitutionDictionaryForFormat: — two bundle
-	 * lookups and three dictionaries — on every burst of typing. In this order the
-	 * ivar only ever holds a live object, and the one being let go of is held by the
-	 * local until the last reader has moved on.
+	 * replacement, so it must never point at anything but a live dictionary — not even
+	 * for the length of -phraseSubstitutionDictionaryForFormat:, which is two bundle
+	 * lookups and three dictionaries on every burst of typing.
 	 */
-	NSDictionary	*newPhraseSubstitutionDict = [[self phraseSubstitutionDictionaryForFormat:currentITunesTrackFormat] retain];
-	NSDictionary	*oldPhraseSubstitutionDict = phraseSubstitutionDict;
+	NSDictionary	*newPhraseSubstitutionDict = [self phraseSubstitutionDictionaryForFormat:currentITunesTrackFormat];
 
 	phraseSubstitutionDict = newPhraseSubstitutionDict;
-	[oldPhraseSubstitutionDict release];
 
     [self fireUpdateiTunesInfo];
 }
@@ -1412,7 +1393,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 				}
 
 				//create a attributedstring if it hasn't been created already
-				if (!filteredMessage) filteredMessage = [[inAttributedString mutableCopy] autorelease];
+				if (!filteredMessage) filteredMessage = [inAttributedString mutableCopy];
 
 				//Perform the replacement
 				[filteredMessage replaceOccurrencesOfString:trigger
@@ -1444,7 +1425,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 
 				//if a mutable attributed string for the string to be filtered doesn't exist, create it.
 				if (filteredMessage == nil) {
-					filteredMessage = [[inAttributedString mutableCopy] autorelease];
+					filteredMessage = [inAttributedString mutableCopy];
 				}
 
 				//Replace the current trigger with the value we found above
@@ -1537,7 +1518,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * callers "the resolved text", so what they get has to be a string that is theirs
 	 * and cannot change underneath them.
 	 */
-	return [[[(resolved ?: trigger) string] copy] autorelease];
+	return [[(resolved ?: trigger) string] copy];
 }
 
 /*!
@@ -1560,34 +1541,32 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  */
 - (void)iTunesUpdate:(NSNotification *)aNotification
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		/* Attributed to Music by name. Strictly the channel is open — a third-party player
+		 * can post under the old iTunes name, and one that does gets mislabeled here — but
+		 * the only place the attribution surfaces is the settings preview, and the players
+		 * that used to share this channel grew channels of their own (Spotify's is below).
+		 */
+		NSDictionary *newInfo = [aNotification userInfo];
 
-	/* Attributed to Music by name. Strictly the channel is open — a third-party player
-	 * can post under the old iTunes name, and one that does gets mislabeled here — but
-	 * the only place the attribution surfaces is the settings preview, and the players
-	 * that used to share this channel grew channels of their own (Spotify's is below).
-	 */
-	NSDictionary *newInfo = [aNotification userInfo];
+		/* Music's goodbye when it quits is a payload without a player state, and the two
+		 * flags read "not stopped, not paused" as playing — so the goodbye went out as a
+		 * playing track with every field empty, which a format like "%_track - %_artist"
+		 * renders as a lone dash. A broadcast that does not say one of the three states is
+		 * the player leaving or talking about something else; Stopped is the truth of both,
+		 * and whatever track fields ride along with it are not what is playing.
+		 */
+		NSString *playerState = [newInfo objectForKey:KEY_ITUNES_PLAYER_STATE];
 
-	/* Music's goodbye when it quits is a payload without a player state, and the two
-	 * flags read "not stopped, not paused" as playing — so the goodbye went out as a
-	 * playing track with every field empty, which a format like "%_track - %_artist"
-	 * renders as a lone dash. A broadcast that does not say one of the three states is
-	 * the player leaving or talking about something else; Stopped is the truth of both,
-	 * and whatever track fields ride along with it are not what is playing.
-	 */
-	NSString *playerState = [newInfo objectForKey:KEY_ITUNES_PLAYER_STATE];
+		if (![playerState isKindOfClass:[NSString class]] ||
+			!([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
+			  [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
+			  [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
+			newInfo = [NSDictionary dictionaryWithObject:KEY_ITUNES_STOPPED forKey:KEY_ITUNES_PLAYER_STATE];
+		}
 
-	if (![playerState isKindOfClass:[NSString class]] ||
-		!([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
-		  [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
-		  [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
-		newInfo = [NSDictionary dictionaryWithObject:KEY_ITUNES_STOPPED forKey:KEY_ITUNES_PLAYER_STATE];
+		[self setiTunesCurrentInfo:newInfo fromPlayer:MUSIC_BUNDLE_IDENTIFIER];
 	}
-
-	[self setiTunesCurrentInfo:newInfo fromPlayer:MUSIC_BUNDLE_IDENTIFIER];
-
-	[pool release];
 }
 
 /*!
@@ -1604,42 +1583,40 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  */
 - (void)spotifyUpdate:(NSNotification *)aNotification
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		NSDictionary *payload = [aNotification userInfo];
+		NSString *playerState = [payload objectForKey:KEY_ITUNES_PLAYER_STATE];
 
-	NSDictionary *payload = [aNotification userInfo];
-	NSString *playerState = [payload objectForKey:KEY_ITUNES_PLAYER_STATE];
-
-	/* The same three words the query scripts are held to; see AITrackInfoFromDescriptor.
-	 * Anything else — a future Spotify, a payload without a state — is not understood
-	 * and must look like a broadcast that never arrived.
-	 */
-	if ([playerState isKindOfClass:[NSString class]] &&
-		([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
-		 [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
-		 [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
-
-		NSMutableDictionary *info = [NSMutableDictionary dictionary];
-		[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
-
-		for (NSString *key in [NSArray arrayWithObjects:KEY_ITUNES_NAME, KEY_ITUNES_ARTIST, KEY_ITUNES_ALBUM, nil]) {
-			id value = [payload objectForKey:key];
-			if ([value isKindOfClass:[NSString class]] && [value length]) [info setObject:value forKey:key];
-		}
-
-		id trackID = [payload objectForKey:@"Track ID"];
-		NSString *webURL = [trackID isKindOfClass:[NSString class]] ? AISpotifyWebURLFromURI(trackID) : nil;
-		if (webURL) [info setObject:webURL forKey:KEY_ITUNES_STORE_URL];
-
-		/* Playing, but not a word about what: the same defence the query path has, for
-		 * the same reason — the filter would send the half-empty track line the guard
-		 * in -setiTunesCurrentInfo:fromPlayer: exists to prevent.
+		/* The same three words the query scripts are held to; see AITrackInfoFromDescriptor.
+		 * Anything else — a future Spotify, a payload without a state — is not understood
+		 * and must look like a broadcast that never arrived.
 		 */
-		if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
-			[self setiTunesCurrentInfo:info fromPlayer:SPOTIFY_BUNDLE_IDENTIFIER];
+		if ([playerState isKindOfClass:[NSString class]] &&
+			([playerState isEqualToString:KEY_ITUNES_PLAYING] ||
+			 [playerState isEqualToString:KEY_ITUNES_PAUSED] ||
+			 [playerState isEqualToString:KEY_ITUNES_STOPPED])) {
+
+			NSMutableDictionary *info = [NSMutableDictionary dictionary];
+			[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
+
+			for (NSString *key in [NSArray arrayWithObjects:KEY_ITUNES_NAME, KEY_ITUNES_ARTIST, KEY_ITUNES_ALBUM, nil]) {
+				id value = [payload objectForKey:key];
+				if ([value isKindOfClass:[NSString class]] && [value length]) [info setObject:value forKey:key];
+			}
+
+			id trackID = [payload objectForKey:@"Track ID"];
+			NSString *webURL = [trackID isKindOfClass:[NSString class]] ? AISpotifyWebURLFromURI(trackID) : nil;
+			if (webURL) [info setObject:webURL forKey:KEY_ITUNES_STORE_URL];
+
+			/* Playing, but not a word about what: the same defence the query path has, for
+			 * the same reason — the filter would send the half-empty track line the guard
+			 * in -setiTunesCurrentInfo:fromPlayer: exists to prevent.
+			 */
+			if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
+				[self setiTunesCurrentInfo:info fromPlayer:SPOTIFY_BUNDLE_IDENTIFIER];
+			}
 		}
 	}
-
-	[pool release];
 }
 
 /*!
@@ -1654,43 +1631,41 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  */
 - (void)swinsianUpdate:(NSNotification *)aNotification
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		NSString *notificationName = [aNotification name];
+		NSString *playerState = KEY_ITUNES_STOPPED;
 
-	NSString *notificationName = [aNotification name];
-	NSString *playerState = KEY_ITUNES_STOPPED;
+		if ([notificationName isEqualToString:SWINSIAN_NOTIFICATION_PLAYING]) playerState = KEY_ITUNES_PLAYING;
+		else if ([notificationName isEqualToString:SWINSIAN_NOTIFICATION_PAUSED]) playerState = KEY_ITUNES_PAUSED;
 
-	if ([notificationName isEqualToString:SWINSIAN_NOTIFICATION_PLAYING]) playerState = KEY_ITUNES_PLAYING;
-	else if ([notificationName isEqualToString:SWINSIAN_NOTIFICATION_PAUSED]) playerState = KEY_ITUNES_PAUSED;
+		NSMutableDictionary *info = [NSMutableDictionary dictionary];
+		[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
 
-	NSMutableDictionary *info = [NSMutableDictionary dictionary];
-	[info setObject:playerState forKey:KEY_ITUNES_PLAYER_STATE];
+		if (![playerState isEqualToString:KEY_ITUNES_STOPPED]) {
+			NSDictionary *payload = [aNotification userInfo];
+			NSDictionary *oursByTheirs = [NSDictionary dictionaryWithObjectsAndKeys:
+										  KEY_ITUNES_NAME, @"title",
+										  KEY_ITUNES_ARTIST, @"artist",
+										  KEY_ITUNES_ALBUM, @"album",
+										  KEY_ITUNES_GENRE, @"genre",
+										  KEY_ITUNES_COMPOSER, @"composer",
+										  nil];
 
-	if (![playerState isEqualToString:KEY_ITUNES_STOPPED]) {
-		NSDictionary *payload = [aNotification userInfo];
-		NSDictionary *oursByTheirs = [NSDictionary dictionaryWithObjectsAndKeys:
-									  KEY_ITUNES_NAME, @"title",
-									  KEY_ITUNES_ARTIST, @"artist",
-									  KEY_ITUNES_ALBUM, @"album",
-									  KEY_ITUNES_GENRE, @"genre",
-									  KEY_ITUNES_COMPOSER, @"composer",
-									  nil];
-
-		for (NSString *theirKey in oursByTheirs) {
-			id value = [payload objectForKey:theirKey];
-			if ([value isKindOfClass:[NSString class]] && [value length]) {
-				[info setObject:value forKey:[oursByTheirs objectForKey:theirKey]];
+			for (NSString *theirKey in oursByTheirs) {
+				id value = [payload objectForKey:theirKey];
+				if ([value isKindOfClass:[NSString class]] && [value length]) {
+					[info setObject:value forKey:[oursByTheirs objectForKey:theirKey]];
+				}
 			}
 		}
-	}
 
-	/* Playing, but not a word about what: the same defence the other two sources have,
-	 * for the same half-empty track line.
-	 */
-	if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
-		[self setiTunesCurrentInfo:info fromPlayer:SWINSIAN_BUNDLE_IDENTIFIER];
+		/* Playing, but not a word about what: the same defence the other two sources have,
+		 * for the same half-empty track line.
+		 */
+		if (![playerState isEqualToString:KEY_ITUNES_PLAYING] || [info objectForKey:KEY_ITUNES_NAME]) {
+			[self setiTunesCurrentInfo:info fromPlayer:SWINSIAN_BUNDLE_IDENTIFIER];
+		}
 	}
-
-	[pool release];
 }
 
 /*!
@@ -1751,15 +1726,13 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	[button setToolbarItem:iTunesItem];
 	
 	//Add menu to toolbar item (for text mode)
-	NSMenuItem	*mItem = [[[NSMenuItem alloc] init] autorelease];
+	NSMenuItem	*mItem = [[NSMenuItem alloc] init];
 	[mItem setSubmenu:menu];
 	[mItem setTitle:STRING_TRIGGERS_TOOLBAR];
 	[iTunesItem setMenuFormRepresentation:mItem];
-	
+
 	//give it to adium to use
 	[adium.toolbarController registerToolbarItem:iTunesItem forToolbarType:@"TextEntry"];
-	[button release];
-	[menu release];
 }
 
 /*!
@@ -1794,9 +1767,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 										 action:@selector(bringMusicToFront)
 							  representedObject:nil
 										   kind:ENABLED_IF_MUSIC_INSTALLED]];
-
-
-	[submenuRoot release];
 }
 
 /*!
@@ -1812,7 +1782,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	[item setRepresentedObject:representedObject];
 	[item setEnabled:YES];
 
-	return [item autorelease];
+	return item;
 }
 
 #pragma mark -
@@ -1826,7 +1796,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
  */
 - (NSString *)musicSearchURLForTerms:(NSString *)terms
 {
-	NSMutableCharacterSet	*allowed = [[[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy] autorelease];
+	NSMutableCharacterSet	*allowed = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
 
 	terms = [terms stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	if (![terms length]) return nil;
@@ -1884,7 +1854,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 																	  url, AIEscapedForHTML(urlLabel)]]];
 
 	[self insertAttributedStringIntoMessageEntryView:attributedLink];
-	[attributedLink release];
 }
 
 /*!
@@ -1993,8 +1962,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 		if (filteredString && [filteredString length] > 0) {
 			[self insertAttributedStringIntoMessageEntryView:filteredString];
 		}
-		
-		[attributedResult release];
 	}
 }
 
@@ -2011,7 +1978,6 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 		NSAttributedString *attributedResult = [[NSAttributedString alloc] initWithString:inString 
 																			   attributes:[(NSTextView *)responder typingAttributes]];
 		[self insertAttributedStringIntoMessageEntryView:attributedResult];
-		[attributedResult release];
 	}
 }
 
@@ -2089,7 +2055,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 								representedObject:TRIGGER_STORE_URL
 											 kind:AUTODISABLES]];
 	
-	return [triggersMenu autorelease];
+	return triggersMenu;
 }
 
 /*!
@@ -2104,12 +2070,10 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	
 	[menuItem setSubmenu:menuOfTriggers];
 	[adium.menuController addMenuItem:menuItem toLocation:LOC_Edit_Additions];
-	[menuItem release];
-	
+
 	menuItem = [[NSMenuItem alloc] initWithTitle:STRING_TRIGGERS_MENU target:self action:NULL keyEquivalent:@""];
-	[menuItem setSubmenu:[[menuOfTriggers copy] autorelease]];
+	[menuItem setSubmenu:[menuOfTriggers copy]];
 	[adium.menuController addContextualMenuItem:menuItem toLocation:Context_TextView_Edit];
-	[menuItem release];
 }
 
 /*!
@@ -2183,17 +2147,7 @@ static NSDictionary *AIQueryPlayer(NSString *bundleIdentifier, NSString *scriptS
 	 * quitting. -uninstallPlugin has normally dropped this already; a plugin torn down
 	 * without it still gets here.
 	 */
-	[playerQueryQueue release]; playerQueryQueue = nil;
-	[playersRefusingAutomation release]; playersRefusingAutomation = nil;
-	[infoSourceBundleIdentifier release]; infoSourceBundleIdentifier = nil;
-
-	//Release class variables
-	if (iTunesCurrentInfo) [iTunesCurrentInfo release];
-	if (lastRawInfo) [lastRawInfo release];
-	if (substitutionDict) [substitutionDict release];
-	if (phraseSubstitutionDict) [phraseSubstitutionDict release];
-
-	[super dealloc];
+	playerQueryQueue = nil;
 }
 
 @end

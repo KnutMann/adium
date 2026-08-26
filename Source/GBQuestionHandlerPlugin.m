@@ -42,14 +42,6 @@ typedef enum
 	return self;
 }
 
-- (void)dealloc
-{
-	[questionQueue release];
-	[errorQueue release];
-	[currentAlert release];
-	[super dealloc];
-}
-
 - (void)installPlugin
 {
     //Install our observers
@@ -76,7 +68,6 @@ typedef enum
 			[errorQueue addObject:infoCopy];
 			break;
 	}
-	[infoCopy release];
 	if(currentAlert == nil)
 		[self displayNextAlert];
 }
@@ -105,7 +96,9 @@ typedef enum
 		ret = NO;
 	else
 	{
-		// Note: Explicitly not released here: ESTextAndButtonsWindowController will autorelease itself in -windowWillClose:
+		/* Clearing this drops the last reference, which is safe only because
+		 * ESTextAndButtonsWindowController's -windowWillClose: defers its own death past the
+		 * -close we are still inside. */
 		[currentAlert close];
 		currentAlert = nil;
 	}

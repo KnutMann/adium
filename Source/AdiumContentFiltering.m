@@ -58,11 +58,6 @@
 	for (NSDictionary *trackingDict in [delayedFilteringDict allValues]) {
 		[[trackingDict objectForKey:@"Watchdog"] invalidate];
 	}
-
-	[stringsRequiringPolling release];
-	[delayedFilteringDict release];
-
-	[super dealloc];
 }
 
 /*!
@@ -78,7 +73,7 @@
 {
 	if (![delayedFilteringDict count]) return;
 
-	NSDictionary	*pending = [[delayedFilteringDict copy] autorelease];
+	NSDictionary	*pending = [delayedFilteringDict copy];
 
 	NSLog(@"AdiumContentFiltering: giving up on %lu delayed filtration(s) still in flight at shutdown",
 		  (unsigned long)[pending count]);
@@ -276,7 +271,7 @@
 	
 	//If we're passed previouslyPerformedFilters, use them as a starting point for performedFilters
 	if (filtersToSkip) {
-		performedFilters = [[filtersToSkip mutableCopy] autorelease];
+		performedFilters = [filtersToSkip mutableCopy];
 	} else {
 		performedFilters = [NSMutableArray array];
 	}
@@ -483,13 +478,10 @@
  */
 - (void)delayedFilterTimedOut:(NSTimer *)timer
 {
-	NSNumber			*uniqueIDNumber = [[[timer userInfo] retain] autorelease];
+	NSNumber			*uniqueIDNumber = [timer userInfo];
 	NSMutableDictionary	*infoDict = [delayedFilteringDict objectForKey:uniqueIDNumber];
 
 	if (!infoDict) return;
-
-	//We are about to drop it from the dictionary, which is the only thing holding it
-	[[infoDict retain] autorelease];
 
 	NSLog(@"AdiumContentFiltering: delayed filtration %@ did not finish within %0.0f seconds; delivering the string as it stands",
 		  uniqueIDNumber, (double)DELAYED_FILTER_TIMEOUT);
@@ -592,10 +584,8 @@
 		/* Out of the dictionary before we invoke, for the same reason the watchdog does it in that
 		 * order: the invocation runs into the sending pipeline, which can come back around into this
 		 * class -- and if anything down there raises, an entry left behind here would never be
-		 * cleaned up again, unwatched and unfinishable. The dictionary is its only owner, so hold it
-		 * over the call.
+		 * cleaned up again, unwatched and unfinishable.
 		 */
-		[[infoDict retain] autorelease];
 		[delayedFilteringDict removeObjectForKey:uniqueIDNumber];
 
 		//Send the filtered attributedString back via the invocation

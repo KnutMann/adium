@@ -43,8 +43,16 @@
 
 @implementation AINewBookmarkWindowController
 
+/* The ownership home of every shown window. -showOnWindow: consumes the caller's reference (see
+ * the header), so what keeps a shown controller alive is its place in this set; both exits leave
+ * it. The same design as ESTextAndButtonsWindowController. */
+static NSMutableSet *openNewBookmarkWindows = nil;
+
 - (void)showOnWindow:(NSWindow *)parentWindow
 {
+	if (!openNewBookmarkWindows) openNewBookmarkWindows = [[NSMutableSet alloc] init];
+	[openNewBookmarkWindows addObject:self];
+
 	if(parentWindow) {
 	   [parentWindow beginSheet:self.window
 	   	   completionHandler:^(NSModalResponse returnCode) {
@@ -59,19 +67,11 @@
 - (id)initWithChat:(AIChat *)inChat notifyingTarget:(id)inTarget
 {
 	if ((self = [super initWithWindowNibName:ADD_BOOKMARK_NIB])) {
-		chat = [inChat retain];
-		target = [inTarget retain];
+		chat = inChat;
+		target = inTarget;
 	}
-	
-	return self;
-}
 
-- (void)dealloc
-{
-	[chat release];
-	[target release];
-	
-	[super dealloc];
+	return self;
 }
 
 /*!
@@ -80,15 +80,27 @@
 -(void)sheetDidEnd:(NSWindow*)sheet returnCode:(NSInteger)returnCode contextInfo:(void*)contextInfo
 {
 	[sheet orderOut:nil];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openNewBookmarkWindows removeObject:self];
 }
 
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openNewBookmarkWindows removeObject:self];
 }
 
 /*!

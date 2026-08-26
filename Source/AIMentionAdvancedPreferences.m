@@ -82,7 +82,7 @@ static NSString *AIMentionInvalidTermMessage(void)
  */
 static NSTextField *AIMentionPopoverLabel(NSString *text)
 {
-	NSTextField	*label = [[[NSTextField alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, POPOVER_TEXT_WIDTH, 0.0f)] autorelease];
+	NSTextField	*label = [[NSTextField alloc] initWithFrame:NSMakeRect(0.0f, 0.0f, POPOVER_TEXT_WIDTH, 0.0f)];
 
 	[label setFont:[NSFont systemFontOfSize:TERM_FONT_SIZE]];
 	[label setTextColor:[NSColor labelColor]];
@@ -109,7 +109,7 @@ static NSTextField *AIMentionPopoverLabel(NSString *text)
  */
 static NSImageView *AIMentionWarningView(void)
 {
-	NSImageView	*warningView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+	NSImageView	*warningView = [[NSImageView alloc] initWithFrame:NSZeroRect];
 	NSImage		*image = nil;
 
 	if (@available(macOS 11.0, *)) {
@@ -140,7 +140,7 @@ static NSImageView *AIMentionWarningView(void)
  */
 static NSTextField *AIMentionTermField(void)
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[field setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[field setFont:[NSFont systemFontOfSize:TERM_FONT_SIZE]];
@@ -163,7 +163,7 @@ static NSTextField *AIMentionTermField(void)
  */
 static NSTextField *AIMentionEmptyLabel(void)
 {
-	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[label setFont:[NSFont systemFontOfSize:TERM_FONT_SIZE]];
@@ -245,14 +245,14 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
  * with it next, throwing it away last.
  *
  * All subviews are owned by the view hierarchy; the properties below are non-retaining references
- * for convenience (manual retain/release). Private to this pane on purpose.
+ * for convenience. Private to this pane on purpose.
  */
 @interface AIMentionCellView : NSTableCellView
 @property (nonatomic, assign) NSButton			*removeButton;
 @property (nonatomic, assign) NSSwitch			*enabledSwitch;
 @property (nonatomic, assign) NSImageView		*warningView;
 @property (nonatomic, assign) NSBox				*separator;
-@property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
+@property (nonatomic, strong) NSLayoutConstraint *separatorTrailingConstraint;
 @end
 
 @implementation AIMentionCellView
@@ -295,7 +295,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 		[self setWarningView:warningView];
 
 		//Hairline separating this row from the next one
-		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
 		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[separator setBoxType:NSBoxSeparator];
 		[self addSubview:separator];
@@ -339,12 +339,6 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[_separatorTrailingConstraint release];
-	[super dealloc];
 }
 
 @end
@@ -413,7 +407,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 		AISettingsFormView	*form = [self buildSettingsForm];
 
 		settingsForm = form;
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -438,7 +432,6 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -456,7 +449,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:MENTION_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:MENTION_PANE_INITIAL_WIDTH];
 
 	/* The nib's explanation, with the one thing it never said: this happens in group chats and
 	 * nowhere else. The terms below and one's own name alike are looked for there only -
@@ -506,7 +499,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 																		   MENTION_PANE_INITIAL_WIDTH,
 																		   MENTION_ROW_HEIGHT + 2.0f * INSET_STYLE_PADDING)];
 
-	tableView = [[[AIMentionTableView alloc] initWithFrame:[scrollView bounds]] autorelease];
+	tableView = [[AIMentionTableView alloc] initWithFrame:[scrollView bounds]];
 
 	[tableView setDataSource:self];
 	[tableView setDelegate:self];
@@ -532,7 +525,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 		[tableView setStyle:NSTableViewStyleInset];
 	}
 
-	NSTableColumn *termColumn = [[[NSTableColumn alloc] initWithIdentifier:MENTION_COLUMN_IDENTIFIER] autorelease];
+	NSTableColumn *termColumn = [[NSTableColumn alloc] initWithIdentifier:MENTION_COLUMN_IDENTIFIER];
 	[termColumn setResizingMask:NSTableColumnAutoresizingMask];
 	//View based: the column never edits anything itself, its cell view's text field does
 	[termColumn setEditable:NO];
@@ -627,17 +620,14 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
  */
 - (void)viewDidLoad
 {
-	[mentionTerms release];
 	mentionTerms = [[NSMutableArray alloc] initWithArray:[adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS
 																							   group:PREF_GROUP_GENERAL]];
 
 	NSArray		*savedEnabled = [adium.preferenceController preferenceForKey:PREF_KEY_MENTIONS_ENABLED
 																	   group:PREF_GROUP_GENERAL];
 
-	[mentionEnabled release];
 	mentionEnabled = [[NSMutableArray alloc] initWithCapacity:[mentionTerms count]];
 
-	[mentionSwitchedOffByPane release];
 	mentionSwitchedOffByPane = [[NSMutableArray alloc] initWithCapacity:[mentionTerms count]];
 
 	BOOL		switchedAnythingOff = NO;
@@ -706,11 +696,11 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 
 	settingsForm = nil;
 	tableView = nil;
-	[scrollView release]; scrollView = nil;
+	scrollView = nil;
 
-	[mentionTerms release]; mentionTerms = nil;
-	[mentionEnabled release]; mentionEnabled = nil;
-	[mentionSwitchedOffByPane release]; mentionSwitchedOffByPane = nil;
+	mentionTerms = nil;
+	mentionEnabled = nil;
+	mentionSwitchedOffByPane = nil;
 
 	[super viewWillClose];
 }
@@ -922,10 +912,10 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 			NSImageView			*warningView = [(AIMentionCellView *)cellView warningView];
 			NSTextField			*label = AIMentionPopoverLabel(AIMentionInvalidTermMessage());
 			NSSize				 labelSize = [label frame].size;
-			NSView				*contentView = [[[NSView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																						 labelSize.width + 2.0f * POPOVER_PADDING,
-																						 labelSize.height + 2.0f * POPOVER_PADDING)] autorelease];
-			NSViewController	*content = [[[NSViewController alloc] init] autorelease];
+			NSView				*contentView = [[NSView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																						labelSize.width + 2.0f * POPOVER_PADDING,
+																						labelSize.height + 2.0f * POPOVER_PADDING)];
+			NSViewController	*content = [[NSViewController alloc] init];
 
 			[label setFrameOrigin:NSMakePoint(POPOVER_PADDING, POPOVER_PADDING)];
 			[contentView addSubview:label];
@@ -964,7 +954,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 	if (!invalidTermPopover) return;
 
 	[invalidTermPopover performClose:nil];
-	[invalidTermPopover release]; invalidTermPopover = nil;
+	invalidTermPopover = nil;
 }
 
 /*!
@@ -1025,7 +1015,7 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 	if (row < 0 || row >= (NSInteger)[mentionTerms count]) return;
 
 	NSText		*fieldEditor = [[notification userInfo] objectForKey:@"NSFieldEditor"];
-	NSString	*term = [[(fieldEditor ? [fieldEditor string] : [termField stringValue]) copy] autorelease];
+	NSString	*term = [(fieldEditor ? [fieldEditor string] : [termField stringValue]) copy];
 
 	[mentionTerms replaceObjectAtIndex:row withObject:(term ?: @"")];
 	[self saveTerms];
@@ -1313,9 +1303,9 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 		if (![emptyView isKindOfClass:[NSTableCellView class]] || [emptyView isKindOfClass:[AIMentionCellView class]]) {
 			NSTextField	*label = AIMentionEmptyLabel();
 
-			emptyView = [[[NSTableCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																		   NSWidth([inTableView bounds]),
-																		   MENTION_ROW_HEIGHT)] autorelease];
+			emptyView = [[NSTableCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																		  NSWidth([inTableView bounds]),
+																		  MENTION_ROW_HEIGHT)];
 			[emptyView setIdentifier:MENTION_EMPTY_IDENTIFIER];
 			[emptyView addSubview:label];
 			[emptyView setTextField:label];
@@ -1336,9 +1326,9 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 																					   owner:self];
 
 	if (![cellView isKindOfClass:[AIMentionCellView class]]) {
-		cellView = [[[AIMentionCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																		NSWidth([inTableView bounds]),
-																		MENTION_ROW_HEIGHT)] autorelease];
+		cellView = [[AIMentionCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																	   NSWidth([inTableView bounds]),
+																	   MENTION_ROW_HEIGHT)];
 	}
 
 	[self configureCellView:cellView forRow:row];

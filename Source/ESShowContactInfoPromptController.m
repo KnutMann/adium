@@ -55,7 +55,11 @@ static ESShowContactInfoPromptController *sharedShowInfoPromptInstance = nil;
  */
 + (void)destroySharedInstance 
 {
-	[sharedShowInfoPromptInstance autorelease]; sharedShowInfoPromptInstance = nil;
+	/* The static is this controller's only owner, and this runs from inside -[NSWindow close],
+	 * which goes on addressing it afterwards. Stay alive until the pool drains.
+	 */
+	if (sharedShowInfoPromptInstance) CFAutorelease(CFBridgingRetain(sharedShowInfoPromptInstance));
+	sharedShowInfoPromptInstance = nil;
 }
 
 /*!

@@ -34,17 +34,18 @@
 
 + (id)promptForNewPersonSearchOnWindow:(NSWindow *)parentWindow initialService:(AIService *)inService
 {
-	OWABSearchWindowController *controller = [[[self alloc] initWithParentWindow:parentWindow
-																  initialService:inService] autorelease];
+	OWABSearchWindowController *controller = [[self alloc] initWithParentWindow:parentWindow
+																initialService:inService];
 
-	//Alive for as long as the sheet runs; the completion below lets go again
-	[controller retain];
+	//Alive for as long as the sheet runs; the completion below lets go again, and only at the end of the run loop turn,
+	//because the sheet's teardown is still talking to the window after the handler has returned
+	CFRetain((__bridge CFTypeRef)controller);
 
 	[parentWindow beginSheet:[controller window] completionHandler:^(NSModalResponse returnCode) {
 		if (returnCode == NSModalResponseOK && controller->delegate)
 			[controller->delegate absearchWindowControllerDidSelectPerson:controller];
 
-		[controller autorelease];
+		CFAutorelease((__bridge CFTypeRef)controller);
 	}];
 
 	return controller;
@@ -54,12 +55,12 @@
 {
 	if ((self = [super initWithWindowNibName:@""])) {
 		carryingWindow = parentWindow;
-		service = [inService retain];
+		service = inService;
 
-		people = [[[AIAddressBookController allPeople] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+		people = [[AIAddressBookController allPeople] sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
 			return [[self nameForPerson:a] localizedCaseInsensitiveCompare:[self nameForPerson:b]];
-		}] retain];
-		shown = [people retain];
+		}];
+		shown = people;
 
 		[self buildWindow];
 	}
@@ -70,13 +71,6 @@
 {
 	[table setDelegate:nil];
 	[table setDataSource:nil];
-
-	[service release];
-	[person release];
-	[people release];
-	[shown release];
-
-	[super dealloc];
 }
 
 //The designated initializer of NSWindowController loads nothing when the window is set by hand
@@ -106,24 +100,24 @@
 
 - (void)buildWindow
 {
-	NSWindow *panel = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, SEARCH_WINDOW_WIDTH, SEARCH_WINDOW_HEIGHT)
-												   styleMask:NSWindowStyleMaskTitled
-													 backing:NSBackingStoreBuffered
-													   defer:NO] autorelease];
+	NSWindow *panel = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, SEARCH_WINDOW_WIDTH, SEARCH_WINDOW_HEIGHT)
+												  styleMask:NSWindowStyleMaskTitled
+													backing:NSBackingStoreBuffered
+													  defer:NO];
 	[panel setTitle:AILocalizedString(@"Choose Address Book Card", nil)];
 	NSView *content = [panel contentView];
 
 	CGFloat innerWidth = SEARCH_WINDOW_WIDTH - 2 * MARGIN;
 
-	filterField = [[[NSSearchField alloc] initWithFrame:NSMakeRect(MARGIN, SEARCH_WINDOW_HEIGHT - MARGIN - 26.0, innerWidth, 26.0)] autorelease];
+	filterField = [[NSSearchField alloc] initWithFrame:NSMakeRect(MARGIN, SEARCH_WINDOW_HEIGHT - MARGIN - 26.0, innerWidth, 26.0)];
 	[filterField setTarget:self];
 	[filterField setAction:@selector(filterChanged:)];
 	[[filterField cell] setSendsSearchStringImmediately:YES];
 	[filterField setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
 	[content addSubview:filterField];
 
-	table = [[[NSTableView alloc] initWithFrame:NSZeroRect] autorelease];
-	NSTableColumn *column = [[[NSTableColumn alloc] initWithIdentifier:@"name"] autorelease];
+	table = [[NSTableView alloc] initWithFrame:NSZeroRect];
+	NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"name"];
 	[table addTableColumn:column];
 	[table setHeaderView:nil];
 	[table setDataSource:self];
@@ -132,16 +126,16 @@
 	[table setDoubleAction:@selector(select:)];
 	[table setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
 
-	NSScrollView *scroll = [[[NSScrollView alloc] initWithFrame:NSMakeRect(MARGIN, MARGIN + BUTTON_AREA_HEIGHT,
-																		   innerWidth,
-																		   SEARCH_WINDOW_HEIGHT - (2 * MARGIN) - BUTTON_AREA_HEIGHT - 34.0)] autorelease];
+	NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSMakeRect(MARGIN, MARGIN + BUTTON_AREA_HEIGHT,
+																		  innerWidth,
+																		  SEARCH_WINDOW_HEIGHT - (2 * MARGIN) - BUTTON_AREA_HEIGHT - 34.0)];
 	[scroll setDocumentView:table];
 	[scroll setHasVerticalScroller:YES];
 	[scroll setBorderType:NSBezelBorder];
 	[scroll setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	[content addSubview:scroll];
 
-	selectButton = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	selectButton = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[selectButton setBezelStyle:NSBezelStyleRounded];
 	[selectButton setTitle:AILocalizedString(@"Select", nil)];
 	[selectButton setKeyEquivalent:@"\r"];
@@ -149,7 +143,7 @@
 	[selectButton setAction:@selector(select:)];
 	[selectButton sizeToFit];
 
-	cancelButton = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+	cancelButton = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[cancelButton setBezelStyle:NSBezelStyleRounded];
 	[cancelButton setTitle:AILocalizedString(@"Cancel", nil)];
 	[cancelButton setKeyEquivalent:@"\033"];
@@ -180,10 +174,8 @@
 {
 	NSString *text = [[filterField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-	[shown release];
-
 	if (![text length]) {
-		shown = [people retain];
+		shown = people;
 	} else {
 		NSMutableArray *matching = [NSMutableArray array];
 
@@ -192,7 +184,7 @@
 													options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound)
 				[matching addObject:aPerson];
 		}
-		shown = [matching retain];
+		shown = matching;
 	}
 
 	[table reloadData];
@@ -211,8 +203,7 @@
 	NSInteger row = [table selectedRow];
 	if (row < 0 || row >= (NSInteger)[shown count]) return;
 
-	[person release];
-	person = [[shown objectAtIndex:row] retain];
+	person = [shown objectAtIndex:row];
 
 	[[[self window] sheetParent] endSheet:[self window] returnCode:NSModalResponseOK];
 }

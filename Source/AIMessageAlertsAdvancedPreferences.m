@@ -62,7 +62,7 @@
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -85,7 +85,6 @@
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -104,7 +103,7 @@
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:MESSAGE_ALERTS_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:MESSAGE_ALERTS_PANE_INITIAL_WIDTH];
 
 	//The menu bar icon
 	[form addSectionHeader:AILocalizedString(@"Status Menu Item", nil)];

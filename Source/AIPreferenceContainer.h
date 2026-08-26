@@ -26,9 +26,10 @@
 	NSMutableDictionary	*defaults;
 	NSInteger			preferenceChangeDelays;
 	
-	NSMutableDictionary **myGlobalPrefs;
+	/* Aimed at one of the shared stores in AIPreferenceContainer.m, which own what they hold */
+	NSMutableDictionary * __strong *myGlobalPrefs;
 	NSInteger			*myUsersOfGlobalPrefs;
-	NSTimer				**myTimerForSavingGlobalPrefs;
+	NSTimer				* __strong *myTimerForSavingGlobalPrefs;
 	NSString			*globalPrefsName;
 }
 

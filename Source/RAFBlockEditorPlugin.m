@@ -24,12 +24,12 @@
 	/* The privacy settings live in the preferences now, reached like every other
 	 * pane; the standalone "Privacy Settings" menu item that opened them is gone.
 	 * The pane registers itself with the preference controller as it initializes. */
-	privacyPreferences = (AIPrivacyPreferences *)[[AIPrivacyPreferences preferencePane] retain];
+	privacyPreferences = (AIPrivacyPreferences *)[AIPrivacyPreferences preferencePane];
 }
 
 - (void)uninstallPlugin
 {
-	[privacyPreferences release];
+	privacyPreferences = nil;
 }
 
 @end

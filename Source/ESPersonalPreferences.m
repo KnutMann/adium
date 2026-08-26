@@ -144,7 +144,7 @@ static NSString *AIRowLabel(NSString *label)
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -172,7 +172,6 @@ static NSString *AIRowLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -186,15 +185,15 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:PERSONAL_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:PERSONAL_PANE_INITIAL_WIDTH];
 
 	/* The picture. Nothing frames it: the form clips it to a circle and draws the
 	 * disc it stands on, so the grey bezel the old well carried would only be a
 	 * square corner cut off by that circle. The picker still hands back an icon at
 	 * the full stored size; only the portrait it is shown as is smaller. */
-	imageView_userIcon = [[[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																					   USER_ICON_WELL_SIDE,
-																					   USER_ICON_WELL_SIDE)] autorelease];
+	imageView_userIcon = [[AIImageViewWithImagePicker alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																					  USER_ICON_WELL_SIDE,
+																					  USER_ICON_WELL_SIDE)];
 	[imageView_userIcon setDelegate:self];
 	[imageView_userIcon setImageFrameStyle:NSImageFrameNone];
 	[imageView_userIcon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -257,9 +256,9 @@ static NSString *AIRowLabel(NSString *label)
 	//Profile: a labelled row with the editor as its control, no longer a card of its own
 	NSString	*profileLabel = AIRowLabel(AILocalizedString(@"Profile:",nil));
 
-	scrollView_profile = [[[AIAutoScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
-																			 PERSONAL_PANE_INITIAL_WIDTH,
-																			 PROFILE_HEIGHT)] autorelease];
+	scrollView_profile = [[AIAutoScrollView alloc] initWithFrame:NSMakeRect(0.0, 0.0,
+																			PERSONAL_PANE_INITIAL_WIDTH,
+																			PROFILE_HEIGHT)];
 	/* No border of its own: the card around it is the frame now, and a bezel
 	 * inside a card would be a second one. The background stays the text
 	 * background, so the writing area is still visibly an editable field.
@@ -278,7 +277,7 @@ static NSString *AIRowLabel(NSString *label)
 	 * this one has no horizontal scroller to scroll with.
 	 */
 	NSRect					 profileFrame = [[scrollView_profile contentView] bounds];
-	AIMessageEntryTextView	*profileView = [[[AIMessageEntryTextView alloc] initWithFrame:profileFrame] autorelease];
+	AIMessageEntryTextView	*profileView = [[AIMessageEntryTextView alloc] initWithFrame:profileFrame];
 
 	/* Everything the nib set on the text view. It is an AIMessageEntryTextView for
 	 * the editing it brings - rich text, undo, the ruler, image pasting - but not
@@ -398,8 +397,8 @@ static NSString *AIRowLabel(NSString *label)
 	//The switch's action points at us too; the button's points at the picture, which the form owns
 	[switch_useIcon setTarget:nil];
 
-	/* The form owns every control; these are the pane's non-owning references to
-	 * them and must not outlive the view.
+	/* The form holds every control as well; the pane's own references to them go
+	 * here, with the view they belong to.
 	 */
 	textField_displayName = nil;
 	scrollView_profile = nil;
@@ -640,7 +639,7 @@ static NSString *AIRowLabel(NSString *label)
 
 	configuringProfile = YES;
 	[[textView_profile textStorage] setAttributedString:(profile ? profile :
-														 [[[NSAttributedString alloc] initWithString:@""] autorelease])];
+														 [[NSAttributedString alloc] initWithString:@""])];
 	configuringProfile = NO;
 }
 
@@ -736,7 +735,7 @@ static NSString *AIRowLabel(NSString *label)
 														   group:GROUP_ACCOUNT_STATUS];
 	}
 
-	[imageView_userIcon setImage:(imageData ? [[[NSImage alloc] initWithData:imageData] autorelease] : nil)];
+	[imageView_userIcon setImage:(imageData ? [[NSImage alloc] initWithData:imageData] : nil)];
 	[imageView_userIcon setMaxSize:NSMakeSize(USER_ICON_SIDE, USER_ICON_SIDE)];
 	[imageView_userIcon setShouldUpdateRecentRepository:YES];
 }

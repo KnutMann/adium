@@ -34,20 +34,16 @@ static SGHotKeyCenter *sharedCenter = nil;
 	}	
 }
 
-- (void)dealloc {
-  [hotKeys release];
-  [super dealloc];
-}
-
-+ (SGHotKeyCenter *)sharedCenter {    
++ (SGHotKeyCenter *)sharedCenter {
   return sharedCenter;
 }
 
 + (id) allocWithZone:(NSZone *)zone {
   //Usually already set by +initialize.
   if (sharedCenter) {
-    //The caller expects to receive a new object, so implicitly retain it to balance out the caller's eventual release message.
-    return [sharedCenter retain];
+    //The caller expects to receive a new object, and gets the shared one retained: +allocWithZone: is of the alloc family,
+    //so what is returned from here is handed back +1, balancing out the caller's eventual release.
+    return sharedCenter;
   } else {
     //When not already set, +initialize is our caller–it's creating the shared instance. Let this go through.
     return [super allocWithZone:zone];

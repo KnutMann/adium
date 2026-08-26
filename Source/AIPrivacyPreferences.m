@@ -93,7 +93,7 @@
 
 		popUp_privacyLevel = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 		{
-			NSMenu *levels = [[[NSMenu alloc] init] autorelease];
+			NSMenu *levels = [[NSMenu alloc] init];
 			struct { NSString *title; AIPrivacyOption option; } entries[] = {
 				{ AILocalizedString(@"Allow anyone", nil),								AIPrivacyOptionAllowAll },
 				{ AILocalizedString(@"Allow only contacts on my contact list", nil),	AIPrivacyOptionAllowContactList },
@@ -107,7 +107,6 @@
 				[item setTarget:self];
 				[item setTag:entries[i].option];
 				[levels addItem:item];
-				[item release];
 			}
 			[popUp_privacyLevel setMenu:levels];
 			[popUp_privacyLevel sizeToFit];
@@ -116,12 +115,12 @@
 		//The list, cell based like every other table here
 		table = [[NSTableView alloc] initWithFrame:NSZeroRect];
 		{
-			NSTableColumn *iconColumn = [[[NSTableColumn alloc] initWithIdentifier:@"icon"] autorelease];
-			[iconColumn setDataCell:[[[NSImageCell alloc] init] autorelease]];
+			NSTableColumn *iconColumn = [[NSTableColumn alloc] initWithIdentifier:@"icon"];
+			[iconColumn setDataCell:[[NSImageCell alloc] init]];
 			[iconColumn setWidth:(PRIVACY_TABLE_ROW_HEIGHT - 4.0f)];
 			[table addTableColumn:iconColumn];
 
-			NSTableColumn *contactColumn = [[[NSTableColumn alloc] initWithIdentifier:@"contact"] autorelease];
+			NSTableColumn *contactColumn = [[NSTableColumn alloc] initWithIdentifier:@"contact"];
 			[[contactColumn headerCell] setStringValue:AILocalizedString(@"Contact","Title of column containing user IDs of blocked contacts")];
 			[table addTableColumn:contactColumn];
 
@@ -149,16 +148,16 @@
 		[scrollView_table setHorizontalScrollElasticity:NSScrollElasticityNone];
 		[table setAutoresizingMask:NSViewWidthSizable];
 
-		button_add = [[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Add","Add button for Privacy Settings")
-													   target:self
-													   action:@selector(addContact:)] retain];
-		button_remove = [[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Remove", nil)
-														  target:self
-														  action:@selector(removeSelection:)] retain];
+		button_add = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Add","Add button for Privacy Settings")
+													  target:self
+													  action:@selector(addContact:)];
+		button_remove = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Remove", nil)
+														 target:self
+														 action:@selector(removeSelection:)];
 
-		accountMenu = [[AIAccountMenu accountMenuWithDelegate:self
-												  submenuType:AIAccountNoSubmenu
-											   showTitleVerbs:NO] retain];
+		accountMenu = [AIAccountMenu accountMenuWithDelegate:self
+												 submenuType:AIAccountNoSubmenu
+											  showTitleVerbs:NO];
 
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(privacySettingsChangedExternally:)
@@ -282,22 +281,21 @@
 	[table setDataSource:nil];
 	[table setDelegate:nil];
 
-	[accountMenu release]; accountMenu = nil;
-	[listContents release]; listContents = nil;
-	[hostedViews release]; hostedViews = nil;
-	[popUp_accounts release]; popUp_accounts = nil;
-	[popUp_privacyLevel release]; popUp_privacyLevel = nil;
-	[table release]; table = nil;
-	[scrollView_table release]; scrollView_table = nil;
-	[accountColumn release]; accountColumn = nil;
-	[button_add release]; button_add = nil;
-	[button_remove release]; button_remove = nil;
+	accountMenu = nil;
+	listContents = nil;
+	hostedViews = nil;
+	popUp_accounts = nil;
+	popUp_privacyLevel = nil;
+	table = nil;
+	scrollView_table = nil;
+	accountColumn = nil;
+	button_add = nil;
+	button_remove = nil;
 }
 
 - (void)dealloc
 {
 	[self tearDown];
-	[super dealloc];
 }
 
 #pragma mark Accounts
@@ -332,10 +330,10 @@
 - (NSMenuItem *)accountMenuSpecialMenuItem:(AIAccountMenu *)inAccountMenu
 {
 	if ([[self includedAccounts] count] > 1) {
-		return [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"All", nil)
-										   target:self
-										   action:@selector(selectedAllAccountItem:)
-									keyEquivalent:@""] autorelease];
+		return [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"All", nil)
+										  target:self
+										  action:@selector(selectedAllAccountItem:)
+								   keyEquivalent:@""];
 	}
 	return nil;
 }
@@ -349,7 +347,6 @@
 	for (NSMenuItem *menuItem in menuItems)
 		[menu addItem:menuItem];
 	[popUp_accounts setMenu:menu];
-	[menu release];
 
 	if (previouslySelectedAccount)
 		[popUp_accounts selectItemWithRepresentedObject:previouslySelectedAccount];
@@ -406,7 +403,6 @@
 													   keyEquivalent:@""];
 			[menuItem setTag:AIPrivacyOptionCustom];
 			[[popUp_privacyLevel menu] addItem:menuItem];
-			[menuItem release];
 
 			[popUp_privacyLevel selectItemWithTag:privacyOption];
 		}
@@ -497,7 +493,7 @@
  */
 - (IBAction)addContact:(id)sender
 {
-	AICompletingTextField *field = [[[AICompletingTextField alloc] initWithFrame:NSMakeRect(0, 0, 260, 24)] autorelease];
+	AICompletingTextField *field = [[AICompletingTextField alloc] initWithFrame:NSMakeRect(0, 0, 260, 24)];
 	AIAccount *account = [self selectedAccount];
 
 	[field setCompletingStrings:nil];
@@ -510,7 +506,7 @@
 		}
 	}
 
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:(([self selectedPrivacyOption] == AIPrivacyOptionAllowUsers) ?
 						   AILocalizedString(@"Allow a contact", "Title of the prompt for a contact to add to the allow list") :
 						   AILocalizedString(@"Block a contact", "Title of the prompt for a contact to add to the block list"))];

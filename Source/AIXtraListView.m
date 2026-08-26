@@ -50,7 +50,7 @@
  */
 static NSTextField *AIXtraListLabel(CGFloat fontSize, NSColor *textColor)
 {
-	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[label setEditable:NO];
@@ -105,8 +105,8 @@ static CGFloat AIXtraRowHeight(void)
  * @brief View based row of an Xtra list
  *
  * Layout: [icon] [name / detail line] [switch] [⊖], with a hairline along the bottom edge. All
- * subviews are owned by the view hierarchy; the properties below are non-retaining references for
- * convenience (manual retain/release).
+ * subviews are owned by the view hierarchy, which is why the properties below are non-retaining:
+ * every one of them is set only after the row already holds the view it names.
  *
  * Private to the list on purpose: no pane ever builds one, and nothing outside this file has any
  * business knowing what an Xtra row is made of.
@@ -153,7 +153,7 @@ static CGFloat AIXtraRowHeight(void)
 		[self setIdentifier:XTRA_CELL_IDENTIFIER];
 
 		//The Xtra's icon
-		NSImageView *iconView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSImageView *iconView = [[NSImageView alloc] initWithFrame:NSZeroRect];
 		[iconView setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[iconView setImageScaling:NSImageScaleProportionallyUpOrDown];
 		[iconView setEditable:NO];
@@ -163,7 +163,7 @@ static CGFloat AIXtraRowHeight(void)
 		[self setImageView:iconView];
 
 		//Container holding the two lines of text, vertically centered as a block
-		NSView *textContainer = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSView *textContainer = [[NSView alloc] initWithFrame:NSZeroRect];
 		[textContainer setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self addSubview:textContainer];
 
@@ -178,7 +178,7 @@ static CGFloat AIXtraRowHeight(void)
 		[self setDetailField:detailField];
 
 		//Enabled switch
-		NSSwitch *enabledSwitch = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+		NSSwitch *enabledSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
 		//System Settings uses the small switch, not the regular one
 		[enabledSwitch setControlSize:NSControlSizeSmall];
 		[enabledSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -199,7 +199,7 @@ static CGFloat AIXtraRowHeight(void)
 		[self setRemoveButton:removeButton];
 
 		//Hairline separating this row from the next one
-		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
 		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[separator setBoxType:NSBoxSeparator];
 		[self addSubview:separator];
@@ -253,12 +253,6 @@ static CGFloat AIXtraRowHeight(void)
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[_separatorTrailingConstraint release];
-	[super dealloc];
 }
 
 /*!
@@ -374,7 +368,7 @@ static CGFloat AIXtraRowHeight(void)
 		xtras = [inXtras copy];
 		/* Only an Xtra of this user's own folder can be moved into a "(Disabled)" folder beside it;
 		 * everything else lives somewhere we may well not be allowed to write. */
-		userDirectory = [[[adium applicationSupportDirectory] stringByStandardizingPath] retain];
+		userDirectory = [[adium applicationSupportDirectory] stringByStandardizingPath];
 		cachedLayoutWidth = 0.0f;
 		columnMargin = INSET_STYLE_MARGIN;
 		contextMenuRow = -1;
@@ -390,11 +384,6 @@ static CGFloat AIXtraRowHeight(void)
 - (void)dealloc
 {
 	[self tearDown];
-
-	[xtras release];
-	[userDirectory release];
-
-	[super dealloc];
 }
 
 /*!
@@ -402,7 +391,7 @@ static CGFloat AIXtraRowHeight(void)
  */
 - (void)configureList
 {
-	tableView = [[[NSTableView alloc] initWithFrame:[self bounds]] autorelease];
+	tableView = [[NSTableView alloc] initWithFrame:[self bounds]];
 
 	[tableView setDataSource:self];
 	[tableView setDelegate:self];
@@ -430,7 +419,7 @@ static CGFloat AIXtraRowHeight(void)
 		[tableView setStyle:NSTableViewStyleInset];
 	}
 
-	NSTableColumn *xtraColumn = [[[NSTableColumn alloc] initWithIdentifier:XTRA_COLUMN_IDENTIFIER] autorelease];
+	NSTableColumn *xtraColumn = [[NSTableColumn alloc] initWithIdentifier:XTRA_COLUMN_IDENTIFIER];
 	[xtraColumn setResizingMask:NSTableColumnAutoresizingMask];
 	[xtraColumn setEditable:NO];
 	[xtraColumn setMinWidth:80.0f];
@@ -478,7 +467,6 @@ static CGFloat AIXtraRowHeight(void)
 {
 	if (xtras == inXtras) return;
 
-	[xtras release];
 	xtras = [inXtras copy];
 
 	contextMenuRow = -1;
@@ -1069,9 +1057,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 																						owner:self];
 
 	if (![cellView isKindOfClass:[AIXtraListCellView class]]) {
-		cellView = [[[AIXtraListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																		 NSWidth([inTableView bounds]),
-																		 AIXtraRowHeight())] autorelease];
+		cellView = [[AIXtraListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																		NSWidth([inTableView bounds]),
+																		AIXtraRowHeight())];
 	}
 
 	[self configureCellView:cellView forRow:row];
@@ -1105,24 +1093,24 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	if (!xtraInfo) return nil;
 
-	NSMenu		*menu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*menu = [[NSMenu alloc] init];
 	NSMenuItem	*menuItem;
 
 	//Items are enabled by hand: "Disable" is not offered for an Xtra we may not move
 	[menu setAutoenablesItems:NO];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show in Finder", nil)
-										   action:@selector(revealXtraFromMenu:)
-									keyEquivalent:@""] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show in Finder", nil)
+										  action:@selector(revealXtraFromMenu:)
+								   keyEquivalent:@""];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
 	[menu addItem:menuItem];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:([xtraInfo enabled] ?
-												   AILocalizedString(@"Disable", nil) :
-												   AILocalizedString(@"Enable", nil))
-										   action:@selector(toggleXtraEnabledFromMenu:)
-									keyEquivalent:@""] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:([xtraInfo enabled] ?
+												  AILocalizedString(@"Disable", nil) :
+												  AILocalizedString(@"Enable", nil))
+										  action:@selector(toggleXtraEnabledFromMenu:)
+								   keyEquivalent:@""];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
 	[menuItem setEnabled:[self canToggleXtra:xtraInfo]];
@@ -1130,9 +1118,9 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	[menu addItem:[NSMenuItem separatorItem]];
 
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Move to Trash", "Context menu item which deletes an installed Xtra")
-										   action:@selector(deleteXtraFromMenu:)
-									keyEquivalent:@""] autorelease];
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Move to Trash", "Context menu item which deletes an installed Xtra")
+										  action:@selector(deleteXtraFromMenu:)
+								   keyEquivalent:@""];
 	[menuItem setTarget:self];
 	[menuItem setRepresentedObject:xtraInfo];
 	[menuItem setEnabled:[self canDeleteXtra:xtraInfo]];

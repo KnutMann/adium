@@ -23,6 +23,16 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/AIStringFormatter.h>
 
+/* The temporary account windows currently on screen.
+ *
+ * -show is declared ns_consumes_self. Under manual counting that was decoration; counted
+ * automatically it means what it says: the caller's one reference is handed over at the call and
+ * given up when the method returns, so with nothing else holding on, the controller would die as
+ * its window appeared. This set is that something else, and it takes the place of a scheme in which
+ * the object was its own owner and handed itself to the pool on the way out.
+ */
+static NSMutableSet *openTemporaryIRCAccountWindows = nil;
+
 /* This implementation vanished once: the commit that removed the old sheet-based
  * account editor deleted the whole file body because -displayAdvanced: opened that
  * editor, and with it went init, show and okay — every irc:// link without a matching
@@ -40,28 +50,20 @@
 - (id)initWithChannel:(NSString *)newChannel server:(NSString *)newServer port:(NSInteger)newPort andPassword:(NSString *)newPassword
 {
 	if((self = [super initWithWindowNibName:@"TemporaryIRCAccountWindow"])) {
-		channel = [newChannel retain];
-		server = [newServer retain];
+		channel = newChannel;
+		server = newServer;
 		port = (newPort == -1 ? 6667 : newPort);
-		password = [newPassword retain];
+		password = newPassword;
 	}
 	return self;
 }
 
 - (void)show
 {
+	if (!openTemporaryIRCAccountWindows) openTemporaryIRCAccountWindows = [[NSMutableSet alloc] init];
+	[openTemporaryIRCAccountWindows addObject:self];
+
 	[[self window] makeKeyAndOrderFront:nil];
-}
-
-- (void)dealloc
-{
-	[channel release];
-	[server release];
-	[password release];
-
-	[account release];
-
-	[super dealloc];
 }
 
 - (NSString *)adiumFrameAutosaveName
@@ -106,7 +108,11 @@
 {
 	[super windowWillClose:sender];
 
-	[self autorelease];
+	/* Out of the set, but not before this turn of the run loop ends: we are called from inside
+	 * -[NSWindow close], which goes on addressing this object afterwards.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openTemporaryIRCAccountWindows removeObject:self];
 }
 
 - (NSString *)UID
@@ -132,8 +138,8 @@
 - (AIAccount *)account
 {
 	if (!account) {
-		account = [[adium.accountController createAccountWithService:[adium.accountController firstServiceWithServiceID:@"IRC"]
-																 UID:self.UID] retain];
+		account = [adium.accountController createAccountWithService:[adium.accountController firstServiceWithServiceID:@"IRC"]
+																UID:self.UID];
 
 		[account setPreference:server forKey:KEY_CONNECT_HOST group:GROUP_ACCOUNT_STATUS];
 	}

@@ -30,17 +30,14 @@
 	self = [super init];
 	if (self != nil) {
 		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
+		/* The loader hands every top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the strong ivars hold their own, so the stray ones
+		 * are given up here, once. */
+		if (inspectorContentView) CFRelease((__bridge CFTypeRef)inspectorContentView);
+		if (alertsController) CFRelease((__bridge CFTypeRef)alertsController);
 		//Other init goes here.
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[inspectorContentView release];
-	[alertsController release];
-	
-	[super dealloc];
 }
 
 -(NSString *)nibName

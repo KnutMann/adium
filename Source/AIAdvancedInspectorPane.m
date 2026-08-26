@@ -58,6 +58,10 @@
 	self = [super init];
 	if (self != nil) {
 		[NSBundle ai_loadNibNamed:[self nibName] owner:self];
+		/* The loader hands every top level object one reference that belongs to nobody
+		 * (see AIBundleAdditions.h); the strong ivar holds its own, so the stray one is
+		 * given up here, once. */
+		if (inspectorContentView) CFRelease((__bridge CFTypeRef)inspectorContentView);
 
 		//The xib is monolingual (English) and uses plain controls; set all visible strings from code
 		[label_account setStringValue:AILocalizedString(@"Account:", "Label beside the account popup in the Advanced tab of the Get Info window")];
@@ -83,9 +87,9 @@
 									   name:Account_ListChanged
 									 object:nil];
 
-		accountMenu = [[AIAccountMenu accountMenuWithDelegate:self
-												  submenuType:AIAccountNoSubmenu
-											   showTitleVerbs:NO] retain];
+		accountMenu = [AIAccountMenu accountMenuWithDelegate:self
+												 submenuType:AIAccountNoSubmenu
+											  showTitleVerbs:NO];
 	}
 	
 	return self;
@@ -93,14 +97,7 @@
 
 - (void) dealloc
 {
-	[accountMenu release]; accountMenu = nil;
-	[contactMenu release]; contactMenu = nil;
-    [displayedObject release]; displayedObject = nil;
-	[displayedGroups release]; displayedGroups = nil;
-	[inspectorContentView release]; inspectorContentView = nil;
-
-	[[NSNotificationCenter defaultCenter] removeObserver:self]; 
-	[super dealloc];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 
@@ -140,8 +137,7 @@
 	AIListBookmark	*bookmark = [self localGroupingBookmark];
 	NSSet			*groups = (bookmark ? bookmark.groups : currentSelectedContact.remoteGroups);
 
-	[displayedGroups release];
-	displayedGroups = [[groups.allObjects sortedArrayUsingSelector:@selector(compare:)] retain];
+	displayedGroups = [groups.allObjects sortedArrayUsingSelector:@selector(compare:)];
 
 	[tableView_groups reloadData];
 	[self configureControlDimming];
@@ -161,14 +157,10 @@
 -(void)updateForListObject:(AIListObject *)inObject
 {
 	if (displayedObject != inObject) {
-		[displayedObject release];
-		
 		displayedObject = ([inObject isKindOfClass:[AIListContact class]] ?
 						   [(AIListContact *)inObject parentContact] :
 						   inObject);
-		
-		[displayedObject retain];
-		
+
 		//Rebuild the account and contacts lists
 		[self reloadPopup];
 	}
@@ -245,8 +237,8 @@
 	
 	if (!contactMenu) {
 		// Instantiate here so we don't end up creating a massive menu for all contacts.
-		contactMenu = [[AIContactMenu contactMenuWithDelegate:self
-										  forContactsInObject:displayedObject] retain];	
+		contactMenu = [AIContactMenu contactMenuWithDelegate:self
+										 forContactsInObject:displayedObject];
 	} else {
 		[contactMenu setContainingObject:displayedObject];
 	}

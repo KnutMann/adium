@@ -37,13 +37,11 @@ static NSMutableDictionary	*keyGenerationControllerDict = nil;
 			[controller showWindow:nil];
 			[[controller window] makeKeyAndOrderFront:nil];
 			
-			[keyGenerationControllerDict setObject:controller
-											forKey:inIdentifier];
-			
 			/* Contrary to most other NSWindowControllers, this doesn't need it to release itself
 			 * in -windowWillClose, as it's in keyGenerationControllerDict.
 			 */
-			[controller autorelease];
+			[keyGenerationControllerDict setObject:controller
+											forKey:inIdentifier];
 		}
 	}
 }
@@ -67,7 +65,7 @@ static NSMutableDictionary	*keyGenerationControllerDict = nil;
 - (id)initWithWindowNibName:(NSString *)windowNibName forIdentifier:(NSString *)inIdentifier
 {
 	if ((self = [super initWithWindowNibName:windowNibName])) {
-		identifier = [inIdentifier retain];
+		identifier = inIdentifier;
 	}
 
 	return self;
@@ -88,15 +86,6 @@ static NSMutableDictionary	*keyGenerationControllerDict = nil;
 	[progressIndicator startAnimation:nil];
 	[textField_message setStringValue:
 		[NSString stringWithFormat:AILocalizedString(@"Generating private encryption key for %@",nil),identifier]];
-}
-
-/*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[identifier release];
-	[super dealloc];
 }
 
 + (void)mainThreadFinishedGeneratingForIdentifier:(NSString *)inIdentifier

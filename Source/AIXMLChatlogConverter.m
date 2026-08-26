@@ -53,8 +53,7 @@
         [xmlCharacterSet addCharactersInRange:NSMakeRange(0xE000, 0xFFFD - 0xE000)];        
         [xmlCharacterSet addCharactersInRange:NSMakeRange(0x10000, 0x10FFFF - 0x10000)];        
         // Then create and retain an inverted set, which will thus contain all invalid XML characters.        
-        invalidXMLCharacterSet = [[xmlCharacterSet invertedSet] retain];        
-        [xmlCharacterSet release];        
+        invalidXMLCharacterSet = [xmlCharacterSet invertedSet];
     }
     
     // Are there any invalid characters in this string?    
@@ -109,7 +108,7 @@
         result = [converter readData:xmlData withOptions:options retrying:NO];
     } @catch (NSException *e) {
         NSLog(@"Error \"%@\" parsing log file at %@.", e, filePath);
-        return [[[NSAttributedString alloc] initWithString:AILocalizedString(@"Sorry, there was an error parsing this transcript. It may be corrupt.", nil)] autorelease];
+        return [[NSAttributedString alloc] initWithString:AILocalizedString(@"Sorry, there was an error parsing this transcript. It may be corrupt.", nil)];
     }
     return result;
 }
@@ -148,18 +147,10 @@
 	return self;
 }
 
-- (void)dealloc
-{
-	[statusLookup release];
-	[htmlDecoder release];
-	[formatter release];
-	[super dealloc];
-}
-
 - (NSAttributedString *)readData:(NSData *)xmlData withOptions:(NSDictionary *)options retrying:(BOOL)reentrancyFlag
 {
     if (!xmlData) {
-        return [[[NSAttributedString alloc] initWithString:@""] autorelease];
+        return [[NSAttributedString alloc] initWithString:@""];
     }
     AINameFormat nameFormat;
     if ([[adium.preferenceController preferenceForKey:KEY_WEBKIT_USE_NAME_FORMAT
@@ -169,13 +160,24 @@
     } else {
         nameFormat = AIDefaultName;
     }
-    NSMutableAttributedString *output = [[[NSMutableAttributedString alloc] init] autorelease];
-    
+    NSMutableAttributedString *output = [[NSMutableAttributedString alloc] init];
+
     NSError *err=nil;
-	NSXMLDocument *xmlDoc = [[[NSXMLDocument alloc] initWithData:xmlData
-                                                         options:NSXMLNodePreserveCDATA
-                                                           error:&err] autorelease];    
-	
+	/* The elements read below are the document's own, so it has to outlive the last of
+	 * them rather than its own last mention. Everything the jumps to ohno skip past is
+	 * declared here as well: a jump may not carry a counted reference over the point
+	 * where it would have been set up.
+	 */
+	NS_VALID_UNTIL_END_OF_SCOPE NSXMLDocument *xmlDoc;
+	NSXMLElement *chatElement;
+	NSDictionary *chatAttributes;
+	NSString *mySN, *service, *myDisplayName = nil;
+	NSArray *elements;
+
+	xmlDoc = [[NSXMLDocument alloc] initWithData:xmlData
+										 options:NSXMLNodePreserveCDATA
+										   error:&err];
+
 	if (!xmlDoc)
 	{    
         goto ohno;
@@ -184,23 +186,21 @@
     BOOL showTimestamps = [[options objectForKey:@"showTimestamps"] boolValue];
 	BOOL showEmoticons = [[options objectForKey:@"showEmoticons"] boolValue];
     
-    NSXMLElement *chatElement = [[xmlDoc nodesForXPath:@"//chat" error:&err] lastObject];
-    
-    NSDictionary *chatAttributes = [chatElement AIAttributesAsDictionary];
-    NSString *mySN = [[chatAttributes objectForKey:@"account"] stringValue];
-    NSString *service = [[chatAttributes objectForKey:@"service"] stringValue];
-    
-    NSString *myDisplayName = nil;
-    
+    chatElement = [[xmlDoc nodesForXPath:@"//chat" error:&err] lastObject];
+
+    chatAttributes = [chatElement AIAttributesAsDictionary];
+    mySN = [[chatAttributes objectForKey:@"account"] stringValue];
+    service = [[chatAttributes objectForKey:@"service"] stringValue];
+
     for (AIAccount *account in adium.accountController.accounts) {
         if ([[account.UID compactedString] isEqualToString:[mySN compactedString]] &&
             [account.service.serviceID isEqualToString:service]) {
-            myDisplayName = [[account.displayName retain] autorelease];
+            myDisplayName = account.displayName;
             break;
         }
-    }    
-        
-    NSArray *elements = [xmlDoc nodesForXPath:@"//message | //status" error:&err];
+    }
+
+    elements = [xmlDoc nodesForXPath:@"//message | //status" error:&err];
     if (!elements) {
         goto ohno;
     }
@@ -269,7 +269,7 @@
             __block NSString *timestampStr = nil;
 			
 			[NSDateFormatter withLocalizedDateFormatterShowingSeconds:YES showingAMorPM:YES perform:^(NSDateFormatter *dateFormatter){
-				timestampStr = [[dateFormatter stringFromDate:date] retain];
+				timestampStr = [dateFormatter stringFromDate:date];
 			}];
 			
 				
@@ -278,8 +278,7 @@
                                                                     (sentMessage ? @"send" : @"receive"),
                                                                     (showTimestamps ? [NSString stringWithFormat:@"<span class=\"timestamp\">%@</span> ", timestampStr] : @""),
                                                                     shownSender, (autoResponse ? AILocalizedString(@" (Autoreply)", nil) : @"")]]];
-			[timestampStr release];
-			
+
             NSAttributedString *attributedMessage = [htmlDecoder decodeHTML:messageXML];
             if (showEmoticons) {
                 attributedMessage = [adium.contentController filterAttributedString:attributedMessage
@@ -314,7 +313,7 @@
 			__block NSString *timestampStr = nil;
 			
 			[NSDateFormatter withLocalizedDateFormatterShowingSeconds:YES showingAMorPM:YES perform:^(NSDateFormatter *dateFormatter){
-				timestampStr = [[dateFormatter stringFromDate:date] retain];
+				timestampStr = [dateFormatter stringFromDate:date];
 			}];
 			
             if([displayMessage length]) {
@@ -322,7 +321,6 @@
                                                                         displayMessage,
                                                                         timestampStr]]];
             }
-			[timestampStr release];
         }
     }
     

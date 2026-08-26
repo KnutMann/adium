@@ -35,10 +35,24 @@
 
 @end
 
+/*!
+ * @brief Where an open editor lives
+ *
+ * -showOnWindow: is declared ns_consumes_self. Under manual counting that was decoration; counted
+ * automatically, the reference the caller allocated is given up when the method returns, so with
+ * nothing else holding on, the editor would die as its sheet appeared. This set is that something
+ * else, and it takes the place of a scheme in which the object was its own owner and handed itself
+ * to the pool on the way out.
+ */
+static NSMutableSet *openListThemeEditors = nil;
+
 @implementation AIListThemeWindowController
 
 - (void)showOnWindow:(id)parentWindow
 {
+	if (!openListThemeEditors) openListThemeEditors = [[NSMutableSet alloc] init];
+	[openListThemeEditors addObject:self];
+
 	if (parentWindow) {
 		[parentWindow beginSheet:self.window
 			   completionHandler:^(NSModalResponse returnCode) {
@@ -55,16 +69,10 @@
 		NSParameterAssert(inTarget && [inTarget respondsToSelector:@selector(listThemeEditorWillCloseWithChanges:forThemeNamed:)]);
 	
 		target = inTarget;
-		themeName = [inName retain];
+		themeName = inName;
 	}
-	
-	return self;
-}
 
-- (void)dealloc
-{
-	[themeName release];
-    [super dealloc];
+	return self;
 }
 
 #pragma mark Window Methods
@@ -127,15 +135,27 @@
 	
 	// No longer allow alpha in our color pickers
 	[[NSColorPanel sharedColorPanel] setShowsAlpha:NO];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openListThemeEditors removeObject:self];
 }
 
 - (void)windowWillClose:(id)sender
 {
 	[super windowWillClose:sender];
-	
-	[self autorelease];
+
+	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
+	 * inside AppKit's own close, which goes on addressing this object afterwards. It also makes the
+	 * two harmless should they ever both run, which the pair of autoreleases here would not have
+	 * been, since that would have given the same reference back twice.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
+	[openListThemeEditors removeObject:self];
 }
 
 // Cancel
@@ -596,34 +616,34 @@
 
 - (NSMenu *)displayImageStyleMenu
 {
-	NSMenu		*displayImageStyleMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*displayImageStyleMenu = [[NSMenu alloc] init];
     NSMenuItem	*menuItem;
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Normal",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Normal",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:AINormalBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Tile",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Tile",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:AITileBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Fill",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Fill",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:AIFillProportionatelyBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Stretch to fill",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Stretch to fill",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 	[menuItem setTag:AIFillStretchBackground];
 	[displayImageStyleMenu addItem:menuItem];
 	

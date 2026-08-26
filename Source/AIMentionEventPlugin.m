@@ -47,7 +47,7 @@
 	[adium.preferenceController registerPreferenceObserver:self 
 												  forGroup:PREF_GROUP_GENERAL];
 
-	advancedPreferences = [(AIMentionAdvancedPreferences *)[AIMentionAdvancedPreferences preferencePaneForPlugin:self] retain];
+	advancedPreferences = (AIMentionAdvancedPreferences *)[AIMentionAdvancedPreferences preferencePaneForPlugin:self];
 }
 
 - (void)uninstallPlugin
@@ -115,7 +115,7 @@
 	static NSPredicate *regexFormPredicate = nil;
 
 	if (!regexFormPredicate)
-		regexFormPredicate = [[NSPredicate predicateWithFormat:@"SELF MATCHES '/.*/'"] retain];
+		regexFormPredicate = [NSPredicate predicateWithFormat:@"SELF MATCHES '/.*/'"];
 
 	return [regexFormPredicate evaluateWithObject:term];
 }

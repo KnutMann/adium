@@ -48,7 +48,10 @@
 		NSUInteger idx = [toLocation insertionIndex];
 		[invocation setArgument:&idx atIndex:3];
 		[invocation invokeWithTarget:target];
-		id r;
+		/* The invocation writes the raw return value into this slot without an ownership
+		 * transfer, and it writes nothing at all when the method it called returns void,
+		 * so the slot must neither own what lands in it nor start out as a stray pointer. */
+		__unsafe_unretained id r = nil;
 		[invocation getReturnValue:&r];
 		return r;
 	}

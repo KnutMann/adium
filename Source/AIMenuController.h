@@ -20,7 +20,7 @@
 
 @interface AIMenuController : NSObject <AIMenuController, NSMenuDelegate> {
 @private
-    IBOutlet	NSObject<AIAdium>	*sharedAdium;
+    IBOutlet	__unsafe_unretained NSObject<AIAdium>	*sharedAdium;	//The nib's other end of us; never retained
 	NSInteger					menuItemProcessingDelays;
 	
     IBOutlet	id		nilMenuItem;

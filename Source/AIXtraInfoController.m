@@ -36,9 +36,6 @@
 	}
 	if (!readMeString) readMeString = [[NSAttributedString alloc] init];
 	[[readMeView textStorage] setAttributedString:readMeString];
-	
-	//Clean up
-	[readMeString release];
 }
 
 - (NSView *) previewView

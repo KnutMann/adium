@@ -19,7 +19,8 @@
 @class ESFileTransferProgressRow, ESFileTransfer, AIRolloverButton;
 
 @interface ESFileTransferProgressView : NSView <AIRolloverButtonDelegate> {
-	IBOutlet ESFileTransferProgressRow	*owner;
+	/* The nib's owner: the row holds this view, so the view only points back at it */
+	IBOutlet __unsafe_unretained ESFileTransferProgressRow	*owner;
 	
 	IBOutlet NSBox					*box_primaryControls;
 	IBOutlet NSTextField			*textField_fileName;

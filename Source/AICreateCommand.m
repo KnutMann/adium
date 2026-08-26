@@ -52,7 +52,12 @@
 		NSDictionary *resolvedKeyDictionary = [self evaluatedArguments];
 		[invocation setArgument:&resolvedKeyDictionary atIndex:2];
 		[invocation invokeWithTarget:target];
-		[invocation getReturnValue:&r];
+
+		/* -getReturnValue: copies bytes into whatever it is pointed at, with no notion of
+		 * ownership, so it may not be pointed at a counted variable. */
+		__unsafe_unretained id returnedObject = nil;
+		[invocation getReturnValue:&returnedObject];
+		r = returnedObject;
 	}
 	else
 		r = [super performDefaultImplementation];

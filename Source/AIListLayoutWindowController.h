@@ -70,6 +70,7 @@
 	IBOutlet		NSTabView			*tabView_preferences;
 	
 	// Advanced contact bubble options
+	//This one is added to and removed from the tab view; the outlet is what keeps it alive meanwhile
 	IBOutlet		NSTabViewItem		*tabViewItem_advancedContactBubbles;
 	IBOutlet		NSButton			*checkBox_outlineBubbles;
 	IBOutlet		NSButton			*checkBox_drawContactBubblesWithGraadient;
@@ -78,7 +79,8 @@
 	IBOutlet		NSTextField			*textField_outlineWidthIndicator;
 	IBOutlet		NSTextField			*label_gradientNote;
 	
-	id				target;
+	//The pane that asked for the editor and is told when it closes; never owned
+	__unsafe_unretained id				target;
 	NSString		*layoutName;	
 }
 

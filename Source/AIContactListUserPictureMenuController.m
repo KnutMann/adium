@@ -54,7 +54,9 @@
 
 + (void)popUpMenuForImagePicker:(AIContactListImagePicker *)picker
 {
-	[[[self alloc] initWithNibName:@"ContactListChangeUserPictureMenu" imagePicker:picker] autorelease];
+	/* Nobody owns this controller, and it is still the menu's delegate and the target of its items
+	 * when the menu is done being built. The pool is its home until the current event is over. */
+	CFAutorelease(CFBridgingRetain([[self alloc] initWithNibName:@"ContactListChangeUserPictureMenu" imagePicker:picker]));
 }
 
 /*!
@@ -63,8 +65,8 @@
 - (id)initWithNibName:(NSString *)nibName imagePicker:(AIContactListImagePicker *)picker
 {
 	/* AI_topLevelObjects was handed to the nib loader as the array to fill and was never created,
-	 * so it stayed nil, nothing was collected into it, and the release below and the one in -dealloc
-	 * both did nothing. The objects have been leaking since this was written.
+	 * so it stayed nil, nothing was collected into it, and the two releases it was given both did
+	 * nothing. The objects have been leaking since this was written.
 	 *
 	 * They still are, and on purpose. +popUpMenuForImagePicker: throws this controller into the
 	 * autorelease pool the moment it has built the menu, so the menu outlives it by a wide margin.
@@ -118,8 +120,6 @@
 			for (NSUInteger i = [pictures count]; i < 10; ++i) {
 				[pictures addObject:emptyPicture];
 			}
-			
-			[emptyPicture release];
 		}
 		
 		[self setImages:pictures];
@@ -128,15 +128,6 @@
 	}
 	
 	return self;
-}
-
-- (void)dealloc
-{
-	[imagePicker release];
-	[images release];
-	[AI_topLevelObjects release];
-	
-	[super dealloc];
 }
 
 #pragma mark -
@@ -171,7 +162,7 @@
         }
     }
     
-    return [array autorelease];
+    return array;
 }
 
 #pragma mark - NSMenu delegate
@@ -189,7 +180,6 @@
 								   keyEquivalent:@""];
 	
 	[aMenu addItem:menuItem];
-	[menuItem release];
 	
 	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Clear Recent Pictures", nil)
 										  target:self
@@ -197,7 +187,6 @@
 								   keyEquivalent:@""];
 	
 	[aMenu addItem:menuItem];
-	[menuItem release];
 }
 
 #pragma mark - AIImageCollectionView delegate

@@ -14,8 +14,8 @@
   NSString *identifier;
   NSString *name;
   
-  SGKeyCombo *keyCombo;    
-  id target;
+  SGKeyCombo *keyCombo;
+  __unsafe_unretained id target;	//A hot key is never an owner of what it fires at
   SEL action;
   
   EventHotKeyID hotKeyID;

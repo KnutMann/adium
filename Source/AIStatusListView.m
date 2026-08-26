@@ -45,7 +45,7 @@
  */
 static NSTextField *AIStatusListLabel(void)
 {
-	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+	NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 
 	[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[label setEditable:NO];
@@ -96,16 +96,15 @@ static CGFloat AIStatusRowHeight(void)
  * @brief View based row of a status list
  *
  * Layout: [icon] [title] [switch] [⊖], with a hairline along the bottom edge. All subviews are owned
- * by the view hierarchy; the properties below are non-retaining references for convenience (manual
- * retain/release).
+ * by the view hierarchy; the properties below are non-retaining references for convenience.
  *
  * Private to the list on purpose: no pane ever builds one, and nothing outside this file has any
  * business knowing what a status row is made of.
  */
 @interface AIStatusListCellView : NSTableCellView
-@property (nonatomic, assign) NSSwitch			*shownSwitch;
-@property (nonatomic, assign) NSButton			*removeButton;
-@property (nonatomic, assign) NSBox				*separator;
+@property (nonatomic, unsafe_unretained) NSSwitch			*shownSwitch;
+@property (nonatomic, unsafe_unretained) NSButton			*removeButton;
+@property (nonatomic, unsafe_unretained) NSBox				*separator;
 @property (nonatomic, retain) NSLayoutConstraint *separatorTrailingConstraint;
 @end
 
@@ -129,7 +128,7 @@ static CGFloat AIStatusRowHeight(void)
 		[self setIdentifier:STATUS_CELL_IDENTIFIER];
 
 		//The status icon
-		NSImageView *iconView = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+		NSImageView *iconView = [[NSImageView alloc] initWithFrame:NSZeroRect];
 		[iconView setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[iconView setImageScaling:NSImageScaleProportionallyUpOrDown];
 		[iconView setEditable:NO];
@@ -144,7 +143,7 @@ static CGFloat AIStatusRowHeight(void)
 		[self setTextField:titleField];
 
 		//"Show this status in the status menus"
-		NSSwitch *shownSwitch = [[[NSSwitch alloc] initWithFrame:NSZeroRect] autorelease];
+		NSSwitch *shownSwitch = [[NSSwitch alloc] initWithFrame:NSZeroRect];
 		//System Settings uses the small switch, not the regular one
 		[shownSwitch setControlSize:NSControlSizeSmall];
 		[shownSwitch setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -165,7 +164,7 @@ static CGFloat AIStatusRowHeight(void)
 		[self setRemoveButton:removeButton];
 
 		//Hairline separating this row from the next one
-		NSBox *separator = [[[NSBox alloc] initWithFrame:NSZeroRect] autorelease];
+		NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
 		[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[separator setBoxType:NSBoxSeparator];
 		[self addSubview:separator];
@@ -208,12 +207,6 @@ static CGFloat AIStatusRowHeight(void)
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[_separatorTrailingConstraint release];
-	[super dealloc];
 }
 
 /*!
@@ -260,10 +253,6 @@ static CGFloat AIStatusRowHeight(void)
 - (void)dealloc
 {
 	[self tearDown];
-
-	[statusItems release];
-
-	[super dealloc];
 }
 
 /*!
@@ -271,7 +260,7 @@ static CGFloat AIStatusRowHeight(void)
  */
 - (void)configureList
 {
-	tableView = [[[NSTableView alloc] initWithFrame:[self bounds]] autorelease];
+	tableView = [[NSTableView alloc] initWithFrame:[self bounds]];
 
 	[tableView setDataSource:self];
 	[tableView setDelegate:self];
@@ -305,7 +294,7 @@ static CGFloat AIStatusRowHeight(void)
 
 	[tableView setAccessibilityLabel:AILocalizedString(@"Statuses", nil)];
 
-	NSTableColumn *statusColumn = [[[NSTableColumn alloc] initWithIdentifier:STATUS_COLUMN_IDENTIFIER] autorelease];
+	NSTableColumn *statusColumn = [[NSTableColumn alloc] initWithIdentifier:STATUS_COLUMN_IDENTIFIER];
 	[statusColumn setResizingMask:NSTableColumnAutoresizingMask];
 	[statusColumn setEditable:NO];
 	[statusColumn setMinWidth:80.0f];
@@ -353,7 +342,6 @@ static CGFloat AIStatusRowHeight(void)
 {
 	if (statusItems == inStatusItems) return;
 
-	[statusItems release];
 	statusItems = [inStatusItems copy];
 
 	[tableView reloadData];
@@ -708,9 +696,9 @@ static CGFloat AIStatusRowHeight(void)
 																							  owner:self];
 
 	if (![cellView isKindOfClass:[AIStatusListCellView class]]) {
-		cellView = [[[AIStatusListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
-																		   NSWidth([inTableView bounds]),
-																		   AIStatusRowHeight())] autorelease];
+		cellView = [[AIStatusListCellView alloc] initWithFrame:NSMakeRect(0.0f, 0.0f,
+																		  NSWidth([inTableView bounds]),
+																		  AIStatusRowHeight())];
 	}
 
 	[self configureCellView:cellView forRow:row];

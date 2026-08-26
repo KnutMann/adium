@@ -44,7 +44,7 @@
 {
 	NSString	*activeEventSet;
 	
-	builtInEventPresets = [[NSDictionary dictionaryNamed:@"BuiltInEventPresets" forClass:[self class]] retain];
+	builtInEventPresets = [NSDictionary dictionaryNamed:@"BuiltInEventPresets" forClass:[self class]];
 	storedEventPresets = [[adium.preferenceController preferenceForKey:KEY_STORED_EVENT_PRESETS
 																   group:PREF_GROUP_EVENT_PRESETS] mutableCopy];
 	if (!storedEventPresets) storedEventPresets = [[NSMutableDictionary alloc] init];
@@ -65,7 +65,7 @@
 										  forGroup:PREF_GROUP_SOUNDS];
 
 	//Install our preference view
-    preferences = [(ESGlobalEventsPreferences *)[ESGlobalEventsPreferences preferencePaneForPlugin:self] retain];
+    preferences = (ESGlobalEventsPreferences *)[ESGlobalEventsPreferences preferencePaneForPlugin:self];
 
 	//Wait for Adium to finish launching before we perform further actions
 	[[NSNotificationCenter defaultCenter] addObserver:self
@@ -149,8 +149,12 @@
 	
 	//
 	for (dictionary in setArray) {
+		/* The selector names an alert generator; the dictionary it answers is not +1. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 		[adium.contactAlertsController addGlobalAlert:[self performSelector:selector
 																   withObject:dictionary]];
+#pragma clang diagnostic pop
 	}
 }
 

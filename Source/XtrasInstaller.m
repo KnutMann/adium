@@ -51,16 +51,6 @@
 	return self;
 }
 
-- (void)dealloc
-{
-	[session release];
-	[downloadTask release];
-	[xtraName release];
-	[dest release];
-
-	[super dealloc];
-}
-
 - (IBAction)cancel:(id)sender;
 {
 	if (self.downloadTask) [self.downloadTask cancel];
@@ -70,12 +60,11 @@
 - (void)closeInstaller
 {
 	if (window) [window close];
-	/* The session retains its delegate (us) until it is invalidated, so this must
-	 * happen before the autorelease below or the installer would never deallocate.
-	 * It also guarantees we stay alive for any delegate callback still in flight:
-	 * the session only drops its delegate after invalidation completes. */
+	/* The session retains its delegate (us) until it is invalidated, so without this
+	 * the installer would never deallocate. It also guarantees we stay alive for any
+	 * delegate callback still in flight: the session only drops its delegate after
+	 * invalidation completes. */
 	[self.session invalidateAndCancel];
-	[self autorelease];	
 }
 
 - (void)installXtraAtURL:(NSURL *)url
@@ -130,10 +119,8 @@
 		self.downloadTask = [self.session downloadTaskWithRequest:request];
 		[self.downloadTask resume];
 
-		[urlToDownload release];
-
 	} else {
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:AILocalizedString(@"Nontrusted Xtra", nil)];
 		[alert setInformativeText:AILocalizedString(@"This Xtra is not hosted on the Adium Xtras website. Automatic installation is not allowed.", nil)];
 		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
@@ -186,14 +173,14 @@
 	if (!error) return;
 
 	/* Cancellation: the cancel button already cancelled the task and closed the
-	 * installer. Closing again here would over-release self. */
+	 * installer, so there is nothing to report and nothing left to close. */
 	if ([[error domain] isEqualToString:NSURLErrorDomain] && [error code] == NSURLErrorCancelled) return;
 
 	NSString	*errorMsg;
 
 	errorMsg = [NSString stringWithFormat:AILocalizedString(@"An error occurred while downloading this Xtra: %@.",nil),[error localizedDescription]];
 	
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:AILocalizedString(@"Xtra Downloading Error",nil)];
 	[alert setInformativeText:errorMsg];
 	[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
@@ -244,7 +231,7 @@
 												 toURL:[NSURL fileURLWithPath:self.dest]
 												 error:&moveError]) {
 		AILogWithSignature(@"Could not move %@ to %@: %@", location, self.dest, moveError);
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:AILocalizedString(@"Xtra Downloading Error",nil)];
 		[alert setInformativeText:[NSString stringWithFormat:AILocalizedString(@"An error occurred while downloading this Xtra: %@.",nil),[moveError localizedDescription]]];
 		[alert addButtonWithTitle:AILocalizedString(@"Cancel",nil)];
@@ -276,8 +263,6 @@
 			decompressionSuccess = NO;	
 		}
 			
-		[uncompress release];
-		
 		if (decompressionSuccess) {
 			if ([pathExtension isEqualToString:@"tgz"]) {
 				self.dest = [[self.dest stringByDeletingPathExtension] stringByAppendingPathExtension:@"tar"];
@@ -300,7 +285,6 @@
 			{
 				decompressionSuccess = NO;
 			}
-			[untar release];
 		}
 		
 	} else if ([pathExtension isEqualToString:@"zip"]) {
@@ -327,7 +311,6 @@
 		{
 			decompressionSuccess = NO;			
 		}
-		[unzip release];
 
 	} else {
 		decompressionSuccess = NO;
@@ -357,7 +340,7 @@
 
 	if ([destURL getResourceValue:&oldQuarantineProperties forKey:NSURLQuarantinePropertiesKey error:NULL]) {
 		if (oldQuarantineProperties) {
-			quarantineProperties = [[oldQuarantineProperties mutableCopy] autorelease];
+			quarantineProperties = [oldQuarantineProperties mutableCopy];
 			AILogWithSignature(@"Old quarantine data: %@", quarantineProperties);
 		} else {
 			quarantineProperties = [NSMutableDictionary dictionaryWithCapacity:2];

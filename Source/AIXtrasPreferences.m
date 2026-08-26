@@ -71,11 +71,11 @@
 	 * window put beside the plug-in category. A copy per call, so the sidebar resizing this
 	 * one cannot resize the copy the Finder icon or the category list is holding.
 	 */
-	NSImage	*icon = [[[NSImage imageNamed:@"AdiumPlugin"] copy] autorelease];
+	NSImage	*icon = [[NSImage imageNamed:@"AdiumPlugin"] copy];
 
 	if (icon) return icon;
 
-	return [[[NSImage imageNamed:@"xtras_duck" forClass:[self class]] copy] autorelease];
+	return [[NSImage imageNamed:@"xtras_duck" forClass:[self class]] copy];
 }
 
 #pragma mark View
@@ -90,7 +90,7 @@
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -113,7 +113,7 @@
 
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:XTRAS_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:XTRAS_PANE_INITIAL_WIDTH];
 
 	[self populateForm:form];
 
@@ -179,7 +179,7 @@
 		/* The list is the card: it fills it edge to edge and its height decides how tall the card
 		 * is. Everything a row does - its switch, its ⊖, its context menu - comes back to us
 		 * through AIXtraListViewDelegate. */
-		AIXtraListView	*listView = [[[AIXtraListView alloc] initWithXtras:xtras] autorelease];
+		AIXtraListView	*listView = [[AIXtraListView alloc] initWithXtras:xtras];
 
 		[listView setListDelegate:self];
 		[listViews addObject:listView];
@@ -252,9 +252,6 @@
 - (void)dealloc
 {
 	[self closeView];
-	[listViews release];
-
-	[super dealloc];
 }
 
 /*!
@@ -482,7 +479,7 @@
  */
 - (void)xtraListView:(AIXtraListView *)listView deleteXtra:(AIXtraInfo *)xtraInfo
 {
-	NSAlert		*warning = [[[NSAlert alloc] init] autorelease];
+	NSAlert		*warning = [[NSAlert alloc] init];
 	NSWindow	*sheetParent = [view window];
 
 	[warning setMessageText:AILocalizedString(@"Delete Xtra?", nil)];
@@ -548,7 +545,7 @@
  */
 - (void)reportFailure:(NSString *)message forXtra:(AIXtraInfo *)xtraInfo error:(NSError *)error
 {
-	NSAlert		*alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert		*alert = [[NSAlert alloc] init];
 	NSWindow	*sheetParent = [view window];
 	NSString	*explanation;
 

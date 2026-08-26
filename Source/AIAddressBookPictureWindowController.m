@@ -137,10 +137,6 @@ static AIAddressBookPictureWindowController *sharedController = nil;
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-
-	[entries release];
-	[shown release];
-	[super dealloc];
 }
 
 //Building the window ---------------------------------------------------------------------------------------------
@@ -148,7 +144,7 @@ static AIAddressBookPictureWindowController *sharedController = nil;
 
 static NSTextField *AICaption(NSRect frame, NSTextAlignment alignment)
 {
-	NSTextField *field = [[[NSTextField alloc] initWithFrame:frame] autorelease];
+	NSTextField *field = [[NSTextField alloc] initWithFrame:frame];
 
 	[field setEditable:NO];
 	[field setSelectable:NO];
@@ -165,7 +161,7 @@ static NSTextField *AICaption(NSRect frame, NSTextAlignment alignment)
 
 static NSImageView *AIPictureWell(NSRect frame)
 {
-	NSImageView *view = [[[NSImageView alloc] initWithFrame:frame] autorelease];
+	NSImageView *view = [[NSImageView alloc] initWithFrame:frame];
 
 	[view setEditable:NO];
 	[view setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -177,12 +173,12 @@ static NSImageView *AIPictureWell(NSRect frame)
 - (void)buildWindow
 {
 	NSRect		 frame = NSMakeRect(0.0, 0.0, WINDOW_WIDTH, WINDOW_HEIGHT);
-	NSWindow	*window = [[[NSWindow alloc] initWithContentRect:frame
-														styleMask:(NSWindowStyleMaskTitled |
-																   NSWindowStyleMaskClosable |
-																   NSWindowStyleMaskResizable)
-														  backing:NSBackingStoreBuffered
-															defer:YES] autorelease];
+	NSWindow	*window = [[NSWindow alloc] initWithContentRect:frame
+													   styleMask:(NSWindowStyleMaskTitled |
+																  NSWindowStyleMaskClosable |
+																  NSWindowStyleMaskResizable)
+														 backing:NSBackingStoreBuffered
+														   defer:YES];
 	NSView		*content = [window contentView];
 
 	[window setTitle:AILocalizedString(@"Contact Pictures", "Title of the window which hands contact pictures to address book cards")];
@@ -203,7 +199,7 @@ static NSImageView *AIPictureWell(NSRect frame)
 
 	/* Leafing through the pictures. A contact who is one person across several services has one
 	 * picture per service, and only the person looking at them can say which one belongs on a card. */
-	previousButton = [[[NSButton alloc] initWithFrame:NSMakeRect(20.0, top - 48.0, 40.0, 24.0)] autorelease];
+	previousButton = [[NSButton alloc] initWithFrame:NSMakeRect(20.0, top - 48.0, 40.0, 24.0)];
 	[previousButton setBezelStyle:NSBezelStyleRounded];
 	[previousButton setTitle:@"◀"];
 	[previousButton setTarget:self];
@@ -212,7 +208,7 @@ static NSImageView *AIPictureWell(NSRect frame)
 	[previousButton setAutoresizingMask:NSViewMinYMargin];
 	[content addSubview:previousButton];
 
-	nextButton = [[[NSButton alloc] initWithFrame:NSMakeRect(140.0, top - 48.0, 40.0, 24.0)] autorelease];
+	nextButton = [[NSButton alloc] initWithFrame:NSMakeRect(140.0, top - 48.0, 40.0, 24.0)];
 	[nextButton setBezelStyle:NSBezelStyleRounded];
 	[nextButton setTitle:@"▶"];
 	[nextButton setTarget:self];
@@ -225,22 +221,22 @@ static NSImageView *AIPictureWell(NSRect frame)
 	CGFloat listX = 200.0;
 	CGFloat listWidth = WINDOW_WIDTH - listX - 20.0 - PICTURE_SIDE - 20.0;
 
-	filterField = [[[NSSearchField alloc] initWithFrame:NSMakeRect(listX, WINDOW_HEIGHT - 20.0 - 24.0, listWidth, 24.0)] autorelease];
+	filterField = [[NSSearchField alloc] initWithFrame:NSMakeRect(listX, WINDOW_HEIGHT - 20.0 - 24.0, listWidth, 24.0)];
 	[[filterField cell] setPlaceholderString:AILocalizedString(@"Filter", "Placeholder of the field which narrows the list of cards")];
 	[filterField setTarget:self];
 	[filterField setAction:@selector(filterChanged:)];
 	[filterField setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
 	[content addSubview:filterField];
 
-	NSScrollView *scroll = [[[NSScrollView alloc] initWithFrame:NSMakeRect(listX, 20.0,
-																		   listWidth,
-																		   WINDOW_HEIGHT - 20.0 - 24.0 - 8.0 - 20.0)] autorelease];
+	NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSMakeRect(listX, 20.0,
+																		  listWidth,
+																		  WINDOW_HEIGHT - 20.0 - 24.0 - 8.0 - 20.0)];
 	[scroll setHasVerticalScroller:YES];
 	[scroll setAutohidesScrollers:YES];
 	[scroll setBorderType:NSBezelBorder];
 	[scroll setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 
-	table = [[[NSTableView alloc] initWithFrame:[[scroll contentView] bounds]] autorelease];
+	table = [[NSTableView alloc] initWithFrame:[[scroll contentView] bounds]];
 	[table setUsesAlternatingRowBackgroundColors:YES];
 	[table setRowSizeStyle:NSTableViewRowSizeStyleDefault];
 	[table setAllowsMultipleSelection:NO];
@@ -250,7 +246,7 @@ static NSImageView *AIPictureWell(NSRect frame)
 	/* One column, and no header over it. The card and the contact carry the same name in every row
 	 * that can appear here, since a card is only listed because Adium matched it to that contact,
 	 * so a second column would have repeated the first one all the way down. */
-	NSTableColumn *cardColumn = [[[NSTableColumn alloc] initWithIdentifier:@"card"] autorelease];
+	NSTableColumn *cardColumn = [[NSTableColumn alloc] initWithIdentifier:@"card"];
 	[cardColumn setWidth:360.0];
 	[table addTableColumn:cardColumn];
 
@@ -271,7 +267,7 @@ static NSImageView *AIPictureWell(NSRect frame)
 	[cardCaption setAutoresizingMask:(NSViewMinXMargin | NSViewMinYMargin)];
 	[content addSubview:cardCaption];
 
-	transferButton = [[[NSButton alloc] initWithFrame:NSMakeRect(rightX, top - 52.0, PICTURE_SIDE, 28.0)] autorelease];
+	transferButton = [[NSButton alloc] initWithFrame:NSMakeRect(rightX, top - 52.0, PICTURE_SIDE, 28.0)];
 	[transferButton setBezelStyle:NSBezelStyleRounded];
 	[transferButton setTitle:AILocalizedString(@"Put on Card", "Button which writes the shown contact picture onto the address book card")];
 	[transferButton setTarget:self];
@@ -364,8 +360,6 @@ static NSString *AICardName(AIAddressBookPerson *person)
 {
 	NSString *text = [[filterField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-	[shown release];
-
 	if (![text length]) {
 		shown = [entries copy];
 
@@ -436,7 +430,7 @@ static NSString *AICardName(AIAddressBookPerson *person)
 
 	//What the card holds today
 	NSData	*cardData = [[entry objectForKey:ENTRY_PERSON] imageData];
-	NSImage	*cardIcon = ([cardData length] ? [[[NSImage alloc] initWithData:cardData] autorelease] : nil);
+	NSImage	*cardIcon = ([cardData length] ? [[NSImage alloc] initWithData:cardData] : nil);
 
 	[cardImage setImage:cardIcon];
 
@@ -495,16 +489,16 @@ static NSString *AICardName(AIAddressBookPerson *person)
 		return;
 	}
 
-	CNMutableContact	*mutableContact = [[person.contact mutableCopy] autorelease];
-	CNSaveRequest		*saveRequest = [[[CNSaveRequest alloc] init] autorelease];
+	CNMutableContact	*mutableContact = [person.contact mutableCopy];
+	CNSaveRequest		*saveRequest = [[CNSaveRequest alloc] init];
 
 	mutableContact.imageData = data;
 	[saveRequest updateContact:mutableContact];
 
 	/* Nothing is said when it works: the picture on the right changes, which says it better. A
 	 * refusal has to speak up, because nothing would look any different. */
-	if (![[[[CNContactStore alloc] init] autorelease] executeSaveRequest:saveRequest error:NULL]) {
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	if (![[[CNContactStore alloc] init] executeSaveRequest:saveRequest error:NULL]) {
+		NSAlert *alert = [[NSAlert alloc] init];
 
 		[alert setMessageText:AILocalizedString(@"The Address Book would not save the picture.",
 												"Said when writing a contact picture onto a card failed")];

@@ -161,15 +161,6 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context);
 	for (NSTimer *timer in [pendingScriptRuns allValues]) {
 		[timer invalidate];
 	}
-	[pendingScriptRuns release]; pendingScriptRuns = nil;
-	[scriptChainDepth release]; scriptChainDepth = nil;
-
-	[scriptArray release]; scriptArray = nil;
-    [flatScriptArray release]; flatScriptArray = nil;
-	[scriptMenuItem release]; scriptMenuItem = nil;
-	[contextualScriptMenuItem release]; contextualScriptMenuItem = nil;
-
-	[super dealloc];
 }
 
 /*!
@@ -200,8 +191,8 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context);
 - (void)loadScripts
 {
 	//
-	[scriptArray release]; scriptArray = [[NSMutableArray alloc] init];
-	[flatScriptArray release]; flatScriptArray = [[NSMutableArray alloc] init];
+	scriptArray = [[NSMutableArray alloc] init];
+	flatScriptArray = [[NSMutableArray alloc] init];
 	
 	// Load scripts
 	for (NSString *filePath in [adium allResourcesForName:@"Scripts" withExtensions:SCRIPT_BUNDLE_EXTENSION]) {
@@ -295,10 +286,10 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context);
 	[flatScriptArray sortUsingFunction:_scriptKeywordLengthSort context:nil];
 	
 	//Build the menu
-	[scriptMenu release]; scriptMenu = [[NSMenu alloc] initWithTitle:TITLE_INSERT_SCRIPT];
+	scriptMenu = [[NSMenu alloc] initWithTitle:TITLE_INSERT_SCRIPT];
 	[self _appendScripts:scriptArray toMenu:scriptMenu];
 	[scriptMenuItem setSubmenu:scriptMenu];
-	[contextualScriptMenuItem setSubmenu:[[scriptMenu copy] autorelease]];
+	[contextualScriptMenuItem setSubmenu:[scriptMenu copy]];
 		
 	[self registerToolbarItem];
 }
@@ -376,19 +367,19 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 			
 			if (![set isEqualToString:lastSet]) {
 				//We have a new set of scripts; create a section header for them
-				item = [[[NSMenuItem alloc] initWithTitle:set
+				item = [[NSMenuItem alloc] initWithTitle:set
 																			 target:nil
 																			 action:nil
-																	  keyEquivalent:@""] autorelease];
+																	  keyEquivalent:@""];
 				if ([item respondsToSelector:@selector(setIndentationLevel:)]) [item setIndentationLevel:0];
 				[menu addItem:item];
-				
-				[lastSet release]; lastSet = [set retain];
+
+				lastSet = set;
 			}
 		} else {
 			//Scripts not in sets need not be indented
 			indentationLevel = 0;
-			[lastSet release]; lastSet = nil;
+			lastSet = nil;
 		}
 	
 		if ([appendDict objectForKey:@"Title"]) {
@@ -397,17 +388,15 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 			title = [appendDict objectForKey:@"Keyword"];
 		}
 		
-		item = [[[NSMenuItem alloc] initWithTitle:title
+		item = [[NSMenuItem alloc] initWithTitle:title
 																	 target:self
 																	 action:@selector(selectScript:)
-															  keyEquivalent:@""] autorelease];
-		
+															  keyEquivalent:@""];
+
 		[item setRepresentedObject:appendDict];
 		if ([item respondsToSelector:@selector(setIndentationLevel:)]) [item setIndentationLevel:indentationLevel];
 		[menu addItem:item];
 	}
-	
-	[lastSet release];
 }
 
 /*!
@@ -455,8 +444,6 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 			}
 
 			[(NSTextView *)responder insertText:@"}" replacementRange:NSMakeRange(NSNotFound, 0)];
-			
-			[italicizedTypingAttributes release];
 		}
 	}
 }
@@ -506,7 +493,7 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 
 			if ((prefixOnly && ([stringMessage rangeOfString:keyword options:(NSCaseInsensitiveSearch | NSAnchoredSearch)].location == 0)) ||
 			   (!prefixOnly && [stringMessage rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound)) {
-				NSMutableAttributedString	*workingCopy = [[inAttributedString mutableCopy] autorelease];
+				NSMutableAttributedString	*workingCopy = [inAttributedString mutableCopy];
 
 				/* Only claim to have begun if a script run was actually handed off. If it wasn't,
 				 * we keep looking: a broken script must not hide a working one, and if none of them
@@ -742,7 +729,7 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
  */
 - (void)scriptRunTimedOut:(NSTimer *)timer
 {
-	NSDictionary				*timerInfo = [[[timer userInfo] retain] autorelease];
+	NSDictionary				*timerInfo = [timer userInfo];
 	NSNumber					*uniqueIDNumber = [timerInfo objectForKey:@"uniqueID"];
 	NSMutableAttributedString	*attributedString = [timerInfo objectForKey:@"Mutable Attributed String"];
 
@@ -901,13 +888,13 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 	//Unregister the existing toolbar item first
 	if (toolbarItem) {
 		[adium.toolbarController unregisterToolbarItem:toolbarItem forToolbarType:@"TextEntry"];
-		[toolbarItem release]; toolbarItem = nil;
+		toolbarItem = nil;
 	}
-	
+
 	//Register our toolbar item
-	button = [[[MVMenuButton alloc] initWithFrame:NSMakeRect(0,0,32,32)] autorelease];
+	button = [[MVMenuButton alloc] initWithFrame:NSMakeRect(0,0,32,32)];
 	[button setImage:[NSImage imageNamed:@"msg-insert-script" forClass:[self class] loadLazily:YES]];
-	toolbarItem = [[AIToolbarUtilities toolbarItemWithIdentifier:SCRIPT_IDENTIFIER
+	toolbarItem = [AIToolbarUtilities toolbarItemWithIdentifier:SCRIPT_IDENTIFIER
 														   label:AILocalizedString(@"Scripts",nil)
 													paletteLabel:TITLE_INSERT_SCRIPT
 														 toolTip:AILocalizedString(@"Insert a script",nil)
@@ -915,7 +902,7 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 												 settingSelector:@selector(setView:)
 													 itemContent:button
 														  action:@selector(selectScript:)
-															menu:nil] retain];
+															menu:nil];
 	[toolbarItem setMinSize:NSMakeSize(32,32)];
 	[toolbarItem setMaxSize:NSMakeSize(32,32)];
 	[button setToolbarItem:toolbarItem];
@@ -930,13 +917,13 @@ NSInteger _scriptKeywordLengthSort(id scriptA, id scriptB, void *context)
 	NSToolbarItem	*item = [[notification userInfo] objectForKey:@"item"];
 	
 	if (!notification || ([[item itemIdentifier] isEqualToString:SCRIPT_IDENTIFIER])) {
-		NSMenu		*menu = [[[scriptMenuItem submenu] copy] autorelease];
-		
+		NSMenu		*menu = [[scriptMenuItem submenu] copy];
+
 		//Add menu to view
 		[[item view] setMenu:menu];
-		
+
 		//Add menu to toolbar item (for text mode)
-		NSMenuItem	*mItem = [[[NSMenuItem alloc] init] autorelease];
+		NSMenuItem	*mItem = [[NSMenuItem alloc] init];
 		[mItem setSubmenu:menu];
 		[mItem setTitle:[menu title]];
 		[item setMenuFormRepresentation:mItem];

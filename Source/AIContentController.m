@@ -39,6 +39,7 @@
 #import <Adium/AIListGroup.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIMetaContact.h>
+#import <Adium/AIStatus.h>
 #import <Adium/ESFileTransfer.h>
 #import <Adium/AITextAttachmentExtension.h>
 #import <AIUtilities/AIArrayAdditions.h>
@@ -117,20 +118,6 @@
 }
 
 /*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[objectsBeingReceived release]; objectsBeingReceived = nil;
-	[adiumTyping release]; adiumTyping = nil;
-	[adiumFormatting release]; adiumFormatting = nil;
-	[adiumContentFiltering release]; adiumContentFiltering = nil;
-	[adiumEncryptor release];
-
-    [super dealloc];
-}
-
-/*!
  * @brief Set the encryptor
  *
  * NB: We must _always_ have an encryptor.
@@ -139,8 +126,7 @@
 {
 	NSParameterAssert([inEncryptor conformsToProtocol:@protocol(AdiumMessageEncryptor)]);
 
-	[adiumEncryptor release];
-	adiumEncryptor = [inEncryptor retain];
+	adiumEncryptor = inEncryptor;
 }
 
 
@@ -646,7 +632,7 @@
 
 				if (shouldSendAttachmentAsFile) {
 					if (!newAttributedString) {
-						newAttributedString = [[attributedMessage mutableCopy] autorelease];
+						newAttributedString = [attributedMessage mutableCopy];
 						currentAttributedString = newAttributedString;
 					}
 					
@@ -882,7 +868,6 @@
 	
 	[menuItem setTag:EncryptedChat_Never];
 	[encryptionMenu addItem:menuItem];
-	[menuItem release];
 	
 	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Encrypt chats as requested",nil)
 										  target:target
@@ -891,7 +876,6 @@
 	
 	[menuItem setTag:EncryptedChat_Manually];
 	[encryptionMenu addItem:menuItem];
-	[menuItem release];
 	
 	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Encrypt chats automatically",nil)
 										  target:target
@@ -900,7 +884,6 @@
 	
 	[menuItem setTag:EncryptedChat_Automatically];
 	[encryptionMenu addItem:menuItem];
-	[menuItem release];
 	
 	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Force encryption and refuse plaintext",nil)
 										  target:target
@@ -909,7 +892,6 @@
 	
 	[menuItem setTag:EncryptedChat_RejectUnencryptedMessages];
 	[encryptionMenu addItem:menuItem];
-	[menuItem release];
 	
 	if (withDefault) {
 		[encryptionMenu addItem:[NSMenuItem separatorItem]];
@@ -921,10 +903,9 @@
 		
 		[defaultMenuItem setTag:EncryptedChat_Default];
 		[encryptionMenu addItem:defaultMenuItem];
-		[defaultMenuItem release];
 	}
 	
-	return [encryptionMenu autorelease];
+	return encryptionMenu;
 }
 
 @end

@@ -38,7 +38,7 @@
 	AIAccountPlan				*plan;
 	AIAccountPlanFormBuilder	*builder;
 	AISettingsFormView			*form;
-	id							 backTarget;		//Not retained
+	__unsafe_unretained id		 backTarget;		//Not retained
 	SEL							 backAction;
 	BOOL						 committing;
 	BOOL						 edited;			//Whether anything on the page was actually changed

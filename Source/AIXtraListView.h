@@ -86,8 +86,9 @@
  * the form owns them from then on. Call @c -tearDown before letting go of the delegate.
  */
 @interface AIXtraListView : AIPassthroughScrollView <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate> {
-	NSTableView					*tableView;			//Owned by the view hierarchy
+	NSTableView					*tableView;			//The list itself; our clip view holds it too
 	NSArray						*xtras;				//AIXtraInfo, in display order
+	__unsafe_unretained
 	id<AIXtraListViewDelegate>	 listDelegate;		//Not retained
 	NSString					*userDirectory;		//Xtras below this one may be switched off
 	/* Width the rows were last laid out for; see -listFrameChanged: */

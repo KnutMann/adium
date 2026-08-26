@@ -124,8 +124,8 @@ static NSImage *AIPrefPaneIcon(id pane)
  */
 @interface AIPrefsSidebarCellView : NSTableCellView {
 	BOOL isGroupRow;
-	NSTextField		*sidebarLabel;	//Owned by the view hierarchy; deliberately NOT the textField outlet
-	NSImageView		*sidebarIcon;	//Same
+	__unsafe_unretained NSTextField		*sidebarLabel;	//Owned by the view hierarchy; deliberately NOT the textField outlet
+	__unsafe_unretained NSImageView		*sidebarIcon;	//Same
 }
 @property (assign) BOOL isGroupRow;
 /* The built-in textField/imageView outlets stay empty on purpose: they are the handles the
@@ -284,12 +284,6 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[sidebarEntries release];
-	[openedPanes release];
-	[history release];
-	[navigationControl release];
-	[toolbarTitleField release];
-	[super dealloc];
 }
 
 #pragma mark - Data
@@ -323,11 +317,11 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	[sidebarEntries removeAllObjects];
 
-	NSMutableArray *mainPool = [[[adium.preferenceController paneArray] mutableCopy] autorelease];
-	NSMutableArray *advancedPool = [[[adium.preferenceController advancedPaneArray] mutableCopy] autorelease];
+	NSMutableArray *mainPool = [[adium.preferenceController paneArray] mutableCopy];
+	NSMutableArray *advancedPool = [[adium.preferenceController advancedPaneArray] mutableCopy];
 
 	//The old Advanced container pane is replaced by the group structure itself
-	for (AIPreferencePane *pane in [[mainPool copy] autorelease]) {
+	for (AIPreferencePane *pane in [mainPool copy]) {
 		if ([AIPrefPaneIdentifier(pane) isEqualToString:@"Advanced"])
 			[mainPool removeObject:pane];
 	}
@@ -390,14 +384,14 @@ static NSImage *AIPrefPaneIcon(id pane)
 - (void)buildWindow
 {
 	NSRect contentRect = NSMakeRect(0, 0, AIPrefsSidebarMinWidth + AIPrefsContentWidth, 560);
-	NSWindow *window = [[[NSWindow alloc] initWithContentRect:contentRect
-													styleMask:(NSWindowStyleMaskTitled |
-															   NSWindowStyleMaskClosable |
-															   NSWindowStyleMaskMiniaturizable |
-															   NSWindowStyleMaskResizable |
-															   NSWindowStyleMaskFullSizeContentView)
-													  backing:NSBackingStoreBuffered
-														defer:NO] autorelease];
+	NSWindow *window = [[NSWindow alloc] initWithContentRect:contentRect
+												  styleMask:(NSWindowStyleMaskTitled |
+															 NSWindowStyleMaskClosable |
+															 NSWindowStyleMaskMiniaturizable |
+															 NSWindowStyleMaskResizable |
+															 NSWindowStyleMaskFullSizeContentView)
+													backing:NSBackingStoreBuffered
+													  defer:NO];
 	[window setReleasedWhenClosed:NO];
 	[window setTitlebarAppearsTransparent:NO];
 	/* The title lives in the toolbar as its own item so the navigation arrows
@@ -410,7 +404,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 		 * titlebar material, which blurs it — the way System Settings behaves. */
 		[window setTitlebarSeparatorStyle:NSTitlebarSeparatorStyleNone];
 	}
-	NSToolbar *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"AIModernPreferencesToolbar"] autorelease];
+	NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"AIModernPreferencesToolbar"];
 	[toolbar setShowsBaselineSeparator:NO];
 	[toolbar setDelegate:self];
 	[toolbar setAllowsUserCustomization:NO];
@@ -421,8 +415,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[window center];
 
 	//Sidebar: source list outline in a scroll view
-	outlineView = [[[NSOutlineView alloc] initWithFrame:NSZeroRect] autorelease];
-	NSTableColumn *column = [[[NSTableColumn alloc] initWithIdentifier:@"pane"] autorelease];
+	outlineView = [[NSOutlineView alloc] initWithFrame:NSZeroRect];
+	NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"pane"];
 	[column setEditable:NO];
 	[outlineView addTableColumn:column];
 	[outlineView setOutlineTableColumn:column];
@@ -437,21 +431,21 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[outlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
 	}
 
-	NSScrollView *sidebarScroll = [[[NSScrollView alloc] initWithFrame:NSZeroRect] autorelease];
+	NSScrollView *sidebarScroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	[sidebarScroll setDocumentView:outlineView];
 	[sidebarScroll setHasVerticalScroller:YES];
 	[sidebarScroll setDrawsBackground:NO];
 	[sidebarScroll setBorderType:NSNoBorder];
 
-	NSViewController *sidebarVC = [[[NSViewController alloc] init] autorelease];
+	NSViewController *sidebarVC = [[NSViewController alloc] init];
 	[sidebarVC setView:sidebarScroll];
 
 	//Content: a scrolling column. The pane keeps its natural height; when it
 	//does not fit, the column scrolls instead of the window growing.
-	contentHost = [[[AIPrefsContentContainerView alloc] initWithFrame:NSMakeRect(0, 0, AIPrefsContentWidth, 560)] autorelease];
+	contentHost = [[AIPrefsContentContainerView alloc] initWithFrame:NSMakeRect(0, 0, AIPrefsContentWidth, 560)];
 	[contentHost setWantsLayer:YES];
 
-	NSScrollView *contentScroll = [[[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, AIPrefsContentWidth, 560)] autorelease];
+	NSScrollView *contentScroll = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, AIPrefsContentWidth, 560)];
 	[contentScroll setDocumentView:contentHost];
 	[contentScroll setHasVerticalScroller:YES];
 	[contentScroll setBorderType:NSNoBorder];
@@ -472,10 +466,10 @@ static NSImage *AIPrefPaneIcon(id pane)
 												 name:NSViewFrameDidChangeNotification
 											   object:[contentScroll contentView]];
 
-	NSViewController *contentVC = [[[NSViewController alloc] init] autorelease];
+	NSViewController *contentVC = [[NSViewController alloc] init];
 	[contentVC setView:contentScroll];
 
-	NSSplitViewController *splitVC = [[[NSSplitViewController alloc] init] autorelease];
+	NSSplitViewController *splitVC = [[NSSplitViewController alloc] init];
 	NSSplitViewItem *sidebarItem = [NSSplitViewItem sidebarWithViewController:sidebarVC];
 	[sidebarItem setMinimumThickness:AIPrefsSidebarMinWidth];
 	[sidebarItem setMaximumThickness:AIPrefsSidebarMaxWidth];
@@ -554,7 +548,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 		return;
 	}
 
-	for (NSView *subview in [[[contentHost subviews] copy] autorelease]) {
+	for (NSView *subview in [[contentHost subviews] copy]) {
 		[[NSNotificationCenter defaultCenter] removeObserver:self
 														name:NSViewFrameDidChangeNotification
 													  object:subview];
@@ -829,7 +823,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 			[toolbarTitleField setTextColor:[NSColor labelColor]];
 			[toolbarTitleField setStringValue:(currentPane ? (AIPrefPaneName(currentPane) ?: @"") : @"")];
 		}
-		NSToolbarItem *titleItem = [[[NSToolbarItem alloc] initWithItemIdentifier:identifier] autorelease];
+		NSToolbarItem *titleItem = [[NSToolbarItem alloc] initWithItemIdentifier:identifier];
 		[titleItem setView:toolbarTitleField];
 		[titleItem setLabel:@""];
 		[titleItem setVisibilityPriority:NSToolbarItemVisibilityPriorityHigh];
@@ -862,7 +856,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[self updateNavigationControl];
 	}
 
-	NSToolbarItem *item = [[[NSToolbarItem alloc] initWithItemIdentifier:identifier] autorelease];
+	NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:identifier];
 	[item setView:navigationControl];
 	[item setLabel:@""];
 	[item setPaletteLabel:AILocalizedString(@"Navigation", nil)];
@@ -968,10 +962,10 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSTableCellView *cell = [aView makeViewWithIdentifier:reuseIdentifier owner:self];
 
 	if (!cell) {
-		cell = [[[AIPrefsSidebarCellView alloc] initWithFrame:NSMakeRect(0, 0, 180, 24)] autorelease];
+		cell = [[AIPrefsSidebarCellView alloc] initWithFrame:NSMakeRect(0, 0, 180, 24)];
 		[cell setIdentifier:reuseIdentifier];
 
-		NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
+		NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
 		[label setBordered:NO];
 		[label setEditable:NO];
 		[label setDrawsBackground:NO];
@@ -981,7 +975,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[(AIPrefsSidebarCellView *)cell setSidebarLabel:label];
 
 		if (!isGroup) {
-			NSImageView *icon = [[[NSImageView alloc] initWithFrame:NSZeroRect] autorelease];
+			NSImageView *icon = [[NSImageView alloc] initWithFrame:NSZeroRect];
 			[icon setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[cell addSubview:icon];
 			[(AIPrefsSidebarCellView *)cell setSidebarIcon:icon];
@@ -1039,7 +1033,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSString *identifier = @"sidebarRow";
 	NSTableRowView *rowView = [aView makeViewWithIdentifier:identifier owner:self];
 	if (!rowView) {
-		rowView = [[[AIPrefsSidebarRowView alloc] initWithFrame:NSZeroRect] autorelease];
+		rowView = [[AIPrefsSidebarRowView alloc] initWithFrame:NSZeroRect];
 		[rowView setIdentifier:identifier];
 	}
 	return rowView;
@@ -1064,11 +1058,14 @@ static NSImage *AIPrefPaneIcon(id pane)
 	}
 	[openedPanes removeAllObjects];
 	currentPane = nil;
-	for (NSView *subview in [[[contentHost subviews] copy] autorelease]) {
+	for (NSView *subview in [[contentHost subviews] copy]) {
 		[subview removeFromSuperview];
 	}
 
-	[sharedModernPrefsController autorelease];
+	/* The static holds the only reference, and -[NSWindow close] is still running and still
+	 * talking to this controller as its delegate and window controller; the pool keeps it alive
+	 * until the end of the run loop turn, which is the timing the autorelease had. */
+	CFAutorelease(CFBridgingRetain(sharedModernPrefsController));
 	sharedModernPrefsController = nil;
 }
 

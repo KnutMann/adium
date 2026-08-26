@@ -84,10 +84,10 @@
 /* Defined in GetMetadataForFile.m, which is compiled into AIUtilities.framework; Adium links it
  * from there, and the Spotlight importer gets its own copy.
  *
- * The name follows the Core Foundation rule and the data comes back owned, which the caller below
- * honours with a matching release. Said out loud here because a C function is otherwise assumed to
- * hand back something unowned, and this declaration is the only thing a file counting references
- * automatically would have to go on: the definition sits in another target and cannot correct it.
+ * The name follows the Core Foundation rule and the data comes back owned. Said out loud here
+ * because a C function is otherwise assumed to hand back something unowned, and this declaration
+ * is the only thing a file counting references automatically has to go on: the definition sits in
+ * another target and cannot correct it.
  * Its neighbour needs nothing, because a CFStringRef named Copy is already understood.
  */
 NSData *CopyDataForURL(CFStringRef contentTypeUTI, NSURL *urlToFile) NS_RETURNS_RETAINED;
@@ -261,18 +261,18 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 	formatter = [[ISO8601DateFormatter alloc] init];
 	formatter.includeTime = YES;
 	
-	self.xhtmlDecoder = [[[AIHTMLDecoder alloc] initWithHeaders:NO
-													   fontTags:YES
-												  closeFontTags:YES
-													  colorTags:YES
-													  styleTags:YES
-												 encodeNonASCII:YES
-												   encodeSpaces:NO
-											  attachmentsAsText:NO
-									  onlyIncludeOutgoingImages:NO
-												 simpleTagsOnly:NO
-												 bodyBackground:NO
-											allowJavascriptURLs:YES] autorelease];
+	self.xhtmlDecoder = [[AIHTMLDecoder alloc] initWithHeaders:NO
+													  fontTags:YES
+												 closeFontTags:YES
+													 colorTags:YES
+													 styleTags:YES
+												encodeNonASCII:YES
+												  encodeSpaces:NO
+											 attachmentsAsText:NO
+									 onlyIncludeOutgoingImages:NO
+												simpleTagsOnly:NO
+												bodyBackground:NO
+										   allowJavascriptURLs:YES];
 	
 	[self.xhtmlDecoder setGeneratesStrictXHTML:YES];
 	
@@ -290,11 +290,11 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 	 * The interval is nominal; every firing re-anchors to the next real midnight, so
 	 * daylight saving neither drifts the timer nor rotates twice.
 	 */
-	logRotateTimer = [[NSTimer scheduledTimerWithTimeInterval:86400
-													   target:self
-													 selector:@selector(rotateLogs:)
-													 userInfo:nil
-													  repeats:YES] retain];
+	logRotateTimer = [NSTimer scheduledTimerWithTimeInterval:86400
+													  target:self
+													selector:@selector(rotateLogs:)
+													userInfo:nil
+													 repeats:YES];
 	[logRotateTimer setFireDate:[NSDate midnightTomorrow]];
 
 	//Setup our preferences
@@ -305,7 +305,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 	// Create logs dir
 	static dispatch_once_t setLogBasePath;
 	dispatch_once(&setLogBasePath, ^{
-		logBasePath = [[[[adium.loginController userDirectory] stringByAppendingPathComponent:PATH_LOGS] stringByExpandingTildeInPath] retain];
+		logBasePath = [[[adium.loginController userDirectory] stringByAppendingPathComponent:PATH_LOGS] stringByExpandingTildeInPath];
 	});
 	
 	[[NSFileManager defaultManager] createDirectoryAtPath:logBasePath withIntermediateDirectories:YES attributes:nil error:NULL];
@@ -355,7 +355,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 
 - (void)uninstallPlugin
 {
-	[logRotateTimer invalidate]; [logRotateTimer release]; logRotateTimer = nil;
+	[logRotateTimer invalidate]; logRotateTimer = nil;
 	[self cancelIndexing];
 	[self _closeLogIndex];
 	dispatch_group_wait(closingIndexGroup, DISPATCH_TIME_FOREVER);
@@ -375,20 +375,18 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 	self.xhtmlDecoder = nil;
 	self.statusTranslation = nil;
 	
-	dispatch_release(dirtyLogSetMutationQueue); dirtyLogSetMutationQueue = nil;
-	dispatch_release(searchIndexQueue); searchIndexQueue = nil;
-	dispatch_release(activeAppendersMutationQueue); activeAppendersMutationQueue = nil;
-	dispatch_release(logIndexingGroup); logIndexingGroup = nil;
-	dispatch_release(closingIndexGroup); closingIndexGroup = nil;
-	dispatch_release(addToSearchKitQueue); addToSearchKitQueue = nil;
-	dispatch_release(logAppendingGroup); logAppendingGroup = nil;
-	dispatch_release(ioQueue); ioQueue = nil;
-	dispatch_release(jobSemaphore); jobSemaphore = nil;
-	dispatch_release(loggerPluginGroup); loggerPluginGroup = nil;
-	
-	[formatter release]; formatter = nil;
-	
-	[super dealloc];
+	dirtyLogSetMutationQueue = nil;
+	searchIndexQueue = nil;
+	activeAppendersMutationQueue = nil;
+	logIndexingGroup = nil;
+	closingIndexGroup = nil;
+	addToSearchKitQueue = nil;
+	logAppendingGroup = nil;
+	ioQueue = nil;
+	jobSemaphore = nil;
+	loggerPluginGroup = nil;
+
+	formatter = nil;
 }
 #pragma mark AILoggerPlugin Plubic Methods
 //Paths
@@ -435,7 +433,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 	
 	NSDictionary *cache = [NSDictionary dictionaryWithObjects:dates forKeys:files];
 	
-	return (files ? [files sortedArrayUsingFunction:&sortPaths context:cache] : nil);
+	return (files ? [files sortedArrayUsingFunction:&sortPaths context:(__bridge void *)cache] : nil);
 }
 
 //Log indexing
@@ -489,7 +487,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 			NSURL     *logIndexURL = [NSURL fileURLWithPath:logIndexPath];
 			
 			if ([[NSFileManager defaultManager] fileExistsAtPath:logIndexPath]) {
-				_index = SKIndexOpenWithURL((CFURLRef)logIndexURL, (CFStringRef)@"Content", true);
+				_index = SKIndexOpenWithURL((__bridge CFURLRef)logIndexURL, (__bridge CFStringRef)@"Content", true);
 				AILogWithSignature(@"Opened index %p from %@",_index,logIndexURL);
 				
 				if (!_index) {
@@ -514,10 +512,10 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 				//Create the index if one doesn't exist or it couldn't be opened.
 				[[NSFileManager defaultManager] createDirectoryAtPath:[logIndexPath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:NULL];
 				
-				_index = SKIndexCreateWithURL((CFURLRef)logIndexURL,
-											  (CFStringRef)@"Content", 
+				_index = SKIndexCreateWithURL((__bridge CFURLRef)logIndexURL,
+											  (__bridge CFStringRef)@"Content",
 											  kSKIndexInverted,
-											  (CFDictionaryRef)textAnalysisProperties);
+											  (__bridge CFDictionaryRef)textAnalysisProperties);
 
 				if (_index) {
 					AILogWithSignature(@"Created a new log index %p at %@ with textAnalysisProperties %@. Will reindex all logs.",_index,logIndexURL,textAnalysisProperties);
@@ -576,7 +574,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
         }
 
 		for (NSString *logPath in paths) {
-			SKDocumentRef document = SKDocumentCreateWithURL((CFURLRef)[NSURL fileURLWithPath:logPath]);
+			SKDocumentRef document = SKDocumentCreateWithURL((__bridge CFURLRef)[NSURL fileURLWithPath:logPath]);
 			if (document) {
 				SKIndexRemoveDocument(logSearchIndex, document);
 				CFRelease(document);
@@ -593,21 +591,21 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 #pragma mark Private Functions
 void runWithAutoreleasePool(dispatch_block_t block)
 {
-	NSAutoreleasePool *pool = [NSAutoreleasePool new];
-	block();
-	[pool release];
+	@autoreleasepool {
+		block();
+	}
 }
 
 static inline dispatch_block_t blockWithAutoreleasePool(dispatch_block_t block)
 {
-	return [[^{
+	return [^{
 		runWithAutoreleasePool(block);
-	} copy] autorelease];
+	} copy];
 }
 
 NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 {
-	NSDictionary *cache = (NSDictionary *)context;
+	NSDictionary *cache = (__bridge NSDictionary *)context;
 	id date1 = [cache objectForKey:path1];
 	id date2 = [cache objectForKey:path2];
 	NSNull *n = [NSNull null];
@@ -665,7 +663,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	static NSDateFormatter *logNameFormatter;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		logNameFormatter = [[NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd'T'HH.mm.ssZZZ" timeZone:nil] retain];
+		logNameFormatter = [NSDateFormatter ai_fixedFormatterWithFormat:@"yyyy-MM-dd'T'HH.mm.ssZZZ" timeZone:nil];
 	});
 
 	NSString    *dateString = [logNameFormatter stringFromDate:date];
@@ -679,36 +677,36 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 #pragma mark Installation Methods
 - (void)_configureMenuItems
 {
-	logViewerMenuItem = [[[NSMenuItem alloc]
-						  initWithTitle:LOG_VIEWER 
-						  target:self
-						  action:@selector(showLogViewer:)
-						  keyEquivalent:@"L"] autorelease];
+	logViewerMenuItem = [[NSMenuItem alloc]
+						 initWithTitle:LOG_VIEWER
+						 target:self
+						 action:@selector(showLogViewer:)
+						 keyEquivalent:@"L"];
 	[adium.menuController addMenuItem:logViewerMenuItem
 						   toLocation:LOC_Window_Auxiliary];
 	
-	viewContactLogsMenuItem = [[[NSMenuItem alloc]
-								initWithTitle:VIEW_LOGS_WITH_CONTACT
-								target:self
-								action:@selector(showLogViewerToSelectedContact:)
-								keyEquivalent:@"l"] autorelease];
+	viewContactLogsMenuItem = [[NSMenuItem alloc]
+							   initWithTitle:VIEW_LOGS_WITH_CONTACT
+							   target:self
+							   action:@selector(showLogViewerToSelectedContact:)
+							   keyEquivalent:@"l"];
 	
 	[adium.menuController addMenuItem:viewContactLogsMenuItem
 						   toLocation:LOC_Contact_Info];
 	
-	viewContactLogsContextMenuItem = [[[NSMenuItem alloc]
-									   initWithTitle:VIEW_LOGS_WITH_CONTACT
-									   target:self
-									   action:@selector(showLogViewerToSelectedContextContact:) 
-									   keyEquivalent:@""] autorelease];
+	viewContactLogsContextMenuItem = [[NSMenuItem alloc]
+									  initWithTitle:VIEW_LOGS_WITH_CONTACT
+									  target:self
+									  action:@selector(showLogViewerToSelectedContextContact:)
+									  keyEquivalent:@""];
 	[adium.menuController addContextualMenuItem:viewContactLogsContextMenuItem
 									 toLocation:Context_Contact_Manage];
 	
-	viewGroupLogsContextMenuItem = [[[NSMenuItem alloc]
-									 initWithTitle:VIEW_LOGS_WITH_CONTACT
-									 target:self
-									 action:@selector(showLogViewerForGroupChat:) 
-									 keyEquivalent:@""] autorelease];
+	viewGroupLogsContextMenuItem = [[NSMenuItem alloc]
+									initWithTitle:VIEW_LOGS_WITH_CONTACT
+									target:self
+									action:@selector(showLogViewerForGroupChat:)
+									keyEquivalent:@""];
 	[adium.menuController addContextualMenuItem:viewGroupLogsContextMenuItem
 									 toLocation:Context_GroupChat_Manage];
 }
@@ -779,9 +777,8 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 			}
 			
 			[upgradeWindowController close];
-			[upgradeWindowController release];
 		}
-		
+
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
 										   forKey:@"Log Extensions Updated"
 											group:PREF_GROUP_LOGGING];
@@ -868,9 +865,8 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		}
 		
 		[upgradeWindowController close];
-		[upgradeWindowController release];
 	}
-	
+
 	[adium.preferenceController setPreference:[NSNumber numberWithBool:YES]
 									   forKey:@"Log Permissions Updated"
 										group:PREF_GROUP_LOGGING];
@@ -1105,7 +1101,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 					[attributeValues addObject:displayName];
 				}
 				
-				AIXMLElement *messageElement = [[[AIXMLElement alloc] initWithName:@"message"] autorelease];
+				AIXMLElement *messageElement = [[AIXMLElement alloc] initWithName:@"message"];
 				
 				[messageElement addEscapedObject:[xhtmlDecoder encodeHTML:[content message]
 															   imagesPath:[appender.path stringByDeletingLastPathComponent]]];
@@ -1147,7 +1143,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 							[attributeValues addObject:actualObject.displayName];				
 						}
 						
-						AIXMLElement *statusElement = [[[AIXMLElement alloc] initWithName:@"status"] autorelease];
+						AIXMLElement *statusElement = [[AIXMLElement alloc] initWithName:@"status"];
 						
 						[statusElement addEscapedObject:([(AIContentStatus *)content loggedMessage] ?
 														 [xhtmlDecoder encodeHTML:[(AIContentStatus *)content loggedMessage] imagesPath:nil] :
@@ -1180,7 +1176,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 						[attributeValues addObject:[[content source] displayName]];				
 					}
 					
-					AIXMLElement *statusElement = [[[AIXMLElement alloc] initWithName:@"status"] autorelease];
+					AIXMLElement *statusElement = [[AIXMLElement alloc] initWithName:@"status"];
 					
 					[statusElement addEscapedObject:[xhtmlDecoder encodeHTML:[content message]
 																  imagesPath:[[appender path] stringByDeletingLastPathComponent]]];
@@ -1220,7 +1216,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 												   object:[self keyForChat:chat]];
 		
 		// Print the windowOpened event in the log
-		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
+		AIXMLElement *eventElement = [[AIXMLElement alloc] initWithName:@"event"];
 		
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
 								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
@@ -1242,7 +1238,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	
 	//If there is an appender, add the windowClose event
 	if (appender) {
-		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
+		AIXMLElement *eventElement = [[AIXMLElement alloc] initWithName:@"event"];
 		
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
 								 values:[NSArray arrayWithObjects:@"windowClosed", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
@@ -1287,7 +1283,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		appender = [self _createAppenderForChat:chat withDate:nil];
 
 		//Add the window opened event now
-		AIXMLElement *eventElement = [[[AIXMLElement alloc] initWithName:@"event"] autorelease];
+		AIXMLElement *eventElement = [[AIXMLElement alloc] initWithName:@"event"];
 
 		[eventElement setAttributeNames:[NSArray arrayWithObjects:@"type", @"sender", @"time", nil]
 								 values:[NSArray arrayWithObjects:@"windowOpened", chat.account.UID, [formatter stringFromDate:[NSDate date]], nil]];
@@ -1312,7 +1308,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 
 	NSString		*fullPath = [AILoggerPlugin fullPathForLogOfChat:chat onDate:chatDate];
 
-	AIXMLElement *rootElement = [[[AIXMLElement alloc] initWithName:@"chat"] autorelease];
+	AIXMLElement *rootElement = [[AIXMLElement alloc] initWithName:@"chat"];
 
 	[rootElement setAttributeNames:[NSArray arrayWithObjects:@"xmlns", @"account", @"service", @"adiumversion", @"buildid", nil]
 							values:[NSArray arrayWithObjects:
@@ -1479,17 +1475,16 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 																	 fromUID:fromName
 																serviceClass:nil];
 			for (AILogToGroup *toGroup in [fromGroup toGroupArray]) {
-				NSAutoreleasePool *innerPool = [[NSAutoreleasePool alloc] init];
-				for (AIChatLog *theLog in [toGroup logEnumerator]) {
-					if (theLog != nil) {
-						dispatch_sync(dirtyLogSetMutationQueue, ^{
-							[bself.dirtyLogSet addObject:[_logBasePath stringByAppendingPathComponent:[theLog relativePath]]];
-						});
+				@autoreleasepool {
+					for (AIChatLog *theLog in [toGroup logEnumerator]) {
+						if (theLog != nil) {
+							dispatch_sync(dirtyLogSetMutationQueue, ^{
+								[bself.dirtyLogSet addObject:[_logBasePath stringByAppendingPathComponent:[theLog relativePath]]];
+							});
+						}
 					}
 				}
-				[innerPool release];
 			}
-			[fromGroup release];
 		}
 		AILogWithSignature(@"Finished dirtying all logs");
 		
@@ -1519,7 +1514,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	__block NSMutableSet *localLogSet = nil;
 	
 	dispatch_sync(dirtyLogSetMutationQueue, ^{
-		localLogSet = [[self.dirtyLogSet mutableCopy] autorelease];
+		localLogSet = [self.dirtyLogSet mutableCopy];
 		atomic_store(&bself->logsToIndex, (SInt64)[localLogSet count]);
 		atomic_store(&_remainingLogs, atomic_load(&bself->logsToIndex));
 	});
@@ -1549,139 +1544,132 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		
 		AILogWithSignature(@"Cleaning %lu dirty logs", (unsigned long)[localLogSet count]);
 		
-		[localLogSet retain];
-		
 		dispatch_group_async(loggerPluginGroup, searchIndexQueue, blockWithAutoreleasePool(^{
 			
 			dispatch_group_enter(logIndexingGroup);
 			
 			while (_remainingLogs > 0 && bself.indexingAllowed) {
-				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-				__block NSString *__logPath = nil;
-				NSString  *logPath = nil;
+				@autoreleasepool {
+					__block NSString *__logPath = nil;
+					NSString  *logPath = nil;
 				
-				dispatch_sync(dirtyLogSetMutationQueue, ^{
-					if ([localLogSet count]) {
-						__logPath = [[[localLogSet anyObject] retain] autorelease];
-						[bself.dirtyLogSet removeObject:__logPath];
-						[localLogSet removeObject:__logPath];
-					}
-				});
+					dispatch_sync(dirtyLogSetMutationQueue, ^{
+						if ([localLogSet count]) {
+							__logPath = [localLogSet anyObject];
+							[bself.dirtyLogSet removeObject:__logPath];
+							[localLogSet removeObject:__logPath];
+						}
+					});
 				
-				logPath = [[__logPath copy] autorelease];
+					logPath = [__logPath copy];
 				
-				if (logPath) {
-                    NSURL *logURL = [NSURL fileURLWithPath:logPath];
+					if (logPath) {
+	                    NSURL *logURL = [NSURL fileURLWithPath:logPath];
 					
-					NSAssert(logURL != nil, @"Converting path to url failed");
+						NSAssert(logURL != nil, @"Converting path to url failed");
 					
-					dispatch_semaphore_wait(logLoadingPrefetchSemaphore, DISPATCH_TIME_FOREVER);
+						dispatch_semaphore_wait(logLoadingPrefetchSemaphore, DISPATCH_TIME_FOREVER);
 					
-					dispatch_group_async(logIndexingGroup, ioQueue, blockWithAutoreleasePool(^{
-						CFRetain(searchIndex);
-						__block SKDocumentRef document = SKDocumentCreateWithURL((CFURLRef)logURL);
+						dispatch_group_async(logIndexingGroup, ioQueue, blockWithAutoreleasePool(^{
+							CFRetain(searchIndex);
+							__block SKDocumentRef document = SKDocumentCreateWithURL((__bridge CFURLRef)logURL);
 						
-						if (document && bself.indexingAllowed) {
-							/* We _could_ use SKIndexAddDocument() and depend on our Spotlight plugin for importing.
-							 * However, this has three problems:
-							 *	1. Slower, especially to start initial indexing, which is the most common use case since the log viewer
-							 *	   indexes recently-modified ("dirty") logs when it opens.
-							 *  2. Sometimes logs don't appear to be associated with the right URI type and therefore don't get indexed.
-							 *  3. On 10.3, this means that logs' markup is indexed in addition to their text, which is undesireable.
-							 */
+							if (document && bself.indexingAllowed) {
+								/* We _could_ use SKIndexAddDocument() and depend on our Spotlight plugin for importing.
+								 * However, this has three problems:
+								 *	1. Slower, especially to start initial indexing, which is the most common use case since the log viewer
+								 *	   indexes recently-modified ("dirty") logs when it opens.
+								 *  2. Sometimes logs don't appear to be associated with the right URI type and therefore don't get indexed.
+								 *  3. On 10.3, this means that logs' markup is indexed in addition to their text, which is undesireable.
+								 */
 							
-                            NSData *documentData = CopyDataForURL(NULL, logURL);
+	                            NSData *documentData = CopyDataForURL(NULL, logURL);
 							
-							dispatch_semaphore_wait(jobSemaphore, DISPATCH_TIME_FOREVER);
+								dispatch_semaphore_wait(jobSemaphore, DISPATCH_TIME_FOREVER);
                             
-							dispatch_group_async(logIndexingGroup, defaultDispatchQueue, blockWithAutoreleasePool(^{
-                                __block CFStringRef documentText = CopyTextContentForFileData(NULL, logURL, documentData);
+								dispatch_group_async(logIndexingGroup, defaultDispatchQueue, blockWithAutoreleasePool(^{
+	                                __block CFStringRef documentText = CopyTextContentForFileData(NULL, logURL, documentData);
 								
-								[documentData release];
-								
-                                dispatch_group_async(logIndexingGroup, defaultDispatchQueue, blockWithAutoreleasePool(^{
+	                                dispatch_group_async(logIndexingGroup, defaultDispatchQueue, blockWithAutoreleasePool(^{
                                     
-									CFRetain(searchIndex);
-									
-                                    if (documentText && CFStringGetLength(documentText) > 0 && bself.indexingAllowed) {
-										static dispatch_queue_t skQueue = nil;
-										static dispatch_once_t onceToken;
-										dispatch_once(&onceToken, ^{
-											skQueue = dispatch_queue_create("im.adium.AILoggerPlugin._cleanDirtyLogs.skQueue", 0);
-										});
-										
 										CFRetain(searchIndex);
-										CFRetain(document);
-										CFRetain(documentText);
-										[logURL retain];
+									
+	                                    if (documentText && CFStringGetLength(documentText) > 0 && bself.indexingAllowed) {
+											static dispatch_queue_t skQueue = nil;
+											static dispatch_once_t onceToken;
+											dispatch_once(&onceToken, ^{
+												skQueue = dispatch_queue_create("im.adium.AILoggerPlugin._cleanDirtyLogs.skQueue", 0);
+											});
 										
-										dispatch_group_async(logIndexingGroup, skQueue, ^{
-											SKIndexAddDocumentWithText(searchIndex, document, documentText, YES);
+											CFRetain(searchIndex);
+											CFRetain(document);
+											CFRetain(documentText);
+										
+											dispatch_group_async(logIndexingGroup, skQueue, ^{
+												SKIndexAddDocumentWithText(searchIndex, document, documentText, YES);
 											
+												atomic_fetch_add(&bself->logsIndexed, 1);
+												atomic_fetch_sub(&_remainingLogs, 1);
+											
+												if (lastUpdate == 0 || AITickCount() > lastUpdate + LOG_INDEX_STATUS_INTERVAL || _remainingLogs == 0) {
+													dispatch_async(dispatch_get_main_queue(), ^{
+														[[AILogViewerWindowController existingWindowController] logIndexingProgressUpdate];
+													});
+													uint64_t tick = AITickCount();
+													atomic_store(&lastUpdate, tick);
+												}
+											
+												atomic_fetch_add(&unsavedChanges, 1);
+											
+												if (unsavedChanges > LOG_CLEAN_SAVE_INTERVAL) {
+													[bself _saveDirtyLogSet];
+													atomic_store(&unsavedChanges, 0);
+												}
+											
+												dispatch_semaphore_signal(jobSemaphore);
+											
+												CFRelease(searchIndex);
+												CFRelease(document);
+												CFRelease(documentText);
+											});
+	                                        CFRelease(documentText);
+	                                    } else if (documentText) {
+	                                        CFRelease(documentText);
+										
+											dispatch_semaphore_signal(jobSemaphore);
+	                                    } else {
 											atomic_fetch_add(&bself->logsIndexed, 1);
 											atomic_fetch_sub(&_remainingLogs, 1);
-											
-											if (lastUpdate == 0 || AITickCount() > lastUpdate + LOG_INDEX_STATUS_INTERVAL || _remainingLogs == 0) {
-												dispatch_async(dispatch_get_main_queue(), ^{
-													[[AILogViewerWindowController existingWindowController] logIndexingProgressUpdate];
-												});
-												uint64_t tick = AITickCount();
-												atomic_store(&lastUpdate, tick);
-											}
-											
-											atomic_fetch_add(&unsavedChanges, 1);
-											
-											if (unsavedChanges > LOG_CLEAN_SAVE_INTERVAL) {
-												[bself _saveDirtyLogSet];
-												atomic_store(&unsavedChanges, 0);
-											}
-											
+										
 											dispatch_semaphore_signal(jobSemaphore);
-											
-											CFRelease(searchIndex);
-											CFRelease(document);
-											CFRelease(documentText);
-											[logURL release];
-										});
-                                        CFRelease(documentText);
-                                    } else if (documentText) {
-                                        CFRelease(documentText);
-										
-										dispatch_semaphore_signal(jobSemaphore);
-                                    } else {
-										atomic_fetch_add(&bself->logsIndexed, 1);
-										atomic_fetch_sub(&_remainingLogs, 1);
-										
-										dispatch_semaphore_signal(jobSemaphore);
-									}
+										}
 									
                                     
-									dispatch_semaphore_signal(logLoadingPrefetchSemaphore);
+										dispatch_semaphore_signal(logLoadingPrefetchSemaphore);
 									
-                                    CFRelease(document);
-                                    CFRelease(searchIndex);
-                                }));
-                            }));
-						} else {
-							if (document) {
-								CFRelease(document);
+	                                    CFRelease(document);
+	                                    CFRelease(searchIndex);
+	                                }));
+	                            }));
 							} else {
-								AILogWithSignature(@"Could not create document for %@ [%@]", logPath, logURL);
+								if (document) {
+									CFRelease(document);
+								} else {
+									AILogWithSignature(@"Could not create document for %@ [%@]", logPath, logURL);
+								}
+							
+								atomic_fetch_add(&bself->logsIndexed, 1);
+								atomic_fetch_sub(&_remainingLogs, 1);
+							
+								dispatch_semaphore_signal(jobSemaphore);
+								dispatch_semaphore_signal(logLoadingPrefetchSemaphore);
 							}
-							
-							atomic_fetch_add(&bself->logsIndexed, 1);
-							atomic_fetch_sub(&_remainingLogs, 1);
-							
-							dispatch_semaphore_signal(jobSemaphore);
-							dispatch_semaphore_signal(logLoadingPrefetchSemaphore);
-						}
-						CFRelease(searchIndex);
-					}));
-				} else {
-					[pool release];
-					break;
+							CFRelease(searchIndex);
+						}));
+					} else {
+						break;
+					}
 				}
-				[pool release]; pool = nil;
 			}
 			
 			if (unsavedChanges) {
@@ -1704,7 +1692,6 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 								   (long)SKIndexGetDocumentCount(searchIndex));
 				
 				CFRelease(searchIndex);
-				[localLogSet release];
 				
 				[bself _didCleanDirtyLogs];
 			});
@@ -1747,7 +1734,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 {
 	__block __typeof__(self) bself = self;
 	dispatch_group_async(loggerPluginGroup, dirtyLogSetMutationQueue, ^{
-		NSSet *_dirtySet = [[bself.dirtyLogSet copy] autorelease];
+		NSSet *_dirtySet = [bself.dirtyLogSet copy];
 		AILogWithSignature(@"Saving %lu dirty logs", _dirtySet.count);
 		if ([_dirtySet count] > 0 && bself.canSaveDirtyLogSet) {
 			dispatch_async(ioQueue, ^{
@@ -1794,19 +1781,18 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 
 - (void)_flushIndex:(SKIndexRef)inIndex
 {
-	NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
-	if (inIndex) {
-		self.indexIsFlushing = YES;
-		AILogWithSignature(@"**** Flushing index %p",inIndex);
-		CFRetain(inIndex);
-		SKIndexFlush(inIndex);
-		SKIndexCompact(inIndex);
-		CFRelease(inIndex);
-		AILogWithSignature(@"**** Finished flushing index %p",inIndex);
-		self.indexIsFlushing = NO;
+	@autoreleasepool {
+		if (inIndex) {
+			self.indexIsFlushing = YES;
+			AILogWithSignature(@"**** Flushing index %p",inIndex);
+			CFRetain(inIndex);
+			SKIndexFlush(inIndex);
+			SKIndexCompact(inIndex);
+			CFRelease(inIndex);
+			AILogWithSignature(@"**** Finished flushing index %p",inIndex);
+			self.indexIsFlushing = NO;
+		}
 	}
-	
-	[pool release];
 }
 
 @end

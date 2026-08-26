@@ -110,7 +110,8 @@
 	IBOutlet	NSTextField				*label_textColor;
 	IBOutlet	NSTextField				*label_to;
 
-	id				target;
+	//The pane that asked for the editor and is told when it closes; never owned
+	__unsafe_unretained id				target;
 	NSString		*themeName;
 }
 
