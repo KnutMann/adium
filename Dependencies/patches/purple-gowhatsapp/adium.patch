@@ -1,7 +1,7 @@
 From bb91ddd9b4bd3a5401a41365888abdc4dc05c6af Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 21:35:47 +0200
-Subject: [PATCH 01/38] Adium adaptations: reactions, inline media, voice
+Subject: [PATCH 01/39] Adium adaptations: reactions, inline media, voice
  decode, names
 
 - Message cache: default size 100 (was 0, so reactions never resolved)
@@ -642,7 +642,7 @@ index 0b265d7..c087d5a 100644
 From 0006fdf859721b123bc694fffa9db56bb57e5086 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:13:47 +0200
-Subject: [PATCH 02/38] Location messages as Apple Maps links; no buddies for
+Subject: [PATCH 02/39] Location messages as Apple Maps links; no buddies for
  group JIDs
 
 - LocationMessage/LiveLocationMessage were silently dropped; render
@@ -721,7 +721,7 @@ index 2adc92f..17f7c5b 100644
 From a7669168486d63e10430882d6af1ceb40b8c6eee Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:25:58 +0200
-Subject: [PATCH 03/38] Auto-download documents and announce them with a file
+Subject: [PATCH 03/39] Auto-download documents and announce them with a file
  link
 
 Non-image, non-voice, non-video attachments download straight to the
@@ -808,7 +808,7 @@ index 47b1b89..d1a4952 100644
 From 606bfd39a5a6dd543d2fe3e0565b97ed83ffc5f7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Mon, 10 Aug 2026 22:41:52 +0200
-Subject: [PATCH 04/38] Download profile pictures in full resolution by default
+Subject: [PATCH 04/39] Download profile pictures in full resolution by default
 
 The get-icons option defaulted to "no", so contact and chat window
 icons stayed empty; default to "original" everywhere (option list,
@@ -870,7 +870,7 @@ index 38a4281..f80b278 100644
 From a6aac04b8bb05a715e143a1c73ab5480d7f335b8 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 00:22:04 +0200
-Subject: [PATCH 05/38] Raise message cache default to 500
+Subject: [PATCH 05/39] Raise message cache default to 500
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ---
@@ -911,7 +911,7 @@ index fb5aef7..ab562a6 100644
 From aa133c032ca8124f364424bd5a07a4435efbceae Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Tue, 11 Aug 2026 23:11:34 +0200
-Subject: [PATCH 06/38] Inline images of all types by default
+Subject: [PATCH 06/39] Inline images of all types by default
 
 Adium renders images in its message view rather than through a pixbuf
 loader, so the frontend support the upstream option asks about is
@@ -941,7 +941,7 @@ index 051f478..205e4ca 100644
 From e0eee9ee74ec4058bd0ba24c33408829ba1321c7 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 14:12:32 +0200
-Subject: [PATCH 07/38] Attribute a sent picture to the sender, not to the
+Subject: [PATCH 07/39] Attribute a sent picture to the sender, not to the
  conversation
 
 The inline echo of an outgoing image passed the transfer's "who" as both the
@@ -1003,7 +1003,7 @@ index 64fe571..b62ef57 100644
 From 27bfce19a7cca2c342b4d5725e2616d959ff09d1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 17:14:00 +0200
-Subject: [PATCH 08/38] Match the Signal plug-in's device linking dialog
+Subject: [PATCH 08/39] Match the Signal plug-in's device linking dialog
 
 Same title, same wording, same buttons, and no raw QR payload: it is not
 something to type anywhere, it is the bytes the camera is about to read.
@@ -1074,7 +1074,7 @@ index 6b67c02..78c9f0b 100644
 From 3b3a989bd9dd7b686622db6ee9447680af0ce924 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Fri, 14 Aug 2026 20:29:12 +0200
-Subject: [PATCH 09/38] Give a group chat its picture, on the node rather than
+Subject: [PATCH 09/39] Give a group chat its picture, on the node rather than
  on a buddy
 
 Contacts have had pictures all along and groups have not, because the only
@@ -1221,7 +1221,7 @@ index 9de9fdf..fc71358 100644
 From d6c419e38911dcddd12edf0a4e1c86ea6cb9ac93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Sun, 16 Aug 2026 00:52:07 +0200
-Subject: [PATCH 10/38] Keep a profile picture at the resolution that was asked
+Subject: [PATCH 10/39] Keep a profile picture at the resolution that was asked
  for
 
 Two faults, one of them ours.
@@ -1349,7 +1349,7 @@ index f80b278..318f744 100644
 From 3200a4b21f6b8a6420287d8925d6e041558b0e93 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 19 Aug 2026 16:35:39 +0200
-Subject: [PATCH 11/38] Resolve WhatsApp business account names
+Subject: [PATCH 11/39] Resolve WhatsApp business account names
 
 Business accounts often carry no push name; whatsmeow delivers their verified
 name instead, both as a field on every message and as a BusinessName event when
@@ -1418,7 +1418,7 @@ index 28f68e1..2b14e0c 100644
 From d31ba408a3ab9f38c40e2dfc4dc6f35f669a4272 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:35:03 +0200
-Subject: [PATCH 12/38] Forward incoming receipts and sent-message ids.
+Subject: [PATCH 12/39] Forward incoming receipts and sent-message ids.
 
 Incoming events.Receipt used to be logged and dropped. Now every receipt
 is handed to the purple part as a new receipt message type, one call per
@@ -1821,7 +1821,7 @@ index c447251..a610632 100644
 From 48009366915317072b9796ce9e5f248c4979ce3d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 00:37:49 +0200
-Subject: [PATCH 13/38] Emit reactions and message ids as purple signals.
+Subject: [PATCH 13/39] Emit reactions and message ids as purple signals.
 
 An incoming reaction used to exist only as the rendered sentence
 "reacted with X to message Y", where Y falls back to "unknown message"
@@ -2138,7 +2138,7 @@ index 97268dc..33cb86f 100644
 From 62e3daa35e0fa8c9334d6399c82a17f7f93bd31a Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 02:18:17 +0200
-Subject: [PATCH 14/38] Give the receipt case back its break
+Subject: [PATCH 14/39] Give the receipt case back its break
 
 The union-style conflict resolution that stacked the receipt and
 reaction commits onto this branch sliced the break statement out from
@@ -2173,7 +2173,7 @@ index dd09132..4af3005 100644
 From 812cdfee4d01c48784a0e4553e5d058807399f64 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 02:37:47 +0200
-Subject: [PATCH 15/38] Fetch the history the phone still remembers
+Subject: [PATCH 15/39] Fetch the history the phone still remembers
 
 WhatsApp keeps no readable history on its servers; the primary device
 does. whatsmeow can ask it for the messages preceding a known one, and
@@ -2791,7 +2791,7 @@ index 3f1d72f..105f06a 100644
 From bc25e8f10890aebe16b921b909411081c783313c Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 03:45:47 +0200
-Subject: [PATCH 16/38] Ask only when the user opens a conversation, and only
+Subject: [PATCH 16/39] Ask only when the user opens a conversation, and only
  once linked
 
 Two things the first cut got wrong. A conversation also comes into being
@@ -2920,7 +2920,7 @@ index 3f7cfc5..667aa8c 100644
 From c98dbaf18cd3944133196bd86b4ab1d623e67908 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:04:09 +0200
-Subject: [PATCH 17/38] Ask even when no message of the conversation is known
+Subject: [PATCH 17/39] Ask even when no message of the conversation is known
 
 The request points at a message and asks for what came before it, and
 the message cache was the only place it looked for one. The cache holds
@@ -3000,7 +3000,7 @@ index 667aa8c..55c504e 100644
 From 12e90e3b7ff2e4511caa78664685c81bdf27b81d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:09:34 +0200
-Subject: [PATCH 18/38] Say at linking time that this device can take history
+Subject: [PATCH 18/39] Say at linking time that this device can take history
  on demand
 
 The request went out and the server acknowledged it, and the phone never
@@ -3065,7 +3065,7 @@ index 105f06a..63bb3a1 100644
 From 3cd4a2fca11f6152575a6423ce595b61c687917d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:16:45 +0200
-Subject: [PATCH 19/38] Fill only the gap the phone leaves, and only as much as
+Subject: [PATCH 19/39] Fill only the gap the phone leaves, and only as much as
  was asked
 
 The first fetch that actually reached a phone showed the merge for what
@@ -3148,7 +3148,7 @@ index 55c504e..7c0d6be 100644
 From ab99e1fc595680d8b67cdf83404f23ccd85fbb2b Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:18:52 +0200
-Subject: [PATCH 20/38] Seat ourselves once in a room we fetched history for
+Subject: [PATCH 20/39] Seat ourselves once in a room we fetched history for
 
 A group chat with fetched history showed the same person twice: some
 messages named their author by phone number, others by the hidden lid
@@ -3210,7 +3210,7 @@ index 7c0d6be..2030a5f 100644
 From 42525c186af14c3c712dee27618823ccfee6c250 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:24:39 +0200
-Subject: [PATCH 21/38] Carry the reactions the history brings, instead of
+Subject: [PATCH 21/39] Carry the reactions the history brings, instead of
  dropping them
 
 A reaction is a message here, one that names another message rather than
@@ -3327,7 +3327,7 @@ index 2030a5f..99dc183 100644
 From 6821893f499bbb9026de77e1f42d8b9d9decbfdd Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:29:37 +0200
-Subject: [PATCH 22/38] Say what an answer actually held, and let reactions
+Subject: [PATCH 22/39] Say what an answer actually held, and let reactions
  stand alone
 
 A fetch that came back with nothing to show said only that, which left
@@ -3441,7 +3441,7 @@ index 99dc183..edc534f 100644
 From f420ec69e33b95a602698e49b4e86ba4f075d1e2 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:37:15 +0200
-Subject: [PATCH 23/38] Lock the message cache against the thread that now
+Subject: [PATCH 23/39] Lock the message cache against the thread that now
  reads it
 
 The cache belonged to the connection's own goroutine and was reached
@@ -3560,7 +3560,7 @@ index ab562a6..3947682 100644
 From 06d7c405a5b5dd2faa6f6baecbbb3838296b1e10 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 04:50:38 +0200
-Subject: [PATCH 24/38] Answer the review of the history fetch
+Subject: [PATCH 24/39] Answer the review of the history fetch
 
 Nine findings from an adversarial reading, all of them about the same
 thing: a conversation coming into being is a weaker signal than it
@@ -3806,7 +3806,7 @@ index b1fae52..96e2b2d 100644
 From 9496126591d431f2fe921f8742a68b6931595328 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 19:37:01 +0200
-Subject: [PATCH 25/38] A video plays where it was sent, not behind a transfer
+Subject: [PATCH 25/39] A video plays where it was sent, not behind a transfer
  prompt
 
 Videos were the one kind of media still routed through the file transfer
@@ -3934,7 +3934,7 @@ index 88ff9c2..de9e879 100644
 From 289b6406b9c6a06f25f9a442bbee009542768656 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 19:52:34 +0200
-Subject: [PATCH 26/38] A history replay shows the media it already has
+Subject: [PATCH 26/39] A history replay shows the media it already has
 
 A conversation replayed from the phone rendered every attachment as a
 placeholder line, "[Sent a video.]", even when the video in question had just
@@ -4218,7 +4218,7 @@ index 96e2b2d..fbdf0b7 100644
 From d8319c1decc2cc3d766ef6bb239aebe048c5b641 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 20:12:22 +0200
-Subject: [PATCH 27/38] The plug-in shares Adium's libpurple instead of
+Subject: [PATCH 27/39] The plug-in shares Adium's libpurple instead of
  bringing its own
 
 Adium loads its libpurple and glib from frameworks inside the app bundle.
@@ -4284,7 +4284,7 @@ index 328b9c1..76566c9 100644
 From 06843ca1042c41cb5550247aa0ed312c13fe240e Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 20:38:26 +0200
-Subject: [PATCH 28/38] Nothing this plug-in links resolves outside the bundle
+Subject: [PATCH 28/39] Nothing this plug-in links resolves outside the bundle
  any more
 
 gdk-pixbuf was the last reference still pointing at Homebrew; the bundle ships
@@ -4316,7 +4316,7 @@ index 76566c9..5f14e81 100644
 From 8c388bc6e3b1b186d3b315b1d651c047a888c6e5 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 21:03:39 +0200
-Subject: [PATCH 29/38] The document link is a well-formed URI, and the sender
+Subject: [PATCH 29/39] The document link is a well-formed URI, and the sender
  names no paths
 
 Two hardenings around the auto-downloaded document link, found while making it
@@ -4404,7 +4404,7 @@ index 55fc633..b078602 100644
 From d88650a918bbfd1e0e880a5318c882683559d00f Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 21:10:41 +0200
-Subject: [PATCH 30/38] Downloaded files carry the quarantine mark a browser
+Subject: [PATCH 30/39] Downloaded files carry the quarantine mark a browser
  download carries
 
 The Go side writes attachments with a plain file create, which leaves no
@@ -4564,7 +4564,7 @@ index 0000000..280483d
 From 49d8c04bdc9ea9e990bc13106a7ae83b1bd7d8e6 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 21:56:48 +0200
-Subject: [PATCH 31/38] Two dormant slips: a directory nobody can write, an
+Subject: [PATCH 31/39] Two dormant slips: a directory nobody can write, an
  else that went missing
 
 The profile-picture persist folder was created with mode 0x755. That is hex,
@@ -4621,7 +4621,7 @@ index 3a08315..5b33a57 100644
 From 28a93176fe428c4e3872caf7bfef6a3911ac9681 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 21:56:48 +0200
-Subject: [PATCH 32/38] An undecryptable message is asked for again, from the
+Subject: [PATCH 32/39] An undecryptable message is asked for again, from the
  phone
 
 When a Signal session goes stale, the plug-in showed a notice telling the
@@ -4659,7 +4659,7 @@ index 63bb3a1..a72a17e 100644
 From a617a6be2caed33d0111488eef65f157df7ee745 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 21:56:48 +0200
-Subject: [PATCH 33/38] A shared contact card shows its name and numbers
+Subject: [PATCH 33/39] A shared contact card shows its name and numbers
 
 A contact shared into a chat arrives as a ContactMessage, or several inside
 a ContactsArrayMessage, and neither carries conversation text, so the chat
@@ -4813,7 +4813,7 @@ index 33cb86f..5d6d580 100644
 From 14c8441ffbdb4560070e3f3e32548f7cc4a016e1 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 22:39:14 +0200
-Subject: [PATCH 34/38] The automatic group yields to the group the user chose
+Subject: [PATCH 34/39] The automatic group yields to the group the user chose
 
 Every contact this plug-in meets is filed under its own "Whatsapp" group. A
 front-end that adds the same contact to a group the user chose may create a
@@ -4910,7 +4910,7 @@ index ea47d09..d033883 100644
 From 7d412bca24f7a8dfbe4ba1bb72e66239dc31fc95 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 22:39:14 +0200
-Subject: [PATCH 35/38] A history line joins the reply cache
+Subject: [PATCH 35/39] A history line joins the reply cache
 
 Replies and reactions resolve a message id against the cache, and the
 phone's history answer is by construction the set of messages not in it:
@@ -5022,7 +5022,7 @@ index 3947682..f9f64aa 100644
 From e43c51f14ef25c9f0b3c57abd5c3e508e3ab617d Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 22:39:14 +0200
-Subject: [PATCH 36/38] The undecryptable notice cedes its id to the message
+Subject: [PATCH 36/39] The undecryptable notice cedes its id to the message
  that follows
 
 With the automatic rerequest the real message arrives moments after the
@@ -5058,7 +5058,7 @@ index a9c65c8..834d2be 100644
 From 2d9adbe402f5692549b5301a0ca3bc9830bdacb6 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 22:39:14 +0200
-Subject: [PATCH 37/38] A colon inside quotes is not the value boundary
+Subject: [PATCH 37/39] A colon inside quotes is not the value boundary
 
 RFC 2426 allows colons inside quoted parameter values, so
 TEL;TYPE="work:main":+49... is a legal line, and cutting at the first colon
@@ -5115,7 +5115,7 @@ index 30f42c9..f093b47 100644
 From 3aa558fe86e514fe5ce707291caf4a157ab7ced2 Mon Sep 17 00:00:00 2001
 From: KnutMann <knutmann@gmail.com>
 Date: Wed, 26 Aug 2026 22:39:14 +0200
-Subject: [PATCH 38/38] The profile-picture write starts from a clean error
+Subject: [PATCH 38/39] The profile-picture write starts from a clean error
 
 g_file_set_contents refuses a non-NULL *error outright, and the
 uninitialized pointer beside the octal fix was stack garbage: the write it
@@ -5147,6 +5147,193 @@ index b0f1cfd..bfb84f5 100644
          }
          g_free(local_directory);
          g_free(local_file_path);
+-- 
+2.50.1 (Apple Git-155)
+
+
+From b60b65da2f1d1611410a478ac546c9d65ff64163 Mon Sep 17 00:00:00 2001
+From: KnutMann <knutmann@gmail.com>
+Date: Wed, 26 Aug 2026 23:37:40 +0200
+Subject: [PATCH 39/39] The history fetch answers to bare numbers, and copies
+ no locks
+
+Extracting the feature for upstream (#263) meant reviewing it against a
+plain libpurple front-end, and three of the findings hold in this tree too.
+types.ParseJID reads a "+number" conversation name as a bare server name,
+without error, so such a conversation silently never fetched; the plug-in's
+own parseJID resolves it. The cache helpers copied whole CachedMessage
+values, carrying the embedded protobuf's do-not-copy marker past go vet;
+the anchor now takes scalars and the gap fill takes scalars plus a pointer,
+both gathered under the lock. And the StorageQuotaMb limit upstream had
+pinned to 1 MB was dropped when the struct replacement became field sets,
+quietly announcing a 10 GB quota at linking time; it is pinned again.
+The anchored request also logs itself now, as SETTINGS.md promises.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ handle_history.go | 91 ++++++++++++++++++++++++++++++++---------------
+ login.go          |  1 +
+ 2 files changed, 64 insertions(+), 28 deletions(-)
+
+diff --git a/handle_history.go b/handle_history.go
+index b6986ab..3862baa 100644
+--- a/handle_history.go
++++ b/handle_history.go
+@@ -34,8 +34,14 @@ import (
+  * is nothing to anchor on and the request is skipped.
+  */
+ func (handler *Handler) request_history(chatJid string, count int) {
+-	chat, err := types.ParseJID(chatJid)
+-	if err != nil || count <= 0 {
++	if count <= 0 || chatJid == "" {
++		return
++	}
++	// parseJID, not types.ParseJID: purple hands over conversation names like
++	// "+4915112345678", which types.ParseJID would silently read as a bare
++	// server name and the phone would never answer
++	chat, err := parseJID(chatJid)
++	if err != nil {
+ 		return
+ 	}
+ 	if handler.client.Store.ID == nil {
+@@ -66,17 +72,18 @@ func (handler *Handler) request_history(chatJid string, count int) {
+ 		},
+ 		Timestamp: time.Now(),
+ 	}
+-	if anchor := handler.newest_cached_message(chat); anchor != nil {
++	if anchor := handler.newest_cached_anchor(chat); anchor != nil {
+ 		/* Everything but the conversation itself comes from the anchor. The
+ 		 * conversation stays the one that was parsed and asked about: the cache
+ 		 * records a chat as the message path left it, which for a status
+ 		 * broadcast is a particular device rather than the conversation, and
+ 		 * the request goes out with no device suffix trimmed off it. */
+ 		ownJid := handler.client.Store.ID.ToNonAD()
+-		info.Sender = anchor.Sender
+-		info.IsFromMe = anchor.Sender.ToNonAD() == ownJid
+-		info.ID = anchor.ID
+-		info.Timestamp = anchor.Timestamp
++		info.Sender = anchor.sender
++		info.IsFromMe = anchor.sender.ToNonAD() == ownJid
++		info.ID = anchor.id
++		info.Timestamp = anchor.timestamp
++		handler.log.Infof("Requesting history for %s before message %s of %s.", chatJid, anchor.id, anchor.timestamp)
+ 	} else {
+ 		handler.log.Infof("Requesting history for %s with no anchor message; the cache knows none.", chatJid)
+ 	}
+@@ -89,33 +96,64 @@ func (handler *Handler) request_history(chatJid string, count int) {
+ 	}()
+ }
+ 
+-/*
+- * The cache belongs to the connection's own goroutine, and both callers here
+- * reach it from purple's thread, so what they take away is a copy: a pointer
+- * into the slice would outlive the next trim.
+- */
+-func (handler *Handler) newest_cached_message(chat types.JID) *CachedMessage {
++/* What request_history takes away from the newest cached message: scalars
++ * only, copied out under the lock. request_history runs on purple's thread,
++ * so a pointer into the slice would race the next append and trim, and a
++ * whole CachedMessage must never be copied by value, its embedded protobuf
++ * message is marked do-not-copy (the same reason add_to_cache copies
++ * field-by-field). */
++type cachedAnchor struct {
++	id        string
++	sender    types.JID
++	timestamp time.Time
++}
++
++func (handler *Handler) newest_cached_anchor(chat types.JID) *cachedAnchor {
+ 	handler.cacheMutex.Lock()
+ 	defer handler.cacheMutex.Unlock()
+ 	// the cache appends chronologically, so the last match is the newest
+ 	for i := len(handler.cachedMessages) - 1; i >= 0; i-- {
+ 		if handler.cachedMessages[i].Chat.ToNonAD() == chat.ToNonAD() {
+-			found := handler.cachedMessages[i]
+-			return &found
++			return &cachedAnchor{
++				id:        handler.cachedMessages[i].ID,
++				sender:    handler.cachedMessages[i].Sender,
++				timestamp: handler.cachedMessages[i].Timestamp,
++			}
+ 		}
+ 	}
+ 	return nil
+ }
+ 
+-// every message the cache holds for one conversation, oldest first
+-func (handler *Handler) cached_messages_for(chat types.JID) []CachedMessage {
++/* Candidates the cache can add beyond the phone's answer, gathered under the
++ * lock: scalars plus a pointer at the protobuf message, which is never
++ * copied by value (it is marked do-not-copy) and never mutated in place, so
++ * reading it after the lock is released is safe, also across a trim. The
++ * media-file checks history_line performs stay outside the lock this way. */
++type cachedCandidate struct {
++	id        string
++	sender    types.JID
++	timestamp time.Time
++	message   *waE2E.Message
++}
++
++func (handler *Handler) cache_candidates_for(chat types.JID, seen map[string]bool, notBefore time.Time) []cachedCandidate {
+ 	handler.cacheMutex.Lock()
+ 	defer handler.cacheMutex.Unlock()
+-	found := []CachedMessage{}
++	found := []cachedCandidate{}
+ 	for i := range handler.cachedMessages {
+-		if handler.cachedMessages[i].Chat.ToNonAD() == chat.ToNonAD() {
+-			found = append(found, handler.cachedMessages[i])
++		cached := &handler.cachedMessages[i]
++		if cached.Chat.ToNonAD() != chat.ToNonAD() {
++			continue
+ 		}
++		if seen[cached.ID] || cached.Timestamp.Before(notBefore) {
++			continue
++		}
++		found = append(found, cachedCandidate{
++			id:        cached.ID,
++			sender:    cached.Sender,
++			timestamp: cached.Timestamp,
++			message:   &cached.Message,
++		})
+ 	}
+ 	return found
+ }
+@@ -243,18 +281,15 @@ func (handler *Handler) handle_history_sync(data *waHistorySync.HistorySync) {
+ 		 * is not this client's place to overrule that. An answer that brought no
+ 		 * messages marks no gap, so the cache stays out of it entirely. */
+ 		if len(entries) > 0 {
+-			for _, cached := range handler.cached_messages_for(chat) {
+-				if seen[cached.ID] || cached.Timestamp.Before(newestFromPhone) {
+-					continue
+-				}
+-				text, isHTML := history_line(&cached.Message)
++			for _, cached := range handler.cache_candidates_for(chat, seen, newestFromPhone) {
++				text, isHTML := history_line(cached.message)
+ 				if text == "" {
+ 					continue
+ 				}
+ 				entries = append(entries, historyEntry{
+-					id:        cached.ID,
+-					sender:    cached.Sender,
+-					timestamp: cached.Timestamp,
++					id:        cached.id,
++					sender:    cached.sender,
++					timestamp: cached.timestamp,
+ 					text:      text,
+ 					isHTML:    isHTML,
+ 				})
+diff --git a/login.go b/login.go
+index a72a17e..a4699d4 100644
+--- a/login.go
++++ b/login.go
+@@ -95,6 +95,7 @@ func login(account *PurpleAccount, purple_user_dir string, username string, cred
+ 	 * can take on-demand history will not be sent any. See handle_history.go. */
+ 	store.DeviceProps.HistorySyncConfig.FullSyncDaysLimit = proto.Uint32(1)
+ 	store.DeviceProps.HistorySyncConfig.FullSyncSizeMbLimit = proto.Uint32(1)
++	store.DeviceProps.HistorySyncConfig.StorageQuotaMb = proto.Uint32(1) // the limit upstream pinned; replacing the struct had dropped it
+ 	store.DeviceProps.HistorySyncConfig.OnDemandReady = proto.Bool(true)
+ 
+ 	// find device (and session) information in database
 -- 
 2.50.1 (Apple Git-155)
 
