@@ -175,7 +175,7 @@ static CGFloat AIXtraRowHeight(void)
 		[textContainer addSubview:nameField];
 		[self setTextField:nameField];
 
-		//Version, origin and state
+		//What it holds, who made it, where it lives and whether it is on
 		NSTextField *detailField = AIXtraListLabel(DETAIL_FONT_SIZE, [NSColor secondaryLabelColor]);
 		[textContainer addSubview:detailField];
 		[self setDetailField:detailField];
@@ -843,19 +843,21 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 }
 
 /*!
- * @brief The second line of a row: version, origin and state, joined by " · "
+ * @brief The second line of a row: what it holds, who made it, origin and state, joined by " · "
+ *
+ * The version is deliberately not here. It is a fact about a file rather than something to tell two
+ * rows apart, and it stands on the Xtra's own page now, where the rest of the manifest is.
  *
  * Never empty, because every row is two lines tall and the row height is the constant
  * AIXtraRowHeight() promises it is. An Xtra that says nothing about itself falls back to its
  * filename extension, which merely repeats the group it is standing in; that is the last resort
- * and not the usual case, since most name an author or a version.
+ * and not the usual case, since most name an author or say what they hold.
  */
 - (NSString *)detailLineForXtra:(AIXtraInfo *)xtraInfo
 {
 	NSMutableArray	*parts = [NSMutableArray array];
 	NSString		*summary = [self contentSummaryForXtra:xtraInfo];
 	NSString		*author = [xtraInfo author];
-	NSString		*version = [xtraInfo version];
 
 	/* What is in it and who made it, read as one phrase rather than two, so that a row saying both
 	 * does not look like a different kind of row from one saying either. Neither is always there:
@@ -868,10 +870,6 @@ static NSInteger AIFileCountUnder(NSString *path, NSSet *extensions)
 
 	} else if ([author length]) {
 		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"by %@", "Author of an installed Xtra, shown below its name"), author]];
-	}
-
-	if ([version length]) {
-		[parts addObject:[NSString stringWithFormat:AILocalizedString(@"Version %@", "Version of an installed Xtra, shown below its name"), version]];
 	}
 
 	/* Where it came from is only worth a word when it is neither the user's own nor shipped inside
