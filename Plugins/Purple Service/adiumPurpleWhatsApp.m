@@ -161,7 +161,11 @@ static void whatsapp_reaction_cb(PurpleConnection *pc, GHashTable *details, gpoi
 		if (!messageId || !sender) return;
 
 		AIChat *chat = whatsapp_chat_for_details(pc, details);
-		if (!chat) return;
+		if (!chat) {
+			AILog(@"WhatsApp reaction %s for %s found no open chat for %s",
+				  emoji ?: "(removed)", messageId, whatsapp_detail(details, "chat") ?: "(null)");
+			return;
+		}
 
 		/* Bucket per sender, as the view expects: our own reactions under "me", a
 		 * room participant under their jid, the one contact of a direct chat under
