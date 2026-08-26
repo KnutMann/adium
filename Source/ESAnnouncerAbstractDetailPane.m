@@ -192,10 +192,10 @@
 {
 	NSMenu			*voicesMenu = [[NSMenu alloc] init];
 	
-	NSMenuItem *menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Use System Default",nil)
-																	 target:nil
-																	 action:nil
-															  keyEquivalent:@""] autorelease];
+	NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Use System Default",nil)
+																	target:nil
+																	action:nil
+															 keyEquivalent:@""];
 	[voicesMenu addItem:menuItem];
 	[voicesMenu addItem:[NSMenuItem separatorItem]];
 
@@ -205,15 +205,15 @@
 		[voices setObject:[[NSSpeechSynthesizer attributesForVoice:voiceID] objectForKey:NSVoiceName] forKey:voiceID];
 	}
 	for (NSString *voiceID in rawVoices) {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:[voices objectForKey:voiceID]
-																					  target:nil
-																					  action:nil
-																			   keyEquivalent:@""] autorelease];
+		menuItem = [[NSMenuItem alloc] initWithTitle:[voices objectForKey:voiceID]
+																					 target:nil
+																					 action:nil
+																			  keyEquivalent:@""];
 		[menuItem setRepresentedObject:voiceID];
 		[voicesMenu addItem:menuItem];
 	}
 	
-	return [voicesMenu autorelease];
+	return voicesMenu;
 }
 
 /*!

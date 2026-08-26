@@ -129,7 +129,7 @@ static NSString *AIRowLabel(NSString *label)
 	if (!view) {
 		AISettingsFormView	*form = [self buildSettingsForm];
 
-		view = [form retain];
+		view = form;
 
 		[self viewDidLoad];
 		[self localizePane];
@@ -176,7 +176,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (AISettingsFormView *)buildSettingsForm
 {
-	AISettingsFormView	*form = [[[AISettingsFormView alloc] initWithWidth:APPEARANCE_PANE_INITIAL_WIDTH] autorelease];
+	AISettingsFormView	*form = [[AISettingsFormView alloc] initWithWidth:APPEARANCE_PANE_INITIAL_WIDTH];
 
 	/* Opacity and width are settings, not a canvas: a slider running the whole card reads as the
 	 * main event of its row, which these are not. Capped to the moderate length the events pane's
@@ -366,8 +366,8 @@ static NSString *AIRowLabel(NSString *label)
 	 * ever close again. */
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 
-	/* The form owns every control; these are the pane's non-owning references to
-	 * them and must not outlive the view. */
+	/* The form owns every control; clearing the pane's own references with it
+	 * lets the form and its controls go when the view does. */
 	popUp_statusIcons = nil;
 	popUp_serviceIcons = nil;
 	popUp_menuBarIcons = nil;
@@ -398,7 +398,6 @@ static NSString *AIRowLabel(NSString *label)
 - (void)dealloc
 {
 	[self closeView];
-	[super dealloc];
 }
 
 /*!
@@ -409,9 +408,10 @@ static NSString *AIRowLabel(NSString *label)
 	NSString *filenameExtension = [notification object];
 
 	//Convert our filename extension into a Uniform Type Identifier so that we can robustly determine what type of Xtra this is.
-	CFStringRef type = (CFStringRef)[(NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, 
-																					   (CFStringRef)filenameExtension,
-																					   /*inConformingToUTI*/ NULL) autorelease];
+	CFStringRef type = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+															 (__bridge CFStringRef)filenameExtension,
+															 /*inConformingToUTI*/ NULL);
+	if (type) CFAutorelease(type);
 
 	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.emoticonset"))) {
 		[self _rebuildEmoticonMenuAndSelectActivePack];
@@ -691,7 +691,7 @@ static NSString *AIRowLabel(NSString *label)
 	} else if (sender == popUp_emoticons) {
 		if ([[sender selectedItem] tag] != AIEmoticonMenuMultiple) {
 			//Disable all active emoticons
-			NSArray			*activePacks = [[[adium.emoticonController activeEmoticonPacks] mutableCopy] autorelease];
+			NSArray			*activePacks = [[adium.emoticonController activeEmoticonPacks] mutableCopy];
 			AIEmoticonPack	*pack, *selectedPack;
 			
 			selectedPack = [[sender selectedItem] representedObject];
@@ -741,20 +741,20 @@ static NSString *AIRowLabel(NSString *label)
 	NSMenuItem		*menuItem;
 		
 	//Add the "No Emoticons" option
-	menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"None",nil)
+	menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"None",nil)
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menuItem setImage:[NSImage imageNamed:@"emoticonBlank" forClass:[self class]]];
 	[menuItem setTag:AIEmoticonMenuNone];
 	[menu addItem:menuItem];
-	
+
 	//Add the "Multiple packs selected" option
 	if ([[adium.emoticonController activeEmoticonPacks] count] > 1) {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Multiple Packs Selected",nil)
+		menuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Multiple Packs Selected",nil)
 																		 target:nil
 																		 action:nil
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[menuItem setImage:[NSImage imageNamed:@"emoticonBlank" forClass:[self class]]];
 		[menuItem setTag:AIEmoticonMenuMultiple];
 		[menu addItem:menuItem];
@@ -765,16 +765,16 @@ static NSString *AIRowLabel(NSString *label)
 
 	//Emoticon Packs
 	while ((pack = [enumerator nextObject])) {
-		menuItem = [[[NSMenuItem alloc] initWithTitle:[pack name]
+		menuItem = [[NSMenuItem alloc] initWithTitle:[pack name]
 																		 target:nil
 																		 action:nil
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[menuItem setRepresentedObject:pack];
 		[menuItem setImage:[pack menuPreviewImage]];
 		[menu addItem:menuItem];
 	}
 
-	return [menu autorelease];
+	return menu;
 }
 
 
@@ -800,10 +800,9 @@ static NSString *AIRowLabel(NSString *label)
 											   keyEquivalent:@""];
 		[item setTag:tag];
 		[menu addItem:item];
-		[item release];
 	}
 
-	return [menu autorelease];
+	return menu;
 }
 
 - (NSMenu *)_windowStyleMenu
@@ -827,13 +826,13 @@ static NSString *AIRowLabel(NSString *label)
 						withTag:AIContactListWindowStyleContactBubbles_Fitted
 						 toMenu:menu];
 
-	return [menu autorelease];
+	return menu;
 }
 - (void)_addWindowStyleOption:(NSString *)option withTag:(NSInteger)tag toMenu:(NSMenu *)menu{
-    NSMenuItem	*menuItem = [[[NSMenuItem alloc] initWithTitle:option
+    NSMenuItem	*menuItem = [[NSMenuItem alloc] initWithTitle:option
 																				  target:nil
 																				  action:nil
-																		   keyEquivalent:@""] autorelease];
+																		   keyEquivalent:@""];
 	[menuItem setTag:tag];
 	[menu addItem:menuItem];
 }
@@ -1175,31 +1174,31 @@ static NSString *AIRowLabel(NSString *label)
 	//Available Layouts
 	while ((set = [enumerator nextObject])) {
 		name = [set objectForKey:@"name"];
-		menuItem = [[[NSMenuItem alloc] initWithTitle:name
+		menuItem = [[NSMenuItem alloc] initWithTitle:name
 																		 target:nil
 																		 action:nil
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[menuItem setRepresentedObject:name];
 		[menu addItem:menuItem];
 	}
-	
+
 	//Divider
 	[menu addItem:[NSMenuItem separatorItem]];
 
-	//Preset management	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Layout",nil) stringByAppendingEllipsis]
+	//Preset management
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Layout",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(createListLayout:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menu addItem:menuItem];
-	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Layouts",nil) stringByAppendingEllipsis]
+
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Layouts",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(manageListLayouts:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menu addItem:menuItem];
-	
-	return [menu autorelease];	
+
+	return menu;
 }
 
 /*!
@@ -1216,31 +1215,31 @@ static NSString *AIRowLabel(NSString *label)
 	//Available themes
 	while ((set = [enumerator nextObject])) {
 		name = [set objectForKey:@"name"];
-		menuItem = [[[NSMenuItem alloc] initWithTitle:name
+		menuItem = [[NSMenuItem alloc] initWithTitle:name
 																		 target:nil
 																		 action:nil
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		[menuItem setRepresentedObject:name];
 		[menu addItem:menuItem];
 	}
 
 	//Divider
 	[menu addItem:[NSMenuItem separatorItem]];
-	
-	//Preset management	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Theme",nil) stringByAppendingEllipsis]
+
+	//Preset management
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Theme",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(createListTheme:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menu addItem:menuItem];
-	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Themes",nil) stringByAppendingEllipsis]
+
+	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Themes",nil) stringByAppendingEllipsis]
 																	 target:self
 																	 action:@selector(manageListThemes:)
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menu addItem:menuItem];
-	
-	return [menu autorelease];	
+
+	return menu;
 }
 
 
@@ -1273,10 +1272,10 @@ static NSString *AIRowLabel(NSString *label)
 		name = packName;
 	}
 	
-	menuItem = [[[NSMenuItem alloc] initWithTitle:name
+	menuItem = [[NSMenuItem alloc] initWithTitle:name
 																	 target:nil
 																	 action:nil
-															  keyEquivalent:@""] autorelease];
+															  keyEquivalent:@""];
 	[menuItem setRepresentedObject:packName];
 	[menuItem setImage:[[preview image] imageByScalingForMenuItem]];
 	
@@ -1309,7 +1308,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (void)configureDockIconMenu
 {
-	NSMenu		*tempMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*tempMenu = [[NSMenu alloc] init];
 	NSString	*iconPath;
 	NSString	*activePackName = [adium.preferenceController preferenceForKey:KEY_ACTIVE_DOCK_ICON
 																		   group:PREF_GROUP_APPEARANCE];
@@ -1332,10 +1331,10 @@ static NSString *AIRowLabel(NSString *label)
 - (NSMenuItem *)menuItemForIconPackAtPath:(NSString *)packPath class:(Class)iconClass
 {
 	NSString	*name = [[packPath lastPathComponent] stringByDeletingPathExtension];
-	NSMenuItem	*menuItem = [[[NSMenuItem alloc] initWithTitle:name
+	NSMenuItem	*menuItem = [[NSMenuItem alloc] initWithTitle:name
 																				  target:nil
 																				  action:nil
-																		   keyEquivalent:@""] autorelease];
+																		   keyEquivalent:@""];
 	[menuItem setRepresentedObject:name];
 	[menuItem setImage:[iconClass previewMenuImageForIconPackAtPath:packPath]];	
 
@@ -1364,7 +1363,7 @@ static NSString *AIRowLabel(NSString *label)
 
 - (void)configureStatusIconsMenu
 {
-	NSMenu		*tempMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*tempMenu = [[NSMenu alloc] init];
 	NSString	*iconPath;
 	NSString	*activePackName = [adium.preferenceController preferenceForKey:KEY_STATUS_ICON_PACK
 																		   group:PREF_GROUP_APPEARANCE];
@@ -1393,7 +1392,7 @@ static NSString *AIRowLabel(NSString *label)
 
 - (void)configureServiceIconsMenu
 {
-	NSMenu		*tempMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*tempMenu = [[NSMenu alloc] init];
 	NSString	*iconPath;
 	NSString	*activePackName = [adium.preferenceController preferenceForKey:KEY_SERVICE_ICON_PACK
 																		   group:PREF_GROUP_APPEARANCE];
@@ -1422,7 +1421,7 @@ static NSString *AIRowLabel(NSString *label)
 
 - (void)configureMenuBarIconsMenu
 {
-	NSMenu		*tempMenu = [[[NSMenu alloc] init] autorelease];
+	NSMenu		*tempMenu = [[NSMenu alloc] init];
 	NSString	*iconPath;
 	NSString	*activePackName = [adium.preferenceController preferenceForKey:KEY_MENU_BAR_ICONS
 																		   group:PREF_GROUP_APPEARANCE];

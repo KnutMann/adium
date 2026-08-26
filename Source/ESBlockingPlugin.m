@@ -129,10 +129,6 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
-	[chatToolbarItems release];
-	[blockedToolbarIcons release];
-	[blockContactMenuItem release];
-	[blockContactContextualMenuItem release];
 }
 
 /*!
@@ -170,7 +166,7 @@
 				  AILocalizedString(@"Are you sure you want to block all contacts in the group %@?",nil) :
 				  AILocalizedString(@"Are you sure you want to unblock all contacts in the group %@?",nil));
 		
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:[NSString stringWithFormat:format, [group displayName]]];
 		[alert addButtonWithTitle:(shouldBlock ? BLOCK_GROUP : UNBLOCK_GROUP)];	//NSAlertFirstButtonReturn, was the default button
 		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
@@ -195,7 +191,7 @@
 				  AILocalizedString(@"Are you sure you want to block %@?",nil) :
 				  AILocalizedString(@"Are you sure you want to unblock %@?",nil));
 
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:[NSString stringWithFormat:format, contact.displayName]];
 		[alert addButtonWithTitle:(shouldBlock ? BLOCK : UNBLOCK)];	//NSAlertFirstButtonReturn, was the default button
 		[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];
@@ -637,7 +633,7 @@
 					questionQualifier = [[activeChatInWindow.containedObjects objectAtIndex:0] displayName];
 				}
 				
-				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				NSAlert *alert = [[NSAlert alloc] init];
 				[alert setMessageText:[NSString stringWithFormat:format, questionQualifier]];
 				[alert addButtonWithTitle:(shouldBlock ? BLOCK : UNBLOCK)];	//NSAlertFirstButtonReturn, was the default button
 				[alert addButtonWithTitle:AILocalizedString(@"Cancel", nil)];

@@ -53,8 +53,7 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 		[controller setTarget:inTarget selector:inSelector context:inContext];
 
 	} else {
-		// Do not trust the static analyzer, look at the superclass. This is not a leak.
-		if ((controller = [[self alloc] initWithWindowNibName:ACCOUNT_PASSWORD_PROMPT_NIB 
+		if ((controller = [[self alloc] initWithWindowNibName:ACCOUNT_PASSWORD_PROMPT_NIB
 												   forAccount:inAccount 
 													 password:inPassword
 											  notifyingTarget:inTarget
@@ -76,17 +75,10 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 							 notifyingTarget:inTarget
 									selector:inSelector
 									 context:inContext])) {
-		account = [inAccount retain];
+		account = inAccount;
 	}
 
     return self;
-}
-
-- (void)dealloc
-{
-    [account release];
-	
-	[super dealloc];
 }
 
 /*!
@@ -98,6 +90,11 @@ static NSMutableDictionary	*passwordPromptControllerDict = nil;
 {
 	NSString	*identifier = account.internalObjectID;
 
+	/* The dictionary holds the only reference to us, and -windowWillClose: runs from inside
+	 * -[NSWindow close], which keeps talking to the controller afterwards. Stay alive until
+	 * the pool drains.
+	 */
+	CFAutorelease(CFBridgingRetain(self));
 	[passwordPromptControllerDict removeObjectForKey:identifier];
 
 	[super windowWillClose:sender];

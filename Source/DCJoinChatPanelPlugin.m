@@ -44,16 +44,6 @@
 }	
 
 /*!
- * @brief Deallocate
- */
-- (void)dealloc
-{
-	[joinChatMenuItem release];
-
-	[super dealloc];
-}
-
-/*!
  * @brief Show the join group chat window
  */
 - (IBAction)joinChat:(id)sender

@@ -22,8 +22,9 @@
  *
  * Three cards — the contact list window, its themes, and the icon packs. Every
  * control below is created by -buildSettingsForm and owned by that form (which
- * the inherited 'view' ivar retains), so the references here are non-owning and
- * are cleared again in -viewWillClose. There is no nib.
+ * the inherited 'view' ivar retains); the pane's own references are cleared
+ * again in -viewWillClose, so a closed pane holds no piece of the form alive.
+ * There is no nib.
  */
 @interface AIAppearancePreferences : AIPreferencePane <NSMenuDelegate> {
 	NSPopUpButton	*popUp_statusIcons;
@@ -51,8 +52,8 @@
 	NSButton		*button_customizeListLayout;
 
 	//
-	NSArray		*_listLayouts;	//Will NOT always be a valid reference.  Do not use as one!
-	NSArray		*_listThemes;	//Will NOT always be a valid reference.  Do not use as one!
+	NSArray		*_listLayouts;	//Only compared against, never read: the presets last handed to the preset sheet
+	NSArray		*_listThemes;	//Only compared against, never read: the presets last handed to the preset sheet
 }
 
 - (IBAction)showAllDockIcons:(id)sender;

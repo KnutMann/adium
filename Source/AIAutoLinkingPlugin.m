@@ -62,7 +62,6 @@
 			NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
 			[set addCharactersInString:@"#%"];
 			allowedCharacters = [set copy];
-			[set release];
 		}
 		NSString *linkString = [[replacementMessage string] stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacters];
 		NSURL *linkURL = (linkString ? [NSURL URLWithString:linkString] : nil);
@@ -88,7 +87,7 @@
 		}
 	}
 	
-    return [replacementMessage autorelease];
+    return replacementMessage;
 }
 
 /*!

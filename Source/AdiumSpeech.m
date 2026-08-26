@@ -70,10 +70,7 @@
 	[[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
 	[adium.preferenceController unregisterPreferenceObserver:self];
 
-	[speechArray release]; speechArray = nil;
 	[self _stopSpeaking];
-	
-	[super dealloc];
 }
 
 /*!

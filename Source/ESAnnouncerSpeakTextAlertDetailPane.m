@@ -67,7 +67,7 @@
 	NSString			*textToSpeak;
 	NSMutableDictionary	*actionDetails = [NSMutableDictionary dictionary];
 	
-	textToSpeak  = [[[textView_textToSpeak string] copy] autorelease];
+	textToSpeak  = [[textView_textToSpeak string] copy];
 	
 	if (textToSpeak) {
 		[actionDetails setObject:textToSpeak

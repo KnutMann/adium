@@ -79,10 +79,6 @@
 	/* A scheduled timer retains its target, so we should never get here with one
 	 * running; invalidating anyway keeps this honest if we ever do. */
 	[self stopReminderTimer];
-
-	[awayAccounts release]; awayAccounts = nil;
-
-	[super dealloc];
 }
 
 #pragma mark Preferences
@@ -174,7 +170,7 @@
 	 * account's status without telling any observer, so returning to available while
 	 * an account is disconnected never reaches -updateListObject:. -actualStatusState
 	 * is the status the account holds regardless of its connection. */
-	for (AIAccount *account in [[awayAccounts copy] autorelease]) {
+	for (AIAccount *account in [awayAccounts copy]) {
 		if (!account.online) {
 			AIStatus	*actualStatusState = account.actualStatusState;
 			BOOL		stillAway = (actualStatusState && (actualStatusState.statusType != AIAvailableStatusType));
@@ -225,17 +221,17 @@
 {
 	if (!remindWhenAway || (reminderInterval <= 0.0)) return;
 
-	reminderTimer = [[NSTimer scheduledTimerWithTimeInterval:reminderInterval
+	reminderTimer = [NSTimer scheduledTimerWithTimeInterval:reminderInterval
 													  target:self
 													selector:@selector(reminderTimerFired:)
 													userInfo:nil
-													 repeats:NO] retain];
+													 repeats:NO];
 }
 
 - (void)stopReminderTimer
 {
 	[reminderTimer invalidate];
-	[reminderTimer release]; reminderTimer = nil;
+	reminderTimer = nil;
 }
 
 /*!
@@ -266,8 +262,8 @@
 
 - (void)reminderTimerFired:(NSTimer *)inTimer
 {
-	//A non-repeating timer has invalidated itself by now; only our retain is left
-	[reminderTimer release]; reminderTimer = nil;
+	//A non-repeating timer has invalidated itself by now; only our reference is left
+	reminderTimer = nil;
 
 	//The user may have come back in the same run loop that fired us
 	if (![awayAccounts count] || !remindWhenAway) return;
@@ -316,7 +312,7 @@
 			//Still the same away period? (See above.)
 			if ((generation != reminderGeneration) || !reminderPosted) return;
 
-			UNMutableNotificationContent *content = [[[UNMutableNotificationContent alloc] init] autorelease];
+			UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
 			content.title = title;
 			content.body = body;
 			/* The category is what puts the "Return" button on the notification;
