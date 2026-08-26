@@ -391,6 +391,24 @@
 			@"    audio.style.maxWidth = '320px';"
 			@"    a.parentNode.replaceChild(audio, a);"
 			@"  }"
+			/* Videos, by the same convention: the protocol side leaves a local
+			 * file behind under an AdiumVideo_ name and hands the chat a link
+			 * to it, and the link becomes a player. Only file: links with that
+			 * marker, so a pasted URL that happens to end in .mp4 stays a link
+			 * (the view could not load it anyway: remote loads are blocked). */
+			@"  var vids = document.querySelectorAll('a[href^=\"file://\"][href*=\"AdiumVideo_\"]');"
+			@"  for (var i = 0; i < vids.length; i++) {"
+			@"    var a = vids[i];"
+			@"    var video = document.createElement('video');"
+			@"    video.controls = true;"
+			@"    video.preload = 'metadata';"
+			@"    video.playsInline = true;"
+			@"    video.src = a.href;"
+			@"    video.style.maxWidth = 'min(480px, 100%)';"
+			@"    video.style.height = 'auto';"
+			@"    video.style.borderRadius = '4px';"
+			@"    a.parentNode.replaceChild(video, a);"
+			@"  }"
 			@"}"
 			@"window.addEventListener('resize', adiumFitImages, false);"
 			@"document.addEventListener('load', function(e){ var t = e.target; if (t && t.tagName && t.tagName.toLowerCase() == 'img') adiumFitImages(); }, true);"
