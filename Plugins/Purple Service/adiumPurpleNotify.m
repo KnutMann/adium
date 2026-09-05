@@ -183,7 +183,14 @@ static void *adiumPurpleNotifyUri(const char *uri)
 									  completionHandler:nil];
 			}
 		} else {
-			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:passedURI]];
+			/* Not right away: a protocol that shows a code and opens the browser in the same
+			 * breath, as the Teams device sign-in does, has its browser cover the window carrying
+			 * the code before anyone saw it; a user then takes the sign-in page for an
+			 * authenticator prompt. A moment's pause lets the code window appear first. */
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+						   dispatch_get_main_queue(), ^{
+				[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:passedURI]];
+			});
 		}
 	}
     
