@@ -764,6 +764,7 @@ typedef enum {
 	NSView				*radioContainer;
 	NSView				*fullWidthView;
 	BOOL				 stretchesFullWidthView;
+	BOOL				 trailingAlignsFullWidthView;	//Unstretched only: the view sits at the trailing edge
 	/* Edge to edge rows draw no hairline against their neighbours, because a hosted list brings its
 	 * own. A row that is edge to edge only so that its highlight covers the card still wants one. */
 	BOOL				 wantsSeparators;
@@ -1211,11 +1212,17 @@ typedef enum {
 
 - (void)addFullWidthRow:(NSView *)view stretch:(BOOL)stretch
 {
+	[self addFullWidthRow:view stretch:stretch trailingAligned:NO];
+}
+
+- (void)addFullWidthRow:(NSView *)view stretch:(BOOL)stretch trailingAligned:(BOOL)trailingAligned
+{
 	AISettingsFormRow *row = [[AISettingsFormRow alloc] init];
 
 	row->type = AISettingsRowTypeFullWidth;
 	row->fullWidthView = view;
 	row->stretchesFullWidthView = stretch;
+	row->trailingAlignsFullWidthView = trailingAligned;
 
 	[self appendRow:row];
 }
@@ -1919,18 +1926,26 @@ typedef enum {
 	[rowView addSubview:host];
 
 	NSMutableArray *constraints = [NSMutableArray arrayWithObjects:
-								   [host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH],
 								   [host.topAnchor constraintEqualToAnchor:rowView.topAnchor constant:AISettingsRowInsetV],
 								   [host.bottomAnchor constraintLessThanOrEqualToAnchor:rowView.bottomAnchor constant:-AISettingsRowInsetV],
 								   nil];
 
 	if (row->stretchesFullWidthView) {
+		[constraints addObject:[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH]];
 		[constraints addObject:[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]];
 	} else {
 		//Its own width, capped at the card: a push button is not stretched across a card
 		[host setContentHuggingPriority:AISettingsPriorityNaturalCap forOrientation:NSLayoutConstraintOrientationHorizontal];
 		[host setContentCompressionResistancePriority:AISettingsPriorityNaturalWidth forOrientation:NSLayoutConstraintOrientationHorizontal];
-		[constraints addObject:[host.trailingAnchor constraintLessThanOrEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]];
+
+		//Anchored to one edge, held inside the card at the other
+		if (row->trailingAlignsFullWidthView) {
+			[constraints addObject:[host.trailingAnchor constraintEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]];
+			[constraints addObject:[host.leadingAnchor constraintGreaterThanOrEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH]];
+		} else {
+			[constraints addObject:[host.leadingAnchor constraintEqualToAnchor:rowView.leadingAnchor constant:AISettingsCardInsetH]];
+			[constraints addObject:[host.trailingAnchor constraintLessThanOrEqualToAnchor:rowView.trailingAnchor constant:-AISettingsCardInsetH]];
+		}
 	}
 
 	[NSLayoutConstraint activateConstraints:constraints];
@@ -2580,6 +2595,12 @@ typedef enum {
 	/* Return alone is not enough: a user who types and then clicks somewhere else
 	 * expects what they typed to have been taken. */
 	[[field cell] setSendsActionOnEndEditing:YES];
+	/* One line whatever the value: a long one scrolls under the insertion point while it is typed
+	 * and is truncated once it is not. Left to its default the cell wraps, and a value longer than
+	 * the row paints itself across the rows below while the field stays one line tall. */
+	[[field cell] setWraps:NO];
+	[[field cell] setScrollable:YES];
+	[field setLineBreakMode:NSLineBreakByTruncatingTail];
 	[field sizeToFit];
 
 	//The row decides the width; only the height comes from the field itself

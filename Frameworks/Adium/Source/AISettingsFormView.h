@@ -241,6 +241,13 @@
 - (void)addFullWidthRow:(NSView *)view stretch:(BOOL)stretch;
 
 /*!
+ * @brief As above; an unstretched @a view sits at the trailing edge when @a trailingAligned is YES.
+ *
+ * The shape of a lone action button under the row it acts on.
+ */
+- (void)addFullWidthRow:(NSView *)view stretch:(BOOL)stretch trailingAligned:(BOOL)trailingAligned;
+
+/*!
  * @brief Append a row in which @a view <em>is</em> the card: no inset at all.
  *
  * Unlike @c addFullWidthRow:, @a view is laid out flush with all four edges of

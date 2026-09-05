@@ -148,7 +148,8 @@
 	[controlsByName setObject:control forKey:[field name]];
 
 	if ([field kind] == AIAccountFieldAction) {
-		[form addFullWidthRow:control stretch:NO];
+		//At the trailing edge, the way a lone action button sits under the row it acts on
+		[form addFullWidthRow:control stretch:NO trailingAligned:YES];
 		return;
 	}
 
