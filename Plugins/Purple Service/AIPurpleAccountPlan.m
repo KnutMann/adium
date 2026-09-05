@@ -210,6 +210,29 @@
 #pragma mark The rows
 
 /*!
+ * @brief The protocol's wording, in the user's language where a table knows it
+ *
+ * A protocol names its options in English and knows nothing of gettext catalogs on this platform.
+ * Looked up in this framework's own strings table first, then the application's, and shown exactly
+ * as delivered when neither knows it; the same road the notices take, see
+ * AIPurpleImageRequestController.
+ */
+static NSString *AILocalizedOptionText(NSString *text)
+{
+	if (![text length])
+		return text;
+
+	NSString *notFound = @"\0AINotLocalized";
+	NSString *localized = [[NSBundle bundleForClass:[AIPurpleAccountPlan class]] localizedStringForKey:text
+																								 value:notFound
+																								 table:nil];
+	if (![localized isEqualToString:notFound])
+		return localized;
+
+	return [[NSBundle mainBundle] localizedStringForKey:text value:text table:nil];
+}
+
+/*!
  * @brief One option of the protocol, as a field
  *
  * Everything but the placement comes from the protocol itself, which is why naming an option is all a
@@ -256,7 +279,7 @@
 				if (!pair || !pair->key)
 					continue;
 
-				[titles addObject:[NSString stringWithUTF8String:pair->key]];
+				[titles addObject:AILocalizedOptionText([NSString stringWithUTF8String:pair->key])];
 				[values addObject:(pair->value ? [NSString stringWithUTF8String:(const char *)pair->value] : @"")];
 			}
 
@@ -283,7 +306,7 @@
 	const char *text = purple_account_option_get_text(option);
 
 	//Its own name if it has one. A protocol that names nothing gets the setting, which is at least true
-	[field setLabel:((text && *text) ? [NSString stringWithUTF8String:text] : setting)];
+	[field setLabel:((text && *text) ? AILocalizedOptionText([NSString stringWithUTF8String:text]) : setting)];
 	[field setStore:AIAccountFieldStorePreference];
 	[field setPreferenceKey:[self preferenceKeyForSetting:setting]];
 	[field setLegacyKey:[self legacyKeyForSetting:setting]];
