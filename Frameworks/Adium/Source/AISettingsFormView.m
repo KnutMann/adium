@@ -688,14 +688,22 @@ typedef enum {
 /*!
  * @brief The translucent fill that lifts the card off the window background
  *
- * quaternarySystemFillColor is what System Settings itself uses, but it only
- * exists from macOS 14 on and we deploy back to 11. Five percent of labelColor
- * stands in below that: labelColor is near-black in Aqua and near-white in
- * Dark Aqua, so the tint follows the appearance the same way the system fill
- * does, instead of baking in one colour that would vanish in the other.
+ * In Aqua quaternarySystemFillColor is what System Settings itself uses (it
+ * only exists from macOS 14 on and we deploy back to 11; five percent of
+ * labelColor stands in below that). In Dark Aqua the quaternary fill turned
+ * out to be no lift at all: measured over this window it raises the card from
+ * 0.118 to 0.142, which reads as the same black on most panels, and the cards
+ * disappeared. Eight percent of white takes the card to 0.188, about where
+ * System Settings' own dark cards sit above their window.
  */
 - (NSColor *)cardFillTint
 {
+	NSString *match = [[self effectiveAppearance] bestMatchFromAppearancesWithNames:
+					   [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil]];
+
+	if ([match isEqualToString:NSAppearanceNameDarkAqua])
+		return [NSColor colorWithWhite:1.0 alpha:0.08];
+
 	if (@available(macOS 14.0, *))
 		return [NSColor quaternarySystemFillColor];
 
