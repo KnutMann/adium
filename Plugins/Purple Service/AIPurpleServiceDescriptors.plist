@@ -33,6 +33,8 @@
 		<!-- The account name is the phone number in international format, +4917012345678 -->
 		<key>UserNameLabel</key>
 		<string>Phone Number</string>
+		<key>UserNamesArePhoneNumbers</key>
+		<true/>
 		<key>AllowedCharacters</key>
 		<string>+0123456789</string>
 		<key>AllowedLength</key>

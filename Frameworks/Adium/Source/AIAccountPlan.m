@@ -176,6 +176,14 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 	[uid setLabel:[service userNameLabel]];
 	[uid setPlaceholder:[service UIDPlaceholder]];
 	[uid setDisabledWhileOnline:YES];
+
+	/* A service whose account names are phone numbers takes them in international form only; say so
+	 * under the field, because the national spelling can be typed and connects to nobody. The form
+	 * itself is enforced in -setValue:forField:. */
+	if ([service userNamesArePhoneNumbers])
+		[uid setDetail:AILocalizedString(@"International format with country code, for example +4917012345678",
+										 "Under the account name of phone number services: the only accepted form")];
+
 	[self addField:uid toCard:AIAccountCardAccount];
 
 	if ([self offersPassword]) {
@@ -275,11 +283,59 @@ NSString *AIAccountCardPrivacy	= @"privacy";
 	return nil;
 }
 
+/*!
+ * @brief The international form of a phone number, or nil where none can be read
+ *
+ * The grouping people type is dropped and the 00 exit code spelling becomes the plus; what remains
+ * must be a plus followed by digits that do not begin with another zero. A number in national form
+ * is refused rather than completed: the country code it lacks is the one part nobody can invent.
+ */
+static NSString *AIInternationalPhoneNumber(NSString *entered)
+{
+	NSMutableString *number = [entered mutableCopy];
+	NSCharacterSet *grouping = [NSCharacterSet characterSetWithCharactersInString:@" ./-()\u00A0"];
+
+	for (NSUInteger index = [number length]; index > 0; index--) {
+		if ([grouping characterIsMember:[number characterAtIndex:index - 1]])
+			[number deleteCharactersInRange:NSMakeRange(index - 1, 1)];
+	}
+
+	if ([number hasPrefix:@"00"])
+		[number replaceCharactersInRange:NSMakeRange(0, 2) withString:@"+"];
+
+	if (![number hasPrefix:@"+"] || [number length] < 7)
+		return nil;
+
+	NSString *digits = [number substringFromIndex:1];
+
+	if ([digits hasPrefix:@"0"])
+		return nil;	//National form wearing a plus
+
+	NSCharacterSet *notADigit = [[NSCharacterSet characterSetWithCharactersInString:@"0123456789"] invertedSet];
+	if ([digits rangeOfCharacterFromSet:notADigit].location != NSNotFound)
+		return nil;
+
+	return number;
+}
+
 - (void)setValue:(id)value forField:(AIAccountPlanField *)field
 {
 	switch ([field store]) {
 		case AIAccountFieldStoreAccountName: {
 			NSString *newUID = [value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+			/* Phone number services take the international form only: the national spelling can be
+			 * typed, reaches nobody on any of them, and cannot be completed automatically. What can
+			 * be read as international is normalized; what cannot is refused with a beep, and the
+			 * page puts the name the account kept back into the field. */
+			if ([newUID length] && [[account service] userNamesArePhoneNumbers]) {
+				newUID = AIInternationalPhoneNumber(newUID);
+
+				if (!newUID) {
+					NSBeep();
+					break;
+				}
+			}
 
 			/* Never to nothing. An account renamed to the empty string loses the name its stored
 			 * settings and its message history are filed under, and a field is empty at some point

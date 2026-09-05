@@ -166,10 +166,32 @@
 
 	/* A field the row decides the width of, against a control that brought its own. A text field
 	 * given its natural width would sit as a stub at the trailing edge. */
-	if ([field kind] == AIAccountFieldText && [field width] <= 0.0)
+	if ([field kind] == AIAccountFieldText && [field width] <= 0.0) {
 		[form addRowWithLabel:[field label] stretchingControl:control];
-	else
+
+		//No room beside a stretched field; what would have been a second line goes under it
+		if ([[field detail] length])
+			[form addDetailRow:[field detail]];
+	} else {
 		[form addRowWithLabel:[field label] control:control detail:[field detail]];
+	}
+}
+
+/*!
+ * @brief Put the value the plan really holds back into a field's control
+ *
+ * After a commit the two can differ: an account name is filtered, a phone number normalized or
+ * refused. Text fields only; nothing else is free enough in what it accepts to drift.
+ */
+- (void)reloadValueForField:(AIAccountPlanField *)field
+{
+	NSControl *control = [controlsByName objectForKey:[field name]];
+
+	if (!control || [field kind] != AIAccountFieldText)
+		return;
+
+	NSString *value = [plan valueForField:field];
+	[control setStringValue:(value ?: @"")];
 }
 
 - (NSView *)controlForField:(AIAccountPlanField *)field

@@ -52,6 +52,14 @@
 - (void)buildInForm:(AISettingsFormView *)form;
 
 /*!
+ * @brief Put the value the plan really holds back into a field's control
+ *
+ * After a commit the two can differ: an account name is filtered, a phone number normalized or
+ * refused. Text fields only.
+ */
+- (void)reloadValueForField:(AIAccountPlanField *)field;
+
+/*!
  * @brief As above, without one card, which is going somewhere else
  */
 - (void)buildInForm:(AISettingsFormView *)form skippingCard:(NSString *)cardIdentifier;

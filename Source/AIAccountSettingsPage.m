@@ -98,6 +98,11 @@
 {
 	edited = YES;
 	[self commit];
+
+	/* The name that was typed and the name the account took can differ: filtered characters, a
+	 * phone number normalized into international form, or one refused entirely. Show what stuck. */
+	if ([field store] == AIAccountFieldStoreAccountName)
+		[builder reloadValueForField:field];
 }
 
 - (void)commit
