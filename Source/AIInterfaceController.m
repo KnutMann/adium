@@ -1567,6 +1567,35 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
     }
 }
 
+/* Plugin-supplied tooltip entries may carry their own colors; everything else has none,
+ * and colorless text draws black in every appearance. Give those ranges the label color
+ * so the tooltip reads in the dark too. */
+static void AIFillUncoloredTooltipRanges(NSMutableAttributedString *string)
+{
+	[string enumerateAttribute:NSForegroundColorAttributeName
+					   inRange:NSMakeRange(0, [string length])
+					   options:0
+					usingBlock:^(id value, NSRange range, BOOL *stop) {
+		if (!value) {
+			[string addAttribute:NSForegroundColorAttributeName
+						   value:[NSColor labelColor]
+						   range:range];
+		}
+	}];
+}
+
+/* The color the tooltip window will actually put behind the text, resolved for the
+ * appearance the application shows right now; contrast math on an unresolved dynamic
+ * color would use whatever appearance happens to be current. */
+static NSColor *AIResolvedTooltipBackground(void)
+{
+	__block NSColor *background = nil;
+	[[NSApp effectiveAppearance] performAsCurrentDrawingAppearance:^{
+		background = [[AITooltipUtilities backgroundColor] colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+	}];
+	return background;
+}
+
 - (NSMutableAttributedString *)_tooltipTitleForObject:(AIListObject *)object
 {
     NSMutableAttributedString           *titleString = [[NSMutableAttributedString alloc] init];
@@ -1584,10 +1613,12 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
     //Configure fonts and attributes
     NSFontManager                       *fontManager = [NSFontManager sharedFontManager];
     NSFont                              *toolTipsFont = [NSFont toolTipsFontOfSize:10];
-    NSMutableDictionary                 *titleDict = [NSMutableDictionary dictionaryWithObject:[fontManager convertFont:[NSFont toolTipsFontOfSize:12] toHaveTrait:NSBoldFontMask]
-	                                                                                    forKey:NSFontAttributeName];
-    NSMutableDictionary                 *labelDict = [NSMutableDictionary dictionaryWithObject:[fontManager convertFont:[NSFont toolTipsFontOfSize:9] toHaveTrait:NSBoldFontMask]
-	                                                                                    forKey:NSFontAttributeName];
+    NSMutableDictionary                 *titleDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+	                                                  [fontManager convertFont:[NSFont toolTipsFontOfSize:12] toHaveTrait:NSBoldFontMask], NSFontAttributeName,
+	                                                  [NSColor labelColor], NSForegroundColorAttributeName, nil];
+    NSMutableDictionary                 *labelDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+	                                                  [fontManager convertFont:[NSFont toolTipsFontOfSize:9] toHaveTrait:NSBoldFontMask], NSFontAttributeName,
+	                                                  [NSColor secondaryLabelColor], NSForegroundColorAttributeName, nil];
     NSMutableDictionary                 *labelEndLineDict = [NSMutableDictionary dictionaryWithObject:[NSFont toolTipsFontOfSize:2]
 	                                                                                           forKey:NSFontAttributeName];
     NSMutableDictionary                 *entryDict = [NSMutableDictionary dictionaryWithObject:toolTipsFont
@@ -1666,6 +1697,8 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
         [titleString appendAttributedString:entryString];
     }
 
+    AIFillUncoloredTooltipRanges(titleString);
+
     return titleString;
 }
 
@@ -1676,8 +1709,9 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
     //Configure fonts and attributes
     NSFontManager                   *fontManager = [NSFontManager sharedFontManager];
     NSFont                          *toolTipsFont = [NSFont toolTipsFontOfSize:10];
-    NSMutableDictionary             *labelDict = [NSMutableDictionary dictionaryWithObject:[fontManager convertFont:[NSFont toolTipsFontOfSize:9] toHaveTrait:NSBoldFontMask]
-	                                                                                forKey:NSFontAttributeName];
+    NSMutableDictionary             *labelDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+	                                              [fontManager convertFont:[NSFont toolTipsFontOfSize:9] toHaveTrait:NSBoldFontMask], NSFontAttributeName,
+	                                              [NSColor secondaryLabelColor], NSForegroundColorAttributeName, nil];
     NSMutableDictionary             *labelEndLineDict = [NSMutableDictionary dictionaryWithObject:[NSFont toolTipsFontOfSize:1]
 	                                                                                       forKey:NSFontAttributeName];
     NSMutableDictionary             *entryDict = [NSMutableDictionary dictionaryWithObject:toolTipsFont
@@ -1714,6 +1748,7 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
 		
     //Add labels plus entires to the toolTip
     labelEnumerator = [labelArray objectEnumerator];
+    NSColor *tooltipBackground = AIResolvedTooltipBackground();
     for (NSMutableAttributedString * __strong entryString in entryArray) {
         NSMutableAttributedString *labelString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"\t%@:\t",[labelEnumerator nextObject]]
 																						attributes:labelDict];
@@ -1733,8 +1768,9 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
         //remove any background coloration
         [entryString removeAttribute:NSBackgroundColorAttributeName range:fullLength];
         
-        //adjust foreground colors for the tooltip background
-        [entryString adjustColorsToShowOnBackground:[NSColor colorWithCalibratedRed:1.000f green:1.000f blue:0.800f alpha:1.0f]];
+        //adjust foreground colors for the background the tooltip really has; the cream
+        //this used to name has not been the tooltip's color for years
+        [entryString adjustColorsToShowOnBackground:tooltipBackground];
 
         //headIndent doesn't apply to the first line of a paragraph... so when new lines are in the entry, we need to tab over to the proper location
 		if ([entryString replaceOccurrencesOfString:@"\r" withString:@"\r\t\t" options:NSLiteralSearch range:fullLength]) {
@@ -1752,6 +1788,8 @@ withAttributedDescription:[[NSAttributedString alloc] initWithString:inDesc
 		[entryString addAttributes:entryDict range:NSMakeRange(0,[entryString length])];
         [tipString appendAttributedString:entryString];
     }
+
+    AIFillUncoloredTooltipRanges(tipString);
 
     return tipString;
 }

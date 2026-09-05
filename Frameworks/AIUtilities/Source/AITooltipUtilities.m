@@ -35,6 +35,11 @@
 
 @implementation AITooltipUtilities
 
++ (NSColor *)backgroundColor
+{
+	return [NSColor controlBackgroundColor];
+}
+
 static	NSPanel                 *tooltipWindow = nil;
 static	NSTextView				*textView_tooltipTitle = nil;
 static	NSTextView				*textView_tooltipBody = nil;
@@ -188,8 +193,11 @@ static	AITooltipOrientation	tooltipOrientation;
 													   defer:NO];
 		[tooltipWindow setHidesOnDeactivate:NO];
 		[tooltipWindow setIgnoresMouseEvents:YES];
-		[tooltipWindow setOpaque:NO]; 
-		[tooltipWindow setBackgroundColor:[[NSColor controlBackgroundColor] colorWithAlphaComponent:0.97f]];
+		[tooltipWindow setOpaque:NO];
+		/* The color must stay dynamic: -colorWithAlphaComponent: froze it to whatever
+		 * appearance happened to be current, which is how a dark mode contact list came
+		 * to show light tooltips on one machine and unreadable dark ones on another. */
+		[tooltipWindow setBackgroundColor:[[self class] backgroundColor]];
 		[tooltipWindow setAlphaValue:TOOLTIP_OPACITY];
 		[tooltipWindow setHasShadow:YES];
 
