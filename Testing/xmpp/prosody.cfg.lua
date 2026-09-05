@@ -37,7 +37,14 @@ modules_enabled = {
 	"mam";         -- XEP-0313 Message Archive Management
 	"csi_simple";  -- XEP-0352 Client State Indication
 	"bookmarks";   -- XEP-0402 PEP Native Bookmarks (with legacy conversion)
+	"http_file_share"; -- XEP-0363 HTTP upload, for pictures sent as their address
 }
+
+-- The upload slots must name https addresses: Adium refuses plain http ones.
+-- The certificate is the same self-signed one the XMPP port offers.
+https_ports = { 5281 }
+https_certificate = "certs/localhost.crt"
+http_external_url = "https://localhost:5281/"
 
 -- Accounts are created with prosodyctl (see server.sh), not in-band
 allow_registration = false

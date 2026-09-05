@@ -32,10 +32,11 @@ start() {
 		docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 		docker run -d --name "$CONTAINER" \
 			-p 127.0.0.1:5222:5222 \
+			-p 127.0.0.1:5281:5281 \
 			-v "$VOLUME":/var/lib/prosody \
 			-v "$CERT_VOLUME":/etc/prosody/certs \
 			"$IMAGE" >/dev/null
-		echo "$CONTAINER gestartet (localhost:5222)"
+		echo "$CONTAINER gestartet (localhost:5222, Upload auf 5281)"
 	fi
 
 	# Wait for the server to accept commands, then make sure the accounts exist.
