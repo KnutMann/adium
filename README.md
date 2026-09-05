@@ -63,7 +63,9 @@ Current version: **1.8.0**.
   (XEP-0363, announced per XEP-0066) are shown in the conversation
   itself rather than as a bare link, governed by the same setting that
   controls automatic file transfers, including its restriction to
-  contacts of your own list
+  contacts of your own list; and a picture you send goes the same way
+  when the server offers it, uploaded per XEP-0363 and messaged as its
+  address, with the classic file transfer as the fallback
 * OTR migrated to the libotr 4.x API
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr

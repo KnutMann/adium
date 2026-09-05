@@ -32,14 +32,16 @@
 
 #define PURPLE_SSL_CDSA_BUGGY_TLS_WORKAROUND "ssl_cdsa_buggy_tls_workaround"
 
-@class AMXMLConsoleController, AMPurpleJabberServiceDiscoveryBrowsing, AMPurpleJabberAdHocServer;
+@class AMXMLConsoleController, AMPurpleJabberServiceDiscoveryBrowsing, AMPurpleJabberAdHocServer,
+	   AMPurpleJabberHTTPFileUpload, ESFileTransfer;
 
 @interface ESPurpleJabberAccount : CBPurpleAccount <AIAccount_Files> {
     AMXMLConsoleController *xmlConsoleController;
 	AMPurpleJabberServiceDiscoveryBrowsing *discoveryBrowserController;
-	
+
 	AMPurpleJabberAdHocServer *adhocServer;
-	
+	AMPurpleJabberHTTPFileUpload *httpUpload;
+
 	NSMutableArray *gateways;
 }
 
@@ -48,5 +50,10 @@
 - (AMPurpleJabberAdHocServer*)adhocServer;
 - (void)setShouldVerifyCertificates:(BOOL)yesOrNo;
 - (BOOL)shouldVerifyCertificates;
+
+/*!
+ * @brief An HTTP upload that could not finish resumes as a classic transfer
+ */
+- (void)httpUploadFellBackForFileTransfer:(ESFileTransfer *)fileTransfer;
 
 @end

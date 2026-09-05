@@ -37,6 +37,7 @@
 #import "AMPurpleJabberServiceDiscoveryBrowsing.h"
 #import "ESPurpleJabberAccountViewController.h"
 #import "AMPurpleJabberAdHocServer.h"
+#import "AMPurpleJabberHTTPFileUpload.h"
 #import "AMPurpleJabberAdHocPing.h"
 #import "AIMessageViewController.h"
 #import <Adium/AIMenuControllerProtocol.h>
@@ -520,6 +521,17 @@
 
 - (void)beginSendOfFileTransfer:(ESFileTransfer *)fileTransfer
 {
+	/* A picture goes the way modern XMPP clients send one, uploaded and messaged as its
+	 * address (XEP-0363), when the server offers that; everything else, and every failure
+	 * along that way, takes the classic transfer below. */
+	if ([httpUpload takeOverFileTransfer:fileTransfer])
+		return;
+
+	[super _beginSendOfFileTransfer:fileTransfer];
+}
+
+- (void)httpUploadFellBackForFileTransfer:(ESFileTransfer *)fileTransfer
+{
 	[super _beginSendOfFileTransfer:fileTransfer];
 }
 
@@ -899,13 +911,18 @@
 
 	discoveryBrowserController = [[AMPurpleJabberServiceDiscoveryBrowsing alloc] initWithAccount:self
 																				purpleConnection:purple_account_get_connection(account)];
+
+	//Look for the server's HTTP upload service; found or not, sending falls back gracefully
+	[httpUpload release];
+	httpUpload = [[AMPurpleJabberHTTPFileUpload alloc] initWithAccount:self];
 }
 
 - (void)didDisconnect {
 	[xmlConsoleController setPurpleConnection:NULL];
-	
+
 	[discoveryBrowserController release]; discoveryBrowserController = nil;
 	[adhocServer release]; adhocServer = nil;
+	[httpUpload release]; httpUpload = nil;
 
 	[super didDisconnect];
 

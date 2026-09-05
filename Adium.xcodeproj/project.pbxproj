@@ -242,6 +242,8 @@
 		346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */; };
 		346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */ = {isa = PBXBuildFile; fileRef = 346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */; };
 		346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */; };
+		A11B0002E5F0000000000001 /* AMPurpleJabberHTTPFileUpload.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */; };
+		A11B0002E5F0000000000002 /* AMPurpleJabberHTTPFileUpload.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0002E5F0000000000004 /* AMPurpleJabberHTTPFileUpload.m */; };
 		346935D60BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346935D40BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		346BA33F0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 346BA33D0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		346BA3450774C2D200628F06 /* ESGlobalEventsPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 346BA3430774C2D200628F06 /* ESGlobalEventsPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1908,6 +1910,8 @@
 		346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocCommand.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocCommand.m"; sourceTree = "<group>"; };
 		346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberAdHocPing.h; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.h"; sourceTree = "<group>"; };
 		346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocPing.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.m"; sourceTree = "<group>"; };
+		A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberHTTPFileUpload.h; path = "Plugins/Purple Service/AMPurpleJabberHTTPFileUpload.h"; sourceTree = "<group>"; };
+		A11B0002E5F0000000000004 /* AMPurpleJabberHTTPFileUpload.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberHTTPFileUpload.m; path = "Plugins/Purple Service/AMPurpleJabberHTTPFileUpload.m"; sourceTree = "<group>"; };
 		346935D30BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIFileTransferProgressOutlineView.h; path = Source/AIFileTransferProgressOutlineView.h; sourceTree = "<group>"; };
 		346935D40BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIFileTransferProgressOutlineView.m; path = Source/AIFileTransferProgressOutlineView.m; sourceTree = "<group>"; };
 		346BA33C0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGlobalEventsPreferencesPlugin.h; path = Source/ESGlobalEventsPreferencesPlugin.h; sourceTree = "<group>"; };
@@ -3729,6 +3733,8 @@
 				346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */,
 				346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */,
 				346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */,
+				A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */,
+				A11B0002E5F0000000000004 /* AMPurpleJabberHTTPFileUpload.m */,
 			);
 			name = "Ad Hoc Server";
 			sourceTree = "<group>";
@@ -6218,6 +6224,7 @@
 				346545250C8F6AAD0046ED68 /* AMPurpleJabberNode.h in Headers */,
 				346545B90C8F71380046ED68 /* AMPurpleJabberAdHocCommand.h in Headers */,
 				346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */,
+				A11B0002E5F0000000000001 /* AMPurpleJabberHTTPFileUpload.h in Headers */,
 				811036180CDE8A2500EC6038 /* AIPurpleCertificateViewer.h in Headers */,
 				811036250CDE8C2100EC6038 /* adiumPurpleCertificateTrustWarning.h in Headers */,
 				8110362C0CDE8F5800EC6038 /* AIPurpleCertificateTrustWarningAlert.h in Headers */,
@@ -7133,6 +7140,7 @@
 				346545260C8F6AAD0046ED68 /* AMPurpleJabberNode.m in Sources */,
 				346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */,
 				346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */,
+				A11B0002E5F0000000000002 /* AMPurpleJabberHTTPFileUpload.m in Sources */,
 				11EE1B500CDCFAF40097F246 /* ssl.c in Sources */,
 				811033510CDE170B00EC6038 /* ssl-cdsa.c in Sources */,
 				811036190CDE8A2500EC6038 /* AIPurpleCertificateViewer.m in Sources */,
