@@ -38,8 +38,12 @@
 - (void)awakeFromNib
 {
 	[super awakeFromNib];
-	
+
 	[checkBox_checkMail setEnabled:NO];
+
+	//The nib's text color is lost at unarchiving; without one the server
+	//description draws black on its dark background
+	[textView_serverDescription setTextColor:[NSColor labelColor]];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(contactListChanged:)

@@ -57,9 +57,8 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 	}
 	
 	
-	[[textView_debug textStorage] addAttribute:NSParagraphStyleAttributeName
-										 value:debugParagraphStyle
-										 range:NSMakeRange(0, [mutableDebugString length])];
+	[[textView_debug textStorage] addAttributes:debugTextAttributes
+										  range:NSMakeRange(0, [mutableDebugString length])];
 
 //	[fullDebugLogArray removeAllObjects];
 	
@@ -77,9 +76,8 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 		NSUInteger aDebugStringLength = [aDebugString length];
 		
 		[mutableDebugString appendString:aDebugString];
-		[[textView_debug textStorage] addAttribute:NSParagraphStyleAttributeName
-											 value:debugParagraphStyle
-											 range:NSMakeRange([mutableDebugString length] - aDebugStringLength, aDebugStringLength)];
+		[[textView_debug textStorage] addAttributes:debugTextAttributes
+											  range:NSMakeRange([mutableDebugString length] - aDebugStringLength, aDebugStringLength)];
 	}
 }
 + (void)addedDebugMessage:(NSString *)aDebugString
@@ -102,6 +100,11 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 	debugParagraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
 	[debugParagraphStyle setHeadIndent:12];
 	[debugParagraphStyle setFirstLineHeadIndent:2];
+	/* Appending through the storage's mutable string bypasses the view's typing
+	 * attributes, and colorless text draws black in every appearance, so the color
+	 * has to travel with every range alongside the indent. */
+	debugTextAttributes = @{NSParagraphStyleAttributeName: debugParagraphStyle,
+	                        NSForegroundColorAttributeName: [NSColor labelColor]};
 	[scrollView_debug setAutoScrollToBottom:YES];
 
 	//Load the logs which were added before the window was loaded
@@ -112,7 +115,8 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 		}
 		[fullDebugLogArray addObject:aDebugString];
 	}
-
+	[[textView_debug textStorage] addAttributes:debugTextAttributes
+										  range:NSMakeRange(0, [mutableDebugString length])];
 
 	[[self window] setTitle:AILocalizedString(@"Adium Debug Log","Debug window title")];
 
@@ -161,6 +165,7 @@ static ESDebugWindowController *sharedDebugWindowInstance = nil;
 	mutableDebugString = nil;
 	fullDebugLogArray = nil;
 	debugParagraphStyle = nil;
+	debugTextAttributes = nil;
 
 	//-close still talks to us after this returns; stay alive until the pool drains
 	CFAutorelease(CFBridgingRetain(sharedDebugWindowInstance));

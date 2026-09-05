@@ -37,6 +37,8 @@
 {
 	[super viewDidLoad];
 	
+	//The nib's text color is lost at unarchiving; without one the entry draws black on its dark background
+	[textView_textToSpeak setTextColor:[NSColor labelColor]];
 	[textView_textToSpeakLabel setStringValue:AILocalizedString(@"Text To Speak:",nil)];
 	[box_substitutions setTitle:AILocalizedString(@"Substitutions:","Title above the box in the Speak Text action's detail pane. The box contains keywords such as \%a and what they will become when spoken such as User Alias.")];
 

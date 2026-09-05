@@ -32,6 +32,8 @@
 {
 	NSString *alertText = [inDetails objectForKey:KEY_ALERT_TEXT];
 
+	//The nib's text color is lost at unarchiving; without one the entry draws black on its dark background
+	[view_alertText setTextColor:[NSColor labelColor]];
 	[view_alertText setString:(alertText ? alertText : @"")];
 	[label_alertText setStringValue:AILocalizedString(@"Alert Text:", "Label for the 'show an alert' action")];
 }

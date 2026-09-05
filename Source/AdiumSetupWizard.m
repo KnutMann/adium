@@ -288,6 +288,8 @@ static AdiumSetupWizard *runningWizard = nil;
 	} else if ([identifier isEqualToString:DONE_IDENTIFIER]) {
 		[textView_doneMessage setDrawsBackground:NO];
 		[[textView_doneMessage enclosingScrollView] setDrawsBackground:NO];
+		//The nib's text color is lost at unarchiving; without one the text draws black on the dark wizard
+		[textView_doneMessage setTextColor:[NSColor labelColor]];
 		[textView_doneMessage setString:AILocalizedString(@"Adium is now ready for you. \n\nThe Status indicator at the top of your Contact List and in the Status menu lets you determine whether others see you as Available or Away or, alternately, if you are Offline. Select Custom to type your own status message.\n\nDouble-click a name in your Contact List to begin a conversation.  You can add contacts to your Contact List via the Contact menu.\n\nWant to customize your Adium experience? Check out the Adium Preferences and Xtras Manager via the Adium menu.\n\nEnjoy! Click Done to begin using Adium.", nil)];
 
 		[textField_done setStringValue:AILocalizedString(@"Congratulations!","Header line in the last pane of the Adium setup wizard")];

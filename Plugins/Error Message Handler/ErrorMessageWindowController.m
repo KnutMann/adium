@@ -179,6 +179,13 @@ static ErrorMessageWindowController *sharedErrorMessageInstance = nil;
     [textView_errorInfo setDrawsBackground:NO];
     [scrollView_errorInfo setDrawsBackground:NO];
 
+	/* The nib claims a semantic text color for both views, but it does not survive
+	 * unarchiving: the views come back with no color at all, and colorless text draws
+	 * black in every appearance. Over the dark window these background-less views
+	 * show, that made every notice unreadable, the Teams sign-in code among them. */
+	[textView_errorTitle setTextColor:[NSColor labelColor]];
+	[textView_errorInfo setTextColor:[NSColor labelColor]];
+
 	/* Not resizable horizontally is not the same as wrapping: a text container keeps whatever width
 	 * the nib gave it unless it is told to follow its text view, and a sentence longer than that ran
 	 * off the side and was clipped, taking with it whatever stood at the end of it. That is how the
