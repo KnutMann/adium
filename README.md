@@ -59,7 +59,11 @@ Current version: **1.8.0**.
   so a message you send can be confirmed delivered and then read;
   message reactions (XEP-0444), sent from the message's context menu
   and delivered to the exact message they name, in direct chats and
-  rooms alike
+  rooms alike; pictures shared by modern clients through HTTP upload
+  (XEP-0363, announced per XEP-0066) are shown in the conversation
+  itself rather than as a bare link, governed by the same setting that
+  controls automatic file transfers, including its restriction to
+  contacts of your own list
 * OTR migrated to the libotr 4.x API
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr

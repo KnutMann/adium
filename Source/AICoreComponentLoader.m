@@ -78,6 +78,7 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"AIDualWindowInterfacePlugin",
 		@"AIEventSoundsPlugin",
 		@"AIExtendedStatusPlugin",
+		@"AIInlineImageLinkPlugin",
 		@"AILoggerPlugin",
 		@"AINewMessagePanelPlugin",
 		@"AINudgeBuzzHandlerPlugin",

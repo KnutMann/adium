@@ -425,6 +425,10 @@ static NSString *const AIWKContextMenuScript =
 												 selector:@selector(pendingReplyConsumed:)
 													 name:@"AIChatPendingReplyConsumed"
 												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(messageImageResolved:)
+													 name:@"AIChatMessageImageResolved"
+												   object:nil];
 
 		// Observe chat/participant changes so user icons can be refreshed on the page (#124)
 		[[NSNotificationCenter defaultCenter] addObserver:self
@@ -2187,6 +2191,12 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	if ([message.messageId isEqualToString:[_chat valueForProperty:@"PendingReplyToken"]]) {
 		[self _markReplyPendingOnMessageId:message.messageId];
 	}
+
+	//A picture fetched for an image link is message state like the ticks; re-embed it
+	if ([message.inlineImagePath length] &&
+		[[NSFileManager defaultManager] fileExistsAtPath:message.inlineImagePath]) {
+		[self _embedImageAtPath:message.inlineImagePath onMessageId:message.messageId];
+	}
 }
 
 /*!
@@ -2229,6 +2239,58 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if (error || [result integerValue] == 0) {
 			AILogWithSignature(@"id %@ found no bare outgoing message (%@)", messageId, error ?: result);
+		}
+	}];
+}
+
+/*!
+ * @brief A picture was fetched for a message that is an image link; embed it
+ *
+ * The message stays what it was, a link; the picture is put into the rendered
+ * bubble in the link's place, still wrapped in it so a click opens the original
+ * address. A rebuilt page embeds again from the message's inlineImagePath, see
+ * -_applyRememberedStateForContent:.
+ */
+- (void)messageImageResolved:(NSNotification *)notification
+{
+	if ([notification object] != _chat || !_webView) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	NSString *path = [[notification userInfo] objectForKey:@"Path"];
+	if (![messageId length] || ![path length]) return;
+
+	[self _embedImageAtPath:path onMessageId:messageId];
+}
+
+- (void)_embedImageAtPath:(NSString *)path onMessageId:(NSString *)messageId
+{
+	if (![messageId length] || !_webView) return;
+
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" var id=%@, src=%@;"
+		@" var msgs=document.querySelectorAll('[data-x-adium-msg]');"
+		@" for(var i=0;i<msgs.length;i++){"
+		@"  if(msgs[i].getAttribute('data-x-adium-id')!==id) continue;"
+		@"  if(msgs[i].querySelector('img[data-x-adium-inline-image]')) return 1;"
+		@"  var img=document.createElement('img');"
+		@"  img.src=src;"
+		@"  img.setAttribute('data-x-adium-inline-image','1');"
+		@"  img.style.maxWidth='min(320px, 100%%)';"
+		@"  img.style.maxHeight='240px';"
+		@"  img.style.borderRadius='4px';"
+		@"  img.style.display='block';"
+		@"  img.style.marginTop='2px';"
+		@"  var a=msgs[i].querySelector('a');"
+		@"  if(a){ a.textContent=''; a.appendChild(img); } else { msgs[i].appendChild(img); }"
+		@"  return 2;"
+		@" }"
+		@" return 0;"
+		@"})()",
+		[self _jsStringLiteral:messageId], [self _jsStringLiteral:[[NSURL fileURLWithPath:path] absoluteString]]];
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		if (error || [result integerValue] == 0) {
+			AILogWithSignature(@"image for id %@ found no message (%@)", messageId, error ?: result);
 		}
 	}];
 }

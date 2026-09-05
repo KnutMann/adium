@@ -125,5 +125,6 @@
 @synthesize messageId;
 @synthesize confirmation;
 @synthesize reactions;
+@synthesize inlineImagePath;
 
 @end

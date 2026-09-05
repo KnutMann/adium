@@ -484,6 +484,7 @@
 		34BFDF2107E8978900AD984D /* TabDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1F07E8978900AD984D /* TabDefaults.plist */; };
 		34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE20007E8E11500AD984D /* AIChatCyclingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0001E5F0000000000001 /* AIInlineImageLinkPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0001E5F0000000000002 /* AIInlineImageLinkPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */; };
@@ -2261,6 +2262,8 @@
 		34BFE20107E8E11500AD984D /* AIChatCyclingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIChatCyclingPlugin.h; path = Source/AIChatCyclingPlugin.h; sourceTree = SOURCE_ROOT; };
 		34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAutoLinkingPlugin.m; path = Source/AIAutoLinkingPlugin.m; sourceTree = "<group>"; };
 		34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAutoLinkingPlugin.h; path = Source/AIAutoLinkingPlugin.h; sourceTree = "<group>"; };
+		A11B0001E5F0000000000002 /* AIInlineImageLinkPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIInlineImageLinkPlugin.m; path = Source/AIInlineImageLinkPlugin.m; sourceTree = "<group>"; };
+		A11B0001E5F0000000000003 /* AIInlineImageLinkPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIInlineImageLinkPlugin.h; path = Source/AIInlineImageLinkPlugin.h; sourceTree = "<group>"; };
 		34BFE2D507E8E74400AD984D /* AIChatConsolidationPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIChatConsolidationPlugin.h; path = Source/AIChatConsolidationPlugin.h; sourceTree = SOURCE_ROOT; };
 		34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIChatConsolidationPlugin.m; path = Source/AIChatConsolidationPlugin.m; sourceTree = SOURCE_ROOT; };
 		34C14CD007A8B1AB003CC138 /* AIEmoticonPackPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewView.h; sourceTree = "<group>"; };
@@ -5066,6 +5069,8 @@
 			children = (
 				34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */,
 				34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */,
+				A11B0001E5F0000000000003 /* AIInlineImageLinkPlugin.h */,
+				A11B0001E5F0000000000002 /* AIInlineImageLinkPlugin.m */,
 			);
 			name = "Auto Linking";
 			sourceTree = "<group>";
@@ -7268,6 +7273,7 @@
 				34BFD80007E6A51D00AD984D /* GBApplescriptFiltersPlugin.m in Sources */,
 				34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */,
 				34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */,
+				A11B0001E5F0000000000001 /* AIInlineImageLinkPlugin.m in Sources */,
 				34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */,
 				AE7A5D1000000000000000A3 /* AIAwayReminderPlugin.m in Sources */,
 				4BB9972B083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m in Sources */,

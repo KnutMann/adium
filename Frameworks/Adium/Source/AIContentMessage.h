@@ -39,6 +39,7 @@
 	NSString	*messageId;
 	NSInteger	confirmation;
 	NSMutableDictionary *reactions;
+	NSString	*inlineImagePath;
 }
 
 /*!	@brief	Create and autorelease an AIContentMessage.
@@ -112,6 +113,15 @@
  * confirmation: a rebuilt page redraws the chips from here.
  */
 @property (readwrite, nonatomic, retain) NSMutableDictionary *reactions;
+
+/*!
+ * @brief A local picture fetched for a message that is an image link
+ *
+ * nil until an image link was resolved. Kept on the message for the same
+ * reason as confirmation and reactions: a rebuilt page embeds the picture
+ * again from here instead of downloading it once more.
+ */
+@property (readwrite, nonatomic, copy) NSString *inlineImagePath;
 
 /*!
  * @brief The prefix string for the sender of this message.
