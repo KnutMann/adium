@@ -67,6 +67,7 @@
 #define NAME_STATUS_SPACING				 1.0f		//Space between the name and the status line
 #define NAME_FONT_SIZE					13.0f
 #define STATUS_FONT_SIZE				11.0f
+#define STATUS_MAX_LINES				 3			//An error may wrap, but must not take over the list
 #define CELL_H_PADDING					10.0f		//Leading/trailing padding inside a row
 #define SERVICE_ICON_SIZE				32.0f
 #define SERVICE_ICON_GAP				10.0f		//Space between the service icon and the text
@@ -406,10 +407,15 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[self setStatusDot:statusDot];
 
 		//Status line
+		/* Wraps, but only so far: a disconnection error can be a whole page (a Go connector reports
+		 * the raw structure of its error), and a row that tall reads as a broken list. Past the cap
+		 * the last line ends in an ellipsis; hovering shows the full text and the context menu can
+		 * copy it. */
 		NSTextField *statusField = AIAccountListLabel(STATUS_FONT_SIZE, [NSColor secondaryLabelColor]);
 		[[statusField cell] setLineBreakMode:NSLineBreakByWordWrapping];
 		[[statusField cell] setWraps:YES];
-		[statusField setMaximumNumberOfLines:0];
+		[[statusField cell] setTruncatesLastVisibleLine:YES];
+		[statusField setMaximumNumberOfLines:STATUS_MAX_LINES];
 		[statusField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
 											  forOrientation:NSLayoutConstraintOrientationHorizontal];
 		[textContainer addSubview:statusField];
@@ -1995,6 +2001,7 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	 * measuring any other way makes rows come out too short for multi-line error messages. */
 	static NSTextField	*nameSizingField = nil;
 	static NSTextField	*statusSizingField = nil;
+	static CGFloat		 maxStatusHeight = 0.0f;
 
 	if (!nameSizingField) {
 		nameSizingField = AIAccountListLabel(NAME_FONT_SIZE, [NSColor labelColor]);
@@ -2004,6 +2011,14 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 		[[statusSizingField cell] setLineBreakMode:NSLineBreakByWordWrapping];
 		[[statusSizingField cell] setWraps:YES];
 		[statusSizingField setMaximumNumberOfLines:0];
+
+		/* The tallest status block the display label will ever show, measured with the same cell:
+		 * STATUS_MAX_LINES stacked lines. See the cell view; past this the label truncates. */
+		NSMutableArray *sampleLines = [NSMutableArray array];
+		for (NSInteger line = 0; line < STATUS_MAX_LINES; line++)
+			[sampleLines addObject:@"Xy"];
+		[statusSizingField setStringValue:[sampleLines componentsJoinedByString:@"\n"]];
+		maxStatusHeight = [[statusSizingField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, 100000.0f, 100000.0f)].height;
 	}
 
 	// The name is always a single line
@@ -2012,10 +2027,16 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	// The status line wraps; it grows for connection errors and reconnection countdowns
 	[statusSizingField setStringValue:([statusLine length] ? statusLine : @"Xy")];
 
+	CGFloat			statusHeight = [[statusSizingField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, [self statusTextWidth], 100000.0f)].height;
+
+	//The display label truncates past STATUS_MAX_LINES, so the row makes no room beyond them
+	if (statusHeight > maxStatusHeight)
+		statusHeight = maxStatusHeight;
+
 	CGFloat			necessaryHeight = ((ROW_V_PADDING * 2.0f) +
 									   [[nameSizingField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, 100000.0f, 100000.0f)].height +
 									   NAME_STATUS_SPACING +
-									   [[statusSizingField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, [self statusTextWidth], 100000.0f)].height);
+									   statusHeight);
 
 	// Never go below the minimum row height
 	if (necessaryHeight < MINIMUM_ROW_HEIGHT) {
@@ -2206,6 +2227,13 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 	[[cellView statusField] setPreferredMaxLayoutWidth:[self statusTextWidth]];
 	[[cellView statusField] setStringValue:statusLine];
 	[[cellView statusDot] setContentTintColor:[self statusColorForAccount:account]];
+
+	/* An error capped at STATUS_MAX_LINES may end in an ellipsis; hovering shows the whole
+	 * message, and the row's context menu can copy it. */
+	BOOL	showsError = (!account.online &&
+						  ![account boolValueForProperty:@"isConnecting"] &&
+						  [self statusMessageForAccount:account] != nil);
+	[[cellView statusField] setToolTip:(showsError ? statusLine : nil)];
 
 	/* Enable/disable switch. Setting the state unconditionally would interfere with the switch's own
 	 * click handling: -setEnabled: on the account notifies observers synchronously, so this method
