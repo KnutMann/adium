@@ -63,6 +63,14 @@
 /*! @brief Send fabricated video frames instead of touching any device; for tests */
 @property (nonatomic) BOOL usesSyntheticVideo;
 
+/*!
+ * @brief STUN and TURN servers to try, one dictionary each: urls, username, credential
+ *
+ * What XEP-0215 answered for the account; empty means host candidates only,
+ * which is all two machines on one network need.
+ */
+@property (nonatomic, copy) NSArray<NSDictionary *> *iceServerDictionaries;
+
 - (id)initAsInitiatorFrom:(NSString *)localJid to:(NSString *)peerJid;
 - (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid;
 

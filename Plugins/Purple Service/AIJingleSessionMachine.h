@@ -80,4 +80,13 @@ typedef NS_ENUM(NSInteger, AIJingleCallState) {
 //Both sides: hang up (reason per XEP-0166, "success" for a normal end)
 - (void)hangUpWithReason:(NSString *)reason;
 
+/*!
+ * @brief End without a word on the wire
+ *
+ * For endings the wire already knows about in another language: a rejected or
+ * retracted proposal (XEP-0353) ends the call before a session ever existed,
+ * so a session-terminate would name a session the peer never heard of.
+ */
+- (void)abandonWithReason:(NSString *)reason locally:(BOOL)locally;
+
 @end

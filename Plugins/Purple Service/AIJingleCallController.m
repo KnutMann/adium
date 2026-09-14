@@ -76,7 +76,18 @@
 
 	RTCConfiguration *configuration = [[RTCConfiguration alloc] init];
 	configuration.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
-	//STUN and TURN arrive with XEP-0215 in a later chapter; hosts on one network meet without them
+
+	//Whatever XEP-0215 offered; hosts on one network meet without any of it
+	NSMutableArray<RTCIceServer *> *iceServers = [NSMutableArray array];
+	for (NSDictionary *entry in self.iceServerDictionaries) {
+		NSString *url = entry[@"urls"];
+		if (![url length])
+			continue;
+		[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[url]
+															  username:(entry[@"username"] ?: @"")
+															credential:(entry[@"credential"] ?: @"")]];
+	}
+	configuration.iceServers = iceServers;
 
 	RTCMediaConstraints *none = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:@{}
 																	  optionalConstraints:@{}];

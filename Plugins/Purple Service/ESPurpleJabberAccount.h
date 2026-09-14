@@ -33,7 +33,7 @@
 #define PURPLE_SSL_CDSA_BUGGY_TLS_WORKAROUND "ssl_cdsa_buggy_tls_workaround"
 
 @class AMXMLConsoleController, AMPurpleJabberServiceDiscoveryBrowsing, AMPurpleJabberAdHocServer,
-	   AMPurpleJabberHTTPFileUpload, ESFileTransfer;
+	   AMPurpleJabberHTTPFileUpload, AMPurpleJabberExternalServices, ESFileTransfer;
 
 @interface ESPurpleJabberAccount : CBPurpleAccount <AIAccount_Files> {
     AMXMLConsoleController *xmlConsoleController;
@@ -41,6 +41,7 @@
 
 	AMPurpleJabberAdHocServer *adhocServer;
 	AMPurpleJabberHTTPFileUpload *httpUpload;
+	AMPurpleJabberExternalServices *externalServices;
 
 	NSMutableArray *gateways;
 }
@@ -55,5 +56,10 @@
  * @brief An HTTP upload that could not finish resumes as a classic transfer
  */
 - (void)httpUploadFellBackForFileTransfer:(ESFileTransfer *)fileTransfer;
+
+/*!
+ * @brief The STUN and TURN servers the domain offers (XEP-0215), for calls
+ */
+- (NSArray *)jingleIceServers;
 
 @end

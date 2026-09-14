@@ -38,6 +38,7 @@
 #import "ESPurpleJabberAccountViewController.h"
 #import "AMPurpleJabberAdHocServer.h"
 #import "AMPurpleJabberHTTPFileUpload.h"
+#import "AMPurpleJabberExternalServices.h"
 #import "AMPurpleJabberAdHocPing.h"
 #import "AIMessageViewController.h"
 #import <Adium/AIMenuControllerProtocol.h>
@@ -535,6 +536,11 @@
 	[super _beginSendOfFileTransfer:fileTransfer];
 }
 
+- (NSArray *)jingleIceServers
+{
+	return [externalServices iceServerDictionaries];
+}
+
 - (void)acceptFileTransferRequest:(ESFileTransfer *)fileTransfer
 {
     [super acceptFileTransferRequest:fileTransfer];    
@@ -915,6 +921,10 @@
 	//Look for the server's HTTP upload service; found or not, sending falls back gracefully
 	[httpUpload release];
 	httpUpload = [[AMPurpleJabberHTTPFileUpload alloc] initWithAccount:self];
+
+	//And for its STUN and TURN servers; calls read the answer when they build their connection
+	[externalServices release];
+	externalServices = [[AMPurpleJabberExternalServices alloc] initWithAccount:self];
 }
 
 - (void)didDisconnect {
@@ -923,6 +933,7 @@
 	[discoveryBrowserController release]; discoveryBrowserController = nil;
 	[adhocServer release]; adhocServer = nil;
 	[httpUpload release]; httpUpload = nil;
+	[externalServices release]; externalServices = nil;
 
 	[super didDisconnect];
 

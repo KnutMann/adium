@@ -270,4 +270,13 @@
 	[self.delegate machine:self endedWithReason:reason locally:YES];
 }
 
+- (void)abandonWithReason:(NSString *)reason locally:(BOOL)locally
+{
+	if (self.state == AIJingleCallStateEnded)
+		return;
+
+	self.state = AIJingleCallStateEnded;
+	[self.delegate machine:self endedWithReason:reason locally:locally];
+}
+
 @end

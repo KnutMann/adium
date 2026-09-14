@@ -38,7 +38,8 @@
 - (void)manager:(AIJingleCallManager *)manager promptForIncomingCallWithSid:(NSString *)sid
 		   from:(NSString *)fromJid onAccount:(CBPurpleAccount *)account offersVideo:(BOOL)offersVideo;
 - (void)manager:(AIJingleCallManager *)manager incomingCallWithdrawn:(NSString *)sid;
-- (void)manager:(AIJingleCallManager *)manager callBegan:(AIJingleCallController *)controller;
+- (void)manager:(AIJingleCallManager *)manager callBegan:(AIJingleCallController *)controller
+	  onAccount:(CBPurpleAccount *)account;
 - (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller;
 - (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller
 	endedWithReason:(NSString *)reason locally:(BOOL)locally;

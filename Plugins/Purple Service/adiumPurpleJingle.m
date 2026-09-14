@@ -29,6 +29,9 @@
  */
 
 #define NS_JINGLE "urn:xmpp:jingle:1"
+#define NS_JINGLE_MESSAGE "urn:xmpp:jingle-message:0"
+#define NS_JINGLE_RTP "urn:xmpp:jingle:apps:rtp:1"
+#define NS_HINTS "urn:xmpp:hints"
 
 static int adium_purple_jingle_handle;
 static id<AdiumJingleStanzaHandler> jingleHandler = nil;
@@ -48,6 +51,48 @@ void adiumPurpleJingleSetHandler(id<AdiumJingleStanzaHandler> handler)
 
 #pragma mark Receiving
 
+/*! @brief The ringing language: propose, proceed, reject, retract and accept ride in messages */
+static gboolean jingle_handle_message(PurpleConnection *gc, xmlnode *message)
+{
+	if (![jingleHandler respondsToSelector:@selector(handleJingleMessageOfKind:sid:from:offersVideo:onAccount:)])
+		return FALSE;
+
+	static const char *kinds[] = { "propose", "proceed", "reject", "retract", "accept", NULL };
+	xmlnode *child = NULL;
+	const char *kind = NULL;
+
+	for (int index = 0; kinds[index] && !child; index++) {
+		child = xmlnode_get_child_with_namespace(message, kinds[index], NS_JINGLE_MESSAGE);
+		kind = kinds[index];
+	}
+	if (!child)
+		return FALSE;
+
+	const char *from = xmlnode_get_attrib(message, "from");
+	const char *sid = xmlnode_get_attrib(child, "id");
+	if (!from || !sid)
+		return FALSE;
+
+	//A propose says what it offers; anything with a video description rings as a video call
+	BOOL offersVideo = NO;
+	for (xmlnode *description = xmlnode_get_child_with_namespace(child, "description", NS_JINGLE_RTP);
+		 description; description = xmlnode_get_next_twin(description)) {
+		const char *media = xmlnode_get_attrib(description, "media");
+		if (media && !strcmp(media, "video"))
+			offersVideo = YES;
+	}
+
+	gboolean owned = FALSE;
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	owned = [jingleHandler handleJingleMessageOfKind:[NSString stringWithUTF8String:kind]
+												 sid:[NSString stringWithUTF8String:sid]
+												from:[NSString stringWithUTF8String:from]
+										 offersVideo:offersVideo
+										   onAccount:accountLookup(purple_connection_get_account(gc))];
+	[pool release];
+	return owned;
+}
+
 static void jingle_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
 {
 	//Any handler on this signal may have consumed the stanza and left NULL behind
@@ -55,6 +100,15 @@ static void jingle_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, 
 		return;
 
 	xmlnode *iq = *packet;
+
+	if (!strcmp(iq->name, "message")) {
+		if (jingle_handle_message(gc, iq)) {
+			xmlnode_free(*packet);
+			*packet = NULL;
+		}
+		return;
+	}
+
 	if (strcmp(iq->name, "iq"))
 		return;
 
@@ -131,6 +185,45 @@ void adiumPurpleJingleSendElement(CBPurpleAccount *adiumAccount, NSString *toJid
 	purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &iq);
 	if (iq)
 		xmlnode_free(iq);
+}
+
+void adiumPurpleJingleSendMessage(CBPurpleAccount *adiumAccount, NSString *toJid, NSString *kind,
+								  NSString *sid, BOOL audio, BOOL video)
+{
+	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
+	PurpleConnection *gc = (account ? purple_account_get_connection(account) : NULL);
+	PurplePlugin *jabber = jingle_jabber_prpl();
+
+	if (!gc || !jabber)
+		return;
+
+	xmlnode *message = xmlnode_new("message");
+	xmlnode_set_attrib(message, "to", [toJid UTF8String]);
+	xmlnode_set_attrib(message, "type", "chat");
+
+	xmlnode *child = xmlnode_new_child(message, [kind UTF8String]);
+	xmlnode_set_namespace(child, NS_JINGLE_MESSAGE);
+	xmlnode_set_attrib(child, "id", [sid UTF8String]);
+
+	if ([kind isEqualToString:@"propose"]) {
+		if (audio) {
+			xmlnode *description = xmlnode_new_child(child, "description");
+			xmlnode_set_namespace(description, NS_JINGLE_RTP);
+			xmlnode_set_attrib(description, "media", "audio");
+		}
+		if (video) {
+			xmlnode *description = xmlnode_new_child(child, "description");
+			xmlnode_set_namespace(description, NS_JINGLE_RTP);
+			xmlnode_set_attrib(description, "media", "video");
+		}
+	}
+
+	//Worth keeping for devices that are asleep right now
+	xmlnode_set_namespace(xmlnode_new_child(message, "store"), NS_HINTS);
+
+	purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &message);
+	if (message)
+		xmlnode_free(message);
 }
 
 #pragma mark Enabling

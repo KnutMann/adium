@@ -27,6 +27,14 @@
 					   from:(NSString *)fromJid
 					 action:(NSString *)action
 				  onAccount:(CBPurpleAccount *)account;
+
+@optional
+/*! @brief A jingle-message (XEP-0353) arrived: propose, proceed, reject, retract or accept */
+- (BOOL)handleJingleMessageOfKind:(NSString *)kind
+							  sid:(NSString *)sid
+							 from:(NSString *)fromJid
+					  offersVideo:(BOOL)offersVideo
+						onAccount:(CBPurpleAccount *)account;
 @end
 
 /*!
@@ -41,3 +49,13 @@ void adiumPurpleJingleSetHandler(id<AdiumJingleStanzaHandler> handler);
 
 /*! @brief Wrap a jingle element in an iq of its own and send it on the account's stream */
 void adiumPurpleJingleSendElement(CBPurpleAccount *adiumAccount, NSString *toJid, NSString *jingleXML);
+
+/*!
+ * @brief Send a jingle-message (XEP-0353): the ringing language of calls
+ *
+ * A propose names what it offers through audio and video; every other kind
+ * carries only the id. Sent as a chat message with a store hint, so every
+ * device of the peer hears it ring.
+ */
+void adiumPurpleJingleSendMessage(CBPurpleAccount *adiumAccount, NSString *toJid, NSString *kind,
+								  NSString *sid, BOOL audio, BOOL video);

@@ -17,6 +17,9 @@
 #import "AIJingleCallUI.h"
 #import "AIJingleCallWindowController.h"
 
+#import <Adium/AIChat.h>
+#import <Adium/AIChatControllerProtocol.h>
+#import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIMenuControllerProtocol.h>
 #import <Adium/AIListContact.h>
@@ -34,7 +37,9 @@
 	NSMutableDictionary<NSString *, NSPanel *> *ringPanelsBySid;
 	NSMutableDictionary<NSString *, NSString *> *displayNamesBySid;
 	NSMutableDictionary<NSString *, AIJingleCallWindowController *> *windowsBySid;
+	NSMutableDictionary<NSString *, AIListContact *> *contactsBySid;	//for the note in the chat
 	NSString *upcomingDisplayName;		//set right before the manager reports callBegan
+	NSTimer *ringTimer;
 }
 
 + (AIJingleCallUI *)sharedUI
@@ -60,6 +65,7 @@
 		ringPanelsBySid = [NSMutableDictionary dictionary];
 		displayNamesBySid = [NSMutableDictionary dictionary];
 		windowsBySid = [NSMutableDictionary dictionary];
+		contactsBySid = [NSMutableDictionary dictionary];
 	}
 	return self;
 }
@@ -128,15 +134,13 @@
 	if (!contact)
 		return;
 
-	AIJingleCallManager *manager = [AIJingleCallManager sharedManager];
-	NSString *fullJid = [manager fullJidForContact:contact];
-	if (![fullJid length]) {
-		NSBeep();
-		return;
-	}
-
+	/* The bare JID: the proposal rings every device of the contact, and the one that
+	 * answers becomes the peer; the manager falls back to the best resource by itself
+	 * when nobody speaks the ringing language. */
 	upcomingDisplayName = contact.displayName;
-	[manager startCallToJid:fullJid onAccount:(CBPurpleAccount *)contact.account withVideo:withVideo];
+	[[AIJingleCallManager sharedManager] startCallToJid:contact.UID
+											  onAccount:(CBPurpleAccount *)contact.account
+											  withVideo:withVideo];
 }
 
 //Ringing ----------------------------------------------------------------------------------------
@@ -227,6 +231,31 @@
 	[panel center];
 	[panel makeKeyAndOrderFront:nil];
 	[NSApp requestUserAttention:NSCriticalRequest];
+	[self startRinging];
+}
+
+/*! @brief An audible ring while any prompt is up; a system sound stands in for a ringtone */
+- (void)startRinging
+{
+	if (ringTimer)
+		return;
+
+	[[NSSound soundNamed:@"Glass"] play];
+	ringTimer = [NSTimer scheduledTimerWithTimeInterval:2.5
+												 target:self
+											   selector:@selector(ringOnce)
+											   userInfo:nil
+												repeats:YES];
+}
+
+- (void)ringOnce
+{
+	if (![ringPanelsBySid count]) {
+		[ringTimer invalidate];
+		ringTimer = nil;
+		return;
+	}
+	[[NSSound soundNamed:@"Glass"] play];
 }
 
 - (void)closeRingPanelForSid:(NSString *)sid
@@ -234,6 +263,11 @@
 	NSPanel *panel = ringPanelsBySid[sid];
 	[ringPanelsBySid removeObjectForKey:sid];
 	[panel orderOut:nil];
+
+	if (![ringPanelsBySid count]) {
+		[ringTimer invalidate];
+		ringTimer = nil;
+	}
 }
 
 - (void)acceptRingingCall:(NSButton *)sender
@@ -270,20 +304,37 @@
 #pragma mark The windows
 
 - (void)manager:(AIJingleCallManager *)manager callBegan:(AIJingleCallController *)controller
+	  onAccount:(CBPurpleAccount *)account
 {
 	NSString *sid = controller.machine.sid;
 	NSString *name = upcomingDisplayName;
 	upcomingDisplayName = nil;
 
-	if (![name length]) {
-		NSRange slash = [controller.peerFullJid rangeOfString:@"/"];
-		name = (slash.location == NSNotFound ? controller.peerFullJid :
-				[controller.peerFullJid substringToIndex:slash.location]);
-	}
+	NSRange slash = [controller.peerFullJid rangeOfString:@"/"];
+	NSString *bareJid = (slash.location == NSNotFound ? controller.peerFullJid :
+						 [controller.peerFullJid substringToIndex:slash.location]);
+
+	if (![name length])
+		name = ([displayNamesBySid[sid] length] ? displayNamesBySid[sid] : bareJid);
 	[displayNamesBySid removeObjectForKey:sid];
 
 	windowsBySid[sid] = [[AIJingleCallWindowController alloc] initWithCallController:controller
 																		 displayName:name];
+
+	//A note where the conversation lives, when it is open anywhere
+	AIListContact *contact = [account contactWithUID:bareJid];
+	if (contact) {
+		contactsBySid[sid] = contact;
+		[self displayCallNote:AILocalizedString(@"Call started", "Chat line noting a call began")
+				   forContact:contact];
+	}
+}
+
+- (void)displayCallNote:(NSString *)note forContact:(AIListContact *)contact
+{
+	AIChat *chat = [adium.chatController existingChatWithContact:contact];
+	if (chat)
+		[adium.contentController displayEvent:note ofType:@"jingle-call" inChat:chat];
 }
 
 - (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller
@@ -306,6 +357,15 @@
 
 	//The window knows whether this ending closes it or stays readable
 	[window noteEndedWithReason:reason locally:locally];
+
+	AIListContact *contact = contactsBySid[sid];
+	[contactsBySid removeObjectForKey:sid];
+	if (contact) {
+		NSString *note = ([reason isEqualToString:@"success"] ?
+			AILocalizedString(@"Call ended", "State of a finished call") :
+			[NSString stringWithFormat:AILocalizedString(@"Call ended (%@)", "Chat line noting a call ended; %@ names the reason"), reason]);
+		[self displayCallNote:note forContact:contact];
+	}
 }
 
 @end
