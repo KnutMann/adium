@@ -17,7 +17,7 @@
 #import <Foundation/Foundation.h>
 #import "AIJingleSessionMachine.h"
 
-@class AIJingleCallController, RTCPeerConnection;
+@class AIJingleCallController, RTCPeerConnection, RTCVideoTrack;
 
 /*!
  * @brief What the controller reports upward, to a manager or a test
@@ -26,6 +26,9 @@
 - (void)callController:(AIJingleCallController *)controller sendJingleElement:(NSString *)jingleXML;
 - (void)callControllerConnected:(AIJingleCallController *)controller;
 - (void)callController:(AIJingleCallController *)controller endedWithReason:(NSString *)reason locally:(BOOL)locally;
+@optional
+/*! @brief The peer's video is decodable; hand the track to whoever wants to draw it */
+- (void)callController:(AIJingleCallController *)controller hasRemoteVideoTrack:(RTCVideoTrack *)track;
 @end
 
 /*!
@@ -50,6 +53,12 @@
 
 /*! @brief Send and expect a microphone track (the real call shape) */
 @property (nonatomic) BOOL wantsAudio;
+
+/*! @brief Send the camera too; asked of macOS the first time it happens */
+@property (nonatomic) BOOL wantsVideo;
+
+/*! @brief Our own camera's track, for a preview view; nil without wantsVideo */
+@property (nonatomic, readonly) RTCVideoTrack *localVideoTrack;
 
 /*! @brief Send fabricated video frames instead of touching any device; for tests */
 @property (nonatomic) BOOL usesSyntheticVideo;

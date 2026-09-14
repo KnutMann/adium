@@ -29,14 +29,44 @@
  * until it exists, unknown calls stay untouched and are answered
  * service-unavailable by the protocol, as before.
  */
+@class AIJingleCallManager, AIListContact, RTCVideoTrack;
+
+/*!
+ * @brief What the interface layer shows for the manager: ringing, windows, endings
+ */
+@protocol AIJingleCallManagerUI <NSObject>
+- (void)manager:(AIJingleCallManager *)manager promptForIncomingCallWithSid:(NSString *)sid
+		   from:(NSString *)fromJid onAccount:(CBPurpleAccount *)account offersVideo:(BOOL)offersVideo;
+- (void)manager:(AIJingleCallManager *)manager incomingCallWithdrawn:(NSString *)sid;
+- (void)manager:(AIJingleCallManager *)manager callBegan:(AIJingleCallController *)controller;
+- (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller;
+- (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller
+	endedWithReason:(NSString *)reason locally:(BOOL)locally;
+- (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller
+	hasRemoteVideoTrack:(RTCVideoTrack *)track;
+@end
+
 @interface AIJingleCallManager : NSObject <AdiumJingleStanzaHandler, AIJingleCallControllerDelegate>
+
+@property (nonatomic, weak) id<AIJingleCallManagerUI> uiDelegate;
 
 + (AIJingleCallManager *)sharedManager;
 
 /*! @brief Register as the stream's Jingle handler; called once at purple setup */
 + (void)install;
 
-/*! @brief Start a call to a full JID; audio for now, the camera arrives with the interface */
-- (AIJingleCallController *)startCallToJid:(NSString *)peerFullJid onAccount:(CBPurpleAccount *)account;
+/*! @brief Start a call to a full JID */
+- (AIJingleCallController *)startCallToJid:(NSString *)peerFullJid
+								 onAccount:(CBPurpleAccount *)account
+								 withVideo:(BOOL)withVideo;
+
+/*! @brief The full JID of a contact's best resource, or nil while nobody is there */
+- (NSString *)fullJidForContact:(AIListContact *)contact;
+
+/*! @brief Answer a ringing call the interface asked about */
+- (AIJingleCallController *)acceptIncomingCallWithSid:(NSString *)sid withVideo:(BOOL)withVideo;
+
+/*! @brief Turn a ringing call away */
+- (void)declineIncomingCallWithSid:(NSString *)sid;
 
 @end

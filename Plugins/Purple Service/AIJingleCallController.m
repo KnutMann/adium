@@ -22,12 +22,14 @@
 @interface AIJingleCallController () <RTCPeerConnectionDelegate>
 @property (nonatomic, strong) AIJingleSessionMachine *machine;
 @property (nonatomic, strong) RTCPeerConnection *peerConnection;
+@property (nonatomic, strong) RTCVideoTrack *localVideoTrack;
 @end
 
 @implementation AIJingleCallController {
 	RTCVideoSource *syntheticSource;
 	RTCVideoCapturer *syntheticCapturer;
 	dispatch_source_t syntheticTimer;
+	RTCCameraVideoCapturer *cameraCapturer;
 	BOOL announcedConnected;
 	BOOL closed;
 }
@@ -96,7 +98,46 @@
 																				   trackId:@"video0"];
 		[self.peerConnection addTrack:videoTrack streamIds:@[@"adium"]];
 		[self startSyntheticFrames];
+	} else if (self.wantsVideo) {
+		RTCVideoSource *cameraSource = [[AIJingleCallController factory] videoSource];
+		cameraCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:cameraSource];
+		self.localVideoTrack = [[AIJingleCallController factory] videoTrackWithSource:cameraSource
+																			  trackId:@"video0"];
+		[self.peerConnection addTrack:self.localVideoTrack streamIds:@[@"adium"]];
+		[self startCamera];
 	}
+}
+
+/*!
+ * @brief Start the default camera at a modest format
+ *
+ * 640x480 around 30 frames is what a chat window needs; the closest format the
+ * device offers wins. macOS asks the person for the camera the first time.
+ */
+- (void)startCamera
+{
+	AVCaptureDevice *device = [[RTCCameraVideoCapturer captureDevices] firstObject];
+	if (!device)
+		return;
+
+	AVCaptureDeviceFormat *chosenFormat = nil;
+	int32_t chosenDelta = INT32_MAX;
+	for (AVCaptureDeviceFormat *format in [RTCCameraVideoCapturer supportedFormatsForDevice:device]) {
+		CMVideoDimensions size = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+		int32_t delta = abs(size.width - 640) + abs(size.height - 480);
+		if (delta < chosenDelta) {
+			chosenDelta = delta;
+			chosenFormat = format;
+		}
+	}
+	if (!chosenFormat)
+		return;
+
+	Float64 fps = 30;
+	for (AVFrameRateRange *range in chosenFormat.videoSupportedFrameRateRanges)
+		fps = MIN(30, MAX(fps, range.maxFrameRate));
+
+	[cameraCapturer startCaptureWithDevice:device format:chosenFormat fps:(NSInteger)fps];
 }
 
 - (void)startSyntheticFrames
@@ -143,6 +184,8 @@
 		dispatch_source_cancel(syntheticTimer);
 		syntheticTimer = nil;
 	}
+	[cameraCapturer stopCapture];
+	cameraCapturer = nil;
 	[self.peerConnection close];
 }
 
@@ -277,6 +320,19 @@
 			!self->announcedConnected) {
 			self->announcedConnected = YES;
 			[self.delegate callControllerConnected:self];
+
+			/* The peer's video track, if any, from the live receivers. Attaching a
+			 * renderer earlier, in the transceiver callback, draws nothing; measured
+			 * in the loopback spike and written down there. */
+			if ([self.delegate respondsToSelector:@selector(callController:hasRemoteVideoTrack:)]) {
+				for (RTCRtpReceiver *receiver in self.peerConnection.receivers) {
+					if ([receiver.track isKindOfClass:[RTCVideoTrack class]]) {
+						[self.delegate callController:self
+								  hasRemoteVideoTrack:(RTCVideoTrack *)receiver.track];
+						break;
+					}
+				}
+			}
 		}
 		if (newState == RTCIceConnectionStateFailed)
 			[self failWith:@"connectivity-error"];
