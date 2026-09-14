@@ -27,6 +27,10 @@ if ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Loca
 	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
 fi
 
+echo "==> Fetching the pinned WebRTC framework"
+# The calls work links it; not committed, fetched once by checksum
+Dependencies/webrtc/fetch-webrtc.sh
+
 echo "==> Building AIUtilities"
 xcodebuild -project "Frameworks/AIUtilities/AIUtilities.xcodeproj" \
 	-configuration "$CONFIGURATION" build

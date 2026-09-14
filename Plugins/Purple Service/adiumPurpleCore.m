@@ -33,6 +33,7 @@
 #import "adiumPurpleCSI.h"
 #import "adiumPurpleBookmarks.h"
 #import "adiumPurpleJingle.h"
+#import "AIJingleCallManager.h"
 #import "adiumPurpleCertificateTrustWarning.h"
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
@@ -238,6 +239,7 @@ static void adiumPurpleCoreUiInit(void)
 	configureAdiumPurpleCSI();
 	configureAdiumPurpleBookmarks();
 	configureAdiumPurpleJingle();
+	[AIJingleCallManager install];
 	configureAdiumPurpleWhatsApp();
 	
 	//Associate each libpurple account with the appropriate Adium AIAccount.

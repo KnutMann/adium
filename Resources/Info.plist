@@ -786,5 +786,9 @@
 			</dict>
 		</dict>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Adium uses the microphone for voice and video calls.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Adium uses the camera for video calls.</string>
 </dict>
 </plist>
