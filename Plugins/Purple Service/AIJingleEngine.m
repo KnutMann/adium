@@ -424,7 +424,11 @@ static NSString *directionFromSenders(NSString *senders, BOOL asInitiator)
 		attribute(contentElement, @"name", content.name);
 		attribute(contentElement, @"senders", sendersFromDirection(content.senders, asInitiator));
 
-		NSXMLElement *description = element(@"description", NS_RTP);
+		/* A transport-info content carries no description at all; only a content that
+		 * actually describes media gets one */
+		BOOL wantsDescription = ([content.payloadTypes count] || [content.sources count] ||
+								 [content.headerExtensions count] || content.rtcpMux);
+		NSXMLElement *description = wantsDescription ? element(@"description", NS_RTP) : nil;
 		attribute(description, @"media", content.media);
 
 		for (AIJinglePayloadType *payload in content.payloadTypes) {
@@ -482,7 +486,8 @@ static NSString *directionFromSenders(NSString *senders, BOOL asInitiator)
 		}
 		if (content.rtcpMux)
 			[description addChild:element(@"rtcp-mux", nil)];
-		[contentElement addChild:description];
+		if (description)
+			[contentElement addChild:description];
 
 		NSXMLElement *transport = element(@"transport", NS_ICE_UDP);
 		attribute(transport, @"ufrag", content.iceUfrag);

@@ -242,6 +242,10 @@
 		346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */; };
 		346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */ = {isa = PBXBuildFile; fileRef = 346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */; };
 		346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */; };
+		A11B0004E5F0000000000001 /* adiumPurpleJingle.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000003 /* adiumPurpleJingle.h */; };
+		A11B0004E5F0000000000002 /* adiumPurpleJingle.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000004 /* adiumPurpleJingle.m */; };
+		A11B0004E5F0000000000005 /* AIJingleSessionMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000007 /* AIJingleSessionMachine.h */; };
+		A11B0004E5F0000000000006 /* AIJingleSessionMachine.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000008 /* AIJingleSessionMachine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B0003E5F0000000000001 /* AIJingleEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0003E5F0000000000003 /* AIJingleEngine.h */; };
 		A11B0003E5F0000000000002 /* AIJingleEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0003E5F0000000000004 /* AIJingleEngine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B0002E5F0000000000001 /* AMPurpleJabberHTTPFileUpload.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */; };
@@ -1912,6 +1916,10 @@
 		346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocCommand.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocCommand.m"; sourceTree = "<group>"; };
 		346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberAdHocPing.h; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.h"; sourceTree = "<group>"; };
 		346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocPing.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.m"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000003 /* adiumPurpleJingle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleJingle.h; path = "Plugins/Purple Service/adiumPurpleJingle.h"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000004 /* adiumPurpleJingle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleJingle.m; path = "Plugins/Purple Service/adiumPurpleJingle.m"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000007 /* AIJingleSessionMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleSessionMachine.h; path = "Plugins/Purple Service/AIJingleSessionMachine.h"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000008 /* AIJingleSessionMachine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleSessionMachine.m; path = "Plugins/Purple Service/AIJingleSessionMachine.m"; sourceTree = "<group>"; };
 		A11B0003E5F0000000000003 /* AIJingleEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleEngine.h; path = "Plugins/Purple Service/AIJingleEngine.h"; sourceTree = "<group>"; };
 		A11B0003E5F0000000000004 /* AIJingleEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleEngine.m; path = "Plugins/Purple Service/AIJingleEngine.m"; sourceTree = "<group>"; };
 		A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberHTTPFileUpload.h; path = "Plugins/Purple Service/AMPurpleJabberHTTPFileUpload.h"; sourceTree = "<group>"; };
@@ -3737,6 +3745,10 @@
 				346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */,
 				346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */,
 				346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */,
+				A11B0004E5F0000000000003 /* adiumPurpleJingle.h */,
+				A11B0004E5F0000000000004 /* adiumPurpleJingle.m */,
+				A11B0004E5F0000000000007 /* AIJingleSessionMachine.h */,
+				A11B0004E5F0000000000008 /* AIJingleSessionMachine.m */,
 				A11B0003E5F0000000000003 /* AIJingleEngine.h */,
 				A11B0003E5F0000000000004 /* AIJingleEngine.m */,
 				A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */,
@@ -6230,6 +6242,8 @@
 				346545250C8F6AAD0046ED68 /* AMPurpleJabberNode.h in Headers */,
 				346545B90C8F71380046ED68 /* AMPurpleJabberAdHocCommand.h in Headers */,
 				346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */,
+				A11B0004E5F0000000000001 /* adiumPurpleJingle.h in Headers */,
+				A11B0004E5F0000000000005 /* AIJingleSessionMachine.h in Headers */,
 				A11B0003E5F0000000000001 /* AIJingleEngine.h in Headers */,
 				A11B0002E5F0000000000001 /* AMPurpleJabberHTTPFileUpload.h in Headers */,
 				811036180CDE8A2500EC6038 /* AIPurpleCertificateViewer.h in Headers */,
@@ -7147,6 +7161,8 @@
 				346545260C8F6AAD0046ED68 /* AMPurpleJabberNode.m in Sources */,
 				346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */,
 				346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */,
+				A11B0004E5F0000000000002 /* adiumPurpleJingle.m in Sources */,
+				A11B0004E5F0000000000006 /* AIJingleSessionMachine.m in Sources */,
 				A11B0003E5F0000000000002 /* AIJingleEngine.m in Sources */,
 				A11B0002E5F0000000000002 /* AMPurpleJabberHTTPFileUpload.m in Sources */,
 				11EE1B500CDCFAF40097F246 /* ssl.c in Sources */,
