@@ -110,6 +110,28 @@ int main(void) { @autoreleasepool {
 	check(@"und es ist gruen", shown && green > 0.6 && red < 0.35 && blue < 0.35,
 		  [NSString stringWithFormat:@"r=%.2f g=%.2f b=%.2f", red, green, blue]);
 
+	/* Schwarze Bilder erkennen, denn manche Gegenstellen schalten ihre Kamera aus,
+	 * ohne es zu sagen, und schicken danach genau das. */
+	check(@"Ein Bild mit Inhalt gilt nicht als schwarz", !view.looksBlack, nil);
+
+	for (int i = 0; i < 40; i++) {
+		[view renderFrame:pixelBufferFrame(320, 240, 0, 0, 0)];
+		settle();
+	}
+	check(@"Anhaltendes Schwarz wird erkannt", view.looksBlack, nil);
+
+	//Ein dunkler Raum ist nicht schwarz: Rauschen liegt deutlich darueber
+	[view renderFrame:pixelBufferFrame(320, 240, 40, 38, 42)];
+	settle();
+	check(@"Ein dunkler Raum gilt nicht als abgeschaltet", !view.looksBlack, nil);
+
+	//Und aus drei Ebenen ebenso, also auf dem Weg eines Software-Dekoders
+	for (int i = 0; i < 40; i++) {
+		[view renderFrame:planarFrame(320, 240, 16, 128, 128)];
+		settle();
+	}
+	check(@"Auch aus drei Ebenen wird Schwarz erkannt", view.looksBlack, nil);
+
 	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
 	return failures ? 1 : 0;
 } }

@@ -5,10 +5,11 @@ This is a fork of the original [Adium](https://adium.im)
 it for current macOS. It began as an Apple Silicon (arm64) port, as
 the original is an Intel-only binary from 2021. Since then much has
 changed: WhatsApp, Telegram, Signal and Microsoft Teams arrived
-next to the classic services that stood the test of time, along with
-full Dark Mode, replies straight from Notification Center banners,
-a rebuilt System Settings-style preferences window, a WKWebView
-message view, and a long list of fixes for how modern macOS behaves.
+next to the classic services that stood the test of time, encrypted
+voice and video calls over XMPP, full Dark Mode, replies straight from
+Notification Center banners, a rebuilt System Settings-style preferences
+window, a WKWebView message view, and a long list of fixes for how
+modern macOS behaves.
 
 **Adium was created and developed by the Adium team.** All credit for
 the application itself belongs to the original developers; see
@@ -74,6 +75,23 @@ Current version: **1.8.0**.
 Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
 Novell GroupWise and SIMPLE**, plus OTR encryption and tabbed chats in
 a modern look.
+
+### Voice and video calls over XMPP
+
+Adium can place and take calls again, encrypted the way modern clients
+insist on. The signalling is Adium's own, written against the XEPs; the
+media runs through Google's WebRTC natively.
+
+* **Ringing before answering** (XEP-0353)
+* **Encrypted end to end with DTLS-SRTP** (XEP-0320)
+* **Finding a way through and agreeing what to send**, which is most of
+  what a call does before anyone hears anything (XEP-0166, XEP-0167,
+  XEP-0176, XEP-0293, XEP-0294, XEP-0338, XEP-0339)
+* **STUN and TURN from the account's own host** (XEP-0215)
+* **Microphone and camera can be switched off mid-call** (XEP-0167's mute
+  and unmute)
+* **Center Stage support** Camera follows person, where possible
+* **Check Call Readiness…** Check whether Adium can make or receive calls
 
 ### Dark Mode and interface
 
@@ -220,8 +238,16 @@ The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
-All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
-vendored as prebuilt arm64 frameworks in the repository. Rebuilding
+The one dependency that is fetched rather than vendored is Google's
+**WebRTC**, which carries the media of a call. `bootstrap.sh` and
+`install.sh` run `Dependencies/webrtc/fetch-webrtc.sh` before building;
+it downloads the official Chromium build repackaged by
+[stasel/WebRTC](https://github.com/stasel/WebRTC) (version 153.0.0,
+BSD 3-Clause) and checks it against a pinned SHA-256. It is not in the
+repository because it is a 200 MB binary framework.
+
+All other required libraries (libpurple, glib, libotr, libgcrypt, ...)
+are vendored as prebuilt arm64 frameworks in the repository. Rebuilding
 them from source is only necessary when upgrading a dependency or
 patching one; see `Dependencies/build.sh` (this does require a
 Homebrew toolchain).

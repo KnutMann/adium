@@ -66,15 +66,27 @@ Bare-JID-Filter gegen gefälschte Carbons), `ClientStateIndicationModule.swift`
 (aktiv/inaktiv-Politik), `PEPBookmarksModule.swift` (0402-Node, publish-options).
 Implementierung weiterhin gegen die XEP-Texte schreiben, nicht abschreiben.
 
-**Videotelefonie:** libpurple-2.x-Voice&Video ist auf macOS tot — farstream lief hier nie,
-unser Build setzt USE_VV nicht, und 2.14.14 kennt kein DTLS-SRTP (XEP-0320), ohne das 2026
-kein moderner Client (Conversations, Dino, Monal, BeagleIM) verhandelt. Eine separate
-Martin-Komponente mit Zweitverbindung wäre unsauber (Doppel-Login, zweite Ressource,
-AGPL im Bundle). **Der tragfähige Weg, falls Anrufe je kommen:** ein Adium-Plugin, das
-Jingle-IQs über die vorhandenen `jabber-receiving-xmlnode`/`jabber-sending-xmlnode`-Signale
-und `send_raw` auf **derselben** libpurple-Verbindung spricht (jabber.c:4019 ff., libxmpp.c:120,
-verifiziert) und nur die Medienebene an ein eingebettetes WebRTC.xcframework gibt; Signalisierung
-wäre XEP-0166/0167/0176 + 0353 (Message Initiation) + 0215 (STUN/TURN-Discovery), BeagleIMs
-`CallManager.swift`/`JingleManager.swift` und Martins `SDP.swift` als Bauplan-Lektüre (~2-3k
-Zeilen Signalisierung plus UI). Eigenes Großprojekt, klar hinter dem XEP-Fahrplan. Wermutstropfen
-bei BeagleIM selbst: dessen WebRTC-Binary steht seit 2022 auf M101.
+**Videotelefonie: GEBAUT** (September 2026), und zwar genau auf dem hier beschriebenen Weg.
+Die Ausgangslage stimmte: libpurple-2.x-Voice&Video ist auf macOS tot, farstream lief hier nie,
+unser Build setzt USE_VV nicht, und 2.14.14 kennt kein DTLS-SRTP (XEP-0320), ohne das kein
+moderner Client (Conversations, Dino, Monal, BeagleIM) verhandelt. Eine separate
+Martin-Komponente mit Zweitverbindung waere unsauber gewesen (Doppel-Login, zweite Ressource,
+AGPL im Bundle).
+
+Umgesetzt ist ein Adium-Plugin, das Jingle-IQs ueber die vorhandenen
+`jabber-receiving-xmlnode`/`jabber-sending-xmlnode`-Signale auf **derselben** libpurple-Verbindung
+spricht und nur die Medienebene an ein WebRTC.xcframework gibt (stasel/WebRTC 153, per
+`Dependencies/webrtc/fetch-webrtc.sh` gegen SHA-256 geholt, nicht eingecheckt). Signalisierung:
+XEP-0166/0167 (inkl. rtp:info mute/unmute) /0176 /0320 /0338 /0339 /0293 /0294, dazu 0353
+(Message Initiation) und 0215 (STUN/TURN-Discovery samt `expires`). Der Code liegt in
+`Plugins/Purple Service/AIJingle*`; die SDP-Jingle-Abbildung ist Foundation-only und damit ohne
+Adium testbar. BeagleIM und Martin waren dabei reine Lesereferenz, keine Zeile uebernommen.
+
+Gegen Conversations auf Android live bestaetigt: Klingeln, Annehmen, Ton und Bild in beide
+Richtungen, Stummschalten in beide Richtungen, Auflegen. Vier Testreihen unter
+`Testing/webrtc/` decken SDP-Abbildung, Zustandsmaschine, den ganzen Stapel mit zwei echten
+PeerConnections, die Bildansicht und die Fenstergeometrie ab. Wermutstropfen bei BeagleIM
+selbst: dessen WebRTC-Binary steht seit 2022 auf M101.
+
+Offen bleibt an dieser Stelle nur die Neuverhandlung im laufenden Gespraech (content-add, also
+mitten im Anruf von Sprache auf Video wechseln); das kann Conversations und BeagleIM nicht.

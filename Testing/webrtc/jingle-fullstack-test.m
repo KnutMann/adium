@@ -25,10 +25,26 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 @property (copy) NSString *endReason;
 @property (atomic) BOOL endedLocally;
 @property (atomic) NSInteger stanzas;
+@property (atomic) NSInteger tcpCandidatesOffered;
+@property (atomic) NSInteger addressesInTheFirstStanza;
 @end
 @implementation Relay
 - (void)callController:(AIJingleCallController *)controller sendJingleElement:(NSString *)jingleXML {
 	self.stanzas++;
+	/* Was in der ersten Stanza steht, kann die Gegenseite sofort benutzen. Was
+	 * hinterhertroepfelt, legen manche Clients erst einmal in eine Schublade. */
+	if (self.stanzas == 1)
+		for (NSRange rest = NSMakeRange(0, jingleXML.length);;) {
+			NSRange hit = [jingleXML rangeOfString:@"<candidate" options:0 range:rest];
+			if (hit.location == NSNotFound) break;
+			self.addressesInTheFirstStanza++;
+			rest = NSMakeRange(NSMaxRange(hit), jingleXML.length - NSMaxRange(hit));
+		}
+	/* Jingle's ice-udp carries UDP and nothing else. A TCP address in here is one
+	 * the other end throws away unread, and it costs a stanza of its own. */
+	if ([jingleXML rangeOfString:@"protocol=\"tcp\""].location != NSNotFound ||
+		[jingleXML rangeOfString:@"protocol='tcp'"].location != NSNotFound)
+		self.tcpCandidatesOffered++;
 	AIJingleCallController *other = self.other;
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[other handleRemoteJingleElement:jingleXML];
@@ -62,6 +78,10 @@ int main(void) { @autoreleasepool {
 	b.wantsAudio = NO; b.usesSyntheticVideo = YES; b.delegate = forB;
 	forA.other = b; forB.other = a;
 
+	/* Wie ein echter Anruf: erst sammeln, waehrend es drueben klingelt, dann
+	 * anbieten. Ohne diese Pause traegt die erste Stanza keine einzige Adresse. */
+	[a prepare];
+	[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
 	[a start];
 
 	for (int i = 0; i < 200 && !(forA.connected && forB.connected); i++)
@@ -75,8 +95,23 @@ int main(void) { @autoreleasepool {
 	check(@"Anrufer erfaehrt die Annahme vor der Verbindung",
 		  forA.answeredBeforeConnected,
 		  [NSString stringWithFormat:@"angenommen=%d", forA.answered]);
-	check(@"Es floss echtes Trickle (mehr als initiate und accept)",
-		  forA.stanzas >= 2 && forB.stanzas >= 2, nil);
+	/* Vorgesammelt heisst, dass die Gegenseite schon aus dem ersten Satz weiss, wo
+	 * wir wohnen, statt auf ein transport-info warten zu muessen. Ein Client, der
+	 * Nachzuegler bis zum Ende seiner eigenen Antwort in eine Schublade legt, und
+	 * Conversations tut genau das, kann damit sofort loslegen. */
+	check(@"Das session-initiate traegt schon Adressen",
+		  forA.addressesInTheFirstStanza > 0,
+		  [NSString stringWithFormat:@"Adressen=%ld", (long)forA.addressesInTheFirstStanza]);
+	check(@"Auch die Antwort traegt schon Adressen",
+		  forB.addressesInTheFirstStanza > 0,
+		  [NSString stringWithFormat:@"Adressen=%ld", (long)forB.addressesInTheFirstStanza]);
+	/* Nachzuegler tröpfeln weiterhin, nur hat dieser Lauf keine: hier ist alles nach
+	 * 300 ms Vorsammeln beisammen. Der Weg selbst wird in jingle-session-test
+	 * geprueft, wo die Maschine einzeln an ihm entlanggefuehrt wird. */
+	check(@"Keine TCP-Adressen angeboten, die ice-udp nicht traegt",
+		  forA.tcpCandidatesOffered == 0 && forB.tcpCandidatesOffered == 0,
+		  [NSString stringWithFormat:@"a=%ld b=%ld",
+		   (long)forA.tcpCandidatesOffered, (long)forB.tcpCandidatesOffered]);
 
 	//Frames must arrive at the callee's decoder
 	__block NSInteger framesDecoded = 0;
@@ -97,6 +132,20 @@ int main(void) { @autoreleasepool {
 	}
 	check(@"Video dekodiert beim Angerufenen",
 		  framesDecoded >= 15, [NSString stringWithFormat:@"framesDecoded=%ld", (long)framesDecoded]);
+
+	/* Stummschalten muss drueben ankommen, sonst sieht die Gegenseite nur jemanden,
+	 * der ploetzlich nichts mehr sagt, und sucht den Fehler bei sich. */
+	a.cameraOff = YES;
+	for (int i = 0; i < 30 && !b.peerCameraOff; i++)
+		[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+	check(@"Kamera aus kommt drueben an", b.peerCameraOff,
+		  [NSString stringWithFormat:@"drueben=%d hier=%d", b.peerCameraOff, a.cameraOff]);
+	check(@"und der eigene Track ist wirklich aus", !a.localVideoTrack.isEnabled, nil);
+
+	a.cameraOff = NO;
+	for (int i = 0; i < 30 && b.peerCameraOff; i++)
+		[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+	check(@"Kamera wieder an kommt auch an", !b.peerCameraOff, nil);
 
 	//Hang up; the reason must arrive over the wire
 	[a hangUpWithReason:@"success"];
