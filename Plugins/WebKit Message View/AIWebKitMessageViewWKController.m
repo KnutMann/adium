@@ -2356,6 +2356,34 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		AILogWithSignature(@"embedding %@ on id %@ in %@: %@ (0 = message not drawn yet, "
 							"1 = already there, 2 = put in)", [path lastPathComponent], messageId,
 						   self->_chat, error ?: (result ?: @"no answer"));
+
+		if ([result integerValue] != 2) return;
+
+		/* Putting the element in is not the same as the picture appearing, and the difference
+		 * has been the whole of a long hunt: a file the view will not read leaves an element of
+		 * no size behind, which looks exactly like an element that was never put there. So a
+		 * moment later the page is asked what became of it. */
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)),
+					   dispatch_get_main_queue(), ^{
+			if (!self->_webView) return;
+
+			NSString *ask = [NSString stringWithFormat:@"(function(){"
+				@" var msgs=document.querySelectorAll('[data-x-adium-msg]');"
+				@" for(var i=0;i<msgs.length;i++){"
+				@"  if(msgs[i].getAttribute('data-x-adium-id')!==%@) continue;"
+				@"  var el=msgs[i].querySelector('[data-x-adium-inline-image]');"
+				@"  if(!el) return 'gone from the page';"
+				@"  return el.tagName+' '+(el.naturalWidth||el.videoWidth||0)+'x'"
+				@"         +(el.naturalHeight||el.videoHeight||0);"
+				@" }"
+				@" return 'message gone from the page';"
+				@"})()", [self _jsStringLiteral:messageId]];
+
+			[self->_webView evaluateJavaScript:ask completionHandler:^(id what, NSError *oops) {
+				AILogWithSignature(@"after a moment, %@ in %@ is: %@", messageId, self->_chat,
+								   oops ?: (what ?: @"no answer"));
+			}];
+		});
 	}];
 }
 
