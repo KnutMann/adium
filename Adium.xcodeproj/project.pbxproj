@@ -339,7 +339,9 @@
 		ADD1E5C0DE0000000000CA01 /* adiumPurpleCarbons.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CA03 /* adiumPurpleCarbons.m */; };
 		ADD1E5C0DE0000000000F111 /* adiumPurpleWhatsApp.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */; };
 		ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */; };
+		ADD1E5C0DE0000000000FB01 /* adiumPurpleFallback.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */; };
 		ADD1E5C0DE0000000000CC00 /* adiumPurpleBookmarks.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CC01 /* adiumPurpleBookmarks.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */; };
 		3485DB2F09EBCE6500232CC4 /* adiumPurpleSignals.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BBE1B907A2F4C500663CC9 /* adiumPurpleSignals.m */; };
@@ -2263,7 +2265,9 @@
 		ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleWhatsApp.m; path = "Plugins/Purple Service/adiumPurpleWhatsApp.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000F113 /* adiumPurpleWhatsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleWhatsApp.h; path = "Plugins/Purple Service/adiumPurpleWhatsApp.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleCSI.h; path = "Plugins/Purple Service/adiumPurpleCSI.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleFallback.h; path = "Plugins/Purple Service/adiumPurpleFallback.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleCSI.m; path = "Plugins/Purple Service/adiumPurpleCSI.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleFallback.m; path = "Plugins/Purple Service/adiumPurpleFallback.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleBookmarks.h; path = "Plugins/Purple Service/adiumPurpleBookmarks.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleBookmarks.m; path = "Plugins/Purple Service/adiumPurpleBookmarks.m"; sourceTree = "<group>"; };
 		34BBE1B907A2F4C500663CC9 /* adiumPurpleSignals.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleSignals.m; path = "Plugins/Purple Service/adiumPurpleSignals.m"; sourceTree = "<group>"; };
@@ -4264,7 +4268,9 @@
 				ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */,
 				ADD1E5C0DE0000000000F113 /* adiumPurpleWhatsApp.h */,
 				ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */,
+				ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */,
 				ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */,
+				ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */,
 				ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */,
 				ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */,
 				811036230CDE8C2100EC6038 /* adiumPurpleCertificateTrustWarning.h */,
@@ -6273,6 +6279,7 @@
 				3485DB2E09EBCE6500232CC4 /* adiumPurpleSignals.h in Headers */,
 				ADD1E5C0DE0000000000CA00 /* adiumPurpleCarbons.h in Headers */,
 				ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */,
+				ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */,
 				ADD1E5C0DE0000000000CC00 /* adiumPurpleBookmarks.h in Headers */,
 				3485DB3709EBCE7400232CC4 /* PurpleService.h in Headers */,
 				3485DB3909EBCE7400232CC4 /* CBPurpleAccount.h in Headers */,
@@ -7192,6 +7199,7 @@
 				ADD1E5C0DE0000000000CA01 /* adiumPurpleCarbons.m in Sources */,
 				ADD1E5C0DE0000000000F111 /* adiumPurpleWhatsApp.m in Sources */,
 				ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */,
+				ADD1E5C0DE0000000000FB01 /* adiumPurpleFallback.m in Sources */,
 				ADD1E5C0DE0000000000CC01 /* adiumPurpleBookmarks.m in Sources */,
 				3485DB3809EBCE7400232CC4 /* PurpleService.m in Sources */,
 				3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */,
