@@ -254,9 +254,31 @@ Homebrew toolchain).
 
 ## License
 
-GNU GPL v2 or later, see [License.txt](License.txt). Original code
-copyright the Adium team and contributors
-([Copyright.txt](Copyright.txt)).
+The source in this repository is GNU GPL v2 or later, see
+[License.txt](License.txt). Original code copyright the Adium team and
+contributors ([Copyright.txt](Copyright.txt)).
+
+**The application you build from it is not GPL v2**, and it is worth
+being plain about why. Several of the bundled plug-ins carry stronger
+terms, and since every source file here says "or later", combining them
+is permitted; what it costs is the GPL v2 option for the finished
+binary, not the licence of the sources.
+
+* `libsignal-presage.so` is GPL v3 itself, and the Rust it links in
+  statically (`presage`, `presage-store-sqlite` and
+  `libsignal-service-rs`) declares **AGPL-3.0-only** in its own
+  `Cargo.toml`. The Affero terms therefore reach the shipped binary.
+* `libwhatsmeow.so`, `libteams.so` and `libteams-personal.so` are
+  GPL v3.
+* `libtelegram-tdlib.so` links the bundled OpenSSL 3, whose Apache 2.0
+  terms do not combine with GPL v2 at all.
+
+The texts those terms require to travel with the work are in
+[Licenses/](Licenses): [GPL-3.0.txt](Licenses/GPL-3.0.txt) and
+[AGPL-3.0.txt](Licenses/AGPL-3.0.txt).
+
+A build without those plug-ins, which the scripts allow, is GPL v2 or
+later as the sources are.
 
 ### Bundled third-party binaries and their sources
 
@@ -270,7 +292,7 @@ local change on top of them):
 | `PurplePlugins/libwhatsmeow.so` | [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp) | `c58fcbac9aa7210ce08cf12ef3442932730ec312` | GPL v3 |
 | `PurplePlugins/libtelegram-tdlib.so` | [tdlib-purple](https://github.com/adrighem/tdlib-purple) 2.1.0 | `b277ac1941dbed946444454f67b89265541237b7` | GPL v2 |
 | (statically inside `libtelegram-tdlib.so`) | [TDLib](https://github.com/tdlib/td) 1.8.65 | `a8f21f5230172634becc1739050ef23ecd6ea291` | Boost 1.0 |
-| `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3 |
+| `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3, with **AGPL v3** parts statically linked in (see below) |
 | `PurplePlugins/libteams.so`, `libteams-personal.so` | [purple-teams](https://github.com/EionRobb/purple-teams) | `62f6fff` | GPL v3 |
 | `PurplePlugins/libircv3.so` | [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3) | `0e73297` | GPL v2 |
 | `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL 3](https://www.openssl.org), used by TDLib inside the Telegram plugin | Homebrew build | Apache 2.0 |
