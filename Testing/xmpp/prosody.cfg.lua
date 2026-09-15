@@ -39,7 +39,15 @@ modules_enabled = {
 	"csi_simple";  -- XEP-0352 Client State Indication
 	"bookmarks";   -- XEP-0402 PEP Native Bookmarks (with legacy conversion)
 	"http_file_share"; -- XEP-0363 HTTP upload, for pictures sent as their address
+	"smacks";      -- XEP-0198 Stream Management, including resumption
 }
+
+-- A session whose connection drops is kept alive this long, so that a client can
+-- pick it up again instead of signing in anew. Ten minutes is Prosody's own
+-- default and the figure to develop against; the short value below it is what a
+-- test uses when it wants the expiry itself to happen while somebody is watching.
+smacks_hibernation_time = 600
+-- smacks_hibernation_time = 20
 
 -- The upload slots must name https addresses: Adium refuses plain http ones.
 -- The certificate is the same self-signed one the XMPP port offers.

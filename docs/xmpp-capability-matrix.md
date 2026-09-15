@@ -41,10 +41,14 @@ eigenes XEP-Audit steht auf "Proposed", auch dort ist Konformität unverifiziert
    Zuordnung, dokumentiert in adiumPurpleSignals.m); wer das eine Datenmodell baut, schaltet 0308,
    0184-Haken und 0333 pro Nachricht zugleich frei.
 
-**Verlockend, aber nein:** OMEMO (ohne geprüftes Kryptodesign fahrlässig; Nachtrag 22.08.: der
-shtrom-Fork trägt mit `Lurch4Adium-0.0.4/*` einen Port des Pidgin-lurch-Plugins — das wäre der
-Startpunkt, falls je entschieden wird, aber lurch und das darunterliegende libsignal-protocol-c
-sind seit Jahren unbetreut, das Urteil bleibt), 0393 Styling (Eingriff in
+**OMEMO: entschieden, siehe eigene Notiz.** (Der Nachtrag vom 22.08., der shtrom-Fork trage
+mit `Lurch4Adium-0.0.4/*` einen Port des Pidgin-lurch-Plugins, ist FALSCH und am 15.09.2026
+widerlegt: die Branches enthalten keine Zeile davon, nur ein eingechecktes libgcrypt 1.6.2.
+Richtig bleibt das Urteil über lurch selbst, es ist seit Februar 2022 eingefroren und axc
+kennt gar kein Vertrauensmodell. Gewählt wurde stattdessen picomemo, C und ISC-lizenziert,
+das die Kryptoschicht stellt, während die XMPP-Seite wie bei Carbons, CSI und Jingle unsere
+Arbeit bleibt.)
+**Verlockend, aber nein:** 0393 Styling (Eingriff in
 die gesamte Darstellung, hinter Carbons einreihen), 0444/0461 (Experimental und ohne ID-Zuordnung
 nicht darstellbar), Bind2/SASL2 (Kern-OP für null sichtbaren Nutzen), MIX (kein Deployment).
 
@@ -90,3 +94,27 @@ selbst: dessen WebRTC-Binary steht seit 2022 auf M101.
 
 Offen bleibt an dieser Stelle nur die Neuverhandlung im laufenden Gespraech (content-add, also
 mitten im Anruf von Sprache auf Video wechseln); das kann Conversations und BeagleIM nicht.
+
+**Fuer spaeter vorgemerkt: Anrufe bei Telegram.** Von den vier Dritt-Diensten ist Telegram der
+einzige, bei dem der hier gebaute Code wirklich trägt, weil die Arbeitsteilung dieselbe ist:
+TDLib macht Signalisierung und die gesamte Kryptografie und null Medien, und ab tgcalls v2 ist
+die Medienebene gewoehnliches DTLS-SRTP, belegt durch zwei unabhaengige Clients
+(Ajaxy/telegram-tt mit der browsereigenen RTCPeerConnection, gotd/td mit pion). ntgcalls baut
+gegen unveraendertes Google-libwebrtc m152, unseres ist M153.
+
+In unserem Baum ist es doppelt abgeschaltet: tdlib-purple wird mit `-DNoVoip=TRUE` gebaut, und
+`call.cpp:181-195` verwirft ausserdem jeden Anruf, wenn die Oberflaeche keine Audio-Faehigkeit
+meldet, was hier immer der Fall ist (`adiumPurpleMedia.m` wird gar nicht kompiliert,
+`USE_VV` und `USE_GSTREAMER` sind undefiniert).
+
+Wiederverwendbar waeren AIJingleVideoView, AIJingleCallWindowController, der Kamera-Folgemodus,
+AIJingleCallDiagnostics und die halbe Medienseite von AIJingleCallController, dessen Bindung
+an das Protokoll ueber ein Delegat laeuft, das STRINGS spricht. Zu ersetzen waeren
+AIJingleSessionMachine und AIJingleEngine.
+
+ERSTER SCHRITT, Stunden statt Tage: `getCallProtocol()` in `call.cpp:9-17` setzt
+`library_versions_` nie, obwohl der Konstruktor des mitgelieferten TDLib das fuenfte Feld hat.
+Deshalb bekommt das Plugin nur `callServerTypeTelegramReflector`. Ein Versuch, dort `"13.0.0"`
+einzutragen und zu protokollieren, ob dann `callServerTypeWebrtc`-Eintraege kommen, beantwortet
+die einzige echt offene Frage. Realistisch scheitern wuerde es an der EncryptedConnection-Schicht
+(msg_key plus AES-CTR) und am Reflector-Rueckfall bei strengem NAT.
