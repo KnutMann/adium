@@ -17,6 +17,7 @@
 #import "AMPurpleJabberAdHocCommand.h"
 #import "AMPurpleJabberFormGenerator.h"
 #import "AMPurpleJabberAdHocServer.h"
+#import "AMPurpleJabberSend.h"
 
 @implementation AMPurpleJabberAdHocCommand
 
@@ -155,11 +156,7 @@
 		xmlnode_set_attrib(cmdcopy, "sessionid", [sessionid UTF8String]);
 	xmlnode_insert_child(iq, cmdcopy);
 	
-	gint len = 0;
-	char *text = xmlnode_to_str(iq, &len);
-	PURPLE_PLUGIN_PROTOCOL_INFO(purple_account_get_connection(account)->prpl)->send_raw(purple_account_get_connection(account), text, len);
-	g_free(text);
-	xmlnode_free(iq);
+	AMPurpleJabberSend(purple_account_get_connection(account), iq);
 }
 
 @end

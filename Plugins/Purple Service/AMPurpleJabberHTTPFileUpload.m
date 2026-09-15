@@ -26,6 +26,7 @@
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <libpurple/jabber.h>
+#import "AMPurpleJabberSend.h"
 
 #define NS_HTTP_UPLOAD_0		"urn:xmpp:http:upload:0"
 #define NS_HTTP_UPLOAD_LEGACY	"urn:xmpp:http:upload"
@@ -119,14 +120,7 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 {
 	PurpleConnection *gc = purple_account_get_connection([account purpleAccount]);
 
-	if (gc && PURPLE_PLUGIN_PROTOCOL_INFO(gc->prpl)->send_raw) {
-		int length = 0;
-		char *text = xmlnode_to_str(iq, &length);
-		PURPLE_PLUGIN_PROTOCOL_INFO(gc->prpl)->send_raw(gc, text, length);
-		g_free(text);
-	}
-
-	xmlnode_free(iq);
+	AMPurpleJabberSend(gc, iq);
 }
 
 - (void)sendDiscoOfType:(const char *)ns to:(NSString *)jid
