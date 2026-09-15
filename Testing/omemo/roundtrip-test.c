@@ -125,6 +125,11 @@ int main(void)
 		  memcmp(alice.identity.prv, restored.identity.prv, sizeof(alice.identity.prv)) == 0, NULL);
 	free(saved);
 
+	/* Und von hier an rechnet Alice mit dem ZURUECKGELADENEN Vorrat weiter. Ein Vergleich der
+	 * Schluessel allein beweist naemlich nichts: was zaehlt, ist ob damit hinterher noch eine
+	 * Sitzung zustande kommt, und genau das tut jeder Programmstart. */
+	alice = restored;
+
 	//Alice baut aus Bobs Buendel eine Sitzung auf
 	omemo0SerializedKey bobIdentity, bobSigned, bobPre;
 	omemo0SerializeKey(bobIdentity, bob.identity.pub);
