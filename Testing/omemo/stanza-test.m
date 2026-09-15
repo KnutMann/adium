@@ -148,6 +148,14 @@ int main(void) { @autoreleasepool {
 		if (raw) g_free(raw);
 
 		check(@"und es steht der richtige Text darin", [read isEqualToString:secret], read);
+
+		/* Und der Rumpf traegt jabber:client. Das ist keine Formsache: der Parser des Protokolls
+		 * ueberspringt jedes Kind OHNE Namensraum, bevor er ueberhaupt hinsieht, was es ist.
+		 * Ohne diese Zeile ist die Nachricht vollstaendig, richtig und unsichtbar. */
+		check(@"Der Rumpf traegt den Namensraum, ohne den ihn niemand sieht",
+			  purple_strequal(xmlnode_get_namespace(opened), "jabber:client"),
+			  opened ? [NSString stringWithUTF8String:xmlnode_get_namespace(opened) ?: "gar keinen"]
+					 : @"kein Rumpf");
 		check(@"Der Ersatzrumpf ist dabei verschwunden",
 			  [asText(incoming) rangeOfString:@"doesn't support it"].location == NSNotFound, nil);
 		check(@"Und das encrypted-Element auch",
@@ -179,6 +187,9 @@ int main(void) { @autoreleasepool {
 		  AIOMEMOOpenStanza(forSomeoneElse, bob, @"c@d") == AIOMEMOOpenedCouldNot, nil);
 	check(@"und bekommt einen Rumpf, wenn keiner dabei war",
 		  xmlnode_get_child(forSomeoneElse, "body") != NULL, nil);
+	check(@"der ebenfalls den noetigen Namensraum traegt",
+		  purple_strequal(xmlnode_get_namespace(xmlnode_get_child(forSomeoneElse, "body")),
+						  "jabber:client"), nil);
 	xmlnode_free(forSomeoneElse);
 
 	//War einer dabei, bleibt es bei dem des Absenders

@@ -27,6 +27,24 @@
 
 #define NS_HINTS	"urn:xmpp:hints"
 #define NS_EME		"urn:xmpp:eme:0"
+#define NS_CLIENT	"jabber:client"
+
+/*!
+ * @brief Put a body on a message we are handing back to the protocol
+ *
+ * The namespace is not decoration here, it decides whether the message is seen at all. A stanza
+ * that came off the wire has jabber:client on every child, inherited from the stream, and the
+ * protocol's parser skips any child that carries no namespace before it ever looks at what the
+ * child is. A body built here starts with none, so without this line the message is complete,
+ * correct, and silently invisible: the receipt goes out, the ratchet advances, and nothing is
+ * ever shown.
+ */
+static void omemo_give_body(xmlnode *stanza, const char *text)
+{
+	xmlnode *body = xmlnode_new_child(stanza, "body");
+	xmlnode_set_namespace(body, NS_CLIENT);
+	xmlnode_insert_data(body, text, -1);
+}
 
 #pragma mark Reading values out of a stanza
 
@@ -148,9 +166,8 @@ AIOMEMOOpened AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *
 		 * would have been. So if there is nothing to show, we say so ourselves. Whatever else
 		 * happens, a message that arrived must leave some trace. */
 		if (!xmlnode_get_child(stanza, "body"))
-			xmlnode_insert_data(xmlnode_new_child(stanza, "body"),
-								"[An encrypted message arrived that could not be read. "
-								"The sending device may not be known here yet.]", -1);
+			omemo_give_body(stanza, "[An encrypted message arrived that could not be read. "
+									"The sending device may not be known here yet.]");
 
 		return AIOMEMOOpenedCouldNot;
 	}
@@ -162,7 +179,7 @@ AIOMEMOOpened AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *
 		xmlnode_free(body);
 
 	xmlnode_free(encrypted);
-	xmlnode_insert_data(xmlnode_new_child(stanza, "body"), [text UTF8String], -1);
+	omemo_give_body(stanza, [text UTF8String]);
 
 	return AIOMEMOOpenedReadable;
 }
