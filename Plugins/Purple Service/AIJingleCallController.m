@@ -32,6 +32,7 @@
 	dispatch_source_t syntheticTimer;
 	RTCCameraVideoCapturer *cameraCapturer;
 	BOOL announcedConnected;
+	BOOL offeredRemoteVideo;
 	BOOL closed;
 	NSString *lastPairSnapshot;		//what the pairs looked like while they were still being tried
 }
@@ -445,7 +446,10 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			/* The peer's video track, if any, from the live receivers. Attaching a
 			 * renderer earlier, in the transceiver callback, draws nothing; measured
 			 * in the loopback spike and written down there. */
-			[self offerRemoteVideoTrackWithTriesLeft:10];
+			/* Long enough to outlast a slow one: measured against a phone, the
+			 * receiver list named only audio for twenty six seconds while video
+			 * was already arriving and being decoded. */
+			[self offerRemoteVideoTrackWithTriesLeft:90];
 			[self logMediaFlowWithTriesLeft:10];
 		}
 		if (newState == RTCIceConnectionStateFailed) {
@@ -481,14 +485,20 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 	}
 
 	if (video) {
+		if (offeredRemoteVideo)
+			return;
+		offeredRemoteVideo = YES;
+
 		AILogWithSignature(@"remote video track %@ handed over (receivers: %@)",
 						   video.trackId, [kinds componentsJoinedByString:@", "]);
 		[self.delegate callController:self hasRemoteVideoTrack:video];
 		return;
 	}
 
-	AILogWithSignature(@"no remote video track yet (receivers: %@), looking again",
-					   [kinds componentsJoinedByString:@", "]);
+	//Quietly, once a second; saying so every time would fill the log for a minute
+	if ((triesLeft % 10) == 0)
+		AILogWithSignature(@"no remote video track yet (receivers: %@), looking again",
+						   [kinds componentsJoinedByString:@", "]);
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
 				   dispatch_get_main_queue(), ^{
 		[self offerRemoteVideoTrackWithTriesLeft:(triesLeft - 1)];
@@ -531,6 +541,20 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			[self logMediaFlowWithTriesLeft:(triesLeft - 1)];
 		});
 	}];
+}
+
+/*!
+ * @brief The peer has started sending on something; look for its picture again
+ *
+ * Attaching a renderer from inside this callback draws nothing, measured in the
+ * loopback spike, so it only prompts the search that hands the track over.
+ */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver
+{
+	dispatch_async(dispatch_get_main_queue(), ^{
+		if (self->announcedConnected)
+			[self offerRemoteVideoTrackWithTriesLeft:90];
+	});
 }
 
 //Required by the protocol, nothing to do
