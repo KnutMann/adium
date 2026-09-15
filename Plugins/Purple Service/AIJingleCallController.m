@@ -465,9 +465,16 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			[self noteMilestone:@"ICE connected"];
 			[self.delegate callControllerConnected:self];
 
-			/* The peer's video track, if any, from the live receivers. Attaching a
-			 * renderer earlier, in the transceiver callback, draws nothing; measured
-			 * in the loopback spike and written down there. */
+			/* Which way won, and how often it had to ask. A path that answers the
+			 * first request but only after seconds means the waiting happened
+			 * somewhere else; one that answers the eighth means the path itself was
+			 * the cost. The difference decides where to look next time. */
+			[self describePairsInto:^(NSString *description) {
+				AILogWithSignature(@"pairs at the moment of connecting:\n%@",
+								   ([description length] ? description : @"(keine)"));
+			}];
+
+			//The peer's video track, if any, from the live receivers
 			[self offerRemoteVideoTrackWithTriesLeft:90];
 			[self logMediaFlowWithTriesLeft:10];
 			[self watchForFirstFramesWithTriesLeft:120];
