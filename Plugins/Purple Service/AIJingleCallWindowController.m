@@ -39,6 +39,7 @@
 	NSView *stage;						//where the pictures go, once there are any
 	AIJingleVideoView *remoteView;
 	AIJingleVideoView *previewView;
+	NSMutableArray<RTCVideoTrack *> *remoteTracks;	//held, or the renderer goes with them
 
 	NSTimer *durationTimer;
 	NSDate *connectedSince;
@@ -56,6 +57,7 @@
 	if ((self = [super initWithWindow:window])) {
 		call = controller;
 		displayName = [inDisplayName copy];
+		remoteTracks = [NSMutableArray array];
 
 		[window setTitle:[NSString stringWithFormat:AILocalizedString(@"Call with %@", "Title of a call window; %@ is the contact"), displayName]];
 		[window setReleasedWhenClosed:NO];
@@ -153,6 +155,16 @@
 - (void)attachRemoteVideoTrack:(RTCVideoTrack *)track
 {
 	[self growStageIfNeeded];
+
+	/* Held for as long as the window lives.
+	 *
+	 * TRAP, and it cost an evening of black pictures: a receiver hands out a new
+	 * wrapper around its track every time it is asked, and a renderer is attached
+	 * to the wrapper. Let the wrapper go and it takes the renderer with it, so the
+	 * frames arrive at a connection nobody is listening to any more, which looks
+	 * from the outside exactly like a decoder that produces nothing. Our own
+	 * camera never showed this because the controller holds its track. */
+	[remoteTracks addObject:track];
 
 	if (remoteView) {
 		//A second track: hang the same view on it too rather than choosing blindly
