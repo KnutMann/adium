@@ -95,24 +95,27 @@
 	 * Measured against a phone: this side offered two private addresses and
 	 * nothing else, the other side offered its own, a public one and a relay,
 	 * and not one pair could carry anything. A peer's relay refuses packets
-	 * from an address it was never told about, and our private address is not
-	 * one anybody outside this flat can use, so the call has nowhere to go.
-	 * One question to a STUN server answers what our address looks like from
-	 * outside, and that is the address every other client offers.
+	 * from an address it was never told about, and a private address is not one
+	 * anybody outside this flat can use, so the call had nowhere to go. One
+	 * question to a STUN server answers what this machine looks like from
+	 * outside, and that is the address every other client offers as a matter of
+	 * course.
 	 *
-	 * The servers the account's own XMPP host names come first; these stand in
-	 * when it names none, which is the common case. Asking one tells its
-	 * operator this machine is placing a call, no more, and the list can be
-	 * replaced with the AIJingleSTUNServers default. */
-	if (![iceServers count]) {
-		NSArray *fallback = [[NSUserDefaults standardUserDefaults] arrayForKey:@"AIJingleSTUNServers"];
+	 * These are added ALONGSIDE whatever the account's own host named, never
+	 * instead of them, and that distinction was the whole bug: the host in the
+	 * measurement above did name a server, and that server answers nothing at
+	 * all, which left every call blind while looking perfectly configured. A
+	 * server that does answer costs a question nobody misses; one that does not
+	 * must not be the only one asked. Asking tells its operator this machine is
+	 * placing a call, no more, and the list can be replaced with the
+	 * AIJingleSTUNServers default. */
+	NSArray *fallback = [[NSUserDefaults standardUserDefaults] arrayForKey:@"AIJingleSTUNServers"];
 
-		if (![fallback count])
-			fallback = @[@"stun:stun.conversations.im:3478", @"stun:stun.l.google.com:19302"];
+	if (![fallback count])
+		fallback = @[@"stun:stun.conversations.im:3478", @"stun:stun.l.google.com:19302"];
 
-		for (NSString *url in fallback)
-			[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[url]]];
-	}
+	for (NSString *url in fallback)
+		[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[url]]];
 
 	AILogWithSignature(@"call %@ uses %lu ICE servers", self.machine.sid, (unsigned long)[iceServers count]);
 	configuration.iceServers = iceServers;
