@@ -445,15 +445,8 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			/* The peer's video track, if any, from the live receivers. Attaching a
 			 * renderer earlier, in the transceiver callback, draws nothing; measured
 			 * in the loopback spike and written down there. */
-			if ([self.delegate respondsToSelector:@selector(callController:hasRemoteVideoTrack:)]) {
-				for (RTCRtpReceiver *receiver in self.peerConnection.receivers) {
-					if ([receiver.track isKindOfClass:[RTCVideoTrack class]]) {
-						[self.delegate callController:self
-								  hasRemoteVideoTrack:(RTCVideoTrack *)receiver.track];
-						break;
-					}
-				}
-			}
+			[self offerRemoteVideoTrackWithTriesLeft:10];
+			[self logMediaFlowWithTriesLeft:10];
 		}
 		if (newState == RTCIceConnectionStateFailed) {
 			/* Measure before giving up: ending the call closes the connection, and a
@@ -464,6 +457,80 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			[self failWith:@"connectivity-error"];
 		}
 	});
+}
+
+/*!
+ * @brief Hand the peer's video to whoever draws it, once there is one
+ *
+ * A receiver's track is not always there the moment the connection stands, and
+ * attaching a renderer before that draws nothing at all, measured in the
+ * loopback spike. So this looks again for a while rather than once.
+ */
+- (void)offerRemoteVideoTrackWithTriesLeft:(NSInteger)triesLeft
+{
+	if (closed || triesLeft <= 0 || ![self.delegate respondsToSelector:@selector(callController:hasRemoteVideoTrack:)])
+		return;
+
+	NSMutableArray *kinds = [NSMutableArray array];
+	RTCVideoTrack *video = nil;
+
+	for (RTCRtpReceiver *receiver in self.peerConnection.receivers) {
+		[kinds addObject:(receiver.track.kind ?: @"(none)")];
+		if (!video && [receiver.track isKindOfClass:[RTCVideoTrack class]])
+			video = (RTCVideoTrack *)receiver.track;
+	}
+
+	if (video) {
+		AILogWithSignature(@"remote video track %@ handed over (receivers: %@)",
+						   video.trackId, [kinds componentsJoinedByString:@", "]);
+		[self.delegate callController:self hasRemoteVideoTrack:video];
+		return;
+	}
+
+	AILogWithSignature(@"no remote video track yet (receivers: %@), looking again",
+					   [kinds componentsJoinedByString:@", "]);
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
+				   dispatch_get_main_queue(), ^{
+		[self offerRemoteVideoTrackWithTriesLeft:(triesLeft - 1)];
+	});
+}
+
+/*!
+ * @brief Write down what is actually flowing, both ways
+ *
+ * A black picture has three possible reasons, and they look alike from the
+ * outside: nothing is sent, nothing arrives, or nothing is drawn. The counters
+ * tell them apart.
+ */
+- (void)logMediaFlowWithTriesLeft:(NSInteger)triesLeft
+{
+	if (closed || triesLeft <= 0)
+		return;
+
+	[self.peerConnection statisticsWithCompletionHandler:^(RTCStatisticsReport *report) {
+		NSMutableArray *lines = [NSMutableArray array];
+
+		for (NSString *key in report.statistics) {
+			RTCStatistics *stat = report.statistics[key];
+			NSDictionary *values = stat.values;
+
+			if ([stat.type isEqualToString:@"inbound-rtp"])
+				[lines addObject:[NSString stringWithFormat:@"in %@: packets=%@ bytes=%@ frames=%@ decoded=%@ dropped=%@",
+					values[@"kind"] ?: @"?", values[@"packetsReceived"] ?: @0, values[@"bytesReceived"] ?: @0,
+					values[@"framesReceived"] ?: @0, values[@"framesDecoded"] ?: @0, values[@"framesDropped"] ?: @0]];
+			else if ([stat.type isEqualToString:@"outbound-rtp"])
+				[lines addObject:[NSString stringWithFormat:@"out %@: packets=%@ bytes=%@ encoded=%@",
+					values[@"kind"] ?: @"?", values[@"packetsSent"] ?: @0, values[@"bytesSent"] ?: @0,
+					values[@"framesEncoded"] ?: @0]];
+		}
+
+		AILogWithSignature(@"media flow: %@", [lines componentsJoinedByString:@" | "]);
+
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+					   dispatch_get_main_queue(), ^{
+			[self logMediaFlowWithTriesLeft:(triesLeft - 1)];
+		});
+	}];
 }
 
 //Required by the protocol, nothing to do
