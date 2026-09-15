@@ -16,6 +16,7 @@
 
 #import "adiumPurpleOMEMO.h"
 #import "AIOMEMOStore.h"
+#import "AIOMEMOMessage.h"
 #import <Adium/AILoginControllerProtocol.h>
 
 /*
@@ -40,6 +41,8 @@
 #define NS_PUBSUB_OWNER		"http://jabber.org/protocol/pubsub#owner"
 #define NS_PUBSUB_ERRORS	"http://jabber.org/protocol/pubsub#errors"
 #define NS_DATA				"jabber:x:data"
+#define NS_HINTS			"urn:xmpp:hints"
+#define NS_EME				"urn:xmpp:eme:0"
 
 static int adium_purple_omemo_handle;
 
@@ -53,9 +56,24 @@ static NSMutableDictionary *whatWeAsked = nil;		//iq id -> @{@"kind": ..., @"jid
 #define ASKED_THEIR_LIST	@"theirList"
 #define ASKED_PUBLISH		@"publish"
 #define ASKED_CONFIGURE		@"configure"
+#define ASKED_BUNDLE		@"bundle"
 
 //What each contact has told us, per account: "account|jid" -> array of device numbers
 static NSMutableDictionary *devicesOfContacts = nil;
+
+//Whose conversations we encrypt: "account|jid" present means yes
+static NSMutableSet *encryptingWith = nil;
+
+//Devices we have already asked about, so a busy conversation asks once rather than each time
+static NSMutableSet *bundlesAlreadyAsked = nil;
+
+/*
+ * Messages held back because there was nothing to encrypt them with yet. Sending them in the
+ * clear instead would be the worst possible answer: the user asked for encryption, the window
+ * would show it was sent, and the message would be readable by the server. So they wait, and
+ * are let go the moment a session exists.
+ */
+static NSMutableDictionary *waitingToBeSent = nil;		//"account|jid" -> array of xmlnode copies
 
 #pragma mark Small conveniences
 
@@ -116,6 +134,33 @@ static void omemo_send(PurpleConnection *gc, xmlnode *stanza)
 
 	purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &stanza);
 	if (stanza) xmlnode_free(stanza);
+}
+
+/*!
+ * @brief Read one base64 value out of an element, refusing anything that is not one
+ */
+static NSData *omemo_data_in(xmlnode *element)
+{
+	if (!element) return nil;
+
+	char *text = xmlnode_get_data(element);
+	if (!text) return nil;
+
+	NSString *encoded = [NSString stringWithUTF8String:text];
+	g_free(text);
+
+	//Whitespace inside base64 is allowed and several clients put it there
+	return [[NSData alloc] initWithBase64EncodedString:encoded
+											   options:NSDataBase64DecodingIgnoreUnknownCharacters];
+}
+
+static uint32_t omemo_number_in(xmlnode *element, const char *attribute)
+{
+	const char *text = element ? xmlnode_get_attrib(element, attribute) : NULL;
+	if (!text) return 0;
+
+	long long number = atoll(text);
+	return (number > 0 && number <= INT32_MAX) ? (uint32_t)number : 0;
 }
 
 static NSString *omemo_next_identifier(NSString *kind)
@@ -186,6 +231,8 @@ static void omemo_make_node_open(PurpleConnection *gc, NSString *node, NSDiction
 
 static void omemo_publish_device_list(PurpleConnection *gc, NSArray<NSNumber *> *devices);
 static void omemo_publish_bundle(PurpleConnection *gc);
+static BOOL omemo_can_write_to(PurpleAccount *account, NSString *bareJID);
+static void omemo_get_ready_for(PurpleConnection *gc, NSString *bareJID);
 
 #pragma mark Saying which devices we have
 
@@ -386,7 +433,472 @@ void omemoAskAboutContact(PurpleAccount *account, NSString *bareJID)
 	omemo_ask_for_device_list(gc, omemo_bare_jid(bareJID), ASKED_THEIR_LIST);
 }
 
+BOOL omemoIsEncryptingWith(PurpleAccount *account, NSString *bareJID)
+{
+	return [encryptingWith containsObject:omemo_contact_key(account, omemo_bare_jid(bareJID))];
+}
+
+void omemoSetEncrypting(PurpleAccount *account, NSString *bareJID, BOOL encrypting)
+{
+	NSString *who = omemo_bare_jid(bareJID);
+	NSString *key = omemo_contact_key(account, who);
+
+	if (!encrypting) {
+		[encryptingWith removeObject:key];
+		return;
+	}
+
+	[encryptingWith addObject:key];
+
+	//Start collecting what is needed now, so the first message does not have to wait for all of it
+	PurpleConnection *gc = purple_account_get_connection(account);
+	if (gc && omemo_is_jabber(account))
+		omemo_get_ready_for(gc, who);
+}
+
+BOOL omemoIsReadyFor(PurpleAccount *account, NSString *bareJID)
+{
+	return omemo_can_write_to(account, omemo_bare_jid(bareJID));
+}
+
+#pragma mark Asking for the key material of one device
+
+/*!
+ * @brief Ask for one device's bundle, unless we have already asked
+ */
+static void omemo_fetch_bundle(PurpleConnection *gc, NSString *bareJID, uint32_t device)
+{
+	NSString *already = [NSString stringWithFormat:@"%@ %u", bareJID, device];
+	if ([bundlesAlreadyAsked containsObject:already]) return;
+	[bundlesAlreadyAsked addObject:already];
+
+	NSString *identifier = omemo_next_identifier(@"bundle");
+	whatWeAsked[identifier] = @{ @"kind": ASKED_BUNDLE, @"jid": bareJID, @"device": @(device) };
+
+	xmlnode *iq = xmlnode_new("iq");
+	xmlnode_set_attrib(iq, "type", "get");
+	xmlnode_set_attrib(iq, "id", [identifier UTF8String]);
+	xmlnode_set_attrib(iq, "to", [bareJID UTF8String]);
+
+	xmlnode *pubsub = xmlnode_new_child(iq, "pubsub");
+	xmlnode_set_namespace(pubsub, NS_PUBSUB);
+
+	xmlnode *items = xmlnode_new_child(pubsub, "items");
+	xmlnode_set_attrib(items, "node",
+					   [[NSString stringWithFormat:@"%s:%u", NODE_BUNDLES, device] UTF8String]);
+	xmlnode_set_attrib(items, "max_items", "1");
+
+	omemo_send(gc, iq);
+}
+
+/*!
+ * @brief Build a session from a bundle that came back
+ *
+ * The one time key is chosen at random rather than taken from the front, because everybody
+ * writing to this person is reading the same hundred keys and taking the first would have them
+ * all collide on it.
+ */
+static BOOL omemo_use_bundle(PurpleConnection *gc, NSString *bareJID, uint32_t device, xmlnode *bundle)
+{
+	AIOMEMOStore *store = omemo_store(purple_connection_get_account(gc));
+	if (!store || !bundle) return NO;
+
+	xmlnode *signedKey = xmlnode_get_child(bundle, "signedPreKeyPublic");
+	NSData *signedPreKey = omemo_data_in(signedKey);
+	NSData *signature = omemo_data_in(xmlnode_get_child(bundle, "signedPreKeySignature"));
+	NSData *identity = omemo_data_in(xmlnode_get_child(bundle, "identityKey"));
+	uint32_t signedIdentifier = omemo_number_in(signedKey, "signedPreKeyId");
+
+	NSMutableArray *offered = [NSMutableArray array];
+	xmlnode *prekeys = xmlnode_get_child(bundle, "prekeys");
+	for (xmlnode *one = xmlnode_get_child(prekeys, "preKeyPublic"); one;
+		 one = xmlnode_get_next_twin(one)) {
+		uint32_t identifier = omemo_number_in(one, "preKeyId");
+		NSData *key = omemo_data_in(one);
+		if (identifier && key) [offered addObject:@{ @"id": @(identifier), @"key": key }];
+	}
+
+	if (!signedPreKey || !signature || !identity || !signedIdentifier || ![offered count])
+		return NO;
+
+	NSDictionary *chosen = offered[arc4random_uniform((uint32_t)[offered count])];
+
+	return [store startSessionWithJID:bareJID
+							   device:device
+						  identityKey:identity
+						 signedPreKey:signedPreKey
+				   signedPreKeyItself:signedIdentifier
+							signature:signature
+							   preKey:chosen[@"key"]
+						 preKeyItself:[chosen[@"id"] unsignedIntValue]];
+}
+
+#pragma mark Reading an encrypted message
+
+/*!
+ * @brief Every wrapped key in the header
+ *
+ * The marker saying a key opens a new session is written as "true" by most clients and as "1"
+ * by some, and both mean the same thing. Reading only one of them means the first message from
+ * half the ecosystem cannot be opened at all.
+ */
+static NSArray<AIOMEMOKeyForDevice *> *omemo_keys_in(xmlnode *header)
+{
+	NSMutableArray *keys = [NSMutableArray array];
+
+	for (xmlnode *key = xmlnode_get_child(header, "key"); key; key = xmlnode_get_next_twin(key)) {
+		uint32_t device = omemo_number_in(key, "rid");
+		NSData *wrapped = omemo_data_in(key);
+		if (!device || !wrapped) continue;
+
+		const char *marker = xmlnode_get_attrib(key, "prekey");
+		BOOL startsASession = marker && (purple_strequal(marker, "true") || purple_strequal(marker, "1"));
+
+		[keys addObject:[AIOMEMOMessage keyForDevice:device startsASession:startsASession wrapped:wrapped]];
+	}
+	return keys;
+}
+
+/*!
+ * @brief Turn an encrypted message into the message it was, in place
+ *
+ * Rewriting the stanza rather than handling it ourselves means everything downstream, the
+ * conversation window, the logs, the carbons, the notifications, sees an ordinary message and
+ * needs to know nothing about any of this.
+ *
+ * @return NO when the stanza should be dropped rather than passed on
+ */
+static BOOL omemo_open_message(PurpleConnection *gc, xmlnode *stanza, xmlnode *encrypted)
+{
+	PurpleAccount *account = purple_connection_get_account(gc);
+	AIOMEMOStore *store = omemo_store(account);
+	if (!store) return NO;
+
+	const char *from = xmlnode_get_attrib(stanza, "from");
+	if (!from) return NO;
+
+	NSString *who = omemo_bare_jid([NSString stringWithUTF8String:from]);
+
+	xmlnode *header = xmlnode_get_child(encrypted, "header");
+	uint32_t sender = omemo_number_in(header, "sid");
+	if (!sender) return NO;
+
+	NSData *vector = omemo_data_in(xmlnode_get_child(header, "iv"));
+	NSData *payload = omemo_data_in(xmlnode_get_child(encrypted, "payload"));
+	NSArray *keys = omemo_keys_in(header);
+
+	NSString *text = [AIOMEMOMessage textFromPayload:(payload ?: [NSData data])
+								initialisationVector:vector
+												keys:keys
+											sentFrom:who
+											  device:sender
+										   withStore:store];
+
+	/* A one time key of ours was spent opening this, so what we published no longer matches
+	 * what we hold and has to go out again. */
+	if (store.bundleNeedsPublishing)
+		omemo_publish_bundle(gc);
+
+	/* Nothing to show is not the same as nothing happened. A message with no payload exists only
+	 * to let the ratchet step after a long one sided conversation, and showing an empty line for
+	 * it would be worse than silence. */
+	if (!text || ![text length]) return NO;
+
+	/* The body that was there is the sender's apology to clients that cannot read this, and it
+	 * is now wrong. It goes, and the real text takes its place. */
+	xmlnode *body;
+	while ((body = xmlnode_get_child(stanza, "body")))
+		xmlnode_free(body);
+
+	xmlnode_free(encrypted);
+	xmlnode_insert_data(xmlnode_new_child(stanza, "body"), [text UTF8String], -1);
+
+	return YES;
+}
+
+#pragma mark Sending an encrypted message
+
+/*!
+ * @brief Everything we should write a copy to: their devices and our own others
+ */
+static NSDictionary *omemo_recipients(PurpleAccount *account, NSString *bareJID)
+{
+	NSMutableDictionary *everyone = [NSMutableDictionary dictionary];
+
+	NSArray *theirs = omemoDevicesForContact(account, bareJID);
+	if ([theirs count]) everyone[bareJID] = theirs;
+
+	/* Our own other devices belong in here too, or the conversation shows up on them with our
+	 * own half of it missing, which looks exactly like messages having been lost. */
+	NSString *own = omemo_own_jid(account);
+	NSArray *ours = omemoDevicesForContact(account, own);
+	if ([ours count] && ![own isEqualToString:bareJID]) everyone[own] = ours;
+
+	return everyone;
+}
+
+/*!
+ * @brief Do we hold a session with at least one device of this person?
+ */
+static BOOL omemo_can_write_to(PurpleAccount *account, NSString *bareJID)
+{
+	AIOMEMOStore *store = omemo_store(account);
+	if (!store) return NO;
+
+	NSDictionary *everyone = omemo_recipients(account, bareJID);
+
+	for (NSString *jid in everyone)
+		for (NSNumber *device in everyone[jid])
+			if ([store hasSessionWithJID:jid device:[device unsignedIntValue]])
+				return YES;
+
+	return NO;
+}
+
+/*!
+ * @brief Ask for whatever is still missing before we can write to somebody
+ */
+static void omemo_get_ready_for(PurpleConnection *gc, NSString *bareJID)
+{
+	PurpleAccount *account = purple_connection_get_account(gc);
+	AIOMEMOStore *store = omemo_store(account);
+	if (!store) return;
+
+	if (![omemoDevicesForContact(account, bareJID) count])
+		omemo_ask_for_device_list(gc, bareJID, ASKED_THEIR_LIST);
+
+	NSDictionary *everyone = omemo_recipients(account, bareJID);
+	for (NSString *jid in everyone) {
+		for (NSNumber *device in everyone[jid]) {
+			uint32_t number = [device unsignedIntValue];
+			if (jid == store.account && number == store.deviceIdentifier) continue;
+			if ([store hasSessionWithJID:jid device:number]) continue;
+
+			omemo_fetch_bundle(gc, jid, number);
+		}
+	}
+}
+
+/*!
+ * @brief Replace a message's readable parts with their encrypted form
+ *
+ * Everything that was in the stanza and is not on the short list below is taken out. That list
+ * is deliberately a list of what may stay rather than of what must go: an element nobody
+ * thought about is then dropped rather than sent in the clear, and this client sends several
+ * that carry content, among them reactions and the marker on a corrected message.
+ *
+ * @return NO when it could not be encrypted, and the caller must not send it
+ */
+static BOOL omemo_seal(PurpleConnection *gc, xmlnode *stanza, NSString *toJID)
+{
+	PurpleAccount *account = purple_connection_get_account(gc);
+	AIOMEMOStore *store = omemo_store(account);
+	if (!store) return NO;
+
+	xmlnode *body = xmlnode_get_child(stanza, "body");
+	if (!body) return NO;
+
+	char *text = xmlnode_get_data(body);
+	if (!text) return NO;
+
+	NSString *said = [NSString stringWithUTF8String:text];
+	g_free(text);
+
+	AIOMEMOMessage *message = [AIOMEMOMessage encrypting:said
+											   withStore:store
+											  forDevices:omemo_recipients(account, toJID)];
+	if (!message) return NO;
+
+	/* Out goes everything, and back in comes only what is harmless in the clear. Anything else
+	 * would travel beside the encrypted text saying what the conversation is about. */
+	static const struct { const char *name; const char *xmlns; } mayStay[] = {
+		{ "request",	"urn:xmpp:receipts" },
+		{ "markable",	"urn:xmpp:chat-markers:0" },
+		{ "origin-id",	"urn:xmpp:sid:0" },
+		{ "active",		"http://jabber.org/protocol/chatstates" },
+		{ "composing",	"http://jabber.org/protocol/chatstates" },
+		{ "paused",		"http://jabber.org/protocol/chatstates" },
+		{ "inactive",	"http://jabber.org/protocol/chatstates" },
+		{ "gone",		"http://jabber.org/protocol/chatstates" },
+	};
+
+	NSMutableArray *kept = [NSMutableArray array];
+	for (unsigned index = 0; index < sizeof(mayStay) / sizeof(mayStay[0]); index++) {
+		xmlnode *one = xmlnode_get_child_with_namespace(stanza, mayStay[index].name, mayStay[index].xmlns);
+		if (one) [kept addObject:[NSValue valueWithPointer:xmlnode_copy(one)]];
+	}
+
+	//xmlnode_free unlinks from the parent as it goes, so taking the first one repeatedly empties it
+	xmlnode *child;
+	while ((child = stanza->child))
+		xmlnode_free(child);
+
+	xmlnode *encrypted = xmlnode_new_child(stanza, "encrypted");
+	xmlnode_set_namespace(encrypted, NS_OMEMO);
+
+	xmlnode *header = xmlnode_new_child(encrypted, "header");
+	xmlnode_set_attrib(header, "sid", [[@(message.sender) stringValue] UTF8String]);
+
+	for (AIOMEMOKeyForDevice *one in message.keys) {
+		xmlnode *key = xmlnode_new_child(header, "key");
+		xmlnode_set_attrib(key, "rid", [[@(one.device) stringValue] UTF8String]);
+		if (one.startsASession) xmlnode_set_attrib(key, "prekey", "true");
+		xmlnode_insert_data(key, [[one.wrapped base64EncodedStringWithOptions:0] UTF8String], -1);
+	}
+
+	xmlnode_insert_data(xmlnode_new_child(header, "iv"),
+						[[message.initialisationVector base64EncodedStringWithOptions:0] UTF8String], -1);
+	xmlnode_insert_data(xmlnode_new_child(encrypted, "payload"),
+						[[message.payload base64EncodedStringWithOptions:0] UTF8String], -1);
+
+	for (NSValue *held in kept)
+		xmlnode_insert_child(stanza, [held pointerValue]);
+
+	/* Told to keep it even though it has no body, or servers that archive by body alone will
+	 * drop it, and the conversation will have holes in it on the other devices. */
+	xmlnode_set_namespace(xmlnode_new_child(stanza, "store"), NS_HINTS);
+
+	//Says what this is encrypted with, so a client that cannot read it can say so usefully
+	xmlnode *which = xmlnode_new_child(stanza, "encryption");
+	xmlnode_set_namespace(which, NS_EME);
+	xmlnode_set_attrib(which, "namespace", NS_OMEMO);
+
+	/* And the sentence a client that does not do OMEMO will show instead. Every other client
+	 * sends one, and without it such a client shows an empty message and no explanation. */
+	xmlnode_insert_data(xmlnode_new_child(stanza, "body"),
+						"I sent you an OMEMO encrypted message but your client doesn't support it.", -1);
+
+	return YES;
+}
+
+#pragma mark Holding messages back until there is something to encrypt them with
+
+/*!
+ * @brief Tell the conversation that a message could not be sent
+ *
+ * Said in the window rather than swallowed, because the alternative is a message that the user
+ * believes has gone and that never will.
+ */
+static void omemo_say_it_failed(PurpleConnection *gc, NSString *bareJID, const char *why)
+{
+	PurpleConversation *conversation =
+		purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, [bareJID UTF8String],
+											  purple_connection_get_account(gc));
+	if (conversation)
+		purple_conversation_write(conversation, NULL, why, PURPLE_MESSAGE_ERROR, time(NULL));
+}
+
+/*!
+ * @brief Let go of everything held for one person, now that we can encrypt to them
+ */
+static void omemo_release_waiting(PurpleConnection *gc, NSString *bareJID)
+{
+	PurpleAccount *account = purple_connection_get_account(gc);
+	NSString *key = omemo_contact_key(account, bareJID);
+
+	NSArray *held = waitingToBeSent[key];
+	if (![held count]) return;
+
+	[waitingToBeSent removeObjectForKey:key];
+
+	for (NSValue *one in held) {
+		xmlnode *stanza = [one pointerValue];
+
+		if (omemo_seal(gc, stanza, bareJID))
+			omemo_send(gc, stanza);
+		else {
+			omemo_say_it_failed(gc, bareJID,
+								"This message was not sent: it could not be encrypted, and "
+								"sending it unencrypted was not what you asked for.");
+			xmlnode_free(stanza);
+		}
+	}
+}
+
+/*!
+ * @brief Give up on anything still held for one person
+ */
+static gboolean omemo_stop_waiting(gpointer data)
+{
+	NSString *key = (__bridge_transfer NSString *)data;
+
+	NSArray *held = waitingToBeSent[key];
+	if ([held count]) {
+		[waitingToBeSent removeObjectForKey:key];
+		for (NSValue *one in held)
+			xmlnode_free([one pointerValue]);
+
+		NSRange bar = [key rangeOfString:@"|"];
+		if (bar.location != NSNotFound) {
+			NSString *who = [key substringFromIndex:(bar.location + 1)];
+			PurpleAccount *account = purple_accounts_find([[key substringToIndex:bar.location] UTF8String],
+														  "prpl-jabber");
+			PurpleConnection *gc = account ? purple_account_get_connection(account) : NULL;
+			if (gc)
+				omemo_say_it_failed(gc, who,
+									"This message was not sent: the other side published no keys "
+									"to encrypt it with.");
+		}
+	}
+	return FALSE;		//once only
+}
+
+static void omemo_hold_back(PurpleConnection *gc, xmlnode *stanza, NSString *bareJID)
+{
+	NSString *key = omemo_contact_key(purple_connection_get_account(gc), bareJID);
+
+	NSMutableArray *held = waitingToBeSent[key];
+	if (!held) {
+		held = [NSMutableArray array];
+		waitingToBeSent[key] = held;
+
+		/* Not held for ever. Somebody who has never published a bundle is not going to start
+		 * because we waited longer, and the user deserves to be told rather than left guessing. */
+		purple_timeout_add_seconds(20, omemo_stop_waiting, (__bridge_retained void *)key);
+	}
+
+	[held addObject:[NSValue valueWithPointer:xmlnode_copy(stanza)]];
+	omemo_get_ready_for(gc, bareJID);
+}
+
 #pragma mark On the wire
+
+static gboolean omemo_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet) return FALSE;
+
+	xmlnode *stanza = *packet;
+	PurpleAccount *account = purple_connection_get_account(gc);
+	if (!omemo_is_jabber(account)) return FALSE;
+	if (!purple_strequal(stanza->name, "message")) return FALSE;
+
+	//Already ours, on its way out for the second time
+	if (xmlnode_get_child_with_namespace(stanza, "encrypted", NS_OMEMO)) return FALSE;
+
+	/* Only messages with something to read in them. A receipt, a chat state or a reaction
+	 * carries no text, and in this older form of OMEMO none of those are encrypted by anybody,
+	 * so encrypting ours would simply make them unreadable to every other client. */
+	if (!xmlnode_get_child(stanza, "body")) return FALSE;
+
+	const char *to = xmlnode_get_attrib(stanza, "to");
+	if (!to) return FALSE;
+
+	NSString *who = omemo_bare_jid([NSString stringWithUTF8String:to]);
+	if (![encryptingWith containsObject:omemo_contact_key(account, who)]) return FALSE;
+
+	if (omemo_can_write_to(account, who)) {
+		if (omemo_seal(gc, stanza, who))
+			return FALSE;		//Carry on, now encrypted
+	}
+
+	/* Nothing to encrypt with yet. The message waits rather than going out in the clear, which
+	 * is the one outcome the user definitely did not ask for. */
+	omemo_hold_back(gc, stanza, who);
+
+	xmlnode_free(stanza);
+	*packet = NULL;
+	return TRUE;
+}
 
 static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
 {
@@ -438,6 +950,24 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 			else if (worked && [retry[@"what"] isEqualToString:@"bundle"])
 				omemo_publish_bundle(gc);
 
+		} else if ([kind isEqualToString:ASKED_BUNDLE]) {
+			NSString *who = asked[@"jid"];
+
+			if (worked) {
+				xmlnode *pubsub = xmlnode_get_child_with_namespace(stanza, "pubsub", NS_PUBSUB);
+				xmlnode *items = pubsub ? xmlnode_get_child(pubsub, "items") : NULL;
+				xmlnode *item = items ? xmlnode_get_child(items, "item") : NULL;
+				xmlnode *bundle = item ? xmlnode_get_child_with_namespace(item, "bundle", NS_OMEMO) : NULL;
+
+				omemo_use_bundle(gc, who, [asked[@"device"] unsignedIntValue], bundle);
+			}
+
+			/* Whether that worked or not, anything held for this person is dealt with now: if a
+			 * session came of it the messages go, and if none did they are refused rather than
+			 * left waiting for a device that has nothing to offer. */
+			if (omemo_can_write_to(account, who))
+				omemo_release_waiting(gc, who);
+
 		} else {
 			/* A node that does not exist is the ordinary answer for somebody who has never used
 			 * OMEMO, and for ourselves before the first time. It is not a failure, it means the
@@ -448,10 +978,15 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 				devices = omemo_devices_in_list(omemo_find_list(pubsub));
 			}
 
-			if ([kind isEqualToString:ASKED_OWN_LIST])
+			if ([kind isEqualToString:ASKED_OWN_LIST]) {
 				omemo_handle_own_device_list(gc, devices);
-			else
+			} else {
 				omemo_remember_devices(account, asked[@"jid"], devices);
+
+				//Now that we know which devices there are, we can ask each of them for its keys
+				if ([waitingToBeSent[omemo_contact_key(account, asked[@"jid"])] count])
+					omemo_get_ready_for(gc, asked[@"jid"]);
+			}
 		}
 
 		//Handled here and nowhere else: nothing in the protocol asked for it
@@ -460,10 +995,33 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 		return TRUE;
 	}
 
-	/* Somebody's list changed and the server is telling us. This arrives unasked for anybody
-	 * whose presence we see, which is how a new device of a contact becomes known without us
-	 * asking again. */
 	if (purple_strequal(name, "message")) {
+		/* An encrypted message is turned back into an ordinary one here, so that everything
+		 * downstream needs to know nothing about OMEMO at all. */
+		xmlnode *encrypted = xmlnode_get_child_with_namespace(stanza, "encrypted", NS_OMEMO);
+		if (encrypted) {
+			const char *from = xmlnode_get_attrib(stanza, "from");
+
+			/* Somebody wrote to us encrypted, so from here on we answer in kind. Replying in the
+			 * clear to an encrypted message is the more surprising of the two, and it undoes
+			 * what the other side asked for without saying so. */
+			if (from) {
+				NSString *who = omemo_bare_jid([NSString stringWithUTF8String:from]);
+				if (![who isEqualToString:omemo_own_jid(account)])
+					[encryptingWith addObject:omemo_contact_key(account, who)];
+			}
+
+			if (omemo_open_message(gc, stanza, encrypted))
+				return FALSE;		//Carry on as the ordinary message it now is
+
+			xmlnode_free(stanza);
+			*packet = NULL;
+			return TRUE;
+		}
+
+		/* Somebody's list changed and the server is telling us. This arrives unasked for anybody
+		 * whose presence we see, which is how a new device of a contact becomes known without us
+		 * asking again. */
 		xmlnode *event = xmlnode_get_child_with_namespace(stanza, "event", NS_PUBSUB_EVENT);
 		if (!event) return FALSE;
 
@@ -506,6 +1064,8 @@ static void omemo_signed_on_cb(PurpleConnection *gc, gpointer data)
 		hooked = TRUE;
 		purple_signal_connect(jabber, "jabber-receiving-xmlnode", &adium_purple_omemo_handle,
 							  PURPLE_CALLBACK(omemo_receiving_xmlnode_cb), NULL);
+		purple_signal_connect(jabber, "jabber-sending-xmlnode", &adium_purple_omemo_handle,
+							  PURPLE_CALLBACK(omemo_sending_xmlnode_cb), NULL);
 	}
 
 	/* The key material lives beside the other account data rather than wherever the store
@@ -529,6 +1089,9 @@ void configureAdiumPurpleOMEMO(void)
 {
 	whatWeAsked = [NSMutableDictionary dictionary];
 	devicesOfContacts = [NSMutableDictionary dictionary];
+	encryptingWith = [NSMutableSet set];
+	bundlesAlreadyAsked = [NSMutableSet set];
+	waitingToBeSent = [NSMutableDictionary dictionary];
 
 	purple_signal_connect(purple_connections_get_handle(), "signed-on", &adium_purple_omemo_handle,
 						  PURPLE_CALLBACK(omemo_signed_on_cb), NULL);

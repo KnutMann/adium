@@ -33,3 +33,27 @@ NSArray<NSNumber *> *omemoDevicesForContact(PurpleAccount *account, NSString *ba
  * @brief Ask a contact's server which devices they have, if we have not already been told
  */
 void omemoAskAboutContact(PurpleAccount *account, NSString *bareJID);
+
+/*!
+ * @brief Are we encrypting what we send to this contact?
+ *
+ * Turns itself on when they write to us encrypted, because answering an encrypted message in
+ * the clear undoes what the other side asked for without telling anybody.
+ */
+BOOL omemoIsEncryptingWith(PurpleAccount *account, NSString *bareJID);
+
+/*!
+ * @brief Start or stop encrypting to a contact
+ *
+ * Switching it on also starts collecting whatever is needed to do so, which takes a moment;
+ * messages sent in the meantime wait rather than going out in the clear.
+ */
+void omemoSetEncrypting(PurpleAccount *account, NSString *bareJID, BOOL encrypting);
+
+/*!
+ * @brief Can we encrypt to this contact right now?
+ *
+ * Distinct from whether we mean to: the interface should be able to tell the difference between
+ * a conversation that is encrypted and one that is waiting to become so.
+ */
+BOOL omemoIsReadyFor(PurpleAccount *account, NSString *bareJID);
