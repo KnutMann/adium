@@ -193,6 +193,34 @@ int main(void) { @autoreleasepool {
 											  withStore:bobPhone];
 	check(@"und die Unterhaltung laeuft weiter", [finally isEqualToString:@"alles klar"], finally);
 
+	//Ein abgelehntes Geraet wird weder beschrieben noch gelesen
+	NSString *laptopPrint = [alice fingerprintForJID:BOB device:bobLaptop.deviceIdentifier];
+	check(@"Alice kennt den Fingerabdruck des Rechners", laptopPrint != nil, nil);
+
+	[alice setTrust:AIOMEMOTrustRejected forFingerprint:laptopPrint];
+	AIOMEMOMessage *afterRejecting = [AIOMEMOMessage encrypting:@"nur ans Telefon"
+													  withStore:alice
+													 forDevices:recipients];
+	check(@"Ein abgelehntes Geraet bekommt keine Kopie mehr",
+		  afterRejecting != nil && [afterRejecting.keys count] == 1,
+		  afterRejecting ? [NSString stringWithFormat:@"es waren %lu",
+							(unsigned long)[afterRejecting.keys count]] : @"gar nichts");
+
+	//Und andersherum: was von einem abgelehnten Geraet kommt, wird nicht gelesen
+	NSString *alicePrint = [bobPhone fingerprintForJID:ALICE device:alice.deviceIdentifier];
+	[bobPhone setTrust:AIOMEMOTrustRejected forFingerprint:alicePrint];
+
+	AIOMEMOMessage *fromRejected = [AIOMEMOMessage encrypting:@"trotzdem"
+													withStore:alice
+												   forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
+	NSString *shouldStaySilent = [AIOMEMOMessage textFromPayload:fromRejected.payload
+											initialisationVector:fromRejected.initialisationVector
+															keys:fromRejected.keys
+														sentFrom:ALICE
+														  device:alice.deviceIdentifier
+													   withStore:bobPhone];
+	check(@"Von einem abgelehnten Geraet wird nichts gelesen", shouldStaySilent == nil, shouldStaySilent);
+
 	[[NSFileManager defaultManager] removeItemAtPath:scratch error:NULL];
 
 	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");

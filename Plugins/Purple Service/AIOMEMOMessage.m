@@ -97,6 +97,14 @@
 			if ([jid isEqualToString:store.account] && number == store.deviceIdentifier)
 				continue;
 
+			/* A device the user has turned down is not written to, and that is the whole point
+			 * of having been asked. Undecided is still written to, which is the trust on first
+			 * use every other client starts from, and is honest only for as long as the
+			 * interface can show what has piled up undecided. */
+			NSString *print = [store fingerprintForJID:jid device:number];
+			if (print && [store trustForFingerprint:print] == AIOMEMOTrustRejected)
+				continue;
+
 			/* A device we have no session with is skipped rather than refused. Somebody with
 			 * four devices, one of which has never published a bundle, should still be written
 			 * to on the other three. */
@@ -145,6 +153,13 @@
 
 	//Addressed to this account's other devices but not to us, which is ordinary and not a fault
 	if (!ours) return nil;
+
+	/* A device the user turned down is not read from either. Showing its messages anyway would
+	 * make the decision decorative, and the user would have no way of telling that the thing
+	 * they rejected is still talking to them. */
+	NSString *print = [store fingerprintForJID:bareJID device:device];
+	if (print && [store trustForFingerprint:print] == AIOMEMOTrustRejected)
+		return nil;
 
 	NSData *messageKey = [store decryptKey:ours.wrapped
 								   fromJID:bareJID
