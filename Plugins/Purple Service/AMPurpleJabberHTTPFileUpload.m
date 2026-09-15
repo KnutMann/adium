@@ -478,17 +478,9 @@ static NSString *AMInlineImageCachePath(NSString *address)
 			return;
 		}
 
-		NSString *address = [getURL absoluteString];
-		if (ivAndKey) address = AIOMEMOMediaMakeLink(address, ivAndKey);
-
-		if (!address) {
-			[self fallBackForFileTransfer:fileTransfer];
-			return;
-		}
-
 		[self uploadFileAtPath:path encrypted:toUpload contentType:contentType
-						 toURL:putURL headers:headers announcingAddress:address
-			   forFileTransfer:fileTransfer];
+						 toURL:putURL getURL:getURL ivAndKey:ivAndKey headers:headers
+			   forFileTransfer:fileTransfer mayTryTheHostWeTalkTo:YES];
 	}];
 
 	return YES;
@@ -505,18 +497,83 @@ static NSString *AMInlineImageCachePath(NSString *address)
 }
 
 /*!
+ * @brief The address a finished upload should be announced under
+ */
+static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
+{
+	NSString *address = [getURL absoluteString];
+	return ivAndKey ? AIOMEMOMediaMakeLink(address, ivAndKey) : address;
+}
+
+/*!
+ * @brief The same address, on the machine this account is actually talking to
+ *
+ * Some servers offer an upload service and then hand out addresses on a name that does not
+ * resolve to the machine running it. That is a mistake in the server's configuration and not
+ * something a client should paper over lightly, so this is used only after the address the
+ * server gave has already failed, and only once, and never without checking afterwards that
+ * the file really can be fetched from where we put it.
+ *
+ * @return nil when the name is already the right one, or when there is nothing to swap in
+ */
+- (NSURL *)sameAddressOnTheHostWeTalkTo:(NSURL *)original
+{
+	PurpleConnection *gc = purple_account_get_connection([account purpleAccount]);
+	JabberStream *js = gc ? (JabberStream *)purple_connection_get_protocol_data(gc) : NULL;
+
+	if (!js || !js->serverFQDN) return nil;
+
+	return AIMediaSameAddressOnHost(original, [NSString stringWithUTF8String:js->serverFQDN]);
+}
+
+/*!
+ * @brief Make sure a file really can be fetched from where it was put
+ *
+ * Only asked when the address had to be corrected, and asked before anybody is told about it.
+ * The alternative is sending somebody a link built on a guess, which they cannot open and
+ * cannot find out why.
+ */
+- (void)confirmFetchable:(NSURL *)getURL then:(void (^)(BOOL confirmed))then
+{
+	NSMutableURLRequest *head = [NSMutableURLRequest requestWithURL:getURL];
+	[head setHTTPMethod:@"HEAD"];
+
+	[[urlSession dataTaskWithRequest:head completionHandler:^(NSData *d, NSURLResponse *r, NSError *e) {
+		NSInteger code = [r isKindOfClass:[NSHTTPURLResponse class]] ? [(NSHTTPURLResponse *)r statusCode] : 0;
+		if (!e && code / 100 == 2) {
+			then(YES);
+			return;
+		}
+
+		/* Not every store answers HEAD. Asking for the first byte settles it either way and
+		 * costs nothing worth counting. */
+		NSMutableURLRequest *sip = [NSMutableURLRequest requestWithURL:getURL];
+		[sip setValue:@"bytes=0-0" forHTTPHeaderField:@"Range"];
+
+		[[urlSession dataTaskWithRequest:sip completionHandler:^(NSData *d2, NSURLResponse *r2, NSError *e2) {
+			NSInteger second = [r2 isKindOfClass:[NSHTTPURLResponse class]] ? [(NSHTTPURLResponse *)r2 statusCode] : 0;
+			then(!e2 && second / 100 == 2);
+		}] resume];
+	}] resume];
+}
+
+/*!
  * @brief Put the file on the server and, if that worked, say where it is
  *
  * @param path The file as it sits on this machine, which is what our own side shows
  * @param encrypted What actually goes up, when the conversation is encrypted; nil otherwise
+ * @param mayTryTheHostWeTalkTo Whether a failure may be retried against the machine this
+ *        account is connected to, for servers that hand out an address nobody can reach
  */
 - (void)uploadFileAtPath:(NSString *)path
 			   encrypted:(NSData *)encrypted
 			 contentType:(NSString *)contentType
 				   toURL:(NSURL *)putURL
+				  getURL:(NSURL *)getURL
+				ivAndKey:(NSData *)ivAndKey
 				 headers:(NSDictionary *)headers
-	   announcingAddress:(NSString *)address
 		 forFileTransfer:(ESFileTransfer *)fileTransfer
+   mayTryTheHostWeTalkTo:(BOOL)mayTryTheHostWeTalkTo
 {
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:putURL];
 
@@ -525,26 +582,70 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	for (NSString *name in headers)
 		[request setValue:[headers objectForKey:name] forHTTPHeaderField:name];
 
+	/* One block, and it has to answer three different situations: the address the server gave
+	 * worked, it did not and may be worth correcting, or this WAS the corrected one and now has
+	 * to prove itself before anybody is told about it. */
 	void (^finished)(NSData *, NSURLResponse *, NSError *) =
 		^(NSData *data, NSURLResponse *response, NSError *error) {
 		NSInteger code = [response isKindOfClass:[NSHTTPURLResponse class]]
 			? [(NSHTTPURLResponse *)response statusCode] : 0;
-		BOOL uploaded = (!error && code / 100 == 2);
 
-		/* Said in full, because when this fails the reason is almost never in Adium. A server
-		 * that offers an upload service and then hands out addresses nobody outside can reach
-		 * looks, from in here, exactly like an upload that simply did not work. Naming the
-		 * address and what happened to it turns a mystery into a line somebody can act on. */
-		if (!uploaded)
+		if (error || code / 100 != 2) {
+			/* Said in full, because when this fails the reason is almost never in Adium. A
+			 * server that offers an upload service and then hands out addresses nobody outside
+			 * can reach looks, from in here, exactly like an upload that did not work. Naming
+			 * the address turns a mystery into a line somebody can act on. */
 			AILog(@"%@: PUT to %@ failed: %@ (status %ld)", account, putURL,
 				  error ? [error localizedDescription] : @"no error reported", (long)code);
 
-		dispatch_async(dispatch_get_main_queue(), ^{
-			if (uploaded)
-				[self announceFileAtPath:path address:address forFileTransfer:fileTransfer];
+			NSURL *elsewhere = mayTryTheHostWeTalkTo ? [self sameAddressOnTheHostWeTalkTo:putURL] : nil;
+			if (!elsewhere) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self fallBackForFileTransfer:fileTransfer];
+				});
+				return;
+			}
+
+			AILog(@"%@: that address could not be reached; trying the same path on %@, which is "
+				   @"the machine this account is connected to", account, [elsewhere host]);
+
+			[self uploadFileAtPath:path encrypted:encrypted contentType:contentType
+							 toURL:elsewhere
+							getURL:([self sameAddressOnTheHostWeTalkTo:getURL] ?: getURL)
+						  ivAndKey:ivAndKey headers:headers forFileTransfer:fileTransfer
+			 mayTryTheHostWeTalkTo:NO];
+			return;
+		}
+
+		//The server's own address worked, which is the ordinary case and needs no second opinion
+		if (mayTryTheHostWeTalkTo) {
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[self announceFileAtPath:path
+								 address:AMAddressForUpload(getURL, ivAndKey)
+						 forFileTransfer:fileTransfer];
+			});
+			return;
+		}
+
+		/* This was the corrected address, so it is never announced on the strength of the upload
+		 * alone. The file has to be fetchable from it first, or the person at the other end gets
+		 * a link built on a guess, which they cannot open and cannot find out why. */
+		[self confirmFetchable:getURL then:^(BOOL confirmed) {
+			if (confirmed)
+				AILog(@"%@: the corrected address works, sending that one", account);
 			else
-				[self fallBackForFileTransfer:fileTransfer];
-		});
+				AILog(@"%@: the file went up but cannot be fetched from %@, so it is not being "
+					   @"sent", account, getURL);
+
+			dispatch_async(dispatch_get_main_queue(), ^{
+				if (confirmed)
+					[self announceFileAtPath:path
+									 address:AMAddressForUpload(getURL, ivAndKey)
+							 forFileTransfer:fileTransfer];
+				else
+					[self fallBackForFileTransfer:fileTransfer];
+			});
+		}];
 	};
 
 	NSURLSessionUploadTask *task = encrypted

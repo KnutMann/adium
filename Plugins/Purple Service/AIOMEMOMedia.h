@@ -79,3 +79,15 @@ NSString *AIOMEMOMediaExtensionOf(NSString *link);
  * @return The media type, or nil for anything not recognised
  */
 NSString *AIMediaKindOfData(NSData *data, NSString **extension);
+
+/*!
+ * @brief The same address with a different machine's name in it
+ *
+ * Port, path and everything after are kept exactly as they were; only the name changes. Used
+ * when a server hands out an upload address on a name that does not resolve to the machine
+ * running the service, which is a mistake in its configuration and is why the result is never
+ * used without checking it afterwards.
+ *
+ * @return nil when the name is already that one, or when there is nothing usable to put in
+ */
+NSURL *AIMediaSameAddressOnHost(NSURL *original, NSString *host);

@@ -236,3 +236,15 @@ NSString *AIMediaKindOfData(NSData *data, NSString **extension)
 	}
 	return nil;
 }
+
+NSURL *AIMediaSameAddressOnHost(NSURL *original, NSString *host)
+{
+	if (!original || ![host length]) return nil;
+	if ([[original host] caseInsensitiveCompare:host] == NSOrderedSame) return nil;
+
+	NSURLComponents *parts = [NSURLComponents componentsWithURL:original resolvingAgainstBaseURL:NO];
+	if (!parts) return nil;
+
+	parts.host = host;
+	return [parts URL];
+}

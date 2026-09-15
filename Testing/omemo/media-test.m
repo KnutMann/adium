@@ -186,6 +186,30 @@ int main(void) { @autoreleasepool {
 		  AIMediaKindOfData([NSData dataWithBytes:"RIFF\x24\x00\x00\x00AVI LIST" length:16], NULL) == nil,
 		  nil);
 
+	/* Eine Adresse auf einen anderen Rechner umschreiben. Port, Pfad und alles dahinter muessen
+	 * unangetastet bleiben, sonst landet die Datei woanders als gedacht. */
+	NSURL *slot = [NSURL URLWithString:@"https://shoogee.com:5443/upload/977443/EscRx/bild%20eins.png?t=1"];
+	NSURL *moved = AIMediaSameAddressOnHost(slot, @"meet.shoogee.com");
+
+	check(@"Nur der Rechnername aendert sich",
+		  [[moved absoluteString] isEqualToString:
+		   @"https://meet.shoogee.com:5443/upload/977443/EscRx/bild%20eins.png?t=1"],
+		  [moved absoluteString]);
+
+	check(@"Ist es schon derselbe Rechner, passiert nichts",
+		  AIMediaSameAddressOnHost(slot, @"shoogee.com") == nil, nil);
+	check(@"Gross- und Kleinschreibung zaehlt dabei nicht",
+		  AIMediaSameAddressOnHost(slot, @"SHOOGEE.COM") == nil, nil);
+	check(@"Ohne Namen passiert nichts", AIMediaSameAddressOnHost(slot, @"") == nil, nil);
+	check(@"Ohne Adresse ebenso", AIMediaSameAddressOnHost(nil, @"meet.shoogee.com") == nil, nil);
+
+	//Ohne Port im Original darf auch keiner erfunden werden
+	NSURL *plain = [NSURL URLWithString:@"https://shoogee.com/upload/a/b.png"];
+	check(@"Ein fehlender Port wird nicht erfunden",
+		  [[AIMediaSameAddressOnHost(plain, @"meet.shoogee.com") absoluteString]
+		   isEqualToString:@"https://meet.shoogee.com/upload/a/b.png"],
+		  [AIMediaSameAddressOnHost(plain, @"meet.shoogee.com") absoluteString]);
+
 	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
 	return failures ? 1 : 0;
 } }
