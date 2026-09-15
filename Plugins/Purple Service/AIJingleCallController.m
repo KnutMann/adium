@@ -56,10 +56,10 @@
 	return self;
 }
 
-- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid
+- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid sid:(NSString *)sid
 {
 	if ((self = [super init])) {
-		_machine = [[AIJingleSessionMachine alloc] initAsResponderFrom:localJid to:peerJid];
+		_machine = [[AIJingleSessionMachine alloc] initAsResponderFrom:localJid to:peerJid sid:sid];
 		_machine.delegate = self;
 		_wantsAudio = YES;
 	}

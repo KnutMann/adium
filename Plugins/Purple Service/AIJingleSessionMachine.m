@@ -48,11 +48,12 @@
 	return self;
 }
 
-- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid
+- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid sid:(NSString *)sid
 {
 	if ((self = [super init])) {
 		self.localJid = localJid;
 		self.peerJid = peerJid;
+		self.sid = sid;
 		self.isInitiator = NO;
 		self.state = AIJingleCallStateIdle;
 		queuedRemoteCandidates = [NSMutableArray array];
@@ -94,7 +95,8 @@
 		return;
 	}
 
-	self.sid = remote.sid;
+	if ([remote.sid length])
+		self.sid = remote.sid;
 	self.state = AIJingleCallStatePendingIncoming;
 	remoteDescriptionApplied = YES;		//the initiate is the remote description
 

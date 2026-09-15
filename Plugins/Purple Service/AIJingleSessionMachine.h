@@ -61,8 +61,14 @@ typedef NS_ENUM(NSInteger, AIJingleCallState) {
 /*! @brief A machine for a call we start; sid may be nil to mint one */
 - (id)initAsInitiatorFrom:(NSString *)localJid to:(NSString *)peerJid sid:(NSString *)sid;
 
-/*! @brief A machine for a call that reached us as a session-initiate */
-- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid;
+/*!
+ * @brief A machine for a call that reached us
+ *
+ * The sid is known before the session is: a ring names it, and the interface
+ * files a call under it the moment it begins, so it cannot wait for the
+ * initiate to arrive.
+ */
+- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid sid:(NSString *)sid;
 
 //Initiator: the local offer is ready; sends session-initiate
 - (void)startWithLocalOfferSDP:(NSString *)offerSDP;

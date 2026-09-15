@@ -310,6 +310,12 @@
 	NSString *name = upcomingDisplayName;
 	upcomingDisplayName = nil;
 
+	//A call without an id has nowhere to be filed, and a nil key is an exception
+	if (![sid length]) {
+		AILogWithSignature(@"call began without a session id; not shown");
+		return;
+	}
+
 	NSRange slash = [controller.peerFullJid rangeOfString:@"/"];
 	NSString *bareJid = (slash.location == NSNotFound ? controller.peerFullJid :
 						 [controller.peerFullJid substringToIndex:slash.location]);

@@ -48,7 +48,8 @@ int main(int argc, char **argv) { @autoreleasepool {
 																				 to:@"peer@localhost/b"
 																				sid:@"testsid"];
 	AIJingleSessionMachine *b = [[AIJingleSessionMachine alloc] initAsResponderFrom:@"peer@localhost/b"
-																				 to:@"adium@localhost/a"];
+																				 to:@"adium@localhost/a"
+																				 sid:@"testsid"];
 	a.delegate = forA;
 	b.delegate = forB;
 
@@ -120,7 +121,7 @@ int main(int argc, char **argv) { @autoreleasepool {
 	 * nothing a real peer ever sent. */
 	Recorder *forC = [Recorder new], *forD = [Recorder new];
 	AIJingleSessionMachine *c = [[AIJingleSessionMachine alloc] initAsInitiatorFrom:@"a@x/1" to:@"b@x/2" sid:@"wiresid"];
-	AIJingleSessionMachine *d = [[AIJingleSessionMachine alloc] initAsResponderFrom:@"b@x/2" to:@"a@x/1"];
+	AIJingleSessionMachine *d = [[AIJingleSessionMachine alloc] initAsResponderFrom:@"b@x/2" to:@"a@x/1" sid:@"wiresid"];
 	c.delegate = forC; d.delegate = forD;
 	[c startWithLocalOfferSDP:offerSDP];
 

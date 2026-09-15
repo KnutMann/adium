@@ -267,7 +267,8 @@ static BOOL elementOffersVideo(NSString *jingleXML)
 {
 	AIJingleCallController *incoming =
 		[[AIJingleCallController alloc] initAsResponderFrom:[self localJidForAccount:account]
-														 to:fromJid];
+														 to:fromJid
+														sid:sid];
 	incoming.peerFullJid = fromJid;
 	incoming.wantsVideo = withVideo;
 	incoming.delegate = self;

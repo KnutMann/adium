@@ -72,7 +72,7 @@
 @property (nonatomic, copy) NSArray<NSDictionary *> *iceServerDictionaries;
 
 - (id)initAsInitiatorFrom:(NSString *)localJid to:(NSString *)peerJid;
-- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid;
+- (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid sid:(NSString *)sid;
 
 /*! @brief Initiator only: build the connection, offer, and send session-initiate */
 - (void)start;

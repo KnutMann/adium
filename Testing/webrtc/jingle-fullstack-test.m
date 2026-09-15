@@ -49,7 +49,8 @@ int main(void) { @autoreleasepool {
 	AIJingleCallController *a = [[AIJingleCallController alloc] initAsInitiatorFrom:@"adium@localhost/a"
 																				 to:@"peer@localhost/b"];
 	AIJingleCallController *b = [[AIJingleCallController alloc] initAsResponderFrom:@"peer@localhost/b"
-																				 to:@"adium@localhost/a"];
+																				 to:@"adium@localhost/a"
+																				 sid:@"testsid"];
 	a.wantsAudio = NO; a.usesSyntheticVideo = YES; a.delegate = forA;
 	b.wantsAudio = NO; b.usesSyntheticVideo = YES; b.delegate = forB;
 	forA.other = b; forB.other = a;
