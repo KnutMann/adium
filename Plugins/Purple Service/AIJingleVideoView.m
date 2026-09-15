@@ -26,6 +26,7 @@
 @implementation AIJingleVideoView {
 	CIContext *imageContext;
 	dispatch_queue_t conversionQueue;
+	NSInteger blackInARow;			//only ever touched on conversionQueue
 	BOOL converting;			//only ever touched on conversionQueue
 }
 
@@ -36,6 +37,13 @@
 		[[self layer] setBackgroundColor:[[NSColor blackColor] CGColor]];
 		[[self layer] setContentsGravity:kCAGravityResizeAspect];
 
+		/* TRAP: a layer does not keep its picture to itself. Told to fill rather
+		 * than fit, it scales the picture up until the shorter side is covered and
+		 * then draws the overhang straight past its own edges, over whatever
+		 * happens to be below. In a call window that is the bar with the clock and
+		 * the switches, which simply vanished under the other person's face. */
+		[[self layer] setMasksToBounds:YES];
+
 		imageContext = [CIContext contextWithOptions:nil];
 		conversionQueue = dispatch_queue_create("adium.jingle.video", DISPATCH_QUEUE_SERIAL);
 	}
@@ -44,6 +52,12 @@
 
 //What the connection hands us -------------------------------------------------------------------
 #pragma mark What the connection hands us
+
+- (void)setFillsTheFrame:(BOOL)filling
+{
+	_fillsTheFrame = filling;
+	[[self layer] setContentsGravity:(filling ? kCAGravityResizeAspectFill : kCAGravityResizeAspect)];
+}
 
 - (void)setSize:(CGSize)size
 {
@@ -79,6 +93,80 @@
 	});
 }
 
+//Is anybody actually there? ----------------------------------------------------------------------
+#pragma mark Is anybody actually there?
+
+/*!
+ * @brief How many frames in a row have been pure black
+ *
+ * Guessing from the picture, because the protocol says nothing. A client that
+ * switches its camera off does not necessarily say so: XEP-0167 has the words for
+ * it and one of the two clients measured against never speaks them, it simply
+ * disables its own track. WebRTC then keeps sending, at thirty frames a second,
+ * and every one of them is black. From the outside that is indistinguishable from
+ * a working camera in an unlit room, which is why this only ever decides what
+ * icon to draw and never anything that matters.
+ *
+ * Pure black means pure: a real dark room carries sensor noise and lands well
+ * above this, while a switched-off track is filled with the one exact value.
+ */
+#define BLACK_ENOUGH		24		//out of 255
+#define BLACK_LONG_ENOUGH	20		//frames in a row, so under a second
+
+- (void)noteWhetherItIsBlack:(BOOL)black
+{
+	if (!black) {
+		self->blackInARow = 0;
+		self->_looksBlack = NO;
+		return;
+	}
+
+	if (self->blackInARow < BLACK_LONG_ENOUGH)
+		self->blackInARow++;
+	else
+		self->_looksBlack = YES;
+}
+
+/*! @brief A grid of samples rather than every pixel; a black picture is black everywhere */
+- (BOOL)pixelBufferIsBlack:(CVPixelBufferRef)pixels
+{
+	if (!pixels || CVPixelBufferGetPixelFormatType(pixels) != kCVPixelFormatType_32BGRA)
+		return NO;			//a format we cannot read cheaply is not worth guessing about
+
+	CVPixelBufferLockBaseAddress(pixels, kCVPixelBufferLock_ReadOnly);
+	const uint8_t *base = CVPixelBufferGetBaseAddress(pixels);
+	size_t stride = CVPixelBufferGetBytesPerRow(pixels);
+	size_t width = CVPixelBufferGetWidth(pixels), height = CVPixelBufferGetHeight(pixels);
+	BOOL black = (base && width && height);
+
+	for (int down = 0; black && down < 8; down++)
+		for (int across = 0; across < 8; across++) {
+			const uint8_t *pixel = base + (height * down / 8) * stride + (width * across / 8) * 4;
+			if (pixel[0] > BLACK_ENOUGH || pixel[1] > BLACK_ENOUGH || pixel[2] > BLACK_ENOUGH) {
+				black = NO;
+				break;
+			}
+		}
+
+	CVPixelBufferUnlockBaseAddress(pixels, kCVPixelBufferLock_ReadOnly);
+	return black;
+}
+
+/*! @brief The same question of the brightness plane, which is the only one that matters here */
+- (BOOL)planesAreBlack:(id<RTCI420Buffer>)planes
+{
+	if (!planes || planes.width <= 0 || planes.height <= 0 || !planes.dataY)
+		return NO;
+
+	for (int down = 0; down < 8; down++)
+		for (int across = 0; across < 8; across++) {
+			int row = planes.height * down / 8, column = planes.width * across / 8;
+			if (planes.dataY[row * planes.strideY + column] > BLACK_ENOUGH)
+				return NO;
+		}
+	return YES;
+}
+
 //Turning a frame into a picture ------------------------------------------------------------------
 #pragma mark Turning a frame into a picture
 
@@ -89,9 +177,13 @@
 
 	if ([buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
 		//What a hardware decoder hands over, and the cheapest road to a picture
-		picture = [CIImage imageWithCVPixelBuffer:[(RTCCVPixelBuffer *)buffer pixelBuffer]];
+		CVPixelBufferRef pixels = [(RTCCVPixelBuffer *)buffer pixelBuffer];
+		[self noteWhetherItIsBlack:[self pixelBufferIsBlack:pixels]];
+		picture = [CIImage imageWithCVPixelBuffer:pixels];
 	} else {
-		picture = [self imageFromPlanes:[buffer toI420]];
+		id<RTCI420Buffer> planes = [buffer toI420];
+		[self noteWhetherItIsBlack:[self planesAreBlack:planes]];
+		picture = [self imageFromPlanes:planes];
 	}
 
 	if (!picture)

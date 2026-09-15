@@ -43,6 +43,9 @@
 - (void)noteRinging;
 - (void)noteAnswered;
 - (void)noteConnected;
+
+/*! @brief The peer turned its own microphone or camera off, or on again */
+- (void)showWhatThePeerSends;
 - (void)noteEndedWithReason:(NSString *)reason locally:(BOOL)locally;
 - (void)attachRemoteVideoTrack:(RTCVideoTrack *)track;
 

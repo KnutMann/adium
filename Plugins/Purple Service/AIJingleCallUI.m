@@ -420,6 +420,11 @@
 	[windowsBySid[controller.machine.sid] noteConnected];
 }
 
+- (void)manager:(AIJingleCallManager *)manager callPeerChangedWhatItSends:(AIJingleCallController *)controller
+{
+	[windowsBySid[controller.machine.sid] showWhatThePeerSends];
+}
+
 - (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller
 	hasRemoteVideoTrack:(RTCVideoTrack *)track
 {

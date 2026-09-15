@@ -32,7 +32,24 @@
 /*! @brief How many frames have actually been drawn, for tests and diagnosis */
 @property (atomic, readonly) NSInteger renderedFrames;
 
+/*!
+ * @brief Has the picture been nothing but black for a while now?
+ *
+ * A guess from the picture alone, for the case where the other side switches its
+ * camera off without saying so. Good enough to draw an icon over, never good
+ * enough to decide anything else.
+ */
+@property (atomic, readonly) BOOL looksBlack;
+
 /*! @brief The size of the last frame drawn */
 @property (atomic, readonly) CGSize lastFrameSize;
+
+/*!
+ * @brief Fill the whole view, cropping what does not fit, instead of fitting it in
+ *
+ * A picture from a phone held upright leaves two black columns in a window shaped
+ * for a desk, and somebody who would rather see a face than the black chooses this.
+ */
+@property (nonatomic) BOOL fillsTheFrame;
 
 @end

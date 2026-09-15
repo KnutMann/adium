@@ -37,6 +37,11 @@
 
 	NSTextField *statusLabel;
 	NSButton *hangUpButton;
+	NSButton *microphoneButton;
+	NSButton *cameraButton;
+	NSButton *fillButton;
+	NSImageView *cameraOffSign;		//shown on the black while the other camera is off
+	BOOL fillingTheFrame;
 	NSView *stage;						//where the pictures go, once there are any
 	AIJingleVideoView *remoteView;
 	AIJingleVideoView *previewView;
@@ -46,6 +51,7 @@
 	BOOL notedFirstRemoteFrame;
 	NSTimer *durationTimer;
 	NSDate *connectedSince;
+	NSString *peerNote;				//what the other side says it has turned off
 	BOOL ended;
 }
 
@@ -53,7 +59,8 @@
 {
 	NSWindow *window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, AUDIO_WIDTH, BAR_HEIGHT)
 												   styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-															  NSWindowStyleMaskMiniaturizable)
+															  NSWindowStyleMaskMiniaturizable |
+															  NSWindowStyleMaskResizable)
 													 backing:NSBackingStoreBuffered
 													   defer:NO];
 
@@ -90,25 +97,250 @@
 		[hangUpButton setBezelStyle:NSBezelStyleRounded];
 		[hangUpButton setKeyEquivalent:@"\e"];
 		[hangUpButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-		[content addSubview:hangUpButton];
+
+		/* The two switches every other video call has. Pictures rather than words,
+		 * because the bar is narrow and because a crossed-out microphone is read
+		 * faster than any sentence in any language. */
+		microphoneButton = [self switchWithSymbol:@"mic.fill"
+										 fallback:@"Mute"
+										   action:@selector(toggleMicrophone:)
+											  help:AILocalizedString(@"Turn your microphone off", "Tooltip of the button muting one's own microphone in a call")];
+
+		cameraButton = [self switchWithSymbol:@"video.fill"
+									 fallback:@"Camera"
+									   action:@selector(toggleCamera:)
+										  help:AILocalizedString(@"Turn your camera off", "Tooltip of the button switching off one's own camera in a call")];
+			/* Asked of the call, not of its camera: the window is built while the other
+		 * side is still being rung, and the track does not exist until the
+		 * connection is set up a moment later. Hanging the switch on the track
+		 * meant it was hidden at that moment and therefore hidden for good, so a
+		 * video call had no way to turn its camera off. */
+		[cameraButton setHidden:!controller.wantsVideo];
+
+		fillButton = [self switchWithSymbol:@"arrow.up.left.and.arrow.down.right"
+								   fallback:@"Fill"
+									 action:@selector(toggleFill:)
+										help:AILocalizedString(@"Fill the window with the picture", "Tooltip of the button that crops a call's picture to fill the window")];
+		[fillButton setHidden:YES];		//only once there is a picture to fill with
+
+		/* All of them in one row, and the row does the arithmetic.
+		 *
+		 * Chaining them to each other by hand looks the same and is not: a hidden
+		 * button keeps every constraint it had, so it keeps its width too, and an
+		 * audio call or a picture nobody is filling with left a hole in the row
+		 * where a button was merely invisible. A row detaches what is hidden. */
+		NSStackView *switches = [NSStackView stackViewWithViews:@[microphoneButton, cameraButton,
+																  fillButton, hangUpButton]];
+		[switches setOrientation:NSUserInterfaceLayoutOrientationHorizontal];
+		[switches setSpacing:6.0];
+		[switches setCustomSpacing:MARGIN afterView:fillButton];
+		[switches setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[content addSubview:switches];
 
 		[NSLayoutConstraint activateConstraints:@[
 			[statusLabel.leadingAnchor constraintEqualToAnchor:content.leadingAnchor constant:MARGIN + 2.0],
 			[statusLabel.bottomAnchor constraintEqualToAnchor:content.bottomAnchor constant:-(BAR_HEIGHT / 2.0 - 9.0)],
-			[hangUpButton.trailingAnchor constraintEqualToAnchor:content.trailingAnchor constant:-MARGIN],
-			[hangUpButton.centerYAnchor constraintEqualToAnchor:statusLabel.centerYAnchor],
-			[statusLabel.trailingAnchor constraintLessThanOrEqualToAnchor:hangUpButton.leadingAnchor constant:-MARGIN],
+			[switches.trailingAnchor constraintEqualToAnchor:content.trailingAnchor constant:-MARGIN],
+			[switches.centerYAnchor constraintEqualToAnchor:statusLabel.centerYAnchor],
+			[statusLabel.trailingAnchor constraintLessThanOrEqualToAnchor:switches.leadingAnchor constant:-MARGIN],
 		]];
 
 		//Our own camera, when this call sends one, is worth seeing from the start
 		if (controller.localVideoTrack)
 			[self growStageIfNeeded];
 
+		//Small enough to tuck away, never so small that the switches crush each other
+		[self allowTheHeightToChange:NO];
+
 		[window center];
 		[window makeKeyAndOrderFront:nil];
 	}
 
 	return self;
+}
+
+//How big this window may be ---------------------------------------------------------------------
+#pragma mark How big this window may be
+
+/*!
+ * @brief Let the window grow downwards only while there is a picture in it
+ *
+ * A call without pictures is one line of text and a few switches, and dragging
+ * its bottom edge downwards can only ever produce empty space. So the height is
+ * simply not offered; the width still is, because a long name needs room.
+ */
+- (void)allowTheHeightToChange:(BOOL)mayChange
+{
+	NSWindow *window = [self window];
+
+	if (!mayChange) {
+		[window setContentMinSize:NSMakeSize(AUDIO_WIDTH, BAR_HEIGHT)];
+		[window setContentMaxSize:NSMakeSize(CGFLOAT_MAX, BAR_HEIGHT)];
+		return;
+	}
+
+	[window setContentMinSize:NSMakeSize(AUDIO_WIDTH, 240.0 + BAR_HEIGHT)];
+	[window setContentMaxSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+}
+
+//The two switches -------------------------------------------------------------------------------
+#pragma mark The two switches
+
+/*! @brief A square button showing a system symbol, or a word where there are none */
+- (NSButton *)switchWithSymbol:(NSString *)symbol
+					  fallback:(NSString *)word
+						action:(SEL)action
+						  help:(NSString *)help
+{
+	NSButton *button = nil;
+
+	if (@available(macOS 11.0, *)) {
+		NSImage *picture = [NSImage imageWithSystemSymbolName:symbol accessibilityDescription:help];
+		if (picture)
+			button = [NSButton buttonWithImage:picture target:self action:action];
+	}
+	if (!button)
+		button = [NSButton buttonWithTitle:word target:self action:action];
+
+	[button setBezelStyle:NSBezelStyleRounded];
+	[button setToolTip:help];
+	[button setTranslatesAutoresizingMaskIntoConstraints:NO];
+	return button;
+}
+
+- (void)toggleMicrophone:(id)sender
+{
+	call.microphoneMuted = !call.microphoneMuted;
+	[self showWhatIsOn];
+}
+
+- (void)toggleCamera:(id)sender
+{
+	call.cameraOff = !call.cameraOff;
+	[self showWhatIsOn];
+}
+
+- (void)toggleFill:(id)sender
+{
+	fillingTheFrame = !fillingTheFrame;
+	remoteView.fillsTheFrame = fillingTheFrame;
+
+	NSString *help = (fillingTheFrame ?
+		AILocalizedString(@"Fit the whole picture into the window", "Tooltip of the button that shows a call's whole picture, black borders and all") :
+		AILocalizedString(@"Fill the window with the picture", "Tooltip of the button that crops a call's picture to fill the window"));
+	if (@available(macOS 11.0, *)) {
+		NSImage *picture = [NSImage imageWithSystemSymbolName:(fillingTheFrame ?
+								@"arrow.down.right.and.arrow.up.left" : @"arrow.up.left.and.arrow.down.right")
+									 accessibilityDescription:help];
+		if (picture)
+			[fillButton setImage:picture];
+	}
+	[fillButton setToolTip:help];
+}
+
+/*!
+ * @brief Let the two switches show what they are
+ *
+ * A crossed-out symbol for what is off, and the tooltip says what pressing would
+ * do rather than what the state is, because that is the question somebody hovering
+ * over a button is asking.
+ */
+- (void)showWhatIsOn
+{
+	struct { NSButton *button; BOOL off; NSString *on; NSString *off_; NSString *help; } both[] = {
+		{ microphoneButton, call.microphoneMuted, @"mic.fill", @"mic.slash.fill",
+		  call.microphoneMuted ?
+			AILocalizedString(@"Turn your microphone on", "Tooltip of the button unmuting one's own microphone in a call") :
+			AILocalizedString(@"Turn your microphone off", "Tooltip of the button muting one's own microphone in a call") },
+		{ cameraButton, call.cameraOff, @"video.fill", @"video.slash.fill",
+		  call.cameraOff ?
+			AILocalizedString(@"Turn your camera on", "Tooltip of the button switching one's own camera back on in a call") :
+			AILocalizedString(@"Turn your camera off", "Tooltip of the button switching off one's own camera in a call") },
+	};
+
+	for (size_t index = 0; index < sizeof(both) / sizeof(both[0]); index++) {
+		if (!both[index].button)
+			continue;
+		if (@available(macOS 11.0, *)) {
+			NSImage *picture = [NSImage imageWithSystemSymbolName:(both[index].off ? both[index].off_ : both[index].on)
+										 accessibilityDescription:both[index].help];
+			if (picture)
+				[both[index].button setImage:picture];
+		}
+		[both[index].button setToolTip:both[index].help];
+	}
+}
+
+/*! @brief The peer turned something of its own off; say so where the duration is */
+- (void)showWhatThePeerSends
+{
+	if (ended || !connectedSince)
+		return;
+
+	NSString *note = nil;
+	if (call.peerMicrophoneMuted && call.peerCameraOff)
+		note = AILocalizedString(@"microphone and camera off", "Note in a call window: the other side turned both off");
+	else if (call.peerMicrophoneMuted)
+		note = AILocalizedString(@"microphone off", "Note in a call window: the other side muted its microphone");
+	else if (call.peerCameraOff)
+		note = AILocalizedString(@"camera off", "Note in a call window: the other side switched off its camera");
+
+	peerNote = [note copy];
+	if (connectedSince)
+		[self updateDuration];
+
+	[self showOrHideTheDarkenedCamera];
+}
+
+/*!
+ * @brief A crossed-out camera in the middle of the black, when theirs is off
+ *
+ * A picture that stops arriving looks exactly like a picture that broke, and the
+ * line in the bar is easy to miss while looking at the empty rectangle where a
+ * face used to be. So the rectangle says it itself.
+ */
+- (void)showOrHideTheDarkenedCamera
+{
+	/* Two ways to know, and one of them is a guess.
+	 *
+	 * A client that says so in the protocol is believed at once. One that switches
+	 * its camera off in silence, which is what the client this was tested against
+	 * does, is recognised by what arrives instead: black, thirty times a second,
+	 * for a while. A few frames of settling are required first, so the black a
+	 * call starts with never counts. */
+	BOOL theySaidSo = call.peerCameraOff;
+	BOOL itLooksLikeIt = (remoteView.renderedFrames > 30 && remoteView.looksBlack);
+
+	if (!stage || !(theySaidSo || itLooksLikeIt)) {
+		[cameraOffSign setHidden:YES];
+		return;
+	}
+
+	if (!cameraOffSign) {
+		NSImage *symbol = nil;
+		if (@available(macOS 11.0, *))
+			symbol = [NSImage imageWithSystemSymbolName:@"video.slash.fill"
+					   accessibilityDescription:AILocalizedString(@"The other side switched off their camera",
+																  "Spoken description of the sign shown when the peer's camera is off")];
+
+		cameraOffSign = [NSImageView imageViewWithImage:(symbol ?: [NSImage new])];
+		[cameraOffSign setContentTintColor:[NSColor secondaryLabelColor]];
+		[cameraOffSign setTranslatesAutoresizingMaskIntoConstraints:NO];
+		if (@available(macOS 11.0, *))
+			[cameraOffSign setSymbolConfiguration:
+				[NSImageSymbolConfiguration configurationWithPointSize:56.0
+																weight:NSFontWeightRegular]];
+
+		/* Above the picture, below our own preview: a sign that covered the corner
+		 * we watch ourselves in would be its own little annoyance. */
+		[stage addSubview:cameraOffSign positioned:NSWindowBelow relativeTo:previewView];
+		[NSLayoutConstraint activateConstraints:@[
+			[cameraOffSign.centerXAnchor constraintEqualToAnchor:stage.centerXAnchor],
+			[cameraOffSign.centerYAnchor constraintEqualToAnchor:stage.centerYAnchor],
+		]];
+	}
+
+	[cameraOffSign setHidden:NO];
 }
 
 //The stage --------------------------------------------------------------------------------------
@@ -128,6 +360,7 @@
 	grown.origin.x = NSMidX(frame) - NSWidth(grown) / 2.0;
 	grown.origin.y = NSMaxY(frame) - NSHeight(grown);
 	[window setFrame:grown display:YES animate:YES];
+	[self allowTheHeightToChange:YES];
 
 	stage = [[NSView alloc] initWithFrame:NSZeroRect];
 	[stage setWantsLayer:YES];
@@ -156,8 +389,53 @@
 	}
 }
 
+/*!
+ * @brief Take the pictures away again when the call is over
+ *
+ * A picture that stops moving does not read as "the call ended", it reads as a
+ * call that froze, and the other person's face stays in the room until somebody
+ * closes the window. So the renderers are let go, the stage is removed and the
+ * window shrinks back to the line of text that says what happened.
+ */
+- (void)takeTheStageAway
+{
+	for (RTCVideoTrack *track in remoteTracks)
+		if (remoteView)
+			[track removeRenderer:remoteView];
+	[remoteTracks removeAllObjects];
+
+	if (previewView && call.localVideoTrack)
+		[call.localVideoTrack removeRenderer:previewView];
+
+	[fillButton setHidden:YES];
+	[cameraOffSign removeFromSuperview];
+	cameraOffSign = nil;
+	[remoteView removeFromSuperview];
+	remoteView = nil;
+	[previewView removeFromSuperview];
+	previewView = nil;
+
+	if (!stage)
+		return;
+
+	[stage removeFromSuperview];
+	stage = nil;
+	[self allowTheHeightToChange:NO];
+
+	//Back to the plain bar, staying where the window's top edge was
+	NSWindow *window = [self window];
+	NSRect frame = [window frame];
+	NSRect shrunk = [window frameRectForContentRect:NSMakeRect(0, 0, AUDIO_WIDTH, BAR_HEIGHT)];
+	shrunk.origin.x = NSMidX(frame) - NSWidth(shrunk) / 2.0;
+	shrunk.origin.y = NSMaxY(frame) - NSHeight(shrunk);
+	[window setFrame:shrunk display:YES animate:YES];
+}
+
 - (void)attachRemoteVideoTrack:(RTCVideoTrack *)track
 {
+	if (ended)
+		return;		//a picture arriving after the goodbye has nowhere to go
+
 	[self growStageIfNeeded];
 
 	/* Held for as long as the window lives.
@@ -186,6 +464,9 @@
 		[remoteView.trailingAnchor constraintEqualToAnchor:stage.trailingAnchor],
 		[remoteView.bottomAnchor constraintEqualToAnchor:stage.bottomAnchor],
 	]];
+	remoteView.fillsTheFrame = fillingTheFrame;
+	[fillButton setHidden:NO];
+	[self showOrHideTheDarkenedCamera];
 	AILogWithSignature(@"attaching renderer to remote track %@ (enabled=%d, state=%ld)",
 					   track.trackId, track.isEnabled, (long)track.readyState);
 	[track addRenderer:remoteView];
@@ -252,9 +533,18 @@
 - (void)updateDuration
 {
 	NSInteger seconds = (NSInteger)(-[connectedSince timeIntervalSinceNow]);
-	[statusLabel setStringValue:[NSString stringWithFormat:@"%@ %02ld:%02ld",
-								 AILocalizedString(@"Connected", "State of a call in progress"),
-								 (long)(seconds / 60), (long)(seconds % 60)]];
+	NSString *line = [NSString stringWithFormat:@"%@ %02ld:%02ld",
+					  AILocalizedString(@"Connected", "State of a call in progress"),
+					  (long)(seconds / 60), (long)(seconds % 60)];
+
+	//The picture is watched as often as the clock ticks
+	[self showOrHideTheDarkenedCamera];
+
+	//What the other side turned off belongs next to the clock, not in a dialog
+	if ([peerNote length])
+		line = [NSString stringWithFormat:@"%@ (%@)", line, peerNote];
+
+	[statusLabel setStringValue:line];
 }
 
 - (void)noteEndedWithReason:(NSString *)reason locally:(BOOL)locally
@@ -270,6 +560,15 @@
 		[[self window] close];
 		return;
 	}
+
+	/* The switches control a call that no longer exists. Left alive they would
+	 * look like they still did something, and pressing one would silently do
+	 * nothing at all. */
+	[microphoneButton setEnabled:NO];
+	[cameraButton setEnabled:NO];
+	[fillButton setEnabled:NO];
+
+	[self takeTheStageAway];
 
 	NSString *text;
 	if ([reason isEqualToString:@"decline"])
