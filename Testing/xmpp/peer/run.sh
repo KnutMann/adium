@@ -21,6 +21,7 @@ case "$1" in
 	muc-reactions) shift; exec ./.venv/bin/python muc_reactions.py "$@" ;;
 	sendfile)      shift; exec ./.venv/bin/python sendfile.py "$@" ;;
 	capscheck)     shift; exec ./.venv/bin/python capscheck.py "$@" ;;
+	fakepeer)      shift; exec ./.venv/bin/python -u fakepeer.py "$@" ;;
 	http-upload)   shift; exec ./.venv/bin/python http_upload_probe.py "$@" ;;
 	*)             exec ./.venv/bin/python peer.py "$@" ;;
 esac

@@ -77,18 +77,36 @@
 	return self;
 }
 
-/*! @brief The sid attribute of a jingle element, without parsing the whole thing */
+/*!
+ * @brief The sid a jingle element names, and whether it offers video
+ *
+ * Read as XML, never searched as text: a stanza off the wire spells its
+ * attributes with single quotes, and a search for sid=" found nothing in
+ * everything a peer ever sent, which left libpurple's own blind jingle code
+ * to answer every incoming call with unsupported-applications.
+ */
+static NSXMLElement *jingleElement(NSString *jingleXML)
+{
+	NSXMLDocument *document = [[NSXMLDocument alloc] initWithXMLString:jingleXML options:0 error:NULL];
+	NSXMLElement *root = [document rootElement];
+
+	return ([[root name] isEqualToString:@"jingle"] ? root : nil);
+}
+
 static NSString *sidOfElement(NSString *jingleXML)
 {
-	NSRange marker = [jingleXML rangeOfString:@"sid=\""];
-	if (marker.location == NSNotFound)
-		return nil;
+	return [[jingleElement(jingleXML) attributeForName:@"sid"] stringValue];
+}
 
-	NSUInteger start = marker.location + marker.length;
-	NSRange quote = [jingleXML rangeOfString:@"\"" options:0
-									   range:NSMakeRange(start, [jingleXML length] - start)];
-	return (quote.location == NSNotFound ? nil :
-			[jingleXML substringWithRange:NSMakeRange(start, quote.location - start)]);
+static BOOL elementOffersVideo(NSString *jingleXML)
+{
+	for (NSXMLElement *content in [jingleElement(jingleXML) elementsForName:@"content"]) {
+		for (NSXMLElement *description in [content elementsForName:@"description"]) {
+			if ([[[description attributeForName:@"media"] stringValue] isEqualToString:@"video"])
+				return YES;
+		}
+	}
+	return NO;
 }
 
 - (NSString *)localJidForAccount:(CBPurpleAccount *)account
@@ -157,7 +175,7 @@ static NSString *sidOfElement(NSString *jingleXML)
 	   promptForIncomingCallWithSid:sid
 								from:fromJid
 						   onAccount:account
-						 offersVideo:[jingleXML containsString:@"media=\"video\""]];
+						 offersVideo:elementOffersVideo(jingleXML)];
 			return YES;
 		}
 	}

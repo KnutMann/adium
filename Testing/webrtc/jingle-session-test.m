@@ -114,6 +114,37 @@ int main(int argc, char **argv) { @autoreleasepool {
 		  [[forB.events lastObject] hasPrefix:@"candidate 1 "] &&
 		  [[forB.events lastObject] containsString:@"40002"], [forB.events lastObject]);
 
+	/* The wire speaks in single quotes. Everything above was fed our own
+	 * double-quoted spelling, and that is exactly how a machine that read its
+	 * attributes by searching text passed every test here while answering
+	 * nothing a real peer ever sent. */
+	Recorder *forC = [Recorder new], *forD = [Recorder new];
+	AIJingleSessionMachine *c = [[AIJingleSessionMachine alloc] initAsInitiatorFrom:@"a@x/1" to:@"b@x/2" sid:@"wiresid"];
+	AIJingleSessionMachine *d = [[AIJingleSessionMachine alloc] initAsResponderFrom:@"b@x/2" to:@"a@x/1"];
+	c.delegate = forC; d.delegate = forD;
+	[c startWithLocalOfferSDP:offerSDP];
+
+	NSString *(^asWireSpelling)(NSString *) = ^(NSString *xml) {
+		return [xml stringByReplacingOccurrencesOfString:@"\"" withString:@"'"];
+	};
+
+	[d handleRemoteJingleElement:asWireSpelling([forC.sentElements firstObject])];
+	check(@"Einfache Anfuehrungszeichen: initiate verstanden",
+		  d.state == AIJingleCallStatePendingIncoming && [d.sid isEqualToString:@"wiresid"],
+		  [NSString stringWithFormat:@"state=%ld sid=%@", (long)d.state, d.sid]);
+
+	AIJingleSession *wireAnswer = [AIJingleSession sessionFromSDP:forD.lastRemoteSDP];
+	for (AIJingleContent *content in wireAnswer.contents) content.dtlsSetup = @"active";
+	[d acceptWithLocalAnswerSDP:[wireAnswer sdpString]];
+	[c handleRemoteJingleElement:asWireSpelling([forD.sentElements lastObject])];
+	check(@"Einfache Anfuehrungszeichen: accept verstanden", c.state == AIJingleCallStateActive, nil);
+
+	[c handleRemoteJingleElement:@"<jingle xmlns='urn:xmpp:jingle:1' action='session-terminate' sid='wiresid'>"
+						  @"<reason><busy/></reason></jingle>"];
+	check(@"Einfache Anfuehrungszeichen: terminate samt Grund verstanden",
+		  c.state == AIJingleCallStateEnded && [[forC.events lastObject] isEqualToString:@"ended busy remote"],
+		  [forC.events lastObject]);
+
 	//A hangs up; B learns why
 	[a hangUpWithReason:@"success"];
 	check(@"Aufleger endet lokal", a.state == AIJingleCallStateEnded &&

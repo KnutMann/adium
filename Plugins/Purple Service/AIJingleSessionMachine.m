@@ -120,17 +120,25 @@
 //The peer's turns -------------------------------------------------------------------------------
 #pragma mark The peer's turns
 
+/*!
+ * @brief The jingle element's own words, read as XML
+ *
+ * TRAP, and it cost a call: a stanza off the wire is spelled with single quotes,
+ * ours with double ones, so anything that went looking for action=" found nothing
+ * in everything a peer ever sent. Attributes are read from the parsed document.
+ */
+static NSXMLElement *jingleRootElement(NSString *jingleXML)
+{
+	NSXMLDocument *document = [[NSXMLDocument alloc] initWithXMLString:jingleXML options:0 error:NULL];
+	NSXMLElement *root = [document rootElement];
+
+	return ([[root name] isEqualToString:@"jingle"] ? root : nil);
+}
+
 - (void)handleRemoteJingleElement:(NSString *)jingleXML
 {
-	NSString *action = nil;
-	NSRange actionAttribute = [jingleXML rangeOfString:@"action=\""];
-	if (actionAttribute.location != NSNotFound) {
-		NSUInteger start = actionAttribute.location + actionAttribute.length;
-		NSRange quote = [jingleXML rangeOfString:@"\"" options:0
-										   range:NSMakeRange(start, [jingleXML length] - start)];
-		if (quote.location != NSNotFound)
-			action = [jingleXML substringWithRange:NSMakeRange(start, quote.location - start)];
-	}
+	NSXMLElement *jingle = jingleRootElement(jingleXML);
+	NSString *action = [[jingle attributeForName:@"action"] stringValue];
 
 	if ([action isEqualToString:@"session-initiate"]) {
 		[self receivedInitiateElement:jingleXML];
@@ -171,19 +179,12 @@
 		}
 
 	} else if ([action isEqualToString:@"session-terminate"]) {
+		//The first element inside <reason> names it
 		NSString *reason = @"gone";
-		NSRange reasonElement = [jingleXML rangeOfString:@"<reason"];
-		if (reasonElement.location != NSNotFound) {
-			//The first child of <reason> names it; good enough without a full parse
-			NSRange window = NSMakeRange(reasonElement.location, [jingleXML length] - reasonElement.location);
-			NSRange child = [jingleXML rangeOfString:@"><" options:0 range:window];
-			if (child.location != NSNotFound) {
-				NSUInteger start = child.location + 2;
-				NSRange end = [jingleXML rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@" />"]
-														 options:0
-														   range:NSMakeRange(start, [jingleXML length] - start)];
-				if (end.location != NSNotFound)
-					reason = [jingleXML substringWithRange:NSMakeRange(start, end.location - start)];
+		for (NSXMLNode *child in [[[jingle elementsForName:@"reason"] firstObject] children]) {
+			if ([child kind] == NSXMLElementKind) {
+				reason = [child name];
+				break;
 			}
 		}
 		self.state = AIJingleCallStateEnded;
