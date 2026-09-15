@@ -301,6 +301,8 @@
 
 - (void)machine:(AIJingleSessionMachine *)machine addRemoteCandidateLine:(NSString *)line mid:(NSString *)mid
 {
+	AILogWithSignature(@"remote candidate (%@): %@", mid, line);
+
 	RTCIceCandidate *candidate = [[RTCIceCandidate alloc] initWithSdp:line
 														sdpMLineIndex:0
 															   sdpMid:mid];
@@ -348,7 +350,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
  * A call that fails to connect says nothing by itself; the pairs it checked do.
  * Each one names the two addresses, what came back, and how far it got.
  */
-- (void)logCandidatePairs
+- (void)logCandidatePairsThen:(void (^)(void))afterwards
 {
 	[self.peerConnection statisticsWithCompletionHandler:^(RTCStatisticsReport *report) {
 		NSMutableArray *lines = [NSMutableArray array];
@@ -374,6 +376,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 		}
 		AILogWithSignature(@"ICE gave up after %lu pairs:\n%@", (unsigned long)[lines count],
 						   [lines componentsJoinedByString:@"\n"]);
+		dispatch_async(dispatch_get_main_queue(), afterwards);
 	}];
 }
 
@@ -400,8 +403,12 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			}
 		}
 		if (newState == RTCIceConnectionStateFailed) {
-			[self logCandidatePairs];
-			[self failWith:@"connectivity-error"];
+			/* Measure before giving up: ending the call closes the connection, and a
+			 * closed connection reports no pairs at all, which reads as if none were
+			 * ever tried. */
+			[self logCandidatePairsThen:^{
+				[self failWith:@"connectivity-error"];
+			}];
 		}
 	});
 }
