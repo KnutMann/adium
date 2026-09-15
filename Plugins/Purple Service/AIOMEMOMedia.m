@@ -212,3 +212,27 @@ NSString *AIOMEMOMediaExtensionOf(NSString *link)
 
 	return [[last substringFromIndex:(dot.location + 1)] lowercaseString];
 }
+
+NSString *AIMediaKindOfData(NSData *data, NSString **extension)
+{
+	const uint8_t *bytes = [data bytes];
+	NSUInteger length = [data length];
+
+	struct { const char *type; const char *ending; NSUInteger at; NSUInteger count; const uint8_t mark[8]; }
+	known[] = {
+		{ "image/png",  "png",  0, 8, { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A } },
+		{ "image/jpeg", "jpg",  0, 3, { 0xFF, 0xD8, 0xFF } },
+		{ "image/gif",  "gif",  0, 4, { 0x47, 0x49, 0x46, 0x38 } },
+		//RIFF at the front and WEBP four bytes into the header, which is where it sits
+		{ "image/webp", "webp", 8, 4, { 0x57, 0x45, 0x42, 0x50 } }
+	};
+
+	for (unsigned index = 0; index < sizeof(known) / sizeof(known[0]); index++) {
+		if (length < known[index].at + known[index].count) continue;
+		if (memcmp(bytes + known[index].at, known[index].mark, known[index].count)) continue;
+
+		if (extension) *extension = [NSString stringWithUTF8String:known[index].ending];
+		return [NSString stringWithUTF8String:known[index].type];
+	}
+	return nil;
+}

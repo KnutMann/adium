@@ -2306,10 +2306,16 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		@"  el.style.display='block';"
 		@"  el.style.marginTop='2px';"
 		@"  var a=msgs[i].querySelector('a');"
+		@"  var href=a?a.href:null;"
+		/* The whole message is the address and nothing else, so the whole of it goes. Replacing
+		 * only the link would leave whatever the link detector did not recognise standing in
+		 * front of the picture, and it recognises none of aesgcm, so the scheme and part of the
+		 * host stayed visible beside the player. */
+		@"  while(msgs[i].firstChild) msgs[i].removeChild(msgs[i].firstChild);"
 		/* A picture stays wrapped in its link, so a click still opens the original. A player
 		 * must not be, or every attempt to press pause would follow the link instead. */
-		@"  if(a && !playable){ a.textContent=''; a.appendChild(el); }"
-		@"  else if(a){ a.parentNode.replaceChild(el,a); }"
+		@"  if(!playable && href){ var w=document.createElement('a'); w.href=href;"
+		@"                         w.appendChild(el); msgs[i].appendChild(w); }"
 		@"  else { msgs[i].appendChild(el); }"
 		@"  return 2;"
 		@" }"

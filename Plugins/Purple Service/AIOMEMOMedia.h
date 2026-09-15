@@ -67,3 +67,16 @@ NSString *AIOMEMOMediaMakeLink(NSString *httpsAddress, NSData *ivAndKey);
 
 /*! @brief The name a file ends in, read from an address of either kind */
 NSString *AIOMEMOMediaExtensionOf(NSString *link);
+
+/*!
+ * @brief What a file actually is, read from its first bytes rather than from its name
+ *
+ * A picture dragged out of the Finder brings its name and therefore its kind with it. One
+ * pasted into a window does not: the system writes it to a temporary file named after nothing
+ * but a unique number, with no ending at all. Going by the name alone, such a picture is not a
+ * picture.
+ *
+ * @param extension Filled in with the ending the file should have been given
+ * @return The media type, or nil for anything not recognised
+ */
+NSString *AIMediaKindOfData(NSData *data, NSString **extension);

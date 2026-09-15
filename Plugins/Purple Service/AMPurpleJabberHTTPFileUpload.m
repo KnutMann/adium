@@ -375,6 +375,7 @@ static NSDictionary *AMImageContentTypes(void)
 	return types;
 }
 
+
 /*!
  * @brief Where the inline image plugin would cache a fetched address; put ours there too
  *
@@ -406,10 +407,24 @@ static NSString *AMInlineImageCachePath(NSString *address)
 		return NO;
 
 	NSString *path = [fileTransfer localFilename];
+	NSString *filename = [path lastPathComponent];
 	NSString *contentType = [AMImageContentTypes() objectForKey:[[path pathExtension] lowercaseString]];
 
-	if (!contentType)
-		return NO;
+	NSData *contents = nil;
+
+	if (!contentType) {
+		/* No usable ending, which is what a pasted picture looks like. Ask the file itself
+		 * rather than giving up, and give it the name it should have had, so that whoever
+		 * receives it can tell what it is. */
+		contents = [NSData dataWithContentsOfFile:path];
+		if (!contents) return NO;
+
+		NSString *ending = nil;
+		contentType = AIMediaKindOfData(contents, &ending);
+		if (!contentType) return NO;
+
+		filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:ending];
+	}
 
 	unsigned long long size = [[[NSFileManager defaultManager] attributesOfItemAtPath:path
 																				error:NULL] fileSize];
@@ -424,7 +439,7 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	NSData *ivAndKey = nil;
 
 	if (omemoIsEncryptingWith([account purpleAccount], [[fileTransfer contact] UID])) {
-		NSData *plain = [NSData dataWithContentsOfFile:path];
+		NSData *plain = contents ?: [NSData dataWithContentsOfFile:path];
 
 		toUpload = plain ? AIOMEMOMediaEncrypt(plain, &ivAndKey) : nil;
 		if (!toUpload)
@@ -440,7 +455,7 @@ static NSString *AMInlineImageCachePath(NSString *address)
 
 	[fileTransfer setStatus:In_Progress_FileTransfer];
 
-	[self requestSlotForFilename:[path lastPathComponent]
+	[self requestSlotForFilename:filename
 							size:size
 					 contentType:contentType
 					  completion:^(NSURL *putURL, NSDictionary *headers, NSURL *getURL) {

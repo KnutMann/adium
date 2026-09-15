@@ -159,6 +159,33 @@ int main(void) { @autoreleasepool {
 	check(@"Ohne Punkt gibt es keine Endung",
 		  AIOMEMOMediaExtensionOf(@"https://x/y/ohnepunkt") == nil, nil);
 
+	/* Was eine Datei IST, wenn ihr Name es nicht verraet. Ein ins Fenster eingefuegtes Bild
+	 * landet in einer Datei ohne jede Endung, und danach ist es dem Namen nach kein Bild mehr. */
+	struct { const char *bytes; size_t n; const char *type; const char *ending; } samples[] = {
+		{ "\x89PNG\r\n\x1a\n....", 12, "image/png", "png" },
+		{ "\xff\xd8\xff\xe0JFIF", 9, "image/jpeg", "jpg" },
+		{ "GIF89a.......", 13, "image/gif", "gif" },
+		{ "RIFF\x24\x00\x00\x00WEBPVP8 ", 16, "image/webp", "webp" },
+	};
+
+	for (unsigned i = 0; i < sizeof(samples) / sizeof(samples[0]); i++) {
+		NSString *ending = nil;
+		NSString *kind = AIMediaKindOfData([NSData dataWithBytes:samples[i].bytes length:samples[i].n],
+										   &ending);
+		check([NSString stringWithFormat:@"%s wird an seinen ersten Bytes erkannt", samples[i].type],
+			  [kind isEqualToString:[NSString stringWithUTF8String:samples[i].type]] &&
+			  [ending isEqualToString:[NSString stringWithUTF8String:samples[i].ending]],
+			  kind ?: @"gar nichts");
+	}
+
+	check(@"Und was kein Bild ist, wird nicht dafuer gehalten",
+		  AIMediaKindOfData([NSData dataWithBytes:"Das ist einfach Text" length:20], NULL) == nil, nil);
+	check(@"Eine zu kurze Datei ebensowenig",
+		  AIMediaKindOfData([NSData dataWithBytes:"\x89P" length:2], NULL) == nil, nil);
+	check(@"RIFF allein ist noch kein WebP",
+		  AIMediaKindOfData([NSData dataWithBytes:"RIFF\x24\x00\x00\x00AVI LIST" length:16], NULL) == nil,
+		  nil);
+
 	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
 	return failures ? 1 : 0;
 } }
