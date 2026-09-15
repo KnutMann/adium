@@ -496,7 +496,8 @@ static NSString *AMInlineImageCachePath(NSString *address)
 
 - (void)fallBackForFileTransfer:(ESFileTransfer *)fileTransfer
 {
-	AILog(@"%@: HTTP upload failed, falling back to the classic transfer", account);
+	AILog(@"%@: HTTP upload failed, falling back to the classic transfer, which the other side "
+		   @"may well not speak either", account);
 
 	//It is a transfer after all, so it belongs in the window again
 	[fileTransfer setCarriedInConversation:NO];
@@ -526,9 +527,17 @@ static NSString *AMInlineImageCachePath(NSString *address)
 
 	void (^finished)(NSData *, NSURLResponse *, NSError *) =
 		^(NSData *data, NSURLResponse *response, NSError *error) {
-		BOOL uploaded = (!error &&
-						 [response isKindOfClass:[NSHTTPURLResponse class]] &&
-						 ([(NSHTTPURLResponse *)response statusCode] / 100) == 2);
+		NSInteger code = [response isKindOfClass:[NSHTTPURLResponse class]]
+			? [(NSHTTPURLResponse *)response statusCode] : 0;
+		BOOL uploaded = (!error && code / 100 == 2);
+
+		/* Said in full, because when this fails the reason is almost never in Adium. A server
+		 * that offers an upload service and then hands out addresses nobody outside can reach
+		 * looks, from in here, exactly like an upload that simply did not work. Naming the
+		 * address and what happened to it turns a mystery into a line somebody can act on. */
+		if (!uploaded)
+			AILog(@"%@: PUT to %@ failed: %@ (status %ld)", account, putURL,
+				  error ? [error localizedDescription] : @"no error reported", (long)code);
 
 		dispatch_async(dispatch_get_main_queue(), ^{
 			if (uploaded)
