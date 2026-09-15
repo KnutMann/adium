@@ -2325,8 +2325,13 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		[self _jsStringLiteral:[[NSURL fileURLWithPath:path] absoluteString]],
 		[self _jsStringLiteral:element], (playable ? @"true" : @"false")];
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if (error || [result integerValue] == 0) {
-			AILogWithSignature(@"image for id %@ found no message (%@)", messageId, error ?: result);
+		/* Not finding the message is ordinary and not a fault. A file fetched quickly, which
+		 * over a fast connection means almost every time, is ready before the message it
+		 * belongs to has been drawn. Nothing is lost by that: the path is on the message, and
+		 * the drawing embeds it when the moment comes. Only a real failure of the page is worth
+		 * a line here. */
+		if (error) {
+			AILogWithSignature(@"could not embed %@ on id %@: %@", path, messageId, error);
 		}
 	}];
 }
