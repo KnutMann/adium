@@ -2301,8 +2301,18 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		@"  if(msgs[i].getAttribute('data-x-adium-id')!==id) continue;"
 		@"  if(msgs[i].querySelector('[data-x-adium-inline-image]')) return 1;"
 		@"  var el=document.createElement(kind);"
-		@"  el.src=src;"
 		@"  el.setAttribute('data-x-adium-inline-image','1');"
+		/* A file the view cannot load leaves an element of no size, which is indistinguishable
+		 * from nothing having happened. Rather than that, say so where the picture would have
+		 * been: something arrived, and this is why it is not being shown. */
+		@"  el.onerror=function(){"
+		@"   var said=document.createElement('span');"
+		@"   said.setAttribute('data-x-adium-inline-image','1');"
+		@"   said.style.opacity='0.7';"
+		@"   said.textContent='['+kind+' could not be shown: '+src+']';"
+		@"   if(el.parentNode) el.parentNode.replaceChild(said,el);"
+		@"  };"
+		@"  el.src=src;"
 		@"  if(playable){"
 		@"   el.controls=true; el.preload='metadata';"
 		@"   el.style.maxWidth=(kind==='audio')?'320px':'min(480px, 100%%)';"
