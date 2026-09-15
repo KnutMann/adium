@@ -17,8 +17,9 @@
 #import "AIJingleCallWindowController.h"
 
 #import <AIUtilities/AIStringUtilities.h>
+#import "AIJingleVideoView.h"
+
 #import <WebRTC/WebRTC.h>
-#import <WebRTC/RTCMTLNSVideoView.h>
 
 #define BAR_HEIGHT		56.0
 #define AUDIO_WIDTH		360.0
@@ -35,8 +36,8 @@
 	NSTextField *statusLabel;
 	NSButton *hangUpButton;
 	NSView *stage;						//where the pictures go, once there are any
-	RTCMTLNSVideoView *remoteView;
-	RTCMTLNSVideoView *previewView;
+	AIJingleVideoView *remoteView;
+	AIJingleVideoView *previewView;
 
 	NSTimer *durationTimer;
 	NSDate *connectedSince;
@@ -135,7 +136,7 @@
 	]];
 
 	if (call.localVideoTrack) {
-		previewView = [[RTCMTLNSVideoView alloc] initWithFrame:NSZeroRect];
+		previewView = [[AIJingleVideoView alloc] initWithFrame:NSZeroRect];
 		[previewView setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[stage addSubview:previewView];
 		[NSLayoutConstraint activateConstraints:@[
@@ -155,7 +156,7 @@
 	if (remoteView)
 		return;
 
-	remoteView = [[RTCMTLNSVideoView alloc] initWithFrame:NSZeroRect];
+	remoteView = [[AIJingleVideoView alloc] initWithFrame:NSZeroRect];
 	[remoteView setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[stage addSubview:remoteView positioned:NSWindowBelow relativeTo:previewView];
 	[NSLayoutConstraint activateConstraints:@[

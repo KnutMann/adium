@@ -244,6 +244,10 @@
 		346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */; };
 		346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */ = {isa = PBXBuildFile; fileRef = 346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */; };
 		346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */; };
+		A11B000CE5F0000000000002 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B000CE5F0000000000001 /* CoreImage.framework */; };
+		A11B000CE5F0000000000004 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B000CE5F0000000000003 /* QuartzCore.framework */; };
+		A11B000BE5F0000000000001 /* AIJingleVideoView.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B000BE5F0000000000003 /* AIJingleVideoView.h */; };
+		A11B000BE5F0000000000002 /* AIJingleVideoView.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B000BE5F0000000000004 /* AIJingleVideoView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B000AE5F0000000000001 /* AIJingleCallDiagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B000AE5F0000000000003 /* AIJingleCallDiagnostics.h */; };
 		A11B000AE5F0000000000002 /* AIJingleCallDiagnostics.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B000AE5F0000000000004 /* AIJingleCallDiagnostics.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B000AE5F0000000000006 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B000AE5F0000000000005 /* Network.framework */; };
@@ -1936,6 +1940,10 @@
 		346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocCommand.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocCommand.m"; sourceTree = "<group>"; };
 		346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberAdHocPing.h; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.h"; sourceTree = "<group>"; };
 		346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocPing.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.m"; sourceTree = "<group>"; };
+		A11B000CE5F0000000000001 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = /System/Library/Frameworks/CoreImage.framework; sourceTree = "<absolute>"; };
+		A11B000CE5F0000000000003 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
+		A11B000BE5F0000000000003 /* AIJingleVideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleVideoView.h; path = "Plugins/Purple Service/AIJingleVideoView.h"; sourceTree = "<group>"; };
+		A11B000BE5F0000000000004 /* AIJingleVideoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleVideoView.m; path = "Plugins/Purple Service/AIJingleVideoView.m"; sourceTree = "<group>"; };
 		A11B000AE5F0000000000003 /* AIJingleCallDiagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleCallDiagnostics.h; path = "Plugins/Purple Service/AIJingleCallDiagnostics.h"; sourceTree = "<group>"; };
 		A11B000AE5F0000000000004 /* AIJingleCallDiagnostics.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleCallDiagnostics.m; path = "Plugins/Purple Service/AIJingleCallDiagnostics.m"; sourceTree = "<group>"; };
 		A11B000AE5F0000000000005 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = /System/Library/Frameworks/Network.framework; sourceTree = "<absolute>"; };
@@ -3066,6 +3074,8 @@
 			files = (
 				A11B0005E5F0000000000002 /* WebRTC.xcframework in Frameworks */,
 				A11B0007E5F0000000000002 /* CoreVideo.framework in Frameworks */,
+				A11B000CE5F0000000000002 /* CoreImage.framework in Frameworks */,
+				A11B000CE5F0000000000004 /* QuartzCore.framework in Frameworks */,
 				A11B000AE5F0000000000006 /* Network.framework in Frameworks */,
 				A11B0008E5F000000000000A /* AVFoundation.framework in Frameworks */,
 				A11B0008E5F000000000000C /* CoreMedia.framework in Frameworks */,
@@ -3209,6 +3219,8 @@
 				1172FBC90CDAA8D400B8E233 /* libpurple.framework */,
 				A11B0005E5F0000000000001 /* WebRTC.xcframework */,
 				A11B0007E5F0000000000001 /* CoreVideo.framework */,
+				A11B000CE5F0000000000001 /* CoreImage.framework */,
+				A11B000CE5F0000000000003 /* QuartzCore.framework */,
 				A11B0008E5F0000000000009 /* AVFoundation.framework */,
 				A11B0008E5F000000000000B /* CoreMedia.framework */,
 			);
@@ -3790,6 +3802,8 @@
 				346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */,
 				346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */,
 				346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */,
+				A11B000BE5F0000000000003 /* AIJingleVideoView.h */,
+				A11B000BE5F0000000000004 /* AIJingleVideoView.m */,
 				A11B000AE5F0000000000003 /* AIJingleCallDiagnostics.h */,
 				A11B000AE5F0000000000004 /* AIJingleCallDiagnostics.m */,
 				A11B000AE5F0000000000005 /* Network.framework */,
@@ -6300,6 +6314,7 @@
 				346545250C8F6AAD0046ED68 /* AMPurpleJabberNode.h in Headers */,
 				346545B90C8F71380046ED68 /* AMPurpleJabberAdHocCommand.h in Headers */,
 				346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */,
+				A11B000BE5F0000000000001 /* AIJingleVideoView.h in Headers */,
 				A11B000AE5F0000000000001 /* AIJingleCallDiagnostics.h in Headers */,
 				A11B0009E5F0000000000001 /* AMPurpleJabberExternalServices.h in Headers */,
 				A11B0008E5F0000000000001 /* AIJingleCallWindowController.h in Headers */,
@@ -7225,6 +7240,7 @@
 				346545260C8F6AAD0046ED68 /* AMPurpleJabberNode.m in Sources */,
 				346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */,
 				346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */,
+				A11B000BE5F0000000000002 /* AIJingleVideoView.m in Sources */,
 				A11B000AE5F0000000000002 /* AIJingleCallDiagnostics.m in Sources */,
 				A11B0009E5F0000000000002 /* AMPurpleJabberExternalServices.m in Sources */,
 				A11B0008E5F0000000000002 /* AIJingleCallWindowController.m in Sources */,
