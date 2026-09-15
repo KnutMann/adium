@@ -210,6 +210,7 @@ static BOOL elementOffersVideo(NSString *jingleXML)
 			[proposal.fallbackTimer invalidate];
 			[proposalsOutBySid removeObjectForKey:sid];
 			controller.peerFullJid = fromJid;
+			[self.uiDelegate manager:self callWasAnswered:controller];
 			[controller start];
 			return YES;
 		}
@@ -452,6 +453,11 @@ static BOOL elementOffersVideo(NSString *jingleXML)
 
 	if (account && [controller.peerFullJid length])
 		adiumPurpleJingleSendElement(account, controller.peerFullJid, jingleXML);
+}
+
+- (void)callControllerWasAnswered:(AIJingleCallController *)controller
+{
+	[self.uiDelegate manager:self callWasAnswered:controller];
 }
 
 - (void)callControllerConnected:(AIJingleCallController *)controller

@@ -41,6 +41,7 @@
 - (void)manager:(AIJingleCallManager *)manager callBegan:(AIJingleCallController *)controller
 	  onAccount:(CBPurpleAccount *)account;
 - (void)manager:(AIJingleCallManager *)manager callIsRinging:(AIJingleCallController *)controller;
+- (void)manager:(AIJingleCallManager *)manager callWasAnswered:(AIJingleCallController *)controller;
 - (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller;
 - (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller
 	endedWithReason:(NSString *)reason locally:(BOOL)locally;

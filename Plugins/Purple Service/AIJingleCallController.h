@@ -25,6 +25,8 @@
 @protocol AIJingleCallControllerDelegate <NSObject>
 - (void)callController:(AIJingleCallController *)controller sendJingleElement:(NSString *)jingleXML;
 - (void)callControllerConnected:(AIJingleCallController *)controller;
+/*! @brief The peer has said yes; the media is being set up but carries nothing yet */
+- (void)callControllerWasAnswered:(AIJingleCallController *)controller;
 - (void)callController:(AIJingleCallController *)controller endedWithReason:(NSString *)reason locally:(BOOL)locally;
 @optional
 /*! @brief The peer's video is decodable; hand the track to whoever wants to draw it */

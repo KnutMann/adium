@@ -20,6 +20,8 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 @property (weak) AIJingleCallController *other;
 @property (copy) NSString *name;
 @property (atomic) BOOL connected;
+@property (atomic) BOOL answered;
+@property (atomic) BOOL answeredBeforeConnected;
 @property (copy) NSString *endReason;
 @property (atomic) BOOL endedLocally;
 @property (atomic) NSInteger stanzas;
@@ -31,6 +33,11 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[other handleRemoteJingleElement:jingleXML];
 	});
+}
+- (void)callControllerWasAnswered:(AIJingleCallController *)controller {
+	self.answered = YES;
+	if (!self.connected)
+		self.answeredBeforeConnected = YES;
 }
 - (void)callControllerConnected:(AIJingleCallController *)controller {
 	printf("%s: verbunden\n", self.name.UTF8String);
@@ -63,6 +70,11 @@ int main(void) { @autoreleasepool {
 		  forA.connected && forB.connected,
 		  [NSString stringWithFormat:@"a=%d b=%d stanzasA=%ld stanzasB=%ld",
 		   forA.connected, forB.connected, (long)forA.stanzas, (long)forB.stanzas]);
+	/* The caller must hear the yes before the connection stands: the window says
+	 * "ringing" until it does, and that lie lasted seconds in a real call. */
+	check(@"Anrufer erfaehrt die Annahme vor der Verbindung",
+		  forA.answeredBeforeConnected,
+		  [NSString stringWithFormat:@"angenommen=%d", forA.answered]);
 	check(@"Es floss echtes Trickle (mehr als initiate und accept)",
 		  forA.stanzas >= 2 && forB.stanzas >= 2, nil);
 

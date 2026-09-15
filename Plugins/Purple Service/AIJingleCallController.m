@@ -318,6 +318,12 @@
 			 * frame that decodes instead of the first one after ten seconds. */
 			[self offerRemoteVideoTrackWithTriesLeft:120];
 
+			/* An answer is somebody picking up, and whoever is watching a window
+			 * should be told now rather than when the connection finally stands,
+			 * which is seconds later and reads as a phone that rings too long. */
+			if (!isOffer)
+				[self.delegate callControllerWasAnswered:self];
+
 			if (!isOffer)
 				return;	//the answer needs nothing more; ICE takes it from here
 

@@ -41,6 +41,7 @@
 @property (nonatomic, copy) void (^whenClosed)(void);
 
 - (void)noteRinging;
+- (void)noteAnswered;
 - (void)noteConnected;
 - (void)noteEndedWithReason:(NSString *)reason locally:(BOOL)locally;
 - (void)attachRemoteVideoTrack:(RTCVideoTrack *)track;

@@ -31,6 +31,7 @@
 #define MARGIN			12.0
 
 @implementation AIJingleCallWindowController {
+	BOOL answered;				//the peer said yes; a later ring is stale news
 	AIJingleCallController *call;
 	NSString *displayName;
 
@@ -225,8 +226,15 @@
 
 - (void)noteRinging
 {
-	if (!ended && !connectedSince)
+	if (!ended && !connectedSince && !answered)
 		[statusLabel setStringValue:AILocalizedString(@"Ringing…", "State of a call that rings on the other side")];
+}
+
+- (void)noteAnswered
+{
+	answered = YES;
+	if (!ended && !connectedSince)
+		[statusLabel setStringValue:AILocalizedString(@"Connecting…", "State of an answered call while the media is being set up")];
 }
 
 - (void)noteConnected

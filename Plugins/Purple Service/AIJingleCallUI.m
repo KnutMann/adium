@@ -399,6 +399,11 @@
 	[windowsBySid[controller.machine.sid] noteRinging];
 }
 
+- (void)manager:(AIJingleCallManager *)manager callWasAnswered:(AIJingleCallController *)controller
+{
+	[windowsBySid[controller.machine.sid] noteAnswered];
+}
+
 - (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller
 {
 	[windowsBySid[controller.machine.sid] noteConnected];
