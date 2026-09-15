@@ -652,7 +652,12 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 				AILog(@"%@: the corrected address works, sending that one", account);
 			else
 				AILog(@"%@: the file went up but cannot be fetched from %@, so it is not being "
-					   @"sent", account, getURL);
+					   @"sent. The server's upload service is reachable under a name it does not "
+					   @"serve itself, which no client can work around: the address it hands out "
+					   @"goes nowhere, and the one that answers is refused because the name does "
+					   @"not match. Only its operator can settle that, by pointing the service's "
+					   @"published address at the machine it runs on, or by letting that machine's "
+					   @"name count as the same domain", account, getURL);
 
 			dispatch_async(dispatch_get_main_queue(), ^{
 				if (confirmed)
