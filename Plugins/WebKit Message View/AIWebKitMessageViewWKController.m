@@ -2193,9 +2193,13 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	}
 
 	//A picture fetched for an image link is message state like the ticks; re-embed it
-	if ([message.inlineImagePath length] &&
-		[[NSFileManager defaultManager] fileExistsAtPath:message.inlineImagePath]) {
-		[self _embedImageAtPath:message.inlineImagePath onMessageId:message.messageId];
+	if ([message.inlineImagePath length]) {
+		BOOL there = [[NSFileManager defaultManager] fileExistsAtPath:message.inlineImagePath];
+
+		AILogWithSignature(@"message %@ carries a picture at %@ (%@)", message.messageId,
+						   message.inlineImagePath, there ? @"present" : @"MISSING");
+		if (there)
+			[self _embedImageAtPath:message.inlineImagePath onMessageId:message.messageId];
 	}
 }
 
@@ -2253,7 +2257,11 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
  */
 - (void)messageImageResolved:(NSNotification *)notification
 {
-	if ([notification object] != _chat || !_webView) return;
+	if ([notification object] != _chat) return;
+	if (!_webView) {
+		AILogWithSignature(@"a picture arrived for %@ with no page to put it on", _chat);
+		return;
+	}
 
 	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
 	NSString *path = [[notification userInfo] objectForKey:@"Path"];
@@ -2330,9 +2338,12 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		 * belongs to has been drawn. Nothing is lost by that: the path is on the message, and
 		 * the drawing embeds it when the moment comes. Only a real failure of the page is worth
 		 * a line here. */
-		if (error) {
-			AILogWithSignature(@"could not embed %@ on id %@: %@", path, messageId, error);
-		}
+		/* Nought means the message is not on the page yet, which is ordinary: a file fetched
+		 * quickly is ready before the message it belongs to has been drawn, and the drawing
+		 * embeds it when the moment comes. Said out loud all the same, because a picture that
+		 * never appears leaves nothing else to go on. */
+		AILogWithSignature(@"embedding %@ on id %@: %@", [path lastPathComponent], messageId,
+						   error ?: (result ?: @"no answer"));
 	}];
 }
 

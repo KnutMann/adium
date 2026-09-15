@@ -283,6 +283,9 @@ static NSString *AIInlineImageCachePath(NSString *address, NSString *extension)
 	 * for a voice note, or one for a video. */
 	message.inlineImagePath = path;
 
+	AILogWithSignature(@"ready at %@ for message %@ in %@", [path lastPathComponent],
+					   message.messageId, chat);
+
 	[[NSNotificationCenter defaultCenter] postNotificationName:AIChatMessageImageResolved
 														object:chat
 													  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
