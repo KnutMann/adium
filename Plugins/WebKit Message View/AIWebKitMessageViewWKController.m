@@ -2196,8 +2196,9 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	if ([message.inlineImagePath length]) {
 		BOOL there = [[NSFileManager defaultManager] fileExistsAtPath:message.inlineImagePath];
 
-		AILogWithSignature(@"message %@ carries a picture at %@ (%@)", message.messageId,
-						   message.inlineImagePath, there ? @"present" : @"MISSING");
+		AILogWithSignature(@"message %@ in %@ carries a picture at %@ (%@)", message.messageId,
+						   _chat, [message.inlineImagePath lastPathComponent],
+						   there ? @"present" : @"MISSING");
 		if (there)
 			[self _embedImageAtPath:message.inlineImagePath onMessageId:message.messageId];
 	}
@@ -2342,8 +2343,9 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		 * quickly is ready before the message it belongs to has been drawn, and the drawing
 		 * embeds it when the moment comes. Said out loud all the same, because a picture that
 		 * never appears leaves nothing else to go on. */
-		AILogWithSignature(@"embedding %@ on id %@: %@", [path lastPathComponent], messageId,
-						   error ?: (result ?: @"no answer"));
+		AILogWithSignature(@"embedding %@ on id %@ in %@: %@ (0 = message not drawn yet, "
+							"1 = already there, 2 = put in)", [path lastPathComponent], messageId,
+						   self->_chat, error ?: (result ?: @"no answer"));
 	}];
 }
 

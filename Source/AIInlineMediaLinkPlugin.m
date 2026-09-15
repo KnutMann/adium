@@ -137,11 +137,15 @@ static AIMediaLink *AIMediaLinkInMessage(AIContentMessage *message)
 {
 	AIContentObject *object = [[notification userInfo] objectForKey:@"AIContentObject"];
 
-	/* Live incoming messages only: isMemberOfClass excludes AIContentContext, so
-	 * scrolled-in history does not fetch anything, and our own messages stay as
-	 * they were written. */
-	if (![object isMemberOfClass:[AIContentMessage class]] || [object isOutgoing])
+	if (![object isKindOfClass:[AIContentMessage class]] || [object isOutgoing])
 		return;
+
+	/* History is shown, never fetched. Scrolling back through a year of conversation must not
+	 * reach out to a year of servers, and what was said then is not a reason to ask anybody for
+	 * anything now. But a picture already sitting in the cache costs nothing to show, and
+	 * leaving it as an address there while the same message shows a picture a screen below is
+	 * merely inconsistent. */
+	BOOL fromTheLog = ![object isMemberOfClass:[AIContentMessage class]];
 
 	AIContentMessage *message = (AIContentMessage *)object;
 	AIChat *chat = [[notification userInfo] objectForKey:@"AIChat"];
@@ -156,6 +160,17 @@ static AIMediaLink *AIMediaLinkInMessage(AIContentMessage *message)
 	AIMediaLink *link = AIMediaLinkInMessage(message);
 	if (!link)
 		return;
+
+	if (fromTheLog) {
+		NSString *kept = AIInlineImageCachePath(link.original, link.extension);
+
+		if ([[NSFileManager defaultManager] fileExistsAtPath:kept]) {
+			AILogWithSignature(@"%@ was fetched before, showing it again from %@",
+							   link.address, [kept lastPathComponent]);
+			[self announceImageAtPath:kept forMessage:message inChat:chat];
+		}
+		return;
+	}
 
 	/* From here on it says what it does. Everything below can decline for a reason the person
 	 * never sees, and a picture that silently stays an address is indistinguishable from one
