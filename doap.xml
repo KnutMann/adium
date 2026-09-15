@@ -1,0 +1,285 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  What this application speaks, in the form xmpp.org reads.
+
+  The list below was taken from the code rather than from memory: every entry
+  corresponds either to a namespace this fork announces itself (see
+  jabber_add_feature in Plugins/Purple Service/adiumPurpleJingle.m and
+  adiumPurpleSignals.m) or to one the bundled libpurple announces on its behalf.
+
+  Deliberately absent, because we do not do them: stream management (XEP-0198,
+  the namespace exists in libpurple as a constant and is used nowhere), message
+  archives (XEP-0313), message correction (XEP-0308), direct TLS (XEP-0368) and
+  OMEMO (XEP-0384). Claiming those would be worse than lacking them.
+
+  STILL TO DO before this is submitted anywhere: fill in <xmpp:version> per
+  entry. Versions are left out rather than guessed, since naming the wrong
+  revision of a specification is a worse answer than naming none.
+-->
+<rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+         xmlns:xmpp='https://linkmauve.fr/ns/xmpp-doap#'
+         xmlns:schema='https://schema.org/'
+         xmlns='http://usefulinc.com/ns/doap#'>
+  <Project>
+    <name>Adium</name>
+    <shortdesc xml:lang='en'>Multi-protocol instant messenger for macOS</shortdesc>
+    <description xml:lang='en'>A fork of Adium that revives it for current macOS as a native
+      Apple Silicon application. Alongside the classic services it speaks WhatsApp, Telegram,
+      Signal, Microsoft Teams and IRCv3 through libpurple plugins, and its XMPP support has
+      been carried forward with carbons, client state indication, reactions, HTTP upload and
+      encrypted voice and video calls.</description>
+    <homepage rdf:resource='https://github.com/KnutMann/adium'/>
+    <license rdf:resource='https://spdx.org/licenses/GPL-2.0-or-later.html'/>
+    <programming-language>Objective-C</programming-language>
+    <programming-language>C</programming-language>
+    <os>macOS</os>
+    <category rdf:resource='https://linkmauve.fr/ns/xmpp-doap#category-client'/>
+
+    <repository>
+      <GitRepository>
+        <browse rdf:resource='https://github.com/KnutMann/adium'/>
+        <location rdf:resource='https://github.com/KnutMann/adium.git'/>
+      </GitRepository>
+    </repository>
+
+    <!-- The ground everything else stands on -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0004.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Data forms, rendered as native Cocoa rather than a web view.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0030.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0115.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0199.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0203.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0297.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0334.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0359.html'/>
+      <xmpp:status>partial</xmpp:status>
+      <xmpp:note xml:lang='en'>A stanza id sent by the server is read and kept; this
+        application does not stamp an origin id of its own.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+
+    <!-- What a conversation is made of -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0071.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0085.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0184.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Requested on outgoing messages as well, so a sent message can
+        be shown as delivered.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0280.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0333.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0352.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0444.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>In direct chats and in rooms, sent from the message's own
+        context menu and delivered to the exact message they name.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+
+    <!-- Rooms -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0045.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0249.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0402.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Synchronised with other clients, autojoin included.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+
+    <!-- Who somebody is -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0012.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0054.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0084.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0092.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0107.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0118.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>The now playing status reads Apple Music, Spotify and
+        Swinsian.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0153.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0172.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0202.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0224.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+
+    <!-- Where the profile data lives -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0060.html'/>
+      <xmpp:status>partial</xmpp:status>
+      <xmpp:note xml:lang='en'>What personal eventing needs, not the whole of
+        publish-subscribe.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0163.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+
+    <!-- Sending things that are not words -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0047.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0065.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0066.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>A picture announced this way is shown in the conversation
+        rather than as a bare link.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0096.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0231.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0363.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Both directions, with the classic file transfer as the
+        fallback where a server offers no upload service.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+
+    <!-- Calls -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0166.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Sessions for calls; renegotiation of a running session is not
+        implemented.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0167.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Audio and video, including mute and unmute in both
+        directions.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0176.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0215.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>The lease on borrowed relay credentials is honoured and they
+        are fetched again before it runs out.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0293.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0294.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0320.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0338.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0339.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0353.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>A call rings on every device a contact is signed in on, and a
+        peer that does not speak this is offered the session directly.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+
+    <!-- Getting on and staying on -->
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0050.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0077.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0124.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0206.html'/>
+      <xmpp:status>complete</xmpp:status>
+    </xmpp:SupportedXep></implements>
+  </Project>
+</rdf:RDF>
