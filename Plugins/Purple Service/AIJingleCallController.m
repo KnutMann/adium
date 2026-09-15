@@ -32,7 +32,7 @@
 	dispatch_source_t syntheticTimer;
 	RTCCameraVideoCapturer *cameraCapturer;
 	BOOL announcedConnected;
-	BOOL offeredRemoteVideo;
+	NSMutableSet<NSString *> *offeredTrackIds;
 	BOOL closed;
 	NSString *lastPairSnapshot;		//what the pairs looked like while they were still being tried
 }
@@ -55,6 +55,7 @@
 		_machine = [[AIJingleSessionMachine alloc] initAsInitiatorFrom:localJid to:peerJid sid:nil];
 		_machine.delegate = self;
 		_wantsAudio = YES;
+		offeredTrackIds = [NSMutableSet set];
 	}
 	return self;
 }
@@ -65,6 +66,7 @@
 		_machine = [[AIJingleSessionMachine alloc] initAsResponderFrom:localJid to:peerJid sid:sid];
 		_machine.delegate = self;
 		_wantsAudio = YES;
+		offeredTrackIds = [NSMutableSet set];
 	}
 	return self;
 }
@@ -476,23 +478,35 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 		return;
 
 	NSMutableArray *kinds = [NSMutableArray array];
-	RTCVideoTrack *video = nil;
+	NSMutableArray<RTCVideoTrack *> *videos = [NSMutableArray array];
 
 	for (RTCRtpReceiver *receiver in self.peerConnection.receivers) {
 		[kinds addObject:(receiver.track.kind ?: @"(none)")];
-		if (!video && [receiver.track isKindOfClass:[RTCVideoTrack class]])
-			video = (RTCVideoTrack *)receiver.track;
+		if ([receiver.track isKindOfClass:[RTCVideoTrack class]])
+			[videos addObject:(RTCVideoTrack *)receiver.track];
 	}
 
-	if (video) {
-		if (offeredRemoteVideo)
-			return;
-		offeredRemoteVideo = YES;
+	if ([videos count]) {
+		/* Every one of them, and every one only once: which receiver actually
+		 * carries the pictures is not a thing worth guessing at, and a renderer
+		 * on a silent track costs nothing. */
+		BOOL handedOverAny = NO;
 
-		AILogWithSignature(@"remote video track %@ handed over (receivers: %@)",
-						   video.trackId, [kinds componentsJoinedByString:@", "]);
-		[self.delegate callController:self hasRemoteVideoTrack:video];
-		return;
+		for (RTCVideoTrack *video in videos) {
+			if ([offeredTrackIds containsObject:video.trackId])
+				continue;
+			[offeredTrackIds addObject:video.trackId];
+			handedOverAny = YES;
+
+			AILogWithSignature(@"remote video track %@ handed over (receivers: %@)",
+							   video.trackId, [kinds componentsJoinedByString:@", "]);
+			[self.delegate callController:self hasRemoteVideoTrack:video];
+		}
+
+		/* Keep looking a little longer even after the first one: a peer that adds
+		 * its camera later brings a track nobody has seen yet. */
+		if (handedOverAny && triesLeft > 20)
+			triesLeft = 20;
 	}
 
 	//Quietly, once a second; saying so every time would fill the log for a minute

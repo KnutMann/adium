@@ -16,6 +16,7 @@
 
 #import "AIJingleCallWindowController.h"
 
+#import <Adium/ESDebugAILog.h>
 #import <AIUtilities/AIStringUtilities.h>
 #import "AIJingleVideoView.h"
 
@@ -153,8 +154,12 @@
 {
 	[self growStageIfNeeded];
 
-	if (remoteView)
+	if (remoteView) {
+		//A second track: hang the same view on it too rather than choosing blindly
+		AILogWithSignature(@"also attaching renderer to remote track %@", track.trackId);
+		[track addRenderer:remoteView];
 		return;
+	}
 
 	remoteView = [[AIJingleVideoView alloc] initWithFrame:NSZeroRect];
 	[remoteView setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -165,7 +170,32 @@
 		[remoteView.trailingAnchor constraintEqualToAnchor:stage.trailingAnchor],
 		[remoteView.bottomAnchor constraintEqualToAnchor:stage.bottomAnchor],
 	]];
+	AILogWithSignature(@"attaching renderer to remote track %@ (enabled=%d, state=%ld)",
+					   track.trackId, track.isEnabled, (long)track.readyState);
 	[track addRenderer:remoteView];
+	[self countWhatIsDrawn:10];
+}
+
+/*!
+ * @brief Say what each view has actually drawn
+ *
+ * A black rectangle can mean a view that never received a frame or one that
+ * received them and drew nothing; the counters tell those apart, and the
+ * decoder's own count in the call log says whether frames existed at all.
+ */
+- (void)countWhatIsDrawn:(NSInteger)triesLeft
+{
+	if (triesLeft <= 0 || ended)
+		return;
+
+	AILogWithSignature(@"drawn so far: remote=%ld (%@), preview=%ld",
+					   (long)remoteView.renderedFrames, NSStringFromSize(remoteView.lastFrameSize),
+					   (long)previewView.renderedFrames);
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+				   dispatch_get_main_queue(), ^{
+		[self countWhatIsDrawn:(triesLeft - 1)];
+	});
 }
 
 //States -----------------------------------------------------------------------------------------
