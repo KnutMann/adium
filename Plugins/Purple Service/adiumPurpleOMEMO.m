@@ -17,6 +17,7 @@
 #import "adiumPurpleOMEMO.h"
 #import "AIOMEMOStore.h"
 #import "AIOMEMOMessage.h"
+#import "AIOMEMOStanza.h"
 #import <Adium/AILoginControllerProtocol.h>
 
 /*
@@ -165,32 +166,7 @@ static void omemo_send(PurpleConnection *gc, xmlnode *stanza)
 	if (stanza) xmlnode_free(stanza);
 }
 
-/*!
- * @brief Read one base64 value out of an element, refusing anything that is not one
- */
-static NSData *omemo_data_in(xmlnode *element)
-{
-	if (!element) return nil;
 
-	char *text = xmlnode_get_data(element);
-	if (!text) return nil;
-
-	NSString *encoded = [NSString stringWithUTF8String:text];
-	g_free(text);
-
-	//Whitespace inside base64 is allowed and several clients put it there
-	return [[NSData alloc] initWithBase64EncodedString:encoded
-											   options:NSDataBase64DecodingIgnoreUnknownCharacters];
-}
-
-static uint32_t omemo_number_in(xmlnode *element, const char *attribute)
-{
-	const char *text = element ? xmlnode_get_attrib(element, attribute) : NULL;
-	if (!text) return 0;
-
-	long long number = atoll(text);
-	return (number > 0 && number <= INT32_MAX) ? (uint32_t)number : 0;
-}
 
 static NSString *omemo_next_identifier(NSString *kind)
 {
@@ -535,17 +511,17 @@ static BOOL omemo_use_bundle(PurpleConnection *gc, NSString *bareJID, uint32_t d
 	if (!store || !bundle) return NO;
 
 	xmlnode *signedKey = xmlnode_get_child(bundle, "signedPreKeyPublic");
-	NSData *signedPreKey = omemo_data_in(signedKey);
-	NSData *signature = omemo_data_in(xmlnode_get_child(bundle, "signedPreKeySignature"));
-	NSData *identity = omemo_data_in(xmlnode_get_child(bundle, "identityKey"));
-	uint32_t signedIdentifier = omemo_number_in(signedKey, "signedPreKeyId");
+	NSData *signedPreKey = AIOMEMOBase64In(signedKey);
+	NSData *signature = AIOMEMOBase64In(xmlnode_get_child(bundle, "signedPreKeySignature"));
+	NSData *identity = AIOMEMOBase64In(xmlnode_get_child(bundle, "identityKey"));
+	uint32_t signedIdentifier = AIOMEMONumberIn(signedKey, "signedPreKeyId");
 
 	NSMutableArray *offered = [NSMutableArray array];
 	xmlnode *prekeys = xmlnode_get_child(bundle, "prekeys");
 	for (xmlnode *one = xmlnode_get_child(prekeys, "preKeyPublic"); one;
 		 one = xmlnode_get_next_twin(one)) {
-		uint32_t identifier = omemo_number_in(one, "preKeyId");
-		NSData *key = omemo_data_in(one);
+		uint32_t identifier = AIOMEMONumberIn(one, "preKeyId");
+		NSData *key = AIOMEMOBase64In(one);
 		if (identifier && key) [offered addObject:@{ @"id": @(identifier), @"key": key }];
 	}
 
@@ -566,86 +542,7 @@ static BOOL omemo_use_bundle(PurpleConnection *gc, NSString *bareJID, uint32_t d
 
 #pragma mark Reading an encrypted message
 
-/*!
- * @brief Every wrapped key in the header
- *
- * The marker saying a key opens a new session is written as "true" by most clients and as "1"
- * by some, and both mean the same thing. Reading only one of them means the first message from
- * half the ecosystem cannot be opened at all.
- */
-static NSArray<AIOMEMOKeyForDevice *> *omemo_keys_in(xmlnode *header)
-{
-	NSMutableArray *keys = [NSMutableArray array];
 
-	for (xmlnode *key = xmlnode_get_child(header, "key"); key; key = xmlnode_get_next_twin(key)) {
-		uint32_t device = omemo_number_in(key, "rid");
-		NSData *wrapped = omemo_data_in(key);
-		if (!device || !wrapped) continue;
-
-		const char *marker = xmlnode_get_attrib(key, "prekey");
-		BOOL startsASession = marker && (purple_strequal(marker, "true") || purple_strequal(marker, "1"));
-
-		[keys addObject:[AIOMEMOMessage keyForDevice:device startsASession:startsASession wrapped:wrapped]];
-	}
-	return keys;
-}
-
-/*!
- * @brief Turn an encrypted message into the message it was, in place
- *
- * Rewriting the stanza rather than handling it ourselves means everything downstream, the
- * conversation window, the logs, the carbons, the notifications, sees an ordinary message and
- * needs to know nothing about any of this.
- *
- * @return NO when the stanza should be dropped rather than passed on
- */
-static BOOL omemo_open_message(PurpleConnection *gc, xmlnode *stanza, xmlnode *encrypted)
-{
-	PurpleAccount *account = purple_connection_get_account(gc);
-	AIOMEMOStore *store = omemo_store(account);
-	if (!store) return NO;
-
-	const char *from = xmlnode_get_attrib(stanza, "from");
-	if (!from) return NO;
-
-	NSString *who = omemo_bare_jid([NSString stringWithUTF8String:from]);
-
-	xmlnode *header = xmlnode_get_child(encrypted, "header");
-	uint32_t sender = omemo_number_in(header, "sid");
-	if (!sender) return NO;
-
-	NSData *vector = omemo_data_in(xmlnode_get_child(header, "iv"));
-	NSData *payload = omemo_data_in(xmlnode_get_child(encrypted, "payload"));
-	NSArray *keys = omemo_keys_in(header);
-
-	NSString *text = [AIOMEMOMessage textFromPayload:(payload ?: [NSData data])
-								initialisationVector:vector
-												keys:keys
-											sentFrom:who
-											  device:sender
-										   withStore:store];
-
-	/* A one time key of ours was spent opening this, so what we published no longer matches
-	 * what we hold and has to go out again. */
-	if (store.bundleNeedsPublishing)
-		omemo_publish_bundle(gc);
-
-	/* Nothing to show is not the same as nothing happened. A message with no payload exists only
-	 * to let the ratchet step after a long one sided conversation, and showing an empty line for
-	 * it would be worse than silence. */
-	if (!text || ![text length]) return NO;
-
-	/* The body that was there is the sender's apology to clients that cannot read this, and it
-	 * is now wrong. It goes, and the real text takes its place. */
-	xmlnode *body;
-	while ((body = xmlnode_get_child(stanza, "body")))
-		xmlnode_free(body);
-
-	xmlnode_free(encrypted);
-	xmlnode_insert_data(xmlnode_new_child(stanza, "body"), [text UTF8String], -1);
-
-	return YES;
-}
 
 #pragma mark Sending an encrypted message
 
@@ -710,97 +607,6 @@ static void omemo_get_ready_for(PurpleConnection *gc, NSString *bareJID)
 	}
 }
 
-/*!
- * @brief Replace a message's readable parts with their encrypted form
- *
- * Everything that was in the stanza and is not on the short list below is taken out. That list
- * is deliberately a list of what may stay rather than of what must go: an element nobody
- * thought about is then dropped rather than sent in the clear, and this client sends several
- * that carry content, among them reactions and the marker on a corrected message.
- *
- * @return NO when it could not be encrypted, and the caller must not send it
- */
-static BOOL omemo_seal(PurpleConnection *gc, xmlnode *stanza, NSString *toJID)
-{
-	PurpleAccount *account = purple_connection_get_account(gc);
-	AIOMEMOStore *store = omemo_store(account);
-	if (!store) return NO;
-
-	xmlnode *body = xmlnode_get_child(stanza, "body");
-	if (!body) return NO;
-
-	char *text = xmlnode_get_data(body);
-	if (!text) return NO;
-
-	NSString *said = [NSString stringWithUTF8String:text];
-	g_free(text);
-
-	AIOMEMOMessage *message = [AIOMEMOMessage encrypting:said
-											   withStore:store
-											  forDevices:omemo_recipients(account, toJID)];
-	if (!message) return NO;
-
-	/* Out goes everything, and back in comes only what is harmless in the clear. Anything else
-	 * would travel beside the encrypted text saying what the conversation is about. */
-	static const struct { const char *name; const char *xmlns; } mayStay[] = {
-		{ "request",	"urn:xmpp:receipts" },
-		{ "markable",	"urn:xmpp:chat-markers:0" },
-		{ "origin-id",	"urn:xmpp:sid:0" },
-		{ "active",		"http://jabber.org/protocol/chatstates" },
-		{ "composing",	"http://jabber.org/protocol/chatstates" },
-		{ "paused",		"http://jabber.org/protocol/chatstates" },
-		{ "inactive",	"http://jabber.org/protocol/chatstates" },
-		{ "gone",		"http://jabber.org/protocol/chatstates" },
-	};
-
-	NSMutableArray *kept = [NSMutableArray array];
-	for (unsigned index = 0; index < sizeof(mayStay) / sizeof(mayStay[0]); index++) {
-		xmlnode *one = xmlnode_get_child_with_namespace(stanza, mayStay[index].name, mayStay[index].xmlns);
-		if (one) [kept addObject:[NSValue valueWithPointer:xmlnode_copy(one)]];
-	}
-
-	//xmlnode_free unlinks from the parent as it goes, so taking the first one repeatedly empties it
-	xmlnode *child;
-	while ((child = stanza->child))
-		xmlnode_free(child);
-
-	xmlnode *encrypted = xmlnode_new_child(stanza, "encrypted");
-	xmlnode_set_namespace(encrypted, NS_OMEMO);
-
-	xmlnode *header = xmlnode_new_child(encrypted, "header");
-	xmlnode_set_attrib(header, "sid", [[@(message.sender) stringValue] UTF8String]);
-
-	for (AIOMEMOKeyForDevice *one in message.keys) {
-		xmlnode *key = xmlnode_new_child(header, "key");
-		xmlnode_set_attrib(key, "rid", [[@(one.device) stringValue] UTF8String]);
-		if (one.startsASession) xmlnode_set_attrib(key, "prekey", "true");
-		xmlnode_insert_data(key, [[one.wrapped base64EncodedStringWithOptions:0] UTF8String], -1);
-	}
-
-	xmlnode_insert_data(xmlnode_new_child(header, "iv"),
-						[[message.initialisationVector base64EncodedStringWithOptions:0] UTF8String], -1);
-	xmlnode_insert_data(xmlnode_new_child(encrypted, "payload"),
-						[[message.payload base64EncodedStringWithOptions:0] UTF8String], -1);
-
-	for (NSValue *held in kept)
-		xmlnode_insert_child(stanza, [held pointerValue]);
-
-	/* Told to keep it even though it has no body, or servers that archive by body alone will
-	 * drop it, and the conversation will have holes in it on the other devices. */
-	xmlnode_set_namespace(xmlnode_new_child(stanza, "store"), NS_HINTS);
-
-	//Says what this is encrypted with, so a client that cannot read it can say so usefully
-	xmlnode *which = xmlnode_new_child(stanza, "encryption");
-	xmlnode_set_namespace(which, NS_EME);
-	xmlnode_set_attrib(which, "namespace", NS_OMEMO);
-
-	/* And the sentence a client that does not do OMEMO will show instead. Every other client
-	 * sends one, and without it such a client shows an empty message and no explanation. */
-	xmlnode_insert_data(xmlnode_new_child(stanza, "body"),
-						"I sent you an OMEMO encrypted message but your client doesn't support it.", -1);
-
-	return YES;
-}
 
 #pragma mark Holding messages back until there is something to encrypt them with
 
@@ -853,7 +659,7 @@ static void omemo_release_waiting(PurpleConnection *gc, NSString *bareJID)
 	for (NSValue *one in held) {
 		xmlnode *stanza = [one pointerValue];
 
-		if (omemo_seal(gc, stanza, bareJID))
+		if (AIOMEMOSealStanza(stanza, omemo_store(account), omemo_recipients(account, bareJID)))
 			omemo_send(gc, stanza);
 		else {
 			omemo_say_it_failed(gc, bareJID,
@@ -936,7 +742,7 @@ static gboolean omemo_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet,
 	if (![encryptingWith containsObject:omemo_contact_key(account, who)]) return FALSE;
 
 	if (omemo_can_write_to(account, who)) {
-		if (omemo_seal(gc, stanza, who))
+		if (AIOMEMOSealStanza(stanza, omemo_store(account), omemo_recipients(account, who)))
 			return FALSE;		//Carry on, now encrypted
 	}
 
@@ -1051,20 +857,26 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 		 * downstream needs to know nothing about OMEMO at all. */
 		xmlnode *encrypted = xmlnode_get_child_with_namespace(stanza, "encrypted", NS_OMEMO);
 		if (encrypted) {
+			AIOMEMOStore *store = omemo_store(account);
 			const char *from = xmlnode_get_attrib(stanza, "from");
+			NSString *sender = from ? omemo_bare_jid([NSString stringWithUTF8String:from]) : nil;
 
 			/* Somebody wrote to us encrypted, so from here on we answer in kind. Replying in the
 			 * clear to an encrypted message is the more surprising of the two, and it undoes
 			 * what the other side asked for without saying so. */
-			if (from) {
-				NSString *who = omemo_bare_jid([NSString stringWithUTF8String:from]);
-				if (![who isEqualToString:omemo_own_jid(account)]) {
-					[encryptingWith addObject:omemo_contact_key(account, who)];
-					omemo_remember_choices();
-				}
+			if (sender && ![sender isEqualToString:omemo_own_jid(account)]) {
+				[encryptingWith addObject:omemo_contact_key(account, sender)];
+				omemo_remember_choices();
 			}
 
-			if (omemo_open_message(gc, stanza, encrypted))
+			BOOL readable = sender && AIOMEMOOpenStanza(stanza, store, sender);
+
+			/* A one time key of ours may have been spent opening this, so what we published no
+			 * longer matches what we hold and has to go out again. */
+			if (store.bundleNeedsPublishing)
+				omemo_publish_bundle(gc);
+
+			if (readable)
 				return FALSE;		//Carry on as the ordinary message it now is
 
 			xmlnode_free(stanza);
