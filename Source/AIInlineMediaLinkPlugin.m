@@ -157,21 +157,32 @@ static AIMediaLink *AIMediaLinkInMessage(AIContentMessage *message)
 	if (!link)
 		return;
 
+	/* From here on it says what it does. Everything below can decline for a reason the person
+	 * never sees, and a picture that silently stays an address is indistinguishable from one
+	 * this code never looked at. */
+	AILogWithSignature(@"%@ looks like a %@ to fetch%@", link.address,
+					   AIKindOfFile(link.extension), link.ivAndKey ? @", encrypted" : @"");
+
 	/* The say the person already has over file transfers governs whose files load
 	 * themselves: never, from anyone, or only from contacts of their list. */
 	AIFileTransferAutoAcceptType autoAccept =
 		[[adium.preferenceController preferenceForKey:KEY_FT_AUTO_ACCEPT
 												group:PREF_GROUP_FILE_TRANSFER] intValue];
 
-	if (autoAccept == AutoAccept_None)
+	if (autoAccept == AutoAccept_None) {
+		AILogWithSignature(@"leaving it as a link: files are never fetched by themselves here");
 		return;
+	}
 
 	if (autoAccept == AutoAccept_FromContactList) {
 		AIListObject *source = [message source];
 
 		if (![source isKindOfClass:[AIListContact class]] ||
-			![(AIListContact *)source isIntentionallyNotAStranger])
+			![(AIListContact *)source isIntentionallyNotAStranger]) {
+			AILogWithSignature(@"leaving it as a link: %@ is not on the contact list, and only "
+								"contacts' files are fetched by themselves here", source);
 			return;
+		}
 	}
 
 	[self fetchMedia:link forMessage:message inChat:chat];
@@ -216,12 +227,18 @@ static NSString *AIInlineImageCachePath(NSString *address, NSString *extension)
 
 	[[session dataTaskWithURL:[NSURL URLWithString:link.address]
 			completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-		if (error || ![response isKindOfClass:[NSHTTPURLResponse class]])
+		NSInteger code = [response isKindOfClass:[NSHTTPURLResponse class]]
+			? [(NSHTTPURLResponse *)response statusCode] : 0;
+
+		if (error || code != 200) {
+			AILogWithSignature(@"could not fetch %@: %@ (status %ld)", link.address,
+							   error ? [error localizedDescription] : @"no error reported", (long)code);
 			return;
-		if ([(NSHTTPURLResponse *)response statusCode] != 200)
+		}
+		if (![data length] || [data length] > INLINE_MEDIA_MAX_BYTES) {
+			AILogWithSignature(@"not showing %@: %lu bytes", link.address, (unsigned long)[data length]);
 			return;
-		if (![data length] || [data length] > INLINE_MEDIA_MAX_BYTES)
-			return;
+		}
 
 		if (link.ivAndKey) {
 			/* An encrypted file is stored as meaningless bytes, so the server's own idea of
@@ -229,13 +246,17 @@ static NSString *AIInlineImageCachePath(NSString *address, NSString *extension)
 			 * as part of decrypting: a file that fails that has either been damaged or
 			 * interfered with, and either way it did not arrive. */
 			data = AIOMEMOMediaDecrypt(data, link.ivAndKey);
-			if (![data length])
+			if (![data length]) {
+				AILogWithSignature(@"%@ did not decrypt, so it did not arrive", link.address);
 				return;
+			}
 
 		} else if (![[response MIMEType] hasPrefix:@"image/"] &&
 				   ![[response MIMEType] hasPrefix:@"audio/"] &&
 				   ![[response MIMEType] hasPrefix:@"video/"]) {
 			//Sent in the clear, so the server's answer is all we have to go on
+			AILogWithSignature(@"leaving %@ as a link: the server calls it %@",
+							   link.address, [response MIMEType]);
 			return;
 		}
 
@@ -243,8 +264,10 @@ static NSString *AIInlineImageCachePath(NSString *address, NSString *extension)
 								  withIntermediateDirectories:YES
 												   attributes:nil
 														error:NULL];
-		if (![data writeToFile:destination atomically:YES])
+		if (![data writeToFile:destination atomically:YES]) {
+			AILogWithSignature(@"could not keep %@ at %@", link.address, destination);
 			return;
+		}
 
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[weakSelf announceImageAtPath:destination forMessage:message inChat:chat];

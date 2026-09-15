@@ -9,6 +9,8 @@
 #   ./server.sh selftest   run the automated feature checks (see peer/selftest.py)
 #   ./server.sh muc-reactions  group-chat reaction checks (see peer/muc_reactions.py)
 #   ./server.sh omemo-pep      OMEMO announcement checks (see peer/omemo_pep.py)
+#   ./server.sh roster     make the test accounts contacts of each other, so that files
+#                          between them are treated the way files between contacts are
 #   ./server.sh trust      let this Mac accept the server's certificate, so that file
 #                          uploads from Adium reach it instead of falling back
 #   ./server.sh untrust    take that back
@@ -119,6 +121,14 @@ untrust() {
 	echo "Vertrauen für localhost entfernt."
 }
 
+# Two accounts that have never been introduced are strangers to each other, and a stranger's
+# files are not fetched by themselves unless the person has said they should be. Real
+# conversations are between contacts, so the test server should be too.
+roster() {
+	start
+	exec ./peer/run.sh roster
+}
+
 omemo_pep() {
 	start
 	exec ./peer/run.sh omemo-pep
@@ -138,7 +148,8 @@ case "$1" in
 	selftest)      selftest ;;
 	muc-reactions) muc_reactions ;;
 	omemo-pep)     omemo_pep ;;
+	roster)        roster ;;
 	trust)         trust ;;
 	untrust)       untrust ;;
-	*)             sed -n '2,20p' "$0"; exit 1 ;;
+	*)             sed -n '2,22p' "$0"; exit 1 ;;
 esac
