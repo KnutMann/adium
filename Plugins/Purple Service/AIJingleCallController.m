@@ -33,6 +33,7 @@
 	RTCCameraVideoCapturer *cameraCapturer;
 	BOOL announcedConnected;
 	BOOL closed;
+	NSString *lastPairSnapshot;		//what the pairs looked like while they were still being tried
 }
 
 + (RTCPeerConnectionFactory *)factory
@@ -78,7 +79,7 @@
 	RTCConfiguration *configuration = [[RTCConfiguration alloc] init];
 	configuration.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
 
-	//Whatever XEP-0215 offered; hosts on one network meet without any of it
+	//Whatever XEP-0215 offered
 	NSMutableArray<RTCIceServer *> *iceServers = [NSMutableArray array];
 	for (NSDictionary *entry in self.iceServerDictionaries) {
 		NSString *url = entry[@"urls"];
@@ -88,6 +89,32 @@
 															  username:(entry[@"username"] ?: @"")
 															credential:(entry[@"credential"] ?: @"")]];
 	}
+
+	/* A public address of our own, or nobody behind a router can reach us.
+	 *
+	 * Measured against a phone: this side offered two private addresses and
+	 * nothing else, the other side offered its own, a public one and a relay,
+	 * and not one pair could carry anything. A peer's relay refuses packets
+	 * from an address it was never told about, and our private address is not
+	 * one anybody outside this flat can use, so the call has nowhere to go.
+	 * One question to a STUN server answers what our address looks like from
+	 * outside, and that is the address every other client offers.
+	 *
+	 * The servers the account's own XMPP host names come first; these stand in
+	 * when it names none, which is the common case. Asking one tells its
+	 * operator this machine is placing a call, no more, and the list can be
+	 * replaced with the AIJingleSTUNServers default. */
+	if (![iceServers count]) {
+		NSArray *fallback = [[NSUserDefaults standardUserDefaults] arrayForKey:@"AIJingleSTUNServers"];
+
+		if (![fallback count])
+			fallback = @[@"stun:stun.conversations.im:3478", @"stun:stun.l.google.com:19302"];
+
+		for (NSString *url in fallback)
+			[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[url]]];
+	}
+
+	AILogWithSignature(@"call %@ uses %lu ICE servers", self.machine.sid, (unsigned long)[iceServers count]);
 	configuration.iceServers = iceServers;
 
 	RTCMediaConstraints *none = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:@{}
@@ -350,7 +377,24 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
  * A call that fails to connect says nothing by itself; the pairs it checked do.
  * Each one names the two addresses, what came back, and how far it got.
  */
-- (void)logCandidatePairsThen:(void (^)(void))afterwards
+/*! @brief Keep a picture of the pairs, taken every second while the checking lasts */
+- (void)samplePairsWhileChecking
+{
+	if (closed || self.peerConnection.iceConnectionState != RTCIceConnectionStateChecking)
+		return;
+
+	[self describePairsInto:^(NSString *description) {
+		if ([description length])
+			self->lastPairSnapshot = description;
+
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
+					   dispatch_get_main_queue(), ^{
+			[self samplePairsWhileChecking];
+		});
+	}];
+}
+
+- (void)describePairsInto:(void (^)(NSString *))afterwards
 {
 	[self.peerConnection statisticsWithCompletionHandler:^(RTCStatisticsReport *report) {
 		NSMutableArray *lines = [NSMutableArray array];
@@ -374,15 +418,21 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 				remote[@"address"] ?: @"?", remote[@"port"] ?: @"?", remote[@"candidateType"] ?: @"?",
 				stat.values[@"requestsSent"] ?: @0, stat.values[@"responsesReceived"] ?: @0]];
 		}
-		AILogWithSignature(@"ICE gave up after %lu pairs:\n%@", (unsigned long)[lines count],
-						   [lines componentsJoinedByString:@"\n"]);
-		dispatch_async(dispatch_get_main_queue(), afterwards);
+		dispatch_async(dispatch_get_main_queue(), ^{
+			afterwards([lines componentsJoinedByString:@"\n"]);
+		});
 	}];
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceConnectionState:(RTCIceConnectionState)newState
 {
 	AILogWithSignature(@"ICE %@ for call %@", nameOfIceState(newState), self.machine.sid);
+
+	/* Sample while it still tries: a connection that has given up has pruned its
+	 * pairs, and asking then reads exactly like a call that never tried one. */
+	if (newState == RTCIceConnectionStateChecking)
+		[self samplePairsWhileChecking];
+
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if ((newState == RTCIceConnectionStateConnected || newState == RTCIceConnectionStateCompleted) &&
 			!self->announcedConnected) {
@@ -406,9 +456,9 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			/* Measure before giving up: ending the call closes the connection, and a
 			 * closed connection reports no pairs at all, which reads as if none were
 			 * ever tried. */
-			[self logCandidatePairsThen:^{
-				[self failWith:@"connectivity-error"];
-			}];
+			AILogWithSignature(@"ICE gave up; last seen pairs:\n%@",
+							   ([lastPairSnapshot length] ? lastPairSnapshot : @"(keine)"));
+			[self failWith:@"connectivity-error"];
 		}
 	});
 }
