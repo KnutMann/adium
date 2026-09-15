@@ -273,6 +273,30 @@
 	return validSenderColors;
 }
 
+/*!
+ * @brief The colour a sender's name is written in
+ *
+ * Two ways to pick one. The old way hashes the name and takes an entry from the style's
+ * palette, which keeps every style's own look but means the same person is a different
+ * colour in every application. The agreed way (XEP-0392) computes the hue from the name
+ * itself, so a room open on a phone and on this Mac shows the same people in the same
+ * colours, and reading the names becomes optional. The agreed way is used unless somebody
+ * turns it off with AIConsistentSenderColors.
+ */
+- (NSString *)colorForSender:(NSString *)uid
+{
+	NSNumber *asked = [[NSUserDefaults standardUserDefaults] objectForKey:@"AIConsistentSenderColors"];
+	if (asked && ![asked boolValue])
+		return [NSColor representedColorForObject:uid withValidColors:self.validSenderColors];
+
+	NSString *match = [[NSApp effectiveAppearance] bestMatchFromAppearancesWithNames:
+					   @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
+
+	return [NSColor consistentColorForIdentifier:uid
+								onDarkBackground:[match isEqualToString:NSAppearanceNameDarkAqua]];
+}
+
+
 - (BOOL)isBackgroundTransparent
 {
 	//Our custom background is only transparent if the user has set a custom color with an alpha component less than 1.0
@@ -882,7 +906,7 @@
 				  withString:[(contentIsSimilar ? @"consecutive " : @"") stringByAppendingString:[[content displayClasses] componentsJoinedByString:@" "]]];
 	
 	[inString replaceKeyword:@"%senderColor%"
-				  withString:[NSColor representedColorForObject:contentSource.UID withValidColors:self.validSenderColors]];
+				  withString:[self colorForSender:contentSource.UID]];
 	
 	//HAX. The odd conditional here detects the rtl html that our html parser spits out.
 	BOOL isRTL = ([htmlEncodedMessage rangeOfString:@"<div dir=\"rtl\">"
@@ -1286,10 +1310,10 @@
 	NSString		*iconPath = nil;
 	
 	[inString replaceKeyword:@"%incomingColor%"
-				  withString:[NSColor representedColorForObject:listObject.UID withValidColors:self.validSenderColors]];
+				  withString:[self colorForSender:listObject.UID]];
 	
 	[inString replaceKeyword:@"%outgoingColor%"
-				  withString:[NSColor representedColorForObject:chat.account.UID withValidColors:self.validSenderColors]];
+				  withString:[self colorForSender:chat.account.UID]];
 	
 	if (listObject) {
 		iconPath = [listObject valueForProperty:KEY_WEBKIT_USER_ICON];

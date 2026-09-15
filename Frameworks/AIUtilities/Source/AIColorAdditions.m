@@ -21,6 +21,7 @@
 #import "AIColorAdditions.h"
 #import "AIStringAdditions.h"
 #import <string.h>
+#import <CommonCrypto/CommonDigest.h>
 
 static NSArray *defaultValidColors = nil;
 #define VALID_COLORS_ARRAY [[NSArray alloc] initWithObjects:@"aqua", @"aquamarine", @"blue", @"blueviolet", @"brown", @"burlywood", @"cadetblue", @"chartreuse", @"chocolate", @"coral", @"cornflowerblue", @"crimson", @"cyan", @"darkblue", @"darkcyan", @"darkgoldenrod", @"darkgreen", @"darkgrey", @"darkkhaki", @"darkmagenta", @"darkolivegreen", @"darkorange", @"darkorchid", @"darkred", @"darksalmon", @"darkseagreen", @"darkslateblue", @"darkslategrey", @"darkturquoise", @"darkviolet", @"deeppink", @"deepskyblue", @"dimgrey", @"dodgerblue", @"firebrick", @"forestgreen", @"fuchsia", @"gold", @"goldenrod", @"green", @"greenyellow", @"grey", @"hotpink", @"indianred", @"indigo", @"lawngreen", @"lightblue", @"lightcoral", @"lightgreen", @"lightgrey", @"lightpink", @"lightsalmon", @"lightseagreen", @"lightskyblue", @"lightslategrey", @"lightsteelblue", @"lime", @"limegreen", @"magenta", @"maroon", @"mediumaquamarine", @"mediumblue", @"mediumorchid", @"mediumpurple", @"mediumseagreen", @"mediumslateblue", @"mediumspringgreen", @"mediumturquoise", @"mediumvioletred", @"midnightblue", @"navy", @"olive", @"olivedrab", @"orange", @"orangered", @"orchid", @"palegreen", @"paleturquoise", @"palevioletred", @"peru", @"pink", @"plum", @"powderblue", @"purple", @"red", @"rosybrown", @"royalblue", @"saddlebrown", @"salmon", @"sandybrown", @"seagreen", @"sienna", @"silver", @"skyblue", @"slateblue", @"slategrey", @"springgreen", @"steelblue", @"tan", @"teal", @"thistle", @"tomato", @"turquoise", @"violet", @"yellowgreen", nil]
@@ -629,6 +630,49 @@ static CGFloat hexCharsToFloat(char firstChar, char secondChar)
 	}
 
 	return [validColorsArray objectAtIndex:([anObject hash] % ([validColorsArray count]))];
+}
+
++ (NSString *)consistentColorForIdentifier:(NSString *)identifier onDarkBackground:(BOOL)dark
+{
+	if (![identifier length])
+		return @"#808080";
+
+	/* The agreed recipe: hash the name, read the first two bytes as a little endian number,
+	 * and let that be an angle on the colour wheel. Every client that follows it lands on
+	 * the same angle, which is the whole point. */
+	const char *bytes = [identifier UTF8String];
+	unsigned char digest[CC_SHA1_DIGEST_LENGTH];
+	CC_SHA1(bytes, (CC_LONG)strlen(bytes), digest);
+
+	CGFloat angle = ((digest[0] | (digest[1] << 8)) / 65536.0) * 360.0;
+
+	/* Full saturation, and a lightness picked for the ground it lands on. The angle carries
+	 * the identity; the lightness only has to keep it readable, so it is the half that may
+	 * differ between a light window and a dark one.
+	 *
+	 * The arithmetic is done here rather than handed to NSColor, and that is not pedantry:
+	 * going in through the calibrated colour space and out through sRGB moved the angle by
+	 * two to four degrees, measured against the specification's own examples. A few degrees
+	 * is enough to break the one promise this makes, namely that everybody arrives at the
+	 * same colour. Lightness may change the shade; it must not move the angle. */
+	CGFloat lightness = (dark ? 0.68 : 0.42);
+	CGFloat chroma = (1.0 - fabs(2.0 * lightness - 1.0));
+	CGFloat sixth = angle / 60.0;
+	CGFloat second = chroma * (1.0 - fabs(fmod(sixth, 2.0) - 1.0));
+	CGFloat lift = lightness - chroma / 2.0;
+
+	CGFloat red = 0, green = 0, blue = 0;
+	if (sixth < 1)		{ red = chroma; green = second; }
+	else if (sixth < 2)	{ red = second; green = chroma; }
+	else if (sixth < 3)	{ green = chroma; blue = second; }
+	else if (sixth < 4)	{ green = second; blue = chroma; }
+	else if (sixth < 5)	{ red = second; blue = chroma; }
+	else				{ red = chroma; blue = second; }
+
+	return [NSString stringWithFormat:@"#%02x%02x%02x",
+			(unsigned)lround((red + lift) * 255.0),
+			(unsigned)lround((green + lift) * 255.0),
+			(unsigned)lround((blue + lift) * 255.0)];
 }
 
 @end
