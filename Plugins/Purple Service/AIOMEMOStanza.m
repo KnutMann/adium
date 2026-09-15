@@ -142,6 +142,16 @@ AIOMEMOOpened AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *
 		purple_debug_warning("OMEMO", "could not open it: %s. Passing it on, so that the sender's "
 									  "own fallback line is at least shown\n",
 							 [AIOMEMOMessage nameOfTrouble:trouble]);
+
+		/* Most senders attach a line for clients that cannot read this, and passing the message
+		 * on shows it. Some attach nothing, and then passing it on is as silent as dropping it
+		 * would have been. So if there is nothing to show, we say so ourselves. Whatever else
+		 * happens, a message that arrived must leave some trace. */
+		if (!xmlnode_get_child(stanza, "body"))
+			xmlnode_insert_data(xmlnode_new_child(stanza, "body"),
+								"[An encrypted message arrived that could not be read. "
+								"The sending device may not be known here yet.]", -1);
+
 		return AIOMEMOOpenedCouldNot;
 	}
 

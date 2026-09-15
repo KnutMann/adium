@@ -166,6 +166,35 @@ int main(void) { @autoreleasepool {
 		  xmlnode_get_child(hopeless, "body") != NULL, nil);
 	xmlnode_free(hopeless);
 
+	/* Eine verschluesselte Nachricht, die wir NICHT oeffnen koennen, darf nicht spurlos
+	 * verschwinden: entweder steht der Ersatzrumpf des Absenders da, oder, wenn er keinen
+	 * mitgeschickt hat, einer von uns. Still verschwinden waere von "nie gesendet" nicht zu
+	 * unterscheiden, und das ist der schlimmere der beiden Fehler. */
+	xmlnode *forSomeoneElse = xmlnode_from_str(
+		"<message from='c@d' type='chat'>"
+		"<encrypted xmlns='" AIOMEMO_NAMESPACE "'><header sid='42'>"
+		"<key rid='999'>AAAA</key><iv>AAAAAAAAAAAAAAAA</iv></header>"
+		"<payload>AAAA</payload></encrypted></message>", -1);
+	check(@"Eine unlesbare Nachricht wird nicht verschluckt",
+		  AIOMEMOOpenStanza(forSomeoneElse, bob, @"c@d") == AIOMEMOOpenedCouldNot, nil);
+	check(@"und bekommt einen Rumpf, wenn keiner dabei war",
+		  xmlnode_get_child(forSomeoneElse, "body") != NULL, nil);
+	xmlnode_free(forSomeoneElse);
+
+	//War einer dabei, bleibt es bei dem des Absenders
+	xmlnode *withFallback = xmlnode_from_str(
+		"<message from='c@d' type='chat'><body>Ich schrieb verschluesselt</body>"
+		"<encrypted xmlns='" AIOMEMO_NAMESPACE "'><header sid='42'>"
+		"<key rid='999'>AAAA</key><iv>AAAAAAAAAAAAAAAA</iv></header>"
+		"<payload>AAAA</payload></encrypted></message>", -1);
+	AIOMEMOOpenStanza(withFallback, bob, @"c@d");
+	char *kept = xmlnode_get_data(xmlnode_get_child(withFallback, "body"));
+	check(@"Der Ersatzrumpf des Absenders bleibt stehen, wenn es einen gibt",
+		  kept && strcmp(kept, "Ich schrieb verschluesselt") == 0,
+		  kept ? [NSString stringWithUTF8String:kept] : @"gar keiner");
+	if (kept) g_free(kept);
+	xmlnode_free(withFallback);
+
 	//Eine Stanza ohne encrypted-Element wird nicht angefasst
 	xmlnode *plain = xmlnode_from_str("<message from='x@y'><body>ganz normal</body></message>", -1);
 	check(@"Eine gewoehnliche Nachricht wird nicht angefasst",
