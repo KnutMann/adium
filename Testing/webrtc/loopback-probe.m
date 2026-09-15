@@ -32,10 +32,11 @@
 	if (newState == RTCIceConnectionStateConnected || newState == RTCIceConnectionStateCompleted)
 		self.connected = YES;
 }
-/* Trap, measured: attaching the renderer HERE, in the early transceiver
- * callback during SDP handling, yields zero rendered frames although the
- * decoder runs; attach to pc.receivers once the connection stands instead
- * (see the wait loop in main). */
+/* This callback once looked like a trap: a renderer attached here rendered
+ * nothing while the decoder ran. The real fault was elsewhere, in what held
+ * the track: a receiver hands out a new wrapper each time it is asked, and
+ * letting that wrapper go takes the renderer with it. Hold the track and
+ * attaching early is fine. */
 - (void)peerConnection:(RTCPeerConnection *)pc didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver {
 	if ([transceiver.receiver.track isKindOfClass:[RTCVideoTrack class]])
 		printf("%s: video transceiver announced\n", self.name.UTF8String);

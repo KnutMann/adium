@@ -305,6 +305,12 @@
 				[self failWith:@"failed-application"];
 				return;
 			}
+
+			/* The peer's tracks exist the moment its description is applied, long
+			 * before ICE finishes, and a renderer attached now shows the very first
+			 * frame that decodes instead of the first one after ten seconds. */
+			[self offerRemoteVideoTrackWithTriesLeft:120];
+
 			if (!isOffer)
 				return;	//the answer needs nothing more; ICE takes it from here
 
@@ -448,9 +454,6 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			/* The peer's video track, if any, from the live receivers. Attaching a
 			 * renderer earlier, in the transceiver callback, draws nothing; measured
 			 * in the loopback spike and written down there. */
-			/* Long enough to outlast a slow one: measured against a phone, the
-			 * receiver list named only audio for twenty six seconds while video
-			 * was already arriving and being decoded. */
 			[self offerRemoteVideoTrackWithTriesLeft:90];
 			[self logMediaFlowWithTriesLeft:10];
 		}
@@ -468,9 +471,11 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 /*!
  * @brief Hand the peer's video to whoever draws it, once there is one
  *
- * A receiver's track is not always there the moment the connection stands, and
- * attaching a renderer before that draws nothing at all, measured in the
- * loopback spike. So this looks again for a while rather than once.
+ * A receiver does not always carry its track yet, so this looks again for a
+ * while rather than once. It may look as early as it likes: the loopback spike
+ * once concluded that a renderer attached early draws nothing, and that was a
+ * misreading of the very fault fixed in the window controller, where the track
+ * wrapper was let go and took the renderer with it. Early is now simply early.
  */
 - (void)offerRemoteVideoTrackWithTriesLeft:(NSInteger)triesLeft
 {
@@ -513,7 +518,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 	if ((triesLeft % 10) == 0)
 		AILogWithSignature(@"no remote video track yet (receivers: %@), looking again",
 						   [kinds componentsJoinedByString:@", "]);
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
 				   dispatch_get_main_queue(), ^{
 		[self offerRemoteVideoTrackWithTriesLeft:(triesLeft - 1)];
 	});
@@ -557,17 +562,11 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 	}];
 }
 
-/*!
- * @brief The peer has started sending on something; look for its picture again
- *
- * Attaching a renderer from inside this callback draws nothing, measured in the
- * loopback spike, so it only prompts the search that hands the track over.
- */
+/*! @brief The peer has started sending on something; look for its picture again */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		if (self->announcedConnected)
-			[self offerRemoteVideoTrackWithTriesLeft:90];
+		[self offerRemoteVideoTrackWithTriesLeft:90];
 	});
 }
 
