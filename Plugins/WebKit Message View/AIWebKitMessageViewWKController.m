@@ -2266,28 +2266,58 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 {
 	if (![messageId length] || !_webView) return;
 
+	/* What the file is decides what goes in its place. A voice note in a chat window is a
+	 * player, not a picture of one, and not a link the person has to leave the conversation to
+	 * hear. The kind is taken from the name rather than guessed at in the page, because this
+	 * side already knows it and the page would only have to work it out again. */
+	static NSSet *sounds = nil, *films = nil;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		sounds = [NSSet setWithObjects:@"m4a", @"mp3", @"oga", @"ogg", @"opus", @"wav", @"aac", @"amr", nil];
+		films = [NSSet setWithObjects:@"mp4", @"mov", @"webm", @"m4v", nil];
+	});
+
+	NSString *extension = [[path pathExtension] lowercaseString];
+	NSString *element = @"img";
+	if ([sounds containsObject:extension])     element = @"audio";
+	else if ([films containsObject:extension]) element = @"video";
+
+	BOOL playable = ![element isEqualToString:@"img"];
+
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
-		@" var id=%@, src=%@;"
+		@" var id=%@, src=%@, kind=%@, playable=%@;"
 		@" var msgs=document.querySelectorAll('[data-x-adium-msg]');"
 		@" for(var i=0;i<msgs.length;i++){"
 		@"  if(msgs[i].getAttribute('data-x-adium-id')!==id) continue;"
-		@"  if(msgs[i].querySelector('img[data-x-adium-inline-image]')) return 1;"
-		@"  var img=document.createElement('img');"
-		@"  img.src=src;"
-		@"  img.setAttribute('data-x-adium-inline-image','1');"
-		@"  img.style.maxWidth='min(320px, 100%%)';"
-		@"  img.style.maxHeight='240px';"
-		@"  img.style.borderRadius='4px';"
-		@"  img.style.display='block';"
-		@"  img.style.marginTop='2px';"
+		@"  if(msgs[i].querySelector('[data-x-adium-inline-image]')) return 1;"
+		@"  var el=document.createElement(kind);"
+		@"  el.src=src;"
+		@"  el.setAttribute('data-x-adium-inline-image','1');"
+		@"  if(playable){"
+		@"   el.controls=true; el.preload='metadata';"
+		@"   el.style.maxWidth=(kind==='audio')?'320px':'min(480px, 100%%)';"
+		@"   if(kind==='video'){ el.playsInline=true; el.style.height='auto'; }"
+		@"  } else {"
+		@"   el.style.maxWidth='min(320px, 100%%)';"
+		@"   el.style.maxHeight='240px';"
+		@"  }"
+		@"  el.style.borderRadius='4px';"
+		@"  el.style.display='block';"
+		@"  el.style.marginTop='2px';"
 		@"  var a=msgs[i].querySelector('a');"
-		@"  if(a){ a.textContent=''; a.appendChild(img); } else { msgs[i].appendChild(img); }"
+		/* A picture stays wrapped in its link, so a click still opens the original. A player
+		 * must not be, or every attempt to press pause would follow the link instead. */
+		@"  if(a && !playable){ a.textContent=''; a.appendChild(el); }"
+		@"  else if(a){ a.parentNode.replaceChild(el,a); }"
+		@"  else { msgs[i].appendChild(el); }"
 		@"  return 2;"
 		@" }"
 		@" return 0;"
 		@"})()",
-		[self _jsStringLiteral:messageId], [self _jsStringLiteral:[[NSURL fileURLWithPath:path] absoluteString]]];
+		[self _jsStringLiteral:messageId],
+		[self _jsStringLiteral:[[NSURL fileURLWithPath:path] absoluteString]],
+		[self _jsStringLiteral:element], (playable ? @"true" : @"false")];
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if (error || [result integerValue] == 0) {
 			AILogWithSignature(@"image for id %@ found no message (%@)", messageId, error ?: result);

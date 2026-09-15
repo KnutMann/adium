@@ -17,16 +17,20 @@
 #import <Adium/AIPlugin.h>
 
 /*!
- * @class AIInlineImageLinkPlugin
- * @brief Shows an XMPP message that is an image link as the image itself
+ * @class AIInlineMediaLinkPlugin
+ * @brief Shows an XMPP message that is nothing but a media link as the thing itself
  *
- * Modern XMPP clients send a picture by uploading it (XEP-0363) and sending its
- * address as the message; whether the receiver sees a link or the picture is
- * purely the receiver's choice. This fetches such pictures and has the message
- * view embed them, governed by the same say the person already has over file
- * transfers: never, from anyone, or only from contacts of their list.
+ * Modern XMPP clients send a picture, a voice note or a video by uploading it
+ * (XEP-0363) and sending its address as the whole message; whether the receiver
+ * sees a link or the thing is purely the receiver's choice. In an encrypted
+ * conversation the address is an aesgcm one (XEP-0454), where the file on the
+ * server is encrypted and the key travels in the address, so the file is
+ * decrypted here before anybody sees it.
+ *
+ * Which of those happen at all is governed by the same say the person already has
+ * over file transfers: never, from anyone, or only from contacts of their list.
  */
-@interface AIInlineImageLinkPlugin : AIPlugin {
+@interface AIInlineMediaLinkPlugin : AIPlugin {
 	NSURLSession	*session;
 }
 
