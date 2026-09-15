@@ -412,6 +412,12 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 		if ([description length])
 			self->lastPairSnapshot = description;
 
+		/* Written down every second, not just kept: the end picture says who won
+		 * but never when the other side woke up, and that is the whole question
+		 * when a call takes eight seconds to find a path it had all along. */
+		AILogWithSignature(@"checking %+.2fs:\n%@", -[self->startedAt timeIntervalSinceNow],
+						   ([description length] ? description : @"(keine Paare)"));
+
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
 					   dispatch_get_main_queue(), ^{
 			[self samplePairsWhileChecking];
