@@ -24,7 +24,10 @@
 #import <Adium/ESDebugAILog.h>
 #import <AIUtilities/AIStringUtilities.h>
 #import <Network/Network.h>
+#import <arpa/inet.h>
+#import <ifaddrs.h>
 #import <netdb.h>
+#import <netinet/in.h>
 #import <sys/socket.h>
 #import <WebRTC/WebRTC.h>
 
@@ -34,6 +37,7 @@
 
 #define STUN_SECONDS		6.0
 #define BONJOUR_SECONDS		4.0
+#define NEIGHBOURS_SECONDS	3.0
 
 @implementation AIJingleCallFinding
 @end
@@ -66,17 +70,31 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 
 	//The two network questions answer themselves by really talking
 	[run browseTheNeighbourhood:^(BOOL sawNeighbours) {
+	  [run askTheNeighboursThroughAPlainSocket:^(BOOL weWereAnswered, NSString *neighbourDetail) {
 		AIJingleCallFinding *local = [[AIJingleCallFinding alloc] init];
 		local.title = AILocalizedString(@"Local network", "Call self test: reaching devices in the same network");
-		local.good = sawNeighbours;
+		local.good = weWereAnswered;
 		local.fatal = NO;
 		local.settingsURL = SETTINGS_NETWORK;
-		local.detail = (sawNeighbours ?
-			AILocalizedString(@"Devices in this network answer.",
-							  "Call self test: the local network is reachable") :
-			AILocalizedString(@"Nothing in this network answered. Calls to somebody on the same network need this; check Adium under Local Network in the privacy settings.",
-							  "Call self test: the local network appears blocked"));
+
+		/* Two answers to one question, and the pair says more than either alone.
+		 * The system service found the neighbours while our own socket heard
+		 * nothing: they are there, we are the ones not allowed to speak to them.
+		 * Silence on both sides is only silence, and saying more than that once
+		 * sent somebody into their settings for nothing. */
+		if (weWereAnswered) {
+			local.detail = AILocalizedString(@"Devices in this network answer Adium directly.",
+											 "Call self test: the local network is reachable");
+		} else if (sawNeighbours) {
+			local.detail = AILocalizedString(@"There are devices in this network, but they do not answer Adium itself. Calls to somebody in the same network then take the long way round or fail; check Adium under Local Network in the privacy settings.",
+											 "Call self test: the system sees the network but the application is kept off it");
+		} else {
+			local.detail = AILocalizedString(@"Nothing in this network answered, which means either that nothing is there to answer or that Adium is being kept off it. Check Adium under Local Network in the privacy settings.",
+											 "Call self test: nothing answered at all");
+		}
 		[findings addObject:local];
+		AILogWithSignature(@"local network: browse saw %@, own socket: %@",
+						   (sawNeighbours ? @"neighbours" : @"nothing"), neighbourDetail);
 
 		[run askTheWorldThroughAPlainSocket:^(BOOL heard, NSString *detail) {
 			AIJingleCallFinding *plain = [[AIJingleCallFinding alloc] init];
@@ -129,6 +147,7 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 		}];
 		}];
 		}];
+	  }];
 	}];
 }
 
@@ -286,6 +305,99 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(BONJOUR_SECONDS * NSEC_PER_SEC)),
 				   dispatch_get_main_queue(), finish);
+}
+
+/*!
+ * @brief Do the neighbours answer this application's own packets?
+ *
+ * The browse above is carried out by a system service, which holds a permission
+ * of its own and answers happily while ours is refused. That gap is exactly
+ * where a call loses the short way home: two people in one flat, one router
+ * between them, and every picture travelling through a relay somewhere in the
+ * country. So the question is asked a second time through a socket of our own,
+ * as the multicast query every household answers. Replies from this machine are
+ * thrown away; a packet that never left the building proves nothing.
+ */
+- (void)askTheNeighboursThroughAPlainSocket:(void (^)(BOOL answered, NSString *detail))answer
+{
+	dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+		//Which addresses are ours, so that our own answer does not count as a neighbour
+		NSMutableSet<NSString *> *ourOwn = [NSMutableSet set];
+		struct ifaddrs *interfaces = NULL;
+		if (getifaddrs(&interfaces) == 0) {
+			for (struct ifaddrs *each = interfaces; each; each = each->ifa_next) {
+				if (each->ifa_addr && each->ifa_addr->sa_family == AF_INET) {
+					char text[INET_ADDRSTRLEN] = {0};
+					inet_ntop(AF_INET, &((struct sockaddr_in *)each->ifa_addr)->sin_addr,
+							  text, sizeof(text));
+					[ourOwn addObject:[NSString stringWithUTF8String:text]];
+				}
+			}
+			freeifaddrs(interfaces);
+		}
+
+		//Which services are there? The question mDNS was made for
+		static const uint8_t question[] = {
+			0x00, 0x00,				//no id; this is not a conversation
+			0x00, 0x00,				//a plain question
+			0x00, 0x01,				//one of them
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			9, '_','s','e','r','v','i','c','e','s',
+			7, '_','d','n','s','-','s','d',
+			4, '_','u','d','p',
+			5, 'l','o','c','a','l',
+			0,
+			0x00, 0x0C,				//PTR
+			0x80, 0x01				//and answer straight back to this socket
+		};
+
+		int socketDescriptor = socket(AF_INET, SOCK_DGRAM, 0);
+		uint8_t hops = 255;			//what mDNS asks for
+		setsockopt(socketDescriptor, IPPROTO_IP, IP_MULTICAST_TTL, &hops, sizeof(hops));
+		struct timeval patience = { .tv_usec = 500000 };
+		setsockopt(socketDescriptor, SOL_SOCKET, SO_RCVTIMEO, &patience, sizeof(patience));
+
+		struct sockaddr_in everyone = { .sin_family = AF_INET, .sin_port = htons(5353) };
+		inet_pton(AF_INET, "224.0.0.251", &everyone.sin_addr);
+
+		BOOL heard = NO;
+		NSString *detail = nil;
+
+		if (sendto(socketDescriptor, question, sizeof(question), 0,
+				   (struct sockaddr *)&everyone, sizeof(everyone)) != (ssize_t)sizeof(question)) {
+			detail = [NSString stringWithFormat:@"sending failed (%s)", strerror(errno)];
+		} else {
+			NSDate *until = [NSDate dateWithTimeIntervalSinceNow:NEIGHBOURS_SECONDS];
+			NSString *who = nil;
+
+			while (!heard && [until timeIntervalSinceNow] > 0) {
+				uint8_t reply[2048];
+				struct sockaddr_in from = {0};
+				socklen_t fromLength = sizeof(from);
+				ssize_t received = recvfrom(socketDescriptor, reply, sizeof(reply), 0,
+											(struct sockaddr *)&from, &fromLength);
+				if (received <= 0)
+					continue;
+
+				char text[INET_ADDRSTRLEN] = {0};
+				inet_ntop(AF_INET, &from.sin_addr, text, sizeof(text));
+				NSString *sender = [NSString stringWithUTF8String:text];
+				if ([ourOwn containsObject:sender])
+					continue;			//ourselves, talking back
+
+				heard = YES;
+				who = sender;
+			}
+			detail = (heard ?
+					  [NSString stringWithFormat:@"%@ answered our own socket", who] :
+					  @"nobody answered our own socket");
+		}
+
+		close(socketDescriptor);
+		dispatch_async(dispatch_get_main_queue(), ^{
+			answer(heard, detail);
+		});
+	});
 }
 
 /*!

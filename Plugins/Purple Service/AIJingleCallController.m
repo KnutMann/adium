@@ -437,11 +437,15 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 
 			NSDictionary *local = candidates[stat.values[@"localCandidateId"]];
 			NSDictionary *remote = candidates[stat.values[@"remoteCandidateId"]];
-			[lines addObject:[NSString stringWithFormat:@"%@ %@:%@ (%@) -> %@:%@ (%@) sent=%@ recv=%@",
+			/* Both directions, because they fail differently: nothing answered means
+			 * our packets never arrive, nothing asked means theirs never do, and a
+			 * path silent in both is a path the network refuses either way. */
+			[lines addObject:[NSString stringWithFormat:@"%@ %@:%@ (%@) -> %@:%@ (%@) sent=%@ recv=%@ asked=%@ answered=%@",
 				stat.values[@"state"] ?: @"?",
 				local[@"address"] ?: @"?", local[@"port"] ?: @"?", local[@"candidateType"] ?: @"?",
 				remote[@"address"] ?: @"?", remote[@"port"] ?: @"?", remote[@"candidateType"] ?: @"?",
-				stat.values[@"requestsSent"] ?: @0, stat.values[@"responsesReceived"] ?: @0]];
+				stat.values[@"requestsSent"] ?: @0, stat.values[@"responsesReceived"] ?: @0,
+				stat.values[@"requestsReceived"] ?: @0, stat.values[@"responsesSent"] ?: @0]];
 		}
 		dispatch_async(dispatch_get_main_queue(), ^{
 			afterwards([lines componentsJoinedByString:@"\n"]);
