@@ -2353,9 +2353,14 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		 * quickly is ready before the message it belongs to has been drawn, and the drawing
 		 * embeds it when the moment comes. Said out loud all the same, because a picture that
 		 * never appears leaves nothing else to go on. */
-		AILogWithSignature(@"embedding %@ on id %@ in %@: %@ (0 = message not drawn yet, "
-							"1 = already there, 2 = put in)", [path lastPathComponent], messageId,
-						   self->_chat, error ?: (result ?: @"no answer"));
+		/* Nought means the message is not on the page yet, which is ordinary: the drawing embeds
+		 * it when the moment comes. Only the unexpected is worth a line. */
+		if (error || [result integerValue] == 0) {
+			if (error)
+				AILogWithSignature(@"could not embed %@ on id %@ in %@: %@",
+								   [path lastPathComponent], messageId, self->_chat, error);
+			return;
+		}
 
 		if ([result integerValue] != 2) return;
 
@@ -2380,8 +2385,16 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 				@"})()", [self _jsStringLiteral:messageId]];
 
 			[self->_webView evaluateJavaScript:ask completionHandler:^(id what, NSError *oops) {
-				AILogWithSignature(@"after a moment, %@ in %@ is: %@", messageId, self->_chat,
-								   oops ?: (what ?: @"no answer"));
+				/* Silence when it is there with a size, which is the ordinary outcome and needs
+				 * no announcing. A picture of no size, or one that has left the page, is the
+				 * thing that used to be impossible to tell from a picture never embedded. */
+				NSString *said = [what isKindOfClass:[NSString class]] ? what : nil;
+				if (!oops && said && [said rangeOfString:@" 0x0"].location == NSNotFound &&
+					[said rangeOfString:@"gone"].location == NSNotFound)
+					return;
+
+				AILogWithSignature(@"a moment after embedding, %@ in %@ is: %@", messageId,
+								   self->_chat, oops ?: (said ?: @"no answer"));
 			}];
 		});
 	}];
