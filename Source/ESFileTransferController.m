@@ -382,8 +382,12 @@ static ESFileTransferPreferences *preferences;
 					
 					//The fileTransfer object should now have everything the account needs to begin transferring
 					[(AIAccount<AIAccount_Files> *)account beginSendOfFileTransfer:fileTransfer];
-					
-					if (showProgressWindow) {
+
+					/* Asked afterwards on purpose: the account has had its turn by now and may
+					 * have said that it is carrying the file itself and showing the result in
+					 * the conversation, in which case a window about a transfer would be
+					 * describing something the person is not doing. */
+					if (showProgressWindow && ![fileTransfer carriedInConversation]) {
 						[self showProgressWindowIfNotOpen:nil];
 					}
 				} else {
@@ -432,6 +436,14 @@ static ESFileTransferPreferences *preferences;
 #pragma mark Status updates
 - (void)fileTransfer:(ESFileTransfer *)fileTransfer didSetStatus:(AIFileTransferStatus)status
 {
+	/* A file the account is carrying itself and showing in the conversation announces nothing:
+	 * no window, no sound, no notification that a transfer finished. The person sent a picture
+	 * and a picture appeared, and every one of these would be telling them about a separate
+	 * thing that is not happening. If the account gives up and falls back to a real transfer it
+	 * clears this first, so a failure is still heard about. */
+	if ([fileTransfer carriedInConversation])
+		return;
+
 	switch (status) {
 		case Checksumming_Filetransfer:
 			[adium.contactAlertsController generateEvent:FILE_TRANSFER_CHECKSUMMING

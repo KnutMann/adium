@@ -313,6 +313,7 @@ static NSMutableDictionary *fileTransferDict = nil;
 @synthesize percentDone;
 @synthesize bytesSent;
 @synthesize accountData;
+@synthesize carriedInConversation;
 @synthesize delegate;
 
 - (void)cancel

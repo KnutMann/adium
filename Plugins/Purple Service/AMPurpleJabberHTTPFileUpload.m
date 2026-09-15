@@ -464,6 +464,9 @@ static NSString *AMInlineImageCachePath(NSString *address)
 			return NO;
 	}
 
+	/* From here the file is ours, and what the person will see is a picture in the conversation
+	 * rather than a transfer to watch. Saying so keeps the progress window shut. */
+	[fileTransfer setCarriedInConversation:YES];
 	[fileTransfer setStatus:In_Progress_FileTransfer];
 
 	[self requestSlotForFilename:filename
@@ -494,6 +497,9 @@ static NSString *AMInlineImageCachePath(NSString *address)
 - (void)fallBackForFileTransfer:(ESFileTransfer *)fileTransfer
 {
 	AILog(@"%@: HTTP upload failed, falling back to the classic transfer", account);
+
+	//It is a transfer after all, so it belongs in the window again
+	[fileTransfer setCarriedInConversation:NO];
 	[account httpUploadFellBackForFileTransfer:fileTransfer];
 }
 
