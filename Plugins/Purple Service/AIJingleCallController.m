@@ -33,6 +33,8 @@
 	RTCCameraVideoCapturer *cameraCapturer;
 	BOOL announcedConnected;
 	NSMutableSet<NSString *> *offeredTrackIds;
+	NSDate *startedAt;					//when this call began, for the timeline below
+	NSMutableSet<NSString *> *milestonesSeen;
 	BOOL closed;
 	NSString *lastPairSnapshot;		//what the pairs looked like while they were still being tried
 }
@@ -56,6 +58,8 @@
 		_machine.delegate = self;
 		_wantsAudio = YES;
 		offeredTrackIds = [NSMutableSet set];
+		milestonesSeen = [NSMutableSet set];
+		startedAt = [NSDate date];
 	}
 	return self;
 }
@@ -67,6 +71,8 @@
 		_machine.delegate = self;
 		_wantsAudio = YES;
 		offeredTrackIds = [NSMutableSet set];
+		milestonesSeen = [NSMutableSet set];
+		startedAt = [NSDate date];
 	}
 	return self;
 }
@@ -183,6 +189,7 @@
 		fps = MIN(30, MAX(fps, range.maxFrameRate));
 
 	[cameraCapturer startCaptureWithDevice:device format:chosenFormat fps:(NSInteger)fps];
+	[self noteMilestone:@"camera asked to start"];
 }
 
 - (void)startSyntheticFrames
@@ -449,6 +456,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 		if ((newState == RTCIceConnectionStateConnected || newState == RTCIceConnectionStateCompleted) &&
 			!self->announcedConnected) {
 			self->announcedConnected = YES;
+			[self noteMilestone:@"ICE connected"];
 			[self.delegate callControllerConnected:self];
 
 			/* The peer's video track, if any, from the live receivers. Attaching a
@@ -456,6 +464,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			 * in the loopback spike and written down there. */
 			[self offerRemoteVideoTrackWithTriesLeft:90];
 			[self logMediaFlowWithTriesLeft:10];
+			[self watchForFirstFramesWithTriesLeft:120];
 		}
 		if (newState == RTCIceConnectionStateFailed) {
 			/* Measure before giving up: ending the call closes the connection, and a
@@ -522,6 +531,63 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 				   dispatch_get_main_queue(), ^{
 		[self offerRemoteVideoTrackWithTriesLeft:(triesLeft - 1)];
 	});
+}
+
+/*! @brief Say how long after the call began something first happened */
+- (void)noteMilestone:(NSString *)what
+{
+	if ([milestonesSeen containsObject:what])
+		return;
+	[milestonesSeen addObject:what];
+
+	AILogWithSignature(@"timeline %+.2fs: %@", -[startedAt timeIntervalSinceNow], what);
+}
+
+/*! @brief The same, for whoever draws the pictures */
+- (void)noteMilestoneFromView:(NSString *)what
+{
+	[self noteMilestone:what];
+}
+
+/*!
+ * @brief Watch closely for the moments a person notices
+ *
+ * When the first picture of ours goes out and when the first of theirs comes
+ * in are the two numbers a call is judged by, so they are taken at a quarter of
+ * a second rather than sampled every few seconds.
+ */
+- (void)watchForFirstFramesWithTriesLeft:(NSInteger)triesLeft
+{
+	if (closed || triesLeft <= 0)
+		return;
+
+	[self.peerConnection statisticsWithCompletionHandler:^(RTCStatisticsReport *report) {
+		for (NSString *key in report.statistics) {
+			RTCStatistics *stat = report.statistics[key];
+			NSDictionary *values = stat.values;
+			BOOL video = [values[@"kind"] isEqualToString:@"video"];
+
+			if (!video)
+				continue;
+
+			if ([stat.type isEqualToString:@"outbound-rtp"]) {
+				if ([values[@"framesEncoded"] integerValue] > 0)
+					[self noteMilestone:@"our first picture encoded"];
+				if ([values[@"packetsSent"] integerValue] > 0)
+					[self noteMilestone:@"our first picture sent"];
+			} else if ([stat.type isEqualToString:@"inbound-rtp"]) {
+				if ([values[@"packetsReceived"] integerValue] > 0)
+					[self noteMilestone:@"their first packet arrived"];
+				if ([values[@"framesDecoded"] integerValue] > 0)
+					[self noteMilestone:@"their first picture decoded"];
+			}
+		}
+
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+					   dispatch_get_main_queue(), ^{
+			[self watchForFirstFramesWithTriesLeft:(triesLeft - 1)];
+		});
+	}];
 }
 
 /*!

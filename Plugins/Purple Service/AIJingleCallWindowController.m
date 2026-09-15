@@ -41,6 +41,8 @@
 	AIJingleVideoView *previewView;
 	NSMutableArray<RTCVideoTrack *> *remoteTracks;	//held, or the renderer goes with them
 
+	NSDate *openedAt;
+	BOOL notedFirstRemoteFrame;
 	NSTimer *durationTimer;
 	NSDate *connectedSince;
 	BOOL ended;
@@ -58,6 +60,7 @@
 		call = controller;
 		displayName = [inDisplayName copy];
 		remoteTracks = [NSMutableArray array];
+		openedAt = [NSDate date];
 
 		[window setTitle:[NSString stringWithFormat:AILocalizedString(@"Call with %@", "Title of a call window; %@ is the contact"), displayName]];
 		[window setReleasedWhenClosed:NO];
@@ -185,7 +188,7 @@
 	AILogWithSignature(@"attaching renderer to remote track %@ (enabled=%d, state=%ld)",
 					   track.trackId, track.isEnabled, (long)track.readyState);
 	[track addRenderer:remoteView];
-	[self countWhatIsDrawn:10];
+	[self countWhatIsDrawn:120];
 }
 
 /*!
@@ -200,11 +203,18 @@
 	if (triesLeft <= 0 || ended)
 		return;
 
+	if (remoteView.renderedFrames > 0 && !notedFirstRemoteFrame) {
+		notedFirstRemoteFrame = YES;
+		AILogWithSignature(@"timeline %+.2fs: their first picture drawn (window)",
+						   -[openedAt timeIntervalSinceNow]);
+	}
+
+	if ((triesLeft % 4) == 0)
 	AILogWithSignature(@"drawn so far: remote=%ld (%@), preview=%ld",
 					   (long)remoteView.renderedFrames, NSStringFromSize(remoteView.lastFrameSize),
 					   (long)previewView.renderedFrames);
 
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
 				   dispatch_get_main_queue(), ^{
 		[self countWhatIsDrawn:(triesLeft - 1)];
 	});
