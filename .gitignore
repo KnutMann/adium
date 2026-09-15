@@ -30,3 +30,4 @@ xcuserdata/
 *.xcuserdatad/
 *~
 Testing/xmpp/peer/.venv/
+Dependencies/picomemo/picomemo/
