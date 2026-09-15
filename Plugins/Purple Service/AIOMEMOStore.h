@@ -72,6 +72,9 @@ typedef NS_ENUM(NSInteger, AIOMEMOTrust) {
  */
 + (void)discardStoreForAccount:(NSString *)bareJID;
 
+/*! @brief The account this store belongs to, without a resource */
+@property (readonly, nonatomic, copy) NSString *account;
+
 /*! @brief This installation's device number, as it appears in the device list */
 @property (readonly, nonatomic) uint32_t deviceIdentifier;
 
