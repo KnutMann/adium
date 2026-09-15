@@ -30,6 +30,17 @@
  * Which of those happen at all is governed by the same say the person already has
  * over file transfers: never, from anyone, or only from contacts of their list.
  */
+/*!
+ * @brief What to call a message that is nothing but the address of a file, or nil
+ *
+ * Such a message reads as a picture or a voice note in the conversation window, where the thing
+ * itself is shown. Everywhere the words are used instead, a notification, spoken announcement
+ * or preview, a line of hexadecimal is no use to anybody, and this gives those places something
+ * a person can read. The WhatsApp side arrives already worded that way; this is the same idea
+ * for the protocols whose messages really are the address.
+ */
+NSString *AIMediaNameForMessageText(NSString *text);
+
 @interface AIInlineMediaLinkPlugin : AIPlugin {
 	NSURLSession	*session;
 }

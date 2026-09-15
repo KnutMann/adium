@@ -96,6 +96,34 @@ static NSString *AIKindOfFile(NSString *extension)
 	return kinds[[extension lowercaseString]];
 }
 
+NSString *AIMediaNameForMessageText(NSString *text)
+{
+	NSString *trimmed = [text stringByTrimmingCharactersInSet:
+						 [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+	if ([trimmed rangeOfCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].location != NSNotFound)
+		return nil;
+
+	NSString *lowered = [trimmed lowercaseString];
+	if (![lowered hasPrefix:@"https://"] && ![lowered hasPrefix:@"aesgcm://"])
+		return nil;
+
+	NSString *kind = AIKindOfFile(AIOMEMOMediaExtensionOf(trimmed));
+
+	/* Named through the bundle this class lives in rather than the usual shorthand, which wants
+	 * a self there is none of out here. */
+	NSBundle *ours = [NSBundle bundleForClass:[AIInlineMediaLinkPlugin class]];
+
+	if ([kind isEqualToString:@"image"])
+		return AILocalizedStringFromTableInBundle(@"a picture", nil, ours, "what a message that is only a picture's address is called");
+	if ([kind isEqualToString:@"audio"])
+		return AILocalizedStringFromTableInBundle(@"a voice message", nil, ours, "what a message that is only a voice note's address is called");
+	if ([kind isEqualToString:@"video"])
+		return AILocalizedStringFromTableInBundle(@"a video", nil, ours, "what a message that is only a video's address is called");
+
+	return nil;
+}
+
 /*!
  * @brief The file a message consists of, or nil
  *
