@@ -16,6 +16,7 @@
 
 #import "AIJingleCallUI.h"
 #import "AIJingleCallWindowController.h"
+#import "AIJingleCallDiagnostics.h"
 
 #import <Adium/AIChat.h>
 #import <Adium/AIChatControllerProtocol.h>
@@ -89,6 +90,13 @@
 	[videoCallMenuItem setTarget:self];
 	[adium.menuController addMenuItem:videoCallMenuItem toLocation:LOC_Contact_Action];
 
+	NSMenuItem *selfTestItem = [[NSMenuItem alloc] initWithTitle:
+		AILocalizedString(@"Check Call Readiness…", "Menu item running the call self test")
+												 action:@selector(runSelfTest:)
+										  keyEquivalent:@""];
+	[selfTestItem setTarget:self];
+	[adium.menuController addMenuItem:selfTestItem toLocation:LOC_Adium_Other];
+
 	callContextItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Call", "Menu item starting an audio call with the selected contact")
 												 action:@selector(startAudioCall:)
 										  keyEquivalent:@""];
@@ -100,6 +108,44 @@
 											   keyEquivalent:@""];
 	[videoCallContextItem setTarget:self];
 	[adium.menuController addContextualMenuItem:videoCallContextItem toLocation:Context_Contact_Action];
+}
+
+//The self test ----------------------------------------------------------------------------------
+#pragma mark The self test
+
+- (void)runSelfTest:(id)sender
+{
+	[AIJingleCallDiagnostics runWithCompletion:^(NSArray<AIJingleCallFinding *> *findings) {
+		[self showFindings:findings asFailureOfCall:nil];
+	}];
+}
+
+- (void)showFindings:(NSArray<AIJingleCallFinding *> *)findings asFailureOfCall:(NSString *)peerName
+{
+	NSMutableString *text = [NSMutableString string];
+	NSString *settingsURL = nil;
+
+	for (AIJingleCallFinding *finding in findings) {
+		[text appendFormat:@"%@ %@: %@\n\n", (finding.good ? @"✓" : @"✗"), finding.title, finding.detail];
+		if (!finding.good && !settingsURL)
+			settingsURL = finding.settingsURL;
+	}
+
+	NSAlert *alert = [[NSAlert alloc] init];
+	[alert setMessageText:([peerName length] ?
+		[NSString stringWithFormat:AILocalizedString(@"The call with %@ could not connect",
+													 "Title after a call failed; %@ is the contact"), peerName] :
+		AILocalizedString(@"Call readiness", "Title of the call self test result"))];
+	[alert setInformativeText:[text stringByTrimmingCharactersInSet:
+							   [NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+	[alert addButtonWithTitle:AILocalizedString(@"OK", nil)];
+
+	if (settingsURL)
+		[alert addButtonWithTitle:AILocalizedString(@"Open Privacy Settings",
+												   "Button leading to the system's privacy settings")];
+
+	if ([alert runModal] == NSAlertSecondButtonReturn && settingsURL)
+		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:settingsURL]];
 }
 
 - (AIListContact *)contactForMenuItem:(NSMenuItem *)menuItem
@@ -123,6 +169,9 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
+	if ([menuItem action] == @selector(runSelfTest:))
+		return YES;
+
 	AIListContact *contact = [self contactForMenuItem:menuItem];
 	return (contact && contact.online && contact.account.online);
 }
@@ -324,7 +373,7 @@
 
 	if (![name length])
 		name = ([displayNamesBySid[sid] length] ? displayNamesBySid[sid] : bareJid);
-	[displayNamesBySid removeObjectForKey:sid];
+	displayNamesBySid[sid] = name;		//kept for as long as the call lasts, for its messages
 
 	windowsBySid[sid] = [[AIJingleCallWindowController alloc] initWithCallController:controller
 																		 displayName:name];
@@ -386,8 +435,22 @@
 	//The window knows whether this ending closes it or stays readable
 	[window noteEndedWithReason:reason locally:locally];
 
+	/* A call that could not connect is usually a permission nobody was asked for
+	 * or that was withdrawn later; ask the machine rather than leaving the person
+	 * to guess. */
+	if ([reason isEqualToString:@"connectivity-error"]) {
+		NSString *peerName = [displayNamesBySid[sid] length] ? displayNamesBySid[sid] : nil;
+		[AIJingleCallDiagnostics runWithCompletion:^(NSArray<AIJingleCallFinding *> *findings) {
+			NSString *summary = [AIJingleCallDiagnostics summaryOfFindings:findings];
+			AILogWithSignature(@"call readiness after a failed call: %@", summary ?: @"nothing amiss");
+			if (summary)
+				[self showFindings:findings asFailureOfCall:peerName];
+		}];
+	}
+
 	AIListContact *contact = contactsBySid[sid];
 	[contactsBySid removeObjectForKey:sid];
+	[displayNamesBySid removeObjectForKey:sid];
 	if (contact) {
 		NSString *note = ([reason isEqualToString:@"success"] ?
 			AILocalizedString(@"Call ended", "State of a finished call") :
