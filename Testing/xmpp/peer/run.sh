@@ -20,6 +20,7 @@ case "$1" in
 	selftest)      shift; exec ./.venv/bin/python selftest.py "$@" ;;
 	muc-reactions) shift; exec ./.venv/bin/python muc_reactions.py "$@" ;;
 	sendfile)      shift; exec ./.venv/bin/python sendfile.py "$@" ;;
+	capscheck)     shift; exec ./.venv/bin/python capscheck.py "$@" ;;
 	http-upload)   shift; exec ./.venv/bin/python http_upload_probe.py "$@" ;;
 	*)             exec ./.venv/bin/python peer.py "$@" ;;
 esac

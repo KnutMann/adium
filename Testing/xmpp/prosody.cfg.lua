@@ -24,6 +24,7 @@ modules_enabled = {
 	"uptime";
 	"time";
 	"ping";
+	"admin_shell"; -- prosodyctl shell, for looking at live sessions while debugging
 
 	-- Storage-backed basics
 	"private";
