@@ -118,6 +118,47 @@ int main(void) { @autoreleasepool {
 		  AIOMEMOMediaReadLink(longer, NULL, &longerMaterial) && [longerMaterial length] == 48,
 		  [NSString stringWithFormat:@"%lu", (unsigned long)[longerMaterial length]]);
 
+	/* Die Gegenrichtung: was wir selbst verschluesseln, muss mit DEMSELBEN Entschluessler
+	 * aufgehen, der oben gegen den NIST-Wert geprueft wurde. Damit haengt die Senderichtung an
+	 * einem fremden Massstab und nicht an sich selbst. */
+	NSData *secret = [@"Eine Sprachnachricht, so tun wir mal" dataUsingEncoding:NSUTF8StringEncoding];
+	NSData *ourMaterial = nil;
+	NSData *sealed = AIOMEMOMediaEncrypt(secret, &ourMaterial);
+
+	check(@"Eine Datei laesst sich verschluesseln", [sealed length] > 0, nil);
+	check(@"Sie ist genau sechzehn Byte laenger als vorher",
+		  [sealed length] == [secret length] + 16,
+		  [NSString stringWithFormat:@"%lu statt %lu", (unsigned long)[sealed length],
+		   (unsigned long)[secret length] + 16]);
+	check(@"Das Schluesselmaterial ist vierundvierzig Byte lang", [ourMaterial length] == 44, nil);
+	check(@"Und sie geht mit demselben Entschluessler wieder auf",
+		  [AIOMEMOMediaDecrypt(sealed, ourMaterial) isEqualToData:secret], nil);
+
+	//Zweimal dasselbe darf nie denselben Schluessel ergeben
+	NSData *otherMaterial = nil;
+	AIOMEMOMediaEncrypt(secret, &otherMaterial);
+	check(@"Zweimal verschluesselt heisst zweimal anders",
+		  ![ourMaterial isEqualToData:otherMaterial], nil);
+
+	//Und die Adresse, die daraus entsteht, muss von unserem eigenen Leser wieder aufgehen
+	NSString *made = AIOMEMOMediaMakeLink(@"https://up.example.org/a/b/note.m4a", ourMaterial);
+	NSString *backAddress = nil;
+	NSData *backMaterial = nil;
+	check(@"Aus Adresse und Schluessel wird ein aesgcm-Verweis",
+		  [made hasPrefix:@"aesgcm://up.example.org/a/b/note.m4a#"], made);
+	check(@"den unser eigener Leser wieder zerlegt",
+		  AIOMEMOMediaReadLink(made, &backAddress, &backMaterial) &&
+		  [backAddress isEqualToString:@"https://up.example.org/a/b/note.m4a"] &&
+		  [backMaterial isEqualToData:ourMaterial], backAddress);
+
+	//Die Endung, auch wenn Schluessel oder Abfrage dranhaengen
+	check(@"Die Endung wird auch hinter dem Schluessel gefunden",
+		  [AIOMEMOMediaExtensionOf(made) isEqualToString:@"m4a"], AIOMEMOMediaExtensionOf(made));
+	check(@"und hinter einer Abfrage",
+		  [AIOMEMOMediaExtensionOf(@"https://x/y/bild.PNG?t=1") isEqualToString:@"png"], nil);
+	check(@"Ohne Punkt gibt es keine Endung",
+		  AIOMEMOMediaExtensionOf(@"https://x/y/ohnepunkt") == nil, nil);
+
 	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
 	return failures ? 1 : 0;
 } }

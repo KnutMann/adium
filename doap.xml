@@ -13,7 +13,8 @@
   Claiming those would be worse than lacking them.
 
   OMEMO (XEP-0384) is listed as partial and means it: one to one conversations
-  are encrypted and decrypted, and group chats are not. The older namespace
+  are encrypted and decrypted, files along with them (XEP-0454), and group chats
+  are not. The older namespace
   eu.siacs.conversations.axolotl is the one spoken, which is what the clients
   on the other end speak.
 
@@ -112,6 +113,12 @@
       <xmpp:status>partial</xmpp:status>
       <xmpp:note xml:lang='en'>One to one conversations only; group chats are not
         encrypted. Speaks the older namespace, eu.siacs.conversations.axolotl.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0454.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Files are encrypted before upload in an encrypted
+        conversation, and decrypted on arrival.</xmpp:note>
     </xmpp:SupportedXep></implements>
     <implements><xmpp:SupportedXep>
       <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0380.html'/>

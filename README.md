@@ -95,8 +95,11 @@ reads them now, and writes them.
 * **Says what it used** so a client that cannot read the message can
   explain why (XEP-0380)
 
-Group chats are not encrypted yet, and neither are file transfers
-(XEP-0454).
+* **Pictures and voice notes are encrypted too** (XEP-0454): what goes
+  up to the file server is bytes nobody there can read, and what arrives
+  is played or shown rather than left as an address
+
+Group chats are not encrypted yet.
 
 ### Voice and video calls over XMPP
 

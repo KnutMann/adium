@@ -139,3 +139,76 @@ NSData *AIOMEMOMediaDecrypt(NSData *encrypted, NSData *ivAndKey)
 	EVP_CIPHER_CTX_free(ctx);
 	return result;
 }
+
+NSData *AIOMEMOMediaEncrypt(NSData *plain, NSData **ivAndKey)
+{
+	if (![plain length]) return nil;
+
+	/* Twelve bytes of number used once and a 256 bit key, which is what every client that
+	 * reads these expects to find, and what the older sixteen byte form was replaced by. */
+	NSMutableData *material = [NSMutableData dataWithLength:(12 + 32)];
+	if (!material) return nil;
+
+	arc4random_buf([material mutableBytes], [material length]);
+
+	const uint8_t *vector = [material bytes];
+	const uint8_t *key = [material bytes] + 12;
+
+	NSMutableData *out = [NSMutableData dataWithLength:([plain length] + TAG_LENGTH)];
+	if (!out) return nil;
+
+	EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+	if (!ctx) return nil;
+
+	NSData *result = nil;
+	int written = 0, trailing = 0;
+	uint8_t *into = [out mutableBytes];
+
+	if (EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL) == 1 &&
+		EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 12, NULL) == 1 &&
+		EVP_EncryptInit_ex(ctx, NULL, NULL, key, vector) == 1 &&
+		EVP_EncryptUpdate(ctx, into, &written, [plain bytes], (int)[plain length]) == 1 &&
+		written == (int)[plain length] &&
+		EVP_EncryptFinal_ex(ctx, into + written, &trailing) == 1 &&
+		trailing == 0 &&
+		EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, TAG_LENGTH, into + written) == 1) {
+
+		result = out;
+		if (ivAndKey) *ivAndKey = material;
+	}
+
+	EVP_CIPHER_CTX_free(ctx);
+	return result;
+}
+
+NSString *AIOMEMOMediaMakeLink(NSString *httpsAddress, NSData *ivAndKey)
+{
+	if (![httpsAddress hasPrefix:@"https://"] || ![ivAndKey length]) return nil;
+
+	NSMutableString *hex = [NSMutableString stringWithCapacity:([ivAndKey length] * 2)];
+	const uint8_t *bytes = [ivAndKey bytes];
+	for (NSUInteger index = 0; index < [ivAndKey length]; index++)
+		[hex appendFormat:@"%02x", bytes[index]];
+
+	return [NSString stringWithFormat:@"aesgcm://%@#%@",
+			[httpsAddress substringFromIndex:[@"https://" length]], hex];
+}
+
+NSString *AIOMEMOMediaExtensionOf(NSString *link)
+{
+	/* Read off the text rather than through NSURL, which does not treat aesgcm as a scheme it
+	 * knows and hands back nothing useful for one. */
+	NSString *text = link;
+
+	NSRange hash = [text rangeOfString:@"#" options:NSBackwardsSearch];
+	if (hash.location != NSNotFound) text = [text substringToIndex:hash.location];
+
+	NSRange question = [text rangeOfString:@"?" options:NSBackwardsSearch];
+	if (question.location != NSNotFound) text = [text substringToIndex:question.location];
+
+	NSString *last = [[text componentsSeparatedByString:@"/"] lastObject];
+	NSRange dot = [last rangeOfString:@"." options:NSBackwardsSearch];
+	if (dot.location == NSNotFound) return nil;
+
+	return [[last substringFromIndex:(dot.location + 1)] lowercaseString];
+}

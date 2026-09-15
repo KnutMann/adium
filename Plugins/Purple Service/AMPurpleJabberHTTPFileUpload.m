@@ -27,6 +27,8 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <libpurple/jabber.h>
 #import "AMPurpleJabberSend.h"
+#import "AIOMEMOMedia.h"
+#import "adiumPurpleOMEMO.h"
 
 #define NS_HTTP_UPLOAD_0		"urn:xmpp:http:upload:0"
 #define NS_HTTP_UPLOAD_LEGACY	"urn:xmpp:http:upload"
@@ -390,9 +392,11 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	for (NSUInteger index = 0; index < CC_SHA256_DIGEST_LENGTH; index++)
 		[name appendFormat:@"%02x", digest[index]];
 
-	[name appendFormat:@".%@", [[[NSURL URLWithString:address] pathExtension] lowercaseString]];
+	/* Read off the address rather than through NSURL, which makes nothing of an aesgcm one, and
+	 * the same place as the receiving side keeps its files so the two agree. */
+	[name appendFormat:@".%@", AIOMEMOMediaExtensionOf(address) ?: @"dat"];
 
-	return [[[adium cachesPath] stringByAppendingPathComponent:@"Inline Images"]
+	return [[[adium cachesPath] stringByAppendingPathComponent:@"Inline Media"]
 			stringByAppendingPathComponent:name];
 }
 
@@ -412,6 +416,28 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	if (!size || (maxSize && size > maxSize))
 		return NO;
 
+	/* In an encrypted conversation the file is encrypted before it leaves, and only then is the
+	 * upload honest. Sending the picture itself to a public server and encrypting nothing but
+	 * the address would leave the padlock in the window telling the user something that is not
+	 * true of the thing they just sent. */
+	NSData *toUpload = nil;
+	NSData *ivAndKey = nil;
+
+	if (omemoIsEncryptingWith([account purpleAccount], [[fileTransfer contact] UID])) {
+		NSData *plain = [NSData dataWithContentsOfFile:path];
+
+		toUpload = plain ? AIOMEMOMediaEncrypt(plain, &ivAndKey) : nil;
+		if (!toUpload)
+			return NO;		//The classic transfer takes it, which is encrypted in its own way
+
+		//Bytes with no meaning to anybody but the recipient, and described as such
+		contentType = @"application/octet-stream";
+		size = [toUpload length];
+
+		if (maxSize && size > maxSize)
+			return NO;
+	}
+
 	[fileTransfer setStatus:In_Progress_FileTransfer];
 
 	[self requestSlotForFilename:[path lastPathComponent]
@@ -422,8 +448,18 @@ static NSString *AMInlineImageCachePath(NSString *address)
 			[self fallBackForFileTransfer:fileTransfer];
 			return;
 		}
-		[self uploadFileAtPath:path contentType:contentType toURL:putURL headers:headers
-				  announcingURL:getURL forFileTransfer:fileTransfer];
+
+		NSString *address = [getURL absoluteString];
+		if (ivAndKey) address = AIOMEMOMediaMakeLink(address, ivAndKey);
+
+		if (!address) {
+			[self fallBackForFileTransfer:fileTransfer];
+			return;
+		}
+
+		[self uploadFileAtPath:path encrypted:toUpload contentType:contentType
+						 toURL:putURL headers:headers announcingAddress:address
+			   forFileTransfer:fileTransfer];
 	}];
 
 	return YES;
@@ -435,11 +471,18 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	[account httpUploadFellBackForFileTransfer:fileTransfer];
 }
 
+/*!
+ * @brief Put the file on the server and, if that worked, say where it is
+ *
+ * @param path The file as it sits on this machine, which is what our own side shows
+ * @param encrypted What actually goes up, when the conversation is encrypted; nil otherwise
+ */
 - (void)uploadFileAtPath:(NSString *)path
+			   encrypted:(NSData *)encrypted
 			 contentType:(NSString *)contentType
 				   toURL:(NSURL *)putURL
 				 headers:(NSDictionary *)headers
-		   announcingURL:(NSURL *)getURL
+	   announcingAddress:(NSString *)address
 		 forFileTransfer:(ESFileTransfer *)fileTransfer
 {
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:putURL];
@@ -449,21 +492,24 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	for (NSString *name in headers)
 		[request setValue:[headers objectForKey:name] forHTTPHeaderField:name];
 
-	NSURLSessionUploadTask *task =
-		[urlSession uploadTaskWithRequest:request
-								 fromFile:[NSURL fileURLWithPath:path]
-						completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+	void (^finished)(NSData *, NSURLResponse *, NSError *) =
+		^(NSData *data, NSURLResponse *response, NSError *error) {
 		BOOL uploaded = (!error &&
 						 [response isKindOfClass:[NSHTTPURLResponse class]] &&
 						 ([(NSHTTPURLResponse *)response statusCode] / 100) == 2);
 
 		dispatch_async(dispatch_get_main_queue(), ^{
 			if (uploaded)
-				[self announceFileAtPath:path address:[getURL absoluteString] forFileTransfer:fileTransfer];
+				[self announceFileAtPath:path address:address forFileTransfer:fileTransfer];
 			else
 				[self fallBackForFileTransfer:fileTransfer];
 		});
-	}];
+	};
+
+	NSURLSessionUploadTask *task = encrypted
+		? [urlSession uploadTaskWithRequest:request fromData:encrypted completionHandler:finished]
+		: [urlSession uploadTaskWithRequest:request fromFile:[NSURL fileURLWithPath:path]
+						  completionHandler:finished];
 
 	[task resume];
 }

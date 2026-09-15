@@ -45,3 +45,25 @@ BOOL AIOMEMOMediaReadLink(NSString *link, NSString **address, NSData **ivAndKey)
  *         arrive rather than as one to show anyway
  */
 NSData *AIOMEMOMediaDecrypt(NSData *encrypted, NSData *ivAndKey);
+
+/*!
+ * @brief Encrypt a file so that it can be uploaded to a server nobody has to trust
+ *
+ * The key is made here and handed back rather than taken in, because it must be used for this
+ * one file and never again, and the only way to be sure of that is for nobody else to supply
+ * it.
+ *
+ * @param ivAndKey Filled in with the material that has to travel in the address
+ * @return nil if it could not be encrypted, in which case the file must not be uploaded
+ */
+NSData *AIOMEMOMediaEncrypt(NSData *plain, NSData **ivAndKey);
+
+/*!
+ * @brief Build the address that carries a file and its key
+ *
+ * @param httpsAddress Where the encrypted file now sits
+ */
+NSString *AIOMEMOMediaMakeLink(NSString *httpsAddress, NSData *ivAndKey);
+
+/*! @brief The name a file ends in, read from an address of either kind */
+NSString *AIOMEMOMediaExtensionOf(NSString *link);
