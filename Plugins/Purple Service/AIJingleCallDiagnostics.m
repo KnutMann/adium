@@ -41,6 +41,8 @@
 @interface AIJingleCallDiagnostics () <RTCPeerConnectionDelegate>
 @end
 
+static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port);
+
 @implementation AIJingleCallDiagnostics {
 	RTCPeerConnection *probeConnection;
 	void (^whenGathered)(BOOL sawPublicAddress);
@@ -130,7 +132,6 @@
 	}];
 }
 
-/*! @brief host and port out of an ICE address like stun:example.org:3478?transport=udp */
 static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 {
 	NSRange scheme = [url rangeOfString:@":"];
@@ -191,7 +192,7 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 			continue;
 		}
 
-		[self probeStunHost:host port:port completion:^(BOOL heard, NSString *detail) {
+		[AIJingleCallDiagnostics probeStunHost:host port:port detailedCompletion:^(BOOL heard, NSString *detail) {
 			if (heard)
 				answering++;
 			AILogWithSignature(@"server-named helper %@: %@", url, detail);
@@ -298,7 +299,7 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
  */
 - (void)askTheWorldThroughAPlainSocket:(void (^)(BOOL answered, NSString *detail))answer
 {
-	[self probeStunHost:@"stun.l.google.com" port:@"19302" completion:answer];
+	[AIJingleCallDiagnostics probeStunHost:@"stun.l.google.com" port:@"19302" detailedCompletion:answer];
 }
 
 /*!
@@ -307,7 +308,19 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
  * The smallest question a call asks, asked without WebRTC in the way, so a
  * server that is named but dead can be told from one that was never named.
  */
-- (void)probeStunHost:(NSString *)host port:(NSString *)port completion:(void (^)(BOOL answered, NSString *detail))answer
++ (void)probeStunHost:(NSString *)host port:(NSString *)port completion:(void (^)(BOOL answered))completion
+{
+	[self probeStunHost:host port:port detailedCompletion:^(BOOL answered, NSString *detail) {
+		completion(answered);
+	}];
+}
+
++ (BOOL)host:(NSString **)host port:(NSString **)port ofIceURL:(NSString *)url
+{
+	return hostAndPortOfIceURL(url, host, port);
+}
+
++ (void)probeStunHost:(NSString *)host port:(NSString *)port detailedCompletion:(void (^)(BOOL answered, NSString *detail))answer
 {
 	dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
 		struct addrinfo hints = { .ai_family = AF_INET, .ai_socktype = SOCK_DGRAM };

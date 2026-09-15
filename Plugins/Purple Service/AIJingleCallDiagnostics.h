@@ -43,6 +43,18 @@
 /*! @brief Run every check; the answer arrives on the main queue */
 + (void)runWithCompletion:(void (^)(NSArray<AIJingleCallFinding *> *findings))completion;
 
+/*!
+ * @brief Ask one STUN or TURN server whether it answers at all
+ *
+ * A binding request through a plain socket, the smallest question a call asks.
+ * Used by the checks here and by the accounts, which drop the servers their own
+ * host announces but that answer nothing.
+ */
++ (void)probeStunHost:(NSString *)host port:(NSString *)port completion:(void (^)(BOOL answered))completion;
+
+/*! @brief host and port out of an address like stun:example.org:3478?transport=udp */
++ (BOOL)host:(NSString **)host port:(NSString **)port ofIceURL:(NSString *)url;
+
 /*! @brief One line naming what is wrong, or nil when nothing is */
 + (NSString *)summaryOfFindings:(NSArray<AIJingleCallFinding *> *)findings;
 

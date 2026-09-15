@@ -16,6 +16,7 @@
 
 #import "AMPurpleJabberExternalServices.h"
 #import "ESPurpleJabberAccount.h"
+#import "AIJingleCallDiagnostics.h"
 
 #import <libpurple/jabber.h>
 
@@ -137,6 +138,24 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 	}
 
 	AILog(@"%@: %lu ICE servers from the domain", account, (unsigned long)[services count]);
+
+	/* And now ask each of them whether it is there at all. A host may announce a
+	 * server that answers nothing, measured on one that did, and a call which
+	 * carries such an address spends seconds knocking on a door nobody opens
+	 * before it tries anything else. What does not answer is not offered. */
+	for (NSDictionary *service in [[services copy] autorelease]) {
+		NSString *host = nil, *port = nil;
+		if (![AIJingleCallDiagnostics host:&host port:&port ofIceURL:service[@"urls"]])
+			continue;
+
+		[AIJingleCallDiagnostics probeStunHost:host port:port completion:^(BOOL answered) {
+			if (answered)
+				return;
+
+			AILog(@"%@: dropping %@, it answers nothing", self->account, service[@"urls"]);
+			[self->services removeObject:service];
+		}];
+	}
 }
 
 - (NSArray *)iceServerDictionaries
