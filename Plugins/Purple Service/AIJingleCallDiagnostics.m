@@ -20,6 +20,8 @@
 #import <Adium/ESDebugAILog.h>
 #import <AIUtilities/AIStringUtilities.h>
 #import <Network/Network.h>
+#import <netdb.h>
+#import <sys/socket.h>
 #import <WebRTC/WebRTC.h>
 
 #define SETTINGS_MICROPHONE	@"x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
@@ -70,6 +72,21 @@
 							  "Call self test: the local network appears blocked"));
 		[findings addObject:local];
 
+		[run askTheWorldThroughAPlainSocket:^(BOOL heard, NSString *detail) {
+			AIJingleCallFinding *plain = [[AIJingleCallFinding alloc] init];
+			plain.title = AILocalizedString(@"Network for this application",
+											"Call self test: whether the application may talk to the network at all");
+			plain.good = heard;
+			plain.fatal = YES;
+			plain.settingsURL = SETTINGS_NETWORK;
+			plain.detail = (heard ?
+				AILocalizedString(@"Adium reaches the world through a plain connection.",
+								  "Call self test: raw UDP works") :
+				AILocalizedString(@"Adium cannot reach the world even through a plain connection. The machine is keeping this application off the network.",
+								  "Call self test: raw UDP blocked"));
+			[findings addObject:plain];
+			AILogWithSignature(@"plain socket probe: %@", detail);
+
 		[run askTheWorldForOurAddress:^(BOOL sawAddress) {
 			AIJingleCallFinding *public = [[AIJingleCallFinding alloc] init];
 			public.title = AILocalizedString(@"Public address", "Call self test: learning the address the world sees");
@@ -86,6 +103,7 @@
 			dispatch_async(dispatch_get_main_queue(), ^{
 				completion(findings);
 			});
+		}];
 		}];
 	}];
 }
@@ -137,29 +155,103 @@
  */
 - (void)browseTheNeighbourhood:(void (^)(BOOL sawNeighbours))answer
 {
-	nw_browse_descriptor_t descriptor = nw_browse_descriptor_create_bonjour_service("_services._dns-sd._udp", "local");
-	nw_parameters_t parameters = nw_parameters_create_secure_udp(NW_PARAMETERS_DISABLE_PROTOCOL, NW_PARAMETERS_DEFAULT_CONFIGURATION);
-	nw_browser_t browser = nw_browser_create(descriptor, parameters);
-
+	/* Named services, never the meta query: asking for the list of service types
+	 * (_services._dns-sd._udp) answers nothing at all through this API, measured,
+	 * and would call every household empty. These four are what a home answers. */
+	NSArray<NSString *> *types = @[@"_companion-link._tcp", @"_airplay._tcp",
+								   @"_raop._tcp", @"_ipp._tcp"];
+	NSMutableArray<nw_browser_t> *browsers = [NSMutableArray array];
 	__block BOOL answered = NO;
-	__block BOOL sawSomething = NO;
+	__block NSInteger seen = 0;
+
 	void (^finish)(void) = ^{
 		if (answered)
 			return;
 		answered = YES;
-		nw_browser_cancel(browser);
-		answer(sawSomething);
+		for (nw_browser_t browser in browsers)
+			nw_browser_cancel(browser);
+		answer(seen > 0);
 	};
 
-	nw_browser_set_queue(browser, dispatch_get_main_queue());
-	nw_browser_set_browse_results_changed_handler(browser, ^(nw_browse_result_t old, nw_browse_result_t new, bool complete) {
-		if (new)
-			sawSomething = YES;
-	});
-	nw_browser_start(browser);
+	for (NSString *type in types) {
+		nw_browse_descriptor_t descriptor =
+			nw_browse_descriptor_create_bonjour_service([type UTF8String], "local");
+		nw_parameters_t parameters = nw_parameters_create_secure_udp(NW_PARAMETERS_DISABLE_PROTOCOL,
+																	 NW_PARAMETERS_DEFAULT_CONFIGURATION);
+		nw_browser_t browser = nw_browser_create(descriptor, parameters);
+
+		nw_browser_set_queue(browser, dispatch_get_main_queue());
+		nw_browser_set_browse_results_changed_handler(browser, ^(nw_browse_result_t old, nw_browse_result_t new, bool complete) {
+			if (new)
+				seen++;
+		});
+		nw_browser_start(browser);
+		[browsers addObject:browser];
+	}
 
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(BONJOUR_SECONDS * NSEC_PER_SEC)),
 				   dispatch_get_main_queue(), finish);
+}
+
+/*!
+ * @brief Can this application talk UDP to the world at all, WebRTC aside?
+ *
+ * A STUN binding request written by hand and sent through a plain socket. It
+ * answers the one question that decides where to look next: an application that
+ * cannot do this is being kept off the network by the machine, while one that
+ * can, and still has calls that reach nobody, is failing somewhere in its own
+ * media stack.
+ */
+- (void)askTheWorldThroughAPlainSocket:(void (^)(BOOL answered, NSString *detail))answer
+{
+	dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+		struct addrinfo hints = { .ai_family = AF_INET, .ai_socktype = SOCK_DGRAM };
+		struct addrinfo *found = NULL;
+
+		if (getaddrinfo("stun.l.google.com", "19302", &hints, &found) != 0 || !found) {
+			dispatch_async(dispatch_get_main_queue(), ^{
+				answer(NO, @"name could not be looked up");
+			});
+			return;
+		}
+
+		int socketDescriptor = socket(AF_INET, SOCK_DGRAM, 0);
+		struct timeval timeout = { .tv_sec = 4 };
+		setsockopt(socketDescriptor, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+		//A binding request: type 0x0001, no attributes, the magic cookie and a transaction id
+		uint8_t request[20] = { 0x00, 0x01, 0x00, 0x00, 0x21, 0x12, 0xA4, 0x42 };
+		for (int index = 8; index < 20; index++)
+			request[index] = (uint8_t)arc4random_uniform(256);
+
+		ssize_t sent = sendto(socketDescriptor, request, sizeof(request), 0,
+							  found->ai_addr, found->ai_addrlen);
+		NSString *detail = nil;
+		BOOL heard = NO;
+
+		if (sent != (ssize_t)sizeof(request)) {
+			detail = [NSString stringWithFormat:@"sending failed (%s)", strerror(errno)];
+		} else {
+			uint8_t reply[512];
+			ssize_t received = recv(socketDescriptor, reply, sizeof(reply), 0);
+
+			if (received >= 20 && reply[0] == 0x01 && reply[1] == 0x01) {
+				heard = YES;
+				detail = @"a plain socket reaches the world";
+			} else if (received < 0) {
+				detail = [NSString stringWithFormat:@"nothing came back (%s)", strerror(errno)];
+			} else {
+				detail = @"something came back, but no binding answer";
+			}
+		}
+
+		close(socketDescriptor);
+		freeaddrinfo(found);
+
+		dispatch_async(dispatch_get_main_queue(), ^{
+			answer(heard, detail);
+		});
+	});
 }
 
 //Asking the world -------------------------------------------------------------------------------
