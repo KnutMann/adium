@@ -275,8 +275,19 @@
 	if (acceptWithCamera) {
 		[constraints addObject:[acceptWithCamera.trailingAnchor constraintEqualToAnchor:accept.leadingAnchor constant:-8.0]];
 		[constraints addObject:[acceptWithCamera.bottomAnchor constraintEqualToAnchor:content.bottomAnchor constant:-MARGIN]];
+		//Nothing held this off the button beside it, and in German it sat on top of it
+		[constraints addObject:[acceptWithCamera.leadingAnchor constraintGreaterThanOrEqualToAnchor:decline.trailingAnchor constant:12.0]];
+	} else {
+		[constraints addObject:[accept.leadingAnchor constraintGreaterThanOrEqualToAnchor:decline.trailingAnchor constant:12.0]];
 	}
+	[constraints addObject:[label.bottomAnchor constraintLessThanOrEqualToAnchor:accept.topAnchor constant:-MARGIN]];
 	[NSLayoutConstraint activateConstraints:constraints];
+
+	/* A window wide enough for whichever language is speaking. The words for
+	 * declining and answering differ in length from one to the next, and a panel
+	 * built to fit the English ones has them overlapping in German. */
+	NSSize wanted = [content fittingSize];
+	[panel setContentSize:NSMakeSize(MAX(wanted.width, RING_WIDTH), MAX(wanted.height, RING_HEIGHT))];
 
 	ringPanelsBySid[sid] = panel;
 	[panel center];
