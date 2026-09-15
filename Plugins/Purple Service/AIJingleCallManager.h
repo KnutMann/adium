@@ -43,6 +43,8 @@
 - (void)manager:(AIJingleCallManager *)manager callIsRinging:(AIJingleCallController *)controller;
 - (void)manager:(AIJingleCallManager *)manager callWasAnswered:(AIJingleCallController *)controller;
 - (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller;
+/*! @brief The other side turned its own microphone or camera off, or on again */
+- (void)manager:(AIJingleCallManager *)manager callPeerChangedWhatItSends:(AIJingleCallController *)controller;
 - (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller
 	endedWithReason:(NSString *)reason locally:(BOOL)locally;
 - (void)manager:(AIJingleCallManager *)manager call:(AIJingleCallController *)controller

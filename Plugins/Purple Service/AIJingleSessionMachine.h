@@ -38,6 +38,9 @@ typedef NS_ENUM(NSInteger, AIJingleCallState) {
 - (void)machine:(AIJingleSessionMachine *)machine applyRemoteSDP:(NSString *)sdp isOffer:(BOOL)isOffer;
 - (void)machine:(AIJingleSessionMachine *)machine addRemoteCandidateLine:(NSString *)line mid:(NSString *)mid;
 - (void)machine:(AIJingleSessionMachine *)machine endedWithReason:(NSString *)reason locally:(BOOL)locally;
+@optional
+/*! @brief The peer silenced or unsilenced one of its own streams, named by its content */
+- (void)machine:(AIJingleSessionMachine *)machine peerMuted:(BOOL)muted content:(NSString *)name;
 @end
 
 /*!
@@ -84,6 +87,15 @@ typedef NS_ENUM(NSInteger, AIJingleCallState) {
 - (void)addLocalCandidateLine:(NSString *)line mid:(NSString *)mid;
 
 //Both sides: hang up (reason per XEP-0166, "success" for a normal end)
+/*!
+ * @brief Tell the peer that one of our streams has gone quiet, or speaks again
+ *
+ * XEP-0167's session-info. The other side keeps receiving the stream either way;
+ * this only says what is in it, so their window can show a crossed-out microphone
+ * instead of wondering why nobody is talking.
+ */
+- (void)tellPeerMuted:(BOOL)muted content:(NSString *)name;
+
 - (void)hangUpWithReason:(NSString *)reason;
 
 /*!

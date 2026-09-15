@@ -31,6 +31,8 @@
 @optional
 /*! @brief The peer's video is decodable; hand the track to whoever wants to draw it */
 - (void)callController:(AIJingleCallController *)controller hasRemoteVideoTrack:(RTCVideoTrack *)track;
+/*! @brief The peer turned its own microphone or camera off, or on again */
+- (void)callControllerPeerChangedWhatItSends:(AIJingleCallController *)controller;
 @end
 
 /*!
@@ -76,6 +78,15 @@
 - (id)initAsInitiatorFrom:(NSString *)localJid to:(NSString *)peerJid;
 - (id)initAsResponderFrom:(NSString *)localJid to:(NSString *)peerJid sid:(NSString *)sid;
 
+/*!
+ * @brief Initiator only: build the connection and start looking, before it rings
+ *
+ * Optional, and worth it: the addresses and the relay sign-in then happen while
+ * the other person's phone is still ringing rather than after they pick up. The
+ * camera stays dark until start.
+ */
+- (void)prepare;
+
 /*! @brief Initiator only: build the connection, offer, and send session-initiate */
 - (void)start;
 
@@ -83,5 +94,18 @@
 - (void)handleRemoteJingleElement:(NSString *)jingleXML;
 
 - (void)hangUpWithReason:(NSString *)reason;
+
+//What goes out of here --------------------------------------------------------------------------
+#pragma mark What goes out of here
+
+/*! @brief Our microphone carries nothing while this is on, and the peer is told */
+@property (nonatomic) BOOL microphoneMuted;
+
+/*! @brief Our camera carries nothing while this is on, and the peer is told */
+@property (nonatomic) BOOL cameraOff;
+
+/*! @brief What the peer said about its own microphone and camera */
+@property (nonatomic, readonly) BOOL peerMicrophoneMuted;
+@property (nonatomic, readonly) BOOL peerCameraOff;
 
 @end

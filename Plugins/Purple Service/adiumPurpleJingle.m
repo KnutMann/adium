@@ -28,9 +28,6 @@
  * highest-priority listener is the protocol's own sender.
  */
 
-#define NS_JINGLE "urn:xmpp:jingle:1"
-#define NS_JINGLE_MESSAGE "urn:xmpp:jingle-message:0"
-#define NS_JINGLE_RTP "urn:xmpp:jingle:apps:rtp:1"
 #define NS_HINTS "urn:xmpp:hints"
 
 //Internal to the jabber protocol, but compiled into the same libpurple we ship
@@ -76,6 +73,44 @@ static gboolean jingle_handle_message(PurpleConnection *gc, xmlnode *message)
 	const char *sid = xmlnode_get_attrib(child, "id");
 	if (!from || !sid)
 		return FALSE;
+
+	/* A ring is only worth anything while it is still ringing.
+	 *
+	 * Our own proposal carries a store hint, because a call should reach a phone
+	 * that was briefly offline, and every other client does the same. The price is
+	 * that the server keeps it and hands it over at the next login, which is how
+	 * Adium came up asking whether to take a call that had ended hours before.
+	 * Anything the server held back says so with a stamp, so a proposal wearing one
+	 * is old news and is let through to nobody. The other kinds are harmless: they
+	 * name a session that no longer exists here and are dropped anyway. */
+	if (!strcmp(kind, "propose") &&
+		xmlnode_get_child_with_namespace(message, "delay", "urn:xmpp:delay")) {
+		purple_debug_info("jingle", "ignoring a stored call proposal, it is not ringing any more\n");
+		return FALSE;
+	}
+
+	/* And a proposal of our OWN is not somebody calling us. It comes back as a
+	 * carbon to our other devices, and after a restart that copy can arrive looking
+	 * exactly like an incoming call from ourselves. */
+	PurpleAccount *purpleAccount = purple_connection_get_account(gc);
+	const char *ours = (purpleAccount ? purple_account_get_username(purpleAccount) : NULL);
+	if (ours && !strcmp(kind, "propose")) {
+		//Both sides without their resource; the account's own name carries one too
+		char *theirs = g_strdup(from), *mine = g_strdup(ours);
+		char *slash = strchr(theirs, '/');
+		if (slash) *slash = '\0';
+		slash = strchr(mine, '/');
+		if (slash) *slash = '\0';
+
+		gboolean fromOurselves = !g_ascii_strcasecmp(theirs, mine);
+		g_free(theirs);
+		g_free(mine);
+
+		if (fromOurselves) {
+			purple_debug_info("jingle", "ignoring our own call proposal coming back to us\n");
+			return FALSE;
+		}
+	}
 
 	//A propose says what it offers; anything with a video description rings as a video call
 	BOOL offersVideo = NO;
@@ -260,8 +295,8 @@ void configureAdiumPurpleJingle(void)
 	jabber_add_feature(NS_JINGLE_MESSAGE, NULL);
 	jabber_add_feature(NS_JINGLE_RTP, NULL);
 	jabber_add_feature("urn:xmpp:jingle:apps:rtp:audio", NULL);
-	jabber_add_feature("urn:xmpp:jingle:apps:rtp:video", NULL);
-	jabber_add_feature("urn:xmpp:jingle:transports:ice-udp:1", NULL);
+	jabber_add_feature(NS_JINGLE_VIDEO, NULL);
+	jabber_add_feature(NS_JINGLE_ICE_UDP, NULL);
 	jabber_add_feature("urn:xmpp:jingle:apps:dtls:0", NULL);
 
 	purple_signal_connect(purple_connections_get_handle(), "signed-on", &adium_purple_jingle_handle,

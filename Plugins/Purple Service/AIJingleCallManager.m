@@ -356,15 +356,49 @@ static BOOL elementOffersVideo(NSString *jingleXML)
 
 	[self.uiDelegate manager:self callBegan:controller onAccount:account];
 
+	/* Start looking for addresses now, not when they pick up. Everything a call
+	 * needs from the network, the public address and the sign-in at a relay, takes
+	 * a few hundred milliseconds that may as well be spent while it rings. */
+	[controller prepare];
+
 	/* Ring first (XEP-0353): the proposal goes to every device behind the bare JID,
 	 * and whoever answers with a proceed is whom the session then belongs to. A peer
 	 * that never says anything gets the session offered directly after a while, for
-	 * the clients that never learned the ringing language. */
-	AIJingleOutgoingProposal *proposal = [[AIJingleOutgoingProposal alloc] init];
+	 * the clients that never learned the ringing language.
+	 *
+	 * Unless it has already told us it never learned it. Then the wait is ten
+	 * seconds of nothing for a question we know the answer to, and the session goes
+	 * out straight away instead. And where nobody has told us anything, the wait is
+	 * shorter rather than long: a client that speaks this language answers with a
+	 * ringing at once, ours within a tenth of a second.
+	 *
+	 * Five seconds and not two, because the two mistakes cost very different
+	 * things. Waiting too long is invisible, our own window says it is calling
+	 * anyway. Giving up too early withdraws a ring that was already sounding on
+	 * somebody's phone and rings again on one device instead of all of them, and a
+	 * phone whose radio was asleep can easily take a second or two to answer. Note
+	 * also that not knowing can be permanent: a resource whose abilities could not
+	 * be fetched stays unknown for as long as it is signed in, so this is not a
+	 * rare case to be optimised for. */
 	NSRange slash = [peerJid rangeOfString:@"/"];
-	proposal.bareJid = (slash.location == NSNotFound ? peerJid : [peerJid substringToIndex:slash.location]);
+	NSString *bareJid = (slash.location == NSNotFound ? peerJid : [peerJid substringToIndex:slash.location]);
+	AIListContact *contact = [account contactWithUID:bareJid];
+
+	if (contact && [self contact:contact isKnownUnableTo:NS_JINGLE_MESSAGE]) {
+		AILog(@"Jingle: %@ cannot be rung the modern way, offering the session directly", bareJid);
+		NSString *fullJid = [self fullJidForContact:contact] ?: peerJid;
+		controller.peerFullJid = fullJid;
+		[controller start];
+		return controller;
+	}
+
+	AIJingleOutgoingProposal *proposal = [[AIJingleOutgoingProposal alloc] init];
+	proposal.bareJid = bareJid;
 	proposal.video = withVideo;
-	proposal.fallbackTimer = [NSTimer scheduledTimerWithTimeInterval:10.0
+
+	BOOL knownToRing = (contact && ![self contact:contact isKnownUnableTo:NS_JINGLE_MESSAGE] &&
+						[self resourceOfContact:contact ableTo:NS_JINGLE_MESSAGE] != NULL);
+	proposal.fallbackTimer = [NSTimer scheduledTimerWithTimeInterval:(knownToRing ? 10.0 : 5.0)
 															  target:self
 															selector:@selector(proposalWentUnanswered:)
 															userInfo:sid
@@ -395,7 +429,7 @@ static BOOL elementOffersVideo(NSString *jingleXML)
 	adiumPurpleJingleSendMessage(account, proposal.bareJid, @"retract", sid, NO, NO);
 
 	AIListContact *contact = [account contactWithUID:proposal.bareJid];
-	NSString *fullJid = (contact ? [self fullJidForContact:contact] : nil);
+	NSString *fullJid = (contact ? [self jidToCallForContact:contact withVideo:proposal.video] : nil);
 
 	if (![fullJid length]) {
 		[controller.machine abandonWithReason:@"connectivity-error" locally:YES];
@@ -415,21 +449,119 @@ static BOOL elementOffersVideo(NSString *jingleXML)
  */
 - (NSString *)fullJidForContact:(AIListContact *)contact
 {
-	CBPurpleAccount *adiumAccount = (CBPurpleAccount *)contact.account;
-	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
-	PurpleConnection *gc = (account ? purple_account_get_connection(account) : NULL);
-
-	if (!gc || !PURPLE_CONNECTION_IS_CONNECTED(gc))
-		return nil;
-
-	JabberStream *js = gc->proto_data;
-	JabberBuddy *jb = (js ? jabber_buddy_find(js, [contact.UID UTF8String], FALSE) : NULL);
-	JabberBuddyResource *jbr = (jb ? jabber_buddy_find_resource(jb, NULL) : NULL);
+	JabberBuddyResource *jbr = [self resourceOfContact:contact ableTo:NULL];
 
 	if (!jbr || !jbr->name || !*jbr->name)
 		return nil;
 
 	return [NSString stringWithFormat:@"%@/%s", contact.UID, jbr->name];
+}
+
+/*!
+ * @brief Which of a contact's devices to ring directly
+ *
+ * The one a message would go to, unless this is a call with pictures and that one
+ * has said it has no use for them while another device has. A phone held high in
+ * the priority list wins every message and would otherwise also win the video
+ * call that the desktop next to it could actually take.
+ */
+- (NSString *)jidToCallForContact:(AIListContact *)contact withVideo:(BOOL)withVideo
+{
+	JabberBuddyResource *jbr = NULL;
+
+	if (withVideo) {
+		jbr = [self resourceOfContact:contact ableTo:NS_JINGLE_VIDEO];
+		if (jbr)
+			AILog(@"Jingle: calling %@/%s, the device that says it can do pictures",
+				  contact.UID, jbr->name);
+	}
+	if (!jbr)
+		jbr = [self resourceOfContact:contact ableTo:NULL];
+
+	if (!jbr || !jbr->name || !*jbr->name)
+		return nil;
+
+	return [NSString stringWithFormat:@"%@/%s", contact.UID, jbr->name];
+}
+
+//What the other side can ------------------------------------------------------------------------
+#pragma mark What the other side can
+
+/*!
+ * @brief The best resource of a contact, optionally one that can a given thing
+ *
+ * The resource list is already sorted by how good a target each one is, so the
+ * first that fits is the best that fits. A contact whose phone answers messages
+ * first but whose desktop is the one with a camera would otherwise lose the video
+ * call it could perfectly well have.
+ *
+ * Asking for nothing (NULL) gives the head of the list, which is where a message
+ * would go.
+ */
+- (JabberBuddyResource *)resourceOfContact:(AIListContact *)contact ableTo:(const char *)capability
+{
+	CBPurpleAccount *adiumAccount = (CBPurpleAccount *)contact.account;
+	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
+	PurpleConnection *gc = (account ? purple_account_get_connection(account) : NULL);
+
+	if (!gc || !PURPLE_CONNECTION_IS_CONNECTED(gc))
+		return NULL;
+
+	JabberStream *js = gc->proto_data;
+	JabberBuddy *jb = (js ? jabber_buddy_find(js, [contact.UID UTF8String], FALSE) : NULL);
+	if (!jb)
+		return NULL;
+
+	if (!capability)
+		return jabber_buddy_find_resource(jb, NULL);
+
+	for (GList *each = jb->resources; each; each = each->next) {
+		JabberBuddyResource *jbr = each->data;
+		if (jbr && jbr->caps.info && jabber_resource_has_capability(jbr, capability))
+			return jbr;
+	}
+	return NULL;
+}
+
+/*!
+ * @brief Do we KNOW that this contact cannot do something?
+ *
+ * Three answers live in a question with two, and telling them apart is the whole
+ * point. libpurple's own answer is FALSE both for "cannot" and for "nobody has
+ * told us yet", and the second happens exactly in the seconds after a contact
+ * appears in the list, which is when somebody clicks. So knowing nothing is never
+ * a refusal here: only a resource that has told us its abilities, and does not
+ * name this one, counts as a no. Every other case is tried, blind and generous,
+ * the way it has always been.
+ *
+ * This is libpurple's house rule, written the same way four times over in
+ * message.c and buddy.c for XHTML, receipts, chat markers and entity time.
+ */
+- (BOOL)contact:(AIListContact *)contact isKnownUnableTo:(const char *)capability
+{
+	CBPurpleAccount *adiumAccount = (CBPurpleAccount *)contact.account;
+	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
+	PurpleConnection *gc = (account ? purple_account_get_connection(account) : NULL);
+
+	if (!gc || !PURPLE_CONNECTION_IS_CONNECTED(gc))
+		return NO;
+
+	JabberStream *js = gc->proto_data;
+	JabberBuddy *jb = (js ? jabber_buddy_find(js, [contact.UID UTF8String], FALSE) : NULL);
+	if (!jb)
+		return NO;
+
+	BOOL anybodySaid = NO;
+	for (GList *each = jb->resources; each; each = each->next) {
+		JabberBuddyResource *jbr = each->data;
+		if (!jbr || !jbr->caps.info)
+			continue;			//this one has not told us anything yet
+		anybodySaid = YES;
+		if (jabber_resource_has_capability(jbr, capability))
+			return NO;			//one that can is enough
+	}
+
+	return anybodySaid;			//somebody told us, and none of them can
 }
 
 //What a call reports ----------------------------------------------------------------------------
@@ -458,6 +590,11 @@ static BOOL elementOffersVideo(NSString *jingleXML)
 - (void)callControllerWasAnswered:(AIJingleCallController *)controller
 {
 	[self.uiDelegate manager:self callWasAnswered:controller];
+}
+
+- (void)callControllerPeerChangedWhatItSends:(AIJingleCallController *)controller
+{
+	[self.uiDelegate manager:self callPeerChangedWhatItSends:controller];
 }
 
 - (void)callControllerConnected:(AIJingleCallController *)controller

@@ -16,6 +16,14 @@
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
+/* The words a call is spelled in, shared because whoever asks what the other side
+ * can must ask with exactly the words we announce ourselves */
+#define NS_JINGLE			"urn:xmpp:jingle:1"
+#define NS_JINGLE_MESSAGE	"urn:xmpp:jingle-message:0"
+#define NS_JINGLE_RTP		"urn:xmpp:jingle:apps:rtp:1"
+#define NS_JINGLE_VIDEO		"urn:xmpp:jingle:apps:rtp:video"
+#define NS_JINGLE_ICE_UDP	"urn:xmpp:jingle:transports:ice-udp:1"
+
 /*!
  * @brief What a call manager must offer to receive the stream's Jingle traffic
  *

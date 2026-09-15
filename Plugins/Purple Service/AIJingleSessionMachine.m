@@ -101,6 +101,13 @@
 	remoteDescriptionApplied = YES;		//the initiate is the remote description
 
 	[self.delegate machine:self applyRemoteSDP:[remote sdpString] isOffer:YES];
+
+	/* A candidate can arrive before the offer it belongs to, and one that did was
+	 * queued here and then left lying: every later candidate takes the direct road
+	 * now that the description stands, so nothing ever came back for it. The
+	 * answering side has the same queue as the calling side and needs the same
+	 * emptying. */
+	[self flushQueuedCandidates];
 }
 
 - (void)acceptWithLocalAnswerSDP:(NSString *)answerSDP
@@ -180,6 +187,24 @@ static NSXMLElement *jingleRootElement(NSString *jingleXML)
 			}
 		}
 
+	} else if ([action isEqualToString:@"session-info"]) {
+		/* XEP-0167 says it in the element's own name, and names the content it is
+		 * about. Anything else in here, ringing and the active marker among them,
+		 * is news we have no use for. */
+		for (NSXMLNode *child in [jingle children]) {
+			if ([child kind] != NSXMLElementKind)
+				continue;
+
+			NSString *what = [child name];
+			BOOL muted = [what isEqualToString:@"mute"];
+			if (!muted && ![what isEqualToString:@"unmute"])
+				continue;
+
+			NSString *name = [[(NSXMLElement *)child attributeForName:@"name"] stringValue];
+			if ([self.delegate respondsToSelector:@selector(machine:peerMuted:content:)])
+				[self.delegate machine:self peerMuted:muted content:name];
+		}
+
 	} else if ([action isEqualToString:@"session-terminate"]) {
 		//The first element inside <reason> names it
 		NSString *reason = @"gone";
@@ -242,6 +267,38 @@ static NSXMLElement *jingleRootElement(NSString *jingleXML)
 											asInitiator:self.isInitiator]];
 }
 
+//Saying what is in a stream ---------------------------------------------------------------------
+#pragma mark Saying what is in a stream
+
+/*!
+ * @brief Text that cannot break out of the attribute it is written into
+ *
+ * The sid and the content names are the peer's words on the answering side, and
+ * these elements are written by hand rather than built as a document.
+ */
+- (NSString *)escapedForAnAttribute:(NSString *)text
+{
+	NSMutableString *safe = [(text ?: @"") mutableCopy];
+	[safe replaceOccurrencesOfString:@"&" withString:@"&amp;" options:NSLiteralSearch range:NSMakeRange(0, [safe length])];
+	[safe replaceOccurrencesOfString:@"<" withString:@"&lt;" options:NSLiteralSearch range:NSMakeRange(0, [safe length])];
+	[safe replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:NSLiteralSearch range:NSMakeRange(0, [safe length])];
+	return safe;
+}
+
+- (void)tellPeerMuted:(BOOL)muted content:(NSString *)name
+{
+	if (self.state != AIJingleCallStateActive || ![name length])
+		return;
+
+	NSString *info = [NSString stringWithFormat:
+		@"<jingle xmlns=\"urn:xmpp:jingle:1\" action=\"session-info\" sid=\"%@\">"
+		@"<%@ xmlns=\"urn:xmpp:jingle:apps:rtp:info:1\" creator=\"%@\" name=\"%@\"/></jingle>",
+		[self escapedForAnAttribute:self.sid], (muted ? @"mute" : @"unmute"),
+		(self.isInitiator ? @"initiator" : @"responder"), [self escapedForAnAttribute:name]];
+
+	[self.delegate machine:self sendJingleElement:info];
+}
+
 //Ending -----------------------------------------------------------------------------------------
 #pragma mark Ending
 
@@ -251,12 +308,7 @@ static NSXMLElement *jingleRootElement(NSString *jingleXML)
 		return;
 
 	NSString *why = ([reason length] ? reason : @"success");
-
-	//The sid can be the peer's words (responder side); it must not break out of the attribute
-	NSMutableString *safeSid = [(self.sid ?: @"") mutableCopy];
-	[safeSid replaceOccurrencesOfString:@"&" withString:@"&amp;" options:NSLiteralSearch range:NSMakeRange(0, [safeSid length])];
-	[safeSid replaceOccurrencesOfString:@"<" withString:@"&lt;" options:NSLiteralSearch range:NSMakeRange(0, [safeSid length])];
-	[safeSid replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:NSLiteralSearch range:NSMakeRange(0, [safeSid length])];
+	NSString *safeSid = [self escapedForAnAttribute:self.sid];
 
 	NSString *terminate = [NSString stringWithFormat:
 		@"<jingle xmlns=\"urn:xmpp:jingle:1\" action=\"session-terminate\" sid=\"%@\">"

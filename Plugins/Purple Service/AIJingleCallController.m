@@ -37,6 +37,13 @@
 	NSMutableSet<NSString *> *milestonesSeen;
 	BOOL closed;
 	NSString *lastPairSnapshot;		//what the pairs looked like while they were still being tried
+	BOOL weHaveARelay;				//did gathering give us an address a relay carries
+	BOOL saidWeHaveNoRelay;
+	BOOL holdingTheCameraBack;		//gathering early, but nobody is being looked at yet
+	BOOL cameraRunning;
+	BOOL restoreFollowing;			//we changed the camera's following and owe it back
+	BOOL followingWasOn;
+	AVCaptureCenterStageControlMode formerFollowingControl API_AVAILABLE(macos(12.3));
 }
 
 + (RTCPeerConnectionFactory *)factory
@@ -88,12 +95,57 @@
 	RTCConfiguration *configuration = [[RTCConfiguration alloc] init];
 	configuration.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
 
+	/* Jingle's ice-udp carries UDP and nothing else, so a TCP candidate is a
+	 * candidate nobody on the other end can read. Measured against a phone: two of
+	 * the six addresses we offered were TCP, each cost its own stanza, and the
+	 * peer's parser throws every one of them away unread. Conversations refuses
+	 * them by name, and so does every other client that speaks XEP-0176. */
+	configuration.tcpCandidatePolicy = RTCTcpCandidatePolicyDisabled;
+
+	/* We trickle, so we keep looking. Gathering once is right for a client that
+	 * sends its whole list at once and then stops talking; ours sends each address
+	 * the moment it has it, and a network that changes mid-call, a phone leaving
+	 * the flat, is exactly when a fresh address is worth having. */
+	configuration.continualGatheringPolicy = RTCContinualGatheringPolicyGatherContinually;
+
+	/* Look for addresses while it is still ringing, so the first sentence we send
+	 * already says where we live.
+	 *
+	 * Measured, and the numbers are worth keeping because they are not obvious.
+	 * A pool opens its ports two milliseconds after the connection is built, asks
+	 * the STUN server and signs in at the relay, all within about fifty
+	 * milliseconds, long before any offer exists. What it does NOT do is hand any
+	 * of that over: the addresses appear only when the local description is set.
+	 * Reading them inside that completion block gives nothing at all, every single
+	 * time, with pool or without, even after waiting five seconds. Read one turn of
+	 * the run loop later and they are all there.
+	 *
+	 * So three things have to be true together, and any one of them alone gives
+	 * nothing: a pool, time before the offer, and reading a tick afterwards. With
+	 * all three the session-initiate carries six addresses out of six instead of
+	 * none, and the relay is already signed in when the other person picks up.
+	 * Three rather than one, because one only covered one of this machine's two
+	 * network interfaces. */
+	configuration.iceCandidatePoolSize = 3;
+
 	//Whatever XEP-0215 offered
 	NSMutableArray<RTCIceServer *> *iceServers = [NSMutableArray array];
 	for (NSDictionary *entry in self.iceServerDictionaries) {
 		NSString *url = entry[@"urls"];
 		if (![url length])
 			continue;
+
+		/* TRAP, and it takes the whole call with it: a relay address without a
+		 * name and a password is one WebRTC refuses to read, and it does not
+		 * refuse just that address, it refuses to build the connection at all and
+		 * hands back nothing. Every later step then waits on a connection that was
+		 * never made, so the call neither rings nor fails nor says why. A relay
+		 * nobody gave us the keys to is no relay; it is left out here. */
+		if ([url hasPrefix:@"turn"] && !([entry[@"username"] length] && [entry[@"credential"] length])) {
+			AILogWithSignature(@"leaving out %@, it was announced without a name and a password", url);
+			continue;
+		}
+
 		[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[url]
 															  username:(entry[@"username"] ?: @"")
 															credential:(entry[@"credential"] ?: @"")]];
@@ -126,6 +178,32 @@
 	for (NSString *url in fallback)
 		[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[url]]];
 
+	/* A relay of our own, when the account's host has none that works.
+	 *
+	 * A STUN server tells us our address; a relay carries the call when no pair of
+	 * addresses can reach each other. Measured against a phone in the same flat:
+	 * both sides sat behind one router, the short way between them carried nothing,
+	 * this side had no relay at all because the host announces one that answers
+	 * nothing, and so the whole call had to wait for the OTHER side's relay to be
+	 * tried. That wait was nine seconds of a silent window.
+	 *
+	 * There is no public relay worth naming here, because carrying somebody else's
+	 * call costs real money and every free one is either gone or a trap. So this
+	 * stays empty unless somebody fills it: each entry is a dictionary with urls,
+	 * username and credential, written into AIJingleTURNServers. */
+	for (NSDictionary *entry in [[NSUserDefaults standardUserDefaults] arrayForKey:@"AIJingleTURNServers"]) {
+		if (![entry isKindOfClass:[NSDictionary class]] || ![entry[@"urls"] length])
+			continue;
+		if (![entry[@"username"] length] || ![entry[@"credential"] length]) {
+			AILogWithSignature(@"leaving out %@, it was written down without a name and a password",
+							   entry[@"urls"]);
+			continue;
+		}
+		[iceServers addObject:[[RTCIceServer alloc] initWithURLStrings:@[entry[@"urls"]]
+															 username:entry[@"username"]
+														   credential:entry[@"credential"]]];
+	}
+
 	AILogWithSignature(@"call %@ uses %lu ICE servers", self.machine.sid, (unsigned long)[iceServers count]);
 	configuration.iceServers = iceServers;
 
@@ -135,10 +213,24 @@
 																				constraints:none
 																				   delegate:self];
 
+	/* And if none was built, say so and end it. Everything below and after assumes
+	 * a connection exists; without one the offer's completion block is never
+	 * called, so the call would sit there forever, silent, with nothing in the log
+	 * and no terminate for the other side either. */
+	if (!self.peerConnection) {
+		AILogWithSignature(@"call %@ got no connection out of WebRTC; one of the ICE servers "
+						   @"cannot be read", self.machine.sid);
+		[self failWith:@"failed-application"];
+		return;
+	}
+
 	if (self.wantsAudio) {
 		RTCAudioSource *audioSource = [[AIJingleCallController factory] audioSourceWithConstraints:none];
 		RTCAudioTrack *audioTrack = [[AIJingleCallController factory] audioTrackWithSource:audioSource
 																				   trackId:@"audio0"];
+		/* Somebody may have pressed the switch while it was still ringing, before
+		 * any of this existed. What they asked for then still counts now. */
+		audioTrack.isEnabled = !self.microphoneMuted;
 		[self.peerConnection addTrack:audioTrack streamIds:@[@"adium"]];
 	}
 
@@ -154,42 +246,133 @@
 		cameraCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:cameraSource];
 		self.localVideoTrack = [[AIJingleCallController factory] videoTrackWithSource:cameraSource
 																			  trackId:@"video0"];
+		self.localVideoTrack.isEnabled = !self.cameraOff;
 		[self.peerConnection addTrack:self.localVideoTrack streamIds:@[@"adium"]];
-		[self startCamera];
+		if (!holdingTheCameraBack)
+			[self startCamera];
 	}
+}
+
+/*!
+ * @brief Build everything the call needs, but do not look at anybody yet
+ *
+ * Called while it still rings over there. The connection comes up and starts
+ * looking for addresses, which is the whole point, but the camera stays dark: a
+ * light that goes on before the other person has even answered is a promise
+ * nobody made.
+ */
+- (void)prepare
+{
+	holdingTheCameraBack = YES;
+	[self ensurePeerConnection];
+	holdingTheCameraBack = NO;
 }
 
 /*!
  * @brief Start the default camera at a modest format
  *
  * 640x480 around 30 frames is what a chat window needs; the closest format the
- * device offers wins. macOS asks the person for the camera the first time.
+ * device offers wins, and among equally close ones a format that can follow the
+ * person wins. macOS asks the person for the camera the first time.
  */
 - (void)startCamera
 {
+	if (cameraRunning)
+		return;
+
 	AVCaptureDevice *device = [[RTCCameraVideoCapturer captureDevices] firstObject];
 	if (!device)
 		return;
 
+	BOOL wantsFollowing = [self shouldFollowThePerson];
+
 	AVCaptureDeviceFormat *chosenFormat = nil;
 	int32_t chosenDelta = INT32_MAX;
+	BOOL chosenCanFollow = NO;
 	for (AVCaptureDeviceFormat *format in [RTCCameraVideoCapturer supportedFormatsForDevice:device]) {
 		CMVideoDimensions size = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
 		int32_t delta = abs(size.width - 640) + abs(size.height - 480);
-		if (delta < chosenDelta) {
+		BOOL canFollow = NO;
+		if (@available(macOS 12.3, *))
+			canFollow = [format isCenterStageSupported];
+
+		/* Closest to what a chat window needs, and among ties the one that can
+		 * follow: turning the following on over a format that cannot do it is an
+		 * exception, not a refusal. */
+		BOOL better = (delta < chosenDelta) ||
+					  (delta == chosenDelta && wantsFollowing && canFollow && !chosenCanFollow);
+		if (better) {
 			chosenDelta = delta;
 			chosenFormat = format;
+			chosenCanFollow = canFollow;
 		}
 	}
 	if (!chosenFormat)
 		return;
 
+	[self letTheCameraFollow:(wantsFollowing && chosenCanFollow)];
+
 	Float64 fps = 30;
 	for (AVFrameRateRange *range in chosenFormat.videoSupportedFrameRateRanges)
 		fps = MIN(30, MAX(fps, range.maxFrameRate));
 
+	cameraRunning = YES;
 	[cameraCapturer startCaptureWithDevice:device format:chosenFormat fps:(NSInteger)fps];
 	[self noteMilestone:@"camera asked to start"];
+}
+
+/*! @brief Does the person want the camera to follow them? Yes, unless they said otherwise */
+- (BOOL)shouldFollowThePerson
+{
+	NSNumber *asked = [[NSUserDefaults standardUserDefaults] objectForKey:@"AIJingleFollowThePerson"];
+	return (asked ? [asked boolValue] : YES);
+}
+
+/*!
+ * @brief Keep the person in the middle of their own picture
+ *
+ * macOS can crop and pan the camera's picture so that whoever is in front of it
+ * stays centred while they move, which is the thing everyone else's video calls
+ * do and ours did not. Whether the hardware can do it at all is a question of the
+ * camera and of the format, so it is asked rather than assumed.
+ *
+ * TRAP: the enabling flag belongs to the person, not to us, and setting it while
+ * the control is theirs alone throws rather than refuses. So the control is moved
+ * to shared first, which leaves them the switch in the control centre, and what
+ * we found is put back when the call ends unless they changed it meanwhile.
+ */
+- (void)letTheCameraFollow:(BOOL)following
+{
+	if (@available(macOS 12.3, *)) {
+		if (!following)
+			return;
+
+		if (!restoreFollowing) {
+			followingWasOn = [AVCaptureDevice isCenterStageEnabled];
+			formerFollowingControl = [AVCaptureDevice centerStageControlMode];
+			restoreFollowing = YES;
+		}
+
+		[AVCaptureDevice setCenterStageControlMode:AVCaptureCenterStageControlModeCooperative];
+		[AVCaptureDevice setCenterStageEnabled:YES];
+		AILogWithSignature(@"the camera will follow the person (it was %@ before)",
+						   followingWasOn ? @"already on" : @"off");
+	}
+}
+
+/*! @brief Give the following back to the person as we found it */
+- (void)stopFollowing
+{
+	if (@available(macOS 12.3, *)) {
+		if (!restoreFollowing)
+			return;
+		restoreFollowing = NO;
+
+		//Only if it is still ours to give back; they may have changed it themselves
+		if ([AVCaptureDevice isCenterStageEnabled] && !followingWasOn)
+			[AVCaptureDevice setCenterStageEnabled:NO];
+		[AVCaptureDevice setCenterStageControlMode:formerFollowingControl];
+	}
 }
 
 - (void)startSyntheticFrames
@@ -226,6 +409,87 @@
 	dispatch_resume(syntheticTimer);
 }
 
+//Turning our own things off ---------------------------------------------------------------------
+#pragma mark Turning our own things off
+
+/*!
+ * @brief Which of our streams carries a kind of media, in the words the session uses
+ *
+ * The mid of the transceiver that sends it, which is what the peer's session knows
+ * this content by. Found rather than assumed, because a session with only video
+ * does not put video second.
+ *
+ * TRAP, the same one that once cost an evening of black pictures: asking a sender
+ * or a receiver for its track hands back a NEW wrapper around the same native
+ * track every single time, so comparing two of them by identity is always false.
+ * The kind of media is asked of the transceiver instead, which knows it directly.
+ */
+- (NSString *)contentNameCarrying:(RTCRtpMediaType)kind
+{
+	for (RTCRtpTransceiver *transceiver in self.peerConnection.transceivers)
+		if (transceiver.mediaType == kind && [transceiver.mid length])
+			return transceiver.mid;
+	return nil;
+}
+
+- (void)setMicrophoneMuted:(BOOL)muted
+{
+	if (_microphoneMuted == muted)
+		return;
+	_microphoneMuted = muted;
+
+	for (RTCRtpSender *sender in self.peerConnection.senders)
+		if ([sender.track isKindOfClass:[RTCAudioTrack class]])
+			sender.track.isEnabled = !muted;
+
+	[self.machine tellPeerMuted:muted content:[self contentNameCarrying:RTCRtpMediaTypeAudio]];
+	AILogWithSignature(@"microphone %@", muted ? @"off" : @"on");
+}
+
+- (void)setCameraOff:(BOOL)off
+{
+	if (_cameraOff == off)
+		return;
+	_cameraOff = off;
+
+	/* The track is silenced rather than the camera stopped: stopping would give the
+	 * light back but also tear down the capture, and turning it on again takes long
+	 * enough to be noticed. A disabled track sends black, and the light stays on,
+	 * which is honest about the camera still being open. */
+	self.localVideoTrack.isEnabled = !off;
+	[self.machine tellPeerMuted:off content:[self contentNameCarrying:RTCRtpMediaTypeVideo]];
+
+	AILogWithSignature(@"camera %@", off ? @"off" : @"on");
+}
+
+- (void)machine:(AIJingleSessionMachine *)machine peerMuted:(BOOL)muted content:(NSString *)name
+{
+	/* The content's name says which of the two it is. A peer that names neither is
+	 * talking about its only stream, and a call with a camera has two. */
+	BOOL aboutVideo = ([name rangeOfString:@"video" options:NSCaseInsensitiveSearch].location != NSNotFound);
+	BOOL aboutAudio = ([name rangeOfString:@"audio" options:NSCaseInsensitiveSearch].location != NSNotFound);
+
+	if (!aboutVideo && !aboutAudio) {
+		//Numbered contents (0, 1) carry no meaning in their name; ask the session
+		for (RTCRtpTransceiver *transceiver in self.peerConnection.transceivers) {
+			if (![transceiver.mid isEqualToString:name])
+				continue;
+			aboutVideo = (transceiver.mediaType == RTCRtpMediaTypeVideo);
+			aboutAudio = (transceiver.mediaType == RTCRtpMediaTypeAudio);
+		}
+	}
+
+	if (aboutVideo)
+		_peerCameraOff = muted;
+	if (aboutAudio)
+		_peerMicrophoneMuted = muted;
+
+	AILogWithSignature(@"the peer's %@ is %@", name, muted ? @"off" : @"on");
+
+	if ([self.delegate respondsToSelector:@selector(callControllerPeerChangedWhatItSends:)])
+		[self.delegate callControllerPeerChangedWhatItSends:self];
+}
+
 - (void)close
 {
 	if (closed)
@@ -238,6 +502,7 @@
 	}
 	[cameraCapturer stopCapture];
 	cameraCapturer = nil;
+	[self stopFollowing];
 	[self.peerConnection close];
 }
 
@@ -247,6 +512,10 @@
 - (void)start
 {
 	[self ensurePeerConnection];
+
+	//Whatever was held back while it rang happens now
+	if (self.wantsVideo && !self.usesSyntheticVideo)
+		[self startCamera];
 
 	RTCMediaConstraints *none = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:@{}
 																	  optionalConstraints:@{}];
@@ -265,11 +534,48 @@
 					if (localError)
 						[weakSelf failWith:@"failed-application"];
 					else
-						[weakSelf.machine startWithLocalOfferSDP:offer.sdp];
+						[weakSelf withSettledSDP:offer then:^(NSString *sdp) {
+							[weakSelf.machine startWithLocalOfferSDP:sdp];
+						}];
 				});
 			}];
 		});
 	}];
+}
+
+/*!
+ * @brief The description once the addresses are in it, or after a short moment
+ *
+ * The text handed to the completion block was written before any address was
+ * known, and the connection needs a moment more to put them in, even when they
+ * were all found long ago: the handing over happens on another thread and is
+ * measurably not instant. Waiting for it is worth a few milliseconds, because
+ * everything named in the first sentence is something the other side can use at
+ * once, while everything sent afterwards may sit in a drawer until it has finished
+ * answering.
+ *
+ * So we look every few milliseconds and give up after a tenth of a second, which
+ * is both far longer than it takes when there is something to find and far too
+ * short for anybody to notice when there is not.
+ */
+- (void)withSettledSDP:(RTCSessionDescription *)given then:(void (^)(NSString *sdp))then
+{
+	NSDate *until = [NSDate dateWithTimeIntervalSinceNow:0.1];
+	__block __weak void (^lookAgain)(void) = nil;
+	void (^look)(void) = ^{
+		NSString *settled = self.peerConnection.localDescription.sdp;
+		BOOL anyAddresses = ([settled rangeOfString:@"a=candidate"].location != NSNotFound);
+
+		if (anyAddresses || [until timeIntervalSinceNow] <= 0) {
+			then([settled length] ? settled : given.sdp);
+			return;
+		}
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_MSEC)),
+					   dispatch_get_main_queue(), lookAgain);
+	};
+	void (^keptAlive)(void) = [look copy];
+	lookAgain = keptAlive;
+	keptAlive();
 }
 
 - (void)handleRemoteJingleElement:(NSString *)jingleXML
@@ -342,7 +648,9 @@
 							if (localError)
 								[weakSelf failWith:@"failed-application"];
 							else
-								[weakSelf.machine acceptWithLocalAnswerSDP:answer.sdp];
+								[weakSelf withSettledSDP:answer then:^(NSString *sdp) {
+									[weakSelf.machine acceptWithLocalAnswerSDP:sdp];
+								}];
 						});
 					}];
 				});
@@ -377,6 +685,8 @@
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didGenerateIceCandidate:(RTCIceCandidate *)candidate
 {
 	AILogWithSignature(@"local candidate (%@): %@", candidate.sdpMid, candidate.sdp);
+	if ([candidate.sdp containsString:@" typ relay"])
+		weHaveARelay = YES;
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[self.machine addLocalCandidateLine:candidate.sdp mid:(candidate.sdpMid ?: @"0")];
 	});
@@ -474,6 +784,14 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			self->announcedConnected = YES;
 			[self noteMilestone:@"ICE connected"];
 			[self.delegate callControllerConnected:self];
+
+			/* And say what is already switched off. A session-info before the
+			 * session stands has nowhere to go, so anything switched off while it
+			 * was still ringing has to be said again now. */
+			if (self.microphoneMuted)
+				[self.machine tellPeerMuted:YES content:[self contentNameCarrying:RTCRtpMediaTypeAudio]];
+			if (self.cameraOff)
+				[self.machine tellPeerMuted:YES content:[self contentNameCarrying:RTCRtpMediaTypeVideo]];
 
 			/* Which way won, and how often it had to ask. A path that answers the
 			 * first request but only after seconds means the waiting happened
@@ -667,6 +985,17 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceGatheringState:(RTCIceGatheringState)newState
 {
 	AILogWithSignature(@"ICE gathering state %ld for call %@", (long)newState, self.machine.sid);
+
+	/* Whether we ended up with a relay is the one fact that explains a slow call
+	 * afterwards, and it is nowhere in the log unless it is written down. Without
+	 * one, every path this call can take has to be offered by the other side, and
+	 * a peer reaches its own relay late. Said once; gathering that carries on
+	 * finishes more than once. */
+	if (newState == RTCIceGatheringStateComplete && !weHaveARelay && !saidWeHaveNoRelay) {
+		saidWeHaveNoRelay = YES;
+		AILogWithSignature(@"call %@ gathered no relay of its own; if the direct ways fail, "
+						   @"this call waits for the peer to offer one", self.machine.sid);
+	}
 }
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didRemoveIceCandidates:(NSArray<RTCIceCandidate *> *)candidates {}
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didOpenDataChannel:(RTCDataChannel *)dataChannel {}
