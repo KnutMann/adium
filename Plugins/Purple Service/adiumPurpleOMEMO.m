@@ -162,8 +162,11 @@ static void omemo_send(PurpleConnection *gc, xmlnode *stanza)
 		return;
 	}
 
+	/* Our own pointer, because a handler may set the signal's to nothing in order to stop the
+	 * stanza going out, and it is still ours to free. This is what libpurple's own senders do. */
+	xmlnode *ours = stanza;
 	purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &stanza);
-	if (stanza) xmlnode_free(stanza);
+	xmlnode_free(ours);
 }
 
 
@@ -549,17 +552,38 @@ static BOOL omemo_use_bundle(PurpleConnection *gc, NSString *bareJID, uint32_t d
 /*!
  * @brief Everything we should write a copy to: their devices and our own others
  */
+/*!
+ * @brief The devices of one person that we should write to
+ *
+ * Two sources, and the second one matters more than it looks. One is the list they published,
+ * which is how a stranger is written to for the first time. The other is every device we
+ * already hold a ratchet with, which is how somebody who has just written to US can be answered
+ * at once: their message brought a session with it, and waiting for their list to arrive before
+ * replying would mean the answer to the first message is the one that cannot be sent.
+ */
+static NSArray<NSNumber *> *omemo_devices_of(PurpleAccount *account, NSString *bareJID)
+{
+	AIOMEMOStore *store = omemo_store(account);
+	NSMutableArray *devices = [omemoDevicesForContact(account, bareJID) mutableCopy] ?: [NSMutableArray array];
+
+	for (NSNumber *known in [store devicesWithSessionsForJID:bareJID])
+		if (![devices containsObject:known])
+			[devices addObject:known];
+
+	return devices;
+}
+
 static NSDictionary *omemo_recipients(PurpleAccount *account, NSString *bareJID)
 {
 	NSMutableDictionary *everyone = [NSMutableDictionary dictionary];
 
-	NSArray *theirs = omemoDevicesForContact(account, bareJID);
+	NSArray *theirs = omemo_devices_of(account, bareJID);
 	if ([theirs count]) everyone[bareJID] = theirs;
 
 	/* Our own other devices belong in here too, or the conversation shows up on them with our
 	 * own half of it missing, which looks exactly like messages having been lost. */
 	NSString *own = omemo_own_jid(account);
-	NSArray *ours = omemoDevicesForContact(account, own);
+	NSArray *ours = omemo_devices_of(account, own);
 	if ([ours count] && ![own isEqualToString:bareJID]) everyone[own] = ours;
 
 	return everyone;
@@ -741,16 +765,30 @@ static gboolean omemo_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet,
 	NSString *who = omemo_bare_jid([NSString stringWithUTF8String:to]);
 	if (![encryptingWith containsObject:omemo_contact_key(account, who)]) return FALSE;
 
-	if (omemo_can_write_to(account, who)) {
-		if (AIOMEMOSealStanza(stanza, omemo_store(account), omemo_recipients(account, who)))
+	NSDictionary *everyone = omemo_recipients(account, who);
+
+	if ([everyone count]) {
+		if (AIOMEMOSealStanza(stanza, omemo_store(account), everyone)) {
+			purple_debug_info("OMEMO", "message to %s encrypted for %lu addresses\n",
+							  [who UTF8String], (unsigned long)[everyone count]);
 			return FALSE;		//Carry on, now encrypted
+		}
 	}
+
+	purple_debug_warning("OMEMO", "nothing to encrypt to %s with yet, holding the message back\n",
+						 [who UTF8String]);
 
 	/* Nothing to encrypt with yet. The message waits rather than going out in the clear, which
 	 * is the one outcome the user definitely did not ask for. */
 	omemo_hold_back(gc, stanza, who);
 
-	xmlnode_free(stanza);
+	/* Set to nothing, but NOT freed, and the difference is the whole of a crash. The two
+	 * signals are not symmetrical: on the way in, jabber_process_packet checks for a null
+	 * packet and the handler owns what it removed, so freeing it is right. On the way out, the
+	 * caller keeps its own pointer and frees it after the signal returns, so freeing it here
+	 * frees it twice and the process is killed by the allocator. Setting it to nothing is
+	 * enough: everything the default handler does with it afterwards refuses a null and
+	 * returns, which is why this works without touching libpurple. */
 	*packet = NULL;
 	return TRUE;
 }
@@ -869,19 +907,25 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 				omemo_remember_choices();
 			}
 
-			BOOL readable = sender && AIOMEMOOpenStanza(stanza, store, sender);
+			AIOMEMOOpened became = sender ? AIOMEMOOpenStanza(stanza, store, sender)
+										  : AIOMEMOOpenedCouldNot;
 
 			/* A one time key of ours may have been spent opening this, so what we published no
 			 * longer matches what we hold and has to go out again. */
 			if (store.bundleNeedsPublishing)
 				omemo_publish_bundle(gc);
 
-			if (readable)
-				return FALSE;		//Carry on as the ordinary message it now is
+			/* Only the deliberately empty ones are dropped. One we could not open is passed on
+			 * untouched, so the sender's own fallback line appears and the person learns that
+			 * something arrived. A message that simply vanishes is indistinguishable from one
+			 * that was never sent, and that is the worse of the two failures by a distance. */
+			if (became == AIOMEMOOpenedNothingToShow) {
+				xmlnode_free(stanza);
+				*packet = NULL;
+				return TRUE;
+			}
 
-			xmlnode_free(stanza);
-			*packet = NULL;
-			return TRUE;
+			return FALSE;
 		}
 
 		/* Somebody's list changed and the server is telling us. This arrives unasked for anybody

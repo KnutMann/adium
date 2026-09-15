@@ -29,9 +29,12 @@ void AMPurpleJabberSend(PurpleConnection *gc, xmlnode *stanza)
 	/* The protocol's own sender sits on this signal at the lowest priority and therefore runs
 	 * last, which makes emitting it the sanctioned way in rather than a trick. It also frees
 	 * the stanza, or rather leaves it to us, hence the free below. */
+	/* Our own pointer, because a handler may set the signal's to nothing in order to stop the
+	 * stanza going out, and it is still ours to free. This is what libpurple's own senders do,
+	 * and doing it the other way round leaks a stanza every time one is held back. */
+	xmlnode *ours = stanza;
 	purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &stanza);
-
-	if (stanza) xmlnode_free(stanza);
+	xmlnode_free(ours);
 }
 
 void AMPurpleJabberSendText(PurpleConnection *gc, const char *text, int length)

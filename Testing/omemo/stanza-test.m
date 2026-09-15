@@ -140,7 +140,7 @@ int main(void) { @autoreleasepool {
 		xmlnode_set_attrib(incoming, "from", [[ALICE stringByAppendingString:@"/mac"] UTF8String]);
 
 		check(@"Bob macht wieder eine Nachricht daraus",
-			  AIOMEMOOpenStanza(incoming, bob, ALICE), nil);
+			  AIOMEMOOpenStanza(incoming, bob, ALICE) == AIOMEMOOpenedReadable, nil);
 
 		xmlnode *opened = xmlnode_get_child(incoming, "body");
 		char *raw = opened ? xmlnode_get_data(opened) : NULL;
@@ -169,7 +169,7 @@ int main(void) { @autoreleasepool {
 	//Eine Stanza ohne encrypted-Element wird nicht angefasst
 	xmlnode *plain = xmlnode_from_str("<message from='x@y'><body>ganz normal</body></message>", -1);
 	check(@"Eine gewoehnliche Nachricht wird nicht angefasst",
-		  !AIOMEMOOpenStanza(plain, bob, @"x@y"), nil);
+		  AIOMEMOOpenStanza(plain, bob, @"x@y") == AIOMEMOOpenedCouldNot, nil);
 	xmlnode_free(plain);
 
 	xmlnode_free(outgoing);

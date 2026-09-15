@@ -93,32 +93,57 @@ static NSArray<AIOMEMOKeyForDevice *> *omemo_keys_in(xmlnode *header)
  *
  * @return NO when the stanza should be dropped rather than passed on
  */
-BOOL AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *fromBareJID)
+AIOMEMOOpened AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *fromBareJID)
 {
-	if (!store || !fromBareJID) return NO;
+	if (!store || !fromBareJID) return AIOMEMOOpenedCouldNot;
 
 	xmlnode *encrypted = xmlnode_get_child_with_namespace(stanza, "encrypted", AIOMEMO_NAMESPACE);
-	if (!encrypted) return NO;
+	if (!encrypted) return AIOMEMOOpenedCouldNot;
 
 	xmlnode *header = xmlnode_get_child(encrypted, "header");
 	uint32_t sender = AIOMEMONumberIn(header, "sid");
-	if (!sender) return NO;
+	if (!sender) {
+		purple_debug_warning("OMEMO", "message from %s has no sender device, leaving it alone\n",
+							 [fromBareJID UTF8String]);
+		return AIOMEMOOpenedCouldNot;
+	}
 
 	NSData *vector = AIOMEMOBase64In(xmlnode_get_child(header, "iv"));
 	NSData *payload = AIOMEMOBase64In(xmlnode_get_child(encrypted, "payload"));
 	NSArray *keys = omemo_keys_in(header);
 
+	/* Said out loud because the alternative is a message that vanishes. Every number here has
+	 * cost somebody an evening at some point: which device wrote, how long the vector is, how
+	 * many devices it was addressed to, and whether ours is among them. */
+	purple_debug_info("OMEMO", "message from %s device %u: %lu keys, %lu byte vector, "
+							   "%lu byte payload, our device is %u\n",
+					  [fromBareJID UTF8String], sender, (unsigned long)[keys count],
+					  (unsigned long)[vector length], (unsigned long)[payload length],
+					  store.deviceIdentifier);
+
+	AIOMEMOTrouble trouble = AIOMEMOTroubleNone;
 	NSString *text = [AIOMEMOMessage textFromPayload:(payload ?: [NSData data])
 								initialisationVector:vector
 												keys:keys
 											sentFrom:fromBareJID
 											  device:sender
-										   withStore:store];
+										   withStore:store
+											 trouble:&trouble];
 
 	/* Nothing to show is not the same as nothing happened. A message with no payload exists only
 	 * to let the ratchet step after a long one sided conversation, and showing an empty line for
 	 * it would be worse than silence. */
-	if (!text || ![text length]) return NO;
+	if (text && ![text length]) {
+		purple_debug_info("OMEMO", "nothing in it to show, which is how a ratchet step looks\n");
+		return AIOMEMOOpenedNothingToShow;
+	}
+
+	if (!text) {
+		purple_debug_warning("OMEMO", "could not open it: %s. Passing it on, so that the sender's "
+									  "own fallback line is at least shown\n",
+							 [AIOMEMOMessage nameOfTrouble:trouble]);
+		return AIOMEMOOpenedCouldNot;
+	}
 
 	/* The body that was there is the sender's apology to clients that cannot read this, and it
 	 * is now wrong. It goes, and the real text takes its place. */
@@ -129,7 +154,7 @@ BOOL AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *fromBareJ
 	xmlnode_free(encrypted);
 	xmlnode_insert_data(xmlnode_new_child(stanza, "body"), [text UTF8String], -1);
 
-	return YES;
+	return AIOMEMOOpenedReadable;
 }
 
 /*!

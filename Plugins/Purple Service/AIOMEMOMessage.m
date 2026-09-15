@@ -130,19 +130,39 @@
 
 #pragma mark Reading
 
++ (const char *)nameOfTrouble:(AIOMEMOTrouble)trouble
+{
+	switch (trouble) {
+		case AIOMEMOTroubleNone:				return "nothing wrong";
+		case AIOMEMOTroubleNotAddressedToUs:	return "not addressed to this device";
+		case AIOMEMOTroubleVectorWrongLength:	return "the vector is not twelve bytes";
+		case AIOMEMOTroubleKeyWouldNotOpen:		return "the ratchet would not open the key";
+		case AIOMEMOTroubleKeyTooShort:			return "the sender put the authentication tag on the "
+														"payload rather than in the key";
+		case AIOMEMOTroublePayloadWouldNotOpen:	return "the key came out but the text did not";
+		case AIOMEMOTroubleDeviceRejected:		return "this device was turned down by the user";
+	}
+	return "unknown";
+}
+
 + (NSString *)textFromPayload:(NSData *)payload
 		 initialisationVector:(NSData *)vector
 						 keys:(NSArray<AIOMEMOKeyForDevice *> *)keys
 					 sentFrom:(NSString *)bareJID
 					   device:(uint32_t)device
 					withStore:(AIOMEMOStore *)store
+					  trouble:(AIOMEMOTrouble *)trouble
 {
-	if (!payload || !vector || !store) return nil;
+	AIOMEMOTrouble went = AIOMEMOTroubleNone;
+
+	#define GAVE_UP(why) do { if (trouble) *trouble = (why); return nil; } while (0)
+
+	if (!payload || !vector || !store) GAVE_UP(AIOMEMOTroubleNotAddressedToUs);
 
 	/* The vector is the one length this side must insist on, because the library types it as
 	 * twelve bytes and would read past a shorter one. Some older clients send sixteen, and
 	 * those messages are declined rather than guessed at. */
-	if ([vector length] != VECTOR_LENGTH) return nil;
+	if ([vector length] != VECTOR_LENGTH) GAVE_UP(AIOMEMOTroubleVectorWrongLength);
 
 	AIOMEMOKeyForDevice *ours = nil;
 	for (AIOMEMOKeyForDevice *one in keys) {
@@ -152,31 +172,53 @@
 	}
 
 	//Addressed to this account's other devices but not to us, which is ordinary and not a fault
-	if (!ours) return nil;
+	if (!ours) GAVE_UP(AIOMEMOTroubleNotAddressedToUs);
 
 	/* A device the user turned down is not read from either. Showing its messages anyway would
 	 * make the decision decorative, and the user would have no way of telling that the thing
 	 * they rejected is still talking to them. */
 	NSString *print = [store fingerprintForJID:bareJID device:device];
 	if (print && [store trustForFingerprint:print] == AIOMEMOTrustRejected)
-		return nil;
+		GAVE_UP(AIOMEMOTroubleDeviceRejected);
 
 	NSData *messageKey = [store decryptKey:ours.wrapped
 								   fromJID:bareJID
 									device:device
 								  isPreKey:ours.startsASession];
-	if ([messageKey length] < KEY_AND_TAG) return nil;
+	if (!messageKey) GAVE_UP(AIOMEMOTroubleKeyWouldNotOpen);
 
 	/* A message with no payload is a message sent only to move the ratchet along, which happens
 	 * after a long one sided conversation. There is nothing to show, and nothing is wrong. */
-	if (![payload length]) return @"";
+	if (![payload length]) { if (trouble) *trouble = went; return @""; }
+
+	/* Sixteen bytes of key and sixteen of authentication tag, which is where this form of OMEMO
+	 * puts the tag. Some senders read the specification the other way round and put the tag at
+	 * the end of the payload instead, giving us a bare sixteen byte key. Rather than refuse
+	 * those, the two are put back together the way the library expects them, because the
+	 * difference is where sixteen bytes sit and not what they are. */
+	if ([messageKey length] < KEY_AND_TAG) {
+		if ([messageKey length] != KEY_AND_TAG / 2 || [payload length] <= KEY_AND_TAG / 2)
+			GAVE_UP(AIOMEMOTroubleKeyTooShort);
+
+		NSMutableData *joined = [messageKey mutableCopy];
+		NSUInteger tagStarts = [payload length] - (KEY_AND_TAG / 2);
+		[joined appendData:[payload subdataWithRange:NSMakeRange(tagStarts, KEY_AND_TAG / 2)]];
+
+		messageKey = joined;
+		payload = [payload subdataWithRange:NSMakeRange(0, tagStarts)];
+
+		if (trouble) *trouble = AIOMEMOTroubleKeyTooShort;	//worth knowing, even though it worked
+	}
 
 	NSMutableData *plain = [NSMutableData dataWithLength:[payload length]];
 	if (omemo0DecryptMessage([plain mutableBytes], [messageKey bytes], [messageKey length],
 							 [vector bytes], [payload bytes], [payload length]) != 0)
-		return nil;
+		GAVE_UP(AIOMEMOTroublePayloadWouldNotOpen);
 
+	if (trouble) *trouble = went;
 	return [[NSString alloc] initWithData:plain encoding:NSUTF8StringEncoding];
+
+	#undef GAVE_UP
 }
 
 @end

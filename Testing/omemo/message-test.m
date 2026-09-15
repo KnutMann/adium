@@ -82,7 +82,7 @@ int main(void) { @autoreleasepool {
 												   keys:sent.keys
 											   sentFrom:ALICE
 												 device:alice.deviceIdentifier
-											  withStore:bobPhone];
+											  withStore:bobPhone trouble:NULL];
 	check(@"Bobs Telefon liest sie", [atPhone isEqualToString:said], atPhone);
 
 	NSString *atLaptop = [AIOMEMOMessage textFromPayload:sent.payload
@@ -90,7 +90,7 @@ int main(void) { @autoreleasepool {
 													keys:sent.keys
 												sentFrom:ALICE
 												  device:alice.deviceIdentifier
-											   withStore:bobLaptop];
+											   withStore:bobLaptop trouble:NULL];
 	check(@"und Bobs Rechner ebenso", [atLaptop isEqualToString:said], atLaptop);
 
 	//Ein Geraet, das nicht gemeint war, findet nichts fuer sich
@@ -100,7 +100,7 @@ int main(void) { @autoreleasepool {
 													  keys:sent.keys
 												  sentFrom:ALICE
 													device:alice.deviceIdentifier
-												 withStore:stranger];
+												 withStore:stranger trouble:NULL];
 	check(@"Ein nicht gemeintes Geraet findet nichts fuer sich", atStranger == nil, atStranger);
 
 	//Wir schreiben uns nicht selbst an
@@ -127,7 +127,7 @@ int main(void) { @autoreleasepool {
 												  keys:third.keys
 											  sentFrom:ALICE
 												device:alice.deviceIdentifier
-											 withStore:bobPhone];
+											 withStore:bobPhone trouble:NULL];
 	check(@"Ein veraenderter Text faellt auf", broken == nil, broken);
 
 	//Ein Initialisierungsvektor der falschen Laenge wird abgelehnt statt geraten
@@ -137,7 +137,7 @@ int main(void) { @autoreleasepool {
 													   keys:fourth.keys
 												   sentFrom:ALICE
 													 device:alice.deviceIdentifier
-												  withStore:bobPhone];
+												  withStore:bobPhone trouble:NULL];
 	check(@"Ein zu kurzer Initialisierungsvektor wird abgelehnt", wrongVector == nil, wrongVector);
 
 	//Die erste Nachricht an ein Geraet muss als sitzungseroeffnend gekennzeichnet sein
@@ -161,7 +161,7 @@ int main(void) { @autoreleasepool {
 							   keys:later.keys
 						   sentFrom:ALICE
 							 device:alice.deviceIdentifier
-						  withStore:bobPhone];
+						  withStore:bobPhone trouble:NULL];
 
 	AIOMEMOMessage *answer = [AIOMEMOMessage encrypting:@"Ja, gerne"
 											  withStore:bobPhone
@@ -173,7 +173,7 @@ int main(void) { @autoreleasepool {
 												 keys:answer.keys
 											 sentFrom:BOB
 											   device:bobPhone.deviceIdentifier
-											withStore:alice];
+											withStore:alice trouble:NULL];
 	check(@"und Alice liest die Antwort", [heard isEqualToString:@"Ja, gerne"], heard);
 
 	//ERST JETZT, wo Alice weiss, dass Bob da ist, faellt der Einmalschluessel weg
@@ -190,8 +190,58 @@ int main(void) { @autoreleasepool {
 												   keys:afterward.keys
 											   sentFrom:ALICE
 												 device:alice.deviceIdentifier
-											  withStore:bobPhone];
+											  withStore:bobPhone trouble:NULL];
 	check(@"und die Unterhaltung laeuft weiter", [finally isEqualToString:@"alles klar"], finally);
+
+	/* Die gewoehnliche Form, mit dem Pruefwert IM Schluessel, muss unveraendert aufgehen. Die
+	 * aeltere Lesart, die ihn ans Ende der Nutzlast haengt, wird beim Lesen wieder
+	 * zusammengesetzt; dass das den Normalfall nicht kaputtmacht, steht hier. */
+	AIOMEMOMessage *ordinary = [AIOMEMOMessage encrypting:@"anders herum gepackt"
+												withStore:alice
+											   forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
+	AIOMEMOTrouble why = AIOMEMOTroubleNone;
+	NSString *stillOpens = [AIOMEMOMessage textFromPayload:ordinary.payload
+									  initialisationVector:ordinary.initialisationVector
+													  keys:ordinary.keys
+												  sentFrom:ALICE
+													device:alice.deviceIdentifier
+												 withStore:bobPhone
+												   trouble:&why];
+	check(@"Die gewoehnliche Form oeffnet sich weiterhin",
+		  [stillOpens isEqualToString:@"anders herum gepackt"], stillOpens);
+	check(@"und gilt dabei als unauffaellig", why == AIOMEMOTroubleNone,
+		  [NSString stringWithUTF8String:[AIOMEMOMessage nameOfTrouble:why]]);
+
+	//Eine Nachricht ohne Nutzlast ist ein Ratschenschritt und kein Fehler
+	AIOMEMOMessage *step = [AIOMEMOMessage encrypting:@"" withStore:alice
+										   forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
+	AIOMEMOTrouble stepWhy = AIOMEMOTroubleNone;
+	NSString *nothing = [AIOMEMOMessage textFromPayload:[NSData data]
+								   initialisationVector:step.initialisationVector
+												   keys:step.keys
+											   sentFrom:ALICE
+												 device:alice.deviceIdentifier
+											  withStore:bobPhone
+												trouble:&stepWhy];
+	check(@"Eine Nachricht ohne Nutzlast ist leer und kein Fehler",
+		  [nothing isEqualToString:@""] && stepWhy == AIOMEMOTroubleNone,
+		  [NSString stringWithUTF8String:[AIOMEMOMessage nameOfTrouble:stepWhy]]);
+
+	//Ein zu kurzer Schluessel ohne passende Nutzlast wird benannt, nicht verschluckt
+	AIOMEMOTrouble shortWhy = AIOMEMOTroubleNone;
+	AIOMEMOKeyForDevice *stunted = [AIOMEMOMessage keyForDevice:bobPhone.deviceIdentifier
+												 startsASession:NO
+														wrapped:[NSData dataWithBytes:"zu kurz" length:7]];
+	[AIOMEMOMessage textFromPayload:[NSData dataWithBytes:"xxxxxxxxxxxxxxxxxxxx" length:20]
+			   initialisationVector:ordinary.initialisationVector
+							   keys:@[stunted]
+						   sentFrom:ALICE
+							 device:alice.deviceIdentifier
+						  withStore:bobPhone
+							trouble:&shortWhy];
+	check(@"Ein unbrauchbarer Schluessel wird benannt",
+		  shortWhy == AIOMEMOTroubleKeyWouldNotOpen,
+		  [NSString stringWithUTF8String:[AIOMEMOMessage nameOfTrouble:shortWhy]]);
 
 	//Ein abgelehntes Geraet wird weder beschrieben noch gelesen
 	NSString *laptopPrint = [alice fingerprintForJID:BOB device:bobLaptop.deviceIdentifier];
@@ -218,7 +268,7 @@ int main(void) { @autoreleasepool {
 															keys:fromRejected.keys
 														sentFrom:ALICE
 														  device:alice.deviceIdentifier
-													   withStore:bobPhone];
+													   withStore:bobPhone trouble:NULL];
 	check(@"Von einem abgelehnten Geraet wird nichts gelesen", shouldStaySilent == nil, shouldStaySilent);
 
 	[[NSFileManager defaultManager] removeItemAtPath:scratch error:NULL];

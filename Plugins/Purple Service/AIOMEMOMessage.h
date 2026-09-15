@@ -60,6 +60,17 @@
 				 withStore:(AIOMEMOStore *)store
 				forDevices:(NSDictionary<NSString *, NSArray<NSNumber *> *> *)devicesByJID;
 
+/*! @brief Why a message would not open, for the log rather than for the user */
+typedef NS_ENUM(NSInteger, AIOMEMOTrouble) {
+	AIOMEMOTroubleNone = 0,
+	AIOMEMOTroubleNotAddressedToUs,		//every key in it belongs to somebody else's device
+	AIOMEMOTroubleVectorWrongLength,	//not the twelve bytes this form uses
+	AIOMEMOTroubleKeyWouldNotOpen,		//the ratchet refused it, or we no longer have that ratchet
+	AIOMEMOTroubleKeyTooShort,			//tag sat on the payload; put back together, so not fatal
+	AIOMEMOTroublePayloadWouldNotOpen,	//the key was right and the text still did not come out
+	AIOMEMOTroubleDeviceRejected		//the user turned this device down
+};
+
 /*!
  * @brief Read back a message somebody sent us
  *
@@ -74,7 +85,11 @@
 						 keys:(NSArray<AIOMEMOKeyForDevice *> *)keys
 					 sentFrom:(NSString *)bareJID
 					   device:(uint32_t)device
-					withStore:(AIOMEMOStore *)store;
+					withStore:(AIOMEMOStore *)store
+					  trouble:(AIOMEMOTrouble *)trouble;
+
+/*! @brief A line naming what went wrong, for the log */
++ (const char *)nameOfTrouble:(AIOMEMOTrouble)trouble;
 
 /*! @brief One wrapped key, as read out of a stanza */
 + (AIOMEMOKeyForDevice *)keyForDevice:(uint32_t)device

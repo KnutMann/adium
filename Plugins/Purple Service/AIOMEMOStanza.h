@@ -56,6 +56,22 @@ uint32_t AIOMEMONumberIn(xmlnode *element, const char *attribute);
 BOOL AIOMEMOSealStanza(xmlnode *stanza, AIOMEMOStore *store,
 					   NSDictionary<NSString *, NSArray<NSNumber *> *> *devicesByJID);
 
+/*! @brief What became of an encrypted message we were handed */
+typedef NS_ENUM(NSInteger, AIOMEMOOpened) {
+	/*! It is now an ordinary message and should carry on downstream */
+	AIOMEMOOpenedReadable,
+
+	/*! There was nothing in it to show, and that is correct: a message with no payload exists
+	 *  only to let the ratchet step, or was addressed to somebody else's device. Drop it. */
+	AIOMEMOOpenedNothingToShow,
+
+	/*! It could not be opened. The stanza is untouched, and passing it on is better than
+	 *  dropping it: the sender's own fallback line then appears, so the person at least learns
+	 *  that something arrived and could not be read. Silence here is indistinguishable from a
+	 *  message that was never sent. */
+	AIOMEMOOpenedCouldNot
+};
+
 /*!
  * @brief Turn an encrypted message back into the message it was, in place
  *
@@ -63,7 +79,5 @@ BOOL AIOMEMOSealStanza(xmlnode *stanza, AIOMEMOStore *store,
  * ordinary message and needs to know nothing about any of this.
  *
  * @param fromBareJID Who sent it, without a resource
- * @return NO when the stanza should be dropped rather than passed on, which covers a message
- *         addressed to somebody else's device and one carrying nothing but a ratchet step
  */
-BOOL AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *fromBareJID);
+AIOMEMOOpened AIOMEMOOpenStanza(xmlnode *stanza, AIOMEMOStore *store, NSString *fromBareJID);
