@@ -701,8 +701,10 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 														   date:nil
 														message:[NSAttributedString stringWithString:address]
 													  autoreply:NO];
-	[adium.contentController sendContentObject:message];
 
+	/* Our own copy goes into the same place the receiving side keeps what it fetches, so the
+	 * picture we just sent is shown from the file we already have rather than downloaded back
+	 * from the server. */
 	NSString *cachePath = AMInlineImageCachePath(address);
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 
@@ -714,14 +716,14 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 		[fileManager copyItemAtPath:path toPath:cachePath error:NULL];
 	}
 
-	if ([message.messageId length] && [fileManager fileExistsAtPath:cachePath]) {
+	/* Put on the message BEFORE it is sent, which is what makes this work at all. Sending runs
+	 * the message through the filters and only then draws it, so anything announced beforehand
+	 * is announced about a message that is not on the page yet and finds nothing. Set here, the
+	 * drawing picks it up by itself when the moment comes. */
+	if ([fileManager fileExistsAtPath:cachePath])
 		message.inlineImagePath = cachePath;
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageImageResolved"
-															object:chat
-														  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-																	message.messageId, @"MessageId",
-																	cachePath, @"Path", nil]];
-	}
+
+	[adium.contentController sendContentObject:message];
 }
 
 @end
