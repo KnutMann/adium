@@ -2351,52 +2351,11 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		 * a line here. */
 		/* Nought means the message is not on the page yet, which is ordinary: a file fetched
 		 * quickly is ready before the message it belongs to has been drawn, and the drawing
-		 * embeds it when the moment comes. Said out loud all the same, because a picture that
-		 * never appears leaves nothing else to go on. */
-		/* Nought means the message is not on the page yet, which is ordinary: the drawing embeds
-		 * it when the moment comes. Only the unexpected is worth a line. */
-		if (error || [result integerValue] == 0) {
-			if (error)
-				AILogWithSignature(@"could not embed %@ on id %@ in %@: %@",
-								   [path lastPathComponent], messageId, self->_chat, error);
-			return;
-		}
-
-		if ([result integerValue] != 2) return;
-
-		/* Putting the element in is not the same as the picture appearing, and the difference
-		 * has been the whole of a long hunt: a file the view will not read leaves an element of
-		 * no size behind, which looks exactly like an element that was never put there. So a
-		 * moment later the page is asked what became of it. */
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)),
-					   dispatch_get_main_queue(), ^{
-			if (!self->_webView) return;
-
-			NSString *ask = [NSString stringWithFormat:@"(function(){"
-				@" var msgs=document.querySelectorAll('[data-x-adium-msg]');"
-				@" for(var i=0;i<msgs.length;i++){"
-				@"  if(msgs[i].getAttribute('data-x-adium-id')!==%@) continue;"
-				@"  var el=msgs[i].querySelector('[data-x-adium-inline-image]');"
-				@"  if(!el) return 'gone from the page';"
-				@"  return el.tagName+' '+(el.naturalWidth||el.videoWidth||0)+'x'"
-				@"         +(el.naturalHeight||el.videoHeight||0);"
-				@" }"
-				@" return 'message gone from the page';"
-				@"})()", [self _jsStringLiteral:messageId]];
-
-			[self->_webView evaluateJavaScript:ask completionHandler:^(id what, NSError *oops) {
-				/* Silence when it is there with a size, which is the ordinary outcome and needs
-				 * no announcing. A picture of no size, or one that has left the page, is the
-				 * thing that used to be impossible to tell from a picture never embedded. */
-				NSString *said = [what isKindOfClass:[NSString class]] ? what : nil;
-				if (!oops && said && [said rangeOfString:@" 0x0"].location == NSNotFound &&
-					[said rangeOfString:@"gone"].location == NSNotFound)
-					return;
-
-				AILogWithSignature(@"a moment after embedding, %@ in %@ is: %@", messageId,
-								   self->_chat, oops ?: (said ?: @"no answer"));
-			}];
-		});
+		 * embeds it when the moment comes. Only a real failure is worth a line; a file the view
+		 * cannot read says so in the page itself, where the picture would have been. */
+		if (error)
+			AILogWithSignature(@"could not embed %@ on id %@ in %@: %@",
+							   [path lastPathComponent], messageId, self->_chat, error);
 	}];
 }
 
