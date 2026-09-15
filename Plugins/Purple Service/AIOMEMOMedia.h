@@ -71,10 +71,9 @@ NSString *AIOMEMOMediaExtensionOf(NSString *link);
 /*!
  * @brief What a file actually is, read from its first bytes rather than from its name
  *
- * A picture dragged out of the Finder brings its name and therefore its kind with it. One
- * pasted into a window does not: the system writes it to a temporary file named after nothing
- * but a unique number, with no ending at all. Going by the name alone, such a picture is not a
- * picture.
+ * Most files say what they are in their name, and most of the time that is enough. A file
+ * dragged in from somewhere that does not name its kind, or saved out without an ending, says
+ * nothing, and then the only honest answer comes from looking.
  *
  * @param extension Filled in with the ending the file should have been given
  * @return The media type, or nil for anything not recognised

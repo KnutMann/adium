@@ -1094,4 +1094,33 @@
 	return adhocServer;
 }
 
+#pragma mark Sending files
+
+/*!
+ * @brief Can a file be sent to this contact?
+ *
+ * libpurple answers this by asking whether the contact's client understands the in band file
+ * transfer from 2004, and the clients people actually use have stopped saying yes: Conversations
+ * never did, and Gajim switched it off entirely in 2.0. The honest answer used to be no, and the
+ * consequence was worse than a refusal. The picture was never made into a transfer at all, so
+ * the attachment went out as its own placeholder text, and the person at the other end received
+ * a line of hexadecimal where a picture should have been.
+ *
+ * When the server offers an upload service the question is simply the wrong one. The file goes
+ * to our own server and the recipient fetches it from there, so what their client understands
+ * does not come into it, and neither does whether they are online at this moment.
+ *
+ * The same reasoning, and very nearly the same code, is already in the WhatsApp account for the
+ * same reason.
+ */
+- (BOOL)availableForSendingContentType:(NSString *)inType toContact:(AIListContact *)inContact
+{
+	if (self.online &&
+		[inType isEqualToString:CONTENT_FILE_TRANSFER_TYPE] &&
+		[httpUpload isAvailable])
+		return YES;
+
+	return [super availableForSendingContentType:inType toContact:inContact];
+}
+
 @end

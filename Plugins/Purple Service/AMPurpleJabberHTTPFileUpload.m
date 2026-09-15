@@ -113,6 +113,11 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 //Discovery --------------------------------------------------------------------------------------
 #pragma mark Discovery
 
+- (BOOL)isAvailable
+{
+	return ([serviceJid length] > 0);
+}
+
 - (NSString *)nextIqId
 {
 	return [NSString stringWithFormat:@"%@%lu", IQ_ID_PREFIX, (unsigned long)sequence++];
@@ -412,19 +417,25 @@ static NSString *AMInlineImageCachePath(NSString *address)
 
 	NSData *contents = nil;
 
-	if (!contentType) {
-		/* No usable ending, which is what a pasted picture looks like. Ask the file itself
-		 * rather than giving up, and give it the name it should have had, so that whoever
-		 * receives it can tell what it is. */
+	if (!contentType && ![[path pathExtension] length]) {
+		/* Nothing in the name to go on. Ask the file itself, and give it the ending it should
+		 * have had, so that whoever receives it can tell what they have been sent. */
 		contents = [NSData dataWithContentsOfFile:path];
 		if (!contents) return NO;
 
 		NSString *ending = nil;
 		contentType = AIMediaKindOfData(contents, &ending);
-		if (!contentType) return NO;
 
-		filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:ending];
+		if (contentType)
+			filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:ending];
 	}
+
+	/* Anything else goes up as itself. This route is not for pictures alone: it is how every
+	 * current client sends a file of any kind, and the account now tells the rest of the
+	 * application that a file CAN be sent this way, so refusing one here would leave that
+	 * promise unkept and the file unsent. */
+	if (!contentType)
+		contentType = @"application/octet-stream";
 
 	unsigned long long size = [[[NSFileManager defaultManager] attributesOfItemAtPath:path
 																				error:NULL] fileSize];
