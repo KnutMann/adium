@@ -480,7 +480,7 @@ static NSString *AMInlineImageCachePath(NSString *address)
 
 		[self uploadFileAtPath:path encrypted:toUpload contentType:contentType
 						 toURL:putURL getURL:getURL ivAndKey:ivAndKey headers:headers
-			   forFileTransfer:fileTransfer mayTryTheHostWeTalkTo:YES];
+				   answeringTo:nil forFileTransfer:fileTransfer mayTryTheHostWeTalkTo:YES];
 	}];
 
 	return YES;
@@ -572,6 +572,7 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 				  getURL:(NSURL *)getURL
 				ivAndKey:(NSData *)ivAndKey
 				 headers:(NSDictionary *)headers
+			  answeringTo:(NSString *)answeringTo
 		 forFileTransfer:(ESFileTransfer *)fileTransfer
    mayTryTheHostWeTalkTo:(BOOL)mayTryTheHostWeTalkTo
 {
@@ -581,6 +582,14 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 	[request setValue:contentType forHTTPHeaderField:@"Content-Type"];
 	for (NSString *name in headers)
 		[request setValue:[headers objectForKey:name] forHTTPHeaderField:name];
+
+	/* When the connection had to be pointed at a different machine, the request still says it
+	 * is for the name the server itself used. A server that keeps its reservations per domain,
+	 * which is the usual arrangement, would otherwise look for this one under a name it has
+	 * never issued anything under. The encrypted connection is still made and checked against
+	 * the machine we are really talking to, so nothing is loosened by this. */
+	if ([answeringTo length])
+		[request setValue:answeringTo forHTTPHeaderField:@"Host"];
 
 	/* One block, and it has to answer three different situations: the address the server gave
 	 * worked, it did not and may be worth correcting, or this WAS the corrected one and now has
@@ -595,8 +604,15 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 			 * server that offers an upload service and then hands out addresses nobody outside
 			 * can reach looks, from in here, exactly like an upload that did not work. Naming
 			 * the address turns a mystery into a line somebody can act on. */
-			AILog(@"%@: PUT to %@ failed: %@ (status %ld)", account, putURL,
-				  error ? [error localizedDescription] : @"no error reported", (long)code);
+			NSString *said = [data length]
+				? [[[NSString alloc] initWithData:[data subdataWithRange:
+					NSMakeRange(0, MIN((NSUInteger)200, [data length]))]
+										 encoding:NSUTF8StringEncoding] autorelease]
+				: nil;
+
+			AILog(@"%@: PUT to %@ failed: %@ (status %ld)%@%@", account, putURL,
+				  error ? [error localizedDescription] : @"no error reported", (long)code,
+				  said ? @", server said: " : @"", said ?: @"");
 
 			NSURL *elsewhere = mayTryTheHostWeTalkTo ? [self sameAddressOnTheHostWeTalkTo:putURL] : nil;
 			if (!elsewhere) {
@@ -612,7 +628,8 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 			[self uploadFileAtPath:path encrypted:encrypted contentType:contentType
 							 toURL:elsewhere
 							getURL:([self sameAddressOnTheHostWeTalkTo:getURL] ?: getURL)
-						  ivAndKey:ivAndKey headers:headers forFileTransfer:fileTransfer
+						  ivAndKey:ivAndKey headers:headers
+					   answeringTo:[putURL host] forFileTransfer:fileTransfer
 			 mayTryTheHostWeTalkTo:NO];
 			return;
 		}
