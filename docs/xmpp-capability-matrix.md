@@ -41,7 +41,13 @@ eigenes XEP-Audit steht auf "Proposed", auch dort ist Konformität unverifiziert
    Zuordnung, dokumentiert in adiumPurpleSignals.m); wer das eine Datenmodell baut, schaltet 0308,
    0184-Haken und 0333 pro Nachricht zugleich frei.
 
-**OMEMO: entschieden, siehe eigene Notiz.** (Der Nachtrag vom 22.08., der shtrom-Fork trage
+**OMEMO: GEBAUT am 15.09.2026** (XEP-0384, Namensraum
+`eu.siacs.conversations.axolotl`, Einzelgespraeche; Gruppenraeume und XEP-0454 fehlen noch).
+Kryptoschicht ist picomemo (ISC, fest auf einen Commit gepinnt), die XMPP-Seite ist eigener
+Code wie bei Carbons, CSI und Jingle: `AIOMEMOStore` haelt Identitaet, Sitzungen und Vertrauen,
+`AIOMEMOMessage` die Drahtform, `adiumPurpleOMEMO.m` die PEP- und Stanza-Arbeit,
+`AIOMEMOController` die Bruecke zur Oberflaeche. Pruefungen unter `Testing/omemo/` und
+`Testing/xmpp/server.sh omemo-pep`. Fruehere Einschaetzung, zur Einordnung: (Der Nachtrag vom 22.08., der shtrom-Fork trage
 mit `Lurch4Adium-0.0.4/*` einen Port des Pidgin-lurch-Plugins, ist FALSCH und am 15.09.2026
 widerlegt: die Branches enthalten keine Zeile davon, nur ein eingechecktes libgcrypt 1.6.2.
 Richtig bleibt das Urteil über lurch selbst, es ist seit Februar 2022 eingefroren und axc

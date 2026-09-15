@@ -73,8 +73,30 @@ Current version: **1.8.0**.
   and Meanwhile
 
 Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
-Novell GroupWise and SIMPLE**, plus OTR encryption and tabbed chats in
-a modern look.
+Novell GroupWise and SIMPLE**, plus OTR and OMEMO encryption and tabbed
+chats in a modern look.
+
+### End to end encryption over XMPP
+
+Conversations, Gajim, Dino and Monal encrypt with OMEMO, most of them by
+default, and until now a message from any of them arrived as the
+apology its sender attached for clients that cannot read one. Adium
+reads them now, and writes them.
+
+* **Encrypted one to one conversations** (XEP-0384, the widely spoken
+  namespace rather than the newer one)
+* **A padlock that closes only when the message really is encrypted**,
+  not when it has merely been asked for
+* **Every device the other person has**, shown in the encryption menu
+  with its fingerprint, each one to be accepted or turned down; ours is
+  at the top to be read out
+* **Rather fail than fall back**: a message that cannot be encrypted
+  waits, and then says so, instead of going out in the clear
+* **Says what it used** so a client that cannot read the message can
+  explain why (XEP-0380)
+
+Group chats are not encrypted yet, and neither are file transfers
+(XEP-0454).
 
 ### Voice and video calls over XMPP
 
