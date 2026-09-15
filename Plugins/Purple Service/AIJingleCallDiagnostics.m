@@ -16,6 +16,10 @@
 
 #import "AIJingleCallDiagnostics.h"
 
+#import "ESPurpleJabberAccount.h"
+
+#import <Adium/AIAccount.h>
+#import <Adium/AIAccountControllerProtocol.h>
 #import <AVFoundation/AVFoundation.h>
 #import <Adium/ESDebugAILog.h>
 #import <AIUtilities/AIStringUtilities.h>
@@ -87,6 +91,23 @@
 			[findings addObject:plain];
 			AILogWithSignature(@"plain socket probe: %@", detail);
 
+		[run askWhatTheAccountsWereTold:^(NSInteger named, NSInteger answering, NSString *hostNames) {
+			if (named) {
+				AIJingleCallFinding *announced = [[AIJingleCallFinding alloc] init];
+				announced.title = AILocalizedString(@"Helpers named by your server",
+													"Call self test: the STUN and TURN servers the XMPP host announces");
+				announced.good = (answering > 0);
+				announced.fatal = NO;
+				announced.detail = (answering > 0 ?
+					[NSString stringWithFormat:AILocalizedString(@"%ld of %ld answer.",
+																 "Call self test: how many announced helpers answer"),
+					 (long)answering, (long)named] :
+					[NSString stringWithFormat:AILocalizedString(@"%@ announces %ld, and none of them answers. Adium asks public servers as well, so calls still work, but the operator should hear about it.",
+																 "Call self test: the announced helpers are all dead"),
+					 hostNames, (long)named]);
+				[findings addObject:announced];
+			}
+
 		[run askTheWorldForOurAddress:^(BOOL sawAddress) {
 			AIJingleCallFinding *public = [[AIJingleCallFinding alloc] init];
 			public.title = AILocalizedString(@"Public address", "Call self test: learning the address the world sees");
@@ -105,7 +126,80 @@
 			});
 		}];
 		}];
+		}];
 	}];
+}
+
+/*! @brief host and port out of an ICE address like stun:example.org:3478?transport=udp */
+static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
+{
+	NSRange scheme = [url rangeOfString:@":"];
+	if (scheme.location == NSNotFound)
+		return NO;
+
+	NSString *rest = [url substringFromIndex:(scheme.location + 1)];
+	NSRange query = [rest rangeOfString:@"?"];
+	if (query.location != NSNotFound)
+		rest = [rest substringToIndex:query.location];
+
+	NSRange colon = [rest rangeOfString:@":" options:NSBackwardsSearch];
+	*host = (colon.location == NSNotFound ? rest : [rest substringToIndex:colon.location]);
+	*port = (colon.location == NSNotFound ? @"3478" : [rest substringFromIndex:(colon.location + 1)]);
+
+	return [*host length] > 0;
+}
+
+/*!
+ * @brief The helpers the account's own host announces, and whether they answer
+ *
+ * A host may name a STUN or TURN server that answers nothing at all, which is
+ * exactly what one measured here did, and a call that trusts it alone goes out
+ * blind while looking perfectly configured. Adium asks public servers as well,
+ * so such a host costs nothing any more, but its operator should hear about it.
+ */
+- (void)askWhatTheAccountsWereTold:(void (^)(NSInteger named, NSInteger answering, NSString *hostNames))answer
+{
+	NSMutableArray<NSString *> *urls = [NSMutableArray array];
+	NSMutableArray<NSString *> *hosts = [NSMutableArray array];
+
+	for (AIAccount *account in adium.accountController.accounts) {
+		if (![account isKindOfClass:[ESPurpleJabberAccount class]] || !account.online)
+			continue;
+
+		NSArray *servers = [(ESPurpleJabberAccount *)account jingleIceServers];
+		for (NSDictionary *entry in servers)
+			if ([entry[@"urls"] length])
+				[urls addObject:entry[@"urls"]];
+
+		if ([servers count])
+			[hosts addObject:account.explicitFormattedUID ?: account.UID];
+	}
+
+	if (![urls count]) {
+		answer(0, 0, nil);
+		return;
+	}
+
+	__block NSInteger answering = 0;
+	__block NSInteger asked = 0;
+	NSString *names = [hosts componentsJoinedByString:@", "];
+
+	for (NSString *url in urls) {
+		NSString *host = nil, *port = nil;
+		if (!hostAndPortOfIceURL(url, &host, &port)) {
+			asked++;
+			continue;
+		}
+
+		[self probeStunHost:host port:port completion:^(BOOL heard, NSString *detail) {
+			if (heard)
+				answering++;
+			AILogWithSignature(@"server-named helper %@: %@", url, detail);
+
+			if (++asked == (NSInteger)[urls count])
+				answer((NSInteger)[urls count], answering, names);
+		}];
+	}
 }
 
 + (AIJingleCallFinding *)findingForMedia:(AVMediaType)media
@@ -204,11 +298,22 @@
  */
 - (void)askTheWorldThroughAPlainSocket:(void (^)(BOOL answered, NSString *detail))answer
 {
+	[self probeStunHost:@"stun.l.google.com" port:@"19302" completion:answer];
+}
+
+/*!
+ * @brief Send one STUN binding request by hand and see whether anything answers
+ *
+ * The smallest question a call asks, asked without WebRTC in the way, so a
+ * server that is named but dead can be told from one that was never named.
+ */
+- (void)probeStunHost:(NSString *)host port:(NSString *)port completion:(void (^)(BOOL answered, NSString *detail))answer
+{
 	dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
 		struct addrinfo hints = { .ai_family = AF_INET, .ai_socktype = SOCK_DGRAM };
 		struct addrinfo *found = NULL;
 
-		if (getaddrinfo("stun.l.google.com", "19302", &hints, &found) != 0 || !found) {
+		if (getaddrinfo([host UTF8String], [port UTF8String], &hints, &found) != 0 || !found) {
 			dispatch_async(dispatch_get_main_queue(), ^{
 				answer(NO, @"name could not be looked up");
 			});
