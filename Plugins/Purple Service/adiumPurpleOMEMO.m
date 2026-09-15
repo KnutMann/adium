@@ -44,6 +44,9 @@
 #define NS_HINTS			"urn:xmpp:hints"
 #define NS_EME				"urn:xmpp:eme:0"
 
+/*! @brief Posted when a conversation becomes able to encrypt, or stops being able to */
+NSString *const AIOMEMOReadinessChangedNotification = @"AIOMEMOReadinessChanged";
+
 static int adium_purple_omemo_handle;
 
 /*
@@ -61,7 +64,13 @@ static NSMutableDictionary *whatWeAsked = nil;		//iq id -> @{@"kind": ..., @"jid
 //What each contact has told us, per account: "account|jid" -> array of device numbers
 static NSMutableDictionary *devicesOfContacts = nil;
 
-//Whose conversations we encrypt: "account|jid" present means yes
+/*
+ * Whose conversations we encrypt: "account|jid" present means yes.
+ *
+ * Kept on disk, because a decision to encrypt is a decision about a person and not about this
+ * run of the application. Quietly going back to the clear after a restart is the sort of thing
+ * nobody notices until it matters.
+ */
 static NSMutableSet *encryptingWith = nil;
 
 //Devices we have already asked about, so a busy conversation asks once rather than each time
@@ -111,6 +120,26 @@ static AIOMEMOStore *omemo_store(PurpleAccount *account)
 {
 	NSString *own = omemo_own_jid(account);
 	return own ? [AIOMEMOStore storeForAccount:own] : nil;
+}
+
+/*!
+ * @brief Where the list of encrypted conversations is kept
+ */
+static NSString *omemo_choices_path(void)
+{
+	return [[[adium.loginController userDirectory] stringByAppendingPathComponent:@"OMEMO"]
+			stringByAppendingPathComponent:@"encrypting.plist"];
+}
+
+static void omemo_remember_choices(void)
+{
+	[[encryptingWith allObjects] writeToFile:omemo_choices_path() atomically:YES];
+}
+
+static void omemo_recall_choices(void)
+{
+	NSArray *saved = [NSArray arrayWithContentsOfFile:omemo_choices_path()];
+	if (saved) [encryptingWith addObjectsFromArray:saved];
 }
 
 static NSString *omemo_contact_key(PurpleAccount *account, NSString *bareJID)
@@ -445,10 +474,12 @@ void omemoSetEncrypting(PurpleAccount *account, NSString *bareJID, BOOL encrypti
 
 	if (!encrypting) {
 		[encryptingWith removeObject:key];
+		omemo_remember_choices();
 		return;
 	}
 
 	[encryptingWith addObject:key];
+	omemo_remember_choices();
 
 	//Start collecting what is needed now, so the first message does not have to wait for all of it
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -789,6 +820,24 @@ static void omemo_say_it_failed(PurpleConnection *gc, NSString *bareJID, const c
 }
 
 /*!
+ * @brief Say that a conversation's ability to encrypt has changed
+ *
+ * The padlock is drawn from that, and nothing else would tell it when the other side's keys
+ * finally arrived.
+ */
+static void omemo_readiness_changed(PurpleAccount *account, NSString *bareJID)
+{
+	NSDictionary *which = @{ @"account": [NSString stringWithUTF8String:purple_account_get_username(account)],
+							 @"contact": bareJID };
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter] postNotificationName:AIOMEMOReadinessChangedNotification
+															object:nil
+														  userInfo:which];
+	});
+}
+
+/*!
  * @brief Let go of everything held for one person, now that we can encrypt to them
  */
 static void omemo_release_waiting(PurpleConnection *gc, NSString *bareJID)
@@ -965,8 +1014,10 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 			/* Whether that worked or not, anything held for this person is dealt with now: if a
 			 * session came of it the messages go, and if none did they are refused rather than
 			 * left waiting for a device that has nothing to offer. */
-			if (omemo_can_write_to(account, who))
+			if (omemo_can_write_to(account, who)) {
 				omemo_release_waiting(gc, who);
+				omemo_readiness_changed(account, who);
+			}
 
 		} else {
 			/* A node that does not exist is the ordinary answer for somebody who has never used
@@ -1007,8 +1058,10 @@ static gboolean omemo_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packe
 			 * what the other side asked for without saying so. */
 			if (from) {
 				NSString *who = omemo_bare_jid([NSString stringWithUTF8String:from]);
-				if (![who isEqualToString:omemo_own_jid(account)])
+				if (![who isEqualToString:omemo_own_jid(account)]) {
 					[encryptingWith addObject:omemo_contact_key(account, who)];
+					omemo_remember_choices();
+				}
 			}
 
 			if (omemo_open_message(gc, stanza, encrypted))
@@ -1075,6 +1128,7 @@ static void omemo_signed_on_cb(PurpleConnection *gc, gpointer data)
 	dispatch_once(&placed, ^{
 		[AIOMEMOStore useDirectory:[[adium.loginController userDirectory]
 									stringByAppendingPathComponent:@"OMEMO"]];
+		omemo_recall_choices();
 	});
 
 	AIOMEMOStore *store = omemo_store(account);

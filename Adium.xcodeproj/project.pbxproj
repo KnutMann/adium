@@ -343,6 +343,8 @@
 		ADD1E5C0DE00000000FC01 /* adiumPurpleOMEMO.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000FE00 /* AIOMEMOMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000FE01 /* AIOMEMOMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FE03 /* AIOMEMOMessage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000FF00 /* AIOMEMOController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FF02 /* AIOMEMOController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000FF01 /* AIOMEMOController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FF03 /* AIOMEMOController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000FD00 /* AIOMEMOStore.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FD02 /* AIOMEMOStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000FD01 /* AIOMEMOStore.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -2275,6 +2277,8 @@
 		ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleOMEMO.m; path = "Plugins/Purple Service/adiumPurpleOMEMO.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOMessage.h; path = "Plugins/Purple Service/AIOMEMOMessage.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FE03 /* AIOMEMOMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOMessage.m; path = "Plugins/Purple Service/AIOMEMOMessage.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FF02 /* AIOMEMOController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOController.h; path = "Plugins/Purple Service/AIOMEMOController.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FF03 /* AIOMEMOController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOController.m; path = "Plugins/Purple Service/AIOMEMOController.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FD02 /* AIOMEMOStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOStore.h; path = "Plugins/Purple Service/AIOMEMOStore.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOStore.m; path = "Plugins/Purple Service/AIOMEMOStore.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleFallback.h; path = "Plugins/Purple Service/adiumPurpleFallback.h"; sourceTree = "<group>"; };
@@ -4284,6 +4288,8 @@
 				ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */,
 				ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */,
 				ADD1E5C0DE00000000FE03 /* AIOMEMOMessage.m */,
+				ADD1E5C0DE00000000FF02 /* AIOMEMOController.h */,
+				ADD1E5C0DE00000000FF03 /* AIOMEMOController.m */,
 				ADD1E5C0DE00000000FD02 /* AIOMEMOStore.h */,
 				ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */,
 				ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */,
@@ -6299,6 +6305,7 @@
 				ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */,
 				ADD1E5C0DE00000000FC00 /* adiumPurpleOMEMO.h in Headers */,
 				ADD1E5C0DE00000000FE00 /* AIOMEMOMessage.h in Headers */,
+				ADD1E5C0DE00000000FF00 /* AIOMEMOController.h in Headers */,
 				ADD1E5C0DE00000000FD00 /* AIOMEMOStore.h in Headers */,
 				ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */,
 				ADD1E5C0DE0000000000CC00 /* adiumPurpleBookmarks.h in Headers */,
@@ -7222,6 +7229,7 @@
 				ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */,
 				ADD1E5C0DE00000000FC01 /* adiumPurpleOMEMO.m in Sources */,
 				ADD1E5C0DE00000000FE01 /* AIOMEMOMessage.m in Sources */,
+				ADD1E5C0DE00000000FF01 /* AIOMEMOController.m in Sources */,
 				ADD1E5C0DE00000000FD01 /* AIOMEMOStore.m in Sources */,
 				ADD1E5C0DE0000000000FB01 /* adiumPurpleFallback.m in Sources */,
 				ADD1E5C0DE0000000000CC01 /* adiumPurpleBookmarks.m in Sources */,

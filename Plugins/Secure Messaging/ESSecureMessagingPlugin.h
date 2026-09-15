@@ -24,10 +24,14 @@ typedef enum {
 	AISecureMessagingMenu_ShowDetails,
 	AISecureMessagingMenu_Verify,
 	AISecureMessagingMenu_Options,
-	AISecureMessagingMenu_ShowAbout
+	AISecureMessagingMenu_ShowAbout,
+	AISecureMessagingMenu_OMEMO,			//the switch for OMEMO
+	AISecureMessagingMenu_OMEMOKeys,		//the list of devices and what was decided about them
+	AISecureMessagingMenu_OMEMOOwnKey,		//our own fingerprint, to read out
+	AISecureMessagingMenu_OMEMODevice		//one device of the other party
 } AISecureMessagingMenuTag;
 
-@interface ESSecureMessagingPlugin : AIPlugin <AIChatObserver, NSMenuItemValidation> {
+@interface ESSecureMessagingPlugin : AIPlugin <AIChatObserver, NSMenuItemValidation, NSMenuDelegate> {
 	NSImage	*lockImage_Locked;
 	NSImage	*lockImage_Unlocked;
 	

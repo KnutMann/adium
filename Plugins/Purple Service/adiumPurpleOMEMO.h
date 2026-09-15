@@ -17,6 +17,13 @@
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
 /*!
+ * @brief Posted when a conversation becomes able to encrypt, or stops being able to
+ *
+ * The user info says which account and which contact. Sent on the main thread.
+ */
+extern NSString *const AIOMEMOReadinessChangedNotification;
+
+/*!
  * @brief OMEMO (XEP-0384): announce this device and learn about other people's
  */
 void configureAdiumPurpleOMEMO(void);

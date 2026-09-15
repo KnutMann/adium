@@ -16,6 +16,8 @@
 
 #import "ESSecureMessagingPlugin.h"
 #import "AdiumOTREncryption.h"
+#import <AdiumLibpurple/AIOMEMOController.h>
+#import <AdiumLibpurple/adiumPurpleOMEMO.h>
 
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
@@ -41,6 +43,13 @@
 #define TITLE_ABOUT_ENCRYPTION	[AILocalizedString(@"About Encryption",nil) stringByAppendingEllipsis]
 
 #define TITLE_ENCRYPTION		AILocalizedString(@"Encryption",nil)
+
+#define TITLE_OMEMO_ON			AILocalizedString(@"Encrypt with OMEMO",nil)
+#define TITLE_OMEMO_OFF			AILocalizedString(@"Stop Encrypting with OMEMO",nil)
+#define TITLE_OMEMO_KEYS		AILocalizedString(@"OMEMO Devices",nil)
+#define TITLE_OMEMO_OWN_KEY		AILocalizedString(@"This Mac: %@",nil)
+#define TITLE_OMEMO_NO_DEVICES	AILocalizedString(@"No devices seen yet",nil)
+#define TITLE_OMEMO_WAITING		AILocalizedString(@"Waiting for their keys",nil)
 
 #define CHAT_NOW_SECURE				AILocalizedString(@"Encrypted OTR chat initiated.", nil)
 #define CHAT_NOW_SECURE_UNVERIFIED	AILocalizedString(@"Encrypted OTR chat initiated. %@'s identity not verified.", nil)
@@ -74,6 +83,26 @@
 	[self configureMenuItems];
 
 	[adium.chatController registerChatObserver:self];
+
+	/* The padlock has to close by itself once the other side's keys arrive, which happens a
+	 * moment after the user asked for encryption rather than at the moment they asked. */
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(omemoReadinessChanged:)
+												 name:AIOMEMOReadinessChangedNotification
+											   object:nil];
+}
+
+/*!
+ * @brief A conversation can now encrypt, or can no longer: redraw the padlock
+ */
+- (void)omemoReadinessChanged:(NSNotification *)notification
+{
+	AIChat *chat = adium.interfaceController.activeChat;
+	if (!chat) return;
+
+	[adium.chatController chatStatusChanged:chat
+						 modifiedStatusKeys:[NSSet setWithObject:@"SecurityDetails"]
+									 silent:YES];
 }
 
 - (void)uninstallPlugin
@@ -271,14 +300,19 @@
 - (void)_updateToolbarItem:(NSToolbarItem *)item forChat:(AIChat *)chat
 {
 	NSImage			*image;
-	
-	if ([chat isSecure]) {
+
+	/* The padlock closes for OMEMO as well as for OTR, but only once we actually hold the keys
+	 * to encrypt with. A conversation that has been switched on and is still waiting for the
+	 * other side's keys is not yet encrypted, and showing it as though it were would be the one
+	 * kind of wrong a padlock must never be. */
+	if ([chat isSecure] ||
+		([AIOMEMOController isEncryptingChat:chat] && [AIOMEMOController isReadyInChat:chat])) {
 		image = lockImage_Locked;
 	} else {
 		image = lockImage_Unlocked;				
 	}
 	
-	[item setEnabled:[chat supportsSecureMessagingToggling]];
+	[item setEnabled:([chat supportsSecureMessagingToggling] || [AIOMEMOController isPossibleInChat:chat])];
 	[(MVMenuButton *)[item view] setImage:image];
 	[validatedItems addObject:item];
 }
@@ -350,6 +384,89 @@
 }
 
 //Disable the insertion if a text field is not active
+#pragma mark OMEMO
+
+/*!
+ * @brief Start or stop encrypting this conversation with OMEMO
+ */
+- (IBAction)toggleOMEMO:(id)sender
+{
+	AIChat *chat = adium.interfaceController.activeChat;
+	if (!chat) return;
+
+	BOOL wasOn = [AIOMEMOController isEncryptingChat:chat];
+	[AIOMEMOController setEncrypting:!wasOn inChat:chat];
+
+	[adium.chatController chatStatusChanged:chat
+						 modifiedStatusKeys:[NSSet setWithObject:@"SecurityDetails"]
+									 silent:YES];
+}
+
+/*!
+ * @brief Accept or turn down one of the other party's devices
+ *
+ * A device is either accepted or it is not; there is no third state to pick, because undecided
+ * is what it already was before anybody looked.
+ */
+- (IBAction)toggleOMEMODevice:(id)sender
+{
+	AIChat *chat = adium.interfaceController.activeChat;
+	NSString *fingerprint = [sender representedObject];
+	if (!chat || !fingerprint) return;
+
+	[AIOMEMOController setAccepted:([sender state] != NSControlStateValueOn)
+					forFingerprint:fingerprint
+							inChat:chat];
+}
+
+/*!
+ * @brief Fill the device submenu as it opens
+ *
+ * Built each time rather than kept, because a device the other party added a minute ago should
+ * be in it, and one they removed should not.
+ */
+- (void)menuNeedsUpdate:(NSMenu *)menu
+{
+	[menu removeAllItems];
+
+	AIChat *chat = adium.interfaceController.activeChat;
+	if (!chat) return;
+
+	/* Our own fingerprint first. It is the thing the user reads out to the other person, and
+	 * putting it anywhere else means hunting for it during a phone call. */
+	NSString *own = [AIOMEMOController ownFingerprintForAccount:chat.account];
+	if (own) {
+		NSMenuItem *mine = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:TITLE_OMEMO_OWN_KEY, own]
+													  target:nil
+													  action:nil
+											   keyEquivalent:@""];
+		[mine setTag:AISecureMessagingMenu_OMEMOOwnKey];
+		[menu addItem:mine];
+		[menu addItem:[NSMenuItem separatorItem]];
+	}
+
+	NSDictionary *theirs = [AIOMEMOController fingerprintsInChat:chat];
+	if (![theirs count]) {
+		NSString *why = [AIOMEMOController isEncryptingChat:chat] ? TITLE_OMEMO_WAITING : TITLE_OMEMO_NO_DEVICES;
+		NSMenuItem *nothing = [[NSMenuItem alloc] initWithTitle:why target:nil action:nil keyEquivalent:@""];
+		[nothing setEnabled:NO];
+		[menu addItem:nothing];
+		return;
+	}
+
+	for (NSString *fingerprint in [[theirs allKeys] sortedArrayUsingSelector:@selector(compare:)]) {
+		NSMenuItem *device = [[NSMenuItem alloc] initWithTitle:fingerprint
+														target:self
+														action:@selector(toggleOMEMODevice:)
+												 keyEquivalent:@""];
+		[device setTag:AISecureMessagingMenu_OMEMODevice];
+		[device setRepresentedObject:fingerprint];
+		[device setState:([theirs[fingerprint] integerValue] == 1 ? NSControlStateValueOn
+																  : NSControlStateValueOff)];
+		[menu addItem:device];
+	}
+}
+
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
 	AIChat *chat;
@@ -438,6 +555,27 @@
 			case AISecureMessagingMenu_ShowAbout:
 				return [chat supportsSecureMessagingToggling];
 				break;
+
+			case AISecureMessagingMenu_OMEMO:
+				if (![AIOMEMOController isPossibleInChat:chat]) return NO;
+
+				[menuItem setTitle:([AIOMEMOController isEncryptingChat:chat] ? TITLE_OMEMO_OFF
+																			  : TITLE_OMEMO_ON)];
+				return YES;
+				break;
+
+			case AISecureMessagingMenu_OMEMOKeys:
+				return [AIOMEMOController isPossibleInChat:chat];
+				break;
+
+			case AISecureMessagingMenu_OMEMOOwnKey:
+				//There to be read, not to be chosen
+				return NO;
+				break;
+
+			case AISecureMessagingMenu_OMEMODevice:
+				return YES;
+				break;
 		}
 	}
 
@@ -481,6 +619,26 @@
 		[item setSubmenu:[adium.contentController encryptionMenuNotifyingTarget:self
 																	  withDefault:YES]];
 		[_secureMessagingMenu addItem:item];		
+
+		[_secureMessagingMenu addItem:[NSMenuItem separatorItem]];
+
+		item = [[NSMenuItem alloc] initWithTitle:TITLE_OMEMO_ON
+										  target:self
+										  action:@selector(toggleOMEMO:)
+								   keyEquivalent:@""];
+		[item setTag:AISecureMessagingMenu_OMEMO];
+		[_secureMessagingMenu addItem:item];
+
+		/* The devices go in a submenu built afresh each time it is shown, because which devices
+		 * somebody has is not a thing that stays still. */
+		item = [[NSMenuItem alloc] initWithTitle:TITLE_OMEMO_KEYS
+										  target:nil
+										  action:nil
+								   keyEquivalent:@""];
+		[item setTag:AISecureMessagingMenu_OMEMOKeys];
+		[item setSubmenu:[[NSMenu alloc] init]];
+		[[item submenu] setDelegate:(id<NSMenuDelegate>)self];
+		[_secureMessagingMenu addItem:item];
 
 		[_secureMessagingMenu addItem:[NSMenuItem separatorItem]];
 		item = [[NSMenuItem alloc] initWithTitle:TITLE_ABOUT_ENCRYPTION
