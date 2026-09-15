@@ -24,6 +24,8 @@
 
 @interface AMPurpleJabberExternalServices ()
 - (void)handleServicesElement:(xmlnode *)servicesElement;
+- (void)ask;
+- (void)askAgainBeforeAnythingExpires;
 @end
 
 @implementation AMPurpleJabberExternalServices
@@ -73,25 +75,44 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 
 		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
 							  PURPLE_CALLBACK(AMPurpleJabberExternalServices_received_cb), self);
-
-		//Ask the domain once; whatever it names is what calls will use
-		NSRange at = [account.UID rangeOfString:@"@"];
-		if (at.location != NSNotFound) {
-			static unsigned long sequence = 0;
-			iqId = [[NSString alloc] initWithFormat:@"adium-extdisco-%lu", sequence++];
-
-			xmlnode *iq = xmlnode_new("iq");
-			xmlnode_set_attrib(iq, "type", "get");
-			xmlnode_set_attrib(iq, "to", [[account.UID substringFromIndex:(at.location + 1)] UTF8String]);
-			xmlnode_set_attrib(iq, "id", [iqId UTF8String]);
-			xmlnode_set_namespace(xmlnode_new_child(iq, "services"), NS_EXTDISCO);
-
-			purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &iq);
-			if (iq)
-				xmlnode_free(iq);
-		}
+		[self ask];
 	}
 	return self;
+}
+
+/*!
+ * @brief Ask the domain what it offers
+ *
+ * Asked at login and again before the answer goes stale, because a relay's
+ * credentials are lent, not given: the one measured here came with ten minutes on
+ * it, and a call placed in the eleventh minute carries a password the relay no
+ * longer knows. Nothing says so out loud, the relay simply refuses and the call
+ * quietly has one way home fewer.
+ */
+- (void)ask
+{
+	PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
+	PurpleConnection *gc = purple_account_get_connection([account purpleAccount]);
+	if (!jabber || !gc)
+		return;
+
+	NSRange at = [account.UID rangeOfString:@"@"];
+	if (at.location == NSNotFound)
+		return;
+
+	static unsigned long sequence = 0;
+	[iqId release];
+	iqId = [[NSString alloc] initWithFormat:@"adium-extdisco-%lu", sequence++];
+
+	xmlnode *iq = xmlnode_new("iq");
+	xmlnode_set_attrib(iq, "type", "get");
+	xmlnode_set_attrib(iq, "to", [[account.UID substringFromIndex:(at.location + 1)] UTF8String]);
+	xmlnode_set_attrib(iq, "id", [iqId UTF8String]);
+	xmlnode_set_namespace(xmlnode_new_child(iq, "services"), NS_EXTDISCO);
+
+	purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &iq);
+	if (iq)
+		xmlnode_free(iq);
 }
 
 - (void)dealloc
@@ -104,6 +125,9 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 
 - (void)handleServicesElement:(xmlnode *)servicesElement
 {
+	//A fresh answer replaces the old one whole; the host is the authority on its own list
+	[services removeAllObjects];
+
 	for (xmlnode *service = xmlnode_get_child(servicesElement, "service"); service;
 		 service = xmlnode_get_next_twin(service)) {
 		const char *host = xmlnode_get_attrib(service, "host");
@@ -112,6 +136,7 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 		const char *transport = xmlnode_get_attrib(service, "transport");
 		const char *username = xmlnode_get_attrib(service, "username");
 		const char *password = xmlnode_get_attrib(service, "password");
+		const char *expires = xmlnode_get_attrib(service, "expires");
 
 		if (!host || !type)
 			continue;
@@ -134,15 +159,24 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 			[entry setObject:[NSString stringWithUTF8String:username] forKey:@"username"];
 		if (password)
 			[entry setObject:[NSString stringWithUTF8String:password] forKey:@"credential"];
+		if (expires) {
+			NSISO8601DateFormatter *reader = [[[NSISO8601DateFormatter alloc] init] autorelease];
+			NSDate *when = [reader dateFromString:[NSString stringWithUTF8String:expires]];
+			if (when)
+				[entry setObject:when forKey:@"expires"];
+		}
 		[services addObject:entry];
 	}
 
 	AILog(@"%@: %lu ICE servers from the domain", account, (unsigned long)[services count]);
 
-	/* And now ask each of them whether it is there at all. A host may announce a
-	 * server that answers nothing, measured on one that did, and a call which
-	 * carries such an address spends seconds knocking on a door nobody opens
-	 * before it tries anything else. What does not answer is not offered. */
+	/* Ask each of them whether it is there at all, and write down what is not.
+	 *
+	 * Nothing is thrown away over it. A server that ignores this question can
+	 * still be the one that carries the call: a relay built to carry and nothing
+	 * else may refuse to answer questions about addresses, and losing it costs
+	 * far more than keeping a dead address in a list nobody waits on. The answer
+	 * is for the person to read in the self test, not for the call to act on. */
 	for (NSDictionary *service in [[services copy] autorelease]) {
 		NSString *host = nil, *port = nil;
 		if (![AIJingleCallDiagnostics host:&host port:&port ofIceURL:service[@"urls"]])
@@ -152,15 +186,58 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 			if (answered)
 				return;
 
-			AILog(@"%@: dropping %@, it answers nothing", self->account, service[@"urls"]);
-			[self->services removeObject:service];
+			AILog(@"%@: %@ answers nothing", self->account, service[@"urls"]);
 		}];
 	}
+
+	[self askAgainBeforeAnythingExpires];
+}
+
+/*!
+ * @brief Ask again shortly before the lent credentials run out
+ *
+ * XEP-0215 lets a host put a clock on what it hands over, and the one measured
+ * here gave ten minutes. Asking once at login therefore buys a working relay for
+ * exactly as long as somebody places a call quickly, and nothing at all after
+ * that. So the clock is read and the question repeated just before it runs out.
+ */
+- (void)askAgainBeforeAnythingExpires
+{
+	NSDate *earliest = nil;
+	for (NSDictionary *service in services) {
+		NSDate *when = service[@"expires"];
+		if (when && (!earliest || [when compare:earliest] == NSOrderedAscending))
+			earliest = when;
+	}
+	if (!earliest)
+		return;
+
+	//A little early, and never in a tight loop however odd the answer
+	NSTimeInterval seconds = MAX(60.0, [earliest timeIntervalSinceNow] - 30.0);
+	AILog(@"%@: asking again in %.0f seconds, before the credentials run out", account, seconds);
+
+	generation++;
+	unsigned long mine = generation;
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)),
+				   dispatch_get_main_queue(), ^{
+		if (self->generation == mine)
+			[self ask];
+	});
 }
 
 - (NSArray *)iceServerDictionaries
 {
-	return [[services copy] autorelease];
+	//What has run out is not offered; credentials nobody honours are worse than none
+	NSMutableArray *living = [NSMutableArray array];
+	for (NSDictionary *service in services) {
+		NSDate *when = service[@"expires"];
+		if (when && [when timeIntervalSinceNow] <= 0) {
+			AILog(@"%@: %@ ran out at %@", account, service[@"urls"], when);
+			continue;
+		}
+		[living addObject:service];
+	}
+	return living;
 }
 
 @end

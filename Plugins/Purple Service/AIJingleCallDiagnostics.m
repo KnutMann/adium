@@ -111,7 +111,7 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 			[findings addObject:plain];
 			AILogWithSignature(@"plain socket probe: %@", detail);
 
-		[run askWhatTheAccountsWereTold:^(NSInteger named, NSInteger answering, NSString *hostNames) {
+		[run askWhatTheAccountsWereTold:^(NSInteger named, NSInteger answering, NSString *hostNames, BOOL sawLivingRelay) {
 			if (named) {
 				AIJingleCallFinding *announced = [[AIJingleCallFinding alloc] init];
 				announced.title = AILocalizedString(@"Helpers named by your server",
@@ -127,6 +127,22 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 					 hostNames, (long)named]);
 				[findings addObject:announced];
 			}
+
+			/* A relay of our own, which is the difference between a call that
+			 * connects at once and one that waits for the other side to offer a
+			 * way in. Worth saying even when everything else is green, because
+			 * nothing else on this list goes wrong when it is missing. */
+			AIJingleCallFinding *relay = [[AIJingleCallFinding alloc] init];
+			relay.title = AILocalizedString(@"Relay for difficult networks",
+											"Call self test: whether a TURN server is available to carry the call");
+			relay.good = (sawLivingRelay || [run aRelayWasWrittenDownByHand]);
+			relay.fatal = NO;
+			relay.detail = (relay.good ?
+				AILocalizedString(@"A relay is available to carry a call when the direct ways fail.",
+								  "Call self test: a working TURN server is known") :
+				AILocalizedString(@"None available. When the direct ways between you and the other person carry nothing, this call has to wait for the other side to offer a way in, which costs several seconds and sometimes the whole call. Your server would have to name one that works, or one can be written into AIJingleTURNServers.",
+								  "Call self test: no working TURN server anywhere"));
+			[findings addObject:relay];
 
 		[run askTheWorldForOurAddress:^(BOOL sawAddress) {
 			AIJingleCallFinding *public = [[AIJingleCallFinding alloc] init];
@@ -174,12 +190,25 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
  *
  * A host may name a STUN or TURN server that answers nothing at all, which is
  * exactly what one measured here did, and a call that trusts it alone goes out
- * blind while looking perfectly configured. Adium asks public servers as well,
- * so such a host costs nothing any more, but its operator should hear about it.
+ * blind while looking perfectly configured.
+ *
+ * The two kinds are not worth the same. A STUN server that is dead costs little,
+ * because Adium asks public ones as well and any of them will say what address
+ * the world sees. A relay that is dead cannot be replaced, because carrying
+ * somebody else's call costs money and nobody does it for strangers, and without
+ * one this side offers no address that works when the short ways fail. Measured
+ * against a phone in the same flat: the direct way carried nothing, this side had
+ * no relay because the host announces one that answers nothing, and the call sat
+ * silent for nine seconds until the other side's relay was tried. So the relay is
+ * named separately, and it is the sentence that matters.
+ *
+ * A relay only counts as one when it answers AND came with a name and a password,
+ * because a relay address without keys is one WebRTC refuses outright.
  */
-- (void)askWhatTheAccountsWereTold:(void (^)(NSInteger named, NSInteger answering, NSString *hostNames))answer
+- (void)askWhatTheAccountsWereTold:(void (^)(NSInteger named, NSInteger answering,
+											 NSString *hostNames, BOOL sawLivingRelay))answer
 {
-	NSMutableArray<NSString *> *urls = [NSMutableArray array];
+	NSMutableArray<NSDictionary *> *announced = [NSMutableArray array];
 	NSMutableArray<NSString *> *hosts = [NSMutableArray array];
 
 	for (AIAccount *account in adium.accountController.accounts) {
@@ -189,37 +218,57 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 		NSArray *servers = [(ESPurpleJabberAccount *)account jingleIceServers];
 		for (NSDictionary *entry in servers)
 			if ([entry[@"urls"] length])
-				[urls addObject:entry[@"urls"]];
+				[announced addObject:entry];
 
 		if ([servers count])
 			[hosts addObject:account.explicitFormattedUID ?: account.UID];
 	}
 
-	if (![urls count]) {
-		answer(0, 0, nil);
+	if (![announced count]) {
+		answer(0, 0, nil, NO);
 		return;
 	}
 
+	NSInteger named = (NSInteger)[announced count];
+	NSString *names = [hosts componentsJoinedByString:@", "];
 	__block NSInteger answering = 0;
 	__block NSInteger asked = 0;
-	NSString *names = [hosts componentsJoinedByString:@", "];
+	__block BOOL sawLivingRelay = NO;
 
-	for (NSString *url in urls) {
+	for (NSDictionary *entry in announced) {
+		NSString *url = entry[@"urls"];
+		BOOL couldCarry = ([url hasPrefix:@"turn"] &&
+						   [entry[@"username"] length] && [entry[@"credential"] length]);
+
 		NSString *host = nil, *port = nil;
 		if (!hostAndPortOfIceURL(url, &host, &port)) {
-			asked++;
+			if (++asked == named)
+				answer(named, answering, names, sawLivingRelay);
 			continue;
 		}
 
 		[AIJingleCallDiagnostics probeStunHost:host port:port detailedCompletion:^(BOOL heard, NSString *detail) {
 			if (heard)
 				answering++;
+			if (heard && couldCarry)
+				sawLivingRelay = YES;
 			AILogWithSignature(@"server-named helper %@: %@", url, detail);
 
-			if (++asked == (NSInteger)[urls count])
-				answer((NSInteger)[urls count], answering, names);
+			if (++asked == named)
+				answer(named, answering, names, sawLivingRelay);
 		}];
 	}
+}
+
+/*! @brief Is there a relay somebody wrote down by hand, keys and all? */
+- (BOOL)aRelayWasWrittenDownByHand
+{
+	for (NSDictionary *entry in [[NSUserDefaults standardUserDefaults] arrayForKey:@"AIJingleTURNServers"])
+		if ([entry isKindOfClass:[NSDictionary class]] && [entry[@"urls"] length] &&
+			[entry[@"username"] length] && [entry[@"credential"] length])
+			return YES;
+
+	return NO;
 }
 
 + (AIJingleCallFinding *)findingForMedia:(AVMediaType)media
@@ -415,7 +464,7 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 }
 
 /*!
- * @brief Send one STUN binding request by hand and see whether anything answers
+ * @brief Send one STUN question by hand and see whether anything answers
  *
  * The smallest question a call asks, asked without WebRTC in the way, so a
  * server that is named but dead can be told from one that was never named.
@@ -450,28 +499,53 @@ static BOOL hostAndPortOfIceURL(NSString *url, NSString **host, NSString **port)
 		setsockopt(socketDescriptor, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
 		//A binding request: type 0x0001, no attributes, the magic cookie and a transaction id
-		uint8_t request[20] = { 0x00, 0x01, 0x00, 0x00, 0x21, 0x12, 0xA4, 0x42 };
-		for (int index = 8; index < 20; index++)
-			request[index] = (uint8_t)arc4random_uniform(256);
+		uint8_t binding[20] = { 0x00, 0x01, 0x00, 0x00, 0x21, 0x12, 0xA4, 0x42 };
 
-		ssize_t sent = sendto(socketDescriptor, request, sizeof(request), 0,
+		/* And the question a relay answers even when it answers nothing else.
+		 *
+		 * TRAP, and it cost a relay: a server built to carry calls and nothing
+		 * else may ignore a binding request altogether, because binding is the
+		 * STUN half of its job and it was told not to do that half. Ask it to
+		 * carry something instead and it says no, loudly, with a realm attached,
+		 * and a refusal is proof of life. Silence on both questions is death.
+		 * An allocate request: type 0x0003, with the one attribute it insists on,
+		 * REQUESTED-TRANSPORT 0x0019 naming UDP, which is protocol number 17. */
+		uint8_t allocate[28] = { 0x00, 0x03, 0x00, 0x08, 0x21, 0x12, 0xA4, 0x42 };
+		memcpy(allocate + 20, (uint8_t[]){ 0x00, 0x19, 0x00, 0x04, 17, 0x00, 0x00, 0x00 }, 8);
+
+		for (int index = 8; index < 20; index++)
+			binding[index] = allocate[index] = (uint8_t)arc4random_uniform(256);
+		allocate[19] ^= 0xFF;			//two questions, two conversations
+
+		ssize_t sent = sendto(socketDescriptor, binding, sizeof(binding), 0,
 							  found->ai_addr, found->ai_addrlen);
+		if (sent == (ssize_t)sizeof(binding))
+			sendto(socketDescriptor, allocate, sizeof(allocate), 0, found->ai_addr, found->ai_addrlen);
+
 		NSString *detail = nil;
 		BOOL heard = NO;
 
-		if (sent != (ssize_t)sizeof(request)) {
+		if (sent != (ssize_t)sizeof(binding)) {
 			detail = [NSString stringWithFormat:@"sending failed (%s)", strerror(errno)];
 		} else {
 			uint8_t reply[512];
 			ssize_t received = recv(socketDescriptor, reply, sizeof(reply), 0);
 
-			if (received >= 20 && reply[0] == 0x01 && reply[1] == 0x01) {
+			//Anything wearing the magic cookie came from a server that is there
+			BOOL isStun = (received >= 20 &&
+						   reply[4] == 0x21 && reply[5] == 0x12 && reply[6] == 0xA4 && reply[7] == 0x42);
+
+			if (isStun && reply[0] == 0x01 && reply[1] == 0x01) {
 				heard = YES;
-				detail = @"a plain socket reaches the world";
+				detail = @"it answers with an address";
+			} else if (isStun) {
+				heard = YES;
+				detail = [NSString stringWithFormat:@"it refuses, so it is there (0x%02x%02x)",
+						  reply[0], reply[1]];
 			} else if (received < 0) {
 				detail = [NSString stringWithFormat:@"nothing came back (%s)", strerror(errno)];
 			} else {
-				detail = @"something came back, but no binding answer";
+				detail = @"something came back, but nothing a call would recognise";
 			}
 		}
 

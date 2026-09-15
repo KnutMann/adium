@@ -20,14 +20,16 @@
  * @class AMPurpleJabberExternalServices
  * @brief The STUN and TURN servers the XMPP server offers its users (XEP-0215)
  *
- * Asked once when the account connects; calls read the answer when they build
- * their connection. Two hosts on one network meet without any of this, which is
- * why an empty answer is no failure: the call simply tries with what it has.
+ * Asked when the account connects and again before the answer runs out, because a
+ * host may lend its relay for a few minutes at a time. Calls read the answer when
+ * they build their connection. Two hosts on one network meet without any of this,
+ * which is why an empty answer is no failure: the call tries with what it has.
  */
 @interface AMPurpleJabberExternalServices : NSObject {
 	ESPurpleJabberAccount	*account;		//not retained; owns us
 	NSMutableArray			*services;		//dictionaries: urls, username, credential
 	NSString				*iqId;
+	unsigned long			generation;		//so an old timer cannot speak for a new answer
 }
 
 - (id)initWithAccount:(ESPurpleJabberAccount *)inAccount;
