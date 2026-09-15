@@ -16,6 +16,7 @@
 
 #import "AIJingleCallController.h"
 
+#import <Adium/ESDebugAILog.h>
 #import <CoreVideo/CoreVideo.h>
 #import <WebRTC/WebRTC.h>
 
@@ -304,7 +305,9 @@
 														sdpMLineIndex:0
 															   sdpMid:mid];
 	[self.peerConnection addIceCandidate:candidate completionHandler:^(NSError *error) {
-		//A candidate that does not fit is no reason to end a call; ICE keeps trying with the rest
+		//A candidate that does not fit is no reason to end a call, but it is worth saying
+		if (error)
+			AILogWithSignature(@"remote candidate refused (%@): %@", mid, error);
 	}];
 }
 
@@ -319,13 +322,64 @@
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didGenerateIceCandidate:(RTCIceCandidate *)candidate
 {
+	AILogWithSignature(@"local candidate (%@): %@", candidate.sdpMid, candidate.sdp);
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[self.machine addLocalCandidateLine:candidate.sdp mid:(candidate.sdpMid ?: @"0")];
 	});
 }
 
+static NSString *nameOfIceState(RTCIceConnectionState state)
+{
+	switch (state) {
+		case RTCIceConnectionStateNew:			return @"new";
+		case RTCIceConnectionStateChecking:		return @"checking";
+		case RTCIceConnectionStateConnected:	return @"connected";
+		case RTCIceConnectionStateCompleted:	return @"completed";
+		case RTCIceConnectionStateFailed:		return @"failed";
+		case RTCIceConnectionStateDisconnected:	return @"disconnected";
+		case RTCIceConnectionStateClosed:		return @"closed";
+		default:								return @"?";
+	}
+}
+
+/*!
+ * @brief Say what the connection tried, once it has given up
+ *
+ * A call that fails to connect says nothing by itself; the pairs it checked do.
+ * Each one names the two addresses, what came back, and how far it got.
+ */
+- (void)logCandidatePairs
+{
+	[self.peerConnection statisticsWithCompletionHandler:^(RTCStatisticsReport *report) {
+		NSMutableArray *lines = [NSMutableArray array];
+		NSMutableDictionary *candidates = [NSMutableDictionary dictionary];
+
+		for (NSString *key in report.statistics) {
+			RTCStatistics *stat = report.statistics[key];
+			if ([stat.type isEqualToString:@"local-candidate"] || [stat.type isEqualToString:@"remote-candidate"])
+				candidates[stat.id] = stat.values;
+		}
+		for (NSString *key in report.statistics) {
+			RTCStatistics *stat = report.statistics[key];
+			if (![stat.type isEqualToString:@"candidate-pair"])
+				continue;
+
+			NSDictionary *local = candidates[stat.values[@"localCandidateId"]];
+			NSDictionary *remote = candidates[stat.values[@"remoteCandidateId"]];
+			[lines addObject:[NSString stringWithFormat:@"%@ %@:%@ (%@) -> %@:%@ (%@) sent=%@ recv=%@",
+				stat.values[@"state"] ?: @"?",
+				local[@"address"] ?: @"?", local[@"port"] ?: @"?", local[@"candidateType"] ?: @"?",
+				remote[@"address"] ?: @"?", remote[@"port"] ?: @"?", remote[@"candidateType"] ?: @"?",
+				stat.values[@"requestsSent"] ?: @0, stat.values[@"responsesReceived"] ?: @0]];
+		}
+		AILogWithSignature(@"ICE gave up after %lu pairs:\n%@", (unsigned long)[lines count],
+						   [lines componentsJoinedByString:@"\n"]);
+	}];
+}
+
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceConnectionState:(RTCIceConnectionState)newState
 {
+	AILogWithSignature(@"ICE %@ for call %@", nameOfIceState(newState), self.machine.sid);
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if ((newState == RTCIceConnectionStateConnected || newState == RTCIceConnectionStateCompleted) &&
 			!self->announcedConnected) {
@@ -345,8 +399,10 @@
 				}
 			}
 		}
-		if (newState == RTCIceConnectionStateFailed)
+		if (newState == RTCIceConnectionStateFailed) {
+			[self logCandidatePairs];
 			[self failWith:@"connectivity-error"];
+		}
 	});
 }
 
@@ -355,7 +411,10 @@
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didAddStream:(RTCMediaStream *)stream {}
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didRemoveStream:(RTCMediaStream *)stream {}
 - (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection {}
-- (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceGatheringState:(RTCIceGatheringState)newState {}
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceGatheringState:(RTCIceGatheringState)newState
+{
+	AILogWithSignature(@"ICE gathering state %ld for call %@", (long)newState, self.machine.sid);
+}
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didRemoveIceCandidates:(NSArray<RTCIceCandidate *> *)candidates {}
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didOpenDataChannel:(RTCDataChannel *)dataChannel {}
 

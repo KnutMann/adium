@@ -38,6 +38,7 @@
 	NSMutableDictionary<NSString *, NSString *> *displayNamesBySid;
 	NSMutableDictionary<NSString *, AIJingleCallWindowController *> *windowsBySid;
 	NSMutableDictionary<NSString *, AIListContact *> *contactsBySid;	//for the note in the chat
+	NSMutableArray<AIJingleCallWindowController *> *lingeringWindows;	//finished calls still on screen
 	NSString *upcomingDisplayName;		//set right before the manager reports callBegan
 	NSTimer *ringTimer;
 }
@@ -66,6 +67,7 @@
 		displayNamesBySid = [NSMutableDictionary dictionary];
 		windowsBySid = [NSMutableDictionary dictionary];
 		contactsBySid = [NSMutableDictionary dictionary];
+		lingeringWindows = [NSMutableArray array];
 	}
 	return self;
 }
@@ -363,8 +365,23 @@
 	endedWithReason:(NSString *)reason locally:(BOOL)locally
 {
 	NSString *sid = controller.machine.sid;
-	AIJingleCallWindowController *window = windowsBySid[sid];
-	[windowsBySid removeObjectForKey:sid];
+	AIJingleCallWindowController *window = (sid ? windowsBySid[sid] : nil);
+	if (sid)
+		[windowsBySid removeObjectForKey:sid];
+
+	/* A window that stays readable after the call must stay held, or its own
+	 * buttons stop working when the last reference to it goes. */
+	if (window) {
+		[lingeringWindows addObject:window];
+		__weak AIJingleCallUI *weakSelf = self;
+		__weak AIJingleCallWindowController *weakWindow = window;
+		window.whenClosed = ^{
+			AIJingleCallUI *ui = weakSelf;
+			AIJingleCallWindowController *finished = weakWindow;
+			if (ui && finished)
+				[ui->lingeringWindows removeObject:finished];
+		};
+	}
 
 	//The window knows whether this ending closes it or stays readable
 	[window noteEndedWithReason:reason locally:locally];

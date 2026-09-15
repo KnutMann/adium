@@ -68,7 +68,11 @@
 		[statusLabel setDrawsBackground:NO];
 		[statusLabel setFont:[NSFont systemFontOfSize:13.0]];
 		[statusLabel setTextColor:[NSColor secondaryLabelColor]];
-		[statusLabel setStringValue:AILocalizedString(@"Calling…", "State of a call that was just started")];
+		/* A call that reached us is not one we are placing: saying "Calling" at
+		 * somebody who just answered their phone reads as nonsense. */
+		[statusLabel setStringValue:(controller.machine.isInitiator ?
+			AILocalizedString(@"Calling…", "State of a call that was just started") :
+			AILocalizedString(@"Connecting…", "State of an answered call while the media is being set up"))];
 		[statusLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[content addSubview:statusLabel];
 
@@ -242,6 +246,13 @@
 	}
 	[durationTimer invalidate];
 	durationTimer = nil;
+
+	//Whoever kept us alive for the epilogue may let go now
+	if (self.whenClosed) {
+		void (^goodbye)(void) = self.whenClosed;
+		self.whenClosed = nil;
+		goodbye();
+	}
 }
 
 @end

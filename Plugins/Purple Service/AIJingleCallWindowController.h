@@ -30,6 +30,16 @@
 
 - (id)initWithCallController:(AIJingleCallController *)controller displayName:(NSString *)displayName;
 
+/*!
+ * @brief Run when the window really closes
+ *
+ * A finished call stays readable, so its window outlives the call itself. Nobody
+ * else holds the controller then, and a controller nobody holds takes its
+ * buttons' targets with it: the Close button did nothing while the title bar's
+ * own close still worked. Whoever keeps us alive for the epilogue lets go here.
+ */
+@property (nonatomic, copy) void (^whenClosed)(void);
+
 - (void)noteRinging;
 - (void)noteConnected;
 - (void)noteEndedWithReason:(NSString *)reason locally:(BOOL)locally;
