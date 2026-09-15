@@ -33,6 +33,10 @@
 #define NS_JINGLE_RTP "urn:xmpp:jingle:apps:rtp:1"
 #define NS_HINTS "urn:xmpp:hints"
 
+//Internal to the jabber protocol, but compiled into the same libpurple we ship
+typedef gboolean (AdiumJabberFeatureEnabled)(void *js, const gchar *namespace);
+extern void jabber_add_feature(const gchar *namespace, AdiumJabberFeatureEnabled *cb);
+
 static int adium_purple_jingle_handle;
 static id<AdiumJingleStanzaHandler> jingleHandler = nil;
 
@@ -57,7 +61,7 @@ static gboolean jingle_handle_message(PurpleConnection *gc, xmlnode *message)
 	if (![jingleHandler respondsToSelector:@selector(handleJingleMessageOfKind:sid:from:offersVideo:onAccount:)])
 		return FALSE;
 
-	static const char *kinds[] = { "propose", "proceed", "reject", "retract", "accept", NULL };
+	static const char *kinds[] = { "propose", "proceed", "reject", "retract", "accept", "ringing", NULL };
 	xmlnode *child = NULL;
 	const char *kind = NULL;
 
@@ -249,6 +253,17 @@ static void jingle_signed_on_cb(PurpleConnection *gc, gpointer data)
 
 void configureAdiumPurpleJingle(void)
 {
+	/* Say what we can, or nobody calls us: a peer reads these entity caps before it
+	 * offers its user the call button at all. Registered before any account connects,
+	 * so the first presence already carries them. */
+	jabber_add_feature(NS_JINGLE, NULL);
+	jabber_add_feature(NS_JINGLE_MESSAGE, NULL);
+	jabber_add_feature(NS_JINGLE_RTP, NULL);
+	jabber_add_feature("urn:xmpp:jingle:apps:rtp:audio", NULL);
+	jabber_add_feature("urn:xmpp:jingle:apps:rtp:video", NULL);
+	jabber_add_feature("urn:xmpp:jingle:transports:ice-udp:1", NULL);
+	jabber_add_feature("urn:xmpp:jingle:apps:dtls:0", NULL);
+
 	purple_signal_connect(purple_connections_get_handle(), "signed-on", &adium_purple_jingle_handle,
 						  PURPLE_CALLBACK(jingle_signed_on_cb), NULL);
 }

@@ -337,6 +337,11 @@
 		[adium.contentController displayEvent:note ofType:@"jingle-call" inChat:chat];
 }
 
+- (void)manager:(AIJingleCallManager *)manager callIsRinging:(AIJingleCallController *)controller
+{
+	[windowsBySid[controller.machine.sid] noteRinging];
+}
+
 - (void)manager:(AIJingleCallManager *)manager callConnected:(AIJingleCallController *)controller
 {
 	[windowsBySid[controller.machine.sid] noteConnected];

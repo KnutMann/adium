@@ -179,6 +179,14 @@ static NSString *sidOfElement(NSString *jingleXML)
 	if (proposal) {
 		AIJingleCallController *controller = controllersBySid[sid];
 
+		if ([kind isEqualToString:@"ringing"]) {
+			/* It really rings over there, so the peer speaks this language: the direct
+			 * fallback would only interrupt somebody reaching for their phone. */
+			[proposal.fallbackTimer invalidate];
+			proposal.fallbackTimer = nil;
+			[self.uiDelegate manager:self callIsRinging:controller];
+			return YES;
+		}
 		if ([kind isEqualToString:@"proceed"] && controller) {
 			//Whoever answered is whom the session now belongs to
 			[proposal.fallbackTimer invalidate];
@@ -215,6 +223,9 @@ static NSString *sidOfElement(NSString *jingleXML)
 							from:fromJid
 					   onAccount:account
 					 offersVideo:offersVideo];
+
+		//Tell the caller it really rings here, so their window can say so
+		adiumPurpleJingleSendMessage(account, fromJid, @"ringing", sid, NO, NO);
 		return YES;
 	}
 

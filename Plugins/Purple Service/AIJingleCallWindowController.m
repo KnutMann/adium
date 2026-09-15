@@ -166,6 +166,12 @@
 //States -----------------------------------------------------------------------------------------
 #pragma mark States
 
+- (void)noteRinging
+{
+	if (!ended && !connectedSince)
+		[statusLabel setStringValue:AILocalizedString(@"Ringing…", "State of a call that rings on the other side")];
+}
+
 - (void)noteConnected
 {
 	connectedSince = [NSDate date];

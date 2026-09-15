@@ -30,6 +30,7 @@
 
 - (id)initWithCallController:(AIJingleCallController *)controller displayName:(NSString *)displayName;
 
+- (void)noteRinging;
 - (void)noteConnected;
 - (void)noteEndedWithReason:(NSString *)reason locally:(BOOL)locally;
 - (void)attachRemoteVideoTrack:(RTCVideoTrack *)track;
