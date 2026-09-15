@@ -8,12 +8,12 @@ cd "$(dirname "$0")"
 ../../Dependencies/webrtc/fetch-webrtc.sh
 FRAMEWORK="$(cd ../../Dependencies/webrtc/WebRTC.xcframework/macos-x86_64_arm64 && pwd)"
 
-clang -fobjc-arc -Wno-arc-retain-cycles -F "$FRAMEWORK" \
+clang -fobjc-arc -Wno-arc-retain-cycles -F "$FRAMEWORK" -F "../../build/Debug" \
 	-framework WebRTC -framework Foundation -framework CoreVideo \
 	-framework CoreMedia -framework AVFoundation \
 	-I "../../Plugins/Purple Service" \
 	"../../Plugins/Purple Service/AIJingleEngine.m" \
 	"../../Plugins/Purple Service/AIJingleSessionMachine.m" \
 	"../../Plugins/Purple Service/AIJingleCallController.m" \
-	jingle-fullstack-test.m -o /tmp/adium-jingle-fullstack -Wl,-rpath,"$FRAMEWORK"
+	logging-stub.m jingle-fullstack-test.m -o /tmp/adium-jingle-fullstack -Wl,-rpath,"$FRAMEWORK"
 exec /tmp/adium-jingle-fullstack
