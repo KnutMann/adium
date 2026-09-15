@@ -32,6 +32,7 @@
 #import "adiumPurpleWhatsApp.h"
 #import "adiumPurpleCSI.h"
 #import "adiumPurpleFallback.h"
+#import "adiumPurpleOMEMO.h"
 #import "adiumPurpleBookmarks.h"
 #import "adiumPurpleJingle.h"
 #import "AIJingleCallManager.h"
@@ -240,6 +241,7 @@ static void adiumPurpleCoreUiInit(void)
 	configureAdiumPurpleCarbons();
 	configureAdiumPurpleCSI();
 	configureAdiumPurpleFallback();
+	configureAdiumPurpleOMEMO();
 	configureAdiumPurpleBookmarks();
 	configureAdiumPurpleJingle();
 	[AIJingleCallManager install];

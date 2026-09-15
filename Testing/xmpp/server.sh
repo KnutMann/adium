@@ -8,6 +8,7 @@
 #   ./server.sh reset      stop and DELETE the data volume (accounts, archive, certificate)
 #   ./server.sh selftest   run the automated feature checks (see peer/selftest.py)
 #   ./server.sh muc-reactions  group-chat reaction checks (see peer/muc_reactions.py)
+#   ./server.sh omemo-pep      OMEMO announcement checks (see peer/omemo_pep.py)
 #
 # Test accounts (password matches user name with "-pw" appended):
 #   adium@localhost   the account to configure in Adium
@@ -86,6 +87,11 @@ selftest() {
 	exec ./peer/run.sh selftest
 }
 
+omemo_pep() {
+	start
+	exec ./peer/run.sh omemo-pep
+}
+
 muc_reactions() {
 	start
 	exec ./peer/run.sh muc-reactions
@@ -99,5 +105,6 @@ case "$1" in
 	reset)         reset ;;
 	selftest)      selftest ;;
 	muc-reactions) muc_reactions ;;
+	omemo-pep)     omemo_pep ;;
 	*)             sed -n '2,17p' "$0"; exit 1 ;;
 esac

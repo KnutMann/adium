@@ -271,14 +271,18 @@ binary, not the licence of the sources.
 * `libwhatsmeow.so`, `libteams.so` and `libteams-personal.so` are
   GPL v3.
 * `libtelegram-tdlib.so` links the bundled OpenSSL 3, whose Apache 2.0
-  terms do not combine with GPL v2 at all.
+  terms do not combine with GPL v2 at all. The same OpenSSL is now used
+  by `AdiumLibpurple` itself, for the cryptography behind OMEMO, so this
+  one is no longer confined to a plug-in.
 
 The texts those terms require to travel with the work are in
 [Licenses/](Licenses): [GPL-3.0.txt](Licenses/GPL-3.0.txt) and
 [AGPL-3.0.txt](Licenses/AGPL-3.0.txt).
 
-A build without those plug-ins, which the scripts allow, is GPL v2 or
-later as the sources are.
+Leaving out the plug-ins, which the scripts allow, drops the GPL v3 and
+AGPL terms but not the OpenSSL one, so such a build is GPL v3 or later
+rather than v2. The sources themselves stay GPL v2 or later, and it is
+only the combination that moves.
 
 ### Bundled third-party binaries and their sources
 
