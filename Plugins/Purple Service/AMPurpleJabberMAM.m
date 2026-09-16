@@ -51,6 +51,7 @@ static int am_purple_jabber_mam_handle;
 - (void)chatDidOpen:(NSNotification *)notification;
 - (void)askAbout:(AIChat *)chat;
 - (BOOL)handleIncoming:(xmlnode *)packet;
+- (BOOL)isFor:(PurpleConnection *)gc;
 - (void)showWhatArrivedFor:(NSString *)queryID;
 @end
 
@@ -59,6 +60,12 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	AMPurpleJabberMAM *self = (__bridge AMPurpleJabberMAM *)data;
 
 	if (!packet || !*packet)
+		return;
+
+	/* The signal fires for every connection, and every account has one of these listening. An
+	   archive answer belongs to the account that asked for it; without this, a second XMPP
+	   account would consume the first one's history and show it in the wrong window. */
+	if (!self || ![self isFor:gc])
 		return;
 
 	if ([self handleIncoming:*packet]) {
@@ -109,6 +116,11 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	return available;
 }
 
+- (BOOL)isFor:(PurpleConnection *)gc
+{
+	return gc != NULL && gc == purple_account_get_connection([account purpleAccount]);
+}
+
 #pragma mark Asking
 
 - (NSString *)nextID
@@ -136,8 +148,9 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	query = xmlnode_new_child(iq, "query");
 	xmlnode_set_namespace(query, NS_DISCO_INFO);
 
+	/* AMPurpleJabberSend frees the stanza, sent or not; its header says so and this cost a
+	   crash to learn. */
 	AMPurpleJabberSend(gc, iq);
-	xmlnode_free(iq);
 }
 
 - (void)chatDidOpen:(NSNotification *)notification
@@ -206,7 +219,6 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	AILogWithSignature(@"%@: asking the archive about %@", account, chat.listObject.UID);
 
 	AMPurpleJabberSend(gc, iq);
-	xmlnode_free(iq);
 }
 
 #pragma mark Listening
@@ -241,11 +253,19 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 			const char *from = xmlnode_get_attrib(message, "from");
 			time_t when = stamp ? purple_str_to_time(stamp, TRUE, NULL, NULL, NULL) : 0;
 
-			[arrived addObject:@{
-				@"text": [NSString stringWithUTF8String:text],
-				@"from": from ? [NSString stringWithUTF8String:from] : @"",
-				@"when": [NSDate dateWithTimeIntervalSince1970:(when ? when : time(NULL))]
-			}];
+			/* Bytes that are not UTF-8 make stringWithUTF8String answer nil, and a nil in a
+			 * dictionary throws. An archive is full of other people's writing and cannot be
+			 * assumed well formed, so what does not convert is skipped rather than shown. */
+			NSString *said = [NSString stringWithUTF8String:text];
+			NSString *who = from ? [NSString stringWithUTF8String:from] : @"";
+
+			if (said) {
+				[arrived addObject:@{
+					@"text": said,
+					@"from": who ?: @"",
+					@"when": [NSDate dateWithTimeIntervalSince1970:(when ? when : time(NULL))]
+				}];
+			}
 			g_free(text);
 		}
 
