@@ -20,6 +20,7 @@
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface ESAnnouncerAbstractDetailPane ()
 - (NSMenu *)voicesMenu;
@@ -199,20 +200,34 @@
 	[voicesMenu addItem:menuItem];
 	[voicesMenu addItem:[NSMenuItem separatorItem]];
 
-	NSMutableDictionary *voices = [NSMutableDictionary dictionary];
-	NSArray *rawVoices = [[NSSpeechSynthesizer availableVoices] sortedArrayUsingSelector:@selector(compare:)];
-	for (NSString *voiceID in rawVoices) {
-		[voices setObject:[[NSSpeechSynthesizer attributesForVoice:voiceID] objectForKey:NSVoiceName] forKey:voiceID];
+	/* The old list gave each voice a name that carried its language along with it, as in
+	 * "Eddy (Deutsch (Deutschland))". The new one gives a bare "Eddy", and with a hundred and
+	 * eighty of them to choose from a bare name is not a choice anybody can make. So the
+	 * language is put back, named in the reader's own language rather than its own. */
+	NSMutableArray *titles = [NSMutableArray array];
+
+	for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
+		NSString *language = [[NSLocale currentLocale] localizedStringForLocaleIdentifier:[voice language]];
+		NSString *title = ([language length]
+						   ? [NSString stringWithFormat:@"%@ (%@)", [voice name], language]
+						   : [voice name]);
+
+		[titles addObject:[NSArray arrayWithObjects:title, [voice identifier], nil]];
 	}
-	for (NSString *voiceID in rawVoices) {
-		menuItem = [[NSMenuItem alloc] initWithTitle:[voices objectForKey:voiceID]
-																					 target:nil
-																					 action:nil
-																			  keyEquivalent:@""];
-		[menuItem setRepresentedObject:voiceID];
+
+	[titles sortUsingComparator:^NSComparisonResult(NSArray *left, NSArray *right) {
+		return [[left objectAtIndex:0] localizedCaseInsensitiveCompare:[right objectAtIndex:0]];
+	}];
+
+	for (NSArray *voice in titles) {
+		menuItem = [[NSMenuItem alloc] initWithTitle:[voice objectAtIndex:0]
+											  target:nil
+											  action:nil
+									   keyEquivalent:@""];
+		[menuItem setRepresentedObject:[voice objectAtIndex:1]];
 		[voicesMenu addItem:menuItem];
 	}
-	
+
 	return voicesMenu;
 }
 
@@ -227,7 +242,7 @@
 		if (!voice) {
 			[slider_pitch setFloatValue:[adium.soundController defaultPitch]];
 			[slider_rate setFloatValue:[adium.soundController defaultRate]];
-			voice = [NSSpeechSynthesizer defaultVoice];
+			//Which voice the system would pick is no longer a question with an answer; nil asks for it
 		}
 	}
 

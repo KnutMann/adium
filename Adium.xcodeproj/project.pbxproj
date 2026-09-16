@@ -258,6 +258,7 @@
 		A11B0008E5F0000000000005 /* AIJingleCallUI.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000007 /* AIJingleCallUI.h */; };
 		A11B0008E5F0000000000006 /* AIJingleCallUI.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000008 /* AIJingleCallUI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B0008E5F000000000000A /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000009 /* AVFoundation.framework */; };
+ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000009 /* AVFoundation.framework */; };
 		A11B0008E5F000000000000C /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0008E5F000000000000B /* CoreMedia.framework */; };
 		A11B0006E5F0000000000001 /* AIJingleCallController.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0006E5F0000000000003 /* AIJingleCallController.h */; };
 		A11B0006E5F0000000000002 /* AIJingleCallController.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0006E5F0000000000004 /* AIJingleCallController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -3129,6 +3130,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */,
 				4D4B482F25F3EFC5000CEF01 /* libglib-2.0.dylib in Frameworks */,
 				4D4B485D25F3F87C000CEF01 /* libgmodule-2.0.dylib in Frameworks */,
 				4D4B485E25F3F87C000CEF01 /* libgobject-2.0.dylib in Frameworks */,
