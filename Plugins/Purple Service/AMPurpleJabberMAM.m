@@ -40,10 +40,6 @@
    that a server is not asked for a year of chatter every time somebody clicks a name. */
 #define HOW_MANY_MESSAGES 25
 
-/* Older than this and the line is drawn faded, as a conversation that ended rather than one
-   being resumed. The same five minutes the local log has always used. */
-#define LONG_ENOUGH_AGO 300.0
-
 static int am_purple_jabber_mam_handle;
 
 @interface AMPurpleJabberMAM ()
@@ -331,17 +327,19 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 		NSString *from = [one objectForKey:@"from"];
 		/* The archive stores both sides, and the sender is a full address while ours is bare. */
 		BOOL sentByUs = [[from componentsSeparatedByString:@"/"][0] isEqualToString:ourUID];
-		Class kind = (-[when timeIntervalSinceNow] > LONG_ENOUGH_AGO)
-			? [AIContentContext class] : [AIContentMessage class];
-
-		AIContentMessage *line = [kind messageInChat:chat
-										  withSource:(sentByUs ? (AIListObject *)account
-															   : (AIListObject *)chat.listObject)
-										 destination:(sentByUs ? (AIListObject *)chat.listObject
-															   : (AIListObject *)account)
-												date:when
-											 message:[NSAttributedString stringWithString:[one objectForKey:@"text"]]
-										   autoreply:NO];
+		/* Always context, never a message, and for a reason beyond how it is drawn: the
+		 * excerpt from our own transcript waits for fetched history to appear and recognises
+		 * it by exactly this class. A line from the archive that arrived as a message would
+		 * not end the wait, the excerpt would be shown when the wait ran out, and the two
+		 * would be side by side again. Everything out of an archive is history in any case. */
+		AIContentMessage *line = [AIContentContext messageInChat:chat
+													  withSource:(sentByUs ? (AIListObject *)account
+																		   : (AIListObject *)chat.listObject)
+													 destination:(sentByUs ? (AIListObject *)chat.listObject
+																		   : (AIListObject *)account)
+															date:when
+														 message:[NSAttributedString stringWithString:[one objectForKey:@"text"]]
+													   autoreply:NO];
 
 		/* Neither logged nor counted: the log already has whatever this machine saw, and a
 		 * conversation being re-read must not ring, badge or mark anything unread. */

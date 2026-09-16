@@ -86,6 +86,19 @@
  * An acknowledgement request settles it, because a write to a socket that is gone fails and is
  * reported. It does nothing when stream management is not running.
  */
+/*!
+ * @brief Whether this account fetches the conversation's earlier messages itself
+ *
+ * True once the server has said it keeps an archive. The excerpt from our own transcript then
+ * waits for the archive rather than being shown alongside it, which is what the two of them
+ * showing the same lines twice looked like; the archive knows more, since it also holds what
+ * was said while this machine was not listening.
+ */
+- (BOOL)providesConversationHistory
+{
+	return [mam isAvailable];
+}
+
 - (void)probeConnectionIsAlive
 {
 	PurpleConnection *gc = purple_account_get_connection(self.purpleAccount);
