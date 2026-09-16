@@ -36,7 +36,7 @@ NUMBER_OF_CORES=`sysctl -n hw.activecpu`
 DEVELOPER=$(xcode-select -print-path)
 SDK_ROOT="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
-MIN_OS_VERSION="10.12"
+MIN_OS_VERSION="12.0"
 BASE_CFLAGS="-fstack-protector -isysroot $SDK_ROOT \
 	-mmacosx-version-min=$MIN_OS_VERSION \
 	-I$ROOTDIR/build/include \

@@ -210,7 +210,7 @@ dead branches and makes the build graph harder to understand.
 
 ### Implementation plan
 
-1. Set owned nested targets to `MACOSX_DEPLOYMENT_TARGET = 11.0` and arm64 or
+1. Set owned nested targets to `MACOSX_DEPLOYMENT_TARGET = 12.0` and arm64 or
    inherited standard architectures, matching the supported product. Do not
    change vendored dependency build settings as incidental cleanup.
 2. Remove `AIOSCompatibility.h` only after replacing its imports and proving

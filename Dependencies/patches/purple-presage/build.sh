@@ -23,7 +23,7 @@
 
 set -uo pipefail
 
-export MACOSX_DEPLOYMENT_TARGET=11.0
+export MACOSX_DEPLOYMENT_TARGET=12.0
 
 ADIUM="$(cd "$(dirname "$0")/../../.." && pwd)"
 SRC="$ADIUM/Dependencies/source/purple-presage"
