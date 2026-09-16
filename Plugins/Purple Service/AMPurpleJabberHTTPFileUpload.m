@@ -89,6 +89,13 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 			return nil;
 		}
 
+		static dispatch_once_t once;
+		dispatch_once(&once, ^{
+			addressesAwaitingTheirHint = [[NSMutableSet alloc] init];
+			purple_signal_connect(jabber, "jabber-sending-xmlnode", &addressesAwaitingTheirHint,
+								  PURPLE_CALLBACK(AMAddOutOfBandHint), NULL);
+		});
+
 		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
 							  PURPLE_CALLBACK(AMPurpleJabberHTTPFileUpload_received_cb), self);
 
@@ -686,6 +693,51 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
  * of the conversation gets the picture too, from the local file, through the same
  * road an incoming image link takes.
  */
+/*!
+ * @brief Addresses we have just uploaded and are about to send as a message
+ *
+ * A message whose whole content is an address is a file, and XEP-0066 is how that is said. It
+ * matters more than it looks: Conversations, and the clients that follow it, will not fetch an
+ * ordinary https address unless the message also carries this element, so without it a picture
+ * sent from here arrives at the other end as a line of text.
+ *
+ * Not needed, and deliberately not sent, for an encrypted address: there the scheme already
+ * says what it is, and repeating the address outside the encrypted part would hand the server
+ * the very thing the encryption was for.
+ */
+static NSMutableSet *addressesAwaitingTheirHint = nil;
+
+/*!
+ * @brief Add the element to a message that carries nothing but such an address
+ */
+static gboolean AMAddOutOfBandHint(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet || ![addressesAwaitingTheirHint count]) return FALSE;
+
+	xmlnode *stanza = *packet;
+	if (!purple_strequal(stanza->name, "message")) return FALSE;
+	if (xmlnode_get_child_with_namespace(stanza, "x", "jabber:x:oob")) return FALSE;
+
+	xmlnode *body = xmlnode_get_child(stanza, "body");
+	if (!body) return FALSE;
+
+	char *text = xmlnode_get_data(body);
+	if (!text) return FALSE;
+
+	NSString *said = [[NSString stringWithUTF8String:text]
+					  stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	g_free(text);
+
+	if (![addressesAwaitingTheirHint containsObject:said]) return FALSE;
+	[addressesAwaitingTheirHint removeObject:said];
+
+	xmlnode *out = xmlnode_new_child(stanza, "x");
+	xmlnode_set_namespace(out, "jabber:x:oob");
+	xmlnode_insert_data(xmlnode_new_child(out, "url"), [said UTF8String], -1);
+
+	return FALSE;		//Amended, not swallowed
+}
+
 - (void)announceFileAtPath:(NSString *)path address:(NSString *)address forFileTransfer:(ESFileTransfer *)fileTransfer
 {
 	[fileTransfer setPercentDone:1.0 bytesSent:[fileTransfer size]];
@@ -694,6 +746,9 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 	AIChat *chat = [adium.chatController chatWithContact:[fileTransfer contact]];
 	if (!chat)
 		return;
+
+	if (![[address lowercaseString] hasPrefix:@"aesgcm://"])
+		[addressesAwaitingTheirHint addObject:address];
 
 	AIContentMessage *message = [AIContentMessage messageInChat:chat
 													 withSource:account
