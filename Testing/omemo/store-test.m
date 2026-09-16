@@ -50,8 +50,13 @@ int main(void) { @autoreleasepool {
 						 [NSString stringWithFormat:@"adium-omemo-test-%d", getpid()]];
 	[AIOMEMOStore useDirectory:scratch];
 
+	//Nachsehen darf nichts anlegen
+	check(@"Ein Konto ohne Vorgeschichte hat noch keinen Vorrat",
+		  ![AIOMEMOStore haveStoreForAccount:ALICE], nil);
+
 	//Eine Identitaet entsteht
 	AIOMEMOStore *alice = [AIOMEMOStore storeForAccount:ALICE];
+	check(@"und danach schon", [AIOMEMOStore haveStoreForAccount:ALICE], nil);
 	check(@"Ein Konto ohne Vorgeschichte bekommt eine Identitaet", alice != nil, nil);
 	check(@"und eine Geraetenummer, die nicht null ist", alice.deviceIdentifier != 0,
 		  [NSString stringWithFormat:@"war %u", alice.deviceIdentifier]);
@@ -185,6 +190,28 @@ int main(void) { @autoreleasepool {
 									   preKey:[bob preKeys][somePreKey]
 								 preKeyItself:[somePreKey unsignedIntValue]];
 	check(@"Ein Buendel der falschen Groesse wird abgelehnt", !stunted, nil);
+
+	/* Was das Konto ueber die Zeit angesammelt hat, fuer die Einstellungen: ein Eintrag je
+	 * Geraet, mit Adresse, Geraetenummer, Fingerabdruck und Entscheidung. */
+	NSArray *everyone = [alice everyDeviceSeen];
+	check(@"Alice fuehrt jedes Geraet, dem sie je begegnet ist", [everyone count] == 1,
+		  [NSString stringWithFormat:@"waren %lu", (unsigned long)[everyone count]]);
+
+	NSDictionary *first = [everyone firstObject];
+	check(@"Der Eintrag nennt die Adresse ohne die Geraetenummer",
+		  [first[@"jid"] isEqualToString:BOB], first[@"jid"]);
+	check(@"und die Geraetenummer als Zahl",
+		  [first[@"device"] unsignedIntValue] == bob.deviceIdentifier,
+		  [first[@"device"] stringValue]);
+	check(@"und den Fingerabdruck",
+		  [first[@"fingerprint"] isEqualToString:bob.fingerprint], first[@"fingerprint"]);
+	check(@"und was darueber entschieden wurde",
+		  [first[@"trust"] integerValue] == AIOMEMOTrustAccepted,
+		  [first[@"trust"] stringValue]);
+
+	//Eine Adresse mit Leerzeichen gibt es nicht, der letzte Abstand trennt also sicher
+	check(@"Die Adresse wird nicht am falschen Leerzeichen getrennt",
+		  [first[@"jid"] rangeOfString:@" "].location == NSNotFound, nil);
 
 	//Die Datei darf niemand sonst lesen koennen
 	NSString *file = [scratch stringByAppendingPathComponent:@"alice%3Aexample.org.omemo"];

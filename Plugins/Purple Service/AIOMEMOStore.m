@@ -195,6 +195,14 @@ static NSString *directoryInsteadOfTheUsual = nil;
 	return open;
 }
 
++ (BOOL)haveStoreForAccount:(NSString *)bareJID
+{
+	@synchronized ([self openStores]) {
+		if ([self openStores][bareJID]) return YES;
+	}
+	return [[NSFileManager defaultManager] fileExistsAtPath:[self pathForAccount:bareJID]];
+}
+
 + (instancetype)storeForAccount:(NSString *)bareJID
 {
 	NSMutableDictionary *open = [self openStores];
@@ -687,6 +695,31 @@ static NSString *directoryInsteadOfTheUsual = nil;
 		found[print] = @([self trustForFingerprint:print]);
 	}];
 	return found;
+}
+
+- (NSArray<NSDictionary *> *)everyDeviceSeen
+{
+	NSMutableArray *everyone = [NSMutableArray array];
+
+	[self.seenFingerprints enumerateKeysAndObjectsUsingBlock:^(NSString *name, NSString *print, BOOL *stop) {
+		/* The key is the address and the device number with a space between them, and an address
+		 * cannot contain one, so the last space is the join. */
+		NSRange space = [name rangeOfString:@" " options:NSBackwardsSearch];
+		if (space.location == NSNotFound) return;
+
+		[everyone addObject:@{
+			@"jid":			[name substringToIndex:space.location],
+			@"device":		@((uint32_t)[[name substringFromIndex:(space.location + 1)] longLongValue]),
+			@"fingerprint":	print,
+			@"trust":		@([self trustForFingerprint:print])
+		}];
+	}];
+
+	//A stable order, so the list does not shuffle itself every time it is looked at
+	return [everyone sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
+		NSComparisonResult byName = [a[@"jid"] caseInsensitiveCompare:b[@"jid"]];
+		return (byName != NSOrderedSame) ? byName : [a[@"fingerprint"] compare:b[@"fingerprint"]];
+	}];
 }
 
 @end

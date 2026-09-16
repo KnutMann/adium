@@ -58,4 +58,20 @@
 /*! @brief Accept or turn down one device of the other party */
 + (void)setAccepted:(BOOL)accepted forFingerprint:(NSString *)fingerprint inChat:(AIChat *)chat;
 
+#pragma mark Everything one account knows, for the settings
+
+/*! @brief Does this account speak OMEMO at all? */
++ (BOOL)isPossibleForAccount:(AIAccount *)account;
+
+/*!
+ * @brief Every device of every contact this account has ever met
+ *
+ * One entry per device, with "jid", "device", "fingerprint" and "trust" (an AIOMEMOTrust as a
+ * number). A conversation shows what one person has; the settings show what has accumulated.
+ */
++ (NSArray<NSDictionary *> *)devicesKnownToAccount:(AIAccount *)account;
+
+/*! @brief Decide about one device, named by its fingerprint rather than by a conversation */
++ (void)setTrust:(NSInteger)trust forFingerprint:(NSString *)fingerprint onAccount:(AIAccount *)account;
+
 @end

@@ -101,9 +101,9 @@
 #pragma mark Fingerprints
 
 /*!
- * @brief The store belonging to an account, without making one for an account that has none
+ * @brief The account's own address, without a resource, or nil if it does not do OMEMO
  */
-+ (AIOMEMOStore *)storeFor:(AIAccount *)account
++ (NSString *)addressOf:(AIAccount *)account
 {
 	PurpleAccount *underneath = [self purpleAccountFor:account];
 	if (!underneath) return nil;
@@ -115,12 +115,33 @@
 	NSRange slash = [own rangeOfString:@"/"];
 	if (slash.location != NSNotFound) own = [own substringToIndex:slash.location];
 
-	return [AIOMEMOStore storeForAccount:[own lowercaseString]];
+	return [own lowercaseString];
+}
+
+/*!
+ * @brief The store belonging to an account, making one if this account is to use OMEMO
+ */
++ (AIOMEMOStore *)storeFor:(AIAccount *)account
+{
+	NSString *own = [self addressOf:account];
+	return own ? [AIOMEMOStore storeForAccount:own] : nil;
+}
+
+/*!
+ * @brief The store belonging to an account, ONLY if it already has one
+ *
+ * For the places that want to look rather than to use. Asking the other way round would give
+ * every account an identity and a hundred keys the moment somebody opened a window.
+ */
++ (AIOMEMOStore *)existingStoreFor:(AIAccount *)account
+{
+	NSString *own = [self addressOf:account];
+	return (own && [AIOMEMOStore haveStoreForAccount:own]) ? [AIOMEMOStore storeForAccount:own] : nil;
 }
 
 + (NSString *)ownFingerprintForAccount:(AIAccount *)account
 {
-	return [[self storeFor:account] fingerprint];
+	return [[self existingStoreFor:account] fingerprint];
 }
 
 + (NSDictionary<NSString *, NSNumber *> *)fingerprintsInChat:(AIChat *)chat
@@ -137,6 +158,25 @@
 
 	[store setTrust:(accepted ? AIOMEMOTrustAccepted : AIOMEMOTrustRejected)
 	 forFingerprint:fingerprint];
+}
+
+#pragma mark Everything one account knows, for the settings
+
++ (BOOL)isPossibleForAccount:(AIAccount *)account
+{
+	return [self purpleAccountFor:account] != NULL;
+}
+
++ (NSArray<NSDictionary *> *)devicesKnownToAccount:(AIAccount *)account
+{
+	/* The looking kind, not the making kind: merely opening a settings window should not give an
+	 * account an identity it never asked for. */
+	return [[self existingStoreFor:account] everyDeviceSeen] ?: @[];
+}
+
++ (void)setTrust:(NSInteger)trust forFingerprint:(NSString *)fingerprint onAccount:(AIAccount *)account
+{
+	[[self existingStoreFor:account] setTrust:(AIOMEMOTrust)trust forFingerprint:fingerprint];
 }
 
 @end

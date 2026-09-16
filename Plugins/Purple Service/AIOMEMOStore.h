@@ -52,6 +52,15 @@ typedef NS_ENUM(NSInteger, AIOMEMOTrust) {
 + (void)useDirectory:(NSString *)path;
 
 /*!
+ * @brief Has this account ever used OMEMO?
+ *
+ * Asked where the answer is wanted without the asking itself creating one: storeForAccount:
+ * makes an identity and a hundred keys where it finds none, which is right when a conversation
+ * needs them and wrong when somebody merely opens a settings window.
+ */
++ (BOOL)haveStoreForAccount:(NSString *)bareJID;
+
+/*!
  * @brief The store for one account, loaded from disk or freshly generated
  *
  * @param bareJID The account's own address, without a resource
@@ -182,5 +191,18 @@ typedef NS_ENUM(NSInteger, AIOMEMOTrust) {
 
 /*! @brief Every fingerprint we have seen for a contact, mapped to what was decided about it */
 - (NSDictionary<NSString *, NSNumber *> *)fingerprintsForJID:(NSString *)jid;
+
+/*!
+ * @brief Every device of every contact this account has ever met
+ *
+ * One entry per device, each with the keys below. Meant for the settings, where the question is
+ * not what one conversation looks like but what this account has accumulated over time.
+ *
+ * "jid"          who it belongs to
+ * "device"       which of their devices, as the number it announces itself by
+ * "fingerprint"  as the user reads it out
+ * "trust"        an AIOMEMOTrust
+ */
+- (NSArray<NSDictionary *> *)everyDeviceSeen;
 
 @end
