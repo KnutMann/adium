@@ -716,9 +716,11 @@
 "Audio Notifications" = "Audio Notifications";
 
 /* No comment provided by engineer. */
+"Authorization Domain:" = "Authorisation Domain:";
 "Authorization Requests" = "Authorisation Requests";
 
 /* File Transfer preferences */
+"Authorization User:" = "Authorisation User:";
 "Automatically accept files and images" = "Automatically accept files and images";
 
 /* No comment provided by engineer. */
@@ -1443,6 +1445,7 @@
 "Expand Combined Contact" = "Expand Combined Contact";
 
 /* File transfer failed status description */
+"External plugins may cause crashes and odd behavior after updating Adium.  Disable this plugin if you experience any issues." = "External plugins may cause crashes and odd behaviour after updating Adium.  Disable this plugin if you experience any issues.";
 "Failed" = "Failed";
 
 /* %@ is a filename of a file being sent */
@@ -1998,6 +2001,7 @@
 "No" = "No";
 
 /* Shown where a contact has no picture to hand over */
+"No notifications in Notification Center while this status is active." = "No notifications in Notification Centre while this status is active.";
 "No picture" = "No picture";
 
 /* Message to show in the Encryption OTR preferences when an account is selected which does not have a private key */
