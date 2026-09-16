@@ -1,6 +1,24 @@
 --- a/libpurple/protocols/jabber/stream_management.c
 +++ b/libpurple/protocols/jabber/stream_management.c
-@@ -36,33 +36,84 @@
+@@ -33,59 +33,252 @@
+ 
+ #define MAX_QUEUE_LENGTH 10000
+ 
++/* How many stanzas may go out before we ask to have them acknowledged, and how long we wait
++   for a quieter moment before asking anyway.
++
++   Upstream asks after every single one, which doubles the number of stanzas on the wire for
++   no gain: the acknowledgement carries a running total, so one answer settles everything sent
++   before it. What the asking is actually for is knowing what to send again after a break, and
++   for that it only has to happen often enough that the queue stays small and the tail of a
++   conversation does not sit unacknowledged.
++
++   The timer is what makes a threshold safe. Without it a handful of stanzas below the
++   threshold would never be asked about at all, and after a reconnection they would go out a
++   second time although the server had them. */
++#define REQUEST_AFTER_STANZAS 5
++#define REQUEST_AFTER_SECONDS 2
++
  GHashTable *jabber_sm_accounts;
  
  static void
@@ -100,10 +118,11 @@
  }
  
  void
-@@ -71,21 +122,148 @@
+ jabber_sm_uninit(void)
+ {
  	g_hash_table_destroy(jabber_sm_accounts);
- }
- 
++}
++
 +/* Asks for the previous session back instead of binding a new resource. */
 +gboolean
 +jabber_sm_resume(JabberStream *js)
@@ -190,8 +209,8 @@
 +
 +	purple_debug_info("XEP-0198", "The session was resumed; no new resource was bound\n");
 +	jabber_stream_set_state(js, JABBER_STREAM_CONNECTED);
-+}
-+
+ }
+ 
  /* Processes incoming NS_STREAM_MANAGEMENT packets. */
  void
  jabber_sm_process_packet(JabberStream *js, xmlnode *packet) {
@@ -256,7 +275,55 @@
  	} else if (purple_strequal(name, "r")) {
  		jabber_sm_ack_send(js);
  	} else if (purple_strequal(name, "a")) {
-@@ -130,7 +308,7 @@
+@@ -95,6 +288,47 @@
+ 	}
+ }
+ 
++/* Asks the server to say how much it has received, and stops the timer that would have. */
++static void
++jabber_sm_request_ack(JabberStream *js)
++{
++	xmlnode *req;
++
++	if (js->sm_request_timer != 0) {
++		purple_timeout_remove(js->sm_request_timer);
++		js->sm_request_timer = 0;
++	}
++	js->sm_unrequested = 0;
++
++	req = xmlnode_new("r");
++	xmlnode_set_namespace(req, NS_STREAM_MANAGEMENT);
++	jabber_send(js, req);
++	xmlnode_free(req);
++}
++
++static gboolean
++jabber_sm_request_ack_now(gpointer data)
++{
++	JabberStream *js = data;
++
++	js->sm_request_timer = 0;
++	if (js->sm_state == SM_REQUESTED || js->sm_state == SM_ENABLED)
++		jabber_sm_request_ack(js);
++
++	return FALSE;
++}
++
++/* Called when the stream is going away, because the timer would otherwise fire into a stream
++   that is no longer there. */
++void
++jabber_sm_stream_closing(JabberStream *js)
++{
++	if (js->sm_request_timer != 0) {
++		purple_timeout_remove(js->sm_request_timer);
++		js->sm_request_timer = 0;
++	}
++}
++
+ /* Sends an acknowledgement. */
+ void
+ jabber_sm_ack_send(JabberStream *js)
+@@ -130,7 +364,7 @@
  	h = strtoul(ack_h, NULL, 10);
  
  	/* Remove stanzas from the queue */
@@ -265,7 +332,7 @@
  	for (i = js->sm_outbound_confirmed; i < h; i++) {
  		stanza = g_queue_pop_head(queue);
  		if (stanza == NULL) {
-@@ -141,6 +319,7 @@
+@@ -141,6 +375,7 @@
  	}
  
  	js->sm_outbound_confirmed = h;
@@ -273,7 +340,7 @@
  	purple_debug_info("XEP-0198",
  	                  "Acknowledged %u out of %u outbound stanzas\n",
  	                  js->sm_outbound_confirmed, js->sm_outbound_count);
-@@ -160,6 +339,10 @@
+@@ -160,6 +395,10 @@
  	purple_debug_info("XEP-0198", "Enabling stream management\n");
  	enable = xmlnode_new("enable");
  	xmlnode_set_namespace(enable, NS_STREAM_MANAGEMENT);
@@ -284,7 +351,7 @@
  	jabber_send(js, enable);
  	xmlnode_free(enable);
  	js->sm_outbound_count = 0;
-@@ -167,7 +350,7 @@
+@@ -167,7 +406,7 @@
  	js->sm_state = SM_REQUESTED;
  
  	/* Resend unacknowledged stanzas from the queue. */
@@ -293,24 +360,46 @@
  	queue_len = g_queue_get_length(queue);
  	if (queue_len > 0) {
  		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
-@@ -192,7 +375,7 @@
+@@ -191,8 +430,7 @@
+ 
  		/* Add this stanza to the queue, unless the queue is full. */
  		xmlnode *stanza;
- 		xmlnode *req;
+-		xmlnode *req;
 -		GQueue *queue = jabber_sm_accounts_queue_get(js);
 +		GQueue *queue = jabber_sm_session_get(js)->queue;
  		if (g_queue_get_length(queue) < MAX_QUEUE_LENGTH) {
  			stanza = xmlnode_copy(packet);
  			g_queue_push_tail(queue, stanza);
-@@ -219,6 +402,7 @@
+@@ -219,14 +457,21 @@
  
  		/* Count the stanza */
  		js->sm_outbound_count++;
 +		jabber_sm_session_get(js)->outbound_count = js->sm_outbound_count;
  
- 		/* Requesting acknowledgements with either SM_REQUESTED or
- 		   SM_ENABLED state as well, so that it would be harder to lose
-@@ -238,5 +422,8 @@
+-		/* Requesting acknowledgements with either SM_REQUESTED or
+-		   SM_ENABLED state as well, so that it would be harder to lose
+-		   stanzas. */
+-		req = xmlnode_new("r");
+-		xmlnode_set_namespace(req, NS_STREAM_MANAGEMENT);
+-		jabber_send(js, req);
+-		xmlnode_free(req);
++		/* Ask once for several, and ask anyway when the talking stops. Requesting with
++		   either SM_REQUESTED or SM_ENABLED, as upstream does, so that it would be harder
++		   to lose stanzas. */
++		js->sm_unrequested++;
++		if (js->sm_unrequested >= REQUEST_AFTER_STANZAS) {
++			jabber_sm_request_ack(js);
++		} else if (js->sm_request_timer == 0) {
++			/* purple_timeout_add and not g_timeout_add: Adium runs everything on its own
++			   queues and never spins GLib's main context, so a raw glib timer added here
++			   would simply never fire. */
++			js->sm_request_timer = purple_timeout_add_seconds(REQUEST_AFTER_SECONDS,
++			                                                  jabber_sm_request_ack_now, js);
++		}
+ 	}
+ }
+ 
+@@ -238,5 +483,8 @@
  	   packets. */
  	if (jabber_is_stanza(packet)) {
  		js->sm_inbound_count++;

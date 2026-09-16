@@ -62,3 +62,13 @@
  void jabber_sm_init(void);
  void jabber_sm_uninit(void);
  
+@@ -35,6 +90,9 @@
+ void jabber_sm_ack_read(JabberStream *js, xmlnode *packet);
+ 
+ void jabber_sm_outbound(JabberStream *js, xmlnode *packet);
++
++/** Called when the stream is closing, so that no timer fires into a stream that is gone. */
++void jabber_sm_stream_closing(JabberStream *js);
+ void jabber_sm_inbound(JabberStream *js, xmlnode *packet);
+ 
+ #endif /* PURPLE_JABBER_STREAM_MANAGEMENT_H */

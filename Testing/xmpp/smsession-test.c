@@ -64,6 +64,28 @@ void jabber_send(JabberStream *js, xmlnode *packet)
 	lastH = g_strdup(xmlnode_get_attrib(packet, "h"));
 }
 
+/* Der Zeitgeber fuer die gebuendelte Quittungsanfrage laeuft ueber libpurples Schleife. Hier
+   gibt es keine, also nur so viel Ersatz, dass sich zaehlen laesst, ob einer gestellt wurde. */
+static guint timersArmed = 0;
+static guint timersRemoved = 0;
+
+static guint fake_timeout_add(guint interval, GSourceFunc function, gpointer data)
+{
+	timersArmed++;
+	return timersArmed;
+}
+
+static gboolean fake_timeout_remove(guint handle)
+{
+	timersRemoved++;
+	return TRUE;
+}
+
+static PurpleEventLoopUiOps loopStandIn = {
+	fake_timeout_add, fake_timeout_remove, NULL, NULL, NULL,
+	fake_timeout_add, NULL, NULL, NULL
+};
+
 static int bindsAsked = 0;
 static int statesSet = 0;
 
@@ -113,6 +135,7 @@ static void enabledArrives(JabberStream *js, const char *xml)
 
 int main(void)
 {
+	purple_eventloop_set_ui_ops(&loopStandIn);
 	jabber_sm_init();
 
 	/* Zwei Konten sind zwei Zeiger; dereferenziert wird hier keiner, sie sind nur Schluessel. */
@@ -270,6 +293,34 @@ int main(void)
 	check("Der Strom gilt danach als verbunden",
 	      statesSet == 1 && a->state == JABBER_STREAM_CONNECTED, NULL);
 	check("Und er weiss, dass er wiederaufgenommen wurde", a->sm_resumed == TRUE, NULL);
+
+	/* --- Wie oft nach einer Quittung gefragt wird ---------------------------------------- */
+
+	/* Upstream fragte nach JEDER Stanza und verdoppelte damit die Zahl der Stanzas auf dem
+	   Draht. Die Quittung traegt eine laufende Summe, eine Antwort erledigt also alles davor. */
+	JabberStream *counting = streamFor((PurpleAccount *)0x2001, "count", "localhost");
+	counting->sm_state = SM_ENABLED;
+	sent = 0;
+	timersArmed = 0;
+	for (int i = 0; i < 4; i++)
+		jabber_sm_outbound(counting, aMessage());
+	check("Vier Stanzas loesen noch keine Anfrage aus",
+	      counting->sm_unrequested == 4, NULL);
+	check("Dafuer wartet ein Zeitgeber darauf, dass es still wird",
+	      timersArmed == 1, NULL);
+
+	sent = 0;
+	jabber_sm_outbound(counting, aMessage());
+	check("Die fuenfte fragt nach", purple_strequal(lastName, "r"), lastName);
+	check("Und setzt den Zaehler zurueck", counting->sm_unrequested == 0, NULL);
+	check("Der wartende Zeitgeber wird dabei abgeraeumt", timersRemoved == 1, NULL);
+
+	/* Und beim Schliessen darf keiner stehenbleiben, sonst feuert er in einen Strom, den es
+	   nicht mehr gibt. */
+	jabber_sm_outbound(counting, aMessage());
+	check("Danach wartet wieder einer", counting->sm_request_timer != 0, NULL);
+	jabber_sm_stream_closing(counting);
+	check("Beim Schliessen wird er abgeraeumt", counting->sm_request_timer == 0, NULL);
 
 	jabber_sm_uninit();
 

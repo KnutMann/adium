@@ -73,7 +73,16 @@
  	} else if (xmlnode_get_child_with_namespace(packet, "ver", NS_ROSTER_VERSIONING)) {
  		js->server_caps |= JABBER_CAP_ROSTER_VERSIONING;
  	} else /* if(xmlnode_get_child_with_namespace(packet, "auth")) */ {
-@@ -1790,8 +1810,11 @@
+@@ -1720,6 +1740,8 @@
+ 		purple_timeout_remove(js->keepalive_timeout);
+ 	if (js->inactivity_timer != 0)
+ 		purple_timeout_remove(js->inactivity_timer);
++	/* The one that would otherwise ask for an acknowledgement on a stream that is gone. */
++	jabber_sm_stream_closing(js);
+ 
+ 	g_free(js->srv_rec);
+ 	js->srv_rec = NULL;
+@@ -1790,8 +1812,11 @@
  
  			break;
  		case JABBER_STREAM_CONNECTED:

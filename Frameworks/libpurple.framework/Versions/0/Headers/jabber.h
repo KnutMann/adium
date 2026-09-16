@@ -308,6 +308,11 @@ struct _JabberStream
 	   At the end of the structure because Adium compiles against a checked-in copy of this
 	   header, and a field inserted anywhere else moves every offset after it. */
 	gboolean sm_resumed;
+
+	/* Stanzas sent since we last asked to have them acknowledged, and the timer that asks
+	   anyway when no more arrive. */
+	guint32 sm_unrequested;
+	guint sm_request_timer;
 };
 
 typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);

@@ -22,7 +22,7 @@
  } JabberStreamManagementState;
  
  struct _JabberStream
-@@ -297,6 +303,11 @@
+@@ -297,6 +303,16 @@
  	guint32 sm_inbound_count;
  	guint32 sm_outbound_confirmed;
  	JabberStreamManagementState sm_state;
@@ -31,10 +31,15 @@
 +	   At the end of the structure because Adium compiles against a checked-in copy of this
 +	   header, and a field inserted anywhere else moves every offset after it. */
 +	gboolean sm_resumed;
++
++	/* Stanzas sent since we last asked to have them acknowledged, and the timer that asks
++	   anyway when no more arrive. */
++	guint32 sm_unrequested;
++	guint sm_request_timer;
  };
  
  typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);
-@@ -332,6 +343,7 @@
+@@ -332,6 +348,7 @@
  gboolean jabber_is_stanza(xmlnode *packet);
  
  void jabber_stream_features_parse(JabberStream *js, xmlnode *packet);
