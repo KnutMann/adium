@@ -2,10 +2,18 @@
 +++ b/libpurple/protocols/jabber/jabber.h
 @@ -50,6 +50,8 @@
  	JABBER_CAP_ROSTER_VERSIONING = 1 << 15,
-
+ 
  	JABBER_CAP_STREAM_MANAGEMENT = 1 << 16,
 +	JABBER_CAP_RECEIPTS      = 1 << 17,
 +	JABBER_CAP_CHAT_MARKERS  = 1 << 18,
-
+ 
  	JABBER_CAP_RETRIEVED      = 1 << 31
  } JabberCapabilities;
+@@ -332,6 +334,7 @@
+ gboolean jabber_is_stanza(xmlnode *packet);
+ 
+ void jabber_stream_features_parse(JabberStream *js, xmlnode *packet);
++void jabber_bind_resource(JabberStream *js);
+ void jabber_process_packet(JabberStream *js, xmlnode **packet);
+ void jabber_send(JabberStream *js, xmlnode *data);
+ void jabber_send_raw(JabberStream *js, const char *data, int len);
