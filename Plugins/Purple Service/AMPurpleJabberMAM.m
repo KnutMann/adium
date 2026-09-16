@@ -182,6 +182,11 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	   match and several conversations arriving at once could not be told apart. */
 	iq = xmlnode_new("iq");
 	xmlnode_set_attrib(iq, "type", "set");
+	/* Addressed to our own bare address. The specification allows leaving the address off
+	 * entirely, and ejabberd then takes the query, counts it and answers nothing at all: not a
+	 * result, not an error, measured against a live server. Naming the archive we mean costs
+	 * one attribute and removes the question. */
+	xmlnode_set_attrib(iq, "to", [[account UID] UTF8String]);
 	xmlnode_set_attrib(iq, "id", [queryID UTF8String]);
 
 	query = xmlnode_new_child(iq, "query");
@@ -271,6 +276,20 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	if (purple_strequal(name, "iq")) {
 		xmlnode *fin = xmlnode_get_child_with_namespace(packet, "fin", NS_MAM);
 		xmlnode *query = xmlnode_get_child_with_namespace(packet, "query", NS_DISCO_INFO);
+
+		/* An error ends the query as surely as a <fin/> does, and leaving it unanswered would
+		 * make the window wait out its patience for nothing. */
+		if (purple_strequal(xmlnode_get_attrib(packet, "type"), "error")) {
+			const char *iqid = xmlnode_get_attrib(packet, "id");
+			NSString *key = iqid ? [NSString stringWithUTF8String:iqid] : nil;
+
+			if (key && [gathering objectForKey:key]) {
+				AILogWithSignature(@"%@: the archive refused the query", account);
+				[gathering removeObjectForKey:key];
+				[chats removeObjectForKey:key];
+				return YES;
+			}
+		}
 
 		if (fin) {
 			const char *iqid = xmlnode_get_attrib(packet, "id");
