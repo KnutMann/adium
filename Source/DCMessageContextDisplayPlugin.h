@@ -34,6 +34,7 @@
 	NSInteger						linesToDisplay;
 	ISO8601DateFormatter			*formatter;
 	NSMutableSet					*chatsAwaitingHistory;
+	NSMutableSet					*accountsThatDisappointed;
 }
 
 + (DCMessageContextDisplayPlugin *)sharedInstance;

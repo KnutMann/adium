@@ -90,6 +90,7 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	formatter = [[ISO8601DateFormatter alloc] init];
 
 	chatsAwaitingHistory = [[NSMutableSet alloc] init];
+	accountsThatDisappointed = [[NSMutableSet alloc] init];
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(historyUnavailableForChat:)
 												 name:Chat_HistoryUnavailable
@@ -159,7 +160,13 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	 * what was delivered or reacted to. The service answers over the network or
 	 * not at all, so this is a wait and not a surrender: if nothing has appeared
 	 * by the time it is up, the excerpt is shown after all. */
-	if ([chat.account providesConversationHistory]) {
+	/* An account that promised history and then let a wait run out is not asked to be waited
+	 * for again. WhatsApp is the case this was written for: it fetches the conversation from
+	 * the phone, and the phone hands over each stretch exactly once, so after the first sync
+	 * there is nothing left to hand over and the window sits out the full wait for silence,
+	 * every time, for the rest of the session. Once is a fair price for finding that out. */
+	if ([chat.account providesConversationHistory]
+		&& ![accountsThatDisappointed containsObject:chat.account]) {
 		[chatsAwaitingHistory addObject:chat];
 		[self performSelector:@selector(historyDeadlineForChat:)
 				   withObject:chat
@@ -218,6 +225,10 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	if (![chatsAwaitingHistory containsObject:chat]) return;
 
 	[chatsAwaitingHistory removeObject:chat];
+
+	/* It promised and nothing came. Whatever the reason, it will be the same reason next time,
+	 * and the next window should not pay the wait to find out. */
+	if (chat.account) [accountsThatDisappointed addObject:chat.account];
 
 	/* Displaying into a chat the user closed while we waited would open its
 	 * window again, which is a strange thing for an excerpt to do. */
