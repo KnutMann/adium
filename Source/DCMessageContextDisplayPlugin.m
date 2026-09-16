@@ -211,10 +211,24 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 
 	if (!chat || ![chatsAwaitingHistory containsObject:chat]) return;
 
+	/* Whether the account is worth waiting for next time is a separate question from
+	 * whether this conversation got anything. An account that answers promptly with
+	 * nothing has kept its promise and stays worth asking; one whose answer says the
+	 * archive itself is gone has not, and it says so by leaving this out. */
+	BOOL askAgain = [[[notification userInfo] objectForKey:@"AskAgain"] boolValue];
+
+	[chatsAwaitingHistory removeObject:chat];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self
 											 selector:@selector(historyDeadlineForChat:)
 											   object:chat];
-	[self historyDeadlineForChat:chat];
+
+	if (!askAgain && chat.account) [accountsThatDisappointed addObject:chat.account];
+
+	/* Displaying into a chat the user closed while we waited would open its
+	 * window again, which is a strange thing for an excerpt to do. */
+	if (!chat.isOpen) return;
+
+	[self displayContextForChat:chat];
 }
 
 /*!
