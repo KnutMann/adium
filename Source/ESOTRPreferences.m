@@ -893,10 +893,15 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 
 				if (fingerprint) {
 					[button_generate setTitle:AILocalizedString(@"Regenerate", nil)];
-					fingerprintString = [NSString stringWithFormat:AILocalizedString(@"Fingerprint: %.80s",nil), fingerprint];
+					/* Named after its method, the way the OMEMO line below is: with two of them under
+					 * one account, a line that just says "Fingerprint" leaves the reader to guess
+					 * which one they are looking at. */
+					fingerprintString = [NSString stringWithFormat:
+										 AILocalizedString(@"OTR fingerprint: %.80s", "The account's own OTR fingerprint in the Encryption preferences"),
+										 fingerprint];
 				} else {
 					[button_generate setTitle:AILocalizedString(@"Generate", nil)];
-					fingerprintString = AILocalizedString(@"No private key present", "Message to show in the Encryption OTR preferences when an account is selected which does not have a private key");
+					fingerprintString = AILocalizedString(@"No OTR private key present", "Message to show in the Encryption preferences when an account is selected which does not have an OTR private key");
 				}
 			}
 		}
