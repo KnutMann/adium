@@ -55,7 +55,11 @@ Commits referenzieren shtrom/adium. Reihenfolge nach Wert:
 
 ## Themen-Zweige des Forks (eigene Inventur wert)
 
-`Lurch4Adium-0.0.4/*` (**OMEMO**, XEP-0384 — für den XMPP-Fahrplan relevant),
+`Lurch4Adium-0.0.4/*` (**der Name täuscht, nachgeprüft am 15.09.2026:** die beiden Branches
+`base` und `patched` enthalten NULL Dateien mit lurch, omemo, axolotl oder signal-protocol im
+Namen. Der einzige inhaltliche Unterschied ist ein eingechecktes libgcrypt 1.6.2, das durch die
+OTR-Migration längst erledigt ist. Es ist die Vorbereitung eines Ports, der nie stattfand, und
+als Startpunkt für OMEMO wertlos),
 `HistoricMUCMessages`, `IRCServerConsole`, `AddConfigureRoomForMUCs`, `EmoticonsMenu`,
 `AdiumApplescriptRunnerUsingXPC` (unser AppKit-am-Mainthread-Problem!), `AutoLayout`,
 `PreferencesRedux`, `Sandboxing`, `eventloop_libdispatch`, `voice-video`, `fix-autoscroll`,

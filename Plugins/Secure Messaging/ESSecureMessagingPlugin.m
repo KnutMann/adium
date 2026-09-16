@@ -16,6 +16,8 @@
 
 #import "ESSecureMessagingPlugin.h"
 #import "AdiumOTREncryption.h"
+#import <AdiumLibpurple/AIOMEMOController.h>
+#import <AdiumLibpurple/adiumPurpleOMEMO.h>
 
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
@@ -33,14 +35,20 @@
 #import <Adium/AIChat.h>
 #import <Adium/AIListContact.h>
 
-#define	TITLE_MAKE_SECURE		AILocalizedString(@"Initiate Encrypted OTR Chat",nil)
-#define	TITLE_MAKE_INSECURE		AILocalizedString(@"Cancel Encrypted Chat",nil)
+/* The two switches say the same thing about two methods, which is what they are: one turns
+ * encryption on for this conversation, and so does the other. They used to be written in two
+ * different voices, one about initiating a chat and one about encrypting, which made them read
+ * as different kinds of thing. */
+#define	TITLE_MAKE_SECURE		AILocalizedString(@"Encrypt with OTR",nil)
+#define	TITLE_MAKE_INSECURE		AILocalizedString(@"Stop Encrypting with OTR",nil)
 #define TITLE_SHOW_DETAILS		[AILocalizedString(@"Show Details",nil) stringByAppendingEllipsis]
 #define TITLE_VERIFY			[AILocalizedString(@"Verify",nil) stringByAppendingEllipsis]
 #define	TITLE_ENCRYPTION_OPTIONS AILocalizedString(@"Encryption Settings",nil)
-#define TITLE_ABOUT_ENCRYPTION	[AILocalizedString(@"About Encryption",nil) stringByAppendingEllipsis]
 
 #define TITLE_ENCRYPTION		AILocalizedString(@"Encryption",nil)
+
+#define TITLE_OMEMO_ON			AILocalizedString(@"Encrypt with OMEMO",nil)
+#define TITLE_OMEMO_OFF			AILocalizedString(@"Stop Encrypting with OMEMO",nil)
 
 #define CHAT_NOW_SECURE				AILocalizedString(@"Encrypted OTR chat initiated.", nil)
 #define CHAT_NOW_SECURE_UNVERIFIED	AILocalizedString(@"Encrypted OTR chat initiated. %@'s identity not verified.", nil)
@@ -74,6 +82,26 @@
 	[self configureMenuItems];
 
 	[adium.chatController registerChatObserver:self];
+
+	/* The padlock has to close by itself once the other side's keys arrive, which happens a
+	 * moment after the user asked for encryption rather than at the moment they asked. */
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(omemoReadinessChanged:)
+												 name:AIOMEMOReadinessChangedNotification
+											   object:nil];
+}
+
+/*!
+ * @brief A conversation can now encrypt, or can no longer: redraw the padlock
+ */
+- (void)omemoReadinessChanged:(NSNotification *)notification
+{
+	AIChat *chat = adium.interfaceController.activeChat;
+	if (!chat) return;
+
+	[adium.chatController chatStatusChanged:chat
+						 modifiedStatusKeys:[NSSet setWithObject:@"SecurityDetails"]
+									 silent:YES];
 }
 
 - (void)uninstallPlugin
@@ -271,14 +299,19 @@
 - (void)_updateToolbarItem:(NSToolbarItem *)item forChat:(AIChat *)chat
 {
 	NSImage			*image;
-	
-	if ([chat isSecure]) {
+
+	/* The padlock closes for OMEMO as well as for OTR, but only once we actually hold the keys
+	 * to encrypt with. A conversation that has been switched on and is still waiting for the
+	 * other side's keys is not yet encrypted, and showing it as though it were would be the one
+	 * kind of wrong a padlock must never be. */
+	if ([chat isSecure] ||
+		([AIOMEMOController isEncryptingChat:chat] && [AIOMEMOController isReadyInChat:chat])) {
 		image = lockImage_Locked;
 	} else {
 		image = lockImage_Unlocked;				
 	}
 	
-	[item setEnabled:[chat supportsSecureMessagingToggling]];
+	[item setEnabled:([chat supportsSecureMessagingToggling] || [AIOMEMOController isPossibleInChat:chat])];
 	[(MVMenuButton *)[item view] setImage:image];
 	[validatedItems addObject:item];
 }
@@ -324,21 +357,6 @@
 	[chat.account promptToVerifyEncryptionIdentityInChat:chat];	
 }
 
-- (IBAction)showAbout:(id)sender
-{
-	NSString	*aboutEncryption;
-	
-	aboutEncryption = adium.interfaceController.activeChat.account.aboutEncryption;
-	
-	if (aboutEncryption) {
-		NSAlert *alert = [[NSAlert alloc] init];
-		[alert setAlertStyle:NSAlertStyleInformational];
-		[alert setMessageText:AILocalizedString(@"About Encryption",nil)];
-		[alert setInformativeText:aboutEncryption];
-		[alert addButtonWithTitle:AILocalizedString(@"OK",nil)];
-		[alert runModal];
-	}
-}
 
 - (IBAction)selectedEncryptionPreference:(id)sender
 {
@@ -350,6 +368,26 @@
 }
 
 //Disable the insertion if a text field is not active
+#pragma mark OMEMO
+
+/*!
+ * @brief Start or stop encrypting this conversation with OMEMO
+ */
+- (IBAction)toggleOMEMO:(id)sender
+{
+	AIChat *chat = adium.interfaceController.activeChat;
+	if (!chat) return;
+
+	BOOL wasOn = [AIOMEMOController isEncryptingChat:chat];
+	[AIOMEMOController setEncrypting:!wasOn inChat:chat];
+
+	[adium.chatController chatStatusChanged:chat
+						 modifiedStatusKeys:[NSSet setWithObject:@"SecurityDetails"]
+									 silent:YES];
+}
+
+
+
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
 	AIChat *chat;
@@ -435,9 +473,14 @@
 				return ([chat supportsSecureMessagingToggling] && chat.listObject && !chat.isGroupChat);
 				break;
 				
-			case AISecureMessagingMenu_ShowAbout:
-				return [chat supportsSecureMessagingToggling];
+			case AISecureMessagingMenu_OMEMO:
+				if (![AIOMEMOController isPossibleInChat:chat]) return NO;
+
+				[menuItem setTitle:([AIOMEMOController isEncryptingChat:chat] ? TITLE_OMEMO_OFF
+																			  : TITLE_OMEMO_ON)];
+				return YES;
 				break;
+
 		}
 	}
 
@@ -458,6 +501,18 @@
 									keyEquivalent:@""];
 		[item setTag:AISecureMessagingMenu_Toggle];
 		[_secureMessagingMenu addItem:item];
+
+		/* Beside it, not below a rule: the two are the same kind of thing, and which of them a
+		 * conversation can use is the protocol's business rather than something the reader should
+		 * have to infer from where the entry sits. What cannot be used is dimmed. */
+		item = [[NSMenuItem alloc] initWithTitle:TITLE_OMEMO_ON
+										  target:self
+										  action:@selector(toggleOMEMO:)
+								   keyEquivalent:@""];
+		[item setTag:AISecureMessagingMenu_OMEMO];
+		[_secureMessagingMenu addItem:item];
+
+		[_secureMessagingMenu addItem:[NSMenuItem separatorItem]];
 		
 		item = [[NSMenuItem alloc] initWithTitle:TITLE_SHOW_DETAILS
 										   target:self
@@ -473,6 +528,7 @@
 		[item setTag:AISecureMessagingMenu_Verify];
 		[_secureMessagingMenu addItem:item];
 		
+		[_secureMessagingMenu addItem:[NSMenuItem separatorItem]];
 		item = [[NSMenuItem alloc] initWithTitle:TITLE_ENCRYPTION_OPTIONS
 										   target:nil
 										   action:nil
@@ -482,13 +538,6 @@
 																	  withDefault:YES]];
 		[_secureMessagingMenu addItem:item];		
 
-		[_secureMessagingMenu addItem:[NSMenuItem separatorItem]];
-		item = [[NSMenuItem alloc] initWithTitle:TITLE_ABOUT_ENCRYPTION
-										   target:self
-										   action:@selector(showAbout:)
-									keyEquivalent:@""];
-		[item setTag:AISecureMessagingMenu_ShowAbout];
-		[_secureMessagingMenu addItem:item];
 	}
 	
 	return [_secureMessagingMenu copy];

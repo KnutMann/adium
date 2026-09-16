@@ -673,7 +673,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 }
 
 /*!
- * @brief Reveal a received file in Finder - never open it
+ * @brief Reveal a received file in Finder - never hand it to a handler
  *
  * file: stays off the open-externally list on purpose (see above): a click in
  * the transcript must never invoke a document or URL-scheme handler. But the
@@ -692,26 +692,30 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
  * gets the identical treatment; the worst it can achieve is selecting an
  * existing file in a folder received files live in.
  */
-static void AIWebKitRevealReceivedFileURL(NSURL *url)
+/*!
+ * @brief The true path behind a link, but only if it lies inside one of these folders
+ *
+ * The href carries no authority. The path is canonicalized through realpath(3) - every symlink
+ * and ".." resolved, nonexistent paths fail - and every root is pushed through realpath as well,
+ * because /var is a symlink to /private/var and a prefix test against the unresolved name would
+ * match nothing. A forged link, whether from a message, a restyled %message% or a JavaScript
+ * xtra, gets the identical treatment; nil is the answer for everything that does not resolve to
+ * an existing file strictly inside one of the roots.
+ */
+static NSString *AIWebKitResolvedPathInside(NSURL *url, NSArray<NSString *> *roots)
 {
-	if (![url isFileURL]) return;
-	if (url.host.length > 0 && ![url.host isEqualToString:@"localhost"]) return;
-	if (url.path.length == 0) return;
+	if (![url isFileURL]) return nil;
+	if (url.host.length > 0 && ![url.host isEqualToString:@"localhost"]) return nil;
+	if (url.path.length == 0) return nil;
 
 	char resolvedC[PATH_MAX];
-	if (!realpath(url.path.fileSystemRepresentation, resolvedC)) return;
+	if (!realpath(url.path.fileSystemRepresentation, resolvedC)) return nil;
 
 	NSFileManager	*fm = [NSFileManager defaultManager];
 	NSString		*resolved = [fm stringWithFileSystemRepresentation:resolvedC length:strlen(resolvedC)];
 
 	BOOL isDirectory = NO;
-	if (![fm fileExistsAtPath:resolved isDirectory:&isDirectory] || isDirectory) return;
-
-	BOOL contained = NO;
-	NSArray<NSString *> *roots = [NSArray arrayWithObjects:
-		([NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject] ?: @""),
-		(NSTemporaryDirectory() ?: @""),
-		nil];
+	if (![fm fileExistsAtPath:resolved isDirectory:&isDirectory] || isDirectory) return nil;
 
 	for (NSString *root in roots) {
 		if (!root.length) continue;
@@ -722,10 +726,69 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		NSString *prefix = [[fm stringWithFileSystemRepresentation:rootC length:strlen(rootC)]
 							stringByAppendingString:@"/"];
 
-		if ([resolved hasPrefix:prefix]) { contained = YES; break; }
+		if ([resolved hasPrefix:prefix]) return resolved;
 	}
 
-	if (!contained) {
+	return nil;
+}
+
+/*! Where a picture or voice note fetched out of a conversation is kept */
+static NSString *AIWebKitInlineMediaFolder(void)
+{
+	return [[adium cachesPath] stringByAppendingPathComponent:@"Inline Media"];
+}
+
+/*!
+ * @brief Show a received picture in Preview
+ *
+ * A picture embedded in the transcript is a picture, and the thing to do with one is look at it
+ * larger. Neither of the two answers already here is that: the browser is where the address led
+ * before this existed, and Finder shows the file rather than the picture.
+ *
+ * This does not loosen the rule that a click in the transcript never invokes a handler. No
+ * handler is consulted: Preview is asked for by name, so what opens is that one application and
+ * not whatever happens to be registered for the extension. The file must lie inside our own
+ * Inline Media folder, and it must decode as an image, which is a question about what is in the
+ * file and not about what it is called.
+ *
+ * Returns NO when any of that does not hold, so the caller can fall back to revealing it.
+ */
+static BOOL AIWebKitShowPictureInPreview(NSURL *url)
+{
+	NSString *resolved = AIWebKitResolvedPathInside(url, [NSArray arrayWithObject:
+														  (AIWebKitInlineMediaFolder() ?: @"")]);
+	if (!resolved) return NO;
+
+	if (![[NSImage alloc] initWithContentsOfFile:resolved]) return NO;
+
+	NSURL *preview = [[NSWorkspace sharedWorkspace]
+					  URLForApplicationWithBundleIdentifier:@"com.apple.Preview"];
+	if (!preview) return NO;
+
+	[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:[NSURL fileURLWithPath:resolved]]
+					   withApplicationAtURL:preview
+							  configuration:[NSWorkspaceOpenConfiguration configuration]
+						  completionHandler:^(NSRunningApplication *app, NSError *error) {
+		if (error)
+			AILogWithSignature(@"could not show %@ in Preview: %@", [resolved lastPathComponent], error);
+	}];
+
+	return YES;
+}
+
+static void AIWebKitRevealReceivedFileURL(NSURL *url)
+{
+	NSArray<NSString *> *roots = [NSArray arrayWithObjects:
+		([NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject] ?: @""),
+		(NSTemporaryDirectory() ?: @""),
+		/* A file fetched out of a conversation that is not a picture, or is one Preview will not
+		 * take, is still a file the user genuinely received. */
+		(AIWebKitInlineMediaFolder() ?: @""),
+		nil];
+
+	NSString *resolved = AIWebKitResolvedPathInside(url, roots);
+
+	if (!resolved) {
 		AILogWithSignature(@"Refusing to reveal file outside received-file roots: %@", url);
 		return;
 	}
@@ -764,7 +827,9 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		[[NSWorkspace sharedWorkspace] openURL:url];
 	} else if (url && [url isFileURL] &&
 			   navigationAction.navigationType == WKNavigationTypeLinkActivated) {
-		AIWebKitRevealReceivedFileURL(url);
+		/* A picture opens in Preview, anything else is shown in Finder */
+		if (!AIWebKitShowPictureInPreview(url))
+			AIWebKitRevealReceivedFileURL(url);
 	}
 	decisionHandler(WKNavigationActionPolicyCancel);
 }
@@ -2193,9 +2258,14 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	}
 
 	//A picture fetched for an image link is message state like the ticks; re-embed it
-	if ([message.inlineImagePath length] &&
-		[[NSFileManager defaultManager] fileExistsAtPath:message.inlineImagePath]) {
-		[self _embedImageAtPath:message.inlineImagePath onMessageId:message.messageId];
+	if ([message.inlineImagePath length]) {
+		BOOL there = [[NSFileManager defaultManager] fileExistsAtPath:message.inlineImagePath];
+
+		AILogWithSignature(@"message %@ in %@ carries a picture at %@ (%@)", message.messageId,
+						   _chat, [message.inlineImagePath lastPathComponent],
+						   there ? @"present" : @"MISSING");
+		if (there)
+			[self _embedImageAtPath:message.inlineImagePath onMessageId:message.messageId];
 	}
 }
 
@@ -2253,7 +2323,11 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
  */
 - (void)messageImageResolved:(NSNotification *)notification
 {
-	if ([notification object] != _chat || !_webView) return;
+	if ([notification object] != _chat) return;
+	if (!_webView) {
+		AILogWithSignature(@"a picture arrived for %@ with no page to put it on", _chat);
+		return;
+	}
 
 	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
 	NSString *path = [[notification userInfo] objectForKey:@"Path"];
@@ -2266,32 +2340,89 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 {
 	if (![messageId length] || !_webView) return;
 
+	/* What the file is decides what goes in its place. A voice note in a chat window is a
+	 * player, not a picture of one, and not a link the person has to leave the conversation to
+	 * hear. The kind is taken from the name rather than guessed at in the page, because this
+	 * side already knows it and the page would only have to work it out again. */
+	static NSSet *sounds = nil, *films = nil;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		sounds = [NSSet setWithObjects:@"m4a", @"mp3", @"oga", @"ogg", @"opus", @"wav", @"aac", @"amr", nil];
+		films = [NSSet setWithObjects:@"mp4", @"mov", @"webm", @"m4v", nil];
+	});
+
+	NSString *extension = [[path pathExtension] lowercaseString];
+	NSString *element = @"img";
+	if ([sounds containsObject:extension])     element = @"audio";
+	else if ([films containsObject:extension]) element = @"video";
+
+	BOOL playable = ![element isEqualToString:@"img"];
+
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
-		@" var id=%@, src=%@;"
+		@" var id=%@, src=%@, kind=%@, playable=%@;"
 		@" var msgs=document.querySelectorAll('[data-x-adium-msg]');"
 		@" for(var i=0;i<msgs.length;i++){"
 		@"  if(msgs[i].getAttribute('data-x-adium-id')!==id) continue;"
-		@"  if(msgs[i].querySelector('img[data-x-adium-inline-image]')) return 1;"
-		@"  var img=document.createElement('img');"
-		@"  img.src=src;"
-		@"  img.setAttribute('data-x-adium-inline-image','1');"
-		@"  img.style.maxWidth='min(320px, 100%%)';"
-		@"  img.style.maxHeight='240px';"
-		@"  img.style.borderRadius='4px';"
-		@"  img.style.display='block';"
-		@"  img.style.marginTop='2px';"
-		@"  var a=msgs[i].querySelector('a');"
-		@"  if(a){ a.textContent=''; a.appendChild(img); } else { msgs[i].appendChild(img); }"
+		@"  if(msgs[i].querySelector('[data-x-adium-inline-image]')) return 1;"
+		@"  var el=document.createElement(kind);"
+		@"  el.setAttribute('data-x-adium-inline-image','1');"
+		/* A file the view cannot load leaves an element of no size, which is indistinguishable
+		 * from nothing having happened. Rather than that, say so where the picture would have
+		 * been: something arrived, and this is why it is not being shown. */
+		@"  el.onerror=function(){"
+		@"   var said=document.createElement('span');"
+		@"   said.setAttribute('data-x-adium-inline-image','1');"
+		@"   said.style.opacity='0.7';"
+		@"   said.textContent='['+kind+' could not be shown: '+src+']';"
+		@"   if(el.parentNode) el.parentNode.replaceChild(said,el);"
+		@"  };"
+		@"  el.src=src;"
+		@"  if(playable){"
+		@"   el.controls=true; el.preload='metadata';"
+		@"   el.style.maxWidth=(kind==='audio')?'320px':'min(480px, 100%%)';"
+		@"   if(kind==='video'){ el.playsInline=true; el.style.height='auto'; }"
+		@"  } else {"
+		@"   el.style.maxWidth='min(320px, 100%%)';"
+		@"   el.style.maxHeight='240px';"
+		@"  }"
+		@"  el.style.borderRadius='4px';"
+		@"  el.style.display='block';"
+		@"  el.style.marginTop='2px';"
+		/* The whole message is the address and nothing else, so the whole of it goes. Replacing
+		 * only the link would leave whatever the link detector did not recognise standing in
+		 * front of the picture, and it recognises none of aesgcm, so the scheme and part of the
+		 * host stayed visible beside the player. */
+		@"  while(msgs[i].firstChild) msgs[i].removeChild(msgs[i].firstChild);"
+		/* A picture is wrapped in a link to the copy on this disk, never to the address it
+		 * arrived as. Following the address opens a browser, which for an aesgcm link cannot
+		 * show anything at all and for a plain one fetches a second time what is already here.
+		 * A click on the local link opens the picture in Preview, which is what one wants from a
+		 * picture and is neither a browser nor a folder. A player must not be wrapped at all, or
+		 * every attempt to press pause would follow the link instead. */
+		@"  if(!playable){ var w=document.createElement('a'); w.href=src;"
+		@"                 w.appendChild(el); msgs[i].appendChild(w); }"
+		@"  else { msgs[i].appendChild(el); }"
 		@"  return 2;"
 		@" }"
 		@" return 0;"
 		@"})()",
-		[self _jsStringLiteral:messageId], [self _jsStringLiteral:[[NSURL fileURLWithPath:path] absoluteString]]];
+		[self _jsStringLiteral:messageId],
+		[self _jsStringLiteral:[[NSURL fileURLWithPath:path] absoluteString]],
+		[self _jsStringLiteral:element], (playable ? @"true" : @"false")];
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if (error || [result integerValue] == 0) {
-			AILogWithSignature(@"image for id %@ found no message (%@)", messageId, error ?: result);
-		}
+		/* Not finding the message is ordinary and not a fault. A file fetched quickly, which
+		 * over a fast connection means almost every time, is ready before the message it
+		 * belongs to has been drawn. Nothing is lost by that: the path is on the message, and
+		 * the drawing embeds it when the moment comes. Only a real failure of the page is worth
+		 * a line here. */
+		/* Nought means the message is not on the page yet, which is ordinary: a file fetched
+		 * quickly is ready before the message it belongs to has been drawn, and the drawing
+		 * embeds it when the moment comes. Only a real failure is worth a line; a file the view
+		 * cannot read says so in the page itself, where the picture would have been. */
+		if (error)
+			AILogWithSignature(@"could not embed %@ on id %@ in %@: %@",
+							   [path lastPathComponent], messageId, self->_chat, error);
 	}];
 }
 

@@ -31,7 +31,12 @@
 #import "adiumPurpleCarbons.h"
 #import "adiumPurpleWhatsApp.h"
 #import "adiumPurpleCSI.h"
+#import "adiumPurpleFallback.h"
+#import "adiumPurpleOMEMO.h"
 #import "adiumPurpleBookmarks.h"
+#import "adiumPurpleJingle.h"
+#import "AIJingleCallManager.h"
+#import "AIJingleCallUI.h"
 #import "adiumPurpleCertificateTrustWarning.h"
 
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
@@ -235,7 +240,12 @@ static void adiumPurpleCoreUiInit(void)
 	configureAdiumPurpleSignals();
 	configureAdiumPurpleCarbons();
 	configureAdiumPurpleCSI();
+	configureAdiumPurpleFallback();
+	configureAdiumPurpleOMEMO();
 	configureAdiumPurpleBookmarks();
+	configureAdiumPurpleJingle();
+	[AIJingleCallManager install];
+	[AIJingleCallUI install];
 	configureAdiumPurpleWhatsApp();
 	
 	//Associate each libpurple account with the appropriate Adium AIAccount.

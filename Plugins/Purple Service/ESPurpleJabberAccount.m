@@ -38,6 +38,7 @@
 #import "ESPurpleJabberAccountViewController.h"
 #import "AMPurpleJabberAdHocServer.h"
 #import "AMPurpleJabberHTTPFileUpload.h"
+#import "AMPurpleJabberExternalServices.h"
 #import "AMPurpleJabberAdHocPing.h"
 #import "AIMessageViewController.h"
 #import <Adium/AIMenuControllerProtocol.h>
@@ -535,6 +536,11 @@
 	[super _beginSendOfFileTransfer:fileTransfer];
 }
 
+- (NSArray *)jingleIceServers
+{
+	return [externalServices iceServerDictionaries];
+}
+
 - (void)acceptFileTransferRequest:(ESFileTransfer *)fileTransfer
 {
     [super acceptFileTransferRequest:fileTransfer];    
@@ -915,6 +921,10 @@
 	//Look for the server's HTTP upload service; found or not, sending falls back gracefully
 	[httpUpload release];
 	httpUpload = [[AMPurpleJabberHTTPFileUpload alloc] initWithAccount:self];
+
+	//And for its STUN and TURN servers; calls read the answer when they build their connection
+	[externalServices release];
+	externalServices = [[AMPurpleJabberExternalServices alloc] initWithAccount:self];
 }
 
 - (void)didDisconnect {
@@ -923,6 +933,7 @@
 	[discoveryBrowserController release]; discoveryBrowserController = nil;
 	[adhocServer release]; adhocServer = nil;
 	[httpUpload release]; httpUpload = nil;
+	[externalServices release]; externalServices = nil;
 
 	[super didDisconnect];
 
@@ -1081,6 +1092,35 @@
 
 - (AMPurpleJabberAdHocServer*)adhocServer {
 	return adhocServer;
+}
+
+#pragma mark Sending files
+
+/*!
+ * @brief Can a file be sent to this contact?
+ *
+ * libpurple answers this by asking whether the contact's client understands the in band file
+ * transfer from 2004, and the clients people actually use have stopped saying yes: Conversations
+ * never did, and Gajim switched it off entirely in 2.0. The honest answer used to be no, and the
+ * consequence was worse than a refusal. The picture was never made into a transfer at all, so
+ * the attachment went out as its own placeholder text, and the person at the other end received
+ * a line of hexadecimal where a picture should have been.
+ *
+ * When the server offers an upload service the question is simply the wrong one. The file goes
+ * to our own server and the recipient fetches it from there, so what their client understands
+ * does not come into it, and neither does whether they are online at this moment.
+ *
+ * The same reasoning, and very nearly the same code, is already in the WhatsApp account for the
+ * same reason.
+ */
+- (BOOL)availableForSendingContentType:(NSString *)inType toContact:(AIListContact *)inContact
+{
+	if (self.online &&
+		[inType isEqualToString:CONTENT_FILE_TRANSFER_TYPE] &&
+		[httpUpload isAvailable])
+		return YES;
+
+	return [super availableForSendingContentType:inType toContact:inContact];
 }
 
 @end

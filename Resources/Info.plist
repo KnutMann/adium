@@ -786,5 +786,19 @@
 			</dict>
 		</dict>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Adium uses the microphone for voice and video calls.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Adium uses the camera for video calls.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Adium talks straight to devices on your network, which is the short way for a call and the only way for Bonjour contacts.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_presence._tcp</string>
+		<string>_companion-link._tcp</string>
+		<string>_airplay._tcp</string>
+		<string>_raop._tcp</string>
+		<string>_ipp._tcp</string>
+	</array>
 </dict>
 </plist>

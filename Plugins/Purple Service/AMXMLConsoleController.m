@@ -18,6 +18,7 @@
 #import <libpurple/jabber.h>
 #import <AIUtilities/AIAutoScrollView.h>
 #import <AIUtilities/AIBundleAdditions.h>
+#import "AMPurpleJabberSend.h"
 
 #define XML_PREFIX @"<?xml version='1.0' encoding='UTF-8' ?>\n"
 
@@ -108,7 +109,7 @@ xmlnode_sent_cb(PurpleConnection *gc, char **packet, gpointer this)
     NSData *rawXMLData = [[xmlInjectView string] dataUsingEncoding:NSUTF8StringEncoding];
     NSAssert( INT_MAX >= [rawXMLData length],
 						 @"Sending more jabber data value than libpurple can handle.  Abort." );
-    jabber_prpl_send_raw(gc, [rawXMLData bytes], (int)[rawXMLData length]);
+    AMPurpleJabberSendText(gc, [rawXMLData bytes], (int)[rawXMLData length]);
 
     // remove from text field
     [xmlInjectView setString:@""];

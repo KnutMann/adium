@@ -1,0 +1,21 @@
+#!/bin/sh
+# Warn when a commit adds strings nobody has translated, or orphans strings the tables
+# still carry. See Utilities/Localization Utility Scripts/check_strings.py for why.
+#
+# Hooks live outside the repository, so this one has to be pointed at once per clone:
+#
+#     git config core.hooksPath Utilities/git-hooks
+#
+# It warns and lets the commit through. To make it refuse instead:
+#
+#     git config adium.strings.strict true
+
+top=$(git rev-parse --show-toplevel) || exit 0
+checker="$top/Utilities/Localization Utility Scripts/check_strings.py"
+[ -f "$checker" ] || exit 0
+
+strict=""
+[ "$(git config --bool adium.strings.strict)" = "true" ] && strict="--strict"
+
+cd "$top" || exit 0
+python3 "$checker" $strict

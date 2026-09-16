@@ -364,8 +364,6 @@
     newFrame.origin.y += ([[prefsWindow contentView] frame].size.height - [prefsView frame].size.height);
     
     id <SS_PreferencePaneProtocol> pane = [preferencePanes objectForKey:name];
-    [prefsWindow setShowsResizeIndicator:([pane allowsHorizontalResizing] || [pane allowsHorizontalResizing])];
-    
     [prefsWindow setFrame:newFrame display:disp animate:disp];
     
     [prefsView ai_normalizeLegacyButtonStyles];
@@ -376,17 +374,13 @@
     theSize.height -= ToolbarHeightForWindow(prefsWindow);
     [prefsWindow setMinSize:theSize];
     
-    BOOL canResize = NO;
     if ([pane allowsHorizontalResizing]) {
         theSize.width = FLT_MAX;
-        canResize = YES;
     }
     if ([pane allowsVerticalResizing]) {
         theSize.height = FLT_MAX;
-        canResize = YES;
     }
     [prefsWindow setMaxSize:theSize];
-    [prefsWindow setShowsResizeIndicator:canResize];
 
     if ((prefsToolbarItems && ([prefsToolbarItems count] > 1)) || alwaysShowsToolbar) {
         [prefsWindow setTitle:[pane paneName]];

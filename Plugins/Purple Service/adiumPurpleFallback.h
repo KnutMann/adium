@@ -14,20 +14,9 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import <Adium/AIPlugin.h>
+#import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 
 /*!
- * @class AIInlineImageLinkPlugin
- * @brief Shows an XMPP message that is an image link as the image itself
- *
- * Modern XMPP clients send a picture by uploading it (XEP-0363) and sending its
- * address as the message; whether the receiver sees a link or the picture is
- * purely the receiver's choice. This fetches such pictures and has the message
- * view embed them, governed by the same say the person already has over file
- * transfers: never, from anyone, or only from contacts of their list.
+ * @brief Fallback Indication (XEP-0428): take out the part that was only there for us
  */
-@interface AIInlineImageLinkPlugin : AIPlugin {
-	NSURLSession	*session;
-}
-
-@end
+void configureAdiumPurpleFallback(void);

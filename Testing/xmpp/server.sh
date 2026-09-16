@@ -8,6 +8,12 @@
 #   ./server.sh reset      stop and DELETE the data volume (accounts, archive, certificate)
 #   ./server.sh selftest   run the automated feature checks (see peer/selftest.py)
 #   ./server.sh muc-reactions  group-chat reaction checks (see peer/muc_reactions.py)
+#   ./server.sh omemo-pep      OMEMO announcement checks (see peer/omemo_pep.py)
+#   ./server.sh roster     make the test accounts contacts of each other, so that files
+#                          between them are treated the way files between contacts are
+#   ./server.sh trust      let this Mac accept the server's certificate, so that file
+#                          uploads from Adium reach it instead of falling back
+#   ./server.sh untrust    take that back
 #
 # Test accounts (password matches user name with "-pw" appended):
 #   adium@localhost   the account to configure in Adium
@@ -86,6 +92,48 @@ selftest() {
 	exec ./peer/run.sh selftest
 }
 
+# Where the certificate is put when it is taken out of the container
+CERT_FILE="${TMPDIR:-/tmp}/adium-xmpp-localhost.crt"
+
+fetch_certificate() {
+	start
+	docker exec "$CONTAINER" cat /etc/prosody/certs/localhost.crt > "$CERT_FILE"
+	[ -s "$CERT_FILE" ] || { echo "Zertifikat nicht gefunden"; exit 1; }
+}
+
+# Uploads from Adium go over HTTPS, and a self-signed certificate is refused like any other
+# unknown one: the upload fails and Adium falls back to the classic transfer, which looks like a
+# bug in the upload code and is not. Trusting this one certificate, for this one name, makes the
+# path testable. It lands in the login keychain, not the system one, so no administrator rights
+# are involved and "untrust" undoes it completely.
+trust() {
+	fetch_certificate
+	echo "Zertifikat: $CERT_FILE"
+	security add-trusted-cert -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" "$CERT_FILE"
+	echo "localhost wird jetzt vertraut. Adium neu starten, damit es die Änderung sieht."
+	echo "Rückgängig: ./server.sh untrust"
+}
+
+untrust() {
+	fetch_certificate
+	security remove-trusted-cert "$CERT_FILE" 2>/dev/null || true
+	security delete-certificate -c localhost "$HOME/Library/Keychains/login.keychain-db" 2>/dev/null || true
+	echo "Vertrauen für localhost entfernt."
+}
+
+# Two accounts that have never been introduced are strangers to each other, and a stranger's
+# files are not fetched by themselves unless the person has said they should be. Real
+# conversations are between contacts, so the test server should be too.
+roster() {
+	start
+	exec ./peer/run.sh roster
+}
+
+omemo_pep() {
+	start
+	exec ./peer/run.sh omemo-pep
+}
+
 muc_reactions() {
 	start
 	exec ./peer/run.sh muc-reactions
@@ -99,5 +147,9 @@ case "$1" in
 	reset)         reset ;;
 	selftest)      selftest ;;
 	muc-reactions) muc_reactions ;;
-	*)             sed -n '2,17p' "$0"; exit 1 ;;
+	omemo-pep)     omemo_pep ;;
+	roster)        roster ;;
+	trust)         trust ;;
+	untrust)       untrust ;;
+	*)             sed -n '2,22p' "$0"; exit 1 ;;
 esac

@@ -26,6 +26,9 @@
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <libpurple/jabber.h>
+#import "AMPurpleJabberSend.h"
+#import "AIOMEMOMedia.h"
+#import "adiumPurpleOMEMO.h"
 
 #define NS_HTTP_UPLOAD_0		"urn:xmpp:http:upload:0"
 #define NS_HTTP_UPLOAD_LEGACY	"urn:xmpp:http:upload"
@@ -86,6 +89,13 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 			return nil;
 		}
 
+		static dispatch_once_t once;
+		dispatch_once(&once, ^{
+			addressesAwaitingTheirHint = [[NSMutableSet alloc] init];
+			purple_signal_connect(jabber, "jabber-sending-xmlnode", &addressesAwaitingTheirHint,
+								  PURPLE_CALLBACK(AMAddOutOfBandHint), NULL);
+		});
+
 		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
 							  PURPLE_CALLBACK(AMPurpleJabberHTTPFileUpload_received_cb), self);
 
@@ -110,6 +120,11 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 //Discovery --------------------------------------------------------------------------------------
 #pragma mark Discovery
 
+- (BOOL)isAvailable
+{
+	return ([serviceJid length] > 0);
+}
+
 - (NSString *)nextIqId
 {
 	return [NSString stringWithFormat:@"%@%lu", IQ_ID_PREFIX, (unsigned long)sequence++];
@@ -119,14 +134,7 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 {
 	PurpleConnection *gc = purple_account_get_connection([account purpleAccount]);
 
-	if (gc && PURPLE_PLUGIN_PROTOCOL_INFO(gc->prpl)->send_raw) {
-		int length = 0;
-		char *text = xmlnode_to_str(iq, &length);
-		PURPLE_PLUGIN_PROTOCOL_INFO(gc->prpl)->send_raw(gc, text, length);
-		g_free(text);
-	}
-
-	xmlnode_free(iq);
+	AMPurpleJabberSend(gc, iq);
 }
 
 - (void)sendDiscoOfType:(const char *)ns to:(NSString *)jid
@@ -379,6 +387,7 @@ static NSDictionary *AMImageContentTypes(void)
 	return types;
 }
 
+
 /*!
  * @brief Where the inline image plugin would cache a fetched address; put ours there too
  *
@@ -396,9 +405,11 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	for (NSUInteger index = 0; index < CC_SHA256_DIGEST_LENGTH; index++)
 		[name appendFormat:@"%02x", digest[index]];
 
-	[name appendFormat:@".%@", [[[NSURL URLWithString:address] pathExtension] lowercaseString]];
+	/* Read off the address rather than through NSURL, which makes nothing of an aesgcm one, and
+	 * the same place as the receiving side keeps its files so the two agree. */
+	[name appendFormat:@".%@", AIOMEMOMediaExtensionOf(address) ?: @"dat"];
 
-	return [[[adium cachesPath] stringByAppendingPathComponent:@"Inline Images"]
+	return [[[adium cachesPath] stringByAppendingPathComponent:@"Inline Media"]
 			stringByAppendingPathComponent:name];
 }
 
@@ -408,19 +419,64 @@ static NSString *AMInlineImageCachePath(NSString *address)
 		return NO;
 
 	NSString *path = [fileTransfer localFilename];
+	NSString *filename = [path lastPathComponent];
 	NSString *contentType = [AMImageContentTypes() objectForKey:[[path pathExtension] lowercaseString]];
 
+	NSData *contents = nil;
+
+	if (!contentType && ![[path pathExtension] length]) {
+		/* Nothing in the name to go on. Ask the file itself, and give it the ending it should
+		 * have had, so that whoever receives it can tell what they have been sent. */
+		contents = [NSData dataWithContentsOfFile:path];
+		if (!contents) return NO;
+
+		NSString *ending = nil;
+		contentType = AIMediaKindOfData(contents, &ending);
+
+		if (contentType)
+			filename = [[filename stringByDeletingPathExtension] stringByAppendingPathExtension:ending];
+	}
+
+	/* Anything else goes up as itself. This route is not for pictures alone: it is how every
+	 * current client sends a file of any kind, and the account now tells the rest of the
+	 * application that a file CAN be sent this way, so refusing one here would leave that
+	 * promise unkept and the file unsent. */
 	if (!contentType)
-		return NO;
+		contentType = @"application/octet-stream";
 
 	unsigned long long size = [[[NSFileManager defaultManager] attributesOfItemAtPath:path
 																				error:NULL] fileSize];
 	if (!size || (maxSize && size > maxSize))
 		return NO;
 
+	/* In an encrypted conversation the file is encrypted before it leaves, and only then is the
+	 * upload honest. Sending the picture itself to a public server and encrypting nothing but
+	 * the address would leave the padlock in the window telling the user something that is not
+	 * true of the thing they just sent. */
+	NSData *toUpload = nil;
+	NSData *ivAndKey = nil;
+
+	if (omemoIsEncryptingWith([account purpleAccount], [[fileTransfer contact] UID])) {
+		NSData *plain = contents ?: [NSData dataWithContentsOfFile:path];
+
+		toUpload = plain ? AIOMEMOMediaEncrypt(plain, &ivAndKey) : nil;
+		if (!toUpload)
+			return NO;		//The classic transfer takes it, which is encrypted in its own way
+
+		//Bytes with no meaning to anybody but the recipient, and described as such
+		contentType = @"application/octet-stream";
+		size = [toUpload length];
+
+		if (maxSize && size > maxSize)
+			return NO;
+	}
+
+	/* From here the file is ours, and what the person will see is a picture in the conversation
+	 * rather than a transfer to watch. Saying so keeps the progress window shut. */
+	[fileTransfer setCarriedInConversation:YES];
 	[fileTransfer setStatus:In_Progress_FileTransfer];
 
-	[self requestSlotForFilename:[path lastPathComponent]
+	[self requestSlotForFilename:filename
 							size:size
 					 contentType:contentType
 					  completion:^(NSURL *putURL, NSDictionary *headers, NSURL *getURL) {
@@ -428,8 +484,10 @@ static NSString *AMInlineImageCachePath(NSString *address)
 			[self fallBackForFileTransfer:fileTransfer];
 			return;
 		}
-		[self uploadFileAtPath:path contentType:contentType toURL:putURL headers:headers
-				  announcingURL:getURL forFileTransfer:fileTransfer];
+
+		[self uploadFileAtPath:path encrypted:toUpload contentType:contentType
+						 toURL:putURL getURL:getURL ivAndKey:ivAndKey headers:headers
+				   answeringTo:nil forFileTransfer:fileTransfer mayTryTheHostWeTalkTo:YES];
 	}];
 
 	return YES;
@@ -437,16 +495,93 @@ static NSString *AMInlineImageCachePath(NSString *address)
 
 - (void)fallBackForFileTransfer:(ESFileTransfer *)fileTransfer
 {
-	AILog(@"%@: HTTP upload failed, falling back to the classic transfer", account);
+	AILog(@"%@: HTTP upload failed, falling back to the classic transfer, which the other side "
+		   @"may well not speak either", account);
+
+	//It is a transfer after all, so it belongs in the window again
+	[fileTransfer setCarriedInConversation:NO];
 	[account httpUploadFellBackForFileTransfer:fileTransfer];
 }
 
+/*!
+ * @brief The address a finished upload should be announced under
+ */
+static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
+{
+	NSString *address = [getURL absoluteString];
+	return ivAndKey ? AIOMEMOMediaMakeLink(address, ivAndKey) : address;
+}
+
+/*!
+ * @brief The same address, on the machine this account is actually talking to
+ *
+ * Some servers offer an upload service and then hand out addresses on a name that does not
+ * resolve to the machine running it. That is a mistake in the server's configuration and not
+ * something a client should paper over lightly, so this is used only after the address the
+ * server gave has already failed, and only once, and never without checking afterwards that
+ * the file really can be fetched from where we put it.
+ *
+ * @return nil when the name is already the right one, or when there is nothing to swap in
+ */
+- (NSURL *)sameAddressOnTheHostWeTalkTo:(NSURL *)original
+{
+	PurpleConnection *gc = purple_account_get_connection([account purpleAccount]);
+	JabberStream *js = gc ? (JabberStream *)purple_connection_get_protocol_data(gc) : NULL;
+
+	if (!js || !js->serverFQDN) return nil;
+
+	return AIMediaSameAddressOnHost(original, [NSString stringWithUTF8String:js->serverFQDN]);
+}
+
+/*!
+ * @brief Make sure a file really can be fetched from where it was put
+ *
+ * Only asked when the address had to be corrected, and asked before anybody is told about it.
+ * The alternative is sending somebody a link built on a guess, which they cannot open and
+ * cannot find out why.
+ */
+- (void)confirmFetchable:(NSURL *)getURL then:(void (^)(BOOL confirmed))then
+{
+	NSMutableURLRequest *head = [NSMutableURLRequest requestWithURL:getURL];
+	[head setHTTPMethod:@"HEAD"];
+
+	[[urlSession dataTaskWithRequest:head completionHandler:^(NSData *d, NSURLResponse *r, NSError *e) {
+		NSInteger code = [r isKindOfClass:[NSHTTPURLResponse class]] ? [(NSHTTPURLResponse *)r statusCode] : 0;
+		if (!e && code / 100 == 2) {
+			then(YES);
+			return;
+		}
+
+		/* Not every store answers HEAD. Asking for the first byte settles it either way and
+		 * costs nothing worth counting. */
+		NSMutableURLRequest *sip = [NSMutableURLRequest requestWithURL:getURL];
+		[sip setValue:@"bytes=0-0" forHTTPHeaderField:@"Range"];
+
+		[[urlSession dataTaskWithRequest:sip completionHandler:^(NSData *d2, NSURLResponse *r2, NSError *e2) {
+			NSInteger second = [r2 isKindOfClass:[NSHTTPURLResponse class]] ? [(NSHTTPURLResponse *)r2 statusCode] : 0;
+			then(!e2 && second / 100 == 2);
+		}] resume];
+	}] resume];
+}
+
+/*!
+ * @brief Put the file on the server and, if that worked, say where it is
+ *
+ * @param path The file as it sits on this machine, which is what our own side shows
+ * @param encrypted What actually goes up, when the conversation is encrypted; nil otherwise
+ * @param mayTryTheHostWeTalkTo Whether a failure may be retried against the machine this
+ *        account is connected to, for servers that hand out an address nobody can reach
+ */
 - (void)uploadFileAtPath:(NSString *)path
+			   encrypted:(NSData *)encrypted
 			 contentType:(NSString *)contentType
 				   toURL:(NSURL *)putURL
+				  getURL:(NSURL *)getURL
+				ivAndKey:(NSData *)ivAndKey
 				 headers:(NSDictionary *)headers
-		   announcingURL:(NSURL *)getURL
+			  answeringTo:(NSString *)answeringTo
 		 forFileTransfer:(ESFileTransfer *)fileTransfer
+   mayTryTheHostWeTalkTo:(BOOL)mayTryTheHostWeTalkTo
 {
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:putURL];
 
@@ -455,21 +590,97 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	for (NSString *name in headers)
 		[request setValue:[headers objectForKey:name] forHTTPHeaderField:name];
 
-	NSURLSessionUploadTask *task =
-		[urlSession uploadTaskWithRequest:request
-								 fromFile:[NSURL fileURLWithPath:path]
-						completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-		BOOL uploaded = (!error &&
-						 [response isKindOfClass:[NSHTTPURLResponse class]] &&
-						 ([(NSHTTPURLResponse *)response statusCode] / 100) == 2);
+	/* When the connection had to be pointed at a different machine, the request still says it
+	 * is for the name the server itself used. A server that keeps its reservations per domain,
+	 * which is the usual arrangement, would otherwise look for this one under a name it has
+	 * never issued anything under. The encrypted connection is still made and checked against
+	 * the machine we are really talking to, so nothing is loosened by this. */
+	if ([answeringTo length])
+		[request setValue:answeringTo forHTTPHeaderField:@"Host"];
 
-		dispatch_async(dispatch_get_main_queue(), ^{
-			if (uploaded)
-				[self announceFileAtPath:path address:[getURL absoluteString] forFileTransfer:fileTransfer];
+	/* One block, and it has to answer three different situations: the address the server gave
+	 * worked, it did not and may be worth correcting, or this WAS the corrected one and now has
+	 * to prove itself before anybody is told about it. */
+	void (^finished)(NSData *, NSURLResponse *, NSError *) =
+		^(NSData *data, NSURLResponse *response, NSError *error) {
+		NSInteger code = [response isKindOfClass:[NSHTTPURLResponse class]]
+			? [(NSHTTPURLResponse *)response statusCode] : 0;
+
+		if (error || code / 100 != 2) {
+			/* Said in full, because when this fails the reason is almost never in Adium. A
+			 * server that offers an upload service and then hands out addresses nobody outside
+			 * can reach looks, from in here, exactly like an upload that did not work. Naming
+			 * the address turns a mystery into a line somebody can act on. */
+			NSString *said = [data length]
+				? [[[NSString alloc] initWithData:[data subdataWithRange:
+					NSMakeRange(0, MIN((NSUInteger)200, [data length]))]
+										 encoding:NSUTF8StringEncoding] autorelease]
+				: nil;
+
+			AILog(@"%@: PUT to %@ failed: %@ (status %ld)%@%@", account, putURL,
+				  error ? [error localizedDescription] : @"no error reported", (long)code,
+				  said ? @", server said: " : @"", said ?: @"");
+
+			NSURL *elsewhere = mayTryTheHostWeTalkTo ? [self sameAddressOnTheHostWeTalkTo:putURL] : nil;
+			if (!elsewhere) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self fallBackForFileTransfer:fileTransfer];
+				});
+				return;
+			}
+
+			AILog(@"%@: that address could not be reached; trying the same path on %@, which is "
+				   @"the machine this account is connected to", account, [elsewhere host]);
+
+			[self uploadFileAtPath:path encrypted:encrypted contentType:contentType
+							 toURL:elsewhere
+							getURL:([self sameAddressOnTheHostWeTalkTo:getURL] ?: getURL)
+						  ivAndKey:ivAndKey headers:headers
+					   answeringTo:[putURL host] forFileTransfer:fileTransfer
+			 mayTryTheHostWeTalkTo:NO];
+			return;
+		}
+
+		//The server's own address worked, which is the ordinary case and needs no second opinion
+		if (mayTryTheHostWeTalkTo) {
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[self announceFileAtPath:path
+								 address:AMAddressForUpload(getURL, ivAndKey)
+						 forFileTransfer:fileTransfer];
+			});
+			return;
+		}
+
+		/* This was the corrected address, so it is never announced on the strength of the upload
+		 * alone. The file has to be fetchable from it first, or the person at the other end gets
+		 * a link built on a guess, which they cannot open and cannot find out why. */
+		[self confirmFetchable:getURL then:^(BOOL confirmed) {
+			if (confirmed)
+				AILog(@"%@: the corrected address works, sending that one", account);
 			else
-				[self fallBackForFileTransfer:fileTransfer];
-		});
-	}];
+				AILog(@"%@: the file went up but cannot be fetched from %@, so it is not being "
+					   @"sent. The server's upload service is reachable under a name it does not "
+					   @"serve itself, which no client can work around: the address it hands out "
+					   @"goes nowhere, and the one that answers is refused because the name does "
+					   @"not match. Only its operator can settle that, by pointing the service's "
+					   @"published address at the machine it runs on, or by letting that machine's "
+					   @"name count as the same domain", account, getURL);
+
+			dispatch_async(dispatch_get_main_queue(), ^{
+				if (confirmed)
+					[self announceFileAtPath:path
+									 address:AMAddressForUpload(getURL, ivAndKey)
+							 forFileTransfer:fileTransfer];
+				else
+					[self fallBackForFileTransfer:fileTransfer];
+			});
+		}];
+	};
+
+	NSURLSessionUploadTask *task = encrypted
+		? [urlSession uploadTaskWithRequest:request fromData:encrypted completionHandler:finished]
+		: [urlSession uploadTaskWithRequest:request fromFile:[NSURL fileURLWithPath:path]
+						  completionHandler:finished];
 
 	[task resume];
 }
@@ -482,6 +693,51 @@ static NSString *AMInlineImageCachePath(NSString *address)
  * of the conversation gets the picture too, from the local file, through the same
  * road an incoming image link takes.
  */
+/*!
+ * @brief Addresses we have just uploaded and are about to send as a message
+ *
+ * A message whose whole content is an address is a file, and XEP-0066 is how that is said. It
+ * matters more than it looks: Conversations, and the clients that follow it, will not fetch an
+ * ordinary https address unless the message also carries this element, so without it a picture
+ * sent from here arrives at the other end as a line of text.
+ *
+ * Not needed, and deliberately not sent, for an encrypted address: there the scheme already
+ * says what it is, and repeating the address outside the encrypted part would hand the server
+ * the very thing the encryption was for.
+ */
+static NSMutableSet *addressesAwaitingTheirHint = nil;
+
+/*!
+ * @brief Add the element to a message that carries nothing but such an address
+ */
+static gboolean AMAddOutOfBandHint(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet || ![addressesAwaitingTheirHint count]) return FALSE;
+
+	xmlnode *stanza = *packet;
+	if (!purple_strequal(stanza->name, "message")) return FALSE;
+	if (xmlnode_get_child_with_namespace(stanza, "x", "jabber:x:oob")) return FALSE;
+
+	xmlnode *body = xmlnode_get_child(stanza, "body");
+	if (!body) return FALSE;
+
+	char *text = xmlnode_get_data(body);
+	if (!text) return FALSE;
+
+	NSString *said = [[NSString stringWithUTF8String:text]
+					  stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	g_free(text);
+
+	if (![addressesAwaitingTheirHint containsObject:said]) return FALSE;
+	[addressesAwaitingTheirHint removeObject:said];
+
+	xmlnode *out = xmlnode_new_child(stanza, "x");
+	xmlnode_set_namespace(out, "jabber:x:oob");
+	xmlnode_insert_data(xmlnode_new_child(out, "url"), [said UTF8String], -1);
+
+	return FALSE;		//Amended, not swallowed
+}
+
 - (void)announceFileAtPath:(NSString *)path address:(NSString *)address forFileTransfer:(ESFileTransfer *)fileTransfer
 {
 	[fileTransfer setPercentDone:1.0 bytesSent:[fileTransfer size]];
@@ -491,14 +747,19 @@ static NSString *AMInlineImageCachePath(NSString *address)
 	if (!chat)
 		return;
 
+	if (![[address lowercaseString] hasPrefix:@"aesgcm://"])
+		[addressesAwaitingTheirHint addObject:address];
+
 	AIContentMessage *message = [AIContentMessage messageInChat:chat
 													 withSource:account
 													destination:[fileTransfer contact]
 														   date:nil
 														message:[NSAttributedString stringWithString:address]
 													  autoreply:NO];
-	[adium.contentController sendContentObject:message];
 
+	/* Our own copy goes into the same place the receiving side keeps what it fetches, so the
+	 * picture we just sent is shown from the file we already have rather than downloaded back
+	 * from the server. */
 	NSString *cachePath = AMInlineImageCachePath(address);
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 
@@ -510,14 +771,14 @@ static NSString *AMInlineImageCachePath(NSString *address)
 		[fileManager copyItemAtPath:path toPath:cachePath error:NULL];
 	}
 
-	if ([message.messageId length] && [fileManager fileExistsAtPath:cachePath]) {
+	/* Put on the message BEFORE it is sent, which is what makes this work at all. Sending runs
+	 * the message through the filters and only then draws it, so anything announced beforehand
+	 * is announced about a message that is not on the page yet and finds nothing. Set here, the
+	 * drawing picks it up by itself when the moment comes. */
+	if ([fileManager fileExistsAtPath:cachePath])
 		message.inlineImagePath = cachePath;
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageImageResolved"
-															object:chat
-														  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-																	message.messageId, @"MessageId",
-																	cachePath, @"Path", nil]];
-	}
+
+	[adium.contentController sendContentObject:message];
 }
 
 @end

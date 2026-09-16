@@ -5,6 +5,13 @@ HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "$(SRCROOT)/Frameworks/libintl.framewo
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4 = "$(SRCROOT)/Frameworks/libgstreamer.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_5 = "$(SDKROOT)/usr/include/libxml2"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread = "$(SRCROOT)/Frameworks/libgthread.framework/Headers"
+// picomemo carries the cryptography of OMEMO. Fetched and built by Dependencies/picomemo/fetch-picomemo.sh,
+// pinned to one commit, so the headers live where that script puts them rather than in the tree.
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_picomemo = "$(SRCROOT)/Dependencies/picomemo/picomemo/gen"
+// OpenSSL's own headers, for the AES-GCM that encrypted file sharing (XEP-0454) needs. The
+// library itself already ships in Frameworks and came from here; only the headers were missing.
+// Both Homebrew layouts are listed and a path that does not exist is simply ignored.
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "/opt/homebrew/opt/openssl@3/include" "/usr/local/opt/openssl@3/include"
 LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SDKROOT)/usr/lib"
 PRODUCT_NAME = AdiumLibpurple
 SKIP_INSTALL = YES
@@ -16,12 +23,14 @@ DYLIB_CURRENT_VERSION = 1
 // and gio all read the table in libintl.framework. Linking libintl8 here set the encoding in a table
 // nobody consulted, so libpurple fell back to the locale charset and transliterated its German down
 // to ASCII: "Ubertragung der Datei" instead of "Übertragung der Datei".
-OTHER_LDFLAGS = -lsasl2 "$(SRCROOT)/Frameworks/libintl.framework/Versions/8/libintl"
+// libpicomemo.a is the cryptography of OMEMO, linked in statically; it calls the OpenSSL this
+// application already ships for Telegram, which is why libcrypto appears here as well.
+OTHER_LDFLAGS = -lsasl2 "$(SRCROOT)/Frameworks/libintl.framework/Versions/8/libintl" "$(SRCROOT)/Dependencies/picomemo/picomemo/o/libpicomemo.a" "$(SRCROOT)/Frameworks/libcrypto.3.dylib"
 INFOPLIST_FILE = Plists/AdiumLibpurple/Info.plist
 DYLIB_COMPATIBILITY_VERSION = 1
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
-HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_5) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread)
+HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_5) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_picomemo) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl)
 INSTALL_PATH = @executable_path/../Frameworks
 FRAMEWORK_VERSION = A
 GCC_PREPROCESSOR_DEFINITIONS = $(value) ENABLE_NLS HAVE_CDSA
-MACOSX_DEPLOYMENT_TARGET = 11.0
+MACOSX_DEPLOYMENT_TARGET = 12.0

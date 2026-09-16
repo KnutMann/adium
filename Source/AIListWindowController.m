@@ -401,9 +401,6 @@ NSInteger levelForAIWindowLevel(AIWindowLevel windowLevel)
 			}
 		}
 		
-		//Show the resize indicator if either or both of the autoresizing options is NO
-		[[self window] setShowsResizeIndicator:!(autoResizeVertically && autoResizeHorizontally)];
-		
 		/*
 		 Reset the minimum and maximum sizes in case [contactListController contactListDesiredSizeChanged]; doesn't cause a sizing change
 		 (and therefore the min and max sizes aren't set there).

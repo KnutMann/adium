@@ -55,6 +55,8 @@
 		11700A350F7E8BE80078D6AB /* AISpecialPasswordPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 11700A340F7E8BE80078D6AB /* AISpecialPasswordPromptController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		11700A440F7E8CB60078D6AB /* AISpecialPasswordPrompt.xib in Resources */ = {isa = PBXBuildFile; fileRef = 11700A430F7E8CB60078D6AB /* AISpecialPasswordPrompt.xib */; };
 		1172FBD10CDAA8D400B8E233 /* libpurple.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1172FBC90CDAA8D400B8E233 /* libpurple.framework */; };
+		A11B0005E5F0000000000002 /* WebRTC.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0005E5F0000000000001 /* WebRTC.xcframework */; };
+		A11B0005E5F0000000000003 /* WebRTC.xcframework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0005E5F0000000000001 /* WebRTC.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		117866DE0EC759B9003E9B97 /* FTProgressResend_Selected.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866D80EC759B9003E9B97 /* FTProgressResend_Selected.tif */; };
 		117866DF0EC759B9003E9B97 /* FTProgressResend.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866D90EC759B9003E9B97 /* FTProgressResend.tif */; };
 		117866E00EC759B9003E9B97 /* FTProgressResendPressed_Selected.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866DA0EC759B9003E9B97 /* FTProgressResendPressed_Selected.tif */; };
@@ -242,6 +244,32 @@
 		346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */; };
 		346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */ = {isa = PBXBuildFile; fileRef = 346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */; };
 		346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */ = {isa = PBXBuildFile; fileRef = 346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */; };
+		A11B000CE5F0000000000002 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B000CE5F0000000000001 /* CoreImage.framework */; };
+		A11B000CE5F0000000000004 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B000CE5F0000000000003 /* QuartzCore.framework */; };
+		A11B000BE5F0000000000001 /* AIJingleVideoView.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B000BE5F0000000000003 /* AIJingleVideoView.h */; };
+		A11B000BE5F0000000000002 /* AIJingleVideoView.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B000BE5F0000000000004 /* AIJingleVideoView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B000AE5F0000000000001 /* AIJingleCallDiagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B000AE5F0000000000003 /* AIJingleCallDiagnostics.h */; };
+		A11B000AE5F0000000000002 /* AIJingleCallDiagnostics.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B000AE5F0000000000004 /* AIJingleCallDiagnostics.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B000AE5F0000000000006 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B000AE5F0000000000005 /* Network.framework */; };
+		A11B0009E5F0000000000001 /* AMPurpleJabberExternalServices.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0009E5F0000000000003 /* AMPurpleJabberExternalServices.h */; };
+		A11B0009E5F0000000000002 /* AMPurpleJabberExternalServices.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0009E5F0000000000004 /* AMPurpleJabberExternalServices.m */; };
+		A11B0008E5F0000000000001 /* AIJingleCallWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000003 /* AIJingleCallWindowController.h */; };
+		A11B0008E5F0000000000002 /* AIJingleCallWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000004 /* AIJingleCallWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0008E5F0000000000005 /* AIJingleCallUI.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000007 /* AIJingleCallUI.h */; };
+		A11B0008E5F0000000000006 /* AIJingleCallUI.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000008 /* AIJingleCallUI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0008E5F000000000000A /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000009 /* AVFoundation.framework */; };
+ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0008E5F0000000000009 /* AVFoundation.framework */; };
+		A11B0008E5F000000000000C /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0008E5F000000000000B /* CoreMedia.framework */; };
+		A11B0006E5F0000000000001 /* AIJingleCallController.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0006E5F0000000000003 /* AIJingleCallController.h */; };
+		A11B0006E5F0000000000002 /* AIJingleCallController.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0006E5F0000000000004 /* AIJingleCallController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0006E5F0000000000005 /* AIJingleCallManager.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0006E5F0000000000007 /* AIJingleCallManager.h */; };
+		A11B0006E5F0000000000006 /* AIJingleCallManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0006E5F0000000000008 /* AIJingleCallManager.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0004E5F0000000000001 /* adiumPurpleJingle.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000003 /* adiumPurpleJingle.h */; };
+		A11B0004E5F0000000000002 /* adiumPurpleJingle.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000004 /* adiumPurpleJingle.m */; };
+		A11B0004E5F0000000000005 /* AIJingleSessionMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000007 /* AIJingleSessionMachine.h */; };
+		A11B0004E5F0000000000006 /* AIJingleSessionMachine.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0004E5F0000000000008 /* AIJingleSessionMachine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0003E5F0000000000001 /* AIJingleEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0003E5F0000000000003 /* AIJingleEngine.h */; };
+		A11B0003E5F0000000000002 /* AIJingleEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0003E5F0000000000004 /* AIJingleEngine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B0002E5F0000000000001 /* AMPurpleJabberHTTPFileUpload.h in Headers */ = {isa = PBXBuildFile; fileRef = A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */; };
 		A11B0002E5F0000000000002 /* AMPurpleJabberHTTPFileUpload.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0002E5F0000000000004 /* AMPurpleJabberHTTPFileUpload.m */; };
 		346935D60BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346935D40BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -312,7 +340,22 @@
 		ADD1E5C0DE0000000000CA01 /* adiumPurpleCarbons.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CA03 /* adiumPurpleCarbons.m */; };
 		ADD1E5C0DE0000000000F111 /* adiumPurpleWhatsApp.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */; };
 		ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000FC00 /* adiumPurpleOMEMO.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FC02 /* adiumPurpleOMEMO.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000FC01 /* adiumPurpleOMEMO.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000FE00 /* AIOMEMOMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000FE01 /* AIOMEMOMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FE03 /* AIOMEMOMessage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000FF00 /* AIOMEMOController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FF02 /* AIOMEMOController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000FF01 /* AIOMEMOController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FF03 /* AIOMEMOController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000F900 /* AMPurpleJabberSend.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000F902 /* AMPurpleJabberSend.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000F901 /* AMPurpleJabberSend.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000F903 /* AMPurpleJabberSend.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000F800 /* AIOMEMOMedia.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000F802 /* AIOMEMOMedia.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000F801 /* AIOMEMOMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000F803 /* AIOMEMOMedia.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000FD00 /* AIOMEMOStore.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FD02 /* AIOMEMOStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE00000000FA01 /* AIOMEMOStanza.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FA03 /* AIOMEMOStanza.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000FD01 /* AIOMEMOStore.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */; };
+		ADD1E5C0DE0000000000FB01 /* adiumPurpleFallback.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */; };
 		ADD1E5C0DE0000000000CC00 /* adiumPurpleBookmarks.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CC01 /* adiumPurpleBookmarks.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */; };
 		3485DB2F09EBCE6500232CC4 /* adiumPurpleSignals.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BBE1B907A2F4C500663CC9 /* adiumPurpleSignals.m */; };
@@ -448,6 +491,7 @@
 		34BD9D54053146CC000AB133 /* AIAdium.m in Sources */ = {isa = PBXBuildFile; fileRef = F59DB3D7033EA9CD01A8010A /* AIAdium.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BD9D56053146CC000AB133 /* LNAboutBoxController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3DA2E3E052E65DE00A8010B /* LNAboutBoxController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BD9D5A053146CC000AB133 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F531836F019E40BB01A80165 /* Carbon.framework */; };
+		A11B0007E5F0000000000002 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11B0007E5F0000000000001 /* CoreVideo.framework */; };
 		34BFD7FD07E6A50C00AD984D /* msg-insert-script.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34BFD7FC07E6A50C00AD984D /* msg-insert-script.tiff */; };
 		34BFD80007E6A51D00AD984D /* GBApplescriptFiltersPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFD7FE07E6A51D00AD984D /* GBApplescriptFiltersPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BFDF1807E8977D00AD984D /* SoundHigh.png in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1607E8977D00AD984D /* SoundHigh.png */; };
@@ -486,7 +530,7 @@
 		34BFDF2107E8978900AD984D /* TabDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34BFDF1F07E8978900AD984D /* TabDefaults.plist */; };
 		34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE20007E8E11500AD984D /* AIChatCyclingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		A11B0001E5F0000000000001 /* AIInlineImageLinkPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0001E5F0000000000002 /* AIInlineImageLinkPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		A11B0001E5F0000000000001 /* AIInlineMediaLinkPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0001E5F0000000000002 /* AIInlineMediaLinkPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */; };
@@ -1267,6 +1311,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				A11B0005E5F0000000000003 /* WebRTC.xcframework in Copy Frameworks */,
 				118A44540FEEA82E008153C0 /* libjson-glib.framework in Copy Frameworks */,
 				639DF9D80F97E678003C9A32 /* AdiumLibpurple.framework in Copy Frameworks */,
 				11EE1CD00CDD01120097F246 /* libgmodule.framework in Copy Frameworks */,
@@ -1463,6 +1508,7 @@
 		1172FBC60CDAA8D400B8E233 /* libgthread.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libgthread.framework; path = Frameworks/libgthread.framework; sourceTree = "<group>"; };
 		1172FBC70CDAA8D400B8E233 /* libintl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libintl.framework; path = Frameworks/libintl.framework; sourceTree = "<group>"; };
 		1172FBC90CDAA8D400B8E233 /* libpurple.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libpurple.framework; path = Frameworks/libpurple.framework; sourceTree = "<group>"; };
+		A11B0005E5F0000000000001 /* WebRTC.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = WebRTC.xcframework; path = Dependencies/webrtc/WebRTC.xcframework; sourceTree = "<group>"; };
 		117866D80EC759B9003E9B97 /* FTProgressResend_Selected.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FTProgressResend_Selected.tif; path = Resources/FTProgressResend_Selected.tif; sourceTree = "<group>"; };
 		117866D90EC759B9003E9B97 /* FTProgressResend.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FTProgressResend.tif; path = Resources/FTProgressResend.tif; sourceTree = "<group>"; };
 		117866DA0EC759B9003E9B97 /* FTProgressResendPressed_Selected.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FTProgressResendPressed_Selected.tif; path = Resources/FTProgressResendPressed_Selected.tif; sourceTree = "<group>"; };
@@ -1910,6 +1956,31 @@
 		346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocCommand.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocCommand.m"; sourceTree = "<group>"; };
 		346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberAdHocPing.h; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.h"; sourceTree = "<group>"; };
 		346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberAdHocPing.m; path = "Plugins/Purple Service/AMPurpleJabberAdHocPing.m"; sourceTree = "<group>"; };
+		A11B000CE5F0000000000001 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = /System/Library/Frameworks/CoreImage.framework; sourceTree = "<absolute>"; };
+		A11B000CE5F0000000000003 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
+		A11B000BE5F0000000000003 /* AIJingleVideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleVideoView.h; path = "Plugins/Purple Service/AIJingleVideoView.h"; sourceTree = "<group>"; };
+		A11B000BE5F0000000000004 /* AIJingleVideoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleVideoView.m; path = "Plugins/Purple Service/AIJingleVideoView.m"; sourceTree = "<group>"; };
+		A11B000AE5F0000000000003 /* AIJingleCallDiagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleCallDiagnostics.h; path = "Plugins/Purple Service/AIJingleCallDiagnostics.h"; sourceTree = "<group>"; };
+		A11B000AE5F0000000000004 /* AIJingleCallDiagnostics.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleCallDiagnostics.m; path = "Plugins/Purple Service/AIJingleCallDiagnostics.m"; sourceTree = "<group>"; };
+		A11B000AE5F0000000000005 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = /System/Library/Frameworks/Network.framework; sourceTree = "<absolute>"; };
+		A11B0009E5F0000000000003 /* AMPurpleJabberExternalServices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberExternalServices.h; path = "Plugins/Purple Service/AMPurpleJabberExternalServices.h"; sourceTree = "<group>"; };
+		A11B0009E5F0000000000004 /* AMPurpleJabberExternalServices.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberExternalServices.m; path = "Plugins/Purple Service/AMPurpleJabberExternalServices.m"; sourceTree = "<group>"; };
+		A11B0008E5F0000000000003 /* AIJingleCallWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleCallWindowController.h; path = "Plugins/Purple Service/AIJingleCallWindowController.h"; sourceTree = "<group>"; };
+		A11B0008E5F0000000000004 /* AIJingleCallWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleCallWindowController.m; path = "Plugins/Purple Service/AIJingleCallWindowController.m"; sourceTree = "<group>"; };
+		A11B0008E5F0000000000007 /* AIJingleCallUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleCallUI.h; path = "Plugins/Purple Service/AIJingleCallUI.h"; sourceTree = "<group>"; };
+		A11B0008E5F0000000000008 /* AIJingleCallUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleCallUI.m; path = "Plugins/Purple Service/AIJingleCallUI.m"; sourceTree = "<group>"; };
+		A11B0008E5F0000000000009 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = /System/Library/Frameworks/AVFoundation.framework; sourceTree = "<absolute>"; };
+		A11B0008E5F000000000000B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = /System/Library/Frameworks/CoreMedia.framework; sourceTree = "<absolute>"; };
+		A11B0006E5F0000000000003 /* AIJingleCallController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleCallController.h; path = "Plugins/Purple Service/AIJingleCallController.h"; sourceTree = "<group>"; };
+		A11B0006E5F0000000000004 /* AIJingleCallController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleCallController.m; path = "Plugins/Purple Service/AIJingleCallController.m"; sourceTree = "<group>"; };
+		A11B0006E5F0000000000007 /* AIJingleCallManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleCallManager.h; path = "Plugins/Purple Service/AIJingleCallManager.h"; sourceTree = "<group>"; };
+		A11B0006E5F0000000000008 /* AIJingleCallManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleCallManager.m; path = "Plugins/Purple Service/AIJingleCallManager.m"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000003 /* adiumPurpleJingle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleJingle.h; path = "Plugins/Purple Service/adiumPurpleJingle.h"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000004 /* adiumPurpleJingle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleJingle.m; path = "Plugins/Purple Service/adiumPurpleJingle.m"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000007 /* AIJingleSessionMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleSessionMachine.h; path = "Plugins/Purple Service/AIJingleSessionMachine.h"; sourceTree = "<group>"; };
+		A11B0004E5F0000000000008 /* AIJingleSessionMachine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleSessionMachine.m; path = "Plugins/Purple Service/AIJingleSessionMachine.m"; sourceTree = "<group>"; };
+		A11B0003E5F0000000000003 /* AIJingleEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIJingleEngine.h; path = "Plugins/Purple Service/AIJingleEngine.h"; sourceTree = "<group>"; };
+		A11B0003E5F0000000000004 /* AIJingleEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIJingleEngine.m; path = "Plugins/Purple Service/AIJingleEngine.m"; sourceTree = "<group>"; };
 		A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberHTTPFileUpload.h; path = "Plugins/Purple Service/AMPurpleJabberHTTPFileUpload.h"; sourceTree = "<group>"; };
 		A11B0002E5F0000000000004 /* AMPurpleJabberHTTPFileUpload.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberHTTPFileUpload.m; path = "Plugins/Purple Service/AMPurpleJabberHTTPFileUpload.m"; sourceTree = "<group>"; };
 		346935D30BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIFileTransferProgressOutlineView.h; path = Source/AIFileTransferProgressOutlineView.h; sourceTree = "<group>"; };
@@ -2208,7 +2279,23 @@
 		ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleWhatsApp.m; path = "Plugins/Purple Service/adiumPurpleWhatsApp.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000F113 /* adiumPurpleWhatsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleWhatsApp.h; path = "Plugins/Purple Service/adiumPurpleWhatsApp.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleCSI.h; path = "Plugins/Purple Service/adiumPurpleCSI.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FC02 /* adiumPurpleOMEMO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleOMEMO.h; path = "Plugins/Purple Service/adiumPurpleOMEMO.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleOMEMO.m; path = "Plugins/Purple Service/adiumPurpleOMEMO.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOMessage.h; path = "Plugins/Purple Service/AIOMEMOMessage.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FE03 /* AIOMEMOMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOMessage.m; path = "Plugins/Purple Service/AIOMEMOMessage.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FF02 /* AIOMEMOController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOController.h; path = "Plugins/Purple Service/AIOMEMOController.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FF03 /* AIOMEMOController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOController.m; path = "Plugins/Purple Service/AIOMEMOController.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FA02 /* AIOMEMOStanza.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOStanza.h; path = "Plugins/Purple Service/AIOMEMOStanza.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FA03 /* AIOMEMOStanza.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOStanza.m; path = "Plugins/Purple Service/AIOMEMOStanza.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000F902 /* AMPurpleJabberSend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AMPurpleJabberSend.h; path = "Plugins/Purple Service/AMPurpleJabberSend.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000F903 /* AMPurpleJabberSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AMPurpleJabberSend.m; path = "Plugins/Purple Service/AMPurpleJabberSend.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000F802 /* AIOMEMOMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOMedia.h; path = "Plugins/Purple Service/AIOMEMOMedia.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000F803 /* AIOMEMOMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOMedia.m; path = "Plugins/Purple Service/AIOMEMOMedia.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FD02 /* AIOMEMOStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOStore.h; path = "Plugins/Purple Service/AIOMEMOStore.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOStore.m; path = "Plugins/Purple Service/AIOMEMOStore.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleFallback.h; path = "Plugins/Purple Service/adiumPurpleFallback.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleCSI.m; path = "Plugins/Purple Service/adiumPurpleCSI.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleFallback.m; path = "Plugins/Purple Service/adiumPurpleFallback.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleBookmarks.h; path = "Plugins/Purple Service/adiumPurpleBookmarks.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleBookmarks.m; path = "Plugins/Purple Service/adiumPurpleBookmarks.m"; sourceTree = "<group>"; };
 		34BBE1B907A2F4C500663CC9 /* adiumPurpleSignals.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleSignals.m; path = "Plugins/Purple Service/adiumPurpleSignals.m"; sourceTree = "<group>"; };
@@ -2266,8 +2353,8 @@
 		34BFE20107E8E11500AD984D /* AIChatCyclingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIChatCyclingPlugin.h; path = Source/AIChatCyclingPlugin.h; sourceTree = SOURCE_ROOT; };
 		34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAutoLinkingPlugin.m; path = Source/AIAutoLinkingPlugin.m; sourceTree = "<group>"; };
 		34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAutoLinkingPlugin.h; path = Source/AIAutoLinkingPlugin.h; sourceTree = "<group>"; };
-		A11B0001E5F0000000000002 /* AIInlineImageLinkPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIInlineImageLinkPlugin.m; path = Source/AIInlineImageLinkPlugin.m; sourceTree = "<group>"; };
-		A11B0001E5F0000000000003 /* AIInlineImageLinkPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIInlineImageLinkPlugin.h; path = Source/AIInlineImageLinkPlugin.h; sourceTree = "<group>"; };
+		A11B0001E5F0000000000002 /* AIInlineMediaLinkPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIInlineMediaLinkPlugin.m; path = Source/AIInlineMediaLinkPlugin.m; sourceTree = "<group>"; };
+		A11B0001E5F0000000000003 /* AIInlineMediaLinkPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIInlineMediaLinkPlugin.h; path = Source/AIInlineMediaLinkPlugin.h; sourceTree = "<group>"; };
 		34BFE2D507E8E74400AD984D /* AIChatConsolidationPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIChatConsolidationPlugin.h; path = Source/AIChatConsolidationPlugin.h; sourceTree = SOURCE_ROOT; };
 		34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIChatConsolidationPlugin.m; path = Source/AIChatConsolidationPlugin.m; sourceTree = SOURCE_ROOT; };
 		34C14CD007A8B1AB003CC138 /* AIEmoticonPackPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewView.h; sourceTree = "<group>"; };
@@ -2942,6 +3029,7 @@
 		EEC461B4096D68580028632F /* OWSpellingPerContactPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = OWSpellingPerContactPlugin.m; path = Source/OWSpellingPerContactPlugin.m; sourceTree = "<group>"; };
 		EEC461B5096D68580028632F /* OWSpellingPerContactPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = OWSpellingPerContactPlugin.h; path = Source/OWSpellingPerContactPlugin.h; sourceTree = "<group>"; };
 		F531836F019E40BB01A80165 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		A11B0007E5F0000000000001 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		F55B413B03AB895501A8010A /* AIAccountListPreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountListPreferencesPlugin.h; path = Source/AIAccountListPreferencesPlugin.h; sourceTree = "<group>"; };
 		F55B413C03AB895501A8010A /* AIAccountListPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountListPreferencesPlugin.m; path = Source/AIAccountListPreferencesPlugin.m; sourceTree = "<group>"; };
 		F55B415C03AB8B5601A8010A /* AIContentController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContentController.h; path = Source/AIContentController.h; sourceTree = "<group>"; };
@@ -3016,6 +3104,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11B0005E5F0000000000002 /* WebRTC.xcframework in Frameworks */,
+				A11B0007E5F0000000000002 /* CoreVideo.framework in Frameworks */,
+				A11B000CE5F0000000000002 /* CoreImage.framework in Frameworks */,
+				A11B000CE5F0000000000004 /* QuartzCore.framework in Frameworks */,
+				A11B000AE5F0000000000006 /* Network.framework in Frameworks */,
+				A11B0008E5F000000000000A /* AVFoundation.framework in Frameworks */,
+				A11B0008E5F000000000000C /* CoreMedia.framework in Frameworks */,
 				4D4B483425F3F03B000CEF01 /* libglib-2.0.dylib in Frameworks */,
 				4D4B483625F3F04B000CEF01 /* libgobject-2.0.dylib in Frameworks */,
 				4D4B483A25F3F064000CEF01 /* libgmodule-2.0.dylib in Frameworks */,
@@ -3035,6 +3130,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */,
 				4D4B482F25F3EFC5000CEF01 /* libglib-2.0.dylib in Frameworks */,
 				4D4B485D25F3F87C000CEF01 /* libgmodule-2.0.dylib in Frameworks */,
 				4D4B485E25F3F87C000CEF01 /* libgobject-2.0.dylib in Frameworks */,
@@ -3154,6 +3250,12 @@
 				1172FBC60CDAA8D400B8E233 /* libgthread.framework */,
 				1172FBC70CDAA8D400B8E233 /* libintl.framework */,
 				1172FBC90CDAA8D400B8E233 /* libpurple.framework */,
+				A11B0005E5F0000000000001 /* WebRTC.xcframework */,
+				A11B0007E5F0000000000001 /* CoreVideo.framework */,
+				A11B000CE5F0000000000001 /* CoreImage.framework */,
+				A11B000CE5F0000000000003 /* QuartzCore.framework */,
+				A11B0008E5F0000000000009 /* AVFoundation.framework */,
+				A11B0008E5F000000000000B /* CoreMedia.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -3733,6 +3835,27 @@
 				346545B80C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m */,
 				346545C90C8F73000046ED68 /* AMPurpleJabberAdHocPing.h */,
 				346545CA0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m */,
+				A11B000BE5F0000000000003 /* AIJingleVideoView.h */,
+				A11B000BE5F0000000000004 /* AIJingleVideoView.m */,
+				A11B000AE5F0000000000003 /* AIJingleCallDiagnostics.h */,
+				A11B000AE5F0000000000004 /* AIJingleCallDiagnostics.m */,
+				A11B000AE5F0000000000005 /* Network.framework */,
+				A11B0009E5F0000000000003 /* AMPurpleJabberExternalServices.h */,
+				A11B0009E5F0000000000004 /* AMPurpleJabberExternalServices.m */,
+				A11B0008E5F0000000000003 /* AIJingleCallWindowController.h */,
+				A11B0008E5F0000000000004 /* AIJingleCallWindowController.m */,
+				A11B0008E5F0000000000007 /* AIJingleCallUI.h */,
+				A11B0008E5F0000000000008 /* AIJingleCallUI.m */,
+				A11B0006E5F0000000000003 /* AIJingleCallController.h */,
+				A11B0006E5F0000000000004 /* AIJingleCallController.m */,
+				A11B0006E5F0000000000007 /* AIJingleCallManager.h */,
+				A11B0006E5F0000000000008 /* AIJingleCallManager.m */,
+				A11B0004E5F0000000000003 /* adiumPurpleJingle.h */,
+				A11B0004E5F0000000000004 /* adiumPurpleJingle.m */,
+				A11B0004E5F0000000000007 /* AIJingleSessionMachine.h */,
+				A11B0004E5F0000000000008 /* AIJingleSessionMachine.m */,
+				A11B0003E5F0000000000003 /* AIJingleEngine.h */,
+				A11B0003E5F0000000000004 /* AIJingleEngine.m */,
 				A11B0002E5F0000000000003 /* AMPurpleJabberHTTPFileUpload.h */,
 				A11B0002E5F0000000000004 /* AMPurpleJabberHTTPFileUpload.m */,
 			);
@@ -4174,7 +4297,23 @@
 				ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */,
 				ADD1E5C0DE0000000000F113 /* adiumPurpleWhatsApp.h */,
 				ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */,
+				ADD1E5C0DE00000000FC02 /* adiumPurpleOMEMO.h */,
+				ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */,
+				ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */,
+				ADD1E5C0DE00000000FE03 /* AIOMEMOMessage.m */,
+				ADD1E5C0DE00000000FF02 /* AIOMEMOController.h */,
+				ADD1E5C0DE00000000FF03 /* AIOMEMOController.m */,
+				ADD1E5C0DE00000000FA02 /* AIOMEMOStanza.h */,
+				ADD1E5C0DE00000000FA03 /* AIOMEMOStanza.m */,
+				ADD1E5C0DE00000000F902 /* AMPurpleJabberSend.h */,
+				ADD1E5C0DE00000000F903 /* AMPurpleJabberSend.m */,
+				ADD1E5C0DE00000000F802 /* AIOMEMOMedia.h */,
+				ADD1E5C0DE00000000F803 /* AIOMEMOMedia.m */,
+				ADD1E5C0DE00000000FD02 /* AIOMEMOStore.h */,
+				ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */,
+				ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */,
 				ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */,
+				ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */,
 				ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */,
 				ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */,
 				811036230CDE8C2100EC6038 /* adiumPurpleCertificateTrustWarning.h */,
@@ -5075,8 +5214,8 @@
 			children = (
 				34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */,
 				34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */,
-				A11B0001E5F0000000000003 /* AIInlineImageLinkPlugin.h */,
-				A11B0001E5F0000000000002 /* AIInlineImageLinkPlugin.m */,
+				A11B0001E5F0000000000003 /* AIInlineMediaLinkPlugin.h */,
+				A11B0001E5F0000000000002 /* AIInlineMediaLinkPlugin.m */,
 			);
 			name = "Auto Linking";
 			sourceTree = "<group>";
@@ -6183,6 +6322,13 @@
 				3485DB2E09EBCE6500232CC4 /* adiumPurpleSignals.h in Headers */,
 				ADD1E5C0DE0000000000CA00 /* adiumPurpleCarbons.h in Headers */,
 				ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */,
+				ADD1E5C0DE00000000FC00 /* adiumPurpleOMEMO.h in Headers */,
+				ADD1E5C0DE00000000FE00 /* AIOMEMOMessage.h in Headers */,
+				ADD1E5C0DE00000000FF00 /* AIOMEMOController.h in Headers */,
+				ADD1E5C0DE00000000F900 /* AMPurpleJabberSend.h in Headers */,
+				ADD1E5C0DE00000000F800 /* AIOMEMOMedia.h in Headers */,
+				ADD1E5C0DE00000000FD00 /* AIOMEMOStore.h in Headers */,
+				ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */,
 				ADD1E5C0DE0000000000CC00 /* adiumPurpleBookmarks.h in Headers */,
 				3485DB3709EBCE7400232CC4 /* PurpleService.h in Headers */,
 				3485DB3909EBCE7400232CC4 /* CBPurpleAccount.h in Headers */,
@@ -6224,6 +6370,16 @@
 				346545250C8F6AAD0046ED68 /* AMPurpleJabberNode.h in Headers */,
 				346545B90C8F71380046ED68 /* AMPurpleJabberAdHocCommand.h in Headers */,
 				346545CB0C8F73000046ED68 /* AMPurpleJabberAdHocPing.h in Headers */,
+				A11B000BE5F0000000000001 /* AIJingleVideoView.h in Headers */,
+				A11B000AE5F0000000000001 /* AIJingleCallDiagnostics.h in Headers */,
+				A11B0009E5F0000000000001 /* AMPurpleJabberExternalServices.h in Headers */,
+				A11B0008E5F0000000000001 /* AIJingleCallWindowController.h in Headers */,
+				A11B0008E5F0000000000005 /* AIJingleCallUI.h in Headers */,
+				A11B0006E5F0000000000001 /* AIJingleCallController.h in Headers */,
+				A11B0006E5F0000000000005 /* AIJingleCallManager.h in Headers */,
+				A11B0004E5F0000000000001 /* adiumPurpleJingle.h in Headers */,
+				A11B0004E5F0000000000005 /* AIJingleSessionMachine.h in Headers */,
+				A11B0003E5F0000000000001 /* AIJingleEngine.h in Headers */,
 				A11B0002E5F0000000000001 /* AMPurpleJabberHTTPFileUpload.h in Headers */,
 				811036180CDE8A2500EC6038 /* AIPurpleCertificateViewer.h in Headers */,
 				811036250CDE8C2100EC6038 /* adiumPurpleCertificateTrustWarning.h in Headers */,
@@ -7092,6 +7248,14 @@
 				ADD1E5C0DE0000000000CA01 /* adiumPurpleCarbons.m in Sources */,
 				ADD1E5C0DE0000000000F111 /* adiumPurpleWhatsApp.m in Sources */,
 				ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */,
+				ADD1E5C0DE00000000FC01 /* adiumPurpleOMEMO.m in Sources */,
+				ADD1E5C0DE00000000FE01 /* AIOMEMOMessage.m in Sources */,
+				ADD1E5C0DE00000000FF01 /* AIOMEMOController.m in Sources */,
+				ADD1E5C0DE00000000FA01 /* AIOMEMOStanza.m in Sources */,
+				ADD1E5C0DE00000000F901 /* AMPurpleJabberSend.m in Sources */,
+				ADD1E5C0DE00000000F801 /* AIOMEMOMedia.m in Sources */,
+				ADD1E5C0DE00000000FD01 /* AIOMEMOStore.m in Sources */,
+				ADD1E5C0DE0000000000FB01 /* adiumPurpleFallback.m in Sources */,
 				ADD1E5C0DE0000000000CC01 /* adiumPurpleBookmarks.m in Sources */,
 				3485DB3809EBCE7400232CC4 /* PurpleService.m in Sources */,
 				3485DB3A09EBCE7400232CC4 /* CBPurpleAccount.m in Sources */,
@@ -7140,6 +7304,16 @@
 				346545260C8F6AAD0046ED68 /* AMPurpleJabberNode.m in Sources */,
 				346545BA0C8F71380046ED68 /* AMPurpleJabberAdHocCommand.m in Sources */,
 				346545CC0C8F73000046ED68 /* AMPurpleJabberAdHocPing.m in Sources */,
+				A11B000BE5F0000000000002 /* AIJingleVideoView.m in Sources */,
+				A11B000AE5F0000000000002 /* AIJingleCallDiagnostics.m in Sources */,
+				A11B0009E5F0000000000002 /* AMPurpleJabberExternalServices.m in Sources */,
+				A11B0008E5F0000000000002 /* AIJingleCallWindowController.m in Sources */,
+				A11B0008E5F0000000000006 /* AIJingleCallUI.m in Sources */,
+				A11B0006E5F0000000000002 /* AIJingleCallController.m in Sources */,
+				A11B0006E5F0000000000006 /* AIJingleCallManager.m in Sources */,
+				A11B0004E5F0000000000002 /* adiumPurpleJingle.m in Sources */,
+				A11B0004E5F0000000000006 /* AIJingleSessionMachine.m in Sources */,
+				A11B0003E5F0000000000002 /* AIJingleEngine.m in Sources */,
 				A11B0002E5F0000000000002 /* AMPurpleJabberHTTPFileUpload.m in Sources */,
 				11EE1B500CDCFAF40097F246 /* ssl.c in Sources */,
 				811033510CDE170B00EC6038 /* ssl-cdsa.c in Sources */,
@@ -7281,7 +7455,7 @@
 				34BFD80007E6A51D00AD984D /* GBApplescriptFiltersPlugin.m in Sources */,
 				34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */,
 				34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */,
-				A11B0001E5F0000000000001 /* AIInlineImageLinkPlugin.m in Sources */,
+				A11B0001E5F0000000000001 /* AIInlineMediaLinkPlugin.m in Sources */,
 				34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */,
 				AE7A5D1000000000000000A3 /* AIAwayReminderPlugin.m in Sources */,
 				4BB9972B083D1A5F006ACD6F /* SMContactListShowBehaviorPlugin.m in Sources */,
@@ -8146,7 +8320,7 @@ HEADER_SEARCH_PATHS = "$(inherited)";
 					"$(PROJECT_DIR)",
 				);
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "\"$(CFLAGS)\"";
 				PRODUCT_NAME = "${TARGET_NAME}";
@@ -8193,7 +8367,7 @@ HEADER_SEARCH_PATHS = "$(inherited)";
 					"$(PROJECT_DIR)",
 				);
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 			};
@@ -8240,7 +8414,7 @@ HEADER_SEARCH_PATHS = "$(inherited)";
 					"$(PROJECT_DIR)",
 				);
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 			};

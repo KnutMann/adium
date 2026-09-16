@@ -24,7 +24,7 @@ typedef enum {
 	AISecureMessagingMenu_ShowDetails,
 	AISecureMessagingMenu_Verify,
 	AISecureMessagingMenu_Options,
-	AISecureMessagingMenu_ShowAbout
+	AISecureMessagingMenu_OMEMO				//the switch for OMEMO
 } AISecureMessagingMenuTag;
 
 @interface ESSecureMessagingPlugin : AIPlugin <AIChatObserver, NSMenuItemValidation> {

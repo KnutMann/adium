@@ -196,7 +196,6 @@
 			NSString			*message = [[[content message] attributedStringByConvertingAttachmentsToStrings] string];
 			AIListObject		*source = [content source];
 			BOOL				isOutgoing = [content isOutgoing];
-			BOOL				newParagraph = NO;
 			NSMutableString		*theMessage = [NSMutableString string];
 			
 			if (speakSender && !isOutgoing) {
@@ -207,21 +206,10 @@
 				
 				//Don't repeat the same sender string for messages twice in a row
 				if (!lastSenderString || ![senderString isEqualToString:lastSenderString]) {
-					NSMutableString		*senderStringToSpeak;
-					
-					//Track the sender string before modifications
+					//Track the sender string
 					lastSenderString = senderString;
 					
-					senderStringToSpeak = [senderString mutableCopy];
-					
-					//deemphasize all words after first in sender's name, approximating human name pronunciation better
-					[senderStringToSpeak replaceOccurrencesOfString:@" " 
-														 withString:@" [[emph -]] " 
-															options:NSCaseInsensitiveSearch
-															  range:NSMakeRange(0, [senderStringToSpeak length])];
-					//emphasize first word in sender's name
-					[theMessage appendFormat:@"[[emph +]] %@...",senderStringToSpeak];
-					newParagraph = YES;
+					[theMessage appendFormat:@"%@...",senderString];
 				}
 			}
 			
@@ -231,8 +219,6 @@
 					[theMessage appendFormat:@" %@...", [timeFormatter stringFromDate:[content date]]];
 				}];
 			}
-			
-			if (newParagraph) [theMessage appendFormat:@" [[pmod +1; pbas +1]]"];
 			
 			//Finally, append the actual message
 			[theMessage appendFormat:@" %@",message];

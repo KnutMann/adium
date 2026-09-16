@@ -23,6 +23,7 @@
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <Adium/AIListGroup.h>
+#import "AIInlineMediaLinkPlugin.h"
 
 @interface AdiumMessageEvents()
 - (NSString *)stringFromMessageAttributedString:(NSAttributedString *)attributedString;
@@ -425,7 +426,13 @@
 		}
 	}
 	
-	return [mutableMessage string];
+	/* A message that is nothing but the address of a file is a picture or a voice note in the
+	 * window, where the thing itself is shown. Here the words are all there is, and an address
+	 * with a key on the end of it tells the person nothing at all. */
+	NSString *plain = [mutableMessage string];
+	NSString *instead = AIMediaNameForMessageText(plain);
+
+	return instead ?: plain;
 }
 
 - (NSImage *)imageForEventID:(NSString *)eventID

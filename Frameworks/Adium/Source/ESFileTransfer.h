@@ -72,6 +72,18 @@
 
 @property (readwrite, nonatomic, retain) id accountData;
 
+/*!
+ * @brief Is this transfer something the person should be told about separately?
+ *
+ * Set by an account that carries the file some other way and shows the result in the
+ * conversation instead: a picture uploaded to the account's own server and sent as a message is
+ * a file transfer only in the plumbing, and from where the person is sitting it is simply a
+ * picture they sent. Such a transfer opens no window, plays no sound and announces no
+ * completion; it still appears in the transfer list, which is a record of what went where and
+ * is worth keeping.
+ */
+@property (readwrite, nonatomic) BOOL carriedInConversation;
+
 @property (readwrite, nonatomic, assign) id <FileTransferDelegate> delegate;
 
 @property (readonly, nonatomic) BOOL isStopped;

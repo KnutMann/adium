@@ -30,12 +30,62 @@
 /* Adium OTR headers */
 #import "ESOTRFingerprintDetailsWindowController.h"
 #import <AIUtilities/AIBundleAdditions.h>
+#import <AdiumLibpurple/AIOMEMOController.h>
+#import <Adium/AIAccountControllerProtocol.h>
 
 //Metrics of the fingerprint list
 #define FINGERPRINT_ROW_HEIGHT				24.0f	//A nib row of 17pt is a line of type, not a list row
-#define FINGERPRINT_STATUS_COLUMN_WIDTH	   140.0f	//Enough for the longest of the five states
+#define FINGERPRINT_STATUS_COLUMN_WIDTH	   160.0f	//Enough for the longest state, and for the menu that offers three
+#define FINGERPRINT_METHOD_COLUMN_WIDTH		64.0f	//"OMEMO" and "OTR", and nothing longer is coming
 #define FINGERPRINT_COLUMN_GAP				 3.0f	//The gap the nib kept between the name and the status column
 #define INSET_STYLE_PADDING					10.0f	//Room NSTableViewStyleInset keeps above the first and below the last row, fallback only
+
+/*!
+ * @class AICenteredTextFieldCell
+ * @brief A text cell that sits in the middle of its row rather than against the top
+ *
+ * A row tall enough to hold a popup menu is taller than one line of text, and a plain
+ * NSTextFieldCell spends the difference below the line instead of around it. Beside a popup,
+ * which centres itself, that reads as the words having slipped upwards, and two columns set in
+ * different sizes slip by different amounts. Only the height is touched here: colour, font and
+ * alignment stay whatever the column asked for.
+ */
+@interface AICenteredTextFieldCell : NSTextFieldCell
+@end
+
+@implementation AICenteredTextFieldCell
+
+- (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
+{
+	CGFloat lineHeight = [self cellSizeForBounds:cellFrame].height;
+
+	if (lineHeight > 0.0f && lineHeight < NSHeight(cellFrame)) {
+		cellFrame.origin.y += floor((NSHeight(cellFrame) - lineHeight) / 2.0f);
+		cellFrame.size.height = lineHeight;
+	}
+
+	[super drawInteriorWithFrame:cellFrame inView:controlView];
+}
+
+@end
+
+/*! Give a column a centring cell, keeping how the one it had was set up */
+static void AICentreTheTextIn(NSTableColumn *column)
+{
+	NSCell					*old = [column dataCell];
+	AICenteredTextFieldCell	*centred = [[AICenteredTextFieldCell alloc] initTextCell:@""];
+
+	[centred setFont:[old font]];
+	[centred setAlignment:[old alignment]];
+	[centred setLineBreakMode:[old lineBreakMode]];
+	[centred setEditable:NO];
+	[centred setSelectable:NO];
+
+	if ([old isKindOfClass:[NSTextFieldCell class]])
+		[centred setTextColor:[(NSTextFieldCell *)old textColor]];
+
+	[column setDataCell:centred];
+}
 
 @interface ESOTRPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
@@ -72,6 +122,39 @@ static NSString *AIRowLabel(NSString *label)
 	}
 
 	return trimmed;
+}
+
+/*!
+ * @brief The three things that can have been decided about one OMEMO device
+ *
+ * In the order of AIOMEMOTrust, so that the menu's index and the stored value are the same
+ * number. Any other order would need a translation between them, which is one more place to
+ * get a trust decision wrong.
+ */
+static NSArray *AIOMEMOTrustTitles(void)
+{
+	static NSArray *titles = nil;
+	static dispatch_once_t once;
+
+	dispatch_once(&once, ^{
+		//Named through this class's bundle, since a function out here has no self to ask
+		NSBundle *ours = [NSBundle bundleForClass:[ESOTRPreferences class]];
+
+		titles = [NSArray arrayWithObjects:
+				  AILocalizedStringFromTableInBundle(@"Not yet decided", nil, ours, "An OMEMO device the user has not said anything about"),
+				  AILocalizedStringFromTableInBundle(@"Accepted", nil, ours, "An OMEMO device the user has accepted"),
+				  AILocalizedStringFromTableInBundle(@"Rejected", nil, ours, "An OMEMO device the user has turned down"),
+				  nil];
+	});
+	return titles;
+}
+
+/*!
+ * @brief A row about an OMEMO device rather than an OTR key
+ */
+static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
+{
+	return [[fingerprintDict objectForKey:@"Method"] isEqualToString:@"OMEMO"];
 }
 
 @implementation ESOTRPreferences
@@ -203,7 +286,7 @@ static NSString *AIRowLabel(NSString *label)
 	/* Over the list, not under it: an explanation belongs before the thing it explains, the way
 	 * System Settings puts one. It also has to stand where it is read when the list is empty -
 	 * which is exactly when a reader has no idea what a fingerprint is doing here. */
-	[form addInfoRow:AILocalizedString(@"A fingerprint identifies a contact's key. Adium remembers one for everybody you have exchanged encrypted messages with, so it can tell you if it ever changes.",
+	[form addInfoRow:AILocalizedString(@"A fingerprint identifies a key. Adium remembers one for everybody you have exchanged encrypted messages with, so it can tell you if it ever changes. OMEMO keeps one for each of a contact's devices, and you decide which of them to accept; OTR keeps one for the contact and is verified during a conversation.",
 									   "Paragraph over the list of known fingerprints in the Encryption preferences")
 		   withImage:[NSImage imageWithSystemSymbolName:@"person.badge.key" accessibilityDescription:nil]];
 
@@ -412,11 +495,39 @@ static NSString *AIRowLabel(NSString *label)
 	 * instead, which in a card as wide as this one is left the status floating in the middle. */
 	NSTableColumn	*statusColumn = [tableView_fingerprints tableColumnWithIdentifier:@"Status"];
 
+	AICentreTheTextIn([tableView_fingerprints tableColumnWithIdentifier:@"UID"]);
+	AICentreTheTextIn(statusColumn);
+
+	/* Which of the two this row is about, between the name and the state. Added here rather than
+	 * in the nib because everything else about this table is set up here, and because a column
+	 * that only earns its place once there are two methods is easier to read about in code than
+	 * in a file nobody opens. */
+	if (![tableView_fingerprints tableColumnWithIdentifier:@"Method"]) {
+		NSTableColumn *methodColumn = [[NSTableColumn alloc] initWithIdentifier:@"Method"];
+
+		AICentreTheTextIn(methodColumn);
+		[methodColumn setMinWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
+		[methodColumn setMaxWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
+		[methodColumn setWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
+		[[methodColumn dataCell] setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+		[[methodColumn dataCell] setTextColor:[NSColor secondaryLabelColor]];
+
+		//Between the name and the state, which is the order the eye reads them in
+		[tableView_fingerprints addTableColumn:methodColumn];
+		[tableView_fingerprints moveColumn:([tableView_fingerprints numberOfColumns] - 1)
+								  toColumn:1];
+	}
+
 	[tableView_fingerprints setColumnAutoresizingStyle:NSTableViewFirstColumnOnlyAutoresizingStyle];
 	[statusColumn setMinWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
 	[statusColumn setMaxWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
 	[statusColumn setWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
 	[[statusColumn dataCell] setAlignment:NSTextAlignmentRight];
+
+	/* The column has to be editable or a menu in it never opens, and that alone would make every
+	 * other row's text typeable over. Which rows may actually be edited is decided one at a time,
+	 * just below. */
+	[statusColumn setEditable:YES];
 
 	[scrollView_fingerprints setBorderType:NSNoBorder];
 	[scrollView_fingerprints setDrawsBackground:NO];
@@ -616,17 +727,43 @@ static NSString *AIRowLabel(NSString *label)
  *
  * Called by the OTR adapter when -otr informs us the fingerprint list changed
  */
+/*!
+ * @brief Everything OMEMO knows, as rows of the same list
+ *
+ * OTR and OMEMO answer the same question for the person reading this pane, which is whose keys
+ * are known and what has been decided about them, so they belong in one list rather than two.
+ * What differs is the shape of the answer: OTR has one key per contact and a yes or no about it,
+ * OMEMO has one per device and three states, which is why the row says which of the two it is.
+ */
+- (void)addOMEMODevicesToList
+{
+	for (AIAccount *account in adium.accountController.accounts) {
+		if (![AIOMEMOController isPossibleForAccount:account]) continue;
+
+		for (NSDictionary *device in [AIOMEMOController devicesKnownToAccount:account]) {
+			[fingerprintDictArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+				device[@"jid"],				@"UID",
+				@"OMEMO",					@"Method",
+				device[@"fingerprint"],		@"FingerprintString",
+				device[@"trust"],			@"OMEMOTrust",
+				device[@"device"],			@"OMEMODevice",
+				account,					@"AIAccount",
+				nil]];
+		}
+	}
+}
+
 - (void)updateFingerprintsList
 {
 	OtrlUserState   otrg_plugin_userstate = otrg_get_userstate();
 
-	if (viewIsOpen && otrg_plugin_userstate) {
+	if (viewIsOpen) {
 		ConnContext		*context;
 		Fingerprint		*fingerprint;
 
 		fingerprintDictArray = [[NSMutableArray alloc] init];
 
-		for (context = otrg_plugin_userstate->context_root; context != NULL;
+		for (context = (otrg_plugin_userstate ? otrg_plugin_userstate->context_root : NULL); context != NULL;
 			 context = context->next) {
 
 			/* Masters only. Version 3 keeps one context per device pair and a
@@ -702,6 +839,7 @@ static NSString *AIRowLabel(NSString *label)
 
 				fingerprintDict = [NSDictionary dictionaryWithObjectsAndKeys:
 					UID, @"UID",
+					@"OTR", @"Method",
 					state, @"Status",
 					fingerprintString, @"FingerprintString",
 					[NSValue valueWithPointer:fingerprint], @"FingerprintValue",
@@ -713,6 +851,8 @@ static NSString *AIRowLabel(NSString *label)
 				fingerprint = fingerprint->next;
 			}
 		}
+
+		[self addOMEMODevicesToList];
 
 		[tableView_fingerprints reloadData];
 
@@ -753,15 +893,35 @@ static NSString *AIRowLabel(NSString *label)
 
 				if (fingerprint) {
 					[button_generate setTitle:AILocalizedString(@"Regenerate", nil)];
-					fingerprintString = [NSString stringWithFormat:AILocalizedString(@"Fingerprint: %.80s",nil), fingerprint];
+					/* Named after its method, the way the OMEMO line below is: with two of them under
+					 * one account, a line that just says "Fingerprint" leaves the reader to guess
+					 * which one they are looking at. */
+					fingerprintString = [NSString stringWithFormat:
+										 AILocalizedString(@"OTR fingerprint: %.80s", "The account's own OTR fingerprint in the Encryption preferences"),
+										 fingerprint];
 				} else {
 					[button_generate setTitle:AILocalizedString(@"Generate", nil)];
-					fingerprintString = AILocalizedString(@"No private key present", "Message to show in the Encryption OTR preferences when an account is selected which does not have a private key");
+					fingerprintString = AILocalizedString(@"No OTR private key present", "Message to show in the Encryption preferences when an account is selected which does not have an OTR private key");
 				}
 			}
 		}
 
 		NSString	*description = (fingerprintString ? fingerprintString : @"");
+
+		/* And the account's own OMEMO fingerprint under it, if it has one. This is the line a
+		 * person reads out over the telephone while the other side compares it, so it belongs
+		 * where the account's own key already is rather than somewhere it has to be hunted for.
+		 * Only shown when it exists: an account that has never used OMEMO is not given an
+		 * identity merely because somebody opened this window. */
+		NSString	*omemoFingerprint = (account ? [AIOMEMOController ownFingerprintForAccount:account] : nil);
+
+		if ([omemoFingerprint length]) {
+			NSString *line = [NSString stringWithFormat:
+							  AILocalizedString(@"OMEMO fingerprint: %@", "The account's own OMEMO fingerprint in the Encryption preferences"),
+							  omemoFingerprint];
+
+			description = ([description length] ? [description stringByAppendingFormat:@"\n%@", line] : line);
+		}
 
 		/* The nib's field is not one of the form's rows - the fingerprint is a detail row, which is
 		 * the only kind of text the form folds again when the window is resized - but it is still
@@ -846,6 +1006,12 @@ static NSString *AIRowLabel(NSString *label)
 	NSInteger selectedRow = [tableView_fingerprints selectedRow];
 	if (selectedRow >= 0) {
 		NSDictionary *fingerprintDict = [fingerprintDictArray objectAtIndex:selectedRow];
+
+		/* Only OTR keeps a key it can be told to forget. An OMEMO device is remembered for as
+		 * long as it exists, and the decision about it is changed on the row itself, so there is
+		 * nothing here for one; the button is dimmed for those rows anyway. */
+		if (AIRowIsOMEMO(fingerprintDict)) return;
+
 		Fingerprint	*fingerprint = [[fingerprintDict objectForKey:@"FingerprintValue"] pointerValue];
 
 		otrg_ui_forget_fingerprint(fingerprint);
@@ -866,15 +1032,101 @@ static NSString *AIRowLabel(NSString *label)
 		NSDictionary	*fingerprintDict = [fingerprintDictArray objectAtIndex:rowIndex];
 
 		if ([identifier isEqualToString:@"UID"]) {
-			return [fingerprintDict objectForKey:@"UID"];
+			NSString *who = [fingerprintDict objectForKey:@"UID"];
+
+			/* One person can have several devices, and two rows carrying the same name and the
+			 * same decision are otherwise the same row twice as far as anybody can tell. The
+			 * start of the fingerprint tells them apart, and it is the part that gets compared
+			 * out loud first anyway. */
+			if (AIRowIsOMEMO(fingerprintDict)) {
+				NSString *print = [fingerprintDict objectForKey:@"FingerprintString"];
+
+				if ([print length] >= 8)
+					return [NSString stringWithFormat:@"%@  %@\u2026", who, [print substringToIndex:8]];
+			}
+
+			return who;
+
+		} else if ([identifier isEqualToString:@"Method"]) {
+			return [fingerprintDict objectForKey:@"Method"];
 
 		} else if ([identifier isEqualToString:@"Status"]) {
-			return [fingerprintDict objectForKey:@"Status"];
+			/* An OMEMO row answers with the chosen item of its menu, an OTR row with the words
+			 * describing a state it has no say over. */
+			if (AIRowIsOMEMO(fingerprintDict))
+				return [fingerprintDict objectForKey:@"OMEMOTrust"];
 
+			return [fingerprintDict objectForKey:@"Status"];
 		}
 	}
 
 	return @"";
+}
+
+/*!
+ * @brief A decision is something the person makes, so an OMEMO row offers one
+ *
+ * OTR's state is reported, not chosen: it says what the session is doing, and verifying happens
+ * through a dialogue of its own. OMEMO's is a standing decision about a device, which belongs on
+ * the row it is about rather than behind a button somewhere else.
+ */
+- (NSCell *)tableView:(NSTableView *)aTableView
+	dataCellForTableColumn:(NSTableColumn *)aTableColumn
+					   row:(NSInteger)rowIndex
+{
+	if (!aTableColumn || rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count])
+		return nil;
+
+	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return [aTableColumn dataCell];
+	if (!AIRowIsOMEMO([fingerprintDictArray objectAtIndex:rowIndex])) return [aTableColumn dataCell];
+
+	NSPopUpButtonCell *choice = [[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO];
+
+	[choice setControlSize:NSControlSizeSmall];
+	[choice setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+	[choice setBordered:NO];
+	[choice setArrowPosition:NSPopUpArrowAtBottom];
+	/* Against the trailing edge, where the state of every other row already is. Left as it comes,
+	 * the words start at the far side of the column while the OTR rows beside them end at it, and
+	 * one list reads as two. */
+	[choice setAlignment:NSTextAlignmentRight];
+	[choice addItemsWithTitles:AIOMEMOTrustTitles()];
+
+	return choice;
+}
+
+/*!
+ * @brief Only an OMEMO row offers a decision, so only one may be edited
+ *
+ * The column is editable for the menu's sake. Without this, an OTR row's state, which is
+ * reported rather than chosen, could be typed over with anything at all.
+ */
+- (BOOL)tableView:(NSTableView *)aTableView
+shouldEditTableColumn:(NSTableColumn *)aTableColumn
+			  row:(NSInteger)rowIndex
+{
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count]) return NO;
+	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return NO;
+
+	return AIRowIsOMEMO([fingerprintDictArray objectAtIndex:rowIndex]);
+}
+
+- (void)tableView:(NSTableView *)aTableView
+   setObjectValue:(id)object
+   forTableColumn:(NSTableColumn *)aTableColumn
+			  row:(NSInteger)rowIndex
+{
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count]) return;
+	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return;
+
+	NSDictionary *fingerprintDict = [fingerprintDictArray objectAtIndex:rowIndex];
+	if (!AIRowIsOMEMO(fingerprintDict)) return;
+
+	[AIOMEMOController setTrust:[object integerValue]
+				 forFingerprint:[fingerprintDict objectForKey:@"FingerprintString"]
+					  onAccount:[fingerprintDict objectForKey:@"AIAccount"]];
+
+	[self updateFingerprintsList];
 }
 
 - (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
@@ -884,9 +1136,13 @@ static NSString *AIRowLabel(NSString *label)
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification
 {
-	NSInteger selectedRow = [tableView_fingerprints selectedRow];
+	NSInteger	selectedRow = [tableView_fingerprints selectedRow];
+	BOOL		isOMEMO = (selectedRow >= 0 && selectedRow < (NSInteger)[fingerprintDictArray count] &&
+						   AIRowIsOMEMO([fingerprintDictArray objectAtIndex:selectedRow]));
+
 	[button_showFingerprint setEnabled:(selectedRow != -1)];
-	[button_forgetFingerprint setEnabled:(selectedRow != -1)];
+	//Forgetting is an OTR idea; an OMEMO device is decided about on its own row
+	[button_forgetFingerprint setEnabled:(selectedRow != -1 && !isOMEMO)];
 }
 
 

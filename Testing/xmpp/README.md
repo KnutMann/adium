@@ -21,6 +21,10 @@ not required, so both the TLS and the plaintext path can be exercised.
     ./server.sh reset      stop and delete all data, certificate included
     ./server.sh selftest   run the automated feature checks
     ./server.sh muc-reactions  group-chat reaction checks (XEP-0444 with XEP-0359)
+    ./server.sh omemo-pep      OMEMO announcement checks (XEP-0384)
+    ./server.sh roster         make the test accounts contacts of each other
+    ./server.sh trust          accept this server's certificate on this Mac
+    ./server.sh untrust        take that back
 
 Docker comes from colima on this machine; `colima start` brings the
 daemon up if `server.sh` complains that it cannot connect.
@@ -33,6 +37,32 @@ same id and emoji, and that an empty set takes it back. It also pins down the
 part that is easy to get wrong: a room relays only messages with a body, so the
 reaction must ship a fallback body (hidden by an XEP-0428 marker) or it never
 arrives.
+
+## Sending files from Adium
+
+Uploads go over HTTPS, and this server's certificate is its own. An unknown certificate is
+refused like any other, so the upload fails and Adium quietly falls back to the classic file
+transfer, which looks like a bug in the upload code and is not.
+
+    ./server.sh trust
+
+puts that one certificate, for the name `localhost`, into the login keychain. No administrator
+rights are involved and `./server.sh untrust` removes it again. Adium has to be restarted
+afterwards to notice.
+
+Run `./server.sh roster` as well. Two accounts that have never been introduced are strangers
+to each other, and a stranger's files are not fetched by themselves unless the person has said
+they should be: Adium's file transfer setting governs that, and its usual value is "only from
+people on my contact list". A picture sent between strangers therefore stays an address,
+silently and correctly, which looks exactly like a fault in the code that fetches pictures.
+
+With that done, configure both `adium@localhost` and `peer@localhost` in Adium and send a
+picture from one to the other. That exercises the whole of our own path in one go: the upload,
+the encryption if the conversation is encrypted, the address that carries the key, and the
+fetching, decrypting and playing at the far end.
+
+What it does not exercise is whether somebody else's client can read what we produced. For that
+the file has to be somewhere they can reach, which a server on this machine is not.
 
 ## Accounts
 

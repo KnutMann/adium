@@ -5,10 +5,11 @@ This is a fork of the original [Adium](https://adium.im)
 it for current macOS. It began as an Apple Silicon (arm64) port, as
 the original is an Intel-only binary from 2021. Since then much has
 changed: WhatsApp, Telegram, Signal and Microsoft Teams arrived
-next to the classic services that stood the test of time, along with
-full Dark Mode, replies straight from Notification Center banners,
-a rebuilt System Settings-style preferences window, a WKWebView
-message view, and a long list of fixes for how modern macOS behaves.
+next to the classic services that stood the test of time, encrypted
+voice and video calls over XMPP, full Dark Mode, replies straight from
+Notification Center banners, a rebuilt System Settings-style preferences
+window, a WKWebView message view, and a long list of fixes for how
+modern macOS behaves.
 
 **Adium was created and developed by the Adium team.** All credit for
 the application itself belongs to the original developers; see
@@ -72,8 +73,50 @@ Current version: **1.8.0**.
   and Meanwhile
 
 Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
-Novell GroupWise and SIMPLE**, plus OTR encryption and tabbed chats in
-a modern look.
+Novell GroupWise and SIMPLE**, plus OTR and OMEMO encryption and tabbed
+chats in a modern look.
+
+### End to end encryption over XMPP
+
+Conversations, Gajim, Dino and Monal encrypt with OMEMO, most of them by
+default, and until now a message from any of them arrived as the
+apology its sender attached for clients that cannot read one. Adium
+reads them now, and writes them.
+
+* **Encrypted one to one conversations** (XEP-0384, the widely spoken
+  namespace rather than the newer one)
+* **A padlock that closes only when the message really is encrypted**,
+  not when it has merely been asked for
+* **Every device the other person has**, shown in the encryption menu
+  with its fingerprint, each one to be accepted or turned down; ours is
+  at the top to be read out
+* **Rather fail than fall back**: a message that cannot be encrypted
+  waits, and then says so, instead of going out in the clear
+* **Says what it used** so a client that cannot read the message can
+  explain why (XEP-0380)
+
+* **Pictures and voice notes are encrypted too** (XEP-0454): what goes
+  up to the file server is bytes nobody there can read, and what arrives
+  is played or shown rather than left as an address
+
+Group chats are not encrypted yet.
+
+### Voice and video calls over XMPP
+
+Adium can place and take calls again, encrypted the way modern clients
+insist on. The signalling is Adium's own, written against the XEPs; the
+media runs through Google's WebRTC natively.
+
+* **Ringing before answering** (XEP-0353)
+* **Encrypted end to end with DTLS-SRTP** (XEP-0320)
+* **Finding a way through and agreeing what to send**, which is most of
+  what a call does before anyone hears anything (XEP-0166, XEP-0167,
+  XEP-0176, XEP-0293, XEP-0294, XEP-0338, XEP-0339)
+* **STUN and TURN from the account's own host** (XEP-0215)
+* **Microphone and camera can be switched off mid-call** (XEP-0167's mute
+  and unmute)
+* **Center Stage support** Camera follows person, where possible
+* **Check Call Readiness…** Check whether Adium can make or receive calls
 
 ### Dark Mode and interface
 
@@ -182,7 +225,7 @@ This is a work in progress; expect rough edges.
 
 ## System requirements
 
-* Apple Silicon Mac, macOS 11 or later
+* Apple Silicon Mac, macOS 12 or later
 * Everything is native arm64, including all bundled dependencies
   (libpurple, glib, libotr, ...): no Homebrew required to run
 * Xcode for building (there are no binary releases at this time)
@@ -220,17 +263,51 @@ The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
-All required libraries (libpurple, glib, libotr, libgcrypt, ...) are
-vendored as prebuilt arm64 frameworks in the repository. Rebuilding
+The one dependency that is fetched rather than vendored is Google's
+**WebRTC**, which carries the media of a call. `bootstrap.sh` and
+`install.sh` run `Dependencies/webrtc/fetch-webrtc.sh` before building;
+it downloads the official Chromium build repackaged by
+[stasel/WebRTC](https://github.com/stasel/WebRTC) (version 153.0.0,
+BSD 3-Clause) and checks it against a pinned SHA-256. It is not in the
+repository because it is a 200 MB binary framework.
+
+All other required libraries (libpurple, glib, libotr, libgcrypt, ...)
+are vendored as prebuilt arm64 frameworks in the repository. Rebuilding
 them from source is only necessary when upgrading a dependency or
 patching one; see `Dependencies/build.sh` (this does require a
 Homebrew toolchain).
 
 ## License
 
-GNU GPL v2 or later, see [License.txt](License.txt). Original code
-copyright the Adium team and contributors
-([Copyright.txt](Copyright.txt)).
+The source in this repository is GNU GPL v2 or later, see
+[License.txt](License.txt). Original code copyright the Adium team and
+contributors ([Copyright.txt](Copyright.txt)).
+
+**The application you build from it is not GPL v2**, and it is worth
+being plain about why. Several of the bundled plug-ins carry stronger
+terms, and since every source file here says "or later", combining them
+is permitted; what it costs is the GPL v2 option for the finished
+binary, not the licence of the sources.
+
+* `libsignal-presage.so` is GPL v3 itself, and the Rust it links in
+  statically (`presage`, `presage-store-sqlite` and
+  `libsignal-service-rs`) declares **AGPL-3.0-only** in its own
+  `Cargo.toml`. The Affero terms therefore reach the shipped binary.
+* `libwhatsmeow.so`, `libteams.so` and `libteams-personal.so` are
+  GPL v3.
+* `libtelegram-tdlib.so` links the bundled OpenSSL 3, whose Apache 2.0
+  terms do not combine with GPL v2 at all. The same OpenSSL is now used
+  by `AdiumLibpurple` itself, for the cryptography behind OMEMO, so this
+  one is no longer confined to a plug-in.
+
+The texts those terms require to travel with the work are in
+[Licenses/](Licenses): [GPL-3.0.txt](Licenses/GPL-3.0.txt) and
+[AGPL-3.0.txt](Licenses/AGPL-3.0.txt).
+
+Leaving out the plug-ins, which the scripts allow, drops the GPL v3 and
+AGPL terms but not the OpenSSL one, so such a build is GPL v3 or later
+rather than v2. The sources themselves stay GPL v2 or later, and it is
+only the combination that moves.
 
 ### Bundled third-party binaries and their sources
 
@@ -244,7 +321,7 @@ local change on top of them):
 | `PurplePlugins/libwhatsmeow.so` | [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp) | `c58fcbac9aa7210ce08cf12ef3442932730ec312` | GPL v3 |
 | `PurplePlugins/libtelegram-tdlib.so` | [tdlib-purple](https://github.com/adrighem/tdlib-purple) 2.1.0 | `b277ac1941dbed946444454f67b89265541237b7` | GPL v2 |
 | (statically inside `libtelegram-tdlib.so`) | [TDLib](https://github.com/tdlib/td) 1.8.65 | `a8f21f5230172634becc1739050ef23ecd6ea291` | Boost 1.0 |
-| `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3 |
+| `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3, with **AGPL v3** parts statically linked in (see below) |
 | `PurplePlugins/libteams.so`, `libteams-personal.so` | [purple-teams](https://github.com/EionRobb/purple-teams) | `62f6fff` | GPL v3 |
 | `PurplePlugins/libircv3.so` | [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3) | `0e73297` | GPL v2 |
 | `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL 3](https://www.openssl.org), used by TDLib inside the Telegram plugin | Homebrew build | Apache 2.0 |

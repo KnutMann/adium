@@ -320,4 +320,20 @@ char intToHex(NSInteger digit);
  */
 + (NSString *)representedColorForObject: (id)anObject withValidColors: (NSArray *)validColors;
 
+/*!
+ * @brief The colour everybody else gives this name too (XEP-0392)
+ *
+ * The usual way to colour a name is to hash it and pick from a palette, which works and
+ * means that the same person is green here, orange in one other application and blue in a
+ * third. This computes the hue from the name itself in the way the XMPP world agreed on, so
+ * somebody who has the same room open on a phone recognises people by colour without
+ * reading. The lightness is then chosen for the background at hand, because a hue alone
+ * says nothing about whether it can be read on black.
+ *
+ * @param identifier	What the person is called, usually a nickname or a bare address
+ * @param dark		Whether the text will sit on a dark background
+ * @return		A colour as #rrggbb, ready for a stylesheet
+ */
++ (NSString *)consistentColorForIdentifier:(NSString *)identifier onDarkBackground:(BOOL)dark;
+
 @end

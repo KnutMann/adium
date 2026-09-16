@@ -898,19 +898,6 @@ typedef enum
 	return !inChat.isGroupChat;
 }
 
-/*!
- * @brief Provide a localized description of the encryption this account provides
- *
- * Returns a localized string which describes the encryption this account supports.
- *
- * @result An <tt>NSString</tt> describing the encryption offerred by this account, if any.
- */
-- (NSString *)aboutEncryption
-{
-	return [NSString stringWithFormat:
-		AILocalizedStringFromTableInBundle(@"Adium provides encryption, authentication, deniability, and perfect forward secrecy over %@ via Off-the-Record Messaging (OTR). If your contact is not using an OTR-compatible messaging system, your contact will be sent a link to the OTR web site when you attempt to connect. For more information on OTR, visit https://otr.cypherpunks.ca/.", nil, [NSBundle bundleForClass:[AIAccount class]], nil),
-		[self.service shortDescription]];
-}
 
 /*!
  * @brief Start or stop secure messaging in a chat
