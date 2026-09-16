@@ -473,6 +473,11 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	[statusColumn setWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
 	[[statusColumn dataCell] setAlignment:NSTextAlignmentRight];
 
+	/* The column has to be editable or a menu in it never opens, and that alone would make every
+	 * other row's text typeable over. Which rows may actually be edited is decided one at a time,
+	 * just below. */
+	[statusColumn setEditable:YES];
+
 	[scrollView_fingerprints setBorderType:NSNoBorder];
 	[scrollView_fingerprints setDrawsBackground:NO];
 	[scrollView_fingerprints setHasVerticalScroller:NO];
@@ -1013,9 +1018,24 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	[choice setBordered:NO];
 	[choice setArrowPosition:NSPopUpArrowAtBottom];
 	[choice addItemsWithTitles:AIOMEMOTrustTitles()];
-	[choice setEditable:YES];
 
 	return choice;
+}
+
+/*!
+ * @brief Only an OMEMO row offers a decision, so only one may be edited
+ *
+ * The column is editable for the menu's sake. Without this, an OTR row's state, which is
+ * reported rather than chosen, could be typed over with anything at all.
+ */
+- (BOOL)tableView:(NSTableView *)aTableView
+shouldEditTableColumn:(NSTableColumn *)aTableColumn
+			  row:(NSInteger)rowIndex
+{
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count]) return NO;
+	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return NO;
+
+	return AIRowIsOMEMO([fingerprintDictArray objectAtIndex:rowIndex]);
 }
 
 - (void)tableView:(NSTableView *)aTableView
