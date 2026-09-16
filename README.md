@@ -263,13 +263,23 @@ The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
-The one dependency that is fetched rather than vendored is Google's
-**WebRTC**, which carries the media of a call. `bootstrap.sh` and
-`install.sh` run `Dependencies/webrtc/fetch-webrtc.sh` before building;
-it downloads the official Chromium build repackaged by
-[stasel/WebRTC](https://github.com/stasel/WebRTC) (version 153.0.0,
-BSD 3-Clause) and checks it against a pinned SHA-256. It is not in the
-repository because it is a 200 MB binary framework.
+Three things are fetched rather than vendored, and both `bootstrap.sh`
+and `install.sh` get them by running `Dependencies/fetch.sh` before they
+build anything. It is idempotent and takes about a second once
+everything is in place, so there is no reason to skip it:
+
+* the **MMTabBarView** submodule, which git clones only when asked a
+  second time (`git submodule update --init --recursive`)
+* Google's **WebRTC**, which carries the media of a call: the official
+  Chromium build repackaged by
+  [stasel/WebRTC](https://github.com/stasel/WebRTC) (version 153.0.0,
+  BSD 3-Clause), checked against a pinned SHA-256 and kept out of the
+  repository because it is a 200 MB binary framework
+* **picomemo**, the cryptographic half of OMEMO (ISC), fetched and built
+  from source at a pinned commit
+
+Without them the build fails at a compiler error naming a header, which
+says nothing about a download being what was missing.
 
 All other required libraries (libpurple, glib, libotr, libgcrypt, ...)
 are vendored as prebuilt arm64 frameworks in the repository. Rebuilding

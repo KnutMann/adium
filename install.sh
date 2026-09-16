@@ -3,12 +3,15 @@
 #
 #   ./install.sh
 #
-# Everything the application needs beyond Xcode is checked into this
+# Almost everything the application needs beyond Xcode is checked into this
 # repository: the frameworks under Frameworks/ and the protocol plug-ins under
-# PurplePlugins/ are prebuilt arm64 binaries. This script verifies those
-# artifacts, builds the application, verifies the result, and puts it into
-# /Applications. Rebuilding the dependencies themselves from source is the
-# separate, maintainer-only Dependencies/build.sh.
+# PurplePlugins/ are prebuilt arm64 binaries. Three things are not, and this
+# script fetches them first through Dependencies/fetch.sh: the MMTabBarView
+# submodule, the WebRTC framework a call needs, and picomemo, the cryptographic
+# half of OMEMO. Then it verifies those artifacts, builds the application,
+# verifies the result, and puts it into /Applications. Rebuilding the
+# dependencies themselves from source is the separate, maintainer-only
+# Dependencies/build.sh.
 #
 # The verification is not decoration. A protocol plug-in can be broken in a
 # way nothing reports: linked against a stray copy of libpurple it loads
@@ -54,6 +57,9 @@ if [ "$(uname -m)" != "arm64" ]; then
 	exit 1
 fi
 echo "Xcode: $(xcodebuild -version | head -1), machine: $(uname -m)"
+
+step "Fetching what is not in the repository"
+"$REPO/Dependencies/fetch.sh"
 
 step "Verifying the checked-in protocol plug-ins"
 "$REPO/Utilities/verify-purple-plugins.sh"

@@ -27,19 +27,15 @@ if ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Loca
 	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
 fi
 
-echo "==> Fetching the pinned WebRTC framework"
-# The calls work links it; not committed, fetched once by checksum
-Dependencies/webrtc/fetch-webrtc.sh
+echo "==> Fetching what is not in the repository"
+# The submodule, the WebRTC framework and picomemo; see Dependencies/fetch.sh
+Dependencies/fetch.sh
 
 echo "==> Building AIUtilities"
 xcodebuild -project "Frameworks/AIUtilities/AIUtilities.xcodeproj" \
 	-configuration "$CONFIGURATION" build
 
 echo "==> Building MMTabBarView"
-if [ ! -f "Dependencies/MMTabBarView/README.md" ]; then
-	echo "error: MMTabBarView submodule is missing; run: git submodule update --init" >&2
-	exit 1
-fi
 xcodebuild -project "Dependencies/MMTabBarView/MMTabBarView/MMTabBarView.xcodeproj" \
 	-target MMTabBarView -configuration "$CONFIGURATION" build
 
