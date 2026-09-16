@@ -407,6 +407,13 @@ file_recv_request_cb(PurpleXfer *xfer)
     //Purple doesn't return normalized user id, so it should be normalized manually
     char* who = g_strdup(purple_normalize(xfer->account, xfer->who));
     
+	/* A transfer whose peer is a group is how a group becomes a contact object
+	 * here: the peer is asked for as a contact, and one is made if none exists.
+	 * WhatsApp does this by default (group-is-file-origin). */
+	if (strstr(who, "@g.us")) {
+		AILog(@"GROUP JID AS TRANSFER PEER: %s. A contact object will be made for it.", who);
+	}
+
 	//Ask the account for an ESFileTransfer* object
 	fileTransfer = [accountLookup(xfer->account) newFileTransferObjectWith:[NSString stringWithUTF8String:who]
 					size:purple_xfer_get_size(xfer)
