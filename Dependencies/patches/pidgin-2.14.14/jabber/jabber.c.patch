@@ -1,9 +1,22 @@
 --- a/libpurple/protocols/jabber/jabber.c
 +++ b/libpurple/protocols/jabber/jabber.c
-@@ -267,6 +267,32 @@
- 	return FALSE;
- }
+@@ -166,6 +166,10 @@
+ 			js->user_jb->subscription |= JABBER_SUB_BOTH;
  
+ 			purple_connection_set_display_name(js->gc, full_jid);
++			/* Kept for a later resumption, which binds nothing and would otherwise have
++			   no idea what it is called. */
++			g_free(jabber_sm_session_get(js)->full_jid);
++			jabber_sm_session_get(js)->full_jid = g_strdup(full_jid);
+ 
+ 			g_free(full_jid);
+ 		}
+@@ -265,6 +269,32 @@
+ 	}
+ 
+ 	return FALSE;
++}
++
 +/* Asks the server for a resource, which is the ordinary way into a session.
 + *
 + * Lifted out of jabber_stream_features_parse because there is now a second way in, and the
@@ -28,12 +41,10 @@
 +	jabber_iq_set_callback(iq, jabber_bind_result_cb, NULL);
 +
 +	jabber_iq_send(iq);
-+}
-+
+ }
+ 
  void jabber_stream_features_parse(JabberStream *js, xmlnode *packet)
- {
- 	PurpleAccount *account = purple_connection_get_account(js->gc);
-@@ -291,22 +317,7 @@
+@@ -291,22 +321,12 @@
  		jabber_stream_set_state(js, JABBER_STREAM_AUTHENTICATING);
  		jabber_auth_start(js, packet);
  	} else if(xmlnode_get_child(packet, "bind")) {
@@ -53,7 +64,26 @@
 -		jabber_iq_set_callback(iq, jabber_bind_result_cb, NULL);
 -
 -		jabber_iq_send(iq);
-+		jabber_bind_resource(js);
++		/* Ask for the old session back before asking for a new resource. Only worth trying
++		   when this stream offers stream management at all; jabber_sm_resume says whether
++		   there was anything to ask for, and a <failed/> comes back and binds after all. */
++		if (!xmlnode_get_child_with_namespace(packet, "sm", NS_STREAM_MANAGEMENT)
++		    || !jabber_sm_resume(js))
++			jabber_bind_resource(js);
  	} else if (xmlnode_get_child_with_namespace(packet, "ver", NS_ROSTER_VERSIONING)) {
  		js->server_caps |= JABBER_CAP_ROSTER_VERSIONING;
  	} else /* if(xmlnode_get_child_with_namespace(packet, "auth")) */ {
+@@ -1790,8 +1810,11 @@
+ 
+ 			break;
+ 		case JABBER_STREAM_CONNECTED:
+-			/* Send initial presence */
+-			jabber_presence_send(js, TRUE);
++			/* Send initial presence, unless this session never went away. Announcing
++			   arrival on a resumed session would tell everybody watching that we had
++			   left, which is precisely what resuming exists to avoid. */
++			if (!js->sm_resumed)
++				jabber_presence_send(js, TRUE);
+ 			/* Start up the inactivity timer */
+ 			jabber_stream_restart_inactivity_timer(js);
+ 

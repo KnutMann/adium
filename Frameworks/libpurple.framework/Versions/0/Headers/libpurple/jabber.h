@@ -104,7 +104,11 @@ typedef enum {
 	SM_DISABLED,
 	SM_PLANNED,
 	SM_REQUESTED,
-	SM_ENABLED
+	SM_ENABLED,
+	/* Added last on purpose: the values before it are stored nowhere, but growing an enum
+	   anywhere but at the end is how a rebuilt library and an unrebuilt caller come to
+	   disagree about what a number means. */
+	SM_RESUMING
 } JabberStreamManagementState;
 
 struct _JabberStream
@@ -299,6 +303,11 @@ struct _JabberStream
 	guint32 sm_inbound_count;
 	guint32 sm_outbound_confirmed;
 	JabberStreamManagementState sm_state;
+
+	/* Set when the server took us back into the old session rather than giving us a new one.
+	   At the end of the structure because Adium compiles against a checked-in copy of this
+	   header, and a field inserted anywhere else moves every offset after it. */
+	gboolean sm_resumed;
 };
 
 typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);

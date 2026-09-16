@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.c
 +++ b/libpurple/protocols/jabber/stream_management.c
-@@ -36,33 +36,63 @@
+@@ -36,33 +36,64 @@
  GHashTable *jabber_sm_accounts;
  
  static void
@@ -10,6 +10,7 @@
 -	g_queue_free_full(q, (GDestroyNotify)xmlnode_free);
 +	JabberSmSession *session = s;
 +	g_queue_free_full(session->queue, (GDestroyNotify)xmlnode_free);
++	g_free(session->full_jid);
 +	g_free(session->location);
 +	g_free(session->id);
 +	g_free(session->jid);
@@ -59,15 +60,15 @@
 -	return queue;
 +
 +	return session;
-+}
-+
-+void
-+jabber_sm_session_forget(JabberStream *js)
-+{
-+	g_hash_table_remove(jabber_sm_accounts, purple_connection_get_account(js->gc));
  }
  
  void
++jabber_sm_session_forget(JabberStream *js)
++{
++	g_hash_table_remove(jabber_sm_accounts, purple_connection_get_account(js->gc));
++}
++
++void
  jabber_sm_init(void)
  {
 -	jabber_sm_accounts = g_hash_table_new_full(g_str_hash, g_str_equal, free,
@@ -79,7 +80,98 @@
  }
  
  void
-@@ -74,18 +104,42 @@
+@@ -71,21 +102,148 @@
+ 	g_hash_table_destroy(jabber_sm_accounts);
+ }
+ 
++/* Asks for the previous session back instead of binding a new resource. */
++gboolean
++jabber_sm_resume(JabberStream *js)
++{
++	JabberSmSession *session = jabber_sm_session_get(js);
++	xmlnode *resume;
++	char *h;
++
++	/* Nothing was put aside for us, so there is nothing to ask for. */
++	if (session->id == NULL)
++		return FALSE;
++
++	purple_debug_info("XEP-0198", "Asking for session %s back at %u\n",
++	                  session->id, session->inbound_count);
++
++	resume = xmlnode_new("resume");
++	xmlnode_set_namespace(resume, NS_STREAM_MANAGEMENT);
++	xmlnode_set_attrib(resume, "previd", session->id);
++	h = g_strdup_printf("%u", session->inbound_count);
++	xmlnode_set_attrib(resume, "h", h);
++	g_free(h);
++
++	jabber_send(js, resume);
++	xmlnode_free(resume);
++
++	js->sm_state = SM_RESUMING;
++	return TRUE;
++}
++
++/* The server took us back into the old session. */
++static void
++jabber_sm_resumed(JabberStream *js, xmlnode *packet)
++{
++	JabberSmSession *session = jabber_sm_session_get(js);
++	const char *ack_h = xmlnode_get_attrib(packet, "h");
++	GQueue *queue = session->queue;
++	guint length, i;
++
++	/* The counters are the old session's again. They were kept level with the stream that
++	   died, which is the only reason they are still here. */
++	js->sm_inbound_count = session->inbound_count;
++	js->sm_outbound_count = session->outbound_count;
++	js->sm_outbound_confirmed = session->outbound_confirmed;
++
++	/* No bind happened, so the address is the old one, and nothing else would restore it. */
++	if (session->full_jid != NULL) {
++		const char *slash = strchr(session->full_jid, '/');
++
++		purple_connection_set_display_name(js->gc, session->full_jid);
++		if (slash != NULL && js->user != NULL) {
++			g_free(js->user->resource);
++			js->user->resource = g_strdup(slash + 1);
++		}
++	}
++
++	/* Whatever the server confirms having received can go. */
++	if (ack_h != NULL) {
++		guint32 h = (guint32)strtoul(ack_h, NULL, 10);
++
++		for (i = js->sm_outbound_confirmed; i < h; i++) {
++			xmlnode *stanza = g_queue_pop_head(queue);
++
++			if (stanza == NULL)
++				break;
++			xmlnode_free(stanza);
++		}
++		js->sm_outbound_confirmed = h;
++		session->outbound_confirmed = h;
++	}
++
++	/* And the rest goes out again, while the state is still SM_RESUMING so that
++	   jabber_sm_outbound leaves it alone. These stanzas already carry their numbers from
++	   the old session; counting them a second time would put our idea of h permanently
++	   ahead of the server's, and from then on every acknowledgement would clear the wrong
++	   stanzas. They stay in the queue, because they are still unacknowledged. */
++	length = g_queue_get_length(queue);
++	if (length > 0)
++		purple_debug_info("XEP-0198", "Sending %u stanzas again\n", length);
++	for (i = 0; i < length; i++)
++		jabber_send(js, g_queue_peek_nth(queue, i));
++
++	js->sm_state = SM_ENABLED;
++	js->sm_resumed = TRUE;
++
++	purple_debug_info("XEP-0198", "The session was resumed; no new resource was bound\n");
++	jabber_stream_set_state(js, JABBER_STREAM_CONNECTED);
++}
++
  /* Processes incoming NS_STREAM_MANAGEMENT packets. */
  void
  jabber_sm_process_packet(JabberStream *js, xmlnode *packet) {
@@ -118,16 +210,33 @@
  		js->sm_inbound_count = 0;
  		js->sm_state = SM_ENABLED;
  	} else if (purple_strequal(name, "failed")) {
- 		purple_debug_error("XEP-0198", "Failed to enable stream management\n");
- 		js->sm_state = SM_DISABLED;
+-		purple_debug_error("XEP-0198", "Failed to enable stream management\n");
+-		js->sm_state = SM_DISABLED;
 -		jid = jabber_id_get_bare_jid(js->user);
 -		g_hash_table_remove(jabber_sm_accounts, jid);
 -		g_free(jid);
-+		jabber_sm_session_forget(js);
++		if (js->sm_state == SM_RESUMING) {
++			/* The session is gone: expired, or claimed by somebody else, or never as real
++			   as we thought. Nothing is lost except the shortcut, so throw away what we
++			   were keeping for it and take the long way in, which is the resource bind we
++			   did not do. Anything still unacknowledged goes out again once the new
++			   session is enabled. */
++			purple_debug_info("XEP-0198",
++			                  "The server would not give the session back; binding instead\n");
++			jabber_sm_session_forget(js);
++			js->sm_state = SM_DISABLED;
++			jabber_bind_resource(js);
++		} else {
++			purple_debug_error("XEP-0198", "Failed to enable stream management\n");
++			js->sm_state = SM_DISABLED;
++			jabber_sm_session_forget(js);
++		}
++	} else if (purple_strequal(name, "resumed")) {
++		jabber_sm_resumed(js, packet);
  	} else if (purple_strequal(name, "r")) {
  		jabber_sm_ack_send(js);
  	} else if (purple_strequal(name, "a")) {
-@@ -130,7 +184,7 @@
+@@ -130,7 +288,7 @@
  	h = strtoul(ack_h, NULL, 10);
  
  	/* Remove stanzas from the queue */
@@ -136,7 +245,15 @@
  	for (i = js->sm_outbound_confirmed; i < h; i++) {
  		stanza = g_queue_pop_head(queue);
  		if (stanza == NULL) {
-@@ -160,6 +214,10 @@
+@@ -141,6 +299,7 @@
+ 	}
+ 
+ 	js->sm_outbound_confirmed = h;
++	jabber_sm_session_get(js)->outbound_confirmed = h;
+ 	purple_debug_info("XEP-0198",
+ 	                  "Acknowledged %u out of %u outbound stanzas\n",
+ 	                  js->sm_outbound_confirmed, js->sm_outbound_count);
+@@ -160,6 +319,10 @@
  	purple_debug_info("XEP-0198", "Enabling stream management\n");
  	enable = xmlnode_new("enable");
  	xmlnode_set_namespace(enable, NS_STREAM_MANAGEMENT);
@@ -147,7 +264,7 @@
  	jabber_send(js, enable);
  	xmlnode_free(enable);
  	js->sm_outbound_count = 0;
-@@ -167,7 +225,7 @@
+@@ -167,7 +330,7 @@
  	js->sm_state = SM_REQUESTED;
  
  	/* Resend unacknowledged stanzas from the queue. */
@@ -156,7 +273,7 @@
  	queue_len = g_queue_get_length(queue);
  	if (queue_len > 0) {
  		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
-@@ -192,7 +250,7 @@
+@@ -192,7 +355,7 @@
  		/* Add this stanza to the queue, unless the queue is full. */
  		xmlnode *stanza;
  		xmlnode *req;
@@ -165,3 +282,20 @@
  		if (g_queue_get_length(queue) < MAX_QUEUE_LENGTH) {
  			stanza = xmlnode_copy(packet);
  			g_queue_push_tail(queue, stanza);
+@@ -219,6 +382,7 @@
+ 
+ 		/* Count the stanza */
+ 		js->sm_outbound_count++;
++		jabber_sm_session_get(js)->outbound_count = js->sm_outbound_count;
+ 
+ 		/* Requesting acknowledgements with either SM_REQUESTED or
+ 		   SM_ENABLED state as well, so that it would be harder to lose
+@@ -238,5 +402,8 @@
+ 	   packets. */
+ 	if (jabber_is_stanza(packet)) {
+ 		js->sm_inbound_count++;
++		/* Kept here as well as on the stream, because a <resume/> has to say how much it
++		   received and by then the stream that counted it is gone. */
++		jabber_sm_session_get(js)->inbound_count = js->sm_inbound_count;
+ 	}
+ }

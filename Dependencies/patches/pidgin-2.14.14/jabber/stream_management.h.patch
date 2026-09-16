@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.h
 +++ b/libpurple/protocols/jabber/stream_management.h
-@@ -25,6 +25,35 @@
+@@ -25,6 +25,52 @@
  #ifndef PURPLE_JABBER_STREAM_MANAGEMENT_H
  #define PURPLE_JABBER_STREAM_MANAGEMENT_H
  
@@ -25,6 +25,14 @@
 +	gchar   *id;       /**< what to name in <resume/>; NULL when the server offered no resumption */
 +	gchar   *location; /**< where the server would rather we came back; NULL means the same place */
 +	guint32  max;      /**< seconds it promises to hold the session; 0 when it named no limit */
++
++	/* Kept level with the stream's own counters as they move, so that they are still here
++	   after the stream is not. A resume has to name how much it received, and the server
++	   answers with how much it did, which decides what gets sent again. */
++	guint32  inbound_count;
++	guint32  outbound_count;
++	guint32  outbound_confirmed;
++	gchar   *full_jid; /**< the address the old session bound; a resumed one keeps it */
 +} JabberSmSession;
 +
 +/** The session for this stream's account, created on first use. Never NULL. */
@@ -32,6 +40,15 @@
 +
 +/** Throw the session away, after a resumption the server refused or a deliberate sign off. */
 +void jabber_sm_session_forget(JabberStream *js);
++
++/**
++ * Ask for the previous session back, in place of binding a new resource.
++ *
++ * Returns TRUE when a <resume/> went out, in which case the caller must not bind: the answer
++ * decides what happens, and a <failed/> comes back here to bind after all. Returns FALSE when
++ * there is nothing to resume, and the caller carries on as it always did.
++ */
++gboolean jabber_sm_resume(JabberStream *js);
 +
  void jabber_sm_init(void);
  void jabber_sm_uninit(void);

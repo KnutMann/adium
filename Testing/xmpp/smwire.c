@@ -10,7 +10,7 @@
  * wie die Anwendung, sich an den Testserver anmeldet und alles ausgibt, was das Jabber-Modul in
  * sein Protokoll schreibt.
  *
- *   smwire [Sekunden]      voreingestellt 12
+ *   smwire [Sekunden] [Abriss nach] [Neuanmeldung nach]   voreingestellt 12, keiner, 1
  *
  * Es wird ohne Verschluesselung verbunden, weil der Testserver das erlaubt und die Frage nach dem
  * selbstsignierten Zertifikat sonst eine Benutzeroberflaeche braeuchte, die es hier nicht gibt.
@@ -23,6 +23,11 @@
 #include <string.h>
 
 #include <libpurple/libpurple.h>
+/* Fuer JabberStream, um den Socket unter der Verbindung wegziehen zu koennen. */
+#include <libpurple/jabber.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <signal.h>
 
 #define UI_ID "smwire"
 
@@ -32,6 +37,9 @@
 #define PURPLE_GLIB_WRITE_COND (G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL)
 
 static int seconds = 12;
+static int dropAfter = 0;
+static int reconnectAfter = 1;
+static PurpleAccount *theAccount = NULL;
 
 /* --- Die Schleife, wie nullclient sie auch fuehrt ---------------------------------------- */
 
@@ -95,11 +103,51 @@ static PurpleDebugUiOps debug_ops = { say, NULL, NULL, NULL, NULL, NULL };
 
 /* --- Genug Oberflaeche, damit libpurple nicht nach einer fragt --------------------------- */
 
+static gboolean sign_on_again(gpointer data)
+{
+	printf("\n== signing on again\n");
+	fflush(stdout);
+	/* set_enabled taugt nicht: das Konto ist nach einem Abriss weiterhin aktiviert, der Aufruf
+	   ist also folgenlos. Die Verbindung will direkt angestossen werden. */
+	purple_account_connect(theAccount);
+	return FALSE;
+}
+
 static void connection_report(PurpleConnection *gc, PurpleConnectionError reason,
                               const char *description)
 {
-	printf("\n== the connection failed: %s\n", description ? description : "no reason given");
+	printf("\n== the connection went down: %s\n", description ? description : "no reason given");
 	fflush(stdout);
+
+	/* Genau das tut Adium sonst: es merkt den Abriss und meldet sich neu an. Hier reicht eine
+	   Sekunde Abstand, damit libpurple mit dem Aufraeumen fertig ist. */
+	if (dropAfter > 0)
+		g_timeout_add_seconds(reconnectAfter, sign_on_again, NULL);
+}
+
+/*! Den Socket unter der Verbindung wegziehen.
+ *
+ * Ein sauberes Trennen taugt nicht: libpurple sendet dabei ein </stream:stream>, und nach
+ * XEP-0198 Abschnitt 7 zerstoert das die Sitzung sofort und endgueltig. Ein Netz, das
+ * wegbricht, sagt nichts, und genau das wird hier nachgestellt. */
+static gboolean pull_the_plug(gpointer data)
+{
+	PurpleConnection *gc = purple_account_get_connection(theAccount);
+	JabberStream *js = gc ? purple_connection_get_protocol_data(gc) : NULL;
+
+	if (js == NULL || js->fd < 0) {
+		printf("\n== nothing to pull: no open stream\n");
+		return FALSE;
+	}
+
+	printf("\n== pulling the plug on the socket, without a closing tag\n");
+	fflush(stdout);
+	/* shutdown und nicht close: ein geschlossener Deskriptor weckt die Leseueberwachung nicht
+	   zuverlaessig, waehrend ein abgeschaltetes Socket sofort das Dateiende meldet und libpurple
+	   den Abriss genauso sieht wie bei einem weggebrochenen Netz. */
+	shutdown(js->fd, SHUT_RDWR);
+
+	return FALSE;
 }
 
 static PurpleConnectionUiOps connection_ops = {
@@ -126,8 +174,16 @@ int main(int argc, char *argv[])
 	GMainLoop *loop;
 	char *dir;
 
+	/* Schreiben in ein weggebrochenes Socket schickt SIGPIPE, und das beendet den Prozess
+	   wortlos. Jeder ernsthafte Client ignoriert es und liest den Fehler stattdessen aus dem
+	   Rueckgabewert; ohne das stirbt dieser Prüfstand genau dann, wenn es interessant wird. */
+	signal(SIGPIPE, SIG_IGN);
+
 	if (argc > 1) seconds = atoi(argv[1]);
 	if (seconds <= 0) seconds = 12;
+	if (argc > 2) dropAfter = atoi(argv[2]);
+	if (argc > 3) reconnectAfter = atoi(argv[3]);
+	if (reconnectAfter <= 0) reconnectAfter = 1;
 
 	/* Ein eigenes Verzeichnis, damit nichts an den Einstellungen der Anwendung haengt. */
 	dir = g_strdup_printf("%s/adium-smwire", g_get_tmp_dir());
@@ -161,7 +217,11 @@ int main(int argc, char *argv[])
 	purple_accounts_add(account);
 	purple_account_set_enabled(account, UI_ID, TRUE);
 
+	theAccount = account;
+
 	loop = g_main_loop_new(NULL, FALSE);
+	if (dropAfter > 0)
+		g_timeout_add_seconds(dropAfter, pull_the_plug, NULL);
 	g_timeout_add_seconds(seconds, time_is_up, loop);
 	g_main_loop_run(loop);
 
