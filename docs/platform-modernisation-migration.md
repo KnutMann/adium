@@ -5,7 +5,8 @@ platform-modernisation work in Adium. It is deliberately separate from
 `docs/arc-migration.md` and `docs/modernisation.md`; do not amend either of
 those documents as part of work described here.
 
-The supported application baseline is Apple Silicon and macOS 11. The main
+The supported application baseline is Apple Silicon and macOS 12, raised from
+11 once Xcode 27 stopped building for anything older. The main
 target currently builds against the macOS 26.5 SDK. ARC migration is owned by
 another effort and is out of scope here.
 
@@ -29,7 +30,7 @@ another effort and is out of scope here.
 | --- | --- | --- | --- |
 | M01 | P0 | AddressBook to Contacts | proposed |
 | M02 | P0 | Remove private system APIs | M02b implemented; M02a/M02c proposed |
-| M03 | P1 | Raise all owned targets to the macOS 11 baseline | proposed |
+| M03 | P1 | Raise all owned targets to the macOS baseline | done, at 12.0 |
 | M04 | P1 | Replace AutoHyperlinks with a small native link detector | proposed |
 | M05 | P1 | Remove the hand-written URL query parser | proposed |
 | M06 | P2 | Replace the custom ISO-8601 formatter after compatibility proof | proposed |

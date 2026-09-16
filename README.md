@@ -225,7 +225,7 @@ This is a work in progress; expect rough edges.
 
 ## System requirements
 
-* Apple Silicon Mac, macOS 11 or later
+* Apple Silicon Mac, macOS 12 or later
 * Everything is native arm64, including all bundled dependencies
   (libpurple, glib, libotr, ...): no Homebrew required to run
 * Xcode for building (there are no binary releases at this time)
