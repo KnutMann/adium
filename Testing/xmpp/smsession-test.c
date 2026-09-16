@@ -322,6 +322,19 @@ int main(void)
 	jabber_sm_stream_closing(counting);
 	check("Beim Schliessen wird er abgeraeumt", counting->sm_request_timer == 0, NULL);
 
+	/* Die Sonde nach einer Netzunterbrechung: sie schreibt, und Schreiben ist das Einzige, was
+	   ein totes Socket verraet. Ohne Stream Management gibt es nichts zu schreiben. */
+	g_free(lastName);
+	lastName = NULL;
+	counting->sm_state = SM_DISABLED;
+	jabber_sm_probe(counting);
+	check("Ohne Stream Management schreibt die Sonde nichts", lastName == NULL, lastName);
+
+	counting->sm_state = SM_ENABLED;
+	jabber_sm_probe(counting);
+	check("Mit Stream Management fragt sie sofort nach",
+	      purple_strequal(lastName, "r"), lastName);
+
 	jabber_sm_uninit();
 
 	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");

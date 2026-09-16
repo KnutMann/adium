@@ -62,10 +62,18 @@
  void jabber_sm_init(void);
  void jabber_sm_uninit(void);
  
-@@ -35,6 +90,9 @@
+@@ -35,6 +90,17 @@
  void jabber_sm_ack_read(JabberStream *js, xmlnode *packet);
  
  void jabber_sm_outbound(JabberStream *js, xmlnode *packet);
++
++/**
++ * Ask at once whether the stream is still there, by writing to it.
++ *
++ * For after a network interruption, where the socket may be dead with nothing having noticed.
++ * Does nothing unless stream management is running, since it is an <r/> that gets sent.
++ */
++void jabber_sm_probe(JabberStream *js);
 +
 +/** Called when the stream is closing, so that no timer fires into a stream that is gone. */
 +void jabber_sm_stream_closing(JabberStream *js);

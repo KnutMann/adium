@@ -206,6 +206,15 @@ typedef enum {
 - (void)connect;
 - (void)disconnect;
 - (void)disconnectFromDroppedNetworkConnection;
+
+/*!
+ * @brief Find out at once whether this connection is still really there
+ *
+ * For after a network interruption. A socket can be dead with nothing having noticed, because
+ * nothing is read from a socket that carries nothing; an account that does something about it
+ * overrides this, and one that does not is none the worse.
+ */
+- (void)probeConnectionIsAlive;
 - (void)performRegisterWithPassword:(NSString *)inPassword;
 - (NSString *)accountWillSetUID:(NSString *)proposedUID;
 - (void)didChangeUID;

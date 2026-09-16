@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.c
 +++ b/libpurple/protocols/jabber/stream_management.c
-@@ -33,59 +33,252 @@
+@@ -33,36 +33,102 @@
  
  #define MAX_QUEUE_LENGTH 10000
  
@@ -118,11 +118,10 @@
  }
  
  void
- jabber_sm_uninit(void)
- {
+@@ -71,21 +137,148 @@
  	g_hash_table_destroy(jabber_sm_accounts);
-+}
-+
+ }
+ 
 +/* Asks for the previous session back instead of binding a new resource. */
 +gboolean
 +jabber_sm_resume(JabberStream *js)
@@ -209,8 +208,8 @@
 +
 +	purple_debug_info("XEP-0198", "The session was resumed; no new resource was bound\n");
 +	jabber_stream_set_state(js, JABBER_STREAM_CONNECTED);
- }
- 
++}
++
  /* Processes incoming NS_STREAM_MANAGEMENT packets. */
  void
  jabber_sm_process_packet(JabberStream *js, xmlnode *packet) {
@@ -275,7 +274,7 @@
  	} else if (purple_strequal(name, "r")) {
  		jabber_sm_ack_send(js);
  	} else if (purple_strequal(name, "a")) {
-@@ -95,6 +288,47 @@
+@@ -95,6 +288,68 @@
  	}
  }
  
@@ -309,6 +308,27 @@
 +	return FALSE;
 +}
 +
++/* Asks now, whatever the counting says, to find out whether the stream is still there.
++ *
++ * After a network comes back, the socket underneath may be dead without anything having noticed:
++ * nothing is read from a socket that carries nothing, and the next write may be minutes away.
++ * Measured on a wireless network being changed, it took 59 seconds for the connection to be
++ * declared lost, and for all of that time the application looked connected and was not.
++ *
++ * A write settles it at once, because a write to a socket that is gone fails and is reported.
++ * An <r/> is the right write: it is two dozen bytes, and after an interruption "how much did you
++ * receive" is a question genuinely worth asking rather than a poke.
++ */
++void
++jabber_sm_probe(JabberStream *js)
++{
++	if (js->sm_state != SM_ENABLED)
++		return;
++
++	purple_debug_info("XEP-0198", "Asking whether the stream is still there\n");
++	jabber_sm_request_ack(js);
++}
++
 +/* Called when the stream is going away, because the timer would otherwise fire into a stream
 +   that is no longer there. */
 +void
@@ -323,7 +343,7 @@
  /* Sends an acknowledgement. */
  void
  jabber_sm_ack_send(JabberStream *js)
-@@ -130,7 +364,7 @@
+@@ -130,7 +385,7 @@
  	h = strtoul(ack_h, NULL, 10);
  
  	/* Remove stanzas from the queue */
@@ -332,7 +352,7 @@
  	for (i = js->sm_outbound_confirmed; i < h; i++) {
  		stanza = g_queue_pop_head(queue);
  		if (stanza == NULL) {
-@@ -141,6 +375,7 @@
+@@ -141,6 +396,7 @@
  	}
  
  	js->sm_outbound_confirmed = h;
@@ -340,7 +360,7 @@
  	purple_debug_info("XEP-0198",
  	                  "Acknowledged %u out of %u outbound stanzas\n",
  	                  js->sm_outbound_confirmed, js->sm_outbound_count);
-@@ -160,6 +395,10 @@
+@@ -160,6 +416,10 @@
  	purple_debug_info("XEP-0198", "Enabling stream management\n");
  	enable = xmlnode_new("enable");
  	xmlnode_set_namespace(enable, NS_STREAM_MANAGEMENT);
@@ -351,7 +371,7 @@
  	jabber_send(js, enable);
  	xmlnode_free(enable);
  	js->sm_outbound_count = 0;
-@@ -167,7 +406,7 @@
+@@ -167,7 +427,7 @@
  	js->sm_state = SM_REQUESTED;
  
  	/* Resend unacknowledged stanzas from the queue. */
@@ -360,7 +380,7 @@
  	queue_len = g_queue_get_length(queue);
  	if (queue_len > 0) {
  		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
-@@ -191,8 +430,7 @@
+@@ -191,8 +451,7 @@
  
  		/* Add this stanza to the queue, unless the queue is full. */
  		xmlnode *stanza;
@@ -370,7 +390,7 @@
  		if (g_queue_get_length(queue) < MAX_QUEUE_LENGTH) {
  			stanza = xmlnode_copy(packet);
  			g_queue_push_tail(queue, stanza);
-@@ -219,14 +457,21 @@
+@@ -219,14 +478,21 @@
  
  		/* Count the stanza */
  		js->sm_outbound_count++;
@@ -399,7 +419,7 @@
  	}
  }
  
-@@ -238,5 +483,8 @@
+@@ -238,5 +504,8 @@
  	   packets. */
  	if (jabber_is_stanza(packet)) {
  		js->sm_inbound_count++;

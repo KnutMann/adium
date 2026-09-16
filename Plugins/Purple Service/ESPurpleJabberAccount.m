@@ -32,6 +32,9 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <libpurple/si.h>
 #import <libpurple/chat.h>
+/* After si.h and chat.h, which are what bring jabber.h in: stream_management.h names
+   JabberStream and does not declare it. */
+#include <libpurple/stream_management.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "AMXMLConsoleController.h"
 #import "AMPurpleJabberServiceDiscoveryBrowsing.h"
@@ -71,6 +74,26 @@
  * @param proposedUID The proposed, pre-filtered UID (filtered means it has no characters invalid for this servce)
  * @result The UID to use; the default implementation just returns proposedUID.
  */
+/*!
+ * @brief Ask the server at once whether this stream is still there
+ *
+ * After a network comes back the socket underneath may be dead with nothing having noticed:
+ * nothing is read from a socket that carries nothing, and the next write may be minutes away.
+ * Measured on a wireless network being changed, the connection was declared lost 59 seconds
+ * after the network returned, and for all of that time Adium looked connected and was not.
+ *
+ * An acknowledgement request settles it, because a write to a socket that is gone fails and is
+ * reported. It does nothing when stream management is not running.
+ */
+- (void)probeConnectionIsAlive
+{
+	PurpleConnection *gc = purple_account_get_connection(self.purpleAccount);
+	JabberStream *js = gc ? purple_connection_get_protocol_data(gc) : NULL;
+
+	if (js != NULL)
+		jabber_sm_probe(js);
+}
+
 - (NSString *)accountWillSetUID:(NSString *)proposedUID
 {
 	proposedUID = [proposedUID lowercaseString];

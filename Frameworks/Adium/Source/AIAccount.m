@@ -185,6 +185,16 @@ typedef enum
 }
 
 /*!
+ * @brief Find out at once whether this connection is still really there
+ *
+ * Nothing by default: most accounts have no cheap way to ask, and for them the ordinary
+ * timeouts remain the answer.
+ */
+- (void)probeConnectionIsAlive
+{
+}
+
+/*!
  * @brief Disconnect as a result of the network connection dropping out
  *
  * The default implementation is identical to [self disconect], but subclasses may want to act differently

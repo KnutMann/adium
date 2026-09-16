@@ -267,6 +267,14 @@
  */
 - (void)connectAccountAfterNetworkSettled:(AIAccount *)account
 {
+	/* An account that never went offline has nothing to connect, but it may well be holding a
+	 * socket that died while the network was away. Nothing reads from a socket that carries
+	 * nothing, so without asking, the discovery waits for the next write, and that was measured
+	 * at 59 seconds on a wireless network being changed. For all of that time the account looks
+	 * connected and is not. */
+	if (account.online)
+		[account probeConnectionIsAlive];
+
 	[self handleConnectivityForAccount:account reachable:YES];
 }
 
