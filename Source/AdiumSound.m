@@ -80,7 +80,7 @@ static OSStatus systemOutputDeviceDidChange(AudioObjectID inObjectID, UInt32 inN
 		AudioObjectPropertyAddress audioAddress = {
 			kAudioHardwarePropertyDefaultSystemOutputDevice,
 			kAudioObjectPropertyScopeGlobal,
-			kAudioObjectPropertyElementMaster
+			kAudioObjectPropertyElementMain
 		};
 		OSStatus err = AudioObjectAddPropertyListener(kAudioObjectSystemObject, &audioAddress, systemOutputDeviceDidChange, (__bridge void *)self);
 
@@ -238,7 +238,7 @@ static OSStatus systemOutputDeviceDidChange(AudioObjectID inObjectID, UInt32 inN
 	AudioObjectPropertyAddress theAddress = {
 		kAudioHardwarePropertyDefaultSystemOutputDevice,
 		kAudioObjectPropertyScopeGlobal,
-		kAudioObjectPropertyElementMaster
+		kAudioObjectPropertyElementMain
 	};
 	err = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &dataSize, &systemOutputDevice);
 	if (err != noErr) {
