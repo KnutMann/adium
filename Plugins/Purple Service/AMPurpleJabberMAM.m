@@ -30,6 +30,13 @@
 #import <libpurple/si.h>
 #import <libpurple/chat.h>
 
+/* Newest first. A server may offer several, and one of them may be the one its own module
+   cannot actually answer: measured against a live ejabberd, which advertised all four and
+   answered a well formed :2 query with "Module failed to handle the query". The same query
+   against a Prosody with mod_mam answers correctly, so the fault was the server's and not the
+   asking; falling back costs one exchange and rescues exactly that case. */
+static NSString * const kFlavours[] = { @"urn:xmpp:mam:2", @"urn:xmpp:mam:1", nil };
+
 #define NS_MAM			"urn:xmpp:mam:2"
 #define NS_FORWARD		"urn:xmpp:forward:0"
 #define NS_DELAY		"urn:xmpp:delay"
@@ -80,6 +87,8 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 		account = inAccount;
 		available = NO;
 		counter = 0;
+		flavour = nil;
+		untried = [[NSMutableArray alloc] init];
 		gathering = [[NSMutableDictionary alloc] init];
 		chats = [[NSMutableDictionary alloc] init];
 		asked = [[NSMutableSet alloc] init];
@@ -190,7 +199,7 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	xmlnode_set_attrib(iq, "id", [queryID UTF8String]);
 
 	query = xmlnode_new_child(iq, "query");
-	xmlnode_set_namespace(query, NS_MAM);
+	xmlnode_set_namespace(query, [flavour UTF8String]);
 	xmlnode_set_attrib(query, "queryid", [queryID UTF8String]);
 
 	/* Which conversation, said the way a data form says it */
@@ -202,7 +211,7 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	xmlnode_set_attrib(field, "var", "FORM_TYPE");
 	xmlnode_set_attrib(field, "type", "hidden");
 	value = xmlnode_new_child(field, "value");
-	xmlnode_insert_data(value, NS_MAM, -1);
+	xmlnode_insert_data(value, [flavour UTF8String], -1);
 
 	field = xmlnode_new_child(x, "field");
 	xmlnode_set_attrib(field, "var", "with");
@@ -230,7 +239,8 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	const char *name = packet->name;
 
 	if (purple_strequal(name, "message")) {
-		xmlnode *result = xmlnode_get_child_with_namespace(packet, "result", NS_MAM);
+		xmlnode *result = flavour ? xmlnode_get_child_with_namespace(packet, "result",
+																	[flavour UTF8String]) : NULL;
 		const char *queryID = result ? xmlnode_get_attrib(result, "queryid") : NULL;
 		NSString *key = queryID ? [NSString stringWithUTF8String:queryID] : nil;
 		NSMutableArray *arrived = key ? [gathering objectForKey:key] : nil;
@@ -274,7 +284,8 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	}
 
 	if (purple_strequal(name, "iq")) {
-		xmlnode *fin = xmlnode_get_child_with_namespace(packet, "fin", NS_MAM);
+		xmlnode *fin = flavour ? xmlnode_get_child_with_namespace(packet, "fin",
+																  [flavour UTF8String]) : NULL;
 		xmlnode *query = xmlnode_get_child_with_namespace(packet, "query", NS_DISCO_INFO);
 
 		/* An error ends the query as surely as a <fin/> does, and leaving it unanswered would
@@ -284,9 +295,22 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 			NSString *key = iqid ? [NSString stringWithUTF8String:iqid] : nil;
 
 			if (key && [gathering objectForKey:key]) {
-				AILogWithSignature(@"%@: the archive refused the query", account);
+				AIChat *asking = [chats objectForKey:key];
+
+				AILogWithSignature(@"%@: the archive refused a %@ query", account, flavour);
 				[gathering removeObjectForKey:key];
 				[chats removeObjectForKey:key];
+
+				/* A server that offers several and fails on one of them still has the others,
+				 * and the failure says nothing about whether it holds the conversation. */
+				if ([untried count] && asking) {
+					flavour = [untried objectAtIndex:0];
+					[untried removeObjectAtIndex:0];
+					AILogWithSignature(@"%@: trying %@ instead", account, flavour);
+					[self askAbout:asking];
+				} else {
+					available = NO;
+				}
 				return YES;
 			}
 		}
@@ -309,12 +333,25 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 				 feature = xmlnode_get_next_twin(feature)) {
 				const char *var = xmlnode_get_attrib(feature, "var");
 
-				if (purple_strequal(var, NS_MAM)) {
-					available = YES;
-					AILogWithSignature(@"%@: the server keeps an archive", account);
-					break;
+				NSString *offered = var ? [NSString stringWithUTF8String:var] : nil;
+
+				for (int i = 0; kFlavours[i]; i++) {
+					if ([kFlavours[i] isEqualToString:offered] && ![untried containsObject:offered])
+						[untried addObject:offered];
 				}
 			}
+			if ([untried count]) {
+				/* Newest first, and the rest kept for when one of them turns out to be the
+				 * one this server cannot answer. */
+				[untried sortUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
+					return [b compare:a];
+				}];
+				flavour = [untried objectAtIndex:0];
+				[untried removeObjectAtIndex:0];
+				available = YES;
+				AILogWithSignature(@"%@: the server keeps an archive (%@)", account, flavour);
+			}
+
 			/* Not consumed: a disco answer is nobody's private business, and other parts of
 			 * Adium read the same one. */
 			return NO;

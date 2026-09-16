@@ -161,6 +161,54 @@ static void ui_init(void)
 
 static PurpleCoreUiOps core_ops = { NULL, NULL, ui_init, NULL, NULL, NULL, NULL, NULL };
 
+/*! Genau die Archivabfrage, die Adium stellt, damit sich pruefen laesst, ob sie es ist oder
+    der Server. Gegen ein Prosody mit mod_mam muss darauf eine Antwort kommen. */
+static gboolean ask_the_archive(gpointer data)
+{
+	PurpleConnection *gc = purple_account_get_connection(theAccount);
+	JabberStream *js = gc ? purple_connection_get_protocol_data(gc) : NULL;
+	xmlnode *iq, *query, *x, *field, *value, *set, *max;
+
+	if (js == NULL)
+		return FALSE;
+
+	printf("\n== asking the archive\n");
+	fflush(stdout);
+
+	iq = xmlnode_new("iq");
+	xmlnode_set_attrib(iq, "type", "set");
+	xmlnode_set_attrib(iq, "to", "adium@localhost");
+	xmlnode_set_attrib(iq, "id", "smwire-mam-1");
+
+	query = xmlnode_new_child(iq, "query");
+	xmlnode_set_namespace(query, "urn:xmpp:mam:2");
+	xmlnode_set_attrib(query, "queryid", "smwire-mam-1");
+
+	x = xmlnode_new_child(query, "x");
+	xmlnode_set_namespace(x, "jabber:x:data");
+	xmlnode_set_attrib(x, "type", "submit");
+	field = xmlnode_new_child(x, "field");
+	xmlnode_set_attrib(field, "var", "FORM_TYPE");
+	xmlnode_set_attrib(field, "type", "hidden");
+	value = xmlnode_new_child(field, "value");
+	xmlnode_insert_data(value, "urn:xmpp:mam:2", -1);
+	field = xmlnode_new_child(x, "field");
+	xmlnode_set_attrib(field, "var", "with");
+	value = xmlnode_new_child(field, "value");
+	xmlnode_insert_data(value, "peer@localhost", -1);
+
+	set = xmlnode_new_child(query, "set");
+	xmlnode_set_namespace(set, "http://jabber.org/protocol/rsm");
+	max = xmlnode_new_child(set, "max");
+	xmlnode_insert_data(max, "25", -1);
+	xmlnode_new_child(set, "before");
+
+	jabber_send(js, iq);
+	xmlnode_free(iq);
+
+	return FALSE;
+}
+
 static gboolean time_is_up(gpointer data)
 {
 	printf("\n== %d seconds are up\n", seconds);
@@ -222,6 +270,8 @@ int main(int argc, char *argv[])
 	loop = g_main_loop_new(NULL, FALSE);
 	if (dropAfter > 0)
 		g_timeout_add_seconds(dropAfter, pull_the_plug, NULL);
+	if (getenv("SMWIRE_ASK_ARCHIVE"))
+		g_timeout_add_seconds(4, ask_the_archive, NULL);
 	g_timeout_add_seconds(seconds, time_is_up, loop);
 	g_main_loop_run(loop);
 

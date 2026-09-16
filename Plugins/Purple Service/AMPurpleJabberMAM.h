@@ -33,6 +33,8 @@
 @interface AMPurpleJabberMAM : NSObject {
 	ESPurpleJabberAccount	*account;
 	BOOL					 available;
+	NSString				*flavour;	//which urn:xmpp:mam the server and we have settled on
+	NSMutableArray			*untried;	//older ones to fall back to when a query goes wrong
 	NSUInteger				 counter;
 
 	NSMutableDictionary		*gathering;	//query id -> the messages arrived under it so far
