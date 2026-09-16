@@ -46,6 +46,8 @@ gboolean jabber_is_stanza(xmlnode *node)
 static int sent = 0;
 static char *lastName = NULL;
 static char *lastResume = NULL;
+static char *lastPrevid = NULL;
+static char *lastH = NULL;
 
 void jabber_send(JabberStream *js, xmlnode *packet)
 {
@@ -54,8 +56,27 @@ void jabber_send(JabberStream *js, xmlnode *packet)
 	sent++;
 	g_free(lastName);
 	g_free(lastResume);
+	g_free(lastPrevid);
+	g_free(lastH);
 	lastName = g_strdup(packet->name);
 	lastResume = g_strdup(resume);
+	lastPrevid = g_strdup(xmlnode_get_attrib(packet, "previd"));
+	lastH = g_strdup(xmlnode_get_attrib(packet, "h"));
+}
+
+static int bindsAsked = 0;
+static int statesSet = 0;
+
+/* Die beiden Wege zurueck nach jabber.c, die stream_management.c seit der Wiederaufnahme geht. */
+void jabber_bind_resource(JabberStream *js)
+{
+	bindsAsked++;
+}
+
+void jabber_stream_set_state(JabberStream *js, JabberStreamState state)
+{
+	statesSet++;
+	js->state = state;
 }
 
 #include "stream_management.c"
@@ -187,6 +208,68 @@ int main(void)
 	check("Eine neue Zusage ueberschreibt die alte Kennung",
 	      purple_strequal(jabber_sm_session_get(a)->id, "second"),
 	      jabber_sm_session_get(a)->id);
+
+	/* --- Was aus einem <resume/> wird --------------------------------------------------- */
+
+	/* Ohne Zusage gibt es nichts zu erbitten, und der Aufrufer muss binden wie immer. */
+	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3'/>");
+	check("Ohne Zusage wird nicht um Wiederaufnahme gebeten",
+	      jabber_sm_resume(a) == FALSE, NULL);
+
+	/* Mit Zusage steht die Bitte auf dem Draht, und sie nennt beides: worum es geht und wie
+	   viel wir empfangen haben. Die zweite Zahl entscheidet, was die Gegenseite nachsendet. */
+	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='sess-1' resume='true' max='60'/>");
+	jabber_sm_session_get(a)->inbound_count = 42;
+	check("Mit Zusage wird um Wiederaufnahme gebeten", jabber_sm_resume(a) == TRUE, NULL);
+	check("Die Bitte nennt die Sitzung und den Empfangsstand",
+	      purple_strequal(lastName, "resume")
+	      && purple_strequal(lastPrevid, "sess-1")
+	      && purple_strequal(lastH, "42"),
+	      lastPrevid ? lastPrevid : "kein previd");
+
+	/* Eine abgelehnte Wiederaufnahme darf nicht haengenbleiben: sie muss binden. Und sie darf
+	   die unbestaetigten Stanzas NICHT wegwerfen, denn unbestaetigt heisst nie zugestellt. */
+	g_queue_push_tail(jabber_sm_session_get(a)->queue, aMessage());
+	bindsAsked = 0;
+	enabledArrives(a, "<failed xmlns='urn:xmpp:sm:3'><item-not-found/></failed>");
+	check("Eine Absage bindet danach doch", bindsAsked == 1, NULL);
+	check("Eine Absage laesst nichts zum Wiederaufnehmen zurueck",
+	      jabber_sm_session_get(a)->id == NULL, NULL);
+	check("Eine Absage behaelt aber, was noch unbestaetigt ist",
+	      g_queue_get_length(jabber_sm_session_get(a)->queue) == 1, NULL);
+
+	/* Eine Absage auf ein <enable/>, also nicht auf ein <resume/>, ist etwas anderes: dort
+	   gibt es ueberhaupt keine Sitzung, und die Warteschlange hat keinen Besitzer mehr. */
+	a->sm_state = SM_REQUESTED;
+	bindsAsked = 0;
+	enabledArrives(a, "<failed xmlns='urn:xmpp:sm:3'/>");
+	check("Eine Absage auf das Einschalten bindet nicht", bindsAsked == 0, NULL);
+	check("und wirft die Sitzung ganz weg",
+	      g_queue_get_length(jabber_sm_session_get(a)->queue) == 0, NULL);
+
+	/* Und die Wiederaufnahme selbst: die Zaehler sind wieder die der alten Sitzung, die
+	   Adresse ist die alte, und der Strom gilt als verbunden, ohne dass etwas gebunden wurde. */
+	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='sess-2' resume='true'/>");
+	JabberSmSession *back = jabber_sm_session_get(a);
+	back->inbound_count = 7;
+	back->outbound_count = 9;
+	back->outbound_confirmed = 4;
+	g_free(back->full_jid);
+	back->full_jid = g_strdup("adium@localhost/old-one");
+	a->sm_inbound_count = 0;
+	a->sm_outbound_count = 0;
+	bindsAsked = 0;
+	statesSet = 0;
+	enabledArrives(a, "<resumed xmlns='urn:xmpp:sm:3' h='9' previd='sess-2'/>");
+	check("Die Wiederaufnahme bindet nichts", bindsAsked == 0, NULL);
+	check("Die Zaehler sind wieder die der alten Sitzung",
+	      a->sm_inbound_count == 7 && a->sm_outbound_count == 9, NULL);
+	check("Die alte Ressource ist wieder unsere",
+	      purple_strequal(a->user->resource, "old-one"),
+	      a->user->resource ? a->user->resource : "keine");
+	check("Der Strom gilt danach als verbunden",
+	      statesSet == 1 && a->state == JABBER_STREAM_CONNECTED, NULL);
+	check("Und er weiss, dass er wiederaufgenommen wurde", a->sm_resumed == TRUE, NULL);
 
 	jabber_sm_uninit();
 

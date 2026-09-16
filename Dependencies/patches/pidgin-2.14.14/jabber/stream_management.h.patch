@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.h
 +++ b/libpurple/protocols/jabber/stream_management.h
-@@ -25,6 +25,52 @@
+@@ -25,6 +25,61 @@
  #ifndef PURPLE_JABBER_STREAM_MANAGEMENT_H
  #define PURPLE_JABBER_STREAM_MANAGEMENT_H
  
@@ -38,8 +38,17 @@
 +/** The session for this stream's account, created on first use. Never NULL. */
 +JabberSmSession *jabber_sm_session_get(JabberStream *js);
 +
-+/** Throw the session away, after a resumption the server refused or a deliberate sign off. */
++/** Throw the session away entirely, queue and all, after a deliberate sign off. */
 +void jabber_sm_session_forget(JabberStream *js);
++
++/**
++ * Forget that the session could be resumed, but keep what it was still carrying.
++ *
++ * For a resumption the server refused. There is no session to come back to any more, so the id
++ * and the counters go, but the stanzas it never acknowledged were never delivered either and
++ * have to go out again on whatever session comes next.
++ */
++void jabber_sm_session_reset(JabberStream *js);
 +
 +/**
 + * Ask for the previous session back, in place of binding a new resource.

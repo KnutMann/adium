@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.c
 +++ b/libpurple/protocols/jabber/stream_management.c
-@@ -36,33 +36,64 @@
+@@ -36,33 +36,84 @@
  GHashTable *jabber_sm_accounts;
  
  static void
@@ -63,6 +63,26 @@
  }
  
  void
++jabber_sm_session_reset(JabberStream *js)
++{
++	JabberSmSession *session = jabber_sm_session_get(js);
++
++	g_free(session->id);
++	g_free(session->location);
++	g_free(session->full_jid);
++	session->id = NULL;
++	session->location = NULL;
++	session->full_jid = NULL;
++	session->max = 0;
++	session->inbound_count = 0;
++	session->outbound_count = 0;
++	session->outbound_confirmed = 0;
++
++	/* The queue deliberately stays. Those stanzas were sent and never acknowledged, which
++	   means they were never delivered; whatever session comes next has to carry them. */
++}
++
++void
 +jabber_sm_session_forget(JabberStream *js)
 +{
 +	g_hash_table_remove(jabber_sm_accounts, purple_connection_get_account(js->gc));
@@ -80,7 +100,7 @@
  }
  
  void
-@@ -71,21 +102,148 @@
+@@ -71,21 +122,148 @@
  	g_hash_table_destroy(jabber_sm_accounts);
  }
  
@@ -223,7 +243,7 @@
 +			   session is enabled. */
 +			purple_debug_info("XEP-0198",
 +			                  "The server would not give the session back; binding instead\n");
-+			jabber_sm_session_forget(js);
++			jabber_sm_session_reset(js);
 +			js->sm_state = SM_DISABLED;
 +			jabber_bind_resource(js);
 +		} else {
@@ -236,7 +256,7 @@
  	} else if (purple_strequal(name, "r")) {
  		jabber_sm_ack_send(js);
  	} else if (purple_strequal(name, "a")) {
-@@ -130,7 +288,7 @@
+@@ -130,7 +308,7 @@
  	h = strtoul(ack_h, NULL, 10);
  
  	/* Remove stanzas from the queue */
@@ -245,7 +265,7 @@
  	for (i = js->sm_outbound_confirmed; i < h; i++) {
  		stanza = g_queue_pop_head(queue);
  		if (stanza == NULL) {
-@@ -141,6 +299,7 @@
+@@ -141,6 +319,7 @@
  	}
  
  	js->sm_outbound_confirmed = h;
@@ -253,7 +273,7 @@
  	purple_debug_info("XEP-0198",
  	                  "Acknowledged %u out of %u outbound stanzas\n",
  	                  js->sm_outbound_confirmed, js->sm_outbound_count);
-@@ -160,6 +319,10 @@
+@@ -160,6 +339,10 @@
  	purple_debug_info("XEP-0198", "Enabling stream management\n");
  	enable = xmlnode_new("enable");
  	xmlnode_set_namespace(enable, NS_STREAM_MANAGEMENT);
@@ -264,7 +284,7 @@
  	jabber_send(js, enable);
  	xmlnode_free(enable);
  	js->sm_outbound_count = 0;
-@@ -167,7 +330,7 @@
+@@ -167,7 +350,7 @@
  	js->sm_state = SM_REQUESTED;
  
  	/* Resend unacknowledged stanzas from the queue. */
@@ -273,7 +293,7 @@
  	queue_len = g_queue_get_length(queue);
  	if (queue_len > 0) {
  		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
-@@ -192,7 +355,7 @@
+@@ -192,7 +375,7 @@
  		/* Add this stanza to the queue, unless the queue is full. */
  		xmlnode *stanza;
  		xmlnode *req;
@@ -282,7 +302,7 @@
  		if (g_queue_get_length(queue) < MAX_QUEUE_LENGTH) {
  			stanza = xmlnode_copy(packet);
  			g_queue_push_tail(queue, stanza);
-@@ -219,6 +382,7 @@
+@@ -219,6 +402,7 @@
  
  		/* Count the stanza */
  		js->sm_outbound_count++;
@@ -290,7 +310,7 @@
  
  		/* Requesting acknowledgements with either SM_REQUESTED or
  		   SM_ENABLED state as well, so that it would be harder to lose
-@@ -238,5 +402,8 @@
+@@ -238,5 +422,8 @@
  	   packets. */
  	if (jabber_is_stanza(packet)) {
  		js->sm_inbound_count++;
