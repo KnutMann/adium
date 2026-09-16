@@ -309,7 +309,14 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 					AILogWithSignature(@"%@: trying %@ instead", account, flavour);
 					[self askAbout:asking];
 				} else {
+					/* Nothing left to try. The window is waiting for history that is not
+					 * coming, and it has no other way of finding that out than the deadline
+					 * it would otherwise sit through for nothing. */
 					available = NO;
+					if (asking) {
+						[[NSNotificationCenter defaultCenter] postNotificationName:Chat_HistoryUnavailable
+																			object:asking];
+					}
 				}
 				return YES;
 			}

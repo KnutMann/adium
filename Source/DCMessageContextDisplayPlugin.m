@@ -58,6 +58,7 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 - (void)addContextDisplayToWindow:(NSNotification *)notification;
 - (void)displayContextForChat:(AIChat *)chat;
 - (void)historyDeadlineForChat:(AIChat *)chat;
+- (void)historyUnavailableForChat:(NSNotification *)notification;
 - (void)contentArrivedInChat:(NSNotification *)notification;
 + (DCMessageContextDisplayPlugin *)sharedInstance;
 @end
@@ -89,6 +90,10 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	formatter = [[ISO8601DateFormatter alloc] init];
 
 	chatsAwaitingHistory = [[NSMutableSet alloc] init];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(historyUnavailableForChat:)
+												 name:Chat_HistoryUnavailable
+											   object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(contentArrivedInChat:)
 												 name:Content_ContentObjectAdded
@@ -185,6 +190,24 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 												 selector:@selector(historyDeadlineForChat:)
 												   object:chat];
 	}
+}
+
+/*!
+ * @brief The account knows the history is not coming, so there is nothing left to wait for
+ *
+ * A refusal is as final as an answer and arrives long before the deadline. Sitting out the rest
+ * of the wait after one would leave the window empty for no reason at all.
+ */
+- (void)historyUnavailableForChat:(NSNotification *)notification
+{
+	AIChat *chat = (AIChat *)[notification object];
+
+	if (!chat || ![chatsAwaitingHistory containsObject:chat]) return;
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(historyDeadlineForChat:)
+											   object:chat];
+	[self historyDeadlineForChat:chat];
 }
 
 /*!
