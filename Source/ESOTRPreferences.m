@@ -1027,7 +1027,20 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 		NSDictionary	*fingerprintDict = [fingerprintDictArray objectAtIndex:rowIndex];
 
 		if ([identifier isEqualToString:@"UID"]) {
-			return [fingerprintDict objectForKey:@"UID"];
+			NSString *who = [fingerprintDict objectForKey:@"UID"];
+
+			/* One person can have several devices, and two rows carrying the same name and the
+			 * same decision are otherwise the same row twice as far as anybody can tell. The
+			 * start of the fingerprint tells them apart, and it is the part that gets compared
+			 * out loud first anyway. */
+			if (AIRowIsOMEMO(fingerprintDict)) {
+				NSString *print = [fingerprintDict objectForKey:@"FingerprintString"];
+
+				if ([print length] >= 8)
+					return [NSString stringWithFormat:@"%@  %@\u2026", who, [print substringToIndex:8]];
+			}
+
+			return who;
 
 		} else if ([identifier isEqualToString:@"Method"]) {
 			return [fingerprintDict objectForKey:@"Method"];
