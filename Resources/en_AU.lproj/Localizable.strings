@@ -968,6 +968,7 @@
 "Connect All Accounts" = "Connect All Accounts";
 
 /* Event: connected (follows a contact's name displayed as a header) */
+"Connect Temporary IRC Account" = "Connect Temporary IRC Account";
 "connected" = "connected";
 
 /* No comment provided by engineer. */
@@ -3241,6 +3242,7 @@
 "You have an unread message." = "You have an unread message.";
 
 /* You said Message to Contact */
+"You need to create a new IRC account to connect to irc://%@%@/%@:" = "You need to create a new IRC account to connect to irc://%1$@%2$@/%3$@:";
 "You said %@ to %@" = "You said %1$@ to %2$@";
 
 /* You sent a message to Contact */
