@@ -58,7 +58,10 @@ def main():
     added = skipped = 0
     for key in sorted(additions, key=str.lower):
         present = [(i, m.group(1)) for i, m in ((i, ENTRY.match(l)) for i, l in enumerate(lines)) if m]
-        if any(k == key for _, k in present):
+        # The file holds keys escaped; the JSON holds them as they are at runtime. Comparing the
+        # two forms directly would miss a key containing a newline or a quote and add it a second
+        # time, leaving a duplicate that only the second reader of the file ever notices.
+        if any(k == escape(key) for _, k in present):
             skipped += 1
             continue
         position = next((i for i, k in present if k.lower() > key.lower()), len(lines))
