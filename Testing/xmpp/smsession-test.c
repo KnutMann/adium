@@ -331,9 +331,27 @@ int main(void)
 	check("Ohne Stream Management schreibt die Sonde nichts", lastName == NULL, lastName);
 
 	counting->sm_state = SM_ENABLED;
+	timersArmed = 0;
 	jabber_sm_probe(counting);
 	check("Mit Stream Management fragt sie sofort nach",
 	      purple_strequal(lastName, "r"), lastName);
+	check("Und wartet nicht ewig auf Antwort", counting->sm_probe_timer != 0, NULL);
+
+	/* Eine zweite Sonde, waehrend die erste noch wartet, wuerde nur deren Geduld verkuerzen. */
+	g_free(lastName);
+	lastName = NULL;
+	jabber_sm_probe(counting);
+	check("Eine zweite Sonde waehrend der ersten unterbleibt", lastName == NULL, lastName);
+
+	/* Irgendeine Quittung heisst: da ist jemand und er liest uns. */
+	enabledArrives(counting, "<a xmlns='urn:xmpp:sm:3' h='0'/>");
+	check("Eine Quittung beendet das Warten", counting->sm_probe_timer == 0, NULL);
+
+	/* Und beim Schliessen darf auch diese nicht stehenbleiben. */
+	jabber_sm_probe(counting);
+	jabber_sm_stream_closing(counting);
+	check("Beim Schliessen wird auch die Sonde abgeraeumt",
+	      counting->sm_probe_timer == 0, NULL);
 
 	jabber_sm_uninit();
 

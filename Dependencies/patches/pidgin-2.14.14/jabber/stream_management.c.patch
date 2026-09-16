@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.c
 +++ b/libpurple/protocols/jabber/stream_management.c
-@@ -33,36 +33,102 @@
+@@ -33,36 +33,111 @@
  
  #define MAX_QUEUE_LENGTH 10000
  
@@ -18,6 +18,15 @@
 +   second time although the server had them. */
 +#define REQUEST_AFTER_STANZAS 5
 +#define REQUEST_AFTER_SECONDS 2
++
++/* How long a probe may go unanswered before the connection is called lost.
++ *
++ * A write alone does not settle it. A socket whose other end has gone without saying so accepts
++ * what is written into the kernel's buffer and reports nothing; only the retransmissions run
++ * out, minutes later. What does settle it is the silence: a server that is there answers an
++ * <r/> in well under a second, so ten is generous and still an age next to the fifty-nine
++ * seconds this was measured costing. */
++#define PROBE_TIMEOUT_SECONDS 10
 +
  GHashTable *jabber_sm_accounts;
  
@@ -118,7 +127,7 @@
  }
  
  void
-@@ -71,21 +137,148 @@
+@@ -71,21 +146,148 @@
  	g_hash_table_destroy(jabber_sm_accounts);
  }
  
@@ -274,7 +283,7 @@
  	} else if (purple_strequal(name, "r")) {
  		jabber_sm_ack_send(js);
  	} else if (purple_strequal(name, "a")) {
-@@ -95,6 +288,68 @@
+@@ -95,6 +297,96 @@
  	}
  }
  
@@ -319,14 +328,38 @@
 + * An <r/> is the right write: it is two dozen bytes, and after an interruption "how much did you
 + * receive" is a question genuinely worth asking rather than a poke.
 + */
++static gboolean
++jabber_sm_probe_unanswered(gpointer data)
++{
++	JabberStream *js = data;
++
++	js->sm_probe_timer = 0;
++
++	purple_debug_info("XEP-0198",
++	                  "Nothing answered in %d seconds, so the connection is gone\n",
++	                  PROBE_TIMEOUT_SECONDS);
++	purple_connection_error_reason(js->gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR,
++	                               _("Lost connection with server"));
++
++	return FALSE;
++}
++
 +void
 +jabber_sm_probe(JabberStream *js)
 +{
 +	if (js->sm_state != SM_ENABLED)
 +		return;
 +
++	/* One at a time: a second probe while the first is still waiting would only shorten the
++	   patience of the first. */
++	if (js->sm_probe_timer != 0)
++		return;
++
 +	purple_debug_info("XEP-0198", "Asking whether the stream is still there\n");
 +	jabber_sm_request_ack(js);
++
++	js->sm_probe_timer = purple_timeout_add_seconds(PROBE_TIMEOUT_SECONDS,
++	                                                jabber_sm_probe_unanswered, js);
 +}
 +
 +/* Called when the stream is going away, because the timer would otherwise fire into a stream
@@ -338,21 +371,33 @@
 +		purple_timeout_remove(js->sm_request_timer);
 +		js->sm_request_timer = 0;
 +	}
++	if (js->sm_probe_timer != 0) {
++		purple_timeout_remove(js->sm_probe_timer);
++		js->sm_probe_timer = 0;
++	}
 +}
 +
  /* Sends an acknowledgement. */
  void
  jabber_sm_ack_send(JabberStream *js)
-@@ -130,7 +385,7 @@
+@@ -129,8 +421,15 @@
+ 	}
  	h = strtoul(ack_h, NULL, 10);
  
++	/* Any answer at all is the answer the probe was waiting for: something is at the other end
++	   and it is reading us. */
++	if (js->sm_probe_timer != 0) {
++		purple_timeout_remove(js->sm_probe_timer);
++		js->sm_probe_timer = 0;
++	}
++
  	/* Remove stanzas from the queue */
 -	queue = jabber_sm_accounts_queue_get(js);
 +	queue = jabber_sm_session_get(js)->queue;
  	for (i = js->sm_outbound_confirmed; i < h; i++) {
  		stanza = g_queue_pop_head(queue);
  		if (stanza == NULL) {
-@@ -141,6 +396,7 @@
+@@ -141,6 +440,7 @@
  	}
  
  	js->sm_outbound_confirmed = h;
@@ -360,7 +405,7 @@
  	purple_debug_info("XEP-0198",
  	                  "Acknowledged %u out of %u outbound stanzas\n",
  	                  js->sm_outbound_confirmed, js->sm_outbound_count);
-@@ -160,6 +416,10 @@
+@@ -160,6 +460,10 @@
  	purple_debug_info("XEP-0198", "Enabling stream management\n");
  	enable = xmlnode_new("enable");
  	xmlnode_set_namespace(enable, NS_STREAM_MANAGEMENT);
@@ -371,7 +416,7 @@
  	jabber_send(js, enable);
  	xmlnode_free(enable);
  	js->sm_outbound_count = 0;
-@@ -167,7 +427,7 @@
+@@ -167,7 +471,7 @@
  	js->sm_state = SM_REQUESTED;
  
  	/* Resend unacknowledged stanzas from the queue. */
@@ -380,7 +425,7 @@
  	queue_len = g_queue_get_length(queue);
  	if (queue_len > 0) {
  		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
-@@ -191,8 +451,7 @@
+@@ -191,8 +495,7 @@
  
  		/* Add this stanza to the queue, unless the queue is full. */
  		xmlnode *stanza;
@@ -390,7 +435,7 @@
  		if (g_queue_get_length(queue) < MAX_QUEUE_LENGTH) {
  			stanza = xmlnode_copy(packet);
  			g_queue_push_tail(queue, stanza);
-@@ -219,14 +478,21 @@
+@@ -219,14 +522,21 @@
  
  		/* Count the stanza */
  		js->sm_outbound_count++;
@@ -419,7 +464,7 @@
  	}
  }
  
-@@ -238,5 +504,8 @@
+@@ -238,5 +548,8 @@
  	   packets. */
  	if (jabber_is_stanza(packet)) {
  		js->sm_inbound_count++;

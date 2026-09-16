@@ -22,7 +22,7 @@
  } JabberStreamManagementState;
  
  struct _JabberStream
-@@ -297,6 +303,16 @@
+@@ -297,6 +303,20 @@
  	guint32 sm_inbound_count;
  	guint32 sm_outbound_confirmed;
  	JabberStreamManagementState sm_state;
@@ -36,10 +36,14 @@
 +	   anyway when no more arrive. */
 +	guint32 sm_unrequested;
 +	guint sm_request_timer;
++
++	/* A probe sent after a network interruption, and the timer that decides the connection is
++	   gone when nothing answers it. */
++	guint sm_probe_timer;
  };
  
  typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);
-@@ -332,6 +348,7 @@
+@@ -332,6 +352,7 @@
  gboolean jabber_is_stanza(xmlnode *packet);
  
  void jabber_stream_features_parse(JabberStream *js, xmlnode *packet);

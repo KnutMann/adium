@@ -313,6 +313,10 @@ struct _JabberStream
 	   anyway when no more arrive. */
 	guint32 sm_unrequested;
 	guint sm_request_timer;
+
+	/* A probe sent after a network interruption, and the timer that decides the connection is
+	   gone when nothing answers it. */
+	guint sm_probe_timer;
 };
 
 typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);
