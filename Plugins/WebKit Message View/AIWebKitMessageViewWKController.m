@@ -673,7 +673,7 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
 }
 
 /*!
- * @brief Reveal a received file in Finder - never open it
+ * @brief Reveal a received file in Finder - never hand it to a handler
  *
  * file: stays off the open-externally list on purpose (see above): a click in
  * the transcript must never invoke a document or URL-scheme handler. But the
@@ -692,30 +692,30 @@ static BOOL AIWebKitSchemeIsSafeToOpenExternally(NSString *scheme)
  * gets the identical treatment; the worst it can achieve is selecting an
  * existing file in a folder received files live in.
  */
-static void AIWebKitRevealReceivedFileURL(NSURL *url)
+/*!
+ * @brief The true path behind a link, but only if it lies inside one of these folders
+ *
+ * The href carries no authority. The path is canonicalized through realpath(3) - every symlink
+ * and ".." resolved, nonexistent paths fail - and every root is pushed through realpath as well,
+ * because /var is a symlink to /private/var and a prefix test against the unresolved name would
+ * match nothing. A forged link, whether from a message, a restyled %message% or a JavaScript
+ * xtra, gets the identical treatment; nil is the answer for everything that does not resolve to
+ * an existing file strictly inside one of the roots.
+ */
+static NSString *AIWebKitResolvedPathInside(NSURL *url, NSArray<NSString *> *roots)
 {
-	if (![url isFileURL]) return;
-	if (url.host.length > 0 && ![url.host isEqualToString:@"localhost"]) return;
-	if (url.path.length == 0) return;
+	if (![url isFileURL]) return nil;
+	if (url.host.length > 0 && ![url.host isEqualToString:@"localhost"]) return nil;
+	if (url.path.length == 0) return nil;
 
 	char resolvedC[PATH_MAX];
-	if (!realpath(url.path.fileSystemRepresentation, resolvedC)) return;
+	if (!realpath(url.path.fileSystemRepresentation, resolvedC)) return nil;
 
 	NSFileManager	*fm = [NSFileManager defaultManager];
 	NSString		*resolved = [fm stringWithFileSystemRepresentation:resolvedC length:strlen(resolvedC)];
 
 	BOOL isDirectory = NO;
-	if (![fm fileExistsAtPath:resolved isDirectory:&isDirectory] || isDirectory) return;
-
-	BOOL contained = NO;
-	NSArray<NSString *> *roots = [NSArray arrayWithObjects:
-		([NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject] ?: @""),
-		(NSTemporaryDirectory() ?: @""),
-		/* Pictures and voice notes fetched out of a conversation are kept here, and a click on
-		 * one is the ordinary way to reach the file. Our own folder, so it belongs beside the
-		 * temporary directory rather than being a widening of what may be shown. */
-		([[adium cachesPath] stringByAppendingPathComponent:@"Inline Media"] ?: @""),
-		nil];
+	if (![fm fileExistsAtPath:resolved isDirectory:&isDirectory] || isDirectory) return nil;
 
 	for (NSString *root in roots) {
 		if (!root.length) continue;
@@ -726,10 +726,69 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		NSString *prefix = [[fm stringWithFileSystemRepresentation:rootC length:strlen(rootC)]
 							stringByAppendingString:@"/"];
 
-		if ([resolved hasPrefix:prefix]) { contained = YES; break; }
+		if ([resolved hasPrefix:prefix]) return resolved;
 	}
 
-	if (!contained) {
+	return nil;
+}
+
+/*! Where a picture or voice note fetched out of a conversation is kept */
+static NSString *AIWebKitInlineMediaFolder(void)
+{
+	return [[adium cachesPath] stringByAppendingPathComponent:@"Inline Media"];
+}
+
+/*!
+ * @brief Show a received picture in Preview
+ *
+ * A picture embedded in the transcript is a picture, and the thing to do with one is look at it
+ * larger. Neither of the two answers already here is that: the browser is where the address led
+ * before this existed, and Finder shows the file rather than the picture.
+ *
+ * This does not loosen the rule that a click in the transcript never invokes a handler. No
+ * handler is consulted: Preview is asked for by name, so what opens is that one application and
+ * not whatever happens to be registered for the extension. The file must lie inside our own
+ * Inline Media folder, and it must decode as an image, which is a question about what is in the
+ * file and not about what it is called.
+ *
+ * Returns NO when any of that does not hold, so the caller can fall back to revealing it.
+ */
+static BOOL AIWebKitShowPictureInPreview(NSURL *url)
+{
+	NSString *resolved = AIWebKitResolvedPathInside(url, [NSArray arrayWithObject:
+														  (AIWebKitInlineMediaFolder() ?: @"")]);
+	if (!resolved) return NO;
+
+	if (![[NSImage alloc] initWithContentsOfFile:resolved]) return NO;
+
+	NSURL *preview = [[NSWorkspace sharedWorkspace]
+					  URLForApplicationWithBundleIdentifier:@"com.apple.Preview"];
+	if (!preview) return NO;
+
+	[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:[NSURL fileURLWithPath:resolved]]
+					   withApplicationAtURL:preview
+							  configuration:[NSWorkspaceOpenConfiguration configuration]
+						  completionHandler:^(NSRunningApplication *app, NSError *error) {
+		if (error)
+			AILogWithSignature(@"could not show %@ in Preview: %@", [resolved lastPathComponent], error);
+	}];
+
+	return YES;
+}
+
+static void AIWebKitRevealReceivedFileURL(NSURL *url)
+{
+	NSArray<NSString *> *roots = [NSArray arrayWithObjects:
+		([NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject] ?: @""),
+		(NSTemporaryDirectory() ?: @""),
+		/* A file fetched out of a conversation that is not a picture, or is one Preview will not
+		 * take, is still a file the user genuinely received. */
+		(AIWebKitInlineMediaFolder() ?: @""),
+		nil];
+
+	NSString *resolved = AIWebKitResolvedPathInside(url, roots);
+
+	if (!resolved) {
 		AILogWithSignature(@"Refusing to reveal file outside received-file roots: %@", url);
 		return;
 	}
@@ -768,7 +827,9 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		[[NSWorkspace sharedWorkspace] openURL:url];
 	} else if (url && [url isFileURL] &&
 			   navigationAction.navigationType == WKNavigationTypeLinkActivated) {
-		AIWebKitRevealReceivedFileURL(url);
+		/* A picture opens in Preview, anything else is shown in Finder */
+		if (!AIWebKitShowPictureInPreview(url))
+			AIWebKitRevealReceivedFileURL(url);
 	}
 	decisionHandler(WKNavigationActionPolicyCancel);
 }
@@ -2336,9 +2397,9 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		/* A picture is wrapped in a link to the copy on this disk, never to the address it
 		 * arrived as. Following the address opens a browser, which for an aesgcm link cannot
 		 * show anything at all and for a plain one fetches a second time what is already here.
-		 * The local link goes through the same door a received file goes through: it is never
-		 * opened, only shown in Finder. A player must not be wrapped at all, or every attempt
-		 * to press pause would follow the link instead. */
+		 * A click on the local link opens the picture in Preview, which is what one wants from a
+		 * picture and is neither a browser nor a folder. A player must not be wrapped at all, or
+		 * every attempt to press pause would follow the link instead. */
 		@"  if(!playable){ var w=document.createElement('a'); w.href=src;"
 		@"                 w.appendChild(el); msgs[i].appendChild(w); }"
 		@"  else { msgs[i].appendChild(el); }"
