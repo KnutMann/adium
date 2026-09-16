@@ -32,9 +32,27 @@
  */
 #define NETWORK_SETTLE_DELAY 2.0
 
+/* How long a network may be gone before the accounts on it are told.
+ *
+ * Acting the moment reachability turns false is what costs an XMPP session. The server will
+ * hold one for minutes after the connection breaks, and coming back to it means keeping the
+ * room memberships, the presence everyone else sees, and whatever was in flight. But that only
+ * works if the connection dies of its own accord: a clean disconnect sends a closing tag, and
+ * a closing tag destroys the session at once, whatever the server had promised.
+ *
+ * So a network that goes away is given a moment to come back. Long enough to cover changing
+ * wireless networks or a VPN being switched, short enough that a real outage is still reported
+ * while the person is looking at the screen.
+ *
+ * Sleep is deliberately not covered by this; see systemWillSleep below, which still disconnects
+ * at once because that is what somebody closing a lid expects.
+ */
+#define NETWORK_GRACE_DELAY 10.0
+
 @interface ESAccountNetworkConnectivityPlugin ()
 - (void)handleConnectivityForAccount:(AIAccount *)account reachable:(BOOL)reachable;
 - (void)connectAccountAfterNetworkSettled:(AIAccount *)account;
+- (void)disconnectAccountAfterNetworkStaysGone:(AIAccount *)account;
 - (BOOL)_accountsAreOnlineOrDisconnecting:(BOOL)considerConnecting;
 
 - (void)adiumFinishedLaunching:(NSNotification *)notification;
@@ -187,6 +205,11 @@
 				[NSObject cancelPreviousPerformRequestsWithTarget:self
 														 selector:@selector(connectAccountAfterNetworkSettled:)
 														   object:account];
+				/* And a pending disconnect likewise: a network that came back before the grace
+				 * ran out never went away as far as anybody here is concerned. */
+				[NSObject cancelPreviousPerformRequestsWithTarget:self
+														 selector:@selector(disconnectAccountAfterNetworkStaysGone:)
+														   object:account];
 
 				if (networkIsReachable) {
 					/* Not at once. Reachability turns true as soon as the interface has an address,
@@ -205,9 +228,15 @@
 							   withObject:account
 							   afterDelay:NETWORK_SETTLE_DELAY];
 				} else {
-					//Going away is acted on at once: there is nothing to wait for and the account
-					//should stop pretending it is online.
-					[self handleConnectivityForAccount:account reachable:NO];
+					/* Also not at once, and for a reason that only became one when sessions
+					 * grew able to survive a break: telling the account now means disconnecting
+					 * it cleanly, and a clean disconnect ends the session on the server for
+					 * good. A network that is merely changing gets the grace period to come
+					 * back; one that stays gone is reported when it expires.
+					 */
+					[self performSelector:@selector(disconnectAccountAfterNetworkStaysGone:)
+							   withObject:account
+							   afterDelay:NETWORK_GRACE_DELAY];
 				}
 			}
 		}
@@ -218,6 +247,17 @@
 											 selector:@selector(networkDidChange)
 											   object:nil];
 	[self performSelector:@selector(networkDidChange) withObject:nil afterDelay:1.0];
+}
+
+/*!
+ * @brief The network stayed gone, so the accounts on it are told after all
+ *
+ * Scheduled by -hostReachabilityChanged:forHost: rather than called from it. See the note there.
+ */
+- (void)disconnectAccountAfterNetworkStaysGone:(AIAccount *)account
+{
+	AILogWithSignature(@"%@: the network did not come back; disconnecting", account);
+	[self handleConnectivityForAccount:account reachable:NO];
 }
 
 /*!
@@ -285,6 +325,17 @@
 - (void)systemWillSleep:(NSNotification *)notification
 {
 	AILog(@"***** System sleeping...");
+
+	/* Any grace period the network was being given ends here. Sleeping is not a network
+	 * problem, and somebody closing a lid expects to go offline, so the accounts are
+	 * disconnected in a moment anyway; leaving the timer armed would only have it fire on
+	 * an account that is already gone. */
+	for (AIAccount *account in adium.accountController.accounts) {
+		[NSObject cancelPreviousPerformRequestsWithTarget:self
+												 selector:@selector(disconnectAccountAfterNetworkStaysGone:)
+												   object:account];
+	}
+
 	//Disconnect all online or connecting accounts
 	if ([self _accountsAreOnlineOrDisconnecting:YES]) {
 		for (AIAccount *account in adium.accountController.accounts) {
