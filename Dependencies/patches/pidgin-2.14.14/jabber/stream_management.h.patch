@@ -1,0 +1,32 @@
+--- a/libpurple/protocols/jabber/stream_management.h
++++ b/libpurple/protocols/jabber/stream_management.h
+@@ -25,6 +25,29 @@
+ #ifndef PURPLE_JABBER_STREAM_MANAGEMENT_H
+ #define PURPLE_JABBER_STREAM_MANAGEMENT_H
+ 
++/**
++ * The part of a stream that has to outlive the connection carrying it.
++ *
++ * Upstream keeps only the queue of unacknowledged stanzas, and keeps it under the bare JID.
++ * That is enough to resend after reconnecting, which is what upstream does, but it cannot tell
++ * two accounts of the same JID apart: a second account for the same address, which people do
++ * have, inherits the first one's unsent stanzas and sends them from the wrong connection.
++ *
++ * So the session belongs to the PurpleAccount instead. The JID is kept alongside it, because
++ * a freed account can leave its address to be handed out again, and a session found under a
++ * recycled pointer must be recognised as somebody else's and thrown away rather than resumed.
++ */
++typedef struct {
++	gchar  *jid;       /**< bare JID this session belongs to, the guard against a recycled account */
++	GQueue *queue;     /**< stanzas sent and not yet acknowledged, oldest first */
++} JabberSmSession;
++
++/** The session for this stream's account, created on first use. Never NULL. */
++JabberSmSession *jabber_sm_session_get(JabberStream *js);
++
++/** Throw the session away, after a resumption the server refused or a deliberate sign off. */
++void jabber_sm_session_forget(JabberStream *js);
++
+ void jabber_sm_init(void);
+ void jabber_sm_uninit(void);
+ 

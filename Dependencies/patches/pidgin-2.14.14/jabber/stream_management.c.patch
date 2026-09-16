@@ -1,0 +1,125 @@
+--- a/libpurple/protocols/jabber/stream_management.c
++++ b/libpurple/protocols/jabber/stream_management.c
+@@ -36,33 +36,61 @@
+ GHashTable *jabber_sm_accounts;
+ 
+ static void
+-jabber_sm_accounts_queue_free(gpointer q)
++jabber_sm_session_free(gpointer s)
+ {
+-	g_queue_free_full(q, (GDestroyNotify)xmlnode_free);
++	JabberSmSession *session = s;
++	g_queue_free_full(session->queue, (GDestroyNotify)xmlnode_free);
++	g_free(session->jid);
++	g_free(session);
+ }
+ 
+-/* Returns a queue for a JabberStream's account (based on JID),
+-   creates it if there's none. */
+-static GQueue *
+-jabber_sm_accounts_queue_get(JabberStream *js)
++/* Returns the session for a JabberStream's account, creating it if there's
++   none. Keyed on the account rather than on the JID, so that two accounts of
++   the same address do not share one queue.
++
++   A session found under an account whose JID has since changed, which is also
++   what a recycled account pointer looks like from here, belongs to somebody
++   else and is discarded rather than handed out. */
++JabberSmSession *
++jabber_sm_session_get(JabberStream *js)
+ {
+-	GQueue *queue;
++	PurpleAccount *account = purple_connection_get_account(js->gc);
++	JabberSmSession *session = g_hash_table_lookup(jabber_sm_accounts, account);
+ 	gchar *jid = jabber_id_get_bare_jid(js->user);
+-	if (g_hash_table_contains(jabber_sm_accounts, jid) == TRUE) {
+-		queue = g_hash_table_lookup(jabber_sm_accounts, jid);
+-		g_free(jid);
++
++	if (session != NULL && !purple_strequal(session->jid, jid)) {
++		purple_debug_info("XEP-0198",
++		                  "Discarding the session left under this account by %s\n",
++		                  session->jid);
++		g_hash_table_remove(jabber_sm_accounts, account);
++		session = NULL;
++	}
++
++	if (session == NULL) {
++		session = g_new0(JabberSmSession, 1);
++		session->jid = jid;
++		session->queue = g_queue_new();
++		g_hash_table_insert(jabber_sm_accounts, account, session);
+ 	} else {
+-		queue = g_queue_new();
+-		g_hash_table_insert(jabber_sm_accounts, jid, queue);
++		g_free(jid);
+ 	}
+-	return queue;
++
++	return session;
+ }
+ 
+ void
++jabber_sm_session_forget(JabberStream *js)
++{
++	g_hash_table_remove(jabber_sm_accounts, purple_connection_get_account(js->gc));
++}
++
++void
+ jabber_sm_init(void)
+ {
+-	jabber_sm_accounts = g_hash_table_new_full(g_str_hash, g_str_equal, free,
+-	                                           jabber_sm_accounts_queue_free);
++	/* The key is the account itself and is not owned here; the account outlives
++	   any number of connections to it. */
++	jabber_sm_accounts = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
++	                                           jabber_sm_session_free);
+ }
+ 
+ void
+@@ -74,7 +102,6 @@
+ /* Processes incoming NS_STREAM_MANAGEMENT packets. */
+ void
+ jabber_sm_process_packet(JabberStream *js, xmlnode *packet) {
+-	gchar *jid;
+ 	const char *name = packet->name;
+ 	if (purple_strequal(name, "enabled")) {
+ 		purple_debug_info("XEP-0198", "Stream management is enabled\n");
+@@ -83,9 +110,7 @@
+ 	} else if (purple_strequal(name, "failed")) {
+ 		purple_debug_error("XEP-0198", "Failed to enable stream management\n");
+ 		js->sm_state = SM_DISABLED;
+-		jid = jabber_id_get_bare_jid(js->user);
+-		g_hash_table_remove(jabber_sm_accounts, jid);
+-		g_free(jid);
++		jabber_sm_session_forget(js);
+ 	} else if (purple_strequal(name, "r")) {
+ 		jabber_sm_ack_send(js);
+ 	} else if (purple_strequal(name, "a")) {
+@@ -130,7 +155,7 @@
+ 	h = strtoul(ack_h, NULL, 10);
+ 
+ 	/* Remove stanzas from the queue */
+-	queue = jabber_sm_accounts_queue_get(js);
++	queue = jabber_sm_session_get(js)->queue;
+ 	for (i = js->sm_outbound_confirmed; i < h; i++) {
+ 		stanza = g_queue_pop_head(queue);
+ 		if (stanza == NULL) {
+@@ -167,7 +192,7 @@
+ 	js->sm_state = SM_REQUESTED;
+ 
+ 	/* Resend unacknowledged stanzas from the queue. */
+-	queue = jabber_sm_accounts_queue_get(js);
++	queue = jabber_sm_session_get(js)->queue;
+ 	queue_len = g_queue_get_length(queue);
+ 	if (queue_len > 0) {
+ 		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
+@@ -192,7 +217,7 @@
+ 		/* Add this stanza to the queue, unless the queue is full. */
+ 		xmlnode *stanza;
+ 		xmlnode *req;
+-		GQueue *queue = jabber_sm_accounts_queue_get(js);
++		GQueue *queue = jabber_sm_session_get(js)->queue;
+ 		if (g_queue_get_length(queue) < MAX_QUEUE_LENGTH) {
+ 			stanza = xmlnode_copy(packet);
+ 			g_queue_push_tail(queue, stanza);
