@@ -35,6 +35,8 @@
 @class AMXMLConsoleController, AMPurpleJabberServiceDiscoveryBrowsing, AMPurpleJabberAdHocServer,
 	   AMPurpleJabberHTTPFileUpload, AMPurpleJabberExternalServices, ESFileTransfer;
 
+@class AMPurpleJabberMAM;
+
 @interface ESPurpleJabberAccount : CBPurpleAccount <AIAccount_Files> {
     AMXMLConsoleController *xmlConsoleController;
 	AMPurpleJabberServiceDiscoveryBrowsing *discoveryBrowserController;
@@ -42,6 +44,7 @@
 	AMPurpleJabberAdHocServer *adhocServer;
 	AMPurpleJabberHTTPFileUpload *httpUpload;
 	AMPurpleJabberExternalServices *externalServices;
+	AMPurpleJabberMAM *mam;
 
 	NSMutableArray *gateways;
 }

@@ -41,6 +41,7 @@
 #import "ESPurpleJabberAccountViewController.h"
 #import "AMPurpleJabberAdHocServer.h"
 #import "AMPurpleJabberHTTPFileUpload.h"
+#import "AMPurpleJabberMAM.h"
 #import "AMPurpleJabberExternalServices.h"
 #import "AMPurpleJabberAdHocPing.h"
 #import "AIMessageViewController.h"
@@ -944,6 +945,11 @@
 	//Look for the server's HTTP upload service; found or not, sending falls back gracefully
 	[httpUpload release];
 	httpUpload = [[AMPurpleJabberHTTPFileUpload alloc] initWithAccount:self];
+
+	/* And whether it keeps an archive. A window that opens then shows what was said while
+	   this machine was not listening, which the local log by definition cannot. */
+	mam = nil;
+	mam = [[AMPurpleJabberMAM alloc] initWithAccount:self];
 
 	//And for its STUN and TURN servers; calls read the answer when they build their connection
 	[externalServices release];
