@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.h
 +++ b/libpurple/protocols/jabber/stream_management.h
-@@ -25,6 +25,29 @@
+@@ -25,6 +25,35 @@
  #ifndef PURPLE_JABBER_STREAM_MANAGEMENT_H
  #define PURPLE_JABBER_STREAM_MANAGEMENT_H
  
@@ -17,8 +17,14 @@
 + * recycled pointer must be recognised as somebody else's and thrown away rather than resumed.
 + */
 +typedef struct {
-+	gchar  *jid;       /**< bare JID this session belongs to, the guard against a recycled account */
-+	GQueue *queue;     /**< stanzas sent and not yet acknowledged, oldest first */
++	gchar   *jid;      /**< bare JID this session belongs to, the guard against a recycled account */
++	GQueue  *queue;    /**< stanzas sent and not yet acknowledged, oldest first */
++
++	/* What the server said when it agreed to hold the session, all three straight out of
++	   <enabled/>. Without an id there is nothing to come back to, however long max is. */
++	gchar   *id;       /**< what to name in <resume/>; NULL when the server offered no resumption */
++	gchar   *location; /**< where the server would rather we came back; NULL means the same place */
++	guint32  max;      /**< seconds it promises to hold the session; 0 when it named no limit */
 +} JabberSmSession;
 +
 +/** The session for this stream's account, created on first use. Never NULL. */

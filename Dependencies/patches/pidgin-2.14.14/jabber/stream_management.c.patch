@@ -1,6 +1,6 @@
 --- a/libpurple/protocols/jabber/stream_management.c
 +++ b/libpurple/protocols/jabber/stream_management.c
-@@ -36,33 +36,61 @@
+@@ -36,33 +36,63 @@
  GHashTable *jabber_sm_accounts;
  
  static void
@@ -10,6 +10,8 @@
 -	g_queue_free_full(q, (GDestroyNotify)xmlnode_free);
 +	JabberSmSession *session = s;
 +	g_queue_free_full(session->queue, (GDestroyNotify)xmlnode_free);
++	g_free(session->location);
++	g_free(session->id);
 +	g_free(session->jid);
 +	g_free(session);
  }
@@ -57,15 +59,15 @@
 -	return queue;
 +
 +	return session;
- }
- 
- void
-+jabber_sm_session_forget(JabberStream *js)
-+{
-+	g_hash_table_remove(jabber_sm_accounts, purple_connection_get_account(js->gc));
 +}
 +
 +void
++jabber_sm_session_forget(JabberStream *js)
++{
++	g_hash_table_remove(jabber_sm_accounts, purple_connection_get_account(js->gc));
+ }
+ 
+ void
  jabber_sm_init(void)
  {
 -	jabber_sm_accounts = g_hash_table_new_full(g_str_hash, g_str_equal, free,
@@ -77,15 +79,44 @@
  }
  
  void
-@@ -74,7 +102,6 @@
+@@ -74,18 +104,42 @@
  /* Processes incoming NS_STREAM_MANAGEMENT packets. */
  void
  jabber_sm_process_packet(JabberStream *js, xmlnode *packet) {
 -	gchar *jid;
  	const char *name = packet->name;
  	if (purple_strequal(name, "enabled")) {
- 		purple_debug_info("XEP-0198", "Stream management is enabled\n");
-@@ -83,9 +110,7 @@
+-		purple_debug_info("XEP-0198", "Stream management is enabled\n");
++		JabberSmSession *session = jabber_sm_session_get(js);
++		const char *resume = xmlnode_get_attrib(packet, "resume");
++		const char *id = xmlnode_get_attrib(packet, "id");
++		const char *location = xmlnode_get_attrib(packet, "location");
++		const char *max = xmlnode_get_attrib(packet, "max");
++
++		/* Whatever the last session was called, it is gone: this is a new one, and naming
++		   the old one in a <resume/> would be answered with item-not-found. */
++		g_free(session->id);
++		g_free(session->location);
++		session->id = NULL;
++		session->location = NULL;
++		session->max = 0;
++
++		/* An id without resume='true' is not an offer to hold anything, and resume='true'
++		   without an id leaves nothing to ask for. Both have to be there. */
++		if (id != NULL && (purple_strequal(resume, "true") || purple_strequal(resume, "1"))) {
++			session->id = g_strdup(id);
++			session->location = g_strdup(location);
++			session->max = max ? (guint32)strtoul(max, NULL, 10) : 0;
++			purple_debug_info("XEP-0198",
++			                  "Stream management is enabled, resumable for %u seconds\n",
++			                  session->max);
++		} else {
++			purple_debug_info("XEP-0198",
++			                  "Stream management is enabled, without resumption\n");
++		}
++
+ 		js->sm_inbound_count = 0;
+ 		js->sm_state = SM_ENABLED;
  	} else if (purple_strequal(name, "failed")) {
  		purple_debug_error("XEP-0198", "Failed to enable stream management\n");
  		js->sm_state = SM_DISABLED;
@@ -96,7 +127,7 @@
  	} else if (purple_strequal(name, "r")) {
  		jabber_sm_ack_send(js);
  	} else if (purple_strequal(name, "a")) {
-@@ -130,7 +155,7 @@
+@@ -130,7 +184,7 @@
  	h = strtoul(ack_h, NULL, 10);
  
  	/* Remove stanzas from the queue */
@@ -105,7 +136,18 @@
  	for (i = js->sm_outbound_confirmed; i < h; i++) {
  		stanza = g_queue_pop_head(queue);
  		if (stanza == NULL) {
-@@ -167,7 +192,7 @@
+@@ -160,6 +214,10 @@
+ 	purple_debug_info("XEP-0198", "Enabling stream management\n");
+ 	enable = xmlnode_new("enable");
+ 	xmlnode_set_namespace(enable, NS_STREAM_MANAGEMENT);
++	/* Ask to be allowed back. A server that cannot hold the session simply answers without an
++	   id, which costs nothing; one that can puts it aside instead of destroying it the moment
++	   the connection drops, and that is what makes coming back possible at all. */
++	xmlnode_set_attrib(enable, "resume", "true");
+ 	jabber_send(js, enable);
+ 	xmlnode_free(enable);
+ 	js->sm_outbound_count = 0;
+@@ -167,7 +225,7 @@
  	js->sm_state = SM_REQUESTED;
  
  	/* Resend unacknowledged stanzas from the queue. */
@@ -114,7 +156,7 @@
  	queue_len = g_queue_get_length(queue);
  	if (queue_len > 0) {
  		purple_debug_info("XEP-0198", "Resending %u stanzas\n", queue_len);
-@@ -192,7 +217,7 @@
+@@ -192,7 +250,7 @@
  		/* Add this stanza to the queue, unless the queue is full. */
  		xmlnode *stanza;
  		xmlnode *req;
