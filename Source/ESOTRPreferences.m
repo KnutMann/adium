@@ -40,6 +40,53 @@
 #define FINGERPRINT_COLUMN_GAP				 3.0f	//The gap the nib kept between the name and the status column
 #define INSET_STYLE_PADDING					10.0f	//Room NSTableViewStyleInset keeps above the first and below the last row, fallback only
 
+/*!
+ * @class AICenteredTextFieldCell
+ * @brief A text cell that sits in the middle of its row rather than against the top
+ *
+ * A row tall enough to hold a popup menu is taller than one line of text, and a plain
+ * NSTextFieldCell spends the difference below the line instead of around it. Beside a popup,
+ * which centres itself, that reads as the words having slipped upwards, and two columns set in
+ * different sizes slip by different amounts. Only the height is touched here: colour, font and
+ * alignment stay whatever the column asked for.
+ */
+@interface AICenteredTextFieldCell : NSTextFieldCell
+@end
+
+@implementation AICenteredTextFieldCell
+
+- (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
+{
+	CGFloat lineHeight = [self cellSizeForBounds:cellFrame].height;
+
+	if (lineHeight > 0.0f && lineHeight < NSHeight(cellFrame)) {
+		cellFrame.origin.y += floor((NSHeight(cellFrame) - lineHeight) / 2.0f);
+		cellFrame.size.height = lineHeight;
+	}
+
+	[super drawInteriorWithFrame:cellFrame inView:controlView];
+}
+
+@end
+
+/*! Give a column a centring cell, keeping how the one it had was set up */
+static void AICentreTheTextIn(NSTableColumn *column)
+{
+	NSCell					*old = [column dataCell];
+	AICenteredTextFieldCell	*centred = [[AICenteredTextFieldCell alloc] initTextCell:@""];
+
+	[centred setFont:[old font]];
+	[centred setAlignment:[old alignment]];
+	[centred setLineBreakMode:[old lineBreakMode]];
+	[centred setEditable:NO];
+	[centred setSelectable:NO];
+
+	if ([old isKindOfClass:[NSTextFieldCell class]])
+		[centred setTextColor:[(NSTextFieldCell *)old textColor]];
+
+	[column setDataCell:centred];
+}
+
 @interface ESOTRPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
 - (AISettingsFormView *)settingsForm;
@@ -448,6 +495,9 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	 * instead, which in a card as wide as this one is left the status floating in the middle. */
 	NSTableColumn	*statusColumn = [tableView_fingerprints tableColumnWithIdentifier:@"Status"];
 
+	AICentreTheTextIn([tableView_fingerprints tableColumnWithIdentifier:@"UID"]);
+	AICentreTheTextIn(statusColumn);
+
 	/* Which of the two this row is about, between the name and the state. Added here rather than
 	 * in the nib because everything else about this table is set up here, and because a column
 	 * that only earns its place once there are two methods is easier to read about in code than
@@ -455,6 +505,7 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	if (![tableView_fingerprints tableColumnWithIdentifier:@"Method"]) {
 		NSTableColumn *methodColumn = [[NSTableColumn alloc] initWithIdentifier:@"Method"];
 
+		AICentreTheTextIn(methodColumn);
 		[methodColumn setMinWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
 		[methodColumn setMaxWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
 		[methodColumn setWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
@@ -1017,6 +1068,10 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	[choice setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
 	[choice setBordered:NO];
 	[choice setArrowPosition:NSPopUpArrowAtBottom];
+	/* Against the trailing edge, where the state of every other row already is. Left as it comes,
+	 * the words start at the far side of the column while the OTR rows beside them end at it, and
+	 * one list reads as two. */
+	[choice setAlignment:NSTextAlignmentRight];
 	[choice addItemsWithTitles:AIOMEMOTrustTitles()];
 
 	return choice;
