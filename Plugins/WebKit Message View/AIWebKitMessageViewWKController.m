@@ -711,6 +711,10 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	NSArray<NSString *> *roots = [NSArray arrayWithObjects:
 		([NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject] ?: @""),
 		(NSTemporaryDirectory() ?: @""),
+		/* Pictures and voice notes fetched out of a conversation are kept here, and a click on
+		 * one is the ordinary way to reach the file. Our own folder, so it belongs beside the
+		 * temporary directory rather than being a widening of what may be shown. */
+		([[adium cachesPath] stringByAppendingPathComponent:@"Inline Media"] ?: @""),
 		nil];
 
 	for (NSString *root in roots) {
@@ -2324,17 +2328,19 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		@"  el.style.borderRadius='4px';"
 		@"  el.style.display='block';"
 		@"  el.style.marginTop='2px';"
-		@"  var a=msgs[i].querySelector('a');"
-		@"  var href=a?a.href:null;"
 		/* The whole message is the address and nothing else, so the whole of it goes. Replacing
 		 * only the link would leave whatever the link detector did not recognise standing in
 		 * front of the picture, and it recognises none of aesgcm, so the scheme and part of the
 		 * host stayed visible beside the player. */
 		@"  while(msgs[i].firstChild) msgs[i].removeChild(msgs[i].firstChild);"
-		/* A picture stays wrapped in its link, so a click still opens the original. A player
-		 * must not be, or every attempt to press pause would follow the link instead. */
-		@"  if(!playable && href){ var w=document.createElement('a'); w.href=href;"
-		@"                         w.appendChild(el); msgs[i].appendChild(w); }"
+		/* A picture is wrapped in a link to the copy on this disk, never to the address it
+		 * arrived as. Following the address opens a browser, which for an aesgcm link cannot
+		 * show anything at all and for a plain one fetches a second time what is already here.
+		 * The local link goes through the same door a received file goes through: it is never
+		 * opened, only shown in Finder. A player must not be wrapped at all, or every attempt
+		 * to press pause would follow the link instead. */
+		@"  if(!playable){ var w=document.createElement('a'); w.href=src;"
+		@"                 w.appendChild(el); msgs[i].appendChild(w); }"
 		@"  else { msgs[i].appendChild(el); }"
 		@"  return 2;"
 		@" }"
