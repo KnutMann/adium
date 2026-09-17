@@ -7,10 +7,12 @@
   jabber_add_feature in Plugins/Purple Service/adiumPurpleJingle.m and
   adiumPurpleSignals.m) or to one the bundled libpurple announces on its behalf.
 
-  Deliberately absent, because we do not do them: stream management (XEP-0198,
-  the namespace exists in libpurple as a constant and is used nowhere), message
-  archives (XEP-0313), message correction (XEP-0308) and direct TLS (XEP-0368).
-  Claiming those would be worse than lacking them.
+  Deliberately absent, because we do not do it: direct TLS (XEP-0368).
+  Claiming that would be worse than lacking it.
+
+  Stream management, message archives and message correction were listed here
+  as absent until September 2026 and are now implemented; the entries below say
+  how far each of them goes.
 
   OMEMO (XEP-0384) is listed as partial and means it: one to one conversations
   are encrypted and decrypted, files along with them (XEP-0454), and group chats
@@ -33,7 +35,9 @@
       Apple Silicon application. Alongside the classic services it speaks WhatsApp, Telegram,
       Signal, Microsoft Teams and IRCv3 through libpurple plugins, and its XMPP support has
       been carried forward with carbons, client state indication, reactions, HTTP upload,
-      OMEMO encryption and encrypted voice and video calls.</description>
+      OMEMO encryption, encrypted voice and video calls, a session that survives the network
+      going away, the server side archive of a conversation, and messages that can be
+      corrected after they were sent.</description>
     <homepage rdf:resource='https://github.com/KnutMann/adium'/>
     <license rdf:resource='https://spdx.org/licenses/GPL-2.0-or-later.html'/>
     <programming-language>Objective-C</programming-language>
@@ -135,6 +139,31 @@
       <xmpp:status>complete</xmpp:status>
       <xmpp:note xml:lang='en'>In direct chats and in rooms, sent from the message's own
         context menu and delivered to the exact message they name.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0198.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Acknowledgements and resumption. A connection that drops is
+        resumed where it stopped, with whatever was never delivered sent again; several
+        stanzas are acknowledged at once rather than one request each, a network that goes
+        away is given a moment to come back, and a connection nobody answers is called lost
+        rather than waited on.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0313.html'/>
+      <xmpp:status>partial</xmpp:status>
+      <xmpp:note xml:lang='en'>A window that opens asks the server for the end of that
+        conversation, so that what was said from another device or while this one was closed
+        is there. Shown as history rather than as new messages, and in place of the excerpt
+        from the local log rather than beside it. Direct conversations only; the results are
+        not paged beyond the most recent page.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0428.html'/>
+      <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>The part of a body that was only written for clients which
+        cannot show the real thing is recognised and left out, so a message does not arrive
+        saying the same thing twice.</xmpp:note>
     </xmpp:SupportedXep></implements>
     <implements><xmpp:SupportedXep>
       <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0393.html'/>
