@@ -44,7 +44,12 @@ class Peer(ClientXMPP):
     def on_message(self, msg):
         if msg["type"] not in ("chat", "normal"):
             return
-        print(f"< {msg['from']}: {msg['body']}")
+        # XEP-0308: a message that names an earlier one instead of standing on its own
+        replace = msg.xml.find("{urn:xmpp:message-correct:0}replace")
+        if replace is not None:
+            print(f"< {msg['from']} KORRIGIERT {replace.get('id')}: {msg['body']}")
+        else:
+            print(f"< {msg['from']} (id={msg['id']}): {msg['body']}")
         if self.echo and msg["body"]:
             msg.reply(f"Echo: {msg['body']}").send()
 
