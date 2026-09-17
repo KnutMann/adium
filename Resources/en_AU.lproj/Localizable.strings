@@ -556,6 +556,7 @@
 "Adium Forums" = "Adium Forums";
 
 /* No comment provided by engineer. */
+"Adium has not been allowed to use the microphone." = "Adium has not been allowed to use the microphone.";
 "Adium Help" = "Adium Help";
 
 /* No comment provided by engineer. */
@@ -622,6 +623,7 @@
 "Allow only contacts on my contact list" = "Allow only contacts on my contact list";
 
 /* Confirmation preference */
+"Already recording" = "Already recording";
 "Always" = "Always";
 
 /* Quit Confirmation preference */
@@ -2004,6 +2006,7 @@
 "No" = "No";
 
 /* Shown where a contact has no picture to hand over */
+"No microphone could be opened." = "No microphone could be opened.";
 "No notifications in Notification Center while this status is active." = "No notifications in Notification Centre while this status is active.";
 "No picture" = "No picture";
 
@@ -2261,6 +2264,9 @@
 "Reconnecting" = "Reconnecting";
 
 /* No comment provided by engineer. */
+"Record a voice note; click again to stop" = "Record a voice note; click again to stop";
+"Record Voice Note" = "Record Voice Note";
+"Recording could not be started." = "Recording could not be started.";
 "Regenerate" = "Regenerate";
 
 /* No comment provided by engineer. */
@@ -2770,6 +2776,7 @@
 "Text To Speak:" = "Text To Speak:";
 
 /* Said when writing a contact picture onto a card failed */
+"That was too short to send." = "That was too short to send.";
 "The Address Book would not save the picture." = "The Address Book would not save the picture.";
 
 /* No comment provided by engineer. */
@@ -2782,6 +2789,7 @@
 "The following message was <b>not encrypted</b>: " = "The following message was <b>not encrypted</b>: ";
 
 /* No comment provided by engineer. */
+"The recording could not be saved." = "The recording could not be saved.";
 "The server would not take the file. Trying the old way of sending it, which many clients no longer accept." = "The server would not take the file. Trying the old way of sending it, which many clients no longer accept.";
 "The transfer of %@ failed" = "The transfer of %@ failed";
 
@@ -2993,6 +3001,9 @@
 "Visual Notifications" = "Visual Notifications";
 
 /* No comment provided by engineer. */
+"Voice" = "Voice";
+"Voice note" = "Voice note";
+"Voice note (%ld:%02ld)" = "Voice note (%ld:%02ld)";
 "Voice:" = "Voice:";
 
 /* Accessibility label for the sound volume slider */

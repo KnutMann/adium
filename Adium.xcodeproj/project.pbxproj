@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ADD1E5C0DE0000000000FE01 /* AIOpusEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE06 /* AIOpusEncoder.m */; };
+		ADD1E5C0DE0000000000FE03 /* AIVoiceRecorder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE08 /* AIVoiceRecorder.m */; };
+		ADD1E5C0DE0000000000FE0A /* AIVoiceNotePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE0B /* AIVoiceNotePlugin.m */; };
 		ADD1E5C0DE0000000000FD01 /* AIContactLocalTimePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */; };
 		ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */; };
 		ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */; };
@@ -1411,6 +1414,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		ADD1E5C0DE0000000000FE05 /* AIOpusEncoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOpusEncoder.h; path = Source/AIOpusEncoder.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FE06 /* AIOpusEncoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOpusEncoder.m; path = Source/AIOpusEncoder.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FE07 /* AIVoiceRecorder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIVoiceRecorder.h; path = Source/AIVoiceRecorder.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FE08 /* AIVoiceRecorder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIVoiceRecorder.m; path = Source/AIVoiceRecorder.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FE09 /* AIVoiceNotePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIVoiceNotePlugin.h; path = Source/AIVoiceNotePlugin.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FE0B /* AIVoiceNotePlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIVoiceNotePlugin.m; path = Source/AIVoiceNotePlugin.m; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FD02 /* AIContactLocalTimePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactLocalTimePlugin.h; path = Source/AIContactLocalTimePlugin.h; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactLocalTimePlugin.m; path = Source/AIContactLocalTimePlugin.m; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FC04 /* AIMessageStyling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageStyling.h; path = Source/AIMessageStyling.h; sourceTree = "<group>"; };
@@ -5233,6 +5242,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */,
 				ADD1E5C0DE0000000000FD02 /* AIContactLocalTimePlugin.h */,
 				ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */,
+				ADD1E5C0DE0000000000FE05 /* AIOpusEncoder.h */,
+				ADD1E5C0DE0000000000FE06 /* AIOpusEncoder.m */,
+				ADD1E5C0DE0000000000FE07 /* AIVoiceRecorder.h */,
+				ADD1E5C0DE0000000000FE08 /* AIVoiceRecorder.m */,
+				ADD1E5C0DE0000000000FE09 /* AIVoiceNotePlugin.h */,
+				ADD1E5C0DE0000000000FE0B /* AIVoiceNotePlugin.m */,
 				34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */,
 				34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */,
 				A11B0001E5F0000000000003 /* AIInlineMediaLinkPlugin.h */,
@@ -7480,6 +7495,9 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */,
 				ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */,
 				ADD1E5C0DE0000000000FD01 /* AIContactLocalTimePlugin.m in Sources */,
+				ADD1E5C0DE0000000000FE01 /* AIOpusEncoder.m in Sources */,
+				ADD1E5C0DE0000000000FE03 /* AIVoiceRecorder.m in Sources */,
+				ADD1E5C0DE0000000000FE0A /* AIVoiceNotePlugin.m in Sources */,
 				34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */,
 				A11B0001E5F0000000000001 /* AIInlineMediaLinkPlugin.m in Sources */,
 				34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */,
