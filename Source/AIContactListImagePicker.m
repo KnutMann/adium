@@ -23,7 +23,8 @@
 
 #define ARROW_WIDTH		8
 #define ARROW_HEIGHT	(ARROW_WIDTH/2.0)
-#define ARROW_XOFFSET	2
+#define ARROW_XOFFSET	4		//from the right edge; two left the arrow sitting on it
+#define CORNER_RADIUS	6		//the picture's rounded corner, and the shade that follows it
 #define ARROW_YOFFSET	3
 
 @interface AIContactListImagePicker ()
@@ -88,9 +89,17 @@
 {
 	[NSGraphicsContext saveGraphicsState];
 
-	inRect = NSInsetRect(inRect, 1, 1);
-
-	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:inRect radius:3];
+	/* Drawn to what this view is, not to the rect it was handed. That rect says which part
+	 * of the view is dirty, and since macOS 14 a view no longer clips its drawing to itself
+	 * unless it is asked to, so the rect can name an area far larger than the view: measured
+	 * here at 217 by 815 points inside a view of 36 by 36, which is the whole window. Taken
+	 * as geometry, the shade that marks the picture as hoverable became a curtain over the
+	 * entire window, one point short of its edges on every side.
+	 *
+	 * It read that way for as long as the code has existed and was harmless for all of it,
+	 * because a view used to clip itself. */
+	NSRect			drawRect = NSInsetRect([self bounds], 1, 1);
+	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:drawRect radius:CORNER_RADIUS];
 
 	[[NSColor separatorColor] set];
 	[clipPath setLineWidth:1];
@@ -101,14 +110,15 @@
 	[clipPath addClip];
 	
 	[super drawRect:inRect];
-	
+
 	if (hovered) {
-		[[[NSColor blackColor] colorWithAlphaComponent:0.40f] set];
+		//Enough to say the picture is a button, not enough to hide the picture
+		[[[NSColor blackColor] colorWithAlphaComponent:0.20f] set];
 		[clipPath fill];
 
 		// Draw the arrow
 		NSBezierPath	*arrowPath = [NSBezierPath bezierPath];
-		NSRect			frame = [self frame];
+		NSRect			frame = [self bounds];	//where we draw, not where we sit
 		[arrowPath moveToPoint:NSMakePoint(frame.size.width - ARROW_XOFFSET - ARROW_WIDTH, 
 										   (ARROW_YOFFSET + (CGFloat)ARROW_HEIGHT))];
 		[arrowPath relativeLineToPoint:NSMakePoint(ARROW_WIDTH, 0)];
@@ -189,7 +199,12 @@
 - (void)viewDidMoveToWindow
 {
 	[super viewDidMoveToWindow];
-	
+
+	/* Belt and braces beside the rect in -drawRect:: from macOS 14 a view draws outside
+	 * itself unless it says otherwise, and nothing here has any business doing that. */
+	if ([self respondsToSelector:@selector(setClipsToBounds:)])
+		[self setClipsToBounds:YES];
+
 	[self resetCursorRects];
 }
 
@@ -219,7 +234,11 @@
 		NSPoint screenPoint = [NSEvent mouseLocation];
 		NSPoint localPoint = [self convertPoint:[[self window] convertRectFromScreen:NSMakeRect(screenPoint.x, screenPoint.y, 0.0, 0.0)].origin
 									   fromView:nil];
-		BOOL	mouseInside = NSPointInRect(localPoint, myFrame);
+		/* Tested against what this view is, not against where it sits: localPoint was just
+		 * converted into this view's own coordinates, and the frame is in the parent's.
+		 * The two agree here only because the picker happens to sit at its parent's
+		 * origin, which is not a thing to rely on. */
+		BOOL	mouseInside = NSPointInRect(localPoint, [self bounds]);
 
 		trackingTag = [self addTrackingRect:trackRect owner:self userData:nil assumeInside:mouseInside];
 		if (mouseInside) [self mouseEntered:[[NSEvent alloc] init]];

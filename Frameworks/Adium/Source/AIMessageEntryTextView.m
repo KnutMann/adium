@@ -241,6 +241,18 @@
 				[super keyDown:inEvent];
 			}
 			
+		} else if (inChar == NSUpArrowFunctionKey && ![self.textStorage length] &&
+				   !(flags & (NSEventModifierFlagControl | NSEventModifierFlagOption |
+							  NSEventModifierFlagCommand | NSEventModifierFlagShift))) {
+			/* The bare arrow in an empty field asks to correct the last thing said, the way
+			 * every other client that can correct a message does it. Only in an empty field:
+			 * with something typed the key belongs to the cursor, which is where it was
+			 * always going before. Whether there is anything to correct is not known here;
+			 * the window that holds the conversation answers, or does not. */
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatCorrectLastMessageRequested"
+															   object:chat
+															 userInfo:nil];
+
 		} else if (historyEnabled && 
 				   (flags & NSEventModifierFlagOption) && !(flags & NSEventModifierFlagShift)) {
 			if (inChar == NSUpArrowFunctionKey) {
@@ -416,7 +428,11 @@
 		[undoManager setActionName:AILocalizedString(@"Clear", nil)];
 
 		[self setString:@""];
-		[self clearLinkAttribute];		
+		[self clearLinkAttribute];
+
+		/* Giving up on a correction is giving up on it: the next message typed here is a
+		 * new message, not a second attempt at replacing the old one. */
+		self.correctingMessageId = nil;
 	}
 
 	if ([self.delegate respondsToSelector:@selector(textViewDidCancel:)]) {
@@ -428,6 +444,7 @@
 //Configure ------------------------------------------------------------------------------------------------------------
 #pragma mark Configure
 @synthesize clearOnEscape, homeToStartOfLine, associatedView;
+@synthesize correctingMessageId;
 
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key
 							object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime

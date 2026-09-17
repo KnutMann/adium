@@ -1,0 +1,82 @@
+--- a/libpurple/protocols/jabber/stream_management.h
++++ b/libpurple/protocols/jabber/stream_management.h
+@@ -25,6 +25,61 @@
+ #ifndef PURPLE_JABBER_STREAM_MANAGEMENT_H
+ #define PURPLE_JABBER_STREAM_MANAGEMENT_H
+ 
++/**
++ * The part of a stream that has to outlive the connection carrying it.
++ *
++ * Upstream keeps only the queue of unacknowledged stanzas, and keeps it under the bare JID.
++ * That is enough to resend after reconnecting, which is what upstream does, but it cannot tell
++ * two accounts of the same JID apart: a second account for the same address, which people do
++ * have, inherits the first one's unsent stanzas and sends them from the wrong connection.
++ *
++ * So the session belongs to the PurpleAccount instead. The JID is kept alongside it, because
++ * a freed account can leave its address to be handed out again, and a session found under a
++ * recycled pointer must be recognised as somebody else's and thrown away rather than resumed.
++ */
++typedef struct {
++	gchar   *jid;      /**< bare JID this session belongs to, the guard against a recycled account */
++	GQueue  *queue;    /**< stanzas sent and not yet acknowledged, oldest first */
++
++	/* What the server said when it agreed to hold the session, all three straight out of
++	   <enabled/>. Without an id there is nothing to come back to, however long max is. */
++	gchar   *id;       /**< what to name in <resume/>; NULL when the server offered no resumption */
++	gchar   *location; /**< where the server would rather we came back; NULL means the same place */
++	guint32  max;      /**< seconds it promises to hold the session; 0 when it named no limit */
++
++	/* Kept level with the stream's own counters as they move, so that they are still here
++	   after the stream is not. A resume has to name how much it received, and the server
++	   answers with how much it did, which decides what gets sent again. */
++	guint32  inbound_count;
++	guint32  outbound_count;
++	guint32  outbound_confirmed;
++	gchar   *full_jid; /**< the address the old session bound; a resumed one keeps it */
++} JabberSmSession;
++
++/** The session for this stream's account, created on first use. Never NULL. */
++JabberSmSession *jabber_sm_session_get(JabberStream *js);
++
++/** Throw the session away entirely, queue and all, after a deliberate sign off. */
++void jabber_sm_session_forget(JabberStream *js);
++
++/**
++ * Forget that the session could be resumed, but keep what it was still carrying.
++ *
++ * For a resumption the server refused. There is no session to come back to any more, so the id
++ * and the counters go, but the stanzas it never acknowledged were never delivered either and
++ * have to go out again on whatever session comes next.
++ */
++void jabber_sm_session_reset(JabberStream *js);
++
++/**
++ * Ask for the previous session back, in place of binding a new resource.
++ *
++ * Returns TRUE when a <resume/> went out, in which case the caller must not bind: the answer
++ * decides what happens, and a <failed/> comes back here to bind after all. Returns FALSE when
++ * there is nothing to resume, and the caller carries on as it always did.
++ */
++gboolean jabber_sm_resume(JabberStream *js);
++
+ void jabber_sm_init(void);
+ void jabber_sm_uninit(void);
+ 
+@@ -35,6 +90,17 @@
+ void jabber_sm_ack_read(JabberStream *js, xmlnode *packet);
+ 
+ void jabber_sm_outbound(JabberStream *js, xmlnode *packet);
++
++/**
++ * Ask at once whether the stream is still there, by writing to it.
++ *
++ * For after a network interruption, where the socket may be dead with nothing having noticed.
++ * Does nothing unless stream management is running, since it is an <r/> that gets sent.
++ */
++void jabber_sm_probe(JabberStream *js);
++
++/** Called when the stream is closing, so that no timer fires into a stream that is gone. */
++void jabber_sm_stream_closing(JabberStream *js);
+ void jabber_sm_inbound(JabberStream *js, xmlnode *packet);
+ 
+ #endif /* PURPLE_JABBER_STREAM_MANAGEMENT_H */

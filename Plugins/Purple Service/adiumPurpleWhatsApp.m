@@ -23,7 +23,7 @@
 /*
  * Receipts, reactions and message ids for WhatsApp (prpl-hehoe-whatsmeow).
  *
- * The protocol plug-in registers three purple signals and emits each with the
+ * The protocol plug-in registers five purple signals and emits each with the
  * connection and a hash table of borrowed strings (see gowhatsapp.h upstream):
  *
  * - "gowhatsapp-message-id" fires right before a message is written into a
@@ -39,6 +39,12 @@
  *   jabber reactions post; WhatsApp reactions are one emoji per sender with an
  *   empty emoji meaning removal, which is exactly the replace-per-sender
  *   semantics the message view already implements.
+ * - "gowhatsapp-message-corrected" says a message already shown has been replaced
+ *   by its sender, naming the original by id; it becomes the same correction
+ *   notification the jabber side posts for XEP-0308.
+ * - "gowhatsapp-history-done" answers a history request: "shown" counts the
+ *   lines it produced, and a zero ends a window's wait for history that is not
+ *   coming.
  *
  * Everything arrives on the main thread: the plug-in marshals its events
  * through purple_timeout_add before emitting.
@@ -192,6 +198,68 @@ static void whatsapp_reaction_cb(PurpleConnection *pc, GHashTable *details, gpoi
 }
 
 /*!
+ * @brief The sender replaced a message they had already sent
+ *
+ * The same thing XEP-0308 does for jabber, and it arrives here as the same notification,
+ * so the message view rewrites the line it already drew instead of putting a second one
+ * under it. The direction travels along: a message may only be replaced by one going the
+ * same way, or a contact could name the id of something we sent them and rewrite our own
+ * words on our own screen.
+ */
+static void whatsapp_message_corrected_cb(PurpleConnection *pc, GHashTable *details, gpointer data)
+{
+	@autoreleasepool {
+		const char *messageId = whatsapp_detail(details, "id");
+		const char *text = whatsapp_detail(details, "text");
+		const char *isOutgoing = whatsapp_detail(details, "isOutgoing");
+		if (!messageId || !text) return;
+
+		AIChat *chat = whatsapp_chat_for_details(pc, details);
+		if (!chat) return;
+
+		BOOL outgoing = (isOutgoing && strcmp(isOutgoing, "1") == 0);
+
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasCorrected"
+															object:chat
+														  userInfo:@{ @"MessageId": [NSString stringWithUTF8String:messageId],
+																	  @"Message": [NSString stringWithUTF8String:text],
+																	  @"Direction": (outgoing ? @"outgoing" : @"incoming") }];
+	}
+}
+
+/*!
+ * @brief The phone has finished answering, so a window need not wait any longer
+ *
+ * The excerpt from the local log is held back for a few seconds whenever an account
+ * fetches its own history, so that the fetched conversation and the excerpt do not
+ * both land on the page. The phone hands each stretch of a conversation over exactly
+ * once, so for a conversation already fetched the answer is empty, and the window
+ * would sit out the whole wait for an answer that has already come and gone.
+ *
+ * This says so. The wait ends, the excerpt is shown, and the account keeps its
+ * promise for the next window, because an answer that is empty for one conversation
+ * says nothing about the next.
+ */
+static void whatsapp_history_done_cb(PurpleConnection *pc, GHashTable *details, gpointer data)
+{
+	@autoreleasepool {
+		const char *shown = whatsapp_detail(details, "shown");
+		if (!shown) return;
+
+		/* Lines that did arrive are themselves what ends the wait, and they have
+		 * already been written by the time this is emitted. */
+		if (atoi(shown) > 0) return;
+
+		AIChat *chat = whatsapp_chat_for_details(pc, details);
+		if (!chat) return;
+
+		[[NSNotificationCenter defaultCenter] postNotificationName:Chat_HistoryUnavailable
+															object:chat
+														  userInfo:@{ @"AskAgain": @YES }];
+	}
+}
+
+/*!
  * @brief Hook the plug-in's signals once the first WhatsApp account signs on
  *
  * The prpl is an external plug-in; its signals exist once libpurple has loaded
@@ -212,6 +280,10 @@ static gboolean whatsapp_connect_signals(void)
 						  PURPLE_CALLBACK(whatsapp_receipt_cb), NULL);
 	purple_signal_connect(whatsapp, "gowhatsapp-reaction", &adium_purple_whatsapp_handle,
 						  PURPLE_CALLBACK(whatsapp_reaction_cb), NULL);
+	purple_signal_connect(whatsapp, "gowhatsapp-history-done", &adium_purple_whatsapp_handle,
+						  PURPLE_CALLBACK(whatsapp_history_done_cb), NULL);
+	purple_signal_connect(whatsapp, "gowhatsapp-message-corrected", &adium_purple_whatsapp_handle,
+						  PURPLE_CALLBACK(whatsapp_message_corrected_cb), NULL);
 	return TRUE;
 }
 
@@ -224,6 +296,10 @@ static void whatsapp_signed_on_cb(PurpleConnection *gc, gpointer data)
 	/* Adium draws reactions as chips on the message; the plug-in's own textual
 	 * rendering would say everything twice. */
 	purple_account_set_string(account, "reaction-display", "none");
+
+	/* An edit rewrites the line it names, so the plug-in's own textual rendering of it
+	 * would say the same thing twice, once in place and once as a new message. */
+	purple_account_set_string(account, "edit-display", "none");
 
 	whatsapp_connect_signals();
 }

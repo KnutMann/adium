@@ -2,10 +2,52 @@
 +++ b/libpurple/protocols/jabber/jabber.h
 @@ -50,6 +50,8 @@
  	JABBER_CAP_ROSTER_VERSIONING = 1 << 15,
-
+ 
  	JABBER_CAP_STREAM_MANAGEMENT = 1 << 16,
 +	JABBER_CAP_RECEIPTS      = 1 << 17,
 +	JABBER_CAP_CHAT_MARKERS  = 1 << 18,
-
+ 
  	JABBER_CAP_RETRIEVED      = 1 << 31
  } JabberCapabilities;
+@@ -102,7 +104,11 @@
+ 	SM_DISABLED,
+ 	SM_PLANNED,
+ 	SM_REQUESTED,
+-	SM_ENABLED
++	SM_ENABLED,
++	/* Added last on purpose: the values before it are stored nowhere, but growing an enum
++	   anywhere but at the end is how a rebuilt library and an unrebuilt caller come to
++	   disagree about what a number means. */
++	SM_RESUMING
+ } JabberStreamManagementState;
+ 
+ struct _JabberStream
+@@ -297,6 +303,20 @@
+ 	guint32 sm_inbound_count;
+ 	guint32 sm_outbound_confirmed;
+ 	JabberStreamManagementState sm_state;
++
++	/* Set when the server took us back into the old session rather than giving us a new one.
++	   At the end of the structure because Adium compiles against a checked-in copy of this
++	   header, and a field inserted anywhere else moves every offset after it. */
++	gboolean sm_resumed;
++
++	/* Stanzas sent since we last asked to have them acknowledged, and the timer that asks
++	   anyway when no more arrive. */
++	guint32 sm_unrequested;
++	guint sm_request_timer;
++
++	/* A probe sent after a network interruption, and the timer that decides the connection is
++	   gone when nothing answers it. */
++	guint sm_probe_timer;
+ };
+ 
+ typedef gboolean (JabberFeatureEnabled)(JabberStream *js, const gchar *namespace);
+@@ -332,6 +352,7 @@
+ gboolean jabber_is_stanza(xmlnode *packet);
+ 
+ void jabber_stream_features_parse(JabberStream *js, xmlnode *packet);
++void jabber_bind_resource(JabberStream *js);
+ void jabber_process_packet(JabberStream *js, xmlnode **packet);
+ void jabber_send(JabberStream *js, xmlnode *data);
+ void jabber_send_raw(JabberStream *js, const char *data, int len);

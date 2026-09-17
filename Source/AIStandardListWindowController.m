@@ -662,6 +662,14 @@
 	@try
 	{
 		[[self window] setToolbar:toolbar];
+
+		/* The status and picture live in a toolbar item that is a view of its own height.
+		 * Left to itself the system merges the toolbar into the title bar, where a view
+		 * that tall has nowhere to go and simply is not shown: the contact list then has
+		 * a title bar and no way to set a status or change a picture. Given its own strip
+		 * it is there, the way it has always been. */
+		if ([[self window] respondsToSelector:@selector(setToolbarStyle:)])
+			[[self window] setToolbarStyle:NSWindowToolbarStyleExpanded];
 	}
 	@catch(id exc)
 	{

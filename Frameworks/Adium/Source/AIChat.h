@@ -24,6 +24,9 @@
 #define Chat_OrderDidChange						@"Chat_OrderDidChange"
 #define Chat_WillClose							@"Chat_WillClose"
 #define Chat_DidOpen							@"Chat_DidOpen"
+/*! Posted with the chat when an account that says it fetches the conversation's earlier
+ *  messages finds out that it cannot. Whoever was waiting for that history can stop. */
+#define Chat_HistoryUnavailable					@"Chat_HistoryUnavailable"
 #define Chat_BecameActive						@"Chat_BecameActive"
 #define Chat_AttributesChanged					@"Chat_AttributesChanged"
 #define Chat_StatusChanged						@"Chat_StatusChagned"

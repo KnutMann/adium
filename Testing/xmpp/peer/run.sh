@@ -9,6 +9,7 @@
 #   ./run.sh roster                   make the test accounts contacts of each other
 #   ./run.sh muc-reactions            group-chat reaction checks (XEP-0444/0359)
 #   ./run.sh sendfile <datei>         offer the running Adium a file (SI + IBB)
+#   ./run.sh correct "alt" "neu"      say something, then say it differently (XEP-0308)
 
 set -e
 cd "$(dirname "$0")"

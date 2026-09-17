@@ -58,6 +58,7 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 - (void)addContextDisplayToWindow:(NSNotification *)notification;
 - (void)displayContextForChat:(AIChat *)chat;
 - (void)historyDeadlineForChat:(AIChat *)chat;
+- (void)historyUnavailableForChat:(NSNotification *)notification;
 - (void)contentArrivedInChat:(NSNotification *)notification;
 + (DCMessageContextDisplayPlugin *)sharedInstance;
 @end
@@ -89,6 +90,11 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	formatter = [[ISO8601DateFormatter alloc] init];
 
 	chatsAwaitingHistory = [[NSMutableSet alloc] init];
+	accountsThatDisappointed = [[NSMutableSet alloc] init];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(historyUnavailableForChat:)
+												 name:Chat_HistoryUnavailable
+											   object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(contentArrivedInChat:)
 												 name:Content_ContentObjectAdded
@@ -154,7 +160,13 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	 * what was delivered or reacted to. The service answers over the network or
 	 * not at all, so this is a wait and not a surrender: if nothing has appeared
 	 * by the time it is up, the excerpt is shown after all. */
-	if ([chat.account providesConversationHistory]) {
+	/* An account that promised history and then let a wait run out is not asked to be waited
+	 * for again. WhatsApp is the case this was written for: it fetches the conversation from
+	 * the phone, and the phone hands over each stretch exactly once, so after the first sync
+	 * there is nothing left to hand over and the window sits out the full wait for silence,
+	 * every time, for the rest of the session. Once is a fair price for finding that out. */
+	if ([chat.account providesConversationHistory]
+		&& ![accountsThatDisappointed containsObject:chat.account]) {
 		[chatsAwaitingHistory addObject:chat];
 		[self performSelector:@selector(historyDeadlineForChat:)
 				   withObject:chat
@@ -188,6 +200,38 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 }
 
 /*!
+ * @brief The account knows the history is not coming, so there is nothing left to wait for
+ *
+ * A refusal is as final as an answer and arrives long before the deadline. Sitting out the rest
+ * of the wait after one would leave the window empty for no reason at all.
+ */
+- (void)historyUnavailableForChat:(NSNotification *)notification
+{
+	AIChat *chat = (AIChat *)[notification object];
+
+	if (!chat || ![chatsAwaitingHistory containsObject:chat]) return;
+
+	/* Whether the account is worth waiting for next time is a separate question from
+	 * whether this conversation got anything. An account that answers promptly with
+	 * nothing has kept its promise and stays worth asking; one whose answer says the
+	 * archive itself is gone has not, and it says so by leaving this out. */
+	BOOL askAgain = [[[notification userInfo] objectForKey:@"AskAgain"] boolValue];
+
+	[chatsAwaitingHistory removeObject:chat];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self
+											 selector:@selector(historyDeadlineForChat:)
+											   object:chat];
+
+	if (!askAgain && chat.account) [accountsThatDisappointed addObject:chat.account];
+
+	/* Displaying into a chat the user closed while we waited would open its
+	 * window again, which is a strange thing for an excerpt to do. */
+	if (!chat.isOpen) return;
+
+	[self displayContextForChat:chat];
+}
+
+/*!
  * @brief The wait for fetched history is over and nothing came
  */
 - (void)historyDeadlineForChat:(AIChat *)chat
@@ -195,6 +239,10 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	if (![chatsAwaitingHistory containsObject:chat]) return;
 
 	[chatsAwaitingHistory removeObject:chat];
+
+	/* It promised and nothing came. Whatever the reason, it will be the same reason next time,
+	 * and the next window should not pay the wait to find out. */
+	if (chat.account) [accountsThatDisappointed addObject:chat.account];
 
 	/* Displaying into a chat the user closed while we waited would open its
 	 * window again, which is a strange thing for an excerpt to do. */

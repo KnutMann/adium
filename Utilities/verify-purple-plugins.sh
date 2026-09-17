@@ -110,18 +110,30 @@ echo "== references and signatures: clean"
 [ "$QUICK" = "yes" ] && { echo "== quick mode, functional probe skipped"; exit 0; }
 
 #--- the functional probe: does the protocol actually arrive? -------------------
-LIBPURPLE="$FRAMEWORKS_DIR/libpurple.framework/Versions/0/libpurple"
-LIBGLIB="$FRAMEWORKS_DIR/libglib.framework/Versions/2.0.0/libglib"
-LIBGOBJECT="$FRAMEWORKS_DIR/libgobject.framework/Versions/2.0.0/libgobject"
-[ -f "$LIBPURPLE" ] || { echo "FAIL: no libpurple at $LIBPURPLE"; exit 1; }
+[ -f "$FRAMEWORKS_DIR/libpurple.framework/Versions/0/libpurple" ] \
+	|| { echo "FAIL: no libpurple in $FRAMEWORKS_DIR"; exit 1; }
 
 #Inside the repository's build directory on purpose: some sandboxes refuse to
 #execute binaries from the system temp directory, and build/ is gitignored.
 mkdir -p "$REPO/build"
 RIG=$(mktemp -d "$REPO/build/plugin-probe.XXXXXX")
 trap 'rm -rf "$RIG"' EXIT
-mkdir -p "$RIG/MacOS" "$RIG/empty"
-ln -s "$FRAMEWORKS_DIR" "$RIG/Frameworks"
+mkdir -p "$RIG/MacOS" "$RIG/empty" "$RIG/Frameworks"
+
+#The frameworks are copied here and signed ad hoc rather than linked to where they lie.
+#Apple Silicon loads no code whose signature does not check out, and the copies in this
+#repository are either unsigned outright or carry a signature that no longer matches what
+#they contain; the application runs only because Xcode signs the whole bundle as it builds
+#it. Loading them from outside a bundle gets the process killed by the kernel with no
+#message and no exit code worth reading, which from here looks exactly like every plug-in
+#being broken. Signing a copy changes no code, so what is probed is still what ships.
+cp -R "$FRAMEWORKS_DIR/"*.framework "$RIG/Frameworks/" 2>/dev/null || true
+cp "$FRAMEWORKS_DIR/"*.dylib "$RIG/Frameworks/" 2>/dev/null || true
+for one in "$RIG/Frameworks/"*; do codesign -f -s - "$one" >/dev/null 2>&1 || true; done
+
+LIBPURPLE="$RIG/Frameworks/libpurple.framework/Versions/0/libpurple"
+LIBGLIB="$RIG/Frameworks/libglib.framework/Versions/2.0.0/libglib"
+LIBGOBJECT="$RIG/Frameworks/libgobject.framework/Versions/2.0.0/libgobject"
 
 if ! clang -o "$RIG/MacOS/probe" "$REPO/Utilities/purple-plugin-probe.c" \
 	"$LIBPURPLE" "$LIBGLIB" "$LIBGOBJECT" 2>"$RIG/clang.log"; then
@@ -145,11 +157,18 @@ run_probe() {
 	return 1
 }
 
-baseline=$(run_probe "$RIG/empty" | awk '/^protocols /{n=$2} END{print n+0}')
-if [ -z "$baseline" ]; then
-	echo "FAIL: the probe did not run against an empty directory"
+#A probe that never ran prints nothing, and nothing counted through awk is a zero, which is
+#the same number a probe returns when it ran and found no protocols. Told apart here, because
+#the two mean opposite things: one is this machine refusing to run our binary, the other is
+#every plug-in in the tree being broken, and reporting the first as the second sends the
+#reader hunting a linking fault that is not there.
+if ! baseline_out=$(run_probe "$RIG/empty") || ! echo "$baseline_out" | grep -q '^protocols '; then
+	echo "FAIL: the probe itself could not be run here, so nothing can be said about the"
+	echo "      plug-ins. It is killed on launch when the frameworks it loads are not"
+	echo "      signed in a way this machine accepts."
 	exit 1
 fi
+baseline=$(echo "$baseline_out" | awk '/^protocols /{n=$2} END{print n+0}')
 
 for so in "${plugins[@]}"; do
 	name=$(basename "$so")

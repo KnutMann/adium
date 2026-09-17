@@ -368,6 +368,7 @@
 "(Copy)" = "(Copy)";
 
 /* No comment provided by engineer. */
+"(edited)" = "(edited)";
 "(Multiple privacy levels are active)" = "(Multiple privacy levels are active)";
 
 /* Hot Keys: Key Combo text for 'empty' combo */
@@ -2261,6 +2262,7 @@
 "Regenerate" = "Regenerate";
 
 /* No comment provided by engineer. */
+"Regular Window" = "Regular Window";
 "Remember this account" = "Remember this account";
 
 /* File transfer cancelled remotely status description */

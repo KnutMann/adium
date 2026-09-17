@@ -20,6 +20,11 @@
 #import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
 #import "AIWhatsAppAccountViewController.h"
+#import "SLPurpleCocoaAdapter.h"
+
+/* The key the protocol plug-in reads the correction target from. Spelled here rather than
+ * included, because the plug-in's headers are not on this side's search path. */
+#define GOWHATSAPP_EDIT_TARGET_KEY "gowhatsapp-edit-target"
 
 @implementation AIPurpleWhatsAppAccount
 
@@ -104,6 +109,64 @@
 - (BOOL)providesConversationHistory
 {
 	return account && purple_account_get_int(account, "fetch-history-on-open", 0) > 0;
+}
+
+/*!
+ * @brief Can a message already sent to this contact be replaced?
+ *
+ * WhatsApp can replace a message, and the plug-in can say so. How long that stays true is
+ * a separate question, answered by -maximumCorrectionAge; here it is only whether the
+ * service knows the idea at all.
+ */
+- (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact
+{
+	return (inContact != nil);
+}
+
+/*!
+ * @brief How long a message stays replaceable
+ *
+ * WhatsApp applies an edit for about fifteen minutes after the original was sent and
+ * silently drops later ones. The library sends them without complaint, so nothing would
+ * say anything went wrong: the line would be rewritten here and stay as it was on every
+ * other screen, which is the worst way for this to fail. A minute of margin, because the
+ * clock that matters is the server's.
+ */
+- (NSTimeInterval)maximumCorrectionAge
+{
+	return 14 * 60;
+}
+
+/*!
+ * @brief Send a message, saying which one it replaces if it replaces one
+ *
+ * The protocol plug-in takes the id off the conversation, which is its own idiom for
+ * passing something to a send that libpurple's send has no argument for. Set here and
+ * consumed there; the string is allocated for the plug-in to free.
+ */
+- (BOOL)sendMessageObject:(AIContentMessage *)inContentMessage
+{
+	NSString			*corrects = [inContentMessage correctsMessageId];
+	PurpleConversation	*conv = ([corrects length] ? existingConvLookupFromChat(inContentMessage.chat) : NULL);
+
+	if (conv) {
+		purple_conversation_set_data(conv, GOWHATSAPP_EDIT_TARGET_KEY, g_strdup([corrects UTF8String]));
+	}
+
+	BOOL sent = [super sendMessageObject:inContentMessage];
+
+	/* The send runs straight through into the plug-in, so by now it has been spent. If it
+	 * has not, the send never got that far and leaving it would attach it to the next
+	 * message typed here. */
+	if (conv) {
+		char *leftOver = purple_conversation_get_data(conv, GOWHATSAPP_EDIT_TARGET_KEY);
+		if (leftOver) {
+			purple_conversation_set_data(conv, GOWHATSAPP_EDIT_TARGET_KEY, NULL);
+			g_free(leftOver);
+		}
+	}
+
+	return sent;
 }
 
 /* Adopt the WhatsApp profile name as this account's display name, so outgoing

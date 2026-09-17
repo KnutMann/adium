@@ -15,6 +15,7 @@
  */
 
 #import "ESPurpleJabberAccount.h"
+#import <libpurple/jabber.h>
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
@@ -32,12 +33,16 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <libpurple/si.h>
 #import <libpurple/chat.h>
+/* After si.h and chat.h, which are what bring jabber.h in: stream_management.h names
+   JabberStream and does not declare it. */
+#include <libpurple/stream_management.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "AMXMLConsoleController.h"
 #import "AMPurpleJabberServiceDiscoveryBrowsing.h"
 #import "ESPurpleJabberAccountViewController.h"
 #import "AMPurpleJabberAdHocServer.h"
 #import "AMPurpleJabberHTTPFileUpload.h"
+#import "AMPurpleJabberMAM.h"
 #import "AMPurpleJabberExternalServices.h"
 #import "AMPurpleJabberAdHocPing.h"
 #import "AIMessageViewController.h"
@@ -71,6 +76,73 @@
  * @param proposedUID The proposed, pre-filtered UID (filtered means it has no characters invalid for this servce)
  * @result The UID to use; the default implementation just returns proposedUID.
  */
+/*!
+ * @brief Ask the server at once whether this stream is still there
+ *
+ * After a network comes back the socket underneath may be dead with nothing having noticed:
+ * nothing is read from a socket that carries nothing, and the next write may be minutes away.
+ * Measured on a wireless network being changed, the connection was declared lost 59 seconds
+ * after the network returned, and for all of that time Adium looked connected and was not.
+ *
+ * An acknowledgement request settles it, because a write to a socket that is gone fails and is
+ * reported. It does nothing when stream management is not running.
+ */
+/*!
+ * @brief Whether this account fetches the conversation's earlier messages itself
+ *
+ * True once the server has said it keeps an archive. The excerpt from our own transcript then
+ * waits for the archive rather than being shown alongside it, which is what the two of them
+ * showing the same lines twice looked like; the archive knows more, since it also holds what
+ * was said while this machine was not listening.
+ */
+- (BOOL)providesConversationHistory
+{
+	return [mam isAvailable];
+}
+
+/*!
+ * @brief Can a message already sent to this contact be replaced? (XEP-0308)
+ *
+ * libpurple's house rule for capabilities, written the same way for receipts, chat markers
+ * and xhtml: knowing nothing is never a refusal. A resource that has told us what it can do
+ * and does not name this counts as a no; a resource that has said nothing yet is tried. The
+ * seconds after a contact appears are exactly when somebody reaches for the arrow key, and
+ * refusing then would make the feature look broken rather than absent.
+ */
+- (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact
+{
+	PurpleAccount		*account = accountLookupFromAdiumAccount(self);
+	PurpleConnection	*gc = (account ? purple_account_get_connection(account) : NULL);
+	if (!gc || !PURPLE_CONNECTION_IS_CONNECTED(gc) || !inContact)
+		return NO;
+
+	JabberStream	*js = gc->proto_data;
+	JabberBuddy		*jb = (js ? jabber_buddy_find(js, [inContact.UID UTF8String], FALSE) : NULL);
+	if (!jb)
+		return YES;			//nobody has said anything; try
+
+	BOOL anybodySaid = NO;
+	for (GList *each = jb->resources; each; each = each->next) {
+		JabberBuddyResource *jbr = each->data;
+		if (!jbr || !jbr->caps.info)
+			continue;		//this one has not told us anything yet
+		anybodySaid = YES;
+		if (jabber_resource_has_capability(jbr, "urn:xmpp:message-correct:0"))
+			return YES;
+	}
+
+	return !anybodySaid;
+}
+
+- (void)probeConnectionIsAlive
+{
+	PurpleConnection *gc = purple_account_get_connection(self.purpleAccount);
+	JabberStream *js = gc ? purple_connection_get_protocol_data(gc) : NULL;
+
+	if (js != NULL)
+		jabber_sm_probe(js);
+}
+
 - (NSString *)accountWillSetUID:(NSString *)proposedUID
 {
 	proposedUID = [proposedUID lowercaseString];
@@ -921,6 +993,11 @@
 	//Look for the server's HTTP upload service; found or not, sending falls back gracefully
 	[httpUpload release];
 	httpUpload = [[AMPurpleJabberHTTPFileUpload alloc] initWithAccount:self];
+
+	/* And whether it keeps an archive. A window that opens then shows what was said while
+	   this machine was not listening, which the local log by definition cannot. */
+	mam = nil;
+	mam = [[AMPurpleJabberMAM alloc] initWithAccount:self];
 
 	//And for its STUN and TURN servers; calls read the answer when they build their connection
 	[externalServices release];

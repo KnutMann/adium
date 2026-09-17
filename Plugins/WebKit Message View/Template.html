@@ -340,12 +340,28 @@
 		}
 
 		// XEP-0308 Message Correction: replace existing message in-place
-		function correctMessage(domId, html) {
-			var el = document.getElementById(domId);
-			if (!el) return false;
-			el.innerHTML = html;
-			el.classList.add("corrected");
-			return true;
+		/* XEP-0308: the sender replaced what they said. The message keeps its node and
+		   therefore its id, so the ticks and reaction chips hanging off that id survive;
+		   only the text inside the wrapper changes. Messages are found by the attribute
+		   Adium stamps on them, not by an element id: the page has none. Searched from
+		   the end, because the newest line wins if an id ever appears twice. The marker
+		   is passed in rather than written into the stylesheet, so it can be translated. */
+		function correctMessage(messageId, html, editedLabel, direction) {
+			var all = document.querySelectorAll("[data-x-adium-msg]");
+			for (var i = all.length - 1; i >= 0; i--) {
+				/* Only a message going the same way may be replaced. The other side knows
+				   the ids of the messages we sent them, so without this a contact could
+				   name one of ours and rewrite what we said on our own screen. XEP-0308
+				   warns about exactly that. */
+				if (all[i].getAttribute("data-x-adium-dir") !== direction) continue;
+				if (all[i].getAttribute("data-x-adium-id") === messageId) {
+					all[i].innerHTML = html;
+					all[i].classList.add("corrected");
+					all[i].setAttribute("data-x-adium-edited", editedLabel);
+					return true;
+				}
+			}
+			return false;
 		}
 
 		function initStyle() {
@@ -361,7 +377,7 @@
 		.actionMessageBody:after { content:"*"; }
 		* { word-wrap:break-word; text-rendering: optimizelegibility; }
 		img.scaledToFitImage { height: auto; max-width: 100%%; }
-		.corrected::after { content: " (edited)"; font-size: smaller; opacity: 0.7; }
+		[data-x-adium-edited]::after { content: " " attr(data-x-adium-edited); font-size: smaller; opacity: 0.7; }
 	</style>
 
 	<!-- This style is shared by all variants. !-->

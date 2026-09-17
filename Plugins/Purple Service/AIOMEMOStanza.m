@@ -219,6 +219,7 @@ BOOL AIOMEMOSealStanza(xmlnode *stanza, AIOMEMOStore *store,
 		{ "request",	"urn:xmpp:receipts" },
 		{ "markable",	"urn:xmpp:chat-markers:0" },
 		{ "origin-id",	"urn:xmpp:sid:0" },
+		{ "replace",	"urn:xmpp:message-correct:0" },	//names a message, says nothing about either
 		{ "active",		"http://jabber.org/protocol/chatstates" },
 		{ "composing",	"http://jabber.org/protocol/chatstates" },
 		{ "paused",		"http://jabber.org/protocol/chatstates" },

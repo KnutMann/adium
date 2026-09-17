@@ -283,6 +283,20 @@ static NSString *AIInlineImageCachePath(NSString *address, NSString *extension)
 			return;
 		}
 
+		/* A transfer that stops early is not an error anywhere: the request completed, the
+		 * status was 200, and what arrived is simply shorter than what was promised. Shown
+		 * without checking, that is half a picture, and nothing says so. The encrypted case
+		 * is covered further down by its authentication tag; this is the other one.
+		 *
+		 * A server that does not say how long the file is leaves nothing to compare, and
+		 * chunked responses report minus one; neither is a reason to refuse what arrived. */
+		long long promised = [response expectedContentLength];
+		if (promised > 0 && (long long)[data length] != promised) {
+			AILogWithSignature(@"%@ arrived short: %lu bytes of %lld, so it did not arrive",
+							   link.address, (unsigned long)[data length], promised);
+			return;
+		}
+
 		if (link.ivAndKey) {
 			/* An encrypted file is stored as meaningless bytes, so the server's own idea of
 			 * what it is says nothing. What vouches for it is the authentication tag, checked

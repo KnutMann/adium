@@ -1201,6 +1201,13 @@ static void purpleUnregisterCb(PurpleAccount *account, gboolean success, void *u
 		purple_blist_add_buddy(buddy, NULL, group, NULL);
 	}
 
+	/* Adium adding a buddy is the other way a group JID could end up as a
+	 * pseudo-contact, besides the protocol plug-in doing it. Which of the two
+	 * it was has never been established, so whichever one it is says so. */
+	if ([objectUID hasSuffix:@"@g.us"]) {
+		AILogWithSignature(@"GROUP JID AS BUDDY: Adium is adding %@ to group %@. This is a bug.", objectUID, groupName);
+	}
+
 	AILog(@"Adding buddy %s to group %s with alias %s",purple_buddy_get_name(buddy), group->name, aliasUTF8String);
 
 	purple_account_add_buddy(account, buddy);

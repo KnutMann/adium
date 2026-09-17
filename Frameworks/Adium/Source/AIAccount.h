@@ -206,6 +206,15 @@ typedef enum {
 - (void)connect;
 - (void)disconnect;
 - (void)disconnectFromDroppedNetworkConnection;
+
+/*!
+ * @brief Find out at once whether this connection is still really there
+ *
+ * For after a network interruption. A socket can be dead with nothing having noticed, because
+ * nothing is read from a socket that carries nothing; an account that does something about it
+ * overrides this, and one that does not is none the worse.
+ */
+- (void)probeConnectionIsAlive;
 - (void)performRegisterWithPassword:(NSString *)inPassword;
 - (NSString *)accountWillSetUID:(NSString *)proposedUID;
 - (void)didChangeUID;
@@ -300,6 +309,25 @@ typedef enum {
  * @brief Can the account send images inline within a chat?
  */
 - (BOOL)canSendImagesForChat:(AIChat *)inChat;
+
+/*!
+ * @brief Can a message already sent to this contact be replaced?
+ *
+ * Correcting a message the other side cannot replace is worse than not offering it: they
+ * see the same sentence twice, once wrong and once right, and no client on earth tells
+ * them which was meant. So the offer is made only where it will land. NO unless an account
+ * says otherwise.
+ */
+- (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact;
+
+/*!
+ * @brief How long a sent message stays replaceable, in seconds
+ *
+ * Some services apply a correction only for a while after the original was sent and drop
+ * later ones without saying so, which would leave the message rewritten here and unchanged
+ * everywhere else. Zero means no limit.
+ */
+- (NSTimeInterval)maximumCorrectionAge;
 - (BOOL)canSendFilesToGroupChat:(AIChat *)inChat;
 - (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat;
 

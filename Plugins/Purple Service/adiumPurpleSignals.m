@@ -24,6 +24,10 @@
 #import <Adium/AIContentMessage.h>
 #import <Adium/ESFileTransfer.h>
 
+static gboolean correction_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
+static gboolean correction_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
+static AIContentMessage *pendingOutgoingContentMessage;
+
 static void buddy_status_changed_cb(PurpleBuddy *buddy, PurpleStatus *oldstatus, PurpleStatus *status, PurpleBuddyEvent event);
 static void buddy_idle_changed_cb(PurpleBuddy *buddy, gboolean old_idle, gboolean idle, PurpleBuddyEvent event);
 
@@ -260,7 +264,25 @@ static void connection_signed_on_cb(PurpleConnection *gc)
 		buddy_added_cb((PurpleBuddy *)cur->data);
 	}
 	g_slist_free(buddies);
-	
+
+	/* The xmlnode signals belong to the jabber protocol and exist once it is loaded, which
+	 * is certain by the time one of its accounts has signed on. Bound once, at the lowest
+	 * priority there is: a carbon is unwrapped and an encrypted message is opened by
+	 * handlers on this same signal, and a correction has to see what they leave behind. */
+	PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
+	if (jabber && purple_strequal(purple_account_get_protocol_id(purple_connection_get_account(gc)), "prpl-jabber")) {
+		static gboolean correctionHooked = FALSE;
+		if (!correctionHooked) {
+			correctionHooked = TRUE;
+			purple_signal_connect_priority(jabber, "jabber-receiving-xmlnode", adium_purple_get_handle(),
+										   PURPLE_CALLBACK(correction_receiving_xmlnode_cb), NULL,
+										   PURPLE_SIGNAL_PRIORITY_LOWEST);
+			purple_signal_connect_priority(jabber, "jabber-sending-xmlnode", adium_purple_get_handle(),
+										   PURPLE_CALLBACK(correction_sending_xmlnode_cb), NULL,
+										   PURPLE_SIGNAL_PRIORITY_HIGHEST);
+		}
+	}
+
 	[pool release];
 }
 
@@ -407,6 +429,13 @@ file_recv_request_cb(PurpleXfer *xfer)
     //Purple doesn't return normalized user id, so it should be normalized manually
     char* who = g_strdup(purple_normalize(xfer->account, xfer->who));
     
+	/* A transfer whose peer is a group is how a group becomes a contact object
+	 * here: the peer is asked for as a contact, and one is made if none exists.
+	 * WhatsApp does this by default (group-is-file-origin). */
+	if (strstr(who, "@g.us")) {
+		AILog(@"GROUP JID AS TRANSFER PEER: %s. A contact object will be made for it.", who);
+	}
+
 	//Ask the account for an ESFileTransfer* object
 	fileTransfer = [accountLookup(xfer->account) newFileTransferObjectWith:[NSString stringWithUTF8String:who]
 					size:purple_xfer_get_size(xfer)
@@ -561,6 +590,131 @@ static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
 																		 @"Sender": sender }];
 		}
 	}
+}
+
+/* --- XEP-0308: a message that replaces one already said ------------------------------ */
+
+#define NS_MESSAGE_CORRECT "urn:xmpp:message-correct:0"
+
+/*!
+ * @brief Find the one-to-one chat a full JID is talking in, if it is open
+ */
+static AIChat *correctionChatForSender(PurpleAccount *account, const char *from)
+{
+	if (!from) return nil;
+
+	NSString	*full = [NSString stringWithUTF8String:from];
+	NSRange		 slash = [full rangeOfString:@"/"];
+	NSString	*bare = (slash.location != NSNotFound) ? [full substringToIndex:slash.location] : full;
+
+	PurpleBuddy		*buddy = purple_find_buddy(account, [bare UTF8String]);
+	AIListContact	*contact = buddy ? contactLookupFromBuddy(buddy) : nil;
+	return contact ? [adium.chatController existingChatWithContact:contact] : nil;
+}
+
+/*!
+ * @brief Take the correction out of an incoming message and leave the rest to the protocol
+ *
+ * A correction is an ordinary message carrying <replace id='...'/>. Shown as it arrives it
+ * would stand under the sentence it replaces, so the message it names is rewritten instead
+ * and this one is not shown at all.
+ *
+ * The stanza is not swallowed for that, only emptied of its text. Everything else it carries
+ * is still owed an answer: a delivery receipt, a chat marker, the note that the sender allows
+ * markers. All of that is parsed from the remaining children by the protocol, which shows
+ * nothing without a body, so taking the body is exactly enough and nothing has to be
+ * reimplemented here.
+ *
+ * Runs after every other handler on this signal, because two of them rewrite the stanza
+ * first: a carbon is unwrapped into the message it forwards, and an encrypted message only
+ * grows its body once it has been opened.
+ */
+static gboolean correction_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet) return FALSE;
+
+	xmlnode *stanza = *packet;
+	if (!purple_strequal(stanza->name, "message")) return FALSE;
+
+	/* A room names the message by an id the room stamped, which is not the id space this
+	 * side tracks. Until that is measured, rooms are left alone. */
+	const char *type = xmlnode_get_attrib(stanza, "type");
+	if (type && !purple_strequal(type, "chat") && !purple_strequal(type, "normal")) return FALSE;
+
+	xmlnode *replace = xmlnode_get_child_with_namespace(stanza, "replace", NS_MESSAGE_CORRECT);
+	if (!replace) return FALSE;
+
+	const char *target = xmlnode_get_attrib(replace, "id");
+	xmlnode *body = xmlnode_get_child(stanza, "body");
+	if (!target || !*target || !body) return FALSE;
+
+	char *said = xmlnode_get_data(body);
+	if (!said) return FALSE;
+
+	@autoreleasepool {
+		PurpleAccount	*account = purple_connection_get_account(gc);
+		AIChat			*chat = correctionChatForSender(account, xmlnode_get_attrib(stanza, "from"));
+
+		/* Nobody to tell. The message is left whole and appears as what it also is, a
+		 * message; a window that is not open cannot be corrected. */
+		if (!chat) {
+			g_free(said);
+			return FALSE;
+		}
+
+		AILog(@"XEP-0308: %s replaces message %s", xmlnode_get_attrib(stanza, "from") ?: "(unknown)", target);
+
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasCorrected"
+														   object:chat
+														 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:target],
+																	 @"Message": [NSString stringWithUTF8String:said],
+																	 @"Direction": @"incoming" }];
+	}
+	g_free(said);
+
+	/* Only the text goes. The xhtml body would be shown in its place otherwise. */
+	xmlnode_free(body);
+	xmlnode *rich = xmlnode_get_child_with_namespace(stanza, "html", "http://jabber.org/protocol/xhtml-im");
+	if (rich) xmlnode_free(rich);
+
+	return FALSE;
+}
+
+/*!
+ * @brief Say which message an outgoing one replaces
+ *
+ * The window decided that this message corrects an earlier one and wrote the earlier id on
+ * the content object. The content object is held for exactly the length of one send, which
+ * is this, so the outgoing stanza can be told before it goes.
+ *
+ * Runs before anything else on this signal, and in particular before the message is sealed:
+ * encryption keeps only the children it has been told are harmless in the clear, and this is
+ * one of them. It names a message; it says nothing about what either message contains. Added
+ * afterwards instead, it would be lost whenever a message had to wait for a key.
+ */
+static gboolean correction_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet) return FALSE;
+
+	xmlnode *stanza = *packet;
+	if (!purple_strequal(stanza->name, "message")) return FALSE;
+
+	/* Chat states and receipts travel as messages of their own and must not be mistaken for
+	 * the one the user typed. */
+	if (!xmlnode_get_child(stanza, "body")) return FALSE;
+
+	@autoreleasepool {
+		NSString *corrects = [pendingOutgoingContentMessage correctsMessageId];
+		if (![corrects length]) return FALSE;
+
+		xmlnode *replace = xmlnode_new_child(stanza, "replace");
+		xmlnode_set_namespace(replace, NS_MESSAGE_CORRECT);
+		xmlnode_set_attrib(replace, "id", [corrects UTF8String]);
+
+		AILog(@"XEP-0308: this message replaces %@", corrects);
+	}
+
+	return FALSE;
 }
 
 /* The id of an incoming message, kept just long enough for the conversation callback that runs
@@ -759,5 +913,6 @@ void configureAdiumPurpleSignals(void)
 	jabber_add_feature("urn:xmpp:receipts", NULL);
 	jabber_add_feature("urn:xmpp:chat-markers:0", NULL);
 	jabber_add_feature("urn:xmpp:reactions:0", NULL);
+	jabber_add_feature("urn:xmpp:message-correct:0", NULL);
 
 }

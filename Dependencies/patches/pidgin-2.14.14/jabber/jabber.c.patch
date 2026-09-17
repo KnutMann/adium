@@ -1,0 +1,98 @@
+--- a/libpurple/protocols/jabber/jabber.c
++++ b/libpurple/protocols/jabber/jabber.c
+@@ -166,6 +166,10 @@
+ 			js->user_jb->subscription |= JABBER_SUB_BOTH;
+ 
+ 			purple_connection_set_display_name(js->gc, full_jid);
++			/* Kept for a later resumption, which binds nothing and would otherwise have
++			   no idea what it is called. */
++			g_free(jabber_sm_session_get(js)->full_jid);
++			jabber_sm_session_get(js)->full_jid = g_strdup(full_jid);
+ 
+ 			g_free(full_jid);
+ 		}
+@@ -265,6 +269,32 @@
+ 	}
+ 
+ 	return FALSE;
++}
++
++/* Asks the server for a resource, which is the ordinary way into a session.
++ *
++ * Lifted out of jabber_stream_features_parse because there is now a second way in, and the
++ * one that fails has to fall back to this one. Nothing about it changed in the moving.
++ */
++void jabber_bind_resource(JabberStream *js)
++{
++	xmlnode *bind, *resource;
++	char *requested_resource;
++	JabberIq *iq = jabber_iq_new(js, JABBER_IQ_SET);
++
++	bind = xmlnode_new_child(iq->node, "bind");
++	xmlnode_set_namespace(bind, NS_XMPP_BIND);
++	requested_resource = jabber_prep_resource(js->user->resource);
++
++	if (requested_resource != NULL) {
++		resource = xmlnode_new_child(bind, "resource");
++		xmlnode_insert_data(resource, requested_resource, -1);
++		g_free(requested_resource);
++	}
++
++	jabber_iq_set_callback(iq, jabber_bind_result_cb, NULL);
++
++	jabber_iq_send(iq);
+ }
+ 
+ void jabber_stream_features_parse(JabberStream *js, xmlnode *packet)
+@@ -291,22 +321,12 @@
+ 		jabber_stream_set_state(js, JABBER_STREAM_AUTHENTICATING);
+ 		jabber_auth_start(js, packet);
+ 	} else if(xmlnode_get_child(packet, "bind")) {
+-		xmlnode *bind, *resource;
+-		char *requested_resource;
+-		JabberIq *iq = jabber_iq_new(js, JABBER_IQ_SET);
+-		bind = xmlnode_new_child(iq->node, "bind");
+-		xmlnode_set_namespace(bind, NS_XMPP_BIND);
+-		requested_resource = jabber_prep_resource(js->user->resource);
+-
+-		if (requested_resource != NULL) {
+-			resource = xmlnode_new_child(bind, "resource");
+-			xmlnode_insert_data(resource, requested_resource, -1);
+-			g_free(requested_resource);
+-		}
+-
+-		jabber_iq_set_callback(iq, jabber_bind_result_cb, NULL);
+-
+-		jabber_iq_send(iq);
++		/* Ask for the old session back before asking for a new resource. Only worth trying
++		   when this stream offers stream management at all; jabber_sm_resume says whether
++		   there was anything to ask for, and a <failed/> comes back and binds after all. */
++		if (!xmlnode_get_child_with_namespace(packet, "sm", NS_STREAM_MANAGEMENT)
++		    || !jabber_sm_resume(js))
++			jabber_bind_resource(js);
+ 	} else if (xmlnode_get_child_with_namespace(packet, "ver", NS_ROSTER_VERSIONING)) {
+ 		js->server_caps |= JABBER_CAP_ROSTER_VERSIONING;
+ 	} else /* if(xmlnode_get_child_with_namespace(packet, "auth")) */ {
+@@ -1720,6 +1740,8 @@
+ 		purple_timeout_remove(js->keepalive_timeout);
+ 	if (js->inactivity_timer != 0)
+ 		purple_timeout_remove(js->inactivity_timer);
++	/* The one that would otherwise ask for an acknowledgement on a stream that is gone. */
++	jabber_sm_stream_closing(js);
+ 
+ 	g_free(js->srv_rec);
+ 	js->srv_rec = NULL;
+@@ -1790,8 +1812,11 @@
+ 
+ 			break;
+ 		case JABBER_STREAM_CONNECTED:
+-			/* Send initial presence */
+-			jabber_presence_send(js, TRUE);
++			/* Send initial presence, unless this session never went away. Announcing
++			   arrival on a resumed session would tell everybody watching that we had
++			   left, which is precisely what resuming exists to avoid. */
++			if (!js->sm_resumed)
++				jabber_presence_send(js, TRUE);
+ 			/* Start up the inactivity timer */
+ 			jabber_stream_restart_inactivity_timer(js);
+ 
