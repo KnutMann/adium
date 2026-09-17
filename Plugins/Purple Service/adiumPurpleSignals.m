@@ -667,7 +667,8 @@ static gboolean correction_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasCorrected"
 														   object:chat
 														 userInfo:@{ @"MessageId": [NSString stringWithUTF8String:target],
-																	 @"Message": [NSString stringWithUTF8String:said] }];
+																	 @"Message": [NSString stringWithUTF8String:said],
+																	 @"Direction": @"incoming" }];
 	}
 	g_free(said);
 

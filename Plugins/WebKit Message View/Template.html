@@ -346,9 +346,14 @@
 		   Adium stamps on them, not by an element id: the page has none. Searched from
 		   the end, because the newest line wins if an id ever appears twice. The marker
 		   is passed in rather than written into the stylesheet, so it can be translated. */
-		function correctMessage(messageId, html, editedLabel) {
+		function correctMessage(messageId, html, editedLabel, direction) {
 			var all = document.querySelectorAll("[data-x-adium-msg]");
 			for (var i = all.length - 1; i >= 0; i--) {
+				/* Only a message going the same way may be replaced. The other side knows
+				   the ids of the messages we sent them, so without this a contact could
+				   name one of ours and rewrite what we said on our own screen. XEP-0308
+				   warns about exactly that. */
+				if (all[i].getAttribute("data-x-adium-dir") !== direction) continue;
 				if (all[i].getAttribute("data-x-adium-id") === messageId) {
 					all[i].innerHTML = html;
 					all[i].classList.add("corrected");

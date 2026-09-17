@@ -2040,7 +2040,8 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasCorrected"
 															   object:_chat
 															 userInfo:@{ @"MessageId": corrects,
-																		 @"Message": _lastOutgoingText }];
+																		 @"Message": _lastOutgoingText,
+																		 @"Direction": @"outgoing" }];
 			return;
 		}
 
@@ -2136,24 +2137,31 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	NSString *text = [[notification userInfo] objectForKey:@"Message"];
 	if (![messageId length] || !text) return;
 
+	/* Which way the message being replaced was going. Without this a contact could name
+	 * the id of a message we sent them, which they know because they received it, and
+	 * rewrite our own words on our own screen. */
+	NSString *direction = [[notification userInfo] objectForKey:@"Direction"];
+	if (![direction length]) direction = @"incoming";
+
 	NSString *label = AILocalizedString(@"(edited)", "marker on a message whose sender has since replaced it");
 
 	/* The coalescer holds new messages in a fragment for a few milliseconds; a correction
 	 * arriving in that window would look for a message the page does not have yet. */
 	NSString *js = [NSString stringWithFormat:@"(function(){"
 		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
-		@" return correctMessage(%@, %@, %@);"
+		@" return correctMessage(%@, %@, %@, %@);"
 		@"})()",
 		[self _jsStringLiteral:messageId],
 		[self _jsStringLiteral:[self _htmlFromPlainText:text]],
-		[self _jsStringLiteral:label]];
+		[self _jsStringLiteral:label],
+		[self _jsStringLiteral:direction]];
 
 	__weak __typeof__(self) weakSelf = self;
 	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if (error || ![result boolValue]) {
 			AILogWithSignature(@"correction for %@ found no message carrying that id (%@); showing it on its own",
 							   messageId, error ?: result);
-			[weakSelf _showUnplaceableCorrection:text];
+			[weakSelf _showUnplaceableCorrection:text outgoing:[direction isEqualToString:@"outgoing"]];
 		}
 	}];
 }
@@ -2179,14 +2187,17 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 /*!
  * @brief Show a correction whose original is not on this page
  */
-- (void)_showUnplaceableCorrection:(NSString *)text
+- (void)_showUnplaceableCorrection:(NSString *)text outgoing:(BOOL)outgoing
 {
-	AIListObject *source = [_chat listObject];
-	if (!source) return;
+	AIListObject *contact = [_chat listObject];
+	if (!contact) return;
 
+	/* Said by us from another device, or said by them. Shown as whoever said it: a
+	 * correction of our own message attributed to the contact would be a lie of the
+	 * quiet sort, and the window has no other way of telling the reader apart. */
 	AIContentMessage *message = [AIContentMessage messageInChat:_chat
-													 withSource:source
-													destination:[_chat account]
+													 withSource:(outgoing ? (AIListObject *)[_chat account] : contact)
+													destination:(outgoing ? contact : (AIListObject *)[_chat account])
 														   date:[NSDate date]
 														message:[[NSAttributedString alloc] initWithString:text]
 													  autoreply:NO];
