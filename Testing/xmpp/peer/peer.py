@@ -11,6 +11,7 @@ import asyncio
 import logging
 
 from slixmpp import ClientXMPP
+from slixmpp.xmlstream import ET
 
 SERVER = ("127.0.0.1", 5222)
 
@@ -62,6 +63,52 @@ class OneShotSender(ClientXMPP):
         self.send_presence()
         self.send_message(mto=self.to, mbody=self.body, mtype="chat")
         # Give the stanza a moment on the wire before disconnecting
+        await asyncio.sleep(0.5)
+        self.disconnect()
+
+
+class Corrector(ClientXMPP):
+    """Says something, then says it differently (XEP-0308).
+
+    The correction is an ordinary message carrying <replace id='...'/> naming the
+    first one. Adium should rewrite the line that is already there rather than put
+    a second one under it, and mark it as corrected. With --only-correction the
+    first message is skipped, which is the case where the message being named is
+    not on the page at all.
+    """
+
+    def __init__(self, account: str, to: str, first: str, second: str, only_correction: bool, delay: float):
+        super().__init__(f"{account}@localhost/corrector", password_for(account), plugin_config=SASL_INSECURE)
+        self.to = to
+        self.first = first
+        self.second = second
+        self.only_correction = only_correction
+        self.delay = delay
+        self.enable_starttls = False
+        self.enable_direct_tls = False
+        self.enable_plaintext = True
+        self.add_event_handler("session_start", self.on_start)
+
+    async def on_start(self, event):
+        self.send_presence()
+
+        first = self.make_message(mto=self.to, mbody=self.first, mtype="chat")
+        first_id = first["id"]
+        if not self.only_correction:
+            first.send()
+            print(f"gesendet   id={first_id}: {self.first}")
+            await asyncio.sleep(self.delay)
+        else:
+            first_id = "nie-gesendet-" + first_id
+            print(f"uebersprungen, korrigiert wird die unbekannte id {first_id}")
+
+        second = self.make_message(mto=self.to, mbody=self.second, mtype="chat")
+        replace = ET.Element("{urn:xmpp:message-correct:0}replace")
+        replace.set("id", first_id)
+        second.append(replace)
+        second.send()
+        print(f"korrigiert id={first_id} -> {self.second}")
+
         await asyncio.sleep(0.5)
         self.disconnect()
 
@@ -170,6 +217,16 @@ def main():
     p_send.add_argument("--to", default="adium@localhost")
     p_send.add_argument("--account", default="peer", help="absendendes Konto (Standard: peer)")
 
+    p_corr = sub.add_parser("correct", help="etwas sagen und es dann anders sagen (XEP-0308)")
+    p_corr.add_argument("first", nargs="?", default="Wir treffen uns um sieben")
+    p_corr.add_argument("second", nargs="?", default="Wir treffen uns um acht")
+    p_corr.add_argument("--to", default="adium@localhost")
+    p_corr.add_argument("--account", default="peer")
+    p_corr.add_argument("--only-correction", action="store_true",
+                        help="nur die Korrektur senden, ohne das Original")
+    p_corr.add_argument("--delay", type=float, default=2.0,
+                        help="Sekunden zwischen Nachricht und Korrektur")
+
     sub.add_parser("second-device", help="als Zweitgerät auf dem adium-Konto sitzen")
 
     p_bm = sub.add_parser("bookmark", help="Server-Lesezeichen des adium-Kontos bearbeiten")
@@ -188,6 +245,9 @@ def main():
         client = Peer(echo=(args.command == "echo"))
     elif args.command == "send":
         client = OneShotSender(args.account, args.to, args.body)
+    elif args.command == "correct":
+        client = Corrector(args.account, args.to, args.first, args.second,
+                           args.only_correction, args.delay)
     elif args.command == "second-device":
         client = SecondDevice()
     elif args.command == "bookmark":
@@ -196,7 +256,7 @@ def main():
 
     client.connect(*SERVER)
     try:
-        if args.command in ("send", "bookmark"):
+        if args.command in ("send", "bookmark", "correct"):
             client.loop.run_until_complete(client.disconnected)
         else:
             client.loop.run_forever()

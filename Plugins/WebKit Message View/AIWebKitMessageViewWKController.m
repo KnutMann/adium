@@ -395,11 +395,7 @@ static NSString *const AIWKContextMenuScript =
 
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageWasCorrected:)
-													 name:@"AIMessageCorrection"
-												   object:nil];
-		[[NSNotificationCenter defaultCenter] addObserver:self
-												 selector:@selector(stanzaWasTracked:)
-													 name:@"AIMessageStanzaTracked"
+													 name:@"AIChatMessageWasCorrected"
 												   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageReactionsChanged:)
@@ -2063,40 +2059,83 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	}
 }
 
+/*!
+ * @brief The sender has replaced something they said (XEP-0308)
+ *
+ * The message keeps its place, its id and everything hanging off that id: the ticks it
+ * earned and the reaction chips sitting on it stay where they are, because only the text
+ * inside the message span is exchanged. A marker says the line is not what was first said,
+ * which matters when someone reads the conversation later and the reply above it answers
+ * a sentence that is no longer there.
+ *
+ * If the message is not on the page, the correction is shown as a message of its own
+ * rather than dropped. That happens when the window was opened after the original, or
+ * when it scrolled out of what this view still holds, and losing the text outright would
+ * be worse than showing it twice.
+ */
 - (void)messageWasCorrected:(NSNotification *)notification
 {
-	NSDictionary *userInfo = [notification userInfo];
-	NSString *senderJID = [userInfo objectForKey:@"AICorrectionSender"];
-	NSString *domId = [userInfo objectForKey:@"AICorrectionDOMId"];
-	NSString *html = [userInfo objectForKey:@"AICorrectionHTML"];
+	if ([notification object] != _chat) return;
 
-	if (!senderJID || !domId || !html) {
-		return;
-	}
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	NSString *text = [[notification userInfo] objectForKey:@"Message"];
+	if (![messageId length] || !text) return;
 
-	// Verify this correction is for our chat
-	NSString *chatBareJID = [[[_chat listObject] UID] isKindOfClass:[NSString class]] ? [[_chat listObject] UID] : nil;
-	if (![senderJID isEqualToString:chatBareJID]) {
-		return;
-	}
+	NSString *label = AILocalizedString(@"(edited)", "marker on a message whose sender has since replaced it");
 
-	NSString *escapedHTML = [self _jsStringLiteral:html];
-	NSString *escapedDomId = [self _jsStringLiteral:domId];
-	NSString *js = [NSString stringWithFormat:@"correctMessage(%@, %@)", escapedDomId, escapedHTML];
-	[_webView evaluateJavaScript:js
-			   completionHandler:^(id result, NSError *error) {
-				   if (error) {
-					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
-					   return;
-				   }
+	/* The coalescer holds new messages in a fragment for a few milliseconds; a correction
+	 * arriving in that window would look for a message the page does not have yet. */
+	NSString *js = [NSString stringWithFormat:@"(function(){"
+		@" if(window.coalescedHTML){coalescedHTML.cancel();}"
+		@" return correctMessage(%@, %@, %@);"
+		@"})()",
+		[self _jsStringLiteral:messageId],
+		[self _jsStringLiteral:[self _htmlFromPlainText:text]],
+		[self _jsStringLiteral:label]];
 
-				   // correctMessage() returns false when no element with the DOM id exists
-				   // (the original message was never rendered); append it as a fallback.
-				   BOOL correctedInPlace = ([result respondsToSelector:@selector(boolValue)] && [result boolValue]);
-				   if (!correctedInPlace) {
-					   [self _appendCorrectedMessageFallback:html fromSenderJID:senderJID];
-				   }
-			   }];
+	__weak __typeof__(self) weakSelf = self;
+	[_webView evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+		if (error || ![result boolValue]) {
+			AILogWithSignature(@"correction for %@ found no message carrying that id (%@); showing it on its own",
+							   messageId, error ?: result);
+			[weakSelf _showUnplaceableCorrection:text];
+		}
+	}];
+}
+
+/*!
+ * @brief Escape plain text for dropping into the message span
+ *
+ * The corrected text arrives as what the sender typed. It is not run through the filters
+ * that built the original line, so a link in a corrected message is not clickable and an
+ * emoticon stays as its characters; what matters more here is that nothing the sender
+ * writes can become markup.
+ */
+- (NSString *)_htmlFromPlainText:(NSString *)text
+{
+	NSMutableString *html = [text mutableCopy];
+	[html replaceOccurrencesOfString:@"&" withString:@"&amp;" options:0 range:NSMakeRange(0, [html length])];
+	[html replaceOccurrencesOfString:@"<" withString:@"&lt;" options:0 range:NSMakeRange(0, [html length])];
+	[html replaceOccurrencesOfString:@">" withString:@"&gt;" options:0 range:NSMakeRange(0, [html length])];
+	[html replaceOccurrencesOfString:@"\n" withString:@"<br />" options:0 range:NSMakeRange(0, [html length])];
+	return html;
+}
+
+/*!
+ * @brief Show a correction whose original is not on this page
+ */
+- (void)_showUnplaceableCorrection:(NSString *)text
+{
+	AIListObject *source = [_chat listObject];
+	if (!source) return;
+
+	AIContentMessage *message = [AIContentMessage messageInChat:_chat
+													 withSource:source
+													destination:[_chat account]
+														   date:[NSDate date]
+														message:[[NSAttributedString alloc] initWithString:text]
+													  autoreply:NO];
+	[adium.contentController receiveContentObject:message];
 }
 
 /*!
@@ -2139,9 +2178,8 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
  * The class is all this method adds. The Read Receipts display plugin draws the tick
  * and decides where it sits (beside the timestamp, by default), so look and placement
  * stay a display concern. The class names are namespaced like the wrapper's own
- * attributes and can never collide with a name a message style or the correction
- * tracker already uses ("tracked" burned us once: stanzaWasTracked has owned that one
- * since long before this path existed).
+ * attributes and can never collide with a name a message
+ * style uses.
  */
 - (void)_markOutgoingMessagesWithClass:(NSString *)className upToMessageId:(NSString *)messageId
 {
@@ -2463,27 +2501,6 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 						   upToMessageId:[[notification userInfo] objectForKey:@"MessageId"]];
 }
 
-- (void)stanzaWasTracked:(NSNotification *)notification
-{
-	NSDictionary *userInfo = [notification userInfo];
-	NSString *domId = [userInfo objectForKey:@"AICorrectionDOMId"];
-	if (!domId) {
-		return;
-	}
-
-	NSString *escapedDomId = [self _jsStringLiteral:domId];
-	NSString *js = [NSString stringWithFormat:@"(function(){"
-											  @" var e=document.getElementById(%@);"
-											  @" if(e&&!e.classList.contains('tracked')){e.classList.add('tracked');}"
-											  @"})()",
-											  escapedDomId];
-	[_webView evaluateJavaScript:js
-			   completionHandler:^(id result, NSError *error) {
-				   if (error) {
-					   AILogWithSignature(@"evaluateJavaScript failed: %@", error);
-				   }
-			   }];
-}
 
 /*!
  * @brief A contact's reactions to one of the messages on screen changed (XEP-0444)

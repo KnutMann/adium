@@ -136,6 +136,13 @@
       <xmpp:note xml:lang='en'>In direct chats and in rooms, sent from the message's own
         context menu and delivered to the exact message they name.</xmpp:note>
     </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0308.html'/>
+      <xmpp:status>partial</xmpp:status>
+      <xmpp:note xml:lang='en'>A correction received in a direct chat rewrites the message it
+        names, which keeps its place and its marks, and is shown as corrected. Sending a
+        correction and corrections in rooms are not implemented yet.</xmpp:note>
+    </xmpp:SupportedXep></implements>
 
     <!-- Rooms -->
     <implements><xmpp:SupportedXep>
