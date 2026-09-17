@@ -204,11 +204,10 @@
 		
 		//Mockie and pillow lists always require a non-opaque window, other lists only require a non-opaque window when
 		//the user has requested transparency.
-		if (windowStyle == AIContactListWindowStyleGroupBubbles || windowStyle == AIContactListWindowStyleContactBubbles || windowStyle == AIContactListWindowStyleContactBubbles_Fitted) {
-			[[self window] setOpaque:NO];
-		} else {
-			[[self window] setOpaque:(backgroundAlpha == 1.0f)];
-		}
+		BOOL wantsOpaque = !(windowStyle == AIContactListWindowStyleGroupBubbles ||
+							 windowStyle == AIContactListWindowStyleContactBubbles ||
+							 windowStyle == AIContactListWindowStyleContactBubbles_Fitted) && (backgroundAlpha == 1.0f);
+		[self setWindowOpaque:wantsOpaque];
 		
 		//Turn our shadow drawing hack on if they're going to be visible through the transparency
 		[self setUpdateShadowsWhileDrawing:(![[self window] isOpaque])];		
@@ -217,18 +216,36 @@
 	return _backgroundColorWithOpacity;
 }
 
+/*!
+ * @brief Say whether the window is opaque, and give it a background to match
+ *
+ * The two belong together and were not. A window that says it is not opaque leaves the
+ * filling of its pixels to its views, so wherever none of them draws, nothing is cleared
+ * and whatever was there stays: at every change of size the old edge remains, one line per
+ * step, in the title bar as readily as in the list, because both are in the same rectangle.
+ * The borderless contact list never showed this because its own window class has always
+ * set a clear background; the titled one kept the system's opaque colour, which is also
+ * why its transparency only ever made the list paler instead of showing what is behind it.
+ */
+- (void)setWindowOpaque:(BOOL)opaque
+{
+	NSWindow *window = [self window];
+	if (!window) return;
+
+	[window setOpaque:opaque];
+	[window setBackgroundColor:(opaque ? [NSColor windowBackgroundColor] : [NSColor clearColor])];
+}
+
 - (void)setDrawsBackground:(BOOL)inDraw
 {
 	[super setDrawsBackground:inDraw];
 	
 	//Mockie and pillow lists always require a non-opaque window, other lists only require a non-opaque window when
 	//the user has requested transparency.
-	if (windowStyle == AIContactListWindowStyleGroupBubbles || windowStyle == AIContactListWindowStyleContactBubbles || windowStyle == AIContactListWindowStyleContactBubbles_Fitted) {
-		[[self window] setOpaque:NO];
-	} else {
-		//XXX Should we still use backgroundOpacity
-		[[self window] setOpaque:(backgroundOpacity == 1.0)];
-	}
+	BOOL wantsOpaque = !(windowStyle == AIContactListWindowStyleGroupBubbles ||
+						 windowStyle == AIContactListWindowStyleContactBubbles ||
+						 windowStyle == AIContactListWindowStyleContactBubbles_Fitted) && (backgroundOpacity == 1.0);
+	[self setWindowOpaque:wantsOpaque];
 }
 
 - (void)setHighlightColor:(NSColor *)inColor

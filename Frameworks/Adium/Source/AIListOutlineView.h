@@ -78,6 +78,8 @@ typedef enum {
 
 @interface AIListOutlineView (AIListOutlineView_Drawing)
 
+- (void)setWindowOpaque:(BOOL)opaque;
+
 @property (readwrite, nonatomic, retain) NSColor *backgroundColor;
 @property (readwrite, nonatomic, retain) NSColor *highlightColor;
 @property (readwrite, nonatomic, retain) NSColor *alternatingRowColor;
