@@ -38,3 +38,31 @@
 - (void)setDockingEnabled:(BOOL)inEnabled;
 
 @end
+
+/*!
+ * @class AIDockingPanel
+ * @brief The same window that snaps to the screen edges, drawn with a small title bar
+ *
+ * The system draws a tall title bar on an ordinary window, taller than it used to, and
+ * over a contact list that is most of the window's height it costs more than it says. A
+ * utility panel gets the short bar instead, the one the inspector has, and that is the
+ * only supported way to ask for it: the style mask that selects it is documented as
+ * applying to NSPanel and nothing else.
+ *
+ * What a panel otherwise changes is put back here. It would hide itself when the
+ * application is deactivated, which for a contact list is exactly wrong, and it would
+ * refuse to be the main window, which is the only window Adium has when no conversation
+ * is open.
+ */
+@interface AIDockingPanel : NSPanel {
+	NSRect			oldWindowFrame;
+	unsigned int	resisted_XMotion;
+	unsigned int	resisted_YMotion;
+	BOOL 			alreadyMoving;
+
+	BOOL			dockingEnabled;
+}
+
+- (void)setDockingEnabled:(BOOL)inEnabled;
+
+@end
