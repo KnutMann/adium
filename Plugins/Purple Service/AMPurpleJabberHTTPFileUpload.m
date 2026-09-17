@@ -20,6 +20,8 @@
 #import <Adium/AIChat.h>
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
+#import <Adium/AIContentEvent.h>
+#import <Adium/AIListContact.h>
 #import <Adium/AIContentMessage.h>
 #import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
@@ -497,6 +499,29 @@ static NSString *AMInlineImageCachePath(NSString *address)
 {
 	AILog(@"%@: HTTP upload failed, falling back to the classic transfer, which the other side "
 		   @"may well not speak either", account);
+
+	/* Said in the conversation, because of what the user sees otherwise. The classic transfer
+	 * is refused by most clients written this decade, so it fails a moment later, and what
+	 * libpurple then writes into the window is that the transfer was cancelled here. That
+	 * reads as though the user had cancelled it, and it names the wrong culprit: the server
+	 * granted a place to put the file and then would not take it. */
+	AIChat *chat = [fileTransfer.contact isKindOfClass:[AIListContact class]]
+		? [adium.chatController existingChatWithContact:(AIListContact *)fileTransfer.contact] : nil;
+
+	if (chat) {
+		NSString *said = AILocalizedString(@"The server would not take the file. Trying the old way of sending it, which many clients no longer accept.",
+										   "Shown in the conversation when an XMPP server's file upload fails");
+		NSAttributedString *message = [[NSAttributedString alloc] initWithString:said
+			attributes:[adium.contentController defaultFormattingAttributes]];
+
+		[adium.contentController receiveContentObject:
+			[AIContentEvent statusInChat:chat
+							  withSource:chat.account
+							 destination:nil
+									date:[NSDate date]
+								 message:message
+								withType:@"fileTransferFailed"]];
+	}
 
 	//It is a transfer after all, so it belongs in the window again
 	[fileTransfer setCarriedInConversation:NO];

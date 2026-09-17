@@ -2782,6 +2782,7 @@
 "The following message was <b>not encrypted</b>: " = "The following message was <b>not encrypted</b>: ";
 
 /* No comment provided by engineer. */
+"The server would not take the file. Trying the old way of sending it, which many clients no longer accept." = "The server would not take the file. Trying the old way of sending it, which many clients no longer accept.";
 "The transfer of %@ failed" = "The transfer of %@ failed";
 
 /* No comment provided by engineer. */
