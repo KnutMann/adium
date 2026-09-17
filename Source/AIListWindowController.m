@@ -238,62 +238,11 @@ static NSMutableDictionary *screenSlideBoundaryRectDictionary = nil;
 												 name:NSWindowDidResignMainNotification
 											   object:[self window]];
 	
-	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(windowDidEndLiveResize:)
-												 name:NSWindowDidEndLiveResizeNotification
-											   object:[self window]];
-	
 	//Save our frame immediately for sliding purposes
 	[self setSavedFrame:[[self window] frame]];
 }
 
 //Close the contact list window
-/*!
- * @brief Draw the whole window again while it is being resized
- *
- * A window that is not opaque keeps whatever was already in its backing store wherever
- * nothing draws, and the contact list is not opaque whenever the user has asked for any
- * transparency at all. During a live resize AppKit saves work by keeping what it has and
- * asking only for the strip that was just uncovered, so the old edge stays where it was,
- * once for every step of the drag, until something forces a full redraw: clicking another
- * window used to be that something.
- *
- * Asking for the whole window instead costs a list redraw per drag step, which is nothing.
- * The frame view is asked as well and on purpose: the title bar lives in the same backing
- * store and gathers the same stripes.
- */
-- (void)windowDidResize:(NSNotification *)notification
-{
-	if ([[self window] isOpaque])
-		return;
-
-	NSView *content = [[self window] contentView];
-	[content setNeedsDisplay:YES];
-	[[content superview] setNeedsDisplay:YES];
-
-	//Ask for it now rather than whenever the run loop gets round to it
-	[[self window] displayIfNeeded];
-}
-
-/*!
- * @brief The drag is over; draw the window from scratch
- *
- * A stopgap, and named as one. Something during a live resize leaves stripes of the
- * window's old edges behind in the backing store of a window that is not opaque, and
- * asking the views to draw again while the drag runs does not clear them; only a redraw
- * from outside does, which until now meant clicking another window. -display does that
- * redraw from outside, down the whole hierarchy including the frame the system draws, and
- * once per drag rather than once per step it costs nothing worth measuring.
- *
- * It treats the symptom. What actually keeps the old pixels alive during the drag is not
- * understood yet: by the time this runs, the window, the scroll view, the list and its one
- * column have all been the same width at every single step of the drag, measured.
- */
-- (void)windowDidEndLiveResize:(NSNotification *)notification
-{
-	[[self window] display];
-}
-
 - (void)windowWillClose:(NSNotification *)notification
 {
 	if ([self windowSlidOffScreenEdgeMask] != AINoEdges) {
