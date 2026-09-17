@@ -319,6 +319,15 @@ typedef enum {
  * says otherwise.
  */
 - (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact;
+
+/*!
+ * @brief How long a sent message stays replaceable, in seconds
+ *
+ * Some services apply a correction only for a while after the original was sent and drop
+ * later ones without saying so, which would leave the message rewritten here and unchanged
+ * everywhere else. Zero means no limit.
+ */
+- (NSTimeInterval)maximumCorrectionAge;
 - (BOOL)canSendFilesToGroupChat:(AIChat *)inChat;
 - (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat;
 

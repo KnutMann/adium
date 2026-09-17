@@ -948,6 +948,11 @@ typedef enum
 	return NO;
 }
 
+- (NSTimeInterval)maximumCorrectionAge
+{
+	return 0;
+}
+
 /*!
  * @brief Can the account send files into a group chat?
  */

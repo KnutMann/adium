@@ -2049,6 +2049,7 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		 * id usually arrives a moment later, in messageIdAssigned:, and is filled in there. */
 		_lastOutgoingText = [[said message] string];
 		_lastOutgoingMessageId = [said messageId];
+		_lastOutgoingDate = [said date] ?: [NSDate date];
 	}
 
 	[_contentQueue addObject:content];
@@ -2106,6 +2107,15 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	 * is the same sentence twice, once wrong and once right. */
 	if (![[_chat account] canCorrectMessagesToContact:[_chat listObject]]) {
 		AILogWithSignature(@"%@ cannot be sent a correction; the arrow key does nothing here", [_chat listObject]);
+		return;
+	}
+
+	/* Some services apply a correction only for a while and drop later ones without a word,
+	 * which would leave the message rewritten here and unchanged on every other screen. */
+	NSTimeInterval limit = [[_chat account] maximumCorrectionAge];
+	if (limit > 0 && _lastOutgoingDate &&
+		[[NSDate date] timeIntervalSinceDate:_lastOutgoingDate] > limit) {
+		AILogWithSignature(@"the last message here is older than %.0f seconds; too late to correct it", limit);
 		return;
 	}
 

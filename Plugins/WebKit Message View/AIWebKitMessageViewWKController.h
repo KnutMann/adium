@@ -37,6 +37,7 @@
 	 * through the filters and the style and is no longer what anybody wrote. */
 	NSString *_lastOutgoingMessageId;
 	NSString *_lastOutgoingText;
+	NSDate   *_lastOutgoingDate;		//some services stop accepting a correction after a while
 	NSString *_cachedChatContentSource;
 	AIContentObject *_previousContent;
 	NSMutableDictionary *_objectIconPathDict;
