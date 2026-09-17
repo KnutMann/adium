@@ -235,6 +235,9 @@
     <implements><xmpp:SupportedXep>
       <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0202.html'/>
       <xmpp:status>complete</xmpp:status>
+      <xmpp:note xml:lang='en'>Answered, and asked: what a contact says is kept and shown in
+        their tooltip, so that the hour it is where they are can be seen before writing to
+        them rather than guessed.</xmpp:note>
     </xmpp:SupportedXep></implements>
     <implements><xmpp:SupportedXep>
       <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0224.html'/>

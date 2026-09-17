@@ -47,6 +47,7 @@
 "%@" = "%@";
 
 /* Which service a contact picture is from, and which of several it is */
+"%@ (%+ld h)" = "%@ (%+ld h)";
 "%@ (%li of %li)" = "%@ (%li of %li)";
 
 /* %@ will be replaced by an amount of time such as '1 day, 4 hours'. This string is used in the 'Last Seen:' information shown when hovering over an offline contact. */
@@ -1852,6 +1853,7 @@
 "Link Text:" = "Link Text:";
 
 /* No comment provided by engineer. */
+"Local Time" = "Local Time";
 "Location" = "Location";
 
 /* Option in the 'Attach to Window' for the main contact list window */

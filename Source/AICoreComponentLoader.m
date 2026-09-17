@@ -68,6 +68,7 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"AIContactIdlePlugin",
 		@"AIContactInfoWindowPlugin",
 		@"AIContactListEditorPlugin",
+		@"AIContactLocalTimePlugin",
 		@"AIContactOnlineSincePlugin",
 		@"AIContactSortSelectionPlugin",
 		@"AIContactStatusColoringPlugin",

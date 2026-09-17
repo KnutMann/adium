@@ -953,6 +953,11 @@ typedef enum
 	return 0;
 }
 
+- (NSTimeZone *)timeZoneForContact:(AIListContact *)inContact
+{
+	return nil;
+}
+
 /*!
  * @brief Can the account send files into a group chat?
  */

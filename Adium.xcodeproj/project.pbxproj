@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ADD1E5C0DE0000000000FD01 /* AIContactLocalTimePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */; };
 		ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */; };
 		ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */; };
 		071C56330827933100399C0F /* Shared Dock Icon Images in Resources */ = {isa = PBXBuildFile; fileRef = 071C56310827933000399C0F /* Shared Dock Icon Images */; };
@@ -1410,6 +1411,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		ADD1E5C0DE0000000000FD02 /* AIContactLocalTimePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactLocalTimePlugin.h; path = Source/AIContactLocalTimePlugin.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactLocalTimePlugin.m; path = Source/AIContactLocalTimePlugin.m; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FC04 /* AIMessageStyling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageStyling.h; path = Source/AIMessageStyling.h; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageStyling.m; path = Source/AIMessageStyling.m; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FC06 /* AIMessageStylingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageStylingPlugin.h; path = Source/AIMessageStylingPlugin.h; sourceTree = "<group>"; };
@@ -5228,6 +5231,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */,
 				ADD1E5C0DE0000000000FC06 /* AIMessageStylingPlugin.h */,
 				ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */,
+				ADD1E5C0DE0000000000FD02 /* AIContactLocalTimePlugin.h */,
+				ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */,
 				34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */,
 				34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */,
 				A11B0001E5F0000000000003 /* AIInlineMediaLinkPlugin.h */,
@@ -7474,6 +7479,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */,
 				ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */,
 				ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */,
+				ADD1E5C0DE0000000000FD01 /* AIContactLocalTimePlugin.m in Sources */,
 				34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */,
 				A11B0001E5F0000000000001 /* AIInlineMediaLinkPlugin.m in Sources */,
 				34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */,

@@ -328,6 +328,15 @@ typedef enum {
  * everywhere else. Zero means no limit.
  */
 - (NSTimeInterval)maximumCorrectionAge;
+
+/*!
+ * @brief What time it is where this contact is, if they have ever said
+ *
+ * Returns nil when nobody knows, which is the ordinary case until the contact has been asked
+ * and has answered. Asking is the account's business and happens on its own; a caller reads
+ * this and shows something or does not.
+ */
+- (NSTimeZone *)timeZoneForContact:(AIListContact *)inContact;
 - (BOOL)canSendFilesToGroupChat:(AIChat *)inChat;
 - (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat;
 

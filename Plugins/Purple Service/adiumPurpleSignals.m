@@ -15,6 +15,7 @@
  */
 
 #import "adiumPurpleSignals.h"
+#import "AMPurpleJabberSend.h"
 #import "CBPurpleAccount.h"
 #import <AIUtilities/AIObjectAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
@@ -25,6 +26,7 @@
 #import <Adium/ESFileTransfer.h>
 
 static gboolean correction_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
+static gboolean entity_time_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
 static gboolean correction_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
 static AIContentMessage *pendingOutgoingContentMessage;
 
@@ -280,6 +282,8 @@ static void connection_signed_on_cb(PurpleConnection *gc)
 			purple_signal_connect_priority(jabber, "jabber-sending-xmlnode", adium_purple_get_handle(),
 										   PURPLE_CALLBACK(correction_sending_xmlnode_cb), NULL,
 										   PURPLE_SIGNAL_PRIORITY_HIGHEST);
+			purple_signal_connect(jabber, "jabber-receiving-xmlnode", adium_purple_get_handle(),
+								  PURPLE_CALLBACK(entity_time_receiving_xmlnode_cb), NULL);
 		}
 	}
 
@@ -590,6 +594,124 @@ static void adiumJabberReactionReceived(PurpleConnection *gc, const char *from,
 																		 @"Sender": sender }];
 		}
 	}
+}
+
+/* --- XEP-0202: what time it is where the other person is ----------------------------- */
+
+#define NS_ENTITY_TIME_STR "urn:xmpp:time"
+
+/* What each contact answered, in seconds east of UTC, and when we last asked. libpurple asks
+ * the same question inside "get info" and keeps the answer on the resource, but only if
+ * somebody opened that window, and it tells nobody afterwards. This asks on its own account
+ * and keeps what comes back, so that a tooltip has something to show. */
+static NSMutableDictionary *timeZoneOffsets = nil;		//"account/uid" -> NSNumber of seconds
+static NSMutableDictionary *timeZoneAsked = nil;		//"account/uid" -> NSDate
+
+static NSString *adiumTimeZoneKey(PurpleAccount *account, NSString *uid)
+{
+	return [NSString stringWithFormat:@"%p/%@", account, uid];
+}
+
+/*!
+ * @brief Ask a contact what time it is where they are
+ *
+ * Asked of the resource the protocol would send a message to, because that is the device the
+ * person is at. Asked again at most once an hour: a time zone does not move, but the offset
+ * does, twice a year and whenever somebody travels.
+ */
+void adiumJabberAskEntityTime(PurpleAccount *account, NSString *uid)
+{
+	if (!account || ![uid length]) return;
+
+	const char *protocol = purple_account_get_protocol_id(account);
+	if (!protocol || strcmp(protocol, "prpl-jabber") != 0) return;
+
+	PurpleConnection *gc = purple_account_get_connection(account);
+	if (!gc || !PURPLE_CONNECTION_IS_CONNECTED(gc)) return;
+
+	if (!timeZoneAsked) timeZoneAsked = [[NSMutableDictionary alloc] init];
+
+	NSString *key = adiumTimeZoneKey(account, uid);
+	NSDate *lastAsked = [timeZoneAsked objectForKey:key];
+	if (lastAsked && [[NSDate date] timeIntervalSinceDate:lastAsked] < 3600) return;
+	[timeZoneAsked setObject:[NSDate date] forKey:key];
+
+	xmlnode *iq = xmlnode_new("iq");
+	xmlnode_set_attrib(iq, "type", "get");
+	xmlnode_set_attrib(iq, "to", [uid UTF8String]);
+	xmlnode_set_attrib(iq, "id", [[NSString stringWithFormat:@"adium-time-%@", [[NSUUID UUID] UUIDString]] UTF8String]);
+
+	xmlnode *time = xmlnode_new_child(iq, "time");
+	xmlnode_set_namespace(time, NS_ENTITY_TIME_STR);
+
+	//AMPurpleJabberSend frees the stanza whether or not it goes out
+	AMPurpleJabberSend(gc, iq);
+}
+
+/*!
+ * @brief The offset a contact last reported, or nil if they have never said
+ */
+NSNumber *adiumJabberEntityTimeOffset(PurpleAccount *account, NSString *uid)
+{
+	if (!account || ![uid length]) return nil;
+	return [timeZoneOffsets objectForKey:adiumTimeZoneKey(account, uid)];
+}
+
+/*!
+ * @brief Catch the answer, wherever it was asked from
+ *
+ * Not only our own question: "get info" asks the same one, and an answer to it is just as
+ * good. Only the offset is kept. The time itself is not worth keeping, since it is already
+ * stale when it arrives and can be worked out from the offset whenever it is needed.
+ */
+static gboolean entity_time_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet) return FALSE;
+
+	xmlnode *stanza = *packet;
+	if (!purple_strequal(stanza->name, "iq")) return FALSE;
+	if (!purple_strequal(xmlnode_get_attrib(stanza, "type"), "result")) return FALSE;
+
+	xmlnode *time = xmlnode_get_child_with_namespace(stanza, "time", NS_ENTITY_TIME_STR);
+	if (!time) return FALSE;
+
+	xmlnode *tzo = xmlnode_get_child(time, "tzo");
+	char *offsetText = tzo ? xmlnode_get_data(tzo) : NULL;
+	const char *from = xmlnode_get_attrib(stanza, "from");
+	if (!offsetText || !from) {
+		g_free(offsetText);
+		return FALSE;
+	}
+
+	@autoreleasepool {
+		/* Written as +hh:mm or -hh:mm, and "Z" is allowed for none at all */
+		NSString	*text = [NSString stringWithUTF8String:offsetText];
+		NSInteger	 seconds = 0;
+
+		if (![text isEqualToString:@"Z"]) {
+			NSArray *parts = [text componentsSeparatedByString:@":"];
+			if ([parts count] == 2) {
+				NSInteger hours = [[parts objectAtIndex:0] integerValue];
+				NSInteger minutes = [[parts objectAtIndex:1] integerValue];
+				seconds = hours * 3600 + (hours < 0 ? -minutes : minutes) * 60;
+			}
+		}
+
+		/* Keyed by the bare jid: the answer came from one device, but the person carrying it
+		 * is the same wherever they are logged in, and the contact list knows them bare. */
+		NSString	*full = [NSString stringWithUTF8String:from];
+		NSRange		 slash = [full rangeOfString:@"/"];
+		NSString	*bare = (slash.location != NSNotFound) ? [full substringToIndex:slash.location] : full;
+
+		if (!timeZoneOffsets) timeZoneOffsets = [[NSMutableDictionary alloc] init];
+		[timeZoneOffsets setObject:[NSNumber numberWithInteger:seconds]
+							forKey:adiumTimeZoneKey(purple_connection_get_account(gc), bare)];
+
+		AILog(@"XEP-0202: it is %@ of UTC where %@ is", text, bare);
+	}
+
+	g_free(offsetText);
+	return FALSE;		//somebody else may want it too
 }
 
 /* --- XEP-0308: a message that replaces one already said ------------------------------ */

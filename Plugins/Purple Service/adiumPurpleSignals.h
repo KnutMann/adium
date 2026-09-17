@@ -37,6 +37,19 @@ void adiumStashPendingIncomingGroupchatMessageId(PurpleAccount *account, const c
  * Set it before the send and clear it (nil) after. */
 void adiumSetPendingOutgoingContentMessage(AIContentMessage *message);
 
+/*!
+ * @brief Ask a contact what time it is where they are (XEP-0202)
+ *
+ * At most once an hour per contact, and only on a connected jabber account. The answer
+ * arrives whenever it arrives; nothing waits for it.
+ */
+void adiumJabberAskEntityTime(PurpleAccount *account, NSString *uid);
+
+/*!
+ * @brief The offset from UTC a contact last reported, in seconds, or nil
+ */
+NSNumber *adiumJabberEntityTimeOffset(PurpleAccount *account, NSString *uid);
+
 /* Send our reaction (a set of emoji; empty clears it) to a message by its id, on a jabber account.
  * A no-op on any other protocol. In a room, groupChat is YES so it goes as type='groupchat'. */
 void adiumJabberSendReaction(PurpleAccount *account, const char *to, const char *target_id, NSArray *emojis, BOOL groupChat);

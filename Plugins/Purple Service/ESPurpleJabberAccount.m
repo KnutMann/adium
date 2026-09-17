@@ -16,6 +16,7 @@
 
 #import "ESPurpleJabberAccount.h"
 #import <libpurple/jabber.h>
+#import "adiumPurpleSignals.h"
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
@@ -132,6 +133,26 @@
 	}
 
 	return !anybodySaid;
+}
+
+/*!
+ * @brief What time it is where this contact is (XEP-0202)
+ *
+ * The question goes out here as a side effect, at most once an hour, so that the answer is
+ * there the next time somebody looks. That is the whole trick: nothing waits, and the first
+ * look at a contact nobody has asked about shows nothing, which is honest.
+ */
+- (NSTimeZone *)timeZoneForContact:(AIListContact *)inContact
+{
+	if (!inContact) return nil;
+
+	PurpleAccount *account = accountLookupFromAdiumAccount(self);
+	if (!account) return nil;
+
+	NSNumber *offset = adiumJabberEntityTimeOffset(account, inContact.UID);
+	adiumJabberAskEntityTime(account, inContact.UID);
+
+	return offset ? [NSTimeZone timeZoneForSecondsFromGMT:[offset integerValue]] : nil;
 }
 
 - (void)probeConnectionIsAlive
