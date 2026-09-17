@@ -137,6 +137,15 @@
         context menu and delivered to the exact message they name.</xmpp:note>
     </xmpp:SupportedXep></implements>
     <implements><xmpp:SupportedXep>
+      <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0393.html'/>
+      <xmpp:status>partial</xmpp:status>
+      <xmpp:note xml:lang='en'>Emphasis, strong emphasis, strike through, preformatted spans
+        and blocks and quotations are read and shown, in every conversation rather than only
+        in XMPP ones, since the same characters are typed everywhere. The directives stay
+        visible, as recommended. The unstyled element is not honoured yet, and the namespace
+        is therefore not advertised.</xmpp:note>
+    </xmpp:SupportedXep></implements>
+    <implements><xmpp:SupportedXep>
       <xmpp:xep rdf:resource='https://xmpp.org/extensions/xep-0308.html'/>
       <xmpp:status>partial</xmpp:status>
       <xmpp:note xml:lang='en'>A correction received in a direct chat rewrites the message it

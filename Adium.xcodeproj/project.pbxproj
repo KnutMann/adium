@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */; };
+		ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */; };
 		071C56330827933100399C0F /* Shared Dock Icon Images in Resources */ = {isa = PBXBuildFile; fileRef = 071C56310827933000399C0F /* Shared Dock Icon Images */; };
 		073475F10C4C9632009ACC43 /* AdiumMenuBarIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = 073475F00C4C9632009ACC43 /* AdiumMenuBarIcons.icns */; };
 		074DDB5D07CB413F0033AFF7 /* CBContactLastSeenPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 074DDB5C07CB413F0033AFF7 /* CBContactLastSeenPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1408,6 +1410,10 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		ADD1E5C0DE0000000000FC04 /* AIMessageStyling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageStyling.h; path = Source/AIMessageStyling.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageStyling.m; path = Source/AIMessageStyling.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FC06 /* AIMessageStylingPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageStylingPlugin.h; path = Source/AIMessageStylingPlugin.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageStylingPlugin.m; path = Source/AIMessageStylingPlugin.m; sourceTree = "<group>"; };
 		071C56320827933000399C0F /* en */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en; path = "Resources/en.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		071C563E0827936500399C0F /* fr */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fr; path = "Resources/fr.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		071C56420827937400399C0F /* de */ = {isa = PBXFileReference; lastKnownFileType = folder; name = de; path = "Resources/de.lproj/Shared Dock Icon Images"; sourceTree = "<group>"; };
@@ -5218,6 +5224,10 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BF4813B049A802E00A8010A /* Auto Linking */ = {
 			isa = PBXGroup;
 			children = (
+				ADD1E5C0DE0000000000FC04 /* AIMessageStyling.h */,
+				ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */,
+				ADD1E5C0DE0000000000FC06 /* AIMessageStylingPlugin.h */,
+				ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */,
 				34BFE24F07E8E5F200AD984D /* AIAutoLinkingPlugin.h */,
 				34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */,
 				A11B0001E5F0000000000003 /* AIInlineMediaLinkPlugin.h */,
@@ -7462,6 +7472,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34A6FADB07D6F3AA00972830 /* ESEventSoundAlertDetailPane.m in Sources */,
 				34BFD80007E6A51D00AD984D /* GBApplescriptFiltersPlugin.m in Sources */,
 				34BFE20207E8E11500AD984D /* AIChatCyclingPlugin.m in Sources */,
+				ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */,
+				ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */,
 				34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */,
 				A11B0001E5F0000000000001 /* AIInlineMediaLinkPlugin.m in Sources */,
 				34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */,

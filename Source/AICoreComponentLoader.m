@@ -80,6 +80,7 @@ NSTimeInterval aggregateComponentLoadingTime = 0.0;
 		@"AIExtendedStatusPlugin",
 		@"AIInlineMediaLinkPlugin",
 		@"AILoggerPlugin",
+		@"AIMessageStylingPlugin",
 		@"AINewMessagePanelPlugin",
 		@"AINudgeBuzzHandlerPlugin",
 		@"AIContactVisibilityControlPlugin",
