@@ -88,9 +88,17 @@
 {
 	[NSGraphicsContext saveGraphicsState];
 
-	inRect = NSInsetRect(inRect, 1, 1);
-
-	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:inRect radius:3];
+	/* Drawn to what this view is, not to the rect it was handed. That rect says which part
+	 * of the view is dirty, and since macOS 14 a view no longer clips its drawing to itself
+	 * unless it is asked to, so the rect can name an area far larger than the view: measured
+	 * here at 217 by 815 points inside a view of 36 by 36, which is the whole window. Taken
+	 * as geometry, the shade that marks the picture as hoverable became a curtain over the
+	 * entire window, one point short of its edges on every side.
+	 *
+	 * It read that way for as long as the code has existed and was harmless for all of it,
+	 * because a view used to clip itself. */
+	NSRect			drawRect = NSInsetRect([self bounds], 1, 1);
+	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:drawRect radius:3];
 
 	[[NSColor separatorColor] set];
 	[clipPath setLineWidth:1];
@@ -101,14 +109,14 @@
 	[clipPath addClip];
 	
 	[super drawRect:inRect];
-	
+
 	if (hovered) {
 		[[[NSColor blackColor] colorWithAlphaComponent:0.40f] set];
 		[clipPath fill];
 
 		// Draw the arrow
 		NSBezierPath	*arrowPath = [NSBezierPath bezierPath];
-		NSRect			frame = [self frame];
+		NSRect			frame = [self bounds];	//where we draw, not where we sit
 		[arrowPath moveToPoint:NSMakePoint(frame.size.width - ARROW_XOFFSET - ARROW_WIDTH, 
 										   (ARROW_YOFFSET + (CGFloat)ARROW_HEIGHT))];
 		[arrowPath relativeLineToPoint:NSMakePoint(ARROW_WIDTH, 0)];
@@ -189,7 +197,12 @@
 - (void)viewDidMoveToWindow
 {
 	[super viewDidMoveToWindow];
-	
+
+	/* Belt and braces beside the rect in -drawRect:: from macOS 14 a view draws outside
+	 * itself unless it says otherwise, and nothing here has any business doing that. */
+	if ([self respondsToSelector:@selector(setClipsToBounds:)])
+		[self setClipsToBounds:YES];
+
 	[self resetCursorRects];
 }
 
