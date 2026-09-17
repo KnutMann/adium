@@ -36,6 +36,19 @@
 
 @implementation AIListOutlineView
 
+/*!
+ * @brief Draw the whole list again while the window is being resized
+ *
+ * AppKit's optimisation is to keep what it has drawn and ask only for the strip that was
+ * just uncovered. In a window that is not opaque, which this one is whenever any
+ * transparency is asked for, what it keeps is composited against rather than replaced, so
+ * the old edges accumulate. Drawing the lot costs a list redraw per drag step.
+ */
+- (BOOL)preservesContentDuringLiveResize
+{
+	return NO;
+}
+
 + (void)initialize
 {
 	if (self != [AIListOutlineView class]) {
