@@ -234,7 +234,11 @@
 		NSPoint screenPoint = [NSEvent mouseLocation];
 		NSPoint localPoint = [self convertPoint:[[self window] convertRectFromScreen:NSMakeRect(screenPoint.x, screenPoint.y, 0.0, 0.0)].origin
 									   fromView:nil];
-		BOOL	mouseInside = NSPointInRect(localPoint, myFrame);
+		/* Tested against what this view is, not against where it sits: localPoint was just
+		 * converted into this view's own coordinates, and the frame is in the parent's.
+		 * The two agree here only because the picker happens to sit at its parent's
+		 * origin, which is not a thing to rely on. */
+		BOOL	mouseInside = NSPointInRect(localPoint, [self bounds]);
 
 		trackingTag = [self addTrackingRect:trackRect owner:self userData:nil assumeInside:mouseInside];
 		if (mouseInside) [self mouseEntered:[[NSEvent alloc] init]];
