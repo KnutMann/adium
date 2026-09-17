@@ -43,7 +43,20 @@
 	if ([self drawsBackground]) {
 		//BG Color
 		[[self backgroundColor] set];
-		NSRectFill(clipRect);
+
+		/* Laid over what is already there, or put in its place. It matters only when the
+		 * window is not opaque, which it is not as soon as any transparency is asked for:
+		 * nothing clears the backing store of such a window, so a fill that composites
+		 * leaves a tenth of whatever was underneath showing through. Dragging the window
+		 * wider uncovers its own old edge over and over, and the fills pile those edges up
+		 * into stripes that only a redraw from somewhere else clears away. Copying writes
+		 * the colour and its transparency straight into the pixels instead, which is what
+		 * a background is for. */
+		if ([[self window] isOpaque]) {
+			NSRectFill(clipRect);
+		} else {
+			NSRectFillUsingOperation(clipRect, NSCompositingOperationCopy);
+		}
 		
 		//Image
 		NSScrollView	*enclosingScrollView = [self enclosingScrollView];
