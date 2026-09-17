@@ -243,6 +243,30 @@ static NSMutableDictionary *screenSlideBoundaryRectDictionary = nil;
 }
 
 //Close the contact list window
+/*!
+ * @brief Draw the whole window again while it is being resized
+ *
+ * A window that is not opaque keeps whatever was already in its backing store wherever
+ * nothing draws, and the contact list is not opaque whenever the user has asked for any
+ * transparency at all. During a live resize AppKit saves work by keeping what it has and
+ * asking only for the strip that was just uncovered, so the old edge stays where it was,
+ * once for every step of the drag, until something forces a full redraw: clicking another
+ * window used to be that something.
+ *
+ * Asking for the whole window instead costs a list redraw per drag step, which is nothing.
+ * The frame view is asked as well and on purpose: the title bar lives in the same backing
+ * store and gathers the same stripes.
+ */
+- (void)windowDidResize:(NSNotification *)notification
+{
+	if ([[self window] isOpaque])
+		return;
+
+	NSView *content = [[self window] contentView];
+	[content setNeedsDisplay:YES];
+	[[content superview] setNeedsDisplay:YES];
+}
+
 - (void)windowWillClose:(NSNotification *)notification
 {
 	if ([self windowSlidOffScreenEdgeMask] != AINoEdges) {
