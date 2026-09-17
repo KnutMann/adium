@@ -25,6 +25,8 @@
 #import <Adium/ESFileTransfer.h>
 
 static gboolean correction_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
+static gboolean correction_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data);
+static AIContentMessage *pendingOutgoingContentMessage;
 
 static void buddy_status_changed_cb(PurpleBuddy *buddy, PurpleStatus *oldstatus, PurpleStatus *status, PurpleBuddyEvent event);
 static void buddy_idle_changed_cb(PurpleBuddy *buddy, gboolean old_idle, gboolean idle, PurpleBuddyEvent event);
@@ -275,6 +277,9 @@ static void connection_signed_on_cb(PurpleConnection *gc)
 			purple_signal_connect_priority(jabber, "jabber-receiving-xmlnode", adium_purple_get_handle(),
 										   PURPLE_CALLBACK(correction_receiving_xmlnode_cb), NULL,
 										   PURPLE_SIGNAL_PRIORITY_LOWEST);
+			purple_signal_connect_priority(jabber, "jabber-sending-xmlnode", adium_purple_get_handle(),
+										   PURPLE_CALLBACK(correction_sending_xmlnode_cb), NULL,
+										   PURPLE_SIGNAL_PRIORITY_HIGHEST);
 		}
 	}
 
@@ -670,6 +675,43 @@ static gboolean correction_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **
 	xmlnode_free(body);
 	xmlnode *rich = xmlnode_get_child_with_namespace(stanza, "html", "http://jabber.org/protocol/xhtml-im");
 	if (rich) xmlnode_free(rich);
+
+	return FALSE;
+}
+
+/*!
+ * @brief Say which message an outgoing one replaces
+ *
+ * The window decided that this message corrects an earlier one and wrote the earlier id on
+ * the content object. The content object is held for exactly the length of one send, which
+ * is this, so the outgoing stanza can be told before it goes.
+ *
+ * Runs before anything else on this signal, and in particular before the message is sealed:
+ * encryption keeps only the children it has been told are harmless in the clear, and this is
+ * one of them. It names a message; it says nothing about what either message contains. Added
+ * afterwards instead, it would be lost whenever a message had to wait for a key.
+ */
+static gboolean correction_sending_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpointer data)
+{
+	if (!packet || !*packet) return FALSE;
+
+	xmlnode *stanza = *packet;
+	if (!purple_strequal(stanza->name, "message")) return FALSE;
+
+	/* Chat states and receipts travel as messages of their own and must not be mistaken for
+	 * the one the user typed. */
+	if (!xmlnode_get_child(stanza, "body")) return FALSE;
+
+	@autoreleasepool {
+		NSString *corrects = [pendingOutgoingContentMessage correctsMessageId];
+		if (![corrects length]) return FALSE;
+
+		xmlnode *replace = xmlnode_new_child(stanza, "replace");
+		xmlnode_set_namespace(replace, NS_MESSAGE_CORRECT);
+		xmlnode_set_attrib(replace, "id", [corrects UTF8String]);
+
+		AILog(@"XEP-0308: this message replaces %@", corrects);
+	}
 
 	return FALSE;
 }

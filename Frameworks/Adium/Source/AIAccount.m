@@ -943,6 +943,11 @@ typedef enum
 	return NO;
 }
 
+- (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact
+{
+	return NO;
+}
+
 /*!
  * @brief Can the account send files into a group chat?
  */

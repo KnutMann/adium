@@ -309,6 +309,16 @@ typedef enum {
  * @brief Can the account send images inline within a chat?
  */
 - (BOOL)canSendImagesForChat:(AIChat *)inChat;
+
+/*!
+ * @brief Can a message already sent to this contact be replaced?
+ *
+ * Correcting a message the other side cannot replace is worse than not offering it: they
+ * see the same sentence twice, once wrong and once right, and no client on earth tells
+ * them which was meant. So the offer is made only where it will land. NO unless an account
+ * says otherwise.
+ */
+- (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact;
 - (BOOL)canSendFilesToGroupChat:(AIChat *)inChat;
 - (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat;
 

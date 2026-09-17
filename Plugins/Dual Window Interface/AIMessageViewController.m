@@ -122,6 +122,10 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 									   selector:@selector(sendMessage:) 
 										   name:Interface_SendEnteredMessage
 										 object:chat];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(beginMessageCorrection:)
+												 name:@"AIChatBeginMessageCorrection"
+											   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
 									   selector:@selector(didSendMessage:)
 										   name:Interface_DidSendEnteredMessage 
@@ -410,6 +414,27 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 /*!
  * @brief Send the entered message
  */
+/*!
+ * @brief Put the last message back in the field to be rewritten
+ *
+ * The text returns as it was typed, the cursor goes to the end, and the field remembers
+ * which message it is replacing until that message is sent or the user presses escape.
+ */
+- (void)beginMessageCorrection:(NSNotification *)notification
+{
+	if ([notification object] != chat) return;
+
+	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
+	NSString *text = [[notification userInfo] objectForKey:@"Message"];
+	if (![messageId length] || ![text length]) return;
+
+	[textView_outgoing setString:text];
+	[textView_outgoing setSelectedRange:NSMakeRange([[textView_outgoing textStorage] length], 0)];
+	textView_outgoing.correctingMessageId = messageId;
+
+	[[textView_outgoing window] makeFirstResponder:textView_outgoing];
+}
+
 - (IBAction)sendMessage:(id)sender
 {
 	NSAttributedString	*attributedString = [textView_outgoing textStorage];
@@ -454,6 +479,11 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 												 date:nil //created for us by AIContentMessage
 											  message:outgoingAttributedString
 											autoreply:NO];
+
+			/* If this field is rewriting something, the message says so, and the field
+			 * stops rewriting: whatever is typed next is a message of its own. */
+			message.correctsMessageId = textView_outgoing.correctingMessageId;
+			textView_outgoing.correctingMessageId = nil;
 
 			if ([adium.contentController sendContentObject:message]) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:Interface_DidSendEnteredMessage 

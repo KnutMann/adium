@@ -124,6 +124,16 @@
 @property (readwrite, nonatomic, copy) NSString *inlineImagePath;
 
 /*!
+ * @brief The id of the message this one replaces, if it replaces one
+ *
+ * A correction (XEP-0308) is an ordinary message that names an earlier one. Carrying the
+ * id here rather than in the text keeps the decision where it was made, in the window
+ * where the user chose to correct something, and lets the protocol say it in whatever way
+ * the protocol has for saying it.
+ */
+@property (readwrite, nonatomic, copy) NSString *correctsMessageId;
+
+/*!
  * @brief The prefix string for the sender of this message.
  *
  * @return A textual representation of the highest level of flags the sender has in a chat.

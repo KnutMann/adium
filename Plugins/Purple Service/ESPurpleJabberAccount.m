@@ -15,6 +15,7 @@
  */
 
 #import "ESPurpleJabberAccount.h"
+#import <libpurple/jabber.h>
 #import <AdiumLibpurple/SLPurpleCocoaAdapter.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
@@ -97,6 +98,40 @@
 - (BOOL)providesConversationHistory
 {
 	return [mam isAvailable];
+}
+
+/*!
+ * @brief Can a message already sent to this contact be replaced? (XEP-0308)
+ *
+ * libpurple's house rule for capabilities, written the same way for receipts, chat markers
+ * and xhtml: knowing nothing is never a refusal. A resource that has told us what it can do
+ * and does not name this counts as a no; a resource that has said nothing yet is tried. The
+ * seconds after a contact appears are exactly when somebody reaches for the arrow key, and
+ * refusing then would make the feature look broken rather than absent.
+ */
+- (BOOL)canCorrectMessagesToContact:(AIListContact *)inContact
+{
+	PurpleAccount		*account = accountLookupFromAdiumAccount(self);
+	PurpleConnection	*gc = (account ? purple_account_get_connection(account) : NULL);
+	if (!gc || !PURPLE_CONNECTION_IS_CONNECTED(gc) || !inContact)
+		return NO;
+
+	JabberStream	*js = gc->proto_data;
+	JabberBuddy		*jb = (js ? jabber_buddy_find(js, [inContact.UID UTF8String], FALSE) : NULL);
+	if (!jb)
+		return YES;			//nobody has said anything; try
+
+	BOOL anybodySaid = NO;
+	for (GList *each = jb->resources; each; each = each->next) {
+		JabberBuddyResource *jbr = each->data;
+		if (!jbr || !jbr->caps.info)
+			continue;		//this one has not told us anything yet
+		anybodySaid = YES;
+		if (jabber_resource_has_capability(jbr, "urn:xmpp:message-correct:0"))
+			return YES;
+	}
+
+	return !anybodySaid;
 }
 
 - (void)probeConnectionIsAlive

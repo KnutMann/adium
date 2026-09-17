@@ -75,6 +75,15 @@
 
 //Configure
 @property (readwrite, nonatomic) BOOL clearOnEscape;
+
+/*!
+ * @brief The message this field is rewriting, if it is rewriting one
+ *
+ * Set when the user asks to correct the last thing they said, cleared when the message
+ * goes or the user gives up. What it names travels with the sent message so the protocol
+ * can say which message the new one replaces.
+ */
+@property (readwrite, nonatomic, copy) NSString *correctingMessageId;
 @property (readwrite, nonatomic) BOOL homeToStartOfLine;
 @property (readwrite, retain, nonatomic) NSView *associatedView;
 

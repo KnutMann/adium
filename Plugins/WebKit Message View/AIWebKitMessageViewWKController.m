@@ -398,6 +398,10 @@ static NSString *const AIWKContextMenuScript =
 													 name:@"AIChatMessageWasCorrected"
 												   object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(correctLastMessageRequested:)
+													 name:@"AIChatCorrectLastMessageRequested"
+												   object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(messageReactionsChanged:)
 													 name:@"AIChatMessageReactionsChanged"
 												   object:nil];
@@ -2020,6 +2024,32 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		return;
 	}
 
+	if ([content isOutgoing] && [content isKindOfClass:[AIContentMessage class]] &&
+		![(AIContentMessage *)content isAutoreply]) {
+		AIContentMessage *said = (AIContentMessage *)content;
+		NSString *corrects = [said correctsMessageId];
+
+		if ([corrects length]) {
+			/* Our own correction. It replaces a line that is already on the page rather
+			 * than becoming one of its own, exactly as the other side's correction does.
+			 * The id kept for the field stays the original: a second rewrite of the same
+			 * message still names the message, not the rewrite before it, which is what
+			 * everyone else expects to receive. */
+			_lastOutgoingText = [[said message] string];
+
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatMessageWasCorrected"
+															   object:_chat
+															 userInfo:@{ @"MessageId": corrects,
+																		 @"Message": _lastOutgoingText }];
+			return;
+		}
+
+		/* Remember the last thing we said, so the entry field can offer to rewrite it. An
+		 * id usually arrives a moment later, in messageIdAssigned:, and is filled in there. */
+		_lastOutgoingText = [[said message] string];
+		_lastOutgoingMessageId = [said messageId];
+	}
+
 	[_contentQueue addObject:content];
 	[self _processContentQueue];
 }
@@ -2057,6 +2087,31 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	} else if ([_contentQueue count]) {
 		[self _processContentQueue];
 	}
+}
+
+/*!
+ * @brief The entry field asked what there is to correct
+ *
+ * Only the last message, and only one that carries an id: a message the server never
+ * acknowledged cannot be named in a correction, and a message older than the last one is
+ * not what the arrow key means. Silence is the answer when there is nothing.
+ */
+- (void)correctLastMessageRequested:(NSNotification *)notification
+{
+	if ([notification object] != _chat) return;
+	if (![_lastOutgoingMessageId length] || ![_lastOutgoingText length]) return;
+
+	/* Offered only where it will land. On the other side a correction nobody understands
+	 * is the same sentence twice, once wrong and once right. */
+	if (![[_chat account] canCorrectMessagesToContact:[_chat listObject]]) {
+		AILogWithSignature(@"%@ cannot be sent a correction; the arrow key does nothing here", [_chat listObject]);
+		return;
+	}
+
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"AIChatBeginMessageCorrection"
+													   object:_chat
+													 userInfo:@{ @"MessageId": _lastOutgoingMessageId,
+																 @"Message": _lastOutgoingText }];
 }
 
 /*!
@@ -2322,6 +2377,10 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 
 	NSString *messageId = [[notification userInfo] objectForKey:@"MessageId"];
 	if (![messageId length]) return;
+
+	//The message that just earned this id is the one the field would offer to rewrite
+	if ([_lastOutgoingText length] && ![_lastOutgoingMessageId length])
+		_lastOutgoingMessageId = messageId;
 
 	/* History shown as context also renders outgoing and id-less; only a message of
 	 * this session can be the one a send just earned an id for. The NEWEST bare

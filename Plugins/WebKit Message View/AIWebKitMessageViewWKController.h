@@ -32,6 +32,11 @@
 
 	NSMutableArray *_contentQueue;
 	NSMutableArray *_storedContentObjects;
+	/* The last thing said here by us, so the field can offer to rewrite it. Kept as the
+	 * plain text that was typed rather than read back out of the page, where it has been
+	 * through the filters and the style and is no longer what anybody wrote. */
+	NSString *_lastOutgoingMessageId;
+	NSString *_lastOutgoingText;
 	NSString *_cachedChatContentSource;
 	AIContentObject *_previousContent;
 	NSMutableDictionary *_objectIconPathDict;
