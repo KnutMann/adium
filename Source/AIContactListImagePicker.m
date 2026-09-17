@@ -23,7 +23,8 @@
 
 #define ARROW_WIDTH		8
 #define ARROW_HEIGHT	(ARROW_WIDTH/2.0)
-#define ARROW_XOFFSET	6		//from the right edge; two left the arrow sitting on it
+#define ARROW_XOFFSET	4		//from the right edge; two left the arrow sitting on it
+#define CORNER_RADIUS	6		//the picture's rounded corner, and the shade that follows it
 #define ARROW_YOFFSET	3
 
 @interface AIContactListImagePicker ()
@@ -98,7 +99,7 @@
 	 * It read that way for as long as the code has existed and was harmless for all of it,
 	 * because a view used to clip itself. */
 	NSRect			drawRect = NSInsetRect([self bounds], 1, 1);
-	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:drawRect radius:3];
+	NSBezierPath	*clipPath = [NSBezierPath bezierPathWithRoundedRect:drawRect radius:CORNER_RADIUS];
 
 	[[NSColor separatorColor] set];
 	[clipPath setLineWidth:1];
