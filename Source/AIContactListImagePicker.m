@@ -23,7 +23,7 @@
 
 #define ARROW_WIDTH		8
 #define ARROW_HEIGHT	(ARROW_WIDTH/2.0)
-#define ARROW_XOFFSET	2
+#define ARROW_XOFFSET	6		//from the right edge; two left the arrow sitting on it
 #define ARROW_YOFFSET	3
 
 @interface AIContactListImagePicker ()
@@ -111,7 +111,8 @@
 	[super drawRect:inRect];
 
 	if (hovered) {
-		[[[NSColor blackColor] colorWithAlphaComponent:0.40f] set];
+		//Enough to say the picture is a button, not enough to hide the picture
+		[[[NSColor blackColor] colorWithAlphaComponent:0.20f] set];
 		[clipPath fill];
 
 		// Draw the arrow
