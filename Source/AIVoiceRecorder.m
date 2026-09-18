@@ -95,7 +95,7 @@
 	}
 
 	__weak __typeof__(self) weakSelf = self;
-	[input installTapOnBus:0 bufferSize:4096 format:hardware usingBlock:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
+	[input installTapOnBus:0 bufferSize:4096 format:hardware block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
 		__typeof__(self) me = weakSelf;
 		if (!me || !me.samples) return;
 
