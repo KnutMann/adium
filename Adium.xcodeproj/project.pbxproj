@@ -934,6 +934,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BD6742F06001D1D0049CAF7 /* EmoticonPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = F5F0FEA004B1336C01A80106 /* EmoticonPrefs.xib */; };
 		4BD6743106001D1E0049CAF7 /* EmoticonDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = F5F0FEA204B133AB01A80106 /* EmoticonDefaults.plist */; };
 		4BD6745E06001D740049CAF7 /* ESOpenMessageWindowContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 344AB2C40579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE00000000000A03 /* AIShakeWindowContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000A02 /* AIShakeWindowContactAlertPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BD6746306001D760049CAF7 /* ESSendMessageContactAlertPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 342DC5BF05783DE7000E1D83 /* ESSendMessageContactAlertPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BD6746606001D770049CAF7 /* SendMessageContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 342DC7FE05784463000E1D83 /* SendMessageContactAlert.xib */; };
 		4BD6753006001E0D0049CAF7 /* AIDualWindowInterfacePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F5793980033E756E01A8010A /* AIDualWindowInterfacePlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1849,6 +1850,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		3449485B08E9FCD60054FF57 /* AIAccountMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountMenu.h; path = Frameworks/Adium/Source/AIAccountMenu.h; sourceTree = "<group>"; };
 		344AB2C30579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESOpenMessageWindowContactAlertPlugin.h; path = "Plugins/Open Message Window Contact Alert/ESOpenMessageWindowContactAlertPlugin.h"; sourceTree = "<group>"; };
 		344AB2C40579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESOpenMessageWindowContactAlertPlugin.m; path = "Plugins/Open Message Window Contact Alert/ESOpenMessageWindowContactAlertPlugin.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000A01 /* AIShakeWindowContactAlertPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIShakeWindowContactAlertPlugin.h; path = "Plugins/Shake Window Contact Alert/AIShakeWindowContactAlertPlugin.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE00000000000A02 /* AIShakeWindowContactAlertPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIShakeWindowContactAlertPlugin.m; path = "Plugins/Shake Window Contact Alert/AIShakeWindowContactAlertPlugin.m"; sourceTree = "<group>"; };
 		344C0D4E06B6D63800DA7200 /* ESApplescriptabilityController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESApplescriptabilityController.m; path = Frameworks/Adium/Source/ESApplescriptabilityController.m; sourceTree = "<group>"; };
 		344C0D4F06B6D63800DA7200 /* ESApplescriptabilityController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESApplescriptabilityController.h; path = Frameworks/Adium/Source/ESApplescriptabilityController.h; sourceTree = "<group>"; };
 		344D97400C3C442500498CA1 /* InstantMessage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = InstantMessage.h; path = Source/Logorrhea/InstantMessage.h; sourceTree = SOURCE_ROOT; };
@@ -3760,6 +3763,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			children = (
 				344AB2C30579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.h */,
 				344AB2C40579136900384CEE /* ESOpenMessageWindowContactAlertPlugin.m */,
+				ADD1E5C0DE00000000000A01 /* AIShakeWindowContactAlertPlugin.h */,
+				ADD1E5C0DE00000000000A02 /* AIShakeWindowContactAlertPlugin.m */,
 				4BAA1B600632EFE700D8B92C /* events-window-alert.tiff */,
 			);
 			name = "Open Message Window Contact Alert";
@@ -7390,6 +7395,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4BD673B706001C5F0049CAF7 /* AIContactStatusColoringPlugin.m in Sources */,
 				4BD6742E06001D1D0049CAF7 /* AIEmoticonPreferences.m in Sources */,
 				4BD6745E06001D740049CAF7 /* ESOpenMessageWindowContactAlertPlugin.m in Sources */,
+				ADD1E5C0DE00000000000A03 /* AIShakeWindowContactAlertPlugin.m in Sources */,
 				4BD6746306001D760049CAF7 /* ESSendMessageContactAlertPlugin.m in Sources */,
 				4BD6753006001E0D0049CAF7 /* AIDualWindowInterfacePlugin.m in Sources */,
 				4BD6753606001E0F0049CAF7 /* AIMessageTabViewItem.m in Sources */,

@@ -2551,6 +2551,7 @@
 "Set Status" = "Set Status";
 
 /* Shift key word + Directional arrow keys word */
+"Shake the message window" = "Shake the message window";
 "Shift + Arrows (%@ and %@)" = "Shift + Arrows (%1$@ and %2$@)";
 
 /* Chooses what an account carries in front of its name in the menus listing accounts */
