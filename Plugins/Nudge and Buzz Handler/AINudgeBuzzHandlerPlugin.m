@@ -15,6 +15,7 @@
  */
 
 #import <Adium/AIContactAlertsControllerProtocol.h>
+#import <Adium/AIDockControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIMenuControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
@@ -48,6 +49,7 @@
 
 // Notifications.
 - (void)nudgeBuzzDidOccur:(NSNotification *)notification;
+- (void)seedAlertsForAttention;
 
 // Event processing.
 - (NSString *)shortDescriptionForEventID:(NSString *)eventID;
@@ -114,6 +116,9 @@
 	
 	// Register the toolbar into message windows
 	[adium.toolbarController registerToolbarItem:chatItem forToolbarType:@"MessageWindow"];
+
+	// Give the event an effect on installations that came from before it had one.
+	[self seedAlertsForAttention];
 }
 
 - (void)uninstallPlugin
@@ -216,6 +221,50 @@
 		return ((AIListContact *)object).account.supportsSendingNotifications;
 	}
 }
+
+#pragma mark Giving the event an effect
+
+/*!
+ * @brief Make sure an attention request does something on an installation that predates this
+ *
+ * The built in event sets now answer an attention request with a dock bounce and a notification,
+ * but those sets are only read on a first launch: afterwards the alerts live in the preferences,
+ * and an installation that has been carried along for years would go on treating the loudest
+ * thing anyone can send as the quietest thing Adium can show.
+ *
+ * Reapplying the whole set is not an answer, because it would throw away every alert the person
+ * has arranged for themselves. So the two entries are added once, and only where nothing has been
+ * said about this event yet, which is also why a fresh install that already got them from the
+ * preset is left alone.
+ */
+- (void)seedAlertsForAttention
+{
+	NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+	NSString		*marker = @"Adium:Attention Alerts Seeded";
+
+	if ([defaults boolForKey:marker])
+		return;
+
+	[defaults setBool:YES forKey:marker];
+
+	if ([[adium.contactAlertsController alertsForListObject:nil
+												withEventID:CONTENT_NUDGE_BUZZ_OCCURED
+												   actionID:nil] count] > 0)
+		return;
+
+	[adium.contactAlertsController addGlobalAlert:[NSDictionary dictionaryWithObjectsAndKeys:
+		CONTENT_NUDGE_BUZZ_OCCURED, KEY_EVENT_ID,
+		@"BounceDockIcon", KEY_ACTION_ID,
+		[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:AIDockBehaviorBounceOnce]
+									forKey:@"BehaviorType"], KEY_ACTION_DETAILS,
+		nil]];
+
+	[adium.contactAlertsController addGlobalAlert:[NSDictionary dictionaryWithObjectsAndKeys:
+		CONTENT_NUDGE_BUZZ_OCCURED, KEY_EVENT_ID,
+		@"Growl", KEY_ACTION_ID,
+		nil]];
+}
+
 
 #pragma mark Nudge/Buzz Handling
 
