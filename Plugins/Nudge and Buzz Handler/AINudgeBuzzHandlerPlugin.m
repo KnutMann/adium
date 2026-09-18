@@ -358,14 +358,18 @@
 
 
 #pragma mark Event descriptions
+/* The menu item that sends this calls it requesting attention, and so does the line printed in the
+ * window when one arrives. Only the event list called it a notification, which is both a different
+ * word for the same thing and the name of one of the actions that can answer it, so anyone looking
+ * for the buzz they had just sent would not find it. */
 - (NSString *)shortDescriptionForEventID:(NSString *)eventID
 {
-	return AILocalizedString(@"Notification received", nil);
+	return AILocalizedString(@"Attention requested", "Name of the event raised when a contact sends a buzz or nudge");
 }
 
 - (NSString *)globalShortDescriptionForEventID:(NSString *)eventID
 {
-	return AILocalizedString(@"Notification received", nil);
+	return AILocalizedString(@"Attention requested", "Name of the event raised when a contact sends a buzz or nudge");
 }
 
 //Evan: This exists because old X(tras) relied upon matching the description of event IDs, and I don't feel like making
@@ -381,7 +385,7 @@
 	
 	if (listObject) {
 		NSString	*name;
-		NSString	*format = AILocalizedString(@"When %@ sends a notification", nil);
+		NSString	*format = AILocalizedString(@"When %@ requests your attention", nil);
 		
 		name = ([listObject isKindOfClass:[AIListGroup class]] ?
 				[NSString stringWithFormat:AILocalizedString(@"a member of %@", nil),listObject.displayName] :
@@ -389,7 +393,7 @@
 			
 		description = [NSString stringWithFormat:format, name];
 	} else {
-		description = AILocalizedString(@"When a contact sends a notification", nil);
+		description = AILocalizedString(@"When a contact requests your attention", nil);
 	}
 	
 	return description;

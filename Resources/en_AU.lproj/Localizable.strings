@@ -717,6 +717,7 @@
 "Attach To Window" = "Attach To Window";
 
 /* No comment provided by engineer. */
+"Attention requested" = "Attention requested";
 "Audio Notifications" = "Audio Notifications";
 
 /* No comment provided by engineer. */
@@ -3062,6 +3063,7 @@
 "When %@ leaves a group chat" = "When %@ leaves a group chat";
 
 /* No comment provided by engineer. */
+"When %@ requests your attention" = "When %@ requests your attention";
 "When %@ returns from away" = "When %@ returns from away";
 
 /* No comment provided by engineer. */
@@ -3107,6 +3109,7 @@
 "When a contact leaves a group chat" = "When a contact leaves a group chat";
 
 /* No comment provided by engineer. */
+"When a contact requests your attention" = "When a contact requests your attention";
 "When a contact sends a notification" = "When a contact sends a notification";
 
 /* No comment provided by engineer. */
