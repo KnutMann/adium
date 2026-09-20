@@ -31,8 +31,12 @@
 /* How far to either side, how often, and over how long. Three swings across half a second is
  * six a second, which is the rate the window of a wrong password moves at and slow enough that
  * the eye follows the window rather than seeing it blur. Four across four tenths, which is where
- * this started, is half again as fast and reads as a shudder instead of a shake. */
-#define SHAKE_WIDTH			12.0
+ * this started, is half again as fast and reads as a shudder instead of a shake.
+ *
+ * The distance is a fixed twenty points rather than a share of the width. A share is what the
+ * usual implementation takes, and it suits a password dialog, but a conversation window is twice
+ * as wide as one and the same share would fling it across the desk. */
+#define SHAKE_WIDTH			20.0
 #define SHAKE_COUNT			3
 #define SHAKE_DURATION		0.5
 
