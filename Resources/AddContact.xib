@@ -182,16 +182,16 @@
                         <connections><outlet property="nextKeyView" destination="bCancel" id="nkvSvAccounts"/></connections>
                     </scrollView>
                     <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bSearch">
-                        <rect key="frame" x="13" y="13" width="37" height="31"/>
+                        <rect key="frame" x="13" y="12" width="44" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <buttonCell key="cell" type="push" bezelStyle="shadowlessSquare" image="ABSearch" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bSearchC">
+                        <buttonCell key="cell" type="push" bezelStyle="rounded" image="ABSearch" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bSearchC">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                             <font key="font" metaFont="smallSystem"/>
                         </buttonCell>
                         <connections><action selector="searchInAB:" target="-2" id="aSearch"/></connections>
                     </button>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lSearchAB">
-                        <rect key="frame" x="47" y="23" width="194" height="14"/>
+                        <rect key="frame" x="57" y="21" width="165" height="14"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Search In Address Book" id="lSearchABC">
                             <font key="font" metaFont="smallSystem"/>
@@ -200,7 +200,7 @@
                         </textFieldCell>
                     </textField>
                     <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bCancel">
-                        <rect key="frame" x="240" y="12" width="84" height="32"/>
+                        <rect key="frame" x="228" y="12" width="84" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
                         <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bCancelC">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
