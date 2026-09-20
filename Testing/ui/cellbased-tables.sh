@@ -2,7 +2,8 @@
 # Alle Tabellen, die noch auf dem zellbasierten Modell laufen, mit dem, was den Umbau
 # schwer oder leicht macht: ob die Tabelle aus einem XIB oder aus Code kommt, ob es ein
 # Outline ist, ob eigene Zellen zeichnen, ob bearbeitet oder gezogen wird. Sortiert nach
-# Aufwand, die leichtesten zuerst.
+# Aufwand, die leichtesten zuerst. Zellen, die nicht im Code, sondern im XIB stecken
+# (Ankreuzfelder, Bilder, Aufklappmenues), werden ueber das XIB der Klasse mitgezaehlt.
 cd "$(dirname "$0")/../.."
 printf "%-4s %-52s %-5s %-4s %-5s %-4s %-4s\n" "Pkt" "Datei" "Quelle" "Outl" "Zelle" "Edit" "Drag"
 command grep -rl "objectValueForTableColumn" --include="*.m" Source Plugins Frameworks/Adium Frameworks/AIUtilities \
@@ -12,8 +13,15 @@ command grep -rl "objectValueForTableColumn" --include="*.m" Source Plugins Fram
 	xib=$(command grep -clE "IBOutlet.*NS(Table|Outline)View|@property.*IBOutlet.*NS(Table|Outline)View" "$f" "${f%.m}.h" 2>/dev/null | command grep -c ":[1-9]")
 	outline=$(command grep -cE "NSOutlineView|outlineView:" "$f")
 	cell=$(command grep -cE "setDataCell:|dataCellForTableColumn|willDisplayCell|AI[A-Za-z]*Cell\b|ImageTextCell|NSButtonCell|NSPopUpButtonCell" "$f")
-	edit=$(command grep -cE "setObjectValue:forTableColumn|shouldEditTableColumn" "$f")
+	edit=$(command grep -cE "setObjectValue:.*forTableColumn|shouldEditTableColumn" "$f")
 	drag=$(command grep -cE "writeRowsWithIndexes|acceptDrop|validateDrop" "$f")
+	xibcells=0
+	while IFS= read -r x; do
+		[ -n "$x" ] || continue
+		n=$(command grep -cE "(buttonCell|imageCell|popUpButtonCell|comboBoxCell|levelIndicatorCell) key=\"dataCell\"" "$x")
+		xibcells=$((xibcells + n))
+	done <<< "$(command grep -rl "customClass=\"$base\"" --include="*.xib" Resources Plugins Frameworks/Adium 2>/dev/null)"
+	cell=$((cell + xibcells))
 	src="XIB"; [ "$code" -gt 0 ] && src="Code"
 	o="-"; [ "$outline" -gt 0 ] && o="ja"
 	c="-"; [ "$cell" -gt 0 ] && c="$cell"
