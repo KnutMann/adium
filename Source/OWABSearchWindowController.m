@@ -15,7 +15,6 @@
  */
 
 #import "OWABSearchWindowController.h"
-#import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <Adium/AIAddressBookController.h>
 #import <Adium/AIService.h>
 
@@ -119,16 +118,10 @@
 
 	table = [[NSTableView alloc] initWithFrame:NSZeroRect];
 	NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"name"];
-	/* A plain text cell draws from the top of its row, and in a row of the modern height that
-	 * leaves the name sitting high in its highlight. This cell of ours measures the text and
-	 * centres it; the row height and the inset style are the ones the other lists built in code
-	 * use, so this one stops looking like a stranger among them. */
-	AIVerticallyCenteredTextCell *cell = [[AIVerticallyCenteredTextCell alloc] init];
-	[cell setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
-	[cell setLineBreakMode:NSLineBreakByTruncatingTail];
-	[column setDataCell:cell];
 	[table addTableColumn:column];
-	[table setRowHeight:22.0];
+	/* View based: each row is a real view with a text field in it, handed out by the delegate
+	 * below. That is where the vertical centring, the selection colours and the dark mode come
+	 * from, and none of it is ours. */
 	if (@available(macOS 11.0, *)) {
 		[table setStyle:NSTableViewStyleInset];
 	}
@@ -241,11 +234,39 @@
 	return [shown count];
 }
 
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+/*!
+ * @brief One row: a standard cell view with a label centred in it
+ *
+ * The view is built once and reused by the table under its identifier. Because it is handed
+ * to the table as its textField, the table itself turns the label white on a selected row and
+ * back again, and picks the right colours for dark mode, which is the whole point of not
+ * drawing any of this by hand.
+ */
+- (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
 	if (rowIndex < 0 || rowIndex >= (NSInteger)[shown count]) return nil;
 
-	return [self nameForPerson:[shown objectAtIndex:rowIndex]];
+	NSTableCellView *view = [aTableView makeViewWithIdentifier:@"name" owner:self];
+	if (!view) {
+		view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+		[view setIdentifier:@"name"];
+
+		NSTextField *label = [NSTextField labelWithString:@""];
+		[label setLineBreakMode:NSLineBreakByTruncatingTail];
+		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[view addSubview:label];
+		[view setTextField:label];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[[label leadingAnchor] constraintEqualToAnchor:[view leadingAnchor] constant:2.0],
+			[[label trailingAnchor] constraintEqualToAnchor:[view trailingAnchor] constant:-2.0],
+			[[label centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
+		]];
+	}
+
+	[[view textField] setStringValue:[self nameForPerson:[shown objectAtIndex:rowIndex]]];
+
+	return view;
 }
 
 - (void)updateSelectButton
