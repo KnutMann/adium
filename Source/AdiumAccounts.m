@@ -290,6 +290,13 @@
 		serviceID = @"libpurple-Jabber";
 	} else if ([serviceID isEqualToString:@"Novell-LIBGAIM"]) {
 		serviceID = @"libpurple-GroupWise";
+
+	/* Bonjour accounts were filed under libezv, Adium's own implementation, until that was
+	 * removed; the service is back on libpurple's protocol, so those accounts come back with
+	 * it. rvous-libezv is the same thing again, one renaming earlier, from before Adium 1.0. */
+	} else if ([serviceID isEqualToString:@"bonjour-libezv"] ||
+			   [serviceID isEqualToString:@"rvous-libezv"]) {
+		serviceID = @"libpurple-Bonjour";
 	}
 	
 	return serviceID;

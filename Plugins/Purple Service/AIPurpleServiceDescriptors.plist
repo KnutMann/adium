@@ -53,6 +53,27 @@
 		<true/>
 	</dict>
 
+	<key>prpl-bonjour</key>
+	<dict>
+		<key>IconBaseName</key>
+		<string>bonjour</string>
+		<key>LongDescription</key>
+		<string>Bonjour (local network)</string>
+		<key>NetworkReachability</key>
+		<false/>
+		<key>ServiceClass</key>
+		<string>Bonjour</string>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-Bonjour</string>
+		<key>ServiceID</key>
+		<string>Bonjour</string>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<key>ShortDescription</key>
+		<string>Bonjour</string>
+		<key>UserNameLabel</key>
+		<string>Name</string>
+	</dict>
 	<key>prpl-eionrobb-ircv3</key>
 	<dict>
 		<key>ServiceCodeUniqueID</key>
