@@ -130,6 +130,14 @@
 																		  innerWidth,
 																		  SEARCH_WINDOW_HEIGHT - (2 * MARGIN) - BUTTON_AREA_HEIGHT - 34.0)];
 	[scroll setDocumentView:table];
+	/* A column made in code is a hundred points wide and stays so, whatever the table around it
+	 * does: the autoresizing style only redistributes width when the table itself changes size,
+	 * and a table that starts at zero and is handed to a scroll view never sees a change. So the
+	 * table is given the width once and told once to let its one column fill it. */
+	[column setResizingMask:NSTableColumnAutoresizingMask];
+	[table setAutoresizingMask:NSViewWidthSizable];
+	[table setFrameSize:NSMakeSize([scroll contentSize].width, NSHeight([table frame]))];
+	[table sizeLastColumnToFit];
 	[scroll setHasVerticalScroller:YES];
 	[scroll setBorderType:NSBezelBorder];
 	[scroll setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
@@ -158,7 +166,7 @@
 
 	[selectButton setFrame:NSMakeRect(SEARCH_WINDOW_WIDTH - MARGIN - buttonWidth, MARGIN, buttonWidth, 32.0)];
 	[selectButton setAutoresizingMask:(NSViewMinXMargin | NSViewMaxYMargin)];
-	[cancelButton setFrame:NSMakeRect(SEARCH_WINDOW_WIDTH - MARGIN - buttonWidth - 8.0 - cancelWidth, MARGIN, cancelWidth, 32.0)];
+	[cancelButton setFrame:NSMakeRect(SEARCH_WINDOW_WIDTH - MARGIN - buttonWidth - 12.0 - cancelWidth, MARGIN, cancelWidth, 32.0)];
 	[cancelButton setAutoresizingMask:(NSViewMinXMargin | NSViewMaxYMargin)];
 	[content addSubview:selectButton];
 	[content addSubview:cancelButton];
