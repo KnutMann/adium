@@ -17,6 +17,7 @@
 #import "AIAdvancedInspectorPane.h"
 #import "AINewGroupWindowController.h"
 #import <AIUtilities/AIParagraphStyleAdditions.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIChat.h>
@@ -395,17 +396,17 @@
 }
 
 /*!
- * @brief Table view set object value
+ * @brief One row: the group's name, in the small type the rest of this pane is set in
  */
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-	NSString		*identifier = [tableColumn identifier];
-	
-	if ([identifier isEqualToString:@"group"]) {
-		return ((AIListGroup *)[displayedGroups objectAtIndex:row]).displayName;
-	}
-	
-	return nil;
+	NSString *name = ([[tableColumn identifier] isEqualToString:@"group"] ?
+					  ((AIListGroup *)[displayedGroups objectAtIndex:row]).displayName : nil);
+
+	NSTableCellView *view = [tableView ai_labelCellViewForColumn:tableColumn value:name];
+	[[view textField] setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+
+	return view;
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
