@@ -37,6 +37,18 @@
 }
 
 /*!
+ * @brief The inspector asks every tooltip entry this, and asks it as a requirement, not a courtesy
+ *
+ * An entry that does not answer takes the application down with it the first time a contact
+ * is inspected, which is how this one was found. The answer is yes: the inspector shows what
+ * is known about a person, and where in the day they are is part of that.
+ */
+- (BOOL)shouldDisplayInContactInspector
+{
+	return YES;
+}
+
+/*!
  * @brief The time of day where this contact is, when they have said and it differs from ours
  *
  * Silent when nobody knows, which is every contact until they have been asked and answered,

@@ -23,7 +23,11 @@ GCC_ENABLE_SYMBOL_SEPARATION = YES
 GCC_ENABLE_OBJC_EXCEPTIONS = YES
 GCC_PRECOMPILE_PREFIX_HEADER = YES
 DEBUG_INFORMATION_FORMAT = dwarf
-WARNING_CFLAGS = -Wall
+// A class that adopts a protocol and leaves one of its required methods out is not a style
+// matter: the first caller to trust the protocol takes the application down with an
+// unrecognised selector. That happened once, in a tooltip entry the contact inspector asked a
+// question it had not implemented, and the warning sat unread among four hundred others.
+WARNING_CFLAGS = -Wall -Werror=protocol
 OTHER_CFLAGS = "$(CFLAGS)"
 FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_PROJECT_1 = "$(BUILT_PRODUCTS_DIR)"
 GCC_WARN_64_TO_32_BIT_CONVERSION = YES
