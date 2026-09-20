@@ -21,6 +21,7 @@
 #import <Adium/AIListContact.h>
 #import <Adium/AIListObject.h>
 #import <AIUtilities/AIImageAdditions.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 
 #define PANE_WIDTH			300.0
@@ -419,9 +420,9 @@ static NSTextField *AILabel(NSRect frame, CGFloat size, NSColor *colour)
 	return [shown count];
 }
 
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)column row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)column row:(NSInteger)row
 {
-	return AICardName([shown objectAtIndex:row]);
+	return [tableView ai_labelCellViewForColumn:column value:AICardName([shown objectAtIndex:row])];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
