@@ -1,0 +1,88 @@
+--- a/libpurple/protocols/bonjour/Makefile.in	2026-09-21 00:02:05
++++ b/libpurple/protocols/bonjour/Makefile.in	2026-09-21 00:02:05
+@@ -136,11 +136,11 @@
+ @STATIC_BONJOUR_TRUE@libbonjour_la_DEPENDENCIES =  \
+ @STATIC_BONJOUR_TRUE@	$(am__DEPENDENCIES_1)
+ am__libbonjour_la_SOURCES_DIST = bonjour.c bonjour.h buddy.c buddy.h \
+-	jabber.c jabber.h mdns_avahi.c mdns_common.c mdns_common.h \
++	jabber.c jabber.h mdns_dns_sd.c mdns_common.c mdns_common.h \
+ 	mdns_interface.h mdns_types.h parser.c parser.h bonjour_ft.c \
+ 	bonjour_ft.h
+ am__objects_1 = libbonjour_la-bonjour.lo libbonjour_la-buddy.lo \
+-	libbonjour_la-jabber.lo libbonjour_la-mdns_avahi.lo \
++	libbonjour_la-jabber.lo libbonjour_la-mdns_dns_sd.lo \
+ 	libbonjour_la-mdns_common.lo libbonjour_la-parser.lo \
+ 	libbonjour_la-bonjour_ft.lo
+ @STATIC_BONJOUR_FALSE@am_libbonjour_la_OBJECTS = $(am__objects_1)
+@@ -174,7 +174,7 @@
+ 	./$(DEPDIR)/libbonjour_la-bonjour_ft.Plo \
+ 	./$(DEPDIR)/libbonjour_la-buddy.Plo \
+ 	./$(DEPDIR)/libbonjour_la-jabber.Plo \
+-	./$(DEPDIR)/libbonjour_la-mdns_avahi.Plo \
++	./$(DEPDIR)/libbonjour_la-mdns_dns_sd.Plo \
+ 	./$(DEPDIR)/libbonjour_la-mdns_common.Plo \
+ 	./$(DEPDIR)/libbonjour_la-parser.Plo
+ am__mv = mv -f
+@@ -488,7 +488,7 @@
+ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+ EXTRA_DIST = \
+-	mdns_dns_sd.c \
++	mdns_avahi.c \
+ 	dns_sd_proxy.c \
+ 	dns_sd_proxy.h \
+ 	Makefile.mingw
+@@ -501,7 +501,7 @@
+ 	buddy.h \
+ 	jabber.c \
+ 	jabber.h \
+-	mdns_avahi.c \
++	mdns_dns_sd.c \
+ 	mdns_common.c \
+ 	mdns_common.h \
+ 	mdns_interface.h \
+@@ -623,7 +623,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-bonjour_ft.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-buddy.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-jabber.Plo@am__quote@ # am--include-marker
+-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-mdns_avahi.Plo@am__quote@ # am--include-marker
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-mdns_dns_sd.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-mdns_common.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbonjour_la-parser.Plo@am__quote@ # am--include-marker
+ 
+@@ -675,12 +675,12 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbonjour_la_CFLAGS) $(CFLAGS) -c -o libbonjour_la-jabber.lo `test -f 'jabber.c' || echo '$(srcdir)/'`jabber.c
+ 
+-libbonjour_la-mdns_avahi.lo: mdns_avahi.c
+-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbonjour_la_CFLAGS) $(CFLAGS) -MT libbonjour_la-mdns_avahi.lo -MD -MP -MF $(DEPDIR)/libbonjour_la-mdns_avahi.Tpo -c -o libbonjour_la-mdns_avahi.lo `test -f 'mdns_avahi.c' || echo '$(srcdir)/'`mdns_avahi.c
+-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbonjour_la-mdns_avahi.Tpo $(DEPDIR)/libbonjour_la-mdns_avahi.Plo
+-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mdns_avahi.c' object='libbonjour_la-mdns_avahi.lo' libtool=yes @AMDEPBACKSLASH@
++libbonjour_la-mdns_dns_sd.lo: mdns_dns_sd.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbonjour_la_CFLAGS) $(CFLAGS) -MT libbonjour_la-mdns_dns_sd.lo -MD -MP -MF $(DEPDIR)/libbonjour_la-mdns_dns_sd.Tpo -c -o libbonjour_la-mdns_dns_sd.lo `test -f 'mdns_dns_sd.c' || echo '$(srcdir)/'`mdns_dns_sd.c
++@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbonjour_la-mdns_dns_sd.Tpo $(DEPDIR)/libbonjour_la-mdns_dns_sd.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mdns_dns_sd.c' object='libbonjour_la-mdns_dns_sd.lo' libtool=yes @AMDEPBACKSLASH@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbonjour_la_CFLAGS) $(CFLAGS) -c -o libbonjour_la-mdns_avahi.lo `test -f 'mdns_avahi.c' || echo '$(srcdir)/'`mdns_avahi.c
++@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbonjour_la_CFLAGS) $(CFLAGS) -c -o libbonjour_la-mdns_dns_sd.lo `test -f 'mdns_dns_sd.c' || echo '$(srcdir)/'`mdns_dns_sd.c
+ 
+ libbonjour_la-mdns_common.lo: mdns_common.c
+ @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbonjour_la_CFLAGS) $(CFLAGS) -MT libbonjour_la-mdns_common.lo -MD -MP -MF $(DEPDIR)/libbonjour_la-mdns_common.Tpo -c -o libbonjour_la-mdns_common.lo `test -f 'mdns_common.c' || echo '$(srcdir)/'`mdns_common.c
+@@ -840,7 +840,7 @@
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-bonjour_ft.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-buddy.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-jabber.Plo
+-	-rm -f ./$(DEPDIR)/libbonjour_la-mdns_avahi.Plo
++	-rm -f ./$(DEPDIR)/libbonjour_la-mdns_dns_sd.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-mdns_common.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-parser.Plo
+ 	-rm -f Makefile
+@@ -892,7 +892,7 @@
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-bonjour_ft.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-buddy.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-jabber.Plo
+-	-rm -f ./$(DEPDIR)/libbonjour_la-mdns_avahi.Plo
++	-rm -f ./$(DEPDIR)/libbonjour_la-mdns_dns_sd.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-mdns_common.Plo
+ 	-rm -f ./$(DEPDIR)/libbonjour_la-parser.Plo
+ 	-rm -f Makefile

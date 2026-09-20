@@ -1,0 +1,25 @@
+Bonjour on Apple's own mDNS, without avahi.
+
+Upstream couples the Bonjour protocol to avahi: configure strips it from the protocol
+list whenever avahi is missing, and the Makefile compiles the avahi backend. On a Mac
+both choices are wrong. The system runs mDNSResponder, whose client calls live in
+libSystem and cost nothing, and mdns_dns_sd.c, the backend that speaks to it, ships
+with libpurple already and even includes Apple's <dns_sd.h> when Apple's compiler is
+detected. It simply is never built, because the autotools files only know avahi.
+
+Both patches touch the GENERATED files, configure and Makefile.in, not configure.ac
+and Makefile.am. The build consumes the generated files directly and never re-runs
+autotools; patching the sources instead would leave the generated files older than
+their sources and invite make into regenerating them with whatever automake happens
+to be installed.
+
+01-configure-keep-bonjour-on-darwin.patch
+    The avahi test stays, but on Darwin its failure no longer strips bonjour from
+    STATIC_PRPLS and DYNAMIC_PRPLS. Everywhere else the old behaviour holds.
+
+02-makefile-build-dns-sd-backend.patch
+    mdns_avahi.c and mdns_dns_sd.c swap places: the dns_sd backend is compiled and
+    the avahi one is merely distributed. AVAHI_LIBS stays in the link line and is
+    empty on a Mac. dns_sd_proxy.c stays out of the build; it exists to load
+    dnssd.dll at runtime on Windows, and on a Mac the same symbols come from
+    libSystem.

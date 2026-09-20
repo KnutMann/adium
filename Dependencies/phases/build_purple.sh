@@ -71,6 +71,19 @@ build_libpurple() {
 		done
 		touch "$ROOTDIR/source/libpurple/.adium-irc-patches-applied"
 	fi
+
+	# Bonjour: build against Apple's dns_sd instead of avahi. Upstream's configure strips
+	# bonjour from the protocol list whenever avahi is missing, and its Makefile compiles
+	# the avahi backend; on a Mac the right backend, mdns_dns_sd.c, ships with the tree and
+	# never gets built. See patches/pidgin-2.14.14/bonjour/README for why the patches touch
+	# the generated files rather than configure.ac.
+	if [ -d "$ROOTDIR/patches/pidgin-2.14.14/bonjour" ] && [ ! -f "$ROOTDIR/source/libpurple/.adium-bonjour-patches-applied" ]; then
+		status "Applying Adium bonjour patches"
+		for bonjour_patch in "$ROOTDIR/patches/pidgin-2.14.14/bonjour/"*.patch; do
+			patch -d "$ROOTDIR/source/libpurple" -p1 -N < "$bonjour_patch"
+		done
+		touch "$ROOTDIR/source/libpurple/.adium-bonjour-patches-applied"
+	fi
 	
 	prereq "cyrus-sasl" \
 		"https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz"
