@@ -21,6 +21,7 @@
 #import <Adium/AIListContact.h>
 #import <Adium/AIService.h>
 #import <AIUtilities/AIImageAdditions.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 #import <Contacts/Contacts.h>
 
@@ -516,9 +517,10 @@ static NSString *AICardName(AIAddressBookPerson *person)
 	return [shown count];
 }
 
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)column row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)column row:(NSInteger)row
 {
-	return AICardName([[shown objectAtIndex:row] objectForKey:ENTRY_PERSON]);
+	return [tableView ai_labelCellViewForColumn:column
+										   value:AICardName([[shown objectAtIndex:row] objectForKey:ENTRY_PERSON])];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
