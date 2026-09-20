@@ -16,6 +16,7 @@
 
 #import "ESPurpleJabberAccountViewController.h"
 #import <Adium/AIAccount.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIService.h>
 #import <Adium/AIContactList.h>
@@ -324,12 +325,22 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 	return [servers count];
 }
 
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-	id objectValue = [[servers objectAtIndex:row] objectForKey:[tableColumn identifier]];
-	return ((objectValue && ![objectValue isKindOfClass:[NSNull class]]) ? objectValue : @"");
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+	return [tableView ai_labelCellViewForColumn:tableColumn
+										  value:[[servers objectAtIndex:row] objectForKey:[tableColumn identifier]]];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
+	/* The selection can be cleared as well as made, and a cleared one is row -1, which is not an
+	 * index into anything. Empty the fields and go. */
+	if ([tableview_servers selectedRow] < 0) {
+		[textField_registerServerName setStringValue:@""];
+		[textField_registerServerPort setStringValue:@""];
+		[textView_serverDescription setString:@""];
+		[button_serverHomepage setEnabled:NO];
+		return;
+	}
+
 	NSDictionary *serverInfo = [servers objectAtIndex:[tableview_servers selectedRow]];
 	NSString *servername = [serverInfo objectForKey:@"domain"];
 	[textField_registerServerName setStringValue:servername];
@@ -340,6 +351,7 @@ static NSComparisonResult compareByDistance(id one, id two, void*context) {
 }
 
 - (IBAction)visitServerHomepage:(id)sender {
+	if ([tableview_servers selectedRow] < 0) return;
 	NSDictionary *serverInfo = [servers objectAtIndex:[tableview_servers selectedRow]];
 	
 	[[NSWorkspace sharedWorkspace] openURL:[serverInfo objectForKey:@"homepage"]];
