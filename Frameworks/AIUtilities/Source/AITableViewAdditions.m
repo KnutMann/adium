@@ -69,6 +69,35 @@
 	[self selectRowIndexes:indexes byExtendingSelection:NO];
 }
 
+- (NSTableCellView *)ai_labelCellViewForColumn:(NSTableColumn *)tableColumn value:(id)value
+{
+	NSString		*identifier = [tableColumn identifier];
+	NSTableCellView	*view = [self makeViewWithIdentifier:identifier owner:nil];
+
+	if (!view) {
+		view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+		[view setIdentifier:identifier];
+
+		NSTextField *label = [NSTextField labelWithString:@""];
+		[label setLineBreakMode:NSLineBreakByTruncatingTail];
+		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[view addSubview:label];
+		[view setTextField:label];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[[label leadingAnchor] constraintEqualToAnchor:[view leadingAnchor] constant:2.0],
+			[[label trailingAnchor] constraintEqualToAnchor:[view trailingAnchor] constant:-2.0],
+			[[label centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
+		]];
+	}
+
+	NSString *text = ([value isKindOfClass:[NSString class]] ? value :
+					  ((value && value != [NSNull null]) ? [value description] : @""));
+	[[view textField] setStringValue:text];
+
+	return view;
+}
+
 @end
 
 @interface AITableView : NSTableView {}

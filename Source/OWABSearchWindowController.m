@@ -15,6 +15,7 @@
  */
 
 #import "OWABSearchWindowController.h"
+#import <AIUtilities/AITableViewAdditions.h>
 #import <Adium/AIAddressBookController.h>
 #import <Adium/AIService.h>
 
@@ -234,39 +235,12 @@
 	return [shown count];
 }
 
-/*!
- * @brief One row: a standard cell view with a label centred in it
- *
- * The view is built once and reused by the table under its identifier. Because it is handed
- * to the table as its textField, the table itself turns the label white on a selected row and
- * back again, and picks the right colours for dark mode, which is the whole point of not
- * drawing any of this by hand.
- */
 - (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
 	if (rowIndex < 0 || rowIndex >= (NSInteger)[shown count]) return nil;
 
-	NSTableCellView *view = [aTableView makeViewWithIdentifier:@"name" owner:self];
-	if (!view) {
-		view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
-		[view setIdentifier:@"name"];
-
-		NSTextField *label = [NSTextField labelWithString:@""];
-		[label setLineBreakMode:NSLineBreakByTruncatingTail];
-		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
-		[view addSubview:label];
-		[view setTextField:label];
-
-		[NSLayoutConstraint activateConstraints:@[
-			[[label leadingAnchor] constraintEqualToAnchor:[view leadingAnchor] constant:2.0],
-			[[label trailingAnchor] constraintEqualToAnchor:[view trailingAnchor] constant:-2.0],
-			[[label centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
-		]];
-	}
-
-	[[view textField] setStringValue:[self nameForPerson:[shown objectAtIndex:rowIndex]]];
-
-	return view;
+	return [aTableView ai_labelCellViewForColumn:aTableColumn
+										   value:[self nameForPerson:[shown objectAtIndex:rowIndex]]];
 }
 
 - (void)updateSelectButton
