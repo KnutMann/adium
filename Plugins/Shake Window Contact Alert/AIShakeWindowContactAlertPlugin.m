@@ -28,11 +28,13 @@
 
 #define SHAKE_ALERT_SHORT	AILocalizedString(@"Shake the message window", "Name of the event action that shakes a message window from side to side")
 
-//How far to either side, how often, and over how long. Half a second is enough to be unmistakable
-//and short enough that it is over before it becomes irritating.
+/* How far to either side, how often, and over how long. Three swings across half a second is
+ * six a second, which is the rate the window of a wrong password moves at and slow enough that
+ * the eye follows the window rather than seeing it blur. Four across four tenths, which is where
+ * this started, is half again as fast and reads as a shudder instead of a shake. */
 #define SHAKE_WIDTH			12.0
-#define SHAKE_COUNT			4
-#define SHAKE_DURATION		0.4
+#define SHAKE_COUNT			3
+#define SHAKE_DURATION		0.5
 
 @implementation AIShakeWindowContactAlertPlugin
 
