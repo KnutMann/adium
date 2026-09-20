@@ -15,6 +15,7 @@
  */
 
 #import "OWABSearchWindowController.h"
+#import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <Adium/AIAddressBookController.h>
 #import <Adium/AIService.h>
 
@@ -118,7 +119,19 @@
 
 	table = [[NSTableView alloc] initWithFrame:NSZeroRect];
 	NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"name"];
+	/* A plain text cell draws from the top of its row, and in a row of the modern height that
+	 * leaves the name sitting high in its highlight. This cell of ours measures the text and
+	 * centres it; the row height and the inset style are the ones the other lists built in code
+	 * use, so this one stops looking like a stranger among them. */
+	AIVerticallyCenteredTextCell *cell = [[AIVerticallyCenteredTextCell alloc] init];
+	[cell setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
+	[cell setLineBreakMode:NSLineBreakByTruncatingTail];
+	[column setDataCell:cell];
 	[table addTableColumn:column];
+	[table setRowHeight:22.0];
+	if (@available(macOS 11.0, *)) {
+		[table setStyle:NSTableViewStyleInset];
+	}
 	[table setHeaderView:nil];
 	[table setDataSource:self];
 	[table setDelegate:self];
