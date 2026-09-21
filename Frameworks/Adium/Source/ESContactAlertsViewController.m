@@ -21,22 +21,133 @@
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import <Adium/ESContactAlertsViewController.h>
 #import <AIUtilities/AIAutoScrollView.h>
-#import <AIUtilities/AIImageTextCell.h>
 #import <AIUtilities/AIImageAdditions.h>
-#import <AIUtilities/AIVariableHeightFlexibleColumnsOutlineView.h>
+#import <AIUtilities/AIOutlineView.h>
 #import <AIUtilities/AIArrayAdditions.h>
-#import <AIUtilities/AIScaledImageCell.h>
-#import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 
 #define VERTICAL_ROW_PADDING	6
 #define MINIMUM_IMAGE_HEIGHT		20.0f
 #define MINIMUM_ROW_HEIGHT			/* 32.0f */ 16.0f
 
-#define	EVENT_COLUMN_INDEX		1
+//The one column's row: a picture in a slot at the leading edge, the event's name, and what happens beside it
+#define CELL_INSET					2.0f
+#define ICON_SLOT_WIDTH				40.0f		//The image column's width, less the spacing it had beside it
+#define TITLE_WIDTH					140.0f		//The event column's width, less the spacing
+#define TEXT_GAP					6.0f
+#define MEASURING_ALLOWANCE			20.0f		//What the outline keeps for the disclosure triangle, near enough
+
+/*!
+ * @class AIContactAlertCellView
+ * @brief One row of the events list: the picture, the event, and beside it what happens
+ *
+ * The three columns the list used to have, in one view, because a row whose text ran across two of
+ * them (an event with no actions, an expanded one, an action under an event) has no way to do that
+ * with a view per column. Laid out by hand, since the row's height is decided from the text by the
+ * controller, as it was.
+ */
+@interface AIContactAlertCellView : NSTableCellView {
+	NSImageView		*iconView;
+	NSTextField		*titleField;
+	NSTextField		*summaryField;
+	BOOL			 extended;
+	CGFloat			 iconSize;
+}
+- (void)setImage:(NSImage *)image size:(CGFloat)size title:(NSString *)title font:(NSFont *)font summary:(NSString *)summary extended:(BOOL)inExtended;
+- (void)layoutFields;
+@end
+
+@implementation AIContactAlertCellView
+
+- (id)initWithFrame:(NSRect)frame
+{
+	if ((self = [super initWithFrame:frame])) {
+		iconView = [[NSImageView alloc] initWithFrame:NSZeroRect];
+		[iconView setImageScaling:NSImageScaleProportionallyDown];
+		[iconView setImageAlignment:NSImageAlignCenter];
+		[self addSubview:iconView];
+
+		titleField = [NSTextField wrappingLabelWithString:@""];
+		[titleField setSelectable:NO];
+		[self addSubview:titleField];
+		//The table's own outlet, so the highlight recolours the title by itself
+		[self setTextField:titleField];
+
+		summaryField = [NSTextField wrappingLabelWithString:@""];
+		[summaryField setFont:[NSFont systemFontOfSize:10]];
+		[summaryField setSelectable:NO];
+		[self addSubview:summaryField];
+	}
+
+	return self;
+}
+
+- (void)setImage:(NSImage *)image size:(CGFloat)size title:(NSString *)title font:(NSFont *)font summary:(NSString *)summary extended:(BOOL)inExtended
+{
+	[iconView setImage:image];
+	iconSize = size;
+	[titleField setStringValue:(title ? title : @"")];
+	[titleField setFont:font];
+	[summaryField setStringValue:(summary ? summary : @"")];
+	extended = inExtended;
+	[summaryField setHidden:extended];
+	[self layoutFields];
+}
+
+//The title the table recolours itself; the small line beside it is recoloured here
+- (void)setBackgroundStyle:(NSBackgroundStyle)style
+{
+	[super setBackgroundStyle:style];
+	[summaryField setTextColor:((style == NSBackgroundStyleEmphasized) ?
+								[NSColor alternateSelectedControlTextColor] :
+								[NSColor labelColor])];
+}
+
+- (void)layout
+{
+	[super layout];
+	[self layoutFields];
+}
+
+- (void)resizeSubviewsWithOldSize:(NSSize)oldSize
+{
+	[super resizeSubviewsWithOldSize:oldSize];
+	[self layoutFields];
+}
+
+- (void)layoutFields
+{
+	NSRect	bounds = [self bounds];
+	CGFloat	height = NSHeight(bounds);
+
+	//The picture, centred in its slot and never taller than the row leaves it
+	CGFloat drawnIconSize = MIN(iconSize, MAX(0.0f, height - 4.0f));
+	[iconView setFrame:NSMakeRect(CELL_INSET + floor((ICON_SLOT_WIDTH - drawnIconSize) / 2.0f),
+								  floor((height - drawnIconSize) / 2.0f),
+								  drawnIconSize, drawnIconSize)];
+
+	CGFloat textX = CELL_INSET + ICON_SLOT_WIDTH + TEXT_GAP;
+	CGFloat available = MAX(1.0f, NSWidth(bounds) - textX - CELL_INSET);
+	CGFloat titleWidth = (extended ? available : MIN(TITLE_WIDTH, available));
+	CGFloat titleHeight = MIN(height, ceil([[titleField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, titleWidth, 10000.0f)].height));
+
+	[titleField setFrame:NSMakeRect(textX, floor((height - titleHeight) / 2.0f), titleWidth, titleHeight)];
+
+	if (!extended) {
+		CGFloat summaryX = textX + titleWidth + TEXT_GAP;
+		CGFloat summaryWidth = MAX(1.0f, NSWidth(bounds) - summaryX - CELL_INSET);
+		CGFloat summaryHeight = MIN(height, ceil([[summaryField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, summaryWidth, 10000.0f)].height));
+
+		[summaryField setFrame:NSMakeRect(summaryX, floor((height - summaryHeight) / 2.0f), summaryWidth, summaryHeight)];
+	}
+}
+
+@end
 
 @interface ESContactAlertsViewController ()
-- (BOOL)outlineView:(NSOutlineView *)inOutlineView extendToEdgeColumn:(NSInteger)column ofRow:(NSInteger)row;
+- (BOOL)rowIsExtendedForItem:(id)item;
+- (id)textOrImageForItem:(id)item column:(NSString *)identifier;
+- (NSFont *)titleFontForItem:(id)item;
 - (void)configureEventSummaryOutlineView;
 - (void)reloadSummaryData;
 - (void)deleteContactActionsInArray:(NSArray *)contactEventArray;
@@ -312,24 +423,6 @@ int globalAlertAlphabeticalSort(id objectA, id objectB, void *context);
  */
 - (void)configureEventSummaryOutlineView
 {
-	AIScaledImageCell				*imageCell;
-	AIImageTextCell					*imageTextCell;
-	AIVerticallyCenteredTextCell	*verticallyCenteredTextCell;
-	
-	imageCell = [[AIScaledImageCell alloc] init];
-	[imageCell setAlignment:NSTextAlignmentCenter];
-	[imageCell setMaxSize:NSMakeSize(MINIMUM_IMAGE_HEIGHT, MINIMUM_IMAGE_HEIGHT)];
-	[[outlineView_summary tableColumnWithIdentifier:@"image"] setDataCell:imageCell];
-
-	imageTextCell = [[AIImageTextCell alloc] init];
-	[imageTextCell setMaxImageWidth:MINIMUM_ROW_HEIGHT];
-	[imageTextCell setLineBreakMode:NSLineBreakByWordWrapping];
-	[[outlineView_summary tableColumnWithIdentifier:@"event"] setDataCell:imageTextCell];
-
-	verticallyCenteredTextCell = [[AIVerticallyCenteredTextCell alloc] init];
-	[verticallyCenteredTextCell setFont:[NSFont systemFontOfSize:10]];
-	[[outlineView_summary tableColumnWithIdentifier:@"action"] setDataCell:verticallyCenteredTextCell];
-
 	[outlineView_summary setUsesAlternatingRowBackgroundColors:YES];
 	[outlineView_summary setIntercellSpacing:NSMakeSize(6.0f,6.0f)];
 	[outlineView_summary setIndentationPerLevel:0];
@@ -345,74 +438,44 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 	return [(NSString *)[objectA objectForKey:KEY_ACTION_ID] compare:(NSString *)[objectB objectForKey:KEY_ACTION_ID]];
 }
 
+/*!
+ * @brief The width the row's text has, near enough, without asking the outline for a row that may not exist yet
+ */
+- (CGFloat)widthForRows
+{
+	NSTableColumn *column = [[outlineView_summary tableColumns] objectAtIndex:0];
+
+	return MAX(1.0f, [column width] - MEASURING_ALLOWANCE);
+}
+
 - (void)calculateHeightForItem:(id)item
 {
-	NSEnumerator	*enumerator;
-	NSTableColumn	*tableColumn;
-	BOOL			eventIsExtended = [self outlineView:outlineView_summary
-								extendToEdgeColumn:EVENT_COLUMN_INDEX
-											ofRow:[outlineView_summary rowForItem:item]];
-	BOOL			enforceMinimumHeight = ([(NSArray *)item count] > 0);
-	CGFloat			necessaryHeight = 0;
-	NSRect			rectOfLastColumn = [outlineView_summary rectOfColumn:([outlineView_summary numberOfColumns] - 1)];
-	NSRect			rectOfEventColumn = [outlineView_summary rectOfColumn:EVENT_COLUMN_INDEX];
-	CGFloat			expandedEventWidth = NSMaxX(rectOfLastColumn) - NSMinX(rectOfEventColumn);
+	BOOL	extended = [self rowIsExtendedForItem:item];
+	BOOL	enforceMinimumHeight = ([(NSArray *)item count] > 0);
+	CGFloat	rowWidth = [self widthForRows];
+	CGFloat	textX = CELL_INSET + ICON_SLOT_WIDTH + TEXT_GAP;
+	CGFloat	available = MAX(1.0f, rowWidth - textX - CELL_INSET);
+	CGFloat	titleWidth = (extended ? available : MIN(TITLE_WIDTH, available));
+	CGFloat	necessaryHeight;
 
-	//This pool seems to fix a crash. I don't know why.
-	enumerator = [[outlineView_summary tableColumns] objectEnumerator];
-	while ((tableColumn = [enumerator nextObject])) {
-		NSString	*identifier = [tableColumn identifier];
+	//Measured the way the row lays the text out: the event in its slot, and what happens beside it
+	NSAttributedString *title = [[NSAttributedString alloc] initWithString:[self textOrImageForItem:item column:@"event"]
+																attributes:[NSDictionary dictionaryWithObject:[self titleFontForItem:item]
+																									   forKey:NSFontAttributeName]];
+	necessaryHeight = [title heightWithWidth:titleWidth];
 
-		if ([identifier isEqualToString:@"event"] || ([identifier isEqualToString:@"action"] && !eventIsExtended)) {
-			/* For the event column, and for the action column if the event is not extended, determine what height is needed */
-			NSCell *dataCell = [tableColumn dataCell];
+	if (!extended) {
+		CGFloat				summaryWidth = MAX(1.0f, rowWidth - (textX + titleWidth + TEXT_GAP) - CELL_INSET);
+		NSAttributedString	*summary = [[NSAttributedString alloc] initWithString:[self textOrImageForItem:item column:@"action"]
+																	  attributes:[NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:10]
+																											 forKey:NSFontAttributeName]];
+		CGFloat				summaryHeight = [summary heightWithWidth:summaryWidth];
 
-			[self outlineView:outlineView_summary willDisplayCell:dataCell forTableColumn:tableColumn item:item];
-
-			NSString		*objectValue = [self outlineView:outlineView_summary
-							 objectValueForTableColumn:tableColumn
-												byItem:item];
-			
-			CGFloat			thisHeight, tableColumnWidth;
-			NSFont			*font = [dataCell font];
-			NSDictionary	*attributes = nil;
-			
-			if (font) {
-				attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-							  font, NSFontAttributeName, nil];
-			}
-			
-			NSAttributedString	*attributedTitle = [[NSAttributedString alloc] initWithString:objectValue
-																				  attributes:attributes];
-			
-			if ([identifier isEqualToString:@"event"]) {
-				if (eventIsExtended) {
-					/* If this is the event column and it is extended, the available width will be from its origin
-					 * to the right edge of the frame. Subtract a bit to provide a border */
-					tableColumnWidth = expandedEventWidth - 8;
-				} else {
-					tableColumnWidth = NSWidth(rectOfEventColumn) - 8;
-				}
-
-			} else {
-				/* Otherwise, it's the width as normal. */
-				tableColumnWidth = [tableColumn width];
-			}
-
-			thisHeight = [attributedTitle heightWithWidth:tableColumnWidth];
-			if (thisHeight > necessaryHeight) necessaryHeight = thisHeight;
-#ifdef HEIGHT_DEBUG
-			AILogWithSignature(@"%@: width %f height %f", [attributedTitle string], tableColumnWidth, thisHeight);
-#endif
-		}
+		if (summaryHeight > necessaryHeight) necessaryHeight = summaryHeight;
 	}
-	
+
 	necessaryHeight += VERTICAL_ROW_PADDING;
-#ifdef HEIGHT_DEBUG
-	AILogWithSignature(@"%@: %f", item, (enforceMinimumHeight ? 
-										 ((necessaryHeight > MINIMUM_ROW_HEIGHT) ? necessaryHeight : MINIMUM_ROW_HEIGHT) :
-										 necessaryHeight));
-#endif
+
 	[requiredHeightDict setObject:[NSNumber numberWithDouble:(enforceMinimumHeight ? 
 															 ((necessaryHeight > MINIMUM_ROW_HEIGHT) ? necessaryHeight : MINIMUM_ROW_HEIGHT) :
 															 necessaryHeight)]
@@ -591,9 +654,13 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 	return expandState ? [expandState boolValue] : NO;
 }
 
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+/*!
+ * @brief What a column of the old three said about an item: the event, the action, or the image
+ *
+ * The three columns are one now, but this is still the way the row's words are made.
+ */
+- (id)textOrImageForItem:(id)item column:(NSString *)identifier
 {
-	NSString	*identifier = [tableColumn identifier];
 
 	if ([contactAlertsActions containsObjectIdenticalTo:item]) {
 		/* item is an array of contact events */
@@ -707,64 +774,71 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 //Each row should be tall enough to fit its event and action descriptions as necessary
 - (CGFloat)outlineView:(NSOutlineView *)inOutlineView heightOfRowByItem:(id)item
 {	
-	CGFloat	necessaryHeight;
+	NSNumber *cachedHeight = [requiredHeightDict objectForKey:[NSValue valueWithPointer:(__bridge const void *)item]];
 
-	if ([contactAlertsActions containsObjectIdenticalTo:item]) {
-		NSNumber *cachedHeight = [requiredHeightDict objectForKey:[NSValue valueWithPointer:(__bridge const void *)item]];
-		necessaryHeight = (cachedHeight ? [cachedHeight floatValue] : MINIMUM_ROW_HEIGHT);
-
-	} else {
-		//This item isn't an action; use the minimum row height
-		necessaryHeight = MINIMUM_ROW_HEIGHT;
+	if (!cachedHeight) {
+		//An action under an event is measured when it is first shown, an event when the list is loaded
+		[self calculateHeightForItem:item];
+		cachedHeight = [requiredHeightDict objectForKey:[NSValue valueWithPointer:(__bridge const void *)item]];
 	}
-	return necessaryHeight;
+
+	return (cachedHeight ? [cachedHeight floatValue] : MINIMUM_ROW_HEIGHT);
 }
 
-- (BOOL)outlineView:(NSOutlineView *)inOutlineView extendToEdgeColumn:(NSInteger)column ofRow:(NSInteger)row
+/*!
+ * @brief Whether an item's text runs across the whole row
+ *
+ * An action under an event does, and so does an event with no actions or one that is expanded to
+ * show them; only a collapsed event with actions has the summary of them standing beside it.
+ */
+- (BOOL)rowIsExtendedForItem:(id)item
 {
-	if (column == 1) {
-		if ([outlineView_summary levelForRow:row] > 0) {
-			//This is an action underneath an event; extend the column
-			return YES;
-		} else {
-			id item = [outlineView_summary itemAtRow:row];
-			return (([item count] == 0) ||  //This is an event with no actions
-					([outlineView_summary isItemExpanded:item])); //Or it has actions and is expanded
-		}
-	} else {
-		return NO;
-	}
+	if (![contactAlertsActions containsObjectIdenticalTo:item])
+		return YES;
+
+	return (([(NSArray *)item count] == 0) || [outlineView_summary isItemExpanded:item]);
 }
 
-- (void)outlineView:(NSOutlineView *)inOutlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
+/*!
+ * @brief Bold for an event, bolder still when it has actions; plain for an action under it
+ */
+- (NSFont *)titleFontForItem:(id)item
 {
-	//Only needed for the single-action event column
-	if ([[tableColumn identifier] isEqualToString:@"event"]) {
-		NSImage	*image = nil;
-		NSFont	*font;
-		
-		if ([contactAlertsActions containsObjectIdenticalTo:item]) {
-			/* item is an array of contact events */
-			NSArray	*contactEvents = (NSArray *)item;
+	if ([contactAlertsActions containsObjectIdenticalTo:item])
+		return [NSFont boldSystemFontOfSize:([(NSArray *)item count] ? 12 : 11)];
 
-			if ([contactEvents count]) {
-				font = [NSFont boldSystemFontOfSize:12];
-			} else {
-				font = [NSFont boldSystemFontOfSize:11];				
-			}
+	return [NSFont systemFontOfSize:11];
+}
 
-		} else {
-			NSDictionary			*alert = (NSDictionary *)item;
-			NSString				*actionID = [alert objectForKey:KEY_ACTION_ID];
-			id <AIActionHandler>	actionHandler = [[adium.contactAlertsController actionHandlers] objectForKey:actionID];
-		
-			image = [actionHandler imageForActionID:actionID];
-			font = [NSFont systemFontOfSize:11];
-		}
-		
-		[cell setImage:image];
-		[cell setFont:font];
+- (NSView *)outlineView:(NSOutlineView *)inOutlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item
+{
+	AIContactAlertCellView	*view = [inOutlineView makeViewWithIdentifier:@"alert" owner:nil];
+	BOOL					isEvent = [contactAlertsActions containsObjectIdenticalTo:item];
+	NSImage					*image;
+
+	if (!view) {
+		view = [[AIContactAlertCellView alloc] initWithFrame:NSZeroRect];
+		[view setIdentifier:@"alert"];
 	}
+
+	if (isEvent) {
+		image = [self textOrImageForItem:item column:@"image"];
+	} else {
+		NSDictionary			*alert = (NSDictionary *)item;
+		NSString				*actionID = [alert objectForKey:KEY_ACTION_ID];
+		id <AIActionHandler>	actionHandler = [[adium.contactAlertsController actionHandlers] objectForKey:actionID];
+
+		image = [actionHandler imageForActionID:actionID];
+	}
+
+	[view setImage:image
+			  size:(isEvent ? MINIMUM_IMAGE_HEIGHT : MINIMUM_ROW_HEIGHT)
+			 title:[self textOrImageForItem:item column:@"event"]
+			  font:[self titleFontForItem:item]
+		   summary:[self textOrImageForItem:item column:@"action"]
+		  extended:[self rowIsExtendedForItem:item]];
+
+	return view;
 }
 
 /*!

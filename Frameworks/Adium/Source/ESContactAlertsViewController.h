@@ -16,13 +16,13 @@
 
 #define CONTACT_ALERTS_DETAILS_FOR_HEADER_CHANGED	@"ContactAlertDetailsForHeaderChanged"
 
-@class AIVariableHeightFlexibleColumnsOutlineView, AIListObject, AIAutoScrollView, CSNewContactAlertWindowController;
+@class AIOutlineView, AIListObject, AIAutoScrollView, CSNewContactAlertWindowController;
 @protocol ESContactAlertsViewControllerDelegate;
 
 @interface ESContactAlertsViewController : NSObject <NSOutlineViewDelegate, NSOutlineViewDataSource> {
 	IBOutlet	NSView						*view;
 
-	IBOutlet	AIVariableHeightFlexibleColumnsOutlineView	*outlineView_summary;
+	IBOutlet	AIOutlineView	*outlineView_summary;
 	
 	NSMutableArray				*contactAlertsEvents;
 	NSMutableArray				*contactAlertsActions;
