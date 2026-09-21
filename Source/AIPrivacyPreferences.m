@@ -26,7 +26,7 @@
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
 #import <AIUtilities/AICompletingTextField.h>
-#import <AIUtilities/AIImageTextCell.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 
@@ -112,11 +112,10 @@
 			[popUp_privacyLevel sizeToFit];
 		}
 
-		//The list, cell based like every other table here
+		//The list: the picture of the contact, the contact, and the account that blocks it
 		table = [[NSTableView alloc] initWithFrame:NSZeroRect];
 		{
 			NSTableColumn *iconColumn = [[NSTableColumn alloc] initWithIdentifier:@"icon"];
-			[iconColumn setDataCell:[[NSImageCell alloc] init]];
 			[iconColumn setWidth:(PRIVACY_TABLE_ROW_HEIGHT - 4.0f)];
 			[table addTableColumn:iconColumn];
 
@@ -616,22 +615,18 @@
 	return [listContents count];
 }
 
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+- (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
 	if (rowIndex < 0 || rowIndex >= (NSInteger)[listContents count]) return nil;
 
 	NSString		*identifier = [aTableColumn identifier];
 	AIListContact	*contact = [listContents objectAtIndex:rowIndex];
 
-	if ([identifier isEqualToString:@"icon"]) {
-		return [contact menuIcon];
-	} else if ([identifier isEqualToString:@"contact"]) {
-		return contact.formattedUID;
-	} else if ([identifier isEqualToString:@"account"]) {
-		return contact.account.formattedUID;
-	}
+	if ([identifier isEqualToString:@"icon"])
+		return [aTableView ai_imageCellViewForColumn:aTableColumn image:[contact menuIcon]];
 
-	return nil;
+	return [aTableView ai_labelCellViewForColumn:aTableColumn
+										   value:([identifier isEqualToString:@"account"] ? contact.account.formattedUID : contact.formattedUID)];
 }
 
 #pragma mark Dropping contacts onto the list
