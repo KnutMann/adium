@@ -683,6 +683,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000B010 /* ESPurpleJabberAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */; };
 		ADD1E5C0DE0000000000B016 /* prpl-jabber.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B015 /* prpl-jabber.json */; };
 		ADD1E5C0DE0000000000B018 /* prpl-irc.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B017 /* prpl-irc.json */; };
+		ADD1E5C0DE0000000000B022 /* prpl-simple.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B021 /* prpl-simple.json */; };
 		ADD1E5C0DE0000000000B01A /* prpl-eionrobb-ircv3.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */; };
 		ADD1E5C0DE0000000000B01C /* prpl-hehoe-whatsmeow.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B01B /* prpl-hehoe-whatsmeow.json */; };
 		ADD1E5C0DE0000000000B01E /* prpl-hehoe-presage.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000B01D /* prpl-hehoe-presage.json */; };
@@ -2606,6 +2607,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESPurpleJabberAccountPlan.m; path = "Plugins/Purple Service/ESPurpleJabberAccountPlan.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B015 /* prpl-jabber.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-jabber.json; path = "Plugins/Purple Service/Resources/prpl-jabber.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B017 /* prpl-irc.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-irc.json; path = "Plugins/Purple Service/Resources/prpl-irc.json"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000B021 /* prpl-simple.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-simple.json; path = "Plugins/Purple Service/Resources/prpl-simple.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-eionrobb-ircv3.json; path = "Plugins/Purple Service/Resources/prpl-eionrobb-ircv3.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B01B /* prpl-hehoe-whatsmeow.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-hehoe-whatsmeow.json; path = "Plugins/Purple Service/Resources/prpl-hehoe-whatsmeow.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000B01D /* prpl-hehoe-presage.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-hehoe-presage.json; path = "Plugins/Purple Service/Resources/prpl-hehoe-presage.json"; sourceTree = "<group>"; };
@@ -3656,6 +3658,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000B00F /* ESPurpleJabberAccountPlan.m */,
 				ADD1E5C0DE0000000000B015 /* prpl-jabber.json */,
 				ADD1E5C0DE0000000000B017 /* prpl-irc.json */,
+				ADD1E5C0DE0000000000B021 /* prpl-simple.json */,
 				ADD1E5C0DE0000000000B019 /* prpl-eionrobb-ircv3.json */,
 				ADD1E5C0DE0000000000B01B /* prpl-hehoe-whatsmeow.json */,
 				ADD1E5C0DE0000000000B01D /* prpl-hehoe-presage.json */,
@@ -6855,6 +6858,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000C00D /* Teams-large.png in Resources */,
 				ADD1E5C0DE0000000000C00F /* prpl-eionrobb-msteams.json in Resources */,
 				ADD1E5C0DE0000000000B018 /* prpl-irc.json in Resources */,
+				ADD1E5C0DE0000000000B022 /* prpl-simple.json in Resources */,
 				ADD1E5C0DE0000000000B01A /* prpl-eionrobb-ircv3.json in Resources */,
 				ADD1E5C0DE0000000000B01C /* prpl-hehoe-whatsmeow.json in Resources */,
 				ADD1E5C0DE0000000000B01E /* prpl-hehoe-presage.json in Resources */,

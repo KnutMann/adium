@@ -1,0 +1,21 @@
+{
+	"note": [
+		"SIMPLE declares no server option: the server is the part after the @ of the SIP address, and",
+		"ESPurpleSimpleAccount puts the two together when the name is typed without one. The account",
+		"card therefore asks for a server even though the protocol does not name it."
+	],
+
+	"account": {
+		"server": true,
+		"port": true
+	},
+
+	"legacy": {
+		"Simple:Use UDP": "udp",
+		"Simple:Publish Status": "dopublish",
+		"Simple:Use SIP Proxy": "useproxy",
+		"Simple:SIP Proxy": "proxy",
+		"Simple:Auth User": "authuser",
+		"Simple:Auth Domain": "authdomain"
+	}
+}
