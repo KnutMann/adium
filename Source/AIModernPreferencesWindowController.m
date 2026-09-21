@@ -14,6 +14,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#import <AIUtilities/AITableViewAdditions.h>
 #import "AIModernPreferencesWindowController.h"
 
 #import <Adium/AIPreferencePane.h>
@@ -113,114 +114,6 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	[super setFrameOrigin:NSZeroPoint];
 }
-@end
-
-/*!
- * @brief Sidebar row that mirrors the System Settings text colors.
- *
- * AppKit's automatic label coloring tints the selected row with the accent
- * color, while System Settings dims every label — including the selected
- * one — as soon as the window is no longer key. Take the colors over.
- */
-@interface AIPrefsSidebarCellView : NSTableCellView {
-	BOOL isGroupRow;
-	__unsafe_unretained NSTextField		*sidebarLabel;	//Owned by the view hierarchy; deliberately NOT the textField outlet
-	__unsafe_unretained NSImageView		*sidebarIcon;	//Same
-}
-@property (assign) BOOL isGroupRow;
-/* The built-in textField/imageView outlets stay empty on purpose: they are the handles the
- * source list style re-tints through - the accent colour on an unemphasized selection reaches
- * the label over exactly that connection, after everything here has run. A label AppKit has no
- * outlet to is a label it leaves alone, and these two properties are the only way in. */
-@property (assign) NSTextField *sidebarLabel;
-@property (assign) NSImageView *sidebarIcon;
-- (void)updateTextColors;
-@end
-
-@implementation AIPrefsSidebarCellView
-
-@synthesize isGroupRow, sidebarLabel, sidebarIcon;
-
-- (void)setBackgroundStyle:(NSBackgroundStyle)style
-{
-	[super setBackgroundStyle:style];
-	[self updateTextColors];
-}
-
-- (void)viewDidMoveToWindow
-{
-	[super viewDidMoveToWindow];
-	[self updateTextColors];
-}
-
-/*!
- * @brief AppKit re-tints the label right before drawing; have the last word.
- *
- * Without this, an unemphasized source list selection keeps the accent color
- * AppKit applies after -setBackgroundStyle: has run.
- */
-- (void)viewWillDraw
-{
-	[self updateTextColors];
-	[super viewWillDraw];
-}
-
-- (void)updateTextColors
-{
-	/* Only the focused window keeps full-strength labels: System Settings dims
-	 * its sidebar as soon as the window is no longer key — whether the app went
-	 * inactive or another window of the same app took focus. */
-	BOOL windowActive = [[self window] isKeyWindow];
-	NSColor *color;
-
-	if (isGroupRow) {
-		color = (windowActive ? [NSColor secondaryLabelColor] : [NSColor tertiaryLabelColor]);
-	} else if (!windowActive) {
-		//Inactive window: everything dims, the selected row included
-		color = [NSColor secondaryLabelColor];
-	} else if ([self backgroundStyle] == NSBackgroundStyleEmphasized) {
-		color = [NSColor alternateSelectedControlTextColor];
-	} else {
-		color = [NSColor labelColor];
-	}
-
-	[sidebarLabel setTextColor:color];
-}
-
-@end
-
-/*!
- * @brief Sidebar row drawing its own selection.
- *
- * The unemphasized selection AppKit draws while the window is inactive is
- * paler than the one System Settings shows, so the pill is drawn here.
- */
-@interface AIPrefsSidebarRowView : NSTableRowView
-@end
-
-@implementation AIPrefsSidebarRowView
-
-- (void)drawSelectionInRect:(NSRect)dirtyRect
-{
-	if (![self isSelected]) {
-		return;
-	}
-
-	BOOL windowActive = [[self window] isKeyWindow];
-	NSColor *fill;
-	if ([self isEmphasized] && windowActive) {
-		fill = [NSColor selectedContentBackgroundColor];
-	} else {
-		//Noticeably deeper than +unemphasizedSelectedContentBackgroundColor
-		fill = [[NSColor labelColor] colorWithAlphaComponent:0.14];
-	}
-
-	NSRect pill = NSInsetRect([self bounds], 5.0, 1.0);
-	NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:pill xRadius:6.0 yRadius:6.0];
-	[fill set];
-	[path fill];
-}
-
 @end
 
 @interface AIModernPreferencesWindowController ()
@@ -715,8 +608,8 @@ static NSImage *AIPrefPaneIcon(id pane)
 {
 	for (NSInteger row = 0; row < [outlineView numberOfRows]; row++) {
 		id view = [outlineView viewAtColumn:0 row:row makeIfNecessary:NO];
-		if ([view isKindOfClass:[AIPrefsSidebarCellView class]]) {
-			[(AIPrefsSidebarCellView *)view updateTextColors];
+		if ([view isKindOfClass:[AISidebarCellView class]]) {
+			[(AISidebarCellView *)view updateTextColors];
 			[(NSView *)view setNeedsDisplay:YES];
 		}
 		[[outlineView rowViewAtRow:row makeIfNecessary:NO] setNeedsDisplay:YES];
@@ -962,7 +855,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSTableCellView *cell = [aView makeViewWithIdentifier:reuseIdentifier owner:self];
 
 	if (!cell) {
-		cell = [[AIPrefsSidebarCellView alloc] initWithFrame:NSMakeRect(0, 0, 180, 24)];
+		cell = [[AISidebarCellView alloc] initWithFrame:NSMakeRect(0, 0, 180, 24)];
 		[cell setIdentifier:reuseIdentifier];
 
 		NSTextField *label = [[NSTextField alloc] initWithFrame:NSZeroRect];
@@ -972,13 +865,13 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[label setLineBreakMode:NSLineBreakByTruncatingTail];
 		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[cell addSubview:label];
-		[(AIPrefsSidebarCellView *)cell setSidebarLabel:label];
+		[(AISidebarCellView *)cell setSidebarLabel:label];
 
 		if (!isGroup) {
 			NSImageView *icon = [[NSImageView alloc] initWithFrame:NSZeroRect];
 			[icon setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[cell addSubview:icon];
-			[(AIPrefsSidebarCellView *)cell setSidebarIcon:icon];
+			[(AISidebarCellView *)cell setSidebarIcon:icon];
 
 			[cell addConstraints:[NSArray arrayWithObjects:
 				[NSLayoutConstraint constraintWithItem:icon attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual
@@ -1008,9 +901,9 @@ static NSImage *AIPrefPaneIcon(id pane)
 		}
 	}
 
-	[(AIPrefsSidebarCellView *)cell setIsGroupRow:isGroup];
+	[(AISidebarCellView *)cell setIsGroupRow:isGroup];
 
-	NSTextField *cellLabel = [(AIPrefsSidebarCellView *)cell sidebarLabel];
+	NSTextField *cellLabel = [(AISidebarCellView *)cell sidebarLabel];
 
 	if (isGroup) {
 		[cellLabel setStringValue:(NSString *)item];
@@ -1021,9 +914,9 @@ static NSImage *AIPrefPaneIcon(id pane)
 		[cellLabel setFont:[NSFont systemFontOfSize:13]];
 		NSImage *icon = AIPrefPaneIcon(pane);
 		[icon setSize:NSMakeSize(18, 18)];
-		[[(AIPrefsSidebarCellView *)cell sidebarIcon] setImage:icon];
+		[[(AISidebarCellView *)cell sidebarIcon] setImage:icon];
 	}
-	[(AIPrefsSidebarCellView *)cell updateTextColors];
+	[(AISidebarCellView *)cell updateTextColors];
 
 	return cell;
 }
@@ -1033,7 +926,7 @@ static NSImage *AIPrefPaneIcon(id pane)
 	NSString *identifier = @"sidebarRow";
 	NSTableRowView *rowView = [aView makeViewWithIdentifier:identifier owner:self];
 	if (!rowView) {
-		rowView = [[AIPrefsSidebarRowView alloc] initWithFrame:NSZeroRect];
+		rowView = [[AISidebarRowView alloc] initWithFrame:NSZeroRect];
 		[rowView setIdentifier:identifier];
 	}
 	return rowView;

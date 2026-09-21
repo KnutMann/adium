@@ -127,13 +127,13 @@
 	return view;
 }
 
-- (NSTableCellView *)ai_iconLabelCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image value:(id)value
+- (AISidebarCellView *)ai_iconLabelCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image value:(id)value
 {
-	NSString		*identifier = [tableColumn identifier];
-	NSTableCellView	*view = [self makeViewWithIdentifier:identifier owner:nil];
+	NSString			*identifier = [tableColumn identifier];
+	AISidebarCellView	*view = [self makeViewWithIdentifier:identifier owner:nil];
 
 	if (!view) {
-		view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+		view = [[AISidebarCellView alloc] initWithFrame:NSZeroRect];
 		[view setIdentifier:identifier];
 
 		NSImageView *imageView = [[NSImageView alloc] initWithFrame:NSZeroRect];
@@ -141,13 +141,13 @@
 		[imageView setImageAlignment:NSImageAlignCenter];
 		[imageView setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[view addSubview:imageView];
-		[view setImageView:imageView];
+		[view setSidebarIcon:imageView];
 
 		NSTextField *label = [NSTextField labelWithString:@""];
 		[label setLineBreakMode:NSLineBreakByTruncatingTail];
 		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[view addSubview:label];
-		[view setTextField:label];
+		[view setSidebarLabel:label];
 
 		[NSLayoutConstraint activateConstraints:@[
 			[[imageView leadingAnchor] constraintEqualToAnchor:[view leadingAnchor] constant:2.0],
@@ -162,8 +162,9 @@
 
 	NSString *text = ([value isKindOfClass:[NSString class]] ? value :
 					  ((value && value != [NSNull null]) ? [value description] : @""));
-	[[view imageView] setImage:image];
-	[[view textField] setStringValue:text];
+	[[view sidebarIcon] setImage:image];
+	[[view sidebarLabel] setStringValue:text];
+	[view updateTextColors];
 
 	return view;
 }
@@ -207,6 +208,84 @@
 @end
 
 @implementation AICheckboxTableCellView
+@end
+
+@implementation AISidebarCellView
+
+@synthesize isGroupRow, sidebarLabel, sidebarIcon;
+
+- (void)setBackgroundStyle:(NSBackgroundStyle)style
+{
+	[super setBackgroundStyle:style];
+	[self updateTextColors];
+}
+
+- (void)viewDidMoveToWindow
+{
+	[super viewDidMoveToWindow];
+	[self updateTextColors];
+}
+
+/*!
+ * @brief AppKit re-tints the label right before drawing; have the last word
+ *
+ * Without this, an unemphasised source list selection keeps the accent colour AppKit applies
+ * after setBackgroundStyle: has run.
+ */
+- (void)viewWillDraw
+{
+	[self updateTextColors];
+	[super viewWillDraw];
+}
+
+- (void)updateTextColors
+{
+	/* Only the focused window keeps full-strength labels: System Settings dims its sidebar as
+	 * soon as the window is no longer key, whether the app went inactive or another window of
+	 * the same app took focus. */
+	BOOL	windowActive = [[self window] isKeyWindow];
+	NSColor	*color;
+
+	if (isGroupRow) {
+		color = (windowActive ? [NSColor secondaryLabelColor] : [NSColor tertiaryLabelColor]);
+	} else if (!windowActive) {
+		//Inactive window: everything dims, the selected row included
+		color = [NSColor secondaryLabelColor];
+	} else if ([self backgroundStyle] == NSBackgroundStyleEmphasized) {
+		color = [NSColor alternateSelectedControlTextColor];
+	} else {
+		color = [NSColor labelColor];
+	}
+
+	[sidebarLabel setTextColor:color];
+}
+
+@end
+
+@implementation AISidebarRowView
+
+- (void)drawSelectionInRect:(NSRect)dirtyRect
+{
+	if (![self isSelected])
+		return;
+
+	BOOL	windowActive = [[self window] isKeyWindow];
+	NSColor	*fill;
+
+	if ([self isEmphasized] && windowActive) {
+		fill = [NSColor selectedContentBackgroundColor];
+	} else {
+		//Noticeably deeper than unemphasizedSelectedContentBackgroundColor
+		fill = [[NSColor labelColor] colorWithAlphaComponent:0.14];
+	}
+
+	NSRect			pill = NSInsetRect([self bounds], 5.0, 1.0);
+	NSBezierPath	*path = [NSBezierPath bezierPathWithRoundedRect:pill xRadius:6.0 yRadius:6.0];
+
+	[fill set];
+	[path fill];
+}
+
 @end
 
 @interface AITableView : NSTableView {}

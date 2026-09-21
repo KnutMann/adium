@@ -22,6 +22,40 @@
 @property (nonatomic, strong) NSButton *checkbox;
 @end
 
+/*!
+ * @class AISidebarCellView
+ * @brief A source list row that keeps the text colours System Settings uses
+ *
+ * AppKit's automatic label colouring tints the selected row of a source list with the accent
+ * colour once the list is not the focus, while System Settings keeps its labels plain and dims
+ * every one of them, the selected one included, as soon as the window is no longer key. This view
+ * takes the colours over.
+ *
+ * The built-in textField and imageView outlets stay empty on purpose: they are the handles the
+ * source list style re-tints through, after everything here has run. A label AppKit has no outlet
+ * to is a label it leaves alone, so sidebarLabel and sidebarIcon are the only way in.
+ */
+@interface AISidebarCellView : NSTableCellView {
+	BOOL							isGroupRow;
+	__unsafe_unretained NSTextField	*sidebarLabel;	//Owned by the view hierarchy
+	__unsafe_unretained NSImageView	*sidebarIcon;	//Same
+}
+@property (assign) BOOL isGroupRow;
+@property (assign) NSTextField *sidebarLabel;
+@property (assign) NSImageView *sidebarIcon;
+- (void)updateTextColors;
+@end
+
+/*!
+ * @class AISidebarRowView
+ * @brief A source list row that draws its own selection
+ *
+ * The unemphasised selection AppKit draws while the list is not the focus is paler than the one
+ * System Settings shows; the pill is drawn here, deeper. Hand one out from rowViewForItem:.
+ */
+@interface AISidebarRowView : NSTableRowView
+@end
+
 @interface NSTableView (AITableViewAdditions)
 - (NSArray *)selectedItemsFromArray:(NSArray *)sourceArray;
 - (void)selectItemsInArray:(NSArray *)selectedItems usingSourceArray:(NSArray *)sourceArray;
@@ -56,13 +90,15 @@
 - (NSTableCellView *)ai_imageCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image;
 
 /*!
- * @brief The row that shows a small picture and a name side by side, in a standard cell view
+ * @brief The row that shows a small picture and a name side by side: a source list row
  *
- * The shape of a source list row: a 16 point picture at the leading edge and the label after it,
- * both centred in the row. Built once per column and reused; picture and text are set afresh on
- * every call, and nil for the picture leaves its place empty so the names still line up.
+ * A 16 point picture at the leading edge and the label after it, both centred in the row, in an
+ * AISidebarCellView, which keeps its colours the way System Settings does whether or not the list
+ * is the focus. Built once per column and reused; picture and text are set afresh on every call,
+ * and nil for the picture leaves its place empty so the names still line up. Reach the label
+ * through sidebarLabel: textField is empty on purpose, see the class.
  */
-- (NSTableCellView *)ai_iconLabelCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image value:(id)value;
+- (AISidebarCellView *)ai_iconLabelCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image value:(id)value;
 
 /*!
  * @brief The one row a column of checkboxes needs: a checkbox, centred, in a cell view
