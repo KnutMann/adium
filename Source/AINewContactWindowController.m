@@ -18,6 +18,7 @@
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import "AINewContactWindowController.h"
+#import <AIUtilities/AITableViewAdditions.h>
 #import "AINewGroupWindowController.h"
 #import "OWABSearchWindowController.h"
 #import <Adium/AIAddressBookController.h>
@@ -546,60 +547,53 @@ static NSMutableSet *openNewContactWindows = nil;
 	return [accounts count];
 }
 
-/*!
- * @brief Object value for columns in the accounts table view
- */
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-	NSString	*identifier = [tableColumn identifier];
-	
-	if ([identifier isEqualToString:@"check"]) {
-		return ([[accounts objectAtIndex:row] contactListEditable] ?
-				[NSNumber numberWithBool:[checkedAccounts containsObject:[accounts objectAtIndex:row]]] :
-				[NSNumber numberWithBool:NO]);
-	
-	} else if ([identifier isEqualToString:@"account"]) {
-		return [[accounts objectAtIndex:row] explicitFormattedUID];
-		
-	} else {
-		return @"";
+	if (row < 0 || row >= (NSInteger)[accounts count])
+		return nil;
 
-	}
-}
-
-/*!
- * @brief Will display cell
- *
- * Enable/disable account checkbox as appropriate
- */
-- (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
-{
 	NSString	*identifier = [tableColumn identifier];
-	
+	AIAccount	*account = [accounts objectAtIndex:row];
+
 	if ([identifier isEqualToString:@"check"]) {
-		[cell setEnabled:[[accounts objectAtIndex:row] contactListEditable]];
+		//An account whose list cannot be edited cannot take the contact, and its box says so by being off and grey
+		BOOL editable = [account contactListEditable];
+		AICheckboxTableCellView *view = [tableView ai_checkboxCellViewForColumn:tableColumn
+																			 on:(editable && [checkedAccounts containsObject:account])
+																		enabled:editable
+																		 target:self
+																		 action:@selector(accountChecked:)];
+		[[view checkbox] setAccessibilityLabel:[account explicitFormattedUID]];
+		return view;
 	}
+
+	return [tableView ai_labelCellViewForColumn:tableColumn
+										  value:([identifier isEqualToString:@"account"] ? [account explicitFormattedUID] : @"")];
 }
 
 /*!
  * @brief Set the enabled/disabled state for an account in the account list
  */
-- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (void)accountChecked:(id)sender
 {
-	NSString	*identifier = [tableColumn identifier];
+	NSInteger row = [tableView_accounts rowForView:sender];
 
-	if ([identifier isEqualToString:@"check"]) {
-		[[accounts objectAtIndex:row] setPreference:[NSNumber numberWithBool:[object boolValue]] 
-											 forKey:KEY_ADD_CONTACT_TO 
-											  group:PREF_GROUP_ADD_CONTACT];
-		if ([object boolValue]) {
-			[checkedAccounts addObject:[accounts objectAtIndex:row]];
-		} else {
-			[checkedAccounts removeObject:[accounts objectAtIndex:row]];			
-		}
-		
-		[self configureControlDimming];
+	if (row < 0 || row >= (NSInteger)[accounts count])
+		return;
+
+	AIAccount	*account = [accounts objectAtIndex:row];
+	BOOL		checked = ([sender state] == NSControlStateValueOn);
+
+	[account setPreference:[NSNumber numberWithBool:checked]
+					forKey:KEY_ADD_CONTACT_TO
+					 group:PREF_GROUP_ADD_CONTACT];
+	if (checked) {
+		[checkedAccounts addObject:account];
+	} else {
+		[checkedAccounts removeObject:account];
 	}
+
+	[self configureControlDimming];
 }
 
 /*!
