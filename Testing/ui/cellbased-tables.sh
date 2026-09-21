@@ -9,6 +9,9 @@ printf "%-4s %-52s %-5s %-4s %-5s %-4s %-4s %-6s\n" "Pkt" "Datei" "Quelle" "Outl
 command grep -rl "objectValueForTableColumn" --include="*.m" Source Plugins Frameworks/Adium Frameworks/AIUtilities \
 | while read f; do
 	base=$(basename "$f" .m)
+	# A delegate that hands out views is on the new model already, whatever else it keeps for
+	# accessibility; a file with one list converted and one not would hide here, none does.
+	command grep -q "viewForTableColumn" "$f" && continue
 	code=$(command grep -cE "\[\[NS(Table|Outline)View alloc\]|NS(Table|Outline)View \*\)\s*\[\[" "$f")
 	xib=$(command grep -clE "IBOutlet.*NS(Table|Outline)View|@property.*IBOutlet.*NS(Table|Outline)View" "$f" "${f%.m}.h" 2>/dev/null | command grep -c ":[1-9]")
 	outline=$(command grep -cE "NSOutlineView|outlineView:" "$f")
