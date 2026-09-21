@@ -408,6 +408,24 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 	//A source list, said the way the current system says it; the rows are views, which is what that style is for
 	[outlineView_contacts setStyle:NSTableViewStyleSourceList];
 
+	/* The glass the preferences window's sidebar stands on: a sidebar material behind the list.
+	 * The source list style counts on one, since it draws no background of its own; without it
+	 * the list stood on the window's grey. */
+	NSScrollView	*contactsScroll = [outlineView_contacts enclosingScrollView];
+	NSView			*contactsPane = [contactsScroll superview];
+
+	if (contactsPane) {
+		NSVisualEffectView *glass = [[NSVisualEffectView alloc] initWithFrame:[contactsPane bounds]];
+
+		[glass setMaterial:NSVisualEffectMaterialSidebar];
+		[glass setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
+		[glass setState:NSVisualEffectStateFollowsWindowActiveState];
+		[glass setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+		[contactsPane addSubview:glass positioned:NSWindowBelow relativeTo:contactsScroll];
+	}
+	[contactsScroll setDrawsBackground:NO];
+	[outlineView_contacts setBackgroundColor:[NSColor clearColor]];
+
 	//The nib names the column nothing, and rows are reused by the column's name
 	[[[outlineView_contacts tableColumns] objectAtIndex:0] setIdentifier:@"contact"];
 
@@ -2110,8 +2128,10 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 										   direction:AIIconNormal];
 
 	} else if ([item isKindOfClass:[allContactsIdentifier class]]) {
+		/* The application's own icon, asked from the application: the file it was looked up by
+		 * before is "Adium.icns", and a bundle does not find "adium" in it. */
 		if (!adiumIcon)
-			adiumIcon = [NSImage imageNamed:@"adium" forClass:[self class]];
+			adiumIcon = [NSApp applicationIconImage];
 		return adiumIcon;
 	}
 
