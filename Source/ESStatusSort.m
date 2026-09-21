@@ -16,6 +16,7 @@
 
 #import <Adium/AIContactControllerProtocol.h>
 #import "ESStatusSort.h"
+#import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIContactList.h>
@@ -43,7 +44,7 @@
 #define ONLINE						AILocalizedString(@"Online",nil)		
 #define MOBILE						AILocalizedString(@"Mobile",nil)
 
-#define STATUS_DRAG_TYPE			@"Status Sort"
+#define STATUS_DRAG_TYPE			@"com.adium.status-sort-row"		//A pasteboard type is a UTI now
 
 typedef enum {
 	Available = 0,
@@ -296,6 +297,9 @@ static NSInteger  sizeOfSortOrder;
 	[tableView_sortOrder setDataSource:self];
 	[tableView_sortOrder setDelegate:self];
     [tableView_sortOrder registerForDraggedTypes:[NSArray arrayWithObject:STATUS_DRAG_TYPE]];
+	//The nib names the column nothing, and rows are reused by the column's name
+	[[[tableView_sortOrder tableColumns] firstObject] setIdentifier:@"status"];
+	[tableView_sortOrder setUsesAlternatingRowBackgroundColors:YES];
 }
 
 /*!
@@ -417,7 +421,7 @@ static NSInteger  sizeOfSortOrder;
 /*!
  * @brief Table view object value
  */
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+- (NSString *)titleForRow:(NSInteger)rowIndex
 {
 	switch (sortOrder[rowIndex]) {
 		case Available:
@@ -456,6 +460,14 @@ static NSInteger  sizeOfSortOrder;
 	return @"";
 }
 
+- (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+{
+	if (rowIndex < 0 || rowIndex >= sizeOfSortOrder)
+		return nil;
+
+	return [aTableView ai_labelCellViewForColumn:aTableColumn value:[self titleForRow:rowIndex]];
+}
+
 /*!
  * @brief The NSNumber Status_Sort_Type which corresponds to a string
  *
@@ -488,19 +500,16 @@ static NSInteger  sizeOfSortOrder;
 /*!
  * @brief Table view write rows
  */
--  (BOOL)tableView:(NSTableView *)tableView writeRows:(NSArray *)rows toPasteboard:(NSPasteboard *)pboard
+- (id <NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row
 {
-    [pboard declareTypes:[NSArray arrayWithObject:STATUS_DRAG_TYPE] owner:self];
-	
-    //Build a list of all the highlighted aways
-    NSString	*dragItem = [self tableView:tableView
-				  objectValueForTableColumn:nil
-										row:[[rows objectAtIndex:0] integerValue]];
-	
-    //put it on the pasteboard
-    [pboard setString:dragItem forType:STATUS_DRAG_TYPE];
-	
-    return YES;
+	if (row < 0 || row >= sizeOfSortOrder)
+		return nil;
+
+	//The dragged row, by the words it shows; the drop looks the sort type up by them again
+	NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
+	[item setString:[self titleForRow:row] forType:STATUS_DRAG_TYPE];
+
+	return item;
 }
 
 /*!
@@ -544,9 +553,7 @@ static NSInteger  sizeOfSortOrder;
 			[sortOrderPref addObject:sortNumber];
 		} else {
 			//Find the object which will end up just below it
-			NSInteger targetIndex = [sortOrderPref indexOfObject:[self numberForString:[self tableView:tableView
-																		 objectValueForTableColumn:nil
-																							   row:row]]];
+			NSInteger targetIndex = [sortOrderPref indexOfObject:[self numberForString:[self titleForRow:row]]];
 			if (targetIndex != NSNotFound) {
 				//Insert it there
 				[sortOrderPref insertObject:sortNumber atIndex:targetIndex];
