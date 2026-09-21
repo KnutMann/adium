@@ -201,9 +201,6 @@
 		B11DB00C0000000000000003 /* AIAddressBookPictureWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = B11DB00C0000000000000002 /* AIAddressBookPictureWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000772 /* AIAccountSettingsPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		344839380BC862780083723B /* pref-messages.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34D8336707CBD807006466F2 /* pref-messages.tiff */; };
-		3448399A0BC8644C0083723B /* AIAdvancedPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		344839A00BC864610083723B /* AIAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 3448399E0BC864610083723B /* AIAdvancedPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		34483A990BC869680083723B /* AdvancedPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34483A980BC869680083723B /* AdvancedPreferences.xib */; };
 		3448758E06D1EBDF00DA778C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3448758D06D1EBDF00DA778C /* Cocoa.framework */; };
 		3448761406D1EC0C00DA778C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3448758D06D1EBDF00DA778C /* Cocoa.framework */; };
 		344D974F0C3C442600498CA1 /* InstantMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 344D97410C3C442500498CA1 /* InstantMessage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1837,11 +1834,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		344836900BC8510B0083723B /* SS_PrefsController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SS_PrefsController.m; path = Frameworks/Adium/Source/SS_PrefsController.m; sourceTree = "<group>"; };
 		344836910BC8510B0083723B /* SS_PreferencePaneProtocol.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SS_PreferencePaneProtocol.h; path = Frameworks/Adium/Source/SS_PreferencePaneProtocol.h; sourceTree = "<group>"; };
 		344836920BC8510B0083723B /* SS_PrefsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SS_PrefsController.h; path = Frameworks/Adium/Source/SS_PrefsController.h; sourceTree = "<group>"; };
-		344839970BC8644C0083723B /* AIAdvancedPreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdvancedPreferencesPlugin.h; path = Source/AIAdvancedPreferencesPlugin.h; sourceTree = "<group>"; };
-		344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferencesPlugin.m; path = Source/AIAdvancedPreferencesPlugin.m; sourceTree = "<group>"; };
-		3448399D0BC864610083723B /* AIAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAdvancedPreferences.h; path = Source/AIAdvancedPreferences.h; sourceTree = "<group>"; };
-		3448399E0BC864610083723B /* AIAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferences.m; path = Source/AIAdvancedPreferences.m; sourceTree = "<group>"; };
-		34483A980BC869680083723B /* AdvancedPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AdvancedPreferences.xib; path = Resources/AdvancedPreferences.xib; sourceTree = "<group>"; };
 		3448758D06D1EBDF00DA778C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		3449485508E9FCCD0054FF57 /* AIContactMenu.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactMenu.m; path = Frameworks/Adium/Source/AIContactMenu.m; sourceTree = "<group>"; };
 		3449485608E9FCCD0054FF57 /* AIContactMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactMenu.h; path = Frameworks/Adium/Source/AIContactMenu.h; sourceTree = "<group>"; };
@@ -4617,10 +4609,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				F57938BB033E739101A8010A /* AIPreferenceWindowController.m */,
 				ADD1E5C0DE00000000001901 /* AIModernPreferencesWindowController.h */,
 				ADD1E5C0DE00000000001902 /* AIModernPreferencesWindowController.m */,
-				344839970BC8644C0083723B /* AIAdvancedPreferencesPlugin.h */,
-				344839980BC8644C0083723B /* AIAdvancedPreferencesPlugin.m */,
-				3448399D0BC864610083723B /* AIAdvancedPreferences.h */,
-				3448399E0BC864610083723B /* AIAdvancedPreferences.m */,
 			);
 			name = Preferences;
 			sourceTree = "<group>";
@@ -5937,7 +5925,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4B191D880611C10800E8A4E7 /* License.txt */,
 				3474DFFF082550FD00BF30F0 /* Credits.rtf */,
 				34F849520A4AEFA00002A017 /* LogFileUpgrade.xib */,
-				34483A980BC869680083723B /* AdvancedPreferences.xib */,
 			);
 			name = "About Box";
 			sourceTree = "<group>";
@@ -7090,7 +7077,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				117D6DC00BC5F0C40080D02B /* msg-request-attention.tiff in Resources */,
 				344838690BC85EF70083723B /* AccountListPreferences.xib in Resources */,
 				344839380BC862780083723B /* pref-messages.tiff in Resources */,
-				34483A990BC869680083723B /* AdvancedPreferences.xib in Resources */,
 				07C6EA890C06676400B79CBD /* AdiumHelp in Resources */,
 				0CAC6A140C0C657A0090AE95 /* Adium.sdef in Resources */,
 				07E179780C657B5E005DDA3D /* ConfirmationDefaults.plist in Resources */,
@@ -7604,8 +7590,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000D013 /* AIAccountRegistrationPage.m in Sources */,
 				B11DB00C0000000000000003 /* AIAddressBookPictureWindowController.m in Sources */,
 				ADD1E5C0DE00000000000772 /* AIAccountSettingsPage.m in Sources */,
-				3448399A0BC8644C0083723B /* AIAdvancedPreferencesPlugin.m in Sources */,
-				344839A00BC864610083723B /* AIAdvancedPreferences.m in Sources */,
 				346371080BCA0A5400AD57AD /* AIMessageTabSplitView.m in Sources */,
 				0CD41C710C2776550082F83B /* AICreateCommand.m in Sources */,
 				0CD3C3AD0C43C8CC003E637C /* NSWindowScriptingAdditions.m in Sources */,
