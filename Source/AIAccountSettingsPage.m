@@ -194,8 +194,12 @@
 		[builder buildCard:identifier inForm:form];
 
 		/* A service that creates accounts itself gets the way to that under the name and the
-		 * password: it is the answer to not having either yet. */
-		if ([identifier isEqualToString:AIAccountCardAccount] && [[account service] canRegisterNewAccounts]) {
+		 * password: it is the answer to not having either yet. Only until the account has signed in
+		 * once, though. After that it is somebody's, and registering would rename it; whoever wants
+		 * another account adds another account. */
+		if ([identifier isEqualToString:AIAccountCardAccount] &&
+			[[account service] canRegisterNewAccounts] &&
+			![account hasEverConnected]) {
 			[builder addNavigationRowTo:AIAccountCardAccount
 								 inForm:form
 								  label:AILocalizedString(@"Register New Account", nil)

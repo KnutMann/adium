@@ -85,6 +85,14 @@ typedef enum {
 
 //Connectivity
 @property (readwrite, nonatomic) BOOL shouldBeOnline;
+/*!
+ * @brief Whether this account has ever signed in
+ *
+ * Once it has, it is somebody's. What is offered only to an account that is not yet anyone's,
+ * registering it at a server say, goes by this. Accounts from before this was kept get it the
+ * next time they sign in.
+ */
+@property (readonly, nonatomic) BOOL hasEverConnected;
 - (void)toggleOnline;
 - (void)didConnect;
 @property (readonly, nonatomic) NSSet *contactProperties;

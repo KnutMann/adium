@@ -1136,6 +1136,11 @@
 	return [[self preferenceForKey:@"isOnline" group:GROUP_ACCOUNT_STATUS] boolValue];
 }
 
+- (BOOL)hasEverConnected
+{
+	return [[self preferenceForKey:KEY_HAS_CONNECTED group:GROUP_ACCOUNT_STATUS] boolValue];
+}
+
 /*!
  * @brief Set if this account should be online
  *
@@ -1234,6 +1239,13 @@
 	
 	//Apply any changes
 	[self notifyOfChangedPropertiesSilently:NO];
+
+	//From now on this account is somebody's; written once, the first time
+	if (![self hasEverConnected]) {
+		[self setPreference:[NSNumber numberWithBool:YES]
+					 forKey:KEY_HAS_CONNECTED
+					  group:GROUP_ACCOUNT_STATUS];
+	}
 	
     //Reset reconnection attempts
     reconnectAttemptsPerformed = 0;

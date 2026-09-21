@@ -30,6 +30,7 @@
 #define KEY_ACCOUNT_CHECK_MAIL		@"Check Mail"
 #define KEY_ENABLED					@"Enabled"
 #define KEY_AUTOCONNECT				@"AutoConnect"
+#define KEY_HAS_CONNECTED			@"Has Connected"		//Set once, the first time the account signs in
 
 /* Read receipts (XEP-0333 "displayed" markers) tell the other side that - and when - we read
  * their message, so they are opt-out per account.  The preference is stored inverted on purpose:
