@@ -95,7 +95,7 @@
                                 <rect key="frame" x="178" y="0.0" width="593" height="538"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <splitView fixedFrame="YES" autosaveName="LogViewer:Shelf" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="439">
+                                    <splitView fixedFrame="YES" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="439">
                                         <rect key="frame" x="-1" y="0.0" width="595" height="538"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES" heightSizable="YES"/>
                                         <subviews>

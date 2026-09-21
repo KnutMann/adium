@@ -474,6 +474,13 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 		//If we're opening for a contact, we'll select it and then begin searching
 		[self startSearchingClearingCurrentResults:YES];
 	}
+
+	/* The divider between the results and the transcript is put back only now, once the window
+	 * has its saved frame and its content its final height: what was remembered is then put back
+	 * at the size it was remembered for, and the transcript takes the difference. Put back by the
+	 * nib, while the panes were still at the nib's height, it drifted with every resize after. */
+	[[[self window] contentView] layoutSubtreeIfNeeded];
+	[splitView_logs setAutosaveName:@"LogViewer:Shelf"];
 }
 
 - (void)rebuildIndices
@@ -2280,6 +2287,12 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 	NSView		*sidebarPane = [[nibSplitView subviews] objectAtIndex:0];
 	NSView		*contentPane = [[nibSplitView subviews] objectAtIndex:1];
 	NSRect		frame = [nibSplitView frame];
+
+	/* Whatever the window's height does from here on goes to the transcript; the results keep
+	 * theirs. That height is the one remembered between launches, and a divider that moved in
+	 * proportion with every resize was remembered somewhere else every time. */
+	[splitView_logs setHoldingPriority:(NSLayoutPriorityDefaultLow + 1.0f) forSubviewAtIndex:0];
+	[splitView_logs setHoldingPriority:NSLayoutPriorityDefaultLow forSubviewAtIndex:1];
 	NSUInteger	autoresizingMask = [nibSplitView autoresizingMask];
 	NSWindow	*window = [self window];
 
@@ -2309,9 +2322,6 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 	[splitView setFrame:frame];
 	[splitView setAutoresizingMask:autoresizingMask];
 	[[splitViewController splitView] setAutosaveName:@"LogViewer:Contacts"];
-	/* The nib names this one too, and that name never took: the divider between the results and
-	 * the transcript went back to the nib's place on every launch. Named here, it is kept. */
-	[splitView_logs setAutosaveName:@"LogViewer:Shelf"];
 
 	[nibSplitView removeFromSuperview];
 	self.splitView_contacts = nil;
