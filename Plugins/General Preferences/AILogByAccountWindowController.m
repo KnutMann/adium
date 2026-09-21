@@ -15,6 +15,7 @@
  */
 
 #import "AILogByAccountWindowController.h"
+#import <AIUtilities/AITableViewAdditions.h>
 
 #import "AIAccountControllerProtocol.h"
 #import "AILoggerPlugin.h"
@@ -44,33 +45,44 @@
 	return [accounts count];
 }
 
-- (id)tableView:(NSTableView *)aTableView
-objectValueForTableColumn:(NSTableColumn *)aTableColumn
-			row:(NSInteger)rowIndex
+- (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
-	if([aTableColumn.identifier isEqualToString:@"checkbox"]) {
-		NSNumber *disabled = [[accounts objectAtIndex:rowIndex] preferenceForKey:KEY_LOGGER_OBJECT_DISABLE
-																		   group:PREF_GROUP_LOGGING];
-		
-		return [NSNumber numberWithBool:![disabled boolValue]];
-	} else if([aTableColumn.identifier isEqualToString:@"icon"]) {
-		return [AIServiceIcons serviceIconForObject:[accounts objectAtIndex:rowIndex]
-											   type:AIServiceIconLarge
-										  direction:AIIconNormal];
-	} else if([aTableColumn.identifier isEqualToString:@"accountName"]) {
-		return [[accounts objectAtIndex:rowIndex] explicitFormattedUID];
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[accounts count])
+		return nil;
+
+	AIAccount	*account = [accounts objectAtIndex:rowIndex];
+	NSString	*identifier = aTableColumn.identifier;
+
+	if ([identifier isEqualToString:@"checkbox"]) {
+		BOOL disabled = [[account preferenceForKey:KEY_LOGGER_OBJECT_DISABLE group:PREF_GROUP_LOGGING] boolValue];
+		AICheckboxTableCellView *view = [aTableView ai_checkboxCellViewForColumn:aTableColumn
+																			  on:!disabled
+																		 enabled:YES
+																		  target:self
+																		  action:@selector(loggingToggled:)];
+		[[view checkbox] setAccessibilityLabel:[account explicitFormattedUID]];
+		return view;
+
+	} else if ([identifier isEqualToString:@"icon"]) {
+		return [aTableView ai_imageCellViewForColumn:aTableColumn
+											   image:[AIServiceIcons serviceIconForObject:account
+																					 type:AIServiceIconLarge
+																				direction:AIIconNormal]];
 	}
-	
-	return nil;
+
+	return [aTableView ai_labelCellViewForColumn:aTableColumn value:[account explicitFormattedUID]];
 }
 
-- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+- (void)loggingToggled:(id)sender
 {
-	if([aTableColumn.identifier isEqualToString:@"checkbox"]) {
-		[[accounts objectAtIndex:rowIndex] setPreference:[NSNumber numberWithBool:![object boolValue]]
-												  forKey:KEY_LOGGER_OBJECT_DISABLE
-												   group:PREF_GROUP_LOGGING];
-	}
+	NSInteger rowIndex = [tableView_accounts rowForView:sender];
+
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[accounts count])
+		return;
+
+	[[accounts objectAtIndex:rowIndex] setPreference:[NSNumber numberWithBool:([sender state] != NSControlStateValueOn)]
+											  forKey:KEY_LOGGER_OBJECT_DISABLE
+											   group:PREF_GROUP_LOGGING];
 }
 
 - (IBAction)done:(id)sender

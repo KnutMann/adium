@@ -31,12 +31,11 @@
                             <rect key="frame" x="1" y="1" width="389" height="262"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="none" columnReordering="NO" autosaveColumns="NO" rowHeight="32" headerView="NO" id="accTable" customClass="AIAlternatingRowTableView">
+                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="none" columnReordering="NO" autosaveColumns="NO" alternatingRowBackgroundColors="YES" rowHeight="32" headerView="NO" id="accTable">
                                     <rect key="frame" x="0.0" y="0.0" width="389" height="262"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <tableViewGridLines key="gridStyleMask" horizontal="YES"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
                                         <tableColumn identifier="checkbox" width="25" minWidth="25" maxWidth="25" id="colCheck">
