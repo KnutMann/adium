@@ -122,10 +122,13 @@
 	[table addTableColumn:column];
 	/* View based: each row is a real view with a text field in it, handed out by the delegate
 	 * below. That is where the vertical centring, the selection colours and the dark mode come
-	 * from, and none of it is ours. */
-	if (@available(macOS 11.0, *)) {
-		[table setStyle:NSTableViewStyleInset];
-	}
+	 * from, and none of it is ours.
+	 *
+	 * No style of its own: inside the bezelled scroll view below, the automatic style resolves to
+	 * full width, which is how the other bezelled lists in this application look, and the inset
+	 * style put a second inset within the bezel. Striped, as every list of data with more than a
+	 * row is. */
+	[table setUsesAlternatingRowBackgroundColors:YES];
 	[table setHeaderView:nil];
 	[table setDataSource:self];
 	[table setDelegate:self];
