@@ -23,7 +23,7 @@
 #import <Adium/AIListContact.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <AIUtilities/AIMenuAdditions.h>
-#import <AIUtilities/AIImageTextCell.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
@@ -32,6 +32,102 @@
 #define MINIMUM_ROW_HEIGHT				42.0f // It's, like, the answer.
 #define MAXIMUM_ROW_HEIGHT				300.0f
 #define MINIMUM_CELL_SPACING			4
+#define CELL_TEXT_INSET					4.0f
+
+/*!
+ * @class AIAuthorizationRequestCellView
+ * @brief One request: who is asking, in bold, and what they wrote, small, under it
+ *
+ * The two lines the old image and text cell drew, as two labels. The reason wraps and takes the
+ * height the row was given for it; without a reason the name stands centred on its own. Laid out
+ * by hand, because the row's height is decided by the window, not by the text.
+ */
+@interface AIAuthorizationRequestCellView : NSTableCellView {
+	NSTextField		*reasonField;
+}
+- (void)setReason:(NSString *)reason;
+- (void)layoutFields;
+@end
+
+@implementation AIAuthorizationRequestCellView
+
+- (id)initWithFrame:(NSRect)frame
+{
+	if ((self = [super initWithFrame:frame])) {
+		NSTextField *titleField = [NSTextField labelWithString:@""];
+		[titleField setFont:[NSFont boldSystemFontOfSize:13.0f]];
+		[titleField setLineBreakMode:NSLineBreakByTruncatingTail];
+		[self addSubview:titleField];
+		[self setTextField:titleField];
+
+		reasonField = [[NSTextField wrappingLabelWithString:@""] retain];
+		[reasonField setFont:[NSFont systemFontOfSize:10.0f]];
+		[reasonField setTextColor:[NSColor secondaryLabelColor]];
+		[reasonField setSelectable:NO];
+		[self addSubview:reasonField];
+	}
+
+	return self;
+}
+
+- (void)dealloc
+{
+	[reasonField release];
+	[super dealloc];
+}
+
+- (void)setReason:(NSString *)reason
+{
+	[reasonField setStringValue:(reason ? reason : @"")];
+	[reasonField setHidden:![reason length]];
+	[self layoutFields];
+}
+
+//The row's highlight decides whether the small line is grey or white; the bold one the table recolours itself
+- (void)setBackgroundStyle:(NSBackgroundStyle)style
+{
+	[super setBackgroundStyle:style];
+	[reasonField setTextColor:((style == NSBackgroundStyleEmphasized) ?
+							   [NSColor alternateSelectedControlTextColor] :
+							   [NSColor secondaryLabelColor])];
+}
+
+- (void)layout
+{
+	[super layout];
+	[self layoutFields];
+}
+
+- (void)resizeSubviewsWithOldSize:(NSSize)oldSize
+{
+	[super resizeSubviewsWithOldSize:oldSize];
+	[self layoutFields];
+}
+
+- (void)layoutFields
+{
+	NSRect		bounds = [self bounds];
+	CGFloat		width = MAX(0.0f, NSWidth(bounds) - 2.0f * CELL_TEXT_INSET);
+	NSTextField	*titleField = [self textField];
+	CGFloat		titleHeight = ceil([[titleField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, width, 1000.0f)].height);
+	BOOL		hasReason = ![reasonField isHidden];
+	CGFloat		reasonHeight = (hasReason ? ceil([[reasonField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, width, 10000.0f)].height) : 0.0f);
+	CGFloat		total = titleHeight + (hasReason ? (MINIMUM_CELL_SPACING + reasonHeight) : 0.0f);
+	CGFloat		top = MAX(0.0f, floor((NSHeight(bounds) - total) / 2.0f));
+
+	//Not flipped: the first line sits at the top, which is the far end of the y axis
+	CGFloat titleY = NSHeight(bounds) - top - titleHeight;
+	[titleField setFrame:NSMakeRect(CELL_TEXT_INSET, titleY, width, titleHeight)];
+
+	if (hasReason) {
+		CGFloat reasonTop = titleY - MINIMUM_CELL_SPACING;
+		CGFloat shown = MAX(0.0f, MIN(reasonHeight, reasonTop));
+
+		[reasonField setFrame:NSMakeRect(CELL_TEXT_INSET, reasonTop - shown, width, shown)];
+	}
+}
+
+@end
 
 @interface AIValidatingToolbarItem : NSToolbarItem {
 }
@@ -470,15 +566,15 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 	
 	for(NSInteger row = 0; row < requests.count; row++) {
 		NSTableColumn		*tableColumn = [tableView tableColumnWithIdentifier:@"request"];
-		
-		[self tableView:tableView willDisplayCell:[tableColumn dataCell] forTableColumn:tableColumn row:row];
-		
+		//The width the labels get: the column less the inset on either side of them
+		CGFloat				textWidth = MAX(1.0f, [tableColumn width] - 2.0f * CELL_TEXT_INSET);
+
 		// Main string (account name)
 		NSDictionary		*mainStringAttributes	= [NSDictionary dictionaryWithObjectsAndKeys:[NSFont boldSystemFontOfSize:13], NSFontAttributeName, nil];
-		NSAttributedString	*mainTitle = [[NSAttributedString alloc] initWithString:[self tableView:tableView objectValueForTableColumn:tableColumn row:row]
+		NSAttributedString	*mainTitle = [[NSAttributedString alloc] initWithString:[self titleForRow:row]
 																		attributes:mainStringAttributes];
 		
-		CGFloat combinedHeight = [mainTitle heightWithWidth:[tableColumn width]];
+		CGFloat combinedHeight = [mainTitle heightWithWidth:textWidth];
 		
 		[mainTitle release];
 		
@@ -490,17 +586,18 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 			NSAttributedString	*subStringTitle = [[NSAttributedString alloc] initWithString:[[requests objectAtIndex:row] objectForKey:@"Reason"]
 																				 attributes:subStringAttributes];
 			
-			combinedHeight += [subStringTitle heightWithWidth:[tableColumn width]] + MINIMUM_CELL_SPACING;
+			combinedHeight += [subStringTitle heightWithWidth:textWidth] + MINIMUM_CELL_SPACING;
 			
 			[subStringTitle release];
 		}
 		
-		[tableView setNeedsDisplayInRect:[tableView rectOfRow:row]];
-		[tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndex:row]];
-		
         CGFloat bottomClampedRowHeight = MAX(MINIMUM_ROW_HEIGHT, combinedHeight);
 		[requiredHeightDict setObject:[NSNumber numberWithDouble:MIN(MAXIMUM_ROW_HEIGHT, bottomClampedRowHeight)]
 							   forKey:[NSNumber numberWithInteger:row]];
+
+		//Now that the height is known, not before: the table asks for it right here
+		[tableView setNeedsDisplayInRect:[tableView rectOfRow:row]];
+		[tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndex:row]];
 	}
 }
 
@@ -512,15 +609,22 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 	return requests.count;
 }
 
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)rowIndex
+/*!
+ * @brief The service's icon, at the height of the smallest row
+ */
+- (NSImage *)iconForRow:(NSInteger)rowIndex
 {
-	NSString *identifier = tableColumn.identifier;
-	
-	if ([identifier isEqualToString:@"icon"]) {
-		return [[AIServiceIcons serviceIconForObject:[[requests objectAtIndex:rowIndex] objectForKey:@"Account"]
-											   type:AIServiceIconLarge
-										   direction:AIIconNormal] imageByScalingToSize:NSMakeSize(MINIMUM_ROW_HEIGHT-2, MINIMUM_ROW_HEIGHT-2)];
-	} else if ([identifier isEqualToString:@"request"]) {
+	return [[AIServiceIcons serviceIconForObject:[[requests objectAtIndex:rowIndex] objectForKey:@"Account"]
+											type:AIServiceIconLarge
+									   direction:AIIconNormal] imageByScalingToSize:NSMakeSize(MINIMUM_ROW_HEIGHT-2, MINIMUM_ROW_HEIGHT-2)];
+}
+
+/*!
+ * @brief Who is asking: alias and name, and the account when it is not obvious which one
+ */
+- (NSString *)titleForRow:(NSInteger)rowIndex
+{
+	{
 		AIAccount *account = [[requests objectAtIndex:rowIndex] objectForKey:@"Account"];
 		NSString *displayName = [[requests objectAtIndex:rowIndex] objectForKey:@"Alias"];
 		NSString *UID = [[requests objectAtIndex:rowIndex] objectForKey:@"Remote Name"];
@@ -542,25 +646,37 @@ static AIAuthorizationRequestsWindowController *sharedController = nil;
 					finalDisplay,
 					((AIAccount *)[[requests objectAtIndex:rowIndex] objectForKey:@"Account"]).explicitFormattedUID];	
 		} else {
-			return finalDisplay;
+			return (finalDisplay ? finalDisplay : @"");
 		}
 	}
-	
-	return nil;
 }
 
-- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)rowIndex
+- (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)rowIndex
 {
-	NSString *identifier = tableColumn.identifier;
-	NSDictionary *request = [requests objectAtIndex:rowIndex];
-	
-	if ([identifier isEqualToString:@"request"]) {
-		[(AIImageTextCell *)cell setSubString:[request objectForKey:@"Reason"]];
-	} else if ([identifier isEqualToString:@"icon"]) {
-		[cell setAccessibilityTitle:[[[request objectForKey:@"Account"] service] longDescription]];
-		
-		[cell setAccessibilityRoleDescription:@" "];
+	if (rowIndex < 0 || rowIndex >= (NSInteger)requests.count)
+		return nil;
+
+	NSDictionary	*request = [requests objectAtIndex:rowIndex];
+	NSString		*identifier = tableColumn.identifier;
+
+	if ([identifier isEqualToString:@"icon"]) {
+		NSTableCellView *view = [aTableView ai_imageCellViewForColumn:tableColumn image:[self iconForRow:rowIndex]];
+
+		//The picture is the service, which is written nowhere else on the row
+		[[view imageView] setAccessibilityLabel:[[[request objectForKey:@"Account"] service] longDescription]];
+		return view;
 	}
+
+	AIAuthorizationRequestCellView *view = [aTableView makeViewWithIdentifier:identifier owner:nil];
+
+	if (!view) {
+		view = [[[AIAuthorizationRequestCellView alloc] initWithFrame:NSZeroRect] autorelease];
+		[view setIdentifier:identifier];
+	}
+
+	[[view textField] setStringValue:[self titleForRow:rowIndex]];
+	[view setReason:[request objectForKey:@"Reason"]];
+	return view;
 }
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row
