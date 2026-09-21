@@ -126,8 +126,6 @@
 		6334002E0F9C14C2003C77A9 /* AILinkTrackingController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4A0F9C14BF003C77A9 /* AILinkTrackingController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334002F0F9C14C2003C77A9 /* AIFlexibleLink.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF4B0F9C14BF003C77A9 /* AIFlexibleLink.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400300F9C14C2003C77A9 /* AIFlexibleLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4C0F9C14BF003C77A9 /* AIFlexibleLink.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		633400310F9C14C2003C77A9 /* AIDividedAlternatingRowOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF4E0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400320F9C14C2003C77A9 /* AIDividedAlternatingRowOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF4F0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400330F9C14C2003C77A9 /* AIOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF500F9C14BF003C77A9 /* AIOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400340F9C14C2003C77A9 /* AIOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF510F9C14BF003C77A9 /* AIOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400350F9C14C2003C77A9 /* AIAlternatingRowOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF520F9C14C0003C77A9 /* AIAlternatingRowOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -593,8 +591,6 @@
 		6334FF4A0F9C14BF003C77A9 /* AILinkTrackingController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AILinkTrackingController.m; path = Source/AILinkTrackingController.m; sourceTree = "<group>"; };
 		6334FF4B0F9C14BF003C77A9 /* AIFlexibleLink.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIFlexibleLink.h; path = Source/AIFlexibleLink.h; sourceTree = "<group>"; };
 		6334FF4C0F9C14BF003C77A9 /* AIFlexibleLink.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIFlexibleLink.m; path = Source/AIFlexibleLink.m; sourceTree = "<group>"; };
-		6334FF4E0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIDividedAlternatingRowOutlineView.h; path = Source/AIDividedAlternatingRowOutlineView.h; sourceTree = "<group>"; };
-		6334FF4F0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIDividedAlternatingRowOutlineView.m; path = Source/AIDividedAlternatingRowOutlineView.m; sourceTree = "<group>"; };
 		6334FF500F9C14BF003C77A9 /* AIOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOutlineView.h; path = Source/AIOutlineView.h; sourceTree = "<group>"; };
 		6334FF510F9C14BF003C77A9 /* AIOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOutlineView.m; path = Source/AIOutlineView.m; sourceTree = "<group>"; };
 		6334FF520F9C14C0003C77A9 /* AIAlternatingRowOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAlternatingRowOutlineView.h; path = Source/AIAlternatingRowOutlineView.h; sourceTree = "<group>"; };
@@ -1748,8 +1744,6 @@
 		6334FF4D0F9C14BF003C77A9 /* OutlineView with several improvements */ = {
 			isa = PBXGroup;
 			children = (
-				6334FF4E0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.h */,
-				6334FF4F0F9C14BF003C77A9 /* AIDividedAlternatingRowOutlineView.m */,
 				6334FF500F9C14BF003C77A9 /* AIOutlineView.h */,
 				6334FF510F9C14BF003C77A9 /* AIOutlineView.m */,
 				6334FF520F9C14C0003C77A9 /* AIAlternatingRowOutlineView.h */,
@@ -2113,7 +2107,6 @@
 				6334002B0F9C14C2003C77A9 /* AILinkTextView.h in Headers */,
 				6334002D0F9C14C2003C77A9 /* AILinkTrackingController.h in Headers */,
 				6334002F0F9C14C2003C77A9 /* AIFlexibleLink.h in Headers */,
-				633400310F9C14C2003C77A9 /* AIDividedAlternatingRowOutlineView.h in Headers */,
 				633400330F9C14C2003C77A9 /* AIOutlineView.h in Headers */,
 				633400350F9C14C2003C77A9 /* AIAlternatingRowOutlineView.h in Headers */,
 				5AD04C2D1821E8D3009801F8 /* ISO8601DateFormatter.h in Headers */,
@@ -2471,7 +2464,6 @@
 				6334002C0F9C14C2003C77A9 /* AILinkTextView.m in Sources */,
 				6334002E0F9C14C2003C77A9 /* AILinkTrackingController.m in Sources */,
 				633400300F9C14C2003C77A9 /* AIFlexibleLink.m in Sources */,
-				633400320F9C14C2003C77A9 /* AIDividedAlternatingRowOutlineView.m in Sources */,
 				633400340F9C14C2003C77A9 /* AIOutlineView.m in Sources */,
 				633400360F9C14C2003C77A9 /* AIAlternatingRowOutlineView.m in Sources */,
 				633400380F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m in Sources */,
