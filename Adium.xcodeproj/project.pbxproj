@@ -1029,7 +1029,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		63218C500E518A3D0008E0D0 /* AdiumAuthorization.m in Sources */ = {isa = PBXBuildFile; fileRef = 3486E8A5097F24A90044C496 /* AdiumAuthorization.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		63218C720E518A940008E0D0 /* AdiumAuthorization.h in Headers */ = {isa = PBXBuildFile; fileRef = 3486E8A4097F24A90044C496 /* AdiumAuthorization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		632ADC150E9EDDCA00AB6817 /* SGKeyCodeTranslator.m in Sources */ = {isa = PBXBuildFile; fileRef = 632ADC130E9EDDCA00AB6817 /* SGKeyCodeTranslator.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 632D60BF094B81AB003A9786 /* AIDockIconPreviewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		632D859E0DB70FC800040EC7 /* AIMentionEventPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 632D859D0DB70FC800040EC7 /* AIMentionEventPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633F175D08F905A800C76383 /* AIXtrasManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 633F175908F905A700C76383 /* AIXtrasManager.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000002 /* AIXtraListView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1066,9 +1065,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		63C120750910A0DD00C9DB57 /* DefaultXtraReadme.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 63C120740910A0DD00C9DB57 /* DefaultXtraReadme.rtf */; };
 		63DF5B220E52D77F00010E99 /* AIContactList.m in Sources */ = {isa = PBXBuildFile; fileRef = 63DF5B200E52D77F00010E99 /* AIContactList.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		63DF5B230E52D77F00010E99 /* AIContactList.h in Headers */ = {isa = PBXBuildFile; fileRef = 63DF5B210E52D77F00010E99 /* AIContactList.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		63EA62CA094B832D009C8453 /* AIEmoticonPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EA62C8094B832D009C8453 /* AIEmoticonPreviewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		63EA62F0094B8705009C8453 /* AIXtraInfoController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EA62EE094B8705009C8453 /* AIXtraInfoController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		63EA6409094BB9A9009C8453 /* AIStatusIconPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 63EA6407094BB9A9009C8453 /* AIStatusIconPreviewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6E4D961406B739AC005235E9 /* DCJoinChatPanelPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E4D961206B739AC005235E9 /* DCJoinChatPanelPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6EC1684D06C170A000F9FAD3 /* DCInviteToChatPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684806C170A000F9FAD3 /* DCInviteToChatPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6EC1684F06C170A000F9FAD3 /* DCInviteToChatWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC1684A06C170A000F9FAD3 /* DCInviteToChatWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -2857,9 +2853,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		6329EF070F9D335800112489 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		632ADC130E9EDDCA00AB6817 /* SGKeyCodeTranslator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SGKeyCodeTranslator.m; path = Source/SGKeyCodeTranslator.m; sourceTree = "<group>"; };
 		632ADC140E9EDDCA00AB6817 /* SGKeyCodeTranslator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SGKeyCodeTranslator.h; path = Source/SGKeyCodeTranslator.h; sourceTree = "<group>"; };
-		632D608D094B7EEB003A9786 /* AIXtraPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtraPreviewController.h; path = Source/AIXtraPreviewController.h; sourceTree = "<group>"; };
-		632D60BE094B81AB003A9786 /* AIDockIconPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIDockIconPreviewController.h; path = Source/AIDockIconPreviewController.h; sourceTree = "<group>"; };
-		632D60BF094B81AB003A9786 /* AIDockIconPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIDockIconPreviewController.m; path = Source/AIDockIconPreviewController.m; sourceTree = "<group>"; };
 		632D801608E7E0A40032C187 /* XtrasManager.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = XtrasManager.xib; path = Resources/XtrasManager.xib; sourceTree = "<group>"; };
 		632D859C0DB70FC800040EC7 /* AIMentionEventPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMentionEventPlugin.h; path = Source/AIMentionEventPlugin.h; sourceTree = "<group>"; };
 		632D859D0DB70FC800040EC7 /* AIMentionEventPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMentionEventPlugin.m; path = Source/AIMentionEventPlugin.m; sourceTree = "<group>"; };
@@ -2904,12 +2897,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		63C7E2080FAFAA4700B310AC /* Spotlight Importer.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "Spotlight Importer.xcconfig"; sourceTree = "<group>"; };
 		63DF5B200E52D77F00010E99 /* AIContactList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactList.m; path = Frameworks/Adium/Source/AIContactList.m; sourceTree = "<group>"; };
 		63DF5B210E52D77F00010E99 /* AIContactList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactList.h; path = Frameworks/Adium/Source/AIContactList.h; sourceTree = "<group>"; };
-		63EA62C7094B832D009C8453 /* AIEmoticonPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPreviewController.h; path = Source/AIEmoticonPreviewController.h; sourceTree = "<group>"; };
-		63EA62C8094B832D009C8453 /* AIEmoticonPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPreviewController.m; path = Source/AIEmoticonPreviewController.m; sourceTree = "<group>"; };
-		63EA62ED094B8705009C8453 /* AIXtraInfoController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtraInfoController.h; path = Source/AIXtraInfoController.h; sourceTree = "<group>"; };
-		63EA62EE094B8705009C8453 /* AIXtraInfoController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIXtraInfoController.m; path = Source/AIXtraInfoController.m; sourceTree = "<group>"; };
-		63EA6406094BB9A9009C8453 /* AIStatusIconPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIStatusIconPreviewController.h; path = Source/AIStatusIconPreviewController.h; sourceTree = "<group>"; };
-		63EA6407094BB9A9009C8453 /* AIStatusIconPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIStatusIconPreviewController.m; path = Source/AIStatusIconPreviewController.m; sourceTree = "<group>"; };
 		661561630D84AEEC004B7946 /* AIContactHidingController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactHidingController.h; path = Frameworks/Adium/Source/AIContactHidingController.h; sourceTree = "<group>"; };
 		661561640D84AEEC004B7946 /* AIContactHidingController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactHidingController.m; path = Frameworks/Adium/Source/AIContactHidingController.m; sourceTree = "<group>"; };
 		6CF42677057763E100F27FAA /* ESContactAlertsController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESContactAlertsController.h; path = Source/ESContactAlertsController.h; sourceTree = "<group>"; };
@@ -5589,15 +5576,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		635647B2093F64A400563BEE /* Xtras Preview Views */ = {
 			isa = PBXGroup;
 			children = (
-				632D608D094B7EEB003A9786 /* AIXtraPreviewController.h */,
-				63EA62ED094B8705009C8453 /* AIXtraInfoController.h */,
-				63EA62EE094B8705009C8453 /* AIXtraInfoController.m */,
-				63EA62C7094B832D009C8453 /* AIEmoticonPreviewController.h */,
-				63EA62C8094B832D009C8453 /* AIEmoticonPreviewController.m */,
-				632D60BE094B81AB003A9786 /* AIDockIconPreviewController.h */,
-				632D60BF094B81AB003A9786 /* AIDockIconPreviewController.m */,
-				63EA6406094BB9A9009C8453 /* AIStatusIconPreviewController.h */,
-				63EA6407094BB9A9009C8453 /* AIStatusIconPreviewController.m */,
 			);
 			name = "Xtras Preview Views";
 			sourceTree = "<group>";
@@ -7532,10 +7510,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DF00000000000005 /* AIXtraListView.m in Sources */,
 				ADD1E5C0DF00000000000105 /* AIXtraDetailsPage.m in Sources */,
 				ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */,
-				632D60C1094B81AB003A9786 /* AIDockIconPreviewController.m in Sources */,
-				63EA62CA094B832D009C8453 /* AIEmoticonPreviewController.m in Sources */,
-				63EA62F0094B8705009C8453 /* AIXtraInfoController.m in Sources */,
-				63EA6409094BB9A9009C8453 /* AIStatusIconPreviewController.m in Sources */,
 				34D0F9CB0954E70100DCB678 /* AIContactListImagePicker.m in Sources */,
 				34D0FDD20956186200DCB678 /* ESPersonalPreferencesPlugin.m in Sources */,
 				34D0FDD80956187700DCB678 /* ESPersonalPreferences.m in Sources */,
