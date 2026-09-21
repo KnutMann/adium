@@ -20,7 +20,6 @@
 #import "ESFileTransfer.h"
 #import <AIUtilities/AIVariableHeightOutlineView.h>
 #import <AIUtilities/AIArrayAdditions.h>
-#import <AIUtilities/AIGenericViewCell.h>
 
 #define FILE_TRANSFER_PROGRESS_NIB			@"FileTransferProgressWindow"
 #define KEY_TRANSFER_PROGRESS_WINDOW_FRAME	@"Transfer Progress Window Frame"
@@ -131,8 +130,6 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 	}
 
 	//Configure the outline view
-	[[[outlineView tableColumns] objectAtIndex:0] setDataCell:[[AIGenericViewCell alloc] init]];
-
 	[outlineView sizeLastColumnToFit];
 	[outlineView setAutoresizesSubviews:YES];
 	[outlineView setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
@@ -424,10 +421,24 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 	return NO;
 }
 
-//We don't use object values
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+//Each row is its item's own view, made from the row's nib and kept by the row
+- (NSView *)outlineView:(NSOutlineView *)inOutlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item
 {
-	return @"";
+	return [(ESFileTransferProgressRow *)item view];
+}
+
+/*!
+ * @brief The selected row's view is told so, and every other row's that it is not
+ *
+ * A row's colours follow its selection, and the view is not a table cell view the row view
+ * would tell by itself.
+ */
+- (void)outlineViewSelectionDidChange:(NSNotification *)notification
+{
+	NSInteger selectedRow = [outlineView selectedRow];
+
+	for (ESFileTransferProgressRow *progressRow in progressRows)
+		[[progressRow view] setIsHighlighted:([outlineView rowForItem:progressRow] == selectedRow)];
 }
 
 //Each row should be the height of its item's view
@@ -436,12 +447,6 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 	NSView *view = [(ESFileTransferProgressRow *)item view];
 	
 	return (view ? [view frame].size.height : 0);
-}
-
-//Before a cell is display, set its embedded view
-- (void)outlineView:(NSOutlineView *)inOutlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
-{
-	[cell setEmbeddedView:[(ESFileTransferProgressRow *)item view]];
 }
 
 #pragma mark Outline view delegate
@@ -493,17 +498,7 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
  */
 - (void)reloadAllData
 {
-	[[[outlineView subviews] copy] makeObjectsPerformSelector:@selector(removeFromSuperview)];
 	[outlineView reloadData];
-
-	NSRect	outlineFrame = [outlineView frame];
-	NSInteger		totalHeight = [outlineView totalHeight];
-
-	if (outlineFrame.size.height != totalHeight) {
-		outlineFrame.size.height = totalHeight;
-		[outlineView setFrame:outlineFrame];
-		[outlineView setNeedsDisplay:YES];
-	}
 
 	//Update our status bar
 	[self updateStatusBar];
@@ -513,6 +508,16 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 }
 
 #pragma mark Window zoom
+/*!
+ * @brief The height of every row together, which is how tall the list would like to be
+ */
+- (CGFloat)heightOfAllRows
+{
+	NSInteger rows = [outlineView numberOfRows];
+
+	return (rows > 0 ? NSMaxY([outlineView rectOfRow:(rows - 1)]) : 0.0);
+}
+
 //Size for window zoom
 - (NSRect)windowWillUseStandardFrame:(NSWindow *)inWindow defaultFrame:(NSRect)defaultFrame
 {
@@ -522,7 +527,7 @@ static ESFileTransferProgressWindowController *sharedTransferProgressInstance = 
 	NSSize	maxWinSize = [inWindow maxSize];
 
 	//Take the desired height and add the parts of the window which aren't in the scrollView.
-	NSInteger desiredHeight = ([outlineView totalHeight] + (windowFrame.size.height - [scrollView frame].size.height));
+	NSInteger desiredHeight = ([self heightOfAllRows] + (windowFrame.size.height - [scrollView frame].size.height));
 
 	windowFrame.size.height = desiredHeight;
 	windowFrame.size.width = 300;

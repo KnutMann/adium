@@ -477,4 +477,15 @@ static NSDictionary	*transferStatusSelectedAttributes = nil;
 	return value;
 }
 
+/*!
+ * @brief What the row view says about the row: emphasised is selected
+ *
+ * Handed down by the row view to every subview that takes it, which is how a view that is not a
+ * table cell view still follows the selection.
+ */
+- (void)setBackgroundStyle:(NSBackgroundStyle)style
+{
+	[self setIsHighlighted:(style == NSBackgroundStyleEmphasized)];
+}
+
 @end

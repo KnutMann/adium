@@ -14,9 +14,13 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import <AIUtilities/AIVariableHeightOutlineView.h>
+#import <AIUtilities/AIOutlineView.h>
 
-@interface AIFileTransferProgressOutlineView : AIVariableHeightOutlineView {
+/*!
+ * A plain outline view with the delete key and the context menu of AIOutlineView; its rows are
+ * views, so the variable height machinery it used to inherit has nothing left to do.
+ */
+@interface AIFileTransferProgressOutlineView : AIOutlineView {
 
 }
 

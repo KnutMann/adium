@@ -86,6 +86,11 @@
 - (IBAction)toggleDetails:(id)sender;
 - (void)setShowsDetails:(BOOL)flag;
 
+/*!
+ * @brief Whether the row this view is sits selected; its colours follow
+ */
+- (void)setIsHighlighted:(BOOL)flag;
+
 - (void)setAllowsCancel:(BOOL)flag;
 
 @end
