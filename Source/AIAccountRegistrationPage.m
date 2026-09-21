@@ -252,11 +252,10 @@
 - (void)buildForm
 {
 	/* Connecting is what the account says of itself while it registers too, since a registration
-	 * is a connection; that one is not a sign in and must not read as one, or a failed request
-	 * would leave the page telling the user to disconnect an account that never was connected. */
+	 * is a connection; that one is not a sign in and must not read as one. */
 	BOOL online = (([account online] || [account boolValueForProperty:@"isConnecting"]) &&
 				   ![account boolValueForProperty:@"isRegistering"]);
-	BOOL busy = (registering || online);
+	BOOL busy = registering;
 
 	[form removeAllSections];
 
@@ -315,11 +314,13 @@
 	NSArray *bar = (registering ? @[spinner, statusLabel, requestButton] : @[requestButton]);
 	[form addTrailingAccessoryView:[AISettingsFormView rowOfViews:bar]];
 
-	if (online) {
-		[form addFootnote:AILocalizedString(@"Disconnect the account first: a registration needs its connection.",
-											"Under the registration fields while the account is online")];
-	} else if (problem) {
+	/* An account that is online is taken offline for the registration by the account itself, and
+	 * that, and the name it comes back under, is worth saying before the button is pressed. */
+	if (problem) {
 		[form addFootnote:problem];
+	} else if (online) {
+		[form addFootnote:AILocalizedString(@"The account goes offline while it registers and comes back afterwards, under the new name.",
+											"Under the registration fields while the account is online")];
 	}
 
 	[form layoutForWidth:FORM_WIDTH];

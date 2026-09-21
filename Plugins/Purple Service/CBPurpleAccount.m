@@ -2561,7 +2561,9 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 - (void)didDisconnect
 {
-	if ([self boolValueForProperty:@"isRegistering"]) {
+	BOOL wasRegistering = [self boolValueForProperty:@"isRegistering"];
+
+	if (wasRegistering) {
 		/* A server that could not be reached, or that closed the stream before answering, sends no
 		 * result at all; this disconnect is the only word there is, and the reason is whatever the
 		 * connection reported on its way down. Said while the account still reads as registering,
@@ -2597,6 +2599,17 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	}
 
 	[super didDisconnect];
+
+	/* Once everything above has settled: either this was the connection a registration waited for,
+	 * or it was the registration's own and the account was online before it was asked for. Both
+	 * are next turn's work, so that libpurple is done tearing this connection down first. */
+	if (pendingRegistration) {
+		[self performSelector:@selector(startPendingRegistration) withObject:nil afterDelay:0.0];
+
+	} else if (wasRegistering && reconnectAfterRegistration) {
+		reconnectAfterRegistration = NO;
+		[self performSelector:@selector(goBackOnlineAfterRegistration) withObject:nil afterDelay:0.0];
+	}
 }
 /*!
  * @brief Our account has disconnected
@@ -2646,7 +2659,51 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	[UIDBeforeRegistration release];
 	UIDBeforeRegistration = [self.UID copy];
 
+	if (self.online || [self boolValueForProperty:@"isConnecting"]) {
+		/* libpurple registers over a connection of its own and does nothing at all while another
+		 * one is up. So the account goes offline first, the way it does when it is switched off,
+		 * and comes back the same way once the registration is over, under whatever name it has
+		 * by then. Taking a connection down answers through didDisconnect, which is where the
+		 * registration then starts. An account that is only about to connect may have no
+		 * connection to take down and answers with nothing; for that one it starts right away. */
+		[pendingRegistration release];
+		pendingRegistration = [[NSDictionary alloc] initWithObjectsAndKeys:
+							   inUID, @"UID",
+							   inPassword, @"password",
+							   nil];
+		reconnectAfterRegistration = YES;
+
+		[self setShouldBeOnline:NO];
+
+		if (pendingRegistration && (!account || purple_account_is_disconnected(account)))
+			[self performSelector:@selector(startPendingRegistration) withObject:nil afterDelay:0.0];
+
+		return;
+	}
+
 	[super registerNewAccountWithUID:inUID password:inPassword];
+}
+
+/*!
+ * @brief The account is offline now; the registration that waited for that can have its connection
+ */
+- (void)startPendingRegistration
+{
+	NSDictionary *pending = [pendingRegistration autorelease];
+
+	pendingRegistration = nil;
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(startPendingRegistration) object:nil];
+
+	if (pending)
+		[super registerNewAccountWithUID:[pending objectForKey:@"UID"] password:[pending objectForKey:@"password"]];
+}
+
+/*!
+ * @brief Back the way it was before the registration, under whatever name it has now
+ */
+- (void)goBackOnlineAfterRegistration
+{
+	[self setShouldBeOnline:YES];
 }
 
 - (void)performRegisterWithPassword:(NSString *)inPassword
@@ -2658,6 +2715,9 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 	//Ensure we have a purple account if one does not already exist
 	[self purpleAccount];
+
+	//A sign in that was scheduled to try again would collide with the registration's connection
+	[self cancelAutoReconnect];
 
 	/* A registration is a connection that never signs in, and what it ends in is an answer rather
 	 * than a session. The property is what tells the connection callbacks apart, and what a page
@@ -3671,6 +3731,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	[permittedContactsArray release];
 	[deniedContactsArray release];
 	[UIDBeforeRegistration release];
+	[pendingRegistration release];
 	
     [super dealloc];
 }

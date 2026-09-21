@@ -48,6 +48,8 @@
 	BOOL				finishedConnectProcess;
 	BOOL				registrationResultReported;		//Whether the protocol answered the registration at all
 	NSString			*UIDBeforeRegistration;			//The name to go back to when a registration fails
+	NSDictionary		*pendingRegistration;			//A registration waiting for the account to be offline
+	BOOL				reconnectAfterRegistration;		//Whether the account was online when the registration was asked for
 	BOOL				openPsychicChats;
 	BOOL				shouldIncludeNowPlayingInformationInAllStatuses;
 
