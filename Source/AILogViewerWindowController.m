@@ -420,6 +420,20 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 	//The nib names the column nothing, and rows are reused by the column's name
 	[[[outlineView_contacts tableColumns] objectAtIndex:0] setIdentifier:@"contact"];
 
+	//The sidebar's colours follow whether the window is the focus, so they are told when that changes
+	for (NSString *name in [NSArray arrayWithObjects:NSWindowDidBecomeKeyNotification, NSWindowDidResignKeyNotification, nil]) {
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(refreshSidebarColors:)
+													 name:name
+												   object:[self window]];
+	}
+	for (NSString *name in [NSArray arrayWithObjects:NSApplicationDidBecomeActiveNotification, NSApplicationDidResignActiveNotification, nil]) {
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(refreshSidebarColors:)
+													 name:name
+												   object:nil];
+	}
+
 	// Set the selector for doubleAction
 	[outlineView_contacts setDoubleAction:@selector(openChatOnDoubleAction:)];
 	
@@ -525,6 +539,12 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 	 * it was gone, like responding to a logIndexUpdated message
 	 */
 	windowIsClosing = YES;
+
+	//The sidebar's colours no longer follow a window that is going
+	for (NSString *name in [NSArray arrayWithObjects:NSWindowDidBecomeKeyNotification, NSWindowDidResignKeyNotification,
+							NSApplicationDidBecomeActiveNotification, NSApplicationDidResignActiveNotification, nil]) {
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:name object:nil];
+	}
 
     //Abort any in-progress searching and indexing, and wait for their completion
     [self stopSearching];
@@ -2138,12 +2158,41 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 
 - (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item
 {
-	NSTableCellView *view = [outlineView ai_iconLabelCellViewForColumn:tableColumn
-																 image:[self iconForItem:item]
-																 value:[self nameForItem:item]];
+	AISidebarCellView *view = [outlineView ai_iconLabelCellViewForColumn:tableColumn
+																   image:[self iconForItem:item]
+																   value:[self nameForItem:item]];
 
-	[[view textField] setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+	[[view sidebarLabel] setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
 	return view;
+}
+
+//The selection pill the preferences sidebar draws, deeper than AppKit's when the list is not the focus
+- (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(id)item
+{
+	AISidebarRowView *rowView = [outlineView makeViewWithIdentifier:@"AISidebarRow" owner:nil];
+
+	if (!rowView) {
+		rowView = [[AISidebarRowView alloc] initWithFrame:NSZeroRect];
+		[rowView setIdentifier:@"AISidebarRow"];
+	}
+
+	return rowView;
+}
+
+/*!
+ * @brief The window's focus came or went; every row's colours follow it
+ */
+- (void)refreshSidebarColors:(NSNotification *)notification
+{
+	for (NSInteger row = 0; row < [outlineView_contacts numberOfRows]; row++) {
+		id view = [outlineView_contacts viewAtColumn:0 row:row makeIfNecessary:NO];
+
+		if ([view isKindOfClass:[AISidebarCellView class]]) {
+			[(AISidebarCellView *)view updateTextColors];
+			[(NSView *)view setNeedsDisplay:YES];
+		}
+		[[outlineView_contacts rowViewAtRow:row makeIfNecessary:NO] setNeedsDisplay:YES];
+	}
 }
 
 - (void)outlineViewDeleteSelectedRows:(NSTableView *)tableView
