@@ -58,7 +58,12 @@
 
 
 #define KEY_LOG_VIEWER_WINDOW_FRAME		@"Log Viewer Frame"
-#define TOOLBAR_LOG_VIEWER				@"Log Viewer Toolbar"
+//A new name, so that a toolbar layout saved before the sidebar items existed does not hide them
+#define TOOLBAR_LOG_VIEWER				@"Log Viewer Toolbar 2"
+#define SIDEBAR_SEPARATOR_IDENTIFIER	@"sidebarSeparator"
+#define SIDEBAR_MIN_WIDTH				140.0f
+#define SIDEBAR_MAX_WIDTH				400.0f
+#define CONTENT_MIN_WIDTH				320.0f
 
 #define MAX_LOGS_TO_SORT_WHILE_SEARCHING	10000	//Max number of logs we will live sort while searching
 #define LOG_SEARCH_STATUS_INTERVAL			20		//1/60ths of a second to wait before refreshing search status
@@ -104,6 +109,7 @@
 - (NSMenuItem *)_menuItemWithTitle:(NSString *)title forSearchMode:(LogSearchMode)mode;
 - (void)_logFilter:(NSString *)searchString searchID:(NSInteger)searchID mode:(LogSearchMode)mode;
 - (void)installToolbar;
+- (void)hostPanesInSplitViewController;
 - (void)updateRankColumnVisibility;
 - (void)openLogAtPath:(NSString *)inPath;
 - (void)rebuildContactsList;
@@ -399,31 +405,16 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 	[[toolbarItems objectForKey:@"toggletimestamps"] setLabel:(showTimestamps ? HIDE_TIMESTAMPS : SHOW_TIMESTAMPS)];
 	[[toolbarItems objectForKey:@"toggletimestamps"] setImage:[NSImage imageNamed:(showTimestamps ? IMAGE_TIMESTAMPS_ON : IMAGE_TIMESTAMPS_OFF) forClass:[self class]]];
 
+	//The panes first, since the toolbar's separator has to know the split view they are in
+	[self hostPanesInSplitViewController];
+
 	//Toolbar
 	[self installToolbar];
-	
-	//Setting this autosave in the nib doesn't work properly
-	[self.splitView_contacts setAutosaveName:@"LogViewer:Contacts"];
 
-	//A source list, said the way the current system says it; the rows are views, which is what that style is for
+	/* A source list, said the way the current system says it; the rows are views, which is what
+	 * that style is for. It draws no background of its own: the sidebar it sits in brings one. */
 	[outlineView_contacts setStyle:NSTableViewStyleSourceList];
-
-	/* The glass the preferences window's sidebar stands on: a sidebar material behind the list.
-	 * The source list style counts on one, since it draws no background of its own; without it
-	 * the list stood on the window's grey. */
-	NSScrollView	*contactsScroll = [outlineView_contacts enclosingScrollView];
-	NSView			*contactsPane = [contactsScroll superview];
-
-	if (contactsPane) {
-		NSVisualEffectView *glass = [[NSVisualEffectView alloc] initWithFrame:[contactsPane bounds]];
-
-		[glass setMaterial:NSVisualEffectMaterialSidebar];
-		[glass setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
-		[glass setState:NSVisualEffectStateFollowsWindowActiveState];
-		[glass setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-		[contactsPane addSubview:glass positioned:NSWindowBelow relativeTo:contactsScroll];
-	}
-	[contactsScroll setDrawsBackground:NO];
+	[[outlineView_contacts enclosingScrollView] setDrawsBackground:NO];
 	[outlineView_contacts setBackgroundColor:[NSColor clearColor]];
 
 	//The nib names the column nothing, and rows are reused by the column's name
@@ -2258,10 +2249,81 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 	//Force a minumum size for the log view
 	if (splitView == splitView_logs)
 		return splitView_logs.frame.size.height - 100.0f;
-	else if (splitView == self.splitView_contacts)
-		return floor(self.splitView_contacts.frame.size.width / 2);
 	
 	return proposedMax;
+}
+
+//Window layout --------------------------------------------------------------------------------------------------------
+#pragma mark Window layout
+
+/*!
+ * @brief Take the two panes out of the nib's split view and put them into a split view controller
+ *
+ * A split view controller's sidebar item brings what the current system gives a sidebar: the
+ * material behind it, and, once the window's content runs under the title bar, the sidebar with
+ * it, up to the top edge the way Finder and Mail have it. The nib laid the window out with a plain
+ * split view, which gives none of that.
+ *
+ * The content on the right was laid out by frame for a window whose content did not run under the
+ * toolbar, so it is wrapped and its top tied to the window's content layout guide, which is the
+ * edge below the toolbar; the sidebar's list keeps its own rows below the toolbar by itself, as a
+ * scroll view does, while its material runs on up.
+ */
+- (void)hostPanesInSplitViewController
+{
+	NSSplitView	*nibSplitView = self.splitView_contacts;
+	NSView		*container = [nibSplitView superview];
+
+	if (!container || [[nibSplitView subviews] count] != 2)
+		return;
+
+	NSView		*sidebarPane = [[nibSplitView subviews] objectAtIndex:0];
+	NSView		*contentPane = [[nibSplitView subviews] objectAtIndex:1];
+	NSRect		frame = [nibSplitView frame];
+	NSUInteger	autoresizingMask = [nibSplitView autoresizingMask];
+	NSWindow	*window = [self window];
+
+	[sidebarPane removeFromSuperview];
+	[contentPane removeFromSuperview];
+
+	NSViewController *sidebarController = [[NSViewController alloc] init];
+	[sidebarController setView:sidebarPane];
+
+	NSView *contentWrapper = [[NSView alloc] initWithFrame:[contentPane frame]];
+	[contentPane setTranslatesAutoresizingMaskIntoConstraints:NO];
+	[contentWrapper addSubview:contentPane];
+	NSViewController *contentController = [[NSViewController alloc] init];
+	[contentController setView:contentWrapper];
+
+	splitViewController = [[NSSplitViewController alloc] init];
+
+	NSSplitViewItem *sidebarItem = [NSSplitViewItem sidebarWithViewController:sidebarController];
+	[sidebarItem setMinimumThickness:SIDEBAR_MIN_WIDTH];
+	[sidebarItem setMaximumThickness:SIDEBAR_MAX_WIDTH];
+	NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:contentController];
+	[contentItem setMinimumThickness:CONTENT_MIN_WIDTH];
+	[splitViewController addSplitViewItem:sidebarItem];
+	[splitViewController addSplitViewItem:contentItem];
+
+	NSView *splitView = [splitViewController view];
+	[splitView setFrame:frame];
+	[splitView setAutoresizingMask:autoresizingMask];
+	[[splitViewController splitView] setAutosaveName:@"LogViewer:Contacts"];
+
+	[nibSplitView removeFromSuperview];
+	self.splitView_contacts = nil;
+	[container addSubview:splitView];
+
+	[NSLayoutConstraint activateConstraints:@[
+		[[contentPane leadingAnchor] constraintEqualToAnchor:[contentWrapper leadingAnchor]],
+		[[contentPane trailingAnchor] constraintEqualToAnchor:[contentWrapper trailingAnchor]],
+		[[contentPane bottomAnchor] constraintEqualToAnchor:[contentWrapper bottomAnchor]],
+		[[contentPane topAnchor] constraintEqualToAnchor:[[window contentLayoutGuide] topAnchor]],
+	]];
+
+	//The content runs under the title bar from here on; that is what lets the sidebar go up to the top
+	[window setStyleMask:([window styleMask] | NSWindowStyleMaskFullSizeContentView)];
+	[window setToolbarStyle:NSWindowToolbarStyleUnified];
 }
 
 //Window Toolbar -------------------------------------------------------------------------------------------------------
@@ -2361,12 +2423,21 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag
 {
+	/* The line in the toolbar that follows the divider between sidebar and content, so that what
+	 * stands before it stands over the sidebar and the title stands over the content. */
+	if ([itemIdentifier isEqualToString:SIDEBAR_SEPARATOR_IDENTIFIER] && splitViewController) {
+		return [NSTrackingSeparatorToolbarItem trackingSeparatorToolbarItemWithIdentifier:itemIdentifier
+																				splitView:[splitViewController splitView]
+																			 dividerIndex:0];
+	}
+
     return [AIToolbarUtilities toolbarItemFromDictionary:toolbarItems withIdentifier:itemIdentifier];
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
 {
-    return [NSArray arrayWithObjects:DATE_ITEM_IDENTIFIER, NSToolbarFlexibleSpaceItemIdentifier,
+    return [NSArray arrayWithObjects:NSToolbarToggleSidebarItemIdentifier, SIDEBAR_SEPARATOR_IDENTIFIER,
+		DATE_ITEM_IDENTIFIER, NSToolbarFlexibleSpaceItemIdentifier,
 		@"delete", @"toggleemoticons", @"toggletimestamps", NSToolbarPrintItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier,
 		@"search", nil];
 }
@@ -2374,9 +2445,19 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
 {
     return [[toolbarItems allKeys] arrayByAddingObjectsFromArray:
-		[NSArray arrayWithObjects:NSToolbarSpaceItemIdentifier,
+		[NSArray arrayWithObjects:NSToolbarToggleSidebarItemIdentifier,
+			SIDEBAR_SEPARATOR_IDENTIFIER,
+			NSToolbarSpaceItemIdentifier,
 			NSToolbarFlexibleSpaceItemIdentifier,
 			NSToolbarPrintItemIdentifier, nil]];
+}
+
+/*!
+ * @brief The toolbar's sidebar button: it asks up the responder chain, and the split view controller is not in it
+ */
+- (IBAction)toggleSidebar:(id)sender
+{
+	[splitViewController toggleSidebar:sender];
 }
 
 - (void)toolbarWillAddItem:(NSNotification *)notification

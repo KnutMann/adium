@@ -124,6 +124,8 @@ typedef enum {
 	NSLock				*currentSearchLock;
 	
 	NSInvocationOperation *displayOperation;
+
+	NSSplitViewController *splitViewController;	//Holds the two panes once they are taken out of the nib's split view
 }
 
 @property (assign) IBOutlet  NSSplitView* splitView_contacts;
