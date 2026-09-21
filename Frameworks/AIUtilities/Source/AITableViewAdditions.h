@@ -56,6 +56,15 @@
 - (NSTableCellView *)ai_imageCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image;
 
 /*!
+ * @brief The row that shows a small picture and a name side by side, in a standard cell view
+ *
+ * The shape of a source list row: a 16 point picture at the leading edge and the label after it,
+ * both centred in the row. Built once per column and reused; picture and text are set afresh on
+ * every call, and nil for the picture leaves its place empty so the names still line up.
+ */
+- (NSTableCellView *)ai_iconLabelCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image value:(id)value;
+
+/*!
  * @brief The one row a column of checkboxes needs: a checkbox, centred, in a cell view
  *
  * For the column in which every row is switched on or off. The checkbox has no title; the

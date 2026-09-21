@@ -127,6 +127,47 @@
 	return view;
 }
 
+- (NSTableCellView *)ai_iconLabelCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image value:(id)value
+{
+	NSString		*identifier = [tableColumn identifier];
+	NSTableCellView	*view = [self makeViewWithIdentifier:identifier owner:nil];
+
+	if (!view) {
+		view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+		[view setIdentifier:identifier];
+
+		NSImageView *imageView = [[NSImageView alloc] initWithFrame:NSZeroRect];
+		[imageView setImageScaling:NSImageScaleProportionallyDown];
+		[imageView setImageAlignment:NSImageAlignCenter];
+		[imageView setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[view addSubview:imageView];
+		[view setImageView:imageView];
+
+		NSTextField *label = [NSTextField labelWithString:@""];
+		[label setLineBreakMode:NSLineBreakByTruncatingTail];
+		[label setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[view addSubview:label];
+		[view setTextField:label];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[[imageView leadingAnchor] constraintEqualToAnchor:[view leadingAnchor] constant:2.0],
+			[[imageView widthAnchor] constraintEqualToConstant:16.0],
+			[[imageView heightAnchor] constraintEqualToConstant:16.0],
+			[[imageView centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
+			[[label leadingAnchor] constraintEqualToAnchor:[imageView trailingAnchor] constant:4.0],
+			[[label trailingAnchor] constraintEqualToAnchor:[view trailingAnchor] constant:-2.0],
+			[[label centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
+		]];
+	}
+
+	NSString *text = ([value isKindOfClass:[NSString class]] ? value :
+					  ((value && value != [NSNull null]) ? [value description] : @""));
+	[[view imageView] setImage:image];
+	[[view textField] setStringValue:text];
+
+	return view;
+}
+
 - (AICheckboxTableCellView *)ai_checkboxCellViewForColumn:(NSTableColumn *)tableColumn
 														on:(BOOL)on
 												   enabled:(BOOL)enabled
