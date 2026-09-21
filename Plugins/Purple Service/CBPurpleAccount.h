@@ -46,6 +46,8 @@
 	BOOL				unregisterAfterConnecting;
 	BOOL				deletePurpleAccountAfterDisconnecting;
 	BOOL				finishedConnectProcess;
+	BOOL				registrationResultReported;		//Whether the protocol answered the registration at all
+	NSString			*UIDBeforeRegistration;			//The name to go back to when a registration fails
 	BOOL				openPsychicChats;
 	BOOL				shouldIncludeNowPlayingInformationInAllStatuses;
 
@@ -225,4 +227,11 @@
 @interface CBPurpleAccount (ForSubclasses)
 - (void)continueConnectWithConfiguredPurpleAccount;
 - (void)continueConnectWithConfiguredProxy;
+/*!
+ * @brief The name a registration that just went through gave this account
+ *
+ * What libpurple holds as the username, which for a protocol that appends something to it (a
+ * resource, say) is more than the name; such a protocol overrides this and takes that off.
+ */
+- (NSString *)registeredUsername;
 @end

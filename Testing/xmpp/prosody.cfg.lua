@@ -40,6 +40,7 @@ modules_enabled = {
 	"bookmarks";   -- XEP-0402 PEP Native Bookmarks (with legacy conversion)
 	"http_file_share"; -- XEP-0363 HTTP upload, for pictures sent as their address
 	"smacks";      -- XEP-0198 Stream Management, including resumption
+	"register_ibr"; -- XEP-0077 In-Band Registration, so that registering from the client can be tested
 }
 
 -- A session whose connection drops is kept alive this long, so that a client can
@@ -59,7 +60,7 @@ https_certificate = "certs/localhost.crt"
 http_external_url = "https://localhost:5281/"
 
 -- Accounts are created with prosodyctl (see server.sh), not in-band
-allow_registration = false
+allow_registration = true  -- in-band registration (XEP-0077), exercised by regwire.sh
 
 authentication = "internal_hashed"
 

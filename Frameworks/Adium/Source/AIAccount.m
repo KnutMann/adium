@@ -218,6 +218,12 @@ typedef enum
 
 }
 
+- (void)registerNewAccountWithUID:(NSString *)inUID password:(NSString *)inPassword
+{
+	[self filterAndSetUID:inUID];
+	[self performRegisterWithPassword:inPassword];
+}
+
 /*!
  * @brief The UID will be changed. The account has a chance to perform modifications
  *

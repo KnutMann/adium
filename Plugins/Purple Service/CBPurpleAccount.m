@@ -2417,6 +2417,17 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 //Our account has connected
 - (void)accountConnectionConnected
 {
+	if ([self boolValueForProperty:@"isRegistering"]) {
+		/* libpurple marks a registration connection as connected the moment the server hands over
+		 * its form, in its own words "to get rid of the login thingy". Nothing was signed in: the
+		 * stream is not authenticated, there is no roster and no presence, and it is closed the
+		 * moment the answer is in. Taken for a sign in, it would show the account online for a
+		 * blink, run its connect commands against a stream that refuses them, and mark a password
+		 * as a session. So it is noted and nothing more. */
+		AILog(@"%@: the registration stream is open; not a sign in", self.UID);
+		return;
+	}
+
 	AILog(@"************ %@ CONNECTED ***********",self.UID);
 	[self didConnect];
 }
@@ -2550,8 +2561,21 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 - (void)didDisconnect
 {
-	//A session can be renewed while the account is connected, so the latest is the one at the end
-	[self rememberProtocolPassword];
+	if ([self boolValueForProperty:@"isRegistering"]) {
+		[self setValue:nil forProperty:@"isRegistering" notify:NotifyLater];
+
+		/* A server that could not be reached, or that closed the stream before answering, sends no
+		 * result at all; this disconnect is the only word there is, and the reason is whatever the
+		 * connection reported on its way down. */
+		if (!registrationResultReported)
+			[self registrationFailedWithError:[self lastDisconnectionError]];
+
+	} else {
+		/* A session can be renewed while the account is connected, so the latest is the one at the
+		 * end. Not after a registration: the password there is the one just chosen, and it belongs
+		 * in the keychain as the user's only once the server has taken it, not as a session. */
+		[self rememberProtocolPassword];
+	}
 
 	//Clear properties which don't make sense for a disconnected account
 	[self setValue:nil forProperty:@"textProfile" notify:NO];
@@ -2615,6 +2639,15 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 }
 
 #pragma mark Registering
+- (void)registerNewAccountWithUID:(NSString *)inUID password:(NSString *)inPassword
+{
+	//The name to give back if the service says no
+	[UIDBeforeRegistration release];
+	UIDBeforeRegistration = [self.UID copy];
+
+	[super registerNewAccountWithUID:inUID password:inPassword];
+}
+
 - (void)performRegisterWithPassword:(NSString *)inPassword
 {
 	//Save the new password
@@ -2624,7 +2657,15 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 	//Ensure we have a purple account if one does not already exist
 	[self purpleAccount];
-	
+
+	/* A registration is a connection that never signs in, and what it ends in is an answer rather
+	 * than a session. The property is what tells the connection callbacks apart, and what a page
+	 * showing the registration watches; the flag is how the disconnect at the end knows whether
+	 * an answer ever came. Whatever the last connection died of is not this one's. */
+	registrationResultReported = NO;
+	[self setLastDisconnectionError:nil];
+	[self setValue:[NSNumber numberWithBool:YES] forProperty:@"isRegistering" notify:NotifyNow];
+
 	//We are connecting
 	[self setValue:[NSNumber numberWithBool:YES] forProperty:@"isConnecting" notify:NotifyNow];
 	
@@ -2648,19 +2689,69 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	[self configureAccountProxyNotifyingTarget:self selector:@selector(continueRegisterWithConfiguredProxy)];
 }
 
+/*!
+ * @brief The service answered the registration
+ *
+ * Called from the protocol's registration callback, before the stream is closed. On success the
+ * name the server settled on and the password it took are made the account's own right here,
+ * rather than left for whoever is listening: the page that started this may be gone by now.
+ */
 - (void)purpleAccountRegistered:(BOOL)success
 {
-	if (success && [self.service accountViewController]) {
-		NSString *username = (NSString*)(purple_account_get_username(account) ? [NSString stringWithUTF8String:purple_account_get_username(account)] : [NSNull null]);
-		NSString *pw = (NSString*)(purple_account_get_password(account) ? [NSString stringWithUTF8String:purple_account_get_password(account)] : [NSNull null]);
+	registrationResultReported = YES;
 
-		[[NSNotificationCenter defaultCenter] postNotificationName:AIAccountUsernameAndPasswordRegisteredNotification
-												  object:self
-												userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-													username, @"username",
-													pw, @"password",
-													nil]];
+	if (!success) {
+		//libpurple has already put the reason in front of the user, with its own notification
+		[self registrationFailedWithError:nil];
+		return;
 	}
+
+	NSString	*username = [self registeredUsername];
+	const char	*registeredPassword = purple_account_get_password(account);
+	NSString	*pw = (registeredPassword ? [NSString stringWithUTF8String:registeredPassword] : nil);
+
+	if (username)
+		[self filterAndSetUID:username];
+	if (pw)
+		[adium.accountController setPassword:pw forAccount:self];
+
+	[UIDBeforeRegistration release];
+	UIDBeforeRegistration = nil;
+
+	NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+	if (username) [userInfo setObject:username forKey:@"username"];
+	if (pw) [userInfo setObject:pw forKey:@"password"];
+
+	[[NSNotificationCenter defaultCenter] postNotificationName:AIAccountUsernameAndPasswordRegisteredNotification
+														object:self
+													  userInfo:userInfo];
+}
+
+- (NSString *)registeredUsername
+{
+	const char *username = purple_account_get_username(account);
+
+	return (username ? [NSString stringWithUTF8String:username] : nil);
+}
+
+/*!
+ * @brief The registration did not go through; the old name comes back
+ *
+ * @param error What went wrong, when the protocol did not say so itself; may be nil
+ */
+- (void)registrationFailedWithError:(NSString *)error
+{
+	registrationResultReported = YES;
+
+	if (UIDBeforeRegistration) {
+		[self filterAndSetUID:UIDBeforeRegistration];
+		[UIDBeforeRegistration release];
+		UIDBeforeRegistration = nil;
+	}
+
+	[[NSNotificationCenter defaultCenter] postNotificationName:AIAccountRegistrationFailedNotification
+														object:self
+													  userInfo:(error ? [NSDictionary dictionaryWithObject:error forKey:@"error"] : nil)];
 }
 
 //Account Status ------------------------------------------------------------------------------------------------------
@@ -3578,6 +3669,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 	[permittedContactsArray release];
 	[deniedContactsArray release];
+	[UIDBeforeRegistration release];
 	
     [super dealloc];
 }

@@ -44,6 +44,8 @@
 
 #define	Adium_RequestImmediateDynamicContentUpdate			@"Adium_RequestImmediateDynamicContentUpdate"
 #define AIAccountUsernameAndPasswordRegisteredNotification	@"AIAccountUsernameAndPasswordRegisteredNotification"
+//Posted by the account when a registration did not go through; userInfo may carry the reason under @"error"
+#define AIAccountRegistrationFailedNotification				@"AIAccountRegistrationFailedNotification"
 
 //Proxy
 #define KEY_ACCOUNT_PROXY_ENABLED		@"Proxy Enabled"
@@ -216,6 +218,17 @@ typedef enum {
  */
 - (void)probeConnectionIsAlive;
 - (void)performRegisterWithPassword:(NSString *)inPassword;
+
+/*!
+ * @brief Ask the service to create this account, under @a inUID and with @a inPassword
+ *
+ * The account takes the name for the duration, because the protocol has to know where to go, and
+ * it keeps it only when the service agrees. What comes back is one of two notifications:
+ * AIAccountUsernameAndPasswordRegisteredNotification once the name and the password are the
+ * account's own, AIAccountRegistrationFailedNotification when they are not, with the old name back
+ * in place. Nothing happens for a service that cannot register accounts; ask it first.
+ */
+- (void)registerNewAccountWithUID:(NSString *)inUID password:(NSString *)inPassword;
 - (NSString *)accountWillSetUID:(NSString *)proposedUID;
 - (void)didChangeUID;
 - (void)willBeDeleted;

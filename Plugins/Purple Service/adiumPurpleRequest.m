@@ -275,6 +275,53 @@ static void *adiumPurpleRequestAction(const char *title, const char *primary,
 	
 }
 
+/*!
+ * @brief Put the name and the password a registration was started with into the server's form
+ *
+ * A server that registers accounts in band asks for the name and the password with a form, and
+ * there are two shapes of it. The old fields libpurple fills in itself, from the account. The
+ * data form (XEP-0004) it does not: its values come from the server, and the server sends none, so
+ * without this the form would go back empty and be refused, or have to be shown and filled in a
+ * second time with exactly what was typed a moment ago. Every server of today sends the data form.
+ *
+ * @return YES if the form is complete now and can go back as it is; NO if it asks for more (a
+ *         captcha, an e-mail address) and has to be shown, with these two already in place. Also
+ *         NO whenever @a account is not registering, because then it is not that form.
+ */
+static BOOL adiumPurpleFillRegistrationForm(PurpleAccount *account, PurpleRequestFields *fields)
+{
+	CBPurpleAccount *adiumAccount = (account ? accountLookup(account) : nil);
+
+	if (!adiumAccount || ![adiumAccount boolValueForProperty:@"isRegistering"])
+		return NO;
+
+	const char	*username = purple_account_get_username(account);
+	const char	*password = purple_account_get_password(account);
+	NSString	*node = (username ? [NSString stringWithUTF8String:username] : @"");
+	NSRange		at = [node rangeOfString:@"@"];
+
+	//The form wants the name alone, not the address; the server it is sent to is the domain
+	if (at.location != NSNotFound)
+		node = [node substringToIndex:at.location];
+
+	for (GList *groupIter = purple_request_fields_get_groups(fields); groupIter; groupIter = groupIter->next) {
+		for (GList *fieldIter = purple_request_field_group_get_fields(groupIter->data); fieldIter; fieldIter = fieldIter->next) {
+			PurpleRequestField	*field = fieldIter->data;
+			const char			*fieldID = purple_request_field_get_id(field);
+
+			if (purple_request_field_get_type(field) != PURPLE_REQUEST_FIELD_STRING || !fieldID)
+				continue;
+
+			if (strcmp(fieldID, "username") == 0)
+				purple_request_field_string_set_value(field, [node UTF8String]);
+			else if (strcmp(fieldID, "password") == 0 && password)
+				purple_request_field_string_set_value(field, password);
+		}
+	}
+
+	return (purple_request_fields_all_required_filled(fields) ? YES : NO);
+}
+
 static void *adiumPurpleRequestFields(const char *title, const char *primary,
 									const char *secondary, PurpleRequestFields *fields,
 									const char *okText, GCallback okCb,
@@ -286,9 +333,9 @@ static void *adiumPurpleRequestFields(const char *title, const char *primary,
 
 	id requestController = nil;
 
-    if (title && (strcmp(title, _("Register New XMPP Account")) == 0)) {
-		/* Jabber registration request. Instead of displaying a request dialogue, we fill in the information automatically.
-		 * And by that, I mean that we accept all the default empty values, since the username and password are preset for us. */
+    if (adiumPurpleFillRegistrationForm(account, fields)) {
+		/* A registration form that asks for nothing but the name and the password: those were
+		 * typed already, so it goes straight back rather than being shown. */
 		((PurpleRequestFieldsCb)okCb)(userData, fields);
 		
 	} else if (purple_request_fields_get_field(fields, "password") &&
