@@ -33,6 +33,19 @@
  * @return The cell view, ready to be returned from tableView:viewForTableColumn:row:
  */
 - (NSTableCellView *)ai_labelCellViewForColumn:(NSTableColumn *)tableColumn value:(id)value;
+
+/*!
+ * @brief The one row a column of pictures needs: an image view, centred, in a standard cell view
+ *
+ * The companion of ai_labelCellViewForColumn:value: for the column that shows a picture beside
+ * the text, a service icon or an emoticon say. The picture is scaled down to fit the row and
+ * never up, and centred both ways. Built once per column and reused, like the label.
+ *
+ * @param tableColumn The column the row is for; its identifier is the reuse identifier
+ * @param image What to show; nil shows nothing
+ * @return The cell view, ready to be returned from tableView:viewForTableColumn:row:
+ */
+- (NSTableCellView *)ai_imageCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image;
 @end
 
 @protocol AITableViewDelegate

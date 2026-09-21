@@ -98,6 +98,35 @@
 	return view;
 }
 
+- (NSTableCellView *)ai_imageCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image
+{
+	NSString		*identifier = [tableColumn identifier];
+	NSTableCellView	*view = [self makeViewWithIdentifier:identifier owner:nil];
+
+	if (!view) {
+		view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+		[view setIdentifier:identifier];
+
+		NSImageView *imageView = [[NSImageView alloc] initWithFrame:NSZeroRect];
+		[imageView setImageScaling:NSImageScaleProportionallyDown];
+		[imageView setImageAlignment:NSImageAlignCenter];
+		[imageView setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[view addSubview:imageView];
+		[view setImageView:imageView];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[[imageView leadingAnchor] constraintEqualToAnchor:[view leadingAnchor] constant:2.0],
+			[[imageView trailingAnchor] constraintEqualToAnchor:[view trailingAnchor] constant:-2.0],
+			[[imageView topAnchor] constraintEqualToAnchor:[view topAnchor] constant:2.0],
+			[[imageView bottomAnchor] constraintEqualToAnchor:[view bottomAnchor] constant:-2.0],
+		]];
+	}
+
+	[[view imageView] setImage:image];
+
+	return view;
+}
+
 @end
 
 @interface AITableView : NSTableView {}
