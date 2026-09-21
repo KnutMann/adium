@@ -2439,9 +2439,12 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
 {
-    return [NSArray arrayWithObjects:NSToolbarToggleSidebarItemIdentifier, SIDEBAR_SEPARATOR_IDENTIFIER,
+	/* Neither the sidebar button nor printing is in the toolbar to begin with: the one is a button
+	 * for a thing few will ever do, the other a thing few do any more. Both stay among the items
+	 * the toolbar can be given, for whoever wants them. */
+    return [NSArray arrayWithObjects:SIDEBAR_SEPARATOR_IDENTIFIER,
 		DATE_ITEM_IDENTIFIER, NSToolbarFlexibleSpaceItemIdentifier,
-		@"delete", @"toggleemoticons", @"toggletimestamps", NSToolbarPrintItemIdentifier, NSToolbarFlexibleSpaceItemIdentifier,
+		@"delete", @"toggleemoticons", @"toggletimestamps", NSToolbarFlexibleSpaceItemIdentifier,
 		@"search", nil];
 }
 
