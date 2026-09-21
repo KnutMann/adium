@@ -2309,6 +2309,9 @@ static NSInteger toArraySort(id itemA, id itemB, void *context)
 	[splitView setFrame:frame];
 	[splitView setAutoresizingMask:autoresizingMask];
 	[[splitViewController splitView] setAutosaveName:@"LogViewer:Contacts"];
+	/* The nib names this one too, and that name never took: the divider between the results and
+	 * the transcript went back to the nib's place on every launch. Named here, it is kept. */
+	[splitView_logs setAutosaveName:@"LogViewer:Shelf"];
 
 	[nibSplitView removeFromSuperview];
 	self.splitView_contacts = nil;
