@@ -30,30 +30,30 @@
 #define MINIMUM_IMAGE_HEIGHT		20.0f
 #define MINIMUM_ROW_HEIGHT			/* 32.0f */ 16.0f
 
-//The one column's row: a picture in a slot at the leading edge, the event's name, and what happens beside it
+//The one column's row: a picture in a slot at the leading edge, the event's name, and under it what happens
 #define CELL_INSET					2.0f
 #define ICON_SLOT_WIDTH				40.0f		//The image column's width, less the spacing it had beside it
-#define TITLE_WIDTH					140.0f		//The event column's width, less the spacing
 #define TEXT_GAP					6.0f
+#define LINE_GAP					1.0f		//Between the name and the line under it
 #define MEASURING_ALLOWANCE			20.0f		//What the outline keeps for the disclosure triangle, near enough
 
 /*!
  * @class AIContactAlertCellView
- * @brief One row of the events list: the picture, the event, and beside it what happens
+ * @brief One row of the events list: the picture, the event, and under it what happens
  *
- * The three columns the list used to have, in one view, because a row whose text ran across two of
- * them (an event with no actions, an expanded one, an action under an event) has no way to do that
- * with a view per column. Laid out by hand, since the row's height is decided from the text by the
- * controller, as it was.
+ * The three columns the list used to have, in one view: the name in bold, and under it, small and
+ * grey, the sentence saying what the event does, the way a settings list puts a subtitle under a
+ * title. The same shape whether the event is collapsed or expanded to show its actions, so a row
+ * never changes height for being opened. Laid out by hand, since the row's height is decided from
+ * the text by the controller, as it was.
  */
 @interface AIContactAlertCellView : NSTableCellView {
 	NSImageView		*iconView;
 	NSTextField		*titleField;
 	NSTextField		*summaryField;
-	BOOL			 extended;
 	CGFloat			 iconSize;
 }
-- (void)setImage:(NSImage *)image size:(CGFloat)size title:(NSString *)title font:(NSFont *)font summary:(NSString *)summary extended:(BOOL)inExtended;
+- (void)setImage:(NSImage *)image size:(CGFloat)size title:(NSString *)title font:(NSFont *)font summary:(NSString *)summary;
 - (void)layoutFields;
 @end
 
@@ -74,7 +74,8 @@
 		[self setTextField:titleField];
 
 		summaryField = [NSTextField wrappingLabelWithString:@""];
-		[summaryField setFont:[NSFont systemFontOfSize:10]];
+		[summaryField setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+		[summaryField setTextColor:[NSColor secondaryLabelColor]];
 		[summaryField setSelectable:NO];
 		[self addSubview:summaryField];
 	}
@@ -82,25 +83,24 @@
 	return self;
 }
 
-- (void)setImage:(NSImage *)image size:(CGFloat)size title:(NSString *)title font:(NSFont *)font summary:(NSString *)summary extended:(BOOL)inExtended
+- (void)setImage:(NSImage *)image size:(CGFloat)size title:(NSString *)title font:(NSFont *)font summary:(NSString *)summary
 {
 	[iconView setImage:image];
 	iconSize = size;
 	[titleField setStringValue:(title ? title : @"")];
 	[titleField setFont:font];
 	[summaryField setStringValue:(summary ? summary : @"")];
-	extended = inExtended;
-	[summaryField setHidden:extended];
+	[summaryField setHidden:![summary length]];
 	[self layoutFields];
 }
 
-//The title the table recolours itself; the small line beside it is recoloured here
+//The title the table recolours itself; the small line under it is recoloured here
 - (void)setBackgroundStyle:(NSBackgroundStyle)style
 {
 	[super setBackgroundStyle:style];
 	[summaryField setTextColor:((style == NSBackgroundStyleEmphasized) ?
 								[NSColor alternateSelectedControlTextColor] :
-								[NSColor labelColor])];
+								[NSColor secondaryLabelColor])];
 }
 
 - (void)layout
@@ -127,25 +127,28 @@
 								  drawnIconSize, drawnIconSize)];
 
 	CGFloat textX = CELL_INSET + ICON_SLOT_WIDTH + TEXT_GAP;
-	CGFloat available = MAX(1.0f, NSWidth(bounds) - textX - CELL_INSET);
-	CGFloat titleWidth = (extended ? available : MIN(TITLE_WIDTH, available));
-	CGFloat titleHeight = MIN(height, ceil([[titleField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, titleWidth, 10000.0f)].height));
+	CGFloat textWidth = MAX(1.0f, NSWidth(bounds) - textX - CELL_INSET);
+	CGFloat titleHeight = ceil([[titleField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, textWidth, 10000.0f)].height);
+	BOOL	hasSummary = ![summaryField isHidden];
+	CGFloat summaryHeight = (hasSummary ? ceil([[summaryField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, textWidth, 10000.0f)].height) : 0.0f);
+	CGFloat total = MIN(height, titleHeight + (hasSummary ? (LINE_GAP + summaryHeight) : 0.0f));
 
-	[titleField setFrame:NSMakeRect(textX, floor((height - titleHeight) / 2.0f), titleWidth, titleHeight)];
+	//Not flipped: the name sits at the top of the block, which is the far end of the y axis
+	CGFloat top = floor((height - total) / 2.0f);
+	CGFloat titleY = height - top - titleHeight;
+	[titleField setFrame:NSMakeRect(textX, titleY, textWidth, titleHeight)];
 
-	if (!extended) {
-		CGFloat summaryX = textX + titleWidth + TEXT_GAP;
-		CGFloat summaryWidth = MAX(1.0f, NSWidth(bounds) - summaryX - CELL_INSET);
-		CGFloat summaryHeight = MIN(height, ceil([[summaryField cell] cellSizeForBounds:NSMakeRect(0.0f, 0.0f, summaryWidth, 10000.0f)].height));
+	if (hasSummary) {
+		CGFloat summaryTop = titleY - LINE_GAP;
+		CGFloat shown = MAX(0.0f, MIN(summaryHeight, summaryTop));
 
-		[summaryField setFrame:NSMakeRect(summaryX, floor((height - summaryHeight) / 2.0f), summaryWidth, summaryHeight)];
+		[summaryField setFrame:NSMakeRect(textX, summaryTop - shown, textWidth, shown)];
 	}
 }
 
 @end
 
 @interface ESContactAlertsViewController ()
-- (BOOL)rowIsExtendedForItem:(id)item;
 - (id)textOrImageForItem:(id)item column:(NSString *)identifier;
 - (NSFont *)titleFontForItem:(id)item;
 - (void)configureEventSummaryOutlineView;
@@ -450,29 +453,29 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 
 - (void)calculateHeightForItem:(id)item
 {
-	BOOL	extended = [self rowIsExtendedForItem:item];
-	BOOL	enforceMinimumHeight = ([(NSArray *)item count] > 0);
-	CGFloat	rowWidth = [self widthForRows];
-	CGFloat	textX = CELL_INSET + ICON_SLOT_WIDTH + TEXT_GAP;
-	CGFloat	available = MAX(1.0f, rowWidth - textX - CELL_INSET);
-	CGFloat	titleWidth = (extended ? available : MIN(TITLE_WIDTH, available));
-	CGFloat	necessaryHeight;
+	BOOL		enforceMinimumHeight = ([(NSArray *)item count] > 0);
+	CGFloat		rowWidth = [self widthForRows];
+	CGFloat		textX = CELL_INSET + ICON_SLOT_WIDTH + TEXT_GAP;
+	CGFloat		textWidth = MAX(1.0f, rowWidth - textX - CELL_INSET);
+	NSString	*summaryText = [self textOrImageForItem:item column:@"action"];
+	CGFloat		necessaryHeight;
 
-	//Measured the way the row lays the text out: the event in its slot, and what happens beside it
+	//Measured the way the row lays the text out: the name, and under it what happens
 	NSAttributedString *title = [[NSAttributedString alloc] initWithString:[self textOrImageForItem:item column:@"event"]
 																attributes:[NSDictionary dictionaryWithObject:[self titleFontForItem:item]
 																									   forKey:NSFontAttributeName]];
-	necessaryHeight = [title heightWithWidth:titleWidth];
+	necessaryHeight = [title heightWithWidth:textWidth];
 
-	if (!extended) {
-		CGFloat				summaryWidth = MAX(1.0f, rowWidth - (textX + titleWidth + TEXT_GAP) - CELL_INSET);
-		NSAttributedString	*summary = [[NSAttributedString alloc] initWithString:[self textOrImageForItem:item column:@"action"]
-																	  attributes:[NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:10]
+	if ([summaryText length]) {
+		NSAttributedString	*summary = [[NSAttributedString alloc] initWithString:summaryText
+																	  attributes:[NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]
 																											 forKey:NSFontAttributeName]];
-		CGFloat				summaryHeight = [summary heightWithWidth:summaryWidth];
 
-		if (summaryHeight > necessaryHeight) necessaryHeight = summaryHeight;
+		necessaryHeight += LINE_GAP + [summary heightWithWidth:textWidth];
 	}
+
+	//The picture wants its room as well
+	if (necessaryHeight < MINIMUM_IMAGE_HEIGHT) necessaryHeight = MINIMUM_IMAGE_HEIGHT;
 
 	necessaryHeight += VERTICAL_ROW_PADDING;
 
@@ -636,8 +639,6 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 	[expandStateDict setObject:[NSNumber numberWithBool:state]
 						forKey:[contactAlertsEvents objectAtIndex:[contactAlertsActions indexOfObjectIdenticalTo:item]]];
 
-	[self calculateHeightForItem:item];
-	[outlineView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndex:[outlineView rowForItem:item]]];
 }
 
 /*!
@@ -786,20 +787,6 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 }
 
 /*!
- * @brief Whether an item's text runs across the whole row
- *
- * An action under an event does, and so does an event with no actions or one that is expanded to
- * show them; only a collapsed event with actions has the summary of them standing beside it.
- */
-- (BOOL)rowIsExtendedForItem:(id)item
-{
-	if (![contactAlertsActions containsObjectIdenticalTo:item])
-		return YES;
-
-	return (([(NSArray *)item count] == 0) || [outlineView_summary isItemExpanded:item]);
-}
-
-/*!
  * @brief Bold for an event, bolder still when it has actions; plain for an action under it
  */
 - (NSFont *)titleFontForItem:(id)item
@@ -835,8 +822,7 @@ NSComparisonResult actionSort(id objectA, id objectB, void *context)
 			  size:(isEvent ? MINIMUM_IMAGE_HEIGHT : MINIMUM_ROW_HEIGHT)
 			 title:[self textOrImageForItem:item column:@"event"]
 			  font:[self titleFontForItem:item]
-		   summary:[self textOrImageForItem:item column:@"action"]
-		  extended:[self rowIsExtendedForItem:item]];
+		   summary:[self textOrImageForItem:item column:@"action"]];
 
 	return view;
 }

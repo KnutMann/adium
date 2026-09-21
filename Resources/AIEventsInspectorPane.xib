@@ -33,23 +33,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="300" height="204"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" rowHeight="15" headerView="NO" indentationPerLevel="14" autoresizesOutlineColumn="YES" outlineTableColumn="colEvent" id="alertsOutline" customClass="AIVariableHeightFlexibleColumnsOutlineView">
+                            <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" rowHeight="15" headerView="NO" indentationPerLevel="14" autoresizesOutlineColumn="YES" outlineTableColumn="colEvent" id="alertsOutline" customClass="AIOutlineView">
                                 <rect key="frame" x="0.0" y="0.0" width="300" height="204"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
-                                    <tableColumn identifier="image" editable="NO" width="46" minWidth="46" maxWidth="46" id="colImage">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Image"/>
-                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="colImageCell">
-                                            <font key="font" metaFont="system"/>
-                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                        </textFieldCell>
-                                        <tableColumnResizingMask key="resizingMask"/>
-                                    </tableColumn>
-                                    <tableColumn identifier="event" editable="NO" width="190" minWidth="16" maxWidth="1000" id="colEvent">
+                                    <tableColumn identifier="event" editable="NO" width="236" minWidth="16" maxWidth="10000" id="colEvent">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Event"/>
                                         <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="colEventCell">
                                             <font key="font" metaFont="system"/>
