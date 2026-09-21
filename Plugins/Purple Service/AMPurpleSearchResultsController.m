@@ -15,6 +15,7 @@
  */
 
 #import "AMPurpleSearchResultsController.h"
+#import <AIUtilities/AITableViewAdditions.h>
 
 
 @implementation AMPurpleSearchResultsController
@@ -89,7 +90,10 @@
 		while([tableview numberOfColumns] > 0)
 			[tableview removeTableColumn:[[tableview tableColumns] objectAtIndex:0]];
 		
-		// add the ones we need
+		[tableview setUsesAlternatingRowBackgroundColors:YES];
+		/* The columns are named by their number, as strings, and so are the values in a row: a
+		 * column identifier is a string, and the number that named the values before never
+		 * matched it, which left every row blank. */
 		NSUInteger idx = 0;
 		GList *column;
 		for(column = results->columns; column; column = g_list_next(column)) {
@@ -114,7 +118,7 @@
 			for(cell = row->data; cell; cell = g_list_next(cell)) {
 				const char *text = cell->data;
 				if(text)
-					[dict setObject:[NSString stringWithUTF8String:text] forKey:[NSNumber numberWithUnsignedInteger:col++]];
+					[dict setObject:[NSString stringWithUTF8String:text] forKey:[[NSNumber numberWithUnsignedInteger:col++] stringValue]];
 			}
 			[dict release];
 		}
@@ -143,7 +147,7 @@
 		for(cell = row->data; cell; cell = g_list_next(cell)) {
 			const char *text = cell->data;
 			if(text)
-				[dict setObject:[NSString stringWithUTF8String:text] forKey:[NSNumber numberWithUnsignedInteger:col++]];
+				[dict setObject:[NSString stringWithUTF8String:text] forKey:[[NSNumber numberWithUnsignedInteger:col++] stringValue]];
 		}
 		[dict release];
 	}
@@ -156,12 +160,12 @@
 	return [searchResults count];
 }
 
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-	return [[searchResults objectAtIndex:row] objectForKey:[tableColumn identifier]];
-}
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+	if (row < 0 || row >= (NSInteger)[searchResults count])
+		return nil;
 
-- (BOOL)tableView:(NSTableView *)tableView shouldEditTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-	return NO;
+	return [tableView ai_labelCellViewForColumn:tableColumn
+										  value:[[searchResults objectAtIndex:row] objectForKey:[tableColumn identifier]]];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
