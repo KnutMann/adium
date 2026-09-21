@@ -127,6 +127,45 @@
 	return view;
 }
 
+- (AICheckboxTableCellView *)ai_checkboxCellViewForColumn:(NSTableColumn *)tableColumn
+														on:(BOOL)on
+												   enabled:(BOOL)enabled
+													target:(id)target
+													action:(SEL)action
+{
+	NSString				*identifier = [tableColumn identifier];
+	AICheckboxTableCellView	*view = [self makeViewWithIdentifier:identifier owner:nil];
+
+	if (!view) {
+		view = [[AICheckboxTableCellView alloc] initWithFrame:NSZeroRect];
+		[view setIdentifier:identifier];
+
+		NSButton *checkbox = [[NSButton alloc] initWithFrame:NSZeroRect];
+		[checkbox setButtonType:NSButtonTypeSwitch];
+		[checkbox setTitle:@""];
+		[checkbox setImagePosition:NSImageOnly];
+		[checkbox setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[view addSubview:checkbox];
+		[view setCheckbox:checkbox];
+
+		[NSLayoutConstraint activateConstraints:@[
+			[[checkbox centerXAnchor] constraintEqualToAnchor:[view centerXAnchor]],
+			[[checkbox centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
+		]];
+	}
+
+	NSButton *checkbox = [view checkbox];
+	[checkbox setState:(on ? NSControlStateValueOn : NSControlStateValueOff)];
+	[checkbox setEnabled:enabled];
+	[checkbox setTarget:target];
+	[checkbox setAction:action];
+
+	return view;
+}
+
+@end
+
+@implementation AICheckboxTableCellView
 @end
 
 @interface AITableView : NSTableView {}

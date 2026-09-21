@@ -14,6 +14,14 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+/*!
+ * @class AICheckboxTableCellView
+ * @brief The cell view ai_checkboxCellViewForColumn:on:enabled:target:action: hands out
+ */
+@interface AICheckboxTableCellView : NSTableCellView
+@property (nonatomic, strong) NSButton *checkbox;
+@end
+
 @interface NSTableView (AITableViewAdditions)
 - (NSArray *)selectedItemsFromArray:(NSArray *)sourceArray;
 - (void)selectItemsInArray:(NSArray *)selectedItems usingSourceArray:(NSArray *)sourceArray;
@@ -46,6 +54,22 @@
  * @return The cell view, ready to be returned from tableView:viewForTableColumn:row:
  */
 - (NSTableCellView *)ai_imageCellViewForColumn:(NSTableColumn *)tableColumn image:(NSImage *)image;
+
+/*!
+ * @brief The one row a column of checkboxes needs: a checkbox, centred, in a cell view
+ *
+ * For the column in which every row is switched on or off. The checkbox has no title; the
+ * label column beside it says what the row is. It sends @a action to @a target when clicked, and
+ * the handler finds the row it belongs to with -rowForView:. Built once per column and reused,
+ * so state, enabled and target are set afresh on every call.
+ *
+ * @return An AICheckboxTableCellView, whose checkbox is at hand for an accessibility label
+ */
+- (AICheckboxTableCellView *)ai_checkboxCellViewForColumn:(NSTableColumn *)tableColumn
+															on:(BOOL)on
+													   enabled:(BOOL)enabled
+														target:(id)target
+														action:(SEL)action;
 @end
 
 @protocol AITableViewDelegate
