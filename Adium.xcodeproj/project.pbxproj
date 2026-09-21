@@ -205,7 +205,7 @@
 		3448761406D1EC0C00DA778C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3448758D06D1EBDF00DA778C /* Cocoa.framework */; };
 		344D974F0C3C442600498CA1 /* InstantMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 344D97410C3C442500498CA1 /* InstantMessage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		344D97530C3C442600498CA1 /* Presentity.m in Sources */ = {isa = PBXBuildFile; fileRef = 344D97450C3C442600498CA1 /* Presentity.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		3456231C0A3771D800E7FC97 /* ESRankingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3456231A0A3771D800E7FC97 /* ESRankingCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		3456231C0A3771D800E7FC97 /* ESRankingView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3456231A0A3771D800E7FC97 /* ESRankingView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		345623200A3771E100E7FC97 /* AIChatLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3456231E0A3771E100E7FC97 /* AIChatLog.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3456232A0A3771F400E7FC97 /* AILogToGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 345623240A3771F300E7FC97 /* AILogToGroup.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3456232C0A3771F400E7FC97 /* AILogFromGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 345623260A3771F400E7FC97 /* AILogFromGroup.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1871,8 +1871,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		3452A9F707891C8A00C3C494 /* ESFileTransferRequestPromptController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferRequestPromptController.m; path = Source/ESFileTransferRequestPromptController.m; sourceTree = "<group>"; };
 		34555C5E0DB6BCE500649CD4 /* AIContactObserverManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactObserverManager.h; path = Frameworks/Adium/Source/AIContactObserverManager.h; sourceTree = "<group>"; };
 		34555C5F0DB6BCE500649CD4 /* AIContactObserverManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactObserverManager.m; path = Frameworks/Adium/Source/AIContactObserverManager.m; sourceTree = "<group>"; };
-		3456231A0A3771D800E7FC97 /* ESRankingCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESRankingCell.m; path = Source/ESRankingCell.m; sourceTree = "<group>"; };
-		3456231B0A3771D800E7FC97 /* ESRankingCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESRankingCell.h; path = Source/ESRankingCell.h; sourceTree = "<group>"; };
+		3456231A0A3771D800E7FC97 /* ESRankingView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESRankingView.m; path = Source/ESRankingView.m; sourceTree = "<group>"; };
+		3456231B0A3771D800E7FC97 /* ESRankingView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESRankingView.h; path = Source/ESRankingView.h; sourceTree = "<group>"; };
 		3456231E0A3771E100E7FC97 /* AIChatLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIChatLog.m; path = Source/AIChatLog.m; sourceTree = "<group>"; };
 		3456231F0A3771E100E7FC97 /* AIChatLog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIChatLog.h; path = Source/AIChatLog.h; sourceTree = "<group>"; };
 		345623240A3771F300E7FC97 /* AILogToGroup.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AILogToGroup.m; path = Source/AILogToGroup.m; sourceTree = "<group>"; };
@@ -4129,8 +4129,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		349B359E0A5F2231008BE092 /* Views and Cells */ = {
 			isa = PBXGroup;
 			children = (
-				3456231B0A3771D800E7FC97 /* ESRankingCell.h */,
-				3456231A0A3771D800E7FC97 /* ESRankingCell.m */,
+				3456231B0A3771D800E7FC97 /* ESRankingView.h */,
+				3456231A0A3771D800E7FC97 /* ESRankingView.m */,
 				345AFAEB0A5D9A5F00D7DA6F /* AINoisyTableColumn.h */,
 				345AFAEC0A5D9A5F00D7DA6F /* AINoisyTableColumn.m */,
 				348B250A0A50A1C900B2B972 /* ESSourceListBackgroundView.h */,
@@ -7520,7 +7520,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				342F88CF0A2A74EB0001DB29 /* SGKeyCombo.m in Sources */,
 				342F88D10A2A74EB0001DB29 /* SGHotKeyCenter.m in Sources */,
 				342F88D30A2A74EB0001DB29 /* SGHotKey.m in Sources */,
-				3456231C0A3771D800E7FC97 /* ESRankingCell.m in Sources */,
+				3456231C0A3771D800E7FC97 /* ESRankingView.m in Sources */,
 				345623200A3771E100E7FC97 /* AIChatLog.m in Sources */,
 				3456232A0A3771F400E7FC97 /* AILogToGroup.m in Sources */,
 				3456232C0A3771F400E7FC97 /* AILogFromGroup.m in Sources */,

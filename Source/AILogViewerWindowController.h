@@ -36,13 +36,13 @@ typedef enum {
 	AIDateTypeAfter
 } AIDateType;
 
-@class AIAccount, AIChatLog, AIDividedAlternatingRowOutlineView, AIGradientView, AIListContact, AILoggerPlugin;
+@class AIAccount, AIChatLog, AIOutlineView, AIGradientView, AIListContact, AILoggerPlugin;
 
 @interface AILogViewerWindowController : AIWindowController <NSToolbarDelegate, NSOutlineViewDelegate, NSTableViewDelegate, NSToolbarItemValidation> {
 	/* Unowned: the plugin owns the log index we work on and outlives this window. */
 	__unsafe_unretained AILoggerPlugin	*plugin;
 
-	IBOutlet	AIDividedAlternatingRowOutlineView	*outlineView_contacts;
+	IBOutlet	AIOutlineView		*outlineView_contacts;
 
 //	IBOutlet	NSSplitView			*splitView_contacts;
 	IBOutlet	NSSplitView			*splitView_logs;
@@ -105,7 +105,6 @@ typedef enum {
 	NSMutableDictionary	*toolbarItems;
 	NSImage				*blankImage;
 	NSImage				*adiumIcon;
-	NSImage				*adiumIconHighlighted;
 
 	NSMutableArray		*toArray;				//Array of contacts
 

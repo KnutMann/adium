@@ -27,7 +27,7 @@
 #import "AILogToGroup.h"
 #import "AILogDateFormatter.h"
 #import "AIXMLChatlogConverter.h"
-#import "ESRankingCell.h" 
+#import "ESRankingView.h"
 
 #import <Adium/AIContentControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
@@ -50,10 +50,10 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/AITableViewAdditions.h>
 
-#import <AIUtilities/AIImageTextCell.h>
+#import <AIUtilities/AITableViewAdditions.h>
 #import <AIUtilities/AITextAttributes.h>
 #import <AIUtilities/AIToolbarUtilities.h>
-#import <AIUtilities/AIDividedAlternatingRowOutlineView.h>
+#import <AIUtilities/AIOutlineView.h>
 #import <AIUtilities/AIBundleAdditions.h>
 
 
@@ -405,13 +405,11 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 	//Setting this autosave in the nib doesn't work properly
 	[self.splitView_contacts setAutosaveName:@"LogViewer:Contacts"];
 
-	[outlineView_contacts setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
+	//A source list, said the way the current system says it; the rows are views, which is what that style is for
+	[outlineView_contacts setStyle:NSTableViewStyleSourceList];
 
-	AIImageTextCell	*dataCell = [[AIImageTextCell alloc] init];
-	NSTableColumn	*tableColumn = [[outlineView_contacts tableColumns] objectAtIndex:0];
-	[tableColumn setDataCell:dataCell];
-	[tableColumn setEditable:NO];
-	[dataCell setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+	//The nib names the column nothing, and rows are reused by the column's name
+	[[[outlineView_contacts tableColumns] objectAtIndex:0] setIdentifier:@"contact"];
 
 	// Set the selector for doubleAction
 	[outlineView_contacts setDoubleAction:@selector(openChatOnDoubleAction:)];
@@ -1284,7 +1282,6 @@ NSInteger compareRectLocation(id obj1, id obj2, void *context)
 			//Set up the results column
 			resultsColumn = [[NSTableColumn alloc] initWithIdentifier:@"Rank"];
 			[[resultsColumn headerCell] setTitle:AILocalizedString(@"Rank",nil)];
-			[resultsColumn setDataCell:[[ESRankingCell alloc] init]];
 			
 			//Add it to the table
 			[tableView_results addTableColumn:resultsColumn];
@@ -1818,70 +1815,73 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 }
 
 
-- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
     NSString	*identifier = [tableColumn identifier];
+	AIChatLog	*theLog = nil;
 
-	if ([identifier isEqualToString:@"Rank"] && row >= 0 && row < [currentSearchResults count]) {
-		AIChatLog       *theLog = [currentSearchResults objectAtIndex:row];
-		
-		[aCell setPercentage:[theLog rankingPercentage]];
-	}
-}
-
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
-{
-    NSString	*identifier = [tableColumn identifier];
-    id          value = nil;
-    
     [resultsLock lock];
-    if (row < 0 || row >= [currentSearchResults count]) {
-		if ([identifier isEqualToString:@"Service"]) {
-			value = blankImage;
-		} else {
-			value = @"";
-		}
-		
-	} else {
-		AIChatLog       *theLog = [currentSearchResults objectAtIndex:row];
-
-		if ([identifier isEqualToString:@"To"]) {
-			// Get ListObject for to-UID
-			AIListObject *listObject = [adium.contactController existingListObjectWithUniqueID:[AIListObject internalObjectIDForServiceID:[theLog serviceClass]
-																																		UID:[theLog to]]];
-			if (listObject) {
-				//Use the longDisplayName, following the user's contact list preferences as this is presumably how she wants to view contacts' names.
-				if (![listObject.displayName isEqualToString:listObject.UID]) {
-					value = [NSString stringWithFormat:@"%@ (%@)", listObject.displayName, listObject.UID];
-				} else {
-					value = listObject.formattedUID;
-				}
-
-			} else {
-				//No username available
-				value = [theLog to];
-			}
-			
-		} else if ([identifier isEqualToString:@"From"]) {
-			value = [theLog from];
-			
-		} else if ([identifier isEqualToString:@"Date"]) {
-			value = [theLog date];
-			
-		} else if ([identifier isEqualToString:@"Service"]) {
-			NSString	*serviceClass;
-			NSImage		*image;
-			
-			serviceClass = [theLog serviceClass];
-			image = [AIServiceIcons serviceIconForService:[adium.accountController firstServiceWithServiceID:serviceClass]
-													 type:AIServiceIconSmall
-												direction:AIIconNormal];
-			value = (image ? image : blankImage);
-		}
-    }
+	if (row >= 0 && row < [currentSearchResults count])
+		theLog = [currentSearchResults objectAtIndex:row];
     [resultsLock unlock];
-    
-    return value;
+
+	//A row the results no longer have, asked for while they changed under the table: nothing to show
+	if (!theLog)
+		return nil;
+
+	if ([identifier isEqualToString:@"Rank"]) {
+		ESRankingView *view = [tableView makeViewWithIdentifier:identifier owner:nil];
+
+		if (!view) {
+			view = [[ESRankingView alloc] initWithFrame:NSZeroRect];
+			[view setIdentifier:identifier];
+		}
+
+		[view setPercentage:[theLog rankingPercentage]];
+		return view;
+	}
+
+	if ([identifier isEqualToString:@"Service"]) {
+		return [tableView ai_imageCellViewForColumn:tableColumn
+											  image:[AIServiceIcons serviceIconForService:[adium.accountController firstServiceWithServiceID:[theLog serviceClass]]
+																					 type:AIServiceIconSmall
+																				direction:AIIconNormal]];
+	}
+
+	if ([identifier isEqualToString:@"Date"]) {
+		/* The column's own cell still keeps the date formatter, whose styles are picked to fit the
+		 * column's width; the label borrows it. */
+		NSTableCellView *view = [tableView ai_labelCellViewForColumn:tableColumn value:@""];
+
+		[[view textField] setFormatter:[[tableColumn dataCell] formatter]];
+		[[view textField] setObjectValue:[theLog date]];
+		return view;
+	}
+
+	NSString *value = nil;
+
+	if ([identifier isEqualToString:@"To"]) {
+		// Get ListObject for to-UID
+		AIListObject *listObject = [adium.contactController existingListObjectWithUniqueID:[AIListObject internalObjectIDForServiceID:[theLog serviceClass]
+																																	UID:[theLog to]]];
+		if (listObject) {
+			//Use the longDisplayName, following the user's contact list preferences as this is presumably how she wants to view contacts' names.
+			if (![listObject.displayName isEqualToString:listObject.UID]) {
+				value = [NSString stringWithFormat:@"%@ (%@)", listObject.displayName, listObject.UID];
+			} else {
+				value = listObject.formattedUID;
+			}
+
+		} else {
+			//No username available
+			value = [theLog to];
+		}
+
+	} else if ([identifier isEqualToString:@"From"]) {
+		value = [theLog from];
+	}
+
+	return [tableView ai_labelCellViewForColumn:tableColumn value:value];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
@@ -1980,6 +1980,14 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 				requiredWidth += 3;
 			}
 		}
+
+		//The rows' labels borrowed the formatter as they were made, so the ones on screen are made again
+		NSInteger dateColumn = [tableView_results columnWithIdentifier:@"Date"];
+
+		if (dateColumn >= 0 && [tableView_results numberOfRows] > 0) {
+			[tableView_results reloadDataForRowIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [tableView_results numberOfRows])]
+										 columnIndexes:[NSIndexSet indexSetWithIndex:dateColumn]];
+		}
 	}
 }
 
@@ -2045,7 +2053,7 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 	}
 }
 
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+- (NSString *)nameForItem:(id)item
 {
 	Class itemClass = [item class];
 
@@ -2079,71 +2087,45 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 	}
 }
 
-- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
+- (NSImage *)iconForItem:(id)item
 {
 	if ([item isKindOfClass:[AIMetaContact class]] &&
 		[[(AIMetaContact *)item listContactsIncludingOfflineAccounts] count] > 1) {
 		/* If the metacontact contains a single contact, fall through (isKindOfClass:[AIListContact class]) and allow using of a service icon.
 		 * If it has multiple contacts, use no icon unless a user icon is present.
 		 */
-		NSImage *image = [AIUserIcons listUserIconForContact:(AIListContact *)item
-														size:NSMakeSize(16,16)];
-		if (!image) image = [[NSImage alloc] initWithSize:NSMakeSize(16, 16)];
-
-		[cell setImage:image];
+		return [AIUserIcons listUserIconForContact:(AIListContact *)item size:NSMakeSize(16,16)];
 
 	} else if ([item isKindOfClass:[AIListContact class]]) {
-		NSImage	*image = [AIUserIcons listUserIconForContact:(AIListContact *)item
-														size:NSMakeSize(16,16)];
+		NSImage	*image = [AIUserIcons listUserIconForContact:(AIListContact *)item size:NSMakeSize(16,16)];
+
 		if (!image) image = [AIServiceIcons serviceIconForObject:(AIListContact *)item
 															type:AIServiceIconSmall
 													   direction:AIIconNormal];
-		[cell setImage:image];
+		return image;
 
 	} else if ([item isKindOfClass:[AILogToGroup class]]) {
-		[cell setImage:[AIServiceIcons serviceIconForService:[adium.accountController firstServiceWithServiceID:[(AILogToGroup *)item serviceClass]]
-														type:AIServiceIconSmall
-												   direction:AIIconNormal]];
-		
+		return [AIServiceIcons serviceIconForService:[adium.accountController firstServiceWithServiceID:[(AILogToGroup *)item serviceClass]]
+												type:AIServiceIconSmall
+										   direction:AIIconNormal];
+
 	} else if ([item isKindOfClass:[allContactsIdentifier class]]) {
-		if ([[outlineView arrayOfSelectedItems] containsObjectIdenticalTo:item] &&
-			([[self window] isKeyWindow] && ([[self window] firstResponder] == self))) {
-			if (!adiumIconHighlighted) {
-				adiumIconHighlighted = [NSImage imageNamed:@"adiumHighlight"
-												  forClass:[self class]];
-			}
+		if (!adiumIcon)
+			adiumIcon = [NSImage imageNamed:@"adium" forClass:[self class]];
+		return adiumIcon;
+	}
 
-			[cell setImage:adiumIconHighlighted];
-
-		} else {
-			if (!adiumIcon) {
-				adiumIcon = [NSImage imageNamed:@"adium"
-										forClass:[self class]];
-			}
-
-			[cell setImage:adiumIcon];
-		}
-
-	} else if ([item isKindOfClass:[NSString class]]) {
-		[cell setImage:nil];
-		
-	} else {
-		NSLog(@"%@: no idea",item);
-		[cell setImage:nil];
-	}	
+	return nil;
 }
 
-/*
- * @brief Is item supposed to have a divider below?
- *
- */
-- (AIDividerPosition)outlineView:(NSOutlineView*)outlineView dividerPositionForItem:(id)item
+- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item
 {
-	if ([item isKindOfClass:[allContactsIdentifier class]]) {
-		return AIDividerPositionBelow;
-	} else {
-		return AIDividerPositionNone;
-	}
+	NSTableCellView *view = [outlineView ai_iconLabelCellViewForColumn:tableColumn
+																 image:[self iconForItem:item]
+																 value:[self nameForItem:item]];
+
+	[[view textField] setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+	return view;
 }
 
 - (void)outlineViewDeleteSelectedRows:(NSTableView *)tableView
@@ -2242,8 +2224,8 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 static NSInteger toArraySort(id itemA, id itemB, void *context)
 {
 	AILogViewerWindowController *sharedLogViewerInstance = [AILogViewerWindowController existingWindowController];
-	NSString *nameA = [sharedLogViewerInstance outlineView:nil objectValueForTableColumn:nil byItem:itemA];
-	NSString *nameB = [sharedLogViewerInstance outlineView:nil objectValueForTableColumn:nil byItem:itemB];
+	NSString *nameA = [sharedLogViewerInstance nameForItem:itemA];
+	NSString *nameB = [sharedLogViewerInstance nameForItem:itemB];
 	NSComparisonResult result = [nameA caseInsensitiveCompare:nameB];
 	if (result == NSOrderedSame) result = [nameA compare:nameB];
 
