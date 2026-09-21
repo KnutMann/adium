@@ -20,9 +20,11 @@
  * @class ESPurpleJabberAccountPlan
  * @brief What XMPP brings beyond its own options
  *
- * One thing only: two of Adium's old switches say together what the protocol says with one choice, and
- * that cannot be written down as a key mapping. Everything else about this account is in
- * prpl-jabber.json.
+ * Two of Adium's old switches say together what the protocol says with one choice, and that cannot
+ * be written down as a key mapping. And the settings Adium keeps for an XMPP account itself, rather
+ * than handing them to the protocol: the resource, the priorities, the certificate check, what to
+ * do when somebody asks to see the status, and whether the song playing is told. Everything the
+ * protocol declares is in prpl-jabber.json.
  */
 @interface ESPurpleJabberAccountPlan : AIPurpleAccountPlan
 
