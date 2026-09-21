@@ -15,8 +15,9 @@
  */
 
 #import <Adium/ESPresetManagementController.h>
+#import <AIUtilities/AITableViewAdditions.h>
 
-#define	PRESET_DRAG_TYPE @"Adium:PresetDrag"
+#define	PRESET_DRAG_TYPE @"com.adium.preset-row"		//A pasteboard type is a UTI now
 
 @interface ESPresetManagementController ()
 - (void)configureControlDimming;
@@ -90,6 +91,10 @@ static NSMutableSet *openPresetManagementControllers = nil;
 	//Enable dragging of presets
 	[tableView_presets registerForDraggedTypes:[NSArray arrayWithObject:PRESET_DRAG_TYPE]];
 
+	//The nib names the column nothing, and rows are reused by the column's name
+	[[[tableView_presets tableColumns] firstObject] setIdentifier:@"preset"];
+	[tableView_presets setUsesAlternatingRowBackgroundColors:YES];
+
 	[label_editPresets setStringValue:AILocalizedString(@"Edit presets:", nil)];
 
 	[button_duplicate setTitle:AILocalizedString(@"Duplicate", "Button which duplicates the selection")];
@@ -148,15 +153,13 @@ static NSMutableSet *openPresetManagementControllers = nil;
  */
 - (IBAction)duplicatePreset:(id)sender
 {
+	//Finish any editing before continuing: a rename still being typed goes in first, and may move the row
+	[self endEditing];
+
 	NSInteger selectedRow = [tableView_presets selectedRow];
 	if (selectedRow != -1) {
 		id duplicatePreset, selectedPreset;
 		NSInteger duplicatePresetIndex;
-		
-		//Finish any editing before continuing		
-		//[tableView_presets validateEditing] doesn't work?
-		[tableView_presets validateEditing];
-		[tableView_presets abortEditing];
 
 		selectedPreset = [presets objectAtIndex:selectedRow];
 		
@@ -192,11 +195,11 @@ static NSMutableSet *openPresetManagementControllers = nil;
  */
 - (IBAction)deletePreset:(id)sender
 {
+	//Finish any editing before continuing, so the row about to go is the one that is selected
+	[self endEditing];
+
 	NSInteger selectedRow = [tableView_presets selectedRow];
 	if (selectedRow != -1) {
-		//Abort any editing before continuing
-		[tableView_presets abortEditing];
-
 		id selectedPreset = [presets objectAtIndex:selectedRow];
 
 		//Inform the delegate of the deletion
@@ -265,7 +268,7 @@ static NSMutableSet *openPresetManagementControllers = nil;
 /*!
  * @brief Table values
  */
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (NSString *)nameForRow:(NSInteger)row
 {
 	id	preset = [presets objectAtIndex:row];
 
@@ -279,8 +282,39 @@ static NSMutableSet *openPresetManagementControllers = nil;
 	return @"";
 }
 
-- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)anObject forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
+	if (row < 0 || row >= (NSInteger)[presets count])
+		return nil;
+
+	NSTableCellView	*view = [tableView ai_labelCellViewForColumn:tableColumn value:[self nameForRow:row]];
+	NSTextField		*field = [view textField];
+
+	//Renamed in place: the label is the field, and its action is the rename
+	[field setEditable:YES];
+	[field setTarget:self];
+	[field setAction:@selector(presetNameEdited:)];
+	[[field cell] setSendsActionOnEndEditing:YES];
+
+	return view;
+}
+
+/*!
+ * @brief Whatever is still being typed goes in now
+ */
+- (void)endEditing
+{
+	[[tableView_presets window] makeFirstResponder:tableView_presets];
+}
+
+- (void)presetNameEdited:(id)sender
+{
+	NSInteger	row = [tableView_presets rowForView:sender];
+	id			anObject = [sender stringValue];
+
+	if (row < 0 || row >= (NSInteger)[presets count])
+		return;
+
 	if ([anObject isKindOfClass:[NSString class]]) {
 		id			preset = [presets objectAtIndex:row];
 		NSString	*oldName = nil;
@@ -330,18 +364,18 @@ static NSMutableSet *openPresetManagementControllers = nil;
  *
  * Only allow the drag to start if the delegate responds to @selector(movePreset:toIndex:inPresets:)
  */
-- (BOOL)tableView:(NSTableView *)tv writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard
+- (id <NSPasteboardWriting>)tableView:(NSTableView *)tv pasteboardWriterForRow:(NSInteger)row
 {
-	if ([delegate respondsToSelector:@selector(movePreset:toIndex:inPresets:presetAfterMove:)]) {
-		tempDragPreset = [presets objectAtIndex:[[rows objectAtIndex:0] integerValue]];
-		
-		[pboard declareTypes:[NSArray arrayWithObject:PRESET_DRAG_TYPE] owner:self];
-		[pboard setString:@"Preset" forType:PRESET_DRAG_TYPE]; //Arbitrary state
-		
-		return YES;
-	} else {
-		return NO;
-	}
+	if (row < 0 || row >= (NSInteger)[presets count] ||
+		![delegate respondsToSelector:@selector(movePreset:toIndex:inPresets:presetAfterMove:)])
+		return nil;
+
+	tempDragPreset = [presets objectAtIndex:row];
+
+	NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
+	[item setString:@"Preset" forType:PRESET_DRAG_TYPE]; //Arbitrary state
+
+	return item;
 }
 
 /*!
