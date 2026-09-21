@@ -21,6 +21,7 @@
 #import "AILoginController.h"
 #import <Adium/AILoginControllerProtocol.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
+#import <AIUtilities/AITableViewAdditions.h>
 
 //Preference Keys
 #define NEW_USER_NAME		@"New User"		//Default name of a new user
@@ -31,14 +32,14 @@
 @interface AILoginWindowController ()
 - (id)initWithOwner:(id)inOwner windowNibName:(NSString *)windowNibName;
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView;
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
 - (IBAction)login:(id)sender;
 - (IBAction)editUsers:(id)sender;
 - (IBAction)doneEditing:(id)sender;
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 - (void)updateUserList;
 - (IBAction)newUser:(id)sender;
-- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+- (void)userNameEdited:(id)sender;
 - (IBAction)deleteUser:(id)sender;
 - (void)windowDidLoad;
 - (void)disableLoginTimeout;
@@ -81,16 +82,24 @@
 }
 
 // TableView Delegate methods - Return the requested item in the table
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-    if (tableView == tableView_userList) {
-        return [userArray objectAtIndex:row];
-    } else if (tableView == tableView_editableUserList) {
-        return [userArray objectAtIndex:row];
-    } else {
-        return nil;
-    }
+	if (row < 0 || row >= (NSInteger)[userArray count])
+		return nil;
 
+	NSTableCellView *view = [tableView ai_labelCellViewForColumn:tableColumn value:[userArray objectAtIndex:row]];
+
+	if (tableView == tableView_editableUserList) {
+		//Edited in place: the label is the field, and its action is the rename
+		NSTextField *field = [view textField];
+
+		[field setEditable:YES];
+		[field setTarget:self];
+		[field setAction:@selector(userNameEdited:)];
+		[[field cell] setSendsActionOnEndEditing:YES];
+	}
+
+	return view;
 }
 
 // Log in with the selected user
@@ -188,19 +197,28 @@
 }
 
 // Rename a user
-- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (void)userNameEdited:(id)sender
 {
-    if (tableView == tableView_editableUserList) {
-        //Rename the user
-        [owner renameUser:[userArray objectAtIndex:row] to:object];
+	NSInteger	row = [tableView_editableUserList rowForView:sender];
+	NSString	*newName = [sender stringValue];
 
-        //Refresh our user list
-        [self updateUserList];
+	if (row < 0 || row >= (NSInteger)[userArray count])
+		return;
 
-		if (loginTimer) {
-			[loginTimer invalidate]; loginTimer = nil;
-		}
-    }
+	NSString *oldName = [userArray objectAtIndex:row];
+
+	if (![newName length] || [newName isEqualToString:oldName])
+		return;
+
+	//Rename the user
+	[owner renameUser:oldName to:newName];
+
+	//Refresh our user list
+	[self updateUserList];
+
+	if (loginTimer) {
+		[loginTimer invalidate]; loginTimer = nil;
+	}
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)inNotification
@@ -275,6 +293,13 @@
 
 	[tableView_userList setDelegate:self];
 	[tableView_userList setDataSource:self];
+
+	/* The nib names neither column, and rows are reused by the column's name: one name per list,
+	 * so that a row made editable for one list never turns up in the other. */
+	[[[tableView_userList tableColumns] firstObject] setIdentifier:@"user"];
+	[[[tableView_editableUserList tableColumns] firstObject] setIdentifier:@"editableUser"];
+	[tableView_userList setUsesAlternatingRowBackgroundColors:YES];
+	[tableView_editableUserList setUsesAlternatingRowBackgroundColors:YES];
 	
 	[self updateUserList];
 
