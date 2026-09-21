@@ -15,6 +15,7 @@
  */
 
 #import "ESOTRPreferences.h"
+#import <AIUtilities/AITableViewAdditions.h>
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AISettingsFormView.h>
 #import <AIUtilities/AIImageAdditions.h>
@@ -39,53 +40,6 @@
 #define FINGERPRINT_METHOD_COLUMN_WIDTH		64.0f	//"OMEMO" and "OTR", and nothing longer is coming
 #define FINGERPRINT_COLUMN_GAP				 3.0f	//The gap the nib kept between the name and the status column
 #define INSET_STYLE_PADDING					10.0f	//Room NSTableViewStyleInset keeps above the first and below the last row, fallback only
-
-/*!
- * @class AICenteredTextFieldCell
- * @brief A text cell that sits in the middle of its row rather than against the top
- *
- * A row tall enough to hold a popup menu is taller than one line of text, and a plain
- * NSTextFieldCell spends the difference below the line instead of around it. Beside a popup,
- * which centres itself, that reads as the words having slipped upwards, and two columns set in
- * different sizes slip by different amounts. Only the height is touched here: colour, font and
- * alignment stay whatever the column asked for.
- */
-@interface AICenteredTextFieldCell : NSTextFieldCell
-@end
-
-@implementation AICenteredTextFieldCell
-
-- (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
-{
-	CGFloat lineHeight = [self cellSizeForBounds:cellFrame].height;
-
-	if (lineHeight > 0.0f && lineHeight < NSHeight(cellFrame)) {
-		cellFrame.origin.y += floor((NSHeight(cellFrame) - lineHeight) / 2.0f);
-		cellFrame.size.height = lineHeight;
-	}
-
-	[super drawInteriorWithFrame:cellFrame inView:controlView];
-}
-
-@end
-
-/*! Give a column a centring cell, keeping how the one it had was set up */
-static void AICentreTheTextIn(NSTableColumn *column)
-{
-	NSCell					*old = [column dataCell];
-	AICenteredTextFieldCell	*centred = [[AICenteredTextFieldCell alloc] initTextCell:@""];
-
-	[centred setFont:[old font]];
-	[centred setAlignment:[old alignment]];
-	[centred setLineBreakMode:[old lineBreakMode]];
-	[centred setEditable:NO];
-	[centred setSelectable:NO];
-
-	if ([old isKindOfClass:[NSTextFieldCell class]])
-		[centred setTextColor:[(NSTextFieldCell *)old textColor]];
-
-	[column setDataCell:centred];
-}
 
 @interface ESOTRPreferences ()
 - (AISettingsFormView *)buildSettingsForm;
@@ -452,7 +406,7 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 /*!
  * @brief Turn the nib's bordered table into the list a card is made of
  *
- * The table itself is untouched - the same two columns, the same cells, the same data source - but
+ * The table keeps its columns and its data source, with its rows handed out as views, but
  * it no longer scrolls: it is laid out at the full height of its rows and the preferences column
  * scrolls instead. The scroll view stays (a table view outside of one loses its tiling and its
  * clip view) and carries no border, no background and no scrollers; being an AIPassthroughScrollView
@@ -495,9 +449,6 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	 * instead, which in a card as wide as this one is left the status floating in the middle. */
 	NSTableColumn	*statusColumn = [tableView_fingerprints tableColumnWithIdentifier:@"Status"];
 
-	AICentreTheTextIn([tableView_fingerprints tableColumnWithIdentifier:@"UID"]);
-	AICentreTheTextIn(statusColumn);
-
 	/* Which of the two this row is about, between the name and the state. Added here rather than
 	 * in the nib because everything else about this table is set up here, and because a column
 	 * that only earns its place once there are two methods is easier to read about in code than
@@ -505,13 +456,9 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	if (![tableView_fingerprints tableColumnWithIdentifier:@"Method"]) {
 		NSTableColumn *methodColumn = [[NSTableColumn alloc] initWithIdentifier:@"Method"];
 
-		AICentreTheTextIn(methodColumn);
 		[methodColumn setMinWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
 		[methodColumn setMaxWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
 		[methodColumn setWidth:FINGERPRINT_METHOD_COLUMN_WIDTH];
-		[[methodColumn dataCell] setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
-		[[methodColumn dataCell] setTextColor:[NSColor secondaryLabelColor]];
-
 		//Between the name and the state, which is the order the eye reads them in
 		[tableView_fingerprints addTableColumn:methodColumn];
 		[tableView_fingerprints moveColumn:([tableView_fingerprints numberOfColumns] - 1)
@@ -522,12 +469,6 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	[statusColumn setMinWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
 	[statusColumn setMaxWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
 	[statusColumn setWidth:FINGERPRINT_STATUS_COLUMN_WIDTH];
-	[[statusColumn dataCell] setAlignment:NSTextAlignmentRight];
-
-	/* The column has to be editable or a menu in it never opens, and that alone would make every
-	 * other row's text typeable over. Which rows may actually be edited is decided one at a time,
-	 * just below. */
-	[statusColumn setEditable:YES];
 
 	[scrollView_fingerprints setBorderType:NSNoBorder];
 	[scrollView_fingerprints setDrawsBackground:NO];
@@ -1025,10 +966,12 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	return [fingerprintDictArray count];
 }
 
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+/*!
+ * @brief The words of one column of one row
+ */
+- (NSString *)textForRow:(NSInteger)rowIndex column:(NSString *)identifier
 {
 	if ((rowIndex >= 0) && (rowIndex < [fingerprintDictArray count])) {
-		NSString		*identifier = [aTableColumn identifier];
 		NSDictionary	*fingerprintDict = [fingerprintDictArray objectAtIndex:rowIndex];
 
 		if ([identifier isEqualToString:@"UID"]) {
@@ -1063,75 +1006,92 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 	return @"";
 }
 
-/*!
- * @brief A decision is something the person makes, so an OMEMO row offers one
- *
- * OTR's state is reported, not chosen: it says what the session is doing, and verifying happens
- * through a dialogue of its own. OMEMO's is a standing decision about a device, which belongs on
- * the row it is about rather than behind a button somewhere else.
- */
-- (NSCell *)tableView:(NSTableView *)aTableView
-	dataCellForTableColumn:(NSTableColumn *)aTableColumn
-					   row:(NSInteger)rowIndex
+- (NSView *)tableView:(NSTableView *)aTableView viewForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
-	if (!aTableColumn || rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count])
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count])
 		return nil;
 
-	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return [aTableColumn dataCell];
-	if (!AIRowIsOMEMO([fingerprintDictArray objectAtIndex:rowIndex])) return [aTableColumn dataCell];
+	NSString		*identifier = [aTableColumn identifier];
+	NSDictionary	*fingerprintDict = [fingerprintDictArray objectAtIndex:rowIndex];
 
-	NSPopUpButtonCell *choice = [[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO];
+	/* A decision is something the person makes, so an OMEMO row offers one. OTR's state is
+	 * reported, not chosen: it says what the session is doing, and verifying happens through a
+	 * dialogue of its own. OMEMO's is a standing decision about a device, which belongs on the row
+	 * it is about rather than behind a button somewhere else. */
+	if ([identifier isEqualToString:@"Status"] && AIRowIsOMEMO(fingerprintDict)) {
+		NSTableCellView	*view = [aTableView makeViewWithIdentifier:@"OMEMOTrust" owner:nil];
+		NSPopUpButton	*choice;
 
-	[choice setControlSize:NSControlSizeSmall];
-	[choice setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
-	[choice setBordered:NO];
-	[choice setArrowPosition:NSPopUpArrowAtBottom];
-	/* Against the trailing edge, where the state of every other row already is. Left as it comes,
-	 * the words start at the far side of the column while the OTR rows beside them end at it, and
-	 * one list reads as two. */
-	[choice setAlignment:NSTextAlignmentRight];
-	[choice addItemsWithTitles:AIOMEMOTrustTitles()];
+		if (!view) {
+			view = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
+			[view setIdentifier:@"OMEMOTrust"];
 
-	return choice;
+			choice = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
+			[choice setControlSize:NSControlSizeSmall];
+			[choice setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+			[choice setBordered:NO];
+			[[choice cell] setArrowPosition:NSPopUpArrowAtBottom];
+			/* Against the trailing edge, where the state of every other row already is. Left as it
+			 * comes, the words start at the far side of the column while the OTR rows beside them
+			 * end at it, and one list reads as two. */
+			[choice setAlignment:NSTextAlignmentRight];
+			[choice addItemsWithTitles:AIOMEMOTrustTitles()];
+			[choice setTarget:self];
+			[choice setAction:@selector(trustChosen:)];
+			[choice setTranslatesAutoresizingMaskIntoConstraints:NO];
+			[view addSubview:choice];
+
+			[NSLayoutConstraint activateConstraints:@[
+				[[choice leadingAnchor] constraintEqualToAnchor:[view leadingAnchor]],
+				[[choice trailingAnchor] constraintEqualToAnchor:[view trailingAnchor]],
+				[[choice centerYAnchor] constraintEqualToAnchor:[view centerYAnchor]],
+			]];
+		} else {
+			choice = (NSPopUpButton *)[[view subviews] firstObject];
+		}
+
+		//The menu's index and the stored value are the same number, by the order of AIOMEMOTrustTitles
+		NSInteger trust = [[fingerprintDict objectForKey:@"OMEMOTrust"] integerValue];
+		[choice selectItemAtIndex:((trust >= 0 && trust < [choice numberOfItems]) ? trust : 0)];
+
+		return view;
+	}
+
+	NSTableCellView	*view = [aTableView ai_labelCellViewForColumn:aTableColumn
+															value:[self textForRow:rowIndex column:identifier]];
+	NSTextField		*label = [view textField];
+
+	if ([identifier isEqualToString:@"Method"]) {
+		//Which of the two this row is about: an aside, set small and grey
+		[label setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+		[label setTextColor:[NSColor secondaryLabelColor]];
+	} else if ([identifier isEqualToString:@"Status"]) {
+		[label setAlignment:NSTextAlignmentRight];
+	}
+
+	return view;
 }
 
 /*!
- * @brief Only an OMEMO row offers a decision, so only one may be edited
- *
- * The column is editable for the menu's sake. Without this, an OTR row's state, which is
- * reported rather than chosen, could be typed over with anything at all.
+ * @brief A device was decided about, on its own row
  */
-- (BOOL)tableView:(NSTableView *)aTableView
-shouldEditTableColumn:(NSTableColumn *)aTableColumn
-			  row:(NSInteger)rowIndex
+- (void)trustChosen:(id)sender
 {
-	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count]) return NO;
-	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return NO;
+	NSInteger rowIndex = [tableView_fingerprints rowForView:sender];
 
-	return AIRowIsOMEMO([fingerprintDictArray objectAtIndex:rowIndex]);
-}
-
-- (void)tableView:(NSTableView *)aTableView
-   setObjectValue:(id)object
-   forTableColumn:(NSTableColumn *)aTableColumn
-			  row:(NSInteger)rowIndex
-{
-	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count]) return;
-	if (![[aTableColumn identifier] isEqualToString:@"Status"]) return;
+	if (rowIndex < 0 || rowIndex >= (NSInteger)[fingerprintDictArray count])
+		return;
 
 	NSDictionary *fingerprintDict = [fingerprintDictArray objectAtIndex:rowIndex];
-	if (!AIRowIsOMEMO(fingerprintDict)) return;
 
-	[AIOMEMOController setTrust:[object integerValue]
+	if (!AIRowIsOMEMO(fingerprintDict))
+		return;
+
+	[AIOMEMOController setTrust:[sender indexOfSelectedItem]
 				 forFingerprint:[fingerprintDict objectForKey:@"FingerprintString"]
 					  onAccount:[fingerprintDict objectForKey:@"AIAccount"]];
 
 	[self updateFingerprintsList];
-}
-
-- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
-{
-
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification
