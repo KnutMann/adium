@@ -328,6 +328,13 @@
 
 - (void)noteHeightChanged
 {
+	/* Not while the view is still being made: the container is already this page's parent by then,
+	 * and asked for the showing page's height it asks this page for its view, which is exactly what
+	 * is being made. That is loadView calling loadView until the stack runs out, and until it does,
+	 * a beachball. The first height reaches the container with the push itself. */
+	if (![self isViewLoaded])
+		return;
+
 	id parent = [self parentViewController];
 
 	if ([parent isKindOfClass:[AISettingsNavigationController class]])
