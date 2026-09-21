@@ -16,6 +16,7 @@
 
 #import "AMPurpleJabberServiceDiscoveryBrowserController.h"
 #import "AMPurpleJabberNode.h"
+#import <AIUtilities/AITableViewAdditions.h>
 #import <libpurple/jabber.h>
 #import <Adium/DCJoinChatWindowController.h>
 #import "DCPurpleJabberJoinChatViewController.h"
@@ -23,10 +24,6 @@
 @implementation AMPurpleJabberServiceDiscoveryBrowserController
 
 extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
-
-static NSImage *downloadprogress = nil;
-static NSImage *det_triangle_opened = nil;
-static NSImage *det_triangle_closed = nil;
 
 - (id)initWithAccount:(AIAccount*)_account purpleConnection:(PurpleConnection *)_gc node:(AMPurpleJabberNode *)_node
 {
@@ -92,6 +89,7 @@ static NSImage *det_triangle_closed = nil;
 	[[[outlineview tableColumnWithIdentifier:@"name"] headerCell] setStringValue:AILocalizedString(@"Name", "Name table column header for the service discovery browser")];
 	[[[outlineview tableColumnWithIdentifier:@"jid"] headerCell] setStringValue:AILocalizedString(@"JID", "JID (Jabber ID) table column header for the service discovery browser. This may not need to be localized.")];
 	[[[outlineview tableColumnWithIdentifier:@"category"] headerCell] setStringValue:AILocalizedString(@"Category", "Category table column header for the service discovery browser")];
+	[outlineview setUsesAlternatingRowBackgroundColors:YES];
 	
 	[super windowDidLoad];
 
@@ -270,56 +268,64 @@ static NSImage *det_triangle_closed = nil;
 		[item fetchItems];
 }
 
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+/*!
+ * @brief The words of one column of one node
+ */
+- (NSString *)textForItem:(AMPurpleJabberNode *)item column:(NSString *)identifier
 {
-    NSDictionary *style = [NSDictionary dictionaryWithObject:[item identities]?[NSColor labelColor]:[NSColor secondaryLabelColor] forKey:NSForegroundColorAttributeName];
-	
-    NSString *identifier = [tableColumn identifier];
-    
 	if ([identifier isEqualToString:@"jid"])
-		return [[[NSAttributedString alloc] initWithString:[item jid] attributes:style] autorelease];
-	else if ([identifier isEqualToString:@"name"]) {
-		if ([item node]) {
-			if ([item name])
-				return [[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ (%@)",[item name],[item node]] attributes:style] autorelease];
-			return [[[NSAttributedString alloc] initWithString:[item node] attributes:style] autorelease];
-		}
+		return [item jid];
+
+	if ([identifier isEqualToString:@"name"]) {
 		if ([item node])
-			return [[[NSAttributedString alloc] initWithString:[item name] attributes:style] autorelease];
+			return ([item name] ? [NSString stringWithFormat:@"%@ (%@)", [item name], [item node]] : [item node]);
+		if ([item name])
+			return [item name];
+
 		// try to guess a name when there's none supplied
 		NSRange slashsign = [[item jid] rangeOfString:@"/"];
 		if (slashsign.location != NSNotFound)
-			return [[[NSAttributedString alloc] initWithString:[[item jid] substringFromIndex:slashsign.location+1] attributes:style] autorelease];
+			return [[item jid] substringFromIndex:slashsign.location+1];
 		NSRange atsign = [[item jid] rangeOfString:@"@"];
 		if (atsign.location != NSNotFound)
-			return [[[NSAttributedString alloc] initWithString:[[item jid] substringToIndex:atsign.location] attributes:style] autorelease];
+			return [[item jid] substringToIndex:atsign.location];
 		if ([[item identities] count] > 0) {
-			NSDictionary *identity = [[item identities] objectAtIndex:0];
-			id name = [identity objectForKey:@"name"];
+			id name = [[[item identities] objectAtIndex:0] objectForKey:@"name"];
 			if (name != [NSNull null] && [name length] > 0)
-				return [[[NSAttributedString alloc] initWithString:[identity objectForKey:@"name"] attributes:style] autorelease];
+				return name;
 		}
-		return [[[NSAttributedString alloc] initWithString:AILocalizedString(@"(unknown)",nil) attributes:style] autorelease];
-	} else if ([identifier isEqualToString:@"category"]) {
+		return AILocalizedString(@"(unknown)",nil);
+	}
+
+	if ([identifier isEqualToString:@"category"]) {
+		//Asked and not yet answered; the answer says what the node is
 		if (![item identities])
-			[[[NSAttributedString alloc] initWithString:AILocalizedString(@"Fetching...",nil) attributes:style] autorelease];
-		
-		NSMutableArray *identities = [[NSMutableArray alloc] init];
-		
-		NSEnumerator *e = [[item identities] objectEnumerator];
-		NSDictionary *identity;
-		while ((identity = [e nextObject]))
+			return AILocalizedString(@"Fetching...",nil);
+
+		NSMutableArray *identities = [NSMutableArray array];
+
+		for (NSDictionary *identity in [item identities])
 			[identities addObject:[NSString stringWithFormat:@"%@ (%@)",[identity objectForKey:@"category"],[identity objectForKey:@"type"]]];
-		
-		NSString *result = [identities componentsJoinedByString:@", "];
-		
-		[identities release];
-		return [[[NSAttributedString alloc] initWithString:result attributes:style] autorelease];
-	} else
-        return @"???";
+
+		return [identities componentsJoinedByString:@", "];
+	}
+
+	return @"???";
 }
 
-- (NSString *)outlineView:(NSOutlineView *)ov toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tc item:(id)item mouseLocation:(NSPoint)mouseLocation {
+- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item
+{
+	NSTableCellView *view = [outlineView ai_labelCellViewForColumn:tableColumn
+															 value:[self textForItem:item column:[tableColumn identifier]]];
+
+	//A node that has not answered yet is greyer; one that has is one to do something with
+	[[view textField] setTextColor:([item identities] ? [NSColor labelColor] : [NSColor secondaryLabelColor])];
+	[view setToolTip:[self toolTipForItem:item]];
+
+	return view;
+}
+
+- (NSString *)toolTipForItem:(id)item {
 	NSArray *identities = [item identities];
 	if (!identities)
 		return nil;
@@ -342,72 +348,6 @@ static NSImage *det_triangle_closed = nil;
 	if ([result count] == 0)
 		[result addObject:AILocalizedString(@"This node does not provide any services accessible to this program.",nil)];
 	return [result componentsJoinedByString:@"\n"];
-}
-
-- (void)outlineView:(NSOutlineView *)outlineView willDisplayOutlineCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
-	BOOL expanded = [outlineView isItemExpanded:item];
-	if (expanded && [item items] == nil) {
-		if (!downloadprogress)
-			downloadprogress = [[NSImage alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[self class]] pathForResource:@"downloadprogress" ofType:@"png"]];
-		NSSize imgsize = [downloadprogress size];
-		NSImage *img = [[NSImage alloc] initWithSize:imgsize];
-		NSAffineTransform *transform = [NSAffineTransform transform];
-		
-		[transform translateXBy:imgsize.width/2.0f yBy:imgsize.height/2.0f];
-		NSTimeInterval intv = [NSDate timeIntervalSinceReferenceDate];
-		intv -= floor(intv); // only get the fractional part
-		[transform rotateByRadians:(CGFloat)(2.0*M_PI * (1.0-intv))];
-		[transform translateXBy:-imgsize.width/2.0f yBy:-imgsize.height/2.0f];
-		
-		[img lockFocus];
-		[transform set];
-		[downloadprogress drawInRect:NSMakeRect(0.0f,0.0f,imgsize.width,imgsize.height) fromRect:NSMakeRect(0.0f,0.0f,imgsize.width,imgsize.height)
-						   operation:NSCompositingOperationSourceOver fraction:1.0f];
-		[[NSAffineTransform transform] set];
-		[img unlockFocus];
-		[cell setImage:img];
-		[img release];
-		NSInvocation *inv = [[NSInvocation invocationWithMethodSignature:[outlineView methodSignatureForSelector:@selector(setNeedsDisplayInRect:)]] retain];
-		[inv setSelector:@selector(setNeedsDisplayInRect:)];
-		NSRect rect = [outlineView rectOfRow:[outlineView rowForItem:item]];
-		[inv setArgument:&rect atIndex:2];
-		
-		[inv performSelector:@selector(invokeWithTarget:) withObject:outlineView afterDelay:0.1];
-	} else {
-		if (expanded) {
-			if (!det_triangle_opened) {
-				det_triangle_opened = [[NSImage alloc] initWithSize:NSMakeSize(13.0f,13.0f)];
-				NSButtonCell *triangleCell = [[NSButtonCell alloc] initImageCell:nil];
-				[triangleCell setButtonType:NSButtonTypeOnOff];
-				[triangleCell setBezelStyle:NSBezelStyleDisclosure];
-				[triangleCell setState:NSControlStateValueOn];
-				
-				[det_triangle_opened lockFocus];
-				[triangleCell drawWithFrame:NSMakeRect(0.0f,0.0f,13.0f,13.0f) inView:outlineView];
-				[det_triangle_opened unlockFocus];
-				
-				[triangleCell release];
-			}
-
-			[cell setImage:det_triangle_opened];
-		} else {
-			if (!det_triangle_closed) {
-				det_triangle_closed = [[NSImage alloc] initWithSize:NSMakeSize(13.0f,13.0f)];
-				NSButtonCell *triangleCell = [[NSButtonCell alloc] initImageCell:nil];
-				[triangleCell setButtonType:NSButtonTypeOnOff];
-				[triangleCell setBezelStyle:NSBezelStyleDisclosure];
-				[triangleCell setIntegerValue:NSControlStateValueOff];
-				
-				[det_triangle_closed lockFocus];
-				[triangleCell drawWithFrame:NSMakeRect(0.0f,0.0f,13.0f,13.0f) inView:outlineView];
-				[det_triangle_closed unlockFocus];
-				
-				[triangleCell release];
-			}
-			
-			[cell setImage:det_triangle_closed];
-		}
-	}
 }
 
 @end
