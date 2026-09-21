@@ -257,9 +257,11 @@
 	[form removeAllSections];
 	[self buildForm];
 
+	//The registration page is usually still on top at this point; only the showing page reports a height
 	id parent = [self parentViewController];
 
-	if ([parent isKindOfClass:[AISettingsNavigationController class]])
+	if ([parent isKindOfClass:[AISettingsNavigationController class]] &&
+		[(AISettingsNavigationController *)parent topViewController] == self)
 		[(AISettingsNavigationController *)parent noteContentHeightChanged];
 }
 

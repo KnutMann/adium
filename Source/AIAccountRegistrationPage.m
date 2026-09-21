@@ -251,7 +251,11 @@
  */
 - (void)buildForm
 {
-	BOOL online = ([account online] || [account boolValueForProperty:@"isConnecting"]);
+	/* Connecting is what the account says of itself while it registers too, since a registration
+	 * is a connection; that one is not a sign in and must not read as one, or a failed request
+	 * would leave the page telling the user to disconnect an account that never was connected. */
+	BOOL online = (([account online] || [account boolValueForProperty:@"isConnecting"]) &&
+				   ![account boolValueForProperty:@"isRegistering"]);
 	BOOL busy = (registering || online);
 
 	[form removeAllSections];

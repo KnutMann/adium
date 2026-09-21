@@ -2562,13 +2562,14 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 - (void)didDisconnect
 {
 	if ([self boolValueForProperty:@"isRegistering"]) {
-		[self setValue:nil forProperty:@"isRegistering" notify:NotifyLater];
-
 		/* A server that could not be reached, or that closed the stream before answering, sends no
 		 * result at all; this disconnect is the only word there is, and the reason is whatever the
-		 * connection reported on its way down. */
+		 * connection reported on its way down. Said while the account still reads as registering,
+		 * so that whoever hears it can tell this connection from a sign in. */
 		if (!registrationResultReported)
 			[self registrationFailedWithError:[self lastDisconnectionError]];
+
+		[self setValue:nil forProperty:@"isRegistering" notify:NotifyLater];
 
 	} else {
 		/* A session can be renewed while the account is connected, so the latest is the one at the
