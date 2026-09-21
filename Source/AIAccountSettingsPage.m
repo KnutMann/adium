@@ -16,6 +16,7 @@
 
 #import "AIAccountSettingsPage.h"
 #import "AIAccountOptionsPage.h"
+#import "AIAccountRegistrationPage.h"
 
 #import <Adium/AIAccount.h>
 #import <Adium/AIAccountPlan.h>
@@ -29,6 +30,8 @@
 @interface AIAccountSettingsPage ()
 - (void)buildForm;
 - (void)showMoreOptions:(id)sender;
+- (void)showRegistration:(id)sender;
+- (void)accountIdentityChanged:(NSNotification *)notification;
 - (void)fieldChanged:(AIAccountPlanField *)field;
 - (void)editingChanged:(NSNotification *)notification;
 - (void)windowResignedKey:(NSNotification *)notification;
@@ -59,6 +62,17 @@
 												 selector:@selector(windowResignedKey:)
 													 name:NSWindowDidResignKeyNotification
 												   object:nil];
+
+		/* A registration renames the account and gives it a password, or gives it its old name
+		 * back; either way the fields on this page show something that is no longer so. */
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(accountIdentityChanged:)
+													 name:AIAccountUsernameAndPasswordRegisteredNotification
+												   object:account];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(accountIdentityChanged:)
+													 name:AIAccountRegistrationFailedNotification
+												   object:account];
 	}
 
 	return self;
@@ -179,6 +193,16 @@
 
 		[builder buildCard:identifier inForm:form];
 
+		/* A service that creates accounts itself gets the way to that under the name and the
+		 * password: it is the answer to not having either yet. */
+		if ([identifier isEqualToString:AIAccountCardAccount] && [[account service] canRegisterNewAccounts]) {
+			[builder addNavigationRowTo:AIAccountCardAccount
+								 inForm:form
+								  label:AILocalizedString(@"Register New Account", nil)
+								 target:self
+								 action:@selector(showRegistration:)];
+		}
+
 		if ([identifier isEqualToString:AIAccountCardOptions] && [builder hasFieldsInCard:AIAccountCardMore]) {
 			[builder addNavigationRowTo:AIAccountCardOptions
 								 inForm:form
@@ -205,6 +229,38 @@
 
 	if ([parent isKindOfClass:[AISettingsNavigationController class]])
 		[(AISettingsNavigationController *)parent pushViewController:page animated:YES];
+}
+
+/*!
+ * @brief Open the page on which the service creates the account
+ */
+- (void)showRegistration:(id)sender
+{
+	AIAccountRegistrationPage	*page = [[AIAccountRegistrationPage alloc] initWithAccount:account];
+	id							 parent = [self parentViewController];
+
+	if ([parent isKindOfClass:[AISettingsNavigationController class]])
+		[(AISettingsNavigationController *)parent pushViewController:page animated:YES];
+}
+
+/*!
+ * @brief The account's name or password changed under this page; show what is so now
+ *
+ * A plan reads the account's values as it is built, so a fresh one is the way to read them again.
+ */
+- (void)accountIdentityChanged:(NSNotification *)notification
+{
+	plan = [account accountPlan];
+	builder = [[AIAccountPlanFormBuilder alloc] initWithPlan:plan];
+	[builder setChangeTarget:self action:@selector(fieldChanged:)];
+
+	[form removeAllSections];
+	[self buildForm];
+
+	id parent = [self parentViewController];
+
+	if ([parent isKindOfClass:[AISettingsNavigationController class]])
+		[(AISettingsNavigationController *)parent noteContentHeightChanged];
 }
 
 @end
