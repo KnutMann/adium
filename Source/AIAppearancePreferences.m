@@ -14,6 +14,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import "AIAppearancePreferences.h"
 #import "AIAppearancePreferencesPlugin.h"
 #import "AIDockIconSelectionSheet.h"
@@ -407,39 +408,51 @@ static NSString *AIRowLabel(NSString *label)
 {
 	NSString *filenameExtension = [notification object];
 
-	//Convert our filename extension into a Uniform Type Identifier so that we can robustly determine what type of Xtra this is.
-	CFStringRef type = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
-															 (__bridge CFStringRef)filenameExtension,
-															 /*inConformingToUTI*/ NULL);
-	if (type) CFAutorelease(type);
+	/* Which kind of Xtra changed is asked of the type its extension stands for, rather than of the
+	 * extension itself, so that a file named by any of a type's extensions is still recognised.
+	 *
+	 * Asked by tag rather than through +typeWithFilenameExtension:, which reads like the obvious
+	 * way and is not the same question: for these types, all of them declared by Adium and
+	 * packages rather than files, it answers with a made up type derived from the extension, and
+	 * every comparison below would then fail and no menu would ever be rebuilt. Asking by tag
+	 * gives what the function this replaces gave, which was checked against it for the Xtra
+	 * extensions and for an ordinary one. */
+	UTType *type = [UTType typeWithTag:filenameExtension
+							  tagClass:UTTagClassFilenameExtension
+					  conformingToType:nil];
 
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.emoticonset"))) {
+	//The same question as before: is this that type, not is it a kind of it
+	BOOL (^changed)(NSString *) = ^BOOL(NSString *identifier) {
+		return (!type || [[type identifier] isEqualToString:identifier]);
+	};
+
+	if (changed(@"com.adiumx.emoticonset")) {
 		[self _rebuildEmoticonMenuAndSelectActivePack];
 	}
-	
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.dockicon"))) {
+
+	if (changed(@"com.adiumx.dockicon")) {
 		[self configureDockIconMenu];
 	}
-	
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.serviceicons"))) {
+
+	if (changed(@"com.adiumx.serviceicons")) {
 		[self configureServiceIconsMenu];
 	}
-	
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.statusicons"))) {
+
+	if (changed(@"com.adiumx.statusicons")) {
 		[self configureStatusIconsMenu];
 	}
-	
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.menubaricons"))) {
+
+	if (changed(@"com.adiumx.menubaricons")) {
 		[self configureMenuBarIconsMenu];
 	}
-	
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.contactlisttheme"))) {
+
+	if (changed(@"com.adiumx.contactlisttheme")) {
 		[popUp_colorTheme setMenu:[self _colorThemeMenu]];
 		[popUp_colorTheme selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
 																								   group:PREF_GROUP_APPEARANCE]];
 	}
 
-	if (!type || UTTypeEqual(type, CFSTR("com.adiumx.contactlistlayout"))) {
+	if (changed(@"com.adiumx.contactlistlayout")) {
 		[popUp_listLayout setMenu:[self _listLayoutMenu]];
 		[popUp_listLayout selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
 																								   group:PREF_GROUP_APPEARANCE]];
