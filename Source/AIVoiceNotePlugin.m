@@ -48,9 +48,53 @@
 	}
 }
 
+/*!
+ * @brief The microphone, with the red dot on it while it is listening
+ *
+ * There is no system symbol for a microphone that is recording, so the dot is put on the one there
+ * is. Drawn each time it is asked for rather than kept: the microphone is drawn in the label
+ * colour, which is not the same colour in a dark window as in a light one, and a picture made once
+ * would keep whichever colour it was made in.
+ */
+- (NSImage *)microphoneRecording:(BOOL)recording
+{
+	NSString	*description = (recording ?
+								AILocalizedString(@"Recording a voice note", "The microphone button while it is listening") :
+								AILocalizedString(@"Record Voice Note", nil));
+	NSImage		*microphone = [NSImage imageWithSystemSymbolName:@"mic" accessibilityDescription:description];
+
+	if (!recording || !microphone)
+		return microphone;
+
+	NSImage *badged = [NSImage imageWithSize:[microphone size]
+									 flipped:NO
+							  drawingHandler:^BOOL(NSRect rect) {
+		//A template is drawn black wherever it is put; asked for in the label colour, it follows the window
+		NSImage *shown = [microphone imageWithSymbolConfiguration:
+						  [NSImageSymbolConfiguration configurationWithHierarchicalColor:[NSColor labelColor]]];
+
+		[(shown ? shown : microphone) drawInRect:rect
+										fromRect:NSZeroRect
+									   operation:NSCompositingOperationSourceOver
+										fraction:1.0];
+
+		CGFloat	size = MAX(4.0, floor(NSWidth(rect) / 3.0));
+		NSRect	dot = NSMakeRect(NSMaxX(rect) - size, NSMaxY(rect) - size, size, size);
+
+		[[NSColor systemRedColor] setFill];
+		[[NSBezierPath bezierPathWithOvalInRect:dot] fill];
+
+		return YES;
+	}];
+
+	[badged setAccessibilityDescription:description];
+
+	return badged;
+}
+
 - (void)registerToolbarItem
 {
-	NSImage *microphone = [NSImage imageWithSystemSymbolName:@"mic" accessibilityDescription:nil];
+	NSImage *microphone = [self microphoneRecording:NO];
 
 	toolbarItem = [AIToolbarUtilities toolbarItemWithIdentifier:VOICE_ITEM_IDENTIFIER
 														  label:AILocalizedString(@"Voice", "Toolbar button that records a voice note")
@@ -92,7 +136,7 @@
 	[ticker invalidate];
 	ticker = nil;
 	[toolbarItem setLabel:AILocalizedString(@"Voice", "Toolbar button that records a voice note")];
-	[toolbarItem setImage:[NSImage imageWithSystemSymbolName:@"mic" accessibilityDescription:nil]];
+	[toolbarItem setImage:[self microphoneRecording:NO]];
 }
 
 - (IBAction)toggleRecording:(id)sender
@@ -123,7 +167,7 @@
 			return;
 		}
 
-		[self->toolbarItem setImage:[NSImage imageWithSystemSymbolName:@"stop.circle" accessibilityDescription:nil]];
+		[self->toolbarItem setImage:[self microphoneRecording:YES]];
 		self->ticker = [NSTimer scheduledTimerWithTimeInterval:1.0
 														target:self
 													  selector:@selector(showElapsed)
