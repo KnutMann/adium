@@ -318,11 +318,9 @@ static NSImage *AIPrefPaneIcon(id pane)
 	[outlineView setDelegate:self];
 	[outlineView setFloatsGroupRows:NO];
 	[outlineView setRowSizeStyle:NSTableViewRowSizeStyleDefault];
-	if (@available(macOS 11.0, *)) {
-		[outlineView setStyle:NSTableViewStyleSourceList];
-	} else {
-		[outlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
-	}
+	/* No older way beside it: the oldest system this can be installed on is newer than the one that
+	 * needed it, so the branch was unreachable and held the only call to the deprecated way. */
+	[outlineView setStyle:NSTableViewStyleSourceList];
 
 	NSScrollView *sidebarScroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	[sidebarScroll setDocumentView:outlineView];
