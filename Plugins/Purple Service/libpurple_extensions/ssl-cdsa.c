@@ -40,6 +40,19 @@ typedef unsigned int NSUInteger;
 #import <Security/Security.h>
 #import <unistd.h>
 
+/* Secure Transport is deprecated and is what this file is: every call into it is marked, which is
+ * thirty warnings saying one thing that was decided and written down. Apple keeps the framework,
+ * maintains its cryptography with the system, and has not announced its removal; the replacement it
+ * names, Network.framework, does not fit the file-descriptor world libpurple's TLS interface lives
+ * in, and bundling a cryptography library of our own would make us the ones who ship the fixes.
+ *
+ * So they are quieted here, in this file alone, to leave room for a warning that means something.
+ * What would make this worth reopening is written down with the decision: an announced removal, a
+ * system update that breaks the path, or a server that insists on TLS 1.3, which Secure Transport
+ * cannot speak and never will.
+ */
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 typedef struct
 {
 	SSLContextRef	ssl_ctx;
