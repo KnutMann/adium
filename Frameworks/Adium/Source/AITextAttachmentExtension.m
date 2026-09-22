@@ -69,6 +69,7 @@
 	[ret setImage:image];
 	[ret setImageClass:imageClass];
 	[ret setShouldAlwaysSendAsText:shouldAlwaysSendAsText];
+	[ret setLeavesLinkWhenSent:leavesLinkWhenSent];
 	
 	return ret;
 }
@@ -283,6 +284,7 @@
 @synthesize shouldSaveImageForLogging;
 @synthesize hasAlternate;
 @synthesize shouldAlwaysSendAsText;
+@synthesize leavesLinkWhenSent;
 
 - (NSString *)description
 {

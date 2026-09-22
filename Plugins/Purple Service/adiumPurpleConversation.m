@@ -22,6 +22,7 @@
 #import <Adium/AIContentTyping.h>
 #import <Adium/AIHTMLDecoder.h>
 #import <Adium/AIListContact.h>
+#import <Adium/AITextAttachmentExtension.h>
 #import <Adium/AIContentControllerProtocol.h>
 #import "AINudgeBuzzHandlerPlugin.h"
 
@@ -279,6 +280,19 @@ static void adiumPurpleConvWriteConv(PurpleConversation *conv, const char *who, 
 		 * of them was matched against untranslated English anyway.
 		 */
 		BOOL				shouldDisplayMessage = TRUE;
+
+		/* libpurple narrates a file transfer into the conversation: offered, then finished. For a
+		 * voice note that narration would be all there is to see, since the note goes as a file,
+		 * and it says twice in words what the chat says once as a player. Adium puts that player
+		 * there itself, so these are swallowed.
+		 *
+		 * Only what libpurple itself writes, so a person who types the name of a note is heard,
+		 * and only what went right: a refused or failed transfer carries the error flag and was
+		 * answered above, where it belongs, because then the words are the only word there is. */
+		if ((flags & PURPLE_MESSAGE_SYSTEM) &&
+			[messageString rangeOfString:AIVoiceNoteFilePrefix].location != NSNotFound) {
+			shouldDisplayMessage = FALSE;
+		}
 
 		if (shouldDisplayMessage) {
 			CBPurpleAccount *account = accountLookup(purple_conversation_get_account(conv));

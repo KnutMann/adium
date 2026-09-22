@@ -16,6 +16,7 @@
 
 #import "AIVoiceRecorder.h"
 #import "AIOpusEncoder.h"
+#import <Adium/AITextAttachmentExtension.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CommonCrypto/CommonDigest.h>
 
@@ -168,7 +169,7 @@
 	unsigned char digest[CC_SHA1_DIGEST_LENGTH];
 	CC_SHA1([sound bytes], (CC_LONG)[sound length], digest);
 
-	NSMutableString *name = [NSMutableString stringWithString:@"AdiumVoice_"];
+	NSMutableString *name = [NSMutableString stringWithString:AIVoiceNoteFilePrefix];
 	for (int i = 0; i < 8; i++) [name appendFormat:@"%02x", digest[i]];
 	[name appendString:@".ogg"];
 

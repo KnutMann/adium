@@ -152,6 +152,8 @@
 	[attachment setPath:path];
 	[attachment setString:shown];
 	[attachment setShouldSaveImageForLogging:NO];
+	//A note said is part of the conversation, so the chat keeps a player for it once it is sent
+	[attachment setLeavesLinkWhenSent:YES];
 
 	NSImage *icon = [NSImage imageWithSystemSymbolName:@"waveform" accessibilityDescription:shown];
 	if (icon) {

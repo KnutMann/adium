@@ -671,6 +671,15 @@
 							[adium.fileTransferController sendFile:path
 													 toListContact:(AIListContact *)inContentMessage.destination];
 						}
+
+						if ([textAttachment isKindOfClass:[AITextAttachmentExtension class]] &&
+							[(AITextAttachmentExtension *)textAttachment leavesLinkWhenSent]) {
+							[self showLinkToSentFile:path
+										 describedAs:[(AITextAttachmentExtension *)textAttachment string]
+											  inChat:messageChat
+												from:(AIAccount *)inContentMessage.source
+												  to:inContentMessage.destination];
+						}
 					} else {
 						NSLog(@"-[AIContentController handleFileSendsForContentMessage:]: Warning: Failed to have a path for sending an inline file!");
 						AILog(@"-[AIContentController handleFileSendsForContentMessage:]: Warning: Failed to have a path for sending an inline file for content message %@!",
@@ -698,6 +707,47 @@
 	if (newAttributedString) {
 		[inContentMessage setMessage:newAttributedString];
 	}
+}
+
+/*!
+ * @brief Put a link to a file just sent into the chat it was sent to
+ *
+ * Shown, not sent: the other side is getting the file itself, and a path on this computer would
+ * mean nothing to them. What it is for is the person who sent it, so that what they said stands in
+ * the conversation where they said it. The message view turns a link to a voice note into a player.
+ *
+ * Next turn of the run loop, because sending runs the message through the filters first and draws
+ * it afterwards; announced now, the link would stand above the message it belongs with.
+ */
+- (void)displaySentFileLink:(AIContentMessage *)content
+{
+	[self displayContentObject:content usingContentFilters:YES immediately:NO];
+}
+
+- (void)showLinkToSentFile:(NSString *)path
+			   describedAs:(NSString *)description
+					inChat:(AIChat *)chat
+					  from:(AIAccount *)account
+						to:(AIListObject *)destination
+{
+	if (!path || !chat)
+		return;
+
+	NSString					*shown = ([description length] ? description : [path lastPathComponent]);
+	NSMutableAttributedString	*message = [[NSMutableAttributedString alloc] initWithString:shown];
+
+	[message addAttribute:NSLinkAttributeName
+					value:[NSURL fileURLWithPath:path]
+					range:NSMakeRange(0, [message length])];
+
+	AIContentMessage *content = [AIContentMessage messageInChat:chat
+													 withSource:account
+													destination:destination
+														   date:nil
+														message:message
+													  autoreply:NO];
+
+	[self performSelector:@selector(displaySentFileLink:) withObject:content afterDelay:0];
 }
 
 /*!
