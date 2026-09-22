@@ -229,17 +229,16 @@
 
 #pragma mark Accessibility 
 
-- (id)accessibilityAttributeValue:(NSString *)attribute
+/* Said the way the current system asks for it; what the toolbar item is called and what it is for
+ * are the item's to answer, since this button stands in for it. */
+- (NSString *)accessibilityTitle
 {
-	if([attribute isEqualToString:NSAccessibilityTitleAttribute]) {
-		return [toolbarItem label];
-	} else if([attribute isEqualToString:NSAccessibilityHelpAttribute]) { 
-		return [toolbarItem toolTip]; 
-	} else if([attribute isEqualToString:NSAccessibilityToolbarButtonAttribute]) { 
-		return [self toolbarItem]; 
-	} else { 
-		return [super accessibilityAttributeValue:attribute]; 
-	}
+	return [toolbarItem label];
+}
+
+- (NSString *)accessibilityHelp
+{
+	return [toolbarItem toolTip];
 }
 
 @end

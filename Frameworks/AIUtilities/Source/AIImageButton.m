@@ -180,13 +180,12 @@
 
 #pragma mark Accessibility
 
-- (id)accessibilityAttributeValue:(NSString *)attribute
+/* A button, said the way the current system asks for it. What stood here answered the question
+ * "what are you" with the name of this class, which no assistive technology has ever heard of and
+ * which therefore told the person nothing; it is a button, and says so. */
+- (NSAccessibilityRole)accessibilityRole
 {
-	if([attribute isEqualToString:NSAccessibilityRoleAttribute]) {
-		return @"AIImageButton";
-	} else {
-		return [super accessibilityAttributeValue:attribute];
-	}
+	return NSAccessibilityButtonRole;
 }
 
 @end

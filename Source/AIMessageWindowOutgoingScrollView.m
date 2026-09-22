@@ -19,9 +19,11 @@
 
 @implementation AIMessageWindowOutgoingScrollView
 
-- (BOOL)accessibilityIsIgnored
+/* Said the way the current system asks for it. The old way, one method answering to the name of
+ * every attribute in turn, still works through a translation AppKit keeps, and is deprecated. */
+- (BOOL)isAccessibilityElement
 {
-	return YES;
+	return NO;
 }
 
 - (void)setAccessibilityChild:(id)inChild
@@ -29,15 +31,13 @@
 	accessibilityChild = inChild;
 }
 
-- (id)accessibilityAttributeValue:(NSString *)attribute
+- (NSArray *)accessibilityChildren
 {
-    if ([attribute isEqualToString:NSAccessibilityChildrenAttribute])
-        return [NSArray arrayWithObject:accessibilityChild];
+	return (accessibilityChild ? [NSArray arrayWithObject:accessibilityChild] : nil);
+}
 
-	else if ([attribute isEqualToString:NSAccessibilityParentAttribute])
-		return NSAccessibilityUnignoredAncestor([self superview]);
-
-	else
-        return [super accessibilityAttributeValue:attribute];
+- (id)accessibilityParent
+{
+	return NSAccessibilityUnignoredAncestor([self superview]);
 }
 @end
