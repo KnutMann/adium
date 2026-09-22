@@ -16,6 +16,7 @@
 
 #import "AIVoiceNotePlugin.h"
 #import "AIVoiceRecorder.h"
+#import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIToolbarControllerProtocol.h>
 #import <Adium/AITextAttachmentExtension.h>
 #import <AIUtilities/AIToolbarUtilities.h>

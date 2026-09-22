@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		ADD1E5C0DE0000000000FE01 /* AIOpusEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE06 /* AIOpusEncoder.m */; };
-		ADD1E5C0DE0000000000FE03 /* AIVoiceRecorder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE08 /* AIVoiceRecorder.m */; };
-		ADD1E5C0DE0000000000FE0A /* AIVoiceNotePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE0B /* AIVoiceNotePlugin.m */; };
-		ADD1E5C0DE0000000000FD01 /* AIContactLocalTimePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */; };
-		ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */; };
-		ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */; };
+		ADD1E5C0DE0000000000FE01 /* AIOpusEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE06 /* AIOpusEncoder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000FE03 /* AIVoiceRecorder.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE08 /* AIVoiceRecorder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000FE0A /* AIVoiceNotePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FE0B /* AIVoiceNotePlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000FD01 /* AIContactLocalTimePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FD03 /* AIContactLocalTimePlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000FC01 /* AIMessageStyling.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC05 /* AIMessageStyling.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000FC03 /* AIMessageStylingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FC07 /* AIMessageStylingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		071C56330827933100399C0F /* Shared Dock Icon Images in Resources */ = {isa = PBXBuildFile; fileRef = 071C56310827933000399C0F /* Shared Dock Icon Images */; };
 		073475F10C4C9632009ACC43 /* AdiumMenuBarIcons.icns in Resources */ = {isa = PBXBuildFile; fileRef = 073475F00C4C9632009ACC43 /* AdiumMenuBarIcons.icns */; };
 		074DDB5D07CB413F0033AFF7 /* CBContactLastSeenPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 074DDB5C07CB413F0033AFF7 /* CBContactLastSeenPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
