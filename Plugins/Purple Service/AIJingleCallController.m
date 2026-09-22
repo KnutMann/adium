@@ -812,7 +812,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			 * closed connection reports no pairs at all, which reads as if none were
 			 * ever tried. */
 			AILogWithSignature(@"ICE gave up; last seen pairs:\n%@",
-							   ([lastPairSnapshot length] ? lastPairSnapshot : @"(keine)"));
+							   ([self->lastPairSnapshot length] ? self->lastPairSnapshot : @"(keine)"));
 			[self failWith:@"connectivity-error"];
 		}
 	});

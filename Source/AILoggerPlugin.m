@@ -450,7 +450,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 		if(reindex)
 			[bself _resetLogIndex];
 		
-		if (!userTriggeredReindex) {
+		if (!self->userTriggeredReindex) {
 			if (reindex)
 				[bself _dirtyAllLogs];
 			else
@@ -481,7 +481,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 	[self _cancelClosingLogIndex];
 	__block __typeof__(self) bself = self;
     dispatch_sync(searchIndexQueue, blockWithAutoreleasePool(^{
-        if (!logIndex) {
+        if (!self->logIndex) {
 			SKIndexRef _index = nil;
 			NSString  *logIndexPath = [bself _logIndexPath];
 			NSURL     *logIndexURL = [NSURL fileURLWithPath:logIndexPath];
@@ -531,7 +531,7 @@ static dispatch_semaphore_t logLoadingPrefetchSemaphore; //limit prefetching log
 			}
 			bself->logIndex = _index;
 		}
-		if (logIndex) CFRetain(logIndex);
+		if (self->logIndex) CFRetain(self->logIndex);
     }));
 	return logIndex;
 }
@@ -1082,7 +1082,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 		dispatch_group_async(logAppendingGroup, dispatch_get_main_queue(), blockWithAutoreleasePool(^{
 			BOOL			dirty = NO;
 			NSString		*contentType = [content type];
-			NSString		*date = [formatter stringFromDate:[content date]];
+			NSString		*date = [self->formatter stringFromDate:[content date]];
 			
 			if ([contentType isEqualToString:CONTENT_MESSAGE_TYPE] ||
 				[contentType isEqualToString:CONTENT_CONTEXT_TYPE]) {
@@ -1112,7 +1112,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 
 				AIXMLElement *messageElement = [[AIXMLElement alloc] initWithName:@"message"];
 				
-				[messageElement addEscapedObject:[xhtmlDecoder encodeHTML:[content message]
+				[messageElement addEscapedObject:[self->xhtmlDecoder encodeHTML:[content message]
 															   imagesPath:[appender.path stringByDeletingLastPathComponent]]];
 				
 				[messageElement setAttributeNames:attributeKeys values:attributeValues];
@@ -1136,7 +1136,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 				
 				//If we can't find it for some reason, we probably shouldn't attempt logging, unless source was nil.
 				if ([contentType isEqualToString:CONTENT_STATUS_TYPE] && actualObject) {
-					NSString *translatedStatus = [statusTranslation objectForKey:[(AIContentStatus *)content status]];
+					NSString *translatedStatus = [self->statusTranslation objectForKey:[(AIContentStatus *)content status]];
 					if (translatedStatus == nil) {
 						AILogWithSignature(@"AILogger: Don't know how to translate status: %@", [(AIContentStatus *)content status]);
 					} else {
@@ -1155,7 +1155,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 						AIXMLElement *statusElement = [[AIXMLElement alloc] initWithName:@"status"];
 						
 						[statusElement addEscapedObject:([(AIContentStatus *)content loggedMessage] ?
-														 [xhtmlDecoder encodeHTML:[(AIContentStatus *)content loggedMessage] imagesPath:nil] :
+														 [self->xhtmlDecoder encodeHTML:[(AIContentStatus *)content loggedMessage] imagesPath:nil] :
 														 @"")];
 						
 						[statusElement setAttributeNames:attributeKeys values:attributeValues];
@@ -1187,7 +1187,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 					
 					AIXMLElement *statusElement = [[AIXMLElement alloc] initWithName:@"status"];
 					
-					[statusElement addEscapedObject:[xhtmlDecoder encodeHTML:[content message]
+					[statusElement addEscapedObject:[self->xhtmlDecoder encodeHTML:[content message]
 																  imagesPath:[[appender path] stringByDeletingLastPathComponent]]];
 					
 					[statusElement setAttributeNames:attributeKeys values:attributeValues];
@@ -1530,7 +1530,7 @@ NSComparisonResult sortPaths(NSString *path1, NSString *path2, void *context)
 	
 	if (self.logsToIndex == 0){
 		dispatch_async(defaultDispatchQueue, ^{
-			atomic_store(&logsIndexed, 0);
+			atomic_store(&self->logsIndexed, 0);
 			[bself _didCleanDirtyLogs];
 		});
 		return;

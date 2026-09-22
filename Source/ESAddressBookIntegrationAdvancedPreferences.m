@@ -488,7 +488,7 @@
 														 group:PREF_GROUP_ADDRESSBOOK];
 				} else {
 					//Put the switch back: the preference was never written
-					[checkBox_metaContacts setState:NSControlStateValueOn];
+					[self->checkBox_metaContacts setState:NSControlStateValueOn];
 				}
 			}];
 		}

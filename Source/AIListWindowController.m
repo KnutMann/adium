@@ -452,7 +452,7 @@ NSInteger levelForAIWindowLevel(AIWindowLevel windowLevel)
 		// let this happen at the beginning of the next runloop. The View needs to configure itself before we start forcing it to a size.
 		dispatch_async(dispatch_get_main_queue(), ^{
 			@autoreleasepool {
-				[contactListController contactListDesiredSizeChanged];
+				[self->contactListController contactListDesiredSizeChanged];
 			}
 		});
 		

@@ -1445,19 +1445,19 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	 * without waiting. The list stays on the content controller across reloads,
 	 * hence the guard against adding it twice. */
 	[[self class] withRemoteLoadBlockRuleList:^(WKContentRuleList *ruleList) {
-		if (ruleList && !_remoteLoadBlockInstalled) {
-			[_webView.configuration.userContentController addContentRuleList:ruleList];
-			_remoteLoadBlockInstalled = YES;
+		if (ruleList && !self->_remoteLoadBlockInstalled) {
+			[self->_webView.configuration.userContentController addContentRuleList:ruleList];
+			self->_remoteLoadBlockInstalled = YES;
 		}
 
 		/* No block, no plugins. The page itself still loads (styles worked on the open
 		 * web for years), but a plugin's harmlessness rests on the rule list, so the
 		 * plugin scripts are rebuilt out of an unblocked page and back in once a later
 		 * prime gets the list compiled. */
-		BOOL blockMissing = !_remoteLoadBlockInstalled;
-		if (blockMissing != _remoteLoadBlockUnavailable) {
-			_remoteLoadBlockUnavailable = blockMissing;
-			WKUserContentController *userContentController = _webView.configuration.userContentController;
+		BOOL blockMissing = !self->_remoteLoadBlockInstalled;
+		if (blockMissing != self->_remoteLoadBlockUnavailable) {
+			self->_remoteLoadBlockUnavailable = blockMissing;
+			WKUserContentController *userContentController = self->_webView.configuration.userContentController;
 			[userContentController removeAllUserScripts];
 			[self _installUserScriptsInto:userContentController];
 		}
@@ -1465,7 +1465,7 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 			NSLog(@"Adium: remote-load block unavailable; JavaScript plugins stay out of this page load");
 		}
 
-		[_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
+		[self->_webView loadFileURL:[NSURL fileURLWithPath:pagePath]
 		  allowingReadAccessToURL:[NSURL fileURLWithPath:@"/" isDirectory:YES]];
 	}];
 

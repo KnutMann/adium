@@ -310,7 +310,7 @@
 
 		dispatch_async(dispatch_get_main_queue(), ^{
 			//Still the same away period? (See above.)
-			if ((generation != reminderGeneration) || !reminderPosted) return;
+			if ((generation != self->reminderGeneration) || !self->reminderPosted) return;
 
 			UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
 			content.title = title;

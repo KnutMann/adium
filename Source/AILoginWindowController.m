@@ -145,7 +145,7 @@
 
     [[self window] beginSheet:panel_userListEditor
     	   completionHandler:^(NSModalResponse returnCode) {
-    		[self sheetDidEnd:panel_userListEditor returnCode:returnCode contextInfo:NULL];
+    		[self sheetDidEnd:self->panel_userListEditor returnCode:returnCode contextInfo:NULL];
     	}];
 }
 

@@ -772,10 +772,10 @@ static AILogViewerWindowController *__sharedLogViewer = nil;
 					[NSDateFormatter withLocalizedDateFormatterPerform:^(NSDateFormatter *headerDateFormatter){
 						[displayText appendString:[NSString stringWithFormat:@"%@%@\n%@ - %@\n%@\n\n",
 												   (appendedFirstLog ? @"\n" : @""),
-												   horizontalRule,
+												   self->horizontalRule,
 												   [headerDateFormatter stringFromDate:[theLog date]],
 												   [theLog to],
-												   horizontalRule]
+												   self->horizontalRule]
 								   withAttributes:[[AITextAttributes textAttributesWithFontFamily:@"Helvetica" traits:NSBoldFontMask size:12] dictionary]];
 					}];
 				}
