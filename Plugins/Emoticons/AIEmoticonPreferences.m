@@ -278,6 +278,15 @@ static NSMutableSet *openEmoticonPreferences = nil;
 		[table setColumnAutoresizingStyle:NSTableViewNoColumnAutoresizing];
 		[table setAutoresizingMask:NSViewWidthSizable];
 
+		//What the nib meant each column to be; every fitting starts again from these
+		if (!nibColumnWidths)
+			nibColumnWidths = [[NSMutableDictionary alloc] init];
+
+		for (NSTableColumn *column in [table tableColumns]) {
+			[nibColumnWidths setObject:[NSNumber numberWithDouble:[column width]]
+								forKey:[column identifier]];
+		}
+
 		[clipView setPostsFrameChangedNotifications:YES];
 		[[NSNotificationCenter defaultCenter] addObserver:self
 												 selector:@selector(listWidthChanged:)
@@ -318,35 +327,58 @@ static NSMutableSet *openEmoticonPreferences = nil;
 }
 
 /*!
- * @brief Take the last column in until the table is no wider than the room it has
+ * @brief Take the columns in until the table is no wider than the room it has
  *
  * A table is as wide as its columns make it, plus whatever padding its style keeps, and a table
  * wider than its clip view scrolls sideways. Rather than reckon that padding, the overflow is
- * measured and taken off the last column, which settles in one pass and cannot overshoot, since
- * a table narrower than its clip view is stretched to it and reports no overflow at all.
+ * measured and taken off whichever column has the most room to give, so that a narrow column
+ * holding something short, an emoticon's text among them, keeps the width it was given while a
+ * wide one gives way.
+ *
+ * Every fitting starts again from the widths the nib set. Taking the overflow off what a previous
+ * fitting left would be a ratchet: the scroller comes and goes as packs are switched between, and
+ * the columns would walk down to their minimums over an afternoon and never come back.
  */
 - (void)fitColumnsOfTable:(NSTableView *)table
 {
-	NSScrollView	*scrollView = [table enclosingScrollView];
-	NSTableColumn	*last = [[table tableColumns] lastObject];
+	NSScrollView *scrollView = [table enclosingScrollView];
 
-	if (!scrollView || !last)
+	if (!scrollView)
 		return;
+
+	for (NSTableColumn *column in [table tableColumns]) {
+		NSNumber *width = [nibColumnWidths objectForKey:[column identifier]];
+
+		if (width)
+			[column setWidth:[width doubleValue]];
+	}
+
+	[table tile];
 
 	CGFloat room = NSWidth([[scrollView contentView] bounds]);
 
 	for (NSUInteger pass = 0; pass < 4; pass++) {
-		CGFloat overflow = NSWidth([table frame]) - room;
+		CGFloat			overflow = NSWidth([table frame]) - room;
+		NSTableColumn	*widest = nil;
+		CGFloat			mostRoomToGive = 0.5;
 
 		if (overflow < 1.0)
 			break;
 
-		CGFloat wanted = MAX([last minWidth], [last width] - overflow);
+		for (NSTableColumn *column in [table tableColumns]) {
+			CGFloat roomToGive = [column width] - [column minWidth];
 
-		if (fabs(wanted - [last width]) < 0.5)
+			if (roomToGive > mostRoomToGive) {
+				mostRoomToGive = roomToGive;
+				widest = column;
+			}
+		}
+
+		//Every column already at its minimum: nothing more to take, and the table stays too wide
+		if (!widest)
 			break;
 
-		[last setWidth:wanted];
+		[widest setWidth:([widest width] - MIN(overflow, mostRoomToGive))];
 		[table tile];
 	}
 }

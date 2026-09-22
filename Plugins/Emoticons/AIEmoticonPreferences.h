@@ -33,6 +33,7 @@
 	NSMutableDictionary					*emoticonImageCache;
 
 	NSIndexSet										*dragRows;		//The rows a drag of packs began on
+	NSMutableDictionary								*nibColumnWidths;	//The width the nib gave each column, by its name
 	
 	BOOL															viewIsOpen;
 }
