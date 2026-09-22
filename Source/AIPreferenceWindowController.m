@@ -23,7 +23,6 @@
 #import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIModularPaneCategoryView.h>
 #import <AIUtilities/AIImageAdditions.h>
-#import <AIUtilities/AIImageTextCell.h>
 #import <AIUtilities/AIAutoScrollView.h>
 #import <AIUtilities/AIViewAdditions.h>
 #import <AIUtilities/AIWindowAdditions.h>

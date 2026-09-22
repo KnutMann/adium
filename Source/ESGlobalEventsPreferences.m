@@ -29,11 +29,9 @@
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/AIOutlineView.h>
-#import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIArrayAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
-#import <AIUtilities/AIImageTextCell.h>
 #import <AIUtilities/AIBundleAdditions.h>
 
 #define PREF_GROUP_EVENT_PRESETS	@"Event Presets"
