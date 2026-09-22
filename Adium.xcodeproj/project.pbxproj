@@ -181,7 +181,6 @@
 		343700A90A9C1E170028604E /* AIAdvancedPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = 343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */; };
 		34382CEF0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */; };
 		343BB5020C96CB2000506F9B /* AINewBookmarkWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A970670C965F6900F46006 /* AINewBookmarkWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F01 /* AccountProxy.xib */; };
 		ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */; };
 		ADD1E5C0DE00000000001402 /* StatusSortConfiguration.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001401 /* StatusSortConfiguration.xib */; };
 		ADD1E5C0DE00000000001604 /* ListLayoutSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001603 /* ListLayoutSheet.xib */; };
@@ -921,7 +920,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BD6758406001E440049CAF7 /* ErrorMessageWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 40AC0F1003B5C29E00A80202 /* ErrorMessageWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BD6758506001E450049CAF7 /* ErrorWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 40AC0F1303B5C34800A80202 /* ErrorWindow.xib */; };
 		4BD6758806001E460049CAF7 /* AlertMessageContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */; };
-		4BDAF69907A1561000276D68 /* AIAccountProxySettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BE6175E07AC67EE0049C87D /* AIStateMenuPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6175407AC67EE0049C87D /* AIStateMenuPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BF2EA3F067CB7A200743318 /* Emoticons in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 4BF2E194067CAE9200743318 /* Emoticons */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4BF2EA40067CB7A200743318 /* Message Styles in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 4BF2E6B3067CB70E00743318 /* Message Styles */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1739,7 +1737,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE00000000001701 /* AIAdvancedInspectorPane.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIAdvancedInspectorPane.xib; path = Resources/AIAdvancedInspectorPane.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001801 /* OTRPrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = OTRPrefs.xib; path = Resources/OTRPrefs.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001803 /* ESFileTransferProgressView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESFileTransferProgressView.xib; path = Resources/ESFileTransferProgressView.xib; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000F01 /* AccountProxy.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountProxy.xib; path = Resources/AccountProxy.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		343EC9800970C29400349098 /* OfflineContactHidingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = OfflineContactHidingDefaults.plist; path = Resources/OfflineContactHidingDefaults.plist; sourceTree = "<group>"; };
@@ -2684,8 +2681,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BD62D7F07CE8F240099EBA2 /* AIWebkitMessageViewStyle.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIWebkitMessageViewStyle.m; path = "Plugins/WebKit Message View/AIWebkitMessageViewStyle.m"; sourceTree = "<group>"; };
 		4BDAB9910861C661009FB73B /* AdiumTyping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumTyping.h; path = Source/AdiumTyping.h; sourceTree = "<group>"; };
 		4BDAB9920861C661009FB73B /* AdiumTyping.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AdiumTyping.m; path = Source/AdiumTyping.m; sourceTree = "<group>"; };
-		4BDAF69507A1560F00276D68 /* AIAccountProxySettings.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountProxySettings.h; path = Source/AIAccountProxySettings.h; sourceTree = "<group>"; };
-		4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAccountProxySettings.m; path = Source/AIAccountProxySettings.m; sourceTree = "<group>"; };
 		4BDC17720493C90E00A8010A /* AIContentTyping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentTyping.h; path = Frameworks/Adium/Source/AIContentTyping.h; sourceTree = "<group>"; };
 		4BDC17730493C90E00A8010A /* AIContentTyping.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentTyping.m; path = Frameworks/Adium/Source/AIContentTyping.m; sourceTree = "<group>"; };
 		4BE3AD1C085F3EDD005919E7 /* AdiumPreferredAccounts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AdiumPreferredAccounts.h; path = Source/AdiumPreferredAccounts.h; sourceTree = "<group>"; };
@@ -6125,9 +6120,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */,
 				ADD1E5C0DE00000000000773 /* AIAccountSettingsPage.h */,
 				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */,
-				4BDAF69507A1560F00276D68 /* AIAccountProxySettings.h */,
-				4BDAF69607A1561000276D68 /* AIAccountProxySettings.m */,
-				ADD1E5C0DE00000000000F01 /* AccountProxy.xib */,
 			);
 			name = "Accounts Preferences";
 			sourceTree = "<group>";
@@ -6845,7 +6837,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				3461621706FB482D009181D8 /* UserList Layout.plist in Resources */,
 				346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */,
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
-				ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */,
 				4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */,
 				4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */,
 				4BCAC4E707B59B65006641B9 /* Display Format Defaults.plist in Resources */,
@@ -7299,7 +7290,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				346BA3450774C2D200628F06 /* ESGlobalEventsPreferences.m in Sources */,
 				34C68B260778FA1300EB423C /* ESGeneralPreferencesPlugin.m in Sources */,
 				34C68B2C0778FA5C00EB423C /* ESGeneralPreferences.m in Sources */,
-				4BDAF69907A1561000276D68 /* AIAccountProxySettings.m in Sources */,
 				34DFF5FD07A63DB400B92233 /* ESSecureMessagingPlugin.m in Sources */,
 				4BE6175E07AC67EE0049C87D /* AIStateMenuPlugin.m in Sources */,
 				34E2A0BC07AF5924006735BC /* ESAccountNetworkConnectivityPlugin.m in Sources */,

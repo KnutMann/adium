@@ -365,28 +365,6 @@
 	return NO;
 }
 
-/*!
- * @brief Supports proxy settings?
- *
- * Does this service support connecting via a proxy?
- * @return Supports proxy settings
- */
-- (BOOL)supportsProxySettings
-{
-	return YES;
-}
-/*!
- * @brief Supports password
- *
- * Subclasses should return NO if this service does not use passwords at all for connectivity.
- * If NO, all fields related to passwords will be hidden for this service and the user will never be prompted to
- * enter passwords.
- */
-- (BOOL)supportsPassword
-{
-	return YES;
-}
-
 - (BOOL)userNamesArePhoneNumbers
 {
 	return NO;

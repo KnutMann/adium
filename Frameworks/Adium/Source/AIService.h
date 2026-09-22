@@ -65,7 +65,6 @@ typedef enum {
 @property (readonly, nonatomic) BOOL caseSensitive;
 @property (readonly, nonatomic) BOOL canCreateGroupChats;
 @property (readonly, nonatomic) BOOL canRegisterNewAccounts;
-@property (readonly, nonatomic) BOOL supportsProxySettings;
 @property (readonly, nonatomic) BOOL supportsPassword;
 
 /*!
