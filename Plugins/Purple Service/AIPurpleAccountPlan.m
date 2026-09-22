@@ -27,7 +27,6 @@
 @interface AIPurpleAccountPlan ()
 - (PurplePluginProtocolInfo *)protocolInfo;
 - (PurpleAccountOption *)optionForSetting:(NSString *)setting;
-- (AIAccountPlanField *)fieldForSetting:(NSString *)setting;
 - (NSString *)legacyKeyForSetting:(NSString *)setting;
 - (NSArray *)declaredSettings;
 @end

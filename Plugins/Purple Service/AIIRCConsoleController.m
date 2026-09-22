@@ -21,6 +21,15 @@
 /* Ported from the never-merged IRCServerConsole branch of the Mercurial
  * mainline (Thijs Alkemade, 2012), reshaped to match our XML console. */
 
+/* What the callbacks below reach for. Declared before them rather than after: a C function
+ * that sends a message the compiler has not been told about gets an id back and is trusted,
+ * which is how -gc came to be compared against a PurpleConnection as though the two were
+ * the same kind of thing. */
+@interface AIIRCConsoleController ()
+- (void)appendToLog:(NSAttributedString *)astr;
+- (PurpleConnection *)gc;
+@end
+
 static NSDictionary *AIConsoleAttributes(BOOL outgoing)
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
@@ -84,11 +93,6 @@ text_sent_cb(PurpleConnection *gc, char **text, gpointer this)
 
 	[pool release];
 }
-
-@interface AIIRCConsoleController ()
-- (void)appendToLog:(NSAttributedString *)astr;
-- (PurpleConnection *)gc;
-@end
 
 @implementation AIIRCConsoleController
 

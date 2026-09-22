@@ -96,4 +96,13 @@
  */
 - (NSString *)preferenceKeyForSetting:(NSString *)setting;
 
+/*!
+ * @brief The row for one of the protocol's settings, built from what the protocol declares
+ *
+ * A plan for one protocol reaches for this when it has something of its own to say about a
+ * setting. Named here rather than kept to this class's own file, where a subclass calling it got
+ * no more than a warning and an assumption about what comes back.
+ */
+- (AIAccountPlanField *)fieldForSetting:(NSString *)setting;
+
 @end
