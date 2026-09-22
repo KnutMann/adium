@@ -181,6 +181,8 @@
 - (void)_configureEmoticonListForSelection;
 - (void)moveSelectedPacksToTrash;
 - (void)reloadPacks;
+- (void)fitColumnsOfTable:(NSTableView *)table;
+- (void)listWidthChanged:(NSNotification *)notification;
 - (void)packToggled:(id)sender;
 - (void)emoticonToggled:(id)sender;
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
@@ -234,6 +236,8 @@ static NSMutableSet *openEmoticonPreferences = nil;
 	viewIsOpen = NO;
 	
 	[adium.preferenceController unregisterPreferenceObserver:self];
+	//The lists' widths are no longer this window's business
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
     [adium.emoticonController flushEmoticonImageCache];
 
 	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
@@ -263,15 +267,23 @@ static NSMutableSet *openEmoticonPreferences = nil;
 	[table_emoticons setUsesAlternatingRowBackgroundColors:YES];
 
 	/* Neither list has anything to show sideways, and neither should give when pushed that way.
-	 * The nib leaves both tables at a fixed width, so a table wider than its scroll view scrolled
-	 * across, and even one that fit bounced; each takes its scroll view's width and keeps it. */
+	 * Sizing the columns is what settles it: a table is as wide as its columns make it, and the
+	 * nib leaves both with columns wider than the room they have. The clip view changes width
+	 * whenever the scroller comes or goes, so the fitting is done again whenever it does. */
 	for (NSTableView *table in [NSArray arrayWithObjects:table_emoticonPacks, table_emoticons, nil]) {
 		NSScrollView *scrollView = [table enclosingScrollView];
+		NSClipView *clipView = [scrollView contentView];
 
 		[scrollView setHorizontalScrollElasticity:NSScrollElasticityNone];
+		[table setColumnAutoresizingStyle:NSTableViewNoColumnAutoresizing];
 		[table setAutoresizingMask:NSViewWidthSizable];
-		[table setFrameSize:NSMakeSize([scrollView contentSize].width, NSHeight([table frame]))];
-		[table sizeLastColumnToFit];
+
+		[clipView setPostsFrameChangedNotifications:YES];
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(listWidthChanged:)
+													 name:NSViewFrameDidChangeNotification
+												   object:clipView];
+		[self fitColumnsOfTable:table];
 	}
 
 	//Observe prefs
@@ -292,6 +304,8 @@ static NSMutableSet *openEmoticonPreferences = nil;
 	[super windowWillClose:sender];
 	
 	[adium.preferenceController unregisterPreferenceObserver:self];
+	//The lists' widths are no longer this window's business
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
     [adium.emoticonController flushEmoticonImageCache];
 
 	/* Out of the set, but not before this turn of the run loop ends: both exits are reached from
@@ -301,6 +315,51 @@ static NSMutableSet *openEmoticonPreferences = nil;
 	 */
 	CFAutorelease(CFBridgingRetain(self));
 	[openEmoticonPreferences removeObject:self];
+}
+
+/*!
+ * @brief Take the last column in until the table is no wider than the room it has
+ *
+ * A table is as wide as its columns make it, plus whatever padding its style keeps, and a table
+ * wider than its clip view scrolls sideways. Rather than reckon that padding, the overflow is
+ * measured and taken off the last column, which settles in one pass and cannot overshoot, since
+ * a table narrower than its clip view is stretched to it and reports no overflow at all.
+ */
+- (void)fitColumnsOfTable:(NSTableView *)table
+{
+	NSScrollView	*scrollView = [table enclosingScrollView];
+	NSTableColumn	*last = [[table tableColumns] lastObject];
+
+	if (!scrollView || !last)
+		return;
+
+	CGFloat room = NSWidth([[scrollView contentView] bounds]);
+
+	for (NSUInteger pass = 0; pass < 4; pass++) {
+		CGFloat overflow = NSWidth([table frame]) - room;
+
+		if (overflow < 1.0)
+			break;
+
+		CGFloat wanted = MAX([last minWidth], [last width] - overflow);
+
+		if (fabs(wanted - [last width]) < 0.5)
+			break;
+
+		[last setWidth:wanted];
+		[table tile];
+	}
+}
+
+/*!
+ * @brief The room a list has changed, because its scroller came or went
+ */
+- (void)listWidthChanged:(NSNotification *)notification
+{
+	for (NSTableView *table in [NSArray arrayWithObjects:table_emoticonPacks, table_emoticons, nil]) {
+		if ([[table enclosingScrollView] contentView] == [notification object])
+			[self fitColumnsOfTable:table];
+	}
 }
 
 /*!
@@ -356,8 +415,18 @@ static NSMutableSet *openEmoticonPreferences = nil;
 - (void)preferencesChangedForGroup:(NSString *)group key:(NSString *)key
 							object:(AIListObject *)object preferenceDict:(NSDictionary *)prefDict firstTime:(BOOL)firstTime
 {
-	//Refresh our emoticon tables
-	[table_emoticonPacks reloadData];
+	/* Refresh our emoticon tables, keeping the selected pack: a view based table drops its
+	 * selection on a reload, where the cell based one it replaced kept it, and the emoticons on
+	 * the right are the selected pack's. Without this, switching one emoticon off emptied them. */
+	AIEmoticonPack	*wasSelected = selectedEmoticonPack;
+
+	[self reloadPacks];
+
+	NSUInteger index = (wasSelected ? [emoticonPacks indexOfObjectIdenticalTo:wasSelected] : NSNotFound);
+
+	if (index != NSNotFound)
+		[table_emoticonPacks selectRowIndexes:[NSIndexSet indexSetWithIndex:index] byExtendingSelection:NO];
+
 	[self _configureEmoticonListForSelection];
 }
 
