@@ -23,23 +23,21 @@
 @interface AIEmoticonPreferences : AIWindowController <NSTableViewDelegate, NSTableViewDataSource>
 {
 	IBOutlet    NSTableView		*table_emoticonPacks;
-	NSMutableArray								*emoticonPackPreviewControllers;
+	NSArray										*emoticonPacks;		//What the packs list shows, in its order
 
 	IBOutlet    NSTableView		*table_emoticons;
 	IBOutlet    NSTextField		*textField_packTitle;
 	IBOutlet			NSButton				*button_OK;
 		
-	NSButtonCell									*checkCell;
 	AIEmoticonPack								*selectedEmoticonPack;
 	NSMutableDictionary					*emoticonImageCache;
 
-	NSArray													*dragRows;
+	NSIndexSet										*dragRows;		//The rows a drag of packs began on
 	
 	BOOL															viewIsOpen;
 }
 
 - (void)openOnWindow:(NSWindow *)parentWindow __attribute__((ns_consumes_self));
-- (void)toggledPackController:(id)packController;
 - (void)emoticonXtrasDidChange;
 
 @end

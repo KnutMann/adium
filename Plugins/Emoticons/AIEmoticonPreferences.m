@@ -16,28 +16,173 @@
 
 #import "AIEmoticon.h"
 #import "AIEmoticonPack.h"
-#import "AIEmoticonPackPreviewController.h"
-#import "AIEmoticonPackPreviewView.h"
 #import "AIEmoticonPreferences.h"
 #import "AIEmoticonController.h"
 #import <AIUtilities/AITableViewAdditions.h>
-#import <AIUtilities/AIGenericViewCell.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIArrayAdditions.h>
-#import <AIUtilities/AIVerticallyCenteredTextCell.h>
 
 #import <Adium/AIListObject.h>
 
-#define	EMOTICON_PACK_DRAG_TYPE         @"AIEmoticonPack"
+#define	EMOTICON_PACK_DRAG_TYPE         @"com.adium.emoticon-pack-row"		//A pasteboard type is a UTI now
 #define EMOTICON_MIN_ROW_HEIGHT         17
 #define EMOTICON_MAX_ROW_HEIGHT			64
 #define EMOTICON_PACKS_TOOLTIP          AILocalizedString(@"Reorder emoticon packs by dragging. Packs are used in the order listed.",nil)
 
+//The pack row: the checkbox with the name beside it, and under them a strip of the pack's first emoticons
+#define PACK_PREVIEW_MAX_SIZE			20.0f
+#define PACK_PREVIEW_SPACING			4.0f
+#define PACK_INSET						4.0f
+#define PACK_TITLE_HEIGHT				18.0f
+
+/*!
+ * @class AIEmoticonPackStripView
+ * @brief A row of a pack's first emoticons, as many as fit
+ *
+ * What the old preview nib drew, without the nib: each picture no larger than twenty points, on an
+ * even grid, so the strips of the packs line up under one another.
+ */
+@interface AIEmoticonPackStripView : NSView {
+	AIEmoticonPack	*emoticonPack;
+}
+- (void)setEmoticonPack:(AIEmoticonPack *)inPack;
+@end
+
+@implementation AIEmoticonPackStripView
+
+- (void)setEmoticonPack:(AIEmoticonPack *)inPack
+{
+	emoticonPack = inPack;
+	[self setNeedsDisplay:YES];
+}
+
+- (void)drawRect:(NSRect)rect
+{
+	NSRect	bounds = [self bounds];
+	CGFloat	x = 0.0f;
+
+	for (AIEmoticon *emoticon in [emoticonPack emoticons]) {
+		NSImage	*image = [emoticon image];
+		NSSize	drawn = [image size];
+
+		if (drawn.width <= 0.0f || drawn.height <= 0.0f)
+			continue;
+
+		//Scaled down to fit the strip, keeping its proportions; never scaled up
+		if (drawn.width > PACK_PREVIEW_MAX_SIZE) {
+			drawn.height *= PACK_PREVIEW_MAX_SIZE / drawn.width;
+			drawn.width = PACK_PREVIEW_MAX_SIZE;
+		}
+		if (drawn.height > PACK_PREVIEW_MAX_SIZE) {
+			drawn.width *= PACK_PREVIEW_MAX_SIZE / drawn.height;
+			drawn.height = PACK_PREVIEW_MAX_SIZE;
+		}
+
+		//Only whole pictures: one cut off at the edge says less than none
+		if (x + drawn.width > NSWidth(bounds))
+			break;
+
+		[image drawInRect:NSMakeRect(x, floor((NSHeight(bounds) - drawn.height) / 2.0f), drawn.width, drawn.height)
+				 fromRect:NSZeroRect
+				operation:NSCompositingOperationSourceOver
+				 fraction:1.0f
+		   respectFlipped:YES
+					hints:nil];
+
+		x += PACK_PREVIEW_MAX_SIZE + PACK_PREVIEW_SPACING;
+	}
+}
+
+@end
+
+/*!
+ * @class AIEmoticonPackCellView
+ * @brief One row of the packs list: switched on or off, named, and shown
+ */
+@interface AIEmoticonPackCellView : NSTableCellView {
+	NSButton				*checkbox;
+	NSTextField				*nameField;
+	AIEmoticonPackStripView	*strip;
+}
+@property (nonatomic, readonly) NSButton *checkbox;
+- (void)setPack:(AIEmoticonPack *)pack;
+- (void)layoutFields;
+@end
+
+@implementation AIEmoticonPackCellView
+
+@synthesize checkbox;
+
+- (id)initWithFrame:(NSRect)frame
+{
+	if ((self = [super initWithFrame:frame])) {
+		checkbox = [[NSButton alloc] initWithFrame:NSZeroRect];
+		[checkbox setButtonType:NSButtonTypeSwitch];
+		[checkbox setTitle:@""];
+		[checkbox setImagePosition:NSImageOnly];
+		[checkbox setControlSize:NSControlSizeSmall];
+		[checkbox sizeToFit];
+		[self addSubview:checkbox];
+
+		nameField = [NSTextField labelWithString:@""];
+		[nameField setFont:[NSFont systemFontOfSize:12]];
+		[nameField setLineBreakMode:NSLineBreakByTruncatingTail];
+		[self addSubview:nameField];
+		//The table's own outlet, so the highlight recolours the name by itself
+		[self setTextField:nameField];
+
+		strip = [[AIEmoticonPackStripView alloc] initWithFrame:NSZeroRect];
+		[self addSubview:strip];
+	}
+
+	return self;
+}
+
+- (void)setPack:(AIEmoticonPack *)pack
+{
+	[checkbox setState:([pack isEnabled] ? NSControlStateValueOn : NSControlStateValueOff)];
+	[nameField setStringValue:([pack name] ? [pack name] : @"")];
+	[strip setEmoticonPack:pack];
+	[self layoutFields];
+}
+
+- (void)layout
+{
+	[super layout];
+	[self layoutFields];
+}
+
+- (void)resizeSubviewsWithOldSize:(NSSize)oldSize
+{
+	[super resizeSubviewsWithOldSize:oldSize];
+	[self layoutFields];
+}
+
+- (void)layoutFields
+{
+	NSRect	bounds = [self bounds];
+	CGFloat	height = NSHeight(bounds);
+	NSSize	checkSize = [checkbox frame].size;
+	CGFloat	titleY = height - PACK_INSET - PACK_TITLE_HEIGHT;
+
+	//The switch and the name on the upper line
+	[checkbox setFrameOrigin:NSMakePoint(PACK_INSET, titleY + floor((PACK_TITLE_HEIGHT - checkSize.height) / 2.0f))];
+
+	CGFloat nameX = PACK_INSET + checkSize.width + 2.0f;
+	[nameField setFrame:NSMakeRect(nameX, titleY, MAX(1.0f, NSWidth(bounds) - nameX - PACK_INSET), PACK_TITLE_HEIGHT)];
+
+	//The strip on the lower one, aligned with the name
+	[strip setFrame:NSMakeRect(nameX, 2.0f, MAX(1.0f, NSWidth(bounds) - nameX - PACK_INSET), MAX(1.0f, titleY - 2.0f))];
+}
+
+@end
+
 @interface AIEmoticonPreferences ()
 - (void)_configureEmoticonListForSelection;
 - (void)moveSelectedPacksToTrash;
-- (void)configurePreviewControllers;
-
+- (void)reloadPacks;
+- (void)packToggled:(id)sender;
+- (void)emoticonToggled:(id)sender;
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
 
@@ -106,50 +251,25 @@ static NSMutableSet *openEmoticonPreferences = nil;
 {
 	//Pack table
 	[table_emoticonPacks registerForDraggedTypes:[NSArray arrayWithObject:EMOTICON_PACK_DRAG_TYPE]];
-	
-	//Configure the outline view
-	[[table_emoticonPacks tableColumnWithIdentifier:@"Emoticons"] setDataCell:[[AIGenericViewCell alloc] init]];
-	[table_emoticonPacks selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 	[table_emoticonPacks setToolTip:EMOTICON_PACKS_TOOLTIP];
 	[table_emoticonPacks setDelegate:self];
 	[table_emoticonPacks setDataSource:self];
-	[self configurePreviewControllers];
+	[table_emoticonPacks setUsesAlternatingRowBackgroundColors:YES];
+	[self reloadPacks];
+	[table_emoticonPacks selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 
-    //Emoticons table
+	//Emoticons table
 	selectedEmoticonPack = nil;
-	checkCell = [[NSButtonCell alloc] init];
-	[checkCell setButtonType:NSButtonTypeSwitch];
-	[checkCell setControlSize:NSControlSizeSmall];
-	[checkCell setTitle:@""];
-	[checkCell setRefusesFirstResponder:YES];
-	[[table_emoticons tableColumnWithIdentifier:@"Enabled"] setDataCell:checkCell];
+	[table_emoticons setUsesAlternatingRowBackgroundColors:YES];
 
-	NSImageCell *imageCell = [[NSImageCell alloc] initImageCell:nil];
-	if ([imageCell respondsToSelector:@selector(_setAnimates:)]) [imageCell _setAnimates:NO];
-	[[table_emoticons tableColumnWithIdentifier:@"Image"] setDataCell:imageCell];
-
-	AIVerticallyCenteredTextCell *textCell = [[AIVerticallyCenteredTextCell alloc] init];
-	[textCell setLineBreakMode:NSLineBreakByTruncatingTail];
-	[[table_emoticons tableColumnWithIdentifier:@"Name"] setDataCell:textCell];
-	
-	textCell = [[AIVerticallyCenteredTextCell alloc] init];
-	[textCell setLineBreakMode:NSLineBreakByTruncatingTail];
-	[[table_emoticons tableColumnWithIdentifier:@"String"] setDataCell:textCell];
-
-    [table_emoticons setUsesAlternatingRowBackgroundColors:YES];
-        
-    //Observe prefs    
+	//Observe prefs
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_EMOTICONS];
-    
-    //Configure the right pane to display the emoticons for the current selection
-    [self _configureEmoticonListForSelection];
+
+	//Configure the right pane to display the emoticons for the current selection
+	[self _configureEmoticonListForSelection];
 
 	[button_OK setTitle:AILocalizedStringFromTable(@"Close", @"Buttons", nil)];
-	
-	//Redisplay the emoticons after an small delay so the sample emoticons line up properly
-	//since the desired width isn't known by AIEmoticonPackCell until once through the list of packs
-	[table_emoticonPacks performSelector:@selector(display) withObject:nil afterDelay:0];
-	
+
 	viewIsOpen = YES;
 }
 
@@ -171,79 +291,53 @@ static NSMutableSet *openEmoticonPreferences = nil;
 	[openEmoticonPreferences removeObject:self];
 }
 
-- (void)configurePreviewControllers
+/*!
+ * @brief The packs, in the order they are used, straight from the controller
+ */
+- (void)reloadPacks
 {
-	NSEnumerator	*enumerator;
-	AIEmoticonPack	*pack;
-	NSView			*view;
-	
-	//First, remove any AIEmoticonPackPreviewView instances from the table
-	enumerator = [[[table_emoticonPacks subviews] copy] objectEnumerator];
-	while ((view = [enumerator nextObject])) {
-		if ([view isKindOfClass:[AIEmoticonPackPreviewView class]]) {
-			[view removeFromSuperviewWithoutNeedingDisplay];
-		}
-	}
-	
-	//Now [re]create the array of emoticon pack preview controlls
-	emoticonPackPreviewControllers = [[NSMutableArray alloc] init];
-	
-	enumerator = [[adium.emoticonController availableEmoticonPacks] objectEnumerator];
-	while ((pack = [enumerator nextObject])) {
-		[emoticonPackPreviewControllers addObject:[AIEmoticonPackPreviewController previewControllerForPack:pack
-																								preferences:self]];
-	}
-
-	//Finally, reload
+	emoticonPacks = [adium.emoticonController availableEmoticonPacks];
 	[table_emoticonPacks reloadData];
 }
 
 //Configure the emoticon table view for the currently selected pack
 - (void)_configureEmoticonListForSelection
 {
-    NSInteger         rowHeight = EMOTICON_MIN_ROW_HEIGHT;
-	NSInteger			selectedRow = [table_emoticonPacks selectedRow];
-	NSArray		*availableEmoticonPacks = [adium.emoticonController availableEmoticonPacks];
-	
-    //Remember the selected pack
-    if ([table_emoticonPacks numberOfSelectedRows] == 1 &&
-	   ((selectedRow != -1) && (selectedRow < [availableEmoticonPacks count]))) {
-        selectedEmoticonPack = [availableEmoticonPacks objectAtIndex:selectedRow];
-    } else {
-        selectedEmoticonPack = nil;
-    }
+	NSInteger	rowHeight = EMOTICON_MIN_ROW_HEIGHT;
+	NSInteger	selectedRow = [table_emoticonPacks selectedRow];
 
-    //Set the row height to the average height of the emoticons
-    if (selectedEmoticonPack) {
-        NSEnumerator    *enumerator;
-        AIEmoticon      *emoticon;
-        NSInteger             totalHeight = 0;
-        
-        enumerator = [[selectedEmoticonPack emoticons] objectEnumerator];
-        while ((emoticon = [enumerator nextObject])) {
-            totalHeight += [[emoticon image] size].height;
-        }
+	//Remember the selected pack
+	if ([table_emoticonPacks numberOfSelectedRows] == 1 &&
+		((selectedRow != -1) && (selectedRow < (NSInteger)[emoticonPacks count]))) {
+		selectedEmoticonPack = [emoticonPacks objectAtIndex:selectedRow];
+	} else {
+		selectedEmoticonPack = nil;
+	}
 
-        rowHeight = totalHeight / [[selectedEmoticonPack emoticons] count];
-        if (rowHeight < EMOTICON_MIN_ROW_HEIGHT) rowHeight = EMOTICON_MIN_ROW_HEIGHT;
+	//Set the row height to the average height of the emoticons
+	if (selectedEmoticonPack && [[selectedEmoticonPack emoticons] count]) {
+		NSInteger totalHeight = 0;
+
+		for (AIEmoticon *emoticon in [selectedEmoticonPack emoticons])
+			totalHeight += [[emoticon image] size].height;
+
+		rowHeight = totalHeight / [[selectedEmoticonPack emoticons] count];
+		if (rowHeight < EMOTICON_MIN_ROW_HEIGHT) rowHeight = EMOTICON_MIN_ROW_HEIGHT;
 		if (rowHeight > EMOTICON_MAX_ROW_HEIGHT) rowHeight = EMOTICON_MAX_ROW_HEIGHT;
-    }
-    
-	emoticonImageCache = [[NSMutableDictionary alloc] init];
-	
-    //Update the table
-    [table_emoticons reloadData];
-    [table_emoticons setRowHeight:rowHeight];
+	}
 
-    //Update header
-    if (selectedEmoticonPack) {
-		//Enable the individual emoticon checks only if the selectedEmoticonPack is enabled
-		[checkCell setEnabled:selectedEmoticonPack.isEnabled];
-		
-        [textField_packTitle setStringValue:[NSString stringWithFormat:AILocalizedString(@"Emoticons in %@","Emoticons in <an emoticon pack name>"),[selectedEmoticonPack name]]];
-    } else {
-        [textField_packTitle setStringValue:@""];
-    }
+	emoticonImageCache = [[NSMutableDictionary alloc] init];
+
+	//Update the table
+	[table_emoticons setRowHeight:rowHeight];
+	[table_emoticons reloadData];
+
+	//Update header
+	if (selectedEmoticonPack) {
+		[textField_packTitle setStringValue:[NSString stringWithFormat:AILocalizedString(@"Emoticons in %@","Emoticons in <an emoticon pack name>"),[selectedEmoticonPack name]]];
+	} else {
+		[textField_packTitle setStringValue:@""];
+	}
 }
 
 //Reflect new preferences in view
@@ -256,100 +350,136 @@ static NSMutableSet *openEmoticonPreferences = nil;
 }
 
 
-//Returns a dimmed, attributed version of the passed string
-- (NSAttributedString *)_dimString:(NSString *)inString center:(BOOL)center
-{
-    NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithObject:[NSColor grayColor] forKey:NSForegroundColorAttributeName];
-    
-    if (center) {
-        [attributes setObject:[NSParagraphStyle styleWithAlignment:NSTextAlignmentCenter]
-		       forKey:NSParagraphStyleAttributeName];
-    }
-
-    return [[NSAttributedString alloc] initWithString:inString attributes:attributes];
-}
-
 #pragma mark Table view data source
 //Emoticon table view
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
 {
-    if (tableView == table_emoticonPacks) {
-        return [emoticonPackPreviewControllers count];
-    } else {
-        return [[selectedEmoticonPack emoticons] count];
-    }
-}
-
-- (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
-{
-    if (tableView == table_emoticonPacks) {
-		[cell setEmbeddedView:[[emoticonPackPreviewControllers objectAtIndex:row] view]];
+	if (tableView == table_emoticonPacks) {
+		return [emoticonPacks count];
+	} else {
+		return [[selectedEmoticonPack emoticons] count];
 	}
 }
 
-//Emoticon table view delegates
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-	if (tableView == table_emoticonPacks)
-		return @"";
+	if (tableView == table_emoticonPacks) {
+		if (row < 0 || row >= (NSInteger)[emoticonPacks count])
+			return nil;
 
-	NSString    *identifier = [tableColumn identifier];
-	AIEmoticon  *emoticon = [[selectedEmoticonPack emoticons] objectAtIndex:row];
-	
-	if ([identifier isEqualToString:@"Enabled"])
-		return [NSNumber numberWithBool:emoticon.isEnabled]; 
-		
+		AIEmoticonPackCellView *view = [tableView makeViewWithIdentifier:@"pack" owner:nil];
+
+		if (!view) {
+			view = [[AIEmoticonPackCellView alloc] initWithFrame:NSZeroRect];
+			[view setIdentifier:@"pack"];
+			[[view checkbox] setTarget:self];
+			[[view checkbox] setAction:@selector(packToggled:)];
+		}
+
+		[view setPack:[emoticonPacks objectAtIndex:row]];
+		return view;
+	}
+
+	NSArray *emoticons = [selectedEmoticonPack emoticons];
+
+	if (row < 0 || row >= (NSInteger)[emoticons count])
+		return nil;
+
+	NSString	*identifier = [tableColumn identifier];
+	AIEmoticon	*emoticon = [emoticons objectAtIndex:row];
+	BOOL		packEnabled = selectedEmoticonPack.isEnabled;
+
+	if ([identifier isEqualToString:@"Enabled"]) {
+		//An emoticon in a switched off pack cannot be switched on by itself
+		return [tableView ai_checkboxCellViewForColumn:tableColumn
+													on:emoticon.isEnabled
+											   enabled:packEnabled
+												target:self
+												action:@selector(emoticonToggled:)];
+	}
+
 	if ([identifier isEqualToString:@"Image"]) {
-		NSNumber *key = [NSNumber numberWithUnsignedInteger:[emoticon hash]];
-		NSImage	*image = [emoticonImageCache objectForKey:key];
+		NSNumber	*key = [NSNumber numberWithUnsignedInteger:[emoticon hash]];
+		NSImage		*image = [emoticonImageCache objectForKey:key];
+
 		if (!image) {
 			image = [emoticon image];
 			if (image)
 				[emoticonImageCache setObject:image forKey:key];
 		}
-		
-		return image;
+
+		return [tableView ai_imageCellViewForColumn:tableColumn image:image];
 	}
-	
+
+	NSString *text;
+
 	if ([identifier isEqualToString:@"Name"]) {
-		if (selectedEmoticonPack.isEnabled && emoticon.isEnabled)
-			return emoticon.name;
-		
-		return [self _dimString:emoticon.name center:NO];
-	} 
-	
-	// if ([identifier compare:@"String"] == NSOrderedSame) {
-	NSArray *textEquivalents = [emoticon textEquivalents];
-	if ([textEquivalents count]) {
-		if (selectedEmoticonPack.isEnabled && emoticon.isEnabled)
-			return [textEquivalents objectAtIndex:0];
-		
-		return [self _dimString:[textEquivalents objectAtIndex:0] center:YES];
+		text = emoticon.name;
+	} else {
+		NSArray *textEquivalents = [emoticon textEquivalents];
+
+		text = ([textEquivalents count] ? [textEquivalents objectAtIndex:0] : @"");
 	}
-	
-	return @"";
+
+	NSTableCellView *view = [tableView ai_labelCellViewForColumn:tableColumn value:text];
+
+	//An emoticon that is off, or in a pack that is off, is greyed out
+	[[view textField] setTextColor:((packEnabled && emoticon.isEnabled) ? [NSColor labelColor] : [NSColor secondaryLabelColor])];
+	[[view textField] setAlignment:([identifier isEqualToString:@"String"] ? NSTextAlignmentCenter : NSTextAlignmentNatural)];
+
+	return view;
 }
 
-
-- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+//The emoticons list is a list of switches, not of things to select
+- (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row
 {
-	if (tableView == table_emoticons && [@"Enabled" isEqualToString:[tableColumn identifier]])		
-		[adium.emoticonController setEmoticon:[[selectedEmoticonPack emoticons] objectAtIndex:row] inPack:selectedEmoticonPack enabled:[object integerValue]];
+	return (tableView == table_emoticonPacks);
+}
+
+- (void)packToggled:(id)sender
+{
+	NSInteger row = [table_emoticonPacks rowForView:sender];
+
+	if (row < 0 || row >= (NSInteger)[emoticonPacks count])
+		return;
+
+	[adium.emoticonController setEmoticonPack:[emoticonPacks objectAtIndex:row]
+									  enabled:([sender state] == NSControlStateValueOn)];
+	[table_emoticonPacks selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO];
+}
+
+- (void)emoticonToggled:(id)sender
+{
+	NSInteger	row = [table_emoticons rowForView:sender];
+	NSArray		*emoticons = [selectedEmoticonPack emoticons];
+
+	if (row < 0 || row >= (NSInteger)[emoticons count])
+		return;
+
+	[adium.emoticonController setEmoticon:[emoticons objectAtIndex:row]
+								   inPack:selectedEmoticonPack
+								  enabled:([sender state] == NSControlStateValueOn)];
 }
 
 #pragma mark Drag and Drop
 
 
-- (BOOL)tableView:(NSTableView *)tableView writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard
+- (id <NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row
 {
 	if (tableView != table_emoticonPacks)
-		return NO;
-	
-	dragRows = rows;        
-	[pboard declareTypes:[NSArray arrayWithObject:EMOTICON_PACK_DRAG_TYPE] owner:self];
-	[pboard setString:@"dragPack" forType:EMOTICON_PACK_DRAG_TYPE];
+		return nil;
 
-	return YES;
+	NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
+	[item setString:@"dragPack" forType:EMOTICON_PACK_DRAG_TYPE];
+
+	return item;
+}
+
+//Which rows a drag took along; the drop moves the packs of these
+- (void)tableView:(NSTableView *)tableView draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint forRowIndexes:(NSIndexSet *)rowIndexes
+{
+	if (tableView == table_emoticonPacks)
+		dragRows = rowIndexes;
 }
 
 - (NSDragOperation)tableView:(NSTableView*)tableView validateDrop:(id <NSDraggingInfo>)info proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)op;
@@ -364,7 +494,7 @@ static NSMutableSet *openEmoticonPreferences = nil;
 {
 	if (tableView != table_emoticonPacks)
 		return NO;
-	
+
 	NSString	*availableType = [[info draggingPasteboard] availableTypeFromArray:[NSArray arrayWithObject:EMOTICON_PACK_DRAG_TYPE]];
 
 	if (![availableType isEqualToString:EMOTICON_PACK_DRAG_TYPE])
@@ -372,40 +502,25 @@ static NSMutableSet *openEmoticonPreferences = nil;
 
 	//Move
 	NSMutableArray  *movedPacks = [NSMutableArray array]; //Keep track of the packs we've moved
-	for (NSNumber *dragRow in dragRows) {
-		[movedPacks addObject:[[emoticonPackPreviewControllers objectAtIndex:[dragRow integerValue]] emoticonPack]];
-	}
+	NSArray			*packsBeforeMove = emoticonPacks;
+	[dragRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+		if (idx < [packsBeforeMove count])
+			[movedPacks addObject:[packsBeforeMove objectAtIndex:idx]];
+	}];
+	dragRows = nil;
 	[adium.emoticonController moveEmoticonPacks:movedPacks toIndex:row];
-	
-	[self configurePreviewControllers];
+	[self reloadPacks];
 
-	//Select the moved packs
+	//Select the moved packs, wherever they are now
 	[tableView deselectAll:nil];
-	for (AIEmoticonPackPreviewController *previewController in emoticonPackPreviewControllers) {
-		//If the moved packs contains this preview controller's pack, select it, wherever it may be
-		AIEmoticonPack	*emoticonPack = [previewController emoticonPack];
+	for (AIEmoticonPack *emoticonPack in emoticonPacks) {
 		if ([movedPacks containsObjectIdenticalTo:emoticonPack]) {
-			[tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:[emoticonPackPreviewControllers indexOfObject:previewController]] byExtendingSelection:NO];					
+			[tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:[emoticonPacks indexOfObjectIdenticalTo:emoticonPack]] byExtendingSelection:NO];
 		}
 	}
 
 	return YES;
 }
-
-/*
-- (void)tableViewSelectionIsChanging:(NSNotification *)notification
-{
-    if ([notification object] == table_emoticonPacks) {
-        [self _configureEmoticonListForSelection];
-    } else {
-        //I don't want the emoticon table to display its selection.
-        //Returning NO from 'shouldSelectRow' would work, but if we do that
-        //the checkbox cells stop working.  The best solution I've come up with
-        //so far is to just force a deselect here :( .
-        [table_emoticons deselectAll:nil];
-    }
-}
-*/
 
 #pragma mark Deletion
 
@@ -433,8 +548,8 @@ static NSMutableSet *openEmoticonPreferences = nil;
 		if (returnCode != NSAlertFirstButtonReturn)
 			return;
 
-		for (AIEmoticonPackPreviewController *previewController in [self->table_emoticonPacks selectedItemsFromArray:self->emoticonPackPreviewControllers]) {
-			[[NSFileManager defaultManager] trashFileAtPath:previewController.emoticonPack.path];
+		for (AIEmoticonPack *pack in [self->table_emoticonPacks selectedItemsFromArray:self->emoticonPacks]) {
+			[[NSFileManager defaultManager] trashFileAtPath:pack.path];
 		}
 
 		[self->table_emoticonPacks deselectAll:nil];
@@ -446,26 +561,14 @@ static NSMutableSet *openEmoticonPreferences = nil;
 #pragma mark Selection changes
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-    if ([notification object] == table_emoticonPacks) {
-        [self _configureEmoticonListForSelection];
-    } else {
-        //I don't want the emoticon table to display its selection.
-        //Returning NO from 'shouldSelectRow' would work, but if we do that
-        //the checkbox cells stop working.  The best solution I've come up with
-        //so far is to just force a deselect here :( .
-        [table_emoticons deselectAll:nil];
-    }
-}
-
-- (void)toggledPackController:(id)packController
-{
-	[table_emoticonPacks selectRowIndexes:[NSIndexSet indexSetWithIndex:[emoticonPackPreviewControllers indexOfObject:packController]] byExtendingSelection:NO];					
+	if ([notification object] == table_emoticonPacks)
+		[self _configureEmoticonListForSelection];
 }
 
 - (void)emoticonXtrasDidChange
 {
 	if (viewIsOpen)
-		[self configurePreviewControllers];
+		[self reloadPacks];
 }
 
 @end

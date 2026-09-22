@@ -170,7 +170,6 @@
 		ADD1E5C0DF00000000000025 /* AIStatusListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000022 /* AIStatusListView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3428328B07D2643F004F01C9 /* ESStatusPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */ = {isa = PBXBuildFile; fileRef = 342838ED07D2D004004F01C9 /* Shared Dock Icon Images */; };
-		342910CD07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3429BB06070378F700EED705 /* ESFileTransferMessagesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3429BB04070378F700EED705 /* ESFileTransferMessagesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		342F88CF0A2A74EB0001DB29 /* SGKeyCombo.m in Sources */ = {isa = PBXBuildFile; fileRef = 342F88C90A2A74EA0001DB29 /* SGKeyCombo.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		342F88D10A2A74EB0001DB29 /* SGHotKeyCenter.m in Sources */ = {isa = PBXBuildFile; fileRef = 342F88CB0A2A74EA0001DB29 /* SGHotKeyCenter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -436,7 +435,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		349C6E4907C96D45005EB896 /* CBContactCountingDisplayPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C6E4607C96D44005EB896 /* CBContactCountingDisplayPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		349C6E8E07C972B2005EB896 /* AIExtendedStatusPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C6E8C07C972B2005EB896 /* AIExtendedStatusPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		349C6F6607C99ACF005EB896 /* ESContactListAdvancedPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C6F6407C99ACE005EB896 /* ESContactListAdvancedPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		349E2E8E07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 349E2E8C07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34A1A8CA0DFB246400AC78CF /* AISocialNetworkingStatusMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A1A8C80DFB246300AC78CF /* AISocialNetworkingStatusMenu.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34A1A8CB0DFB246400AC78CF /* AISocialNetworkingStatusMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A1A8C90DFB246300AC78CF /* AISocialNetworkingStatusMenu.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34A1A8E70DFB276E00AC78CF /* SocialNetworkingCustomStatus.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34A1A8E60DFB276E00AC78CF /* SocialNetworkingCustomStatus.xib */; };
@@ -523,8 +521,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34BFE25007E8E5F200AD984D /* AIAutoLinkingPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE24E07E8E5F100AD984D /* AIAutoLinkingPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		A11B0001E5F0000000000001 /* AIInlineMediaLinkPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = A11B0001E5F0000000000002 /* AIInlineMediaLinkPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34BFE2D807E8E74400AD984D /* AIChatConsolidationPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */; };
 		34C18B0D06CAC95400FF5FF9 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34E839050583207E00F2AADB /* SystemConfiguration.framework */; };
 		34C68B260778FA1300EB423C /* ESGeneralPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C68B240778FA1300EB423C /* ESGeneralPreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34C68B2C0778FA5C00EB423C /* ESGeneralPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C68B2A0778FA5C00EB423C /* ESGeneralPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1699,8 +1695,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		3428328707D2643F004F01C9 /* ESStatusPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESStatusPreferencesPlugin.m; path = Source/ESStatusPreferencesPlugin.m; sourceTree = "<group>"; };
 		342838ED07D2D004004F01C9 /* Shared Dock Icon Images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Shared Dock Icon Images"; path = "Resources/Shared Dock Icon Images"; sourceTree = "<group>"; };
 		3428B33E0815E1FB00C0D3DC /* emoticon32.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = emoticon32.tiff; path = Resources/emoticon32.tiff; sourceTree = "<group>"; };
-		342910CA07AE228600C815F6 /* AIEmoticonPackPreviewTableView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewTableView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewTableView.h; sourceTree = "<group>"; };
-		342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewTableView.m; path = Plugins/Emoticons/AIEmoticonPackPreviewTableView.m; sourceTree = "<group>"; };
 		3429BB03070378F700EED705 /* ESFileTransferMessagesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESFileTransferMessagesPlugin.h; path = Source/ESFileTransferMessagesPlugin.h; sourceTree = "<group>"; };
 		3429BB04070378F700EED705 /* ESFileTransferMessagesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferMessagesPlugin.m; path = Source/ESFileTransferMessagesPlugin.m; sourceTree = "<group>"; };
 		342CE141085A08A100005C63 /* sv */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = sv; path = Resources/sv.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2117,8 +2111,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		349C6F6307C99ACE005EB896 /* ESContactListAdvancedPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESContactListAdvancedPreferences.h; path = Source/ESContactListAdvancedPreferences.h; sourceTree = "<group>"; };
 		349C6F6407C99ACE005EB896 /* ESContactListAdvancedPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESContactListAdvancedPreferences.m; path = Source/ESContactListAdvancedPreferences.m; sourceTree = "<group>"; };
 		349DDD5206406A7D00542726 /* stackImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = stackImage.png; path = Frameworks/Adium/stackImage.png; sourceTree = "<group>"; };
-		349E2E8B07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewController.h; path = Plugins/Emoticons/AIEmoticonPackPreviewController.h; sourceTree = "<group>"; };
-		349E2E8C07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewController.m; path = Plugins/Emoticons/AIEmoticonPackPreviewController.m; sourceTree = "<group>"; };
 		349FE2FC074D01D200E36B3B /* ESFileTransferProgressWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferProgressWindowController.m; path = Source/ESFileTransferProgressWindowController.m; sourceTree = "<group>"; };
 		349FE2FD074D01D300E36B3B /* ESFileTransferProgressWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESFileTransferProgressWindowController.h; path = Source/ESFileTransferProgressWindowController.h; sourceTree = "<group>"; };
 		349FE2FE074D01D300E36B3B /* ESFileTransferProgressView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESFileTransferProgressView.m; path = Source/ESFileTransferProgressView.m; sourceTree = "<group>"; };
@@ -2333,9 +2325,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		A11B0001E5F0000000000003 /* AIInlineMediaLinkPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIInlineMediaLinkPlugin.h; path = Source/AIInlineMediaLinkPlugin.h; sourceTree = "<group>"; };
 		34BFE2D507E8E74400AD984D /* AIChatConsolidationPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIChatConsolidationPlugin.h; path = Source/AIChatConsolidationPlugin.h; sourceTree = SOURCE_ROOT; };
 		34BFE2D607E8E74400AD984D /* AIChatConsolidationPlugin.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIChatConsolidationPlugin.m; path = Source/AIChatConsolidationPlugin.m; sourceTree = SOURCE_ROOT; };
-		34C14CD007A8B1AB003CC138 /* AIEmoticonPackPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEmoticonPackPreviewView.h; path = Plugins/Emoticons/AIEmoticonPackPreviewView.h; sourceTree = "<group>"; };
-		34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIEmoticonPackPreviewView.m; path = Plugins/Emoticons/AIEmoticonPackPreviewView.m; sourceTree = "<group>"; };
-		34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EmoticonPackPreview.xib; path = Plugins/Emoticons/EmoticonPackPreview.xib; sourceTree = "<group>"; };
 		34C2CF85063340540018E5D2 /* PurpleMultilineRequestWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PurpleMultilineRequestWindow.xib; path = "Plugins/Purple Service/PurpleMultilineRequestWindow.xib"; sourceTree = "<group>"; };
 		34C2CF86063340540018E5D2 /* PurpleSinglelineRequestWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PurpleSinglelineRequestWindow.xib; path = "Plugins/Purple Service/PurpleSinglelineRequestWindow.xib"; sourceTree = "<group>"; };
 		34C2D70306338E2E0018E5D2 /* ESWebKitMessageViewPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESWebKitMessageViewPreferences.h; path = "Plugins/WebKit Message View/ESWebKitMessageViewPreferences.h"; sourceTree = "<group>"; };
@@ -4805,14 +4794,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				F5F0FE9C04B12CAC01A80106 /* AIEmoticonPreferences.h */,
 				F5F0FE9D04B12CAC01A80106 /* AIEmoticonPreferences.m */,
 				F5F0FEA004B1336C01A80106 /* EmoticonPrefs.xib */,
-				342910CA07AE228600C815F6 /* AIEmoticonPackPreviewTableView.h */,
-				342910CB07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m */,
-				34C14CD007A8B1AB003CC138 /* AIEmoticonPackPreviewView.h */,
-				34C14CD107A8B1AB003CC138 /* AIEmoticonPackPreviewView.m */,
-				349E2E8B07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.h */,
-				349E2E8C07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m */,
 				F5F0FEA204B133AB01A80106 /* EmoticonDefaults.plist */,
-				34C14D5007A8BA00003CC138 /* EmoticonPackPreview.xib */,
 			);
 			name = "Emoticon Preferences";
 			sourceTree = "<group>";
@@ -6863,7 +6845,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				3461621706FB482D009181D8 /* UserList Layout.plist in Resources */,
 				346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */,
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
-				34C14D5107A8BA00003CC138 /* EmoticonPackPreview.xib in Resources */,
 				ADD1E5C0DE00000000000F02 /* AccountProxy.xib in Resources */,
 				4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */,
 				4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */,
@@ -7320,10 +7301,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34C68B2C0778FA5C00EB423C /* ESGeneralPreferences.m in Sources */,
 				4BDAF69907A1561000276D68 /* AIAccountProxySettings.m in Sources */,
 				34DFF5FD07A63DB400B92233 /* ESSecureMessagingPlugin.m in Sources */,
-				349E2E8E07A8AF0C00EAB76A /* AIEmoticonPackPreviewController.m in Sources */,
-				34C14CD307A8B1AB003CC138 /* AIEmoticonPackPreviewView.m in Sources */,
 				4BE6175E07AC67EE0049C87D /* AIStateMenuPlugin.m in Sources */,
-				342910CD07AE228600C815F6 /* AIEmoticonPackPreviewTableView.m in Sources */,
 				34E2A0BC07AF5924006735BC /* ESAccountNetworkConnectivityPlugin.m in Sources */,
 				34E2A0C307AF593B006735BC /* AIAccountMenuAccessPlugin.m in Sources */,
 				34E2A1DB07AF6504006735BC /* AIDockAccountStatusPlugin.m in Sources */,
