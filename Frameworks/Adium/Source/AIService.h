@@ -16,7 +16,7 @@
 
 #import <Adium/AIServiceIcons.h>
 
-@class AIAccountViewController, DCJoinChatViewController;
+@class DCJoinChatViewController;
 
 //Service importance, used to group and order services
 typedef enum {
@@ -39,7 +39,6 @@ typedef enum {
 //Account Creation
 - (id)accountWithUID:(NSString *)inUID internalObjectID:(NSString *)inInternalObjectID;
 @property (readonly, nonatomic) Class accountClass;
-@property (readonly, nonatomic) AIAccountViewController *accountViewController;
 @property (readonly, nonatomic) DCJoinChatViewController *joinChatView;
 
 //Service Description

@@ -16,6 +16,11 @@
 
 #import "CBPurpleAccount.h"
 
+//The keys the old account sheet stored under; the plan carries them over to the protocol's own
+#define KEY_WHATSAPP_IGNORE_STATUS		@"WhatsApp:Ignore Status Broadcasts"
+#define KEY_WHATSAPP_IGNORE_NEWSLETTERS	@"WhatsApp:Ignore Newsletters"
+#define KEY_WHATSAPP_PROFILE_PICTURES	@"WhatsApp:Profile Pictures"
+
 @interface AIPurpleWhatsAppAccount : CBPurpleAccount {
 }
 

@@ -16,7 +16,6 @@
 
 #import "AIPurpleGenericService.h"
 #import "AIPurpleGenericAccount.h"
-#import "AIPurpleGenericAccountViewController.h"
 #import "SLPurpleCocoaAdapter.h"
 
 #import <Adium/AIStatusControllerProtocol.h>
@@ -115,11 +114,6 @@
 - (Class)accountClass
 {
 	return [AIPurpleGenericAccount class];
-}
-
-- (AIAccountViewController *)accountViewController
-{
-	return [AIPurpleGenericAccountViewController accountViewController];
 }
 
 - (BOOL)protocolHasOption:(NSString *)setting

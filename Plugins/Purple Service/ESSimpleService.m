@@ -16,7 +16,6 @@
 
 #import "ESSimpleService.h"
 #import "ESPurpleSimpleAccount.h"
-#import "ESPurpleSimpleAccountViewController.h"
 #import <Adium/AIStatusControllerProtocol.h>
 #import <AIUtilities/AIImageAdditions.h>
 
@@ -24,10 +23,6 @@
 //Account Creation
 - (Class)accountClass{
 	return [ESPurpleSimpleAccount class];
-}
-
-- (AIAccountViewController *)accountViewController{
-    return [ESPurpleSimpleAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{

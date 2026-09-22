@@ -17,7 +17,6 @@
 #import <Adium/AIStatusControllerProtocol.h>
 #import "DCPurpleNovellJoinChatViewController.h"
 #import "ESPurpleNovellAccount.h"
-#import "ESPurpleNovellAccountViewController.h"
 #import "ESNovellService.h"
 
 @implementation ESNovellService
@@ -25,10 +24,6 @@
 //Account Creation
 - (Class)accountClass{
 	return [ESPurpleNovellAccount class];
-}
-
-- (AIAccountViewController *)accountViewController{
-    return [ESPurpleNovellAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{

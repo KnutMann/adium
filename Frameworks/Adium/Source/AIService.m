@@ -17,7 +17,6 @@
 #import <Adium/AIAccount.h>
 #import <Adium/AIService.h>
 #import <Adium/AIAccountControllerProtocol.h>
-#import <Adium/AIAccountViewController.h>
 #import "AICreateCommand.h"
 
 /*!
@@ -77,18 +76,6 @@
 - (Class)accountClass
 {
 	return nil;
-}
-
-/*!
- * @brief Account view controller for this service
- *
- * Subclass to return an account view controller which provides the necessary controls for configuring an account
- * on this service.
- * @return An AIAccountViewController or subclass for this service.
- */
-- (AIAccountViewController *)accountViewController
-{
-	return [AIAccountViewController accountViewController];
 }
 
 /*!

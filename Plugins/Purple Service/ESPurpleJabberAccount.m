@@ -40,7 +40,6 @@
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "AMXMLConsoleController.h"
 #import "AMPurpleJabberServiceDiscoveryBrowsing.h"
-#import "ESPurpleJabberAccountViewController.h"
 #import "AMPurpleJabberAdHocServer.h"
 #import "AMPurpleJabberHTTPFileUpload.h"
 #import "AMPurpleJabberMAM.h"

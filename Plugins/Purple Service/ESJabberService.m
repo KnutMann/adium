@@ -17,7 +17,6 @@
 #import <Adium/AIStatusControllerProtocol.h>
 #import "DCPurpleJabberJoinChatViewController.h"
 #import "ESPurpleJabberAccount.h"
-#import "ESPurpleJabberAccountViewController.h"
 #import "ESJabberService.h"
 #import "AMPurpleJabberMoodTooltip.h"
 #import <AIUtilities/AICharacterSetAdditions.h>
@@ -58,10 +57,6 @@
 //Account Creation
 - (Class)accountClass{
 	return [ESPurpleJabberAccount class];
-}
-
-- (AIAccountViewController *)accountViewController{
-    return [ESPurpleJabberAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{

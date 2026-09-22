@@ -18,17 +18,12 @@
 #import "DCPurpleGaduGaduJoinChatViewController.h"
 #import "ESGaduGaduService.h"
 #import "ESPurpleGaduGaduAccount.h"
-#import "ESPurpleGaduGaduAccountViewController.h"
 
 @implementation ESGaduGaduService
 
 //Account Creation
 - (Class)accountClass{
 	return [ESPurpleGaduGaduAccount class];
-}
-
-- (AIAccountViewController *)accountViewController{
-    return [ESPurpleGaduGaduAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{

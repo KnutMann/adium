@@ -16,7 +16,6 @@
 
 #import "ESIRCService.h"
 #import "ESIRCAccount.h"
-#import "ESIRCAccountViewController.h"
 #import "ESIRCJoinChatViewController.h"
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
@@ -26,10 +25,6 @@
 //Account Creation
 - (Class)accountClass{
 	return [ESIRCAccount class];
-}
-
-- (AIAccountViewController *)accountViewController{
-    return [ESIRCAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{

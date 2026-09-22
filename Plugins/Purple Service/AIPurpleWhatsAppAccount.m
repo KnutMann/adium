@@ -19,7 +19,6 @@
 #import <Adium/AIContentMessage.h>
 #import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
-#import "AIWhatsAppAccountViewController.h"
 #import "SLPurpleCocoaAdapter.h"
 
 /* The key the protocol plug-in reads the correction target from. Spelled here rather than

@@ -17,7 +17,6 @@
 #import <Adium/AIStatusControllerProtocol.h>
 #import "AIWhatsAppService.h"
 #import "AIPurpleWhatsAppAccount.h"
-#import "AIWhatsAppAccountViewController.h"
 #import <AIUtilities/AIImageAdditions.h>
 
 /*!
@@ -33,10 +32,6 @@
 //Account Creation
 - (Class)accountClass{
 	return [AIPurpleWhatsAppAccount class];
-}
-
-- (AIAccountViewController *)accountViewController{
-	return [AIWhatsAppAccountViewController accountViewController];
 }
 
 - (DCJoinChatViewController *)joinChatView{
