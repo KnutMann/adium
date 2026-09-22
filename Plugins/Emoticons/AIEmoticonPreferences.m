@@ -262,6 +262,18 @@ static NSMutableSet *openEmoticonPreferences = nil;
 	selectedEmoticonPack = nil;
 	[table_emoticons setUsesAlternatingRowBackgroundColors:YES];
 
+	/* Neither list has anything to show sideways, and neither should give when pushed that way.
+	 * The nib leaves both tables at a fixed width, so a table wider than its scroll view scrolled
+	 * across, and even one that fit bounced; each takes its scroll view's width and keeps it. */
+	for (NSTableView *table in [NSArray arrayWithObjects:table_emoticonPacks, table_emoticons, nil]) {
+		NSScrollView *scrollView = [table enclosingScrollView];
+
+		[scrollView setHorizontalScrollElasticity:NSScrollElasticityNone];
+		[table setAutoresizingMask:NSViewWidthSizable];
+		[table setFrameSize:NSMakeSize([scrollView contentSize].width, NSHeight([table frame]))];
+		[table sizeLastColumnToFit];
+	}
+
 	//Observe prefs
 	[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_EMOTICONS];
 
