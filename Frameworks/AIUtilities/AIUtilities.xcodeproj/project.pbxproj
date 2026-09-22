@@ -130,8 +130,6 @@
 		633400340F9C14C2003C77A9 /* AIOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF510F9C14BF003C77A9 /* AIOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400350F9C14C2003C77A9 /* AIAlternatingRowOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF520F9C14C0003C77A9 /* AIAlternatingRowOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400360F9C14C2003C77A9 /* AIAlternatingRowOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF530F9C14C0003C77A9 /* AIAlternatingRowOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		633400370F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF550F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		633400380F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF560F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400390F9C14C2003C77A9 /* AIVariableHeightOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF570F9C14C0003C77A9 /* AIVariableHeightOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6334003A0F9C14C2003C77A9 /* AIVariableHeightOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF580F9C14C0003C77A9 /* AIVariableHeightOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6334003B0F9C14C2003C77A9 /* AIMultiCellOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF590F9C14C0003C77A9 /* AIMultiCellOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -595,8 +593,6 @@
 		6334FF510F9C14BF003C77A9 /* AIOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOutlineView.m; path = Source/AIOutlineView.m; sourceTree = "<group>"; };
 		6334FF520F9C14C0003C77A9 /* AIAlternatingRowOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAlternatingRowOutlineView.h; path = Source/AIAlternatingRowOutlineView.h; sourceTree = "<group>"; };
 		6334FF530F9C14C0003C77A9 /* AIAlternatingRowOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAlternatingRowOutlineView.m; path = Source/AIAlternatingRowOutlineView.m; sourceTree = "<group>"; };
-		6334FF550F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIVariableHeightFlexibleColumnsOutlineView.h; path = Source/AIVariableHeightFlexibleColumnsOutlineView.h; sourceTree = "<group>"; };
-		6334FF560F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIVariableHeightFlexibleColumnsOutlineView.m; path = Source/AIVariableHeightFlexibleColumnsOutlineView.m; sourceTree = "<group>"; };
 		6334FF570F9C14C0003C77A9 /* AIVariableHeightOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIVariableHeightOutlineView.h; path = Source/AIVariableHeightOutlineView.h; sourceTree = "<group>"; };
 		6334FF580F9C14C0003C77A9 /* AIVariableHeightOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIVariableHeightOutlineView.m; path = Source/AIVariableHeightOutlineView.m; sourceTree = "<group>"; };
 		6334FF590F9C14C0003C77A9 /* AIMultiCellOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMultiCellOutlineView.h; path = Source/AIMultiCellOutlineView.h; sourceTree = "<group>"; };
@@ -1755,8 +1751,6 @@
 		6334FF540F9C14C0003C77A9 /* Outline view with separate group & content cells */ = {
 			isa = PBXGroup;
 			children = (
-				6334FF550F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h */,
-				6334FF560F9C14C0003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m */,
 				6334FF570F9C14C0003C77A9 /* AIVariableHeightOutlineView.h */,
 				6334FF580F9C14C0003C77A9 /* AIVariableHeightOutlineView.m */,
 				6334FF590F9C14C0003C77A9 /* AIMultiCellOutlineView.h */,
@@ -2110,7 +2104,6 @@
 				633400330F9C14C2003C77A9 /* AIOutlineView.h in Headers */,
 				633400350F9C14C2003C77A9 /* AIAlternatingRowOutlineView.h in Headers */,
 				5AD04C2D1821E8D3009801F8 /* ISO8601DateFormatter.h in Headers */,
-				633400370F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.h in Headers */,
 				633400390F9C14C2003C77A9 /* AIVariableHeightOutlineView.h in Headers */,
 				6334003B0F9C14C2003C77A9 /* AIMultiCellOutlineView.h in Headers */,
 				6334004D0F9C14C2003C77A9 /* AIToolbarTabView.h in Headers */,
@@ -2466,7 +2459,6 @@
 				633400300F9C14C2003C77A9 /* AIFlexibleLink.m in Sources */,
 				633400340F9C14C2003C77A9 /* AIOutlineView.m in Sources */,
 				633400360F9C14C2003C77A9 /* AIAlternatingRowOutlineView.m in Sources */,
-				633400380F9C14C2003C77A9 /* AIVariableHeightFlexibleColumnsOutlineView.m in Sources */,
 				6334003A0F9C14C2003C77A9 /* AIVariableHeightOutlineView.m in Sources */,
 				6334003C0F9C14C2003C77A9 /* AIMultiCellOutlineView.m in Sources */,
 				6334004E0F9C14C2003C77A9 /* AIToolbarTabView.m in Sources */,

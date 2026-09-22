@@ -28,7 +28,7 @@
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
-#import <AIUtilities/AIVariableHeightFlexibleColumnsOutlineView.h>
+#import <AIUtilities/AIOutlineView.h>
 #import <AIUtilities/AIVerticallyCenteredTextCell.h>
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIArrayAdditions.h>

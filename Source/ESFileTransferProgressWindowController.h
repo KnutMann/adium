@@ -16,14 +16,14 @@
 
 #import <Adium/AIWindowController.h>
 
-@class ESFileTransfer, ESFileTransferProgressRow, AIVariableHeightOutlineView;
+@class ESFileTransfer, ESFileTransferProgressRow, AIFileTransferProgressOutlineView;
 
 @interface ESFileTransferProgressWindowController : AIWindowController <NSOutlineViewDelegate, NSOutlineViewDataSource> {
 	NSMutableArray				*progressRows;
 	ESFileTransferProgressRow	*selectedRow;
 	
 	IBOutlet NSScrollView					*scrollView;
-	IBOutlet AIVariableHeightOutlineView	*outlineView;
+	IBOutlet AIFileTransferProgressOutlineView	*outlineView;
 	
 	IBOutlet NSButton						*button_clear;
 	IBOutlet NSTextField					*textField_statusBar;

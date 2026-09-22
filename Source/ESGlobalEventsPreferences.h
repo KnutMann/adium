@@ -16,7 +16,7 @@
 
 #import <Adium/AIPreferencePane.h>
 
-@class ESContactAlertsViewController, AIVariableHeightFlexibleColumnsOutlineView;
+@class ESContactAlertsViewController, AIOutlineView;
 
 /*!
  * @class ESGlobalEventsPreferences
@@ -62,7 +62,7 @@
 	 * nib wired into that controller. Let go of again by -tearDown: the container belongs to the
 	 * form once it has been handed over. */
 	NSView										*view_alertsHost;
-	AIVariableHeightFlexibleColumnsOutlineView	*outlineView_alerts;
+	AIOutlineView						*outlineView_alerts;
 
 	/* A height update for the events card is due on the next turn of the run loop. The outline's
 	 * frame moves from inside its own tiling, which must not be re-entered; -alertsListFrameChanged:

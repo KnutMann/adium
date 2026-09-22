@@ -18,7 +18,7 @@
 #import "ESFileTransferProgressView.h"
 #import "ESFileTransferProgressWindowController.h"
 #import "ESFileTransfer.h"
-#import <AIUtilities/AIVariableHeightOutlineView.h>
+#import "AIFileTransferProgressOutlineView.h"
 #import <AIUtilities/AIArrayAdditions.h>
 
 #define FILE_TRANSFER_PROGRESS_NIB			@"FileTransferProgressWindow"
