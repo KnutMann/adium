@@ -81,7 +81,7 @@ void send_default_query_to_chat(AIChat *inChat);
 void disconnect_from_chat(AIChat *inChat);
 void disconnect_from_context(ConnContext *context);
 TrustLevel otrg_plugin_context_to_trust(ConnContext *context);
-static void display_otr_message_for_context(ConnContext *context, NSString *message);
+static void display_otr_message_for_context(ConnContext *context, NSString *message, BOOL mustBeSeen);
 
 /* AILocalizedString needs self; these run in C callbacks */
 #define OTRLocalizedString(key, comment) \
@@ -650,10 +650,14 @@ static void inject_message_cb(void *opdata, const char *accountname,
  *
  * This should be displayed within the relevant chat.
  *
+ * @param mustBeSeen The message reports something the user has lost or must act
+ *                   on, so it is shown even when the window is closed; the
+ *                   window opens for it, as it does for an incoming message.
+ *
  * @result 0 if we handled displaying the message; 1 if we could not
  */
 static int display_otr_message(const char *accountname, const char *protocol,
-							   const char *username, const char *msg)
+							   const char *username, const char *msg, BOOL mustBeSeen)
 {
 	NSString			*message;
 	AIListContact		*listContact = contactFromInfo(accountname, protocol, username);
@@ -675,7 +679,7 @@ static int display_otr_message(const char *accountname, const char *protocol,
 											 withUsername:listContact.displayName
 								   isWorthOpeningANewChat:&isWorthOpeningANewChat];
 
-		if (isWorthOpeningANewChat) {
+		if (isWorthOpeningANewChat || mustBeSeen) {
 			//Create a new chat if we don't already have one and this message is worth it
 			if (!chat)
 				chat = [adium.chatController chatWithContact:listContact];
@@ -816,7 +820,7 @@ static void still_secure_cb(void *opdata, ConnContext *context, int is_reply)
 
 			display_otr_message_for_context(context,
 				[NSString stringWithFormat:OTRLocalizedString(@"Successfully refreshed the private conversation with %@.", nil),
-				 (listContact.displayName ?: @"?")]);
+				 (listContact.displayName ?: @"?")], NO);
 		}
 	}
 }
@@ -900,7 +904,7 @@ static void display_unencrypted_incoming(ConnContext *context, NSString *body)
  * event the user has to see - "your message was not sent" above all - and the
  * reference forces the conversation open for exactly these. A closed window
  * used to swallow them. */
-static void display_otr_message_for_context(ConnContext *context, NSString *message)
+static void display_otr_message_for_context(ConnContext *context, NSString *message, BOOL mustBeSeen)
 {
 	if (!context || !message) return;
 
@@ -908,7 +912,7 @@ static void display_otr_message_for_context(ConnContext *context, NSString *mess
 
 	if (listContact) [adium.chatController chatWithContact:listContact];
 
-	display_otr_message(context->accountname, context->protocol, context->username, [message UTF8String]);
+	display_otr_message(context->accountname, context->protocol, context->username, [message UTF8String], mustBeSeen);
 }
 
 /* Return a message to be sent to the peer when an OTR error occurs (libotr 4.x) */
@@ -1040,6 +1044,15 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 								 msg_event == OTRL_MSGEVENT_SETUP_ERROR ||
 								 msg_event == OTRL_MSGEVENT_ENCRYPTION_ERROR);
 
+		/* Everything here reports something that did not happen: a message of
+		 * theirs that could not be read, one of ours that did not go out, a
+		 * session that ended. A closed window used to swallow all of it, and
+		 * the user learned nothing at all. The one exception is the note that
+		 * another of their devices took the message, which is true of every
+		 * message of a conversation held elsewhere and would open a window for
+		 * each. */
+		BOOL mustBeSeen = (msg_event != OTRL_MSGEVENT_RCVDMSG_FOR_OTHER_INSTANCE);
+
 		if (isHandshakeError && context && context->accountname && context->username) {
 			if (otrHandshakeIsInCooldown(context->accountname, context->username)) {
 				/* Loop already broken and explained; hold quiet through the flood. */
@@ -1050,7 +1063,7 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 			}
 		}
 
-		if (text) display_otr_message_for_context(context, text);
+		if (text) display_otr_message_for_context(context, text, mustBeSeen);
 	}
 }
 
@@ -1089,7 +1102,7 @@ static void handle_smp_event_cb(void *opdata, OtrlSMPEvent smp_event, ConnContex
 				break;
 		}
 
-		if (text) display_otr_message_for_context(context, text);
+		if (text) display_otr_message_for_context(context, text, YES);
 	}
 }
 
@@ -1241,7 +1254,7 @@ static void otrg_plugin_abort_smp(ConnContext *context)
     tlv = otrl_tlv_find(tlvs, OTRL_TLV_DISCONNECTED);
     if (tlv) {
 		/* Notify the user that the other side disconnected. */
-		display_otr_message(accountname, protocol, username, CLOSED_CONNECTION_MESSAGE);
+		display_otr_message(accountname, protocol, username, CLOSED_CONNECTION_MESSAGE, YES);
 
 		/* And show it. The library has just moved the context to FINISHED
 		 * without telling any callback - gone_insecure is never called on this
