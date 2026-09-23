@@ -944,6 +944,72 @@ static void otr_error_message_free_cb(void *opdata, const char *err_msg)
 	if (err_msg) free((char *)err_msg);
 }
 
+/* Set while the library is reading one incoming message, if it reported that
+ * the message belongs to a private conversation we do not have. Read straight
+ * after that call returns, on the same thread, and nowhere else. */
+static BOOL otrNotInPrivateReported = NO;
+
+/* The prefix the protocol puts in front of an error sent to the other side.
+ * The library keeps it to itself, so it is spelled out here. */
+#define ADIUM_OTR_ERROR_PREFIX "?OTR Error: "
+
+/* Tell the sender that their encrypted message could not be read.
+ *
+ * The library deliberately stays silent here: a version 2 message carries no
+ * address, so it might have been meant for another of our devices, and
+ * answering would be rude. A version 3 message does carry one, and when it
+ * names this very session there is no ambiguity left. Silence then costs both
+ * sides everything: the sender's program believes the message was delivered,
+ * and the reader never learns one was sent. An error sent back ends that. The
+ * sender's program starts a fresh handshake on it, and once that is up it
+ * repeats its last message by itself, so the newest of the lost messages comes
+ * through without anyone retyping it.
+ *
+ * Held back while the loop breaker is cooling down, so two programs that cannot
+ * agree do not trade errors forever.
+ *
+ * @result YES if an error was sent
+ */
+static BOOL reply_to_unreadable_message(const char *message, const char *accountname,
+										const char *protocol, const char *username)
+{
+	if (!message || !accountname || !protocol || !username) return NO;
+	if (otrl_proto_message_type(message) != OTRL_MSGTYPE_DATA) return NO;
+	if (otrl_proto_message_version(message) != 3) return NO;
+
+	unsigned int instanceFrom = 0, instanceTo = 0;
+
+	if (otrl_proto_instance(message, &instanceFrom, &instanceTo)) return NO;
+
+	OtrlInsTag *ourInstance = otrl_instag_find(otrg_plugin_userstate, accountname, protocol);
+
+	if (!ourInstance || instanceTo < OTRL_MIN_VALID_INSTAG || instanceTo != ourInstance->instag) return NO;
+
+	/* Only when this side really has no session for that sender. An encrypted
+	 * one that merely failed to decrypt is the library's business, and it does
+	 * answer for that case itself. */
+	ConnContext *context = otrl_context_find(otrg_plugin_userstate, username, accountname, protocol,
+											 instanceFrom, 0, NULL, NULL, NULL);
+
+	/* Named in the log because the state here is what the open question about
+	 * the silent first message turns on: no context at all reads as -1. */
+	AILog(@"OTR: unreadable message from instance %u for our %u, context state %d",
+		  instanceFrom, instanceTo, (context ? (int)context->msgstate : -1));
+
+	if (context && context->msgstate == OTRL_MSGSTATE_ENCRYPTED) return NO;
+	if (otrHandshakeIsInCooldown(accountname, username)) return NO;
+
+	const char *errorText = otr_error_message_cb(NULL, context, OTRL_ERRCODE_MSG_NOT_IN_PRIVATE);
+
+	if (errorText) {
+		inject_message_cb(NULL, accountname, protocol, username,
+						  [[NSString stringWithFormat:@"%s%s", ADIUM_OTR_ERROR_PREFIX, errorText] UTF8String]);
+		otr_error_message_free_cb(NULL, errorText);
+	}
+
+	return (errorText != NULL);
+}
+
 /* Handle and display OTR message events; replaces the notify/display
  * callbacks of libotr 3.x, so errors reach the user again. */
 /* Whether the previous message event was already "for another instance";
@@ -985,6 +1051,7 @@ static void handle_msg_event_cb(void *opdata, OtrlMessageEvent msg_event, ConnCo
 				text = [NSString stringWithFormat:OTRLocalizedString(@"The last message to %@ was resent.", nil), displayName];
 				break;
 			case OTRL_MSGEVENT_RCVDMSG_NOT_IN_PRIVATE:
+				otrNotInPrivateReported = YES;
 				text = [NSString stringWithFormat:OTRLocalizedString(@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", nil), displayName];
 				break;
 			case OTRL_MSGEVENT_RCVDMSG_UNREADABLE:
@@ -1227,6 +1294,8 @@ static void otrg_plugin_abort_smp(ConnContext *context)
 	 * If newMessage is set to non-NULL and res is not 0, display nothing as this was an OTR message
 	 * If newMessage is set to NULL and res is 0, use message
 	 */
+	otrNotInPrivateReported = NO;
+
     res = otrl_message_receiving(otrg_plugin_userstate, &ui_ops, NULL,
 								 accountname, protocol, username, message,
 								 &newMessage, &tlvs, NULL, NULL, NULL);
@@ -1246,6 +1315,26 @@ static void otrg_plugin_abort_smp(ConnContext *context)
 		decryptedMessage = nil;
 		
 		AILogWithSignature(@"Skipping an OTR protocol message.");
+
+		/* A message addressed to this very session that we have no session for.
+		 * The sender is told, because nobody else will tell them. */
+		if (reply_to_unreadable_message(message, accountname, protocol, username)) {
+			AILogWithSignature(@"Told %@ that their encrypted message could not be read.", inListContact.UID);
+
+			/* Seen on 22.09.2026: the first such message of a run drew no event
+			 * from the library at all, so the user was told nothing. The reason
+			 * is still unknown, so say it here rather than leave the screen
+			 * blank, and leave a line in the log for the next time. */
+			if (!otrNotInPrivateReported) {
+				AILogWithSignature(@"The library reported no event for it; saying so here instead.");
+
+				NSString *text = [NSString stringWithFormat:
+					OTRLocalizedString(@"An encrypted message from %@ was received, but you are not currently communicating privately. It cannot be read.", nil),
+					(inListContact.displayName ?: @"?")];
+
+				display_otr_message(accountname, protocol, username, [text UTF8String], YES);
+			}
+		}
 	}
 
 	if (newMessage)
