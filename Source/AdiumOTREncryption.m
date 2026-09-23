@@ -602,6 +602,17 @@ static void create_instag_cb(void *opdata, const char *accountname,
  * If you return 1, messages such as heartbeats or other
  * notifications may be sent to the user, which could result in "not
  * logged in" errors if you're wrong. */
+/* Whether a message to this contact has somewhere to go.
+ *
+ * The library asks this in one place only: before sending the notice that ends
+ * a private conversation. A plain "are they online right now" is the wrong
+ * question there. On 21.09.2026 a contact whose presence had not arrived again
+ * after a reconnect counted as offline, the goodbye was skipped, and his client
+ * kept writing into a session this side had forgotten - five messages of his
+ * were lost, unreadable and unannounced. What matters is whether the message
+ * can be delivered at all, and on a protocol that stores messages for an absent
+ * contact it can: the server holds the notice until they next log in, which is
+ * exactly when they would otherwise resume the dead session. */
 static int is_logged_in_cb(void *opdata, const char *accountname,
 						   const char *protocol, const char *recipient)
 {
@@ -609,10 +620,15 @@ static int is_logged_in_cb(void *opdata, const char *accountname,
 
 	@autoreleasepool {
 		AIListContact *contact = contactFromInfo(accountname, protocol, recipient);
-		if ([contact statusSummary] == AIUnknownStatus)
+
+		if (contact.online)
+			ret = 1;
+		else if ([contact.account availableForSendingContentType:CONTENT_MESSAGE_TYPE toContact:contact])
+			ret = 1;
+		else if ([contact statusSummary] == AIUnknownStatus)
 			ret = -1;
 		else
-			ret = (contact.online ? 1 : 0);
+			ret = 0;
 	}
 
 	return ret;
