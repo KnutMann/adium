@@ -55,6 +55,12 @@
 - (void)AI_initTextColorPreviewView
 {
 	backColorOverride = nil;
+
+	/* Stay inside the frame. Until macOS 14 a view was clipped to its own
+	 * bounds whether it asked to be or not; now it is not, and this one paints
+	 * a filled rectangle. Without this the swatch covers the sheet it sits in,
+	 * and everything drawn before it disappears, buttons included. */
+	self.clipsToBounds = YES;
 }
 
 - (void)drawRect:(NSRect)rect
@@ -64,15 +70,21 @@
 	NSShadow			*textShadow = nil;
 	NSSize				sampleSize;
 	
+	/* The swatch is the whole view, every time. What arrives as rect is only the
+	 * part that needs repainting, which is smaller whenever something overlapped
+	 * this view a moment ago; filling that instead used to leave a half painted
+	 * swatch with the sample word off to one side. */
+	NSRect swatch = self.bounds;
+
 	// Background
 	if (([backgroundEnabled state] != NSControlStateValueOff) && backgroundGradientColor) {
-		[[[NSGradient alloc] initWithStartingColor:[backgroundGradientColor color] endingColor:[backgroundColor color]] drawInRect:rect angle:90.0f];
+		[[[NSGradient alloc] initWithStartingColor:[backgroundGradientColor color] endingColor:[backgroundColor color]] drawInRect:swatch angle:90.0f];
 	} else {
 		NSColor *backColor = (backColorOverride ? backColorOverride : [backgroundColor color]);
 		
 		if (backColor) {
 			[backColor set];
-			[NSBezierPath fillRect:rect];
+			[NSBezierPath fillRect:swatch];
 		}
 	}
 
@@ -104,8 +116,8 @@
 											 attributes:attributes];
 	sampleSize = [sample size];
 
-	[sample drawInRect:NSIntegralRect(NSMakeRect(rect.origin.x + ((rect.size.width - sampleSize.width) / 2.0f),
-												 rect.origin.y + ((rect.size.height - sampleSize.height) / 2.0f),
+	[sample drawInRect:NSIntegralRect(NSMakeRect(swatch.origin.x + ((swatch.size.width - sampleSize.width) / 2.0f),
+												 swatch.origin.y + ((swatch.size.height - sampleSize.height) / 2.0f),
 												 sampleSize.width,
 												 sampleSize.height))];
 }
