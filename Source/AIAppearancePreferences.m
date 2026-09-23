@@ -416,10 +416,17 @@ static NSString *AIRowLabel(NSString *label)
 	 * packages rather than files, it answers with a made up type derived from the extension, and
 	 * every comparison below would then fail and no menu would ever be rebuilt. Asking by tag
 	 * gives what the function this replaces gave, which was checked against it for the Xtra
-	 * extensions and for an ordinary one. */
-	UTType *type = [UTType typeWithTag:filenameExtension
-							  tagClass:UTTagClassFilenameExtension
-					  conformingToType:nil];
+	 * extensions and for an ordinary one.
+	 *
+	 * No extension at all means every kind changed, which is how this is called once at setup to
+	 * fill the menus in the first place. It has to be kept away from the question: asked for
+	 * nothing, the type system does not answer nothing, it raises, and the menus that are built
+	 * here and nowhere else then stay empty. */
+	UTType *type = (filenameExtension ?
+					[UTType typeWithTag:filenameExtension
+							   tagClass:UTTagClassFilenameExtension
+					   conformingToType:nil] :
+					nil);
 
 	//The same question as before: is this that type, not is it a kind of it
 	BOOL (^changed)(NSString *) = ^BOOL(NSString *identifier) {
