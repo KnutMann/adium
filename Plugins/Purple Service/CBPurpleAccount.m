@@ -1263,7 +1263,17 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	
 	//Clear the typing flag of the chat since a message was just received
 	[self setTypingFlagOfChat:chat to:nil];
-	
+
+	/* Nothing to show. This is how a message the encryption layer handled and
+	 * swallowed arrives, and how one it could not read arrives too: the text is
+	 * gone, and what is left would be an empty line in the conversation, an
+	 * unread mark, and a sound, all for something the user cannot see. The
+	 * layer says its own piece about those; passing the husk on adds nothing. */
+	if (!attributedMessage.length) {
+		AILogWithSignature(@"Empty message from %@, nothing to display.", listContact.UID);
+		return;
+	}
+
 	[self _receivedMessage:attributedMessage
 					inChat:chat
 		   fromListContact:listContact
@@ -1287,6 +1297,11 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	NSAttributedString	*attributedMessage = [adium.contentController decodedIncomingMessage:[messageDict objectForKey:@"Message"]
 																				fromContact:chat.listObject
 																				  onAccount:self];
+
+	if (!attributedMessage.length) {
+		AILogWithSignature(@"Empty message echoed from another device, nothing to display.");
+		return;
+	}
 
 	[self _receivedMessage:attributedMessage
 					inChat:chat
