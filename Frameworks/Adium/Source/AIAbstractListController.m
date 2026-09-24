@@ -20,10 +20,7 @@
 #import <Adium/AIListCell.h>
 #import <Adium/AIListContactCell.h>
 #import <Adium/AIListContactGroupChatCell.h>
-#import <Adium/AIListGroupBubbleCell.h>
-#import <Adium/AIListGroupBubbleToFitCell.h>
 #import <Adium/AIListGroupCell.h>
-#import <Adium/AIListGroupMockieCell.h>
 #import <Adium/AIListObject.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListGroup.h>
@@ -354,21 +351,22 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 			contentCell = [[AIListContactCell alloc] init];
 		break;
 		case AIContactListWindowStyleGroupBubbles:
-			groupCell = [[AIListGroupMockieCell alloc] init];
+			groupCell = [[AIListGroupCell alloc] init];
+			groupCell.shape = AIListRowShapeMockie;
 			contentCell = [[AIListContactCell alloc] init];
 			contentCell.shape = AIListRowShapeMockie;
 		break;
 		case AIContactListWindowStyleContactBubbles:
-			groupCell = [[AIListGroupBubbleCell alloc] init];
+			groupCell = [[AIListGroupCell alloc] init];
+			groupCell.shape = AIListRowShapeBubble;
 			contentCell = [[AIListContactCell alloc] init];
 			contentCell.shape = AIListRowShapeBubble;
 		break;
 		case AIContactListWindowStyleContactBubbles_Fitted:
+			groupCell = [[AIListGroupCell alloc] init];
+			groupCell.shape = AIListRowShapeBubble;
 			//Right-aligned groups need to be full-width, not fitted
-			if (groupCellAlignment == NSTextAlignmentLeft)
-				groupCell = [[AIListGroupBubbleToFitCell alloc] init];
-			else
-				groupCell = [[AIListGroupBubbleCell alloc] init];
+			groupCell.fitted = (groupCellAlignment == NSTextAlignmentLeft);
 			//Content can always be to-fit
 			contentCell = [[AIListContactCell alloc] init];
 			contentCell.shape = AIListRowShapeBubble;
@@ -502,9 +500,9 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		[contentCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
 		[contentCell setDrawWithGradient:[[prefDict objectForKey:KEY_LIST_LAYOUT_CONTACT_BUBBLE_GRADIENT] boolValue]];		
 
-		[(AIListGroupBubbleCell *)groupCell setOutlineBubble:outlineBubble];
-		[(AIListGroupBubbleCell *)groupCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
-		[(AIListGroupBubbleCell *)groupCell setHideBubble:[[prefDict objectForKey:KEY_LIST_LAYOUT_GROUP_HIDE_BUBBLE] boolValue]];
+		[groupCell setOutlineBubble:outlineBubble];
+		[groupCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
+		[groupCell setHideBubble:[[prefDict objectForKey:KEY_LIST_LAYOUT_GROUP_HIDE_BUBBLE] boolValue]];
 	}
 
 	/* Background colours.

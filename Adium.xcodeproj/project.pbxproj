@@ -746,12 +746,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34DC8ABA0A7EEEF7003E1636 /* AIListContactCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F485E06DA5E1E0072E2FA /* AIListContactCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8AC10A7EEEF7003E1636 /* AIListGroupCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F487F06DA5E440072E2FA /* AIListGroupCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AC20A7EEEF7003E1636 /* AIListGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F487B06DA5E440072E2FA /* AIListGroupCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		34DC8AC30A7EEEF7003E1636 /* AIListGroupMockieCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F487706DA5E440072E2FA /* AIListGroupMockieCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		34DC8AC40A7EEEF7003E1636 /* AIListGroupMockieCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F487806DA5E440072E2FA /* AIListGroupMockieCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		34DC8AC50A7EEEF7003E1636 /* AIListGroupBubbleCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F487A06DA5E440072E2FA /* AIListGroupBubbleCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		34DC8AC60A7EEEF7003E1636 /* AIListGroupBubbleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F487E06DA5E440072E2FA /* AIListGroupBubbleCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		34DC8AC70A7EEEF7003E1636 /* AIListGroupBubbleToFitCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F487D06DA5E440072E2FA /* AIListGroupBubbleToFitCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		34DC8AC80A7EEEF7003E1636 /* AIListGroupBubbleToFitCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F487C06DA5E440072E2FA /* AIListGroupBubbleToFitCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8AC90A7EEEF7003E1636 /* AIContentObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B82139D049CC3A000A8010A /* AIContentObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8ACA0A7EEEF7003E1636 /* AIContentObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B82139E049CC3A000A8010A /* AIContentObject.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8ACB0A7EEEF7003E1636 /* AIContentContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 6ECFABC606223733001C7E93 /* AIContentContext.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1604,13 +1598,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		AD1057A0FADE0001C0DE0001 /* AIListRowView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListRowView.h; path = Frameworks/Adium/Source/AIListRowView.h; sourceTree = "<group>"; };
 		340F485D06DA5E1E0072E2FA /* AIListContactCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListContactCell.h; path = Frameworks/Adium/Source/AIListContactCell.h; sourceTree = "<group>"; };
 		340F485E06DA5E1E0072E2FA /* AIListContactCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListContactCell.m; path = Frameworks/Adium/Source/AIListContactCell.m; sourceTree = "<group>"; };
-		340F487706DA5E440072E2FA /* AIListGroupMockieCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListGroupMockieCell.h; path = Frameworks/Adium/Source/AIListGroupMockieCell.h; sourceTree = "<group>"; };
-		340F487806DA5E440072E2FA /* AIListGroupMockieCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListGroupMockieCell.m; path = Frameworks/Adium/Source/AIListGroupMockieCell.m; sourceTree = "<group>"; };
-		340F487A06DA5E440072E2FA /* AIListGroupBubbleCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListGroupBubbleCell.h; path = Frameworks/Adium/Source/AIListGroupBubbleCell.h; sourceTree = "<group>"; };
 		340F487B06DA5E440072E2FA /* AIListGroupCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListGroupCell.m; path = Frameworks/Adium/Source/AIListGroupCell.m; sourceTree = "<group>"; };
-		340F487C06DA5E440072E2FA /* AIListGroupBubbleToFitCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListGroupBubbleToFitCell.m; path = Frameworks/Adium/Source/AIListGroupBubbleToFitCell.m; sourceTree = "<group>"; };
-		340F487D06DA5E440072E2FA /* AIListGroupBubbleToFitCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListGroupBubbleToFitCell.h; path = Frameworks/Adium/Source/AIListGroupBubbleToFitCell.h; sourceTree = "<group>"; };
-		340F487E06DA5E440072E2FA /* AIListGroupBubbleCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListGroupBubbleCell.m; path = Frameworks/Adium/Source/AIListGroupBubbleCell.m; sourceTree = "<group>"; };
 		340F487F06DA5E440072E2FA /* AIListGroupCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListGroupCell.h; path = Frameworks/Adium/Source/AIListGroupCell.h; sourceTree = "<group>"; };
 		34111A5D06BE1B370005AF5C /* ESObjectWithProperties.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ESObjectWithProperties.h; path = Frameworks/Adium/Source/ESObjectWithProperties.h; sourceTree = "<group>"; };
 		34111A5E06BE1B370005AF5C /* ESObjectWithProperties.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ESObjectWithProperties.m; path = Frameworks/Adium/Source/ESObjectWithProperties.m; sourceTree = "<group>"; };
@@ -5192,12 +5180,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			children = (
 				340F487F06DA5E440072E2FA /* AIListGroupCell.h */,
 				340F487B06DA5E440072E2FA /* AIListGroupCell.m */,
-				340F487706DA5E440072E2FA /* AIListGroupMockieCell.h */,
-				340F487806DA5E440072E2FA /* AIListGroupMockieCell.m */,
-				340F487A06DA5E440072E2FA /* AIListGroupBubbleCell.h */,
-				340F487E06DA5E440072E2FA /* AIListGroupBubbleCell.m */,
-				340F487D06DA5E440072E2FA /* AIListGroupBubbleToFitCell.h */,
-				340F487C06DA5E440072E2FA /* AIListGroupBubbleToFitCell.m */,
 			);
 			name = Group;
 			sourceTree = "<group>";
@@ -6372,9 +6354,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC8AB70A7EEEF7003E1636 /* AIListCell.h in Headers */,
 				AD1057A0FADE0001C0DE0203 /* AIListRowView.h in Headers */,
 				34DC8AC10A7EEEF7003E1636 /* AIListGroupCell.h in Headers */,
-				34DC8AC30A7EEEF7003E1636 /* AIListGroupMockieCell.h in Headers */,
-				34DC8AC50A7EEEF7003E1636 /* AIListGroupBubbleCell.h in Headers */,
-				34DC8AC70A7EEEF7003E1636 /* AIListGroupBubbleToFitCell.h in Headers */,
 				34DC8ACB0A7EEEF7003E1636 /* AIContentContext.h in Headers */,
 				34DC8ACD0A7EEEF7003E1636 /* AIContentMessage.h in Headers */,
 				34DC8ACF0A7EEEF7003E1636 /* AIContentStatus.h in Headers */,
@@ -7552,9 +7531,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				AD1057A0FADE0001C0DE0304 /* AIListRowView.m in Sources */,
 				34DC8ABA0A7EEEF7003E1636 /* AIListContactCell.m in Sources */,
 				34DC8AC20A7EEEF7003E1636 /* AIListGroupCell.m in Sources */,
-				34DC8AC40A7EEEF7003E1636 /* AIListGroupMockieCell.m in Sources */,
-				34DC8AC60A7EEEF7003E1636 /* AIListGroupBubbleCell.m in Sources */,
-				34DC8AC80A7EEEF7003E1636 /* AIListGroupBubbleToFitCell.m in Sources */,
 				34DC8ACA0A7EEEF7003E1636 /* AIContentObject.m in Sources */,
 				34DC8ACC0A7EEEF7003E1636 /* AIContentContext.m in Sources */,
 				34DC8ACE0A7EEEF7003E1636 /* AIContentMessage.m in Sources */,

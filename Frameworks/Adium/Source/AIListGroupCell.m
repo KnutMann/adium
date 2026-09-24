@@ -17,6 +17,7 @@
 #import <Adium/AIListGroupCell.h>
 #import <Adium/AIListOutlineView.h>
 #import <Adium/ESObjectWithProperties.h>
+#import <AIUtilities/AIBezierPathAdditions.h>
 #import <AIUtilities/AIColorAdditions.h>
 #import <AIUtilities/AIGradientAdditions.h>
 #import <AIUtilities/AIParagraphStyleAdditions.h>
@@ -33,10 +34,13 @@
 {
 	if ((self = [super init])) {
 		shadowColor = nil;
-		backgroundColor = nil;
+		groupBackgroundColor = nil;
 		gradientColor = nil;
-		_gradient = nil;
+		for (int i = 0; i < NUMBER_OF_GROUP_STATES; i++) _gradient[i] = nil;
 		drawsGradientEdges = NO;
+		outlineBubble = NO;
+		outlineBubbleLineWidth = 1.0f;
+		drawBubble = YES;
 		layoutManager = [[NSLayoutManager alloc] init];
 	}
 	
@@ -65,8 +69,8 @@
 //Set the background color and alternate/gradient background color of this group
 - (void)setBackgroundColor:(NSColor *)inBackgroundColor gradientColor:(NSColor *)inGradientColor
 {
-	if (inBackgroundColor != backgroundColor) {
-		backgroundColor = inBackgroundColor;
+	if (inBackgroundColor != groupBackgroundColor) {
+		groupBackgroundColor = inBackgroundColor;
 	}
 	if (inGradientColor != gradientColor) {
 		gradientColor = inGradientColor;
@@ -91,10 +95,10 @@
 	return [super bottomPadding] + 1;
 }
 - (CGFloat)leftPadding{
-	return [super leftPadding] + 2;
+	return [super leftPadding] + 2 + (shape == AIListRowShapeBubble ? BUBBLE_EDGE_INDENT : 0);
 }
 - (CGFloat)rightPadding{
-	return [super rightPadding] + 4;
+	return [super rightPadding] + 4 + (shape == AIListRowShapeBubble ? BUBBLE_EDGE_INDENT : 0);
 }
 
 //Cell height and width
@@ -116,9 +120,37 @@
 		NSAttributedString *countText = [[NSAttributedString alloc] initWithString:[listObject valueForProperty:@"countText"]
 																		attributes:[self labelAttributes]];
 		width += AIceil([countText size].width) + 1;
+
+		//A fitted bubble writes the count into the name, in brackets
+		if (shape == AIListRowShapeBubble && fitted) {
+			NSAttributedString *brackets = [[NSAttributedString alloc] initWithString:@" ()"
+																		   attributes:[self labelAttributes]];
+			width += AIceil([brackets size].width);
+		}
 	}
 	
 	return width + 1;
+}
+
+/*!
+ * @brief The name as it is drawn
+ *
+ * A fitted bubble has no room to the right for a count, so it is added to the
+ * name instead.
+ */
+- (NSAttributedString *)displayName
+{
+	NSString *countText;
+	AIListObject *listObject = [proxyObject listObject];
+
+	if (shape == AIListRowShapeBubble && fitted &&
+		[listObject boolValueForProperty:@"showCount"] &&
+		(countText = [listObject valueForProperty:@"countText"])) {
+		return [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ (%@)", [self labelString], countText]
+											   attributes:[self labelAttributes]];
+	}
+
+	return super.displayName;
 }
 
 /*!
@@ -180,6 +212,10 @@
 {
     AIListObject *listObject = [proxyObject listObject];
 
+	/* A fitted bubble carries the count inside the name, flush with it. Drawing
+	 * it right justified as well would put it outside the bubble. */
+	if (shape == AIListRowShapeBubble && fitted) return inRect;
+
 	if ([listObject valueForProperty:@"countText"]) {
 		NSAttributedString	*groupCount = [[NSAttributedString alloc] initWithString:[listObject valueForProperty:@"countText"]
 																		  attributes:[self labelAttributes]];
@@ -210,8 +246,64 @@
 	return inRect;
 }
 
-//Draw the background of our cell
-- (void)drawBackgroundWithFrame:(NSRect)rect
+#pragma mark Shape
+
+/*!
+ * @brief The rectangle the shape is drawn in
+ *
+ * The whole frame, unless the bubble is fitted, in which case it is pulled in
+ * around the name.
+ */
+- (NSRect)bubbleRectForFrame:(NSRect)rect
+{
+	if (shape != AIListRowShapeBubble || !fitted) return rect;
+
+	NSSize	nameSize = [self.displayName size];
+	CGFloat	originalWidth = rect.size.width;
+	CGFloat	originalX = rect.origin.x;
+
+	//Alignment
+	switch ([self textAlignment]) {
+		case NSTextAlignmentCenter:
+			rect.origin.x += ((rect.size.width - nameSize.width) / 2.0f) - [self leftPadding];
+		break;
+		case NSTextAlignmentRight:
+			rect.origin.x += (rect.size.width - nameSize.width) - [self leftPadding] - [self rightPadding];
+		break;
+		default:
+		break;
+	}
+
+	//Fit the bubble to their name
+	rect.size.width = nameSize.width + [self leftPadding] + [self rightPadding];
+
+	//Until we get right aligned/centered flippies, this will do
+	if ([self textAlignment] == NSTextAlignmentLeft) {
+		rect.size.width += [self flippyIndent];
+	}
+
+	//Don't let the bubble try to draw larger than the width we were passed, which was the full width possible
+	if (rect.size.width > originalWidth) rect.size.width = originalWidth;
+	if (rect.origin.x < originalX) rect.origin.x = originalX;
+
+	return rect;
+}
+
+/*!
+ * @brief The Mockie shape of a group
+ *
+ * An open group rounds only its top, so that it runs into the contact below it;
+ * a closed one is a block of its own and rounds all four corners.
+ */
+- (NSBezierPath *)mockieBackgroundPathForFrame:(NSRect)rect
+{
+	return ([self.outlineControlView isItemExpanded:proxyObject] ?
+			[NSBezierPath bezierPathWithRoundedTopCorners:rect radius:MOCKIE_RADIUS] :
+			[NSBezierPath bezierPathWithRoundedRect:rect radius:MOCKIE_RADIUS]);
+}
+
+//Draw the cached gradient picture, which is where the colour set's group colours end up
+- (void)drawGradientBackgroundInFrame:(NSRect)rect
 {
 	if (![self cellIsSelected] && drawsBackground) {
 		[[self cachedGradient:rect.size] drawInRect:rect
@@ -219,6 +311,115 @@
 										  operation:NSCompositingOperationCopy
 										   fraction:1.0f];
 	}
+}
+
+//Draw the background of our cell
+- (void)drawBackgroundWithFrame:(NSRect)rect
+{
+	switch (shape) {
+		case AIListRowShapePlain:
+			[self drawGradientBackgroundInFrame:rect];
+			break;
+
+		case AIListRowShapeMockie:
+			if (drawsBackground) {
+				[self drawGradientBackgroundInFrame:rect];
+			} else if (![self cellIsSelected]) {
+				[[self backgroundColor] set];
+				[[self mockieBackgroundPathForFrame:rect] fill];
+			}
+			break;
+
+		case AIListRowShapeBubble:
+			if (!drawBubble) break;
+			if (drawsBackground) {
+				[self drawGradientBackgroundInFrame:[self bubbleRectForFrame:rect]];
+			} else if (![self cellIsSelected]) {
+				NSBezierPath *bezierPath = [NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:rect]];
+
+				[[self backgroundColor] set];
+				[bezierPath fill];
+
+				if (outlineBubble) {
+					[bezierPath setLineWidth:outlineBubbleLineWidth];
+					[[self textColor] set];
+					[bezierPath stroke];
+				}
+			}
+			break;
+	}
+}
+
+//Draw a custom selection
+- (void)drawSelectionWithFrame:(NSRect)cellFrame
+{
+	if (shape == AIListRowShapePlain || ![self cellIsSelected]) return;
+
+	NSColor *highlightColor = [self.outlineControlView highlightColor];
+	NSGradient *gradient = (highlightColor ?
+							[[NSGradient alloc] initWithStartingColor:highlightColor
+														  endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] :
+							[NSGradient selectedControlGradient]);
+
+	/* The two shapes have always run their gradient in opposite directions.
+	 * Kept as it was; it belongs on the list for the colour round. */
+	if (shape == AIListRowShapeMockie) {
+		[gradient drawInBezierPath:[self mockieBackgroundPathForFrame:cellFrame] angle:90.0f];
+	} else {
+		[gradient drawInBezierPath:[NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:cellFrame]] angle:270.0f];
+	}
+}
+
+- (void)drawDropHighlightWithFrame:(NSRect)rect
+{
+	if (shape == AIListRowShapePlain) {
+		[super drawDropHighlightWithFrame:rect];
+		return;
+	}
+
+	[NSGraphicsContext saveGraphicsState];
+
+	//Ensure we don't draw outside our rect
+	[[NSBezierPath bezierPathWithRect:rect] addClip];
+
+	//Cell spacing
+	rect.origin.y += [self topSpacing];
+	rect.size.height -= [self bottomSpacing] + [self topSpacing];
+	rect.origin.x += [self leftSpacing];
+	rect.size.width -= [self rightSpacing] + [self leftSpacing];
+
+	//Margin for the drop highlight
+	rect.size.width -= DROP_HIGHLIGHT_WIDTH_MARGIN;
+	rect.origin.x += DROP_HIGHLIGHT_WIDTH_MARGIN / 2.0f;
+
+	rect.size.height -= DROP_HIGHLIGHT_HEIGHT_MARGIN;
+	rect.origin.y += DROP_HIGHLIGHT_HEIGHT_MARGIN / 2.0f;
+
+	NSBezierPath *path = (shape == AIListRowShapeMockie ?
+						  [self mockieBackgroundPathForFrame:rect] :
+						  [NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:rect]]);
+
+	[[[NSColor blueColor] colorWithAlphaComponent:0.2f] set];
+	[path fill];
+
+	[[[NSColor blueColor] colorWithAlphaComponent:0.8f] set];
+	[path setLineWidth:2.0f];
+	[path stroke];
+
+	[NSGraphicsContext restoreGraphicsState];
+}
+
+- (void)setOutlineBubble:(BOOL)flag
+{
+	outlineBubble = flag;
+}
+- (void)setOutlineBubbleLineWidth:(float)inWidth
+{
+	outlineBubbleLineWidth = inWidth;
+}
+- (void)setHideBubble:(BOOL)flag
+{
+	drawBubble = !(flag);
 }
 
 //Color of our flippy triangle (disclosure triangle).  By default we use the cell's text color.
@@ -267,18 +468,23 @@
 //Gradient -------------------------------------------------------------------------------------------------------------
 #pragma mark Gradient
 //Generates and caches an NSImage containing the group background gradient
+/* Two pictures, not one: a Mockie group is drawn with its bottom corners round
+ * when it is closed and square when it is open, so the two states cannot share
+ * a cache. */
 - (NSImage *)cachedGradient:(NSSize)inSize
 {
-	if (!_gradient || !NSEqualSizes(inSize,_gradientSize)) {
-		_gradient = [[NSImage alloc] initWithSize:inSize];
-		_gradientSize = inSize;
-		
-		[_gradient lockFocus];
+	AIGroupState state = ([self.outlineControlView isItemExpanded:proxyObject] ? AIGroupExpanded : AIGroupCollapsed);
+
+	if (!_gradient[state] || !NSEqualSizes(inSize, _gradientSize[state])) {
+		_gradient[state] = [[NSImage alloc] initWithSize:inSize];
+		_gradientSize[state] = inSize;
+
+		[_gradient[state] lockFocus];
 		[self drawBackgroundGradientInRect:NSMakeRect(0,0,inSize.width,inSize.height)];
-		[_gradient unlockFocus];
+		[_gradient[state] unlockFocus];
 	}
-	
-	return _gradient;
+
+	return _gradient[state];
 }
 
 //Draw our background gradient
@@ -286,20 +492,41 @@
 {
 	CGFloat backgroundL;
 	CGFloat gradientL;
-	
+
+	/* The two rounded shapes take the gradient in their own outline and leave it
+	 * at that; the sealing lines below belong to the square row. */
+	if (shape == AIListRowShapeMockie) {
+		[[self backgroundGradient] drawInBezierPath:[self mockieBackgroundPathForFrame:inRect] angle:90.0f];
+		return;
+	}
+
+	if (shape == AIListRowShapeBubble) {
+		if (!drawBubble) return;
+
+		NSBezierPath *bezierPath = [NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:inRect]];
+		[[self backgroundGradient] drawInBezierPath:bezierPath angle:90.0f];
+
+		if (outlineBubble) {
+			[bezierPath setLineWidth:outlineBubbleLineWidth];
+			[[self textColor] set];
+			[bezierPath stroke];
+		}
+		return;
+	}
+
 	//Gradient
 	[[self backgroundGradient] drawInRect:inRect angle:90.0f];
 	
 	//Add a sealing line at the light side of the gradient to make it look more polished.  Apple does this with
 	//most gradients in OS X.
-	[backgroundColor getHue:NULL saturation:NULL brightness:&backgroundL alpha:NULL];
+	[groupBackgroundColor getHue:NULL saturation:NULL brightness:&backgroundL alpha:NULL];
 	[gradientColor   getHue:NULL saturation:NULL brightness:&gradientL   alpha:NULL];
 	
 	if (gradientL < backgroundL) { //Seal the top
 		[gradientColor set];
 		[NSBezierPath fillRect:NSMakeRect(inRect.origin.x, inRect.origin.y, inRect.size.width, 1)];
 	} else { //Seal the bottom
-		[backgroundColor set];
+		[groupBackgroundColor set];
 		[NSBezierPath fillRect:NSMakeRect(inRect.origin.x, inRect.origin.y + inRect.size.height - 1, inRect.size.width, 1)];
 	}
 	
@@ -313,13 +540,16 @@
 //Group background gradient
 - (NSGradient *)backgroundGradient
 {
-	return [[NSGradient alloc] initWithStartingColor:backgroundColor endingColor:gradientColor];
+	return [[NSGradient alloc] initWithStartingColor:groupBackgroundColor endingColor:gradientColor];
 }
 
 //Reset gradient cache
 - (void)flushGradientCache
 {
-	_gradient = nil;
+	for (int i = 0; i < NUMBER_OF_GROUP_STATES; i++) {
+		_gradient[i] = nil;
+		_gradientSize[i] = NSMakeSize(0,0);
+	}
 }
 
 @end

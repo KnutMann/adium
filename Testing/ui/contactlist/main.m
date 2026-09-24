@@ -475,10 +475,13 @@ int main(int argc, const char *argv[])
 								  [NSString stringWithFormat:@"%@-%@.png", job[@"stem"], mode]]);
 
 				if (!dark) {
-					[report appendFormat:@"%@\n  Fensterstil %@ | Zelle Kontakt %@ (%.0f hoch), Gruppe %@ (%.0f hoch) | Wunschbreite %ld, Wunschhoehe %ld\n",
+					AIListCell *contentCell = (AIListCell *)[outlineView contentCell];
+					AIListCell *groupCell = (AIListCell *)[outlineView groupCell];
+					NSArray *shapeNames = @[@"eckig", @"Mockie", @"Blase"];
+					[report appendFormat:@"%@\n  Fensterstil %@ | Kontakt: %@%@, %.0f hoch | Gruppe: %@%@, %.0f hoch | Wunschbreite %ld, Wunschhoehe %ld\n",
 					 job[@"stem"], styleNames[[job[@"style"] intValue]],
-					 NSStringFromClass([[outlineView contentCell] class]), [[outlineView contentCell] cellSize].height,
-					 NSStringFromClass([[outlineView groupCell] class]), [[outlineView groupCell] cellSize].height,
+					 shapeNames[contentCell.shape], (contentCell.fitted ? @" eng" : @""), contentCell.cellSize.height,
+					 shapeNames[groupCell.shape], (groupCell.fitted ? @" eng" : @""), groupCell.cellSize.height,
 					 (long)outlineView.desiredWidth, (long)outlineView.desiredHeight];
 				}
 

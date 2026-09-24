@@ -18,16 +18,33 @@
 
 @class AIGradient;
 
+/*!
+ * @brief Whether a group is open, which changes the shape it is drawn in
+ */
+typedef enum {
+	AIGroupCollapsed = 0,
+	AIGroupExpanded
+} AIGroupState;
+#define NUMBER_OF_GROUP_STATES	2
+
 @interface AIListGroupCell : AIListCell {
 	NSColor		*shadowColor;
-	NSColor		*backgroundColor;
+	/* The group's own colour, from the colour set. Not to be confused with
+	 * -backgroundColor, which AIListCell answers with the colour of the row
+	 * underneath, and which the flat fills below ask for on purpose. */
+	NSColor		*groupBackgroundColor;
 	NSColor		*gradientColor;
 	BOOL		drawsBackground;
 	BOOL		drawsGradientEdges;
 	NSLayoutManager	*layoutManager;
-	
-	NSImage		*_gradient;
-	NSSize		_gradientSize;
+
+	//Shape
+	BOOL		outlineBubble;
+	BOOL		drawBubble;
+	float		outlineBubbleLineWidth;
+
+	NSImage		*_gradient[NUMBER_OF_GROUP_STATES];
+	NSSize		_gradientSize[NUMBER_OF_GROUP_STATES];
 }
 
 - (CGFloat)flippyIndent;
@@ -42,5 +59,12 @@
 - (NSGradient *)backgroundGradient;
 - (void)flushGradientCache;
 - (NSColor *)flippyColor;
-	
+
+//Shape
+- (void)setOutlineBubble:(BOOL)flag;
+- (void)setOutlineBubbleLineWidth:(float)inWidth;
+//This is the inverse of drawBubble so a default of NO will draw the bubble
+- (void)setHideBubble:(BOOL)flag;
+- (NSRect)bubbleRectForFrame:(NSRect)rect;
+
 @end
