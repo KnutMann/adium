@@ -33,6 +33,7 @@
 #import <Adium/AIMetaContact.h>
 #import <Adium/AIContactList.h>
 #import <Adium/AIListOutlineView.h>
+#import <Adium/AIListRowView.h>
 #import <Adium/AIMenuControllerProtocol.h>
 #import <Adium/AIUserIcons.h>
 #import <Adium/AIService.h>
@@ -501,13 +502,24 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		[(AIListGroupBubbleCell *)groupCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
 		[(AIListGroupBubbleCell *)groupCell setHideBubble:[[prefDict objectForKey:KEY_LIST_LAYOUT_GROUP_HIDE_BUBBLE] boolValue]];
 	}
-	else {
-    //Background
-    [contactListView setUsesAlternatingRowBackgroundColors:[[themeDict objectForKey:KEY_LIST_THEME_GRID_ENABLED] boolValue]];
-    [contactListView setBackgroundFade:[[themeDict objectForKey:KEY_LIST_THEME_BACKGROUND_FADE] floatValue]];
-    [contactListView setBackgroundColor:[[themeDict objectForKey:KEY_LIST_THEME_BACKGROUND_COLOR] representedColor]];
-    [contactListView setAlternatingRowColor:[[themeDict objectForKey:KEY_LIST_THEME_GRID_COLOR] representedColor]];
-  }
+
+	/* Background colours.
+	 *
+	 * These used to be set only when the layout was not one of the bubble ones, on the
+	 * grounds that a bubble list paints no ground of its own. But a bubble without a
+	 * label colour asks the list for the colour to fill itself with, so it was asking
+	 * for a colour nobody had set. Drawing straight into the outline view that went
+	 * unnoticed, because an unset colour leaves whatever was set last in place; once
+	 * each row drew in a view of its own, every bubble came out black.
+	 *
+	 * So the colours are always set, and only the painting of the ground and of the
+	 * alternating stripe stays switched off for the bubbles.
+	 */
+	[contactListView setBackgroundFade:[[themeDict objectForKey:KEY_LIST_THEME_BACKGROUND_FADE] floatValue]];
+	[contactListView setBackgroundColor:[[themeDict objectForKey:KEY_LIST_THEME_BACKGROUND_COLOR] representedColor]];
+	[contactListView setAlternatingRowColor:[[themeDict objectForKey:KEY_LIST_THEME_GRID_COLOR] representedColor]];
+	[contactListView setUsesAlternatingRowBackgroundColors:(!pillowsOrPillowsFittedWindowStyle &&
+															[[themeDict objectForKey:KEY_LIST_THEME_GRID_ENABLED] boolValue])];
 
 	//Highlight
 	NSNumber *highlightEnabledNum = [themeDict objectForKey:KEY_LIST_THEME_HIGHLIGHT_ENABLED];
@@ -683,6 +695,70 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 - (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(AIProxyListObject *)item
 {
     return @"";
+}
+
+#pragma mark Rows as views
+
+/*!
+ * @brief The cell that draws one row, ready to draw it
+ *
+ * One cell serves every row of its kind, so it is pointed at the row in
+ * question right before it is asked to draw. This is the same work that
+ * outlineView:willDisplayCell:forTableColumn:item: did when the table drew its
+ * rows itself; that method stays, because the width measuring pass in
+ * -[AIListOutlineView desiredWidth] still calls it by hand.
+ */
+- (AIListCell *)listCellForProxyObject:(AIProxyListObject *)proxyObject inOutlineView:(AIListOutlineView *)outlineView
+{
+	AIListCell *cell = ([self outlineView:outlineView isGroup:proxyObject] ? groupCell : contentCell);
+	[self outlineView:outlineView willDisplayCell:cell forTableColumn:nil item:proxyObject];
+
+	/* The table used to set this itself, once per row, right before it drew the
+	 * cell. Without it no cell ever counts as picked: the bubble layouts would
+	 * never draw their own selection and no label would switch to its inverted
+	 * colour. */
+	NSInteger row = [outlineView rowForItem:proxyObject];
+	[cell setHighlighted:(row != -1 && [outlineView isRowSelected:row])];
+
+	return cell;
+}
+
+- (NSTableRowView *)outlineView:(NSOutlineView *)outlineView rowViewForItem:(AIProxyListObject *)item
+{
+	AIListRowView *rowView = [outlineView makeViewWithIdentifier:@"AIListRowView" owner:self];
+	if (!rowView) {
+		rowView = [[[AIListRowView alloc] initWithFrame:NSZeroRect] autorelease];
+		rowView.identifier = @"AIListRowView";
+	}
+	rowView.cellSource = self;
+	rowView.listView = (AIListOutlineView *)outlineView;
+	rowView.proxyObject = item;
+	return rowView;
+}
+
+- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(AIProxyListObject *)item
+{
+	AIListCellHostView *view = [outlineView makeViewWithIdentifier:@"AIListCellHostView" owner:self];
+	if (!view) {
+		view = [[[AIListCellHostView alloc] initWithFrame:NSZeroRect] autorelease];
+		view.identifier = @"AIListCellHostView";
+	}
+	view.cellSource = self;
+	view.listView = (AIListOutlineView *)outlineView;
+	view.proxyObject = item;
+	[view setNeedsDisplay:YES];
+	return view;
+}
+
+/*!
+ * @brief No disclosure triangle from the table
+ *
+ * The group cells draw their own, in the place and the colour the layout asks
+ * for; the one the table would add sits beside it.
+ */
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldShowOutlineCellForItem:(id)item
+{
+	return NO;
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(AIProxyListObject *)item

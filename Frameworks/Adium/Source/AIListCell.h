@@ -94,4 +94,7 @@
 
 @property (readwrite, nonatomic) BOOL shouldShowAlias;
 
+//What a reader says about this row
+@property (readonly, nonatomic) NSString *spokenDescription;
+
 @end

@@ -15,6 +15,7 @@
  */
 
 #import <Adium/AIWindowController.h>
+#import <Adium/AIListRowView.h>
 #import <AIUtilities/AISmoothTooltipTracker.h>
 
 @class AIAutoScrollView, AIContactList, AIListOutlineView, AIListContactCell, AIListGroupCell, ESObjectWithProperties, AIListObject, AIListContact, AIChat;
@@ -169,7 +170,7 @@ typedef enum {
 - (BOOL)forwardKeyEventToFindPanel:(NSEvent *)theEvent;
 @end
 
-@interface AIAbstractListController : NSObject <AISmoothTooltipTrackerDelegate, NSOutlineViewDelegate, NSOutlineViewDataSource> {	
+@interface AIAbstractListController : NSObject <AISmoothTooltipTrackerDelegate, NSOutlineViewDelegate, NSOutlineViewDataSource, AIListCellSource> {	
 	AIAutoScrollView					*scrollView_contactList;
 	AIListOutlineView				*contactListView;
 	

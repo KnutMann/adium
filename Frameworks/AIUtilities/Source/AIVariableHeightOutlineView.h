@@ -64,6 +64,13 @@
 - (void)setDrawsSelectedRowHighlight:(BOOL)inFlag;
 
 /*!
+ * @brief Return whether the selection highlight is drawn at all.
+ *
+ * @return YES if the highlight is drawn; NO if it is suppressed.
+ */
+- (BOOL)drawsSelectedRowHighlight;
+
+/*!
  * @brief Cell corresponding to table column.
  *
  * Mostly useful for subclassing; by default, this is simply [tableColumn dataCell]

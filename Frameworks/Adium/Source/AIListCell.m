@@ -51,9 +51,11 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		 rightPadding = 0;
 		
 		font = [NSFont systemFontOfSize:12];
-		/* Fallbacks only: every list theme brings its own colors and overrides these.
-		 * Semantic rather than fixed, so a themeless list stays readable in the dark. */
-		textColor = [NSColor labelColor];
+		/* No colour of its own: -textColor works one out from the ground this row
+		 * is drawn on. Only the colour set knows that ground, so a fixed fallback
+		 * here, or a semantic one that follows the system appearance instead of
+		 * the set, produces white on white. */
+		textColor = nil;
 		invertedTextColor = [NSColor alternateSelectedControlTextColor];
 
 		useAliasesAsRequested = YES;
@@ -118,6 +120,47 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 }
 
 @synthesize textAlignment, textColor, invertedTextColor;
+
+/*!
+ * @brief The colour the label is written in
+ *
+ * A colour set may leave this to us, for a contact whose state it does not
+ * colour. The ground underneath comes from that same set and has nothing to do
+ * with the system appearance, so the answer is worked out from the ground:
+ * light ground, dark ink. Only where there is no ground at all does the system
+ * colour, which does follow the appearance, get the last word.
+ */
+- (NSColor *)textColor
+{
+	if (textColor) return textColor;
+
+	/* A row that is picked but whose list does not hold the keyboard keeps its
+	 * ordinary ink today, and that ink has to hold up against the pale
+	 * selection, not against the row colour underneath it. */
+	NSColor *under = [self backgroundColor];
+	if ([self isHighlighted] && [self.outlineControlView drawsSelectedRowHighlight]) {
+		under = ([self cellIsSelected] ?
+				 [NSColor selectedContentBackgroundColor] :
+				 [NSColor unemphasizedSelectedContentBackgroundColor]);
+	}
+
+	/* Asking a system colour for its components resolves it against whatever
+	 * appearance happens to be current, which outside a drawing pass is the
+	 * one the Mac is set to, not the one this list is drawn in. So the answer
+	 * is taken under the list's own appearance. */
+	NSAppearance *appearance = (self.outlineControlView.effectiveAppearance ?:
+								[NSAppearance currentDrawingAppearance]);
+	__block NSColor *ground = nil;
+	[appearance performAsCurrentDrawingAppearance:^{
+		ground = [under colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+	}];
+	if (!ground || ground.alphaComponent < 0.5f) return [NSColor labelColor];
+
+	CGFloat luminance = (0.299f * ground.redComponent +
+						 0.587f * ground.greenComponent +
+						 0.114f * ground.blueComponent);
+	return (luminance < 0.5f ? [NSColor whiteColor] : [NSColor blackColor]);
+}
 
 //Cell sizing and padding ----------------------------------------------------------------------------------------------
 #pragma mark Cell sizing and padding
@@ -394,26 +437,7 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		value = NSAccessibilityStaticTextRole;
 		
 	} else if ([attribute isEqualToString:NSAccessibilityValueAttribute]) {
-		if ([[proxyObject listObject] isKindOfClass:[AIListGroup class]]) {
-			value = [NSString stringWithFormat:AILocalizedString(@"contact group %@", "%@ will be the name of a group in the contact list"), [[proxyObject listObject] longDisplayName]];
-
-		} else if ([[proxyObject listObject] isKindOfClass:[AIListBookmark class]]) {			
-			value = [NSString stringWithFormat:AILocalizedString(@"group chat bookmark %@", "%@ will be the name of a bookmark"), [[proxyObject listObject] longDisplayName]];			
-
-		} else {
-			NSString *name, *statusDescription, *statusMessage;
-			
-			name = [[proxyObject listObject] longDisplayName];
-			statusDescription = [adium.statusController localizedDescriptionForStatusName:([proxyObject listObject].statusName ?
-																					  [proxyObject listObject].statusName :
-																					  [adium.statusController defaultStatusNameForType:[proxyObject listObject].statusType])
-																			   statusType:[proxyObject listObject].statusType];
-			statusMessage = [[proxyObject listObject] statusMessageString];
-			
-			value = [name mutableCopy];
-			if (statusDescription) [value appendFormat:@"; %@", statusDescription];
-			if (statusMessage) [value appendFormat:AILocalizedString(@"; status message %@", "please keep the semicolon at the start of the line. %@ will be replaced by a status message. This is used when reading an entry in the contact list aloud, such as 'Evan Schoenberg; status message I am bouncing up and down'"), statusMessage];
-		}
+		value = [self spokenDescription];
 
 	} else if ([attribute isEqualToString:NSAccessibilityTitleAttribute]) {
 		value = [self labelString];
@@ -424,6 +448,38 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 	} else {
 		value = [super accessibilityAttributeValue:attribute];
 	}
+
+	return value;
+}
+
+/*!
+ * @brief What a reader says about this row
+ *
+ * Kept apart from the attribute lookup above because the view that hosts this
+ * cell answers for it now, through the current accessibility API.
+ */
+- (NSString *)spokenDescription
+{
+	AIListObject *listObject = [proxyObject listObject];
+	if (!listObject) return @"";
+
+	if ([listObject isKindOfClass:[AIListGroup class]]) {
+		return [NSString stringWithFormat:AILocalizedString(@"contact group %@", "%@ will be the name of a group in the contact list"), [listObject longDisplayName]];
+	}
+
+	if ([listObject isKindOfClass:[AIListBookmark class]]) {
+		return [NSString stringWithFormat:AILocalizedString(@"group chat bookmark %@", "%@ will be the name of a bookmark"), [listObject longDisplayName]];
+	}
+
+	NSString *statusDescription = [adium.statusController localizedDescriptionForStatusName:(listObject.statusName ?
+																							listObject.statusName :
+																							[adium.statusController defaultStatusNameForType:listObject.statusType])
+																				statusType:listObject.statusType];
+	NSString *statusMessage = [listObject statusMessageString];
+
+	NSMutableString *value = [[listObject longDisplayName] mutableCopy];
+	if (statusDescription) [value appendFormat:@"; %@", statusDescription];
+	if (statusMessage) [value appendFormat:AILocalizedString(@"; status message %@", "please keep the semicolon at the start of the line. %@ will be replaced by a status message. This is used when reading an entry in the contact list aloud, such as 'Evan Schoenberg; status message I am bouncing up and down'"), statusMessage];
 
 	return value;
 }

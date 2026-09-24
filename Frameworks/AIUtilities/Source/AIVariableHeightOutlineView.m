@@ -449,6 +449,11 @@
 	drawsSelectedRowHighlight = inFlag;
 }
 
+- (BOOL)drawsSelectedRowHighlight
+{
+	return drawsSelectedRowHighlight;
+}
+
 - (void)highlightSelectionInClipRect:(NSRect)clipRect
 {
 	if (drawsSelectedRowHighlight && (!drawHighlightOnlyWhenMain || [[self window] isMainWindow])) {
