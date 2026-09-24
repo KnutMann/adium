@@ -879,6 +879,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BAE6C9207CF94BA007E2820 /* AITabStatusIconsPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6C8C07CF94BA007E2820 /* AITabStatusIconsPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BAE6C9507CF94C4007E2820 /* events-message.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BAE6C9407CF94C4007E2820 /* events-message.tiff */; };
 		4BAE6D3D07CFA0BC007E2820 /* AIAppearancePreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6D3B07CFA0BC007E2820 /* AIAppearancePreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		AD1057A0FADE0003C0DE0203 /* AIContactListAppearanceWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD1057A0FADE0003C0DE0102 /* AIContactListAppearanceWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BAE6D4307CFA0CB007E2820 /* AIAppearancePreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BAE6D4107CFA0CB007E2820 /* AIAppearancePreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		4BB1E493067F2EAC00D1DB86 /* Scripts in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 4BB1E47D067F2E9F00D1DB86 /* Scripts */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4BB2EB220D88D76100CA7A7D /* timestamp32.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 4BB2EB200D88D76100CA7A7D /* timestamp32.tiff */; };
@@ -2631,6 +2632,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BAE6C9407CF94C4007E2820 /* events-message.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-message.tiff"; path = "Resources/events-message.tiff"; sourceTree = "<group>"; };
 		4BAE6D3A07CFA0BC007E2820 /* AIAppearancePreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAppearancePreferences.h; path = Source/AIAppearancePreferences.h; sourceTree = "<group>"; };
 		4BAE6D3B07CFA0BC007E2820 /* AIAppearancePreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAppearancePreferences.m; path = Source/AIAppearancePreferences.m; sourceTree = "<group>"; };
+		AD1057A0FADE0003C0DE0001 /* AIContactListAppearanceWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContactListAppearanceWindowController.h; path = Source/AIContactListAppearanceWindowController.h; sourceTree = "<group>"; };
+		AD1057A0FADE0003C0DE0102 /* AIContactListAppearanceWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContactListAppearanceWindowController.m; path = Source/AIContactListAppearanceWindowController.m; sourceTree = "<group>"; };
 		4BAE6D4007CFA0CB007E2820 /* AIAppearancePreferencesPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAppearancePreferencesPlugin.h; path = Source/AIAppearancePreferencesPlugin.h; sourceTree = "<group>"; };
 		4BAE6D4107CFA0CB007E2820 /* AIAppearancePreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAppearancePreferencesPlugin.m; path = Source/AIAppearancePreferencesPlugin.m; sourceTree = "<group>"; };
 		4BAF8CFC083D9A2A0067CF6F /* AIServiceMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIServiceMenu.h; path = Source/AIServiceMenu.h; sourceTree = "<group>"; };
@@ -4891,6 +4894,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4BAE6D4107CFA0CB007E2820 /* AIAppearancePreferencesPlugin.m */,
 				4BAE6D3A07CFA0BC007E2820 /* AIAppearancePreferences.h */,
 				4BAE6D3B07CFA0BC007E2820 /* AIAppearancePreferences.m */,
+				AD1057A0FADE0003C0DE0001 /* AIContactListAppearanceWindowController.h */,
+				AD1057A0FADE0003C0DE0102 /* AIContactListAppearanceWindowController.m */,
 				ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */,
 				4B08399207D2350D0034A001 /* AIDockIconSelectionSheet.h */,
 				4B08399307D2350D0034A001 /* AIDockIconSelectionSheet.m */,
@@ -7306,6 +7311,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4BAE6C9007CF94BA007E2820 /* AIStatusChangedMessagesPlugin.m in Sources */,
 				4BAE6C9207CF94BA007E2820 /* AITabStatusIconsPlugin.m in Sources */,
 				4BAE6D3D07CFA0BC007E2820 /* AIAppearancePreferences.m in Sources */,
+				AD1057A0FADE0003C0DE0203 /* AIContactListAppearanceWindowController.m in Sources */,
 				4BAE6D4307CFA0CB007E2820 /* AIAppearancePreferencesPlugin.m in Sources */,
 				4B08399507D2350D0034A001 /* AIDockIconSelectionSheet.m in Sources */,
 				3428328907D2643F004F01C9 /* ESStatusPreferences.m in Sources */,

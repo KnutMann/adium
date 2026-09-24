@@ -20,8 +20,7 @@
 #import "AIDockIconSelectionSheet.h"
 #import "AIEmoticonPack.h"
 #import "AIEmoticonPreferences.h"
-#import "AIListLayoutWindowController.h"
-#import "AIListThemeWindowController.h"
+#import "AIContactListAppearanceWindowController.h"
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
@@ -872,11 +871,7 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (IBAction)customizeListTheme:(id)sender
 {
-	NSString *theme = [adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE];	
-	
-	AIListThemeWindowController *listThemeWindowController = [[AIListThemeWindowController alloc] initWithName:theme
-																							   notifyingTarget:self];
-	[listThemeWindowController showOnWindow:[self paneWindow]];
+	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionColours];
 }
 
 /*!
@@ -946,11 +941,27 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (IBAction)customizeListLayout:(id)sender
 {
-	NSString *theme = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE];	
-	
-	AIListLayoutWindowController *listLayoutWindowController = [[AIListLayoutWindowController alloc] initWithName:theme
-																								  notifyingTarget:self];
-	[listLayoutWindowController showOnWindow:[self paneWindow]];
+	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionContactRow];
+}
+
+/*!
+ * @brief Open the one editor for how the contact list looks
+ *
+ * Both Customize buttons lead here; they differ only in where the window opens,
+ * because what they used to lead to was a split of where the settings are kept,
+ * not of what a reader is looking for.
+ */
+- (void)openAppearanceEditorAtSection:(AIContactListAppearanceSection)section
+{
+	NSString *layout = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE];
+	NSString *theme = [adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE];
+
+	AIContactListAppearanceWindowController *editor;
+	editor = [[AIContactListAppearanceWindowController alloc] initWithLayoutNamed:layout
+																	   themeNamed:theme
+																		  section:section
+																  notifyingTarget:self];
+	[editor showOnWindow:[self paneWindow]];
 }
 
 /*!
@@ -1053,14 +1064,10 @@ static NSString *AIRowLabel(NSString *label)
 	}
 }
 - (void)_editListThemeWithName:(NSString *)name{
-	AIListThemeWindowController *listThemeWindowController = [[AIListThemeWindowController alloc] initWithName:name
-																							   notifyingTarget:self];
-	[listThemeWindowController showOnWindow:[self paneWindow]];
+	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionColours];
 }
 - (void)_editListLayoutWithName:(NSString *)name{
-	AIListLayoutWindowController *listLayoutWindowController = [[AIListLayoutWindowController alloc] initWithName:name
-																								  notifyingTarget:self];
-	[listLayoutWindowController showOnWindow:[self paneWindow]];
+	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionContactRow];
 }
 
 /*!
