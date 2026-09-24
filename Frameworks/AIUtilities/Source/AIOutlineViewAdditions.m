@@ -31,15 +31,37 @@
 }
 
 //Redisplay an item (passing nil is the same as requesting a redisplay of the entire list)
+/*!
+ * @brief Draw a row again, or the whole table
+ *
+ * Marking the table dirty is enough for a table that draws its own rows. A
+ * table whose rows are views draws only its ground that way; the views on top
+ * of it keep whatever they last drew, which after a re-sort is another
+ * contact's name at another contact's place. So the views are told as well.
+ */
 - (void)redisplayItem:(id)item
 {
 	if (item) {
 		NSInteger row = [self rowForItem:item];
 		if (row >= 0 && row < [self numberOfRows]) {
 			[self setNeedsDisplayInRect:[self rectOfRow:row]];
+			[self ai_redisplayViewsAtRow:row];
 		}
 	} else {
 		[self setNeedsDisplay:YES];
+		[self enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
+			[rowView setNeedsDisplay:YES];
+			[self ai_redisplayViewsAtRow:row];
+		}];
+	}
+}
+
+- (void)ai_redisplayViewsAtRow:(NSInteger)row
+{
+	[[self rowViewAtRow:row makeIfNecessary:NO] setNeedsDisplay:YES];
+
+	for (NSInteger column = 0; column < self.numberOfColumns; column++) {
+		[[self viewAtColumn:column row:row makeIfNecessary:NO] setNeedsDisplay:YES];
 	}
 }
 

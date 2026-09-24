@@ -21,6 +21,22 @@
 
 @implementation AIListRowView
 
+- (instancetype)initWithFrame:(NSRect)frameRect
+{
+	if ((self = [super initWithFrame:frameRect])) {
+		/* A row must not paint outside its row. Since macOS 14 a view does not
+		 * hold its drawing inside its own frame unless it is told to, and a
+		 * shape that reaches past the edge would land on the neighbour. */
+		self.clipsToBounds = YES;
+		/* One cell draws every row of its kind, pointed at the row in hand
+		 * right before it draws. Two rows drawing at the same time would point
+		 * it at two rows at once. */
+		self.canDrawConcurrently = NO;
+	}
+
+	return self;
+}
+
 - (AIListCell *)cell
 {
 	return [self.cellSource listCellForProxyObject:self.proxyObject inOutlineView:self.listView];
@@ -28,7 +44,11 @@
 
 /* The table's own ground, its background image and the alternating stripe are
  * all painted by the outline view in -drawBackgroundInClipRect:, for every row
- * at once, so there is nothing left for a single row to do here. */
+ * at once, so there is nothing left for a single row to do here.
+ *
+ * And nothing to rub out either: wiping the row clean here takes the selection
+ * with it, which is drawn into the same place right after. The row's contents
+ * are rubbed out where they are drawn, in the view below. */
 - (void)drawBackgroundInRect:(NSRect)dirtyRect
 {
 }
@@ -62,6 +82,17 @@
 
 @implementation AIListCellHostView
 
+- (instancetype)initWithFrame:(NSRect)frameRect
+{
+	if ((self = [super initWithFrame:frameRect])) {
+		//As on the row view above, and for the same two reasons
+		self.clipsToBounds = YES;
+		self.canDrawConcurrently = NO;
+	}
+
+	return self;
+}
+
 /* The cells count downwards, the way the outline view they were written for
  * does. */
 - (BOOL)isFlipped
@@ -71,6 +102,11 @@
 
 - (void)drawRect:(NSRect)dirtyRect
 {
+	/* Nothing is rubbed out first. Tried and reverted: a clear fill with the
+	 * copy operation does wipe out whatever this view held for the row before,
+	 * but this view and the row view under it share one drawing surface, so it
+	 * also wipes out the selection the row view has just drawn. What keeps one
+	 * row's drawing off its neighbour is the clipping set up above. */
 	AIListCell *cell = [self.cellSource listCellForProxyObject:self.proxyObject inOutlineView:self.listView];
 	[cell drawWithFrame:self.bounds inView:self.listView];
 }
