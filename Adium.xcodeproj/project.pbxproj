@@ -740,6 +740,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34DC8AB60A7EEEF7003E1636 /* AIServiceIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B93588C06DBC71B007977AA /* AIServiceIcons.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8AB70A7EEEF7003E1636 /* AIListCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F485106DA5E060072E2FA /* AIListCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AB80A7EEEF7003E1636 /* AIListCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 340F485006DA5E060072E2FA /* AIListCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		AD1057A0FADE0002C0DE0203 /* AIContactListPreviewView.h in Headers */ = {isa = PBXBuildFile; fileRef = AD1057A0FADE0002C0DE0001 /* AIContactListPreviewView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AD1057A0FADE0002C0DE0304 /* AIContactListPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = AD1057A0FADE0002C0DE0102 /* AIContactListPreviewView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		AD1057A0FADE0001C0DE0203 /* AIListRowView.h in Headers */ = {isa = PBXBuildFile; fileRef = AD1057A0FADE0001C0DE0001 /* AIListRowView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD1057A0FADE0001C0DE0304 /* AIListRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = AD1057A0FADE0001C0DE0102 /* AIListRowView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8AB90A7EEEF7003E1636 /* AIListContactCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 340F485D06DA5E1E0072E2FA /* AIListContactCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1594,6 +1596,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		340F440406D8202A0072E2FA /* AIAbstractListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAbstractListController.m; path = Frameworks/Adium/Source/AIAbstractListController.m; sourceTree = "<group>"; };
 		340F485006DA5E060072E2FA /* AIListCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListCell.m; path = Frameworks/Adium/Source/AIListCell.m; sourceTree = "<group>"; };
 		340F485106DA5E060072E2FA /* AIListCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListCell.h; path = Frameworks/Adium/Source/AIListCell.h; sourceTree = "<group>"; };
+		AD1057A0FADE0002C0DE0102 /* AIContactListPreviewView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIContactListPreviewView.m; path = Frameworks/Adium/Source/AIContactListPreviewView.m; sourceTree = "<group>"; };
+		AD1057A0FADE0002C0DE0001 /* AIContactListPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIContactListPreviewView.h; path = Frameworks/Adium/Source/AIContactListPreviewView.h; sourceTree = "<group>"; };
 		AD1057A0FADE0001C0DE0102 /* AIListRowView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIListRowView.m; path = Frameworks/Adium/Source/AIListRowView.m; sourceTree = "<group>"; };
 		AD1057A0FADE0001C0DE0001 /* AIListRowView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListRowView.h; path = Frameworks/Adium/Source/AIListRowView.h; sourceTree = "<group>"; };
 		340F485D06DA5E1E0072E2FA /* AIListContactCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIListContactCell.h; path = Frameworks/Adium/Source/AIListContactCell.h; sourceTree = "<group>"; };
@@ -5158,6 +5162,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				111D58200F7FC1B900883487 /* AIListContactGroupChatCell.m */,
 				340F485106DA5E060072E2FA /* AIListCell.h */,
 				340F485006DA5E060072E2FA /* AIListCell.m */,
+				AD1057A0FADE0002C0DE0001 /* AIContactListPreviewView.h */,
+				AD1057A0FADE0002C0DE0102 /* AIContactListPreviewView.m */,
 				AD1057A0FADE0001C0DE0001 /* AIListRowView.h */,
 				AD1057A0FADE0001C0DE0102 /* AIListRowView.m */,
 				4BF98DA606D1492C00E8781D /* Contact */,
@@ -6352,6 +6358,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC8AB20A7EEEF7003E1636 /* AIStatusIcons.h in Headers */,
 				34DC8AB50A7EEEF7003E1636 /* AIServiceIcons.h in Headers */,
 				34DC8AB70A7EEEF7003E1636 /* AIListCell.h in Headers */,
+				AD1057A0FADE0002C0DE0203 /* AIContactListPreviewView.h in Headers */,
 				AD1057A0FADE0001C0DE0203 /* AIListRowView.h in Headers */,
 				34DC8AC10A7EEEF7003E1636 /* AIListGroupCell.h in Headers */,
 				34DC8ACB0A7EEEF7003E1636 /* AIContentContext.h in Headers */,
@@ -7528,6 +7535,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC8AB30A7EEEF7003E1636 /* AIStatusIcons.m in Sources */,
 				34DC8AB60A7EEEF7003E1636 /* AIServiceIcons.m in Sources */,
 				34DC8AB80A7EEEF7003E1636 /* AIListCell.m in Sources */,
+				AD1057A0FADE0002C0DE0304 /* AIContactListPreviewView.m in Sources */,
 				AD1057A0FADE0001C0DE0304 /* AIListRowView.m in Sources */,
 				34DC8ABA0A7EEEF7003E1636 /* AIListContactCell.m in Sources */,
 				34DC8AC20A7EEEF7003E1636 /* AIListGroupCell.m in Sources */,
