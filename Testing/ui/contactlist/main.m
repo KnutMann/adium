@@ -26,6 +26,7 @@
 #import <Adium/AIStatusControllerProtocol.h>
 #import <Adium/AIUserIcons.h>
 #import <AIUtilities/AIAutoScrollView.h>
+#import <AIUtilities/AIColorAdditions.h>
 
 #pragma mark Stand-ins
 
@@ -111,15 +112,14 @@ static void writePNG(NSWindow *window, NSString *path)
 	[window display];
 	spin(0.35);
 
-	NSRect frame = window.frame;
-	CGFloat screenHeight = NSMaxY([[NSScreen screens] firstObject].frame);
+	/* By window number, not by rectangle: a picture of a spot on the screen is
+	 * a picture of whatever is at that spot, and a window that slips in front
+	 * lands in it. This asks the window server for this one window. */
 	for (int attempt = 0; attempt < 2; attempt++) {
 		NSTask *capture = [[NSTask alloc] init];
 		capture.executableURL = [NSURL fileURLWithPath:@"/usr/sbin/screencapture"];
 		capture.arguments = @[@"-x", @"-o",
-							  [NSString stringWithFormat:@"-R%.0f,%.0f,%.0f,%.0f",
-							   frame.origin.x, screenHeight - NSMaxY(frame),
-							   frame.size.width, frame.size.height],
+							  [NSString stringWithFormat:@"-l%ld", (long)window.windowNumber],
 							  path];
 		NSError *launchError = nil;
 		if (![capture launchAndReturnError:&launchError]) {
@@ -206,8 +206,8 @@ static AIListContact *makeContact(NSString *uid, NSString *name, NSString *servi
 		[contact setValue:idleReadable forProperty:@"idleReadable" notify:NotifyNever];
 		[contact setValue:@(3600 * 2) forProperty:@"idle" notify:NotifyNever];
 	}
-	if (labelColor) [contact setValue:labelColor forProperty:@"labelColor" notify:NotifyNever];
-	if (textColor) [contact setValue:textColor forProperty:@"textColor" notify:NotifyNever];
+	if (labelColor) [contact setValue:labelColor forProperty:@"harnessEventLabelColor" notify:NotifyNever];
+	if (textColor) [contact setValue:textColor forProperty:@"harnessEventTextColor" notify:NotifyNever];
 
 	if (iconTint) {
 		[AIUserIcons setActualUserIcon:placeholderIcon(name, iconTint)
@@ -215,6 +215,38 @@ static AIListContact *makeContact(NSString *uid, NSString *name, NSString *servi
 							 forObject:contact];
 	}
 	return contact;
+}
+
+/* The colours a contact is drawn in come from the colour set, by way of
+ * AIContactStatusColoringPlugin. Without that plugin every name would fall back
+ * to the system label colour, which is nearly white in the dark and so tells
+ * nothing about the set being photographed. This does the same work by hand. */
+static void applyThemeColours(NSArray *contacts, NSDictionary *themeDict)
+{
+	for (AIListContact *contact in contacts) {
+		NSString *colourKey = nil, *labelKey = nil, *enabledKey = nil;
+
+		if ([contact valueForProperty:@"harnessEventTextColor"] ||
+			[contact valueForProperty:@"harnessEventLabelColor"]) {
+			colourKey = @"Unviewed Content Color";
+			labelKey = @"Unviewed Content Label Color";
+			enabledKey = @"Unviewed Content Enabled";
+		} else if (!contact.online) {
+			colourKey = @"Offline Color"; labelKey = @"Offline Label Color"; enabledKey = @"Offline Enabled";
+		} else if (contact.statusType == AIAwayStatusType) {
+			colourKey = @"Away Color"; labelKey = @"Away Label Color"; enabledKey = @"Away Enabled";
+		} else {
+			colourKey = @"Online Color"; labelKey = @"Online Label Color"; enabledKey = @"Online Enabled";
+		}
+
+		BOOL enabled = [[themeDict objectForKey:enabledKey] boolValue];
+		[contact setValue:(enabled ? [[themeDict objectForKey:colourKey] representedColor] : nil)
+			  forProperty:@"textColor" notify:NotifyNever];
+		[contact setValue:(enabled ? [[themeDict objectForKey:labelKey] representedColor] : nil)
+			  forProperty:@"labelColor" notify:NotifyNever];
+		[contact setValue:@(enabled && [colourKey isEqualToString:@"Unviewed Content Color"])
+			  forProperty:@"isEvent" notify:NotifyNever];
+	}
 }
 
 /* The status icon normally arrives as a property from the tab icon plugin.
@@ -398,6 +430,7 @@ int main(int argc, const char *argv[])
 																				   delegate:delegate];
 				controller.style = [job[@"style"] intValue];
 				[controller setContactListRoot:contactList];
+				applyThemeColours(allContacts, job[@"theme"]);
 				[controller updateLayoutFromPrefDict:job[@"layout"] andThemeFromPrefDict:job[@"theme"]];
 				/* In the program this arrives from the preference observer, which
 				 * has nobody to speak for it here. Without it the row stripe does
@@ -434,9 +467,8 @@ int main(int argc, const char *argv[])
 					[outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:2] byExtendingSelection:NO];
 				[window makeFirstResponder:outlineView];
 				spin(0.4);
-				if (!window.isKeyWindow || window.firstResponder != outlineView)
-					fprintf(stderr, "Hinweis: Fenster nicht vorn (key=%d, Erstantwort=%d) bei %s\n",
-							window.isKeyWindow, window.firstResponder == outlineView,
+				if (!window.isKeyWindow)
+					fprintf(stderr, "Hinweis: kein Tastaturfenster bei %s, die Auswahl wird blass gezeichnet\n",
 							[job[@"stem"] UTF8String]);
 
 				writePNG(window, [outDir stringByAppendingPathComponent:

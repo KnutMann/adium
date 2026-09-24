@@ -36,10 +36,11 @@ xcodebuild -project "$ROOT/Adium.xcodeproj" -target Adium.Framework -configurati
 		exit 1
 	}
 
-WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
-
-APP="$WORK/ListShots.app"
+# Das Buendel liegt im Bauordner, nicht in /tmp: LaunchServices weigert sich,
+# ein Programm aus einem Wegwerfordner zu starten (Fehler -10810), und ohne
+# LaunchServices wird es nie das vorderste Programm.
+APP="$FWROOT/ListShots.app"
+rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
