@@ -6,11 +6,15 @@
  * jeder sieht den anderen auftauchen, und einer schickt dem anderen eine Nachricht ueber
  * die direkte TCP-Verbindung, die das Protokoll dafuer aufbaut.
  *
- *   bonjourwire <name> <port> send|wait [Sekunden]
+ *   bonjourwire <name> <port> send|wait <Sekunden> <Partner>
  *
- * send wartet, bis irgendein Nachbar auftaucht, schickt ihm einen Gruss und meldet die
+ * send wartet, bis der GENANNTE Partner auftaucht, schickt ihm einen Gruss und meldet die
  * Zustellung; wait wartet auf den Gruss und druckt ihn. Beide enden mit 0 nur, wenn ihre
  * Haelfte wirklich passiert ist. Der Treiber dazu ist bonjour-test.sh.
+ *
+ * Der Partner wird verlangt und nicht erraten. Auf dieser Maschine laeuft im Normalfall auch
+ * das richtige Adium mit einem Bonjour-Konto, und ein Pruefstand, der den erstbesten Nachbarn
+ * anspricht, schreibt dann in einen echten Chat des Nutzers.
  */
 #include <glib.h>
 #include <stdio.h>
@@ -25,6 +29,7 @@
 static int seconds = 25;
 static const char *role = "wait";
 static const char *myname = "nobody";
+static const char *partner = NULL;
 static PurpleAccount *theAccount = NULL;
 static gboolean sent = FALSE, arrived = FALSE, connected = FALSE;
 static GMainLoop *loop = NULL;
@@ -118,16 +123,31 @@ static gboolean do_send(gpointer data)
 	return FALSE;
 }
 
-/*! Ein Nachbar ist aufgetaucht. Der Sender nimmt den ersten, der nicht er selbst ist. */
+/*! Ob dieser Nachbar der verabredete Partner ist. Die Nachbarn heissen "name@rechner.local",
+    verglichen wird also nur bis zum Klammeraffen. Wer anders heisst, wird nie angesprochen:
+    auf dieser Maschine ist der erstbeste Nachbar oft das richtige Adium des Nutzers. */
+static gboolean is_partner(const char *who)
+{
+	size_t len;
+
+	if (!partner || !who) return FALSE;
+
+	len = strlen(partner);
+
+	return (g_ascii_strncasecmp(who, partner, len) == 0 && who[len] == '@');
+}
+
+/*! Ein Nachbar ist aufgetaucht. Der Sender nimmt nur den verabredeten Partner. */
 static void buddy_signed_on(PurpleBuddy *buddy, gpointer data)
 {
 	const char *who = purple_buddy_get_name(buddy);
 	static gboolean scheduled = FALSE;
 
-	printf("[%s] == neighbour appeared: %s\n", myname, who);
+	printf("[%s] == neighbour appeared: %s%s\n", myname, who,
+	       (purple_strequal(role, "send") && !is_partner(who)) ? " (nicht der Partner, ignoriert)" : "");
 	fflush(stdout);
 
-	if (purple_strequal(role, "send") && !scheduled) {
+	if (purple_strequal(role, "send") && !scheduled && is_partner(who)) {
 		scheduled = TRUE;
 		g_timeout_add_seconds(3, do_send, g_strdup(who));
 	}
@@ -176,13 +196,21 @@ int main(int argc, char *argv[])
 	signal(SIGPIPE, SIG_IGN);
 
 	if (argc < 4) {
-		fprintf(stderr, "bonjourwire <name> <port> send|wait [Sekunden]\n");
+		fprintf(stderr, "bonjourwire <name> <port> send|wait <Sekunden> <Partner>\n");
 		return 2;
 	}
 	myname = argv[1];
 	role = argv[3];
 	if (argc > 4) seconds = atoi(argv[4]);
 	if (seconds <= 0) seconds = 25;
+	if (argc > 5) partner = argv[5];
+
+	/* Ohne Partner wird nicht geschickt. Lieber ein Fehlschlag als eine Nachricht an einen
+	   Nachbarn, der gar nicht zum Pruefstand gehoert. */
+	if (purple_strequal(role, "send") && !partner) {
+		fprintf(stderr, "bonjourwire: send braucht den Namen des Partners als fuenftes Argument\n");
+		return 2;
+	}
 
 	dir = g_strdup_printf("%s/adium-bonjourwire-%s", g_get_tmp_dir(), myname);
 	purple_util_set_user_dir(dir);
