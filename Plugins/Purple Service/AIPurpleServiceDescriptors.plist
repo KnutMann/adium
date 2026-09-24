@@ -55,6 +55,8 @@
 
 	<key>prpl-bonjour</key>
 	<dict>
+		<key>CaseSensitive</key>
+		<true/>
 		<key>IconBaseName</key>
 		<string>bonjour</string>
 		<key>LongDescription</key>
