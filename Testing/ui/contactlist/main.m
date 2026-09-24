@@ -96,11 +96,18 @@ static NSDictionary *merged(NSDictionary *base, NSDictionary *overlay)
  * that two pictures taken on different days can still be compared. */
 @interface ShotBackdrop : NSView
 @property (nonatomic, strong) NSColor *ground;
+@property (nonatomic, getter=isOpaque) BOOL opaque;
 @end
 
 @implementation ShotBackdrop
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirty { [self.ground set]; NSRectFill(dirty); }
+@synthesize opaque;
+- (BOOL)isOpaque { return opaque; }
+- (void)drawRect:(NSRect)dirty
+{
+	if (!opaque) return;
+	[self.ground set];
+	NSRectFill(dirty);
+}
 @end
 
 static NSString *const styleNames[] = { @"Standard", @"Rahmenlos", @"Gruppenblasen", @"Kontaktblasen", @"Kontaktblasen-eng", @"Gruppenchat" };
@@ -174,14 +181,28 @@ int main(int argc, const char *argv[])
 				window.backgroundColor = (dark ? [NSColor colorWithCalibratedWhite:0.16 alpha:1.0]
 											   : [NSColor colorWithCalibratedWhite:0.93 alpha:1.0]);
 
+				/* Mit LIST_TRANSPARENT=1 ist das Fenster durchsichtig, wie die
+				 * rahmenlose Kontaktliste es im Programm ist. Ein Fenster, das
+				 * seine Bildpunkte nicht selbst fuellt, loescht auch nichts,
+				 * was vorher darin stand. */
+				BOOL transparent = [[[NSProcessInfo processInfo] environment][@"LIST_TRANSPARENT"] boolValue];
+				if (transparent) {
+					window.opaque = NO;
+					window.backgroundColor = [NSColor clearColor];
+				}
+
 				ShotBackdrop *backdrop = [[ShotBackdrop alloc] initWithFrame:content];
-				backdrop.ground = window.backgroundColor;
+				backdrop.ground = (transparent ? [NSColor clearColor] : window.backgroundColor);
+				backdrop.opaque = !transparent;
 				backdrop.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
 				AIContactListPreviewView *preview = [[AIContactListPreviewView alloc] initWithFrame:content];
 				preview.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 				[backdrop addSubview:preview];
 				window.contentView = backdrop;
+
+				if ([[[NSProcessInfo processInfo] environment][@"LIST_CHURN"] boolValue])
+					[preview addFillerContacts:24];
 
 				[preview applyLayout:job[@"layout"]
 							   theme:job[@"theme"]
@@ -204,6 +225,43 @@ int main(int argc, const char *argv[])
 				if (!window.isKeyWindow)
 					fprintf(stderr, "Hinweis: kein Tastaturfenster bei %s, die Auswahl wird blass gezeichnet\n",
 							[job[@"stem"] UTF8String]);
+
+				/* Mit LIST_CHURN=1 wird die Liste vorher durchgeschuettelt: eine
+				 * Gruppe zu, wieder auf, gescrollt. Genau dabei gibt die Tabelle
+				 * ihre Zeilenansichten weiter, und genau dort wurde der Fehler
+				 * gemeldet, bei dem zwei Namen uebereinander standen. */
+				if ([[[NSProcessInfo processInfo] environment][@"LIST_CHURN"] boolValue]) {
+					/* Erst das Fenster klein machen, damit die Liste wirklich
+					 * scrollen muss und die Tabelle ihre Zeilenansichten
+					 * weiterreicht. */
+					[window setFrame:NSMakeRect(420.0, 260.0, 260.0, 90.0) display:YES];
+					spin(0.3);
+					for (NSInteger row = 0; row < listView.numberOfRows; row++) {
+						[listView scrollRowToVisible:row];
+						spin(0.05);
+					}
+					for (NSInteger row = listView.numberOfRows - 1; row >= 0; row--) {
+						[listView scrollRowToVisible:row];
+						spin(0.05);
+					}
+					[window setFrame:NSMakeRect(420.0, 260.0, 260.0, height) display:YES];
+					spin(0.3);
+
+					for (NSInteger row = listView.numberOfRows - 1; row >= 0; row--) {
+						id item = [listView itemAtRow:row];
+						if ([listView isExpandable:item]) [listView collapseItem:item];
+					}
+					spin(0.2);
+					for (NSInteger row = 0; row < listView.numberOfRows; row++) {
+						id item = [listView itemAtRow:row];
+						if ([listView isExpandable:item]) [listView expandItem:item];
+					}
+					spin(0.2);
+					[listView scrollRowToVisible:listView.numberOfRows - 1];
+					spin(0.2);
+					[listView scrollRowToVisible:0];
+					spin(0.2);
+				}
 
 				writePNG(window, [outDir stringByAppendingPathComponent:
 								  [NSString stringWithFormat:@"%@-%@.png", job[@"stem"], mode]]);

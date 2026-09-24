@@ -277,6 +277,35 @@ static NSImage *previewIcon(NSString *name, NSColor *tint)
 	return root;
 }
 
+- (void)addFillerContacts:(NSUInteger)count
+{
+	AIPreviewIconSource *iconSource = [[AIPreviewIconSource alloc] init];
+	AIListGroup *group = nil;
+	for (AIListObject *object in contactList.containedObjects) {
+		if ([object isKindOfClass:[AIListGroup class]]) { group = (AIListGroup *)object; break; }
+	}
+	if (!group) return;
+
+	static NSString *const stems[] = { @"Anke", @"Bodo", @"Cara", @"Dilek", @"Emre", @"Fiona",
+									   @"Gero", @"Hanna", @"Ilja", @"Jana", @"Kai", @"Lena" };
+	for (NSUInteger i = 0; i < count; i++) {
+		NSString *name = [NSString stringWithFormat:@"%@ Muster %lu",
+						  stems[i % (sizeof(stems) / sizeof(stems[0]))], (unsigned long)(i + 1)];
+		AIListContact *contact = [self contactWithUID:[NSString stringWithFormat:@"fuell%lu@beispiel.invalid", (unsigned long)i]
+												 name:name
+											  service:@"Jabber"
+											   online:((i % 3) != 0)
+										   statusType:((i % 4) == 1 ? AIAwayStatusType : AIAvailableStatusType)
+										statusMessage:((i % 2) ? @"…" : nil)
+										 idleReadable:nil
+											  isEvent:NO
+											 iconTint:[NSColor colorWithCalibratedHue:((i % 12) / 12.0)
+																		   saturation:0.5 brightness:0.6 alpha:1.0]
+										   iconSource:iconSource];
+		[group addObject:contact];
+	}
+}
+
 #pragma mark Showing a set
 
 /*!

@@ -54,4 +54,13 @@
  */
 @property (readonly, nonatomic) AIListOutlineView *listView;
 
+/*!
+ * @brief Fill the list up with more invented contacts
+ *
+ * Five contacts fit in any window. A harness looking for what happens when the
+ * table has to hand its row views on from one row to the next needs a list that
+ * does not fit, which is what this is for.
+ */
+- (void)addFillerContacts:(NSUInteger)count;
+
 @end
