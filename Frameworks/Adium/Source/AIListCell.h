@@ -21,6 +21,22 @@
 #define DROP_HIGHLIGHT_WIDTH_MARGIN 5.0f
 #define DROP_HIGHLIGHT_HEIGHT_MARGIN 1.0f
 
+#define MOCKIE_RADIUS		6		//Radius of the rounded mockie corners
+#define BUBBLE_EDGE_INDENT	4		//Extra padding that makes room for a bubble's round edge
+
+/*!
+ * @brief The shape a row is drawn in
+ *
+ * What used to be six cell classes. Plain is the square row of the standard and
+ * borderless layouts, Mockie the rounded block where a group rounds its top and
+ * the last contact under it its bottom, Bubble one rounded pill per row.
+ */
+typedef enum {
+	AIListRowShapePlain = 0,
+	AIListRowShapeMockie,
+	AIListRowShapeBubble
+} AIListRowShape;
+
 @interface AIListCell : NSCell {
 	__unsafe_unretained AIListOutlineView	*outlineControlView;	//The view that owns this cell; matches the assign property
     AIProxyListObject	*proxyObject;
@@ -48,6 +64,9 @@
 	
 	BOOL				useAliasesAsRequested;
 	NSMutableDictionary *labelAttributes;
+
+	AIListRowShape		shape;
+	BOOL				fitted;
 }
 
 - (void)setProxyListObject:(AIProxyListObject *)inObject;
@@ -55,6 +74,14 @@
 @property (readwrite, assign, nonatomic) AIListOutlineView *outlineControlView;
 
 //Display options
+/*!
+ * @brief The shape this row is drawn in
+ */
+@property (readwrite, nonatomic) AIListRowShape shape;
+/*!
+ * @brief Whether a bubble is drawn only as wide as its contents
+ */
+@property (readwrite, nonatomic) BOOL fitted;
 @property (readwrite, nonatomic) NSTextAlignment textAlignment;
 @property (readwrite, retain, nonatomic) NSColor *textColor;
 @property (readwrite, retain, nonatomic) NSColor *invertedTextColor;

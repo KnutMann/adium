@@ -65,6 +65,12 @@
 
 	NSDictionary		*_statusAttributes;
 	NSMutableDictionary	*_statusAttributesInverted;	
+
+	//Shape
+	NSBezierPath		*lastBackgroundBezierPath;
+	BOOL				outlineBubble;
+	BOOL				drawWithGradient;
+	float				outlineBubbleLineWidth;
 }
 
 //Status Text
@@ -105,6 +111,21 @@
 - (void)setBackgroundColorIsEvents:(BOOL)isEvents;
 - (void)setShouldUseContactTextColors:(BOOL)flag;
 - (void)setUseStatusMessageAsExtendedStatus:(BOOL)flag;
+
+//Shape
+- (void)setOutlineBubble:(BOOL)flag;
+- (void)setOutlineBubbleLineWidth:(float)inWidth;
+- (void)setDrawWithGradient:(BOOL)flag;
+/*!
+ * @brief The rectangle the row's shape is drawn in
+ *
+ * The whole frame, unless the bubble is fitted to its contents.
+ */
+- (NSRect)bubbleRectForFrame:(NSRect)rect;
+/*!
+ * @brief The outline of the row's shape, or nil where it is a plain rectangle
+ */
+- (NSBezierPath *)backgroundPathForFrame:(NSRect)rect;
 
 //Drawing
 - (void)drawContentWithFrame:(NSRect)rect;

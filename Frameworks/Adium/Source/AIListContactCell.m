@@ -20,6 +20,10 @@
 #import <AIUtilities/AIParagraphStyleAdditions.h>
 #import <AIUtilities/AIStringAdditions.h>
 #import <Adium/AIServiceIcons.h>
+#import <Adium/AIListOutlineView.h>
+#import <AIUtilities/AIBezierPathAdditions.h>
+#import <AIUtilities/AIColorAdditions.h>
+#import <AIUtilities/AIGradientAdditions.h>
 #import <Adium/AIUserIcons.h>
 #import "AIProxyListObject.h"
 
@@ -47,6 +51,10 @@
 		_statusAttributesInverted = nil;
 		shouldUseContactTextColors = YES;
 		useStatusMessageAsExtendedStatus = NO;
+		lastBackgroundBezierPath = nil;
+		outlineBubble = NO;
+		outlineBubbleLineWidth = 1.0f;
+		drawWithGradient = NO;
 	}
 
 	return self;
@@ -54,6 +62,14 @@
 
 //Cell sizing and padding ----------------------------------------------------------------------------------------------
 #pragma mark Cell sizing and padding
+//A bubble needs room for its round edge
+- (CGFloat)leftPadding{
+	return [super leftPadding] + (shape == AIListRowShapeBubble ? BUBBLE_EDGE_INDENT : 0);
+}
+- (CGFloat)rightPadding{
+	return [super rightPadding] + (shape == AIListRowShapeBubble ? BUBBLE_EDGE_INDENT : 0);
+}
+
 //Size our cell to fit our content
 - (NSSize)cellSize
 {
@@ -139,7 +155,7 @@
 		width += TEXT_WITH_IMAGES_RIGHT_PAD;
 	}
 
-	return width + 1;
+	return width + 1 + (shape == AIListRowShapeBubble ? BUBBLE_EDGE_INDENT : 0);
 }
 
 
@@ -423,18 +439,252 @@
 	}
 }
 
+#pragma mark Shape
+
+/*!
+ * @brief The rectangle the shape is drawn in
+ *
+ * The whole frame, unless the bubble is fitted, in which case it is pulled in
+ * around the name and whatever icons sit on the same side as the text.
+ */
+- (NSRect)bubbleRectForFrame:(NSRect)rect
+{
+	if (shape != AIListRowShapeBubble || !fitted) return rect;
+
+	NSSize	nameSize = [[self labelString] sizeWithAttributes:[self labelAttributes]];
+	CGFloat	originalWidth = rect.size.width;
+	CGFloat	originalX = rect.origin.x;
+
+	//Alignment
+	switch ([self textAlignment]) {
+		case NSTextAlignmentCenter:
+			rect.origin.x += ((rect.size.width - nameSize.width) / 2.0f) - [self leftPadding];
+			break;
+		case NSTextAlignmentRight:
+			rect.origin.x += (rect.size.width - nameSize.width) - [self leftPadding] - [self rightPadding];
+			break;
+		default:
+			break;
+	}
+
+	//Fit the bubble to their name
+	rect.size.width = nameSize.width + [self leftPadding] + [self rightPadding];
+
+	//Handle the icons (only works properly if they are on the same side as the text)
+
+	//User icon
+	if (userIconVisible) {
+		CGFloat userIconChange = userIconSize.width + USER_ICON_LEFT_PAD + USER_ICON_RIGHT_PAD;
+
+		rect.size.width += userIconChange;
+
+		//Shift left to accomodate an icon on the right
+		if (userIconPosition == LIST_POSITION_RIGHT) {
+			rect.origin.x -= userIconChange;
+		}
+	}
+
+	//Status icon
+	if (statusIconsVisible &&
+	   (statusIconPosition != LIST_POSITION_BADGE_LEFT && statusIconPosition != LIST_POSITION_BADGE_RIGHT)) {
+		CGFloat	statusIconChange = [[self statusImage] size].width + STATUS_ICON_LEFT_PAD + STATUS_ICON_RIGHT_PAD;
+
+		rect.size.width += statusIconChange;
+
+		//Shift left to accomodate an icon on the right
+		if (statusIconPosition == LIST_POSITION_RIGHT || statusIconPosition == LIST_POSITION_FAR_RIGHT) {
+			rect.origin.x -= statusIconChange;
+		}
+	}
+
+	//Service icon
+	if (serviceIconsVisible &&
+	   (serviceIconPosition != LIST_POSITION_BADGE_LEFT && serviceIconPosition != LIST_POSITION_BADGE_RIGHT)) {
+		CGFloat serviceIconChange = [[self serviceImage] size].width + SERVICE_ICON_LEFT_PAD + SERVICE_ICON_RIGHT_PAD;
+
+		rect.size.width += serviceIconChange;
+
+		//Shift left to accomodate an icon on the right
+		if (serviceIconPosition == LIST_POSITION_RIGHT || serviceIconPosition == LIST_POSITION_FAR_RIGHT) {
+			rect.origin.x -= serviceIconChange;
+		}
+	}
+
+	//Don't let the bubble try to draw larger than the width we were passed, which was the full width possible
+	if (rect.size.width > originalWidth) rect.size.width = originalWidth;
+	if (rect.origin.x < originalX) rect.origin.x = originalX;
+
+	return rect;
+}
+
+/*!
+ * @brief The outline of the shape, or nil where it is a plain rectangle
+ *
+ * A Mockie row belongs to a block: the first row of the list rounds its top,
+ * the last row before a group or the end of the list rounds its bottom, and
+ * everything between is simply filled.
+ */
+- (NSBezierPath *)backgroundPathForFrame:(NSRect)rect
+{
+	switch (shape) {
+		case AIListRowShapePlain:
+			return nil;
+
+		case AIListRowShapeBubble:
+			return [NSBezierPath bezierPathWithRoundedRect:[self bubbleRectForFrame:rect]];
+
+		case AIListRowShapeMockie: {
+			NSInteger row = [self.outlineControlView rowForItem:proxyObject];
+			NSInteger numberOfRows = [self.outlineControlView numberOfRows];
+
+			if (row == 0) {
+				return (numberOfRows > 1 ?
+						[NSBezierPath bezierPathWithRoundedTopCorners:rect radius:MOCKIE_RADIUS] :
+						[NSBezierPath bezierPathWithRoundedRect:rect radius:MOCKIE_RADIUS]);
+			}
+
+			if (row >= (numberOfRows - 1) ||
+				[(id<AIMultiCellOutlineViewDelegate>)self.outlineControlView.delegate outlineView:self.outlineControlView
+																						  isGroup:[self.outlineControlView itemAtRow:row + 1]]) {
+				return [NSBezierPath bezierPathWithRoundedBottomCorners:rect radius:MOCKIE_RADIUS];
+			}
+
+			//A row in the middle of a block is simply filled
+			return nil;
+		}
+	}
+	return nil;
+}
+
+#pragma mark Drawing
+
 //Draw the background of our cell
 - (void)drawBackgroundWithFrame:(NSRect)rect
 {
-	NSColor	*labelColor = [self labelColor];
-	if (labelColor && ![self cellIsSelected]) {
-		[labelColor set];
-		[NSBezierPath fillRect:rect];
+	if ([self cellIsSelected]) return;
+
+	if (shape == AIListRowShapePlain) {
+		NSColor	*labelColor = [self labelColor];
+		if (labelColor) {
+			[labelColor set];
+			[NSBezierPath fillRect:rect];
+		}
+		return;
 	}
+
+	/* A shape cannot let the outline view paint the row colour behind it, so it
+	 * paints that colour itself where the contact has no label colour. */
+	NSColor *labelColor = [self labelColor];
+	if (!labelColor) labelColor = [self backgroundColor];
+
+	lastBackgroundBezierPath = [self backgroundPathForFrame:rect];
+
+	if (drawWithGradient && shape == AIListRowShapeBubble) {
+		NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:labelColor
+															 endingColor:[labelColor darkenAndAdjustSaturationBy:0.4f]];
+		[gradient drawInBezierPath:lastBackgroundBezierPath angle:90.0f];
+	} else {
+		[labelColor set];
+		if (lastBackgroundBezierPath)
+			[lastBackgroundBezierPath fill];
+		else
+			[NSBezierPath fillRect:rect];
+	}
+
+	if (outlineBubble && shape == AIListRowShapeBubble) {
+		[lastBackgroundBezierPath setLineWidth:outlineBubbleLineWidth];
+		[[self textColor] set];
+		[lastBackgroundBezierPath stroke];
+	}
+}
+
+//Draw a custom selection
+- (void)drawSelectionWithFrame:(NSRect)cellFrame
+{
+	if (shape == AIListRowShapePlain || ![self cellIsSelected]) return;
+
+	NSColor *highlightColor = [self.outlineControlView highlightColor];
+	NSGradient *gradient = (highlightColor ?
+							[[NSGradient alloc] initWithStartingColor:highlightColor
+														  endingColor:[highlightColor darkenAndAdjustSaturationBy:0.4f]] :
+							[NSGradient selectedControlGradient]);
+
+	lastBackgroundBezierPath = [self backgroundPathForFrame:cellFrame];
+
+	if (lastBackgroundBezierPath)
+		[gradient drawInBezierPath:lastBackgroundBezierPath angle:90.0f];
+	else
+		[gradient drawInRect:cellFrame angle:90.0f];
+}
+
+- (void)drawDropHighlightWithFrame:(NSRect)rect
+{
+	if (shape == AIListRowShapePlain) {
+		[super drawDropHighlightWithFrame:rect];
+		return;
+	}
+
+	[NSGraphicsContext saveGraphicsState];
+
+	//Ensure we don't draw outside our rect
+	[[NSBezierPath bezierPathWithRect:rect] addClip];
+
+	//Cell spacing
+	rect.origin.y += [self topSpacing];
+	rect.size.height -= [self bottomSpacing] + [self topSpacing];
+	rect.origin.x += [self leftSpacing];
+	rect.size.width -= [self rightSpacing] + [self leftSpacing];
+
+	//Margin for the drop highlight
+	rect.size.width -= DROP_HIGHLIGHT_WIDTH_MARGIN;
+	rect.origin.x += DROP_HIGHLIGHT_WIDTH_MARGIN / 2.0f;
+
+	rect.size.height -= DROP_HIGHLIGHT_HEIGHT_MARGIN;
+	rect.origin.y += DROP_HIGHLIGHT_HEIGHT_MARGIN / 2.0f;
+
+	NSBezierPath *path = [self backgroundPathForFrame:rect];
+	if (!path) path = [NSBezierPath bezierPathWithRoundedRect:rect radius:MOCKIE_RADIUS];
+
+	[[[NSColor blueColor] colorWithAlphaComponent:0.2f] set];
+	[path fill];
+
+	[[[NSColor blueColor] colorWithAlphaComponent:0.8f] set];
+	[path setLineWidth:2.0f];
+	[path stroke];
+
+	[NSGraphicsContext restoreGraphicsState];
+}
+
+- (void)setOutlineBubble:(BOOL)flag
+{
+	outlineBubble = flag;
+}
+- (void)setOutlineBubbleLineWidth:(float)inWidth
+{
+	outlineBubbleLineWidth = inWidth;
+}
+- (void)setDrawWithGradient:(BOOL)flag
+{
+	drawWithGradient = flag;
 }
 
 //User Icon
 - (NSRect)drawUserIconInRect:(NSRect)inRect position:(IMAGE_POSITION)position
+{
+	/* Held inside the shape that was just drawn, so a picture cannot stick out
+	 * of a rounded corner. A plain row has no shape and needs no clip. */
+	if (!lastBackgroundBezierPath || shape == AIListRowShapePlain)
+		return [self ai_drawUserIconInRect:inRect position:position];
+
+	[NSGraphicsContext saveGraphicsState];
+	[lastBackgroundBezierPath addClip];
+	NSRect returnRect = [self ai_drawUserIconInRect:inRect position:position];
+	[NSGraphicsContext restoreGraphicsState];
+
+	return returnRect;
+}
+
+- (NSRect)ai_drawUserIconInRect:(NSRect)inRect position:(IMAGE_POSITION)position
 {
     AIListObject    *listObject = [proxyObject listObject];
 	NSRect          rect = inRect;

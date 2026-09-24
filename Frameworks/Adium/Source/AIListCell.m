@@ -59,6 +59,8 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 		invertedTextColor = [NSColor alternateSelectedControlTextColor];
 
 		useAliasesAsRequested = YES;
+		shape = AIListRowShapePlain;
+		fitted = NO;
 
 		if (!leftParagraphStyleWithTruncatingTail) {
 			leftParagraphStyleWithTruncatingTail = [NSMutableParagraphStyle styleWithAlignment:NSTextAlignmentLeft
@@ -119,7 +121,7 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 	return font;
 }
 
-@synthesize textAlignment, textColor, invertedTextColor;
+@synthesize shape, fitted, textAlignment, textColor, invertedTextColor;
 
 /*!
  * @brief The colour the label is written in
@@ -403,9 +405,12 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 }
 
 //YES if a grid would be visible behind this cell (needs to be drawn)
+/* The rounded shapes cannot let the outline view paint the stripe behind them,
+ * because it would show in the corners they leave open. They paint it
+ * themselves, as part of their own background. */
 - (BOOL)drawGridBehindCell
 {
-	return YES;
+	return (shape == AIListRowShapePlain);
 }
 
 //The background color for this cell.  This will either be [controlView backgroundColor] or [controlView alternatingGridColor]

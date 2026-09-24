@@ -18,11 +18,8 @@
 #import <Adium/AIContactControllerProtocol.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIListCell.h>
-#import <Adium/AIListContactBubbleCell.h>
-#import <Adium/AIListContactBubbleToFitCell.h>
 #import <Adium/AIListContactCell.h>
 #import <Adium/AIListContactGroupChatCell.h>
-#import <Adium/AIListContactMockieCell.h>
 #import <Adium/AIListGroupBubbleCell.h>
 #import <Adium/AIListGroupBubbleToFitCell.h>
 #import <Adium/AIListGroupCell.h>
@@ -347,6 +344,9 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	contentCellAlignment = [[prefDict objectForKey:KEY_LIST_LAYOUT_ALIGNMENT] intValue];
 	groupCellAlignment = [[prefDict objectForKey:KEY_LIST_LAYOUT_GROUP_ALIGNMENT] intValue];
 
+	/* The cells no longer come in one class per window style: there are two of
+	 * them, one for a contact and one for a group, and the style tells each
+	 * what shape to draw itself in. */
 	switch (windowStyle) {
 		case AIContactListWindowStyleStandard:
 		case AIContactListWindowStyleBorderless:
@@ -355,11 +355,13 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		break;
 		case AIContactListWindowStyleGroupBubbles:
 			groupCell = [[AIListGroupMockieCell alloc] init];
-			contentCell = [[AIListContactMockieCell alloc] init];
+			contentCell = [[AIListContactCell alloc] init];
+			contentCell.shape = AIListRowShapeMockie;
 		break;
 		case AIContactListWindowStyleContactBubbles:
 			groupCell = [[AIListGroupBubbleCell alloc] init];
-			contentCell = [[AIListContactBubbleCell alloc] init];
+			contentCell = [[AIListContactCell alloc] init];
+			contentCell.shape = AIListRowShapeBubble;
 		break;
 		case AIContactListWindowStyleContactBubbles_Fitted:
 			//Right-aligned groups need to be full-width, not fitted
@@ -368,7 +370,9 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 			else
 				groupCell = [[AIListGroupBubbleCell alloc] init];
 			//Content can always be to-fit
-			contentCell = [[AIListContactBubbleToFitCell alloc] init];
+			contentCell = [[AIListContactCell alloc] init];
+			contentCell.shape = AIListRowShapeBubble;
+			contentCell.fitted = YES;
 		break;
 		case AIContactListWindowStyleGroupChat:
 			groupCell = [[AIListGroupCell alloc] init];
@@ -494,9 +498,9 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		BOOL	outlineBubble = [[prefDict objectForKey:KEY_LIST_LAYOUT_OUTLINE_BUBBLE] boolValue];
 		int		outlineBubbleLineWidth = [[prefDict objectForKey:KEY_LIST_LAYOUT_OUTLINE_BUBBLE_WIDTH] intValue];
 
-		[(AIListContactBubbleCell *)contentCell setOutlineBubble:outlineBubble];
-		[(AIListContactBubbleCell *)contentCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
-		[(AIListContactBubbleCell *)contentCell setDrawWithGradient:[[prefDict objectForKey:KEY_LIST_LAYOUT_CONTACT_BUBBLE_GRADIENT] boolValue]];		
+		[contentCell setOutlineBubble:outlineBubble];
+		[contentCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
+		[contentCell setDrawWithGradient:[[prefDict objectForKey:KEY_LIST_LAYOUT_CONTACT_BUBBLE_GRADIENT] boolValue]];		
 
 		[(AIListGroupBubbleCell *)groupCell setOutlineBubble:outlineBubble];
 		[(AIListGroupBubbleCell *)groupCell setOutlineBubbleLineWidth:outlineBubbleLineWidth];
