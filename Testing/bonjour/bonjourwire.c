@@ -6,11 +6,17 @@
  * jeder sieht den anderen auftauchen, und einer schickt dem anderen eine Nachricht ueber
  * die direkte TCP-Verbindung, die das Protokoll dafuer aufbaut.
  *
- *   bonjourwire <name> <port> send|wait <Sekunden> <Partner>
+ *   bonjourwire <name> <port> send|wait|echo <Sekunden> [Partner]
  *
  * send wartet, bis der GENANNTE Partner auftaucht, schickt ihm einen Gruss und meldet die
  * Zustellung; wait wartet auf den Gruss und druckt ihn. Beide enden mit 0 nur, wenn ihre
  * Haelfte wirklich passiert ist. Der Treiber dazu ist bonjour-test.sh.
+ *
+ * echo bleibt die ganze Zeit stehen und antwortet auf jede Nachricht, die ankommt, mit etwas
+ * ANDEREM: einer wechselnden Zeile mit laufender Nummer und der Laenge des Gehoerten. Damit
+ * laesst sich von Hand beides an einem Stueck pruefen, das Senden und das Empfangen, ohne
+ * dass die Antwort mit dem Gesendeten zu verwechseln waere. Antworten ist nie unaufgefordert,
+ * deshalb ist der Partner hier freiwillig; wird er genannt, wird nur ihm geantwortet.
  *
  * Der Partner wird verlangt und nicht erraten. Auf dieser Maschine laeuft im Normalfall auch
  * das richtige Adium mit einem Bonjour-Konto, und ein Pruefstand, der den erstbesten Nachbarn
@@ -32,6 +38,7 @@ static const char *myname = "nobody";
 static const char *partner = NULL;
 static PurpleAccount *theAccount = NULL;
 static gboolean sent = FALSE, arrived = FALSE, connected = FALSE;
+static int heard = 0, echoed = 0;
 static GMainLoop *loop = NULL;
 
 /* --- Die Schleife, wie nullclient und smwire sie auch fuehren --------------------------- */
@@ -153,6 +160,26 @@ static void buddy_signed_on(PurpleBuddy *buddy, gpointer data)
 	}
 }
 
+/*! Was das Echo zurueckschickt: nie das Gehoerte, sondern eine wechselnde Zeile. Wer die
+    Antwort im Fenster sieht, soll auf einen Blick wissen, dass sie von hier kommt und die
+    wievielte sie ist. */
+struct echo_reply { char *who; char *text; };
+
+static gboolean do_reply(gpointer data)
+{
+	struct echo_reply *reply = data;
+	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, theAccount, reply->who);
+
+	purple_conv_im_send(PURPLE_CONV_IM(conv), reply->text);
+	echoed++;
+
+	g_free(reply->who);
+	g_free(reply->text);
+	g_free(reply);
+
+	return FALSE;
+}
+
 /*! Beim Empfaenger angekommen. received-im-msg reicht Werte, nicht Zeiger auf Zeiger;
     das waere die Signatur des Filters receiving-im-msg. */
 static void received_im(PurpleAccount *account, char *sender, char *message,
@@ -161,6 +188,42 @@ static void received_im(PurpleAccount *account, char *sender, char *message,
 	printf("[%s] == received from %s: %s\n", myname, sender, message);
 	fflush(stdout);
 	arrived = TRUE;
+
+	if (purple_strequal(role, "echo")) {
+		static const char *openings[] = { "Angekommen", "Gehoert", "Steht", "Notiert", "Weiter" };
+		char *plain;
+		long length;
+		struct echo_reply *reply;
+
+		/* Ein genannter Partner schraenkt auch hier ein, obwohl eine Antwort nie
+		   unaufgefordert ist: wer den Pruefstand auf einen Gegenueber festlegt, will nicht,
+		   dass er mit jemand anderem spricht. */
+		if (partner && !is_partner(sender)) {
+			printf("[%s] == (nicht der Partner, keine Antwort)\n", myname);
+			fflush(stdout);
+			return;
+		}
+
+		/* Auf dem Draht steht Auszeichnung ("<font>...</font>"), gezaehlt wird der Text. */
+		plain = purple_markup_strip_html(message);
+		length = g_utf8_strlen(plain ? plain : "", -1);
+
+		heard++;
+		reply = g_new0(struct echo_reply, 1);
+		reply->who = g_strdup(sender);
+		reply->text = g_strdup_printf("%s. Antwort %d auf %ld Zeichen.",
+		                              openings[(heard - 1) % G_N_ELEMENTS(openings)], heard, length);
+
+		printf("[%s] == answering with: %s\n", myname, reply->text);
+		fflush(stdout);
+
+		g_free(plain);
+
+		/* Nicht aus dem Signal heraus senden, sondern gleich danach. */
+		g_timeout_add(200, do_reply, reply);
+		return;
+	}
+
 	g_main_loop_quit(loop);
 }
 
@@ -171,6 +234,10 @@ static void sent_im(PurpleAccount *account, const char *receiver,
 {
 	printf("[%s] == wrote out to %s\n", myname, receiver);
 	fflush(stdout);
+
+	//Das Echo hoert weiter zu, bis seine Zeit um ist
+	if (purple_strequal(role, "echo")) return;
+
 	g_timeout_add_seconds(2, (GSourceFunc)g_main_loop_quit, loop);
 }
 
@@ -196,7 +263,7 @@ int main(int argc, char *argv[])
 	signal(SIGPIPE, SIG_IGN);
 
 	if (argc < 4) {
-		fprintf(stderr, "bonjourwire <name> <port> send|wait <Sekunden> <Partner>\n");
+		fprintf(stderr, "bonjourwire <name> <port> send|wait|echo <Sekunden> [Partner]\n");
 		return 2;
 	}
 	myname = argv[1];
@@ -209,6 +276,12 @@ int main(int argc, char *argv[])
 	   Nachbarn, der gar nicht zum Pruefstand gehoert. */
 	if (purple_strequal(role, "send") && !partner) {
 		fprintf(stderr, "bonjourwire: send braucht den Namen des Partners als fuenftes Argument\n");
+		return 2;
+	}
+
+	/* Ein vertippter Auftrag verhielte sich sonst stillschweigend wie wait. */
+	if (!purple_strequal(role, "send") && !purple_strequal(role, "wait") && !purple_strequal(role, "echo")) {
+		fprintf(stderr, "bonjourwire: unbekannter Auftrag \"%s\", erlaubt sind send, wait und echo\n", role);
 		return 2;
 	}
 
@@ -252,5 +325,9 @@ int main(int argc, char *argv[])
 
 	if (purple_strequal(role, "send"))
 		return (connected && sent) ? 0 : 1;
+	if (purple_strequal(role, "echo")) {
+		printf("[%s] == %d heard, %d answered\n", myname, heard, echoed);
+		return (connected && echoed > 0) ? 0 : 1;
+	}
 	return (connected && arrived) ? 0 : 1;
 }
