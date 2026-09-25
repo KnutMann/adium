@@ -27,6 +27,7 @@
 #import <AIUtilities/AIEventAdditions.h>
 #import <Adium/AIAbstractListController.h>
 #import <Adium/AIListRowView.h>
+#import <Adium/ESDebugAILog.h>
 #import "AISCLViewPlugin.h"
 
 @interface AIListOutlineView ()
@@ -314,8 +315,10 @@
 	id item = [self itemAtRow:row];
 	
 	// Let super handle it if it's not a group, or the command key is down (dealing with selection)
-	// Allow clickthroughs for triangle disclosure only.
-	if (![item isKindOfClass:[AIListGroup class]] || [NSEvent cmdKey] || ![[self window] isKeyWindow]) {
+	if (![item isKindOfClass:[AIListGroup class]] || [NSEvent cmdKey]) {
+		AILogWithSignature(@"Klick auf Zeile %ld (%@) geht an super: Gruppe=%d Befehlstaste=%d Tastaturfenster=%d",
+						   (long)row, [item isKindOfClass:[AIListGroup class]] ? @"Gruppe" : @"keine Gruppe",
+						   (int)[item isKindOfClass:[AIListGroup class]], (int)[NSEvent cmdKey], (int)self.window.isKeyWindow);
 		[super mouseDown:theEvent];
 		return;
 	}
@@ -346,12 +349,17 @@
 	
 	// Only expand/contract if they release the mouse. Otherwise pass on the goods.
 	switch ([nextEvent type]) {
-		case NSEventTypeLeftMouseUp:
-			if ([self isItemExpanded:item]) {
+		case NSEventTypeLeftMouseUp: {
+			BOOL wasExpanded = [self isItemExpanded:item];
+			if (wasExpanded) {
 				[self collapseItem:item]; 
 			} else {
 				[self expandItem:item]; 
 			}
+			AILogWithSignature(@"Gruppe \"%@\" in Zeile %ld: vorher offen=%d, gewollt %@, nachher offen=%d, gemerkt offen=%d, Tastaturfenster=%d",
+							   [(AIListGroup *)item displayName], (long)row, (int)wasExpanded,
+							   wasExpanded ? @"zu" : @"auf", (int)[self isItemExpanded:item],
+							   (int)[(AIListGroup *)item isExpanded], (int)self.window.isKeyWindow);
 			
 			/* If the disclosure triangle was not the click-point, select the row.
 			 *
@@ -361,6 +369,7 @@
 			 if (viewPoint.x >= NSHeight([self frameOfCellAtColumn:0 row:row]))
 				 [self selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO]; 
 			 break;
+		}
 		case NSEventTypeLeftMouseDragged:
 			[super mouseDown:theEvent];
 			[super mouseDragged:nextEvent];

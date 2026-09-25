@@ -59,6 +59,21 @@
 	return NO;
 }
 
+/*!
+ * @brief The first click into an inactive window counts as a click
+ *
+ * A table answers yes to this, so a row could always be clicked without first
+ * bringing the window forward. The views that now sit in front of the table
+ * inherited the plain default, which is no, and it is the view under the pointer
+ * that is asked. So the first click on a group only woke the window up and the
+ * second one folded it, on the very same pixel.
+ */
+- (BOOL)acceptsFirstMouse:(NSEvent *)event
+{
+	return YES;
+}
+
+
 /* The table's own ground, its background image and the alternating stripe are
  * all painted by the outline view in -drawBackgroundInClipRect:, for every row
  * at once, so there is nothing left for a single row to do here.
@@ -169,6 +184,12 @@
 {
 	return NO;
 }
+
+- (BOOL)acceptsFirstMouse:(NSEvent *)event
+{
+	return YES;
+}
+
 
 - (void)drawRect:(NSRect)dirtyRect
 {
