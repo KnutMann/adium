@@ -6,11 +6,11 @@ HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_7 = "$(SRCROOT)/Frameworks/libgpgerror.fra
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread = "$(SRCROOT)/Frameworks/libgthread.framework/Headers"
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_jsxtras = "$(SRCROOT)/Plugins/JavaScript Xtras"
 // Opus and ogg, for writing a voice note in the one format that arrives as a voice note
-HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_opus = "$(SRCROOT)/Dependencies/build/include" "$(SRCROOT)/Dependencies/build/include/opus"
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_opus = "$(SRCROOT)/Frameworks/opus/include" "$(SRCROOT)/Frameworks/opus/include/opus"
 PRODUCT_NAME = Adium
 FRAMEWORK_SEARCH_PATHS = $(inherited)
 INFOPLIST_OTHER_PREPROCESSOR_FLAGS = -C
 INFOPLIST_FILE = Resources/Info.plist
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
 HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_6) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_7) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_jsxtras) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_opus)
-OTHER_LDFLAGS = -lexpat -framework UserNotifications "$(SRCROOT)/Frameworks/libgpgerror.framework/Versions/A/libgpgerror" "$(SRCROOT)/Dependencies/build/lib/libopus.a" "$(SRCROOT)/Dependencies/build/lib/libogg.a"
+OTHER_LDFLAGS = -lexpat -framework UserNotifications "$(SRCROOT)/Frameworks/libgpgerror.framework/Versions/A/libgpgerror" "$(SRCROOT)/Frameworks/opus/lib/libopus.a" "$(SRCROOT)/Frameworks/opus/lib/libogg.a"

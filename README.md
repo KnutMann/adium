@@ -67,14 +67,21 @@ Current version: **1.8.0**.
   contacts of your own list; and a picture you send goes the same way
   when the server offers it, uploaded per XEP-0363 and messaged as its
   address, with the classic file transfer as the fallback
+* **Bonjour is back**: chatting with the people on the same network,
+  with no server and no account anywhere, which is what an office
+  without an external service runs on. The original implementation was
+  Adium's own and stopped working on recent macOS; this uses libpurple's
+  prpl-bonjour talking to the system's own mDNS, so there is no second
+  discovery daemon to install. Accounts made with the old
+  implementation find their way to the new one by themselves
 * OTR migrated to the libotr 4.x API
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
   and Meanwhile
 
-Still supported classic services: **XMPP/Jabber, IRC, Gadu-Gadu,
-Novell GroupWise and SIMPLE**, plus OTR and OMEMO encryption and tabbed
-chats in a modern look.
+Still supported classic services: **XMPP/Jabber, Bonjour, IRC,
+Gadu-Gadu, Novell GroupWise and SIMPLE**, plus OTR and OMEMO encryption
+and tabbed chats in a modern look.
 
 ### End to end encryption over XMPP
 
@@ -117,6 +124,21 @@ media runs through Google's WebRTC natively.
   and unmute)
 * **Center Stage support** Camera follows person, where possible
 * **Check Call Readiness…** Check whether Adium can make or receive calls
+
+### Voice notes
+
+A microphone button in the conversation's toolbar starts recording and
+counts the seconds in its own label; clicking it again stops. What comes
+back is dropped into the message you are writing, as an attachment with
+a waveform and its length, so it goes out by the same path that carries
+a picture or a file, and you can still type something beside it.
+
+The recording is Opus in an Ogg container, which is what the far end
+expects of a voice note rather than a file that happens to contain
+sound: WhatsApp, Signal and modern XMPP clients play it as one, with a
+waveform and a play button rather than a download. A note that arrives
+is played in the conversation itself, and over XMPP it travels encrypted
+like any other attachment (XEP-0454).
 
 ### Dark Mode and interface
 
@@ -263,7 +285,7 @@ The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
-Four things are fetched rather than vendored, and both `bootstrap.sh`
+Three things are fetched rather than vendored, and both `bootstrap.sh`
 and `install.sh` get them by running `Dependencies/fetch.sh` before they
 build anything. It is idempotent and takes about a second once
 everything is in place, so there is no reason to skip it. **Building
@@ -278,18 +300,25 @@ from Xcode alone does not run it**, so run it once after cloning:
   repository because it is a 200 MB binary framework
 * **picomemo**, the cryptographic half of OMEMO (ISC), fetched and built
   from source at a pinned commit
-* **libogg** and **libopus** (BSD), the codec voice notes are recorded
-  in, fetched and built from source at pinned versions and linked
-  statically into the application
 
 Without them the build fails at a compiler error naming a header, which
 says nothing about a download being what was missing.
 
-All other required libraries (libpurple, glib, libotr, libgcrypt, ...)
-are vendored as prebuilt arm64 frameworks in the repository. Rebuilding
-them from source is only necessary when upgrading a dependency or
-patching one; see `Dependencies/build.sh` (this does require a
-Homebrew toolchain).
+Everything else Adium links against is a prebuilt arm64 binary in the
+repository: the frameworks and libraries under `Frameworks/` and the
+protocol plug-ins under `PurplePlugins/`. A plain clone plus Xcode is
+therefore enough to build, and nothing here needs a Homebrew toolchain.
+
+Building those libraries from source instead is a developer's job, not a
+build step, and there is one switch for it:
+
+    ./bootstrap.sh --rebuild-dependencies
+
+which runs `Dependencies/build.sh` and `Dependencies/copy_frameworks.sh`
+for libpurple, glib, libotr and the rest, and
+`Dependencies/opus/build-opus.sh` for the codec, each from pinned
+sources, and overwrites the binaries in place. It needs a Homebrew
+toolchain and takes the better part of an hour.
 
 ## License
 
@@ -342,9 +371,27 @@ local change on top of them):
 | `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) | Homebrew build | BSD 3-Clause |
 | `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) | Homebrew build | libpng/zlib |
 | `Frameworks/libotr.framework` and friends | [libotr](https://otr.cypherpunks.ca), [libgcrypt](https://gnupg.org), [libgpg-error](https://gnupg.org), [gettext](https://www.gnu.org/software/gettext/) | Homebrew builds | GPL v2 / LGPL v2.1 |
+| `Frameworks/libpurple.framework`, `libglib.framework` and the other glib pieces | [libpurple](https://pidgin.im) 2.14.14, [glib](https://gitlab.gnome.org/GNOME/glib) | built by `Dependencies/build.sh` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
+| `Frameworks/opus/lib/libopus.a`, `libogg.a` | [Opus](https://opus-codec.org) 1.5.2, [libogg](https://xiph.org/ogg/) 1.3.6 | built by `Dependencies/opus/build-opus.sh`, tarballs pinned by SHA-256 | BSD 3-Clause |
 
-libpurple, glib and the other core dependencies are not shipped as
-binaries; they are built from source by the scripts in `Dependencies/`
-(which pin the exact versions, e.g. libpurple 2.14.14). The LGPL
-components are dynamically linked, so they can be swapped out by
-rebuilding the bundle.
+The LGPL components are dynamically linked, so they can be swapped out
+by rebuilding the bundle. The two Xiph libraries are the exception: they
+are linked statically, because a codec used by one source file is not
+worth a framework to embed and sign, and their licence does not ask for
+it.
+
+### Adding a library
+
+Anything the build reads out of `Frameworks/` has to get there by a
+script in `Dependencies/`, and both have to be in place before the
+change is pushed. Deciding how a new library is carried, vendored as a
+binary or fetched at build time, is part of introducing it, not
+something to leave until somebody else cannot build.
+
+The test is one line: every path under `Frameworks/` or
+`Dependencies/build` named in
+`Frameworks/AIUtilities/xcconfigs/*.xcconfig` must be produced by a
+script under `Dependencies/`, and must be listed in the table above or
+among the three fetched things. Opus was introduced without either and
+went unnoticed for weeks, because it had been built by hand on the one
+machine that mattered.

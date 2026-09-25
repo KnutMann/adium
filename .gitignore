@@ -25,6 +25,11 @@ com.apple.DeveloperTools
 *.la
 .libs/
 
+# Except these two, which are shipped: the codec voice notes are recorded in, a
+# couple of megabytes beside the frameworks that are already here, so that a
+# fresh clone needs neither a download nor an autotools toolchain to build.
+!Frameworks/opus/lib/*.a
+
 # Xcode per-user state
 xcuserdata/
 *.xcuserdatad/

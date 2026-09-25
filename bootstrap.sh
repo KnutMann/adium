@@ -9,9 +9,42 @@
 #   git clone --recursive <repo> && cd adium && ./bootstrap.sh
 #
 # The resulting app is build/Release/Adium.app (ad-hoc signed).
+#
+# The libraries Adium links against (libpurple, glib, libotr, opus and the
+# rest) are prebuilt binaries in the repository, so this needs nothing but
+# Xcode. To build them from source instead, which needs a Homebrew toolchain
+# and takes the better part of an hour:
+#
+#   ./bootstrap.sh --rebuild-dependencies
 
 CONFIGURATION="${CONFIGURATION:-Release}"
 cd "$(dirname "$0")"
+
+REBUILD_DEPENDENCIES=false
+for option in "$@"; do
+	case $option in
+		--rebuild-dependencies)
+			REBUILD_DEPENDENCIES=true
+			;;
+		-h|-help|--help)
+			echo 'Usage: ./bootstrap.sh [--rebuild-dependencies]
+
+  --rebuild-dependencies  Build libpurple, glib, libotr, opus and the other
+                          bundled libraries from source before building the
+                          application, instead of using the prebuilt binaries
+                          in the repository. Needs a Homebrew toolchain
+                          (autoconf, automake, libtool, pkg-config).
+  --help                  This text
+
+  CONFIGURATION=Debug ./bootstrap.sh builds the Debug configuration.'
+			exit 0
+			;;
+		*)
+			echo "Unknown option $option. Run $0 --help for a list." >&2
+			exit 1
+			;;
+	esac
+done
 
 # The project pins its signature to "Adium Local Signing", a self-created
 # certificate that only exists in the original development keychain; it keeps
@@ -30,6 +63,16 @@ fi
 echo "==> Fetching what is not in the repository"
 # The submodule, the WebRTC framework and picomemo; see Dependencies/fetch.sh
 Dependencies/fetch.sh
+
+if [ "$REBUILD_DEPENDENCIES" = true ]; then
+	# Everything under Frameworks/ is a prebuilt binary; these two steps make
+	# those binaries again from pinned sources, and overwrite them in place.
+	echo "==> Rebuilding libpurple, glib, libotr and friends from source"
+	( cd Dependencies && ./build.sh && ./copy_frameworks.sh )
+
+	echo "==> Rebuilding libogg and libopus from source"
+	Dependencies/opus/build-opus.sh
+fi
 
 echo "==> Building AIUtilities"
 xcodebuild -project "Frameworks/AIUtilities/AIUtilities.xcodeproj" \
