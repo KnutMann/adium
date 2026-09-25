@@ -74,11 +74,36 @@
         [super mouseDown:theEvent];
 
 	} else {
-		//Wait for the next event to tell a plain click (handled by the list) from a window drag
-		NSEvent *nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
-														untilDate:[NSDate distantFuture]
-														   inMode:NSEventTrackingRunLoopMode
-														  dequeue:NO];
+		/* Wait for the next event to tell a plain click (handled by the list) from a window drag.
+		 *
+		 * A click that is meant as a click still carries a pixel or two of movement between press
+		 * and release, and AppKit reports every one of those as a drag with no threshold of its
+		 * own. Taken at face value, such a click is read here as the start of a window drag, the
+		 * window shifts by a pixel nobody sees, and the group it began on is never told. Click
+		 * again on the same spot and it works, which is exactly how it was reported.
+		 *
+		 * So movement within a few points is swallowed and the wait goes on. AIListOutlineView
+		 * does the same thing for the same reason, one layer further in; it never got the chance,
+		 * because the decision is made out here.
+		 */
+		NSEvent *nextEvent = nil;
+		for (;;) {
+			nextEvent = [[self window] nextEventMatchingMask:(NSEventMaskLeftMouseUp | NSEventMaskLeftMouseDragged | NSEventMaskPeriodic)
+												   untilDate:[NSDate distantFuture]
+													  inMode:NSEventTrackingRunLoopMode
+													 dequeue:NO];
+			if ([nextEvent type] != NSEventTypeLeftMouseDragged)
+				break;
+
+			NSPoint draggedPoint = [self convertPoint:[nextEvent locationInWindow] fromView:nil];
+			if (fabs(draggedPoint.x - viewPoint.x) > 4.0 || fabs(draggedPoint.y - viewPoint.y) > 4.0)
+				break;
+
+			[[self window] nextEventMatchingMask:NSEventMaskLeftMouseDragged
+									   untilDate:[NSDate distantFuture]
+										  inMode:NSEventTrackingRunLoopMode
+										 dequeue:YES];
+		}
 
 		//Pass along the event (either to ourself or our window, depending on what it is)
 		switch ([nextEvent type]) {
