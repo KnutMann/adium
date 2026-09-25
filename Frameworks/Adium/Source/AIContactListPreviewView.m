@@ -16,6 +16,7 @@
 
 #import <Adium/AIContactListPreviewView.h>
 
+#import <Adium/AIAccountControllerProtocol.h>
 #import <Adium/AIContactList.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIListGroup.h>
@@ -39,7 +40,8 @@
 
 @implementation AIPreviewService
 - (NSString *)serviceID { return self.ident; }
-- (NSString *)serviceCodeUniqueID { return [@"preview-" stringByAppendingString:self.ident]; }
+/* Asked during -[AIService init], before this object has been given its name. */
+- (NSString *)serviceCodeUniqueID { return [@"preview-" stringByAppendingString:(self.ident ?: @"unnamed")]; }
 - (NSString *)serviceClass { return self.ident; }
 - (NSString *)shortDescription { return self.ident; }
 - (NSString *)longDescription { return self.ident; }
@@ -161,8 +163,25 @@ static NSImage *previewIcon(NSString *name, NSColor *tint)
 	return image;
 }
 
+/*!
+ * @brief The service a made-up contact belongs to, for its icon
+ *
+ * The program's own, wherever it has one: that is the service the user already
+ * sees against that contact in the list.
+ *
+ * A stand-in is made only when there is no program behind this view, as in the
+ * harness that photographs it. With a program there is, an invented service
+ * would not stay invented: -[AIService init] puts every service it creates into
+ * the registry, and it would turn up in the list of services an account can be
+ * made for.
+ */
 - (AIService *)serviceNamed:(NSString *)ident
 {
+	AIService *known = [adium.accountController firstServiceWithServiceID:ident];
+	if (known) return known;
+
+	if (adium.accountController) return nil;
+
 	static NSMutableDictionary *services = nil;
 	if (!services) services = [NSMutableDictionary dictionary];
 
