@@ -16,8 +16,10 @@
 
 #import <Adium/AIListRowView.h>
 #import <Adium/AIListCell.h>
+#import <Adium/AIListObject.h>
 #import <Adium/AIListOutlineView.h>
 #import <Adium/AIProxyListObject.h>
+#import <Adium/ESDebugAILog.h>
 
 @implementation AIListRowView
 
@@ -40,6 +42,21 @@
 - (AIListCell *)cell
 {
 	return [self.cellSource listCellForProxyObject:self.proxyObject inOutlineView:self.listView];
+}
+
+/*!
+ * @brief A click on a row is a click on the row, not a grip on the window
+ *
+ * The contact list window can be dragged by its background, and a view that does
+ * not fill itself opaquely counts as background unless it says otherwise. The
+ * table itself has always said otherwise; the views that now sit in front of it
+ * inherited the default and had not, so a press on a group could be taken for
+ * the start of a window drag and the click that should have folded the group
+ * went nowhere. Which is why it sometimes took two.
+ */
+- (BOOL)mouseDownCanMoveWindow
+{
+	return NO;
 }
 
 /* The table's own ground, its background image and the alternating stripe are
@@ -147,6 +164,12 @@
 	return YES;
 }
 
+//As on the row view above, and for the same reason
+- (BOOL)mouseDownCanMoveWindow
+{
+	return NO;
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
 	/* Nothing is rubbed out first. Tried and reverted: a clear fill with the
@@ -173,6 +196,145 @@
 - (id)accessibilityValue
 {
 	return [[self.cellSource listCellForProxyObject:self.proxyObject inOutlineView:self.listView] spokenDescription];
+}
+
+@end
+
+#pragma mark -
+
+/*!
+ * @brief The tape measure described in the header
+ */
+@implementation AIListOutlineView (AIListProbe)
+
++ (void)ai_collectListViewsUnder:(NSView *)view into:(NSMutableArray *)found
+{
+	if ([view isKindOfClass:[AIListOutlineView class]]) [found addObject:view];
+	for (NSView *subview in view.subviews) [self ai_collectListViewsUnder:subview into:found];
+}
+
++ (NSArray *)ai_listViewsOnScreen
+{
+	NSMutableArray *found = [NSMutableArray array];
+	for (NSWindow *window in [NSApp windows]) {
+		if (window.contentView) [self ai_collectListViewsUnder:window.contentView into:found];
+	}
+
+	return found;
+}
+
+/*!
+ * @brief What the row views are, against what the table says they should be
+ *
+ * @param outComplaints How many rows did not match. Nothing wrong means the rows
+ *                      are innocent and the pixels are to blame.
+ */
+- (NSString *)ai_probeReport:(NSString *)occasion complaints:(NSUInteger *)outComplaints
+{
+	NSWindow *window = self.window;
+	NSMutableArray *rows = [NSMutableArray array];
+	for (NSView *subview in self.subviews) {
+		if ([subview isKindOfClass:[AIListRowView class]]) [rows addObject:subview];
+	}
+
+	NSMutableString *complaints = [NSMutableString string];
+	NSUInteger count = 0;
+
+	for (AIListRowView *row in rows) {
+		NSInteger index = [self rowForView:row];
+		NSString *held = row.proxyObject.cachedDisplayNameString ?: row.proxyObject.key ?: @"(nichts)";
+
+		if (index < 0 || index >= self.numberOfRows) {
+			[complaints appendFormat:@"    ohne Zeile, aber im Baum: \"%@\" bei %@\n",
+			 held, NSStringFromRect(row.frame)];
+			count++;
+			continue;
+		}
+
+		AIProxyListObject *item = [self itemAtRow:index];
+		NSRect wanted = [self rectOfRow:index];
+
+		if (item != row.proxyObject) {
+			[complaints appendFormat:@"    Zeile %ld haelt \"%@\", die Tabelle sagt \"%@\"\n",
+			 (long)index, held, item.cachedDisplayNameString ?: item.key ?: @"(nichts)"];
+			count++;
+		}
+		if (!NSEqualRects(wanted, row.frame)) {
+			[complaints appendFormat:@"    Zeile %ld (\"%@\") steht bei %@, gehoert nach %@\n",
+			 (long)index, held, NSStringFromRect(row.frame), NSStringFromRect(wanted)];
+			count++;
+		}
+	}
+
+	//Two rows sharing a strip of the window is the reported picture itself
+	for (NSUInteger i = 0; i < rows.count; i++) {
+		for (NSUInteger j = i + 1; j < rows.count; j++) {
+			NSRect a = [rows[i] frame], b = [rows[j] frame];
+			if (!NSIsEmptyRect(a) && !NSIsEmptyRect(b) && NSIntersectsRect(a, b)) {
+				[complaints appendFormat:@"    zwei Zeilen uebereinander: %@ und %@\n",
+				 NSStringFromRect(a), NSStringFromRect(b)];
+				count++;
+			}
+		}
+	}
+
+	AIListRowView *sample = rows.firstObject;
+	NSView *content = sample.subviews.firstObject;
+
+	NSMutableString *report = [NSMutableString stringWithFormat:@"Kontaktliste vermessen (%@)\n", occasion];
+	[report appendFormat:@"  Fenster: undurchsichtig=%d, Deckkraft=%.2f, am Hintergrund verschiebbar=%d\n",
+	 (int)window.isOpaque, window.alphaValue, (int)window.movableByWindowBackground];
+	[report appendFormat:@"  Tabelle: %@ sichtbar %@, %ld Zeilen, Schicht=%d\n",
+	 NSStringFromRect(self.frame), NSStringFromRect(self.visibleRect),
+	 (long)self.numberOfRows, (int)(self.layer != nil)];
+	[report appendFormat:@"  Zeilenansichten im Baum: %lu, Schicht Zeile=%d Inhalt=%d\n",
+	 (unsigned long)rows.count, (int)(sample.layer != nil), (int)(content.layer != nil)];
+
+	if (count) {
+		[report appendFormat:@"  %lu Beanstandungen:\n%@", (unsigned long)count, complaints];
+	} else {
+		[report appendString:@"  Alle Zeilen sitzen richtig und halten das Richtige.\n"];
+	}
+
+	if (outComplaints) *outComplaints = count;
+
+	return report;
+}
+
+- (void)ai_logProbeAlways:(NSString *)occasion
+{
+	AILogWithSignature(@"%@", [self ai_probeReport:occasion complaints:NULL]);
+}
+
+/*!
+ * @brief Measure, and write it down only if something is wrong
+ *
+ * A hundred contacts arriving must not fill the log with a hundred clean bills
+ * of health.
+ */
+- (void)ai_logProbeIfWrong:(NSString *)occasion
+{
+	NSUInteger complaints = 0;
+	NSString *report = [self ai_probeReport:occasion complaints:&complaints];
+	if (complaints) AILogWithSignature(@"%@", report);
+}
+
+- (void)ai_scheduleProbes:(NSString *)occasion
+{
+	if (!AIDebugLoggingEnabled) return;
+
+	[self ai_logProbeIfWrong:[occasion stringByAppendingString:@", sofort"]];
+
+	/* The overlap was reported to stand for about a second and then go away by
+	 * itself, so these two say whether it healed, and they are coalesced: the
+	 * strings are fixed so the earlier request can be called off. */
+	static NSString * const soon = @"kurz nach der letzten Aenderung";
+	static NSString * const later = @"eine Sekunde nach der letzten Aenderung";
+
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:soon];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:later];
+	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:soon afterDelay:0.3];
+	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:later afterDelay:1.0];
 }
 
 @end

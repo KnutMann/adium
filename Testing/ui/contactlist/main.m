@@ -65,9 +65,9 @@ static void writePNG(NSWindow *window, NSString *path)
 	 * recording it is not allowed here. Asking the view to draw into a bitmap
 	 * finishes the run instead of ending it with nothing, but it is the second
 	 * best picture and says so in its line: what a layer-backed view holds does
-	 * not all come along, and the bubble behind a contact is missing from it.
-	 * Good enough to read a name or a colour off, not to compare pixel by pixel
-	 * against a photographed run. */
+	 * not reliably come along, and one run lost the bubble behind every contact
+	 * while the next, from the same build, kept it. Good enough to read a name or
+	 * a colour off, not to compare pixel by pixel against a photographed run. */
 	NSView *content = window.contentView;
 	NSBitmapImageRep *rep = [content bitmapImageRepForCachingDisplayInRect:content.bounds];
 	if (!rep) {

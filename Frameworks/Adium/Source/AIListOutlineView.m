@@ -26,6 +26,7 @@
 #import <AIUtilities/AIBezierPathAdditions.h>
 #import <AIUtilities/AIEventAdditions.h>
 #import <Adium/AIAbstractListController.h>
+#import <Adium/AIListRowView.h>
 #import "AISCLViewPlugin.h"
 
 @interface AIListOutlineView ()
@@ -167,6 +168,24 @@
  * by us, but it can no longer be closed, by anything. Measured, after groups
  * in the running program stopped closing.
  */
+/*!
+ * @brief Lay the tape measure against the list whenever it changes
+ *
+ * These two are where every change to the list ends up, whichever way it came
+ * in. Off unless debug logging is on, and silent unless it finds something.
+ */
+- (void)reloadData
+{
+	[super reloadData];
+	[self ai_scheduleProbes:@"die ganze Liste neu geladen"];
+}
+
+- (void)noteNumberOfRowsChanged
+{
+	[super noteNumberOfRowsChanged];
+	[self ai_scheduleProbes:@"die Zahl der Zeilen hat sich geaendert"];
+}
+
 - (NSRect)frameOfOutlineCellAtRow:(NSInteger)row
 {
 	return NSZeroRect;

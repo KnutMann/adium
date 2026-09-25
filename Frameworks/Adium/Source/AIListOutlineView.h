@@ -94,3 +94,42 @@ typedef enum {
 - (void)setBackgroundFade:(CGFloat)fade;
 
 @end
+
+/*!
+ * @brief A tape measure for the list, laid against it while the program runs
+ *
+ * It was reported that entries are drawn on top of one another for about a
+ * second, while an account signs on and its contacts arrive. It lasts too short
+ * a time to catch by hand and the harness has never reproduced it, so this reads
+ * out what the table and its views actually are at that moment instead.
+ *
+ * It answers one question: whether the rows are where the table says they should
+ * be and hold what the table says they hold. If they are, the two names in one
+ * line are old pixels nobody rubbed out, and the window being see through is the
+ * reason. If they are not, it is the rows themselves that are wrong, and no
+ * amount of redrawing will help.
+ *
+ * Nothing is written unless something is wrong, or unless it is asked for from
+ * the Debug menu, and nothing at all happens unless debug logging is on.
+ */
+@interface AIListOutlineView (AIListProbe)
+
+/*!
+ * @brief Every contact list on screen, for a menu item that has no other handle on one
+ */
++ (NSArray *)ai_listViewsOnScreen;
+
+/*!
+ * @brief Measure, and write the result down whether or not anything is wrong
+ */
+- (void)ai_logProbeAlways:(NSString *)occasion;
+
+/*!
+ * @brief Measure now and again shortly after, and write only what is wrong
+ *
+ * The later passes say whether the list heals itself, which is what was reported.
+ * They are coalesced, so a hundred contacts arriving still measure twice.
+ */
+- (void)ai_scheduleProbes:(NSString *)occasion;
+
+@end
