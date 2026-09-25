@@ -365,7 +365,11 @@
 
 	busy = YES;
 
-	NSArray *cures = @[@"die Hoehen neu melden", @"neu auslegen lassen", @"die Spalten neu kacheln", @"alles neu laden", @"die Rahmen von Hand setzen"];
+	/* Loading the whole list again does put the rows right, and that is how the
+	 * cause was found, but it is no cure: it reads the remembered open and shut
+	 * state back out and applies it, so a group the user has just closed springs
+	 * open again. It is gone from this list for that reason. */
+	NSArray *cures = @[@"die Hoehen neu melden", @"neu auslegen lassen", @"die Spalten neu kacheln", @"die Rahmen von Hand setzen"];
 	NSString *worked = nil;
 
 	for (NSString *cure in cures) {
@@ -379,9 +383,6 @@
 
 		} else if ([cure isEqualToString:@"die Spalten neu kacheln"]) {
 			[self tile];
-
-		} else if ([cure isEqualToString:@"alles neu laden"]) {
-			[self reloadData];
 
 		} else {
 			/* The last resort, and the one that cannot fail, because it does by

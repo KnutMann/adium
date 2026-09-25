@@ -169,8 +169,19 @@
 //impossible to tell when a user expanded/collapsed a group (since there will be tons of false notifications sent
 //out when reloading).  As a fix, we implement two new notifications that ONLY get posted when THE USER expands
 //or collapses a group.
+/* The remembered state is written down first and the view told afterwards, which
+ * is the other way round from how this used to read. Opening or closing a group
+ * changes how many rows there are, and anything that reloads the list in the
+ * middle of that reads the remembered state back out and applies it. Written
+ * down last, the state still said "open" at that moment, the group sprang back
+ * open, and the click looked as though it had been swallowed. Which is why it
+ * sometimes took two on the very same pixel. */
 - (void)expandItem:(id)item expandChildren:(BOOL)expandChildren
 {
+	if (!ignoreExpandCollapse && [[self delegate] respondsToSelector:@selector(outlineView:setExpandState:ofItem:)]) {
+		[(id<AIOutlineViewDelegate>)[self delegate] outlineView:self setExpandState:YES ofItem:item];
+	}
+
 	[super expandItem:item expandChildren:expandChildren];
 
 	if (!ignoreExpandCollapse) {
@@ -178,15 +189,14 @@
 		[[NSNotificationCenter defaultCenter] postNotificationName:AIOutlineViewUserDidExpandItemNotification
 															object:self
 														  userInfo:[NSDictionary dictionaryWithObject:item forKey:@"Object"]];
-
-		//Inform our delegate directly
-		if ([[self delegate] respondsToSelector:@selector(outlineView:setExpandState:ofItem:)]) {
-			[(id<AIOutlineViewDelegate>)[self delegate] outlineView:self setExpandState:YES ofItem:item];
-		}
 	}
 }
 - (void)collapseItem:(id)item collapseChildren:(BOOL)collapseChildren
 {
+	if (!ignoreExpandCollapse && [[self delegate] respondsToSelector:@selector(outlineView:setExpandState:ofItem:)]) {
+		[(id<AIOutlineViewDelegate>)[self delegate] outlineView:self setExpandState:NO ofItem:item];
+	}
+
 	[super collapseItem:item collapseChildren:collapseChildren];
 
 	if (!ignoreExpandCollapse) {
@@ -194,11 +204,6 @@
 		[[NSNotificationCenter defaultCenter] postNotificationName:AIOutlineViewUserDidCollapseItemNotification
 															object:self
 														  userInfo:[NSDictionary dictionaryWithObject:item forKey:@"Object"]];
-
-		//Inform our delegate directly
-		if ([[self delegate] respondsToSelector:@selector(outlineView:setExpandState:ofItem:)]) {
-			[(id<AIOutlineViewDelegate>)[self delegate] outlineView:self setExpandState:NO ofItem:item];
-		}
 	}
 }
 
@@ -223,11 +228,17 @@
 
 		[super reloadData];
 
-		[self expandOrCollapseItemsOfItem:nil];
-
-		/* Current AppKit rebuilds the rows deferred after reloadData, which
-		 * discards the synchronous expandItem: calls above; apply the
-		 * stored expansion state again on the next runloop turn. */
+		/* Current AppKit rebuilds its rows after reloadData returns, not during
+		 * it, so opening a group right here happens against a table that is half
+		 * torn down. The rows it makes are placed from the old geometry and are
+		 * never moved again: measured in the running program, eight rows left
+		 * standing where they had been before an account signed on, while the
+		 * table had them two hundred and forty three points further down. That
+		 * is the overdrawn list that was reported.
+		 *
+		 * There used to be a synchronous pass here as well as the one below.
+		 * Its own comment already said it was discarded. It was not: it left
+		 * those rows behind. Only the deferred pass remains. */
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self expandOrCollapseItemsOfItem:nil];
 			/* Fire the row-count/height change path so observers (e.g. the
