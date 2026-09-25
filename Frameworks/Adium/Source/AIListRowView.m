@@ -233,7 +233,7 @@
  * @param outComplaints How many rows did not match. Nothing wrong means the rows
  *                      are innocent and the pixels are to blame.
  */
-- (NSString *)ai_probeReport:(NSString *)occasion complaints:(NSUInteger *)outComplaints
+- (NSString *)ai_probeReport:(NSString *)occasion complaints:(NSUInteger *)outComplaints always:(BOOL)always
 {
 	NSWindow *window = self.window;
 	NSMutableArray *rows = [NSMutableArray array];
@@ -293,9 +293,13 @@
 		}
 	}
 
-	/* Every row, not only the ones that are wrong. A row sitting right is what
-	 * says where the wrong ones went astray, and the two together are the whole
-	 * picture the log has to carry. */
+	if (outComplaints) *outComplaints = count;
+	if (!count && !always) return nil;
+
+	/* Every row, not only the ones that are wrong, because a row sitting right is
+	 * what says where the wrong ones went astray. Built only once there is
+	 * something to say: asking the table for every row's rectangle costs more
+	 * the longer the list is, and this runs while an account is signing on. */
 	NSMutableString *everyRow = [NSMutableString string];
 	NSMapTable *viewForRow = [NSMapTable strongToStrongObjectsMapTable];
 	for (AIListRowView *row in rows) {
@@ -335,14 +339,12 @@
 		[report appendString:@"  Alle Zeilen sitzen richtig und halten das Richtige.\n"];
 	}
 
-	if (outComplaints) *outComplaints = count;
-
 	return report;
 }
 
 - (void)ai_logProbeAlways:(NSString *)occasion
 {
-	AILogWithSignature(@"%@", [self ai_probeReport:occasion complaints:NULL]);
+	AILogWithSignature(@"%@", [self ai_probeReport:occasion complaints:NULL always:YES]);
 }
 
 /*!
@@ -361,15 +363,18 @@
 - (void)ai_logProbeIfWrong:(NSString *)occasion
 {
 	NSUInteger complaints = 0;
-	NSString *report = [self ai_probeReport:occasion complaints:&complaints];
-	if (complaints) AILogWithSignature(@"%@", report);
+	NSString *report = [self ai_probeReport:occasion complaints:&complaints always:NO];
+	if (report) AILogWithSignature(@"%@", report);
 }
 
-- (void)ai_scheduleProbes:(NSString *)occasion
+- (void)ai_scheduleProbes
 {
 	if (!AIDebugLoggingEnabled) return;
 
-	[self ai_logProbeIfWrong:[occasion stringByAppendingString:@", sofort"]];
+	/* Nothing is measured on the spot. That ran inside every single reload, and
+	 * a list fills up with hundreds of them while accounts sign on, which is
+	 * fifteen seconds of a program that has not shown itself yet. The readings
+	 * below are folded together, so the same hundred reloads cost three. */
 
 	/* The overlap was reported to stand for about a second and then go away by
 	 * itself, so these two say whether it healed, and they are coalesced: the

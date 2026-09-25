@@ -178,13 +178,13 @@
 - (void)reloadData
 {
 	[super reloadData];
-	[self ai_scheduleProbes:@"die ganze Liste neu geladen"];
+	[self ai_scheduleProbes];
 }
 
 - (void)noteNumberOfRowsChanged
 {
 	[super noteNumberOfRowsChanged];
-	[self ai_scheduleProbes:@"die Zahl der Zeilen hat sich geaendert"];
+	[self ai_scheduleProbes];
 }
 
 - (NSRect)frameOfOutlineCellAtRow:(NSInteger)row

@@ -130,6 +130,6 @@ typedef enum {
  * The later passes say whether the list heals itself, which is what was reported.
  * They are coalesced, so a hundred contacts arriving still measure twice.
  */
-- (void)ai_scheduleProbes:(NSString *)occasion;
+- (void)ai_scheduleProbes;
 
 @end
