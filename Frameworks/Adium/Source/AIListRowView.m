@@ -278,6 +278,26 @@
 		}
 	}
 
+	/* Every row, not only the ones that are wrong. A row sitting right is what
+	 * says where the wrong ones went astray, and the two together are the whole
+	 * picture the log has to carry. */
+	NSMutableString *everyRow = [NSMutableString string];
+	NSMapTable *viewForRow = [NSMapTable strongToStrongObjectsMapTable];
+	for (AIListRowView *row in rows) {
+		NSInteger index = [self rowForView:row];
+		if (index >= 0) [viewForRow setObject:row forKey:@(index)];
+	}
+	for (NSInteger index = 0; index < self.numberOfRows; index++) {
+		AIProxyListObject *item = [self itemAtRow:index];
+		AIListRowView *row = [viewForRow objectForKey:@(index)];
+		[everyRow appendFormat:@"    %2ld %-26.26s Tabelle %@  Ansicht %@%@\n",
+		 (long)index,
+		 (item.cachedDisplayNameString ?: item.key ?: @"(nichts)").UTF8String,
+		 NSStringFromRect([self rectOfRow:index]),
+		 row ? NSStringFromRect(row.frame) : @"(keine)",
+		 (row && row.isHidden) ? @" versteckt" : @""];
+	}
+
 	AIListRowView *sample = rows.firstObject;
 	NSView *content = sample.subviews.firstObject;
 
@@ -289,6 +309,10 @@
 	 (long)self.numberOfRows, (int)(self.layer != nil)];
 	[report appendFormat:@"  Zeilenansichten im Baum: %lu, Schicht Zeile=%d Inhalt=%d\n",
 	 (unsigned long)rows.count, (int)(sample.layer != nil), (int)(content.layer != nil)];
+
+	[report appendFormat:@"  Zellenhoehen jetzt: Gruppe %.2f, Kontakt %.2f\n",
+	 [[self groupCell] cellSize].height, [[self contentCell] cellSize].height];
+	[report appendFormat:@"  Alle Zeilen:\n%@", everyRow];
 
 	if (count) {
 		[report appendFormat:@"  %lu Beanstandungen:\n%@", (unsigned long)count, complaints];
