@@ -248,6 +248,13 @@
 		NSInteger index = [self rowForView:row];
 		NSString *held = row.proxyObject.cachedDisplayNameString ?: row.proxyObject.key ?: @"(nichts)";
 
+		/* A row on its way somewhere is not a row in the wrong place. The table
+		 * slides rows to their new spots when a group opens, and caught halfway
+		 * a row sits at no whole number and over its neighbours, which reads
+		 * exactly like the fault this watches for. The difference is that this
+		 * one is moving, and it says so. */
+		if (row.layer.animationKeys.count) continue;
+
 		if (index < 0 || index >= self.numberOfRows) {
 			[complaints appendFormat:@"    ohne Zeile, aber im Baum: \"%@\" bei %@\n",
 			 held, NSStringFromRect(row.frame)];
@@ -270,8 +277,12 @@
 		}
 	}
 
-	//Two rows sharing a strip of the window is the reported picture itself
-	for (NSUInteger i = 0; i < rows.count; i++) {
+	/* Two rows sharing a strip of the window is the reported picture itself. Only
+	 * worth looking for once a row is known to be out of place: every pair of
+	 * rows is measured against every other, which is nothing at twenty rows and
+	 * a quarter of a million tests at the seven hundred the old code worried
+	 * about. */
+	for (NSUInteger i = 0; count && i < rows.count; i++) {
 		for (NSUInteger j = i + 1; j < rows.count; j++) {
 			NSRect a = [rows[i] frame], b = [rows[j] frame];
 			if (!NSIsEmptyRect(a) && !NSIsEmptyRect(b) && NSIntersectsRect(a, b)) {
@@ -365,11 +376,15 @@
 	 * strings are fixed so the earlier request can be called off. */
 	static NSString * const soon = @"kurz nach der letzten Aenderung";
 	static NSString * const later = @"eine Sekunde nach der letzten Aenderung";
+	static NSString * const settled = @"lange nach der letzten Aenderung, nichts bewegt sich mehr";
 
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:soon];
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:later];
+	for (NSString *when in @[soon, later, settled])
+		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:when];
+
 	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:soon afterDelay:0.3];
 	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:later afterDelay:1.0];
+	//By now every slide is over, so anything still crooked is crooked for good
+	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:settled afterDelay:3.0];
 }
 
 @end
