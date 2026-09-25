@@ -68,13 +68,12 @@ Current version: **1.8.0**.
   when the server offers it, uploaded per XEP-0363 and messaged as its
   address, with the classic file transfer as the fallback
 * **Bonjour is back**: chatting with the people on the same network,
-  with no server and no account anywhere, which is what an office
-  without an external service runs on. The original implementation was
-  Adium's own and stopped working on recent macOS; this uses libpurple's
-  prpl-bonjour talking to the system's own mDNS, so there is no second
-  discovery daemon to install. Accounts made with the old
-  implementation find their way to the new one by themselves
-* OTR migrated to the libotr 4.x API
+  with no server.
+* **Voice messages**: record one from the conversation's toolbar and it
+  goes into the message you are writing, sent the way other clients
+  expect it so they play it rather than offer a download
+* OTR migrated to the libotr 4.x API, and OMEMO (XEP-0384) added beside
+  it, which is what other XMPP clients encrypt with today
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
   Yahoo, Google Talk, MobileMe, LiveJournal, Sametime, Twitter, Zephyr
   and Meanwhile
@@ -101,7 +100,6 @@ reads them now, and writes them.
   waits, and then says so, instead of going out in the clear
 * **Says what it used** so a client that cannot read the message can
   explain why (XEP-0380)
-
 * **Pictures and voice notes are encrypted too** (XEP-0454): what goes
   up to the file server is bytes nobody there can read, and what arrives
   is played or shown rather than left as an address
@@ -124,21 +122,6 @@ media runs through Google's WebRTC natively.
   and unmute)
 * **Center Stage support** Camera follows person, where possible
 * **Check Call Readiness…** Check whether Adium can make or receive calls
-
-### Voice notes
-
-A microphone button in the conversation's toolbar starts recording and
-counts the seconds in its own label; clicking it again stops. What comes
-back is dropped into the message you are writing, as an attachment with
-a waveform and its length, so it goes out by the same path that carries
-a picture or a file, and you can still type something beside it.
-
-The recording is Opus in an Ogg container, which is what the far end
-expects of a voice note rather than a file that happens to contain
-sound: WhatsApp, Signal and modern XMPP clients play it as one, with a
-waveform and a play button rather than a download. A note that arrives
-is played in the conversation itself, and over XMPP it travels encrypted
-like any other attachment (XEP-0454).
 
 ### Dark Mode and interface
 
