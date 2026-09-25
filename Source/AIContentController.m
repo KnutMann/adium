@@ -505,7 +505,17 @@
 			/* Tell the interface to open the chat
 			 * For incoming messages, we don't open the chat until we're sure that new content is being received.
 			 */
+
+			/* Say why it is opening, before anyone is told that it has. A window opened by a
+			 * message is about to have that message drawn into it, so the excerpt of what was
+			 * said before has to be placed now, ahead of it; and the archive a service keeps is
+			 * for a window the user opened, not for this one. Both are decided by observers of
+			 * the notification below, which is posted before this method returns, so the answer
+			 * has to be in place first and is taken away again directly afterwards.
+			 */
+			[chat setValue:[NSNumber numberWithBool:YES] forProperty:@"Opened By Message" notify:NotifyNever];
 			[adium.interfaceController openChat:chat];
+			[chat setValue:nil forProperty:@"Opened By Message" notify:NotifyNever];
 		}
 
 		userInfo = [NSDictionary dictionaryWithObjectsAndKeys:chat, @"AIChat", inObject, @"AIContentObject", nil];

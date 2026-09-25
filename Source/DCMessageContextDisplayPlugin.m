@@ -165,6 +165,18 @@ static DCMessageContextDisplayPlugin *sharedInstance = nil;
 	 * the phone, and the phone hands over each stretch exactly once, so after the first sync
 	 * there is nothing left to hand over and the window sits out the full wait for silence,
 	 * every time, for the rest of the session. Once is a fair price for finding that out. */
+	/* A window a message opened is the other case, and waiting there is wrong twice over.
+	 * The message is drawn into the window as soon as this returns, so an excerpt that
+	 * arrives seconds later lands underneath it, showing the older conversation below the
+	 * newer message. And by then the message has been written to the transcript this
+	 * excerpt is read from, so it is shown a second time, as history, below itself.
+	 * Straight away is still before the message, and before it is logged.
+	 */
+	if ([chat boolValueForProperty:@"Opened By Message"]) {
+		[self displayContextForChat:chat];
+		return;
+	}
+
 	if ([chat.account providesConversationHistory]
 		&& ![accountsThatDisappointed containsObject:chat.account]) {
 		[chatsAwaitingHistory addObject:chat];

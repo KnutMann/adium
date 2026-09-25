@@ -167,6 +167,13 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 	if (!chat.listObject || [asked containsObject:chat.uniqueChatID])
 		return;
 
+	/* A window a message opened already has its excerpt, drawn ahead of that message.
+	 * Archive lines asked for now would arrive after it and repeat what is on screen, so
+	 * this window keeps the excerpt and the archive is left for the next one the user
+	 * opens. The WhatsApp plug-in decides the same thing for the same reason. */
+	if ([chat boolValueForProperty:@"Opened By Message"])
+		return;
+
 	[asked addObject:chat.uniqueChatID];
 	[self askAbout:chat];
 }
