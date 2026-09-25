@@ -263,10 +263,11 @@ The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
-Three things are fetched rather than vendored, and both `bootstrap.sh`
+Four things are fetched rather than vendored, and both `bootstrap.sh`
 and `install.sh` get them by running `Dependencies/fetch.sh` before they
 build anything. It is idempotent and takes about a second once
-everything is in place, so there is no reason to skip it:
+everything is in place, so there is no reason to skip it. **Building
+from Xcode alone does not run it**, so run it once after cloning:
 
 * the **MMTabBarView** submodule, which git clones only when asked a
   second time (`git submodule update --init --recursive`)
@@ -277,6 +278,9 @@ everything is in place, so there is no reason to skip it:
   repository because it is a 200 MB binary framework
 * **picomemo**, the cryptographic half of OMEMO (ISC), fetched and built
   from source at a pinned commit
+* **libogg** and **libopus** (BSD), the codec voice notes are recorded
+  in, fetched and built from source at pinned versions and linked
+  statically into the application
 
 Without them the build fails at a compiler error naming a header, which
 says nothing about a download being what was missing.
