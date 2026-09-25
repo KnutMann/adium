@@ -265,7 +265,9 @@ The app lands in `build/Release/Adium.app` (ad-hoc signed, so it runs
 on the machine that built it; distributing binaries to others would
 require a proper signing identity). `bootstrap.sh` builds the
 AIUtilities and MMTabBarView subprojects first and stages their
-products, then builds the main project.
+products, then builds the main project. `./bootstrap.sh --help` lists
+its options; `--rebuild-dependencies` builds the bundled libraries from
+source first, which is otherwise never needed.
 
 ### Building it yourself
 
@@ -371,7 +373,8 @@ local change on top of them):
 | `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) | Homebrew build | BSD 3-Clause |
 | `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) | Homebrew build | libpng/zlib |
 | `Frameworks/libotr.framework` and friends | [libotr](https://otr.cypherpunks.ca), [libgcrypt](https://gnupg.org), [libgpg-error](https://gnupg.org), [gettext](https://www.gnu.org/software/gettext/) | Homebrew builds | GPL v2 / LGPL v2.1 |
-| `Frameworks/libpurple.framework`, `libglib.framework` and the other glib pieces | [libpurple](https://pidgin.im) 2.14.14, [glib](https://gitlab.gnome.org/GNOME/glib) | built by `Dependencies/build.sh` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
+| `Frameworks/libpurple.framework`, `libglib.framework`, `libgio`, `libgobject`, `libgmodule`, `libgthread`, `libintl`, `libffi`, `libjson-glib` | [libpurple](https://pidgin.im) 2.14.14, [glib](https://gitlab.gnome.org/GNOME/glib) and what it needs | built by `Dependencies/build.sh` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
+| `Frameworks/libgdk_pixbuf-2.0.0.dylib`, `libjpeg.8.dylib` | [gdk-pixbuf](https://gitlab.gnome.org/GNOME/gdk-pixbuf), [libjpeg-turbo](https://libjpeg-turbo.org), loading the images libpurple hands around | Homebrew builds | LGPL v2.1 / BSD-style |
 | `Frameworks/opus/lib/libopus.a`, `libogg.a` | [Opus](https://opus-codec.org) 1.5.2, [libogg](https://xiph.org/ogg/) 1.3.6 | built by `Dependencies/opus/build-opus.sh`, tarballs pinned by SHA-256 | BSD 3-Clause |
 
 The LGPL components are dynamically linked, so they can be swapped out
