@@ -336,28 +336,73 @@
  * A hundred contacts arriving must not fill the log with a hundred clean bills
  * of health.
  */
+- (NSUInteger)ai_complaintCount
+{
+	NSUInteger count = 0;
+	(void)[self ai_probeReport:@"" complaints:&count];
+
+	return count;
+}
+
+/*!
+ * @brief Say what is wrong, then work through the cures until one takes
+ *
+ * The rows are in the wrong place and the table knows the right one, so
+ * something that lays the table out again has to put them there. Which one does
+ * is not worth arguing about: they are tried in order, cheapest first, and the
+ * log names the one that worked. That name is the fix.
+ */
 - (void)ai_logProbeIfWrong:(NSString *)occasion
 {
+	static BOOL busy = NO;
+	if (busy) return;
+
 	NSUInteger complaints = 0;
 	NSString *report = [self ai_probeReport:occasion complaints:&complaints];
 	if (!complaints) return;
 
-	/* Say what is wrong, then try the one cure that follows from it and say
-	 * whether it took. A row that sits where it does not belong is a row the
-	 * table has not laid out since the heights it lays out from changed, so the
-	 * table is told they changed. If the rows are right afterwards, that was the
-	 * cause; if they are not, this line says so and the hunt goes on. */
 	AILogWithSignature(@"%@", report);
 
-	[self noteHeightOfRowsWithIndexesChanged:
-	 [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.numberOfRows)]];
+	busy = YES;
 
-	NSUInteger after = 0;
-	NSString *second = [self ai_probeReport:@"nachdem die Hoehen neu gemeldet wurden" complaints:&after];
-	if (after) {
-		AILogWithSignature(@"Die Hoehen neu zu melden hat nicht gereicht:\n%@", second);
+	NSArray *cures = @[@"die Hoehen neu melden", @"neu auslegen lassen", @"die Spalten neu kacheln", @"alles neu laden", @"die Rahmen von Hand setzen"];
+	NSString *worked = nil;
+
+	for (NSString *cure in cures) {
+		if ([cure isEqualToString:@"die Hoehen neu melden"]) {
+			[self noteHeightOfRowsWithIndexesChanged:
+			 [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.numberOfRows)]];
+
+		} else if ([cure isEqualToString:@"neu auslegen lassen"]) {
+			[self setNeedsLayout:YES];
+			[self layoutSubtreeIfNeeded];
+
+		} else if ([cure isEqualToString:@"die Spalten neu kacheln"]) {
+			[self tile];
+
+		} else if ([cure isEqualToString:@"alles neu laden"]) {
+			[self reloadData];
+
+		} else {
+			/* The last resort, and the one that cannot fail, because it does by
+			 * hand exactly what the table has not done. If it comes to this the
+			 * cause is still unknown and this line says so. */
+			for (NSView *subview in self.subviews) {
+				if (![subview isKindOfClass:[AIListRowView class]]) continue;
+				NSInteger index = [self rowForView:subview];
+				if (index >= 0 && index < self.numberOfRows) subview.frame = [self rectOfRow:index];
+			}
+		}
+
+		if ([self ai_complaintCount] == 0) { worked = cure; break; }
+	}
+
+	busy = NO;
+
+	if (worked) {
+		AILogWithSignature(@"Geholfen hat: %@", worked);
 	} else {
-		AILogWithSignature(@"Die Hoehen neu zu melden hat die Zeilen an ihren Platz gebracht");
+		AILogWithSignature(@"Keine der Kuren hat geholfen");
 	}
 }
 
