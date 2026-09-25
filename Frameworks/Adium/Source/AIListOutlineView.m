@@ -306,6 +306,51 @@
 #pragma mark Group expanding
 
 /*!
+ * @brief Write down every opening and closing, and who asked for it
+ *
+ * A click on a group header sometimes does nothing and has to be repeated on the
+ * same spot, and once it has worked once it keeps working. The click itself is
+ * not lost: the window has the keyboard and the handler below runs. So something
+ * else puts the group back the way it was, and these two say who. Every path
+ * that opens or closes anything comes through here, including the one that
+ * re-applies the remembered state after the list is loaded again, which does not
+ * show up anywhere else because it deliberately keeps quiet.
+ */
+- (void)ai_logFold:(NSString *)what item:(id)item
+{
+	if (!AIDebugLoggingEnabled) return;
+	if (![item isKindOfClass:[AIListGroup class]]) return;
+
+	NSArray *stack = [NSThread callStackSymbols];
+	NSMutableArray *callers = [NSMutableArray array];
+	for (NSUInteger i = 2; i < MIN((NSUInteger)7, stack.count); i++) {
+		NSString *frame = stack[i];
+		NSRange open = [frame rangeOfString:@"["];
+		NSRange close = [frame rangeOfString:@"]"];
+		if (open.location != NSNotFound && close.location != NSNotFound && close.location > open.location) {
+			[callers addObject:[frame substringWithRange:NSMakeRange(open.location, close.location - open.location + 1)]];
+		}
+	}
+
+	AILogWithSignature(@"%@ \"%@\" (jetzt offen=%d, gemerkt offen=%d), gerufen von %@",
+					   what, [(AIListGroup *)item displayName],
+					   (int)[self isItemExpanded:item], (int)[(AIListGroup *)item isExpanded],
+					   [callers componentsJoinedByString:@" <- "]);
+}
+
+- (void)expandItem:(id)item expandChildren:(BOOL)expandChildren
+{
+	[super expandItem:item expandChildren:expandChildren];
+	[self ai_logFold:@"aufgeklappt" item:item];
+}
+
+- (void)collapseItem:(id)item collapseChildren:(BOOL)collapseChildren
+{
+	[super collapseItem:item collapseChildren:collapseChildren];
+	[self ai_logFold:@"zugeklappt" item:item];
+}
+
+/*!
  * @brief Expand or collapses groups on mouse down
  */
 - (void)mouseDown:(NSEvent *)theEvent
