@@ -63,4 +63,13 @@
  */
 - (void)addFillerContacts:(NSUInteger)count;
 
+/*!
+ * @brief Add a whole group with contacts in it, in one go
+ *
+ * What an account does when it signs on: a group that was not there before
+ * appears with everything in it at once. A harness looking for what the list
+ * does in that moment needs it to happen, not to be imagined.
+ */
+- (void)addFilledGroupNamed:(NSString *)name contacts:(NSUInteger)count;
+
 @end

@@ -330,6 +330,35 @@ static NSImage *previewIcon(NSString *name, NSColor *tint)
 	filled += count;
 }
 
+- (void)addFilledGroupNamed:(NSString *)name contacts:(NSUInteger)count
+{
+	AIPreviewIconSource *iconSource = [[AIPreviewIconSource alloc] init];
+	AIListGroup *group = [[AIListGroup alloc] initWithUID:name];
+
+	NSMutableArray *added = [NSMutableArray array];
+	for (NSUInteger i = filled; i < filled + count; i++) {
+		[added addObject:[self contactWithUID:[NSString stringWithFormat:@"zweig%lu@beispiel.invalid", (unsigned long)i]
+										 name:[NSString stringWithFormat:@"%@ %lu", name, (unsigned long)(i + 1)]
+									  service:@"Jabber"
+									   online:((i % 3) != 0)
+								   statusType:((i % 4) == 1 ? AIAwayStatusType : AIAvailableStatusType)
+								statusMessage:((i % 2) ? @"…" : nil)
+								 idleReadable:nil
+									  isEvent:NO
+									 iconTint:[NSColor colorWithCalibratedHue:((i % 12) / 12.0)
+																   saturation:0.5 brightness:0.6 alpha:1.0]
+								   iconSource:iconSource]];
+	}
+	for (AIListContact *contact in added.reverseObjectEnumerator) [group addObject:contact];
+
+	[group setValue:@YES forProperty:@"showCount" notify:NotifyNever];
+	[group setValue:[NSString stringWithFormat:@"%lu/%lu", (unsigned long)count, (unsigned long)count]
+		forProperty:@"countText" notify:NotifyNever];
+
+	[contactList addObject:group];
+	filled += count;
+}
+
 #pragma mark Showing a set
 
 /*!

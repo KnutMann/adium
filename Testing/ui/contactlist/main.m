@@ -55,7 +55,33 @@ static void writePNG(NSWindow *window, NSString *path)
 					capture.terminationStatus, path.UTF8String);
 		spin(0.3);
 	}
-	fprintf(stdout, "%s\n", path.lastPathComponent.UTF8String);
+
+	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		fprintf(stdout, "%s\n", path.lastPathComponent.UTF8String);
+		return;
+	}
+
+	/* The window server would not give up a picture: the screen is locked, or
+	 * recording it is not allowed here. Asking the view to draw into a bitmap
+	 * finishes the run instead of ending it with nothing, but it is the second
+	 * best picture and says so in its line: what a layer-backed view holds does
+	 * not all come along, and the bubble behind a contact is missing from it.
+	 * Good enough to read a name or a colour off, not to compare pixel by pixel
+	 * against a photographed run. */
+	NSView *content = window.contentView;
+	NSBitmapImageRep *rep = [content bitmapImageRepForCachingDisplayInRect:content.bounds];
+	if (!rep) {
+		fprintf(stderr, "weder Fensterserver noch Zwischenspeicher liefern ein Bild fuer %s\n",
+				path.lastPathComponent.UTF8String);
+		return;
+	}
+	[content cacheDisplayInRect:content.bounds toBitmapImageRep:rep];
+
+	NSData *png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+	if ([png writeToFile:path atomically:YES])
+		fprintf(stdout, "%s (gezeichnet, nicht fotografiert)\n", path.lastPathComponent.UTF8String);
+	else
+		fprintf(stderr, "konnte %s nicht schreiben\n", path.lastPathComponent.UTF8String);
 }
 
 #pragma mark Preference sets
@@ -235,6 +261,20 @@ int main(int argc, const char *argv[])
 				 * ist: genau das passiert, wenn ein Konto sich anmeldet und
 				 * seine Kontakte nachreicht. Gemeldet wurde der Fehler fuer
 				 * genau diesen Augenblick. */
+				/* Mit LIST_BRANCH=1 erscheint eine ganze Gruppe samt Kontakten auf
+				 * einmal, so wie ein Konto es beim Anmelden nachreicht. */
+				if ([[[NSProcessInfo processInfo] environment][@"LIST_BRANCH"] boolValue]) {
+					[preview addFilledGroupNamed:@"Shoogee" contacts:18];
+					[listView reloadData];
+					for (NSInteger row = 0; row < listView.numberOfRows; row++) {
+						id item = [listView itemAtRow:row];
+						if ([listView isExpandable:item]) [listView expandItem:item];
+					}
+					CGFloat grown = MAX(80.0, MIN(760.0, preview.listHeight + 8.0));
+					[window setFrame:NSMakeRect(420.0, 260.0, 260.0, grown) display:YES];
+					spin(0.4);
+				}
+
 				if ([[[NSProcessInfo processInfo] environment][@"LIST_GROW"] boolValue]) {
 					for (NSUInteger round = 0; round < 12; round++) {
 						[preview addFillerContacts:2];

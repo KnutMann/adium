@@ -53,6 +53,35 @@
 {
 }
 
+/*!
+ * @brief The row was picked or let go
+ *
+ * The contents are written in a colour that answers to that, and they are drawn
+ * in a view of their own, which a change of selection does not redraw by
+ * itself. It did while both drew into one surface.
+ */
+- (void)setSelected:(BOOL)selected
+{
+	if (selected == self.isSelected) return;
+
+	[super setSelected:selected];
+	for (NSView *subview in self.subviews) [subview setNeedsDisplay:YES];
+}
+
+/*!
+ * @brief The window this row is in came forward or went behind
+ *
+ * Same reason: the picked row is drawn in a paler colour then, and the ink on
+ * it has to hold up against that.
+ */
+- (void)setEmphasized:(BOOL)emphasized
+{
+	if (emphasized == self.isEmphasized) return;
+
+	[super setEmphasized:emphasized];
+	for (NSView *subview in self.subviews) [subview setNeedsDisplay:YES];
+}
+
 - (void)drawSelectionInRect:(NSRect)dirtyRect
 {
 	AIListOutlineView *listView = self.listView;
@@ -88,6 +117,24 @@
 		//As on the row view above, and for the same two reasons
 		self.clipsToBounds = YES;
 		self.canDrawConcurrently = NO;
+
+		/* A surface of its own, and this is not decoration.
+		 *
+		 * Without it this view draws into the row view's, which the table hands
+		 * on from one row to the next as the list changes. Nothing clears that
+		 * surface in between: the row view paints no background, because the
+		 * ground and the stripe belong to the table and are painted behind all
+		 * of the rows at once. So the name of the row this view held before
+		 * stayed where it was and the new one was drawn over it, two names in
+		 * one line, until something redrew the whole table. Measured after it
+		 * was reported from the running program, on a list filling up as an
+		 * account signed on.
+		 *
+		 * Clearing the surface here instead was tried and is wrong: it is the
+		 * row view's surface, and the selection it had just drawn went with it.
+		 */
+		self.wantsLayer = YES;
+		self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
 	}
 
 	return self;
