@@ -88,9 +88,9 @@
 /*!
  * @brief The row was picked or let go
  *
- * The contents are written in a colour that answers to that, and they are drawn
- * in a view of their own, which a change of selection does not redraw by
- * itself. It did while both drew into one surface.
+ * The contents are written in a colour that answers to that, and they live in a
+ * view of their own, which the table has no reason to redraw when only the row's
+ * selection changed. So it is told.
  */
 - (void)setSelected:(BOOL)selected
 {
@@ -150,23 +150,6 @@
 		self.clipsToBounds = YES;
 		self.canDrawConcurrently = NO;
 
-		/* A surface of its own, and this is not decoration.
-		 *
-		 * Without it this view draws into the row view's, which the table hands
-		 * on from one row to the next as the list changes. Nothing clears that
-		 * surface in between: the row view paints no background, because the
-		 * ground and the stripe belong to the table and are painted behind all
-		 * of the rows at once. So the name of the row this view held before
-		 * stayed where it was and the new one was drawn over it, two names in
-		 * one line, until something redrew the whole table. Measured after it
-		 * was reported from the running program, on a list filling up as an
-		 * account signed on.
-		 *
-		 * Clearing the surface here instead was tried and is wrong: it is the
-		 * row view's surface, and the selection it had just drawn went with it.
-		 */
-		self.wantsLayer = YES;
-		self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
 	}
 
 	return self;
@@ -357,75 +340,18 @@
  * A hundred contacts arriving must not fill the log with a hundred clean bills
  * of health.
  */
-- (NSUInteger)ai_complaintCount
-{
-	NSUInteger count = 0;
-	(void)[self ai_probeReport:@"" complaints:&count];
-
-	return count;
-}
-
 /*!
- * @brief Say what is wrong, then work through the cures until one takes
+ * @brief Write it down when a row is not where the table puts it
  *
- * The rows are in the wrong place and the table knows the right one, so
- * something that lays the table out again has to put them there. Which one does
- * is not worth arguing about: they are tried in order, cheapest first, and the
- * log names the one that worked. That name is the fix.
+ * This found the fault it was built for and stays as a watchman. It does not put
+ * anything right: a list that quietly repairs itself is a list whose next fault
+ * nobody notices. It says what is wrong and leaves it wrong.
  */
 - (void)ai_logProbeIfWrong:(NSString *)occasion
 {
-	static BOOL busy = NO;
-	if (busy) return;
-
 	NSUInteger complaints = 0;
 	NSString *report = [self ai_probeReport:occasion complaints:&complaints];
-	if (!complaints) return;
-
-	AILogWithSignature(@"%@", report);
-
-	busy = YES;
-
-	/* Loading the whole list again does put the rows right, and that is how the
-	 * cause was found, but it is no cure: it reads the remembered open and shut
-	 * state back out and applies it, so a group the user has just closed springs
-	 * open again. It is gone from this list for that reason. */
-	NSArray *cures = @[@"die Hoehen neu melden", @"neu auslegen lassen", @"die Spalten neu kacheln", @"die Rahmen von Hand setzen"];
-	NSString *worked = nil;
-
-	for (NSString *cure in cures) {
-		if ([cure isEqualToString:@"die Hoehen neu melden"]) {
-			[self noteHeightOfRowsWithIndexesChanged:
-			 [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.numberOfRows)]];
-
-		} else if ([cure isEqualToString:@"neu auslegen lassen"]) {
-			[self setNeedsLayout:YES];
-			[self layoutSubtreeIfNeeded];
-
-		} else if ([cure isEqualToString:@"die Spalten neu kacheln"]) {
-			[self tile];
-
-		} else {
-			/* The last resort, and the one that cannot fail, because it does by
-			 * hand exactly what the table has not done. If it comes to this the
-			 * cause is still unknown and this line says so. */
-			for (NSView *subview in self.subviews) {
-				if (![subview isKindOfClass:[AIListRowView class]]) continue;
-				NSInteger index = [self rowForView:subview];
-				if (index >= 0 && index < self.numberOfRows) subview.frame = [self rectOfRow:index];
-			}
-		}
-
-		if ([self ai_complaintCount] == 0) { worked = cure; break; }
-	}
-
-	busy = NO;
-
-	if (worked) {
-		AILogWithSignature(@"Geholfen hat: %@", worked);
-	} else {
-		AILogWithSignature(@"Keine der Kuren hat geholfen");
-	}
+	if (complaints) AILogWithSignature(@"%@", report);
 }
 
 - (void)ai_scheduleProbes:(NSString *)occasion
