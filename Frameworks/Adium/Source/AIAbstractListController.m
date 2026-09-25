@@ -549,6 +549,24 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		[self configureViewsAndTooltips];
 	}
 
+	/* The cells above are new ones, and how tall a row is comes straight out of
+	 * them: a contact row is as tall as its name, its status line and its
+	 * picture need, and every one of those has just been read afresh from the
+	 * preferences. The table has to be told, because it keeps the heights it was
+	 * given and lays its rows out from them.
+	 *
+	 * While the drawing was done by cells the table asked for every height each
+	 * time it drew, so nobody ever had to say it. A row is a view of its own now,
+	 * and a view stays where it was put. Startup is where that showed: the
+	 * preferences arrive after the list already has rows in it, the cells grow
+	 * from twelve points to nineteen, and the rows that were already there stayed
+	 * at the old spacing while the ones arriving with an account signing on were
+	 * placed at the new one. Two lists of names in the same strip of window, until
+	 * something forced the table to lay itself out again a second later.
+	 */
+	[contactListView noteHeightOfRowsWithIndexesChanged:
+	 [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, contactListView.numberOfRows)]];
+
 	[self contactListDesiredSizeChanged];
 }
 

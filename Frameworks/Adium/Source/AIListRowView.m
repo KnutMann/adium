@@ -316,7 +316,25 @@
 {
 	NSUInteger complaints = 0;
 	NSString *report = [self ai_probeReport:occasion complaints:&complaints];
-	if (complaints) AILogWithSignature(@"%@", report);
+	if (!complaints) return;
+
+	/* Say what is wrong, then try the one cure that follows from it and say
+	 * whether it took. A row that sits where it does not belong is a row the
+	 * table has not laid out since the heights it lays out from changed, so the
+	 * table is told they changed. If the rows are right afterwards, that was the
+	 * cause; if they are not, this line says so and the hunt goes on. */
+	AILogWithSignature(@"%@", report);
+
+	[self noteHeightOfRowsWithIndexesChanged:
+	 [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.numberOfRows)]];
+
+	NSUInteger after = 0;
+	NSString *second = [self ai_probeReport:@"nachdem die Hoehen neu gemeldet wurden" complaints:&after];
+	if (after) {
+		AILogWithSignature(@"Die Hoehen neu zu melden hat nicht gereicht:\n%@", second);
+	} else {
+		AILogWithSignature(@"Die Hoehen neu zu melden hat die Zeilen an ihren Platz gebracht");
+	}
 }
 
 - (void)ai_scheduleProbes:(NSString *)occasion
