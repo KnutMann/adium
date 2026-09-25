@@ -154,6 +154,24 @@
  *
  * This includes content and desiredHeightPadding
  */
+/*!
+ * @brief No room for the table's own disclosure triangle
+ *
+ * The group cells draw one themselves, in the place and the colour the layout
+ * asks for and with the space beside it that the layout reserves; the table's
+ * own would sit on top of that.
+ *
+ * Giving it no frame is the way to be rid of it. Saying through
+ * -outlineView:shouldShowOutlineCellForItem: that there should be none is not:
+ * an item whose outline cell is refused can still be opened, by the table and
+ * by us, but it can no longer be closed, by anything. Measured, after groups
+ * in the running program stopped closing.
+ */
+- (NSRect)frameOfOutlineCellAtRow:(NSInteger)row
+{
+	return NSZeroRect;
+}
+
 - (NSInteger)desiredHeight
 {
 	return ([self totalHeight] + desiredHeightPadding);

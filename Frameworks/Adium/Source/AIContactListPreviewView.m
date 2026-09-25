@@ -92,6 +92,7 @@
 	AIPreviewListDelegate	*listDelegate;
 	AIContactList			*contactList;
 	NSMutableArray			*previewContacts;
+	NSUInteger				 filled;
 }
 
 @synthesize listView = outlineView;
@@ -307,7 +308,9 @@ static NSImage *previewIcon(NSString *name, NSColor *tint)
 
 	static NSString *const stems[] = { @"Anke", @"Bodo", @"Cara", @"Dilek", @"Emre", @"Fiona",
 									   @"Gero", @"Hanna", @"Ilja", @"Jana", @"Kai", @"Lena" };
-	for (NSUInteger i = 0; i < count; i++) {
+	/* Counted on past the end of this call: two contacts with the same name are two
+	 * contacts with the same identity, which the list would then hold one proxy for. */
+	for (NSUInteger i = filled; i < filled + count; i++) {
 		NSString *name = [NSString stringWithFormat:@"%@ Muster %lu",
 						  stems[i % (sizeof(stems) / sizeof(stems[0]))], (unsigned long)(i + 1)];
 		AIListContact *contact = [self contactWithUID:[NSString stringWithFormat:@"fuell%lu@beispiel.invalid", (unsigned long)i]
@@ -323,6 +326,8 @@ static NSImage *previewIcon(NSString *name, NSColor *tint)
 										   iconSource:iconSource];
 		[group addObject:contact];
 	}
+
+	filled += count;
 }
 
 #pragma mark Showing a set

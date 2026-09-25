@@ -752,16 +752,6 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	return view;
 }
 
-/*!
- * @brief No disclosure triangle from the table
- *
- * The group cells draw their own, in the place and the colour the layout asks
- * for; the one the table would add sits beside it.
- */
-- (BOOL)outlineView:(NSOutlineView *)outlineView shouldShowOutlineCellForItem:(id)item
-{
-	return NO;
-}
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(AIProxyListObject *)item
 {

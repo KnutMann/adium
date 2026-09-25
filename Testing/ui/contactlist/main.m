@@ -218,6 +218,7 @@ int main(int argc, const char *argv[])
 				/* One contact picked, so the pictures also show how a chosen row
 				 * looks in each style. */
 				AIListOutlineView *listView = preview.listView;
+
 				if (listView.numberOfRows > 2)
 					[listView selectRowIndexes:[NSIndexSet indexSetWithIndex:2] byExtendingSelection:NO];
 				[window makeFirstResponder:listView];
@@ -230,6 +231,30 @@ int main(int argc, const char *argv[])
 				 * Gruppe zu, wieder auf, gescrollt. Genau dabei gibt die Tabelle
 				 * ihre Zeilenansichten weiter, und genau dort wurde der Fehler
 				 * gemeldet, bei dem zwei Namen uebereinander standen. */
+				/* Mit LIST_GROW=1 waechst die Liste, waehrend sie schon zu sehen
+				 * ist: genau das passiert, wenn ein Konto sich anmeldet und
+				 * seine Kontakte nachreicht. Gemeldet wurde der Fehler fuer
+				 * genau diesen Augenblick. */
+				if ([[[NSProcessInfo processInfo] environment][@"LIST_GROW"] boolValue]) {
+					for (NSUInteger round = 0; round < 12; round++) {
+						[preview addFillerContacts:2];
+
+						//Wie der Listen-Controller es tut, wenn ein Kontakt auftaucht
+						for (NSInteger row = 0; row < listView.numberOfRows; row++) {
+							id item = [listView itemAtRow:row];
+							if ([listView isExpandable:item])
+								[listView reloadItem:item reloadChildren:YES];
+						}
+						/* Das Kontaktlistenfenster waechst im Programm mit der Liste
+						 * mit, waehrend die Kontakte eintreffen. */
+						CGFloat grown = MAX(80.0, MIN(760.0, preview.listHeight + 8.0));
+						[window setFrame:NSMakeRect(420.0, 260.0, 260.0, grown) display:YES];
+						[window displayIfNeeded];
+						spin(0.08);
+					}
+					spin(0.3);
+				}
+
 				if ([[[NSProcessInfo processInfo] environment][@"LIST_CHURN"] boolValue]) {
 					/* Erst das Fenster klein machen, damit die Liste wirklich
 					 * scrollen muss und die Tabelle ihre Zeilenansichten
