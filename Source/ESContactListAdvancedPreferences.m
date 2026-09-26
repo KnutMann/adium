@@ -287,21 +287,20 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	 * below this one. */
 	[form addSectionHeader:AILocalizedString(@"Drawing","Section header above the contact list's colour scheme and layout")];
 
-	popUp_colorTheme = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
-	button_customizeColorTheme = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize",nil)
-																 target:self
-																 action:@selector(customizeListTheme:)];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Color Theme:",nil))
-			  popUpButton:popUp_colorTheme
-		  accessoryButton:button_customizeColorTheme];
+	/* A row that names the set and leads to it, which is the shape every other
+	 * row that opens a page has. The list to choose a set from sits on that page,
+	 * at the top, because that is where writing into a set happens as well. */
+	navigationRow_colorTheme = [form addNavigationRowWithLabel:AIRowLabel(AILocalizedString(@"Color Theme:",nil))
+														value:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
+																									group:PREF_GROUP_APPEARANCE]
+													   target:self
+													   action:@selector(customizeListTheme:)];
 
-	popUp_listLayout = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
-	button_customizeListLayout = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize",nil)
-																 target:self
-																 action:@selector(customizeListLayout:)];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"List Layout:",nil))
-			  popUpButton:popUp_listLayout
-		  accessoryButton:button_customizeListLayout];
+	navigationRow_listLayout = [form addNavigationRowWithLabel:AIRowLabel(AILocalizedString(@"List Layout:",nil))
+														value:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
+																									group:PREF_GROUP_APPEARANCE]
+													   target:self
+													   action:@selector(customizeListLayout:)];
 
 	//How the list behaves, which is not how it is drawn
 	[form addSectionHeader:AILocalizedString(@"Behavior","Section header above what the contact list does rather than how it looks")];
@@ -442,8 +441,8 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	popUp_windowStyle = nil;
 	popUp_colorTheme = nil;
 	popUp_listLayout = nil;
-	button_customizeColorTheme = nil;
-	button_customizeListLayout = nil;
+	navigationRow_colorTheme = nil;
+	navigationRow_listLayout = nil;
 	checkBox_verticalAutosizing = nil;
 	checkBox_horizontalAutosizing = nil;
 	slider_windowOpacity = nil;
@@ -614,9 +613,11 @@ static NSString *AISentenceCaseLabel(NSString *label)
 
 	if (firstTime || [key isEqualToString:KEY_LIST_LAYOUT_NAME]) {
 		[popUp_listLayout selectItemWithRepresentedObject:[prefDict objectForKey:KEY_LIST_LAYOUT_NAME]];
+		[rootForm setValue:[prefDict objectForKey:KEY_LIST_LAYOUT_NAME] forNavigationRow:navigationRow_listLayout];
 	}
 	if (firstTime || [key isEqualToString:KEY_LIST_THEME_NAME]) {
 		[popUp_colorTheme selectItemWithRepresentedObject:[prefDict objectForKey:KEY_LIST_THEME_NAME]];
+		[rootForm setValue:[prefDict objectForKey:KEY_LIST_THEME_NAME] forNavigationRow:navigationRow_colorTheme];
 	}
 }
 
@@ -912,6 +913,26 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	if (!navigationController || [navigationController isTransitioning]) return;
 
 	detailPage = [[AIContactListAppearancePage alloc] initWithScope:scope];
+
+	/* The list of sets goes with it, built here because the menu and everything
+	 * behind it, adding a set, renaming one, deleting one, belongs to this pane
+	 * and to the plug-in it was made by. */
+	NSPopUpButton *presetPopUp = [AISettingsFormView popUpButtonWithTitles:nil
+																   target:self
+																   action:@selector(changePreference:)];
+	if (scope == AIContactListAppearanceScopeTheme) {
+		popUp_colorTheme = presetPopUp;
+		[presetPopUp setMenu:[self _colorThemeMenu]];
+		[presetPopUp selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
+																						   group:PREF_GROUP_APPEARANCE]];
+	} else {
+		popUp_listLayout = presetPopUp;
+		[presetPopUp setMenu:[self _listLayoutMenu]];
+		[presetPopUp selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
+																						   group:PREF_GROUP_APPEARANCE]];
+	}
+	[detailPage setPresetPopUp:presetPopUp];
+
 	[navigationController pushViewController:detailPage animated:YES];
 }
 
@@ -1232,10 +1253,35 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	[rootForm setLabel:AIRowLabel(label) forRowWithControl:slider_horizontalWidth];
 }
 
+/*!
+ * @brief Put a number in a readout, and keep the readout wide enough to show it
+ *
+ * The field was measured once, for the widest value it would ever hold, and the
+ * row remembers that as the room it wants. A readout that was measured before
+ * anybody looked at it, or measured against a value that turned out not to be
+ * the widest after all, ends up a character or two short and clips its own tail:
+ * ninety six per cent shows as ninety six. So it is measured again whenever it
+ * is written, and it only ever grows.
+ */
+- (void)setReadout:(NSTextField *)field to:(NSString *)text
+{
+	if (!field) return;
+
+	[field setStringValue:text];
+
+	CGFloat needed = ceil([field fittingSize].width) + 8.0;
+	if (needed > NSWidth([field frame])) {
+		[field setFrameSize:NSMakeSize(needed, NSHeight([field frame]))];
+		[rootForm noteContentSizeChanged];
+	}
+}
+
 - (void)updateSliderValues
 {
-	[textField_windowOpacity setStringValue:[NSString stringWithFormat:@"%ld%%", (NSInteger)[slider_windowOpacity doubleValue]]];
-	[textField_horizontalWidthIndicator setStringValue:[NSString stringWithFormat:@"%ldpx", [slider_horizontalWidth integerValue]]];
+	[self setReadout:textField_windowOpacity
+				  to:[NSString stringWithFormat:@"%ld%%", (NSInteger)[slider_windowOpacity doubleValue]]];
+	[self setReadout:textField_horizontalWidthIndicator
+				  to:[NSString stringWithFormat:@"%ldpx", [slider_horizontalWidth integerValue]]];
 }
 
 /*!
@@ -1256,15 +1302,21 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	};
 
 	if (changed(@"com.adiumx.contactlisttheme")) {
-		[popUp_colorTheme setMenu:[self _colorThemeMenu]];
-		[popUp_colorTheme selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
-																								group:PREF_GROUP_APPEARANCE]];
+		NSString *name = [adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE];
+		if (popUp_colorTheme) {
+			[popUp_colorTheme setMenu:[self _colorThemeMenu]];
+			[popUp_colorTheme selectItemWithRepresentedObject:name];
+		}
+		[rootForm setValue:name forNavigationRow:navigationRow_colorTheme];
 	}
 
 	if (changed(@"com.adiumx.contactlistlayout")) {
-		[popUp_listLayout setMenu:[self _listLayoutMenu]];
-		[popUp_listLayout selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
-																								group:PREF_GROUP_APPEARANCE]];
+		NSString *name = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE];
+		if (popUp_listLayout) {
+			[popUp_listLayout setMenu:[self _listLayoutMenu]];
+			[popUp_listLayout selectItemWithRepresentedObject:name];
+		}
+		[rootForm setValue:name forNavigationRow:navigationRow_listLayout];
 	}
 
 	[self menusChanged];
@@ -1300,6 +1352,8 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	if (![controller canGoBack] && detailPage) {
 		[detailPage tearDown];
 		detailPage = nil;
+		popUp_colorTheme = nil;
+		popUp_listLayout = nil;
 	}
 
 	/* Through the ivar, never through -view: this can be reached while the pane

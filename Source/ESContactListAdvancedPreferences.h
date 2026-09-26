@@ -49,10 +49,13 @@
 	NSTextField		*textField_horizontalWidthIndicator;
 
 	//The two saved sets and the pages behind them
+	/* The two lists live on the pages they write to; these hold them only while
+	 * such a page is open. What stands here is a row naming the set and leading
+	 * to it. */
 	NSPopUpButton	*popUp_colorTheme;
 	NSPopUpButton	*popUp_listLayout;
-	NSButton		*button_customizeColorTheme;
-	NSButton		*button_customizeListLayout;
+	NSView			*navigationRow_colorTheme;
+	NSView			*navigationRow_listLayout;
 	NSArray			*_listLayouts;	//Only compared against: the presets last handed to the preset sheet
 	NSArray			*_listThemes;	//Only compared against: the presets last handed to the preset sheet
 

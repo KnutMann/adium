@@ -280,6 +280,25 @@
 - (void)addNavigationRowWithLabel:(NSString *)label target:(id)target action:(SEL)action;
 
 /*!
+ * @brief As above, with what the row leads to said in passing before the chevron.
+ *
+ * The shape System Settings uses where a row both names a choice and opens it: the name on the
+ * left, the choice itself in grey on the right, the chevron after it. The value is the half that
+ * may not be cut short, so a narrow card takes the room out of the label.
+ *
+ * @result The row, to hand back to @c setValue:forNavigationRow: when the value changes.
+ */
+- (NSView *)addNavigationRowWithLabel:(NSString *)label
+								value:(NSString *)value
+							   target:(id)target
+							   action:(SEL)action;
+
+/*!
+ * @brief Change what a navigation row says it leads to.
+ */
+- (void)setValue:(NSString *)value forNavigationRow:(NSView *)row;
+
+/*!
  * @brief Append a row holding nothing but @a text, wrapped across the card.
  *
  * The shape System Settings uses for a line of explanation inside a group: the

@@ -542,17 +542,19 @@ typedef enum {
  */
 @interface AISettingsNavigationRowView : NSView {
 	NSTextField	*labelField;
+	NSTextField	*valueField;
 	NSImageView	*chevron;
 	__unsafe_unretained id	 target;	//Not retained, as a control's target is not
 	SEL			 action;
 	BOOL		 pressed;
 }
-- (id)initWithLabel:(NSString *)label target:(id)inTarget action:(SEL)inAction;
+- (id)initWithLabel:(NSString *)label value:(NSString *)value target:(id)inTarget action:(SEL)inAction;
+- (void)setValue:(NSString *)value;
 @end
 
 @implementation AISettingsNavigationRowView
 
-- (id)initWithLabel:(NSString *)label target:(id)inTarget action:(SEL)inAction
+- (id)initWithLabel:(NSString *)label value:(NSString *)value target:(id)inTarget action:(SEL)inAction
 {
 	if ((self = [super initWithFrame:NSMakeRect(0.0, 0.0, 100.0, AISettingsRowMinHeight)])) {
 		target = inTarget;
@@ -562,6 +564,14 @@ typedef enum {
 										 [NSFont systemFontOfSize:AISettingsLabelFontSize],
 										 [NSColor labelColor]);
 		[labelField sizeToFit];
+
+		/* What the row leads to, said in passing: the same grey and the same
+		 * place System Settings puts it, just before the chevron. */
+		valueField = AISettingsMakeLabel(value ?: @"",
+										 [NSFont systemFontOfSize:AISettingsLabelFontSize],
+										 [NSColor secondaryLabelColor]);
+		[valueField sizeToFit];
+		[self addSubview:valueField];
 
 		chevron = [NSImageView imageViewWithImage:[AISettingsFormView disclosureIndicatorImage]];
 		[chevron setContentTintColor:[NSColor tertiaryLabelColor]];
@@ -577,6 +587,14 @@ typedef enum {
 	}
 
 	return self;
+}
+
+- (void)setValue:(NSString *)value
+{
+	[valueField setStringValue:(value ?: @"")];
+	[valueField sizeToFit];
+	[self resizeSubviewsWithOldSize:[self bounds].size];
+	[self setNeedsDisplay:YES];
 }
 
 - (BOOL)isFlipped
@@ -595,7 +613,16 @@ typedef enum {
 								 chevronSize.width,
 								 chevronSize.height)];
 
-	CGFloat labelWidth = chevronX - 8.0 - AISettingsCardInsetH;
+	NSSize valueSize = [valueField frame].size;
+	CGFloat valueX = chevronX - 8.0 - valueSize.width;
+
+	[valueField setFrame:NSMakeRect(MAX(valueX, AISettingsCardInsetH),
+									round((NSHeight(bounds) - valueSize.height) / 2.0),
+									valueSize.width,
+									valueSize.height)];
+
+	//Whatever the value leaves, and the value is the one that may not be cut
+	CGFloat labelWidth = (valueSize.width ? valueX : chevronX) - 8.0 - AISettingsCardInsetH;
 	NSSize labelSize = [labelField frame].size;
 
 	[labelField setFrame:NSMakeRect(AISettingsCardInsetH,
@@ -1259,7 +1286,16 @@ typedef enum {
  */
 - (void)addNavigationRowWithLabel:(NSString *)label target:(id)target action:(SEL)action
 {
+	(void)[self addNavigationRowWithLabel:label value:nil target:target action:action];
+}
+
+- (NSView *)addNavigationRowWithLabel:(NSString *)label
+								value:(NSString *)value
+							   target:(id)target
+							   action:(SEL)action
+{
 	AISettingsNavigationRowView *row = [[AISettingsNavigationRowView alloc] initWithLabel:label
+																					value:value
 																				   target:target
 																				   action:action];
 
@@ -1269,6 +1305,14 @@ typedef enum {
 
 	AISettingsFormSection *section = [sections lastObject];
 	[[section->rows lastObject] setValue:[NSNumber numberWithBool:YES] forKey:@"wantsSeparators"];
+
+	return row;
+}
+
+- (void)setValue:(NSString *)value forNavigationRow:(NSView *)row
+{
+	if ([row isKindOfClass:[AISettingsNavigationRowView class]])
+		[(AISettingsNavigationRowView *)row setValue:value];
 }
 
 - (void)addDetailRow:(NSString *)text

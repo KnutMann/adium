@@ -100,11 +100,12 @@ typedef enum {
 	NSArray							*stateColourRows;
 
 	NSMapTable						*bindings;
+	NSMapTable						*readoutSuffixes;
 	NSString						*activeFontKey;
 	BOOL							 rebuilding;
 }
 
-@synthesize scope, hasChanges;
+@synthesize scope, hasChanges, presetPopUp;
 
 #pragma mark Opening and closing
 
@@ -113,6 +114,7 @@ typedef enum {
 	if ((self = [super initWithNibName:nil bundle:nil])) {
 		scope = inScope;
 		bindings = [NSMapTable strongToStrongObjectsMapTable];
+		readoutSuffixes = [NSMapTable strongToStrongObjectsMapTable];
 		if (scope == AIContactListAppearanceScopeTheme)
 			stateColourRows = [self buildStateColourRows];
 	}
@@ -162,12 +164,22 @@ typedef enum {
 	rebuilding = YES;
 
 	[bindings removeAllObjects];
+	[readoutSuffixes removeAllObjects];
 	[form removeAllSections];
 
 	AIContactListWindowStyle style = [self windowStyle];
 	BOOL bubbles = (style == AIContactListWindowStyleContactBubbles ||
 					style == AIContactListWindowStyleContactBubbles_Fitted);
 	BOOL mockie = (style == AIContactListWindowStyleGroupBubbles);
+
+	/* Which set is being written, at the top, in a card of its own. Everything
+	 * below is written into whichever one this names. */
+	if (presetPopUp) {
+		[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Set", "Label of the list picking which saved set of contact list settings is in use"))
+				  popUpButton:presetPopUp
+			  accessoryButton:nil];
+		[form endCard];
+	}
 
 	if (scope == AIContactListAppearanceScopeLayout) {
 		/* The window style itself is one step up, on the page this one opened
@@ -570,6 +582,8 @@ typedef enum {
 {
 	NSTextField *label = [AISettingsFormView valueLabelForWidestValue:[@"000" stringByAppendingString:suffix]];
 	[bindings setObject:slider forKey:label];
+	//The unit was planned for in the width and then never written; it is kept here to be written
+	if (suffix.length) [readoutSuffixes setObject:suffix forKey:label];
 	return label;
 }
 
@@ -681,7 +695,8 @@ typedef enum {
 		if (![control isKindOfClass:[NSTextField class]]) continue;
 		NSSlider *slider = [bindings objectForKey:control];
 		if (![slider isKindOfClass:[NSSlider class]]) continue;
-		[(NSTextField *)control setStringValue:[NSString stringWithFormat:@"%ld", (long)lround(slider.doubleValue)]];
+		NSString *suffix = [readoutSuffixes objectForKey:control] ?: @"";
+		[(NSTextField *)control setStringValue:[NSString stringWithFormat:@"%ld%@", (long)lround(slider.doubleValue), suffix]];
 	}
 
 

@@ -58,6 +58,15 @@ typedef enum {
 @property (readonly, nonatomic) BOOL hasChanges;
 
 /*!
+ * @brief The list of saved sets, shown at the top of the page
+ *
+ * Built by whoever opens the page, because the menu and everything behind it,
+ * adding a set, renaming one, deleting one, belongs there. Set before the page
+ * is shown.
+ */
+@property (strong, nonatomic) NSPopUpButton *presetPopUp;
+
+/*!
  * @brief Let go of the colour panel and the preference observers
  */
 /*!
