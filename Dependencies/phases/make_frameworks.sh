@@ -46,7 +46,10 @@ prep_headers() {
 		quiet mkdir "${otrDir}" || true
 		log cp -R "${ROOTDIR}/build/include/libotr/" "${otrDir}"
 		log cp "${ROOTDIR}/build/include/gcrypt.h" "${otrDir}"
-		log cp "${ROOTDIR}/build/include/gcrypt-module.h" "${otrDir}"
+		# Gone since libgcrypt 1.7, which dropped the module API it declared
+		if [ -f "${ROOTDIR}/build/include/gcrypt-module.h" ]; then
+			log cp "${ROOTDIR}/build/include/gcrypt-module.h" "${otrDir}"
+		fi
 		log cp "${ROOTDIR}/build/include/gpg-error.h" "${otrDir}"
 	else
 		#json-glib
@@ -95,8 +98,15 @@ make_framework() {
 	
 	if $BUILD_OTR; then
 		status "Making a framework for libotr..."
+		# The file is named after the library's own number, which is five, and not
+		# after the release, which is 4.1.1. They have never been the same thing,
+		# so the name is read off the symbolic link the build leaves behind rather
+		# than pieced together from a version. Before this it was pieced together,
+		# and the piece it used said 3.2.0, so this step cannot have run in years.
+		local otrLib
+		otrLib=$(readlink "${ROOTDIR}/build/lib/libotr.dylib" || echo "libotr.5.dylib")
 		log python3 "${ROOTDIR}/framework_maker/frameworkize.py" \
-			"${ROOTDIR}/build/lib/libotr.${OTR_VERSION}.dylib" \
+			"${ROOTDIR}/build/lib/$(basename "$otrLib")" \
 			"${FRAMEWORK_DIR}"
 		
 		log cp "${ROOTDIR}/Libotr-Info.plist" \

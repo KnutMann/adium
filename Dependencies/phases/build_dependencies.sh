@@ -74,13 +74,6 @@ build_glib() {
 		export PKG_CONFIG_LIBDIR="$ROOTDIR/build/lib/pkgconfig"
 		export LIBRARY_PATH="$ROOTDIR/build/lib"
 		quiet rm -rf _build
-		#meson installs the unversioned names as symlinks and refuses to replace a regular
-		#file, which is what an older build leaves behind.
-		for lib in glib-2.0 gobject-2.0 gio-2.0 gmodule-2.0 gthread-2.0 ; do
-			if [ -f "$ROOTDIR/build/lib/lib${lib}.dylib" ] && [ ! -L "$ROOTDIR/build/lib/lib${lib}.dylib" ] ; then
-				quiet rm -f "$ROOTDIR/build/lib/lib${lib}.dylib"
-			fi
-		done
     meson setup \
         -Dprefix=$ROOTDIR/build \
         -Dman-pages=disabled \
@@ -110,6 +103,18 @@ build_glib() {
 	)
 	fi
 	
+	# meson installs the unversioned names as symbolic links and refuses to replace
+	# a regular file, which is what an older build leaves behind. This has to happen
+	# before every install and not only before a fresh configure: an install is where
+	# it bites, and an install runs whether or not anything was configured again.
+	# Whichever libraries glib happens to install, rather than a list of five, because
+	# girepository joined them and was not on that list.
+	for path in "$ROOTDIR"/build/lib/lib*-2.0.dylib ; do
+		if [ -f "$path" ] && [ ! -L "$path" ] ; then
+			quiet rm -f "$path"
+		fi
+	done
+
 	status "Building and installing glib"
 	export LIBRARY_PATH="$ROOTDIR/build/lib"
 	export PKG_CONFIG_PATH="$ROOTDIR/build/lib/pkgconfig"

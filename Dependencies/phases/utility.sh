@@ -99,7 +99,24 @@ needsconfigure() {
 # source directory.
 #
 prereq() {
-	if [ -d "$ROOTDIR/source/$1" ]; then return 0; fi
+	# What the source we already have was fetched from, written down when it was
+	local stampFile="$ROOTDIR/source/$1/.fetched-from"
+
+	if [ -d "$ROOTDIR/source/$1" ]; then
+		if [ -f "$stampFile" ] && [ "$(cat "$stampFile")" = "$2" ]; then return 0; fi
+
+		# A folder that was already there used to be enough, whatever it held.
+		# Moving a pinned version then changed nothing at all: the old source was
+		# still sitting there and was built again, and the build said nothing,
+		# because from where it stood nothing was wrong. Measured rather than
+		# supposed: glib was pinned from 2.88.2 to 2.88.3 and 2.88.2 was built.
+		#
+		# A source with no note beside it is from before this existed, and is
+		# fetched once more so that it gets one.
+		status "Source for $1 is not the one pinned any more; fetching it again"
+		rm -rf "$ROOTDIR/source/$1"
+	fi
+
 	quiet pushd "$ROOTDIR/source"
 	
 	# Work out the file extension from the name
@@ -154,6 +171,9 @@ prereq() {
 	quiet mkdir "$1"
 	tar xf "$1$ext" --strip-components $levels -C "$1"
 	
+	# So that moving the pin above is noticed next time
+	echo "$2" > "$1/.fetched-from"
+
 	# Clean up and resume previous operation
 	if [ -f "$1$ext" ]; then rm -f "$1$ext"; fi
 	quiet popd

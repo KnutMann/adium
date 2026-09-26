@@ -44,10 +44,16 @@ build_libgcrypt(){
 	if needsconfigure $@; then
 	(
 		status "Configuring libgcrypt"
+		# Its own assembly for this processor does not get past Apple's
+		# assembler: the aarch64 sources under mpi carry frame directives it
+		# rejects outright, and the build stops with "Unfinished frame!" on
+		# mpih-add1, mpih-sub1 and the three multiply routines. Built from C
+		# instead, which is what every package manager on this platform does.
 		log ./configure --prefix=$ROOTDIR/build \
 			--enable-ciphers=arcfour:blowfish:cast5:des:aes:twofish:serpent:rfc2268 \
 			--enable-pubkey-ciphers=dsa:elgamal:rsa \
 			--enable-digests=crc:md4:md5:rmd160:sha1:sha256:sha512:tiger \
+			--disable-asm \
 			--disable-endian-check \
 			--disable-dependency-tracking
 	)
@@ -75,8 +81,9 @@ build_otr(){
 
 	if needsconfigure $@; then
 	(
-    # The release tarball ships a configure script; only a source checkout needs this
-    if [ -x ./bootstrap ]; then
+    # The release tarball brings its own configure script and needs no autotools
+    # on the machine; only a source checkout has to raise one first.
+    if [ ! -x ./configure ]; then
         status "Bootstrapping libotr"
         ./bootstrap
     fi
