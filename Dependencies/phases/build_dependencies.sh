@@ -49,7 +49,7 @@ build_gettext() {
 GLIB_VERSION=2.0
 build_glib() {
 	prereq "glib" \
-		"https://download.gnome.org/sources/glib/2.88/glib-2.88.2.tar.xz"
+		"https://download.gnome.org/sources/glib/2.88/glib-2.88.3.tar.xz"
 	
 	quiet pushd "$ROOTDIR/source/glib"
 	

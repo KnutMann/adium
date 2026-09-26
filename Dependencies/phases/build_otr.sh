@@ -5,7 +5,7 @@
 #
 build_libgpgerror(){
 	prereq "gpgerror" \
-		"https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.41.tar.bz2"
+		"https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.61.tar.bz2"
 
 	quiet pushd "${ROOTDIR}/source/gpgerror"
 	
@@ -37,7 +37,7 @@ build_libgpgerror(){
 build_libgcrypt(){
 	build_libgpgerror
 	prereq "libgcrypt" \
-		"https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.9.2.tar.bz2"
+		"https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.12.4.tar.bz2"
 
 	quiet pushd "${ROOTDIR}/source/libgcrypt"
 	
@@ -65,18 +65,21 @@ build_libgcrypt(){
 ##
 # Libotr
 #
-OTR_VERSION=3.2.0
+OTR_VERSION=4.1.1
 build_otr(){
 	build_libgcrypt
 	prereq "otr" \
-		"https://github.com/off-the-record/libotr/archive/4.1.0.tar.gz"
+		"https://otr.cypherpunks.ca/libotr-4.1.1.tar.gz"
 
 	quiet pushd "${ROOTDIR}/source/otr"
 
 	if needsconfigure $@; then
 	(
-    status "Bootstrapping libotr"
-    ./bootstrap
+    # The release tarball ships a configure script; only a source checkout needs this
+    if [ -x ./bootstrap ]; then
+        status "Bootstrapping libotr"
+        ./bootstrap
+    fi
 		status "Configuring libotr"
 		export CFLAGS="$ARCH_CFLAGS -Os"
 		export LDFLAGS="$ARCH_LDFLAGS"
