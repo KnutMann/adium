@@ -1,7 +1,9 @@
 /* json-version-macros.h - JSON-GLib symbol versioning macros
  * 
  * This file is part of JSON-GLib
- * Copyright © 2014  Emmanuele Bassi
+ *
+ * SPDX-FileCopyrightText: 2014  Emmanuele Bassi
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +19,7 @@
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __JSON_VERSION_MACROS_H__
-#define __JSON_VERSION_MACROS_H__
+#pragma once
 
 #if !defined(__JSON_GLIB_INSIDE__) && !defined(JSON_COMPILATION)
 #error "Only <json-glib/json-glib.h> can be included directly."
@@ -26,9 +27,24 @@
 
 #include "json-version.h"
 
-#ifndef _JSON_EXTERN
-#define _JSON_EXTERN extern
+#if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(JSON_STATIC_BUILD)
+# define _JSON_EXPORT __declspec(dllexport)
+# define _JSON_IMPORT __declspec(dllimport)
+#elif defined(__GNUC__) && (__GNUC__ >= 4)
+# define _JSON_EXPORT __attribute__((__visibility__("default")))
+# define _JSON_IMPORT
+#else
+# define _JSON_EXPORT
+# define _JSON_IMPORT
 #endif
+
+#ifdef JSON_COMPILATION
+# define _JSON_API _JSON_EXPORT
+#else
+# define _JSON_API _JSON_IMPORT
+#endif
+
+#define _JSON_EXTERN _JSON_API extern
 
 #ifdef JSON_DISABLE_DEPRECATION_WARNINGS
 #define JSON_DEPRECATED _JSON_EXTERN
@@ -41,13 +57,59 @@
 #endif
 
 /* XXX: Each new cycle should add a new version symbol here */
+/**
+ * JSON_VERSION_1_0:
+ *
+ * The encoded representation of JSON-GLib version "1.0".
+ *
+ * Since: 1.0
+ */
 #define JSON_VERSION_1_0        (G_ENCODE_VERSION (1, 0))
 
+/**
+ * JSON_VERSION_1_2:
+ *
+ * The encoded representation of JSON-GLib version "1.2".
+ *
+ * Since: 1.2
+ */
 #define JSON_VERSION_1_2        (G_ENCODE_VERSION (1, 2))
 
+/**
+ * JSON_VERSION_1_4:
+ *
+ * The encoded representation of JSON-GLib version "1.4".
+ *
+ * Since: 1.4
+ */
 #define JSON_VERSION_1_4        (G_ENCODE_VERSION (1, 4))
 
+/**
+ * JSON_VERSION_1_6:
+ *
+ * The encoded representation of JSON-GLib version "1.6".
+ *
+ * Since: 1.6
+ */
 #define JSON_VERSION_1_6        (G_ENCODE_VERSION (1, 6))
+
+/**
+ * JSON_VERSION_1_8:
+ *
+ * The encoded representation of JSON-GLib version "1.8".
+ *
+ * Since: 1.8
+ */
+#define JSON_VERSION_1_8        (G_ENCODE_VERSION (1, 8))
+
+/**
+ * JSON_VERSION_1_10:
+ *
+ * The encoded representation of JSON-GLib version "1.10".
+ *
+ * Since: 1.10
+ */
+#define JSON_VERSION_1_10       (G_ENCODE_VERSION (1, 10))
 
 /* evaluates to the current stable version; for development cycles,
  * this means the next stable target
@@ -73,9 +135,10 @@
  * JSON_VERSION_MIN_REQUIRED:
  *
  * A macro that should be defined by the user prior to including
- * the gdk.h header.
- * The definition should be one of the predefined JSON version
- * macros: %JSON_VERSION_1_0, %JSON_VERSION_1_2,...
+ * the `json-glib/json-glib.h` header.
+ *
+ * The definition should be one of the predefined JSON-GLib version
+ * macros: `JSON_VERSION_1_0`, `JSON_VERSION_1_2`, ...
  *
  * This macro defines the lower bound for the JSON-GLib API to use.
  *
@@ -93,10 +156,10 @@
  * JSON_VERSION_MAX_ALLOWED:
  *
  * A macro that should be defined by the user prior to including
- * the json-glib.h header.
+ * the `json-glib/json-glib.h` header.
 
  * The definition should be one of the predefined JSON-GLib version
- * macros: %JSON_VERSION_1_0, %JSON_VERSION_1_2,...
+ * macros: `JSON_VERSION_1_0`, `JSON_VERSION_1_2`, ...
  *
  * This macro defines the upper bound for the JSON API-GLib to use.
  *
@@ -184,4 +247,32 @@
 # define JSON_AVAILABLE_IN_1_6                 _JSON_EXTERN
 #endif
 
-#endif /* __JSON_VERSION_MACROS_H__ */
+/* 1.8 */
+#if JSON_VERSION_MIN_REQUIRED >= JSON_VERSION_1_8
+# define JSON_DEPRECATED_IN_1_8                JSON_DEPRECATED
+# define JSON_DEPRECATED_IN_1_8_FOR(f)         JSON_DEPRECATED_FOR(f)
+#else
+# define JSON_DEPRECATED_IN_1_8                _JSON_EXTERN
+# define JSON_DEPRECATED_IN_1_8_FOR(f)         _JSON_EXTERN
+#endif
+
+#if JSON_VERSION_MAX_ALLOWED < JSON_VERSION_1_8
+# define JSON_AVAILABLE_IN_1_8                 JSON_UNAVAILABLE(1, 8)
+#else
+# define JSON_AVAILABLE_IN_1_8                 _JSON_EXTERN
+#endif
+
+/* 1.10 */
+#if JSON_VERSION_MIN_REQUIRED >= JSON_VERSION_1_10
+# define JSON_DEPRECATED_IN_1_10               JSON_DEPRECATED
+# define JSON_DEPRECATED_IN_1_10_FOR(f)        JSON_DEPRECATED_FOR(f)
+#else
+# define JSON_DEPRECATED_IN_1_10               _JSON_EXTERN
+# define JSON_DEPRECATED_IN_1_10_FOR(f)        _JSON_EXTERN
+#endif
+
+#if JSON_VERSION_MAX_ALLOWED < JSON_VERSION_1_10
+# define JSON_AVAILABLE_IN_1_10                JSON_UNAVAILABLE(1, 10)
+#else
+# define JSON_AVAILABLE_IN_1_10                _JSON_EXTERN
+#endif
