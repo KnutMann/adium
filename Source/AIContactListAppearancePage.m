@@ -61,6 +61,29 @@ typedef enum {
 	AIBindingPath
 } AIBindingKind;
 
+/*!
+ * @brief A scroll view that holds a list which never needs scrolling
+ *
+ * A table has to sit in one of these or it shows no column headings, and that is
+ * the only reason there is one here: the ten states are laid out in full and
+ * there is nothing below the last of them. Left as it comes, such a view still
+ * takes the wheel and still pulls against the finger at its edges, so a page
+ * that does scroll cannot be scrolled while the pointer is over the list. It
+ * neither stretches nor takes the wheel now; the wheel goes to whatever is
+ * behind it, which is the page.
+ */
+@interface AIStaticListScrollView : NSScrollView
+@end
+
+@implementation AIStaticListScrollView
+
+- (void)scrollWheel:(NSEvent *)event
+{
+	[[self nextResponder] scrollWheel:event];
+}
+
+@end
+
 @interface AIBinding : NSObject
 @property (nonatomic, copy) NSString *key;
 @property (nonatomic, copy) NSString *group;
@@ -497,9 +520,12 @@ typedef enum {
 	/* No scroller of its own: ten rows are few enough to show at once, and a
 	 * list that scrolls inside a page that scrolls is a trap. */
 	CGFloat height = (stateColourRows.count * (stateColourTable.rowHeight + stateColourTable.intercellSpacing.height)) + 40.0;
-	NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, FORM_WIDTH - 100.0, height)];
+	AIStaticListScrollView *scroll = [[AIStaticListScrollView alloc] initWithFrame:NSMakeRect(0, 0, FORM_WIDTH - 100.0, height)];
 	scroll.documentView = stateColourTable;
 	scroll.hasVerticalScroller = NO;
+	scroll.hasHorizontalScroller = NO;
+	scroll.verticalScrollElasticity = NSScrollElasticityNone;
+	scroll.horizontalScrollElasticity = NSScrollElasticityNone;
 	scroll.borderType = NSNoBorder;
 	scroll.drawsBackground = NO;
 	[scroll.heightAnchor constraintEqualToConstant:height].active = YES;
