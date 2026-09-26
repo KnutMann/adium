@@ -175,7 +175,7 @@ typedef enum {
 	/* Which set is being written, at the top, in a card of its own. Everything
 	 * below is written into whichever one this names. */
 	if (presetPopUp) {
-		[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Set", "Label of the list picking which saved set of contact list settings is in use"))
+		[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Preset", "Label of the list picking which saved set of contact list settings is in use"))
 				  popUpButton:presetPopUp
 			  accessoryButton:nil];
 		[form endCard];
