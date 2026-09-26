@@ -91,3 +91,45 @@ and write it down once with `install.sh --record 1.8.65`.
 Start Adium with the debug log on and look for the line above. If the version is not the one you
 just built, the bundle still has the old copy: the Xcode build copies `PurplePlugins/` into
 `Adium.app`, so the app has to be rebuilt after installing.
+
+## 2026-09-27: built against TDLib 1.8.67
+
+The shipped plugin is now built against TDLib 1.8.67 (`bc9c263`, the commit that sets that
+version, pinned the same way `a8f21f5` pinned 1.8.65). The source tree needed five adaptations,
+because the TDLib interface moved underneath it:
+
+* `getProxies` answers with `addedProxies` rather than `proxies`, and each entry is an
+  `addedProxy` which carries the old `proxy` inside it. The entry still has `id_` of its own, so
+  only the types changed.
+* `addProxy` takes a `proxy` object where it used to take server, port and type as three fields
+  of the request, and it answers with `addedProxy`.
+* `inputMessageDocument::document_` is an `inputDocument` now, which wraps the file along with a
+  thumbnail and a flag.
+* `inputMessagePhoto::photo_` is an `inputPhoto`, which wraps the file along with a thumbnail, a
+  video, sticker ids and a size.
+* `addContact` takes the user id beside the contact rather than inside it, and what it takes is
+  an `importedContact`, which has no id of its own. `importContacts` takes the same type.
+
+**These five are not ours to keep.** adrighem's master already carries all of them, and carries
+them identically: the two awkward ones, the photo and the document, are character for character
+the same down to `nullptr, nullptr, std::vector<int32_t>(), 0, 0`. They are in no release yet,
+2.1.1 does not have them, which is why they had to be made here at all. They should disappear on
+the next move to a release that contains them, and nothing should be offered upstream, because
+upstream has already done it.
+
+**What is not established**, and is written down rather than guessed: this source tree no longer
+matches the base revision named at the top of this file, nor the 2.1.0 tag, by thousands of lines
+in the larger files, while `purple-info.h` differs by the eight lines of our own patch. adrighem
+reconciled two histories on 2026-09-12 with a merge made 'ours', so the tags very probably do not
+point at the trees they pointed at in August. Whoever next touches this should establish the base
+afresh rather than trust the line above.
+
+**Deployment target.** TDLib was configured with `-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0`, matching
+`Base.xcconfig`. Without it CMake takes the current SDK and the result demands macOS 26, which
+loads nowhere else and says nothing about why. Worth checking after any rebuild:
+
+    otool -l PurplePlugins/libtelegram-tdlib.so | grep -m1 minos
+
+**Not yet run.** The plugin compiles, links, resolves everything through the bundle and is
+installed through install.sh, which recorded the session as 1.8.67. Whether it talks to Telegram
+is untested. The session as it was is beside it, in a folder named for the day.
