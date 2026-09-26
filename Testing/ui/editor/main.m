@@ -10,7 +10,7 @@
 #import <Adium/AIAbstractListController.h>
 #import <Adium/AISharedAdium.h>
 
-#import "AIContactListAppearanceWindowController.h"
+#import "AIContactListAppearancePage.h"
 #import <Adium/AIContactListPreviewView.h>
 #import <Adium/AIListOutlineView.h>
 #import <Adium/AIServiceIcons.h>
@@ -195,12 +195,13 @@ int main(int argc, const char *argv[])
 			[probe orderOut:nil];
 		}
 
-		NSArray *jobs = @[@[@"form", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceSectionShape)],
-						  @[@"kontaktzeile", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceSectionContactRow)],
-						  @[@"gruppenzeile", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceSectionGroupRow)],
-						  @[@"farben", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceSectionColours)],
-						  @[@"blasen", @(AIContactListWindowStyleContactBubbles), @(AIContactListAppearanceSectionShape)],
-						  @[@"zustandsfarben", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceSectionColours)]];
+		/* The two pages the Customize chevrons open. They are no longer windows of
+		 * their own but steps below the contact list settings, so the harness puts
+		 * each one in a plain window and photographs it there. What the settings
+		 * window adds around it is its own, and the same for every pane. */
+		NSArray *jobs = @[@[@"layout", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceScopeLayout)],
+						  @[@"farben", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceScopeTheme)],
+						  @[@"blasen", @(AIContactListWindowStyleContactBubbles), @(AIContactListAppearanceScopeLayout)]];
 
 		for (NSString *mode in @[@"hell", @"dunkel"]) {
 			NSAppearance *appearance = [NSAppearance appearanceNamed:
@@ -210,25 +211,30 @@ int main(int argc, const char *argv[])
 			for (NSArray *job in jobs) {
 				[prefs setPreference:job[1] forKey:KEY_LIST_LAYOUT_WINDOW_STYLE group:@"Appearance"];
 
-				AIContactListAppearanceWindowController *editor;
-				editor = [[AIContactListAppearanceWindowController alloc] initWithLayoutNamed:@"Aqualicious"
-																				  themeNamed:@"Aqualicious"
-																					 section:[job[2] intValue]
-																			 notifyingTarget:nil];
-				editor.window.appearance = appearance;
+				AIContactListAppearancePage *page;
+				page = [[AIContactListAppearancePage alloc] initWithScope:[job[2] intValue]];
+
+				NSView *pageView = page.view;
+				NSRect content = NSMakeRect(0.0, 0.0, NSWidth(pageView.frame), MIN(900.0, MAX(200.0, NSHeight(pageView.frame))));
+				NSWindow *window = [[NSWindow alloc] initWithContentRect:content
+															  styleMask:NSWindowStyleMaskTitled
+																backing:NSBackingStoreBuffered
+																  defer:NO];
+				window.title = [NSString stringWithFormat:@"%@", job[0]];
+				window.appearance = appearance;
+				pageView.frame = window.contentView.bounds;
+				pageView.autoresizingMask = (NSViewWidthSizable | NSViewHeightSizable);
+				[window.contentView addSubview:pageView];
+
 				[NSApp activateIgnoringOtherApps:YES];
-				if ([job[0] isEqualToString:@"zustandsfarben"]) {
-					NSRect frame = editor.window.frame;
-					frame.size.height = 1000.0;
-					[editor.window setFrame:frame display:NO];
-				}
-				[editor.window setFrameOrigin:NSMakePoint(200.0, 40.0)];
-				[editor.window makeKeyAndOrderFront:nil];
+				[window setFrameOrigin:NSMakePoint(200.0, 40.0)];
+				[window makeKeyAndOrderFront:nil];
 				spin(0.8);
 
-				writePNG(editor.window, [outDir stringByAppendingPathComponent:
-										 [NSString stringWithFormat:@"editor-%@-%@.png", job[0], mode]]);
-				[editor.window orderOut:nil];
+				writePNG(window, [outDir stringByAppendingPathComponent:
+								  [NSString stringWithFormat:@"seite-%@-%@.png", job[0], mode]]);
+				[window orderOut:nil];
+				[page tearDown];
 			}
 		}
 	}

@@ -14,12 +14,11 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#import "AIContactListAppearanceWindowController.h"
+#import "AIContactListAppearancePage.h"
 #import "AISettingsFormView.h"
 
 #import <Adium/AIAbstractListController.h>
 #import <Adium/AISharedAdium.h>
-#import <Adium/AIContactListPreviewView.h>
 #import <Adium/AIDockControllerProtocol.h>
 #import <Adium/AIListOutlineView.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
@@ -47,11 +46,8 @@ static NSString *AIRowLabel(NSString *label)
 	return trimmed;
 }
 
-#define PREVIEW_WIDTH		280.0
-#define FORM_WIDTH			430.0
-#define WINDOW_HEIGHT		560.0
-#define OUTER_MARGIN		16.0
-#define BUTTON_BAR_HEIGHT	52.0
+//The width the settings window gives a pane, as the other pages of this kind use it
+#define FORM_WIDTH			540.0
 
 /*!
  * @brief What one control writes
@@ -95,208 +91,62 @@ typedef enum {
 @implementation AIStateColourRow
 @end
 
-@interface AIContactListAppearanceWindowController () <NSTableViewDelegate, NSTableViewDataSource, NSFontChanging>
+@interface AIContactListAppearancePage () <NSTableViewDelegate, NSTableViewDataSource, NSFontChanging>
 @end
 
-/*!
- * @brief Where an open editor lives
- *
- * -showOnWindow: gives up the caller's reference; without something else
- * holding on, the editor would die as its sheet appeared.
- */
-static NSMutableSet *openAppearanceEditors = nil;
-
-@implementation AIContactListAppearanceWindowController {
-	NSString						*layoutName;
-	NSString						*themeName;
-	AIContactListAppearanceSection	 initialSection;
-	__weak id						 target;
-
-	//What the preferences looked like when the editor opened, so Cancel can put them back
-	NSDictionary					*savedLayout;
-	NSDictionary					*savedTheme;
-	NSNumber						*savedWindowStyle;
-
-	AIContactListPreviewView		*previewView;
+@implementation AIContactListAppearancePage {
 	AISettingsFormView				*form;
-	NSScrollView					*formScrollView;
 	NSTableView						*stateColourTable;
 	NSArray							*stateColourRows;
 
 	NSMapTable						*bindings;
-	NSMutableDictionary				*sectionAnchors;
 	NSString						*activeFontKey;
 	BOOL							 rebuilding;
 }
 
+@synthesize scope, hasChanges;
+
 #pragma mark Opening and closing
 
-- (instancetype)initWithLayoutNamed:(NSString *)inLayoutName
-						 themeNamed:(NSString *)inThemeName
-							section:(AIContactListAppearanceSection)inSection
-					notifyingTarget:(id)inTarget
+- (instancetype)initWithScope:(AIContactListAppearanceScope)inScope
 {
-	NSRect contentRect = NSMakeRect(0.0, 0.0,
-									PREVIEW_WIDTH + FORM_WIDTH + (OUTER_MARGIN * 3.0),
-									WINDOW_HEIGHT);
-	NSWindow *window = [[NSWindow alloc] initWithContentRect:contentRect
-												  styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)
-													backing:NSBackingStoreBuffered
-													  defer:NO];
-	window.title = AILocalizedString(@"Contact List Appearance", "Title of the window in which the contact list's layout and colours are set");
-	window.minSize = NSMakeSize(contentRect.size.width, 420.0);
-
-	if ((self = [super initWithWindow:window])) {
-		layoutName = inLayoutName;
-		themeName = inThemeName;
-		initialSection = inSection;
-		target = inTarget;
-
+	if ((self = [super initWithNibName:nil bundle:nil])) {
+		scope = inScope;
 		bindings = [NSMapTable strongToStrongObjectsMapTable];
-		sectionAnchors = [NSMutableDictionary dictionary];
-		stateColourRows = [self buildStateColourRows];
-
-		savedLayout = [[adium.preferenceController preferencesForGroup:PREF_GROUP_LIST_LAYOUT] copy];
-		savedTheme = [[adium.preferenceController preferencesForGroup:PREF_GROUP_LIST_THEME] copy];
-		savedWindowStyle = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_WINDOW_STYLE
-																  group:PREF_GROUP_APPEARANCE];
-
-		[self buildWindowContents];
-		[self rebuildForm];
-		[self scrollToSection:initialSection];
+		if (scope == AIContactListAppearanceScopeTheme)
+			stateColourRows = [self buildStateColourRows];
 	}
 
 	return self;
 }
 
-- (void)showOnWindow:(NSWindow *)parentWindow
+- (void)loadView
 {
-	if (!openAppearanceEditors) openAppearanceEditors = [[NSMutableSet alloc] init];
-	[openAppearanceEditors addObject:self];
-
-	/* Alpha in the colour pickers: several of these colours are meant to be
-	 * seen through. */
-	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
-
-	if (parentWindow) {
-		[parentWindow beginSheet:self.window completionHandler:^(NSModalResponse returnCode) {
-			[self editorDidEnd];
-		}];
-	} else {
-		[self showWindow:nil];
-	}
-
-	/* Only now does the form know how wide it is, and only then can a section
-	 * be scrolled to. */
-	[self.window layoutIfNeeded];
-	[self scrollToSection:initialSection];
-}
-
-- (void)editorDidEnd
-{
-	[self.window orderOut:nil];
-	[[NSColorPanel sharedColorPanel] close];
-	[[NSColorPanel sharedColorPanel] setShowsAlpha:NO];
-
-	/* Out of the set, but not before this turn of the run loop ends: the exit is
-	 * reached from inside AppKit's own close, which goes on addressing this
-	 * object afterwards. */
-	CFAutorelease(CFBridgingRetain(self));
-	[openAppearanceEditors removeObject:self];
-}
-
-- (IBAction)cancel:(id)sender
-{
-	//Put back exactly what was there when the editor opened
-	[adium.preferenceController setPreferences:savedLayout inGroup:PREF_GROUP_LIST_LAYOUT];
-	[adium.preferenceController setPreferences:savedTheme inGroup:PREF_GROUP_LIST_THEME];
-	if (savedWindowStyle) {
-		[adium.preferenceController setPreference:savedWindowStyle
-										   forKey:KEY_LIST_LAYOUT_WINDOW_STYLE
-											group:PREF_GROUP_APPEARANCE];
-	}
-
-	[target listLayoutEditorWillCloseWithChanges:NO forLayoutNamed:layoutName];
-	[target listThemeEditorWillCloseWithChanges:NO forThemeNamed:themeName];
-	[self closeEditor];
-}
-
-- (IBAction)save:(id)sender
-{
-	[target listLayoutEditorWillCloseWithChanges:YES forLayoutNamed:layoutName];
-	[target listThemeEditorWillCloseWithChanges:YES forThemeNamed:themeName];
-	[self closeEditor];
-}
-
-- (void)closeEditor
-{
-	if (self.window.sheetParent) {
-		[self.window.sheetParent endSheet:self.window];
-	} else {
-		[self.window close];
-		[self editorDidEnd];
-	}
-}
-
-#pragma mark The window
-
-- (void)buildWindowContents
-{
-	NSView *content = self.window.contentView;
-
-	//The preview, on the left, in a box of its own
-	NSBox *previewBox = [[NSBox alloc] initWithFrame:NSZeroRect];
-	previewBox.title = AILocalizedString(@"Preview", "Title above the small sample contact list in the appearance editor");
-	previewBox.translatesAutoresizingMaskIntoConstraints = NO;
-	[content addSubview:previewBox];
-
-	previewView = [[AIContactListPreviewView alloc] initWithFrame:NSMakeRect(0, 0, PREVIEW_WIDTH, 300)];
-	previewView.translatesAutoresizingMaskIntoConstraints = NO;
-	[previewBox.contentView addSubview:previewView];
-
-	//The settings, on the right, in a scroll view
 	form = [[AISettingsFormView alloc] initWithWidth:FORM_WIDTH];
-	formScrollView = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-	formScrollView.translatesAutoresizingMaskIntoConstraints = NO;
-	formScrollView.hasVerticalScroller = YES;
-	formScrollView.drawsBackground = NO;
-	formScrollView.borderType = NSNoBorder;
-	formScrollView.documentView = form;
-	[content addSubview:formScrollView];
+	[self setView:form];
 
-	NSButton *cancelButton = [NSButton buttonWithTitle:AILocalizedString(@"Cancel", nil)
-												target:self action:@selector(cancel:)];
-	cancelButton.keyEquivalent = @"\033";
-	cancelButton.translatesAutoresizingMaskIntoConstraints = NO;
-	[content addSubview:cancelButton];
+	/* Alpha in the colour pickers: several of these colours are meant to be seen
+	 * through. */
+	if (scope == AIContactListAppearanceScopeTheme)
+		[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
 
-	NSButton *saveButton = [NSButton buttonWithTitle:AILocalizedString(@"Save", "Button that keeps the changes made in the contact list appearance editor")
-											  target:self action:@selector(save:)];
-	saveButton.keyEquivalent = @"\r";
-	saveButton.translatesAutoresizingMaskIntoConstraints = NO;
-	[content addSubview:saveButton];
+	[self rebuildForm];
+}
 
-	[NSLayoutConstraint activateConstraints:@[
-		[previewBox.leadingAnchor constraintEqualToAnchor:content.leadingAnchor constant:OUTER_MARGIN],
-		[previewBox.topAnchor constraintEqualToAnchor:content.topAnchor constant:OUTER_MARGIN],
-		[previewBox.widthAnchor constraintEqualToConstant:PREVIEW_WIDTH],
-		[previewBox.bottomAnchor constraintEqualToAnchor:cancelButton.topAnchor constant:-OUTER_MARGIN],
+- (void)rebuildForStyleChange
+{
+	if ([self isViewLoaded]) [self rebuildForm];
+}
 
-		[previewView.leadingAnchor constraintEqualToAnchor:previewBox.contentView.leadingAnchor],
-		[previewView.trailingAnchor constraintEqualToAnchor:previewBox.contentView.trailingAnchor],
-		[previewView.topAnchor constraintEqualToAnchor:previewBox.contentView.topAnchor],
-		[previewView.bottomAnchor constraintEqualToAnchor:previewBox.contentView.bottomAnchor],
+- (void)tearDown
+{
+	if (scope == AIContactListAppearanceScopeTheme) {
+		[[NSColorPanel sharedColorPanel] close];
+		[[NSColorPanel sharedColorPanel] setShowsAlpha:NO];
+	}
 
-		[formScrollView.leadingAnchor constraintEqualToAnchor:previewBox.trailingAnchor constant:OUTER_MARGIN],
-		[formScrollView.trailingAnchor constraintEqualToAnchor:content.trailingAnchor constant:-OUTER_MARGIN],
-		[formScrollView.topAnchor constraintEqualToAnchor:content.topAnchor constant:OUTER_MARGIN],
-		[formScrollView.bottomAnchor constraintEqualToAnchor:cancelButton.topAnchor constant:-OUTER_MARGIN],
-
-		[saveButton.trailingAnchor constraintEqualToAnchor:content.trailingAnchor constant:-OUTER_MARGIN],
-		[saveButton.bottomAnchor constraintEqualToAnchor:content.bottomAnchor constant:-OUTER_MARGIN],
-		[cancelButton.trailingAnchor constraintEqualToAnchor:saveButton.leadingAnchor constant:-12.0],
-		[cancelButton.bottomAnchor constraintEqualToAnchor:saveButton.bottomAnchor],
-	]];
+	activeFontKey = nil;
+	[bindings removeAllObjects];
 }
 
 #pragma mark Building the form
@@ -312,7 +162,6 @@ static NSMutableSet *openAppearanceEditors = nil;
 	rebuilding = YES;
 
 	[bindings removeAllObjects];
-	[sectionAnchors removeAllObjects];
 	[form removeAllSections];
 
 	AIContactListWindowStyle style = [self windowStyle];
@@ -320,36 +169,40 @@ static NSMutableSet *openAppearanceEditors = nil;
 					style == AIContactListWindowStyleContactBubbles_Fitted);
 	BOOL mockie = (style == AIContactListWindowStyleGroupBubbles);
 
-	[self addShapeSection:style bubbles:bubbles];
-	[self addContactRowSection:style];
-	[self addGroupRowSection:mockie];
-	[self addColourSection:bubbles || mockie];
+	if (scope == AIContactListAppearanceScopeLayout) {
+		/* The window style itself is one step up, on the page this one opened
+		 * from, so it is not repeated here. What is here are the settings that
+		 * only a bubble style has anything to do with, and they appear only
+		 * while such a style is chosen. */
+		if (bubbles) [self addBubbleSection];
+		[self addContactRowSection:style];
+		[self addGroupRowSection:mockie];
+	} else {
+		[self addColourSection:bubbles || mockie];
+		[self addGroupColourSection];
+	}
 
 	[form layoutForWidth:FORM_WIDTH];
 	[form noteContentSizeChanged];
 
 	rebuilding = NO;
 	[self refreshControls];
+
+	//The page is as tall as its form, and the stack it sits in lays out from that
+	id parent = [self parentViewController];
+	if ([parent respondsToSelector:@selector(noteContentHeightChanged)])
+		[parent performSelector:@selector(noteContentHeightChanged)];
 }
 
-- (void)addShapeSection:(AIContactListWindowStyle)style bubbles:(BOOL)bubbles
+/*!
+ * @brief What only a bubble style has, shown only while one is chosen
+ *
+ * The window style that decides this is a step up, on the page this one was
+ * opened from, so it is not repeated here.
+ */
+- (void)addBubbleSection
 {
-	[form addSectionHeader:AILocalizedString(@"Shape", "Section of the contact list appearance editor holding the window style")];
-
-	NSPopUpButton *stylePopUp = [self popUpWithTitlesAndTags:@[
-		AILocalizedString(@"Regular window", nil), @(AIContactListWindowStyleStandard),
-		AILocalizedString(@"Borderless window", nil), @(AIContactListWindowStyleBorderless),
-		AILocalizedString(@"Group bubbles", nil), @(AIContactListWindowStyleGroupBubbles),
-		AILocalizedString(@"Contact bubbles", nil), @(AIContactListWindowStyleContactBubbles),
-		AILocalizedString(@"Contact bubbles (to fit)", nil), @(AIContactListWindowStyleContactBubbles_Fitted)]
-														 key:KEY_LIST_LAYOUT_WINDOW_STYLE
-													   group:PREF_GROUP_APPEARANCE];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Window Style:", nil))
-			  popUpButton:stylePopUp
-		  accessoryButton:nil];
-	sectionAnchors[@(AIContactListAppearanceSectionShape)] = stylePopUp;
-
-	if (!bubbles) return;
+	[form addSectionHeader:AILocalizedString(@"Bubbles", "Section holding the settings only the bubble contact list styles have")];
 
 	[form addRowWithLabel:AILocalizedString(@"Outline the bubbles", nil)
 				  control:[self switchForKey:KEY_LIST_LAYOUT_OUTLINE_BUBBLE group:PREF_GROUP_LIST_LAYOUT]];
@@ -375,11 +228,10 @@ static NSMutableSet *openAppearanceEditors = nil;
 	[form addSectionHeader:AILocalizedString(@"Contact Row", "Section of the contact list appearance editor holding everything about a contact's row")];
 
 	NSButton *contactFont = [self fontButtonForKey:KEY_LIST_LAYOUT_CONTACT_FONT];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Name Font:", nil)) stretchingControl:contactFont];
-	sectionAnchors[@(AIContactListAppearanceSectionContactRow)] = contactFont;
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Name Font:", nil)) control:contactFont];
 
 	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Status Font:", nil))
-		stretchingControl:[self fontButtonForKey:KEY_LIST_LAYOUT_STATUS_FONT]];
+				  control:[self fontButtonForKey:KEY_LIST_LAYOUT_STATUS_FONT]];
 
 	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Alignment:", nil))
 			  popUpButton:[self alignmentPopUpForKey:KEY_LIST_LAYOUT_ALIGNMENT]
@@ -467,8 +319,7 @@ static NSMutableSet *openAppearanceEditors = nil;
 	[form addSectionHeader:AILocalizedString(@"Group Row", "Section of the contact list appearance editor holding everything about a group's row")];
 
 	NSButton *groupFont = [self fontButtonForKey:KEY_LIST_LAYOUT_GROUP_FONT];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Group Font:", nil)) stretchingControl:groupFont];
-	sectionAnchors[@(AIContactListAppearanceSectionGroupRow)] = groupFont;
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Group Font:", nil)) control:groupFont];
 
 	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Alignment:", nil))
 			  popUpButton:[self alignmentPopUpForKey:KEY_LIST_LAYOUT_GROUP_ALIGNMENT]
@@ -484,22 +335,6 @@ static NSMutableSet *openAppearanceEditors = nil;
 				   valueLabel:[self valueLabelFor:topSpacing suffix:AILocalizedString(@"px", "Abbreviation for pixels, after a number")]];
 	}
 
-	[form addRowWithLabel:AILocalizedString(@"Give groups a background", nil)
-				  control:[self switchForKey:KEY_LIST_THEME_GROUP_GRADIENT group:PREF_GROUP_LIST_THEME]];
-
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Background:", nil))
-				  control:[AISettingsFormView rowOfViews:@[
-							   [self colourWellForKey:KEY_LIST_THEME_GROUP_BACKGROUND group:PREF_GROUP_LIST_THEME],
-							   [self captionWithText:AILocalizedString(@"to", "Between the two colours of a gradient")],
-							   [self colourWellForKey:KEY_LIST_THEME_GROUP_BACKGROUND_GRADIENT group:PREF_GROUP_LIST_THEME]]]];
-
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Text:", nil))
-				  control:[self colourWellForKey:KEY_LIST_THEME_GROUP_TEXT_COLOR group:PREF_GROUP_LIST_THEME]];
-
-	[form addRowWithLabel:AILocalizedString(@"Give the group name a shadow", nil)
-				  control:[self switchForKey:KEY_LIST_THEME_GROUP_SHADOW group:PREF_GROUP_LIST_THEME]];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Shadow:", nil))
-				  control:[self colourWellForKey:KEY_LIST_THEME_GROUP_SHADOW_COLOR group:PREF_GROUP_LIST_THEME]];
 }
 
 - (void)addColourSection:(BOOL)shaped
@@ -508,7 +343,6 @@ static NSMutableSet *openAppearanceEditors = nil;
 
 	NSColorWell *background = [self colourWellForKey:KEY_LIST_THEME_BACKGROUND_COLOR group:PREF_GROUP_LIST_THEME];
 	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Window Background:", nil)) control:background];
-	sectionAnchors[@(AIContactListAppearanceSectionColours)] = background;
 
 	if (!shaped) {
 		[form addRowWithLabel:AILocalizedString(@"Show a background picture", nil)
@@ -562,6 +396,36 @@ static NSMutableSet *openAppearanceEditors = nil;
 				  control:[self switchForKey:KEY_LIST_THEME_FADE_OFFLINE_IMAGES group:PREF_GROUP_LIST_THEME]];
 
 	[form addFullWidthRow:[self buildStateColourTable] stretch:YES];
+}
+
+
+/*!
+ * @brief What a group row is painted in
+ *
+ * With the other colours rather than with the rest of the group row, because the
+ * two pages are split the way the two saved sets are: everything here is written
+ * into the colour set, and the group's font and alignment into the layout.
+ */
+- (void)addGroupColourSection
+{
+	[form addSectionHeader:AILocalizedString(@"Group Row", "Section of the contact list appearance editor holding everything about a group's row")];
+
+	[form addRowWithLabel:AILocalizedString(@"Give groups a background", nil)
+				  control:[self switchForKey:KEY_LIST_THEME_GROUP_GRADIENT group:PREF_GROUP_LIST_THEME]];
+
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Background:", nil))
+				  control:[AISettingsFormView rowOfViews:@[
+							   [self colourWellForKey:KEY_LIST_THEME_GROUP_BACKGROUND group:PREF_GROUP_LIST_THEME],
+							   [self captionWithText:AILocalizedString(@"to", "Between the two colours of a gradient")],
+							   [self colourWellForKey:KEY_LIST_THEME_GROUP_BACKGROUND_GRADIENT group:PREF_GROUP_LIST_THEME]]]];
+
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Text:", nil))
+				  control:[self colourWellForKey:KEY_LIST_THEME_GROUP_TEXT_COLOR group:PREF_GROUP_LIST_THEME]];
+
+	[form addRowWithLabel:AILocalizedString(@"Give the group name a shadow", nil)
+				  control:[self switchForKey:KEY_LIST_THEME_GROUP_SHADOW group:PREF_GROUP_LIST_THEME]];
+	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Shadow:", nil))
+				  control:[self colourWellForKey:KEY_LIST_THEME_GROUP_SHADOW_COLOR group:PREF_GROUP_LIST_THEME]];
 }
 
 #pragma mark The state colour table
@@ -759,6 +623,14 @@ static NSMutableSet *openAppearanceEditors = nil;
 
 #pragma mark Reading and writing
 
+/*!
+ * @brief Write the stored values into the controls
+ *
+ * The font buttons carry the name of their font as their title and are only as
+ * wide as that title, so the form is laid out once more at the end: the titles
+ * are not known until here, and a row measured before them would leave the
+ * button the width it had while it was empty.
+ */
 - (void)refreshControls
 {
 	NSDictionary *layoutDict = [adium.preferenceController preferencesForGroup:PREF_GROUP_LIST_LAYOUT];
@@ -792,6 +664,11 @@ static NSMutableSet *openAppearanceEditors = nil;
 			case AIBindingFont: {
 				NSFont *font = [value representedFont] ?: [NSFont systemFontOfSize:12.0];
 				[(NSButton *)control setTitle:[NSString stringWithFormat:@"%@ %.0f", font.displayName, font.pointSize]];
+				/* The row remembers how wide the button wanted to be, and it was
+				 * empty when it was put there. Measuring it again here is what
+				 * the form takes as the new natural width at the next layout,
+				 * which is the one at the end of this method. */
+				[(NSButton *)control sizeToFit];
 				break;
 			}
 			case AIBindingPath:
@@ -807,7 +684,8 @@ static NSMutableSet *openAppearanceEditors = nil;
 		[(NSTextField *)control setStringValue:[NSString stringWithFormat:@"%ld", (long)lround(slider.doubleValue)]];
 	}
 
-	[self refreshPreview];
+
+	[form layoutForWidth:NSWidth([form frame])];
 }
 
 - (IBAction)controlChanged:(id)sender
@@ -816,6 +694,8 @@ static NSMutableSet *openAppearanceEditors = nil;
 
 	AIBinding *binding = [bindings objectForKey:sender];
 	if (!binding) return;
+
+	hasChanges = YES;
 
 	id value = nil;
 	switch (binding.kind) {
@@ -850,13 +730,6 @@ static NSMutableSet *openAppearanceEditors = nil;
 	[self refreshControls];
 }
 
-- (void)refreshPreview
-{
-	[previewView applyLayout:[adium.preferenceController preferencesForGroup:PREF_GROUP_LIST_LAYOUT]
-					   theme:[adium.preferenceController preferencesForGroup:PREF_GROUP_LIST_THEME]
-				 windowStyle:[self windowStyle]];
-}
-
 #pragma mark Fonts and pictures
 
 - (IBAction)chooseFont:(id)sender
@@ -882,6 +755,7 @@ static NSMutableSet *openAppearanceEditors = nil;
 														  group:PREF_GROUP_LIST_LAYOUT] representedFont];
 	font = [sender convertFont:(font ?: [NSFont systemFontOfSize:12.0])];
 
+	hasChanges = YES;
 	[adium.preferenceController setPreference:[font stringRepresentation]
 									   forKey:activeFontKey
 										group:PREF_GROUP_LIST_LAYOUT];
@@ -895,9 +769,10 @@ static NSMutableSet *openAppearanceEditors = nil;
 	panel.canChooseDirectories = NO;
 	panel.allowedContentTypes = @[UTTypeImage];
 
-	[panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
+	[panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
 		if (result != NSModalResponseOK) return;
 
+		self->hasChanges = YES;
 		[adium.preferenceController setPreference:panel.URL.path
 										   forKey:KEY_LIST_THEME_BACKGROUND_IMAGE_PATH
 											group:PREF_GROUP_LIST_THEME];
@@ -906,19 +781,6 @@ static NSMutableSet *openAppearanceEditors = nil;
 											group:PREF_GROUP_LIST_THEME];
 		[self refreshControls];
 	}];
-}
-
-#pragma mark Sections
-
-- (void)scrollToSection:(AIContactListAppearanceSection)section
-{
-	NSView *anchor = sectionAnchors[@(section)];
-	if (!anchor || !anchor.superview) return;
-
-	NSRect inForm = [anchor convertRect:anchor.bounds toView:form];
-	//A little above the row, so the section's heading comes along
-	CGFloat top = MAX(0.0, NSMinY(inForm) - 44.0);
-	[(NSView *)formScrollView.documentView scrollPoint:NSMakePoint(0.0, top)];
 }
 
 @end

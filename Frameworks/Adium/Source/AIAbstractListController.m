@@ -567,6 +567,16 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	[contactListView noteHeightOfRowsWithIndexesChanged:
 	 [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, contactListView.numberOfRows)]];
 
+	/* And drawn again, all of it. The cells above are new ones and every row is
+	 * drawn by them, so a row showing the old ones is out of date whether or not
+	 * it changed height. Only the settings that make a row taller or shorter came
+	 * through without this, because the height notice above lays the rows out
+	 * again and that redraws them on the way; the alignment of a name, which side
+	 * the picture sits on, whether the status icon is drawn at all, none of those
+	 * change a height, and so none of them showed until something else happened
+	 * to redraw the list. */
+	[contactListView redisplayItem:nil];
+
 	[self contactListDesiredSizeChanged];
 }
 

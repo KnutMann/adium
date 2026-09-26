@@ -32,7 +32,6 @@
 @interface AISCLViewPlugin : AIPlugin <AIMultiContactListComponent, NSMenuDelegate, NSMenuItemValidation> {	
 	NSMutableArray							*contactLists;
 
-	ESContactListAdvancedPreferences		*advancedPreferences;
 
 	AIContactListWindowStyle				windowStyle;
 	

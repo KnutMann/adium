@@ -118,12 +118,23 @@
  */
 - (NSRect)rectOfRow:(NSInteger)rowIndex
 {
-	if (animationsCount > 0) {
-		return [self currentDisplayRectForItemPointer:[NSValue valueWithPointer:(__bridge const void *)[self itemAtRow:rowIndex]] atRow:rowIndex];
-
-	} else {
-		return [super rectOfRow:rowIndex];
-	}
+	/* The truth, always, even mid animation.
+	 *
+	 * This used to answer with a place part of the way between where a row was
+	 * and where it is going, so that asking for that patch to be drawn again drew
+	 * the row on its way. That is how a list drawn by cells is animated and it
+	 * was right for twenty years. A row is a view of its own now: this answer is
+	 * what the table lays its rows out from, what a click is resolved against,
+	 * and what anything else asking where a row is gets told. Answering with a
+	 * place that is on its way makes the table disagree with itself for as long
+	 * as the movement lasts, and with several movements running at once no single
+	 * one of them can put every row right. That disagreement is what was reported
+	 * as names drawn over one another and as a hole in the list.
+	 *
+	 * The movement itself is unchanged and still runs; it moves the rows, which
+	 * is done where each step is worked out. What it no longer does is tell
+	 * anybody else a different story. */
+	return [super rectOfRow:rowIndex];
 }
 
 /*!
@@ -290,6 +301,33 @@
 	}
 
 	if ([animatingRowsDict count]) {
+		/* The rows glide, and AppKit does the gliding.
+		 *
+		 * Its animator sets the frame straight away and moves only the picture of
+		 * it, so a row is at its new place from the first instant for everything
+		 * that asks: the table laying out, a click being resolved, anything at
+		 * all. Only the pixels take their time. That is the difference from what
+		 * was here before, which moved nothing and instead told every asker that
+		 * a row was somewhere between its old place and its new one for as long
+		 * as the movement lasted.
+		 *
+		 * The machinery below still runs, because the height the window sizes
+		 * itself to is worked out from its progress. It just no longer decides
+		 * where anything is. */
+		[NSAnimationContext beginGrouping];
+		[[NSAnimationContext currentContext] setDuration:duration];
+
+		for (id animatingItem in animatingRowsDict) {
+			NSNumber *newIndex = [[allAnimatingItemsDict objectForKey:animatingItem] objectForKey:@"new index"];
+			NSInteger row = [newIndex integerValue];
+			if (row < 0 || row >= [self numberOfRows]) continue;
+
+			NSTableRowView *rowView = [self rowViewAtRow:row makeIfNecessary:NO];
+			if (rowView) [[rowView animator] setFrame:[self rectOfRow:row]];
+		}
+
+		[NSAnimationContext endGrouping];
+
 		AIOutlineViewAnimation *animation = [AIOutlineViewAnimation listObjectAnimationWithDictionary:animatingRowsDict
 																							 delegate:self];
 		[animation setDuration:duration];
@@ -336,8 +374,8 @@
 		//We'll need to redisplay after updating to the new location
 		newFrame = [self currentDisplayRectForItemPointer:itemPointer
 													atRow:newIndex];
-		[self setNeedsDisplayInRect:[self currentDisplayRectForItemPointer:itemPointer
-																	 atRow:newIndex]];
+		[self setNeedsDisplayInRect:newFrame];
+
 
 		//Track how much Y-space we're requiring at this point
 		if (NSMaxY(newFrame) > maxRequiredY) {

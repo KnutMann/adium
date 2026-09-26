@@ -18,13 +18,17 @@
 
 /*!
  * @class AIAppearancePreferences
- * @brief The Appearance pane, built as an AISettingsFormView
+ * @brief What holds for the whole program, built as an AISettingsFormView
  *
- * Three cards — the contact list window, its themes, and the icon packs. Every
- * control below is created by -buildSettingsForm and owned by that form (which
- * the inherited 'view' ivar retains); the pane's own references are cleared
- * again in -viewWillClose, so a closed pane holds no piece of the form alive.
- * There is no nib.
+ * Light or dark, and the icon packs, which are seen well outside any one window.
+ * Everything that belongs to the contact list alone moved to the pane named after
+ * it, which is where it was half kept anyway, and where the window style no
+ * longer appears twice on two levels.
+ *
+ * Every control below is created by -buildSettingsForm and owned by that form
+ * (which the inherited 'view' ivar retains); the pane's own references are
+ * cleared again in -viewWillClose, so a closed pane holds no piece of the form
+ * alive. There is no nib.
  */
 @interface AIAppearancePreferences : AIPreferencePane <NSMenuDelegate> {
 	NSPopUpButton	*popUp_statusIcons;
@@ -32,33 +36,13 @@
 	NSPopUpButton	*popUp_menuBarIcons;
 	NSPopUpButton	*popUp_emoticons;
 	NSPopUpButton	*popUp_dockIcon;
-	NSPopUpButton	*popUp_listLayout;
-	NSPopUpButton	*popUp_colorTheme;
-	NSPopUpButton	*popUp_windowStyle;
 	NSPopUpButton	*popUp_appearanceStyle;
-
-	NSSwitch		*checkBox_verticalAutosizing;
-	NSSwitch		*checkBox_horizontalAutosizing;
-
-	NSSlider		*slider_windowOpacity;
-	NSTextField		*textField_windowOpacity;
-
-	NSSlider		*slider_horizontalWidth;
-	NSTextField		*textField_horizontalWidthIndicator;
 
 	NSButton		*button_customizeEmoticons;
 	NSButton		*button_showAllDockIcons;
-	NSButton		*button_customizeColorTheme;
-	NSButton		*button_customizeListLayout;
-
-	//
-	NSArray		*_listLayouts;	//Only compared against, never read: the presets last handed to the preset sheet
-	NSArray		*_listThemes;	//Only compared against, never read: the presets last handed to the preset sheet
 }
 
 - (IBAction)showAllDockIcons:(id)sender;
-- (IBAction)customizeListLayout:(id)sender;
-- (IBAction)customizeListTheme:(id)sender;
 - (IBAction)customizeEmoticons:(id)sender;
 
 - (void)xtrasChanged:(NSNotification *)notification;

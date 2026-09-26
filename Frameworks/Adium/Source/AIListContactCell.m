@@ -353,7 +353,13 @@
 {
     AIListObject    *listObject = [proxyObject listObject];
 
-	//Far Left
+	/* Far Left, and the picture belongs here too when that is where it was put.
+	 * Every other place it can be asked for is drawn below; this one was not, so
+	 * choosing it made the picture disappear altogether. The room for it was
+	 * reserved all along, in -leftPadding and in the text's rectangle, which is
+	 * what says this was a gap rather than a decision. Outermost of the three,
+	 * which is what far means. */
+	if (userIconPosition == LIST_POSITION_FAR_LEFT) rect = [self drawUserIconInRect:rect position:IMAGE_POSITION_LEFT];
 	if (statusIconPosition == LIST_POSITION_FAR_LEFT) rect = [self drawStatusIconInRect:rect position:IMAGE_POSITION_LEFT];
 	if (serviceIconPosition == LIST_POSITION_FAR_LEFT) rect = [self drawServiceIconInRect:rect position:IMAGE_POSITION_LEFT];
 	
@@ -364,7 +370,8 @@
 	if (statusIconPosition == LIST_POSITION_LEFT) rect = [self drawStatusIconInRect:rect position:IMAGE_POSITION_LEFT];
 	if (serviceIconPosition == LIST_POSITION_LEFT) rect = [self drawServiceIconInRect:rect position:IMAGE_POSITION_LEFT];
 	
-	//Far Right
+	//Far Right, the picture outermost again
+	if (userIconPosition == LIST_POSITION_FAR_RIGHT) rect = [self drawUserIconInRect:rect position:IMAGE_POSITION_RIGHT];
 	if (statusIconPosition == LIST_POSITION_FAR_RIGHT) rect = [self drawStatusIconInRect:rect position:IMAGE_POSITION_RIGHT];
 	if (serviceIconPosition == LIST_POSITION_FAR_RIGHT) rect = [self drawServiceIconInRect:rect position:IMAGE_POSITION_RIGHT];
 	

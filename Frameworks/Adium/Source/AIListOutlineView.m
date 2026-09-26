@@ -181,6 +181,13 @@
 	[self ai_scheduleProbes];
 }
 
+/*!
+ * @brief Lay the tape measure against the list whenever it changes
+ *
+ * Off unless debug logging is on, and silent unless it finds a row that is not
+ * where the table puts it. It puts nothing right: a list that quietly repairs
+ * itself is a list whose next fault nobody notices.
+ */
 - (void)noteNumberOfRowsChanged
 {
 	[super noteNumberOfRowsChanged];

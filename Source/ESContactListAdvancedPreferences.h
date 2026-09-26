@@ -15,19 +15,51 @@
  */
 
 #import <Adium/AIAdvancedPreferencePane.h>
+#import <Adium/AISettingsNavigationController.h>
+#import "AISettingsFormView.h"
+#import "AIContactListAppearancePage.h"
 
 /*!
  * @class ESContactListAdvancedPreferences
- * @brief The advanced Contact List pane, built as an AISettingsFormView
+ * @brief Everything about the contact list, in the pane named after it
  *
- * Four cards — how the list is drawn, its tooltips, how its window behaves, and
- * when it hides itself. Every control below is created by -buildSettingsForm and
- * owned by that form (which the inherited 'view' ivar retains), so the
- * references here are non-owning and are cleared again in -viewWillClose. There
- * is no nib.
+ * Six cards: the window it is drawn in, how it is drawn, how it behaves, its
+ * tooltips, where it sits among other windows, and when it takes itself away.
+ *
+ * The first two used to live in the Appearance pane, which is how the list came
+ * to be settled in two places at once, with the window style appearing twice on
+ * two different levels. Appearance keeps what holds for the whole program: light
+ * or dark, and the icon packs, which are seen well outside this window.
+ *
+ * Each of the two saved sets, the colours and the layout, has its own page a step
+ * below this one, reached by the chevron beside it. Every control below is
+ * created by -buildSettingsForm and owned by that form, so the references here
+ * are non-owning and are cleared again in -viewWillClose. There is no nib.
  */
-@interface ESContactListAdvancedPreferences : AIAdvancedPreferencePane {
+@interface ESContactListAdvancedPreferences : AIAdvancedPreferencePane <AISettingsNavigationControllerDelegate> {
 	NSPopUpButton	*popUp_windowPosition;
+
+	//The contact list's own window
+	NSPopUpButton	*popUp_windowStyle;
+	NSSwitch		*checkBox_verticalAutosizing;
+	NSSwitch		*checkBox_horizontalAutosizing;
+	NSSlider		*slider_windowOpacity;
+	NSTextField		*textField_windowOpacity;
+	NSSlider		*slider_horizontalWidth;
+	NSTextField		*textField_horizontalWidthIndicator;
+
+	//The two saved sets and the pages behind them
+	NSPopUpButton	*popUp_colorTheme;
+	NSPopUpButton	*popUp_listLayout;
+	NSButton		*button_customizeColorTheme;
+	NSButton		*button_customizeListLayout;
+	NSArray			*_listLayouts;	//Only compared against: the presets last handed to the preset sheet
+	NSArray			*_listThemes;	//Only compared against: the presets last handed to the preset sheet
+
+	AISettingsFormView				*rootForm;
+	AISettingsNavigationController	*navigationController;
+	AIContactListAppearancePage		*detailPage;
+	BOOL							 buildingView;
 
 	//The three cells matrix_hiding used to hold, in display order
 	NSPopUpButton	*popUp_hidingStyle;
@@ -40,5 +72,10 @@
 	NSSwitch		*checkBox_windowHasShadow;
 	NSSwitch		*checkBox_showOnAllSpaces;
 }
+
+- (IBAction)customizeListLayout:(id)sender;
+- (IBAction)customizeListTheme:(id)sender;
+- (IBAction)createListLayout:(id)sender;
+- (IBAction)createListTheme:(id)sender;
 
 @end

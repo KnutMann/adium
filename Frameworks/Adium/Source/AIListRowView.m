@@ -364,7 +364,9 @@
 {
 	NSUInteger complaints = 0;
 	NSString *report = [self ai_probeReport:occasion complaints:&complaints always:NO];
-	if (report) AILogWithSignature(@"%@", report);
+	if (!report) return;
+
+	AILogWithSignature(@"%@", report);
 }
 
 - (void)ai_scheduleProbes
@@ -386,6 +388,8 @@
 	for (NSString *when in @[soon, later, settled])
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:when];
 
+	//Sooner than the eye can see it, for the window's own resize animation
+	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:soon afterDelay:0.05];
 	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:soon afterDelay:0.3];
 	[self performSelector:@selector(ai_logProbeIfWrong:) withObject:later afterDelay:1.0];
 	//By now every slide is over, so anything still crooked is crooked for good

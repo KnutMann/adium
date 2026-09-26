@@ -16,6 +16,7 @@
 
 #import "AIAppearancePreferencesPlugin.h"
 #import "AIAppearancePreferences.h"
+#import "ESContactListAdvancedPreferences.h"
 #import "AIDockController.h"
 #import <Adium/AIMenuControllerProtocol.h>
 #import <Adium/AIAbstractListController.h>
@@ -48,6 +49,12 @@
 	                              forGroup:PREF_GROUP_APPEARANCE];
 
 	preferences = (AIAppearancePreferences *)[AIAppearancePreferences preferencePaneForPlugin:self];
+
+	/* And the contact list's own pane, which is where the colour set and the
+	 * layout are chosen and edited. It is raised here rather than by the plug-in
+	 * that runs the list, because writing those two sets is this plug-in's work
+	 * and a pane is handed its plug-in once, when it is made. */
+	contactListPreferences = (ESContactListAdvancedPreferences *)[ESContactListAdvancedPreferences preferencePaneForPlugin:self];
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
 								   selector:@selector(invalidStatusSetActivated:)

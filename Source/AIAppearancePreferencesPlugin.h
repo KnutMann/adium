@@ -26,10 +26,11 @@
 #define KEY_LIST_LAYOUT_NAME		@"List Layout Name"
 #define KEY_LIST_THEME_NAME			@"List Theme Name"
 
-@class AIAppearancePreferences;
+@class AIAppearancePreferences, ESContactListAdvancedPreferences;
 
 @interface AIAppearancePreferencesPlugin : AIPlugin {
-	AIAppearancePreferences		*preferences;
+	AIAppearancePreferences			*preferences;
+	ESContactListAdvancedPreferences	*contactListPreferences;
 }
 
 //Themes and Layouts

@@ -50,7 +50,7 @@ clang -fobjc-arc -fmodules -framework Cocoa \
 	-I"$ROOT/Source" -I"$ROOT/Frameworks/Adium/Source" \
 	-o "$APP/Contents/MacOS/editorshots" \
 	"$ROOT/Testing/ui/editor/main.m" \
-	"$ROOT/Source/AIContactListAppearanceWindowController.m"
+	"$ROOT/Source/AIContactListAppearancePage.m"
 
 codesign -f -s - "$APP" >/dev/null 2>&1 || true
 

@@ -14,7 +14,6 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #import "AISCLViewPlugin.h"
-#import "ESContactListAdvancedPreferences.h"
 #import "AIBorderlessListWindowController.h"
 #import "AIStandardListWindowController.h"
 #import "AIListOutlineView.h"
@@ -71,9 +70,11 @@
 	
     [adium.interfaceController registerContactListController:self];
 	
-	//Install our preference view
-	advancedPreferences = (ESContactListAdvancedPreferences *)[ESContactListAdvancedPreferences preferencePane];
-	
+	/* The contact list's settings pane is raised by the appearance plug-in rather
+	 * than here, because it writes the saved colour and layout sets and that
+	 * machinery belongs to that plug-in. A pane is handed its plug-in when it is
+	 * made, and it can only be handed one. */
+
 	attachSubmenu = [[NSMenu alloc] init];
 	[attachSubmenu setDelegate:self];
 	

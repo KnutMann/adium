@@ -20,7 +20,7 @@
 #import "AIDockIconSelectionSheet.h"
 #import "AIEmoticonPack.h"
 #import "AIEmoticonPreferences.h"
-#import "AIContactListAppearanceWindowController.h"
+#import "AIContactListAppearancePage.h"
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
@@ -53,16 +53,9 @@ typedef enum {
 #define WIDTH_WIDEST_VALUE				@"640px"
 
 @interface AIAppearancePreferences ()
-- (NSMenu *)_windowStyleMenu;
 - (NSMenu *)_appearanceStyleMenu;
 - (NSMenu *)_emoticonPackMenu;
-- (NSMenu *)_listLayoutMenu;
-- (NSMenu *)_colorThemeMenu;
 - (void)_rebuildEmoticonMenuAndSelectActivePack;
-- (void)_addWindowStyleOption:(NSString *)option withTag:(NSInteger)tag toMenu:(NSMenu *)menu;
-- (void)_updateSliderValues;
-- (void)_editListThemeWithName:(NSString *)name;
-- (void)_editListLayoutWithName:(NSString *)name;
 - (void)xtrasChanged:(NSNotification *)notification;
 
 - (void)configureDockIconMenu;
@@ -75,7 +68,6 @@ typedef enum {
 - (NSWindow *)paneWindow;
 - (void)menusChanged;
 - (void)layOutChangedMenus;
-- (void)updateHorizontalWidthLabel:(NSString *)label;
 @end
 
 /*!
@@ -184,75 +176,15 @@ static NSString *AIRowLabel(NSString *label)
 	[form setMaximumSliderWidth:200.0];
 
 	/* The whole application, before any single window: light, dark, or whatever the
-	 * system says. First card, no header — the pane's own name already says Appearance.
+	 * system says. The card is named after what it decides rather than after the
+	 * pane, which carries the same word and would only say it twice.
 	 */
+	[form addSectionHeader:AILocalizedString(@"Light and Dark", "Section header above the choice between a light and a dark application")];
+
 	popUp_appearanceStyle = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
 	[form addRowWithLabel:AILocalizedString(@"Appearance", "Label of the menu choosing between system, light and dark appearance for the whole application")
 			  popUpButton:popUp_appearanceStyle
 		  accessoryButton:nil];
-
-	//Contact list window
-	[form addSectionHeader:AILocalizedString(@"Contact List","Section header in appearance preferences")];
-
-	popUp_windowStyle = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Window Style:",nil))
-			  popUpButton:popUp_windowStyle
-		  accessoryButton:nil];
-
-	/* Five percent, not zero, exactly as in the nib this pane replaced: a contact
-	 * list at zero opacity is invisible *and* clickable-through in the styles
-	 * which do not force the window to catch mouse events, so the only way back
-	 * would be this pane. */
-	slider_windowOpacity = [AISettingsFormView sliderWithMinValue:5.0
-														 maxValue:100.0
-														   target:self
-														   action:@selector(changePreference:)];
-	//As in the nib: the readout and the contact list follow the knob while dragging
-	[slider_windowOpacity setContinuous:YES];
-	textField_windowOpacity = [AISettingsFormView valueLabelForWidestValue:OPACITY_WIDEST_VALUE];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Opacity:",nil))
-				   slider:slider_windowOpacity
-			   valueLabel:textField_windowOpacity];
-
-	checkBox_horizontalAutosizing = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Size to fit horizontally",nil)
-				  control:checkBox_horizontalAutosizing];
-
-	/* Its label is the one thing here which is not constant: the borderless styles
-	 * turn this slider into a plain width slider, and -preferencesChangedForGroup:…
-	 * retitles the row accordingly. */
-	slider_horizontalWidth = [AISettingsFormView sliderWithMinValue:32.0
-														  maxValue:640.0
-															target:self
-															action:@selector(changePreference:)];
-	[slider_horizontalWidth setContinuous:YES];
-	textField_horizontalWidthIndicator = [AISettingsFormView valueLabelForWidestValue:WIDTH_WIDEST_VALUE];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Maximum Width:",nil))
-				   slider:slider_horizontalWidth
-			   valueLabel:textField_horizontalWidthIndicator];
-
-	checkBox_verticalAutosizing = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
-	[form addRowWithLabel:AILocalizedString(@"Size to fit vertically",nil)
-				  control:checkBox_verticalAutosizing];
-
-	//Themes of the contact list
-	[form addSectionHeader:AILocalizedString(@"Themes","Section header above the contact list's color theme and layout")];
-
-	popUp_colorTheme = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
-	button_customizeColorTheme = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize…",nil)
-																 target:self
-																 action:@selector(customizeListTheme:)];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"Color Theme:",nil))
-			  popUpButton:popUp_colorTheme
-		  accessoryButton:button_customizeColorTheme];
-
-	popUp_listLayout = [AISettingsFormView popUpButtonWithTitles:nil target:self action:@selector(changePreference:)];
-	button_customizeListLayout = [AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Customize…",nil)
-																 target:self
-																 action:@selector(customizeListLayout:)];
-	[form addRowWithLabel:AIRowLabel(AILocalizedString(@"List Layout:",nil))
-			  popUpButton:popUp_listLayout
-		  accessoryButton:button_customizeListLayout];
 
 	//Icon packs
 	[form addSectionHeader:AILocalizedString(@"Icons","Section header above the icon pack settings")];
@@ -315,14 +247,6 @@ static NSString *AIRowLabel(NSString *label)
 	[[self settingsForm] noteContentSizeChanged];
 }
 
-/*!
- * @brief Retitle the row of the horizontal width slider
- */
-- (void)updateHorizontalWidthLabel:(NSString *)label
-{
-	[[self settingsForm] setLabel:AIRowLabel(label) forRowWithControl:slider_horizontalWidth];
-}
-
 #pragma mark Configuration
 
 /*!
@@ -330,8 +254,6 @@ static NSString *AIRowLabel(NSString *label)
  */
 - (void)viewDidLoad
 {
-	//Other list options
-	[popUp_windowStyle setMenu:[self _windowStyleMenu]];
 	[popUp_appearanceStyle setMenu:[self _appearanceStyleMenu]];
 
 	//Observe preference changes
@@ -373,20 +295,9 @@ static NSString *AIRowLabel(NSString *label)
 	popUp_menuBarIcons = nil;
 	popUp_emoticons = nil;
 	popUp_dockIcon = nil;
-	popUp_listLayout = nil;
-	popUp_colorTheme = nil;
-	popUp_windowStyle = nil;
 	popUp_appearanceStyle = nil;
-	checkBox_verticalAutosizing = nil;
-	checkBox_horizontalAutosizing = nil;
-	slider_windowOpacity = nil;
-	textField_windowOpacity = nil;
-	slider_horizontalWidth = nil;
-	textField_horizontalWidthIndicator = nil;
 	button_customizeEmoticons = nil;
 	button_showAllDockIcons = nil;
-	button_customizeColorTheme = nil;
-	button_customizeListLayout = nil;
 }
 
 /*!
@@ -452,18 +363,6 @@ static NSString *AIRowLabel(NSString *label)
 		[self configureMenuBarIconsMenu];
 	}
 
-	if (changed(@"com.adiumx.contactlisttheme")) {
-		[popUp_colorTheme setMenu:[self _colorThemeMenu]];
-		[popUp_colorTheme selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
-																								   group:PREF_GROUP_APPEARANCE]];
-	}
-
-	if (changed(@"com.adiumx.contactlistlayout")) {
-		[popUp_listLayout setMenu:[self _listLayoutMenu]];
-		[popUp_listLayout selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
-																								   group:PREF_GROUP_APPEARANCE]];
-	}
-
 	//Menus which grew or shrank change how much room their buttons need
 	[self menusChanged];
 }
@@ -484,57 +383,8 @@ static NSString *AIRowLabel(NSString *label)
 	//Appearance
 	if ([group isEqualToString:PREF_GROUP_APPEARANCE]) {
 		if (firstTime) {
-			[popUp_windowStyle selectItemWithTag:[[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_STYLE] integerValue]];
 			//Absent means "match the system", which is tag zero
 			[popUp_appearanceStyle selectItemWithTag:[[prefDict objectForKey:KEY_APPEARANCE_STYLE] integerValue]];
-			[checkBox_verticalAutosizing setState:[[prefDict objectForKey:KEY_LIST_LAYOUT_VERTICAL_AUTOSIZE] boolValue]];
-			[checkBox_horizontalAutosizing setState:[[prefDict objectForKey:KEY_LIST_LAYOUT_HORIZONTAL_AUTOSIZE] boolValue]];
-			[slider_windowOpacity setDoubleValue:([[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_OPACITY] doubleValue] * 100.0)];
-			[slider_horizontalWidth setIntegerValue:[[prefDict objectForKey:KEY_LIST_LAYOUT_HORIZONTAL_WIDTH] integerValue]];
-			[self _updateSliderValues];
-		}
-		
-		//Horizontal resizing label
-		if (firstTime || 
-			[key isEqualToString:KEY_LIST_LAYOUT_WINDOW_STYLE] ||
-			[key isEqualToString:KEY_LIST_LAYOUT_HORIZONTAL_AUTOSIZE]) {
-
-			AIContactListWindowStyle windowStyle = [[prefDict objectForKey:KEY_LIST_LAYOUT_WINDOW_STYLE] intValue];
-			BOOL horizontalAutosize = [[prefDict objectForKey:KEY_LIST_LAYOUT_HORIZONTAL_AUTOSIZE] boolValue];
-			
-			if (windowStyle == AIContactListWindowStyleStandard) {
-				//In standard mode, disable the horizontal autosizing slider if horiztonal autosizing is off
-				[self updateHorizontalWidthLabel:AILocalizedString(@"Maximum Width:",nil)];
-				[slider_horizontalWidth setEnabled:horizontalAutosize];
-				
-			} else {
-				//In all the borderless transparent modes, the horizontal autosizing slider becomes the
-				//horizontal sizing slider when autosizing is off
-				if (horizontalAutosize) {
-					[self updateHorizontalWidthLabel:AILocalizedString(@"Maximum Width:",nil)];
-				} else {
-					[self updateHorizontalWidthLabel:AILocalizedString(@"Width:",nil)];
-				}
-				[slider_horizontalWidth setEnabled:YES];
-			}
-			
-			//Configure vertical autosizing's appearance. AIListWindowController must match this behavior for this to make sense.
-			switch (windowStyle) {
-				case AIContactListWindowStyleStandard:
-				case AIContactListWindowStyleBorderless:
-				case AIContactListWindowStyleGroupChat:
-					//Standard and borderless don't have to vertically autosize
-					[checkBox_verticalAutosizing setEnabled:YES];
-					[checkBox_verticalAutosizing setState:[[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_VERTICAL_AUTOSIZE
-																									group:PREF_GROUP_APPEARANCE] integerValue]];
-					break;
-				case AIContactListWindowStyleGroupBubbles:
-				case AIContactListWindowStyleContactBubbles:
-				case AIContactListWindowStyleContactBubbles_Fitted:
-					//The bubbles styles don't show a window; force them to autosize
-					[checkBox_verticalAutosizing setEnabled:NO];
-					[checkBox_verticalAutosizing setState:YES];
-			}			
 		}
 
 		//Selected menu items
@@ -568,12 +418,6 @@ static NSString *AIRowLabel(NSString *label)
 																									   object:nil]];
 			}
 		}
-		if (firstTime || [key isEqualToString:KEY_LIST_LAYOUT_NAME]) {
-			[popUp_listLayout selectItemWithRepresentedObject:[prefDict objectForKey:KEY_LIST_LAYOUT_NAME]];
-		}
-		if (firstTime || [key isEqualToString:KEY_LIST_THEME_NAME]) {
-			[popUp_colorTheme selectItemWithRepresentedObject:[prefDict objectForKey:KEY_LIST_THEME_NAME]];	
-		}	
 		if (firstTime || [key isEqualToString:KEY_ACTIVE_DOCK_ICON]) {
 			/* popUp_dockIcon initially is a single-item popup menu with just the active icon; it is built
 			 * lazily in menuNeedsUpdate:.  If we haven't displayed it yet, we'll need to configure again
@@ -630,69 +474,12 @@ static NSString *AIRowLabel(NSString *label)
                                              forKey:KEY_ACTIVE_DOCK_ICON
                                               group:PREF_GROUP_APPEARANCE];
 		
-	} else if (sender == popUp_listLayout) {
-        [adium.preferenceController setPreference:[[sender selectedItem] title]
-                                             forKey:KEY_LIST_LAYOUT_NAME
-                                              group:PREF_GROUP_APPEARANCE];		
-		
-	} else if (sender == popUp_colorTheme) {
-		[adium.preferenceController setPreference:[[sender selectedItem] title]
-											 forKey:KEY_LIST_THEME_NAME
-											  group:PREF_GROUP_APPEARANCE];
-
 	} else if (sender == popUp_appearanceStyle) {
 		//The default, "match the system", is stored as nothing at all
 		NSInteger styleTag = [[sender selectedItem] tag];
 		[adium.preferenceController setPreference:(styleTag ? [NSNumber numberWithInteger:styleTag] : nil)
 										   forKey:KEY_APPEARANCE_STYLE
 											group:PREF_GROUP_APPEARANCE];
-
-	} else if (sender == popUp_windowStyle) {
-		[adium.preferenceController setPreference:[NSNumber numberWithInteger:[[sender selectedItem] tag]]
-											 forKey:KEY_LIST_LAYOUT_WINDOW_STYLE
-											  group:PREF_GROUP_APPEARANCE];
-		
-    } else if (sender == checkBox_verticalAutosizing) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
-                                             forKey:KEY_LIST_LAYOUT_VERTICAL_AUTOSIZE
-                                              group:PREF_GROUP_APPEARANCE];
-		
-    } else if (sender == checkBox_horizontalAutosizing) {
-        [adium.preferenceController setPreference:[NSNumber numberWithBool:[sender state]]
-                                             forKey:KEY_LIST_LAYOUT_HORIZONTAL_AUTOSIZE
-                                              group:PREF_GROUP_APPEARANCE];
-
-    } else if (sender == slider_windowOpacity) {
-		/* Continuous, so this arrives once per pixel of the drag: keep the readout
-		 * in step with the knob, but only write the preference — which redraws
-		 * every contact list window — when the value has really moved. The
-		 * written value is the whole percent the readout shows, so a drag costs
-		 * at most one write per percent instead of one per pixel. */
-		double	newValue = (NSInteger)[sender doubleValue] / 100.0;
-		double	oldValue = [[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_WINDOW_OPACITY
-																  group:PREF_GROUP_APPEARANCE] doubleValue];
-
-		[self _updateSliderValues];
-
-		if (fabs(newValue - oldValue) > 0.0001) {
-			[adium.preferenceController setPreference:[NSNumber numberWithDouble:newValue]
-											   forKey:KEY_LIST_LAYOUT_WINDOW_OPACITY
-												group:PREF_GROUP_APPEARANCE];
-		}
-
-	} else if (sender == slider_horizontalWidth) {
-		NSInteger newValue = [sender integerValue];
-		NSInteger oldValue = [[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_HORIZONTAL_WIDTH
-																 group:PREF_GROUP_APPEARANCE] integerValue];
-
-		//Continuous as well; same rule as the opacity slider above
-		[self _updateSliderValues];
-
-		if (newValue != oldValue) {
-			[adium.preferenceController setPreference:[NSNumber numberWithInteger:newValue]
-												 forKey:KEY_LIST_LAYOUT_HORIZONTAL_WIDTH
-												  group:PREF_GROUP_APPEARANCE];
-		}
 
 	} else if (sender == popUp_emoticons) {
 		if ([[sender selectedItem] tag] != AIEmoticonMenuMultiple) {
@@ -714,15 +501,6 @@ static NSString *AIRowLabel(NSString *label)
 			[adium.preferenceController delayPreferenceChangedNotifications:NO];
 		}
 	}
-}
-
-/*!
- *
- */
-- (void)_updateSliderValues
-{
-	[textField_windowOpacity setStringValue:[NSString stringWithFormat:@"%ld%%", (NSInteger)[slider_windowOpacity doubleValue]]];
-	[textField_horizontalWidthIndicator setStringValue:[NSString stringWithFormat:@"%ldpx",[slider_horizontalWidth integerValue]]];
 }
 
 //Emoticons ------------------------------------------------------------------------------------------------------------
@@ -811,457 +589,6 @@ static NSString *AIRowLabel(NSString *label)
 	return menu;
 }
 
-- (NSMenu *)_windowStyleMenu
-{
-	NSMenu	*menu = [[NSMenu alloc] init];
-
-	/* The titled window is the only style whose width the user can drag: every other style
-	 * takes its width from the setting below and refuses to grow past it. It was taken out
-	 * once because the system draws a taller title bar than it used to, and that turned out
-	 * to cost more than it saved. */
-	[self _addWindowStyleOption:AILocalizedString(@"Regular Window",nil)
-						withTag:AIContactListWindowStyleStandard
-						 toMenu:menu];
-	[menu addItem:[NSMenuItem separatorItem]];
-	[self _addWindowStyleOption:AILocalizedString(@"Borderless Window",nil)
-						withTag:AIContactListWindowStyleBorderless
-						 toMenu:menu];
-	[self _addWindowStyleOption:AILocalizedString(@"Group Bubbles",nil)
-						withTag:AIContactListWindowStyleGroupBubbles
-						 toMenu:menu];
-	[self _addWindowStyleOption:AILocalizedString(@"Contact Bubbles",nil)
-						withTag:AIContactListWindowStyleContactBubbles
-						 toMenu:menu];
-	[self _addWindowStyleOption:AILocalizedString(@"Contact Bubbles (To Fit)",nil)
-						withTag:AIContactListWindowStyleContactBubbles_Fitted
-						 toMenu:menu];
-
-	return menu;
-}
-- (void)_addWindowStyleOption:(NSString *)option withTag:(NSInteger)tag toMenu:(NSMenu *)menu{
-    NSMenuItem	*menuItem = [[NSMenuItem alloc] initWithTitle:option
-																				  target:nil
-																				  action:nil
-																		   keyEquivalent:@""];
-	[menuItem setTag:tag];
-	[menu addItem:menuItem];
-}
-
-
-//Contact list layout & theme ----------------------------------------------------------------------------------------
-#pragma mark Contact list layout & theme
-
-/*!
- * @brief Create a new theme
- */
-- (IBAction)createListTheme:(id)sender
-{
-	NSString *theme = [adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE];
-	
-	ESPresetNameSheetController *presetNameSheetController = [[ESPresetNameSheetController alloc] initWithDefaultName:[[theme stringByAppendingString:@" "] stringByAppendingString:AILocalizedString(@"(Copy)", nil)]
-																									  explanatoryText:AILocalizedString(@"Enter a unique name for this new theme.",nil)
-																									  notifyingTarget:self
-																											 userInfo:@"theme"];
-	
-	[presetNameSheetController showOnWindow:[self paneWindow]];
-}
-
-/*!
- * @brief Customize the active theme
- */
-- (IBAction)customizeListTheme:(id)sender
-{
-	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionColours];
-}
-
-/*!
- * @brief Save (or revert) changes made when editing a theme
- */
-- (void)listThemeEditorWillCloseWithChanges:(BOOL)saveChanges forThemeNamed:(NSString *)name
-{
-	if (saveChanges) {
-		//Update the modified theme
-		if ([plugin createSetFromPreferenceGroup:PREF_GROUP_LIST_THEME
-										withName:name
-									   extension:LIST_THEME_EXTENSION
-										inFolder:LIST_THEME_FOLDER]) {
-			
-			[adium.preferenceController setPreference:name
-												 forKey:KEY_LIST_THEME_NAME
-												  group:PREF_GROUP_APPEARANCE];
-		}
-		
-	} else {
-		//Revert back to selected theme
-		NSString *theme = [adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE];	
-		
-		//Reapply the selected theme
-		[plugin applySetWithName:theme
-					   extension:LIST_THEME_EXTENSION
-						inFolder:LIST_THEME_FOLDER
-			   toPreferenceGroup:PREF_GROUP_LIST_THEME];
-			   
-		//Revert back to the current theme name in popUp_colorTheme component
-		[popUp_colorTheme selectItemWithTitle:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE]];		
-	}
-}
-
-/*!
- * @brief Manage available themes
- */
-- (void)manageListThemes:(id)sender
-{
-	_listThemes = [plugin availableThemeSets];
-	ESPresetManagementController *presetManagementController = [[ESPresetManagementController alloc] initWithPresets:_listThemes
-																										  namedByKey:@"name"
-																										withDelegate:self];
-	[presetManagementController showOnWindow:[self paneWindow]];
-	
-	[popUp_colorTheme selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME
-																							   group:PREF_GROUP_APPEARANCE]];		
-}
-
-/*!
- * @brief Create a new layout
- */
-- (IBAction)createListLayout:(id)sender
-{
-	NSString *layout = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE];
-	
-	ESPresetNameSheetController *presetNameSheetController = [[ESPresetNameSheetController alloc] initWithDefaultName:[[layout stringByAppendingString:@" "] stringByAppendingString:AILocalizedString(@"(Copy)",nil)]
-																									  explanatoryText:AILocalizedString(@"Enter a unique name for this new layout.",nil)
-																									  notifyingTarget:self
-																											 userInfo:@"layout"];
-	
-	[presetNameSheetController showOnWindow:[self paneWindow]];
-}
-
-/*!
- * @brief Customize the active layout
- */
-- (IBAction)customizeListLayout:(id)sender
-{
-	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionContactRow];
-}
-
-/*!
- * @brief Open the one editor for how the contact list looks
- *
- * Both Customize buttons lead here; they differ only in where the window opens,
- * because what they used to lead to was a split of where the settings are kept,
- * not of what a reader is looking for.
- */
-- (void)openAppearanceEditorAtSection:(AIContactListAppearanceSection)section
-{
-	NSString *layout = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE];
-	NSString *theme = [adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE];
-
-	AIContactListAppearanceWindowController *editor;
-	editor = [[AIContactListAppearanceWindowController alloc] initWithLayoutNamed:layout
-																	   themeNamed:theme
-																		  section:section
-																  notifyingTarget:self];
-	[editor showOnWindow:[self paneWindow]];
-}
-
-/*!
- * @brief Save (or revert) changes made when editing a layout
- */
-- (void)listLayoutEditorWillCloseWithChanges:(BOOL)saveChanges forLayoutNamed:(NSString *)name
-{
-	if (saveChanges) {
-		//Update the modified layout
-		if ([plugin createSetFromPreferenceGroup:PREF_GROUP_LIST_LAYOUT
-										withName:name
-									   extension:LIST_LAYOUT_EXTENSION
-										inFolder:LIST_LAYOUT_FOLDER]) {
-			
-			[adium.preferenceController setPreference:name
-												 forKey:KEY_LIST_LAYOUT_NAME
-												  group:PREF_GROUP_APPEARANCE];
-		}
-		
-	} else {
-		//Revert back to selected layout
-		NSString *layout = [adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE];	
-
-		//Reapply the selected layout
-		[plugin applySetWithName:layout
-					   extension:LIST_LAYOUT_EXTENSION
-						inFolder:LIST_LAYOUT_FOLDER
-			   toPreferenceGroup:PREF_GROUP_LIST_LAYOUT];
-			   
-		//Revert back to the current layout name in popUp_listLayout component
-		[popUp_listLayout selectItemWithTitle:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE]];
-	}
-}
-
-/*!
- * @brief Manage available layouts
- */
-- (void)manageListLayouts:(id)sender
-{
-	_listLayouts = [plugin availableLayoutSets];
-	ESPresetManagementController *presetManagementController = [[ESPresetManagementController alloc] initWithPresets:_listLayouts
-																										  namedByKey:@"name"
-																										withDelegate:self];
-	[presetManagementController showOnWindow:[self paneWindow]];
-
-	[popUp_listLayout selectItemWithRepresentedObject:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME
-																							   group:PREF_GROUP_APPEARANCE]];		
-}
-
-/*!
- * @brief Validate a layout or theme name to ensure it is unique
- */
-- (BOOL)presetNameSheetController:(ESPresetNameSheetController *)controller
-			  shouldAcceptNewName:(NSString *)newName
-						 userInfo:(id)userInfo
-{
-	NSEnumerator	*enumerator;
-	NSDictionary	*presetDict;
-
-	//Scan the correct presets to ensure this name doesn't already exist
-	if ([userInfo isEqualToString:@"theme"]) {
-		enumerator = [[plugin availableThemeSets] objectEnumerator];
-	} else {
-		enumerator = [[plugin availableLayoutSets] objectEnumerator];
-	}
-	
-	while ((presetDict = [enumerator nextObject])) {
-		if ([newName isEqualToString:[presetDict objectForKey:@"name"]]) return NO;
-	}
-	
-	return YES;
-}
-
-/*!
- * @brief Create a new theme with the user supplied name, activate and edit it
- */
-- (void)presetNameSheetControllerDidEnd:(ESPresetNameSheetController *)controller 
-							 returnCode:(ESPresetNameSheetReturnCode)returnCode
-								newName:(NSString *)newName
-							   userInfo:(id)userInfo
-{
-	switch (returnCode) {
-		case ESPresetNameSheetOkayReturn:
-			//User has created a new theme/layout	: show the editor
-			if ([userInfo isEqualToString:@"theme"]) {
-				[self performSelector:@selector(_editListThemeWithName:) withObject:newName afterDelay:0];
-			} else {
-				[self performSelector:@selector(_editListLayoutWithName:) withObject:newName afterDelay:0];
-			}
-		break;
-			
-		case ESPresetNameSheetCancelReturn:
-			//User has canceled the operation	: revert back to the current theme 
-			if ([userInfo isEqualToString:@"theme"]) {
-				[popUp_colorTheme selectItemWithTitle:[adium.preferenceController preferenceForKey:KEY_LIST_THEME_NAME group:PREF_GROUP_APPEARANCE]];
-			} else {
-				[popUp_listLayout selectItemWithTitle:[adium.preferenceController preferenceForKey:KEY_LIST_LAYOUT_NAME group:PREF_GROUP_APPEARANCE]];
-			}			
-		break;	
-	}
-}
-- (void)_editListThemeWithName:(NSString *)name{
-	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionColours];
-}
-- (void)_editListLayoutWithName:(NSString *)name{
-	[self openAppearanceEditorAtSection:AIContactListAppearanceSectionContactRow];
-}
-
-/*!
- * 
- */
-- (NSArray *)renamePreset:(NSDictionary *)preset toName:(NSString *)newName inPresets:(NSArray *)presets renamedPreset:(id *)renamedPreset
-{
-	NSArray		*newPresets;
-	
-	if (presets == _listLayouts) {
-		[plugin renameSetWithName:[preset objectForKey:@"name"]
-						extension:LIST_LAYOUT_EXTENSION
-						 inFolder:LIST_LAYOUT_FOLDER
-						   toName:newName];		
-		_listLayouts = [plugin availableLayoutSets];
-		newPresets = _listLayouts;
-		
-	} else if (presets == _listThemes) {
-		[plugin renameSetWithName:[preset objectForKey:@"name"]
-						extension:LIST_THEME_EXTENSION
-						 inFolder:LIST_THEME_FOLDER
-						   toName:newName];		
-		_listThemes = [plugin availableThemeSets];
-		newPresets = _listThemes;
-		
-	} else {
-		newPresets = nil;
-	}
-	
-	//Return the new duplicate by reference for the preset controller
-	if (renamedPreset) {
-		NSDictionary	*aPreset;
-		
-		for (aPreset in newPresets) {
-			if ([newName isEqualToString:[aPreset objectForKey:@"name"]]) {
-				*renamedPreset = aPreset;
-				break;
-			}
-		}
-	}
-	
-	return newPresets;
-}
-
-/*!
- * 
- */
-- (NSArray *)duplicatePreset:(NSDictionary *)preset inPresets:(NSArray *)presets createdDuplicate:(id *)duplicatePreset
-{
-	NSString	*newName = [NSString stringWithFormat:@"%@ (%@)", [preset objectForKey:@"name"], AILocalizedString(@"Copy",nil)];
-	NSArray		*newPresets = nil;
-	
-	if (presets == _listLayouts) {
-		[plugin duplicateSetWithName:[preset objectForKey:@"name"]
-						   extension:LIST_LAYOUT_EXTENSION
-							inFolder:LIST_LAYOUT_FOLDER
-							 newName:newName];		
-		_listLayouts = [plugin availableLayoutSets];
-		newPresets = _listLayouts;
-		
-	} else if (presets == _listThemes) {
-		[plugin duplicateSetWithName:[preset objectForKey:@"name"]
-						   extension:LIST_THEME_EXTENSION
-							inFolder:LIST_THEME_FOLDER
-							 newName:newName];
-		_listThemes = [plugin availableThemeSets];
-		newPresets = _listThemes;
-	}
-	
-	//Return the new duplicate by reference for the preset controller
-	if (duplicatePreset) {
-		NSDictionary	*aPreset;
-		
-		for (aPreset in newPresets) {
-			if ([newName isEqualToString:[aPreset objectForKey:@"name"]]) {
-				*duplicatePreset = aPreset;
-				break;
-			}
-		}
-	}
-
-	return newPresets;
-}
-
-/*!
- * 
- */
-- (NSArray *)deletePreset:(NSDictionary *)preset inPresets:(NSArray *)presets
-{
-	if (presets == _listLayouts) {
-		[plugin deleteSetWithName:[preset objectForKey:@"name"]
-						extension:LIST_LAYOUT_EXTENSION
-						 inFolder:LIST_LAYOUT_FOLDER];		
-		_listLayouts = [plugin availableLayoutSets];
-		
-		return _listLayouts;
-		
-	} else if (presets == _listThemes) {
-		[plugin deleteSetWithName:[preset objectForKey:@"name"]
-						extension:LIST_THEME_EXTENSION
-						 inFolder:LIST_THEME_FOLDER];		
-		_listThemes = [plugin availableThemeSets];
-		
-		return _listThemes;
-		
-	} else {
-		return nil;
-	}
-}
-
-/*!
- *
- */
-- (NSMenu *)_listLayoutMenu
-{
-	NSMenu			*menu = [[NSMenu alloc] init];
-	NSEnumerator	*enumerator = [[plugin availableLayoutSets] objectEnumerator];
-	NSDictionary	*set;
-	NSMenuItem		*menuItem;
-	NSString		*name;
-	
-	//Available Layouts
-	while ((set = [enumerator nextObject])) {
-		name = [set objectForKey:@"name"];
-		menuItem = [[NSMenuItem alloc] initWithTitle:name
-																		 target:nil
-																		 action:nil
-																  keyEquivalent:@""];
-		[menuItem setRepresentedObject:name];
-		[menu addItem:menuItem];
-	}
-
-	//Divider
-	[menu addItem:[NSMenuItem separatorItem]];
-
-	//Preset management
-	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Layout",nil) stringByAppendingEllipsis]
-																	 target:self
-																	 action:@selector(createListLayout:)
-															  keyEquivalent:@""];
-	[menu addItem:menuItem];
-
-	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Layouts",nil) stringByAppendingEllipsis]
-																	 target:self
-																	 action:@selector(manageListLayouts:)
-															  keyEquivalent:@""];
-	[menu addItem:menuItem];
-
-	return menu;
-}
-
-/*!
- *
- */
-- (NSMenu *)_colorThemeMenu
-{
-	NSMenu			*menu = [[NSMenu alloc] init];
-	NSEnumerator	*enumerator = [[plugin availableThemeSets] objectEnumerator];
-	NSDictionary	*set;
-	NSMenuItem		*menuItem;
-	NSString		*name;
-	
-	//Available themes
-	while ((set = [enumerator nextObject])) {
-		name = [set objectForKey:@"name"];
-		menuItem = [[NSMenuItem alloc] initWithTitle:name
-																		 target:nil
-																		 action:nil
-																  keyEquivalent:@""];
-		[menuItem setRepresentedObject:name];
-		[menu addItem:menuItem];
-	}
-
-	//Divider
-	[menu addItem:[NSMenuItem separatorItem]];
-
-	//Preset management
-	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Add New Theme",nil) stringByAppendingEllipsis]
-																	 target:self
-																	 action:@selector(createListTheme:)
-															  keyEquivalent:@""];
-	[menu addItem:menuItem];
-
-	menuItem = [[NSMenuItem alloc] initWithTitle:[AILocalizedString(@"Edit Themes",nil) stringByAppendingEllipsis]
-																	 target:self
-																	 action:@selector(manageListThemes:)
-															  keyEquivalent:@""];
-	[menu addItem:menuItem];
-
-	return menu;
-}
-
-
-//Dock icons -----------------------------------------------------------------------------------------------------------
 #pragma mark Dock icons
 /*!
  *
