@@ -279,7 +279,18 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 		NSAssert1(debugLogFile != nil, @"could not create file handle for %@", pathname);
 		
 		//write header (separates this session from previous sessions).
-		[debugLogFile writeData:[[NSString stringWithFormat:@"Opened debug log at %@\n", date] dataUsingEncoding:NSUTF8StringEncoding]];
+		/* Which build this is, at the top of every log. An evening was spent on a
+		 * fix that was already running and another on one that was not, and
+		 * nothing here could say which. A plus after the commit means the build
+		 * was made from a working copy that had changes. */
+		NSString *stamp = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildStamp"];
+		NSString *commit = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildCommit"];
+
+		[debugLogFile writeData:[[NSString stringWithFormat:@"Opened debug log at %@\nAdium %@, gebaut %@ aus %@\n",
+								  date,
+								  [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"?",
+								  stamp ?: @"(ohne Stempel)",
+								  commit ?: @"(ohne Stempel)"] dataUsingEncoding:NSUTF8StringEncoding]];
 	}
 
 	return debugLogFile;

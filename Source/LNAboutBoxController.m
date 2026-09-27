@@ -123,21 +123,34 @@ LNAboutBoxController *sharedAboutBoxInstance = nil;
                                                 	: [self AI_applicationDate])];
 }
 
-// Returns the formatted build date of Adium
+/*!
+ * @brief When this build was made and what it was made from
+ *
+ * To the minute and with the commit, because a date alone cannot tell two builds
+ * of the same day apart and that is the normal case here. A commit with a plus
+ * after it was built from a working copy that had changes, so it is not that
+ * commit, only the one it started from.
+ *
+ * Stamped at build time by Utilities/stamp-build.sh. An older bundle without the
+ * stamp falls back to when its executable was written, which is the same moment
+ * and was all this could say before.
+ */
 - (NSString *)AI_applicationDate
 {
-	NSTimeInterval date = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildDate"] doubleValue];
-	if (date <= 0) {
-		// No release script stamps AIBuildDate any more; the executable's mtime is the build date.
-		NSString *executablePath = [[NSBundle mainBundle] executablePath];
-		NSDate *modificationDate = [[[NSFileManager defaultManager] attributesOfItemAtPath:executablePath
-																					 error:NULL] fileModificationDate];
-		date = [modificationDate timeIntervalSince1970];
+	NSString *stamp = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildStamp"];
+	NSString *commit = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildCommit"];
+
+	if ([stamp length]) {
+		return ([commit length] ? [NSString stringWithFormat:@"%@, %@", stamp, commit] : stamp);
 	}
+
+	NSString *executablePath = [[NSBundle mainBundle] executablePath];
+	NSDate *modificationDate = [[[NSFileManager defaultManager] attributesOfItemAtPath:executablePath
+																				 error:NULL] fileModificationDate];
 	__block NSString *ret;
-	
+
 	[NSDateFormatter withLocalizedShortDateFormatterPerform:^(NSDateFormatter *shortDateFormatter){
-		ret = [shortDateFormatter stringFromDate:[NSDate dateWithTimeIntervalSince1970:date]];
+		ret = [shortDateFormatter stringFromDate:modificationDate];
 	}];
 
 	return ret;

@@ -605,6 +605,18 @@
 		 ![inContentMessage.destination isKindOfClass:[AIListContact class]] ||
 		 ![messageChat.account availableForSendingContentType:CONTENT_FILE_TRANSFER_TYPE
 													toContact:(AIListContact *)inContentMessage.destination])) {
+		/* Leaving here leaves any attachment in the message, and an attachment in a
+		 * message is one character, the one that stands in for it. That character is
+		 * then the whole of what is sent. Reported as an empty message arriving with
+		 * two ticks, and the forwarded copy of one had exactly that character in it. */
+		AILogWithSignature(@"Keine Dateisendung fuer %@: Gruppe=%d Ziel=%@ (%@) erlaubt=%d",
+						   messageChat,
+						   (int)groupChatFileSend,
+						   inContentMessage.destination,
+						   NSStringFromClass([inContentMessage.destination class]),
+						   (int)([inContentMessage.destination isKindOfClass:[AIListContact class]] &&
+								 [messageChat.account availableForSendingContentType:CONTENT_FILE_TRANSFER_TYPE
+																		   toContact:(AIListContact *)inContentMessage.destination]));
 		//Simply return if we can't do anything about file sends for this message.
 		return;
 	}
