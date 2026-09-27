@@ -21,10 +21,15 @@
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIImageDrawingAdditions.h>
 #import <Adium/AIEmoticon.h>
+#import <Adium/AIEmoticonControllerProtocol.h>
+#import <Adium/AIMessageEntryAccessory.h>
+#import <Adium/AIMessageEntryTextView.h>
+#import <Adium/AIMessageViewEmoticonsController.h>
 
 @interface BGEmoticonMenuPlugin()
 - (IBAction)dummyTarget:(id)sender;
 - (void)insertEmoticon:(id)sender;
+- (void)popUpEmoticonsMenu:(id)sender;
 @end
 
 /*!
@@ -33,10 +38,9 @@
  */
 @implementation BGEmoticonMenuPlugin
 
-#define PREF_GROUP_EMOTICONS			@"Emoticons"
-
 #define	TITLE_INSERT_EMOTICON			AILocalizedString(@"Insert Emoticon",nil)
 #define	TITLE_EMOTICON					AILocalizedString(@"Emoticon",nil)
+#define ENTRY_ACCESSORY_EMOTICONS		@"Emoticons"
 
 /*!
  * @brief Install
@@ -68,6 +72,18 @@
     //add the items to their menus.
     [adium.menuController addContextualMenuItem:quickContextualMenuItem toLocation:Context_TextView_Edit];
     [adium.menuController addMenuItem:quickMenuItem toLocation:LOC_Edit_Additions];
+
+	/* The smiley in the message field. Its preference is older than the other buttons
+	 * there and keeps its name; on by default, as it always was. */
+	[AIMessageEntryAccessory registerAccessory:
+	 [AIMessageEntryAccessory accessoryWithIdentifier:ENTRY_ACCESSORY_EMOTICONS
+												 label:TITLE_INSERT_EMOTICON
+											   toolTip:AILocalizedString(@"Insert an emoticon into the text", nil)
+												 image:[NSImage imageNamed:@"entry_emoticons" forClass:[self class]]
+										 preferenceKey:KEY_EMOTICON_MENU_ENABLED
+												 group:PREF_GROUP_EMOTICONS
+												target:self
+												action:@selector(popUpEmoticonsMenu:)]];
 }
 
 /*!
@@ -75,8 +91,29 @@
  */
 - (void)uninstallPlugin
 {
+	[AIMessageEntryAccessory unregisterAccessoryWithIdentifier:ENTRY_ACCESSORY_EMOTICONS];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[adium.preferenceController unregisterPreferenceObserver:self];
+}
+
+//The button in the message field ------------------------------------------------------------------------------------
+#pragma mark The button in the message field
+
+/*!
+ * @brief Open the emoticon picker from the button in the message field
+ *
+ * The point names the button's top right corner; the picker hangs to its left of it.
+ */
+- (void)popUpEmoticonsMenu:(id)sender
+{
+	if (![sender isKindOfClass:[AIMessageEntryAccessoryButton class]]) return;
+
+	AIMessageEntryAccessoryButton *button = sender;
+	if (!button.messageEntryTextView) return;
+
+	NSRect frame = [button frame];
+	[AIMessageViewEmoticonsController popUpMenuForTextView:button.messageEntryTextView
+												   atPoint:NSMakePoint(NSMaxX(frame), NSMaxY(frame))];
 }
 
 //Menu Generation ------------------------------------------------------------------------------------------------------

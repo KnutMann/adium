@@ -45,6 +45,9 @@
 	NSSwitch			*checkBox_hide;
 	NSSwitch			*checkBox_psychicOpen;
 	NSPopUpButton		*popUp_windowPosition;
+
+	//Message field: one switch per button registered there, by the button's identifier
+	NSMutableDictionary	*switches_entryAccessories;
 }
 
 @property (readonly, nonatomic) NSString *preferenceGroupForCurrentTab;

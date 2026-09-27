@@ -66,7 +66,6 @@
 	
 	BOOL					userListOnRight;
 	CGFloat					userListMinWidth;
-	BOOL					emoticonMenuEnabled;
 
 	NSUndoManager			*undoManager;
 	

@@ -22,6 +22,9 @@
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIMenuControllerProtocol.h>
 #import <Adium/AIToolbarControllerProtocol.h>
+#import <Adium/AIPreferenceControllerProtocol.h>
+#import <Adium/AIMessageEntryAccessory.h>
+#import <Adium/AIMessageEntryTextView.h>
 #import <AIUtilities/AIMenuAdditions.h>
 #import <AIUtilities/AIStringUtilities.h>
 #import <AIUtilities/AIToolbarUtilities.h>
@@ -31,6 +34,9 @@
 
 #define TITLE_SHOW_EDITOR		AILocalizedString(@"Formula Editor", "Menu item which opens and closes the Typst formula editor at the bottom of a chat")
 #define TITLE_RENDER_FORMULA	AILocalizedString(@"Render Formula", "Menu item which replaces the selected Typst source with the picture it renders to")
+
+#define FORMULA_ITEM_IDENTIFIER		@"FormulaEditor"
+#define KEY_FORMULA_EDITOR_BUTTON	@"Formula Editor Button"
 
 @interface AITypstPlugin ()
 - (void)toggleEditor:(id)sender;
@@ -68,7 +74,7 @@
 	NSImage *icon = [NSImage imageWithSystemSymbolName:@"function" accessibilityDescription:TITLE_SHOW_EDITOR];
 	if (!icon) icon = [NSImage imageNamed:NSImageNameAdvanced];
 
-	toolbarItem_editor = [AIToolbarUtilities toolbarItemWithIdentifier:@"FormulaEditor"
+	toolbarItem_editor = [AIToolbarUtilities toolbarItemWithIdentifier:FORMULA_ITEM_IDENTIFIER
 																 label:AILocalizedString(@"Formula", "Toolbar item which opens the formula editor")
 														  paletteLabel:AILocalizedString(@"Formula Editor", nil)
 															   toolTip:AILocalizedString(@"Show or hide the formula editor", nil)
@@ -79,6 +85,18 @@
 																  menu:nil];
 
 	[adium.toolbarController registerToolbarItem:toolbarItem_editor forToolbarType:@"TextEntry"];
+
+	//The same button in the message field itself, off until it is asked for
+	[adium.preferenceController registerDefaults:@{KEY_FORMULA_EDITOR_BUTTON: @NO} forGroup:PREF_GROUP_MESSAGE_ENTRY];
+	[AIMessageEntryAccessory registerAccessory:
+	 [AIMessageEntryAccessory accessoryWithIdentifier:FORMULA_ITEM_IDENTIFIER
+												 label:TITLE_SHOW_EDITOR
+											   toolTip:AILocalizedString(@"Show or hide the formula editor", nil)
+												 image:[NSImage imageNamed:@"entry_formula" forClass:[self class]]
+										 preferenceKey:KEY_FORMULA_EDITOR_BUTTON
+												 group:PREF_GROUP_MESSAGE_ENTRY
+												target:self
+												action:@selector(toggleEditor:)]];
 }
 
 - (void)uninstallPlugin
@@ -86,6 +104,7 @@
 	[adium.menuController removeMenuItem:menuItem_showEditor];
 	[adium.menuController removeMenuItem:menuItem_renderSelection];
 	[adium.toolbarController unregisterToolbarItem:toolbarItem_editor forToolbarType:@"TextEntry"];
+	[AIMessageEntryAccessory unregisterAccessoryWithIdentifier:FORMULA_ITEM_IDENTIFIER];
 
 	menuItem_showEditor = nil;
 	menuItem_renderSelection = nil;
@@ -122,10 +141,13 @@
 {
 	AIChat *chat = nil;
 
-	/* A toolbar item is answered from its own window, not from whichever chat happens to be frontmost.
-	 * A toolbar in a window that is not key can still be clicked, and taking the active chat then
-	 * opens the editor on the wrong conversation. */
-	if ([sender isKindOfClass:[NSToolbarItem class]])
+	/* A button in a message field belongs to that field's chat, and a toolbar item is answered from
+	 * its own window, not from whichever chat happens to be frontmost. Either can be clicked in a
+	 * window that is not key, and taking the active chat then opens the editor on the wrong
+	 * conversation. */
+	if ([sender isKindOfClass:[AIMessageEntryAccessoryButton class]])
+		chat = [(AIMessageEntryAccessoryButton *)sender messageEntryTextView].chat;
+	else if ([sender isKindOfClass:[NSToolbarItem class]])
 		chat = [self chatForToolbar:(NSToolbarItem *)sender];
 	else
 		chat = adium.interfaceController.activeChat;

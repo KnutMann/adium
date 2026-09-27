@@ -18,7 +18,7 @@
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIContactObserverManager.h>
 
-@class AIListContact, AIAccount, AIChat;
+@class AIListContact, AIAccount, AIChat, AIMessageEntryAccessory;
 
 @protocol AIMessageEntryTextViewDelegate <NSTextViewDelegate,NSObject>
 @optional
@@ -67,8 +67,7 @@
 	NSInteger					maxCharacters;
 	NSColor				*savedTextColor;
 
-	BOOL				 hasEmoticonsMenu;
-	NSButton			*emoticonsMenuButton;
+	NSMutableArray		*accessoryButtons;
 }
 
 @property (readwrite, assign, atomic) id<AIMessageEntryTextViewDelegate, NSTextDelegate> delegate;
@@ -114,9 +113,8 @@
 - (void)popContent;
 - (void)swapContent;
 
-//Emoticons menu
-@property (readwrite, nonatomic) BOOL hasEmoticonsMenu;
-@property (readonly, nonatomic) NSButton *emoticonsMenuButton;
-- (void)popUpEmoticonsMenu;
+//Accessory buttons at the right edge of the field, AIMessageEntryAccessory objects left to right
+- (void)setAccessories:(NSArray *)accessories;
+- (NSArray *)accessories;
 
 @end

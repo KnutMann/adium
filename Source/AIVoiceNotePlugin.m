@@ -19,15 +19,19 @@
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIToolbarControllerProtocol.h>
 #import <Adium/AITextAttachmentExtension.h>
+#import <Adium/AIMessageEntryAccessory.h>
+#import <Adium/AIPreferenceControllerProtocol.h>
+#import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIToolbarUtilities.h>
 #import <AIUtilities/AIWindowAdditions.h>
 
 #define VOICE_ITEM_IDENTIFIER @"VoiceNote"
+#define KEY_VOICE_NOTE_BUTTON @"Voice Note Button"
 
 @interface AIVoiceNotePlugin ()
 - (void)registerToolbarItem;
 - (IBAction)toggleRecording:(id)sender;
-- (NSTextView *)entryField;
+- (NSTextView *)entryFieldForSender:(id)sender;
 @end
 
 @implementation AIVoiceNotePlugin
@@ -35,12 +39,25 @@
 - (void)installPlugin
 {
 	[self registerToolbarItem];
+
+	//The same button in the message field itself, off until it is asked for
+	[adium.preferenceController registerDefaults:@{KEY_VOICE_NOTE_BUTTON: @NO} forGroup:PREF_GROUP_MESSAGE_ENTRY];
+	[AIMessageEntryAccessory registerAccessory:
+	 [AIMessageEntryAccessory accessoryWithIdentifier:VOICE_ITEM_IDENTIFIER
+												 label:AILocalizedString(@"Record Voice Note", nil)
+											   toolTip:AILocalizedString(@"Record a voice note; click again to stop", nil)
+												 image:[NSImage imageNamed:@"entry_voice" forClass:[self class]]
+										 preferenceKey:KEY_VOICE_NOTE_BUTTON
+												 group:PREF_GROUP_MESSAGE_ENTRY
+												target:self
+												action:@selector(toggleRecording:)]];
 }
 
 - (void)uninstallPlugin
 {
 	[ticker invalidate];
 	ticker = nil;
+	[AIMessageEntryAccessory unregisterAccessoryWithIdentifier:VOICE_ITEM_IDENTIFIER];
 
 	if (toolbarItem) {
 		[adium.toolbarController unregisterToolbarItem:toolbarItem forToolbarType:@"TextEntry"];
@@ -66,17 +83,25 @@
 	if (!recording || !microphone)
 		return microphone;
 
-	NSImage *badged = [NSImage imageWithSize:[microphone size]
+	//A template is drawn black wherever it is put; asked for in the label colour, it follows the window
+	NSImage *shown = [microphone imageWithSymbolConfiguration:
+					  [NSImageSymbolConfiguration configurationWithHierarchicalColor:[NSColor labelColor]]];
+
+	return [self recordingDotOn:(shown ? shown : microphone) described:description];
+}
+
+/*!
+ * @brief A red dot in the top right corner of @a image, the sign that it is listening
+ */
+- (NSImage *)recordingDotOn:(NSImage *)image described:(NSString *)description
+{
+	NSImage *badged = [NSImage imageWithSize:[image size]
 									 flipped:NO
 							  drawingHandler:^BOOL(NSRect rect) {
-		//A template is drawn black wherever it is put; asked for in the label colour, it follows the window
-		NSImage *shown = [microphone imageWithSymbolConfiguration:
-						  [NSImageSymbolConfiguration configurationWithHierarchicalColor:[NSColor labelColor]]];
-
-		[(shown ? shown : microphone) drawInRect:rect
-										fromRect:NSZeroRect
-									   operation:NSCompositingOperationSourceOver
-										fraction:1.0];
+		[image drawInRect:rect
+				 fromRect:NSZeroRect
+				operation:NSCompositingOperationSourceOver
+				 fraction:1.0];
 
 		CGFloat	size = MAX(4.0, floor(NSWidth(rect) / 3.0));
 		NSRect	dot = NSMakeRect(NSMaxX(rect) - size, NSMaxY(rect) - size, size, size);
@@ -112,12 +137,16 @@
 /*!
  * @brief Where a message is being written right now
  *
- * The same question the link editor asks, and the same answer: the field the key window is
- * typing into. A toolbar item on a conversation window has no other way of knowing which
- * conversation it belongs to.
+ * A button in a message field says which field it stands in. A toolbar item does not, and asks
+ * the same question the link editor asks, with the same answer: the field the key window is
+ * typing into. Between start and stop the button that started the recording is remembered, so
+ * the note lands in the conversation it was spoken for even if another has become key since.
  */
-- (NSTextView *)entryField
+- (NSTextView *)entryFieldForSender:(id)sender
 {
+	if ([sender isKindOfClass:[AIMessageEntryAccessoryButton class]])
+		return (NSTextView *)[(AIMessageEntryAccessoryButton *)sender messageEntryTextView];
+
 	NSWindow *key = [NSApp keyWindow];
 	return (NSTextView *)[key earliestResponderOfClass:[NSTextView class]];
 }
@@ -137,6 +166,8 @@
 	ticker = nil;
 	[toolbarItem setLabel:AILocalizedString(@"Voice", "Toolbar button that records a voice note")];
 	[toolbarItem setImage:[self microphoneRecording:NO]];
+	[recordingButton setImage:recordingButton.accessory.image];
+	recordingButton = nil;
 }
 
 - (IBAction)toggleRecording:(id)sender
@@ -144,6 +175,7 @@
 	AIVoiceRecorder *recorder = [AIVoiceRecorder sharedRecorder];
 
 	if (recorder.recording) {
+		AIMessageEntryAccessoryButton *startedFrom = recordingButton;
 		[self stopTicking];
 
 		__weak __typeof__(self) weakSelf = self;
@@ -153,12 +185,12 @@
 														  withDescription:problem];
 				return;
 			}
-			[weakSelf placeNoteAtPath:path lasting:duration];
+			[weakSelf placeNoteAtPath:path lasting:duration into:[weakSelf entryFieldForSender:(startedFrom ? startedFrom : sender)]];
 		}];
 		return;
 	}
 
-	if (![self entryField]) return;			//nothing to put it in, so nothing to record
+	if (![self entryFieldForSender:sender]) return;			//nothing to put it in, so nothing to record
 
 	[recorder startWithCompletion:^(BOOL began, NSString *problem) {
 		if (!began) {
@@ -168,6 +200,11 @@
 		}
 
 		[self->toolbarItem setImage:[self microphoneRecording:YES]];
+		if ([sender isKindOfClass:[AIMessageEntryAccessoryButton class]]) {
+			self->recordingButton = sender;
+			[self->recordingButton setImage:[self recordingDotOn:self->recordingButton.accessory.image
+														   described:AILocalizedString(@"Recording a voice note", "The microphone button while it is listening")]];
+		}
 		self->ticker = [NSTimer scheduledTimerWithTimeInterval:1.0
 														target:self
 													  selector:@selector(showElapsed)
@@ -183,9 +220,8 @@
  * and files carries this too and there is nothing new to go wrong. What is drawn in the field
  * is a microphone and the length, since a sound has no picture of its own.
  */
-- (void)placeNoteAtPath:(NSString *)path lasting:(NSTimeInterval)duration
+- (void)placeNoteAtPath:(NSString *)path lasting:(NSTimeInterval)duration into:(NSTextView *)field
 {
-	NSTextView *field = [self entryField];
 	if (!field) return;
 
 	NSString *shown = [NSString stringWithFormat:AILocalizedString(@"Voice note (%ld:%02ld)",

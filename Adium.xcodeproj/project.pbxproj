@@ -455,6 +455,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */; };
 		34A6FB2D07D6F98600972830 /* events-sound-alert.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */; };
 		34A6FB2E07D6F98600972830 /* SoundFileIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 34A6FB2C07D6F98600972830 /* SoundFileIcon.png */; };
+		ADD1E5C0DE0000000000EB30 /* entry_emoticons.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB20 /* entry_emoticons.png */; };
+		ADD1E5C0DE0000000000EB31 /* entry_emoticons@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB21 /* entry_emoticons@2x.png */; };
+		ADD1E5C0DE0000000000EB32 /* entry_voice.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB22 /* entry_voice.png */; };
+		ADD1E5C0DE0000000000EB33 /* entry_voice@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB23 /* entry_voice@2x.png */; };
+		ADD1E5C0DE0000000000EB34 /* entry_formula.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB24 /* entry_formula.png */; };
+		ADD1E5C0DE0000000000EB35 /* entry_formula@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB25 /* entry_formula@2x.png */; };
 		34A88E180C7A26E0006EB7D4 /* AIPasswordPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = F55B416603AB8BFC01A8010A /* AIPasswordPromptController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34A88E190C7A26E1006EB7D4 /* AIPasswordPromptController.h in Headers */ = {isa = PBXBuildFile; fileRef = F55B416E03AB8C3201A8010A /* AIPasswordPromptController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34A9705A0C965F2400F46006 /* AISideSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A970590C965F2400F46006 /* AISideSplitView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -783,8 +789,10 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = F5793923033E74C301A8010A /* AIPreferencePane.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */ = {isa = PBXBuildFile; fileRef = F5793913033E748F01A8010A /* AIPreferencePane.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000001A12 /* AISettingsFormView.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000EB12 /* AIMessageEntryAccessory.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB10 /* AIMessageEntryAccessory.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000000764 /* AISettingsNavigationController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000763 /* AISettingsNavigationController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000001A13 /* AISettingsFormView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADD1E5C0DE0000000000EB13 /* AIMessageEntryAccessory.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000EB11 /* AIMessageEntryAccessory.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000000762 /* AISettingsNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000761 /* AISettingsNavigationController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BAD188C066A83550002008E /* AIModularPaneCategoryView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000701 /* NSView+AILegacyButtonNormalization.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -998,8 +1006,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000CF00 /* AIMessageViewEmoticonsController.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF05 /* AIMessageViewEmoticonsController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CF01 /* AIMessageViewEmoticonsController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF06 /* AIMessageViewEmoticonsController.m */; };
 		ADD1E5C0DE0000000000CF02 /* MessageViewEmoticonsMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF07 /* MessageViewEmoticonsMenu.xib */; };
-		ADD1E5C0DE0000000000CF03 /* emoticons_menu.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF08 /* emoticons_menu.png */; };
-		ADD1E5C0DE0000000000CF04 /* emoticons_menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CF09 /* emoticons_menu@2x.png */; };
 		ADD1E5C0DE0000000000CE04 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C102 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C302 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */; };
@@ -2151,6 +2157,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EventSoundContactAlert.xib; path = Resources/EventSoundContactAlert.xib; sourceTree = "<group>"; };
 		34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "events-sound-alert.tiff"; path = "Resources/events-sound-alert.tiff"; sourceTree = "<group>"; };
 		34A6FB2C07D6F98600972830 /* SoundFileIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = SoundFileIcon.png; path = Resources/SoundFileIcon.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB20 /* entry_emoticons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = entry_emoticons.png; path = Resources/entry_emoticons.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB21 /* entry_emoticons@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "entry_emoticons@2x.png"; path = "Resources/entry_emoticons@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB22 /* entry_voice.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = entry_voice.png; path = Resources/entry_voice.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB23 /* entry_voice@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "entry_voice@2x.png"; path = "Resources/entry_voice@2x.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB24 /* entry_formula.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = entry_formula.png; path = Resources/entry_formula.png; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB25 /* entry_formula@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "entry_formula@2x.png"; path = "Resources/entry_formula@2x.png"; sourceTree = "<group>"; };
 		34A6FB8007D6FDCC00972830 /* FormattingDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = FormattingDefaults.plist; path = Resources/FormattingDefaults.plist; sourceTree = "<group>"; };
 		34A81DBB093CE92200B0E93D /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = Resources/pl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		34A81DBD093CE92200B0E93D /* pl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = pl; path = "Plugins/Purple Service/Resources/pl.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -2791,8 +2803,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000CF05 /* AIMessageViewEmoticonsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageViewEmoticonsController.h; path = Frameworks/Adium/Source/AIMessageViewEmoticonsController.h; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CF06 /* AIMessageViewEmoticonsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageViewEmoticonsController.m; path = Frameworks/Adium/Source/AIMessageViewEmoticonsController.m; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CF07 /* MessageViewEmoticonsMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MessageViewEmoticonsMenu.xib; path = Frameworks/Adium/Resources/MessageViewEmoticonsMenu.xib; sourceTree = "<group>"; };
-		ADD1E5C0DE0000000000CF08 /* emoticons_menu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = emoticons_menu.png; path = Frameworks/Adium/Resources/emoticons_menu.png; sourceTree = "<group>"; };
-		ADD1E5C0DE0000000000CF09 /* emoticons_menu@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "emoticons_menu@2x.png"; path = "Frameworks/Adium/Resources/emoticons_menu@2x.png"; sourceTree = "<group>"; };
 		636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.scpt; name = AdiumAddressBookAction_Jabber.scpt; path = Frameworks/Adium/Resources/AdiumAddressBookAction_Jabber.scpt; sourceTree = "<group>"; };
 		638BC1FA0FC932E000CE7600 /* AIObjectDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIObjectDebug.h; path = Source/AIObjectDebug.h; sourceTree = "<group>"; };
 		638BC1FB0FC932E000CE7600 /* AIObjectDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIObjectDebug.m; path = Source/AIObjectDebug.m; sourceTree = "<group>"; };
@@ -3006,6 +3016,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		F5793923033E74C301A8010A /* AIPreferencePane.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPreferencePane.h; path = Frameworks/Adium/Source/AIPreferencePane.h; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AISettingsFormView.h; path = Frameworks/Adium/Source/AISettingsFormView.h; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AISettingsFormView.m; path = Frameworks/Adium/Source/AISettingsFormView.m; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB10 /* AIMessageEntryAccessory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMessageEntryAccessory.h; path = Frameworks/Adium/Source/AIMessageEntryAccessory.h; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000EB11 /* AIMessageEntryAccessory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMessageEntryAccessory.m; path = Frameworks/Adium/Source/AIMessageEntryAccessory.m; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000761 /* AISettingsNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AISettingsNavigationController.m; path = "Frameworks/Adium/Source/AISettingsNavigationController.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000763 /* AISettingsNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AISettingsNavigationController.h; path = "Frameworks/Adium/Source/AISettingsNavigationController.h"; sourceTree = "<group>"; };
 		F5793924033E74C301A8010A /* AIPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPlugin.h; path = Frameworks/Adium/Source/AIPlugin.h; sourceTree = "<group>"; };
@@ -4716,8 +4728,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000CF05 /* AIMessageViewEmoticonsController.h */,
 				ADD1E5C0DE0000000000CF06 /* AIMessageViewEmoticonsController.m */,
 				ADD1E5C0DE0000000000CF07 /* MessageViewEmoticonsMenu.xib */,
-				ADD1E5C0DE0000000000CF08 /* emoticons_menu.png */,
-				ADD1E5C0DE0000000000CF09 /* emoticons_menu@2x.png */,
 			);
 			name = Interface;
 			sourceTree = "<group>";
@@ -6077,6 +6087,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34A6FB2507D6F97B00972830 /* EventSoundContactAlert.xib */,
 				34A6FB2B07D6F98600972830 /* events-sound-alert.tiff */,
 				34A6FB2C07D6F98600972830 /* SoundFileIcon.png */,
+				ADD1E5C0DE0000000000EB20 /* entry_emoticons.png */,
+				ADD1E5C0DE0000000000EB21 /* entry_emoticons@2x.png */,
+				ADD1E5C0DE0000000000EB22 /* entry_voice.png */,
+				ADD1E5C0DE0000000000EB23 /* entry_voice@2x.png */,
+				ADD1E5C0DE0000000000EB24 /* entry_formula.png */,
+				ADD1E5C0DE0000000000EB25 /* entry_formula@2x.png */,
 			);
 			name = Sound;
 			sourceTree = "<group>";
@@ -6117,6 +6133,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				F5793913033E748F01A8010A /* AIPreferencePane.m */,
 				ADD1E5C0DE00000000001A10 /* AISettingsFormView.h */,
 				ADD1E5C0DE00000000001A11 /* AISettingsFormView.m */,
+				ADD1E5C0DE0000000000EB10 /* AIMessageEntryAccessory.h */,
+				ADD1E5C0DE0000000000EB11 /* AIMessageEntryAccessory.m */,
 				ADD1E5C0DE00000000000761 /* AISettingsNavigationController.m */,
 				ADD1E5C0DE00000000000763 /* AISettingsNavigationController.h */,
 				343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */,
@@ -6381,6 +6399,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC8AF10A7EEEF7003E1636 /* AIActionDetailsPane.h in Headers */,
 				34DC8AF30A7EEEF7003E1636 /* AIPreferencePane.h in Headers */,
 				ADD1E5C0DE00000000001A12 /* AISettingsFormView.h in Headers */,
+				ADD1E5C0DE0000000000EB12 /* AIMessageEntryAccessory.h in Headers */,
 				ADD1E5C0DE00000000000764 /* AISettingsNavigationController.h in Headers */,
 				34DC8AF50A7EEEF7003E1636 /* AIModularPaneCategoryView.h in Headers */,
 				ADD1E5C0DE00000000000702 /* NSView+AILegacyButtonNormalization.h in Headers */,
@@ -6833,6 +6852,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */,
 				34A6FB2D07D6F98600972830 /* events-sound-alert.tiff in Resources */,
 				34A6FB2E07D6F98600972830 /* SoundFileIcon.png in Resources */,
+				ADD1E5C0DE0000000000EB30 /* entry_emoticons.png in Resources */,
+				ADD1E5C0DE0000000000EB31 /* entry_emoticons@2x.png in Resources */,
+				ADD1E5C0DE0000000000EB32 /* entry_voice.png in Resources */,
+				ADD1E5C0DE0000000000EB33 /* entry_voice@2x.png in Resources */,
+				ADD1E5C0DE0000000000EB34 /* entry_formula.png in Resources */,
+				ADD1E5C0DE0000000000EB35 /* entry_formula@2x.png in Resources */,
 				34A250B607E0F822009854E1 /* StatusDefaults.plist in Resources */,
 				4BFC2E7907E357F00063D70C /* emoticonBlank.png in Resources */,
 				34C899AC07E51B18009357F6 /* BuiltInEventPresets.plist in Resources */,
@@ -7005,8 +7030,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC8AD90A7EEEF7003E1636 /* JoinChatWindow.xib in Resources */,
 				34DC8AE40A7EEEF7003E1636 /* stackImage.png in Resources */,
 				ADD1E5C0DE0000000000CF02 /* MessageViewEmoticonsMenu.xib in Resources */,
-				ADD1E5C0DE0000000000CF03 /* emoticons_menu.png in Resources */,
-				ADD1E5C0DE0000000000CF04 /* emoticons_menu@2x.png in Resources */,
 				3419E2DF0A81445800C3FC68 /* Localizable.strings in Resources */,
 				340D859B0ADC82D100D05B3F /* sourceListBackground.png in Resources */,
 				34F144430BA8FF3C000473DE /* EmoticonNames.strings in Resources */,
@@ -7559,6 +7582,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC8AF20A7EEEF7003E1636 /* AIActionDetailsPane.m in Sources */,
 				34DC8AF40A7EEEF7003E1636 /* AIPreferencePane.m in Sources */,
 				ADD1E5C0DE00000000001A13 /* AISettingsFormView.m in Sources */,
+				ADD1E5C0DE0000000000EB13 /* AIMessageEntryAccessory.m in Sources */,
 				ADD1E5C0DE00000000000762 /* AISettingsNavigationController.m in Sources */,
 				34DC8AF60A7EEEF7003E1636 /* AIModularPaneCategoryView.m in Sources */,
 				ADD1E5C0DE00000000000704 /* NSView+AILegacyButtonNormalization.m in Sources */,

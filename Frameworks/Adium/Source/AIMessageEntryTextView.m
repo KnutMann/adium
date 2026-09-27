@@ -35,7 +35,7 @@
 #import <AIUtilities/AIBezierPathAdditions.h>
 #import <AIUtilities/AIButtonWithCursor.h>
 #import <Adium/AIContactControllerProtocol.h>
-#import <Adium/AIMessageViewEmoticonsController.h>
+#import <Adium/AIMessageEntryAccessory.h>
 
 #import "NSString+AIBidi.h"
 
@@ -57,6 +57,7 @@
 #define KEY_SUBSTITUTION_LINK					@"Smart Links Substitutions"
 
 #define INDICATOR_RIGHT_PADDING					2		// Padding between right side of the message view and the rightmost indicator
+#define ACCESSORY_SPACING						4		// Between two accessory buttons
 
 #define PREF_GROUP_CHARACTER_COUNTER			@"Character Counter"
 #define KEY_CHARACTER_COUNTER_ENABLED			@"Character Counter Enabled"
@@ -144,8 +145,7 @@
 	characterCounterPrefix = nil;
 	maxCharacters = 0;
 	savedTextColor = nil;
-	hasEmoticonsMenu = NO;
-	emoticonsMenuButton = nil;
+	accessoryButtons = nil;
 	
 	if ([self respondsToSelector:@selector(setAllowsUndo:)]) {
 		[self setAllowsUndo:YES];
@@ -211,7 +211,9 @@
 	[savedTextColor release];
 	[characterCounter release];
 	[characterCounterPrefix release];
-	[emoticonsMenuButton release];
+	for (AIMessageEntryAccessoryButton *button in accessoryButtons)
+		button.messageEntryTextView = nil;
+	[accessoryButtons release];
     [chat release];
     [associatedView release];
     [historyArray release]; historyArray = nil;
@@ -878,11 +880,11 @@
 
 		/* The text view stretches itself back to the clip view's full width on its
 		 * own (every text edit resets the frame), which would put text underneath
-		 * the smiley button; the narrowing has to be reasserted, not trusted. Width
+		 * the accessory buttons; the narrowing has to be reasserted, not trusted. Width
 		 * first, so the size below is computed against the corrected wrapping. The
 		 * update guards against setting the same width again, so this terminates. */
-		if (hasEmoticonsMenu)
-			[self updateEmoticonsMenuButton];
+		if ([accessoryButtons count])
+			[self updateAccessoryButtons];
 
 		[self _resetCacheAndPostSizeChanged];
 		resizing = NO;
@@ -1074,8 +1076,8 @@
 		
         [self positionPushIndicator]; //Set the indicators initial position
 
-		if (hasEmoticonsMenu)
-			[self updateEmoticonsMenuButton];
+		if ([accessoryButtons count])
+			[self updateAccessoryButtons];
 
     } else if (!visible && pushIndicatorVisible) {
         pushIndicatorVisible = visible;
@@ -1086,7 +1088,7 @@
         [self setFrameSize:size];
 
 		//Unsubcribe, if necessary.
-		if (!characterCounter && !hasEmoticonsMenu) {
+		if (!characterCounter && ![accessoryButtons count]) {
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
 		}
@@ -1096,8 +1098,8 @@
 
 		[self positionPushIndicator];
 
-		if (hasEmoticonsMenu)
-			[self updateEmoticonsMenuButton];
+		if ([accessoryButtons count])
+			[self updateAccessoryButtons];
     }
 }
 
@@ -1126,8 +1128,8 @@
 		[self positionPushIndicator];
 	if (characterCounter)
 		[self positionCharacterCounter];
-	if (hasEmoticonsMenu)
-		[self updateEmoticonsMenuButton];
+	if ([accessoryButtons count])
+		[self updateAccessoryButtons];
 }
 
 #pragma mark Character Counter
@@ -1156,7 +1158,7 @@
         [self setFrameSize:size];
 
 		//Unsubscribe, if necessary.
-		if (!pushIndicatorVisible && !hasEmoticonsMenu) {
+		if (!pushIndicatorVisible && ![accessoryButtons count]) {
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
 		}
@@ -1168,8 +1170,8 @@
 		if (pushIndicatorVisible)
 			[self positionPushIndicator];
 
-		if (hasEmoticonsMenu)
-			[self updateEmoticonsMenuButton];
+		if ([accessoryButtons count])
+			[self updateAccessoryButtons];
 
 		[[self enclosingScrollView] setNeedsDisplay:YES];
 	}
@@ -1253,11 +1255,11 @@
 	
 	//Shift the text entry view over as necessary.
 	CGFloat indent = 0;
-	if (pushIndicatorVisible || characterCounter || hasEmoticonsMenu) {
+	if (pushIndicatorVisible || characterCounter || [accessoryButtons count]) {
 		CGFloat pushIndicatorX = pushIndicator ? NSMinX([pushIndicator frame]) : NSMaxX([self bounds]);
 		CGFloat characterCounterX = characterCounter ? NSMinX([characterCounter frame]) : NSMaxX([self bounds]);
-		CGFloat emoticonsMenuButtonX = emoticonsMenuButton ? NSMinX([emoticonsMenuButton frame]) : NSMaxX([self bounds]);
-		indent = NSWidth(visRect) - AIfmin(pushIndicatorX, AIfmin(characterCounterX, emoticonsMenuButtonX));
+		CGFloat accessoriesX = [accessoryButtons count] ? NSMinX([[accessoryButtons objectAtIndex:0] frame]) : NSMaxX([self bounds]);
+		indent = NSWidth(visRect) - AIfmin(pushIndicatorX, AIfmin(characterCounterX, accessoriesX));
 	}
 	[self setFrameSize:NSMakeSize(NSWidth(visRect) - indent, NSHeight([self frame]))];
 
@@ -1265,8 +1267,8 @@
 	if (pushIndicatorVisible)
 		[self positionPushIndicator];
 
-	if (hasEmoticonsMenu)
-		[self updateEmoticonsMenuButton];
+	if ([accessoryButtons count])
+		[self updateAccessoryButtons];
 
 	[[self enclosingScrollView] setNeedsDisplay:YES];
 }
@@ -1286,125 +1288,125 @@
 	[[self enclosingScrollView] setNeedsDisplay:YES];
 }
 
-#pragma mark Emoticons Menu
+#pragma mark Accessory buttons
 
 /**
- * @brief Show or hide the smiley button that opens the emoticons menu
- *
- * The button sits inside the entry area at its right edge; the text view is
- * narrowed by the button's width, the same way the indicators make room for
- * themselves, so text never runs underneath it.
+ * @brief The buttons standing at the right edge of the field, left to right
  */
-- (void)setHasEmoticonsMenu:(BOOL)hasMenu
+- (NSArray *)accessories
 {
-	if (hasMenu && !emoticonsMenuButton) {
-		NSImage *emoticonsMenuIcon = [NSImage imageNamed:@"emoticons_menu" forClass:[self class]];
+	NSMutableArray *accessories = [NSMutableArray arrayWithCapacity:[accessoryButtons count]];
 
-		emoticonsMenuButton = [[AIButtonWithCursor alloc] initWithFrame:NSZeroRect];
-		[emoticonsMenuButton setFrameSize:[emoticonsMenuIcon size]];
-		[emoticonsMenuButton setAutoresizingMask:NSViewMinXMargin];
-		[emoticonsMenuButton setButtonType:NSButtonTypeMomentaryChange];
-		[(AIButtonWithCursor *)emoticonsMenuButton setCursor:[NSCursor arrowCursor]];
-		[emoticonsMenuButton setBordered:NO];
-		[emoticonsMenuButton setTarget:self];
-		[emoticonsMenuButton setAction:@selector(popUpEmoticonsMenu)];
-		[[emoticonsMenuButton cell] setImageScaling:NSImageScaleNone];
-		[emoticonsMenuButton setImage:emoticonsMenuIcon];
+	for (AIMessageEntryAccessoryButton *button in accessoryButtons)
+		[accessories addObject:button.accessory];
 
-		//A darkened copy for the pressed state
-		NSImage *alternateMenuIcon = [[emoticonsMenuIcon copy] autorelease];
-		[alternateMenuIcon lockFocus];
-		[alternateMenuIcon drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositingOperationPlusDarker fraction:0.5f];
-		[alternateMenuIcon unlockFocus];
-		[emoticonsMenuButton setAlternateImage:alternateMenuIcon];
+	return accessories;
+}
 
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewBoundsDidChangeNotification object:[self superview]];
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewFrameDidChangeNotification object:[self superview]];
+/**
+ * @brief Show exactly these buttons at the right edge of the field
+ *
+ * The buttons sit inside the entry area beside the text, left to right in the order
+ * given; the text view is narrowed to end where the leftmost of them begins, the same
+ * way the indicators make room for themselves, so text never runs underneath them.
+ * Given nothing, every button goes and the text view gets its width back.
+ */
+- (void)setAccessories:(NSArray *)accessories
+{
+	//The same buttons in the same order is nothing to do, and this is called at every preference change
+	if ([[self accessories] isEqualToArray:(accessories ? accessories : @[])])
+		return;
 
-		//Narrow the text view to make room for the button
-		NSSize size = [self frame].size;
-		size.width -= (NSWidth([emoticonsMenuButton frame]) + INDICATOR_RIGHT_PADDING);
-		[self setFrameSize:size];
+	BOOL hadButtons = ([accessoryButtons count] > 0);
 
-		[self updateEmoticonsMenuButton];
+	for (AIMessageEntryAccessoryButton *button in accessoryButtons) {
+		button.messageEntryTextView = nil;
+		[button removeFromSuperview];
+	}
+	[accessoryButtons release];
+	accessoryButtons = nil;
 
-		[[self superview] addSubview:emoticonsMenuButton];
+	if ([accessories count]) {
+		accessoryButtons = [[NSMutableArray alloc] initWithCapacity:[accessories count]];
 
-	} else if (!hasMenu && emoticonsMenuButton) {
-		[emoticonsMenuButton removeFromSuperview];
-
-		//Give the text view its width back
-		NSSize size = [self frame].size;
-		size.width += (NSWidth([emoticonsMenuButton frame]) + INDICATOR_RIGHT_PADDING);
-		[self setFrameSize:size];
-
-		//Unsubscribe, if necessary.
-		if (!pushIndicatorVisible && !characterCounter) {
-			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
-			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
+		for (AIMessageEntryAccessory *accessory in accessories) {
+			AIMessageEntryAccessoryButton *button = [[AIMessageEntryAccessoryButton alloc] initWithAccessory:accessory];
+			button.messageEntryTextView = self;
+			[accessoryButtons addObject:button];
+			[[self superview] addSubview:button];
+			[button release];
 		}
-
-		[emoticonsMenuButton release];
-		emoticonsMenuButton = nil;
-
-		[[self enclosingScrollView] setNeedsDisplay:YES];
 	}
 
-	hasEmoticonsMenu = hasMenu;
-}
+	//Follow the entry area's size while there is something to keep in its corner, as the indicators do
+	if ([accessoryButtons count] && !hadButtons) {
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewBoundsDidChangeNotification object:[self superview]];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(positionIndicators:) name:NSViewFrameDidChangeNotification object:[self superview]];
+	} else if (![accessoryButtons count] && hadButtons && !pushIndicatorVisible && !characterCounter) {
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewBoundsDidChangeNotification object:[self superview]];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:[self superview]];
+	}
 
-- (BOOL)hasEmoticonsMenu
-{
-	return hasEmoticonsMenu;
-}
+	if ([accessoryButtons count]) {
+		[self updateAccessoryButtons];
+	} else {
+		//Give the text view its width back, up to whichever indicators remain
+		NSRect visRect = [[self superview] bounds];
+		CGFloat pushIndicatorX = pushIndicator ? NSMinX([pushIndicator frame]) : NSMaxX(visRect);
+		CGFloat characterCounterX = characterCounter ? NSMinX([characterCounter frame]) : NSMaxX(visRect);
 
-- (NSButton *)emoticonsMenuButton
-{
-	return emoticonsMenuButton;
+		[self setFrameSize:NSMakeSize(AIfmin(pushIndicatorX, characterCounterX), NSHeight([self frame]))];
+	}
+
+	[[self enclosingScrollView] setNeedsDisplay:YES];
 }
 
 /**
- * @brief Keep the smiley button in the top right corner of the entry area
+ * @brief Keep the buttons in the lower right corner of the entry area, side by side
  *
- * When the entry area is so low that the indicators sit beside the button, it
- * centers vertically next to them instead.
+ * The last button stands at the edge and the others follow to its left. When the
+ * entry area is so low that the indicators sit beside the buttons, the row centres
+ * vertically next to them instead.
  */
-- (void)updateEmoticonsMenuButton
+- (void)updateAccessoryButtons
 {
-	NSRect visibleRect = [[self superview] bounds];
-	NSSize menuButtonSize = [emoticonsMenuButton frame].size;
+	if (![accessoryButtons count]) return;
 
-	CGFloat indicatorsWidth = (characterCounter && (visibleRect.size.height / 3.0f) <= menuButtonSize.height + 4.0f) ? NSWidth([characterCounter frame]) + INDICATOR_RIGHT_PADDING : 0.0f;
-	indicatorsWidth += (pushIndicatorVisible && (visibleRect.size.height / 3.0f) <= menuButtonSize.height + 4.0f) ? NSWidth([pushIndicator frame]) + INDICATOR_RIGHT_PADDING : 0.0f;
+	NSRect visibleRect = [[self superview] bounds];
+	CGFloat rowHeight = 0.0f;
+	for (NSButton *button in accessoryButtons)
+		rowHeight = MAX(rowHeight, NSHeight([button frame]));
+
+	BOOL indicatorsBeside = ((visibleRect.size.height / 3.0f) <= rowHeight + 4.0f);
+	CGFloat indicatorsWidth = (characterCounter && indicatorsBeside) ? NSWidth([characterCounter frame]) + INDICATOR_RIGHT_PADDING : 0.0f;
+	indicatorsWidth += (pushIndicatorVisible && indicatorsBeside) ? NSWidth([pushIndicator frame]) + INDICATOR_RIGHT_PADDING : 0.0f;
 
 	//NSMaxY([self frame]) is necessary because visibleRect's height changes after you start typing
-	CGFloat newPositionY = (indicatorsWidth > 0.0f) ? NSMidY([self frame]) - (menuButtonSize.height / 2.0f)
-													: NSMaxY([self frame]) - menuButtonSize.height - 2.0f;
+	CGFloat rowY = (indicatorsWidth > 0.0f) ? NSMidY([self frame]) - (rowHeight / 2.0f)
+											: NSMaxY([self frame]) - rowHeight - 2.0f;
 
-	[emoticonsMenuButton setFrameOrigin:NSMakePoint(NSMaxX(visibleRect) - menuButtonSize.width - INDICATOR_RIGHT_PADDING - indicatorsWidth, newPositionY)];
+	//From the edge inward, so the last button is the one at the edge
+	CGFloat x = NSMaxX(visibleRect) - INDICATOR_RIGHT_PADDING - indicatorsWidth;
+	for (NSButton *button in [accessoryButtons reverseObjectEnumerator]) {
+		NSSize buttonSize = [button frame].size;
 
-	/* Keep the text clear of the button: the view must end where the leftmost of
+		x -= buttonSize.width;
+		[button setFrameOrigin:NSMakePoint(x, rowY + floor((rowHeight - buttonSize.height) / 2.0f))];
+		x -= ACCESSORY_SPACING;
+	}
+
+	/* Keep the text clear of the buttons: the view must end where the leftmost of
 	 * the floating controls begins. Only touch the frame when it is actually off,
 	 * since setting it re-enters through the frame change notification. */
+	CGFloat leftmostButtonX = NSMinX([[accessoryButtons objectAtIndex:0] frame]);
 	CGFloat pushIndicatorX = pushIndicator ? NSMinX([pushIndicator frame]) : NSMaxX([self bounds]);
 	CGFloat characterCounterX = characterCounter ? NSMinX([characterCounter frame]) : NSMaxX([self bounds]);
-	CGFloat targetWidth = AIfmin(NSMinX([emoticonsMenuButton frame]), AIfmin(pushIndicatorX, characterCounterX));
+	CGFloat targetWidth = AIfmin(leftmostButtonX, AIfmin(pushIndicatorX, characterCounterX));
 
 	if (fabs(NSWidth([self frame]) - targetWidth) > 0.5)
 		[self setFrameSize:NSMakeSize(targetWidth, NSHeight([self frame]))];
 
 	[[self enclosingScrollView] setNeedsDisplay:YES];
-}
-
-- (void)popUpEmoticonsMenu
-{
-	if (!hasEmoticonsMenu) return;
-
-	NSRect menuButtonRect = [emoticonsMenuButton frame];
-
-	[AIMessageViewEmoticonsController popUpMenuForTextView:self
-												   atPoint:NSMakePoint(NSMaxX(menuButtonRect) - INDICATOR_RIGHT_PADDING,
-																	   NSMaxY(menuButtonRect))];
 }
 
 #pragma mark List Object Observer / Chat KVO

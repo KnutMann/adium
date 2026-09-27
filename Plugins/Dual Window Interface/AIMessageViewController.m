@@ -25,7 +25,7 @@
 #import <Adium/AIChatControllerProtocol.h>
 #import <Adium/AIContactAlertsControllerProtocol.h>
 #import <Adium/AIContentControllerProtocol.h>
-#import <Adium/AIEmoticonControllerProtocol.h>
+#import <Adium/AIMessageEntryAccessory.h>
 #import <Adium/AIContentMessage.h>
 #import <Adium/AIMetaContact.h>
 #import <Adium/AIListOutlineView.h>
@@ -150,7 +150,11 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		//Observe general preferences for sending keys
 		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_GENERAL];
 		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_DUAL_WINDOW_INTERFACE];
-		[adium.preferenceController registerPreferenceObserver:self forGroup:PREF_GROUP_EMOTICONS];
+		//And whatever groups the buttons in the message field keep their switches in
+		for (NSString *group in [AIMessageEntryAccessory preferenceGroups]) {
+			if (![group isEqualToString:PREF_GROUP_GENERAL] && ![group isEqualToString:PREF_GROUP_DUAL_WINDOW_INTERFACE])
+				[adium.preferenceController registerPreferenceObserver:self forGroup:group];
+		}
 
 		/* Update chat status and participating list objects to configure the user list if necessary
 		 * Call chatParticipatingListObjectsChanged first, which will set up the user list. This allows other sizing to match.
@@ -923,14 +927,36 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		if (firstTime || [key isEqualToString:KEY_ENTRY_USER_LIST_MIN_WIDTH]) {
 			userListMinWidth = [[prefDict objectForKey:KEY_ENTRY_USER_LIST_MIN_WIDTH] doubleValue];
 		}
-	} else if ([group isEqualToString:PREF_GROUP_EMOTICONS]) {
-		if (firstTime || [key isEqualToString:KEY_EMOTICON_MENU_ENABLED]) {
-			emoticonMenuEnabled = [[prefDict objectForKey:KEY_EMOTICON_MENU_ENABLED] boolValue];
-
-			if ([textView_outgoing chat])
-				[textView_outgoing setHasEmoticonsMenu:emoticonMenuEnabled];
-		}
 	}
+
+	/* The buttons in the message field, whose switches may be in any of the groups above or in
+	 * one of their own. Not before the field has its chat: it is configured then, and this runs
+	 * once for every group before that. */
+	if ([textView_outgoing chat] && [self _entryAccessoryReadsKey:key inGroup:group])
+		[self _updateEntryAccessories];
+}
+
+/*!
+ * @brief Whether a button in the message field is switched by @a key of @a group
+ *
+ * A nil key is the whole group, which counts.
+ */
+- (BOOL)_entryAccessoryReadsKey:(NSString *)key inGroup:(NSString *)group
+{
+	for (AIMessageEntryAccessory *accessory in [AIMessageEntryAccessory registeredAccessories]) {
+		if ([accessory.preferenceGroup isEqualToString:group] && (!key || [accessory.preferenceKey isEqualToString:key]))
+			return YES;
+	}
+
+	return NO;
+}
+
+/*!
+ * @brief Show the buttons whose preference is on, and no others
+ */
+- (void)_updateEntryAccessories
+{
+	[textView_outgoing setAccessories:[AIMessageEntryAccessory enabledAccessories]];
 }
 
 /*!
@@ -980,7 +1006,7 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		[[textView_outgoing enclosingScrollView] setVerticalScrollElasticity:1]; // Swap 1 with NSScrollElasticityNone on 10.7+
 	}
 
-	[textView_outgoing setHasEmoticonsMenu:emoticonMenuEnabled];
+	[self _updateEntryAccessories];
 }
 
 /*!

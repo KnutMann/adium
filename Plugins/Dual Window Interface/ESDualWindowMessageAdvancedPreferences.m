@@ -18,6 +18,7 @@
 #import "ESDualWindowMessageAdvancedPreferences.h"
 #import "AIWebkitMessageViewStyle.h"
 #import <Adium/AISettingsFormView.h>
+#import <Adium/AIMessageEntryAccessory.h>
 #import <AIUtilities/AIDictionaryAdditions.h>
 #import <AIUtilities/AIPopUpButtonAdditions.h>
 #import <AIUtilities/AIMenuAdditions.h>
@@ -239,6 +240,23 @@ static NSString *AISentenceCaseLabel(NSString *label)
 			  popUpButton:popUp_windowPosition
 		  accessoryButton:nil];
 
+	/* The buttons at the right edge of the message field. Whatever registered one gets a
+	 * switch here, so this card knows nothing of smileys or microphones; the labels are the
+	 * buttons' own. */
+	NSArray *accessories = [AIMessageEntryAccessory registeredAccessories];
+	if ([accessories count]) {
+		[form addSectionHeader:AILocalizedString(@"Message Field", "Header of the settings card for the buttons in the field a message is typed in")];
+		[form addDetailRow:AILocalizedString(@"Buttons shown at the right edge of the field a message is typed in.",
+											 "Explanation above the switches for the buttons in the message field")];
+
+		switches_entryAccessories = [NSMutableDictionary dictionaryWithCapacity:[accessories count]];
+		for (AIMessageEntryAccessory *accessory in accessories) {
+			NSSwitch *toggle = [AISettingsFormView switchWithTarget:self action:@selector(changePreference:)];
+			[switches_entryAccessories setObject:toggle forKey:accessory.identifier];
+			[form addRowWithLabel:accessory.label control:toggle];
+		}
+	}
+
 	return form;
 }
 
@@ -280,6 +298,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	checkBox_hide = nil;
 	checkBox_psychicOpen = nil;
 	popUp_windowPosition = nil;
+	switches_entryAccessories = nil;
 
 	[super viewWillClose];
 }
@@ -426,6 +445,15 @@ static NSString *AISentenceCaseLabel(NSString *label)
 		[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
 										   forKey:KEY_TABBAR_SHOW_UNREAD_MENTION_ONLYGROUP
 											group:PREF_GROUP_DUAL_WINDOW_INTERFACE];
+
+	} else if ([[switches_entryAccessories allValues] containsObject:sender]) {
+		for (AIMessageEntryAccessory *accessory in [AIMessageEntryAccessory registeredAccessories]) {
+			if ([switches_entryAccessories objectForKey:accessory.identifier] == sender) {
+				[adium.preferenceController setPreference:[NSNumber numberWithBool:([sender state] == NSControlStateValueOn)]
+													 forKey:accessory.preferenceKey
+													  group:accessory.preferenceGroup];
+			}
+		}
 	}
 
 	[self configureControlDimming];
@@ -474,6 +502,11 @@ static NSString *AISentenceCaseLabel(NSString *label)
 							NSControlStateValueOn : NSControlStateValueOff)];
 	[checkBox_psychicOpen setState:([[prefDict objectForKey:KEY_PSYCHIC] boolValue] ?
 									NSControlStateValueOn : NSControlStateValueOff)];
+
+	for (AIMessageEntryAccessory *accessory in [AIMessageEntryAccessory registeredAccessories]) {
+		[[switches_entryAccessories objectForKey:accessory.identifier] setState:(accessory.enabled ?
+																							 NSControlStateValueOn : NSControlStateValueOff)];
+	}
 
 	[segment_chatType setSelectedSegment:self.currentTab];
 

@@ -16,6 +16,8 @@
 
 #import <Adium/AIPlugin.h>
 
+@class AIMessageEntryAccessoryButton;
+
 /*!
  * @class AIVoiceNotePlugin
  * @brief A button that records, and puts what it recorded where a message is written
@@ -27,6 +29,8 @@
 @interface AIVoiceNotePlugin : AIPlugin {
 	NSToolbarItem	*toolbarItem;
 	NSTimer			*ticker;
+	//The button in a message field the recording was started from, if it was one
+	__weak AIMessageEntryAccessoryButton *recordingButton;
 }
 
 @end

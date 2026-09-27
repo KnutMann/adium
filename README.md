@@ -69,9 +69,10 @@ Current version: **1.8.0**.
   address, with the classic file transfer as the fallback
 * **Bonjour is back**: chatting with the people on the same network,
   with no server.
-* **Voice messages**: record one from the conversation's toolbar and it
-  goes into the message you are writing, sent the way other clients
-  expect it so they play it rather than offer a download
+* **Voice messages**: record one from the conversation's toolbar, or from
+  a button beside the message field, and it goes into the message you
+  are writing, sent the way other clients expect it so they play it
+  rather than offer a download
 * OTR migrated to the libotr 4.x API, and OMEMO (XEP-0384) added beside
   it, which is what other XMPP clients encrypt with today
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
@@ -219,7 +220,10 @@ Adium 1.6/1.7 that was never released, preserved today in forks such
 as [shtrom/adium](https://github.com/shtrom/adium).
 
 * The emoticon picker in the message entry field, which replaces the
-  old emoticon toolbar item
+  old emoticon toolbar item. Two more buttons can stand beside it, one
+  that records a voice note and one that opens the formula editor; the
+  Messages settings switch each of the three on or off, and only the
+  emoticon button starts out on
 * Room configuration window for owners of XMPP chat rooms
 * OTR messages routed to the contact's most recently active device
   instead of the best-ranked one
