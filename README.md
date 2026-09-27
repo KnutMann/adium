@@ -240,40 +240,40 @@ For Intel Macs and older systems, use the original
 
 ## Building
 
-	git clone --recursive https://github.com/KnutMann/adium.git
-	cd adium
-	./bootstrap.sh
-
-The app lands in `build/Release/Adium.app` (ad-hoc signed, so it runs
-on the machine that built it; distributing binaries to others would
-require a proper signing identity). `bootstrap.sh` builds the
-AIUtilities and MMTabBarView subprojects first and stages their
-products, then builds the main project. `./bootstrap.sh --help` lists
-its options; `--rebuild-dependencies` builds the bundled libraries from
-source first, which is otherwise never needed.
-
-### Building it yourself
-
 One command from a fresh checkout to an installed application:
 
-    ./install.sh
+	git clone --recursive https://github.com/KnutMann/adium.git
+	cd adium
+	./install.sh
 
 Everything beyond Xcode is checked into the repository as prebuilt arm64
 binaries. The script verifies the bundled protocol plug-ins (including a
 functional probe that asks libpurple itself whether every plug-in's protocol
 registers - the failure mode it guards against is silent), builds the app,
-verifies the result and installs it to /Applications. `--build-only` skips the
-install, `--debug` builds the Debug configuration. The same verification runs
-as a phase of every Xcode build.
+verifies the result and installs it to /Applications. The same verification
+runs as a phase of every Xcode build.
+
+The app lands in `build/Release/Adium.app` first (signed with a local
+certificate if there is one and ad hoc otherwise, so it runs on the machine
+that built it; handing binaries to others would need a proper signing
+identity). `--build-only` stops there and installs nothing, `--install`
+installs without asking, and given neither it asks, unless there is no
+terminal to ask at, in which case it installs nothing. `--debug` builds the
+Debug configuration, and `--rebuild-dependencies` builds the bundled libraries
+from source first, which is otherwise never needed. `./install.sh --help`
+lists them all.
+
+`./bootstrap.sh` is the same script with `--build-only`, kept under its old
+name.
 
 The **XtrasCreator** companion app (see Tools above) builds
 separately:
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
-Three things are fetched rather than vendored, and both `bootstrap.sh`
-and `install.sh` get them by running `Dependencies/fetch.sh` before they
-build anything. It is idempotent and takes about a second once
-everything is in place, so there is no reason to skip it. **Building
+Three things are fetched rather than vendored, and `install.sh` gets
+them by running `Dependencies/fetch.sh` before it builds anything. It is
+idempotent and takes about a second once everything is in place, so there
+is no reason to skip it. **Building
 from Xcode alone does not run it**, so run it once after cloning:
 
 * the **MMTabBarView** submodule, which git clones only when asked a
@@ -297,7 +297,7 @@ therefore enough to build, and nothing here needs a Homebrew toolchain.
 Building those libraries from source instead is a developer's job, not a
 build step, and there is one switch for it:
 
-    ./bootstrap.sh --rebuild-dependencies
+    ./install.sh --rebuild-dependencies
 
 which runs `Dependencies/build.sh` and `Dependencies/copy_frameworks.sh`
 for libpurple, glib, libotr and the rest, and
