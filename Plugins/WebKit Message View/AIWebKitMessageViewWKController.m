@@ -509,30 +509,42 @@ static NSString *const AIWKContextMenuScript =
 	/* The same two functions also hold the end of the conversation rather than
 	 * aiming at it once.
 	 *
-	 * A picture is nothing tall until it has arrived. A conversation is put
-	 * together and scrolled to its end, and at that moment every picture in it
-	 * still measures zero: the markup is there, the bytes are not. Each one that
-	 * arrives afterwards pushes what is below it down, and the end walks off the
-	 * bottom. A conversation of nothing but words opens at its end; one with
-	 * pictures opens above it, further above the more pictures it has.
+	 * Measured in the running program rather than supposed, after two wrong guesses.
+	 * A conversation with pictures in it was left eight hundred and forty one points
+	 * above its end, and the log says why: its content does not arrive until several
+	 * seconds after the page is built, so the scroll to the end happens while there
+	 * is nothing to scroll, and the arrival itself moves the view without ever
+	 * scrolling it. Then the pictures arrive and make it taller again. One beside it
+	 * without pictures, whose content came in time, sat exactly at its end.
 	 *
-	 * So anything that grows while we are meant to be at the end puts us back at
-	 * the end, and scrolling away by hand lets go of that, because somebody
-	 * reading further up must not be hauled down by a picture loading out of
-	 * sight. Pictures do not bubble their load event, hence the capture.
+	 * So the end is held rather than aimed at: while it is held, anything that
+	 * changes the height puts the view back at the end, whether that is content
+	 * arriving late, a picture turning from nothing into something, or the window
+	 * being resized. The height is watched instead of any one of those, because the
+	 * first attempt waited for a picture's load event and a conversation full of
+	 * pictures fired none that arrived in time.
 	 *
-	 * Here rather than in the bundled template for the same reason as the two
-	 * functions themselves: every style ships its own template, and none of them
-	 * has ever done this. */
+	 * Letting go is a person's decision and only a person's: a wheel, a finger, a
+	 * key. Reading further up must not be interrupted by something loading out of
+	 * sight, and a scroll event on its own cannot tell the two apart, because ours
+	 * raise them too.
+	 *
+	 * Here rather than in the bundled template because every style ships its own and
+	 * not one of them has ever done this, which is the same reason the two functions
+	 * below are here at all. */
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:
 		@"var AIHoldingTheEnd = true;"
 		@"function nearBottom() { return ( window.scrollY >= ( document.body.offsetHeight - ( window.innerHeight * 1.2 ) ) ); }"
 		@"function scrollToBottom() { AIHoldingTheEnd = true; window.scrollTo(0, document.body.scrollHeight); }"
-		@"document.addEventListener('load', function(e) {"
-		@"  if (AIHoldingTheEnd && e.target && e.target.tagName && e.target.tagName.toLowerCase() == 'img')"
-		@"    window.scrollTo(0, document.body.scrollHeight);"
-		@"}, true);"
-		@"window.addEventListener('scroll', function() { AIHoldingTheEnd = nearBottom(); }, false);"
+		@"(function() {"
+		@"  function toTheEnd() { if (AIHoldingTheEnd) window.scrollTo(0, document.body.scrollHeight); }"
+		@"  function letGo() { AIHoldingTheEnd = nearBottom(); }"
+		@"  if (window.ResizeObserver) { new ResizeObserver(toTheEnd).observe(document.body); }"
+		@"  document.addEventListener('load', toTheEnd, true);"
+		@"  window.addEventListener('wheel', letGo, {passive:true});"
+		@"  window.addEventListener('touchmove', letGo, {passive:true});"
+		@"  window.addEventListener('keydown', letGo, true);"
+		@"})();"
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
 
