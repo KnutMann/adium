@@ -9,6 +9,7 @@
 #import <Adium/AISharedAdium.h>
 #import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIMessageEntryAccessory.h>
+#import <AIUtilities/AIImageAdditions.h>
 
 #pragma mark A program that answers nothing
 
@@ -75,12 +76,21 @@ static void writePNG(NSWindow *window, NSString *path)
 
 #pragma mark Runner
 
+/* Through the same helper the application uses, which has to bring both halves of a
+ * picture along: a button drawn from the 1x file alone is blurred on a Retina screen. */
 static AIMessageEntryAccessory *accessoryNamed(NSString *identifier, NSString *imageName)
 {
+	NSImage *image = [NSImage imageNamed:imageName forClass:[EntryAdium class]];
+	NSMutableArray *sizes = [NSMutableArray array];
+	for (NSImageRep *rep in image.representations)
+		[sizes addObject:[NSString stringWithFormat:@"%ldpx", (long)rep.pixelsWide]];
+	fprintf(stderr, "%s: %lu representations (%s)\n", [imageName UTF8String],
+			(unsigned long)image.representations.count, [[sizes componentsJoinedByString:@", "] UTF8String]);
+
 	return [AIMessageEntryAccessory accessoryWithIdentifier:identifier
 													  label:identifier
 													toolTip:identifier
-													  image:[[NSBundle mainBundle] imageForResource:imageName]
+													  image:image
 											  preferenceKey:identifier
 													  group:@"Harness"
 													 target:nil

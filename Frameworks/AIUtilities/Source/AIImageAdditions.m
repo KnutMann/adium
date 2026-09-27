@@ -26,23 +26,12 @@
 
 + (NSImage *)imageNamed:(NSString *)name forClass:(Class)inClass loadLazily:(BOOL)flag
 {
-	NSBundle *ownerBundle;
-    NSString *imagePath;
-    NSImage	*image;
-	
-    // Get the bundle
-    ownerBundle = [NSBundle bundleForClass:inClass];
-	
-    // Open the image
-    imagePath = [ownerBundle pathForImageResource:name];   
-	
-	if(flag) {
-		image = [[NSImage alloc] initByReferencingFile:imagePath];
-	} else {
-		image = [[NSImage alloc] initWithContentsOfFile:imagePath];
-	}
-
-    return image;	
+	/* Through the bundle, not through a path. A picture in a bundle is often two files,
+	 * name.png and name@2x.png, and only the bundle knows to put both into one image;
+	 * opened by path, the image held the 1x file alone and every such button was drawn
+	 * blurred on a Retina screen. The bundle reads the files when they are first drawn,
+	 * so there is nothing left for the lazy flag to decide. */
+	return [[NSBundle bundleForClass:inClass] imageForResource:name];
 }
 
 // Returns an image from the owners bundle with the specified name
