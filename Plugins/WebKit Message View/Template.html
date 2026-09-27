@@ -248,38 +248,8 @@
 			return ( window.scrollY >= ( document.body.offsetHeight - ( window.innerHeight * 1.2 ) ) );
 		}
 		function scrollToBottom() {
-			stickToBottom = true;
 			window.scrollTo(0, document.body.scrollHeight);
 		}
-
-		/* A picture is nothing tall until it has arrived.
-		 *
-		 * A conversation is scrolled to its end as it is put together, and at that
-		 * moment every picture in it still measures nothing: the markup is there, the
-		 * bytes are not. Each one that arrives afterwards pushes everything below it
-		 * down, and the end of the conversation walks off the bottom of the window. A
-		 * chat of nothing but words opens at its end; one with pictures in it opens
-		 * somewhere above, further above the more pictures there are. Reported for a
-		 * WhatsApp conversation that does it every time.
-		 *
-		 * So the end is held rather than aimed at once. Anything that grows while we
-		 * are meant to be at the end puts us back at the end, and scrolling away by
-		 * hand lets go of it, because somebody reading further up must not be dragged
-		 * down by a picture loading out of sight.
-		 *
-		 * Pictures do not bubble their load event, hence the capture. */
-		var stickToBottom = true;
-
-		document.addEventListener('load', function pictureArrived(event) {
-			if (stickToBottom && event.target && event.target.tagName &&
-			    event.target.tagName.toLowerCase() == 'img') {
-				window.scrollTo(0, document.body.scrollHeight);
-			}
-		}, true);
-
-		window.addEventListener('scroll', function readerMoved() {
-			stickToBottom = nearBottom();
-		}, false);
 
 		//Dynamically exchange the active stylesheet
 		function setStylesheet( id, url ) {

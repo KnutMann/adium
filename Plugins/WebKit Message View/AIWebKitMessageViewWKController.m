@@ -506,9 +506,33 @@ static NSString *const AIWKContextMenuScript =
 	 * style's own smooth-scroll animation is overridden along with it; on today's WebKit it was
 	 * not scrolling at all. Deliberately in the page world: the template's own
 	 * scripts are the callers, and it posts nothing. */
+	/* The same two functions also hold the end of the conversation rather than
+	 * aiming at it once.
+	 *
+	 * A picture is nothing tall until it has arrived. A conversation is put
+	 * together and scrolled to its end, and at that moment every picture in it
+	 * still measures zero: the markup is there, the bytes are not. Each one that
+	 * arrives afterwards pushes what is below it down, and the end walks off the
+	 * bottom. A conversation of nothing but words opens at its end; one with
+	 * pictures opens above it, further above the more pictures it has.
+	 *
+	 * So anything that grows while we are meant to be at the end puts us back at
+	 * the end, and scrolling away by hand lets go of that, because somebody
+	 * reading further up must not be hauled down by a picture loading out of
+	 * sight. Pictures do not bubble their load event, hence the capture.
+	 *
+	 * Here rather than in the bundled template for the same reason as the two
+	 * functions themselves: every style ships its own template, and none of them
+	 * has ever done this. */
 	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:
+		@"var AIHoldingTheEnd = true;"
 		@"function nearBottom() { return ( window.scrollY >= ( document.body.offsetHeight - ( window.innerHeight * 1.2 ) ) ); }"
-		@"function scrollToBottom() { window.scrollTo(0, document.body.scrollHeight); }"
+		@"function scrollToBottom() { AIHoldingTheEnd = true; window.scrollTo(0, document.body.scrollHeight); }"
+		@"document.addEventListener('load', function(e) {"
+		@"  if (AIHoldingTheEnd && e.target && e.target.tagName && e.target.tagName.toLowerCase() == 'img')"
+		@"    window.scrollTo(0, document.body.scrollHeight);"
+		@"}, true);"
+		@"window.addEventListener('scroll', function() { AIHoldingTheEnd = nearBottom(); }, false);"
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
 
