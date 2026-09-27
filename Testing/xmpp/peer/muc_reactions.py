@@ -130,9 +130,9 @@ async def run_checks():
 
     try:
         await asyncio.wait_for(asyncio.gather(adium.ready, peer.ready), 10)
-        report("Anmeldung beider Sitzungen", True)
+        report("Both sessions sign in", True)
     except asyncio.TimeoutError:
-        report("Anmeldung beider Sitzungen", False, "Timeout beim Verbinden")
+        report("Both sessions sign in", False, "timed out while connecting")
         return
 
     room = JID(f"reactions-{uuid.uuid4().hex[:6]}@conference.localhost")
@@ -148,9 +148,9 @@ async def run_checks():
             form.set_values({"muc#roomconfig_enablearchiving": "1"})
         await adium["xep_0045"].set_room_config(room, form)
         await peer["xep_0045"].join_muc_wait(room, peer_nick, timeout=10)
-        report("Raum betreten und Archivierung eingeschaltet", True, room_bare)
+        report("Room joined and archiving switched on", True, room_bare)
     except Exception as e:
-        report("Raum betreten und Archivierung eingeschaltet", False, str(e))
+        report("Room joined and archiving switched on", False, str(e))
         for client in (adium, peer):
             client.disconnect()
         return
@@ -162,10 +162,10 @@ async def run_checks():
     try:
         got = await drain_for(adium.groupchat, lambda m: m["body"] == marker)
         target_id = room_stanza_id(got, room_bare)
-        report("Nachricht mit Raum-Stanza-ID (XEP-0359) empfangen",
-               bool(target_id), target_id or "keine stanza-id am Stanza")
+        report("Message received with a room stanza-id (XEP-0359)",
+               bool(target_id), target_id or "no stanza-id on the stanza")
     except asyncio.TimeoutError:
-        report("Nachricht mit Raum-Stanza-ID (XEP-0359) empfangen", False, "nichts angekommen")
+        report("Message received with a room stanza-id (XEP-0359)", False, "nothing arrived")
 
     if not target_id:
         # Without an id to point at there is nothing further to verify.
@@ -180,12 +180,12 @@ async def run_checks():
                               lambda m: parse_reactions(m) is not None
                               and JID(m["from"]).resource == adium_nick)
         rid, emojis = parse_reactions(got)
-        report("Reaktion (XEP-0444) im Raum gespiegelt und richtig zugeordnet",
+        report("Reaction (XEP-0444) reflected in the room and pointed at the right message",
                rid == target_id and emojis == [THUMB],
-               f"id={rid} emojis={emojis} von={JID(got['from']).resource}")
+               f"id={rid} emojis={emojis} from={JID(got['from']).resource}")
     except asyncio.TimeoutError:
-        report("Reaktion (XEP-0444) im Raum gespiegelt und richtig zugeordnet", False,
-               "keine Reaktion angekommen")
+        report("Reaction (XEP-0444) reflected in the room and pointed at the right message", False,
+               "no reaction arrived")
 
     # adium takes the reaction back; peer must see an empty set for the same id.
     reactions_send(adium, room_bare, target_id, [])
@@ -193,9 +193,9 @@ async def run_checks():
         got = await drain_for(peer.groupchat,
                               lambda m: parse_reactions(m) == (target_id, [])
                               and JID(m["from"]).resource == adium_nick)
-        report("Reaktion zurückgenommen (leere Menge)", True, f"id={target_id}")
+        report("Reaction taken back (empty set)", True, f"id={target_id}")
     except asyncio.TimeoutError:
-        report("Reaktion zurückgenommen (leere Menge)", False, "keine leere Reaktion angekommen")
+        report("Reaction taken back (empty set)", False, "no empty reaction arrived")
 
     for client in (adium, peer):
         client.disconnect()
@@ -204,7 +204,7 @@ async def run_checks():
 
 def main():
     asyncio.get_event_loop().run_until_complete(run_checks())
-    print(f"\n{RESULTS.count(True)}/{len(RESULTS)} Prüfungen bestanden")
+    print(f"\n{RESULTS.count(True)}/{len(RESULTS)} checks passed")
     sys.exit(0 if all(RESULTS) else 1)
 
 

@@ -116,7 +116,7 @@ class Probe(ClientXMPP):
             if not match:
                 print("      -> Conversations verwirft die Caps bei Hash-Abweichung komplett!")
         else:
-            print("\nFAIL  Praesenz traegt gar keine Caps")
+            print("\nFAIL  the presence carries no caps at all")
             ok = False
 
         print(f"\n{'ALLES GUT: Conversations sieht die Anruf-Faehigkeiten' if ok else 'PROBLEM GEFUNDEN'}")

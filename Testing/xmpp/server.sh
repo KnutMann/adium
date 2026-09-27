@@ -33,7 +33,7 @@ ACCOUNTS=(adium peer admin)
 start() {
 	docker build -q -t "$IMAGE" . >/dev/null
 	if docker ps --format '{{.Names}}' | grep -qx "$CONTAINER"; then
-		echo "$CONTAINER läuft bereits"
+		echo "$CONTAINER is already running"
 	else
 		docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 		docker run -d --name "$CONTAINER" \
@@ -42,7 +42,7 @@ start() {
 			-v "$VOLUME":/var/lib/prosody \
 			-v "$CERT_VOLUME":/etc/prosody/certs \
 			"$IMAGE" >/dev/null
-		echo "$CONTAINER gestartet (localhost:5222, Upload auf 5281)"
+		echo "$CONTAINER started (localhost:5222, upload on 5281)"
 	fi
 
 	# Wait for the server to accept commands, then make sure the accounts exist.
@@ -55,25 +55,25 @@ start() {
 
 	for user in "${ACCOUNTS[@]}"; do
 		if docker exec "$CONTAINER" prosodyctl register "$user" localhost "$user-pw" >/dev/null 2>&1; then
-			echo "Konto angelegt: $user@localhost (Passwort: $user-pw)"
+			echo "Account created: $user@localhost (password: $user-pw)"
 		fi
 	done
 }
 
 stop() {
-	docker rm -f "$CONTAINER" >/dev/null 2>&1 && echo "$CONTAINER gestoppt" || echo "$CONTAINER lief nicht"
+	docker rm -f "$CONTAINER" >/dev/null 2>&1 && echo "$CONTAINER stopped" || echo "$CONTAINER was not running"
 }
 
 status() {
 	if docker ps --format '{{.Names}}' | grep -qx "$CONTAINER"; then
-		docker ps --filter "name=$CONTAINER" --format 'läuft seit {{.RunningFor}} — Ports {{.Ports}}'
+		docker ps --filter "name=$CONTAINER" --format 'running for {{.RunningFor}}, ports {{.Ports}}'
 		for user in "${ACCOUNTS[@]}"; do
 			if docker exec "$CONTAINER" test -e "/var/lib/prosody/localhost/accounts/$user.dat"; then
-				echo "Konto: $user@localhost"
+				echo "Account: $user@localhost"
 			fi
 		done
 	else
-		echo "$CONTAINER läuft nicht"
+		echo "$CONTAINER is not running"
 	fi
 }
 
@@ -84,7 +84,7 @@ logs() {
 reset() {
 	stop
 	docker volume rm "$VOLUME" "$CERT_VOLUME" >/dev/null 2>&1 || true
-	echo "Datenvolumes gelöscht"
+	echo "Data volumes deleted"
 }
 
 selftest() {
@@ -98,7 +98,7 @@ CERT_FILE="${TMPDIR:-/tmp}/adium-xmpp-localhost.crt"
 fetch_certificate() {
 	start
 	docker exec "$CONTAINER" cat /etc/prosody/certs/localhost.crt > "$CERT_FILE"
-	[ -s "$CERT_FILE" ] || { echo "Zertifikat nicht gefunden"; exit 1; }
+	[ -s "$CERT_FILE" ] || { echo "Certificate not found"; exit 1; }
 }
 
 # Uploads from Adium go over HTTPS, and a self-signed certificate is refused like any other
@@ -108,17 +108,17 @@ fetch_certificate() {
 # are involved and "untrust" undoes it completely.
 trust() {
 	fetch_certificate
-	echo "Zertifikat: $CERT_FILE"
+	echo "Certificate: $CERT_FILE"
 	security add-trusted-cert -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" "$CERT_FILE"
-	echo "localhost wird jetzt vertraut. Adium neu starten, damit es die Änderung sieht."
-	echo "Rückgängig: ./server.sh untrust"
+	echo "localhost is trusted now. Restart Adium so it sees the change."
+	echo "To undo: ./server.sh untrust"
 }
 
 untrust() {
 	fetch_certificate
 	security remove-trusted-cert "$CERT_FILE" 2>/dev/null || true
 	security delete-certificate -c localhost "$HOME/Library/Keychains/login.keychain-db" 2>/dev/null || true
-	echo "Vertrauen für localhost entfernt."
+	echo "Trust for localhost removed."
 }
 
 # Two accounts that have never been introduced are strangers to each other, and a stranger's

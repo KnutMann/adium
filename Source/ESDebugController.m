@@ -165,12 +165,12 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 {
 	NSArray *listViews = [AIListOutlineView ai_listViewsOnScreen];
 	if (!listViews.count) {
-		AILogWithSignature(@"Keine Kontaktliste auf dem Bildschirm zu vermessen");
+		AILogWithSignature(@"No contact list on screen to measure");
 		return;
 	}
 
 	for (AIListOutlineView *listView in listViews)
-		[listView ai_logProbeAlways:@"von Hand aus dem Menue"];
+		[listView ai_logProbeAlways:@"by hand from the menu"];
 
 	[ESDebugWindowController showDebugWindow];
 }
@@ -185,7 +185,7 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 - (void)redrawContactList:(id)sender
 {
 	for (AIListOutlineView *listView in [AIListOutlineView ai_listViewsOnScreen]) {
-		[listView ai_logProbeAlways:@"vor dem Neuzeichnen von Hand"];
+		[listView ai_logProbeAlways:@"before redrawing by hand"];
 		[listView.window display];
 	}
 }
@@ -286,11 +286,11 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 		NSString *stamp = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildStamp"];
 		NSString *commit = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"AIBuildCommit"];
 
-		[debugLogFile writeData:[[NSString stringWithFormat:@"Opened debug log at %@\nAdium %@, gebaut %@ aus %@\n",
+		[debugLogFile writeData:[[NSString stringWithFormat:@"Opened debug log at %@\nAdium %@, built %@ from %@\n",
 								  date,
 								  [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"?",
-								  stamp ?: @"(ohne Stempel)",
-								  commit ?: @"(ohne Stempel)"] dataUsingEncoding:NSUTF8StringEncoding]];
+								  stamp ?: @"(unstamped)",
+								  commit ?: @"(unstamped)"] dataUsingEncoding:NSUTF8StringEncoding]];
 	}
 
 	return debugLogFile;

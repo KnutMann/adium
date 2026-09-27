@@ -2,10 +2,9 @@
 #
 # Photographs the contact list appearance editor without running Adium.
 #
-# Der Editor fragt das Programm nur nach einer Sache, dem Einstellungsspeicher.
-# Ein Stellvertreter, der die Werte in einem Woerterbuch haelt, genuegt also,
-# um das ganze Fenster auf den Schirm zu bringen. Nichts an den echten
-# Einstellungen wird gelesen oder geschrieben.
+# The editor asks the program for one thing only, the preference store. A
+# stand-in holding the values in a dictionary is therefore enough to put the
+# whole window on screen. Nothing of the real settings is read or written.
 #
 # Aufruf:  Testing/ui/editor/editor-shots.sh [Zielordner]
 
@@ -15,8 +14,8 @@ FWROOT="$ROOT/build/editor-shots-fw"
 
 mkdir -p "$OUT"
 
-# Nur das Geruest bauen, nicht die Anwendung: build/Debug/Adium.app ist das Ziel
-# des Symlinks in /Applications und laeuft womoeglich gerade.
+# Build the frameworks only, not the application: build/Debug/Adium.app is what
+# the symlink in /Applications points at, and it may be running right now.
 xcodebuild -project "$ROOT/Adium.xcodeproj" -target Adium.Framework -configuration Debug \
 	SYMROOT="$FWROOT" OBJROOT="$FWROOT/Intermediates" build > "$FWROOT.log" 2>&1 || {
 		echo "Bau des Geruests fehlgeschlagen, siehe $FWROOT.log" >&2

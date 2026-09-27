@@ -21,7 +21,7 @@ SOURCE=picomemo
 LIBRARY="$SOURCE/o/libpicomemo.a"
 
 if [ -f "$LIBRARY" ] && [ "$(git -C "$SOURCE" rev-parse HEAD 2>/dev/null)" = "$REVISION" ]; then
-	echo "picomemo ($REVISION) liegt schon gebaut da"
+	echo "picomemo ($REVISION) is already built"
 	exit 0
 fi
 
@@ -33,11 +33,11 @@ git -C "$SOURCE" checkout -q "$REVISION"
 
 SSL="$(brew --prefix openssl@3 2>/dev/null || echo /opt/homebrew/opt/openssl@3)"
 [ -f "$SSL/include/openssl/evp.h" ] || {
-	echo "OpenSSL 3 Kopfdateien fehlen; erwartet unter $SSL"; exit 1; }
+	echo "OpenSSL 3 headers are missing; expected under $SSL"; exit 1; }
 
 # Only the static library: the shared one wants GNU ld's -soname, which macOS spells
 # differently, and embedding a static library is what we want anyway.
 cd "$SOURCE"
 DRIVERS="c25519.c openssl.c" CFLAGS="-O2 -I$SSL/include" make o/libpicomemo.a >/dev/null
 
-echo "picomemo ($REVISION) gebaut: $(cd .. && ls -lh "$LIBRARY" | awk '{print $5}'), $(lipo -info o/libpicomemo.a | sed 's/.*: //')"
+echo "picomemo ($REVISION) built: $(cd .. && ls -lh "$LIBRARY" | awk '{print $5}'), $(lipo -info o/libpicomemo.a | sed 's/.*: //')"

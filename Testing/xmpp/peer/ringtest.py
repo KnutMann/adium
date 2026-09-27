@@ -73,7 +73,7 @@ def main():
         outcome = loop.run_until_complete(asyncio.wait_for(probe.finished, 90))
         print(f"{stamp()} Ausgang: {outcome}")
     except asyncio.TimeoutError:
-        print(f"{stamp()} Keine Antwort binnen 90s")
+        print(f"{stamp()} No answer within 90s")
     probe.disconnect()
 
 

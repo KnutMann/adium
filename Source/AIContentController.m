@@ -609,7 +609,7 @@
 		 * message is one character, the one that stands in for it. That character is
 		 * then the whole of what is sent. Reported as an empty message arriving with
 		 * two ticks, and the forwarded copy of one had exactly that character in it. */
-		AILogWithSignature(@"Keine Dateisendung fuer %@: Gruppe=%d Ziel=%@ (%@) erlaubt=%d",
+		AILogWithSignature(@"No file send for %@: group=%d target=%@ (%@) allowed=%d",
 						   messageChat,
 						   (int)groupChatFileSend,
 						   inContentMessage.destination,

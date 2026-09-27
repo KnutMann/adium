@@ -726,7 +726,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 		 * but never when the other side woke up, and that is the whole question
 		 * when a call takes eight seconds to find a path it had all along. */
 		AILogWithSignature(@"checking %+.2fs:\n%@", -[self->startedAt timeIntervalSinceNow],
-						   ([description length] ? description : @"(keine Paare)"));
+						   ([description length] ? description : @"(no pairs)"));
 
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
 					   dispatch_get_main_queue(), ^{
@@ -799,7 +799,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			 * the cost. The difference decides where to look next time. */
 			[self describePairsInto:^(NSString *description) {
 				AILogWithSignature(@"pairs at the moment of connecting:\n%@",
-								   ([description length] ? description : @"(keine)"));
+								   ([description length] ? description : @"(none)"));
 			}];
 
 			//The peer's video track, if any, from the live receivers
@@ -812,7 +812,7 @@ static NSString *nameOfIceState(RTCIceConnectionState state)
 			 * closed connection reports no pairs at all, which reads as if none were
 			 * ever tried. */
 			AILogWithSignature(@"ICE gave up; last seen pairs:\n%@",
-							   ([self->lastPairSnapshot length] ? self->lastPairSnapshot : @"(keine)"));
+							   ([self->lastPairSnapshot length] ? self->lastPairSnapshot : @"(none)"));
 			[self failWith:@"connectivity-error"];
 		}
 	});

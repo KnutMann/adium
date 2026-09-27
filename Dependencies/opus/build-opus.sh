@@ -32,7 +32,7 @@ mkdir -p "$SOURCE" "$TARGET/lib" "$TARGET/include"
 export MACOSX_DEPLOYMENT_TARGET="$(sed -n 's/^MACOSX_DEPLOYMENT_TARGET *= *//p' \
 	"$ROOT/Frameworks/AIUtilities/xcconfigs/Base.xcconfig" | head -1)"
 : "${MACOSX_DEPLOYMENT_TARGET:=12.0}"
-echo "gebaut fuer macOS $MACOSX_DEPLOYMENT_TARGET aufwaerts"
+echo "built for macOS $MACOSX_DEPLOYMENT_TARGET and later"
 
 build_xiph () {
 	local name="$1" version="$2" url="$3" checksum="$4"
@@ -42,23 +42,23 @@ build_xiph () {
 	local tree="$SOURCE/$name-$version"
 
 	if [ ! -f "$archive" ]; then
-		echo "==> $name $version wird geladen"
+		echo "==> Fetching $name $version"
 		curl -sfL -o "$archive.part" "$url"
 		mv "$archive.part" "$archive"
 	fi
 
 	local got="$(shasum -a 256 "$archive" | awk '{print $1}')"
 	if [ "$got" != "$checksum" ]; then
-		echo "error: $name-$version.tar.gz hat die Pruefsumme $got, erwartet war $checksum." >&2
-		echo "       Das Archiv wurde nicht ausgepackt. Loeschen und erneut versuchen, oder" >&2
-		echo "       die Pruefsumme hier nachziehen, wenn die Fassung absichtlich wechselt." >&2
+		echo "error: $name-$version.tar.gz has checksum $got, expected $checksum." >&2
+		echo "       The archive was not unpacked. Delete it and try again, or update the" >&2
+		echo "       checksum here if the version is meant to change." >&2
 		exit 1
 	fi
 
 	rm -rf "$tree"
 	tar -xzf "$archive" -C "$SOURCE"
 
-	echo "==> $name $version wird gebaut"
+	echo "==> Building $name $version"
 	(cd "$tree" && ./configure --prefix="$STAGE" "$@" >/dev/null && make -j"$(sysctl -n hw.ncpu)" >/dev/null && make install >/dev/null)
 }
 
@@ -79,4 +79,4 @@ rm -rf "$TARGET/include/ogg" "$TARGET/include/opus"
 cp "$STAGE/lib/libogg.a" "$STAGE/lib/libopus.a" "$TARGET/lib/"
 cp -R "$STAGE/include/ogg" "$STAGE/include/opus" "$TARGET/include/"
 
-echo "nach Frameworks/opus gelegt: $(lipo -info "$TARGET/lib/libopus.a" | sed 's/.*: //'), $(du -sh "$TARGET" | awk '{print $1}')"
+echo "placed in Frameworks/opus: $(lipo -info "$TARGET/lib/libopus.a" | sed 's/.*: //'), $(du -sh "$TARGET" | awk '{print $1}')"

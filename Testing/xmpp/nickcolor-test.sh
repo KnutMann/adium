@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 BUILT="$(cd ../.. && pwd)/build/Debug"
 [ -d "$BUILT/AIUtilities.framework" ] || {
-	echo "AIUtilities.framework fehlt, bitte zuerst das Projekt bauen."; exit 1; }
+	echo "AIUtilities.framework is missing; build the project first."; exit 1; }
 
 clang -fobjc-arc -framework Foundation -framework AppKit \
 	-F "$BUILT" -framework AIUtilities \

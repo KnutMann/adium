@@ -2674,7 +2674,7 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 		@" var id=%@, sender=%@, reactions=%@;"
 		@" var nodes=document.querySelectorAll('[data-x-adium-id]'), el=null;"
 		@" for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute('data-x-adium-id')===id){ el=nodes[i]; break; } }"
-		@" if(!el) return 'Ziel-id nicht im DOM ('+nodes.length+' mit id)';"
+		@" if(!el) return 'target id not in the DOM ('+nodes.length+' with an id)';"
 		@" var box=el.querySelector('.x-adium-reactions');"
 		@" if(!box){ box=document.createElement('span'); box.className='x-adium-reactions'; box.style.cssText='display:inline-block;margin-inline-start:0.4em;vertical-align:middle;'; el.appendChild(box); }"
 		@" var chips=box.querySelectorAll('.x-adium-reaction');"

@@ -76,7 +76,7 @@
 @property (readwrite, nonatomic, strong) NSMutableDictionary *seenFingerprints;	//"jid deviceid" -> fingerprint
 @property (readwrite, nonatomic, strong) NSDate *signedPreKeyCreated;
 
-//Gerufen aus den Rueckrufen der Bibliothek, siehe unten
+//Called from the library callbacks, see below
 - (int)takeSkippedKey:(struct omemo0MessageKey *)wanted;
 - (int)keepSkippedKey:(const struct omemo0MessageKey *)key;
 @end

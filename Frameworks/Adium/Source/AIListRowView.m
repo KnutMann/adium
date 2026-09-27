@@ -246,7 +246,7 @@
 
 	for (AIListRowView *row in rows) {
 		NSInteger index = [self rowForView:row];
-		NSString *held = row.proxyObject.cachedDisplayNameString ?: row.proxyObject.key ?: @"(nichts)";
+		NSString *held = row.proxyObject.cachedDisplayNameString ?: row.proxyObject.key ?: @"(nothing)";
 
 		/* A row on its way somewhere is not a row in the wrong place. The table
 		 * slides rows to their new spots when a group opens, and caught halfway
@@ -256,7 +256,7 @@
 		if (row.layer.animationKeys.count) continue;
 
 		if (index < 0 || index >= self.numberOfRows) {
-			[complaints appendFormat:@"    ohne Zeile, aber im Baum: \"%@\" bei %@\n",
+			[complaints appendFormat:@"    no row, but in the tree: \"%@\" at %@\n",
 			 held, NSStringFromRect(row.frame)];
 			count++;
 			continue;
@@ -266,12 +266,12 @@
 		NSRect wanted = [self rectOfRow:index];
 
 		if (item != row.proxyObject) {
-			[complaints appendFormat:@"    Zeile %ld haelt \"%@\", die Tabelle sagt \"%@\"\n",
-			 (long)index, held, item.cachedDisplayNameString ?: item.key ?: @"(nichts)"];
+			[complaints appendFormat:@"    row %ld holds \"%@\", the table says \"%@\"\n",
+			 (long)index, held, item.cachedDisplayNameString ?: item.key ?: @"(nothing)"];
 			count++;
 		}
 		if (!NSEqualRects(wanted, row.frame)) {
-			[complaints appendFormat:@"    Zeile %ld (\"%@\") steht bei %@, gehoert nach %@\n",
+			[complaints appendFormat:@"    row %ld (\"%@\") sits at %@, belongs at %@\n",
 			 (long)index, held, NSStringFromRect(row.frame), NSStringFromRect(wanted)];
 			count++;
 		}
@@ -286,7 +286,7 @@
 		for (NSUInteger j = i + 1; j < rows.count; j++) {
 			NSRect a = [rows[i] frame], b = [rows[j] frame];
 			if (!NSIsEmptyRect(a) && !NSIsEmptyRect(b) && NSIntersectsRect(a, b)) {
-				[complaints appendFormat:@"    zwei Zeilen uebereinander: %@ und %@\n",
+				[complaints appendFormat:@"    two rows on top of each other: %@ and %@\n",
 				 NSStringFromRect(a), NSStringFromRect(b)];
 				count++;
 			}
@@ -309,34 +309,34 @@
 	for (NSInteger index = 0; index < self.numberOfRows; index++) {
 		AIProxyListObject *item = [self itemAtRow:index];
 		AIListRowView *row = [viewForRow objectForKey:@(index)];
-		[everyRow appendFormat:@"    %2ld %-26.26s Tabelle %@  Ansicht %@%@\n",
+		[everyRow appendFormat:@"    %2ld %-26.26s table %@  view %@%@\n",
 		 (long)index,
-		 (item.cachedDisplayNameString ?: item.key ?: @"(nichts)").UTF8String,
+		 (item.cachedDisplayNameString ?: item.key ?: @"(nothing)").UTF8String,
 		 NSStringFromRect([self rectOfRow:index]),
-		 row ? NSStringFromRect(row.frame) : @"(keine)",
-		 (row && row.isHidden) ? @" versteckt" : @""];
+		 row ? NSStringFromRect(row.frame) : @"(none)",
+		 (row && row.isHidden) ? @" hidden" : @""];
 	}
 
 	AIListRowView *sample = rows.firstObject;
 	NSView *content = sample.subviews.firstObject;
 
-	NSMutableString *report = [NSMutableString stringWithFormat:@"Kontaktliste vermessen (%@)\n", occasion];
-	[report appendFormat:@"  Fenster: undurchsichtig=%d, Deckkraft=%.2f, am Hintergrund verschiebbar=%d\n",
+	NSMutableString *report = [NSMutableString stringWithFormat:@"Contact list measured (%@)\n", occasion];
+	[report appendFormat:@"  Window: opaque=%d, alpha=%.2f, movable by background=%d\n",
 	 (int)window.isOpaque, window.alphaValue, (int)window.movableByWindowBackground];
-	[report appendFormat:@"  Tabelle: %@ sichtbar %@, %ld Zeilen, Schicht=%d\n",
+	[report appendFormat:@"  Table: %@ visible %@, %ld rows, layer=%d\n",
 	 NSStringFromRect(self.frame), NSStringFromRect(self.visibleRect),
 	 (long)self.numberOfRows, (int)(self.layer != nil)];
-	[report appendFormat:@"  Zeilenansichten im Baum: %lu, Schicht Zeile=%d Inhalt=%d\n",
+	[report appendFormat:@"  Row views in the tree: %lu, layer row=%d content=%d\n",
 	 (unsigned long)rows.count, (int)(sample.layer != nil), (int)(content.layer != nil)];
 
-	[report appendFormat:@"  Zellenhoehen jetzt: Gruppe %.2f, Kontakt %.2f\n",
+	[report appendFormat:@"  Cell heights right now: group %.2f, contact %.2f\n",
 	 [[self groupCell] cellSize].height, [[self contentCell] cellSize].height];
-	[report appendFormat:@"  Alle Zeilen:\n%@", everyRow];
+	[report appendFormat:@"  Every row:\n%@", everyRow];
 
 	if (count) {
-		[report appendFormat:@"  %lu Beanstandungen:\n%@", (unsigned long)count, complaints];
+		[report appendFormat:@"  %lu complaints:\n%@", (unsigned long)count, complaints];
 	} else {
-		[report appendString:@"  Alle Zeilen sitzen richtig und halten das Richtige.\n"];
+		[report appendString:@"  Every row sits right and holds the right thing.\n"];
 	}
 
 	return report;
@@ -381,9 +381,9 @@
 	/* The overlap was reported to stand for about a second and then go away by
 	 * itself, so these two say whether it healed, and they are coalesced: the
 	 * strings are fixed so the earlier request can be called off. */
-	static NSString * const soon = @"kurz nach der letzten Aenderung";
-	static NSString * const later = @"eine Sekunde nach der letzten Aenderung";
-	static NSString * const settled = @"lange nach der letzten Aenderung, nichts bewegt sich mehr";
+	static NSString * const soon = @"shortly after the last change";
+	static NSString * const later = @"a second after the last change";
+	static NSString * const settled = @"long after the last change, nothing is moving any more";
 
 	for (NSString *when in @[soon, later, settled])
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ai_logProbeIfWrong:) object:when];

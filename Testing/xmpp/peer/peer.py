@@ -39,7 +39,7 @@ class Peer(ClientXMPP):
     async def on_start(self, event):
         self.send_presence()
         await self.get_roster()
-        print("peer@localhost verbunden, wartet auf Nachrichten (Ctrl-C beendet)")
+        print("peer@localhost connected, waiting for messages (Ctrl-C ends it)")
 
     def on_message(self, msg):
         if msg["type"] not in ("chat", "normal"):
@@ -47,7 +47,7 @@ class Peer(ClientXMPP):
         # XEP-0308: a message that names an earlier one instead of standing on its own
         replace = msg.xml.find("{urn:xmpp:message-correct:0}replace")
         if replace is not None:
-            print(f"< {msg['from']} KORRIGIERT {replace.get('id')}: {msg['body']}")
+            print(f"< {msg['from']} CORRECTS {replace.get('id')}: {msg['body']}")
         else:
             print(f"< {msg['from']} (id={msg['id']}): {msg['body']}")
         if self.echo and msg["body"]:
@@ -101,18 +101,18 @@ class Corrector(ClientXMPP):
         first_id = first["id"]
         if not self.only_correction:
             first.send()
-            print(f"gesendet   id={first_id}: {self.first}")
+            print(f"sent       id={first_id}: {self.first}")
             await asyncio.sleep(self.delay)
         else:
-            first_id = "nie-gesendet-" + first_id
-            print(f"uebersprungen, korrigiert wird die unbekannte id {first_id}")
+            first_id = "never-sent-" + first_id
+            print(f"skipped, the correction points at the unknown id {first_id}")
 
         second = self.make_message(mto=self.to, mbody=self.second, mtype="chat")
         replace = ET.Element("{urn:xmpp:message-correct:0}replace")
         replace.set("id", first_id)
         second.append(replace)
         second.send()
-        print(f"korrigiert id={first_id} -> {self.second}")
+        print(f"corrected  id={first_id} -> {self.second}")
 
         await asyncio.sleep(0.5)
         self.disconnect()
@@ -141,8 +141,8 @@ class SecondDevice(ClientXMPP):
         self.send_presence()
         await self.get_roster()
         await self["xep_0280"].enable()
-        print("Zweitgerät auf adium@localhost verbunden, Carbons aktiv")
-        print("Eingetippte Zeilen gehen als Nachricht an peer@localhost")
+        print("Second device on adium@localhost connected, carbons enabled")
+        print("Typed lines go to peer@localhost as a message")
         asyncio.get_event_loop().add_reader(0, self.read_stdin)
 
     def read_stdin(self):
@@ -153,11 +153,11 @@ class SecondDevice(ClientXMPP):
 
     def on_carbon_sent(self, msg):
         fwd = msg["carbon_sent"]
-        print(f"[carbon, anderes Gerät sandte] an {fwd['to']}: {fwd['body']}")
+        print(f"[carbon, the other device sent] to {fwd['to']}: {fwd['body']}")
 
     def on_carbon_received(self, msg):
         fwd = msg["carbon_received"]
-        print(f"[carbon, anderes Gerät empfing] von {fwd['from']}: {fwd['body']}")
+        print(f"[carbon, the other device received] from {fwd['from']}: {fwd['body']}")
 
     def on_message(self, msg):
         if msg["type"] in ("chat", "normal") and msg["body"]:
@@ -192,55 +192,55 @@ class BookmarkTool(ClientXMPP):
                            + "</conference>")
                 await self["xep_0060"].publish("adium@localhost", node,
                                                id=self.room, payload=ET.fromstring(payload))
-                print(f"Lesezeichen gesetzt: {self.room} (autojoin={self.autojoin})")
+                print(f"Bookmark set: {self.room} (autojoin={self.autojoin})")
             elif self.action == "remove":
                 await self["xep_0060"].retract("adium@localhost", node, self.room, notify=True)
-                print(f"Lesezeichen entfernt: {self.room}")
+                print(f"Bookmark removed: {self.room}")
             elif self.action == "list":
                 items = await self["xep_0060"].get_items("adium@localhost", node)
                 found = list(items["pubsub"]["items"])
                 if not found:
-                    print("Keine Lesezeichen auf dem Server")
+                    print("No bookmarks on the server")
                 for item in found:
-                    print(f"  {item['id']}: {ET.tostring(item['payload'], encoding='unicode') if item['payload'] is not None else '(leer)'}")
+                    print(f"  {item['id']}: {ET.tostring(item['payload'], encoding='unicode') if item['payload'] is not None else '(empty)'}")
         except Exception as e:
-            print(f"Fehler: {e}")
+            print(f"Error: {e}")
         finally:
             self.disconnect()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--verbose", action="store_true", help="XMPP-Verkehr mitloggen")
+    parser.add_argument("--verbose", action="store_true", help="log the XMPP traffic")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("echo", help="als peer@localhost alles beantworten")
-    sub.add_parser("listen", help="als peer@localhost nur mitlesen")
+    sub.add_parser("echo", help="answer everything as peer@localhost")
+    sub.add_parser("listen", help="only listen in as peer@localhost")
 
-    p_send = sub.add_parser("send", help="eine Nachricht senden")
+    p_send = sub.add_parser("send", help="send one message")
     p_send.add_argument("body")
     p_send.add_argument("--to", default="adium@localhost")
-    p_send.add_argument("--account", default="peer", help="absendendes Konto (Standard: peer)")
+    p_send.add_argument("--account", default="peer", help="the sending account (default: peer)")
 
-    p_corr = sub.add_parser("correct", help="etwas sagen und es dann anders sagen (XEP-0308)")
-    p_corr.add_argument("first", nargs="?", default="Wir treffen uns um sieben")
-    p_corr.add_argument("second", nargs="?", default="Wir treffen uns um acht")
+    p_corr = sub.add_parser("correct", help="say something and then say it differently (XEP-0308)")
+    p_corr.add_argument("first", nargs="?", default="We are meeting at seven")
+    p_corr.add_argument("second", nargs="?", default="We are meeting at eight")
     p_corr.add_argument("--to", default="adium@localhost")
     p_corr.add_argument("--account", default="peer")
     p_corr.add_argument("--only-correction", action="store_true",
-                        help="nur die Korrektur senden, ohne das Original")
+                        help="send only the correction, without the original")
     p_corr.add_argument("--delay", type=float, default=2.0,
-                        help="Sekunden zwischen Nachricht und Korrektur")
+                        help="seconds between the message and the correction")
 
-    sub.add_parser("second-device", help="als Zweitgerät auf dem adium-Konto sitzen")
+    sub.add_parser("second-device", help="sit on the adium account as a second device")
 
-    p_bm = sub.add_parser("bookmark", help="Server-Lesezeichen des adium-Kontos bearbeiten")
+    p_bm = sub.add_parser("bookmark", help="edit the server bookmarks of the adium account")
     p_bm.add_argument("action", choices=["add", "remove", "list"])
-    p_bm.add_argument("room", nargs="?", default="testraum",
-                      help="Raum (ohne @ wird @conference.localhost angehängt)")
-    p_bm.add_argument("--name", help="Anzeigename des Lesezeichens")
+    p_bm.add_argument("room", nargs="?", default="testroom",
+                      help="room (without an @, @conference.localhost is appended)")
+    p_bm.add_argument("--name", help="display name of the bookmark")
     p_bm.add_argument("--autojoin", action="store_true")
-    p_bm.add_argument("--nick", help="Spitzname im Raum")
+    p_bm.add_argument("--nick", help="nickname in the room")
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING,

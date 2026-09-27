@@ -67,7 +67,7 @@ class Sender(ClientXMPP):
 
 async def main():
     if len(sys.argv) < 2:
-        print("Aufruf: sendfile.py <datei> [--timeout SEKUNDEN]")
+        print("Usage: sendfile.py <file> [--timeout SECONDS]")
         return 2
     path = sys.argv[1]
     timeout = 300

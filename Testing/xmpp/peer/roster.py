@@ -65,7 +65,7 @@ def main():
     try:
         asyncio.run(asyncio.wait_for(run(), 40))
     except asyncio.TimeoutError:
-        print("FEHLSCHLAG: die Konten haben sich nicht rechtzeitig vorgestellt")
+        print("FAILED: the accounts did not introduce themselves in time")
         sys.exit(1)
 
     print("adium@localhost und peer@localhost stehen jetzt auf der Liste des jeweils anderen.")

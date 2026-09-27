@@ -47,10 +47,6 @@ modules_enabled = {
 -- pick it up again instead of signing in anew. Ten minutes is Prosody's own
 -- default and the figure to develop against; the short value below it is what a
 -- test uses when it wants the expiry itself to happen while somebody is watching.
--- Wie lange der Server eine abgerissene Sitzung beiseitelegt. Kurz gehalten, damit beide
--- Seiten der Wiederaufnahme pruefbar sind: wer innerhalb der Zeit zurueckkommt, bekommt sie,
--- wer spaeter kommt, bekommt ein <failed/> und muss neu binden. Mit den zehn Minuten, die
--- hier vorher standen, laesst sich der zweite Fall nicht in einem Testlauf herbeifuehren.
 smacks_hibernation_time = 20
 
 -- The upload slots must name https addresses: Adium refuses plain http ones.

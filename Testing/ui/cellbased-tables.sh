@@ -1,11 +1,11 @@
 #!/bin/zsh
-# Alle Tabellen, die noch auf dem zellbasierten Modell laufen, mit dem, was den Umbau
-# schwer oder leicht macht: ob die Tabelle aus einem XIB oder aus Code kommt, ob es ein
-# Outline ist, ob eigene Zellen zeichnen, ob bearbeitet oder gezogen wird. Sortiert nach
-# Aufwand, die leichtesten zuerst. Zellen, die nicht im Code, sondern im XIB stecken
-# (Ankreuzfelder, Bilder, Aufklappmenues), werden ueber das XIB der Klasse mitgezaehlt.
+# Every table still running on the cell based model, with what makes converting it hard
+# or easy: whether the table comes from a XIB or from code, whether it is an outline,
+# whether cells of its own do the drawing, whether it is edited or dragged. Sorted by
+# effort, the easiest first. Cells that sit in the XIB rather than in the code, such as
+# checkboxes, images and pop up menus, are counted through the class's XIB.
 cd "$(dirname "$0")/../.."
-printf "%-4s %-52s %-5s %-4s %-5s %-4s %-4s %-6s\n" "Pkt" "Datei" "Quelle" "Outl" "Zelle" "Edit" "Drag" "Streif"
+printf "%-4s %-52s %-5s %-4s %-5s %-4s %-4s %-6s\n" "Pts" "File" "Source" "Outl" "Cell" "Edit" "Drag" "Stripe"
 command grep -rl "objectValueForTableColumn" --include="*.m" Source Plugins Frameworks/Adium Frameworks/AIUtilities \
 | while read f; do
 	base=$(basename "$f" .m)

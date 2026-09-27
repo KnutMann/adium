@@ -73,9 +73,9 @@ async def run_checks():
 
     try:
         await asyncio.wait_for(asyncio.gather(adium.ready, phone.ready, peer.ready), 10)
-        report("Anmeldung aller drei Testsitzungen", True)
+        report("All three test sessions sign in", True)
     except asyncio.TimeoutError:
-        report("Anmeldung aller drei Testsitzungen", False, "Timeout beim Verbinden")
+        report("All three test sessions sign in", False, "timed out while connecting")
         return
 
     # 1. Plain roundtrip: peer -> adium
@@ -83,9 +83,9 @@ async def run_checks():
     peer.send_message(mto="adium@localhost", mbody=marker, mtype="chat")
     try:
         sender, body = await expect(adium.inbox)
-        report("Nachrichtenzustellung peer → adium", body == marker, body)
+        report("Message delivery peer to adium", body == marker, body)
     except asyncio.TimeoutError:
-        report("Nachrichtenzustellung peer → adium", False, "nichts angekommen")
+        report("Message delivery peer to adium", False, "nothing arrived")
 
     # 2. Carbons: desktop enables them; phone sends; desktop must see the copy
     try:
@@ -93,11 +93,11 @@ async def run_checks():
         marker = f"carbon-{uuid.uuid4().hex[:8]}"
         phone.send_message(mto="peer@localhost", mbody=marker, mtype="chat")
         to, body = await expect(adium.carbons)
-        report("Carbons (XEP-0280): Kopie der Zweitgerät-Nachricht", body == marker, body)
+        report("Carbons (XEP-0280): copy of the second device's message", body == marker, body)
     except asyncio.TimeoutError:
-        report("Carbons (XEP-0280): Kopie der Zweitgerät-Nachricht", False, "keine Kopie angekommen")
+        report("Carbons (XEP-0280): copy of the second device's message", False, "no copy arrived")
     except Exception as e:
-        report("Carbons (XEP-0280): Kopie der Zweitgerät-Nachricht", False, str(e))
+        report("Carbons (XEP-0280): copy of the second device's message", False, str(e))
 
     # 3. MAM: the carbon marker must be in the archive
     try:
@@ -107,33 +107,33 @@ async def run_checks():
             for msg in rsm["mam"]["results"]:
                 if marker in (msg["mam_result"]["forwarded"]["stanza"]["body"] or ""):
                     found = True
-        report("Archiv (XEP-0313 MAM): Nachricht wiedergefunden", found)
+        report("Archive (XEP-0313 MAM): message found again", found)
     except Exception as e:
-        report("Archiv (XEP-0313 MAM): Nachricht wiedergefunden", False, str(e))
+        report("Archive (XEP-0313 MAM): message found again", False, str(e))
 
     # 4. CSI: send inactive/active nonzas; the stream has to survive a ping after
     try:
         for state in ("inactive", "active"):
             adium.send_raw(f"<{state} xmlns='urn:xmpp:csi:0'/>")
         await adium["xep_0030"].get_info(jid="localhost")
-        report("CSI (XEP-0352): Zustandswechsel ohne Streamabbruch", True)
+        report("CSI (XEP-0352): state change without losing the stream", True)
     except Exception as e:
-        report("CSI (XEP-0352): Zustandswechsel ohne Streamabbruch", False, str(e))
+        report("CSI (XEP-0352): state change without losing the stream", False, str(e))
 
     # 5. PEP native bookmarks (XEP-0402 storage node): publish and read back
     try:
         node = "urn:xmpp:bookmarks:1"
         room = f"test-{uuid.uuid4().hex[:6]}@conference.localhost"
-        payload = (f"<conference xmlns='{node}' name='Selftest-Raum' autojoin='false'>"
+        payload = (f"<conference xmlns='{node}' name='Selftest room' autojoin='false'>"
                    f"<nick>adium</nick></conference>")
         from slixmpp.xmlstream import ET
         await adium["xep_0060"].publish("adium@localhost", node,
                                         id=room, payload=ET.fromstring(payload))
         items = await adium["xep_0060"].get_items("adium@localhost", node)
         ids = [item["id"] for item in items["pubsub"]["items"]]
-        report("Bookmarks (XEP-0402): PEP-Knoten beschreib- und lesbar", room in ids)
+        report("Bookmarks (XEP-0402): PEP node can be written to and read", room in ids)
     except Exception as e:
-        report("Bookmarks (XEP-0402): PEP-Knoten beschreib- und lesbar", False, str(e))
+        report("Bookmarks (XEP-0402): PEP node can be written to and read", False, str(e))
 
     for client in (adium, phone, peer):
         client.disconnect()
@@ -142,7 +142,7 @@ async def run_checks():
 
 def main():
     asyncio.get_event_loop().run_until_complete(run_checks())
-    print(f"\n{RESULTS.count(True)}/{len(RESULTS)} Prüfungen bestanden")
+    print(f"\n{RESULTS.count(True)}/{len(RESULTS)} checks passed")
     sys.exit(0 if all(RESULTS) else 1)
 
 

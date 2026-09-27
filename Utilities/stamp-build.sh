@@ -20,7 +20,7 @@ if hash=$(git -C "$SRCROOT" rev-parse --short HEAD 2>/dev/null); then
 		hash="$hash+"
 	fi
 else
-	hash="ohne git"
+	hash="no git"
 fi
 
 /usr/libexec/PlistBuddy -c "Delete :AIBuildStamp" "$PLIST" 2>/dev/null || true
@@ -28,4 +28,4 @@ fi
 /usr/libexec/PlistBuddy -c "Delete :AIBuildCommit" "$PLIST" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :AIBuildCommit string $hash" "$PLIST"
 
-echo "note: gebaut $stamp aus $hash"
+echo "note: built $stamp from $hash"

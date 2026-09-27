@@ -16,7 +16,7 @@ URL="https://github.com/stasel/WebRTC/releases/download/$VERSION/$ARCHIVE"
 CHECKSUM="3e3a8946f27510133e3feed04d05fa23505bbe366e977620503bfc7986c2b78f"
 
 if [ -d WebRTC.xcframework ]; then
-	echo "WebRTC.xcframework liegt schon da"
+	echo "WebRTC.xcframework is already here"
 	exit 0
 fi
 

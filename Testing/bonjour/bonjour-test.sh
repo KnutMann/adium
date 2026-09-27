@@ -1,17 +1,16 @@
 #!/bin/zsh
-# Zwei Nachbarn auf einer Maschine: einer wartet, einer schickt einen Gruss.
+# Two neighbours on one machine: one waits, one sends a greeting.
 #
-# Beweist gegen das echte mDNSResponder dieses Rechners, dass prpl-bonjour sich anmeldet,
-# den anderen findet und eine Nachricht zustellt, ohne dass die laufende Anwendung oder
-# ein zweiter Rechner gebraucht wird. Baut wie smwire.sh gegen die ad hoc signierten
-# Frameworks der Anwendung.
+# Proves against this machine's own mDNSResponder that prpl-bonjour signs on, finds the
+# other and delivers a message, without needing the running application or a second
+# machine. Builds against the application's ad hoc signed frameworks, as smwire.sh does.
 #
-# Die Namen und Ports sind mit Bedacht welche, die sonst niemand hat. Auf dieser Maschine
-# laeuft im Normalfall auch das richtige Adium mit einem Bonjour-Konto: das haelt Port 5298
-# besetzt, und wenn ein Nachbar hier so heisst wie das Konto dort, tauft mDNS ihn auf
-# "name (2)" um, waehrend sein XMPP-Stream weiter den alten Namen nennt. Der Empfaenger
-# findet dann keinen Nachbarn dieses Namens und legt auf. Genau so sah der Fehlschlag vom
-# 24.09.2026 aus.
+# The names and ports are deliberately ones nobody else has. The real Adium normally runs
+# on this machine with a Bonjour account of its own: that holds port 5298, and if a
+# neighbour here carries the same name as the account there, mDNS renames it to
+# "name (2)" while its XMPP stream goes on giving the old name. The receiver then finds
+# no neighbour of that name and hangs up. That is exactly what the failure of
+# 2026-09-24 looked like.
 set -e
 cd "$(dirname "$0")"
 
@@ -26,7 +25,7 @@ if [ ! -d "$HARNESS/Frameworks" ]; then
 fi
 mkdir -p "$HARNESS/bin"
 
-# libpurple jedes Mal auffrischen: gemessen wird, was eben gebaut wurde.
+# Refresh libpurple every time: what is measured is what was just built.
 cp "$ROOT/Frameworks/libpurple.framework/Versions/0/libpurple" \
    "$HARNESS/Frameworks/libpurple.framework/Versions/0/libpurple"
 codesign -f -s - "$HARNESS/Frameworks/libpurple.framework" >/dev/null 2>&1 || true
@@ -52,11 +51,11 @@ wait $SENDER || STATUS=1
 wait $WAITER || STATUS=1
 
 if [ $STATUS -eq 0 ]; then
-	echo "== beide Haelften bestanden: gefunden, geschickt, angekommen"
+	echo "== both halves passed: found, sent, arrived"
 else
-	echo "== FEHLSCHLAG, siehe Ausgabe oben"
-	echo "   Haeufigste Ursache: ein weiterer Bonjour-Teilnehmer auf dieser Maschine."
-	echo "   Steht oben ein Nachbar mit \"(2)\" im Namen, hat mDNS wegen einer Namensgleichheit"
-	echo "   umgetauft, und der Empfaenger kann den Absender nicht mehr zuordnen."
+	echo "== FAILED, see the output above"
+	echo "   Most common cause: another Bonjour participant on this machine."
+	echo "   If a neighbour above carries \"(2)\" in its name, mDNS renamed it because two"
+	echo "   carried the same one, and the receiver can no longer place the sender."
 fi
 exit $STATUS

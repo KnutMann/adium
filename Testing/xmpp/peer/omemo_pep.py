@@ -202,57 +202,57 @@ async def run():
     needed_reconfiguring = False
     try:
         await publisher.publish_device_list([OUR_DEVICE])
-        report("Eine Geraeteliste laesst sich veroeffentlichen", True)
+        report("A device list can be published", True)
     except Exception as problem:
         # The node may already exist with the wrong access model, and publish-options only
         # state a condition rather than changing it. Then the node has to be reconfigured.
         if "precondition-not-met" not in str(problem):
-            report("Eine Geraeteliste laesst sich veroeffentlichen", False, str(problem))
+            report("A device list can be published", False, str(problem))
             return
         needed_reconfiguring = True
         try:
             await publisher.make_node_open(NODE_DEVICELIST)
             await publisher.publish_device_list([OUR_DEVICE])
-            report("Ein Knoten mit falschem Zugriffsmodell laesst sich umstellen und dann beschreiben", True)
+            report("A node with the wrong access model can be reconfigured and then written to", True)
         except Exception as second:
-            report("Ein Knoten mit falschem Zugriffsmodell laesst sich umstellen und dann beschreiben",
+            report("A node with the wrong access model can be reconfigured and then written to",
                    False, str(second))
             return
 
     if not needed_reconfiguring:
-        report("Ein Knoten mit falschem Zugriffsmodell laesst sich umstellen und dann beschreiben",
-               True, "nicht noetig gewesen")
+        report("A node with the wrong access model can be reconfigured and then written to",
+               True, "was not necessary")
 
     try:
         answer = await reader.fetch_items("adium@localhost", NODE_DEVICELIST)
         found = devices_in(answer)
-        report("Ein fremdes Konto darf die Liste lesen", found is not None,
-               "kein list-Element" if found is None else "")
-        report("und findet die Geraetenummer darin", found == [OUR_DEVICE], str(found))
+        report("A stranger's account may read the list", found is not None,
+               "no list element" if found is None else "")
+        report("and finds the device number in it", found == [OUR_DEVICE], str(found))
     except Exception as problem:
-        report("Ein fremdes Konto darf die Liste lesen", False, str(problem))
+        report("A stranger's account may read the list", False, str(problem))
 
     # A bundle, whose node name carries the device number
     bundle_node = f"{NODE_BUNDLES}:{OUR_DEVICE}"
     try:
         await publisher.publish_bundle(OUR_DEVICE)
-        report("Ein Buendel laesst sich veroeffentlichen", True)
+        report("A bundle can be published", True)
     except Exception as problem:
         if "precondition-not-met" not in str(problem):
-            report("Ein Buendel laesst sich veroeffentlichen", False, str(problem))
+            report("A bundle can be published", False, str(problem))
             return
         try:
             await publisher.make_node_open(bundle_node)
             await publisher.publish_bundle(OUR_DEVICE)
-            report("Ein Buendel laesst sich veroeffentlichen", True, "nach Umstellung des Knotens")
+            report("A bundle can be published", True, "after reconfiguring the node")
         except Exception as second:
-            report("Ein Buendel laesst sich veroeffentlichen", False, str(second))
+            report("A bundle can be published", False, str(second))
             return
 
     try:
         answer = await reader.fetch_items("adium@localhost", f"{NODE_BUNDLES}:{OUR_DEVICE}")
         bundle = answer.find(".//{%s}bundle" % NS_OMEMO)
-        report("Ein fremdes Konto darf das Buendel lesen", bundle is not None)
+        report("A stranger's account may read the bundle", bundle is not None)
 
         if bundle is not None:
             identity = bundle.find("{%s}identityKey" % NS_OMEMO)
@@ -260,39 +260,39 @@ async def run():
             signature = bundle.find("{%s}signedPreKeySignature" % NS_OMEMO)
             prekeys = bundle.findall("{%s}prekeys/{%s}preKeyPublic" % (NS_OMEMO, NS_OMEMO))
 
-            report("Die Identitaet kommt in der Groesse zurueck, in der sie ging",
+            report("The identity comes back the size it went out",
                    identity is not None and len(base64.b64decode(identity.text)) == 33)
-            report("Der signierte Schluessel traegt seine Nummer",
+            report("The signed key carries its number",
                    signed is not None and signed.get("signedPreKeyId") == "1")
-            report("Die Unterschrift ist vierundsechzig Byte lang",
+            report("The signature is sixty four bytes long",
                    signature is not None and len(base64.b64decode(signature.text)) == 64)
-            report("Alle hundert Einmalschluessel sind da", len(prekeys) == 100,
-                   f"es waren {len(prekeys)}")
+            report("All one hundred one time keys are there", len(prekeys) == 100,
+                   f"there were {len(prekeys)}")
     except Exception as problem:
-        report("Ein fremdes Konto darf das Buendel lesen", False, str(problem))
+        report("A stranger's account may read the bundle", False, str(problem))
 
     # Publishing again replaces rather than adds
     try:
         await publisher.publish_device_list([OUR_DEVICE, ANOTHER_DEVICE])
         answer = await reader.fetch_items("adium@localhost", NODE_DEVICELIST)
         found = devices_in(answer)
-        report("Eine zweite Veroeffentlichung ersetzt die erste",
+        report("A second publication replaces the first",
                found is not None and sorted(found) == sorted([OUR_DEVICE, ANOTHER_DEVICE]),
                str(found))
 
         items = answer.findall(".//{%s}items/{%s}item" % (NS_PUBSUB, NS_PUBSUB))
-        report("und hinterlaesst genau einen Eintrag", len(items) == 1, f"es waren {len(items)}")
+        report("and leaves exactly one item behind", len(items) == 1, f"there were {len(items)}")
     except Exception as problem:
-        report("Eine zweite Veroeffentlichung ersetzt die erste", False, str(problem))
+        report("A second publication replaces the first", False, str(problem))
 
     # A node nobody has ever published to: the answer is an error, not an empty list,
     # and Adium has to read that as "this person does not do OMEMO" rather than as a failure
     try:
         await reader.fetch_items("admin@localhost", NODE_DEVICELIST)
-        report("Ein Konto ohne OMEMO antwortet ueberhaupt", True)
+        report("An account without OMEMO answers at all", True)
     except Exception as problem:
         kind = type(problem).__name__
-        report("Ein Konto ohne OMEMO antwortet mit einem Fehler, nicht mit Schweigen",
+        report("An account without OMEMO answers with an error, not with silence",
                "IqError" in kind or "item-not-found" in str(problem), f"{kind}: {problem}")
 
     publisher.disconnect()
@@ -303,10 +303,10 @@ def main():
     try:
         asyncio.run(asyncio.wait_for(run(), 60))
     except asyncio.TimeoutError:
-        report("Die Pruefung laeuft in der vorgesehenen Zeit durch", False, "Zeitueberschreitung")
+        report("The check runs through in the time allowed", False, "timed out")
 
     print()
-    print("ALLE PRUEFUNGEN BESTANDEN" if all(RESULTS) and RESULTS else "FEHLSCHLAEGE")
+    print("ALL CHECKS PASSED" if all(RESULTS) and RESULTS else "FAILURES")
     sys.exit(0 if all(RESULTS) and RESULTS else 1)
 
 
