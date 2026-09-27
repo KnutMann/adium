@@ -143,7 +143,12 @@ Reported the first evening this ran: a chat line reading
 Telegram sends that when somebody already in the address book starts using it. It is an ordinary
 thing to be told, not a gap in what this plug-in supports, and naming a wire type at a reader is
 no way to say it. It says "joined Telegram" now, after the sender's name, the way every other
-service message in this file is built.
+service message in this file is built, and only if the account asks for it.
+
+The asking is the point. Showing such a message opens a chat window by itself, which is a great
+deal of window for a piece of news nobody was waiting for, so the account setting **"Say when a
+contact joins Telegram" is off unless somebody turns it on**. Knowing is worth something; being
+interrupted for it is not, and a reader who wants it can say so once.
 
 **This one is worth offering upstream**, unlike the five API adaptations above: adrighem's master
 does not have it either, its table still lists messageContactRegistered among the types that fall
