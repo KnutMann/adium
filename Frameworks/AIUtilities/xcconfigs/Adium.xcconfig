@@ -12,5 +12,13 @@ FRAMEWORK_SEARCH_PATHS = $(inherited)
 INFOPLIST_OTHER_PREPROCESSOR_FLAGS = -C
 INFOPLIST_FILE = Resources/Info.plist
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
+// What the application asks the system for. The file has existed since 2019 and was attached
+// to nothing: a build setting for it was removed in 2020 over a signing problem with the
+// frameworks the dependency script builds, and nobody put it back. While the hardened runtime
+// is off it changes nothing that can be seen, because every entitlement in it is either a
+// sandbox entitlement and there is no sandbox, or a hardened runtime entitlement and there is
+// no hardened runtime. It matters the day either is switched on, and a file that promises
+// something the build never asked for is worse than no file.
+CODE_SIGN_ENTITLEMENTS = $(SRCROOT)/Adium.entitlements
 HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_3) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_4) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_6) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_7) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_jsxtras) $(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_opus)
 OTHER_LDFLAGS = -lexpat -framework UserNotifications "$(SRCROOT)/Frameworks/libgpgerror.framework/Versions/A/libgpgerror" "$(SRCROOT)/Frameworks/opus/lib/libopus.a" "$(SRCROOT)/Frameworks/opus/lib/libogg.a"

@@ -137,14 +137,19 @@ the rest would only make the set less coherent. Worth one pass over the whole di
 
 ## Not warnings, and still worth doing
 
-**Notarisation.** `Adium.entitlements` exists and is assigned to nothing:
-`CODE_SIGN_ENTITLEMENTS` appears nowhere in the project, and the built application carries only the
-automatic debug entitlement. Harmless while the hardened runtime is off, silently fatal the day it
-is turned on, because TCC then refuses without ever asking the user.
+**Notarisation.** `Adium.entitlements` was attached to nothing for five years.
+`CODE_SIGN_ENTITLEMENTS` was taken out of the project in December 2020 over a signing problem with
+the frameworks the dependency script builds, and nobody put it back, so the built application
+carried only the automatic debug entitlement. It is attached again, in
+`Frameworks/AIUtilities/xcconfigs/Adium.xcconfig`. What is still off is the hardened runtime
+itself, `ENABLE_HARDENED_RUNTIME = NO`, and that is the half that has to be tried rather than
+reasoned about: with it on, `com.apple.security.cs.disable-library-validation` is what decides
+whether the six Purple plug-ins still load, and the only way to know is to start the application.
 
-**Camera and microphone descriptions.** `Resources/Info.plist` has neither
-`NSCameraUsageDescription` nor `NSMicrophoneUsageDescription`. Any future call feature aborts on
-first use rather than asking.
+The usage descriptions this used to list as missing are there: `Resources/Info.plist` carries
+`NSCameraUsageDescription`, `NSMicrophoneUsageDescription`, `NSContactsUsageDescription`,
+`NSAppleEventsUsageDescription`, and for Bonjour `NSLocalNetworkUsageDescription` together with
+`NSBonjourServices`. They arrived with the calls and with Bonjour.
 
 **The XtrasCreator.** A standalone tool under `Other/XtrasCreator` with its own project, not
 built by the main one, and demonstrably barely used: packs it writes never had their author shown,
