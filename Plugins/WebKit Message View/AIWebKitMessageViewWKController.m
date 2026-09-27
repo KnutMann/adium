@@ -555,6 +555,28 @@ static NSString *const AIWKContextMenuScript =
 		@"    if (e.target && e.target.tagName && e.target.tagName.toLowerCase() == 'img') say('Bild da', e.target);"
 		@"  }, true);"
 		@"  window.addEventListener('scroll', function() { say('gescrollt', null); }, false);"
+		/* The load event never arrived for a single one of fourteen pictures, so
+		 * whatever makes the conversation taller is not that. This watches the
+		 * height itself, which cannot be missed whatever causes it to change. */
+		@"  if (window.ResizeObserver) {"
+		@"    var last = -1;"
+		@"    new ResizeObserver(function() {"
+		@"      if (document.body.scrollHeight != last) { last = document.body.scrollHeight; say('gewachsen', null); }"
+		@"    }).observe(document.body);"
+		@"  }"
+		/* And once, after everything has had its chance, what the pictures are:
+		 * whether they arrived, and how tall they turned out to be. */
+		@"  setTimeout(function() {"
+		@"    var done = 0, tall = 0;"
+		@"    for (var i = 0; i < document.images.length; i++) {"
+		@"      if (document.images[i].complete) done++;"
+		@"      tall += document.images[i].height;"
+		@"    }"
+		@"    window.webkit.messageHandlers.adium.postMessage({type:'scrolltrace', what:'Bilanz',"
+		@"      y:String(window.scrollY), h:String(window.innerHeight),"
+		@"      body:String(document.body.scrollHeight), off:String(done),"
+		@"      imgs:String(document.images.length), src:'zusammen ' + tall + ' Punkte hoch'});"
+		@"  }, 3000);"
 		@"  say('Seite bereit', null);"
 		@"})();"
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
@@ -915,7 +937,7 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 
 	if ([type isEqualToString:@"scrolltrace"]) {
 		if (AIDebugLoggingEnabled) {
-			AILogWithSignature(@"Ende der Unterhaltung: %@, y=%@ Fensterhoehe=%@ Inhalt=%@ (offset %@), %@ Bilder %@",
+			AILogWithSignature(@"Ende der Unterhaltung: %@, y=%@ Fensterhoehe=%@ Inhalt=%@ (%@), %@ Bilder %@",
 							   [body objectForKey:@"what"], [body objectForKey:@"y"], [body objectForKey:@"h"],
 							   [body objectForKey:@"body"], [body objectForKey:@"off"], [body objectForKey:@"imgs"],
 							   [body objectForKey:@"src"]);
