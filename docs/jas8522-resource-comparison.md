@@ -1,20 +1,20 @@
-# Vergleich externer Bildressourcen
+# Comparison of image resources with another fork
 
-Vergleich des lokalen Arbeitsstands **4b7539e68** (2026-08-17) mit [jas8522/adium](https://github.com/jas8522/adium) bei **6ff728a** (2021-03-10).
+The local working state **4b7539e68** (2026-08-17) compared with [jas8522/adium](https://github.com/jas8522/adium) at **6ff728a** (2021-03-10).
 
-Geprüft wurden PNG, TIFF/TIF, JPEG, GIF, ICNS und PDF per relativem Pfad und SHA-256. Die Pixelmaße stammen aus sips; bei ICNS/PDF ist das nicht zwingend eine vollständige Darstellung aller Varianten.
+PNG, TIFF/TIF, JPEG, GIF, ICNS and PDF were checked by relative path and SHA-256. The pixel sizes come from sips; for ICNS and PDF that is not necessarily a complete account of every variant.
 
-## Zusammenfassung
+## Summary
 
-- **40** Dateien: gleicher relativer Pfad, aber abweichende Bytes.
-- **45** Dateien: nur in jas8522/adium und als @2x benannt. Das sind die unmittelbaren Retina-Kandidaten.
-- **220** Dateien: insgesamt nur in jas8522/adium; die restlichen 175 sind unten vollständig aufgeführt, aber nicht automatisch eine Verbesserung.
+- **40** files: same relative path, but different bytes.
+- **45** files: only in jas8522/adium and named @2x. Those are the immediate Retina candidates.
+- **220** files: only in jas8522/adium altogether; the remaining 175 are listed in full below, but are not automatically an improvement.
 
-Die Liste ist ein Inventar, keine Übernahmeempfehlung: die fremde Referenz stammt von 2021 und enthält auch umbenannte, alte und inzwischen entfernte Dienste.
+The list is an inventory, not a recommendation to take anything over: the other tree is from 2021 and also holds renamed, old and since removed services.
 
-## Gleicher Pfad, anderer Inhalt (40)
+## Same path, different content (40)
 
-| Pfad | Lokal | jas8522 |
+| Path | Local | jas8522 |
 | --- | --- | --- |
 | AdiumHelp/gfx/Chat window-Encryption.png | 514x403 | 514x403 |
 | Plugins/Error Message Handler/events-error-alert.tiff | 24x24 | 48x48 |
@@ -57,9 +57,9 @@ Die Liste ist ein Inventar, keine Übernahmeempfehlung: die fremde Referenz stam
 | Resources/pref-status.tiff | 32x32 | 64x64 |
 | Resources/sidebarActionWidget.png | 20x20 | 20x20 |
 
-## Nur jas8522, explizit Retina (45)
+## Only in jas8522, explicitly Retina (45)
 
-| Pfad | Pixelmaße |
+| Path | Pixel size |
 | --- | --- |
 | Frameworks/Adium Framework/stackImage@2x.png | 24x24 |
 | Frameworks/PSMTabBarControl.framework/Versions/A/Resources/AquaTabClose_Front@2x.png | 24x24 |
@@ -107,9 +107,9 @@ Die Liste ist ein Inventar, keine Übernahmeempfehlung: die fremde Referenz stam
 | Resources/emoticons_menu@2x.png | 48x32 |
 | Resources/sidebarActionWidget@2x.png | 40x40 |
 
-## Nur jas8522, sonstige Bildressourcen (175)
+## Only in jas8522, other image resources (175)
 
-| Pfad | Pixelmaße |
+| Path | Pixel size |
 | --- | --- |
 | Frameworks/Adium Framework/DefaultBlockedStatusIcon.png | 13x13 |
 | Frameworks/Adium Framework/Resources/Authorize.tiff | 32x32 |
@@ -288,23 +288,23 @@ Die Liste ist ein Inventar, keine Übernahmeempfehlung: die fremde Referenz stam
 | Resources/transcripts-timestamp-out.tiff | 64x64 |
 
 
-## Nachtrag: xib-Vergleich (2026-08-19)
+## Addendum: xib comparison (2026-08-19)
 
-jas8522/adium trägt 1005 xibs (je Sprache eine Kopie, alter Lokalisierungsstil) gegenüber
-unseren 95 Basis-xibs. Ergebnis des Paarvergleichs über die 87 gemeinsamen Basisnamen:
+jas8522/adium carries 1005 xibs (one copy per language, the old localisation style) against our
+95 base xibs. The result of comparing the 87 base names they have in common, pair by pair:
 
-- **Kein einziger eigener xib-Commit bei jas.** Seine xibs stammen unverändert aus dem
-  Upstream-Merge (adium/adium); die Konvertierung nib→xib hat Upstream gemacht, nicht er.
-- **Alle 87 Paare weichen ab, und jede Abweichung geht auf unsere Commits zurück**
-  (eigene nib→xib-Migration, Settings-Umbau, Autolayout in MainMenu, MessageWindow,
-  MessageView, ContactListWindow, AboutBox, SetupWizard, DockIconSelectionSheet u.a.).
-  In keinem Paar hat jas Autolayout oder mehr Constraints als wir. Acht xibs existieren
-  nur bei uns (Settings-Umbau). Es gibt dort nichts zu übernehmen.
-- **Einzige Ausnahme: der XtrasCreator.** Upstream hat fünf der sechs XtrasCreator-nibs
-  als xib konvertiert (MainMenu, MyDocument, MessageStyleView, StartingPoints,
-  Preferences); bei uns liegen sie noch binär. Die sechste, `IconPack_IconPlistView.nib`,
-  ist Upstream bei der Konvertierung **verloren gegangen**: der Code lädt sie weiter per
-  Name (AXCIconPackDocument.m), aber im Baum existiert weder nib noch xib. Unser binäres
-  nib ist die einzige überlebende Kopie dieser Ansicht. Fundort der fünf xibs:
-  jas8522/adium@6ff728a unter `Other/XtrasCreator/`; einsammeln lohnt erst mit dem
-  XtrasCreator-Umbau (siehe modernisation.md), die sechste dann selbst konvertieren.
+- **Not one xib commit of his own.** His xibs come unchanged out of the upstream merge
+  (adium/adium); the nib to xib conversion was upstream's work, not his.
+- **All 87 pairs differ, and every difference goes back to our own commits** (our nib to xib
+  migration, the settings rebuild, autolayout in MainMenu, MessageWindow, MessageView,
+  ContactListWindow, AboutBox, SetupWizard, DockIconSelectionSheet and others). In no pair does
+  jas have autolayout or more constraints than we do. Eight xibs exist only here (the settings
+  rebuild). There is nothing there to take over.
+- **The one exception: the XtrasCreator.** Upstream converted five of the six XtrasCreator nibs
+  to xibs (MainMenu, MyDocument, MessageStyleView, StartingPoints, Preferences); ours are still
+  binary. The sixth, `IconPack_IconPlistView.nib`, was **lost** upstream during the conversion:
+  the code still loads it by name (AXCIconPackDocument.m), but neither a nib nor a xib exists in
+  that tree. Our binary nib is the only surviving copy of that view. Where the five xibs are:
+  jas8522/adium@6ff728a under `Other/XtrasCreator/`; collecting them is only worth it together
+  with the XtrasCreator rebuild (see modernisation.md), and the sixth would then be converted by
+  hand.

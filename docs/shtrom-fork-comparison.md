@@ -1,69 +1,70 @@
-# Vergleich mit shtrom/adium (hg-Konserve der 1.6/1.7-Linie)
+# Comparison with shtrom/adium (the preserved 1.6/1.7 Mercurial line)
 
-Geprüft am 2026-08-22 gegen unseren master. [shtrom/adium](https://github.com/shtrom/adium) ist ein
-echter GitHub-Fork (SHAs vergleichbar, letzter Push Dezember 2020) und konserviert den **finalen
-Mercurial-Stand** bis 2016, den der GitHub-Spiegel nie bekam: `adium-1.6` ist der nie
-veröffentlichte 1.6-Kandidat (267 Commits gegenüber unserer Linie), `master` das instabilere
-1.7hg/default (~30 weitere). Merge-Basis mit uns ist schon das 1.5.9-Changelog (2013) — die
-1.5.10.x-Inhalte existieren auf beiden Linien mit verschiedenen SHAs, weshalb die rohen Zahlen
-stark übertreiben.
+Checked on 2026-08-22 against our master. [shtrom/adium](https://github.com/shtrom/adium) is a real
+GitHub fork (SHAs are comparable, last push December 2020) and preserves the **final Mercurial
+state** up to 2016 that the GitHub mirror never received: `adium-1.6` is the 1.6 candidate that was
+never released (267 commits against our line), `master` is the less stable 1.7hg/default (~30 more).
+Our merge base with it is already the 1.5.9 changelog (2013), so the 1.5.10.x content exists on both
+lines under different SHAs, which is why the raw numbers exaggerate badly.
 
-## Schon bei uns (über 1.5.10.x geerbt oder selbst gebaut, keine Aktion)
+## Already here (inherited through 1.5.10.x or built ourselves, no action)
 
-SSLRead-EOF-Behandlung in ssl-cdsa (#16356), Reachability über Schlaf/Aufwachen, HiDPI-Erkennung
-bei Zweitmonitor (#16552), Konten-nibs aus dem eigenen Bundle laden (#16591, bei uns über
-ai_loadNibNamed gelöst), libotr 4.0.0 samt SMP, MySpace-Entfernung, RBSplitView-Entfernung,
-libpurple-Stände (wir: 2.14.14).
+SSLRead EOF handling in ssl-cdsa (#16356), reachability across sleep and wake, HiDPI detection on a
+second monitor (#16552), loading account nibs from their own bundle (#16591, solved here through
+ai_loadNibNamed), libotr 4.0.0 including SMP, the MySpace removal, the RBSplitView removal,
+libpurple versions (ours: 2.14.14).
 
-## Ernte-Kandidaten (bei uns fehlend, geprüft)
+## Candidates worth harvesting (missing here, checked)
 
-Commits referenzieren shtrom/adium. Reihenfolge nach Wert:
+Commits refer to shtrom/adium. Ordered by value:
 
-1. **Cocoa-Neubau des libpurple-Request-UIs** — `b558e23d8` (+ `99e69e1d8`, `061335c4e`):
-   AMPurpleRequestFieldsController ohne WebView, eigene xibs je Feldtyp (Boolean, Choice, Integer,
-   List, MultiList, MultilineString, SecureString, String). Bei uns ist genau diese Klasse der
-   **letzte WebView-Nutzer** (Deprecation-Rest in modernisation.md). Konzept und Feldlogik
-   übernehmen; ob xibs von 2013 oder unsere AISettingsFormView die Darstellung stellt, ist beim
-   Einbau zu entscheiden.
-2. **Verschlüsselungs-Details-Fenster** — `918aa4980` (+ `175`/`edceaa599`-Umfeld): Vor der
-   Zertifikatsansicht ein Fenster mit Aussteller, TLS-Version, Cipher, MAC, Schlüsselaustausch;
-   zieht ~350 Zeilen SecureTransport-Introspektion in ssl-cdsa nach sich. Vorbehalt: wir wollen
-   ssl-cdsa mittelfristig auf OpenSSL heben — die UI-Seite bleibt, die Introspektion wäre neu zu
-   schreiben.
-3. **windowWillClose: super zuerst** — `5f1abc62b` (#16579): AIAuthorizationRequestsWindowController
-   und AISpecialPasswordPromptController rufen super am Ende; der Fix zieht es an den Anfang, weil
-   super die Controller-Freigabe anstößt. **Bug bei uns noch vorhanden** (beide Dateien noch MRR).
-4. **Einfüge-Privatsphäre** — `a80f5d288`: Beim Einfügen von HTML keine eingebetteten Bilder
-   nachladen (WebResourceLoadDelegate, der nil liefert). Verhindert ungewollte Netzzugriffe beim
-   Paste. Bei uns fehlt das; AIMessageEntryTextView.
-5. **Mitternachts-Rotation der Transkripte** — `24ff5d93c` (#6786) + Schutz `628253902`:
-   Tagelange Chats werden um Mitternacht geteilt. Unser AILoggerPlugin rotiert gar nicht.
-6. **XtrasInstaller-Fixes** — `771b5a417` (#16795, sharedApplication-Delegate statt NSApp; bei uns
-   noch alte Form, Source/XtrasInstaller.m:410) und `fa6c033b5` (#16288 Installation von der
-   Website).
-7. **Transkript-Viewer: Auswahl nach Löschen** — `f8f0d9f1c` (#11420). Zustand bei uns ungeprüft.
-8. **Link-Scanner** — `026e9bdc6` (#16217/#16413, Scan-Position nach Fund weiterrücken,
-   MIN_LINK_LENGTH 4). Unser AHHyperlinkScanner ist strukturell anders; erst prüfen, ob die
-   Bug-Klasse existiert.
-9. **Emoticon-Menü-Paket** — Trenner je Pack `d9a2f8805` (#16452), Abschalt-Option `149909ebb`
-   (#16407), Pfeil-Cursor `727c3b355` (#16432), Ausrichtung `6737b11e1` (#16434), Toolbar-Item
-   raus `4170f0088` (#16396). Passt zum offenen Punkt „Emoticon-Tastatur" der UI-Inventur.
-10. **Kleinkram**: Edit-Menü-Einträge `72c4c165b` (#16416), DDG-Suche im Kontextmenü `2666f79b4`,
-    kombiniertes Link/Browser-Toolbar-Item `baf2dd8a4` (#15404), OTR an zuletzt aktive Instanz
-    `f6076f069`, OTR-Logging-Frage ohne Fokusklau `0c279dec0`, isOnline-Schnellpfad
-    `8626e38ff` (1.7), SenTestingKit→XCTest `50f1bb7c2` (1.7, falls Tests wiederbelebt werden).
+1. **Cocoa rebuild of the libpurple request UI** — `b558e23d8` (plus `99e69e1d8`, `061335c4e`):
+   AMPurpleRequestFieldsController without a WebView, with its own xib per field type (Boolean,
+   Choice, Integer, List, MultiList, MultilineString, SecureString, String). Here that very class is
+   the **last WebView user** (the remaining deprecation in modernisation.md). Take over the concept
+   and the field logic; whether xibs from 2013 or our AISettingsFormView provides the presentation
+   is a decision for the time of the rebuild.
+2. **Encryption details window** — `918aa4980` (plus the `175`/`edceaa599` area): a window in front
+   of the certificate view showing issuer, TLS version, cipher, MAC and key exchange; it drags about
+   350 lines of SecureTransport introspection into ssl-cdsa behind it. Caveat: we want to lift
+   ssl-cdsa onto OpenSSL in the medium term, so the UI side stays but the introspection would have
+   to be written anew.
+3. **windowWillClose: super first** — `5f1abc62b` (#16579): AIAuthorizationRequestsWindowController
+   and AISpecialPasswordPromptController call super at the end; the fix moves it to the beginning,
+   because super is what sets the controller's release in motion. **The bug is still here** (both
+   files are still MRR).
+4. **Paste privacy** — `a80f5d288`: when HTML is pasted, do not fetch the embedded images
+   (a WebResourceLoadDelegate that returns nil). Prevents unwanted network access on paste. Missing
+   here; AIMessageEntryTextView.
+5. **Midnight rotation of transcripts** — `24ff5d93c` (#6786) plus the guard `628253902`: chats that
+   run for days are split at midnight. Our AILoggerPlugin does not rotate at all.
+6. **XtrasInstaller fixes** — `771b5a417` (#16795, sharedApplication delegate instead of NSApp; we
+   still have the old form, Source/XtrasInstaller.m:410) and `fa6c033b5` (#16288, installing from
+   the website).
+7. **Transcript viewer: selection after deleting** — `f8f0d9f1c` (#11420). Our state is unchecked.
+8. **Link scanner** — `026e9bdc6` (#16217/#16413, move the scan position on after a find,
+   MIN_LINK_LENGTH 4). Our AHHyperlinkScanner is structurally different; check first whether the
+   class of bug exists at all.
+9. **Emoticon menu bundle** — a separator per pack `d9a2f8805` (#16452), an option to switch it off
+   `149909ebb` (#16407), the arrow cursor `727c3b355` (#16432), alignment `6737b11e1` (#16434),
+   removing the toolbar item `4170f0088` (#16396). Fits the open "emoticon keyboard" point of the
+   UI inventory.
+10. **Odds and ends**: edit menu entries `72c4c165b` (#16416), DuckDuckGo search in the context menu
+    `2666f79b4`, a combined link/browser toolbar item `baf2dd8a4` (#15404), OTR to the most recently
+    active instance `f6076f069`, the OTR logging question without stealing focus `0c279dec0`, an
+    isOnline fast path `8626e38ff` (1.7), SenTestingKit to XCTest `50f1bb7c2` (1.7, should the tests
+    ever be revived).
 
-## Themen-Zweige des Forks (eigene Inventur wert)
+## Topic branches of the fork (worth an inventory of their own)
 
-`Lurch4Adium-0.0.4/*` (**der Name täuscht, nachgeprüft am 15.09.2026:** die beiden Branches
-`base` und `patched` enthalten NULL Dateien mit lurch, omemo, axolotl oder signal-protocol im
-Namen. Der einzige inhaltliche Unterschied ist ein eingechecktes libgcrypt 1.6.2, das durch die
-OTR-Migration längst erledigt ist. Es ist die Vorbereitung eines Ports, der nie stattfand, und
-als Startpunkt für OMEMO wertlos),
-`HistoricMUCMessages`, `IRCServerConsole`, `AddConfigureRoomForMUCs`, `EmoticonsMenu`,
-`AdiumApplescriptRunnerUsingXPC` (unser AppKit-am-Mainthread-Problem!), `AutoLayout`,
+`Lurch4Adium-0.0.4/*` (**the name misleads, verified on 2026-09-15:** the two branches `base` and
+`patched` contain ZERO files with lurch, omemo, axolotl or signal-protocol in their names. The only
+difference in content is a checked in libgcrypt 1.6.2, which the OTR migration has long since dealt
+with. It is the preparation for a port that never happened, and worthless as a starting point for
+OMEMO), `HistoricMUCMessages`, `IRCServerConsole`, `AddConfigureRoomForMUCs`, `EmoticonsMenu`,
+`AdiumApplescriptRunnerUsingXPC` (our AppKit on the main thread problem!), `AutoLayout`,
 `PreferencesRedux`, `Sandboxing`, `eventloop_libdispatch`, `voice-video`, `fix-autoscroll`,
-`TorProxyType`, `AILoggerWithBlocks`, `JSXtras`. Tot: `GTalkOAuth2Support`/`GoogleOAuth2`,
-`MSN-XMPP`, `libotr4.0.0` (gemerged), `10.6+`.
+`TorProxyType`, `AILoggerWithBlocks`, `JSXtras`. Dead: `GTalkOAuth2Support`/`GoogleOAuth2`,
+`MSN-XMPP`, `libotr4.0.0` (merged), `10.6+`.
 
-Der Klon liegt sitzungsgebunden im Scratchpad; dauerhafte Quelle ist GitHub.
+The clone lives in the session scratchpad; the lasting source is GitHub.

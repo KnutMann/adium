@@ -1,126 +1,129 @@
-# XMPP-Fähigkeiten: Bestand und Rangfolge
+# XMPP capabilities: what we have and what comes next
 
-Bestandsaufnahme vom 19.08.2026, gegen libpurple 2.14.14 (`Dependencies/source/libpurple/.../jabber/`),
-die Fork-Patches (`Dependencies/patches/pidgin-2.14.14/jabber/`) und den AdiumY-Baum geprüft, nicht
-aus dem Gedächtnis. Dies ist das von M17 im Plattform-Fahrplan verlangte Bestandsdokument.
+Inventory taken on 2026-08-19, checked against libpurple 2.14.14
+(`Dependencies/source/libpurple/.../jabber/`), the fork patches
+(`Dependencies/patches/pidgin-2.14.14/jabber/`) and the AdiumY tree, not from memory. This is the
+inventory document M17 of the platform roadmap asks for.
 
-## Schon vorhanden, kostet nichts
+## Already there, costs nothing
 
-- **XEP-0198 Stream Management**: upstream in libpurple 2.14 enthalten. Fertig.
-- **XEP-0191 Blocking**: im prpl vollständig, über adiumPurplePrivacy/ESBlockingPlugin an die UI
-  angebunden. Braucht nur eine Verifikation (M16), keinen Code.
-- **XEP-0184 Quittungen / XEP-0333 Marker**: eigene Fork-Patches (receipt.c, chatmarker.c); Empfang,
-  Auto-Quittung und "displayed" beim Lesen laufen. Es fehlt allein die Pro-Nachricht-Anzeige.
-- Ferner abgedeckt: 0030/0115, 0045, 0249, 0085, 0203, 0199, 0084/0153, 0163, 0237, 0047/0065/0096.
+- **XEP-0198 Stream Management**: upstream in libpurple 2.14. Done.
+- **XEP-0191 Blocking**: complete in the prpl, wired to the UI through adiumPurplePrivacy and
+  ESBlockingPlugin. Needs a verification (M16) only, no code.
+- **XEP-0184 receipts / XEP-0333 markers**: our own fork patches (receipt.c, chatmarker.c);
+  receiving, automatic receipts and "displayed" on reading all work. What is missing is only the
+  per message display.
+- Also covered: 0030/0115, 0045, 0249, 0085, 0203, 0199, 0084/0153, 0163, 0237, 0047/0065/0096.
 
-**AdiumY-Vorlagen**: keine neueren XEP-Serien als die in M17 gelisteten; der AdiumY-Baum wurde nach
-den XEP-Commits ARC-migriert und umformatiert, Diffs sind Designvorlage, nie cherry-pickbar. AdiumYs
-eigenes XEP-Audit steht auf "Proposed", auch dort ist Konformität unverifiziert.
+**AdiumY as a model**: no newer XEP series than the ones listed in M17; the AdiumY tree was
+migrated to ARC and reformatted after its XEP commits, so the diffs are a design model and never
+cherry-pickable. AdiumY's own XEP audit stands at "Proposed", so conformance is unverified there
+too.
 
-## Rangfolge
+## Order of work
 
-**Schnell übernehmbar (AdiumY-Vorlage):**
-1. **XEP-0280 Carbons** + zwingend **XEP-0334 Hints**: Nachrichten vom Handy erscheinen auch hier;
-   größter Alltagsgewinn. Als prpl-Patch nach dem Muster von receipt.c bauen. Risiken: Duplikate
-   gegen lokale Logs, und ohne `<private/>` auf OTR-Nachrichten landen OTR-Fragmente auf anderen
-   Geräten. (AdiumY 186103ce, 3512b2b8, 69406099)
-2. **XEP-0352 CSI**: weniger Traffic/Wakeups bei Idle; klein, an vorhandene Idle-Erkennung
-   anbinden; braucht die explizite Aktiv-Politik aus M17. (AdiumY a54fe609 + 29901c55)
-3. **XEP-0402 PEP-Bookmarks**: MUC-Liste/Autojoin synchron mit Gajim/Dino/Conversations;
-   überschaubar, AdiumY hat Tests (407ebcf6). 0048 solo nicht bauen, seit 2020 Deprecated.
+**Quick to take over (AdiumY as a model):**
+1. **XEP-0280 Carbons** plus the mandatory **XEP-0334 Hints**: messages from the phone appear here
+   too; the biggest everyday gain. Build it as a prpl patch following the pattern of receipt.c.
+   Risks: duplicates against the local logs, and without `<private/>` on OTR messages, OTR fragments
+   land on other devices. (AdiumY 186103ce, 3512b2b8, 69406099)
+2. **XEP-0352 CSI**: less traffic and fewer wakeups while idle; small, wires into the existing idle
+   detection; needs the explicit active policy from M17. (AdiumY a54fe609 plus 29901c55)
+3. **XEP-0402 PEP bookmarks**: the MUC list and autojoin in step with Gajim, Dino and Conversations;
+   manageable, and AdiumY has tests (407ebcf6). Do not build 0048 on its own, it has been deprecated
+   since 2020.
 
-**Überschaubar, ohne Vorlage:**
-4. **XEP-0410 MUC Self-Ping**: erkennt still gestorbene Raumsitzungen nach Netzwechseln und tritt
-   neu bei; kleiner Timer über vorhandenen Ping-Code, Vorsicht vor Rejoin-Schleifen.
+**Manageable, with no model to follow:**
+4. **XEP-0410 MUC Self-Ping**: notices room sessions that died quietly after a network change and
+   rejoins; a small timer over the existing ping code, with care taken against rejoin loops.
 
-**Wertvoll, aber eigenes Projekt:**
-5. **XEP-0313 MAM**: erst nach beschlossenem Verlaufs-/Reconnect-Modell plus XEP-0359-Dedup, sonst
-   Duplikat-Generator. 6. **XEP-0363 HTTP Upload**: der einzige 2026 zuverlässige Dateitransfer,
-   aber HTTPS-PUT, URL-Sicherheit und UI machen es groß. 7. **XEP-0308 Korrekturen**, gebündelt mit
-   dem Pro-Nachricht-Zustandsmodell der Message-View (der Blocker ist die fehlende ID-zu-DOM-
-   Zuordnung, dokumentiert in adiumPurpleSignals.m); wer das eine Datenmodell baut, schaltet 0308,
-   0184-Haken und 0333 pro Nachricht zugleich frei.
+**Valuable, but a project of its own:**
+5. **XEP-0313 MAM**: only once the history and reconnect model is settled, plus XEP-0359 dedup, or
+   it is a duplicate generator. 6. **XEP-0363 HTTP Upload**: the only file transfer that is reliable
+   in 2026, but HTTPS PUT, URL safety and the UI make it large. 7. **XEP-0308 corrections**, bundled
+   with the per message state model of the message view (the blocker is the missing id to DOM
+   mapping, documented in adiumPurpleSignals.m); whoever builds that one data model unlocks 0308,
+   the 0184 ticks and 0333 per message all at once.
 
-**OMEMO: GEBAUT am 15.09.2026** (XEP-0384, Namensraum
-`eu.siacs.conversations.axolotl`, Einzelgespraeche; Gruppenraeume und XEP-0454 fehlen noch).
-Kryptoschicht ist picomemo (ISC, fest auf einen Commit gepinnt), die XMPP-Seite ist eigener
-Code wie bei Carbons, CSI und Jingle: `AIOMEMOStore` haelt Identitaet, Sitzungen und Vertrauen,
-`AIOMEMOMessage` die Drahtform, `adiumPurpleOMEMO.m` die PEP- und Stanza-Arbeit,
-`AIOMEMOController` die Bruecke zur Oberflaeche. Pruefungen unter `Testing/omemo/` und
-`Testing/xmpp/server.sh omemo-pep`. Fruehere Einschaetzung, zur Einordnung: (Der Nachtrag vom 22.08., der shtrom-Fork trage
-mit `Lurch4Adium-0.0.4/*` einen Port des Pidgin-lurch-Plugins, ist FALSCH und am 15.09.2026
-widerlegt: die Branches enthalten keine Zeile davon, nur ein eingechecktes libgcrypt 1.6.2.
-Richtig bleibt das Urteil über lurch selbst, es ist seit Februar 2022 eingefroren und axc
-kennt gar kein Vertrauensmodell. Gewählt wurde stattdessen picomemo, C und ISC-lizenziert,
-das die Kryptoschicht stellt, während die XMPP-Seite wie bei Carbons, CSI und Jingle unsere
-Arbeit bleibt.)
-**Verlockend, aber nein:** 0393 Styling (Eingriff in
-die gesamte Darstellung, hinter Carbons einreihen), 0444/0461 (Experimental und ohne ID-Zuordnung
-nicht darstellbar), Bind2/SASL2 (Kern-OP für null sichtbaren Nutzen), MIX (kein Deployment).
+**OMEMO: BUILT on 2026-09-15** (XEP-0384, namespace `eu.siacs.conversations.axolotl`, one to one
+conversations; group rooms and XEP-0454 are still missing). The cryptographic layer is picomemo
+(ISC, pinned to one commit), the XMPP side is our own code as it is for Carbons, CSI and Jingle:
+`AIOMEMOStore` holds identity, sessions and trust, `AIOMEMOMessage` the wire form,
+`adiumPurpleOMEMO.m` the PEP and stanza work, `AIOMEMOController` the bridge to the interface.
+Checks live under `Testing/omemo/` and `Testing/xmpp/server.sh omemo-pep`. An earlier assessment,
+for the record: (the note from 22.08 that the shtrom fork carried a port of the Pidgin lurch plugin
+in `Lurch4Adium-0.0.4/*` is WRONG and was disproved on 2026-09-15: the branches contain not one line
+of it, only a checked in libgcrypt 1.6.2. What stands is the verdict on lurch itself, frozen since
+February 2022, and axc, which has no trust model at all. picomemo was chosen instead, C and ISC
+licensed, providing the cryptographic layer while the XMPP side stays our work as it does for
+Carbons, CSI and Jingle.)
 
-**Beschlossener Fahrplan (19.08.2026): Carbons+Hints → CSI → 0402-Bookmarks, in dieser Reihenfolge,
-jeweils als prpl-Patch nach dem Muster von receipt.c/chatmarker.c und mit M16-Verifikation vor dem
-nächsten Schritt. XEP-0191 wird nur getestet und als vorhanden verbucht. MAM, HTTP Upload und das
-Pro-Nachricht-Zustandsmodell bleiben eigene Projekte und beginnen nicht nebenbei.**
+**Tempting, but no:** 0393 styling (it reaches into the whole presentation, queue it behind
+Carbons), 0444/0461 (experimental, and not presentable without the id mapping), Bind2/SASL2 (core
+surgery for no visible gain), MIX (no deployment).
 
-## Nachtrag: BeagleIM/Martin als Referenz, Videotelefonie (Recherche 22.08.2026)
+**The agreed roadmap (2026-08-19): Carbons plus Hints, then CSI, then 0402 bookmarks, in that order,
+each as a prpl patch following the pattern of receipt.c and chatmarker.c and with an M16
+verification before the next step. XEP-0191 is only tested and booked as present. MAM, HTTP Upload
+and the per message state model stay projects of their own and are not started on the side.**
 
-**BeagleIM** (tigase/beagle-im, GPLv3, Swift) und seine XMPP-Bibliothek **Martin** (AGPLv3!)
-sind 2026 noch gepflegt (BeagleIM 6.0.1 vom 13.06.2026, Martin-devel vom 11.06.2026, beide im
-Ein-Mann-Tempo; GitHub ist nur noch Spiegel von tigase.dev). Direkte Code-Übernahme: null —
-Swift auf Combine-Architektur, nichts davon passt in prpl-C oder unser ObjC, und die
-GPLv3/AGPLv3-Kette würde dem Gesamtwerk die GPL2-Option nehmen. **Als rein lesende
-Protokoll-Referenz neben AdiumY aber wertvoll** für den beschlossenen Fahrplan:
-`MessageCarbonsModule.swift` (enable-Zeitpunkt nach Bind, nicht nach SM-Resume;
-Bare-JID-Filter gegen gefälschte Carbons), `ClientStateIndicationModule.swift`
-(aktiv/inaktiv-Politik), `PEPBookmarksModule.swift` (0402-Node, publish-options).
-Implementierung weiterhin gegen die XEP-Texte schreiben, nicht abschreiben.
+## Addendum: BeagleIM and Martin as a reference, video calls (research 2026-08-22)
 
-**Videotelefonie: GEBAUT** (September 2026), und zwar genau auf dem hier beschriebenen Weg.
-Die Ausgangslage stimmte: libpurple-2.x-Voice&Video ist auf macOS tot, farstream lief hier nie,
-unser Build setzt USE_VV nicht, und 2.14.14 kennt kein DTLS-SRTP (XEP-0320), ohne das kein
-moderner Client (Conversations, Dino, Monal, BeagleIM) verhandelt. Eine separate
-Martin-Komponente mit Zweitverbindung waere unsauber gewesen (Doppel-Login, zweite Ressource,
-AGPL im Bundle).
+**BeagleIM** (tigase/beagle-im, GPLv3, Swift) and its XMPP library **Martin** (AGPLv3!) are still
+maintained in 2026 (BeagleIM 6.0.1 of 2026-06-13, Martin devel of 2026-06-11, both at one person's
+pace; GitHub is now only a mirror of tigase.dev). Taking code over directly: none. It is Swift on a
+Combine architecture, none of which fits prpl C or our Objective-C, and the GPLv3/AGPLv3 chain would
+take the GPL2 option away from the work as a whole. **As a read only protocol reference alongside
+AdiumY it is valuable** for the agreed roadmap: `MessageCarbonsModule.swift` (enable after bind, not
+after an SM resume; the bare JID filter against forged carbons),
+`ClientStateIndicationModule.swift` (the active/inactive policy), `PEPBookmarksModule.swift` (the
+0402 node, publish-options). Keep writing the implementation against the XEP texts, do not copy.
 
-Umgesetzt ist ein Adium-Plugin, das Jingle-IQs ueber die vorhandenen
-`jabber-receiving-xmlnode`/`jabber-sending-xmlnode`-Signale auf **derselben** libpurple-Verbindung
-spricht und nur die Medienebene an ein WebRTC.xcframework gibt (stasel/WebRTC 153, per
-`Dependencies/webrtc/fetch-webrtc.sh` gegen SHA-256 geholt, nicht eingecheckt). Signalisierung:
-XEP-0166/0167 (inkl. rtp:info mute/unmute) /0176 /0320 /0338 /0339 /0293 /0294, dazu 0353
-(Message Initiation) und 0215 (STUN/TURN-Discovery samt `expires`). Der Code liegt in
-`Plugins/Purple Service/AIJingle*`; die SDP-Jingle-Abbildung ist Foundation-only und damit ohne
-Adium testbar. BeagleIM und Martin waren dabei reine Lesereferenz, keine Zeile uebernommen.
+**Video calls: BUILT** (September 2026), and on exactly the path described here. The starting
+position was as stated: voice and video in libpurple 2.x is dead on macOS, farstream never ran here,
+our build does not set USE_VV, and 2.14.14 knows nothing of DTLS-SRTP (XEP-0320), without which no
+modern client (Conversations, Dino, Monal, BeagleIM) will negotiate. A separate Martin component
+with a second connection would have been unclean (a second login, a second resource, AGPL in the
+bundle).
 
-Gegen Conversations auf Android live bestaetigt: Klingeln, Annehmen, Ton und Bild in beide
-Richtungen, Stummschalten in beide Richtungen, Auflegen. Vier Testreihen unter
-`Testing/webrtc/` decken SDP-Abbildung, Zustandsmaschine, den ganzen Stapel mit zwei echten
-PeerConnections, die Bildansicht und die Fenstergeometrie ab. Wermutstropfen bei BeagleIM
-selbst: dessen WebRTC-Binary steht seit 2022 auf M101.
+What was built is an Adium plugin that speaks Jingle IQs over the existing
+`jabber-receiving-xmlnode` and `jabber-sending-xmlnode` signals on the **same** libpurple connection
+and gives only the media layer to a WebRTC.xcframework (stasel/WebRTC 153, fetched against a SHA-256
+by `Dependencies/webrtc/fetch-webrtc.sh`, not checked in). Signalling: XEP-0166/0167 (including
+rtp:info mute and unmute), 0176, 0320, 0338, 0339, 0293, 0294, plus 0353 (message initiation) and
+0215 (STUN/TURN discovery including `expires`). The code lives in
+`Plugins/Purple Service/AIJingle*`; the SDP to Jingle mapping is Foundation only and therefore
+testable without Adium. BeagleIM and Martin were a reading reference throughout, with not one line
+taken over.
 
-Offen bleibt an dieser Stelle nur die Neuverhandlung im laufenden Gespraech (content-add, also
-mitten im Anruf von Sprache auf Video wechseln); das kann Conversations und BeagleIM nicht.
+Confirmed live against Conversations on Android: ringing, answering, sound and picture in both
+directions, muting in both directions, hanging up. Four test series under `Testing/webrtc/` cover the
+SDP mapping, the state machine, the whole stack with two real PeerConnections, the video view and
+the window geometry. One blemish on BeagleIM itself: its WebRTC binary has stood at M101 since 2022.
 
-**Fuer spaeter vorgemerkt: Anrufe bei Telegram.** Von den vier Dritt-Diensten ist Telegram der
-einzige, bei dem der hier gebaute Code wirklich trägt, weil die Arbeitsteilung dieselbe ist:
-TDLib macht Signalisierung und die gesamte Kryptografie und null Medien, und ab tgcalls v2 ist
-die Medienebene gewoehnliches DTLS-SRTP, belegt durch zwei unabhaengige Clients
-(Ajaxy/telegram-tt mit der browsereigenen RTCPeerConnection, gotd/td mit pion). ntgcalls baut
-gegen unveraendertes Google-libwebrtc m152, unseres ist M153.
+What remains open at this point is only renegotiation during a call (content-add, that is switching
+from voice to video mid call); neither Conversations nor BeagleIM can do that.
 
-In unserem Baum ist es doppelt abgeschaltet: tdlib-purple wird mit `-DNoVoip=TRUE` gebaut, und
-`call.cpp:181-195` verwirft ausserdem jeden Anruf, wenn die Oberflaeche keine Audio-Faehigkeit
-meldet, was hier immer der Fall ist (`adiumPurpleMedia.m` wird gar nicht kompiliert,
-`USE_VV` und `USE_GSTREAMER` sind undefiniert).
+**Noted for later: calls on Telegram.** Of the four third party services, Telegram is the only one
+where the code built here really carries over, because the division of labour is the same: TDLib
+does signalling and all of the cryptography and no media at all, and from tgcalls v2 onwards the
+media layer is ordinary DTLS-SRTP, evidenced by two independent clients (Ajaxy/telegram-tt with the
+browser's own RTCPeerConnection, gotd/td with pion). ntgcalls builds against unmodified Google
+libwebrtc m152, ours is M153.
 
-Wiederverwendbar waeren AIJingleVideoView, AIJingleCallWindowController, der Kamera-Folgemodus,
-AIJingleCallDiagnostics und die halbe Medienseite von AIJingleCallController, dessen Bindung
-an das Protokoll ueber ein Delegat laeuft, das STRINGS spricht. Zu ersetzen waeren
-AIJingleSessionMachine und AIJingleEngine.
+In our tree it is switched off twice over: tdlib-purple is built with `-DNoVoip=TRUE`, and
+`call.cpp:181-195` additionally throws away every call when the interface reports no audio
+capability, which is always the case here (`adiumPurpleMedia.m` is not compiled at all, and `USE_VV`
+and `USE_GSTREAMER` are undefined).
 
-ERSTER SCHRITT, Stunden statt Tage: `getCallProtocol()` in `call.cpp:9-17` setzt
-`library_versions_` nie, obwohl der Konstruktor des mitgelieferten TDLib das fuenfte Feld hat.
-Deshalb bekommt das Plugin nur `callServerTypeTelegramReflector`. Ein Versuch, dort `"13.0.0"`
-einzutragen und zu protokollieren, ob dann `callServerTypeWebrtc`-Eintraege kommen, beantwortet
-die einzige echt offene Frage. Realistisch scheitern wuerde es an der EncryptedConnection-Schicht
-(msg_key plus AES-CTR) und am Reflector-Rueckfall bei strengem NAT.
+What could be reused are AIJingleVideoView, AIJingleCallWindowController, the camera follow mode,
+AIJingleCallDiagnostics and half of the media side of AIJingleCallController, whose binding to the
+protocol runs through a delegate that speaks STRINGS. What would have to be replaced are
+AIJingleSessionMachine and AIJingleEngine.
+
+FIRST STEP, hours rather than days: `getCallProtocol()` in `call.cpp:9-17` never sets
+`library_versions_`, although the constructor of the bundled TDLib has that fifth field. That is why
+the plugin only ever gets `callServerTypeTelegramReflector`. One attempt at putting `"13.0.0"` there
+and logging whether `callServerTypeWebrtc` entries then arrive answers the only genuinely open
+question. Realistically it would fail at the EncryptedConnection layer (msg_key plus AES-CTR) and at
+the reflector fallback under strict NAT.
