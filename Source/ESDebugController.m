@@ -17,8 +17,6 @@
 #import "ESDebugWindowController.h"
 
 #import <Adium/AIMenuControllerProtocol.h>
-#import <Adium/AIListOutlineView.h>
-#import <Adium/AIListRowView.h>
 #import <AIUtilities/AIMenuAdditions.h>
 
 #import <fcntl.h>  //open(2)
@@ -115,23 +113,6 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 																		 keyEquivalent:@""];
 	[adium.menuController addMenuItem:menuItem toLocation:LOC_Adium_About];
 
-	/* Two tools for the contact list, next to the window that shows what they
-	 * write. The first reads out where the rows are and what they hold; the
-	 * second draws the window from scratch, which is the one thing already known
-	 * to clear entries that are drawn on top of one another. Doing it by hand
-	 * says whether that really is what cures it. */
-	NSMenuItem *probeItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Measure the Contact List", nil)
-													   target:self
-													   action:@selector(measureContactList:)
-												keyEquivalent:@""];
-	[adium.menuController addMenuItem:probeItem toLocation:LOC_Adium_About];
-
-	NSMenuItem *redrawItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Redraw the Contact List", nil)
-														target:self
-														action:@selector(redrawContactList:)
-												 keyEquivalent:@""];
-	[adium.menuController addMenuItem:redrawItem toLocation:LOC_Adium_About];
-
 	//Restore the debug window if it was open when we quit last time
 	if ([[adium.preferenceController preferenceForKey:KEY_DEBUG_WINDOW_OPEN
 		  group:GROUP_DEBUG] boolValue]) {
@@ -156,38 +137,6 @@ void AIExplodeOnEnumerationMutation(id dummy) {
 - (void)dealloc
 {
 	[debugLogFile closeFile];
-}
-
-/*!
- * @brief Write down what every contact list on screen looks like right now
- */
-- (void)measureContactList:(id)sender
-{
-	NSArray *listViews = [AIListOutlineView ai_listViewsOnScreen];
-	if (!listViews.count) {
-		AILogWithSignature(@"No contact list on screen to measure");
-		return;
-	}
-
-	for (AIListOutlineView *listView in listViews)
-		[listView ai_logProbeAlways:@"by hand from the menu"];
-
-	[ESDebugWindowController showDebugWindow];
-}
-
-/*!
- * @brief Draw the contact list window from scratch, the way clicking another window does
- *
- * -display goes down the whole hierarchy rather than only the parts AppKit
- * thinks are dirty, which in a window that is not opaque is the difference
- * between replacing the old pixels and leaving them there.
- */
-- (void)redrawContactList:(id)sender
-{
-	for (AIListOutlineView *listView in [AIListOutlineView ai_listViewsOnScreen]) {
-		[listView ai_logProbeAlways:@"before redrawing by hand"];
-		[listView.window display];
-	}
 }
 
 - (void)showDebugWindow:(id)sender

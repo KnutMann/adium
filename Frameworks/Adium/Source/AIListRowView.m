@@ -211,29 +211,13 @@
  */
 @implementation AIListOutlineView (AIListProbe)
 
-+ (void)ai_collectListViewsUnder:(NSView *)view into:(NSMutableArray *)found
-{
-	if ([view isKindOfClass:[AIListOutlineView class]]) [found addObject:view];
-	for (NSView *subview in view.subviews) [self ai_collectListViewsUnder:subview into:found];
-}
-
-+ (NSArray *)ai_listViewsOnScreen
-{
-	NSMutableArray *found = [NSMutableArray array];
-	for (NSWindow *window in [NSApp windows]) {
-		if (window.contentView) [self ai_collectListViewsUnder:window.contentView into:found];
-	}
-
-	return found;
-}
-
 /*!
  * @brief What the row views are, against what the table says they should be
  *
  * @param outComplaints How many rows did not match. Nothing wrong means the rows
  *                      are innocent and the pixels are to blame.
  */
-- (NSString *)ai_probeReport:(NSString *)occasion complaints:(NSUInteger *)outComplaints always:(BOOL)always
+- (NSString *)ai_probeReport:(NSString *)occasion complaints:(NSUInteger *)outComplaints
 {
 	NSWindow *window = self.window;
 	NSMutableArray *rows = [NSMutableArray array];
@@ -294,7 +278,7 @@
 	}
 
 	if (outComplaints) *outComplaints = count;
-	if (!count && !always) return nil;
+	if (!count) return nil;
 
 	/* Every row, not only the ones that are wrong, because a row sitting right is
 	 * what says where the wrong ones went astray. Built only once there is
@@ -342,11 +326,6 @@
 	return report;
 }
 
-- (void)ai_logProbeAlways:(NSString *)occasion
-{
-	AILogWithSignature(@"%@", [self ai_probeReport:occasion complaints:NULL always:YES]);
-}
-
 /*!
  * @brief Measure, and write it down only if something is wrong
  *
@@ -363,7 +342,7 @@
 - (void)ai_logProbeIfWrong:(NSString *)occasion
 {
 	NSUInteger complaints = 0;
-	NSString *report = [self ai_probeReport:occasion complaints:&complaints always:NO];
+	NSString *report = [self ai_probeReport:occasion complaints:&complaints];
 	if (!report) return;
 
 	AILogWithSignature(@"%@", report);

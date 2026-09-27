@@ -109,20 +109,10 @@ typedef enum {
  * reason. If they are not, it is the rows themselves that are wrong, and no
  * amount of redrawing will help.
  *
- * Nothing is written unless something is wrong, or unless it is asked for from
- * the Debug menu, and nothing at all happens unless debug logging is on.
+ * Nothing is written unless something is wrong, and nothing at all happens
+ * unless debug logging is on.
  */
 @interface AIListOutlineView (AIListProbe)
-
-/*!
- * @brief Every contact list on screen, for a menu item that has no other handle on one
- */
-+ (NSArray *)ai_listViewsOnScreen;
-
-/*!
- * @brief Measure, and write the result down whether or not anything is wrong
- */
-- (void)ai_logProbeAlways:(NSString *)occasion;
 
 /*!
  * @brief Measure now and again shortly after, and write only what is wrong
