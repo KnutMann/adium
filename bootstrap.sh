@@ -57,6 +57,10 @@ done
 SIGNING_OVERRIDES=()
 if ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Local Signing"'; then
 	echo "==> No 'Adium Local Signing' certificate in this keychain; signing ad hoc"
+	# All three builds below, not only the application: the two frameworks are
+	# separate projects pinned to the same certificate, so leaving them out of this
+	# stopped the build before the application was ever reached. Reported from a
+	# machine that is not this one, which is the only kind that can hit it.
 	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
 fi
 
@@ -76,11 +80,11 @@ fi
 
 echo "==> Building AIUtilities"
 xcodebuild -project "Frameworks/AIUtilities/AIUtilities.xcodeproj" \
-	-configuration "$CONFIGURATION" build
+	-configuration "$CONFIGURATION" "${SIGNING_OVERRIDES[@]}" build
 
 echo "==> Building MMTabBarView"
 xcodebuild -project "Dependencies/MMTabBarView/MMTabBarView/MMTabBarView.xcodeproj" \
-	-target MMTabBarView -configuration "$CONFIGURATION" build
+	-target MMTabBarView -configuration "$CONFIGURATION" "${SIGNING_OVERRIDES[@]}" build
 
 echo "==> Staging prebuilt products into build/$CONFIGURATION"
 mkdir -p "build/$CONFIGURATION/include"
