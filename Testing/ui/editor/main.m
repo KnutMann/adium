@@ -185,13 +185,13 @@ int main(int argc, const char *argv[])
 			spin(0.6);
 			id item = [solo.listView itemAtRow:1];
 			id listObject = [item valueForKey:@"listObject"];
-			fprintf(stderr, "Probe: %ld Zeilen, Wunschhoehe %.0f, Inhaltszelle %s, Zeile1 %s Name '%s' Farbe %s\n",
+			fprintf(stderr, "Probe: %ld rows, desired height %.0f, content cell %s, row 1 %s name '%s' colour %s\n",
 					(long)solo.listView.numberOfRows, solo.listHeight,
 					[NSStringFromClass([[solo.listView contentCell] class]) UTF8String],
 					[NSStringFromClass([listObject class]) UTF8String],
 					[[[listObject valueForKey:@"longDisplayName"] description] UTF8String],
 					[[[listObject valueForKey:@"textColor"] description] UTF8String]);
-			writePNG(probe, [outDir stringByAppendingPathComponent:@"probe-vorschau.png"]);
+			writePNG(probe, [outDir stringByAppendingPathComponent:@"probe-preview.png"]);
 			[probe orderOut:nil];
 		}
 
@@ -200,12 +200,12 @@ int main(int argc, const char *argv[])
 		 * each one in a plain window and photographs it there. What the settings
 		 * window adds around it is its own, and the same for every pane. */
 		NSArray *jobs = @[@[@"layout", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceScopeLayout)],
-						  @[@"farben", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceScopeTheme)],
-						  @[@"blasen", @(AIContactListWindowStyleContactBubbles), @(AIContactListAppearanceScopeLayout)]];
+						  @[@"colours", @(AIContactListWindowStyleBorderless), @(AIContactListAppearanceScopeTheme)],
+						  @[@"bubbles", @(AIContactListWindowStyleContactBubbles), @(AIContactListAppearanceScopeLayout)]];
 
-		for (NSString *mode in @[@"hell", @"dunkel"]) {
+		for (NSString *mode in @[@"light", @"dark"]) {
 			NSAppearance *appearance = [NSAppearance appearanceNamed:
-										([mode isEqualToString:@"dunkel"] ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];
+										([mode isEqualToString:@"dark"] ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];
 			NSApp.appearance = appearance;
 
 			for (NSArray *job in jobs) {
@@ -232,7 +232,7 @@ int main(int argc, const char *argv[])
 				spin(0.8);
 
 				writePNG(window, [outDir stringByAppendingPathComponent:
-								  [NSString stringWithFormat:@"seite-%@-%@.png", job[0], mode]]);
+								  [NSString stringWithFormat:@"page-%@-%@.png", job[0], mode]]);
 				[window orderOut:nil];
 				[page tearDown];
 			}

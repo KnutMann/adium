@@ -6,7 +6,7 @@
 # stand-in holding the values in a dictionary is therefore enough to put the
 # whole window on screen. Nothing of the real settings is read or written.
 #
-# Aufruf:  Testing/ui/editor/editor-shots.sh [Zielordner]
+# Usage:  Testing/ui/editor/editor-shots.sh [output folder]
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 OUT="${1:-$ROOT/build/editor-shots}"
@@ -56,4 +56,4 @@ codesign -f -s - "$APP" >/dev/null 2>&1 || true
 EDITOR_ROOT="$ROOT" EDITOR_OUT="$OUT" "$APP/Contents/MacOS/editorshots"
 
 echo
-echo "Bilder liegen in $OUT"
+echo "The pictures are in $OUT"

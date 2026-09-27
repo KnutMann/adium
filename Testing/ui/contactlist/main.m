@@ -136,7 +136,7 @@ static NSDictionary *merged(NSDictionary *base, NSDictionary *overlay)
 }
 @end
 
-static NSString *const styleNames[] = { @"Standard", @"Rahmenlos", @"Gruppenblasen", @"Kontaktblasen", @"Kontaktblasen-eng", @"Gruppenchat" };
+static NSString *const styleNames[] = { @"Standard", @"Borderless", @"GroupBubbles", @"ContactBubbles", @"ContactBubblesFitted", @"GroupChat" };
 
 int main(int argc, const char *argv[])
 {
@@ -170,13 +170,13 @@ int main(int argc, const char *argv[])
 		 * and a role icon pack for everything it draws. */
 		NSMutableArray *jobs = [NSMutableArray array];
 		for (int style = 0; style < AIContactListWindowStyleGroupChat; style++) {
-			[jobs addObject:@{ @"stem": [NSString stringWithFormat:@"stil-%d-%@", style, styleNames[style]],
+			[jobs addObject:@{ @"stem": [NSString stringWithFormat:@"style-%d-%@", style, styleNames[style]],
 							   @"style": @(style), @"layout": baseLayout, @"theme": baseTheme }];
 		}
 		for (NSString *name in @[@"Aqualicious", @"Centered", @"Concise", @"Decay 2.0"]) {
 			NSDictionary *layout = setNamed(root, name, @"ListLayout");
 			if (!layout) continue;
-			[jobs addObject:@{ @"stem": [NSString stringWithFormat:@"gestaltung-%@", name],
+			[jobs addObject:@{ @"stem": [NSString stringWithFormat:@"layout-%@", name],
 							   @"style": @(AIContactListWindowStyleBorderless),
 							   @"layout": merged(baseLayout, layout), @"theme": baseTheme }];
 		}
@@ -184,7 +184,7 @@ int main(int argc, const char *argv[])
 								 @"Concise", @"Decay 2.0", @"Pastel Pink"]) {
 			NSDictionary *theme = setNamed(root, name, @"ListTheme");
 			if (!theme) continue;
-			[jobs addObject:@{ @"stem": [NSString stringWithFormat:@"motiv-%@", name],
+			[jobs addObject:@{ @"stem": [NSString stringWithFormat:@"theme-%@", name],
 							   @"style": @(AIContactListWindowStyleBorderless),
 							   @"layout": baseLayout, @"theme": merged(baseTheme, theme) }];
 		}
@@ -192,8 +192,8 @@ int main(int argc, const char *argv[])
 		NSMutableString *report = [NSMutableString string];
 
 		for (NSDictionary *job in jobs) {
-			for (NSString *mode in @[@"hell", @"dunkel"]) {
-				BOOL dark = [mode isEqualToString:@"dunkel"];
+			for (NSString *mode in @[@"light", @"dark"]) {
+				BOOL dark = [mode isEqualToString:@"dark"];
 				NSAppearance *appearance = [NSAppearance appearanceNamed:
 											(dark ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];
 				NSApp.appearance = appearance;
@@ -333,11 +333,11 @@ int main(int argc, const char *argv[])
 				if (!dark) {
 					AIListCell *contentCell = (AIListCell *)[listView contentCell];
 					AIListCell *groupCell = (AIListCell *)[listView groupCell];
-					NSArray *shapeNames = @[@"eckig", @"Mockie", @"Blase"];
-					[report appendFormat:@"%@\n  Fensterstil %@ | Kontakt: %@%@, %.0f hoch | Gruppe: %@%@, %.0f hoch | Wunschbreite %ld, Wunschhoehe %ld\n",
+					NSArray *shapeNames = @[@"square", @"Mockie", @"bubble"];
+					[report appendFormat:@"%@\n  window style %@ | contact: %@%@, %.0f high | group: %@%@, %.0f high | desired width %ld, desired height %ld\n",
 					 job[@"stem"], styleNames[[job[@"style"] intValue]],
-					 shapeNames[contentCell.shape], (contentCell.fitted ? @" eng" : @""), contentCell.cellSize.height,
-					 shapeNames[groupCell.shape], (groupCell.fitted ? @" eng" : @""), groupCell.cellSize.height,
+					 shapeNames[contentCell.shape], (contentCell.fitted ? @" fitted" : @""), contentCell.cellSize.height,
+					 shapeNames[groupCell.shape], (groupCell.fitted ? @" fitted" : @""), groupCell.cellSize.height,
 					 (long)listView.desiredWidth, (long)listView.desiredHeight];
 				}
 
@@ -345,7 +345,7 @@ int main(int argc, const char *argv[])
 			}
 		}
 
-		[report writeToFile:[outDir stringByAppendingPathComponent:@"aufbau.txt"]
+		[report writeToFile:[outDir stringByAppendingPathComponent:@"report.txt"]
 				 atomically:YES encoding:NSUTF8StringEncoding error:NULL];
 	}
 	return 0;
