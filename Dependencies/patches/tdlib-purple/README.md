@@ -133,3 +133,19 @@ loads nowhere else and says nothing about why. Worth checking after any rebuild:
 **Not yet run.** The plugin compiles, links, resolves everything through the bundle and is
 installed through install.sh, which recorded the session as 1.8.67. Whether it talks to Telegram
 is untested. The session as it was is beside it, in a folder named for the day.
+
+## A contact joining Telegram is not an unsupported message
+
+Reported the first evening this ran: a chat line reading
+
+    Max Schön: Unsupported message type messageContactRegistered
+
+Telegram sends that when somebody already in the address book starts using it. It is an ordinary
+thing to be told, not a gap in what this plug-in supports, and naming a wire type at a reader is
+no way to say it. It says "joined Telegram" now, after the sender's name, the way every other
+service message in this file is built.
+
+**This one is worth offering upstream**, unlike the five API adaptations above: adrighem's master
+does not have it either, its table still lists messageContactRegistered among the types that fall
+through to the unsupported branch. Worth offering along with the phone number change, which has
+been waiting since August.
