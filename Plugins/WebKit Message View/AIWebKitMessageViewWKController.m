@@ -536,6 +536,31 @@ static NSString *const AIWKContextMenuScript =
 																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
 															 forMainFrameOnly:YES]];
 
+	/* A tape measure for the end of the conversation, in the bridge world so it can
+	 * say what it sees. Two attempts at holding the end have now failed and a third
+	 * guess is worth nothing: this writes down whether a picture's load event
+	 * arrives at all, and what moves when it does. Silent unless debug logging is
+	 * on, because that is what decides whether the other end of this says anything.
+	 */
+	[userContentController addUserScript:[[WKUserScript alloc] initWithSource:
+		@"(function() {"
+		@"  function say(what, target) {"
+		@"    window.webkit.messageHandlers.adium.postMessage({type:'scrolltrace', what:what,"
+		@"      y:String(window.scrollY), h:String(window.innerHeight),"
+		@"      body:String(document.body.scrollHeight), off:String(document.body.offsetHeight),"
+		@"      imgs:String(document.images ? document.images.length : -1),"
+		@"      src:String(target && target.src ? target.src.slice(-40) : '')});"
+		@"  }"
+		@"  document.addEventListener('load', function(e) {"
+		@"    if (e.target && e.target.tagName && e.target.tagName.toLowerCase() == 'img') say('Bild da', e.target);"
+		@"  }, true);"
+		@"  window.addEventListener('scroll', function() { say('gescrollt', null); }, false);"
+		@"  say('Seite bereit', null);"
+		@"})();"
+																injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+															 forMainFrameOnly:YES
+															   inContentWorld:AIWKBridgeWorld()]];
+
 	/* JavaScript plugins, each into a content world of its own. Their scripts
 	 * re-inject on every load like the ones above, so a reprime needs no extra
 	 * handling. The world isolates a plugin's JS; the hardening and the
@@ -885,6 +910,16 @@ static void AIWebKitRevealReceivedFileURL(NSURL *url)
 	NSDictionary *body = (NSDictionary *)message.body;
 	NSString *type = [body objectForKey:@"type"];
 	if (![type isKindOfClass:[NSString class]]) {
+		return;
+	}
+
+	if ([type isEqualToString:@"scrolltrace"]) {
+		if (AIDebugLoggingEnabled) {
+			AILogWithSignature(@"Ende der Unterhaltung: %@, y=%@ Fensterhoehe=%@ Inhalt=%@ (offset %@), %@ Bilder %@",
+							   [body objectForKey:@"what"], [body objectForKey:@"y"], [body objectForKey:@"h"],
+							   [body objectForKey:@"body"], [body objectForKey:@"off"], [body objectForKey:@"imgs"],
+							   [body objectForKey:@"src"]);
+		}
 		return;
 	}
 
