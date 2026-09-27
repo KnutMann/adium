@@ -1,13 +1,13 @@
-/* Ueberlebt eine Stanza den Umweg ueber Text, den der gezaehlte Sendeweg noetig macht?
+/* Does a stanza survive the detour through text that the counted send path makes necessary?
  *
- * Vier Stellen in Adium haben ihre Stanzas bisher direkt an send_raw gegeben und damit den
- * Zaehler fuer XEP-0198 umgangen: der Server zaehlt sie, wir nicht, und die beiden Zahlen laufen
- * fuer den Rest der Verbindung auseinander. Zwei dieser Stellen halten fertigen TEXT und keinen
- * Baum, muessen also erst wieder eingelesen werden, damit der Zaehler sie sieht.
+ * Four places in Adium used to hand their stanzas straight to send_raw and thereby went around
+ * the counter for XEP-0198: the server counts them, we do not, and the two numbers drift apart
+ * for the rest of the connection. Two of those places hold finished TEXT and not a tree, so they
+ * have to be parsed back in first for the counter to see them.
  *
- * Genau das wird hier geprueft: dass dabei nichts verlorengeht. Ein verschluckter Namensraum
- * oder ein verlorenes Attribut faellt sonst erst der Gegenseite auf, und auch dort nur als
- * ausbleibende Antwort.
+ * That is exactly what is checked here: that nothing is lost on the way. A swallowed namespace
+ * or a lost attribute would otherwise only be noticed by the other side, and even there only as
+ * an answer that never comes.
  */
 #import <Foundation/Foundation.h>
 #import <libpurple/libpurple.h>
@@ -20,7 +20,7 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 	if (!ok) failures++;
 }
 
-/*! @brief Einlesen und wieder ausschreiben, wie der gezaehlte Weg es tut */
+/*! @brief Parse in and write back out, the way the counted path does */
 static NSString *throughTheParser(NSString *written)
 {
 	xmlnode *parsed = xmlnode_from_str([written UTF8String], -1);
@@ -37,13 +37,13 @@ static void survives(NSString *name, NSString *written, NSArray<NSString *> *mus
 {
 	NSString *after = throughTheParser(written);
 	if (!after) {
-		check(name, NO, @"liess sich gar nicht einlesen");
+		check(name, NO, @"could not be parsed at all");
 		return;
 	}
 
 	for (NSString *needed in mustContain) {
 		if ([after rangeOfString:needed].location == NSNotFound) {
-			check(name, NO, [NSString stringWithFormat:@"\"%@\" fehlt in %@", needed, after]);
+			check(name, NO, [NSString stringWithFormat:@"\"%@\" is missing from %@", needed, after]);
 			return;
 		}
 	}
@@ -51,46 +51,46 @@ static void survives(NSString *name, NSString *written, NSArray<NSString *> *mus
 }
 
 int main(void) { @autoreleasepool {
-	//Was AMPurpleJabberNode beim Erkunden schickt, mit dem Namensraum auf dem query-Element
-	survives(@"Eine Erkundungsanfrage behaelt ihren Namensraum",
+	//What AMPurpleJabberNode sends while exploring, with the namespace on the query element
+	survives(@"A discovery request keeps its namespace",
 			 @"<iq type=\"get\" to=\"conference.example.org\" id=\"AMPurpleJabberNode1\">"
 			  "<query xmlns=\"http://jabber.org/protocol/disco#items\"></query></iq>",
 			 @[@"disco#items", @"conference.example.org", @"AMPurpleJabberNode1", @"type='get'"]);
 
-	survives(@"Und eine nach Faehigkeiten ebenso",
+	survives(@"And so does one asking about features",
 			 @"<iq type=\"get\" to=\"example.org\" id=\"n2\">"
 			  "<query xmlns=\"http://jabber.org/protocol/disco#info\" node=\"urn:x\"></query></iq>",
 			 @[@"disco#info", @"node='urn:x'", @"id='n2'"]);
 
-	//Was der Ad-hoc-Server antwortet: verschachtelt, mit Formular
-	survives(@"Eine Ad-hoc-Antwort behaelt ihre Verschachtelung",
+	//What the ad hoc server answers: nested, with a form
+	survives(@"An ad hoc answer keeps its nesting",
 			 @"<iq to=\"a@b/c\" type=\"result\" id=\"x1\">"
 			  "<command xmlns=\"http://jabber.org/protocol/commands\" node=\"ping\" status=\"completed\">"
 			  "<x xmlns=\"jabber:x:data\" type=\"result\">"
 			  "<field var=\"beat\"><value>1</value></field></x></command></iq>",
 			 @[@"protocol/commands", @"node='ping'", @"jabber:x:data", @"<value>1</value>"]);
 
-	//Was der Datei-Upload fragt
-	survives(@"Eine Upload-Anfrage behaelt Groesse und Namen",
+	//What the file upload asks
+	survives(@"An upload request keeps size and name",
 			 @"<iq type=\"get\" to=\"upload.example.org\" id=\"u1\">"
-			  "<request xmlns=\"urn:xmpp:http:upload:0\" filename=\"Bild ä.png\" size=\"4711\"/></iq>",
-			 @[@"upload:0", @"Bild ä.png", @"size='4711'"]);
+			  "<request xmlns=\"urn:xmpp:http:upload:0\" filename=\"Picture ä.png\" size=\"4711\"/></iq>",
+			 @[@"upload:0", @"Picture ä.png", @"size='4711'"]);
 
-	//Umlaute und Sonderzeichen im Text
-	survives(@"Ein Rumpf mit Umlauten kommt heil durch",
-			 @"<message to=\"x@y\" type=\"chat\"><body>Grüße &amp; Küsse &lt;3</body></message>",
-			 @[@"Grüße", @"&amp;", @"&lt;3"]);
+	//Accents and special characters in the text
+	survives(@"A body with accented letters comes through intact",
+			 @"<message to=\"x@y\" type=\"chat\"><body>Crème &amp; naïveté &lt;3</body></message>",
+			 @[@"Crème", @"&amp;", @"&lt;3"]);
 
-	//Und der Fall, der NICHT durchgehen darf: kaputtes XML muss als nil zurueckkommen,
-	//damit der Aufrufer es unveraendert weitergibt statt es stillschweigend zu verlieren
-	check(@"Unvollstaendiges XML laesst sich nicht einlesen",
+	//And the case that must NOT go through: broken XML has to come back as nil, so that the
+	//caller passes it on unchanged rather than losing it in silence
+	check(@"Incomplete XML cannot be parsed",
 		  throughTheParser(@"<iq type='get'><query") == nil, nil);
-	check(@"Und ein blosses Bruchstueck ebensowenig",
+	check(@"Nor can a bare fragment",
 		  throughTheParser(@"</stream:stream>") == nil, nil);
 
-	//Ein einzelnes Element ohne Inhalt ist dagegen gueltig und muss durchgehen
-	check(@"Ein leeres Element geht durch", throughTheParser(@"<presence/>") != nil, nil);
+	//A single element with no content, by contrast, is valid and has to go through
+	check(@"An empty element goes through", throughTheParser(@"<presence/>") != nil, nil);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

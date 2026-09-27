@@ -1,13 +1,13 @@
-/* Kommt eine OMEMO-Nachricht in der Form heraus, die andere Clients annehmen, und wieder herein?
+/* Does an OMEMO message come out in the shape other clients accept, and come back in again?
  *
- * Geprueft wird die Drahtform, nicht die Kryptografie darunter: dass der Pruefwert AM SCHLUESSEL
- * haengt und nicht am Text (Conversations weist alles andere mit dem Hinweis ab, der ABSENDER
- * muesse seinen Client erneuern), dass ein Text an mehrere Geraete gleichzeitig geht und dabei
- * NUR EINMAL verschluesselt wird, dass wir uns selbst nicht anschreiben, und dass eine
- * Nachricht, die fuer niemanden lesbar waere, gar nicht erst entsteht.
+ * What is checked is the wire form, not the cryptography underneath: that the tag hangs ON THE
+ * KEY and not on the text (Conversations refuses anything else with the note that the SENDER
+ * should update their client), that one text goes to several devices at once and is encrypted
+ * ONLY ONCE while doing so, that we do not write to ourselves, and that a message nobody could
+ * read never comes into being at all.
  *
- * Und die Faelle, in denen nichts passieren darf: eine Nachricht an ein anderes Geraet desselben
- * Kontos, ein verdrehter Initialisierungsvektor, ein veraenderter Text.
+ * And the cases in which nothing may happen: a message to another device of the same account, a
+ * mangled initialisation vector, a changed ciphertext.
  */
 #import <Foundation/Foundation.h>
 #import "AIOMEMOStore.h"
@@ -24,7 +24,7 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 #define ALICE	@"alice@example.org"
 #define BOB		@"bob@example.org"
 
-/*! @brief Alice eine Sitzung zu einem Geraet aufbauen lassen, aus dessen Buendel */
+/*! @brief Let Alice build a session to a device out of that device's bundle */
 static BOOL letTalk(AIOMEMOStore *from, NSString *toJID, AIOMEMOStore *to)
 {
 	NSNumber *anyPreKey = [[[to preKeys] allKeys] firstObject];
@@ -47,43 +47,43 @@ int main(void) { @autoreleasepool {
 	AIOMEMOStore *alice = [AIOMEMOStore storeForAccount:ALICE];
 	AIOMEMOStore *bobPhone = [AIOMEMOStore storeForAccount:BOB];
 
-	//Bobs zweites Geraet: ein eigener Vorrat unter einem eigenen Kontonamen, damit beide
-	//Identitaeten wirklich verschieden sind, wie bei zwei echten Installationen
+	//Bob's second device: a store of its own under an account name of its own, so that both
+	//identities really are different, as with two real installations
 	AIOMEMOStore *bobLaptop = [AIOMEMOStore storeForAccount:@"bob-laptop@example.org"];
 
-	check(@"Bobs zwei Geraete haben verschiedene Nummern",
+	check(@"Bob's two devices have different numbers",
 		  bobPhone.deviceIdentifier != bobLaptop.deviceIdentifier, nil);
 
-	check(@"Alice erreicht Bobs Telefon", letTalk(alice, BOB, bobPhone), nil);
-	check(@"und Bobs Rechner", letTalk(alice, BOB, bobLaptop), nil);
+	check(@"Alice reaches Bob's phone", letTalk(alice, BOB, bobPhone), nil);
+	check(@"and Bob's laptop", letTalk(alice, BOB, bobLaptop), nil);
 
 	NSDictionary *recipients = @{ BOB: @[@(bobPhone.deviceIdentifier), @(bobLaptop.deviceIdentifier)] };
 
-	NSString *said = @"Treffen wir uns um acht? Grüße, 👋";
+	NSString *said = @"Shall we meet at eight? Regards, 👋";
 	AIOMEMOMessage *sent = [AIOMEMOMessage encrypting:said withStore:alice forDevices:recipients];
 
-	check(@"Eine Nachricht an zwei Geraete entsteht", sent != nil, nil);
-	check(@"Sie traegt unsere Geraetenummer", sent.sender == alice.deviceIdentifier, nil);
-	check(@"Der Initialisierungsvektor ist zwoelf Byte lang", [sent.initialisationVector length] == 12,
-		  [NSString stringWithFormat:@"war %lu", (unsigned long)[sent.initialisationVector length]]);
-	check(@"Der Text wurde nur einmal verschluesselt", [sent.keys count] == 2,
-		  [NSString stringWithFormat:@"es waren %lu Schluessel", (unsigned long)[sent.keys count]]);
+	check(@"A message to two devices comes into being", sent != nil, nil);
+	check(@"It carries our device number", sent.sender == alice.deviceIdentifier, nil);
+	check(@"The initialisation vector is twelve bytes long", [sent.initialisationVector length] == 12,
+		  [NSString stringWithFormat:@"was %lu", (unsigned long)[sent.initialisationVector length]]);
+	check(@"The text was encrypted only once", [sent.keys count] == 2,
+		  [NSString stringWithFormat:@"there were %lu keys", (unsigned long)[sent.keys count]]);
 
-	//Die Groesse, an der Conversations eine Nachricht ablehnt: sechzehn Byte Schluessel plus
-	//sechzehn Byte Pruefwert, und zwar IM Schluessel, nicht am Text
-	check(@"Der verschluesselte Text ist so lang wie der Klartext",
+	//The size Conversations refuses a message over: sixteen bytes of key plus sixteen bytes of
+	//tag, and that IN the key, not on the text
+	check(@"The encrypted text is as long as the plain text",
 		  [sent.payload length] == [[said dataUsingEncoding:NSUTF8StringEncoding] length],
-		  [NSString stringWithFormat:@"%lu statt %lu", (unsigned long)[sent.payload length],
+		  [NSString stringWithFormat:@"%lu instead of %lu", (unsigned long)[sent.payload length],
 		   (unsigned long)[[said dataUsingEncoding:NSUTF8StringEncoding] length]]);
 
-	//Beide Geraete lesen dieselbe Nachricht
+	//Both devices read the same message
 	NSString *atPhone = [AIOMEMOMessage textFromPayload:sent.payload
 								   initialisationVector:sent.initialisationVector
 												   keys:sent.keys
 											   sentFrom:ALICE
 												 device:alice.deviceIdentifier
 											  withStore:bobPhone trouble:NULL];
-	check(@"Bobs Telefon liest sie", [atPhone isEqualToString:said], atPhone);
+	check(@"Bob's phone reads it", [atPhone isEqualToString:said], atPhone);
 
 	NSString *atLaptop = [AIOMEMOMessage textFromPayload:sent.payload
 									initialisationVector:sent.initialisationVector
@@ -91,9 +91,9 @@ int main(void) { @autoreleasepool {
 												sentFrom:ALICE
 												  device:alice.deviceIdentifier
 											   withStore:bobLaptop trouble:NULL];
-	check(@"und Bobs Rechner ebenso", [atLaptop isEqualToString:said], atLaptop);
+	check(@"and so does Bob's laptop", [atLaptop isEqualToString:said], atLaptop);
 
-	//Ein Geraet, das nicht gemeint war, findet nichts fuer sich
+	//A device that was not meant finds nothing for itself
 	AIOMEMOStore *stranger = [AIOMEMOStore storeForAccount:@"carol@example.org"];
 	NSString *atStranger = [AIOMEMOMessage textFromPayload:sent.payload
 									  initialisationVector:sent.initialisationVector
@@ -101,25 +101,25 @@ int main(void) { @autoreleasepool {
 												  sentFrom:ALICE
 													device:alice.deviceIdentifier
 												 withStore:stranger trouble:NULL];
-	check(@"Ein nicht gemeintes Geraet findet nichts fuer sich", atStranger == nil, atStranger);
+	check(@"A device that was not meant finds nothing for itself", atStranger == nil, atStranger);
 
-	//Wir schreiben uns nicht selbst an
+	//We do not write to ourselves
 	NSDictionary *includingOurselves = @{
 		BOB: @[@(bobPhone.deviceIdentifier)],
 		ALICE: @[@(alice.deviceIdentifier)]
 	};
-	AIOMEMOMessage *second = [AIOMEMOMessage encrypting:@"nochmal" withStore:alice forDevices:includingOurselves];
-	check(@"Das eigene Geraet bekommt keine Kopie", second != nil && [second.keys count] == 1,
-		  second ? [NSString stringWithFormat:@"es waren %lu", (unsigned long)[second.keys count]] : @"gar nichts");
+	AIOMEMOMessage *second = [AIOMEMOMessage encrypting:@"once more" withStore:alice forDevices:includingOurselves];
+	check(@"Our own device gets no copy", second != nil && [second.keys count] == 1,
+		  second ? [NSString stringWithFormat:@"there were %lu", (unsigned long)[second.keys count]] : @"nothing at all");
 
-	//Eine Nachricht, die niemand lesen koennte, entsteht gar nicht erst
-	AIOMEMOMessage *toNobody = [AIOMEMOMessage encrypting:@"ins Leere"
+	//A message nobody could read never comes into being at all
+	AIOMEMOMessage *toNobody = [AIOMEMOMessage encrypting:@"into the void"
 												withStore:alice
 											   forDevices:@{ @"dave@example.org": @[@(999)] }];
-	check(@"Eine Nachricht an lauter unbekannte Geraete entsteht nicht", toNobody == nil, nil);
+	check(@"A message to nothing but unknown devices does not come into being", toNobody == nil, nil);
 
-	//Ein veraenderter Text faellt auf
-	AIOMEMOMessage *third = [AIOMEMOMessage encrypting:@"unveraendert" withStore:alice forDevices:recipients];
+	//A changed ciphertext is noticed
+	AIOMEMOMessage *third = [AIOMEMOMessage encrypting:@"unchanged" withStore:alice forDevices:recipients];
 	NSMutableData *tampered = [third.payload mutableCopy];
 	((uint8_t *)[tampered mutableBytes])[0] ^= 0xFF;
 	NSString *broken = [AIOMEMOMessage textFromPayload:tampered
@@ -128,34 +128,34 @@ int main(void) { @autoreleasepool {
 											  sentFrom:ALICE
 												device:alice.deviceIdentifier
 											 withStore:bobPhone trouble:NULL];
-	check(@"Ein veraenderter Text faellt auf", broken == nil, broken);
+	check(@"A changed ciphertext is noticed", broken == nil, broken);
 
-	//Ein Initialisierungsvektor der falschen Laenge wird abgelehnt statt geraten
-	AIOMEMOMessage *fourth = [AIOMEMOMessage encrypting:@"egal" withStore:alice forDevices:recipients];
+	//An initialisation vector of the wrong length is refused rather than guessed at
+	AIOMEMOMessage *fourth = [AIOMEMOMessage encrypting:@"never mind" withStore:alice forDevices:recipients];
 	NSString *wrongVector = [AIOMEMOMessage textFromPayload:fourth.payload
-									   initialisationVector:[NSData dataWithBytes:"zu kurz" length:7]
+									   initialisationVector:[NSData dataWithBytes:"too few" length:7]
 													   keys:fourth.keys
 												   sentFrom:ALICE
 													 device:alice.deviceIdentifier
 												  withStore:bobPhone trouble:NULL];
-	check(@"Ein zu kurzer Initialisierungsvektor wird abgelehnt", wrongVector == nil, wrongVector);
+	check(@"An initialisation vector that is too short is refused", wrongVector == nil, wrongVector);
 
-	//Die erste Nachricht an ein Geraet muss als sitzungseroeffnend gekennzeichnet sein
+	//The first message to a device has to be marked as opening the session
 	BOOL anyStartsASession = NO;
 	for (AIOMEMOKeyForDevice *one in sent.keys)
 		if (one.startsASession) anyStartsASession = YES;
-	check(@"Die erste Nachricht ist als sitzungseroeffnend gekennzeichnet", anyStartsASession, nil);
+	check(@"The first message is marked as opening the session", anyStartsASession, nil);
 
-	/* Und die zweite AUCH NOCH, denn bis Bob geantwortet hat, weiss Alice nicht, ob er die
-	 * erste ueberhaupt bekommen hat. Faellt der Einmalschluessel zu frueh weg, verliert eine
-	 * Nachricht, die die erste ueberholt, ihre einzige Moeglichkeit anzukommen. */
-	AIOMEMOMessage *later = [AIOMEMOMessage encrypting:@"und weiter" withStore:alice forDevices:recipients];
+	/* And so is the second one, because until Bob has answered, Alice does not know whether he
+	 * ever got the first. Drop the one time key too early and a message that overtakes the
+	 * first loses its only chance of arriving. */
+	AIOMEMOMessage *later = [AIOMEMOMessage encrypting:@"and on we go" withStore:alice forDevices:recipients];
 	BOOL stillStarting = NO;
 	for (AIOMEMOKeyForDevice *one in later.keys)
 		if (one.startsASession) stillStarting = YES;
-	check(@"Bis die Gegenseite geantwortet hat, bleibt der Einmalschluessel dabei", stillStarting, nil);
+	check(@"Until the other side has answered, the one time key stays with it", stillStarting, nil);
 
-	//Bob liest sie und kann zurueckschreiben, ohne je ein Buendel von Alice geholt zu haben
+	//Bob reads it and can write back without ever having fetched a bundle from Alice
 	[AIOMEMOMessage textFromPayload:later.payload
 			   initialisationVector:later.initialisationVector
 							   keys:later.keys
@@ -163,10 +163,10 @@ int main(void) { @autoreleasepool {
 							 device:alice.deviceIdentifier
 						  withStore:bobPhone trouble:NULL];
 
-	AIOMEMOMessage *answer = [AIOMEMOMessage encrypting:@"Ja, gerne"
+	AIOMEMOMessage *answer = [AIOMEMOMessage encrypting:@"Yes, gladly"
 											  withStore:bobPhone
 											 forDevices:@{ ALICE: @[@(alice.deviceIdentifier)] }];
-	check(@"Bob kann antworten, ohne ein Buendel geholt zu haben", answer != nil, nil);
+	check(@"Bob can answer without having fetched a bundle", answer != nil, nil);
 
 	NSString *heard = [AIOMEMOMessage textFromPayload:answer.payload
 								 initialisationVector:answer.initialisationVector
@@ -174,16 +174,16 @@ int main(void) { @autoreleasepool {
 											 sentFrom:BOB
 											   device:bobPhone.deviceIdentifier
 											withStore:alice trouble:NULL];
-	check(@"und Alice liest die Antwort", [heard isEqualToString:@"Ja, gerne"], heard);
+	check(@"and Alice reads the answer", [heard isEqualToString:@"Yes, gladly"], heard);
 
-	//ERST JETZT, wo Alice weiss, dass Bob da ist, faellt der Einmalschluessel weg
-	AIOMEMOMessage *afterward = [AIOMEMOMessage encrypting:@"alles klar"
+	//ONLY NOW, with Alice knowing that Bob is there, does the one time key go
+	AIOMEMOMessage *afterward = [AIOMEMOMessage encrypting:@"understood"
 												 withStore:alice
 												forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
 	BOOL stillStartingNow = NO;
 	for (AIOMEMOKeyForDevice *one in afterward.keys)
 		if (one.startsASession) stillStartingNow = YES;
-	check(@"Nach der ersten Antwort faellt er weg", !stillStartingNow, nil);
+	check(@"After the first answer it goes", !stillStartingNow, nil);
 
 	NSString *finally = [AIOMEMOMessage textFromPayload:afterward.payload
 								   initialisationVector:afterward.initialisationVector
@@ -191,12 +191,12 @@ int main(void) { @autoreleasepool {
 											   sentFrom:ALICE
 												 device:alice.deviceIdentifier
 											  withStore:bobPhone trouble:NULL];
-	check(@"und die Unterhaltung laeuft weiter", [finally isEqualToString:@"alles klar"], finally);
+	check(@"and the conversation carries on", [finally isEqualToString:@"understood"], finally);
 
-	/* Die gewoehnliche Form, mit dem Pruefwert IM Schluessel, muss unveraendert aufgehen. Die
-	 * aeltere Lesart, die ihn ans Ende der Nutzlast haengt, wird beim Lesen wieder
-	 * zusammengesetzt; dass das den Normalfall nicht kaputtmacht, steht hier. */
-	AIOMEMOMessage *ordinary = [AIOMEMOMessage encrypting:@"anders herum gepackt"
+	/* The ordinary form, with the tag IN the key, has to open unchanged. The older reading,
+	 * which hangs it on the end of the payload, is put back together while reading; that this
+	 * does not break the normal case is what stands here. */
+	AIOMEMOMessage *ordinary = [AIOMEMOMessage encrypting:@"packed the other way round"
 												withStore:alice
 											   forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
 	AIOMEMOTrouble why = AIOMEMOTroubleNone;
@@ -207,12 +207,12 @@ int main(void) { @autoreleasepool {
 													device:alice.deviceIdentifier
 												 withStore:bobPhone
 												   trouble:&why];
-	check(@"Die gewoehnliche Form oeffnet sich weiterhin",
-		  [stillOpens isEqualToString:@"anders herum gepackt"], stillOpens);
-	check(@"und gilt dabei als unauffaellig", why == AIOMEMOTroubleNone,
+	check(@"The ordinary form still opens",
+		  [stillOpens isEqualToString:@"packed the other way round"], stillOpens);
+	check(@"and counts as unremarkable while doing so", why == AIOMEMOTroubleNone,
 		  [NSString stringWithUTF8String:[AIOMEMOMessage nameOfTrouble:why]]);
 
-	//Eine Nachricht ohne Nutzlast ist ein Ratschenschritt und kein Fehler
+	//A message without a payload is a ratchet step and not a fault
 	AIOMEMOMessage *step = [AIOMEMOMessage encrypting:@"" withStore:alice
 										   forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
 	AIOMEMOTrouble stepWhy = AIOMEMOTroubleNone;
@@ -223,15 +223,15 @@ int main(void) { @autoreleasepool {
 												 device:alice.deviceIdentifier
 											  withStore:bobPhone
 												trouble:&stepWhy];
-	check(@"Eine Nachricht ohne Nutzlast ist leer und kein Fehler",
+	check(@"A message without a payload is empty and not a fault",
 		  [nothing isEqualToString:@""] && stepWhy == AIOMEMOTroubleNone,
 		  [NSString stringWithUTF8String:[AIOMEMOMessage nameOfTrouble:stepWhy]]);
 
-	//Ein zu kurzer Schluessel ohne passende Nutzlast wird benannt, nicht verschluckt
+	//A key that is too short, with no matching payload, is named rather than swallowed
 	AIOMEMOTrouble shortWhy = AIOMEMOTroubleNone;
 	AIOMEMOKeyForDevice *stunted = [AIOMEMOMessage keyForDevice:bobPhone.deviceIdentifier
 												 startsASession:NO
-														wrapped:[NSData dataWithBytes:"zu kurz" length:7]];
+														wrapped:[NSData dataWithBytes:"too few" length:7]];
 	[AIOMEMOMessage textFromPayload:[NSData dataWithBytes:"xxxxxxxxxxxxxxxxxxxx" length:20]
 			   initialisationVector:ordinary.initialisationVector
 							   keys:@[stunted]
@@ -239,28 +239,28 @@ int main(void) { @autoreleasepool {
 							 device:alice.deviceIdentifier
 						  withStore:bobPhone
 							trouble:&shortWhy];
-	check(@"Ein unbrauchbarer Schluessel wird benannt",
+	check(@"An unusable key is named",
 		  shortWhy == AIOMEMOTroubleKeyWouldNotOpen,
 		  [NSString stringWithUTF8String:[AIOMEMOMessage nameOfTrouble:shortWhy]]);
 
-	//Ein abgelehntes Geraet wird weder beschrieben noch gelesen
+	//A rejected device is neither written to nor read from
 	NSString *laptopPrint = [alice fingerprintForJID:BOB device:bobLaptop.deviceIdentifier];
-	check(@"Alice kennt den Fingerabdruck des Rechners", laptopPrint != nil, nil);
+	check(@"Alice knows the laptop's fingerprint", laptopPrint != nil, nil);
 
 	[alice setTrust:AIOMEMOTrustRejected forFingerprint:laptopPrint];
-	AIOMEMOMessage *afterRejecting = [AIOMEMOMessage encrypting:@"nur ans Telefon"
+	AIOMEMOMessage *afterRejecting = [AIOMEMOMessage encrypting:@"to the phone only"
 													  withStore:alice
 													 forDevices:recipients];
-	check(@"Ein abgelehntes Geraet bekommt keine Kopie mehr",
+	check(@"A rejected device gets no copy any more",
 		  afterRejecting != nil && [afterRejecting.keys count] == 1,
-		  afterRejecting ? [NSString stringWithFormat:@"es waren %lu",
-							(unsigned long)[afterRejecting.keys count]] : @"gar nichts");
+		  afterRejecting ? [NSString stringWithFormat:@"there were %lu",
+							(unsigned long)[afterRejecting.keys count]] : @"nothing at all");
 
-	//Und andersherum: was von einem abgelehnten Geraet kommt, wird nicht gelesen
+	//And the other way round: what comes from a rejected device is not read
 	NSString *alicePrint = [bobPhone fingerprintForJID:ALICE device:alice.deviceIdentifier];
 	[bobPhone setTrust:AIOMEMOTrustRejected forFingerprint:alicePrint];
 
-	AIOMEMOMessage *fromRejected = [AIOMEMOMessage encrypting:@"trotzdem"
+	AIOMEMOMessage *fromRejected = [AIOMEMOMessage encrypting:@"all the same"
 													withStore:alice
 												   forDevices:@{ BOB: @[@(bobPhone.deviceIdentifier)] }];
 	NSString *shouldStaySilent = [AIOMEMOMessage textFromPayload:fromRejected.payload
@@ -269,10 +269,10 @@ int main(void) { @autoreleasepool {
 														sentFrom:ALICE
 														  device:alice.deviceIdentifier
 													   withStore:bobPhone trouble:NULL];
-	check(@"Von einem abgelehnten Geraet wird nichts gelesen", shouldStaySilent == nil, shouldStaySilent);
+	check(@"Nothing is read from a rejected device", shouldStaySilent == nil, shouldStaySilent);
 
 	[[NSFileManager defaultManager] removeItemAtPath:scratch error:NULL];
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

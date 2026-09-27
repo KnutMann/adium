@@ -25,7 +25,7 @@ command grep -rl "objectValueForTableColumn" --include="*.m" Source Plugins Fram
 		xibcells=$((xibcells + n))
 	done <<< "$(command grep -rl "customClass=\"$base\"" --include="*.xib" Resources Plugins Frameworks/Adium 2>/dev/null)"
 	cell=$((cell + xibcells))
-	# Streifen: die Regel ist, dass jede Datenliste sie hat. Im Code gesetzt oder im XIB der Klasse.
+	# Stripes: the rule is that every data list has them. Set in code or in the class's XIB.
 	stripes=$(command grep -c "setUsesAlternatingRowBackgroundColors:YES" "$f")
 	while IFS= read -r x; do
 		[ -n "$x" ] || continue

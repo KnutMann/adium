@@ -1,20 +1,20 @@
-/* Zeigt, was libpurple beim Registrieren eines Kontos meldet, und in welcher Reihenfolge.
+/* Shows what libpurple reports while registering an account, and in which order.
  *
- * Die Registrierungsseite im Konteneditor hat drei Zustaende, die alle davon abhaengen, welche
- * Rueckrufe libpurple in welcher Folge liefert: laeuft noch, gelungen, gescheitert. Aus dem
- * Quelltext liess sich das nur erraten, und eine Vermutung war schon falsch: der Server schickt
- * ein Datenformular, und das nimmt libpurple vor den alten Feldern.
+ * The registration page in the account editor has three states, all of which depend on which
+ * callbacks libpurple delivers in what order: still running, succeeded, failed. From the source
+ * that could only be guessed at, and one guess was already wrong: the server sends a data form,
+ * and libpurple takes that in preference to the old fields.
  *
- *   regwire <Name> <Passwort> [fill|raw|cancel]
+ *   regwire <name> <password> [fill|raw|cancel]
  *
- *   fill    Benutzername und Passwort werden in jedes Formular eingetragen, das libpurple zeigt,
- *           und es wird bestaetigt. Das ist, was Adium tun soll.
- *   raw     Das Formular wird unveraendert bestaetigt. Das ist, was Adium heute mit dem
- *           Altfeld-Dialog tut, und was gegen ein Datenformular herauskommt, zeigt dieser Lauf.
- *   cancel  Das Formular wird abgebrochen.
+ *   fill    the user name and password are entered into every form libpurple shows, and it is
+ *           confirmed. That is what Adium is meant to do.
+ *   raw     the form is confirmed unchanged. That is what Adium does today with its old field
+ *           dialog, and this run shows what comes of it against a data form.
+ *   cancel  the form is cancelled.
  *
- * Ohne Verschluesselung, wie smwire, gegen den Testserver aus server.sh. Das Konto liegt in
- * einem eigenen Verzeichnis unter /tmp.
+ * Without encryption, like smwire, against the test server from server.sh. The account lives in
+ * a directory of its own under /tmp.
  */
 #include <glib.h>
 #include <stdio.h>
@@ -41,7 +41,7 @@ static void mark(const char *what)
 	fflush(stdout);
 }
 
-/* --- Die Schleife, wie nullclient sie auch fuehrt ---------------------------------------- */
+/* --- The loop, the way nullclient runs one too ------------------------------------------- */
 
 typedef struct {
 	PurpleInputFunction function;
@@ -87,7 +87,7 @@ static PurpleEventLoopUiOps loop_ops = {
 	NULL, g_timeout_add_seconds, NULL, NULL
 };
 
-/* --- Nur die Registrierungs-Stanzas, der Rest ist Innenleben ----------------------------- */
+/* --- Only the registration stanzas, the rest is internals -------------------------------- */
 
 static void say(PurpleDebugLevel level, const char *category, const char *text)
 {
@@ -101,7 +101,7 @@ static void say(PurpleDebugLevel level, const char *category, const char *text)
 
 static PurpleDebugUiOps debug_ops = { say, NULL, NULL, NULL, NULL, NULL };
 
-/* --- Was eine Oberflaeche zu sehen bekaeme ---------------------------------------------- */
+/* --- What a user interface would get to see ---------------------------------------------- */
 
 static void *request_fields_cb(const char *title, const char *primary, const char *secondary,
                                PurpleRequestFields *fields, const char *ok_text, GCallback ok_cb,

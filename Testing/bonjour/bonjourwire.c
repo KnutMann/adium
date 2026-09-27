@@ -1,26 +1,25 @@
-/* Zwei Nachbarn auf einer Maschine: beweist, dass prpl-bonjour findet und zustellt.
+/* Two neighbours on one machine: proves that prpl-bonjour finds and delivers.
  *
- * Bonjour laesst sich nicht gegen den Prosody-Pruefstand testen, es gibt keinen Server,
- * gegen den man sich anmelden koennte; das Protokoll IST die Nachbarschaft. Also spielen
- * zwei Prozesse auf dieser Maschine die Nachbarn: beide melden sich bei mDNSResponder an,
- * jeder sieht den anderen auftauchen, und einer schickt dem anderen eine Nachricht ueber
- * die direkte TCP-Verbindung, die das Protokoll dafuer aufbaut.
+ * Bonjour cannot be tested against the Prosody harness, there is no server to sign on to;
+ * the protocol IS the neighbourhood. So two processes on this machine play the neighbours:
+ * both register with mDNSResponder, each sees the other appear, and one sends the other a
+ * message over the direct TCP connection the protocol builds for it.
  *
- *   bonjourwire <name> <port> send|wait|echo <Sekunden> [Partner]
+ *   bonjourwire <name> <port> send|wait|echo <seconds> [partner]
  *
- * send wartet, bis der GENANNTE Partner auftaucht, schickt ihm einen Gruss und meldet die
- * Zustellung; wait wartet auf den Gruss und druckt ihn. Beide enden mit 0 nur, wenn ihre
- * Haelfte wirklich passiert ist. Der Treiber dazu ist bonjour-test.sh.
+ * send waits until the NAMED partner appears, sends them a greeting and reports the delivery;
+ * wait waits for the greeting and prints it. Both exit 0 only if their half really happened.
+ * The driver for this is bonjour-test.sh.
  *
- * echo bleibt die ganze Zeit stehen und antwortet auf jede Nachricht, die ankommt, mit etwas
- * ANDEREM: einer wechselnden Zeile mit laufender Nummer und der Laenge des Gehoerten. Damit
- * laesst sich von Hand beides an einem Stueck pruefen, das Senden und das Empfangen, ohne
- * dass die Antwort mit dem Gesendeten zu verwechseln waere. Antworten ist nie unaufgefordert,
- * deshalb ist der Partner hier freiwillig; wird er genannt, wird nur ihm geantwortet.
+ * echo stays up the whole time and answers every message that arrives with something ELSE: a
+ * changing line carrying a running number and the length of what it heard. That makes it
+ * possible to check both at once by hand, sending and receiving, without the answer being
+ * mistaken for what was sent. Answering is never unsolicited, so the partner is optional here;
+ * if one is named, only they are answered.
  *
- * Der Partner wird verlangt und nicht erraten. Auf dieser Maschine laeuft im Normalfall auch
- * das richtige Adium mit einem Bonjour-Konto, und ein Pruefstand, der den erstbesten Nachbarn
- * anspricht, schreibt dann in einen echten Chat des Nutzers.
+ * The partner is demanded rather than guessed. Normally the user's real Adium runs on this
+ * machine too, with a Bonjour account, and a harness that talks to the first neighbour it finds
+ * would then write into a real conversation of theirs.
  */
 #include <glib.h>
 #include <stdio.h>
@@ -41,7 +40,7 @@ static gboolean sent = FALSE, arrived = FALSE, connected = FALSE;
 static int heard = 0, echoed = 0;
 static GMainLoop *loop = NULL;
 
-/* --- Die Schleife, wie nullclient und smwire sie auch fuehren --------------------------- */
+/* --- The loop, the way nullclient and smwire run one too -------------------------------- */
 
 #define PURPLE_GLIB_READ_COND  (G_IO_IN | G_IO_HUP | G_IO_ERR)
 #define PURPLE_GLIB_WRITE_COND (G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL)
@@ -100,7 +99,7 @@ static void say(PurpleDebugLevel level, const char *category, const char *text)
 
 static PurpleDebugUiOps debug_ops = { say, NULL, NULL, NULL, NULL, NULL };
 
-/* --- Was der Versuch wissen will --------------------------------------------------------- */
+/* --- What the experiment wants to know --------------------------------------------------- */
 
 static void signed_on(PurpleConnection *gc, gpointer data)
 {
@@ -109,11 +108,11 @@ static void signed_on(PurpleConnection *gc, gpointer data)
 	fflush(stdout);
 }
 
-/*! Zeitversetzt schicken: wer eine Verbindung von einem Namen annimmt, den er noch nicht
-    gesehen hat, weist sie als Fremden ab ("we don't like invisible buddies"). Auf einer
-    Maschine findet der Sender den Wartenden oft eine Sekunde vor der Gegenrichtung, also
-    bekommt die Gegenrichtung drei Sekunden Vorsprung. Unter Menschen vergeht zwischen
-    Sehen und Anschreiben ohnehin mehr Zeit. */
+/*! Send on a delay: anyone accepting a connection from a name they have not yet seen turns
+    it away as a stranger ("we don't like invisible buddies"). On one machine the sender often
+    finds the waiting side a second before the other direction does, so the other direction is
+    given a three second head start. Between people more time passes between seeing somebody
+    and writing to them anyway. */
 static gboolean do_send(gpointer data)
 {
 	char *who = data;
@@ -121,7 +120,7 @@ static gboolean do_send(gpointer data)
 	if (!sent) {
 		PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM,
 		                                                   theAccount, who);
-		purple_conv_im_send(PURPLE_CONV_IM(conv), "Gruss von nebenan");
+		purple_conv_im_send(PURPLE_CONV_IM(conv), "A greeting from next door");
 		sent = TRUE;
 		printf("[%s] == greeting sent to %s\n", myname, who);
 		fflush(stdout);
@@ -130,9 +129,9 @@ static gboolean do_send(gpointer data)
 	return FALSE;
 }
 
-/*! Ob dieser Nachbar der verabredete Partner ist. Die Nachbarn heissen "name@rechner.local",
-    verglichen wird also nur bis zum Klammeraffen. Wer anders heisst, wird nie angesprochen:
-    auf dieser Maschine ist der erstbeste Nachbar oft das richtige Adium des Nutzers. */
+/*! Whether this neighbour is the agreed partner. Neighbours are called "name@host.local",
+    so the comparison only runs up to the at sign. Anyone with a different name is never spoken
+    to: on this machine the first neighbour found is often the user's real Adium. */
 static gboolean is_partner(const char *who)
 {
 	size_t len;
@@ -144,14 +143,14 @@ static gboolean is_partner(const char *who)
 	return (g_ascii_strncasecmp(who, partner, len) == 0 && who[len] == '@');
 }
 
-/*! Ein Nachbar ist aufgetaucht. Der Sender nimmt nur den verabredeten Partner. */
+/*! A neighbour has appeared. The sender takes only the agreed partner. */
 static void buddy_signed_on(PurpleBuddy *buddy, gpointer data)
 {
 	const char *who = purple_buddy_get_name(buddy);
 	static gboolean scheduled = FALSE;
 
 	printf("[%s] == neighbour appeared: %s%s\n", myname, who,
-	       (purple_strequal(role, "send") && !is_partner(who)) ? " (nicht der Partner, ignoriert)" : "");
+	       (purple_strequal(role, "send") && !is_partner(who)) ? " (not the partner, ignored)" : "");
 	fflush(stdout);
 
 	if (purple_strequal(role, "send") && !scheduled && is_partner(who)) {
@@ -160,9 +159,9 @@ static void buddy_signed_on(PurpleBuddy *buddy, gpointer data)
 	}
 }
 
-/*! Was das Echo zurueckschickt: nie das Gehoerte, sondern eine wechselnde Zeile. Wer die
-    Antwort im Fenster sieht, soll auf einen Blick wissen, dass sie von hier kommt und die
-    wievielte sie ist. */
+/*! What the echo sends back: never what it heard, but a changing line. Whoever sees the
+    answer in the window should know at a glance that it comes from here and which one in the
+    sequence it is. */
 struct echo_reply { char *who; char *text; };
 
 static gboolean do_reply(gpointer data)
@@ -180,8 +179,8 @@ static gboolean do_reply(gpointer data)
 	return FALSE;
 }
 
-/*! Beim Empfaenger angekommen. received-im-msg reicht Werte, nicht Zeiger auf Zeiger;
-    das waere die Signatur des Filters receiving-im-msg. */
+/*! Arrived at the receiver. received-im-msg passes values, not pointers to pointers;
+    that would be the signature of the receiving-im-msg filter. */
 static void received_im(PurpleAccount *account, char *sender, char *message,
                         PurpleConversation *conv, PurpleMessageFlags flags)
 {
@@ -190,28 +189,28 @@ static void received_im(PurpleAccount *account, char *sender, char *message,
 	arrived = TRUE;
 
 	if (purple_strequal(role, "echo")) {
-		static const char *openings[] = { "Angekommen", "Gehoert", "Steht", "Notiert", "Weiter" };
+		static const char *openings[] = { "Arrived", "Heard", "Noted", "Logged", "Carry on" };
 		char *plain;
 		long length;
 		struct echo_reply *reply;
 
-		/* Ein genannter Partner schraenkt auch hier ein, obwohl eine Antwort nie
-		   unaufgefordert ist: wer den Pruefstand auf einen Gegenueber festlegt, will nicht,
-		   dass er mit jemand anderem spricht. */
+		/* A named partner narrows things here too, even though an answer is never
+		   unsolicited: whoever pins the harness to one counterpart does not want it talking
+		   to anybody else. */
 		if (partner && !is_partner(sender)) {
-			printf("[%s] == (nicht der Partner, keine Antwort)\n", myname);
+			printf("[%s] == (not the partner, no answer)\n", myname);
 			fflush(stdout);
 			return;
 		}
 
-		/* Auf dem Draht steht Auszeichnung ("<font>...</font>"), gezaehlt wird der Text. */
+		/* On the wire there is markup ("<font>...</font>"), what is counted is the text. */
 		plain = purple_markup_strip_html(message);
 		length = g_utf8_strlen(plain ? plain : "", -1);
 
 		heard++;
 		reply = g_new0(struct echo_reply, 1);
 		reply->who = g_strdup(sender);
-		reply->text = g_strdup_printf("%s. Antwort %d auf %ld Zeichen.",
+		reply->text = g_strdup_printf("%s. Answer %d to %ld characters.",
 		                              openings[(heard - 1) % G_N_ELEMENTS(openings)], heard, length);
 
 		printf("[%s] == answering with: %s\n", myname, reply->text);
@@ -219,7 +218,7 @@ static void received_im(PurpleAccount *account, char *sender, char *message,
 
 		g_free(plain);
 
-		/* Nicht aus dem Signal heraus senden, sondern gleich danach. */
+		/* Do not send from inside the signal, send just after it. */
 		g_timeout_add(200, do_reply, reply);
 		return;
 	}
@@ -227,15 +226,15 @@ static void received_im(PurpleAccount *account, char *sender, char *message,
 	g_main_loop_quit(loop);
 }
 
-/*! Der Sender ist fertig, sobald die Nachricht das Haus verlassen hat. Es gibt keine
-    Empfangsbestaetigung in diesem Protokoll; ob sie ankam, sagt der Empfaenger selbst. */
+/*! The sender is done as soon as the message has left the house. There is no delivery
+    receipt in this protocol; whether it arrived is for the receiver to say. */
 static void sent_im(PurpleAccount *account, const char *receiver,
                     const char *message, gpointer data)
 {
 	printf("[%s] == wrote out to %s\n", myname, receiver);
 	fflush(stdout);
 
-	//Das Echo hoert weiter zu, bis seine Zeit um ist
+	//The echo keeps listening until its time is up
 	if (purple_strequal(role, "echo")) return;
 
 	g_timeout_add_seconds(2, (GSourceFunc)g_main_loop_quit, loop);
@@ -263,7 +262,7 @@ int main(int argc, char *argv[])
 	signal(SIGPIPE, SIG_IGN);
 
 	if (argc < 4) {
-		fprintf(stderr, "bonjourwire <name> <port> send|wait|echo <Sekunden> [Partner]\n");
+		fprintf(stderr, "bonjourwire <name> <port> send|wait|echo <seconds> [partner]\n");
 		return 2;
 	}
 	myname = argv[1];
@@ -272,16 +271,16 @@ int main(int argc, char *argv[])
 	if (seconds <= 0) seconds = 25;
 	if (argc > 5) partner = argv[5];
 
-	/* Ohne Partner wird nicht geschickt. Lieber ein Fehlschlag als eine Nachricht an einen
-	   Nachbarn, der gar nicht zum Pruefstand gehoert. */
+	/* Without a partner nothing is sent. A failure is better than a message to a neighbour
+	   that has nothing to do with the harness. */
 	if (purple_strequal(role, "send") && !partner) {
-		fprintf(stderr, "bonjourwire: send braucht den Namen des Partners als fuenftes Argument\n");
+		fprintf(stderr, "bonjourwire: send needs the partner's name as its fifth argument\n");
 		return 2;
 	}
 
-	/* Ein vertippter Auftrag verhielte sich sonst stillschweigend wie wait. */
+	/* A mistyped role would otherwise quietly behave like wait. */
 	if (!purple_strequal(role, "send") && !purple_strequal(role, "wait") && !purple_strequal(role, "echo")) {
-		fprintf(stderr, "bonjourwire: unbekannter Auftrag \"%s\", erlaubt sind send, wait und echo\n", role);
+		fprintf(stderr, "bonjourwire: unknown role \"%s\", allowed are send, wait and echo\n", role);
 		return 2;
 	}
 

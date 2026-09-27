@@ -1,13 +1,12 @@
-/* Traegt picomemo auf diesem Rechner?
+/* Does picomemo hold up on this machine?
  *
- * Bevor eine Zeile XMPP entsteht, muss das Fundament stehen: zwei Teilnehmer legen sich je
- * einen Schluesselvorrat an, der eine baut aus dem Buendel des anderen eine Sitzung auf, und
- * dann geht eine Nachricht hin und eine zurueck. Das prueft X3DH, die Doppelratsche und
- * AES-GCM in einem Durchgang, und zwar auf arm64 gegen dieselbe OpenSSL, die wir ohnehin
- * ausliefern.
+ * Before a single line of XMPP comes into being, the foundation has to stand: two participants
+ * each build themselves a key store, one of them builds a session out of the other's bundle, and
+ * then one message goes across and one comes back. That checks X3DH, the double ratchet and
+ * AES-GCM in one pass, and on arm64 against the same OpenSSL we ship anyway.
  *
- * Geprueft wird ausserdem, dass ein Schluesselvorrat das Speichern und Zurueckladen ueberlebt,
- * denn genau das wird spaeter jeder Programmstart tun.
+ * It is also checked that a key store survives being saved and loaded back, because that is
+ * exactly what every start of the program will do later on.
  */
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +21,7 @@ static void check(const char *name, int ok, const char *detail)
 	if (!ok) failures++;
 }
 
-/* Uebersprungene Schluessel: hier reicht ein Platz, ein echter Client legt sie weg */
+/* Skipped keys: one place is enough here, a real client puts them away */
 static struct omemo0MessageKey skipped[64];
 static int skippedCount = 0;
 
@@ -33,7 +32,7 @@ static int loadMessageKey(struct omemo0Session *s, struct omemo0MessageKey *sk)
 			memcpy(sk, &skipped[i], sizeof(*sk));
 			return 0;
 		}
-	return 1;			//nicht gefunden
+	return 1;			//not found
 }
 
 static int storeMessageKey(struct omemo0Session *s, const struct omemo0MessageKey *sk, uint64_t n)
@@ -53,12 +52,12 @@ static int randomBytes(void *p, size_t n)
 	return (got == n) ? 0 : 1;
 }
 
-/*! Eine Nachricht von einem zum anderen, ueber eine schon stehende Sitzung */
+/*! One message from one to the other, over a session that already stands */
 static int sayAndHear(struct omemo0Session *from, struct omemo0Store *fromStore,
 					  struct omemo0Session *to, struct omemo0Store *toStore,
 					  const char *text, int isFirst)
 {
-	//Der Nutzschluessel, den beide Seiten teilen sollen
+	//The payload key both sides are meant to share
 	uint8_t key[32];
 	if (randomBytes(key, sizeof(key)))
 		return 0;
@@ -76,8 +75,8 @@ static int sayAndHear(struct omemo0Session *from, struct omemo0Store *fromStore,
 	if (heardn != sizeof(key) || memcmp(key, heard, sizeof(key)))
 		return 0;
 
-	/* Und damit der eigentliche Text. Die alte Fassung polstert nicht, sie nimmt einen
-	 * eigenen Initialisierungsvektor und liefert den Nutzschluessel zurueck. */
+	/* And with it the actual text. The old form does not pad, it takes an initialisation
+	 * vector of its own and hands the payload key back. */
 	size_t textn = strlen(text);
 	uint8_t *cipher = calloc(1, textn + 32);
 	uint8_t *plain = calloc(1, textn + 32);
@@ -87,7 +86,7 @@ static int sayAndHear(struct omemo0Session *from, struct omemo0Store *fromStore,
 	if (omemo0EncryptMessage(cipher, payloadKey, iv, (const uint8_t *)text, textn))
 		ok = 0;
 
-	//Und die Gegenprobe: derselbe Schluessel muss denselben Text zurueckgeben
+	//And the counter check: the same key has to give the same text back
 	if (ok && omemo0DecryptMessage(plain, payloadKey, sizeof(payloadKey), iv, cipher, textn))
 		ok = 0;
 	if (ok && memcmp(plain, text, textn))
@@ -106,31 +105,31 @@ int main(void)
 	memset(&alice, 0, sizeof(alice));
 	memset(&bob, 0, sizeof(bob));
 
-	check("Alice legt sich einen Schluesselvorrat an", omemo0SetupStore(&alice) == 0, NULL);
-	check("Bob auch", omemo0SetupStore(&bob) == 0, NULL);
-	check("und beide haben eine Identitaet",
+	check("Alice builds herself a key store", omemo0SetupStore(&alice) == 0, NULL);
+	check("Bob does too", omemo0SetupStore(&bob) == 0, NULL);
+	check("and both have an identity",
 		  alice.init && bob.init &&
 		  memcmp(alice.identity.pub, bob.identity.pub, sizeof(alice.identity.pub)) != 0, NULL);
 
-	//Der Vorrat muss das Wegschreiben und Zurueckladen ueberleben, das tut spaeter jeder Start
+	//The store has to survive being written out and loaded back, which every start does later
 	size_t storeSize = omemo0GetSerializedStoreSize(&alice);
 	uint8_t *saved = malloc(storeSize);
 	omemo0SerializeStore(saved, &alice);
 
 	struct omemo0Store restored;
 	memset(&restored, 0, sizeof(restored));
-	check("Ein gespeicherter Vorrat laesst sich zurueckladen",
+	check("A saved store can be loaded back",
 		  omemo0DeserializeStore(saved, storeSize, &restored) == 0, NULL);
-	check("und traegt dieselbe Identitaet",
+	check("and carries the same identity",
 		  memcmp(alice.identity.prv, restored.identity.prv, sizeof(alice.identity.prv)) == 0, NULL);
 	free(saved);
 
-	/* Und von hier an rechnet Alice mit dem ZURUECKGELADENEN Vorrat weiter. Ein Vergleich der
-	 * Schluessel allein beweist naemlich nichts: was zaehlt, ist ob damit hinterher noch eine
-	 * Sitzung zustande kommt, und genau das tut jeder Programmstart. */
+	/* And from here on Alice goes on with the store that was LOADED BACK. Comparing the keys
+	 * alone proves nothing: what counts is whether a session still comes about with them
+	 * afterwards, and that is exactly what every start of the program does. */
 	alice = restored;
 
-	//Alice baut aus Bobs Buendel eine Sitzung auf
+	//Alice builds a session out of Bob's bundle
 	omemo0SerializedKey bobIdentity, bobSigned, bobPre;
 	omemo0SerializeKey(bobIdentity, bob.identity.pub);
 	omemo0SerializeKey(bobSigned, bob.cursignedprekey.kp.pub);
@@ -143,17 +142,17 @@ int main(void)
 	int started = omemo0InitiateSession(&aliceToBob, &alice,
 									   bob.cursignedprekey.sig, bobSigned, bobIdentity, bobPre,
 									   bob.cursignedprekey.id, bob.prekeys[0].id);
-	check("Alice baut aus Bobs Buendel eine Sitzung auf", started == 0, NULL);
+	check("Alice builds a session out of Bob's bundle", started == 0, NULL);
 
-	check("Eine Nachricht von Alice kommt bei Bob an",
-		  sayAndHear(&aliceToBob, &alice, &bobToAlice, &bob, "Hallo Bob", 1), NULL);
+	check("A message from Alice arrives at Bob",
+		  sayAndHear(&aliceToBob, &alice, &bobToAlice, &bob, "Hello Bob", 1), NULL);
 
-	check("und die Antwort von Bob bei Alice",
-		  sayAndHear(&bobToAlice, &bob, &aliceToBob, &alice, "Hallo Alice", 0), NULL);
+	check("and the answer from Bob at Alice",
+		  sayAndHear(&bobToAlice, &bob, &aliceToBob, &alice, "Hello Alice", 0), NULL);
 
-	check("Die Ratsche ist dabei weitergelaufen",
+	check("The ratchet moved on while doing so",
 		  aliceToBob.state.ns > 0 || aliceToBob.state.nr > 0, NULL);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 }

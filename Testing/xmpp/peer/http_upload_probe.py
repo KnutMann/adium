@@ -61,7 +61,7 @@ class Probe(ClientXMPP):
                     if jid:
                         candidates.append(jid)
         except Exception as error:
-            report("disco#items auf die Domain", False, str(error))
+            report("disco#items on the domain", False, str(error))
             return None, None, None
 
         for jid in candidates:
@@ -125,19 +125,19 @@ class Probe(ClientXMPP):
         self.send_presence()
         try:
             service, namespace, max_size = await self.find_service()
-            report("Upload-Dienst per Discovery gefunden", bool(service),
-                   f"{service}, {namespace}, Limit {max_size}" if service else "keiner announced ihn")
+            report("The upload service is found by discovery", bool(service),
+                   f"{service}, {namespace}, limit {max_size}" if service else "nobody announces one")
             if not service:
                 return
 
             put_url, headers, get_url = await self.request_slot(
                 service, namespace, "probe.png", len(PNG), "image/png")
-            report("Slot erhalten", bool(put_url and get_url), f"put={put_url}")
+            report("A slot was granted", bool(put_url and get_url), f"put={put_url}")
             if not put_url:
                 return
 
             https_only = put_url.startswith("https://") and get_url.startswith("https://")
-            report("Beide Adressen https (Adiums Bedingung)", https_only,
+            report("Both addresses are https (Adium's condition)", https_only,
                    "" if https_only else f"put={put_url} get={get_url}")
             if not https_only:
                 return
@@ -152,13 +152,13 @@ class Probe(ClientXMPP):
             for name, value in headers.items():
                 request.add_header(name, value)
             with urllib.request.urlopen(request, context=context, timeout=15) as answer:
-                report("HTTPS-PUT angenommen", answer.status // 100 == 2, f"Status {answer.status}")
+                report("The HTTPS PUT was accepted", answer.status // 100 == 2, f"status {answer.status}")
 
             with urllib.request.urlopen(get_url, context=context, timeout=15) as answer:
                 data = answer.read()
-            report("Zurückgeholt und identisch", data == PNG, f"{len(data)} Bytes")
+            report("Fetched back and identical", data == PNG, f"{len(data)} bytes")
         except Exception as error:
-            report("Ablauf", False, repr(error))
+            report("The run itself", False, repr(error))
         finally:
             self.disconnect()
 
@@ -168,7 +168,7 @@ def main():
     probe.connect(*SERVER)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(probe.disconnected)
-    print(f"\n{RESULTS.count(True)}/{len(RESULTS)} Prüfungen bestanden")
+    print(f"\n{RESULTS.count(True)}/{len(RESULTS)} checks passed")
     sys.exit(0 if RESULTS and all(RESULTS) else 1)
 
 

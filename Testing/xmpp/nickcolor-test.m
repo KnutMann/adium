@@ -1,11 +1,11 @@
-/* Rechnet unsere Namensfarbe dasselbe wie alle anderen?
+/* Does our name colour work out the same as everybody else's?
  *
- * Der ganze Sinn von XEP-0392 ist, dass derselbe Mensch in jedem Programm dieselbe Farbe
- * bekommt. Das gilt genau dann, wenn der Winkel auf dem Farbkreis stimmt, und dafuer hat der
- * XEP Pruefwerte. Geprueft wird die ECHTE Methode aus AIUtilities, nicht ein Nachbau.
+ * The whole point of XEP-0392 is that the same person gets the same colour in every program.
+ * That holds exactly when the angle on the colour wheel is right, and the XEP has test values
+ * for it. What is checked is the REAL method out of AIUtilities, not a rebuild of it.
  *
- * Die Helligkeit wird bewusst nicht mitgeprueft: sie darf sich nach dem Untergrund richten
- * und ist gerade nicht Teil dessen, worauf sich die Clients geeinigt haben.
+ * The brightness is deliberately left out of the check: it may follow the background and is
+ * precisely not part of what the clients have agreed on.
  */
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
@@ -20,11 +20,11 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 }
 
 /*!
- * @brief Der Farbton, direkt aus den Hexwerten gerechnet
+ * @brief The hue, worked out straight from the hex values
  *
- * Bewusst ohne NSColor: dessen HTML-Leser liefert eine KALIBRIERTE Farbe, und jede Umrechnung
- * daraus verschiebt den Ton um zwei bis vier Grad. Genau diese Falle hat schon die erste
- * Fassung der Methode selbst erwischt, der Test darf nicht in dieselbe treten.
+ * Deliberately without NSColor: its HTML reader hands back a CALIBRATED colour, and every
+ * conversion out of that shifts the hue by two to four degrees. That trap caught the first
+ * version of the method itself, and the test must not walk into the same one.
  */
 static CGFloat angleOf(NSString *hex)
 {
@@ -49,7 +49,7 @@ static CGFloat angleOf(NSString *hex)
 }
 
 int main(void) { @autoreleasepool {
-	//Die Pruefwerte aus Abschnitt 13.1 des XEP
+	//The test values from section 13.1 of the XEP
 	NSArray *samples = @[@[@"Romeo", @327.255249],
 						 @[@"juliet@capulet.lit", @209.410400],
 						 @[@"\U0001F63A", @331.199341],
@@ -61,30 +61,31 @@ int main(void) { @autoreleasepool {
 		CGFloat wanted = [sample[1] doubleValue];
 		CGFloat got = angleOf([NSColor consistentColorForIdentifier:text onDarkBackground:NO]);
 
-		/* Anderthalb Grad Spielraum: mehr gibt acht Bit je Farbkanal nicht her, der Farbkreis
-		 * hat bei voller Saettigung rund 1,4 Grad je Stufe. Ein Rechenfehler laege um
-		 * Groessenordnungen darueber, ein Farbraumfehler bei zwei bis vier Grad. */
+		/* A degree and a half of leeway: eight bits per colour channel give no more than that,
+		 * the colour wheel has roughly 1.4 degrees per step at full saturation. An arithmetic
+		 * error would be orders of magnitude above that, a colour space error two to four
+		 * degrees. */
 		CGFloat apart = fabs(got - wanted);
-		if (apart > 180.0) apart = 360.0 - apart;		//einmal um den Kreis herum
+		if (apart > 180.0) apart = 360.0 - apart;		//once around the wheel
 
-		check([NSString stringWithFormat:@"Der Winkel fuer %@ stimmt", text], apart < 1.5,
-			  [NSString stringWithFormat:@"berechnet %.3f, erwartet %.3f", got, wanted]);
+		check([NSString stringWithFormat:@"The angle for %@ is right", text], apart < 1.5,
+			  [NSString stringWithFormat:@"worked out %.3f, expected %.3f", got, wanted]);
 	}
 
-	//Derselbe Name, zweimal gefragt, muss dasselbe liefern
-	check(@"Dieselbe Eingabe gibt dieselbe Farbe",
+	//The same name, asked twice, has to give the same thing
+	check(@"The same input gives the same colour",
 		  [[NSColor consistentColorForIdentifier:@"Romeo" onDarkBackground:NO]
 		   isEqualToString:[NSColor consistentColorForIdentifier:@"Romeo" onDarkBackground:NO]], nil);
 
-	//Der Untergrund darf die Helligkeit aendern, den Farbton aber nicht
-	check(@"Der Untergrund aendert den Farbton nicht",
+	//The background may change the brightness, but not the hue
+	check(@"The background does not change the hue",
 		  fabs(angleOf([NSColor consistentColorForIdentifier:@"Romeo" onDarkBackground:YES]) -
 			   angleOf([NSColor consistentColorForIdentifier:@"Romeo" onDarkBackground:NO])) < 1.5, nil);
 
-	//Ein leerer Name darf nicht abstuerzen
-	check(@"Ein leerer Name liefert trotzdem etwas",
+	//An empty name must not crash
+	check(@"An empty name still gives something",
 		  [[NSColor consistentColorForIdentifier:@"" onDarkBackground:NO] length] > 0, nil);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

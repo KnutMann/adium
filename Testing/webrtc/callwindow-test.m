@@ -1,10 +1,10 @@
-/* Sitzt im Anruffenster alles da, wo es hingehoert?
+/* Does everything in the call window sit where it belongs?
  *
- * Geometrie laesst sich nicht durch Hinsehen pruefen, jedenfalls nicht in jeder
- * Sprache und nicht in jeder Fenstergroesse. Dieser Test baut das ECHTE Fenster,
- * einmal ohne Bild und einmal mit, und misst die Rahmen: nichts ueberlappt, nichts
- * steht ausserhalb, kein versteckter Knopf haelt eine Luecke frei, und die Leiste
- * bleibt frei, auch wenn das Bild das Fenster ausfuellt.
+ * Geometry cannot be checked by looking, at least not in every language and not
+ * at every window size. This test builds the REAL window, once without video and
+ * once with, and measures the frames: nothing overlaps, nothing stands outside,
+ * no hidden button holds a gap open, and the bar stays clear even when the
+ * picture fills the window.
  */
 #import <AppKit/AppKit.h>
 #import <WebRTC/WebRTC.h>
@@ -30,7 +30,7 @@ static void settle(NSWindow *window)
 	[[window contentView] layoutSubtreeIfNeeded];
 }
 
-/*! Alle Knoepfe und Beschriftungen der unteren Leiste, egal wie tief verschachtelt */
+/*! Every button and label of the bottom bar, however deeply nested */
 static NSArray<NSView *> *barPieces(NSView *content)
 {
 	NSMutableArray *found = [NSMutableArray array];
@@ -49,13 +49,13 @@ static NSArray<NSView *> *barPieces(NSView *content)
 	return found;
 }
 
-/*! Der Rahmen einer Ansicht in den Koordinaten des Fensterinhalts */
+/*! A view's frame in the coordinates of the window's content */
 static NSRect frameInContent(NSView *view, NSView *content)
 {
 	return [content convertRect:[view bounds] fromView:view];
 }
 
-/*! Das erste sichtbare Bildschild auf der Buehne, falls eines da ist */
+/*! The first visible sign on the stage, if there is one */
 static NSImageView *visibleSign(NSView *view)
 {
 	if ([view isKindOfClass:[NSImageView class]] && ![view isHidden])
@@ -81,11 +81,11 @@ static AIJingleVideoView *findVideoView(NSView *view)
 }
 
 /*!
- * @brief Steht die Knopfreihe geschlossen am rechten Rand?
+ * @brief Does the row of buttons sit closed up against the right edge?
  *
- * Ein Knopf, der nur unsichtbar ist, behaelt jede Bedingung und damit seine
- * Breite; zwischen zwei sichtbaren Knoepfen klaffte dann ein Loch von seiner
- * Groesse, und die Reihe sass nicht mehr da, wo sie hingehoert.
+ * A button that is merely invisible keeps every constraint and therefore its
+ * width; a hole of that size then gaped between two visible buttons, and the
+ * row no longer sat where it belongs.
  */
 static void checkTheRow(NSView *content, NSString *which)
 {
@@ -103,112 +103,112 @@ static void checkTheRow(NSView *content, NSString *which)
 	for (NSUInteger index = 1; index < [buttons count]; index++)
 		widestGap = MAX(widestGap, NSMinX([buttons[index] rectValue]) - NSMaxX([buttons[index - 1] rectValue]));
 
-	check([NSString stringWithFormat:@"Kein versteckter Knopf haelt eine Luecke frei (%@)", which],
-		  widestGap <= 16.0, [NSString stringWithFormat:@"groesste Luecke=%.0f", widestGap]);
+	check([NSString stringWithFormat:@"No hidden button holds a gap open (%@)", which],
+		  widestGap <= 16.0, [NSString stringWithFormat:@"widest gap=%.0f", widestGap]);
 
 	CGFloat toTheEdge = ([buttons count] ?
 						 NSMaxX([content bounds]) - NSMaxX([[buttons lastObject] rectValue]) : -1);
-	check([NSString stringWithFormat:@"Die Reihe schliesst rechts am Rand ab (%@)", which],
+	check([NSString stringWithFormat:@"The row finishes at the right edge (%@)", which],
 		  [buttons count] && toTheEdge <= 14.0,
-		  [NSString stringWithFormat:@"Abstand=%.0f", toTheEdge]);
+		  [NSString stringWithFormat:@"distance=%.0f", toTheEdge]);
 }
 
 int main(void) { @autoreleasepool {
 	[NSApplication sharedApplication];
 
-	//Ein Anruf ohne Bild ------------------------------------------------------------------------
+	//A call without video -----------------------------------------------------------------------
 	AIJingleCallController *plain = [[AIJingleCallController alloc] initAsInitiatorFrom:@"a@localhost/a"
 																					 to:@"b@localhost/b"];
 	AIJingleCallWindowController *audio =
-		[[AIJingleCallWindowController alloc] initWithCallController:plain displayName:@"Jemand"];
+		[[AIJingleCallWindowController alloc] initWithCallController:plain displayName:@"Somebody"];
 	NSWindow *window = [audio window];
 	NSView *content = [window contentView];
 	settle(window);
 
-	check(@"Ohne Bild ist die Hoehe festgenagelt",
+	check(@"Without video the height is nailed down",
 		  [window contentMaxSize].height == BAR_HEIGHT,
 		  [NSString stringWithFormat:@"max=%.0f", [window contentMaxSize].height]);
-	check(@"und die Breite darf trotzdem wachsen",
+	check(@"and the width may still grow",
 		  [window contentMaxSize].width > [window contentMinSize].width * 2, nil);
 
 	NSArray<NSView *> *pieces = barPieces(content);
-	check(@"Ohne Kamera zeigt die Leiste nur, was es gibt",
-		  [pieces count] == 3,		//Status, Mikrofon, Auflegen
-		  [NSString stringWithFormat:@"sichtbar=%lu", (unsigned long)[pieces count]]);
+	check(@"Without a camera the bar shows only what there is",
+		  [pieces count] == 3,		//status, microphone, hang up
+		  [NSString stringWithFormat:@"visible=%lu", (unsigned long)[pieces count]]);
 
 	for (NSView *piece in pieces) {
 		NSRect frame = frameInContent(piece, content);
 		if (!NSContainsRect([content bounds], frame))
-			check(@"Alles in der Leiste steht im Fenster", NO,
-				  [NSString stringWithFormat:@"%@ bei %@", [piece className], NSStringFromRect(frame)]);
+			check(@"Everything in the bar stands inside the window", NO,
+				  [NSString stringWithFormat:@"%@ at %@", [piece className], NSStringFromRect(frame)]);
 	}
-	check(@"Alles in der Leiste steht im Fenster", YES, nil);
+	check(@"Everything in the bar stands inside the window", YES, nil);
 
 	for (NSUInteger one = 0; one < [pieces count]; one++)
 		for (NSUInteger two = one + 1; two < [pieces count]; two++) {
 			NSRect left = frameInContent(pieces[one], content), right = frameInContent(pieces[two], content);
 			if (NSIntersectsRect(NSInsetRect(left, 1, 1), NSInsetRect(right, 1, 1)))
-				check(@"Nichts in der Leiste ueberlappt", NO,
-					  [NSString stringWithFormat:@"%@ und %@", NSStringFromRect(left), NSStringFromRect(right)]);
+				check(@"Nothing in the bar overlaps", NO,
+					  [NSString stringWithFormat:@"%@ and %@", NSStringFromRect(left), NSStringFromRect(right)]);
 		}
-	check(@"Nichts in der Leiste ueberlappt", YES, nil);
+	check(@"Nothing in the bar overlaps", YES, nil);
 
-	checkTheRow(content, @"ohne Bild");
+	checkTheRow(content, @"without video");
 
-	//Ein Anruf mit Bild -------------------------------------------------------------------------
+	//A call with video --------------------------------------------------------------------------
 	AIJingleCallController *withPicture = [[AIJingleCallController alloc] initAsInitiatorFrom:@"a@localhost/a"
 																						   to:@"b@localhost/b"];
-	/* Wie im echten Anruf: der Wunsch nach Video steht fest, BEVOR das Fenster
-	 * gebaut wird, die Spuren entstehen erst danach. Genau daran hing der
-	 * Kameraknopf frueher und war deshalb in jedem Anruf unsichtbar. */
+	/* As in a real call: the wish for video is settled BEFORE the window is
+	 * built, the tracks come into being only afterwards. That is exactly what
+	 * the camera button used to hang on, and why it was invisible in every call. */
 	withPicture.wantsVideo = YES;
 	AIJingleCallWindowController *video =
-		[[AIJingleCallWindowController alloc] initWithCallController:withPicture displayName:@"Jemand"];
+		[[AIJingleCallWindowController alloc] initWithCallController:withPicture displayName:@"Somebody"];
 	NSWindow *bigger = [video window];
 	NSView *stageContent = [bigger contentView];
 
 	RTCPeerConnectionFactory *factory = [[RTCPeerConnectionFactory alloc] init];
 	RTCVideoSource *source = [factory videoSource];
-	RTCVideoTrack *track = [factory videoTrackWithSource:source trackId:@"pruefung"];
+	RTCVideoTrack *track = [factory videoTrackWithSource:source trackId:@"check"];
 	[video attachRemoteVideoTrack:track];
 	settle(bigger);
 
-	check(@"Ein Videoanruf hat einen Knopf fuer die eigene Kamera",
-		  [barPieces(stageContent) count] == 5,		//Status, Mikrofon, Kamera, Fuellen, Auflegen
-		  [NSString stringWithFormat:@"sichtbar=%lu", (unsigned long)[barPieces(stageContent) count]]);
+	check(@"A video call has a button for our own camera",
+		  [barPieces(stageContent) count] == 5,		//status, microphone, camera, fill, hang up
+		  [NSString stringWithFormat:@"visible=%lu", (unsigned long)[barPieces(stageContent) count]]);
 
-	//Und er wirkt, auch bevor ueberhaupt eine Verbindung steht
+	//And it works even before a connection stands at all
 	withPicture.cameraOff = YES;
-	check(@"Die eigene Kamera laesst sich abschalten", withPicture.cameraOff, nil);
+	check(@"Our own camera can be switched off", withPicture.cameraOff, nil);
 	withPicture.cameraOff = NO;
 
-	check(@"Mit Bild darf das Fenster wieder hoeher werden",
+	check(@"With video the window may grow taller again",
 		  [bigger contentMaxSize].height > 1000.0, nil);
 
 	AIJingleVideoView *picture = findVideoView(stageContent);
-	check(@"Es gibt eine Bildflaeche", picture != nil, nil);
+	check(@"There is a picture area", picture != nil, nil);
 
 	if (picture) {
-		check(@"Die Bildflaeche beschneidet, was ueber ihren Rand hinausgeht",
+		check(@"The picture area clips whatever goes past its edge",
 			  [[picture layer] masksToBounds], nil);
 
 		NSRect frame = frameInContent(picture, stageContent);
-		check(@"Die Bildflaeche laesst die Leiste frei",
+		check(@"The picture area leaves the bar clear",
 			  NSMinY(frame) >= BAR_HEIGHT - 0.5,
-			  [NSString stringWithFormat:@"unterer Rand bei %.1f, Leiste bis %.0f", NSMinY(frame), BAR_HEIGHT]);
+			  [NSString stringWithFormat:@"bottom edge at %.1f, bar up to %.0f", NSMinY(frame), BAR_HEIGHT]);
 
-		//Und auch beim Ausfuellen, denn genau da hat sie es frueher ueberzeichnet
+		//And while filling too, because that is exactly where it used to draw over it
 		picture.fillsTheFrame = YES;
 		settle(bigger);
-		check(@"Auch beim Ausfuellen bleibt die Leiste frei",
+		check(@"Even while filling, the bar stays clear",
 			  NSMinY(frameInContent(picture, stageContent)) >= BAR_HEIGHT - 0.5 &&
 			  [[picture layer] masksToBounds], nil);
 	}
 
-	/* Und das Schild, wenn die Gegenseite ihre Kamera ausmacht. Gefuettert wird es
-	 * ueber den echten Weg, also eine session-info, wie sie vom Draht kaeme. */
+	/* And the sign for when the other side turns its camera off. It is fed over
+	 * the real path, that is a session-info the way it would come off the wire. */
 	[video noteConnected];
-	check(@"Solange die Gegenseite sendet, steht kein Schild im Bild",
+	check(@"While the other side is sending, no sign stands in the picture",
 		  visibleSign(stageContent) == nil, nil);
 
 	[withPicture handleRemoteJingleElement:
@@ -217,16 +217,16 @@ int main(void) { @autoreleasepool {
 	[video showWhatThePeerSends];
 	settle(bigger);
 
-	check(@"Die abgeschaltete Kamera der Gegenseite wird gemeldet", withPicture.peerCameraOff, nil);
+	check(@"The other side's switched off camera is reported", withPicture.peerCameraOff, nil);
 
 	NSImageView *sign = visibleSign(stageContent);
-	check(@"und als Schild mitten ins schwarze Bild gestellt", sign != nil, nil);
+	check(@"and put as a sign in the middle of the black picture", sign != nil, nil);
 	if (sign) {
 		NSRect where = frameInContent(sign, stageContent);
 		NSRect picture = frameInContent(findVideoView(stageContent), stageContent);
-		check(@"Das Schild steht in der Mitte des Bildes",
+		check(@"The sign stands in the middle of the picture",
 			  fabs(NSMidX(where) - NSMidX(picture)) < 2.0 && fabs(NSMidY(where) - NSMidY(picture)) < 2.0,
-			  [NSString stringWithFormat:@"Schild %@ im Bild %@",
+			  [NSString stringWithFormat:@"sign %@ in picture %@",
 			   NSStringFromRect(where), NSStringFromRect(picture)]);
 	}
 
@@ -235,35 +235,35 @@ int main(void) { @autoreleasepool {
 		@"<unmute xmlns='urn:xmpp:jingle:apps:rtp:info:1' creator='initiator' name='video'/></jingle>"];
 	[video showWhatThePeerSends];
 	settle(bigger);
-	check(@"Schaltet sie wieder ein, verschwindet das Schild",
+	check(@"Switch it back on and the sign disappears",
 		  !withPicture.peerCameraOff && visibleSign(stageContent) == nil, nil);
 
-	/* Und nach dem Ende duerfen die Schalter nicht mehr so aussehen, als taeten sie
-	 * noch etwas. Beendet die Gegenseite, bleibt das Fenster ja lesbar stehen. */
+	/* And after the end the switches must not look as though they still did
+	 * anything. If the other side ends it, the window stays there to be read. */
 	[video noteEndedWithReason:@"success" locally:NO];
 	settle(bigger);
 
-	/* Die Schalter tragen ein Symbol, der Auflegenknopf einen Text: der heisst jetzt
-	 * Schliessen und muss weiter wirken. */
+	/* The switches carry a symbol, the hang up button carries text: that one now
+	 * says Close and has to keep working. */
 	BOOL anyStillLive = NO;
 	for (NSView *piece in barPieces(stageContent))
 		if ([piece isKindOfClass:[NSButton class]] &&
 			[(NSButton *)piece image] && [(NSButton *)piece isEnabled])
 			anyStillLive = YES;
 
-	check(@"Nach dem Ende wirkt kein Schalter mehr", !anyStillLive, nil);
+	check(@"After the end no switch works any more", !anyStillLive, nil);
 
-	checkTheRow(stageContent, @"mit Bild");
+	checkTheRow(stageContent, @"with video");
 
 	NSArray<NSView *> *withStage = barPieces(stageContent);
 	for (NSView *piece in withStage) {
 		NSRect frame = frameInContent(piece, stageContent);
 		if (NSMaxY(frame) > BAR_HEIGHT + 0.5 && ![piece isKindOfClass:[AIJingleVideoView class]])
-			check(@"Die Leiste bleibt unten und wandert nicht ins Bild", NO,
-				  [NSString stringWithFormat:@"%@ bis %.1f", [piece className], NSMaxY(frame)]);
+			check(@"The bar stays at the bottom and does not wander into the picture", NO,
+				  [NSString stringWithFormat:@"%@ up to %.1f", [piece className], NSMaxY(frame)]);
 	}
-	check(@"Die Leiste bleibt unten und wandert nicht ins Bild", YES, nil);
+	check(@"The bar stays at the bottom and does not wander into the picture", YES, nil);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

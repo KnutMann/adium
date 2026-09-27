@@ -1,14 +1,14 @@
-/* Laesst die Plattform uns den Host-Kopf selbst setzen?
+/* Does the platform let us set the Host header ourselves?
  *
- * Darauf ruht eine Funktion: manche Server verteilen Upload-Adressen auf einem Namen, der nicht
- * zu der Maschine aufloest, auf der der Dienst laeuft. Adium schickt die Datei dann an die
- * Maschine, mit der es ohnehin redet, behaelt aber den Namen des Servers in der Anfrage. Genau
- * darauf kommt es an: ejabberds mod_http_upload sucht den zustaendigen Prozess anhand dieses
- * Namens (parse_http_request -> gen_mod:get_module_proc), und ohne ihn antwortet es mit 404
- * und "Upload not configured for this host".
+ * One feature rests on it: some servers hand out upload addresses under a name that does not
+ * resolve to the machine the service runs on. Adium then sends the file to the machine it is
+ * talking to anyway, but keeps the server's name in the request. That is exactly what matters:
+ * ejabberd's mod_http_upload looks up the responsible process by that name
+ * (parse_http_request -> gen_mod:get_module_proc), and without it answers with 404 and
+ * "Upload not configured for this host".
  *
- * Wuerde NSURLSession den Kopf verwerfen oder ueberschreiben, liefe der Umweg ins Leere, ohne
- * dass irgendetwas es sagt. Deshalb wird hier gemessen statt angenommen.
+ * If NSURLSession were to drop or overwrite the header, the detour would lead nowhere without
+ * anything saying so. Hence this measures rather than assumes.
  */
 #import <Foundation/Foundation.h>
 
@@ -21,9 +21,9 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 }
 
 int main(int argc, char **argv) { @autoreleasepool {
-	if (argc < 2) { printf("FAIL  kein Port uebergeben\n"); return 1; }
+	if (argc < 2) { printf("FAIL  no port was given\n"); return 1; }
 
-	NSString *where = [NSString stringWithFormat:@"http://127.0.0.1:%s/upload/a/b/bild.png", argv[1]];
+	NSString *where = [NSString stringWithFormat:@"http://127.0.0.1:%s/upload/a/b/picture.png", argv[1]];
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:where]];
 
 	[request setHTTPMethod:@"PUT"];
@@ -44,11 +44,11 @@ int main(int argc, char **argv) { @autoreleasepool {
 
 	dispatch_semaphore_wait(done, dispatch_time(DISPATCH_TIME_NOW, 15ull * NSEC_PER_SEC));
 
-	/* Der Testserver antwortet nur dann mit 201, wenn der Host-Kopf wirklich so ankam, wie wir
-	 * ihn gesetzt haben. Alles andere beantwortet er mit 409. */
-	check(@"Ein selbst gesetzter Host-Kopf kommt unveraendert an", status == 201,
-		  problem ?: [NSString stringWithFormat:@"Antwort war %ld", (long)status]);
+	/* The test server answers with 201 only if the Host header really arrived the way we set
+	 * it. Anything else it answers with 409. */
+	check(@"A Host header we set ourselves arrives unchanged", status == 201,
+		  problem ?: [NSString stringWithFormat:@"the answer was %ld", (long)status]);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

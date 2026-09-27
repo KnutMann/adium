@@ -31,8 +31,8 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 @implementation Relay
 - (void)callController:(AIJingleCallController *)controller sendJingleElement:(NSString *)jingleXML {
 	self.stanzas++;
-	/* Was in der ersten Stanza steht, kann die Gegenseite sofort benutzen. Was
-	 * hinterhertroepfelt, legen manche Clients erst einmal in eine Schublade. */
+	/* What stands in the first stanza the other side can use at once. What trickles
+	 * in afterwards, some clients put in a drawer for the time being. */
 	if (self.stanzas == 1)
 		for (NSRange rest = NSMakeRange(0, jingleXML.length);;) {
 			NSRange hit = [jingleXML rangeOfString:@"<candidate" options:0 range:rest];
@@ -56,7 +56,7 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 		self.answeredBeforeConnected = YES;
 }
 - (void)callControllerConnected:(AIJingleCallController *)controller {
-	printf("%s: verbunden\n", self.name.UTF8String);
+	printf("%s: connected\n", self.name.UTF8String);
 	self.connected = YES;
 }
 - (void)callController:(AIJingleCallController *)controller endedWithReason:(NSString *)reason locally:(BOOL)locally {
@@ -66,8 +66,8 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 @end
 
 int main(void) { @autoreleasepool {
-	Relay *forA = [Relay new]; forA.name = @"anrufer";
-	Relay *forB = [Relay new]; forB.name = @"angerufener";
+	Relay *forA = [Relay new]; forA.name = @"caller";
+	Relay *forB = [Relay new]; forB.name = @"callee";
 
 	AIJingleCallController *a = [[AIJingleCallController alloc] initAsInitiatorFrom:@"adium@localhost/a"
 																				 to:@"peer@localhost/b"];
@@ -78,37 +78,37 @@ int main(void) { @autoreleasepool {
 	b.wantsAudio = NO; b.usesSyntheticVideo = YES; b.delegate = forB;
 	forA.other = b; forB.other = a;
 
-	/* Wie ein echter Anruf: erst sammeln, waehrend es drueben klingelt, dann
-	 * anbieten. Ohne diese Pause traegt die erste Stanza keine einzige Adresse. */
+	/* As in a real call: gather first, while it rings at the other end, then offer.
+	 * Without that pause the first stanza carries not one single address. */
 	[a prepare];
 	[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
 	[a start];
 
 	for (int i = 0; i < 200 && !(forA.connected && forB.connected); i++)
 		[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-	check(@"ICE beidseitig verbunden, nur ueber Jingle-Stanzas",
+	check(@"ICE connected on both sides, over Jingle stanzas alone",
 		  forA.connected && forB.connected,
 		  [NSString stringWithFormat:@"a=%d b=%d stanzasA=%ld stanzasB=%ld",
 		   forA.connected, forB.connected, (long)forA.stanzas, (long)forB.stanzas]);
 	/* The caller must hear the yes before the connection stands: the window says
 	 * "ringing" until it does, and that lie lasted seconds in a real call. */
-	check(@"Anrufer erfaehrt die Annahme vor der Verbindung",
+	check(@"The caller learns of the answer before the connection",
 		  forA.answeredBeforeConnected,
-		  [NSString stringWithFormat:@"angenommen=%d", forA.answered]);
-	/* Vorgesammelt heisst, dass die Gegenseite schon aus dem ersten Satz weiss, wo
-	 * wir wohnen, statt auf ein transport-info warten zu muessen. Ein Client, der
-	 * Nachzuegler bis zum Ende seiner eigenen Antwort in eine Schublade legt, und
-	 * Conversations tut genau das, kann damit sofort loslegen. */
-	check(@"Das session-initiate traegt schon Adressen",
+		  [NSString stringWithFormat:@"answered=%d", forA.answered]);
+	/* Gathering in advance means the other side already knows from the first
+	 * sentence where we live, instead of having to wait for a transport-info. A
+	 * client that puts latecomers in a drawer until its own answer is finished, and
+	 * Conversations does exactly that, can get going straight away. */
+	check(@"The session-initiate already carries addresses",
 		  forA.addressesInTheFirstStanza > 0,
-		  [NSString stringWithFormat:@"Adressen=%ld", (long)forA.addressesInTheFirstStanza]);
-	check(@"Auch die Antwort traegt schon Adressen",
+		  [NSString stringWithFormat:@"addresses=%ld", (long)forA.addressesInTheFirstStanza]);
+	check(@"The answer already carries addresses too",
 		  forB.addressesInTheFirstStanza > 0,
-		  [NSString stringWithFormat:@"Adressen=%ld", (long)forB.addressesInTheFirstStanza]);
-	/* Nachzuegler tröpfeln weiterhin, nur hat dieser Lauf keine: hier ist alles nach
-	 * 300 ms Vorsammeln beisammen. Der Weg selbst wird in jingle-session-test
-	 * geprueft, wo die Maschine einzeln an ihm entlanggefuehrt wird. */
-	check(@"Keine TCP-Adressen angeboten, die ice-udp nicht traegt",
+		  [NSString stringWithFormat:@"addresses=%ld", (long)forB.addressesInTheFirstStanza]);
+	/* Latecomers still trickle in, this run just has none: everything is together
+	 * here after 300 ms of gathering. The path itself is checked in
+	 * jingle-session-test, where the machine is walked along it on its own. */
+	check(@"No TCP addresses offered that ice-udp does not carry",
 		  forA.tcpCandidatesOffered == 0 && forB.tcpCandidatesOffered == 0,
 		  [NSString stringWithFormat:@"a=%ld b=%ld",
 		   (long)forA.tcpCandidatesOffered, (long)forB.tcpCandidatesOffered]);
@@ -130,31 +130,31 @@ int main(void) { @autoreleasepool {
 		}];
 		dispatch_semaphore_wait(done, dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
 	}
-	check(@"Video dekodiert beim Angerufenen",
+	check(@"Video decoded at the callee",
 		  framesDecoded >= 15, [NSString stringWithFormat:@"framesDecoded=%ld", (long)framesDecoded]);
 
-	/* Stummschalten muss drueben ankommen, sonst sieht die Gegenseite nur jemanden,
-	 * der ploetzlich nichts mehr sagt, und sucht den Fehler bei sich. */
+	/* Muting has to arrive at the other end, or the other side only sees somebody
+	 * who has suddenly gone quiet, and looks for the fault at their end. */
 	a.cameraOff = YES;
 	for (int i = 0; i < 30 && !b.peerCameraOff; i++)
 		[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-	check(@"Kamera aus kommt drueben an", b.peerCameraOff,
-		  [NSString stringWithFormat:@"drueben=%d hier=%d", b.peerCameraOff, a.cameraOff]);
-	check(@"und der eigene Track ist wirklich aus", !a.localVideoTrack.isEnabled, nil);
+	check(@"Camera off arrives at the other end", b.peerCameraOff,
+		  [NSString stringWithFormat:@"there=%d here=%d", b.peerCameraOff, a.cameraOff]);
+	check(@"and our own track really is off", !a.localVideoTrack.isEnabled, nil);
 
 	a.cameraOff = NO;
 	for (int i = 0; i < 30 && b.peerCameraOff; i++)
 		[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-	check(@"Kamera wieder an kommt auch an", !b.peerCameraOff, nil);
+	check(@"Camera back on arrives too", !b.peerCameraOff, nil);
 
 	//Hang up; the reason must arrive over the wire
 	[a hangUpWithReason:@"success"];
 	for (int i = 0; i < 50 && ![forB.endReason length]; i++)
 		[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-	check(@"Auflegen kommt drueben an", [forA.endReason isEqualToString:@"success"] && forA.endedLocally &&
+	check(@"The hangup arrives at the other end", [forA.endReason isEqualToString:@"success"] && forA.endedLocally &&
 		  [forB.endReason isEqualToString:@"success"] && !forB.endedLocally,
 		  [NSString stringWithFormat:@"a=%@ b=%@", forA.endReason, forB.endReason]);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

@@ -84,10 +84,10 @@ async def main():
     await asyncio.sleep(1.5)
     sniffer.disconnect()
     if not sniffer.resources:
-        print("FAIL  kein verbundenes Adium auf adium@localhost gefunden")
+        print("FAIL  no connected Adium found on adium@localhost")
         return 1
     target = JID("adium@localhost/" + sorted(sniffer.resources)[0])
-    print(f"Adium gefunden: {target}")
+    print(f"Adium found: {target}")
 
     # Step two: offer the file and wait for the click.
     sender = Sender()
@@ -95,30 +95,30 @@ async def main():
     await asyncio.wait_for(sender.ready, 10)
 
     sid = uuid.uuid4().hex
-    print(f"Biete '{name}' an ({len(payload)} Bytes); jetzt in Adium annehmen oder ablehnen ...")
+    print(f"Offering '{name}' ({len(payload)} bytes); accept or refuse it in Adium now ...")
     try:
         # slixmpp's form options want mappings, not bare strings
         result = await sender["xep_0096"].request_file_transfer(
             target, sid=sid, name=name, size=len(payload),
-            desc="Adium Dateitransfer-Test", mime_type="application/octet-stream",
+            desc="Adium file transfer test", mime_type="application/octet-stream",
             methods=[{"value": IBB}], timeout=timeout)
     except asyncio.TimeoutError:
-        print("FAIL  niemand hat den Transfer angenommen (Timeout)")
+        print("FAIL  nobody accepted the transfer (timed out)")
         sender.disconnect()
         return 1
     except Exception as error:
-        print(f"ABGELEHNT  {error}")
-        print("PASS  Ablehnen-Knopf hat den Transfer sauber abgewiesen"
+        print(f"REFUSED  {error}")
+        print("PASS  the refuse button turned the transfer away cleanly"
               if "reject" in str(error).lower() or "forbidden" in str(error).lower() or "cancel" in str(error).lower()
-              else "HINWEIS  Fehlerantwort statt Annahme, Details oben")
+              else "NOTE  an error answer instead of acceptance, details above")
         sender.disconnect()
         return 0
 
-    print("Angenommen; sende ueber IBB ...")
+    print("Accepted; sending over IBB ...")
     stream = await sender["xep_0047"].open_stream(target, sid=sid)
     await stream.sendall(payload)
     await stream.close()
-    print(f"PASS  {len(payload)} Bytes uebertragen als '{name}'")
+    print(f"PASS  {len(payload)} bytes transferred as '{name}'")
     sender.disconnect()
     await asyncio.sleep(0.3)
     return 0

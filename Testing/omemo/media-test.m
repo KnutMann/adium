@@ -1,12 +1,11 @@
-/* Kommt eine verschluesselt geteilte Datei (XEP-0454) richtig wieder heraus?
+/* Does a file shared in encrypted form (XEP-0454) come out right again?
  *
- * Geprueft wird gegen einen VEROEFFENTLICHTEN Pruefwert aus der Testreihe des NIST zu
- * AES-256-GCM, nicht gegen uns selbst. Der Unterschied ist der ganze Zweck: eine Entschluesselung,
- * die nur zur eigenen Verschluesselung passt, beweist Selbstkonsistenz und nicht, dass die Datei
- * eines fremden Clients aufgeht.
+ * The check runs against a PUBLISHED test value from the NIST series for AES-256-GCM, not
+ * against ourselves. That difference is the whole point: a decryption that only matches our own
+ * encryption proves self consistency, not that a stranger's file opens.
  *
- * Dazu die Faelle, in denen NICHTS herauskommen darf: ein veraenderter Prueffwert, ein
- * veraenderter Text, ein zu kurzer Schluesselteil, ein Verweis ohne Schluessel.
+ * Plus the cases in which NOTHING may come out: a changed tag, a changed ciphertext, a key part
+ * that is too short, a link without a key.
  */
 #import <Foundation/Foundation.h>
 #import "AIOMEMOMedia.h"
@@ -40,127 +39,127 @@ static NSString *toHex(NSData *d)
 }
 
 int main(void) { @autoreleasepool {
-	/* NIST CAVP, gcmDecrypt256, Testfall mit 128 Bit Text und 96 Bit Vektor.
-	 * Schluessel, Vektor, Geheimtext, Pruefwert und erwarteter Klartext. */
+	/* NIST CAVP, gcmDecrypt256, the case with 128 bits of text and a 96 bit vector.
+	 * Key, vector, ciphertext, tag and the expected plain text. */
 	NSString *key = @"4c8ebfe1444ec1b2d503c6986659af2c94fafe945f72c1e8486a5acfedb8a0f8";
 	NSString *iv  = @"473360e0ad24889959858995";
 	NSString *ct  = @"d2c78110ac7e8f107c0df0570bd7c90c";
 	NSString *tag = @"c26a379b6d98ef2852ead8ce83a833a7";
 	NSString *pt  = @"7789b41cb3ee548814ca0b388c10b343";
 
-	//So, wie XEP-0454 es zusammensetzt: Vektor und Schluessel im Bruchstueck, Pruefwert am Ende
+	//The way XEP-0454 puts it together: vector and key in the fragment, tag at the end
 	NSMutableData *material = [[fromHex(iv) mutableCopy] mutableCopy];
 	[material appendData:fromHex(key)];
 
 	NSMutableData *file = [[fromHex(ct) mutableCopy] mutableCopy];
 	[file appendData:fromHex(tag)];
 
-	check(@"Das Schluesselmaterial hat die erwartete Laenge", [material length] == 44,
-		  [NSString stringWithFormat:@"war %lu", (unsigned long)[material length]]);
+	check(@"The key material has the expected length", [material length] == 44,
+		  [NSString stringWithFormat:@"was %lu", (unsigned long)[material length]]);
 
 	NSData *opened = AIOMEMOMediaDecrypt(file, material);
-	check(@"Ein fremder Pruefwert aus der NIST-Reihe geht auf",
+	check(@"A stranger's value from the NIST series opens",
 		  [toHex(opened) isEqualToString:pt], toHex(opened));
 
-	//Ein veraenderter Pruefwert darf NICHTS liefern
+	//A changed tag must yield NOTHING
 	NSMutableData *badTag = [file mutableCopy];
 	((uint8_t *)[badTag mutableBytes])[[badTag length] - 1] ^= 0x01;
-	check(@"Ein veraenderter Pruefwert liefert nichts",
+	check(@"A changed tag yields nothing",
 		  AIOMEMOMediaDecrypt(badTag, material) == nil, nil);
 
-	//Ein veraenderter Text ebenso
+	//A changed ciphertext likewise
 	NSMutableData *badText = [file mutableCopy];
 	((uint8_t *)[badText mutableBytes])[0] ^= 0x01;
-	check(@"Ein veraenderter Text liefert nichts",
+	check(@"A changed ciphertext yields nothing",
 		  AIOMEMOMediaDecrypt(badText, material) == nil, nil);
 
-	//Und ein falscher Schluessel
+	//And a wrong key
 	NSMutableData *badKey = [material mutableCopy];
 	((uint8_t *)[badKey mutableBytes])[20] ^= 0x01;
-	check(@"Ein falscher Schluessel liefert nichts",
+	check(@"A wrong key yields nothing",
 		  AIOMEMOMediaDecrypt(file, badKey) == nil, nil);
 
-	//Eine Datei, die kuerzer ist als der Pruefwert, ist keine von uns
-	check(@"Eine zu kurze Datei liefert nichts",
-		  AIOMEMOMediaDecrypt([NSData dataWithBytes:"kurz" length:4], material) == nil, nil);
+	//A file shorter than the tag is not one of ours
+	check(@"A file that is too short yields nothing",
+		  AIOMEMOMediaDecrypt([NSData dataWithBytes:"tiny" length:4], material) == nil, nil);
 
-	//Jetzt die Adressen. Zuerst die echte aus dem Protokoll des Live-Tests.
+	//Now the addresses. First the real one out of the live test log.
 	NSString *real = @"aesgcm://share.conversations.im/knutmann/message/8Edi5w0drQc4lgXl/"
 					  "RECORDING_20260915_231545105.m4a#0a2acde7f0acb5fe69c21cb5523efdfd"
 					  "3501c54c2188575c4449ecde27217dc3126439879efea65a9a9486ce";
 	NSString *where = nil;
 	NSData *carried = nil;
-	check(@"Eine echte Sprachnachricht-Adresse wird gelesen",
+	check(@"A real voice message address is read",
 		  AIOMEMOMediaReadLink(real, &where, &carried), nil);
-	check(@"und zeigt auf dieselbe Datei ueber https",
+	check(@"and points at the same file over https",
 		  [where isEqualToString:@"https://share.conversations.im/knutmann/message/"
 							      "8Edi5w0drQc4lgXl/RECORDING_20260915_231545105.m4a"], where);
-	check(@"und traegt vierundvierzig Byte Schluesselmaterial", [carried length] == 44,
-		  [NSString stringWithFormat:@"waren %lu", (unsigned long)[carried length]]);
+	check(@"and carries forty four bytes of key material", [carried length] == 44,
+		  [NSString stringWithFormat:@"there were %lu", (unsigned long)[carried length]]);
 
-	//Was NICHT gelesen werden darf
-	check(@"Eine gewoehnliche Adresse ist keine verschluesselte",
-		  !AIOMEMOMediaReadLink(@"https://example.org/bild.png", NULL, NULL), nil);
-	check(@"Eine Adresse ohne Schluessel wird abgelehnt",
-		  !AIOMEMOMediaReadLink(@"aesgcm://example.org/bild.png", NULL, NULL), nil);
-	check(@"Ein Bruchstueck der falschen Laenge wird abgelehnt",
-		  !AIOMEMOMediaReadLink(@"aesgcm://example.org/bild.png#0a2acde7", NULL, NULL), nil);
-	check(@"Ein Bruchstueck, das kein Hexadezimal ist, wird abgelehnt",
-		  !AIOMEMOMediaReadLink(@"aesgcm://example.org/bild.png#"
+	//What must NOT be read
+	check(@"An ordinary address is not an encrypted one",
+		  !AIOMEMOMediaReadLink(@"https://example.org/picture.png", NULL, NULL), nil);
+	check(@"An address without a key is refused",
+		  !AIOMEMOMediaReadLink(@"aesgcm://example.org/picture.png", NULL, NULL), nil);
+	check(@"A fragment of the wrong length is refused",
+		  !AIOMEMOMediaReadLink(@"aesgcm://example.org/picture.png#0a2acde7", NULL, NULL), nil);
+	check(@"A fragment that is not hexadecimal is refused",
+		  !AIOMEMOMediaReadLink(@"aesgcm://example.org/picture.png#"
 								 "zzzzcde7f0acb5fe69c21cb5523efdfd3501c54c2188575c4449ecde"
 								 "27217dc3126439879efea65a9a9486ce", NULL, NULL), nil);
 
-	//Die aeltere Form mit sechzehn Byte Vektor muss ebenfalls gelesen werden
+	//The older form with a sixteen byte vector has to be read as well
 	NSMutableString *longer = [NSMutableString stringWithString:@"aesgcm://example.org/a.png#"];
 	for (int i = 0; i < 48; i++) [longer appendString:@"ab"];
 	NSData *longerMaterial = nil;
-	check(@"Die aeltere Form mit laengerem Vektor wird auch gelesen",
+	check(@"The older form with the longer vector is read too",
 		  AIOMEMOMediaReadLink(longer, NULL, &longerMaterial) && [longerMaterial length] == 48,
 		  [NSString stringWithFormat:@"%lu", (unsigned long)[longerMaterial length]]);
 
-	/* Die Gegenrichtung: was wir selbst verschluesseln, muss mit DEMSELBEN Entschluessler
-	 * aufgehen, der oben gegen den NIST-Wert geprueft wurde. Damit haengt die Senderichtung an
-	 * einem fremden Massstab und nicht an sich selbst. */
-	NSData *secret = [@"Eine Sprachnachricht, so tun wir mal" dataUsingEncoding:NSUTF8StringEncoding];
+	/* The other direction: what we encrypt ourselves has to open with the SAME decryptor that
+	 * was checked against the NIST value above. That hangs the sending direction on somebody
+	 * else's yardstick instead of on itself. */
+	NSData *secret = [@"A voice message, let us pretend" dataUsingEncoding:NSUTF8StringEncoding];
 	NSData *ourMaterial = nil;
 	NSData *sealed = AIOMEMOMediaEncrypt(secret, &ourMaterial);
 
-	check(@"Eine Datei laesst sich verschluesseln", [sealed length] > 0, nil);
-	check(@"Sie ist genau sechzehn Byte laenger als vorher",
+	check(@"A file can be encrypted", [sealed length] > 0, nil);
+	check(@"It is exactly sixteen bytes longer than before",
 		  [sealed length] == [secret length] + 16,
-		  [NSString stringWithFormat:@"%lu statt %lu", (unsigned long)[sealed length],
+		  [NSString stringWithFormat:@"%lu instead of %lu", (unsigned long)[sealed length],
 		   (unsigned long)[secret length] + 16]);
-	check(@"Das Schluesselmaterial ist vierundvierzig Byte lang", [ourMaterial length] == 44, nil);
-	check(@"Und sie geht mit demselben Entschluessler wieder auf",
+	check(@"The key material is forty four bytes long", [ourMaterial length] == 44, nil);
+	check(@"And it opens again with the same decryptor",
 		  [AIOMEMOMediaDecrypt(sealed, ourMaterial) isEqualToData:secret], nil);
 
-	//Zweimal dasselbe darf nie denselben Schluessel ergeben
+	//The same thing twice must never give the same key
 	NSData *otherMaterial = nil;
 	AIOMEMOMediaEncrypt(secret, &otherMaterial);
-	check(@"Zweimal verschluesselt heisst zweimal anders",
+	check(@"Encrypted twice means different twice",
 		  ![ourMaterial isEqualToData:otherMaterial], nil);
 
-	//Und die Adresse, die daraus entsteht, muss von unserem eigenen Leser wieder aufgehen
+	//And the address that comes out of it has to open again with our own reader
 	NSString *made = AIOMEMOMediaMakeLink(@"https://up.example.org/a/b/note.m4a", ourMaterial);
 	NSString *backAddress = nil;
 	NSData *backMaterial = nil;
-	check(@"Aus Adresse und Schluessel wird ein aesgcm-Verweis",
+	check(@"Address and key become an aesgcm link",
 		  [made hasPrefix:@"aesgcm://up.example.org/a/b/note.m4a#"], made);
-	check(@"den unser eigener Leser wieder zerlegt",
+	check(@"which our own reader takes apart again",
 		  AIOMEMOMediaReadLink(made, &backAddress, &backMaterial) &&
 		  [backAddress isEqualToString:@"https://up.example.org/a/b/note.m4a"] &&
 		  [backMaterial isEqualToData:ourMaterial], backAddress);
 
-	//Die Endung, auch wenn Schluessel oder Abfrage dranhaengen
-	check(@"Die Endung wird auch hinter dem Schluessel gefunden",
+	//The extension, even with a key or a query hanging off the end
+	check(@"The extension is found even behind the key",
 		  [AIOMEMOMediaExtensionOf(made) isEqualToString:@"m4a"], AIOMEMOMediaExtensionOf(made));
-	check(@"und hinter einer Abfrage",
-		  [AIOMEMOMediaExtensionOf(@"https://x/y/bild.PNG?t=1") isEqualToString:@"png"], nil);
-	check(@"Ohne Punkt gibt es keine Endung",
-		  AIOMEMOMediaExtensionOf(@"https://x/y/ohnepunkt") == nil, nil);
+	check(@"and behind a query",
+		  [AIOMEMOMediaExtensionOf(@"https://x/y/picture.PNG?t=1") isEqualToString:@"png"], nil);
+	check(@"Without a dot there is no extension",
+		  AIOMEMOMediaExtensionOf(@"https://x/y/nodot") == nil, nil);
 
-	/* Was eine Datei IST, wenn ihr Name es nicht verraet. Ein ins Fenster eingefuegtes Bild
-	 * landet in einer Datei ohne jede Endung, und danach ist es dem Namen nach kein Bild mehr. */
+	/* What a file IS when its name does not say so. A picture pasted into the window lands in
+	 * a file without any extension, and by name it is no longer a picture after that. */
 	struct { const char *bytes; size_t n; const char *type; const char *ending; } samples[] = {
 		{ "\x89PNG\r\n\x1a\n....", 12, "image/png", "png" },
 		{ "\xff\xd8\xff\xe0JFIF", 9, "image/jpeg", "jpg" },
@@ -172,44 +171,44 @@ int main(void) { @autoreleasepool {
 		NSString *ending = nil;
 		NSString *kind = AIMediaKindOfData([NSData dataWithBytes:samples[i].bytes length:samples[i].n],
 										   &ending);
-		check([NSString stringWithFormat:@"%s wird an seinen ersten Bytes erkannt", samples[i].type],
+		check([NSString stringWithFormat:@"%s is recognised by its first bytes", samples[i].type],
 			  [kind isEqualToString:[NSString stringWithUTF8String:samples[i].type]] &&
 			  [ending isEqualToString:[NSString stringWithUTF8String:samples[i].ending]],
-			  kind ?: @"gar nichts");
+			  kind ?: @"nothing at all");
 	}
 
-	check(@"Und was kein Bild ist, wird nicht dafuer gehalten",
-		  AIMediaKindOfData([NSData dataWithBytes:"Das ist einfach Text" length:20], NULL) == nil, nil);
-	check(@"Eine zu kurze Datei ebensowenig",
+	check(@"And what is not a picture is not taken for one",
+		  AIMediaKindOfData([NSData dataWithBytes:"This is simply text" length:20], NULL) == nil, nil);
+	check(@"Nor is a file that is too short",
 		  AIMediaKindOfData([NSData dataWithBytes:"\x89P" length:2], NULL) == nil, nil);
-	check(@"RIFF allein ist noch kein WebP",
+	check(@"RIFF on its own is not yet a WebP",
 		  AIMediaKindOfData([NSData dataWithBytes:"RIFF\x24\x00\x00\x00AVI LIST" length:16], NULL) == nil,
 		  nil);
 
-	/* Eine Adresse auf einen anderen Rechner umschreiben. Port, Pfad und alles dahinter muessen
-	 * unangetastet bleiben, sonst landet die Datei woanders als gedacht. */
-	NSURL *slot = [NSURL URLWithString:@"https://shoogee.com:5443/upload/977443/EscRx/bild%20eins.png?t=1"];
+	/* Rewriting an address onto a different host. Port, path and everything after them have to
+	 * stay untouched, or the file lands somewhere other than intended. */
+	NSURL *slot = [NSURL URLWithString:@"https://shoogee.com:5443/upload/977443/EscRx/picture%20one.png?t=1"];
 	NSURL *moved = AIMediaSameAddressOnHost(slot, @"meet.shoogee.com");
 
-	check(@"Nur der Rechnername aendert sich",
+	check(@"Only the host name changes",
 		  [[moved absoluteString] isEqualToString:
-		   @"https://meet.shoogee.com:5443/upload/977443/EscRx/bild%20eins.png?t=1"],
+		   @"https://meet.shoogee.com:5443/upload/977443/EscRx/picture%20one.png?t=1"],
 		  [moved absoluteString]);
 
-	check(@"Ist es schon derselbe Rechner, passiert nichts",
+	check(@"If it is the same host already, nothing happens",
 		  AIMediaSameAddressOnHost(slot, @"shoogee.com") == nil, nil);
-	check(@"Gross- und Kleinschreibung zaehlt dabei nicht",
+	check(@"Upper and lower case do not count here",
 		  AIMediaSameAddressOnHost(slot, @"SHOOGEE.COM") == nil, nil);
-	check(@"Ohne Namen passiert nichts", AIMediaSameAddressOnHost(slot, @"") == nil, nil);
-	check(@"Ohne Adresse ebenso", AIMediaSameAddressOnHost(nil, @"meet.shoogee.com") == nil, nil);
+	check(@"Without a name nothing happens", AIMediaSameAddressOnHost(slot, @"") == nil, nil);
+	check(@"Nor without an address", AIMediaSameAddressOnHost(nil, @"meet.shoogee.com") == nil, nil);
 
-	//Ohne Port im Original darf auch keiner erfunden werden
+	//With no port in the original, none may be invented either
 	NSURL *plain = [NSURL URLWithString:@"https://shoogee.com/upload/a/b.png"];
-	check(@"Ein fehlender Port wird nicht erfunden",
+	check(@"A missing port is not invented",
 		  [[AIMediaSameAddressOnHost(plain, @"meet.shoogee.com") absoluteString]
 		   isEqualToString:@"https://meet.shoogee.com/upload/a/b.png"],
 		  [AIMediaSameAddressOnHost(plain, @"meet.shoogee.com") absoluteString]);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

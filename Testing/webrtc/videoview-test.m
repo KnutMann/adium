@@ -87,51 +87,51 @@ int main(void) { @autoreleasepool {
 	[view renderFrame:pixelBufferFrame(320, 240, 0, 0, 255)];
 	settle();
 
-	check(@"Bild aus einem Pixelpuffer wird gezeichnet", view.renderedFrames > 0,
-		  [NSString stringWithFormat:@"gezeichnet=%ld", (long)view.renderedFrames]);
-	check(@"Groesse des Bildes stimmt",
+	check(@"A frame from a pixel buffer is drawn", view.renderedFrames > 0,
+		  [NSString stringWithFormat:@"drawn=%ld", (long)view.renderedFrames]);
+	check(@"The size of the frame is right",
 		  view.lastFrameSize.width == 320 && view.lastFrameSize.height == 240,
 		  NSStringFromSize(view.lastFrameSize));
 
 	CGFloat red = 0, green = 0, blue = 0;
 	BOOL shown = colourInTheMiddle(view, &red, &green, &blue);
-	check(@"Die Ebene zeigt wirklich ein Bild", shown, nil);
-	check(@"und es ist rot", shown && red > 0.8 && green < 0.2 && blue < 0.2,
+	check(@"The layer really shows a picture", shown, nil);
+	check(@"and it is red", shown && red > 0.8 && green < 0.2 && blue < 0.2,
 		  [NSString stringWithFormat:@"r=%.2f g=%.2f b=%.2f", red, green, blue]);
 
 	//A software decoder's frame: three planes making green
 	NSInteger before = view.renderedFrames;
 	[view renderFrame:planarFrame(320, 240, 149, 43, 21)];
 	settle();
-	check(@"Bild aus drei Ebenen wird gezeichnet", view.renderedFrames > before,
-		  [NSString stringWithFormat:@"gezeichnet=%ld", (long)view.renderedFrames]);
+	check(@"A frame from three planes is drawn", view.renderedFrames > before,
+		  [NSString stringWithFormat:@"drawn=%ld", (long)view.renderedFrames]);
 
 	shown = colourInTheMiddle(view, &red, &green, &blue);
-	check(@"und es ist gruen", shown && green > 0.6 && red < 0.35 && blue < 0.35,
+	check(@"and it is green", shown && green > 0.6 && red < 0.35 && blue < 0.35,
 		  [NSString stringWithFormat:@"r=%.2f g=%.2f b=%.2f", red, green, blue]);
 
-	/* Schwarze Bilder erkennen, denn manche Gegenstellen schalten ihre Kamera aus,
-	 * ohne es zu sagen, und schicken danach genau das. */
-	check(@"Ein Bild mit Inhalt gilt nicht als schwarz", !view.looksBlack, nil);
+	/* Recognise black frames, because some peers switch their camera off without
+	 * saying so, and send exactly that afterwards. */
+	check(@"A frame with content does not count as black", !view.looksBlack, nil);
 
 	for (int i = 0; i < 40; i++) {
 		[view renderFrame:pixelBufferFrame(320, 240, 0, 0, 0)];
 		settle();
 	}
-	check(@"Anhaltendes Schwarz wird erkannt", view.looksBlack, nil);
+	check(@"Black that keeps up is recognised", view.looksBlack, nil);
 
-	//Ein dunkler Raum ist nicht schwarz: Rauschen liegt deutlich darueber
+	//A dark room is not black: noise sits clearly above it
 	[view renderFrame:pixelBufferFrame(320, 240, 40, 38, 42)];
 	settle();
-	check(@"Ein dunkler Raum gilt nicht als abgeschaltet", !view.looksBlack, nil);
+	check(@"A dark room does not count as switched off", !view.looksBlack, nil);
 
-	//Und aus drei Ebenen ebenso, also auf dem Weg eines Software-Dekoders
+	//And from three planes likewise, that is on a software decoder's path
 	for (int i = 0; i < 40; i++) {
 		[view renderFrame:planarFrame(320, 240, 16, 128, 128)];
 		settle();
 	}
-	check(@"Auch aus drei Ebenen wird Schwarz erkannt", view.looksBlack, nil);
+	check(@"Black is recognised from three planes too", view.looksBlack, nil);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

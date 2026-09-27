@@ -1,15 +1,15 @@
-/* Sieht die Stanza so aus, wie andere OMEMO-Clients sie erwarten, und kommt sie wieder auf?
+/* Does the stanza look the way other OMEMO clients expect, and does it open again?
  *
- * Geprueft wird hier die XML-Arbeit selbst, gegen das echte xmlnode aus libpurple, denn genau
- * dort versteckt sich ein Formatfehler: es uebersetzt, es laeuft, es kommt etwas heraus, das
- * wie eine Stanza aussieht, und die Gegenseite zeigt nichts und sagt nichts.
+ * What is checked here is the XML work itself, against the real xmlnode out of libpurple,
+ * because that is exactly where a formatting fault hides: it compiles, it runs, something comes
+ * out that looks like a stanza, and the other side shows nothing and says nothing.
  *
- * Besonders im Blick:
- *   - der Klartext muss WEG sein, und zwar alles davon, nicht nur der Rumpf;
- *   - alles, was nicht auf der kurzen Liste des Harmlosen steht, muss verschwinden, auch
- *     Elemente, an die niemand gedacht hat;
- *   - der Ersatzrumpf fuer Clients ohne OMEMO muss da sein, sonst sehen die eine leere Zeile;
- *   - beim Lesen muss der Ersatzrumpf verschwinden und der echte Text an seine Stelle treten.
+ * Under particular scrutiny:
+ *   - the plain text has to be GONE, all of it, not only the body;
+ *   - anything not on the short list of the harmless has to disappear, including elements
+ *     nobody thought of;
+ *   - the fallback body for clients without OMEMO has to be there, or they see an empty line;
+ *   - while reading, the fallback body has to disappear and the real text take its place.
  */
 #import <Foundation/Foundation.h>
 #import <libpurple/libpurple.h>
@@ -55,11 +55,11 @@ int main(void) { @autoreleasepool {
 
 	AIOMEMOStore *alice = [AIOMEMOStore storeForAccount:ALICE];
 	AIOMEMOStore *bob = [AIOMEMOStore storeForAccount:BOB];
-	check(@"Alice erreicht Bob", letTalk(alice, BOB, bob), nil);
+	check(@"Alice reaches Bob", letTalk(alice, BOB, bob), nil);
 
-	//Eine Nachricht, wie Adium sie sonst verschickt: mit Rumpf, Empfangswunsch und Tippanzeige,
-	//und dazu etwas, das Inhalt traegt und deshalb nicht im Klartext hinausgehen darf
-	NSString *secret = @"Das Passwort lautet Löwenzahn";
+	//A message the way Adium otherwise sends one: with a body, a receipt request and a typing
+	//notice, plus something that carries content and must therefore not go out in the clear
+	NSString *secret = @"The password is Dandelion";
 
 	xmlnode *outgoing = xmlnode_new("message");
 	xmlnode_set_attrib(outgoing, "to", [BOB UTF8String]);
@@ -69,77 +69,77 @@ int main(void) { @autoreleasepool {
 	xmlnode_set_namespace(xmlnode_new_child(outgoing, "request"), "urn:xmpp:receipts");
 	xmlnode_set_namespace(xmlnode_new_child(outgoing, "composing"), "http://jabber.org/protocol/chatstates");
 
-	//Ein Zitat, das den Text der Nachricht wiederholt, auf die geantwortet wird
+	//A quotation repeating the text of the message being answered
 	xmlnode *quoted = xmlnode_new_child(outgoing, "reply");
 	xmlnode_set_namespace(quoted, "urn:xmpp:reply:0");
 	xmlnode_set_attrib(quoted, "to", [BOB UTF8String]);
 
-	//Und eine Formatierung, die den ganzen Text ein zweites Mal traegt
+	//And a formatting that carries the whole text a second time
 	xmlnode *formatted = xmlnode_new_child(outgoing, "html");
 	xmlnode_set_namespace(formatted, "http://jabber.org/protocol/xhtml-im");
 	xmlnode_insert_data(xmlnode_new_child(formatted, "body"), [secret UTF8String], -1);
 
 	NSDictionary *toBob = @{ BOB: @[@(bob.deviceIdentifier)] };
-	check(@"Die Nachricht laesst sich verschliessen",
+	check(@"The message can be sealed",
 		  AIOMEMOSealStanza(outgoing, alice, toBob), nil);
 
 	NSString *onTheWire = asText(outgoing);
 
-	//Das Wichtigste zuerst: nichts vom Klartext darf uebrig sein
-	check(@"Der Klartext steht nicht mehr drin",
-		  [onTheWire rangeOfString:@"Löwenzahn"].location == NSNotFound, nil);
-	check(@"Auch nicht in der Formatierung, die ihn wiederholte",
+	//The most important thing first: nothing of the plain text may be left
+	check(@"The plain text is no longer in there",
+		  [onTheWire rangeOfString:@"Dandelion"].location == NSNotFound, nil);
+	check(@"Nor in the formatting that repeated it",
 		  [onTheWire rangeOfString:@"xhtml-im"].location == NSNotFound, nil);
-	check(@"Und das Zitat ist ebenfalls weg",
+	check(@"And the quotation is gone as well",
 		  [onTheWire rangeOfString:@"urn:xmpp:reply"].location == NSNotFound, nil);
 
-	//Was harmlos ist, bleibt
-	check(@"Der Empfangswunsch bleibt stehen",
+	//What is harmless stays
+	check(@"The receipt request stays",
 		  xmlnode_get_child_with_namespace(outgoing, "request", "urn:xmpp:receipts") != NULL, nil);
-	check(@"Die Tippanzeige bleibt stehen",
+	check(@"The typing notice stays",
 		  xmlnode_get_child_with_namespace(outgoing, "composing",
 										   "http://jabber.org/protocol/chatstates") != NULL, nil);
 
-	//Die Adresse und die Art der Nachricht ueberleben, sonst kaeme sie nirgends an
-	check(@"Die Adresse steht noch dran",
+	//The address and the kind of message survive, or it would arrive nowhere
+	check(@"The address is still on it",
 		  purple_strequal(xmlnode_get_attrib(outgoing, "to"), [BOB UTF8String]), nil);
-	check(@"Und die Art der Nachricht auch",
+	check(@"And so is the kind of message",
 		  purple_strequal(xmlnode_get_attrib(outgoing, "type"), "chat"), nil);
 
-	//Die Form, die andere Clients lesen
+	//The shape other clients read
 	xmlnode *encrypted = xmlnode_get_child_with_namespace(outgoing, "encrypted", AIOMEMO_NAMESPACE);
-	check(@"Es gibt ein encrypted-Element im richtigen Namensraum", encrypted != NULL, nil);
+	check(@"There is an encrypted element in the right namespace", encrypted != NULL, nil);
 
 	xmlnode *header = encrypted ? xmlnode_get_child(encrypted, "header") : NULL;
-	check(@"Der Kopf nennt unsere Geraetenummer",
+	check(@"The header names our device number",
 		  AIOMEMONumberIn(header, "sid") == alice.deviceIdentifier, nil);
-	check(@"Es gibt einen Initialisierungsvektor",
+	check(@"There is an initialisation vector",
 		  header && xmlnode_get_child(header, "iv") != NULL, nil);
-	check(@"Es gibt einen Schluessel fuer Bobs Geraet",
+	check(@"There is a key for Bob's device",
 		  header && AIOMEMONumberIn(xmlnode_get_child(header, "key"), "rid") == bob.deviceIdentifier, nil);
-	check(@"Der erste Schluessel ist als sitzungseroeffnend gekennzeichnet",
+	check(@"The first key is marked as opening the session",
 		  header && purple_strequal(xmlnode_get_attrib(xmlnode_get_child(header, "key"), "prekey"), "true"),
 		  nil);
-	check(@"Es gibt eine Nutzlast",
+	check(@"There is a payload",
 		  encrypted && xmlnode_get_child(encrypted, "payload") != NULL, nil);
 
-	//Die Beigaben, ohne die es anderswo schlecht aussieht
-	check(@"Der Hinweis zum Aufbewahren ist dabei",
+	//The extras, without which it looks bad elsewhere
+	check(@"The hint to store it is included",
 		  xmlnode_get_child_with_namespace(outgoing, "store", "urn:xmpp:hints") != NULL, nil);
-	check(@"Es steht dabei, womit verschluesselt wurde",
+	check(@"It says what it was encrypted with",
 		  xmlnode_get_child_with_namespace(outgoing, "encryption", "urn:xmpp:eme:0") != NULL, nil);
 
 	xmlnode *fallback = xmlnode_get_child(outgoing, "body");
-	check(@"Ein Ersatzrumpf fuer Clients ohne OMEMO ist da", fallback != NULL, nil);
+	check(@"A fallback body for clients without OMEMO is there", fallback != NULL, nil);
 
-	//Und nun die Gegenrichtung: dieselbe Stanza, bei Bob angekommen
+	//And now the other direction: the same stanza, arrived at Bob
 	xmlnode *incoming = xmlnode_from_str([onTheWire UTF8String], -1);
-	check(@"Die Stanza laesst sich wieder einlesen", incoming != NULL, nil);
+	check(@"The stanza can be read back in", incoming != NULL, nil);
 
 	if (incoming) {
 		xmlnode_set_attrib(incoming, "from", [[ALICE stringByAppendingString:@"/mac"] UTF8String]);
 
-		check(@"Bob macht wieder eine Nachricht daraus",
+		check(@"Bob turns it back into a message",
 			  AIOMEMOOpenStanza(incoming, bob, ALICE) == AIOMEMOOpenedReadable, nil);
 
 		xmlnode *opened = xmlnode_get_child(incoming, "body");
@@ -147,74 +147,73 @@ int main(void) { @autoreleasepool {
 		NSString *read = raw ? [NSString stringWithUTF8String:raw] : nil;
 		if (raw) g_free(raw);
 
-		check(@"und es steht der richtige Text darin", [read isEqualToString:secret], read);
+		check(@"and the right text is in it", [read isEqualToString:secret], read);
 
-		/* Und der Rumpf traegt jabber:client. Das ist keine Formsache: der Parser des Protokolls
-		 * ueberspringt jedes Kind OHNE Namensraum, bevor er ueberhaupt hinsieht, was es ist.
-		 * Ohne diese Zeile ist die Nachricht vollstaendig, richtig und unsichtbar. */
-		check(@"Der Rumpf traegt den Namensraum, ohne den ihn niemand sieht",
+		/* And the body carries jabber:client. That is not a formality: the protocol's parser
+		 * skips every child WITHOUT a namespace before it even looks at what the child is.
+		 * Without that one line the message is complete, correct and invisible. */
+		check(@"The body carries the namespace without which nobody sees it",
 			  purple_strequal(xmlnode_get_namespace(opened), "jabber:client"),
-			  opened ? [NSString stringWithUTF8String:xmlnode_get_namespace(opened) ?: "gar keinen"]
-					 : @"kein Rumpf");
-		check(@"Der Ersatzrumpf ist dabei verschwunden",
+			  opened ? [NSString stringWithUTF8String:xmlnode_get_namespace(opened) ?: "none at all"]
+					 : @"no body");
+		check(@"The fallback body has disappeared",
 			  [asText(incoming) rangeOfString:@"doesn't support it"].location == NSNotFound, nil);
-		check(@"Und das encrypted-Element auch",
+		check(@"And so has the encrypted element",
 			  xmlnode_get_child_with_namespace(incoming, "encrypted", AIOMEMO_NAMESPACE) == NULL, nil);
 
 		xmlnode_free(incoming);
 	}
 
-	//Eine Nachricht an ein Geraet, mit dem wir gar keine Sitzung haben, entsteht nicht
+	//A message to a device we have no session with at all never comes into being
 	xmlnode *hopeless = xmlnode_new("message");
 	xmlnode_set_attrib(hopeless, "to", "dave@example.org");
-	xmlnode_insert_data(xmlnode_new_child(hopeless, "body"), "ins Leere", -1);
-	check(@"Ohne Sitzung wird nichts verschlossen",
+	xmlnode_insert_data(xmlnode_new_child(hopeless, "body"), "into the void", -1);
+	check(@"Without a session nothing is sealed",
 		  !AIOMEMOSealStanza(hopeless, alice, @{ @"dave@example.org": @[@(4711)] }), nil);
-	check(@"und die Nachricht bleibt unangetastet",
+	check(@"and the message is left untouched",
 		  xmlnode_get_child(hopeless, "body") != NULL, nil);
 	xmlnode_free(hopeless);
 
-	/* Eine verschluesselte Nachricht, die wir NICHT oeffnen koennen, darf nicht spurlos
-	 * verschwinden: entweder steht der Ersatzrumpf des Absenders da, oder, wenn er keinen
-	 * mitgeschickt hat, einer von uns. Still verschwinden waere von "nie gesendet" nicht zu
-	 * unterscheiden, und das ist der schlimmere der beiden Fehler. */
+	/* An encrypted message we can NOT open must not vanish without a trace: either the
+	 * sender's fallback body is there, or, if they sent none, one of ours. Vanishing quietly
+	 * would be indistinguishable from "never sent", and that is the worse of the two faults. */
 	xmlnode *forSomeoneElse = xmlnode_from_str(
 		"<message from='c@d' type='chat'>"
 		"<encrypted xmlns='" AIOMEMO_NAMESPACE "'><header sid='42'>"
 		"<key rid='999'>AAAA</key><iv>AAAAAAAAAAAAAAAA</iv></header>"
 		"<payload>AAAA</payload></encrypted></message>", -1);
-	check(@"Eine unlesbare Nachricht wird nicht verschluckt",
+	check(@"An unreadable message is not swallowed",
 		  AIOMEMOOpenStanza(forSomeoneElse, bob, @"c@d") == AIOMEMOOpenedCouldNot, nil);
-	check(@"und bekommt einen Rumpf, wenn keiner dabei war",
+	check(@"and is given a body if none came with it",
 		  xmlnode_get_child(forSomeoneElse, "body") != NULL, nil);
-	check(@"der ebenfalls den noetigen Namensraum traegt",
+	check(@"which carries the needed namespace as well",
 		  purple_strequal(xmlnode_get_namespace(xmlnode_get_child(forSomeoneElse, "body")),
 						  "jabber:client"), nil);
 	xmlnode_free(forSomeoneElse);
 
-	//War einer dabei, bleibt es bei dem des Absenders
+	//If one came with it, the sender's stays
 	xmlnode *withFallback = xmlnode_from_str(
-		"<message from='c@d' type='chat'><body>Ich schrieb verschluesselt</body>"
+		"<message from='c@d' type='chat'><body>I wrote encrypted</body>"
 		"<encrypted xmlns='" AIOMEMO_NAMESPACE "'><header sid='42'>"
 		"<key rid='999'>AAAA</key><iv>AAAAAAAAAAAAAAAA</iv></header>"
 		"<payload>AAAA</payload></encrypted></message>", -1);
 	AIOMEMOOpenStanza(withFallback, bob, @"c@d");
 	char *kept = xmlnode_get_data(xmlnode_get_child(withFallback, "body"));
-	check(@"Der Ersatzrumpf des Absenders bleibt stehen, wenn es einen gibt",
-		  kept && strcmp(kept, "Ich schrieb verschluesselt") == 0,
-		  kept ? [NSString stringWithUTF8String:kept] : @"gar keiner");
+	check(@"The sender's fallback body stays if there is one",
+		  kept && strcmp(kept, "I wrote encrypted") == 0,
+		  kept ? [NSString stringWithUTF8String:kept] : @"none at all");
 	if (kept) g_free(kept);
 	xmlnode_free(withFallback);
 
-	//Eine Stanza ohne encrypted-Element wird nicht angefasst
-	xmlnode *plain = xmlnode_from_str("<message from='x@y'><body>ganz normal</body></message>", -1);
-	check(@"Eine gewoehnliche Nachricht wird nicht angefasst",
+	//A stanza without an encrypted element is left alone
+	xmlnode *plain = xmlnode_from_str("<message from='x@y'><body>perfectly ordinary</body></message>", -1);
+	check(@"An ordinary message is left alone",
 		  AIOMEMOOpenStanza(plain, bob, @"x@y") == AIOMEMOOpenedCouldNot, nil);
 	xmlnode_free(plain);
 
 	xmlnode_free(outgoing);
 	[[NSFileManager defaultManager] removeItemAtPath:scratch error:NULL];
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

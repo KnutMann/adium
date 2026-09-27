@@ -68,8 +68,8 @@ def main():
         print("FAILED: the accounts did not introduce themselves in time")
         sys.exit(1)
 
-    print("adium@localhost und peer@localhost stehen jetzt auf der Liste des jeweils anderen.")
-    print("In Adium erscheint der neue Kontakt nach dem naechsten Verbinden.")
+    print("adium@localhost and peer@localhost are now on each other's roster.")
+    print("In Adium the new contact appears after the next connect.")
 
 
 if __name__ == "__main__":

@@ -1,18 +1,17 @@
-/* Gehoert die Warteschlange fuer XEP-0198 dem Konto oder nur seinem Namen?
+/* Does the XEP-0198 queue belong to the account, or only to its name?
  *
- * Upstream fuehrt die unbestaetigten Stanzas unter der nackten JID. Das reicht, solange es je
- * Adresse ein Konto gibt, und genau das ist nicht gesagt: wer dieselbe Adresse zweimal
- * einrichtet, teilt sich dann eine Warteschlange, und was auf der einen Verbindung unbestaetigt
- * liegengeblieben ist, geht bei der anderen hinaus. Ein Konto sendet also Stanzas, die es nie
- * geschrieben hat.
+ * Upstream keeps the unacknowledged stanzas under the bare JID. That is enough as long as there
+ * is one account per address, and that is precisely what nobody promises: set the same address
+ * up twice and the two share a queue, so whatever was left unacknowledged on one connection
+ * goes out over the other. An account then sends stanzas it never wrote.
  *
- * Geprueft wird deshalb die Schluesselung selbst, an der ECHTEN Datei: zwei Konten gleicher
- * Adresse bekommen zwei Sitzungen, dasselbe Konto bekommt zweimal dieselbe, und eine Sitzung,
- * die unter einem wiederverwendeten Kontozeiger auftaucht, wird als fremd erkannt und
- * weggeworfen statt weitergereicht.
+ * What is checked is therefore the keying itself, against the REAL file: two accounts with the
+ * same address get two sessions, the same account gets the same one twice, and a session that
+ * turns up under a reused account pointer is recognised as a stranger's and thrown away rather
+ * than handed on.
  *
- * Nur die drei Dinge, die stream_management.c aus dem uebrigen Jabber-Plugin ruft, sind hier
- * ersetzt; alles andere kommt aus der Bibliothek, die die Anwendung auch benutzt.
+ * Only the three things stream_management.c calls from the rest of the Jabber plugin are stood
+ * in for here; everything else comes from the library the application itself uses.
  */
 #include <glib.h>
 #include <stdio.h>
@@ -29,7 +28,7 @@ static void check(const char *name, int ok, const char *detail)
 	if (!ok) failures++;
 }
 
-/* --- Was stream_management.c aus dem Rest des Plugins ruft ------------------------------ */
+/* --- What stream_management.c calls from the rest of the plugin ------------------------- */
 
 char *jabber_id_get_bare_jid(const JabberID *jid)
 {
@@ -64,8 +63,8 @@ void jabber_send(JabberStream *js, xmlnode *packet)
 	lastH = g_strdup(xmlnode_get_attrib(packet, "h"));
 }
 
-/* Der Zeitgeber fuer die gebuendelte Quittungsanfrage laeuft ueber libpurples Schleife. Hier
-   gibt es keine, also nur so viel Ersatz, dass sich zaehlen laesst, ob einer gestellt wurde. */
+/* The timer for the batched acknowledgement request runs on libpurple's loop. There is none
+   here, so there is only enough of a stand in to count whether one was armed. */
 static guint timersArmed = 0;
 static guint timersRemoved = 0;
 
@@ -89,7 +88,7 @@ static PurpleEventLoopUiOps loopStandIn = {
 static int bindsAsked = 0;
 static int statesSet = 0;
 
-/* Die beiden Wege zurueck nach jabber.c, die stream_management.c seit der Wiederaufnahme geht. */
+/* The two ways back into jabber.c that stream_management.c takes since resumption exists. */
 void jabber_bind_resource(JabberStream *js)
 {
 	bindsAsked++;
@@ -103,7 +102,7 @@ void jabber_stream_set_state(JabberStream *js, JabberStreamState state)
 
 #include "stream_management.c"
 
-/* --- Ein Strom, so weit gebaut, wie die Datei ihn anfasst ------------------------------- */
+/* --- A stream, built as far as the file under test touches it --------------------------- */
 
 static JabberStream *streamFor(PurpleAccount *account, const char *node, const char *domain)
 {
@@ -124,7 +123,7 @@ static xmlnode *aMessage(void)
 	return xmlnode_new("message");
 }
 
-/*! Die Antwort des Servers, so wie sie vom Draht kaeme */
+/*! The server's answer, the way it would come off the wire */
 static void enabledArrives(JabberStream *js, const char *xml)
 {
 	xmlnode *packet = xmlnode_from_str(xml, -1);
@@ -138,7 +137,7 @@ int main(void)
 	purple_eventloop_set_ui_ops(&loopStandIn);
 	jabber_sm_init();
 
-	/* Zwei Konten sind zwei Zeiger; dereferenziert wird hier keiner, sie sind nur Schluessel. */
+	/* Two accounts are two pointers; neither is dereferenced here, they are only keys. */
 	PurpleAccount *first = (PurpleAccount *)0x1001;
 	PurpleAccount *second = (PurpleAccount *)0x1002;
 
@@ -148,130 +147,130 @@ int main(void)
 	JabberSmSession *sessionA = jabber_sm_session_get(a);
 	JabberSmSession *sessionB = jabber_sm_session_get(b);
 
-	check("Dieselbe Adresse zweimal ergibt zwei Sitzungen", sessionA != sessionB,
-	      "beide Konten teilen sich eine Warteschlange");
-	check("Die Sitzung merkt sich, wem sie gehoert",
+	check("The same address twice gives two sessions", sessionA != sessionB,
+	      "both accounts share one queue");
+	check("The session remembers whose it is",
 	      purple_strequal(sessionA->jid, "adium@localhost"), sessionA->jid);
 
-	/* Dasselbe Konto noch einmal muss dieselbe Sitzung sein, sonst waere die Warteschlange
-	   bei jeder Verwendung leer und nichts wuerde je nachgesendet. */
-	check("Dasselbe Konto bekommt dieselbe Sitzung wieder",
+	/* The same account again has to be the same session, or the queue would be empty every
+	   time it is used and nothing would ever be resent. */
+	check("The same account gets the same session back",
 	      jabber_sm_session_get(a) == sessionA, NULL);
 
-	/* Und die Warteschlangen duerfen sich nicht beruehren. */
+	/* And the queues must not touch each other. */
 	g_queue_push_tail(sessionA->queue, aMessage());
-	check("Was das eine Konto einreiht, sieht das andere nicht",
+	check("What one account queues up, the other does not see",
 	      g_queue_get_length(sessionB->queue) == 0, NULL);
 
-	/* Ein zweiter Strom desselben Kontos, wie nach einem Verbindungsabbruch, findet die
-	   Warteschlange wieder. Das ist der ganze Zweck der Sache. */
+	/* A second stream for the same account, as after a dropped connection, finds the queue
+	   again. That is the whole point of the thing. */
 	JabberStream *again = streamFor(first, "adium", "localhost");
 	JabberSmSession *found = jabber_sm_session_get(again);
-	check("Eine neue Verbindung findet die alte Warteschlange",
+	check("A new connection finds the old queue",
 	      found == sessionA && g_queue_get_length(found->queue) == 1, NULL);
 
-	/* Ein freigegebenes Konto kann seine Adresse an ein neues vererben. Die Sitzung, die
-	   darunter liegt, gehoert dann jemand anderem und darf nicht weitergereicht werden. */
+	/* A freed account can pass its address on to a new one. The session underneath then
+	   belongs to somebody else and must not be handed on. */
 	JabberStream *stranger = streamFor(first, "somebody-else", "localhost");
 	JabberSmSession *fresh = jabber_sm_session_get(stranger);
-	/* Geprueft wird die leere Warteschlange und NICHT, ob der Zeiger ein anderer ist: das
-	   Verwerfen gibt die alte Sitzung frei, und derselbe Allokator reicht dieselbe Adresse
-	   gleich wieder heraus. Ein Vergleich gegen sessionA laese also freigegebenen Speicher und
-	   ginge mal so und mal so aus. Die leere Warteschlange sagt ohnehin alles: haette der
-	   Waechter nicht gegriffen, laege die eine Nachricht von vorhin noch darin. */
-	check("Ein wiederverwendeter Kontozeiger erbt keine fremde Sitzung",
+	/* What is checked is the empty queue and NOT whether the pointer is a different one:
+	   discarding frees the old session, and the same allocator hands the same address straight
+	   back out. Comparing against sessionA would therefore read freed memory and come out
+	   differently from run to run. The empty queue says everything anyway: had the guard not
+	   caught it, the one message from before would still be in there. */
+	check("A reused account pointer inherits no stranger's session",
 	      g_queue_get_length(fresh->queue) == 0, NULL);
-	check("Und die neue Sitzung traegt den neuen Namen",
+	check("And the new session carries the new name",
 	      purple_strequal(fresh->jid, "somebody-else@localhost"), fresh->jid);
 
-	/* Vergessen heisst vergessen: danach ist es eine andere, leere Sitzung. */
+	/* Forgetting means forgetting: afterwards it is a different, empty session. */
 	JabberSmSession *before = jabber_sm_session_get(b);
 	g_queue_push_tail(before->queue, aMessage());
 	jabber_sm_session_forget(b);
-	check("Nach dem Vergessen ist die Warteschlange leer",
+	check("After forgetting, the queue is empty",
 	      g_queue_get_length(jabber_sm_session_get(b)->queue) == 0, NULL);
 
-	/* --- Was auf dem Draht steht und was davon ankommt -------------------------------- */
+	/* --- What stands on the wire and what of it arrives ------------------------------- */
 
-	/* Ohne die Bitte um Wiederaufnahme legt der Server die Sitzung nicht beiseite, sondern
-	   zerstoert sie beim ersten Abbruch. Die eine Zeile ist die Vorbedingung fuer alles. */
+	/* Without asking for resumption the server does not set the session aside but destroys it
+	   at the first break. That one line is the precondition for everything else. */
 	jabber_sm_enable(a);
-	check("Das <enable/> bittet um Wiederaufnahme",
+	check("The <enable/> asks for resumption",
 	      purple_strequal(lastName, "enable") && purple_strequal(lastResume, "true"),
-	      lastResume ? lastResume : "kein resume-Attribut");
+	      lastResume ? lastResume : "no resume attribute");
 
-	/* Und was der Server verspricht, muss ankommen, sonst weiss niemand, worauf man sich
-	   spaeter berufen koennte. */
+	/* And what the server promises has to arrive, or nobody knows what could be invoked
+	   later on. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='abc123' max='600'"
 	                  " resume='true' location='xmpp.example:5222'/>");
 	JabberSmSession *promised = jabber_sm_session_get(a);
-	check("Die Kennung der Sitzung wird behalten",
+	check("The session identifier is kept",
 	      purple_strequal(promised->id, "abc123"), promised->id);
-	check("Die zugesagte Haltezeit wird behalten", promised->max == 600, NULL);
-	check("Der genannte Ort wird behalten",
+	check("The promised hold time is kept", promised->max == 600, NULL);
+	check("The named location is kept",
 	      purple_strequal(promised->location, "xmpp.example:5222"), promised->location);
 
-	/* Ein Server, der nur zustimmt und nichts verspricht, darf nicht so aussehen, als haette
-	   er etwas versprochen: ein <resume/> auf eine erfundene Kennung waere ein Fehlerfall. */
+	/* A server that merely agrees and promises nothing must not look as though it had promised
+	   something: a <resume/> naming an invented identifier would be an error case. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3'/>");
-	check("Ein leeres <enabled/> laesst nichts zum Wiederaufnehmen zurueck",
+	check("An empty <enabled/> leaves nothing to resume",
 	      jabber_sm_session_get(a)->id == NULL, jabber_sm_session_get(a)->id);
 
-	/* Die beiden Halbheiten zaehlen einzeln nicht. */
+	/* The two halves do not count on their own. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='xyz'/>");
-	check("Eine Kennung ohne resume ist kein Angebot",
+	check("An identifier without resume is not an offer",
 	      jabber_sm_session_get(a)->id == NULL, NULL);
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' resume='true'/>");
-	check("Ein resume ohne Kennung ist nichts, worauf man sich berufen kann",
+	check("A resume without an identifier is nothing to invoke",
 	      jabber_sm_session_get(a)->id == NULL, NULL);
 
-	/* Und eine neue Zusage loescht die alte, denn die alte Sitzung gibt es nicht mehr. */
+	/* And a new promise erases the old one, because the old session is gone. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='first' resume='true'/>");
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='second' resume='true'/>");
-	check("Eine neue Zusage ueberschreibt die alte Kennung",
+	check("A new promise overwrites the old identifier",
 	      purple_strequal(jabber_sm_session_get(a)->id, "second"),
 	      jabber_sm_session_get(a)->id);
 
-	/* --- Was aus einem <resume/> wird --------------------------------------------------- */
+	/* --- What becomes of a <resume/> ---------------------------------------------------- */
 
-	/* Ohne Zusage gibt es nichts zu erbitten, und der Aufrufer muss binden wie immer. */
+	/* Without a promise there is nothing to ask for, and the caller has to bind as always. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3'/>");
-	check("Ohne Zusage wird nicht um Wiederaufnahme gebeten",
+	check("Without a promise, no resumption is asked for",
 	      jabber_sm_resume(a) == FALSE, NULL);
 
-	/* Mit Zusage steht die Bitte auf dem Draht, und sie nennt beides: worum es geht und wie
-	   viel wir empfangen haben. Die zweite Zahl entscheidet, was die Gegenseite nachsendet. */
+	/* With a promise the request stands on the wire, and it names both: which session, and how
+	   much we have received. That second number decides what the other side resends. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='sess-1' resume='true' max='60'/>");
 	jabber_sm_session_get(a)->inbound_count = 42;
-	check("Mit Zusage wird um Wiederaufnahme gebeten", jabber_sm_resume(a) == TRUE, NULL);
-	check("Die Bitte nennt die Sitzung und den Empfangsstand",
+	check("With a promise, resumption is asked for", jabber_sm_resume(a) == TRUE, NULL);
+	check("The request names the session and how much was received",
 	      purple_strequal(lastName, "resume")
 	      && purple_strequal(lastPrevid, "sess-1")
 	      && purple_strequal(lastH, "42"),
-	      lastPrevid ? lastPrevid : "kein previd");
+	      lastPrevid ? lastPrevid : "no previd");
 
-	/* Eine abgelehnte Wiederaufnahme darf nicht haengenbleiben: sie muss binden. Und sie darf
-	   die unbestaetigten Stanzas NICHT wegwerfen, denn unbestaetigt heisst nie zugestellt. */
+	/* A refused resumption must not hang: it has to bind. And it must NOT throw the
+	   unacknowledged stanzas away, because unacknowledged means never delivered. */
 	g_queue_push_tail(jabber_sm_session_get(a)->queue, aMessage());
 	bindsAsked = 0;
 	enabledArrives(a, "<failed xmlns='urn:xmpp:sm:3'><item-not-found/></failed>");
-	check("Eine Absage bindet danach doch", bindsAsked == 1, NULL);
-	check("Eine Absage laesst nichts zum Wiederaufnehmen zurueck",
+	check("A refusal binds afterwards after all", bindsAsked == 1, NULL);
+	check("A refusal leaves nothing to resume",
 	      jabber_sm_session_get(a)->id == NULL, NULL);
-	check("Eine Absage behaelt aber, was noch unbestaetigt ist",
+	check("A refusal does keep what is still unacknowledged",
 	      g_queue_get_length(jabber_sm_session_get(a)->queue) == 1, NULL);
 
-	/* Eine Absage auf ein <enable/>, also nicht auf ein <resume/>, ist etwas anderes: dort
-	   gibt es ueberhaupt keine Sitzung, und die Warteschlange hat keinen Besitzer mehr. */
+	/* A refusal of an <enable/>, so not of a <resume/>, is a different thing: there is no
+	   session at all in that case, and the queue has no owner any more. */
 	a->sm_state = SM_REQUESTED;
 	bindsAsked = 0;
 	enabledArrives(a, "<failed xmlns='urn:xmpp:sm:3'/>");
-	check("Eine Absage auf das Einschalten bindet nicht", bindsAsked == 0, NULL);
-	check("und wirft die Sitzung ganz weg",
+	check("A refusal of the enable does not bind", bindsAsked == 0, NULL);
+	check("and throws the session away entirely",
 	      g_queue_get_length(jabber_sm_session_get(a)->queue) == 0, NULL);
 
-	/* Und die Wiederaufnahme selbst: die Zaehler sind wieder die der alten Sitzung, die
-	   Adresse ist die alte, und der Strom gilt als verbunden, ohne dass etwas gebunden wurde. */
+	/* And resumption itself: the counters are the old session's again, the address is the old
+	   one, and the stream counts as connected without anything having been bound. */
 	enabledArrives(a, "<enabled xmlns='urn:xmpp:sm:3' id='sess-2' resume='true'/>");
 	JabberSmSession *back = jabber_sm_session_get(a);
 	back->inbound_count = 7;
@@ -284,77 +283,77 @@ int main(void)
 	bindsAsked = 0;
 	statesSet = 0;
 	enabledArrives(a, "<resumed xmlns='urn:xmpp:sm:3' h='9' previd='sess-2'/>");
-	check("Die Wiederaufnahme bindet nichts", bindsAsked == 0, NULL);
-	check("Die Zaehler sind wieder die der alten Sitzung",
+	check("Resumption binds nothing", bindsAsked == 0, NULL);
+	check("The counters are the old session's again",
 	      a->sm_inbound_count == 7 && a->sm_outbound_count == 9, NULL);
-	check("Die alte Ressource ist wieder unsere",
+	check("The old resource is ours again",
 	      purple_strequal(a->user->resource, "old-one"),
-	      a->user->resource ? a->user->resource : "keine");
-	check("Der Strom gilt danach als verbunden",
+	      a->user->resource ? a->user->resource : "none");
+	check("The stream counts as connected afterwards",
 	      statesSet == 1 && a->state == JABBER_STREAM_CONNECTED, NULL);
-	check("Und er weiss, dass er wiederaufgenommen wurde", a->sm_resumed == TRUE, NULL);
+	check("And it knows that it was resumed", a->sm_resumed == TRUE, NULL);
 
-	/* --- Wie oft nach einer Quittung gefragt wird ---------------------------------------- */
+	/* --- How often an acknowledgement is asked for --------------------------------------- */
 
-	/* Upstream fragte nach JEDER Stanza und verdoppelte damit die Zahl der Stanzas auf dem
-	   Draht. Die Quittung traegt eine laufende Summe, eine Antwort erledigt also alles davor. */
+	/* Upstream asked after EVERY stanza and thereby doubled the number of stanzas on the wire.
+	   The acknowledgement carries a running total, so one answer settles everything before it. */
 	JabberStream *counting = streamFor((PurpleAccount *)0x2001, "count", "localhost");
 	counting->sm_state = SM_ENABLED;
 	sent = 0;
 	timersArmed = 0;
 	for (int i = 0; i < 4; i++)
 		jabber_sm_outbound(counting, aMessage());
-	check("Vier Stanzas loesen noch keine Anfrage aus",
+	check("Four stanzas do not trigger a request yet",
 	      counting->sm_unrequested == 4, NULL);
-	check("Dafuer wartet ein Zeitgeber darauf, dass es still wird",
+	check("Instead a timer waits for things to go quiet",
 	      timersArmed == 1, NULL);
 
 	sent = 0;
 	jabber_sm_outbound(counting, aMessage());
-	check("Die fuenfte fragt nach", purple_strequal(lastName, "r"), lastName);
-	check("Und setzt den Zaehler zurueck", counting->sm_unrequested == 0, NULL);
-	check("Der wartende Zeitgeber wird dabei abgeraeumt", timersRemoved == 1, NULL);
+	check("The fifth one asks", purple_strequal(lastName, "r"), lastName);
+	check("And resets the counter", counting->sm_unrequested == 0, NULL);
+	check("The waiting timer is cleared away with it", timersRemoved == 1, NULL);
 
-	/* Und beim Schliessen darf keiner stehenbleiben, sonst feuert er in einen Strom, den es
-	   nicht mehr gibt. */
+	/* And none may be left standing at closing time, or it fires into a stream that no longer
+	   exists. */
 	jabber_sm_outbound(counting, aMessage());
-	check("Danach wartet wieder einer", counting->sm_request_timer != 0, NULL);
+	check("Afterwards one is waiting again", counting->sm_request_timer != 0, NULL);
 	jabber_sm_stream_closing(counting);
-	check("Beim Schliessen wird er abgeraeumt", counting->sm_request_timer == 0, NULL);
+	check("At closing time it is cleared away", counting->sm_request_timer == 0, NULL);
 
-	/* Die Sonde nach einer Netzunterbrechung: sie schreibt, und Schreiben ist das Einzige, was
-	   ein totes Socket verraet. Ohne Stream Management gibt es nichts zu schreiben. */
+	/* The probe after a network break: it writes, and writing is the only thing that gives a
+	   dead socket away. Without stream management there is nothing to write. */
 	g_free(lastName);
 	lastName = NULL;
 	counting->sm_state = SM_DISABLED;
 	jabber_sm_probe(counting);
-	check("Ohne Stream Management schreibt die Sonde nichts", lastName == NULL, lastName);
+	check("Without stream management the probe writes nothing", lastName == NULL, lastName);
 
 	counting->sm_state = SM_ENABLED;
 	timersArmed = 0;
 	jabber_sm_probe(counting);
-	check("Mit Stream Management fragt sie sofort nach",
+	check("With stream management it asks straight away",
 	      purple_strequal(lastName, "r"), lastName);
-	check("Und wartet nicht ewig auf Antwort", counting->sm_probe_timer != 0, NULL);
+	check("And does not wait forever for an answer", counting->sm_probe_timer != 0, NULL);
 
-	/* Eine zweite Sonde, waehrend die erste noch wartet, wuerde nur deren Geduld verkuerzen. */
+	/* A second probe while the first is still waiting would only shorten its patience. */
 	g_free(lastName);
 	lastName = NULL;
 	jabber_sm_probe(counting);
-	check("Eine zweite Sonde waehrend der ersten unterbleibt", lastName == NULL, lastName);
+	check("A second probe during the first is skipped", lastName == NULL, lastName);
 
-	/* Irgendeine Quittung heisst: da ist jemand und er liest uns. */
+	/* Any acknowledgement means: somebody is there and they are reading us. */
 	enabledArrives(counting, "<a xmlns='urn:xmpp:sm:3' h='0'/>");
-	check("Eine Quittung beendet das Warten", counting->sm_probe_timer == 0, NULL);
+	check("An acknowledgement ends the waiting", counting->sm_probe_timer == 0, NULL);
 
-	/* Und beim Schliessen darf auch diese nicht stehenbleiben. */
+	/* And this one must not be left standing at closing time either. */
 	jabber_sm_probe(counting);
 	jabber_sm_stream_closing(counting);
-	check("Beim Schliessen wird auch die Sonde abgeraeumt",
+	check("At closing time the probe is cleared away too",
 	      counting->sm_probe_timer == 0, NULL);
 
 	jabber_sm_uninit();
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 }

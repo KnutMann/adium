@@ -1,21 +1,20 @@
-/* Zeigt, was beim Anmelden ueber den Draht geht, Stanza fuer Stanza.
+/* Shows what goes over the wire while signing on, stanza by stanza.
  *
- * Die Arbeit an XEP-0198 endet in jedem Schritt bei derselben Frage: was haben wir gesendet und
- * was kam zurueck. Die bisherigen Antworten darauf waren Vermutungen aus dem Quelltext, und
- * mindestens eine davon war falsch, denn dass der Testserver Stream Management ueberhaupt nicht
- * anbot, fiel erst auf, als jemand hinsah.
+ * Work on XEP-0198 ends at every step with the same question: what did we send and what came
+ * back. The answers so far were guesses read out of the source, and at least one of them was
+ * wrong, because the fact that the test server did not offer stream management at all was only
+ * noticed once somebody looked.
  *
- * libpurples eigener nullclient kann das nicht leisten: er fragt sein Konto an einem Terminal ab
- * und laesst sich nicht aus einem Skript fuettern. Also dieser hier, der dasselbe libpurple laedt
- * wie die Anwendung, sich an den Testserver anmeldet und alles ausgibt, was das Jabber-Modul in
- * sein Protokoll schreibt.
+ * libpurple's own nullclient cannot do this: it asks for its account at a terminal and will not
+ * be fed from a script. Hence this one, which loads the same libpurple the application does,
+ * signs on to the test server and prints everything the Jabber module writes into its log.
  *
- *   smwire [Sekunden] [Abriss nach] [Neuanmeldung nach]   voreingestellt 12, keiner, 1
+ *   smwire [seconds] [drop after] [sign on again after]   default 12, never, 1
  *
- * Es wird ohne Verschluesselung verbunden, weil der Testserver das erlaubt und die Frage nach dem
- * selbstsignierten Zertifikat sonst eine Benutzeroberflaeche braeuchte, die es hier nicht gibt.
- * Das Konto liegt in einem eigenen Verzeichnis unter /tmp und fasst die Einstellungen der
- * Anwendung nicht an.
+ * It connects without encryption, because the test server allows that and the question about the
+ * self signed certificate would otherwise need a user interface, which there is none of here.
+ * The account lives in a directory of its own under /tmp and does not touch the application's
+ * settings.
  */
 #include <glib.h>
 #include <stdio.h>
@@ -23,7 +22,7 @@
 #include <string.h>
 
 #include <libpurple/libpurple.h>
-/* Fuer JabberStream, um den Socket unter der Verbindung wegziehen zu koennen. */
+/* For JabberStream, so the socket can be pulled out from under the connection. */
 #include <libpurple/jabber.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -31,8 +30,8 @@
 
 #define UI_ID "smwire"
 
-/* Diese beiden gehoeren zu pidgins Glue zwischen glib und libpurple, nicht zu libpurple selbst;
-   nullclient traegt sie aus demselben Grund bei sich. */
+/* These two belong to pidgin's glue between glib and libpurple, not to libpurple itself;
+   nullclient carries them for the same reason. */
 #define PURPLE_GLIB_READ_COND  (G_IO_IN | G_IO_HUP | G_IO_ERR)
 #define PURPLE_GLIB_WRITE_COND (G_IO_OUT | G_IO_HUP | G_IO_ERR | G_IO_NVAL)
 
@@ -41,7 +40,7 @@ static int dropAfter = 0;
 static int reconnectAfter = 1;
 static PurpleAccount *theAccount = NULL;
 
-/* --- Die Schleife, wie nullclient sie auch fuehrt ---------------------------------------- */
+/* --- The loop, the way nullclient runs one too ------------------------------------------- */
 
 typedef struct {
 	PurpleInputFunction function;
@@ -87,11 +86,11 @@ static PurpleEventLoopUiOps loop_ops = {
 	NULL, g_timeout_add_seconds, NULL, NULL
 };
 
-/* --- Was das Jabber-Modul protokolliert, ist genau der Draht ----------------------------- */
+/* --- What the Jabber module logs is exactly the wire ------------------------------------- */
 
 static void say(PurpleDebugLevel level, const char *category, const char *text)
 {
-	/* Alles andere ist Innenleben und wuerde das Bild zuschuetten. */
+	/* Everything else is internals and would bury the picture. */
 	if (!purple_strequal(category, "jabber") && !purple_strequal(category, "XEP-0198"))
 		return;
 
@@ -101,14 +100,14 @@ static void say(PurpleDebugLevel level, const char *category, const char *text)
 
 static PurpleDebugUiOps debug_ops = { say, NULL, NULL, NULL, NULL, NULL };
 
-/* --- Genug Oberflaeche, damit libpurple nicht nach einer fragt --------------------------- */
+/* --- Just enough of an interface that libpurple does not ask for one --------------------- */
 
 static gboolean sign_on_again(gpointer data)
 {
 	printf("\n== signing on again\n");
 	fflush(stdout);
-	/* set_enabled taugt nicht: das Konto ist nach einem Abriss weiterhin aktiviert, der Aufruf
-	   ist also folgenlos. Die Verbindung will direkt angestossen werden. */
+	/* set_enabled is no good: the account is still enabled after a break, so the call does
+	   nothing. The connection wants to be started directly. */
 	purple_account_connect(theAccount);
 	return FALSE;
 }
@@ -119,17 +118,17 @@ static void connection_report(PurpleConnection *gc, PurpleConnectionError reason
 	printf("\n== the connection went down: %s\n", description ? description : "no reason given");
 	fflush(stdout);
 
-	/* Genau das tut Adium sonst: es merkt den Abriss und meldet sich neu an. Hier reicht eine
-	   Sekunde Abstand, damit libpurple mit dem Aufraeumen fertig ist. */
+	/* Exactly what Adium otherwise does: it notices the break and signs on again. One second
+	   of distance is enough here for libpurple to finish clearing up. */
 	if (dropAfter > 0)
 		g_timeout_add_seconds(reconnectAfter, sign_on_again, NULL);
 }
 
-/*! Den Socket unter der Verbindung wegziehen.
+/*! Pull the socket out from under the connection.
  *
- * Ein sauberes Trennen taugt nicht: libpurple sendet dabei ein </stream:stream>, und nach
- * XEP-0198 Abschnitt 7 zerstoert das die Sitzung sofort und endgueltig. Ein Netz, das
- * wegbricht, sagt nichts, und genau das wird hier nachgestellt. */
+ * Disconnecting cleanly is no good: libpurple sends a </stream:stream> while doing so, and by
+ * XEP-0198 section 7 that destroys the session at once and for good. A network that breaks away
+ * says nothing, and that is exactly what is staged here. */
 static gboolean pull_the_plug(gpointer data)
 {
 	PurpleConnection *gc = purple_account_get_connection(theAccount);
@@ -142,9 +141,9 @@ static gboolean pull_the_plug(gpointer data)
 
 	printf("\n== pulling the plug on the socket, without a closing tag\n");
 	fflush(stdout);
-	/* shutdown und nicht close: ein geschlossener Deskriptor weckt die Leseueberwachung nicht
-	   zuverlaessig, waehrend ein abgeschaltetes Socket sofort das Dateiende meldet und libpurple
-	   den Abriss genauso sieht wie bei einem weggebrochenen Netz. */
+	/* shutdown and not close: a closed descriptor does not reliably wake the read watch,
+	   while a shut down socket reports end of file at once and libpurple sees the break exactly
+	   as it would with a network that has gone away. */
 	shutdown(js->fd, SHUT_RDWR);
 
 	return FALSE;
@@ -161,8 +160,8 @@ static void ui_init(void)
 
 static PurpleCoreUiOps core_ops = { NULL, NULL, ui_init, NULL, NULL, NULL, NULL, NULL };
 
-/*! Genau die Archivabfrage, die Adium stellt, damit sich pruefen laesst, ob sie es ist oder
-    der Server. Gegen ein Prosody mit mod_mam muss darauf eine Antwort kommen. */
+/*! Exactly the archive query Adium sends, so that it can be told whether the fault is the
+    query or the server. Against a Prosody with mod_mam an answer has to come back. */
 static gboolean ask_the_archive(gpointer data)
 {
 	PurpleConnection *gc = purple_account_get_connection(theAccount);
@@ -222,9 +221,9 @@ int main(int argc, char *argv[])
 	GMainLoop *loop;
 	char *dir;
 
-	/* Schreiben in ein weggebrochenes Socket schickt SIGPIPE, und das beendet den Prozess
-	   wortlos. Jeder ernsthafte Client ignoriert es und liest den Fehler stattdessen aus dem
-	   Rueckgabewert; ohne das stirbt dieser Prüfstand genau dann, wenn es interessant wird. */
+	/* Writing into a socket that has gone away sends SIGPIPE, and that ends the process
+	   without a word. Every serious client ignores it and reads the error from the return value
+	   instead; without that, this harness dies exactly when things get interesting. */
 	signal(SIGPIPE, SIG_IGN);
 
 	if (argc > 1) seconds = atoi(argv[1]);
@@ -233,13 +232,13 @@ int main(int argc, char *argv[])
 	if (argc > 3) reconnectAfter = atoi(argv[3]);
 	if (reconnectAfter <= 0) reconnectAfter = 1;
 
-	/* Ein eigenes Verzeichnis, damit nichts an den Einstellungen der Anwendung haengt. */
+	/* A directory of its own, so that nothing hangs on the application's settings. */
 	dir = g_strdup_printf("%s/adium-smwire", g_get_tmp_dir());
 	purple_util_set_user_dir(dir);
 	g_free(dir);
 
-	/* Die Oberflaeche bekommt alles, aber libpurple soll nicht zusaetzlich nach stderr
-	   schreiben: sonst steht jede Zeile zweimal da, einmal gefiltert und einmal roh. */
+	/* The interface gets everything, but libpurple should not also write to stderr:
+	   otherwise every line stands there twice, once filtered and once raw. */
 	purple_debug_set_ui_ops(&debug_ops);
 	purple_debug_set_enabled(FALSE);
 	purple_eventloop_set_ui_ops(&loop_ops);
@@ -257,8 +256,8 @@ int main(int argc, char *argv[])
 	purple_account_set_password(account, "adium-pw");
 	purple_account_set_string(account, "connect_server", "127.0.0.1");
 	purple_account_set_int(account, "port", 5222);
-	/* Ohne Verschluesselung, und deshalb muss PLAIN im Klartext erlaubt sein. Der Testserver
-	   laesst beides zu; gegen einen echten Server waere das keine gute Idee. */
+	/* Without encryption, and therefore PLAIN has to be allowed in the clear. The test server
+	   permits both; against a real server that would not be a good idea. */
 	purple_account_set_string(account, "connection_security", "none");
 	purple_account_set_bool(account, "auth_plain_in_clear", TRUE);
 

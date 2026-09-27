@@ -55,16 +55,16 @@ int main(int argc, char **argv) { @autoreleasepool {
 
 	//A calls: the initiate goes out
 	[a startWithLocalOfferSDP:offerSDP];
-	check(@"Initiator wartet auf die Annahme", a.state == AIJingleCallStatePendingOutgoing, nil);
-	check(@"session-initiate gesendet", [forA.sentElements count] == 1 &&
+	check(@"The initiator waits to be answered", a.state == AIJingleCallStatePendingOutgoing, nil);
+	check(@"session-initiate sent", [forA.sentElements count] == 1 &&
 		  [[forA.sentElements firstObject] containsString:@"session-initiate"], nil);
 
 	//The wire carries it to B
 	[b handleRemoteJingleElement:[forA.sentElements firstObject]];
-	check(@"Responder hat das Angebot als SDP", b.state == AIJingleCallStatePendingIncoming &&
+	check(@"The responder holds the offer as SDP", b.state == AIJingleCallStatePendingIncoming &&
 		  [forB.lastRemoteSDP containsString:@"opus/48000/2"] &&
 		  [forB.lastRemoteSDP containsString:@"a=fingerprint:sha-256"], nil);
-	check(@"sid uebernommen", [b.sid isEqualToString:@"testsid"], b.sid);
+	check(@"the sid was taken over", [b.sid isEqualToString:@"testsid"], b.sid);
 
 	//B's media side builds its answer from the offer it saw
 	AIJingleSession *answer = [AIJingleSession sessionFromSDP:forB.lastRemoteSDP];
@@ -77,12 +77,12 @@ int main(int argc, char **argv) { @autoreleasepool {
 	//B already trickles a candidate before accepting; it must reach A only after the answer
 	[b acceptWithLocalAnswerSDP:[answer sdpString]];
 	NSString *acceptXML = [forB.sentElements lastObject];
-	check(@"session-accept gesendet, Responder aktiv", b.state == AIJingleCallStateActive &&
+	check(@"session-accept sent, the responder is active", b.state == AIJingleCallStateActive &&
 		  [acceptXML containsString:@"session-accept"], nil);
 
 	[b addLocalCandidateLine:@"candidate:1 1 udp 2122260223 192.168.0.50 40000 typ host generation 0" mid:@"0"];
 	NSString *transportInfoFromB = [forB.sentElements lastObject];
-	check(@"transport-info nennt Bs ICE-Zugangsdaten",
+	check(@"transport-info names B's ICE credentials",
 		  [transportInfoFromB containsString:@"transport-info"] &&
 		  [transportInfoFromB containsString:@"ufrag=\"bUfrag\""] &&
 		  ![transportInfoFromB containsString:@"<description"], transportInfoFromB);
@@ -92,10 +92,10 @@ int main(int argc, char **argv) { @autoreleasepool {
 	BOOL queuedSilently = YES;
 	for (NSString *event in forA.events)
 		if ([event hasPrefix:@"candidate"]) queuedSilently = NO;
-	check(@"Vorauseilender Kandidat wird zurueckgehalten", queuedSilently, [forA.events description]);
+	check(@"A candidate running ahead is held back", queuedSilently, [forA.events description]);
 
 	[a handleRemoteJingleElement:acceptXML];
-	check(@"Initiator aktiv, Antwort-SDP sagt active/bUfrag",
+	check(@"The initiator is active, the answering SDP says active/bUfrag",
 		  a.state == AIJingleCallStateActive &&
 		  [forA.lastRemoteSDP containsString:@"a=setup:active"] &&
 		  [forA.lastRemoteSDP containsString:@"a=ice-ufrag:bUfrag"], nil);
@@ -104,14 +104,14 @@ int main(int argc, char **argv) { @autoreleasepool {
 	NSInteger candidateIndex = -1;
 	for (NSUInteger index = 0; index < [forA.events count]; index++)
 		if ([forA.events[index] hasPrefix:@"candidate 0 "]) candidateIndex = index;
-	check(@"Kandidat kommt nach der Antwort frei, mit mid",
+	check(@"The candidate is released after the answer, with its mid",
 		  answerIndex != NSNotFound && candidateIndex > answerIndex &&
 		  [forA.events[candidateIndex] containsString:@"192.168.0.50 40000"], [forA.events description]);
 
 	//A candidate the other way arrives at once: B's description already stands
 	[a addLocalCandidateLine:@"candidate:2 1 udp 2122260223 192.168.0.60 40002 typ host generation 0" mid:@"1"];
 	[b handleRemoteJingleElement:[forA.sentElements lastObject]];
-	check(@"Rueckweg-Kandidat sofort da, mit mid 1",
+	check(@"The return path candidate is there at once, with mid 1",
 		  [[forB.events lastObject] hasPrefix:@"candidate 1 "] &&
 		  [[forB.events lastObject] containsString:@"40002"], [forB.events lastObject]);
 
@@ -130,7 +130,7 @@ int main(int argc, char **argv) { @autoreleasepool {
 	};
 
 	[d handleRemoteJingleElement:asWireSpelling([forC.sentElements firstObject])];
-	check(@"Einfache Anfuehrungszeichen: initiate verstanden",
+	check(@"Single quotes: the initiate is understood",
 		  d.state == AIJingleCallStatePendingIncoming && [d.sid isEqualToString:@"wiresid"],
 		  [NSString stringWithFormat:@"state=%ld sid=%@", (long)d.state, d.sid]);
 
@@ -138,22 +138,22 @@ int main(int argc, char **argv) { @autoreleasepool {
 	for (AIJingleContent *content in wireAnswer.contents) content.dtlsSetup = @"active";
 	[d acceptWithLocalAnswerSDP:[wireAnswer sdpString]];
 	[c handleRemoteJingleElement:asWireSpelling([forD.sentElements lastObject])];
-	check(@"Einfache Anfuehrungszeichen: accept verstanden", c.state == AIJingleCallStateActive, nil);
+	check(@"Single quotes: the accept is understood", c.state == AIJingleCallStateActive, nil);
 
 	[c handleRemoteJingleElement:@"<jingle xmlns='urn:xmpp:jingle:1' action='session-terminate' sid='wiresid'>"
 						  @"<reason><busy/></reason></jingle>"];
-	check(@"Einfache Anfuehrungszeichen: terminate samt Grund verstanden",
+	check(@"Single quotes: the terminate with its reason is understood",
 		  c.state == AIJingleCallStateEnded && [[forC.events lastObject] isEqualToString:@"ended busy remote"],
 		  [forC.events lastObject]);
 
 	//A hangs up; B learns why
 	[a hangUpWithReason:@"success"];
-	check(@"Aufleger endet lokal", a.state == AIJingleCallStateEnded &&
+	check(@"The one who hangs up ends locally", a.state == AIJingleCallStateEnded &&
 		  [[forA.events lastObject] isEqualToString:@"ended success local"], [forA.events lastObject]);
 	[b handleRemoteJingleElement:[forA.sentElements lastObject]];
-	check(@"Gegenseite endet mit Grund", b.state == AIJingleCallStateEnded &&
+	check(@"The other side ends with a reason", b.state == AIJingleCallStateEnded &&
 		  [[forB.events lastObject] isEqualToString:@"ended success remote"], [forB.events lastObject]);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

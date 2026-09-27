@@ -1,20 +1,19 @@
-/* Haelt die OMEMO-Ablage das aus, was der Alltag ihr antut?
+/* Does the OMEMO store survive what everyday use does to it?
  *
- * Geprueft wird nicht die Kryptografie, die steht im Rundlauf daneben, sondern die Buchhaltung
- * drumherum, und zwar genau an den Stellen, an denen ein Fehler still bleibt und erst Wochen
- * spaeter als Unterhaltung auffaellt, die sich nicht mehr oeffnet:
+ * What is checked is not the cryptography, that stands in the roundtrip test next door, but the
+ * bookkeeping around it, and precisely at the places where a fault stays quiet and only turns up
+ * weeks later as a conversation that will not open any more:
  *
- *   - Eine Identitaet muss einen Neustart ueberleben, sonst sind wir jedes Mal ein neues Geraet.
- *   - Eine Ratsche, die beim Entschluesseln weiterlaeuft, muss VOR der Rueckgabe auf der Platte
- *     stehen. Sonst entschluesselt dieselbe Nachricht nach einem Neustart erneut, und die
- *     darauffolgende nie wieder.
- *   - Nachrichten ueberholen einander. Die uebersprungenen Schluessel muessen aufgehoben und
- *     spaeter wiedergefunden werden, jeder genau einmal.
- *   - Ein Einmalschluessel muss nach Gebrauch verschwinden, und das veroeffentlichte Buendel
- *     gilt damit als veraltet.
+ *   - An identity has to survive a restart, or we are a new device every time.
+ *   - A ratchet that moves on while decrypting has to be on disk BEFORE the answer is returned.
+ *     Otherwise the same message decrypts again after a restart, and the one after it never does.
+ *   - Messages overtake each other. The skipped keys have to be kept and found again later, each
+ *     one exactly once.
+ *   - A one time key has to disappear once it is used, and the published bundle counts as stale
+ *     from then on.
  *
- * Der Test legt seine Dateien in einem eigenen Verzeichnis ab und ruehrt die Schluessel eines
- * echten Kontos nicht an.
+ * The test puts its files in a directory of its own and does not touch the keys of a real
+ * account.
  */
 #import <Foundation/Foundation.h>
 #import "AIOMEMOStore.h"
@@ -30,7 +29,7 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 #define ALICE	@"alice@example.org"
 #define BOB		@"bob@example.org"
 
-/*! @brief Einen Schluessel aus Bobs Buendel nehmen und Alice eine Sitzung dorthin aufbauen lassen */
+/*! @brief Take a key out of Bob's bundle and let Alice build a session to him */
 static BOOL letTalk(AIOMEMOStore *alice, AIOMEMOStore *bob)
 {
 	NSNumber *anyPreKey = [[[bob preKeys] allKeys] firstObject];
@@ -50,68 +49,68 @@ int main(void) { @autoreleasepool {
 						 [NSString stringWithFormat:@"adium-omemo-test-%d", getpid()]];
 	[AIOMEMOStore useDirectory:scratch];
 
-	//Nachsehen darf nichts anlegen
-	check(@"Ein Konto ohne Vorgeschichte hat noch keinen Vorrat",
+	//Looking must not create anything
+	check(@"An account with no history has no store yet",
 		  ![AIOMEMOStore haveStoreForAccount:ALICE], nil);
 
-	//Eine Identitaet entsteht
+	//An identity comes into being
 	AIOMEMOStore *alice = [AIOMEMOStore storeForAccount:ALICE];
-	check(@"und danach schon", [AIOMEMOStore haveStoreForAccount:ALICE], nil);
-	check(@"Ein Konto ohne Vorgeschichte bekommt eine Identitaet", alice != nil, nil);
-	check(@"und eine Geraetenummer, die nicht null ist", alice.deviceIdentifier != 0,
-		  [NSString stringWithFormat:@"war %u", alice.deviceIdentifier]);
-	check(@"Der Fingerabdruck hat die Laenge, die man vorliest",
+	check(@"and afterwards it does", [AIOMEMOStore haveStoreForAccount:ALICE], nil);
+	check(@"An account with no history is given an identity", alice != nil, nil);
+	check(@"and a device number that is not zero", alice.deviceIdentifier != 0,
+		  [NSString stringWithFormat:@"was %u", alice.deviceIdentifier]);
+	check(@"The fingerprint has the length one reads out aloud",
 		  [alice.fingerprint length] == 64 + 7,
-		  [NSString stringWithFormat:@"war %lu", (unsigned long)[alice.fingerprint length]]);
-	check(@"Das Buendel enthaelt hundert Einmalschluessel", [[alice preKeys] count] == 100,
-		  [NSString stringWithFormat:@"waren %lu", (unsigned long)[[alice preKeys] count]]);
+		  [NSString stringWithFormat:@"was %lu", (unsigned long)[alice.fingerprint length]]);
+	check(@"The bundle holds one hundred one time keys", [[alice preKeys] count] == 100,
+		  [NSString stringWithFormat:@"there were %lu", (unsigned long)[[alice preKeys] count]]);
 
-	//Und ueberlebt einen Neustart
+	//And survives a restart
 	NSString *fingerprintBefore = alice.fingerprint;
 	uint32_t deviceBefore = alice.deviceIdentifier;
 
 	[AIOMEMOStore closeStoreForAccount:ALICE];
 	alice = [AIOMEMOStore storeForAccount:ALICE];
 
-	check(@"Nach einem Neustart ist es dieselbe Identitaet",
+	check(@"After a restart it is the same identity",
 		  [alice.fingerprint isEqualToString:fingerprintBefore], nil);
-	check(@"und dieselbe Geraetenummer", alice.deviceIdentifier == deviceBefore, nil);
+	check(@"and the same device number", alice.deviceIdentifier == deviceBefore, nil);
 
-	//Zwei Seiten koennen einander schreiben
+	//Two sides can write to each other
 	AIOMEMOStore *bob = [AIOMEMOStore storeForAccount:BOB];
-	check(@"Zwei Konten haben verschiedene Identitaeten",
+	check(@"Two accounts have different identities",
 		  ![bob.fingerprint isEqualToString:alice.fingerprint], nil);
 
-	check(@"Alice baut aus Bobs Buendel eine Sitzung auf", letTalk(alice, bob), nil);
-	check(@"und weiss danach, dass sie eine hat",
+	check(@"Alice builds a session out of Bob's bundle", letTalk(alice, bob), nil);
+	check(@"and knows afterwards that she has one",
 		  [alice hasSessionWithJID:BOB device:bob.deviceIdentifier], nil);
-	check(@"Sie kennt jetzt Bobs Fingerabdruck",
+	check(@"She now knows Bob's fingerprint",
 		  [[alice fingerprintForJID:BOB device:bob.deviceIdentifier] isEqualToString:bob.fingerprint],
 		  [alice fingerprintForJID:BOB device:bob.deviceIdentifier]);
 
-	//Ein Nachrichtenschluessel geht hin und wird drueben ausgepackt
+	//A message key goes across and is unpacked on the other side
 	uint8_t material[32];
 	for (int i = 0; i < 32; i++) material[i] = (uint8_t)(i * 7 + 1);
 	NSData *messageKey = [NSData dataWithBytes:material length:sizeof(material)];
 
 	BOOL wasPreKey = NO;
 	NSData *wrapped = [alice encryptKey:messageKey forJID:BOB device:bob.deviceIdentifier wasPreKey:&wasPreKey];
-	check(@"Alice packt einen Nachrichtenschluessel fuer Bob ein", wrapped != nil, nil);
-	check(@"Die erste Nachricht traegt einen Einmalschluessel", wasPreKey, nil);
+	check(@"Alice packs a message key for Bob", wrapped != nil, nil);
+	check(@"The first message carries a one time key", wasPreKey, nil);
 
 	NSData *unwrapped = [bob decryptKey:wrapped fromJID:ALICE device:alice.deviceIdentifier isPreKey:wasPreKey];
-	check(@"Bob packt ihn wieder aus", [unwrapped isEqualToData:messageKey], nil);
-	check(@"und hat dabei von selbst eine Sitzung bekommen",
+	check(@"Bob unpacks it again", [unwrapped isEqualToData:messageKey], nil);
+	check(@"and got a session of his own accord while doing so",
 		  [bob hasSessionWithJID:ALICE device:alice.deviceIdentifier], nil);
-	check(@"Bob kennt jetzt Alices Fingerabdruck",
+	check(@"Bob now knows Alice's fingerprint",
 		  [[bob fingerprintForJID:ALICE device:alice.deviceIdentifier] isEqualToString:alice.fingerprint], nil);
 
-	//Der gebrauchte Einmalschluessel ist weg, und das Buendel gilt als veraltet
-	check(@"Ein gebrauchter Einmalschluessel wird nachgelegt", [[bob preKeys] count] == 100,
-		  [NSString stringWithFormat:@"waren %lu", (unsigned long)[[bob preKeys] count]]);
-	check(@"und das veroeffentlichte Buendel gilt als veraltet", bob.bundleNeedsPublishing, nil);
+	//The used one time key is gone, and the bundle counts as stale
+	check(@"A used one time key is replaced", [[bob preKeys] count] == 100,
+		  [NSString stringWithFormat:@"there were %lu", (unsigned long)[[bob preKeys] count]]);
+	check(@"and the published bundle counts as stale", bob.bundleNeedsPublishing, nil);
 
-	//Nachrichten, die einander ueberholen
+	//Messages that overtake each other
 	NSMutableArray *sent = [NSMutableArray array];
 	NSMutableArray *keys = [NSMutableArray array];
 	for (int round = 0; round < 3; round++) {
@@ -125,104 +124,104 @@ int main(void) { @autoreleasepool {
 		[keys addObject:key];
 	}
 
-	//Die dritte zuerst, dann die erste, dann die zweite
+	//The third one first, then the first, then the second
 	for (NSNumber *which in @[@2, @0, @1]) {
 		NSDictionary *one = sent[[which intValue]];
 		NSData *got = [bob decryptKey:one[@"packed"]
 							  fromJID:ALICE
 							   device:alice.deviceIdentifier
 							 isPreKey:[one[@"prekey"] boolValue]];
-		check([NSString stringWithFormat:@"Nachricht %d oeffnet sich auch ausser der Reihe",
+		check([NSString stringWithFormat:@"Message %d opens even out of order",
 			   [which intValue] + 1],
 			  [got isEqualToData:keys[[which intValue]]], nil);
 	}
 
-	//Eine Ratsche, die gelaufen ist, muss das nach einem Neustart noch wissen
+	//A ratchet that has moved on has to still know that after a restart
 	BOOL fourthWasPreKey = NO;
 	NSData *fourth = [alice encryptKey:messageKey forJID:BOB device:bob.deviceIdentifier wasPreKey:&fourthWasPreKey];
 
 	[AIOMEMOStore closeStoreForAccount:BOB];
 	bob = [AIOMEMOStore storeForAccount:BOB];
 
-	check(@"Nach einem Neustart steht Bobs Sitzung noch",
+	check(@"After a restart Bob's session is still there",
 		  [bob hasSessionWithJID:ALICE device:alice.deviceIdentifier], nil);
 	NSData *afterRestart = [bob decryptKey:fourth fromJID:ALICE device:alice.deviceIdentifier isPreKey:fourthWasPreKey];
-	check(@"und die naechste Nachricht oeffnet sich damit",
+	check(@"and the next message opens with it",
 		  [afterRestart isEqualToData:messageKey], nil);
 
-	//Dieselbe Nachricht ein zweites Mal darf nicht noch einmal aufgehen
+	//The same message a second time must not open again
 	NSData *again = [bob decryptKey:fourth fromJID:ALICE device:alice.deviceIdentifier isPreKey:fourthWasPreKey];
-	check(@"Dieselbe Nachricht ein zweites Mal geht nicht mehr auf", again == nil,
-		  again ? @"sie ging auf" : nil);
+	check(@"The same message a second time does not open any more", again == nil,
+		  again ? @"it opened" : nil);
 
-	//Was der Benutzer entscheidet, bleibt entschieden
-	check(@"Ein unbekanntes Geraet ist zunaechst unentschieden",
+	//What the user decides stays decided
+	check(@"An unknown device is undecided at first",
 		  [alice trustForFingerprint:bob.fingerprint] == AIOMEMOTrustUndecided, nil);
 	[alice setTrust:AIOMEMOTrustAccepted forFingerprint:bob.fingerprint];
 
 	[AIOMEMOStore closeStoreForAccount:ALICE];
 	alice = [AIOMEMOStore storeForAccount:ALICE];
-	check(@"Eine Entscheidung ueberlebt den Neustart",
+	check(@"A decision survives the restart",
 		  [alice trustForFingerprint:bob.fingerprint] == AIOMEMOTrustAccepted, nil);
-	check(@"und steht bei dem Kontakt, zu dem sie gehoert",
+	check(@"and sits with the contact it belongs to",
 		  [[alice fingerprintsForJID:BOB][bob.fingerprint] integerValue] == AIOMEMOTrustAccepted, nil);
 
-	//Ein Buendel, das nicht zusammenpasst, wird nicht angenommen
+	//A bundle whose parts do not belong together is not accepted
 	AIOMEMOStore *mallory = [AIOMEMOStore storeForAccount:@"mallory@example.org"];
 	NSNumber *somePreKey = [[[bob preKeys] allKeys] firstObject];
 	BOOL taken = [alice startSessionWithJID:@"carol@example.org"
 									 device:4242
-								identityKey:mallory.identityKey		//fremde Identitaet
+								identityKey:mallory.identityKey		//somebody else's identity
 							   signedPreKey:bob.signedPreKey
 						 signedPreKeyItself:bob.signedPreKeyIdentifier
-								  signature:bob.signedPreKeySignature	//zu Bob gehoerige Unterschrift
+								  signature:bob.signedPreKeySignature	//Bob's own signature
 									 preKey:[bob preKeys][somePreKey]
 							   preKeyItself:[somePreKey unsignedIntValue]];
-	check(@"Ein Buendel mit fremder Unterschrift wird abgelehnt", !taken, nil);
+	check(@"A bundle with somebody else's signature is refused", !taken, nil);
 
-	//Und ein Buendel der falschen Groesse ebenso
+	//And a bundle of the wrong size likewise
 	BOOL stunted = [alice startSessionWithJID:@"carol@example.org"
 									   device:4243
-								  identityKey:[NSData dataWithBytes:"kurz" length:4]
+								  identityKey:[NSData dataWithBytes:"tiny" length:4]
 								 signedPreKey:bob.signedPreKey
 						   signedPreKeyItself:bob.signedPreKeyIdentifier
 									signature:bob.signedPreKeySignature
 									   preKey:[bob preKeys][somePreKey]
 								 preKeyItself:[somePreKey unsignedIntValue]];
-	check(@"Ein Buendel der falschen Groesse wird abgelehnt", !stunted, nil);
+	check(@"A bundle of the wrong size is refused", !stunted, nil);
 
-	/* Was das Konto ueber die Zeit angesammelt hat, fuer die Einstellungen: ein Eintrag je
-	 * Geraet, mit Adresse, Geraetenummer, Fingerabdruck und Entscheidung. */
+	/* What the account has gathered over time, for the preferences: one entry per device,
+	 * with address, device number, fingerprint and decision. */
 	NSArray *everyone = [alice everyDeviceSeen];
-	check(@"Alice fuehrt jedes Geraet, dem sie je begegnet ist", [everyone count] == 1,
-		  [NSString stringWithFormat:@"waren %lu", (unsigned long)[everyone count]]);
+	check(@"Alice keeps every device she has ever met", [everyone count] == 1,
+		  [NSString stringWithFormat:@"there were %lu", (unsigned long)[everyone count]]);
 
 	NSDictionary *first = [everyone firstObject];
-	check(@"Der Eintrag nennt die Adresse ohne die Geraetenummer",
+	check(@"The entry names the address without the device number",
 		  [first[@"jid"] isEqualToString:BOB], first[@"jid"]);
-	check(@"und die Geraetenummer als Zahl",
+	check(@"and the device number as a number",
 		  [first[@"device"] unsignedIntValue] == bob.deviceIdentifier,
 		  [first[@"device"] stringValue]);
-	check(@"und den Fingerabdruck",
+	check(@"and the fingerprint",
 		  [first[@"fingerprint"] isEqualToString:bob.fingerprint], first[@"fingerprint"]);
-	check(@"und was darueber entschieden wurde",
+	check(@"and what was decided about it",
 		  [first[@"trust"] integerValue] == AIOMEMOTrustAccepted,
 		  [first[@"trust"] stringValue]);
 
-	//Eine Adresse mit Leerzeichen gibt es nicht, der letzte Abstand trennt also sicher
-	check(@"Die Adresse wird nicht am falschen Leerzeichen getrennt",
+	//There is no address with a space in it, so the last space is a safe place to split
+	check(@"The address is not split at the wrong space",
 		  [first[@"jid"] rangeOfString:@" "].location == NSNotFound, nil);
 
-	//Die Datei darf niemand sonst lesen koennen
+	//Nobody else may be able to read the file
 	NSString *file = [scratch stringByAppendingPathComponent:@"alice%3Aexample.org.omemo"];
 	file = [scratch stringByAppendingPathComponent:@"alice@example.org.omemo"];
 	NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:file error:NULL];
-	check(@"Die Schluesseldatei liegt nur fuer den Eigentuemer lesbar",
+	check(@"The key file is readable by its owner only",
 		  [attributes[NSFilePosixPermissions] shortValue] == 0600,
-		  [NSString stringWithFormat:@"war %o", [attributes[NSFilePosixPermissions] shortValue]]);
+		  [NSString stringWithFormat:@"was %o", [attributes[NSFilePosixPermissions] shortValue]]);
 
 	[[NSFileManager defaultManager] removeItemAtPath:scratch error:NULL];
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

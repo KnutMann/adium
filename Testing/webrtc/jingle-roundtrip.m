@@ -54,20 +54,20 @@ int main(int argc, char **argv) { @autoreleasepool {
 	//SDP -> model
 	AIJingleSession *first = [AIJingleSession sessionFromSDP:sdp];
 	first.sid = @"testsid";
-	check(@"SDP geparst: zwei Inhalte, Gruppe BUNDLE",
+	check(@"SDP parsed: two contents, BUNDLE group",
 		  [first.contents count] == 2 && [first.groupSemantics isEqualToString:@"BUNDLE"], nil);
-	check(@"Audio traegt Opus samt fmtp und rtcp-fb", ({
+	check(@"The audio carries Opus with fmtp and rtcp-fb", ({
 		AIJinglePayloadType *opus = [[[first.contents firstObject] payloadTypes] firstObject];
 		opus.payloadId == 111 && [opus.name isEqualToString:@"opus"] && opus.channels == 2 &&
 			[opus.parameters count] == 2 && [opus.feedback count] == 1;
 	}), nil);
-	check(@"Video traegt H264 mit profile-level-id", ({
+	check(@"The video carries H264 with a profile-level-id", ({
 		AIJinglePayloadType *h264 = [[first.contents[1] payloadTypes] firstObject];
 		BOOL found = NO;
 		for (NSArray *p in h264.parameters) found |= [p[0] isEqualToString:@"profile-level-id"];
 		[h264.name isEqualToString:@"H264"] && found;
 	}), nil);
-	check(@"Fingerprint und ICE-Zugangsdaten da", ({
+	check(@"Fingerprint and ICE credentials are there", ({
 		AIJingleContent *audio = [first.contents firstObject];
 		[audio.fingerprintHash isEqualToString:@"sha-256"] && [audio.fingerprintValue length] == 95 &&
 			[audio.iceUfrag length] && [audio.icePwd length];
@@ -78,14 +78,14 @@ int main(int argc, char **argv) { @autoreleasepool {
 	second.sid = first.sid;
 	NSString *difference = firstDifference([first dictionaryRepresentation],
 										   [second dictionaryRepresentation], @"sdp");
-	check(@"SDP-Kreis: Modell bleibt identisch", difference == nil, difference);
+	check(@"SDP round trip: the model stays identical", difference == nil, difference);
 
 	//model -> Jingle -> model
 	NSString *jingleXML = [first jingleElementForAction:@"session-initiate"
 											  initiator:@"adium@localhost/test"
 											  responder:nil
 											asInitiator:YES];
-	check(@"Jingle-XML entsteht und nennt die Namespaces",
+	check(@"The Jingle XML comes into being and names the namespaces",
 		  [jingleXML containsString:@"urn:xmpp:jingle:apps:rtp:1"] &&
 		  [jingleXML containsString:@"urn:xmpp:jingle:transports:ice-udp:1"] &&
 		  [jingleXML containsString:@"urn:xmpp:jingle:apps:dtls:0"], nil);
@@ -93,23 +93,23 @@ int main(int argc, char **argv) { @autoreleasepool {
 	AIJingleSession *third = [AIJingleSession sessionFromJingleElementString:jingleXML asInitiator:YES];
 	difference = firstDifference([first dictionaryRepresentation],
 								 [third dictionaryRepresentation], @"jingle");
-	check(@"Jingle-Kreis: Modell bleibt identisch", difference == nil, difference);
-	check(@"Session-id ueberlebt den Kreis", [third.sid isEqualToString:@"testsid"], third.sid);
+	check(@"Jingle round trip: the model stays identical", difference == nil, difference);
+	check(@"The session id survives the round trip", [third.sid isEqualToString:@"testsid"], third.sid);
 
 	//A candidate line, there and back
 	NSString *line = @"candidate:1467250027 1 udp 2122260223 192.168.0.196 46243 typ host generation 0";
 	AIJingleCandidate *candidate = [AIJingleCandidate candidateFromSDPLine:line];
-	check(@"Kandidat gelesen", candidate && candidate.port == 46243 &&
+	check(@"A candidate is read", candidate && candidate.port == 46243 &&
 		  [candidate.type isEqualToString:@"host"], nil);
-	check(@"Kandidatenzeile kehrt woertlich zurueck", [[candidate sdpLine] isEqualToString:line],
+	check(@"The candidate line comes back word for word", [[candidate sdpLine] isEqualToString:line],
 		  [candidate sdpLine]);
 	NSString *srflx = @"candidate:842163049 1 udp 1686052607 203.0.113.7 46243 typ srflx raddr 192.168.0.196 rport 46243 generation 0";
 	AIJingleCandidate *reflexive = [AIJingleCandidate candidateFromSDPLine:srflx];
-	check(@"Reflexiver Kandidat samt raddr/rport", [[reflexive sdpLine] isEqualToString:srflx],
+	check(@"A reflexive candidate with raddr and rport", [[reflexive sdpLine] isEqualToString:srflx],
 		  [reflexive sdpLine]);
 
 	//The senders words, seen from both chairs
-	check(@"Richtungswoerter aus beiden Rollen", ({
+	check(@"The direction words from both roles", ({
 		AIJingleSession *session = [[AIJingleSession alloc] init];
 		AIJingleContent *content = [[AIJingleContent alloc] init];
 		content.name = @"0"; content.media = @"audio"; content.senders = @"sendonly";
@@ -119,6 +119,6 @@ int main(int argc, char **argv) { @autoreleasepool {
 		[asInit containsString:@"senders=\"initiator\""] && [asResp containsString:@"senders=\"responder\""];
 	}), nil);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

@@ -1,15 +1,15 @@
-/* Ueberlebt eine gespeicherte Stimmeinstellung den Wechsel des Sprachsynthesizers?
+/* Does a saved voice setting survive the change of speech synthesiser?
  *
- * Adium hat seine Ansagen jahrelang ueber NSSpeechSynthesizer gesprochen und in den
- * Einstellungen drei Dinge abgelegt: eine Stimmkennung, eine Tonhoehe als Grundfrequenz und
- * eine Rate in Woertern je Minute. AVSpeechUtterance zaehlt anders, naemlich in einem
- * Vielfachen der eigenen Tonhoehe und in einer Zahl zwischen null und eins.
+ * Adium spoke its announcements through NSSpeechSynthesizer for years and kept three things in
+ * the preferences: a voice identifier, a pitch as a base frequency, and a rate in words per
+ * minute. AVSpeechUtterance counts differently, namely in a multiple of its own pitch and in a
+ * number between zero and one.
  *
- * Geprueft wird deshalb genau das, was beim Umstieg schiefgehen kann: dass die gespeicherten
- * Zahlen in erlaubten Werten landen, dass die Vorgabe wirklich in der Mitte ankommt, und dass
- * eine alte Stimmkennung auch neu eine Stimme findet. Die Umrechnung steht hier wortgleich wie
- * in AdiumSpeech.m; sie ist zu kurz, um sie fuer einen Test zu buendeln, und zu leicht falsch,
- * um sie ungeprueft zu lassen.
+ * What is checked is therefore exactly what can go wrong in the changeover: that the saved
+ * numbers land inside permitted values, that the default really arrives in the middle, and that
+ * an old voice identifier still finds a voice. The conversion stands here word for word as it
+ * does in AdiumSpeech.m; it is too short to bundle up for a test and too easily got wrong to
+ * leave unchecked.
  */
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
@@ -22,11 +22,11 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 	if (!ok) failures++;
 }
 
-/* Die Vorgabewerte, die der alte Synthesizer fuer die Systemstimme meldete */
+/* The default values the old synthesiser reported for the system voice */
 #define DEFAULT_RATE_WPM		175.0f
 #define DEFAULT_PITCH_BASE		44.0f
 
-/*! Wortgleich mit AIUtteranceRateForWordsPerMinute in AdiumSpeech.m */
+/*! Word for word the same as AIUtteranceRateForWordsPerMinute in AdiumSpeech.m */
 static float rateForWordsPerMinute(float wordsPerMinute)
 {
 	if (wordsPerMinute <= FLT_EPSILON) return AVSpeechUtteranceDefaultSpeechRate;
@@ -36,7 +36,7 @@ static float rateForWordsPerMinute(float wordsPerMinute)
 	return MIN(MAX(rate, AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate);
 }
 
-/*! Wortgleich mit AIUtterancePitchForBasePitch in AdiumSpeech.m */
+/*! Word for word the same as AIUtterancePitchForBasePitch in AdiumSpeech.m */
 static float pitchForBasePitch(float basePitch)
 {
 	if (basePitch <= FLT_EPSILON) return 1.0f;
@@ -47,64 +47,64 @@ static float pitchForBasePitch(float basePitch)
 static BOOL nearly(float a, float b) { return fabsf(a - b) < 0.001f; }
 
 int main(void) { @autoreleasepool {
-	//Die Vorgabe muss auf die Vorgabe fallen, sonst spricht Adium ab Werk schneller als vorher
-	check(@"Die Vorgaberate landet auf der Vorgabe",
+	//The default has to land on the default, or Adium speaks faster out of the box than before
+	check(@"The default rate lands on the default",
 		  nearly(rateForWordsPerMinute(DEFAULT_RATE_WPM), AVSpeechUtteranceDefaultSpeechRate),
-		  [NSString stringWithFormat:@"%.3f statt %.3f",
+		  [NSString stringWithFormat:@"%.3f instead of %.3f",
 		   rateForWordsPerMinute(DEFAULT_RATE_WPM), AVSpeechUtteranceDefaultSpeechRate]);
 
-	check(@"Die Vorgabetonhoehe laesst die Stimme in Ruhe",
+	check(@"The default pitch leaves the voice alone",
 		  nearly(pitchForBasePitch(DEFAULT_PITCH_BASE), 1.0f), nil);
 
-	//Nichts gespeichert heisst Vorgabe, nicht null
-	check(@"Ohne gespeicherte Rate gilt die Vorgabe",
+	//Nothing saved means the default, not zero
+	check(@"With no saved rate the default applies",
 		  nearly(rateForWordsPerMinute(0.0f), AVSpeechUtteranceDefaultSpeechRate), nil);
-	check(@"Ohne gespeicherte Tonhoehe gilt das Einfache",
+	check(@"With no saved pitch, plain unchanged applies",
 		  nearly(pitchForBasePitch(0.0f), 1.0f), nil);
 
-	/* Der ganze Reglerbereich aus den beiden Nibs, 90 bis 300 Woerter je Minute und eine
-	 * Grundfrequenz von 0 bis 100, muss in erlaubten Werten landen. AVSpeechUtterance nimmt
-	 * ausserhalb nichts an, und stillschweigend verworfene Einstellungen faende niemand. */
+	/* The whole slider range out of the two nibs, 90 to 300 words per minute and a base
+	 * frequency of 0 to 100, has to land inside permitted values. AVSpeechUtterance accepts
+	 * nothing outside them, and nobody would ever find settings discarded in silence. */
 	for (float wpm = 90.0f; wpm <= 300.0f; wpm += 5.0f) {
 		float rate = rateForWordsPerMinute(wpm);
 
 		if (rate < AVSpeechUtteranceMinimumSpeechRate || rate > AVSpeechUtteranceMaximumSpeechRate) {
-			check([NSString stringWithFormat:@"%.0f Woerter je Minute bleibt im Rahmen", wpm], NO,
-				  [NSString stringWithFormat:@"%.3f liegt ausserhalb", rate]);
+			check([NSString stringWithFormat:@"%.0f words per minute stays in range", wpm], NO,
+				  [NSString stringWithFormat:@"%.3f is out of range", rate]);
 			break;
 		}
 	}
-	check(@"Der ganze Ratenregler bleibt im erlaubten Rahmen", failures == 0, nil);
+	check(@"The whole rate slider stays in the permitted range", failures == 0, nil);
 
 	int pitchFailures = failures;
 	for (float base = 0.0f; base <= 100.0f; base += 1.0f) {
 		float pitch = pitchForBasePitch(base);
 
 		if (pitch < 0.5f || pitch > 2.0f) {
-			check([NSString stringWithFormat:@"Grundfrequenz %.0f bleibt im Rahmen", base], NO,
-				  [NSString stringWithFormat:@"x%.3f liegt ausserhalb", pitch]);
+			check([NSString stringWithFormat:@"Base frequency %.0f stays in range", base], NO,
+				  [NSString stringWithFormat:@"x%.3f is out of range", pitch]);
 			break;
 		}
 	}
-	check(@"Der ganze Tonhoehenregler bleibt im erlaubten Rahmen", failures == pitchFailures, nil);
+	check(@"The whole pitch slider stays in the permitted range", failures == pitchFailures, nil);
 
-	//Schneller gespeichert heisst schneller gesprochen, und nicht andersherum
-	check(@"Mehr Woerter je Minute ergibt eine hoehere Rate",
+	//Saved faster means spoken faster, and not the other way round
+	check(@"More words per minute gives a higher rate",
 		  rateForWordsPerMinute(250.0f) > rateForWordsPerMinute(150.0f), nil);
-	check(@"Eine hoehere Grundfrequenz ergibt eine hoehere Stimme",
+	check(@"A higher base frequency gives a higher voice",
 		  pitchForBasePitch(60.0f) > pitchForBasePitch(30.0f), nil);
 
-	/* Der eigentliche Grund, warum der Umstieg ohne Umsetzungstabelle geht: die Kennungen, die
-	 * in den Einstellungen liegen, sind auch neu gueltige Kennungen. Gemessen waren es 180 von
-	 * 184; hier wird stellvertretend eine alte Kennung geprueft, die es auf jedem Mac gibt. */
-	check(@"Eine Kennung alter Schreibweise findet eine Stimme",
+	/* The real reason the changeover works without a conversion table: the identifiers that
+	 * sit in the preferences are valid identifiers under the new scheme too. Measured, 180 out
+	 * of 184 were; one old identifier that exists on every Mac is checked here as a stand in. */
+	check(@"An identifier in the old spelling finds a voice",
 		  [AVSpeechSynthesisVoice voiceWithIdentifier:@"com.apple.speech.synthesis.voice.Albert"] != nil,
-		  @"com.apple.speech.synthesis.voice.Albert wurde nicht gefunden");
+		  @"com.apple.speech.synthesis.voice.Albert was not found");
 
-	//Und eine Stimme, die es nicht mehr gibt, muss nil ergeben: das ist die Systemstimme
-	check(@"Eine Kennung ohne Stimme ergibt nil statt eines Fehlers",
+	//And a voice that no longer exists has to give nil: that means the system voice
+	check(@"An identifier with no voice gives nil rather than an error",
 		  [AVSpeechSynthesisVoice voiceWithIdentifier:@"com.example.a.voice.nobody.has"] == nil, nil);
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

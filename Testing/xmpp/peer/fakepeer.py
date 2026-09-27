@@ -79,7 +79,7 @@ class FakePeer(ClientXMPP):
         caps.set("node", "https://conversations.im")
         caps.set("ver", "fakepeer")
         presence.send()
-        print(f"{stamp()} online als peer@localhost/fakepeer")
+        print(f"{stamp()} online as peer@localhost/fakepeer")
 
         if self.call_first:
             await asyncio.sleep(1)
@@ -127,20 +127,20 @@ class FakePeer(ClientXMPP):
             if child is None:
                 continue
             sid = child.get("id")
-            print(f"{stamp()} <- {kind} (sid={sid}) von {sender}")
+            print(f"{stamp()} <- {kind} (sid={sid}) from {sender}")
 
             if kind == "propose":
                 media = [d.get("media") for d in child.findall(f"{{{RTP}}}description")]
-                note(bool(media), "Adiums propose nennt seine Medien", f"{media}")
-                note(sid is not None, "propose hat eine id")
+                note(bool(media), "Adium's propose names its media", f"{media}")
+                note(sid is not None, "the propose has an id")
                 # Ring, then take the call the way a person would
                 self.send_jmi("ringing", sid, sender)
                 asyncio.get_event_loop().call_later(
                     1.5, lambda: self.send_jmi("proceed", sid, sender))
             elif kind == "ringing":
-                note(True, "Adium meldet zurueck, dass es klingelt")
+                note(True, "Adium reports back that it is ringing")
             elif kind == "proceed":
-                note(True, "Adium nimmt an (proceed)")
+                note(True, "Adium accepts (proceed)")
                 # As the caller, the session is ours to offer now
                 self.send_initiate(sender, sid)
 
@@ -152,7 +152,7 @@ class FakePeer(ClientXMPP):
         action = jingle.get("action")
         sender = xml.get("from") or ""
         sid = jingle.get("sid")
-        print(f"{stamp()} <- jingle {action} (sid={sid}) von {sender}")
+        print(f"{stamp()} <- jingle {action} (sid={sid}) from {sender}")
 
         # Every jingle iq is acknowledged, as the specification orders
         if xml.get("type") == "set" and xml.get("id"):
@@ -160,7 +160,7 @@ class FakePeer(ClientXMPP):
             ack.send()
 
         if action == "session-accept":
-            note(True, "Adium beantwortet die Sitzung (session-accept)")
+            note(True, "Adium answers the session (session-accept)")
             self.judge_initiate(jingle)   # an accept must carry the same parts
             asyncio.get_event_loop().call_later(
                 2.0, lambda: self.send_terminate(sender, sid, "success"))
@@ -176,27 +176,27 @@ class FakePeer(ClientXMPP):
     def judge_initiate(self, jingle):
         """What a peer must find in an initiate to be able to answer it."""
         contents = jingle.findall(f"{{{JINGLE}}}content")
-        note(bool(contents), "initiate traegt Inhalte", f"{len(contents)}")
+        note(bool(contents), "the initiate carries contents", f"{len(contents)}")
 
         for content in contents:
             name = content.get("name")
             description = content.find(f"{{{RTP}}}description")
             transport = content.find(f"{{{ICE}}}transport")
 
-            note(description is not None, f"Inhalt '{name}': RTP-Beschreibung da")
+            note(description is not None, f"content '{name}': the RTP description is there")
             if description is not None:
                 payloads = description.findall(f"{{{RTP}}}payload-type")
                 names = [p.get("name") for p in payloads[:3]]
-                note(bool(payloads), f"Inhalt '{name}': Payload-Typen da",
+                note(bool(payloads), f"content '{name}': the payload types are there",
                      f"{description.get('media')}: {names}")
 
-            note(transport is not None, f"Inhalt '{name}': ICE-Transport da")
+            note(transport is not None, f"content '{name}': the ICE transport is there")
             if transport is not None:
                 note(bool(transport.get("ufrag")) and bool(transport.get("pwd")),
-                     f"Inhalt '{name}': ICE-Zugangsdaten da")
+                     f"content '{name}': the ICE credentials are there")
                 fingerprint = transport.find(f"{{{DTLS}}}fingerprint")
                 note(fingerprint is not None and bool((fingerprint.text or "").strip()),
-                     f"Inhalt '{name}': DTLS-Fingerabdruck da",
+                     f"content '{name}': the DTLS fingerprint is there",
                      (fingerprint.get("setup") if fingerprint is not None else ""))
 
 
@@ -218,9 +218,9 @@ def main():
 
     print()
     if findings:
-        print(f"{sum(1 for f in findings if f)}/{len(findings)} Pruefungen bestanden")
+        print(f"{sum(1 for f in findings if f)}/{len(findings)} checks passed")
     else:
-        print("Nichts beobachtet: kam ein Anruf an?")
+        print("Nothing observed: did a call ever arrive?")
     sys.exit(0 if findings and all(findings) else 1)
 
 

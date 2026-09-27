@@ -118,7 +118,7 @@ static void writePNG(NSWindow *window, NSString *path)
 							  path];
 		NSError *launchError = nil;
 		if (![capture launchAndReturnError:&launchError]) {
-			fprintf(stderr, "screencapture liess sich nicht starten: %s\n",
+			fprintf(stderr, "screencapture would not start: %s\n",
 					launchError.localizedDescription.UTF8String);
 			return;
 		}
@@ -143,7 +143,7 @@ int main(int argc, const char *argv[])
 		NSDictionary *env = [[NSProcessInfo processInfo] environment];
 		NSString *root = env[@"EDITOR_ROOT"];
 		NSString *outDir = env[@"EDITOR_OUT"];
-		if (!root || !outDir) { fprintf(stderr, "EDITOR_ROOT und EDITOR_OUT fehlen\n"); return 1; }
+		if (!root || !outDir) { fprintf(stderr, "EDITOR_ROOT and EDITOR_OUT are missing\n"); return 1; }
 
 		[NSApplication sharedApplication];
 		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -158,7 +158,7 @@ int main(int argc, const char *argv[])
 							   [root stringByAppendingPathComponent:@"Resources/AppearanceDefaults.plist"]]
 					  inGroup:@"Appearance"];
 
-		/* Wie im Programm: die Symbolpakete sind aktiv, bevor eine Liste gezeichnet wird. */
+		/* As in the application: the icon packs are active before a list is drawn. */
 		[AIStatusIcons setActiveStatusIconsFromPath:
 		 [root stringByAppendingPathComponent:@"Resources/Status Icons/iBubble Status.AdiumStatusIcons"]];
 		[AIServiceIcons setActiveServiceIconsFromPath:
@@ -168,8 +168,8 @@ int main(int argc, const char *argv[])
 		stub.preferenceController = prefs;
 		setSharedAdium((id)stub);
 
-		/* Erst die Vorschau allein, um zu sehen, ob sie mit dem Stellvertreter
-		 * genauso zeichnet wie ohne Programm. */
+		/* The preview on its own first, to see whether it draws the same way with the
+		 * stand in as it does without the application. */
 		{
 			NSWindow *probe = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,280,300)
 														  styleMask:NSWindowStyleMaskTitled

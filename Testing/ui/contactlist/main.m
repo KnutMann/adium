@@ -45,13 +45,13 @@ static void writePNG(NSWindow *window, NSString *path)
 							  path];
 		NSError *launchError = nil;
 		if (![capture launchAndReturnError:&launchError]) {
-			fprintf(stderr, "screencapture liess sich nicht starten: %s\n",
+			fprintf(stderr, "screencapture would not start: %s\n",
 					launchError.localizedDescription.UTF8String);
 			return;
 		}
 		[capture waitUntilExit];
 		if (capture.terminationStatus != 0)
-			fprintf(stderr, "screencapture endete mit %d fuer %s\n",
+			fprintf(stderr, "screencapture ended with %d for %s\n",
 					capture.terminationStatus, path.UTF8String);
 		spin(0.3);
 	}
@@ -71,7 +71,7 @@ static void writePNG(NSWindow *window, NSString *path)
 	NSView *content = window.contentView;
 	NSBitmapImageRep *rep = [content bitmapImageRepForCachingDisplayInRect:content.bounds];
 	if (!rep) {
-		fprintf(stderr, "weder Fensterserver noch Zwischenspeicher liefern ein Bild fuer %s\n",
+		fprintf(stderr, "neither the window server nor the cache gives a picture for %s\n",
 				path.lastPathComponent.UTF8String);
 		return;
 	}
@@ -79,9 +79,9 @@ static void writePNG(NSWindow *window, NSString *path)
 
 	NSData *png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
 	if ([png writeToFile:path atomically:YES])
-		fprintf(stdout, "%s (gezeichnet, nicht fotografiert)\n", path.lastPathComponent.UTF8String);
+		fprintf(stdout, "%s (drawn, not photographed)\n", path.lastPathComponent.UTF8String);
 	else
-		fprintf(stderr, "konnte %s nicht schreiben\n", path.lastPathComponent.UTF8String);
+		fprintf(stderr, "could not write %s\n", path.lastPathComponent.UTF8String);
 }
 
 #pragma mark Preference sets
@@ -94,7 +94,7 @@ static NSDictionary *setNamed(NSString *root, NSString *name, NSString *extensio
 	if (bundle && [[bundle objectForInfoDictionaryKey:@"XtraBundleVersion"] integerValue] == 1)
 		path = [bundle.resourcePath stringByAppendingPathComponent:@"Data.plist"];
 	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:path];
-	if (!dict) fprintf(stderr, "Vorlage %s.%s nicht lesbar\n", name.UTF8String, extension.UTF8String);
+	if (!dict) fprintf(stderr, "the set %s.%s cannot be read\n", name.UTF8String, extension.UTF8String);
 	return dict;
 }
 
@@ -144,7 +144,7 @@ int main(int argc, const char *argv[])
 		NSDictionary *env = [[NSProcessInfo processInfo] environment];
 		NSString *root = env[@"LIST_ROOT"];
 		NSString *outDir = env[@"LIST_OUT"];
-		if (!root || !outDir) { fprintf(stderr, "LIST_ROOT und LIST_OUT fehlen\n"); return 1; }
+		if (!root || !outDir) { fprintf(stderr, "LIST_ROOT and LIST_OUT are missing\n"); return 1; }
 
 		[NSApplication sharedApplication];
 		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -207,10 +207,10 @@ int main(int argc, const char *argv[])
 				window.backgroundColor = (dark ? [NSColor colorWithCalibratedWhite:0.16 alpha:1.0]
 											   : [NSColor colorWithCalibratedWhite:0.93 alpha:1.0]);
 
-				/* Mit LIST_TRANSPARENT=1 ist das Fenster durchsichtig, wie die
-				 * rahmenlose Kontaktliste es im Programm ist. Ein Fenster, das
-				 * seine Bildpunkte nicht selbst fuellt, loescht auch nichts,
-				 * was vorher darin stand. */
+				/* With LIST_TRANSPARENT=1 the window is see through, the way the
+				 * borderless contact list is in the application. A window that does
+				 * not fill its own pixels also erases nothing that stood there
+				 * before. */
 				BOOL transparent = [[[NSProcessInfo processInfo] environment][@"LIST_TRANSPARENT"] boolValue];
 				if (transparent) {
 					window.opaque = NO;
@@ -250,19 +250,19 @@ int main(int argc, const char *argv[])
 				[window makeFirstResponder:listView];
 				spin(0.4);
 				if (!window.isKeyWindow)
-					fprintf(stderr, "Hinweis: kein Tastaturfenster bei %s, die Auswahl wird blass gezeichnet\n",
+					fprintf(stderr, "note: no key window for %s, the selection is drawn pale\n",
 							[job[@"stem"] UTF8String]);
 
-				/* Mit LIST_CHURN=1 wird die Liste vorher durchgeschuettelt: eine
-				 * Gruppe zu, wieder auf, gescrollt. Genau dabei gibt die Tabelle
-				 * ihre Zeilenansichten weiter, und genau dort wurde der Fehler
-				 * gemeldet, bei dem zwei Namen uebereinander standen. */
-				/* Mit LIST_GROW=1 waechst die Liste, waehrend sie schon zu sehen
-				 * ist: genau das passiert, wenn ein Konto sich anmeldet und
-				 * seine Kontakte nachreicht. Gemeldet wurde der Fehler fuer
-				 * genau diesen Augenblick. */
-				/* Mit LIST_BRANCH=1 erscheint eine ganze Gruppe samt Kontakten auf
-				 * einmal, so wie ein Konto es beim Anmelden nachreicht. */
+				/* With LIST_CHURN=1 the list is shaken up first: a group closed,
+				 * opened again, scrolled. That is exactly when the table hands its
+				 * row views on, and exactly where the fault was reported in which
+				 * two names stood on top of each other. */
+				/* With LIST_GROW=1 the list grows while it is already on screen:
+				 * exactly what happens when an account signs on and hands its
+				 * contacts over afterwards. The fault was reported for exactly
+				 * that moment. */
+				/* With LIST_BRANCH=1 a whole group appears with its contacts at once,
+				 * the way an account hands them over while signing on. */
 				if ([[[NSProcessInfo processInfo] environment][@"LIST_BRANCH"] boolValue]) {
 					[preview addFilledGroupNamed:@"Shoogee" contacts:18];
 					[listView reloadData];
@@ -279,14 +279,14 @@ int main(int argc, const char *argv[])
 					for (NSUInteger round = 0; round < 12; round++) {
 						[preview addFillerContacts:2];
 
-						//Wie der Listen-Controller es tut, wenn ein Kontakt auftaucht
+						//The way the list controller does it when a contact turns up
 						for (NSInteger row = 0; row < listView.numberOfRows; row++) {
 							id item = [listView itemAtRow:row];
 							if ([listView isExpandable:item])
 								[listView reloadItem:item reloadChildren:YES];
 						}
-						/* Das Kontaktlistenfenster waechst im Programm mit der Liste
-						 * mit, waehrend die Kontakte eintreffen. */
+						/* In the application the contact list window grows along with the
+						 * list while the contacts arrive. */
 						CGFloat grown = MAX(80.0, MIN(760.0, preview.listHeight + 8.0));
 						[window setFrame:NSMakeRect(420.0, 260.0, 260.0, grown) display:YES];
 						[window displayIfNeeded];
@@ -296,9 +296,8 @@ int main(int argc, const char *argv[])
 				}
 
 				if ([[[NSProcessInfo processInfo] environment][@"LIST_CHURN"] boolValue]) {
-					/* Erst das Fenster klein machen, damit die Liste wirklich
-					 * scrollen muss und die Tabelle ihre Zeilenansichten
-					 * weiterreicht. */
+					/* Make the window small first, so that the list really has to
+					 * scroll and the table hands its row views on. */
 					[window setFrame:NSMakeRect(420.0, 260.0, 260.0, 90.0) display:YES];
 					spin(0.3);
 					for (NSInteger row = 0; row < listView.numberOfRows; row++) {

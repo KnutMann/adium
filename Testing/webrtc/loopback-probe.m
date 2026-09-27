@@ -131,7 +131,7 @@ int main(void) { @autoreleasepool {
 		if (!rendererAttached && callee.connected) {
 			for (RTCRtpReceiver *receiver in callee.pc.receivers) {
 				if ([receiver.track isKindOfClass:[RTCVideoTrack class]]) {
-					printf("renderer haengt jetzt am Live-Track %s\n", receiver.track.trackId.UTF8String);
+					printf("the renderer now hangs on the live track %s\n", receiver.track.trackId.UTF8String);
 					[(RTCVideoTrack *)receiver.track addRenderer:callee.counter];
 					rendererAttached = YES;
 				}
@@ -174,7 +174,7 @@ int main(void) { @autoreleasepool {
 
 	printf("\nICE verbunden: caller=%s callee=%s\n",
 		   caller.connected ? "JA" : "NEIN", callee.connected ? "JA" : "NEIN");
-	printf("Empfangene Videoframes beim Callee: %ld\n", (long)callee.counter.frames);
+	printf("Video frames received at the callee: %ld\n", (long)callee.counter.frames);
 	BOOL ok = caller.connected && callee.connected && callee.counter.frames > 0;
 	printf("%s\n", ok ? "SPIKE BESTANDEN" : "SPIKE FEHLGESCHLAGEN");
 	return ok ? 0 : 1;

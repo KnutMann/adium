@@ -60,7 +60,7 @@ class Probe(ClientXMPP):
     async def on_start(self, event):
         self.send_presence()
         self.send_presence(pto=TARGET, ptype="subscribe")
-        print(f"Warte auf Praesenz von {TARGET} (Abo-Anfrage gesendet; in Adium ggf. erlauben) ...")
+        print(f"Waiting for presence from {TARGET} (subscription requested; allow it in Adium if asked) ...")
 
     def on_presence(self, presence):
         if presence["from"].bare != TARGET or self.presence_seen.done():
@@ -72,7 +72,7 @@ class Probe(ClientXMPP):
         full_jid, caps = await asyncio.wait_for(self.presence_seen, 120)
         node = caps.get("node") if caps is not None else None
         ver = caps.get("ver") if caps is not None else None
-        print(f"Praesenz von {full_jid}")
+        print(f"Presence from {full_jid}")
         print(f"Caps: node={node} ver={ver} hash={caps.get('hash') if caps is not None else None}")
 
         iq = self.make_iq_get(ito=full_jid)
@@ -111,15 +111,15 @@ class Probe(ClientXMPP):
             computed = caps_ver(identities, features, forms)
             match = (computed == ver)
             ok &= match
-            print(f"\n{'PASS' if match else 'FAIL'}  XEP-0115-Hash stimmt "
-                  f"(annonciert {ver}, berechnet {computed})")
+            print(f"\n{'PASS' if match else 'FAIL'}  the XEP-0115 hash is right "
+                  f"(announced {ver}, computed {computed})")
             if not match:
-                print("      -> Conversations verwirft die Caps bei Hash-Abweichung komplett!")
+                print("      -> Conversations throws the caps away entirely when the hash does not match!")
         else:
             print("\nFAIL  the presence carries no caps at all")
             ok = False
 
-        print(f"\n{'ALLES GUT: Conversations sieht die Anruf-Faehigkeiten' if ok else 'PROBLEM GEFUNDEN'}")
+        print(f"\n{'ALL WELL: Conversations sees the call features' if ok else 'A PROBLEM WAS FOUND'}")
         return ok
 
 

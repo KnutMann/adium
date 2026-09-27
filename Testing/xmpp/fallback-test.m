@@ -1,16 +1,15 @@
-/* Schneidet XEP-0428 die richtige Stelle heraus?
+/* Does XEP-0428 cut out the right place?
  *
- * Eine Antwort aus einem modernen Client zitiert die Nachricht, auf die sie antwortet, als
- * Zeilen mit vorangestelltem Groesserzeichen, und sagt daneben, welche Zeichen davon nur fuer
- * Clients gedacht waren, die Antworten nicht darstellen koennen. Wir sind so einer, also
- * muessen wir genau diese Zeichen weglassen.
+ * A reply from a modern client quotes the message it answers as lines with a leading greater
+ * than sign, and says alongside which characters of it were only meant for clients that cannot
+ * show replies. We are one of those, so we have to leave exactly those characters out.
  *
- * Geprueft wird UNSERE Rechnung, nicht glibs Zeichenzaehler: dass die Bereiche als Zeichen
- * und nicht als Bytes gelesen werden, dass unsinnige Bereiche verworfen statt zurechtgebogen
- * werden, und vor allem, dass von hinten nach vorn geschnitten wird, denn sonst verschiebt
- * der erste Schnitt alle folgenden Zahlen. Die Sortierung und die Pruefung stehen hier
- * wortgleich wie in adiumPurpleFallback.m; der Zeiger auf das n-te Zeichen wird hier
- * nachgebaut, damit der Test ohne die gebuendelten Bibliotheken laeuft.
+ * What is checked is OUR arithmetic, not glib's character counter: that the ranges are read as
+ * characters and not as bytes, that nonsensical ranges are discarded rather than bent into
+ * shape, and above all that the cutting runs from the back to the front, because otherwise the
+ * first cut shifts every number after it. The sorting and the sanity check stand here word for
+ * word as they do in adiumPurpleFallback.m; the pointer to the nth character is rebuilt here so
+ * that the test runs without the bundled libraries.
  */
 #import <Foundation/Foundation.h>
 
@@ -24,11 +23,11 @@ static void check(NSString *name, BOOL ok, NSString *detail)
 
 typedef struct { long start; long end; } Range;
 
-/*! Wie g_utf8_offset_to_pointer: der Zeiger auf das n-te ZEICHEN, nicht auf das n-te Byte */
+/*! Like g_utf8_offset_to_pointer: the pointer to the nth CHARACTER, not to the nth byte */
 static const char *characterAt(const char *text, long offset)
 {
 	while (offset-- > 0 && *text)
-		do { text++; } while ((*text & 0xC0) == 0x80);	//Folgebytes ueberspringen
+		do { text++; } while ((*text & 0xC0) == 0x80);	//skip continuation bytes
 	return text;
 }
 
@@ -41,7 +40,7 @@ static long characterCount(const char *text)
 	return count;
 }
 
-/*! Die Reihenfolge aus adiumPurpleFallback.m: absteigend nach Anfang, damit von hinten geschnitten wird */
+/*! The order from adiumPurpleFallback.m: descending by start, so the cutting runs from the back */
 static void sortDescending(Range *ranges, int count)
 {
 	for (int outer = 0; outer + 1 < count; outer++)
@@ -53,7 +52,7 @@ static void sortDescending(Range *ranges, int count)
 			}
 }
 
-/*! Die Pruefung aus adiumPurpleFallback.m: was nicht passt, wird verworfen, nicht zurechtgebogen */
+/*! The check from adiumPurpleFallback.m: what does not fit is discarded, not bent into shape */
 static BOOL rangeIsSane(Range range, long length)
 {
 	return (range.start >= 0 && range.end <= length && range.start < range.end);
@@ -84,54 +83,54 @@ static void expect(NSString *name, const char *text, Range *ranges, int count, c
 {
 	char *got = textWithout(text, ranges, count);
 	check(name, strcmp(got, wanted) == 0,
-		  [NSString stringWithFormat:@"erwartet \"%s\", bekommen \"%s\"", wanted, got]);
+		  [NSString stringWithFormat:@"expected \"%s\", got \"%s\"", wanted, got]);
 	free(got);
 }
 
 int main(void) { @autoreleasepool {
-	//Der Alltagsfall: ein Zitat vorn, die eigentliche Antwort dahinter
+	//The everyday case: a quotation in front, the actual answer behind it
 	{
 		Range r[] = {{0, 17}};
-		expect(@"Das Zitat vorn faellt weg", "> Kommst du mit?\nJa, gerne", r, 1, "Ja, gerne");
+		expect(@"The quotation in front falls away", "> Will you come?\nYes, gladly", r, 1, "Yes, gladly");
 	}
 
-	//Umlaute: byteweise geschnitten stuende hier Unsinn, der Bereich zaehlt Zeichen
+	//Accents: cut by bytes there would be nonsense here, the range counts characters
 	{
 		Range r[] = {{0, 20}};
-		expect(@"Umlaute verschieben den Schnitt nicht", "> Grüße aus München\nDanke!", r, 1, "Danke!");
+		expect(@"Accents do not shift the cut", "> Café au lait, oui\nThanks!", r, 1, "Thanks!");
 	}
 
-	//Ein Emoji ist ein Zeichen und belegt vier Bytes
+	//An emoji is one character and takes up four bytes
 	{
 		Range r[] = {{0, 4}};
-		expect(@"Auch ein Emoji zaehlt als ein Zeichen", "> 👍\nstimmt", r, 1, "stimmt");
+		expect(@"An emoji counts as one character too", "> 👍\nright", r, 1, "right");
 	}
 
-	//Mehrere Bereiche, absichtlich in der falschen Reihenfolge uebergeben
+	//Several ranges, handed over in the wrong order on purpose
 	{
 		Range r[] = {{0, 3}, {6, 9}};
-		expect(@"Mehrere Bereiche, egal in welcher Reihenfolge", "AAABBBCCC", r, 2, "BBB");
+		expect(@"Several ranges, in whatever order", "AAABBBCCC", r, 2, "BBB");
 	}
 
-	//Unsinn wird verworfen, nicht zurechtgebogen
+	//Nonsense is discarded, not bent into shape
 	{
 		Range r[] = {{5, 2}};
-		expect(@"Ein verdrehter Bereich wird verworfen", "unberuehrt", r, 1, "unberuehrt");
+		expect(@"A back to front range is discarded", "untouched", r, 1, "untouched");
 	}
 	{
 		Range r[] = {{0, 999}};
-		expect(@"Ein Bereich ueber das Ende hinaus wird verworfen", "unberuehrt", r, 1, "unberuehrt");
+		expect(@"A range past the end is discarded", "untouched", r, 1, "untouched");
 	}
 
-	//Nichts markiert heisst nichts angefasst
-	expect(@"Ohne Bereich bleibt alles stehen", "einfach nur Text", NULL, 0, "einfach nur Text");
+	//Nothing marked means nothing touched
+	expect(@"With no range everything stays", "simply text", NULL, 0, "simply text");
 
-	//Der ganze Body als Bereich: uebrig bleibt nichts, und das ist richtig so
+	//The whole body as a range: nothing is left, and that is right
 	{
 		Range r[] = {{0, 10}};
-		expect(@"Ein Bereich ueber alles laesst nichts uebrig", "nur Ersatz", r, 1, "");
+		expect(@"A range over everything leaves nothing", "spare text", r, 1, "");
 	}
 
-	printf("\n%s\n", failures ? "FEHLSCHLAEGE" : "ALLE PRUEFUNGEN BESTANDEN");
+	printf("\n%s\n", failures ? "FAILURES" : "ALL CHECKS PASSED");
 	return failures ? 1 : 0;
 } }

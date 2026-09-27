@@ -43,7 +43,7 @@ class Probe(ClientXMPP):
             for kind in ("ringing", "proceed", "reject", "retract", "accept"):
                 child = message.xml.find(f"{{{NS}}}{kind}")
                 if child is not None:
-                    print(f"{stamp()} {kind} von {message['from']} (id={child.get('id')})")
+                    print(f"{stamp()} {kind} from {message['from']} (id={child.get('id')})")
                     if kind in ("reject", "proceed") and not self.finished.done():
                         self.finished.set_result(kind)
         # slixmpp's "message" event needs a body; call signalling has none

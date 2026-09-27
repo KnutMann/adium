@@ -1,10 +1,10 @@
-/* Prueft den Opus-Kodierer gegen genau den Leser, der ueber Annahme oder Ablehnung entscheidet.
+/* Checks the Opus encoder against exactly the reader that decides on acceptance or refusal.
  *
- * Eine Sprachnotiz kommt bei WhatsApp nur dann als Sprachnotiz an, mit Wellenform und
- * Abspielknopf, wenn sie als Opus in einem Ogg-Behaelter ankommt. Das Plugin prueft das vor
- * dem Senden mit `opusfile_get_info`, und wessen Datei dort eine negative Laenge ergibt, wird
- * als Dokument verschickt. Also wird hier nicht geprueft, ob unsere Datei "irgendwie" stimmt,
- * sondern ob DIESER Leser sie annimmt und die Laenge herausbekommt, die hineingegangen ist.
+ * A voice note arrives at WhatsApp as a voice note, with a waveform and a play button, only if
+ * it arrives as Opus in an Ogg container. The plugin checks that before sending with
+ * `opusfile_get_info`, and whoever's file comes out of that with a negative length is sent as a
+ * document. So what is checked here is not whether our file is "somehow" right, but whether
+ * THAT reader accepts it and gets out the length that went in.
  */
 #import <Foundation/Foundation.h>
 #import "AIOpusEncoder.h"
@@ -15,11 +15,11 @@ static int checks = 0, failures = 0;
 static void Check(BOOL condition, const char *what)
 {
 	checks++;
-	if (!condition) { failures++; printf("FEHLER  %s\n", what); }
+	if (!condition) { failures++; printf("FAILED  %s\n", what); }
 }
 
-/* Ein Ton, damit etwas Echtes zu kodieren da ist; Stille wuerde der Kodierer zwar
-   auch schlucken, aber sie prueft die Wellenform nicht. */
+/* A tone, so there is something real to encode; the encoder would swallow silence
+   too, but silence does not exercise the waveform. */
 static int16_t *MakeTone(NSUInteger seconds, NSUInteger *countOut)
 {
 	NSUInteger count = seconds * 48000;
@@ -41,51 +41,51 @@ int main(void)
 
 		NSError *error = nil;
 		BOOL wrote = AIOpusWriteOggFile(path, tone, count, &error);
-		Check(wrote, "Drei Sekunden lassen sich schreiben");
+		Check(wrote, "Three seconds can be written");
 		if (!wrote) { printf("        %s\n", [[error localizedDescription] UTF8String]); return 1; }
 
 		NSData *data = [NSData dataWithContentsOfFile:path];
-		Check(data && [data length] > 0, "Die Datei ist nicht leer");
+		Check(data && [data length] > 0, "The file is not empty");
 
-		//Genau der Weg, den das Plugin vor dem Senden geht
+		//Exactly the path the plugin takes before sending
 		int opusError = 0;
 		OggOpusFile *of = op_open_memory([data bytes], [data length], &opusError);
-		Check(of != NULL, "Der Leser des Plugins oeffnet sie");
+		Check(of != NULL, "The plugin's reader opens it");
 
 		if (of) {
 			ogg_int64_t samples = op_pcm_total(of, -1);
 			double seconds = samples / 48000.0;
-			Check(fabs(seconds - 3.0) < 0.1, "Die Laenge stimmt auf eine Zehntelsekunde");
+			Check(fabs(seconds - 3.0) < 0.1, "The length is right to a tenth of a second");
 			if (fabs(seconds - 3.0) >= 0.1)
-				printf("        gemessen %.3f s statt 3.000 s\n", seconds);
+				printf("        measured %.3f s instead of 3.000 s\n", seconds);
 
-			Check(op_channel_count(of, -1) == 1, "Sie ist einkanalig");
+			Check(op_channel_count(of, -1) == 1, "It has one channel");
 
-			/* Und sie muss sich auch wirklich dekodieren lassen, nicht nur oeffnen */
+			/* And it really has to decode, not merely open */
 			float pcm[960];
 			int read = op_read_float(of, pcm, 960, NULL);
-			Check(read > 0, "Sie laesst sich dekodieren");
+			Check(read > 0, "It decodes");
 
 			op_free(of);
 		}
 
-		//Der kurze Fall: weniger als ein Rahmen
+		//The short case: less than one frame
 		NSString *tiny = [NSTemporaryDirectory() stringByAppendingPathComponent:@"adium-opus-tiny.ogg"];
 		int16_t few[100] = {0};
-		Check(AIOpusWriteOggFile(tiny, few, 100, NULL), "Auch weniger als ein Rahmen geht");
+		Check(AIOpusWriteOggFile(tiny, few, 100, NULL), "Less than one frame works too");
 		NSData *tinyData = [NSData dataWithContentsOfFile:tiny];
 		OggOpusFile *tinyFile = tinyData ? op_open_memory([tinyData bytes], [tinyData length], &opusError) : NULL;
-		Check(tinyFile != NULL, "Und ist trotzdem lesbar");
+		Check(tinyFile != NULL, "And is readable all the same");
 		if (tinyFile) op_free(tinyFile);
 
-		//Und das, was nicht gehen darf
-		Check(!AIOpusWriteOggFile(path, NULL, 0, NULL), "Nichts zu schreiben wird abgelehnt");
+		//And what must not work
+		Check(!AIOpusWriteOggFile(path, NULL, 0, NULL), "Nothing to write is refused");
 
 		free(tone);
 		[[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
 		[[NSFileManager defaultManager] removeItemAtPath:tiny error:NULL];
 
-		printf("%d Pruefungen, %d Fehler\n", checks, failures);
+		printf("%d checks, %d failures\n", checks, failures);
 	}
 	return failures ? 1 : 0;
 }

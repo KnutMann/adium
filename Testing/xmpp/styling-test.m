@@ -1,13 +1,13 @@
-/* Prueft den Leser fuer XEP-0393: was ist Auszeichnung, und was ist gewoehnlicher Text.
+/* Checks the reader for XEP-0393: what is markup, and what is ordinary text.
  *
- * Die Regeln des Standards sind fast alle dazu da, das Zweite vom Ersten zu trennen. Ein
- * Unterstrich mitten in einer Adresse, ein Sternchen am Satzanfang ohne Gegenstueck, ein
- * Bindestrich in einer Aufzaehlung: nichts davon darf die halbe Zeile kursiv machen. Genau
- * diese Faelle stehen hier, neben den Faellen, die wirklich Auszeichnung sind.
+ * Almost all the rules of the standard exist to keep the second apart from the first. An
+ * underscore in the middle of an address, an asterisk at the start of a sentence with no
+ * counterpart, a hyphen in a list: none of these may turn half the line italic. Exactly those
+ * cases stand here, next to the cases that really are markup.
  *
- * Gerechnet wird in denselben Einheiten, in denen NSString zaehlt, also UTF-16. Ein Emoji
- * vor einer Direktive verschiebt sie um zwei, nicht um eins; das hat diesem Baum bei
- * XEP-0428 schon einmal wehgetan und steht deshalb als eigener Fall darin.
+ * Counting is done in the same units NSString counts in, that is UTF-16. An emoji in front of a
+ * directive shifts it by two, not by one; that has hurt this tree once already over XEP-0428
+ * and therefore stands in it as a case of its own.
  */
 #import <Foundation/Foundation.h>
 #import "AIMessageStyling.h"
@@ -26,8 +26,8 @@ static NSString *KindName(AIMessageStyleKind k)
 	return @"?";
 }
 
-/* Erwartet wird eine Liste von "art:text", wobei text der Ausschnitt ist, den die Spanne
-   abdeckt, Direktiven eingeschlossen. Reihenfolge spielt keine Rolle. */
+/* A list of "kind:text" is expected, where text is the extract the span covers, directives
+   included. The order does not matter. */
 static void Expect(NSString *body, NSArray<NSString *> *wanted)
 {
 	checks++;
@@ -43,7 +43,7 @@ static void Expect(NSString *body, NSArray<NSString *> *wanted)
 
 	if (![a isEqual:b]) {
 		failures++;
-		printf("FEHLER  %s\n        erwartet %s\n        bekommen %s\n",
+		printf("FAILED  %s\n        expected %s\n        got      %s\n",
 			   [body UTF8String],
 			   [[wanted componentsJoinedByString:@" | "] UTF8String],
 			   [[got componentsJoinedByString:@" | "] UTF8String]);
@@ -53,61 +53,61 @@ static void Expect(NSString *body, NSArray<NSString *> *wanted)
 int main(void)
 {
 	@autoreleasepool {
-		//Das Einfache
-		Expect(@"*fett*", @[@"strong:*fett*"]);
-		Expect(@"_kursiv_", @[@"emphasis:_kursiv_"]);
-		Expect(@"~weg~", @[@"strikethrough:~weg~"]);
+		//The simple cases
+		Expect(@"*bold*", @[@"strong:*bold*"]);
+		Expect(@"_italic_", @[@"emphasis:_italic_"]);
+		Expect(@"~gone~", @[@"strikethrough:~gone~"]);
 		Expect(@"`code`", @[@"preformatted:`code`"]);
-		Expect(@"ein *fettes* Wort", @[@"strong:*fettes*"]);
-		Expect(@"*zwei* und *drei*", @[@"strong:*zwei*", @"strong:*drei*"]);
+		Expect(@"a *bolder* word", @[@"strong:*bolder*"]);
+		Expect(@"*two* and *three*", @[@"strong:*two*", @"strong:*three*"]);
 
-		//Verschachtelung: verschiedene Arten ja, gleiche Art nicht
-		Expect(@"*_beides_*", @[@"strong:*_beides_*", @"emphasis:_beides_"]);
+		//Nesting: different kinds yes, the same kind no
+		Expect(@"*_both_*", @[@"strong:*_both_*", @"emphasis:_both_"]);
 
-		//In Festbreite wird innen nichts gelesen
-		Expect(@"`kein *fett* hier`", @[@"preformatted:`kein *fett* hier`"]);
+		//Inside fixed width nothing is read
+		Expect(@"`no *bold* in here`", @[@"preformatted:`no *bold* in here`"]);
 
-		//Die Regeln, die gewoehnlichen Text schuetzen
-		Expect(@"https://example.com/a_b_c", @[]);			//Oeffner folgt keinem Leerzeichen
-		Expect(@"*kein Schliesser", @[]);
-		Expect(@"* nicht offen*", @[]);						//Leerzeichen hinter dem Oeffner
-		Expect(@"*nicht zu *", @[]);						//Leerzeichen vor dem Schliesser
-		Expect(@"**", @[]);									//nichts dazwischen
-		Expect(@"5 * 3 * 2", @[]);							//Rechnen ist keine Auszeichnung
+		//The rules that protect ordinary text
+		Expect(@"https://example.com/a_b_c", @[]);			//the opener does not follow a space
+		Expect(@"*no closer", @[]);
+		Expect(@"* not opened*", @[]);						//a space behind the opener
+		Expect(@"*not closed *", @[]);						//a space before the closer
+		Expect(@"**", @[]);									//nothing in between
+		Expect(@"5 * 3 * 2", @[]);							//arithmetic is not markup
 		Expect(@"snake_case_name", @[]);
 
-		//Zitat
-		Expect(@"> gesagt", @[@"quotation:> gesagt"]);
-		Expect(@"> *laut* gesagt", @[@"quotation:> *laut* gesagt", @"strong:*laut*"]);
-		Expect(@"nicht > mitten drin", @[]);
+		//Quotation
+		Expect(@"> said", @[@"quotation:> said"]);
+		Expect(@"> *loudly* said", @[@"quotation:> *loudly* said", @"strong:*loudly*"]);
+		Expect(@"not > in the middle", @[]);
 
-		//Block, geschlossen und offen
-		Expect(@"```\nzeile\n```", @[@"preformatted:```\nzeile\n```"]);
-		Expect(@"```\nohne Ende", @[@"preformatted:```\nohne Ende"]);
-		Expect(@"vorher\n```\ndrin *nicht fett*\n```\nnachher",
-			   @[@"preformatted:```\ndrin *nicht fett*\n```"]);
+		//A block, closed and open
+		Expect(@"```\nline\n```", @[@"preformatted:```\nline\n```"]);
+		Expect(@"```\nwith no end", @[@"preformatted:```\nwith no end"]);
+		Expect(@"before\n```\ninside *not bold*\n```\nafter",
+			   @[@"preformatted:```\ninside *not bold*\n```"]);
 
-		//Mehrere Zeilen: eine Spanne endet an ihrer Zeile
-		Expect(@"*auf\nzwei*", @[]);
+		//Several lines: a span ends at its own line
+		Expect(@"*across\ntwo*", @[]);
 
-		//UTF-16: ein Emoji zaehlt zwei
-		Expect(@"\U0001F600 *fett*", @[@"strong:*fett*"]);
+		//UTF-16: an emoji counts as two
+		Expect(@"\U0001F600 *bold*", @[@"strong:*bold*"]);
 		{
 			checks++;
-			NSString *body = @"\U0001F600 *fett*";
+			NSString *body = @"\U0001F600 *bold*";
 			NSArray *spans = AIMessageStylingSpans(body);
 			NSRange r = [spans.firstObject range];
-			if (r.location != 3) {			//zwei Einheiten Emoji plus ein Leerzeichen
+			if (r.location != 3) {			//two units of emoji plus one space
 				failures++;
-				printf("FEHLER  Emoji-Versatz: erwartet 3, bekommen %lu\n", (unsigned long)r.location);
+				printf("FAILED  emoji offset: expected 3, got %lu\n", (unsigned long)r.location);
 			}
 		}
 
-		//Leeres und Harmloses
+		//The empty and the harmless
 		Expect(@"", @[]);
-		Expect(@"ganz gewoehnlicher Text", @[]);
+		Expect(@"perfectly ordinary text", @[]);
 
-		printf("%d Pruefungen, %d Fehler\n", checks, failures);
+		printf("%d checks, %d failures\n", checks, failures);
 	}
 	return failures ? 1 : 0;
 }

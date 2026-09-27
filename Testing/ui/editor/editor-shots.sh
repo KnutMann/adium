@@ -18,7 +18,7 @@ mkdir -p "$OUT"
 # the symlink in /Applications points at, and it may be running right now.
 xcodebuild -project "$ROOT/Adium.xcodeproj" -target Adium.Framework -configuration Debug \
 	SYMROOT="$FWROOT" OBJROOT="$FWROOT/Intermediates" build > "$FWROOT.log" 2>&1 || {
-		echo "Bau des Geruests fehlgeschlagen, siehe $FWROOT.log" >&2
+		echo "Building the framework failed, see $FWROOT.log" >&2
 		tail -20 "$FWROOT.log" >&2
 		exit 1
 	}
