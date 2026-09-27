@@ -1,9 +1,14 @@
 #!/bin/zsh
-# Rebuild libogg and libopus, the codec voice notes are recorded in.
+# Rebuild libogg, libopus and libopusfile, the codec voice notes are recorded in.
 #
-# Adium records a voice note as Opus in an Ogg container. Both libraries are linked statically
+# Adium records a voice note as Opus in an Ogg container. The first two are linked statically
 # into the application (see OTHER_LDFLAGS in Frameworks/AIUtilities/xcconfigs/Adium.xcconfig),
 # so nothing of them is shipped beside it.
+#
+# libopusfile is not linked into the application. It is the reader that decides, on the far
+# side, whether what we sent counts as a voice note or as a document, and Testing/voice/
+# opus-test.sh checks our encoder against it rather than against ourselves. It is here for the
+# same reason everything else is: so that a clone plus Xcode is enough to run that check.
 #
 # The built archives and headers are IN the repository, under Frameworks/opus, the way
 # libpurple, glib and the rest are. This script is therefore not part of a normal build; it is
@@ -11,8 +16,9 @@
 # the build reads.
 #
 # The tarballs are pinned by checksum. The checksums are the ones the Xiph download server
-# served on 25.09.2026; they are here so that what is downloaded tomorrow is what was
-# downloaded then, not as a claim that they were checked against a second source.
+# served on 25.09.2026, and on 27.09.2026 for opusfile; they are here so that what is
+# downloaded tomorrow is what was downloaded then, not as a claim that they were checked
+# against a second source.
 #
 # Needs a working autotools toolchain, which a plain Xcode installation does not have.
 
@@ -73,10 +79,19 @@ build_xiph opus 1.5.2 \
 	65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1 \
 	--disable-shared --enable-static --disable-doc --disable-extra-programs
 
-# Only what the build reads: the two archives and the headers. The libtool .la files and the
+# opusfile last: it is built against both of the above and finds them through the pkg-config
+# files they just installed into the staging prefix. Without --disable-http it also wants
+# OpenSSL, for reading an Opus stream straight off a web address, which nothing here does.
+export PKG_CONFIG_PATH="$STAGE/lib/pkgconfig"
+build_xiph opusfile 0.12 \
+	https://downloads.xiph.org/releases/opus/opusfile-0.12.tar.gz \
+	118d8601c12dd6a44f52423e68ca9083cc9f2bfe72da7a8c1acb22a80ae3550b \
+	--disable-shared --enable-static --disable-http --disable-examples --disable-doc
+
+# Only what is read elsewhere: the archives and the headers. The libtool .la files and the
 # pkg-config data describe a machine that is not the one this will be built on.
 rm -rf "$TARGET/include/ogg" "$TARGET/include/opus"
-cp "$STAGE/lib/libogg.a" "$STAGE/lib/libopus.a" "$TARGET/lib/"
+cp "$STAGE/lib/libogg.a" "$STAGE/lib/libopus.a" "$STAGE/lib/libopusfile.a" "$TARGET/lib/"
 cp -R "$STAGE/include/ogg" "$STAGE/include/opus" "$TARGET/include/"
 
 echo "placed in Frameworks/opus: $(lipo -info "$TARGET/lib/libopus.a" | sed 's/.*: //'), $(du -sh "$TARGET" | awk '{print $1}')"

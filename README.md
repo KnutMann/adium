@@ -358,7 +358,11 @@ local change on top of them):
 | `Frameworks/libotr.framework` and friends | [libotr](https://otr.cypherpunks.ca), [libgcrypt](https://gnupg.org), [libgpg-error](https://gnupg.org), [gettext](https://www.gnu.org/software/gettext/) | Homebrew builds | GPL v2 / LGPL v2.1 |
 | `Frameworks/libpurple.framework`, `libglib.framework`, `libgio`, `libgobject`, `libgmodule`, `libgthread`, `libintl`, `libffi`, `libjson-glib` | [libpurple](https://pidgin.im) 2.14.14, [glib](https://gitlab.gnome.org/GNOME/glib) and what it needs | built by `Dependencies/build.sh` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
 | `Frameworks/libgdk_pixbuf-2.0.0.dylib`, `libjpeg.8.dylib` | [gdk-pixbuf](https://gitlab.gnome.org/GNOME/gdk-pixbuf), [libjpeg-turbo](https://libjpeg-turbo.org), loading the images libpurple hands around | Homebrew builds | LGPL v2.1 / BSD-style |
-| `Frameworks/opus/lib/libopus.a`, `libogg.a` | [Opus](https://opus-codec.org) 1.5.2, [libogg](https://xiph.org/ogg/) 1.3.6 | built by `Dependencies/opus/build-opus.sh`, tarballs pinned by SHA-256 | BSD 3-Clause |
+| `Frameworks/opus/lib/libopus.a`, `libogg.a`, `libopusfile.a` | [Opus](https://opus-codec.org) 1.5.2, [libogg](https://xiph.org/ogg/) 1.3.6, [opusfile](https://opus-codec.org) 0.12 | built by `Dependencies/opus/build-opus.sh`, tarballs pinned by SHA-256 | BSD 3-Clause |
+
+Of the three Xiph libraries, only the first two are linked into the
+application; opusfile is the reader `Testing/voice/opus-test.sh` checks
+the encoder against, and ships so that the check runs from a clone.
 
 The LGPL components are dynamically linked, so they can be swapped out
 by rebuilding the bundle. The two Xiph libraries are the exception: they
