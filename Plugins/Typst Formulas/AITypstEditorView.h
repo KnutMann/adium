@@ -15,6 +15,7 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import <Adium/AIMessageEntryAccessory.h>
 
 @class AIChat, AITypstRenderer;
 
@@ -34,7 +35,7 @@
  * shelf it sits on, and letting the view hierarchy own it means closing the shelf disposes of
  * everything with no bookkeeping anywhere else.
  */
-@interface AITypstEditorView : NSView {
+@interface AITypstEditorView : NSView <AIMessageEntryShelf> {
 	AIChat			*chat;
 
 	NSImageView		*imageView_preview;

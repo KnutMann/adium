@@ -35,7 +35,6 @@
 #define TITLE_SHOW_EDITOR		AILocalizedString(@"Formula Editor", "Menu item which opens and closes the Typst formula editor at the bottom of a chat")
 #define TITLE_RENDER_FORMULA	AILocalizedString(@"Render Formula", "Menu item which replaces the selected Typst source with the picture it renders to")
 
-#define FORMULA_ITEM_IDENTIFIER		@"FormulaEditor"
 #define KEY_FORMULA_EDITOR_BUTTON	@"Formula Editor Button"
 
 @interface AITypstPlugin ()

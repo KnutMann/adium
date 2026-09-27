@@ -17,6 +17,7 @@
 #import "AITypstEditorView.h"
 #import "AITypstRenderer.h"
 #import "AITypstHistory.h"
+#import "AITypstPlugin.h"
 
 #import <Adium/AIChat.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
@@ -674,6 +675,12 @@ static NSMutableDictionary *thumbnailCache = nil;
 - (void)forgetFormula:(id)sender
 {
 	[AITypstHistory forgetFormula:[sender representedObject]];
+}
+
+//The button in the message field that opened this editor; it stays usable, to close it again
+- (NSString *)messageEntryAccessoryIdentifier
+{
+	return FORMULA_ITEM_IDENTIFIER;
 }
 
 @end

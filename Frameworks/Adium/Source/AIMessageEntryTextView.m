@@ -146,6 +146,7 @@
 	maxCharacters = 0;
 	savedTextColor = nil;
 	accessoryButtons = nil;
+	disabledAccessoryIdentifiers = nil;
 	
 	if ([self respondsToSelector:@selector(setAllowsUndo:)]) {
 		[self setAllowsUndo:YES];
@@ -214,6 +215,7 @@
 	for (AIMessageEntryAccessoryButton *button in accessoryButtons)
 		button.messageEntryTextView = nil;
 	[accessoryButtons release];
+	[disabledAccessoryIdentifiers release];
     [chat release];
     [associatedView release];
     [historyArray release]; historyArray = nil;
@@ -1332,6 +1334,7 @@
 		for (AIMessageEntryAccessory *accessory in accessories) {
 			AIMessageEntryAccessoryButton *button = [[AIMessageEntryAccessoryButton alloc] initWithAccessory:accessory];
 			button.messageEntryTextView = self;
+			[button setEnabled:![disabledAccessoryIdentifiers containsObject:accessory.identifier]];
 			[accessoryButtons addObject:button];
 			[[self superview] addSubview:button];
 			[button release];
@@ -1359,6 +1362,23 @@
 	}
 
 	[[self enclosingScrollView] setNeedsDisplay:YES];
+}
+
+/**
+ * @brief Grey out the buttons named here, and no others
+ *
+ * Kept rather than applied once, so that a button made later, by a preference flipped
+ * while a shelf is open, comes up greyed out like the ones beside it.
+ */
+- (void)setDisabledAccessoryIdentifiers:(NSSet *)identifiers
+{
+	if (identifiers != disabledAccessoryIdentifiers) {
+		[disabledAccessoryIdentifiers release];
+		disabledAccessoryIdentifiers = [identifiers copy];
+	}
+
+	for (AIMessageEntryAccessoryButton *button in accessoryButtons)
+		[button setEnabled:![disabledAccessoryIdentifiers containsObject:button.accessory.identifier]];
 }
 
 /**

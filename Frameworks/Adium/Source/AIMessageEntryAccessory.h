@@ -73,6 +73,20 @@
 @end
 
 /*!
+ * @protocol AIMessageEntryShelf
+ * @brief A view on the shelf below the conversation names the button that opened it
+ *
+ * While a shelf is open, the buttons in the message field are greyed out, since the
+ * shelf has taken over what they would put into the message. The one that opened the
+ * shelf is the one that closes it again and stays usable; a shelf says which by
+ * answering this.
+ */
+@protocol AIMessageEntryShelf <NSObject>
+@optional
+- (NSString *)messageEntryAccessoryIdentifier;
+@end
+
+/*!
  * @class AIMessageEntryAccessoryButton
  * @brief The button in the field, which knows the field it stands in
  *

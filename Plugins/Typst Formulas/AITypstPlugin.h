@@ -16,6 +16,9 @@
 
 #import <Adium/AIPlugin.h>
 
+//The toolbar item and the button in the message field, and the name the editor answers with
+#define FORMULA_ITEM_IDENTIFIER		@"FormulaEditor"
+
 /*!
  * @class AITypstPlugin
  * @brief Formulas, written in Typst and sent as pictures

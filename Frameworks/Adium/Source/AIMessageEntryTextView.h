@@ -68,6 +68,7 @@
 	NSColor				*savedTextColor;
 
 	NSMutableArray		*accessoryButtons;
+	NSSet				*disabledAccessoryIdentifiers;
 }
 
 @property (readwrite, assign, atomic) id<AIMessageEntryTextViewDelegate, NSTextDelegate> delegate;
@@ -116,5 +117,7 @@
 //Accessory buttons at the right edge of the field, AIMessageEntryAccessory objects left to right
 - (void)setAccessories:(NSArray *)accessories;
 - (NSArray *)accessories;
+//! Grey out the buttons with these identifiers and no others; an empty set or nil enables them all
+- (void)setDisabledAccessoryIdentifiers:(NSSet *)identifiers;
 
 @end

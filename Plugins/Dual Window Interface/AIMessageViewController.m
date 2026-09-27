@@ -819,6 +819,7 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 	if (!inView) {
 		[self _destroyShelfSplitView];
 		[self updateFramesForAccountSelectionView];
+		[self _greyOutEntryAccessoriesForShelf:nil];
 		return;
 	}
 
@@ -832,6 +833,31 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 	[view_shelf addSubview:inView];
 
 	[self updateFramesForAccountSelectionView];
+	[self _greyOutEntryAccessoriesForShelf:inView];
+}
+
+/*!
+ * @brief While a shelf is open, the buttons in the message field stand back
+ *
+ * A shelf takes over what those buttons would put into the message, so all of them are greyed
+ * out but the one that opened the shelf, which is the one that closes it again. A shelf that
+ * does not name its button greys out every one.
+ */
+- (void)_greyOutEntryAccessoriesForShelf:(NSView *)shelf
+{
+	NSMutableSet *disabled = [NSMutableSet set];
+
+	if (shelf) {
+		NSString *opener = ([shelf respondsToSelector:@selector(messageEntryAccessoryIdentifier)] ?
+							[(id<AIMessageEntryShelf>)shelf messageEntryAccessoryIdentifier] : nil);
+
+		for (AIMessageEntryAccessory *accessory in [AIMessageEntryAccessory registeredAccessories]) {
+			if (![accessory.identifier isEqualToString:opener])
+				[disabled addObject:accessory.identifier];
+		}
+	}
+
+	[textView_outgoing setDisabledAccessoryIdentifiers:disabled];
 }
 
 /*!

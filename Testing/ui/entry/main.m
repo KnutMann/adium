@@ -119,6 +119,8 @@ int main(int argc, const char *argv[])
 		/* Left to right as the application registers them: the smiley last, so it keeps
 		 * the place at the edge it has always had. */
 		NSArray *jobs = @[@[@"three", @[formula, voice, emoticons]],
+						  //As while the formula editor is open: its own button usable, the others greyed out
+						  @[@"editor", @[formula, voice, emoticons], [NSSet setWithObjects:@"VoiceNote", @"Emoticons", nil]],
 						  @[@"one", @[emoticons]],
 						  @[@"none", @[]]];
 
@@ -163,12 +165,16 @@ int main(int argc, const char *argv[])
 				spin(0.4);
 
 				[field setAccessories:job[1]];
+				[field setDisabledAccessoryIdentifiers:(job.count > 2 ? job[2] : nil)];
 				[field setString:text];
 				spin(0.6);
 
 				NSArray *accessories = [field accessories];
-				fprintf(stderr, "%s/%s: %lu buttons, field %.0f wide in a %.0f wide clip view\n",
-						[job[0] UTF8String], [mode UTF8String], (unsigned long)accessories.count,
+				NSUInteger greyed = 0;
+				for (NSButton *button in field.superview.subviews)
+					if ([button isKindOfClass:[AIMessageEntryAccessoryButton class]] && !button.isEnabled) greyed++;
+				fprintf(stderr, "%s/%s: %lu buttons (%lu greyed out), field %.0f wide in a %.0f wide clip view\n",
+						[job[0] UTF8String], [mode UTF8String], (unsigned long)accessories.count, (unsigned long)greyed,
 						NSWidth(field.frame), NSWidth(field.superview.bounds));
 
 				writePNG(window, [outDir stringByAppendingPathComponent:
