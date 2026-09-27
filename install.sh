@@ -58,6 +58,27 @@ if [ "$(uname -m)" != "arm64" ]; then
 fi
 echo "Xcode: $(xcodebuild -version | head -1), machine: $(uname -m)"
 
+# The prebuilt libraries are in the repository, so a file missing here means a
+# checkout that did not finish, not a machine that is missing something. Said
+# now, by name, instead of three minutes later as a compiler error about a
+# header nobody has heard of.
+missing=""
+for needed in \
+	Frameworks/opus/include/opus/opus.h \
+	Frameworks/opus/include/ogg/ogg.h \
+	Frameworks/opus/lib/libopus.a \
+	Frameworks/opus/lib/libogg.a \
+	Frameworks/libpurple.framework/Headers/libpurple.h
+do
+	[ -e "$REPO/$needed" ] || missing="$missing  $needed\n"
+done
+if [ -n "$missing" ]; then
+	echo "These files belong to the repository but are not in this checkout:"
+	printf "$missing"
+	echo "Run 'git status' and 'git pull' in $REPO, then try again."
+	exit 1
+fi
+
 step "Fetching what is not in the repository"
 "$REPO/Dependencies/fetch.sh"
 
@@ -65,9 +86,31 @@ step "Verifying the checked-in protocol plug-ins"
 "$REPO/Utilities/verify-purple-plugins.sh"
 
 step "Building Adium ($CONFIGURATION)"
-xcodebuild -project Adium.xcodeproj -scheme "$SCHEME" \
+# The project settings name a certificate that exists only on the machine this
+# fork is developed on. Without it, sign ad hoc: the application then runs here
+# but cannot be handed to anybody else, which is what a build from source is for.
+SIGNING_OVERRIDES=()
+# Guarded with [@]+ below, because bash 3.2, which is the bash on every Mac,
+# calls an empty array an unbound variable under set -u.
+if ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Local Signing"'; then
+	echo "No 'Adium Local Signing' certificate in this keychain; signing ad hoc"
+	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
+fi
+
+# The status of xcodebuild, not of the grep it is piped through. Piped, the
+# shell reports the last command in the pipe, and grep is happy to have found
+# the line that says the build failed. This script used to read that as success
+# and carry on to install an application it had not built.
+set -o pipefail
+if ! xcodebuild -project Adium.xcodeproj -scheme "$SCHEME" \
 	SYMROOT="$REPO/build" OBJROOT="$REPO/build/Intermediates" \
-	build | grep -E "^\*\* BUILD|error:" || { echo "Build failed; run xcodebuild yourself for the full log."; exit 1; }
+	${SIGNING_OVERRIDES[@]+"${SIGNING_OVERRIDES[@]}"} \
+	build | grep -E "^\*\* BUILD|error:"
+then
+	echo "Build failed; run xcodebuild yourself for the full log."
+	exit 1
+fi
+set +o pipefail
 
 APP="$REPO/build/$CONFIGURATION/Adium.app"
 [ -d "$APP" ] || { echo "FAIL: no application at $APP"; exit 1; }
