@@ -1499,8 +1499,25 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 {
     if (self.online && [inType isEqualToString:CONTENT_FILE_TRANSFER_TYPE]) {
 		if (inContact) {
+			/* Whether somebody can be sent a file is the protocol's answer to give,
+			 * and it gives it through can_receive_file, which is what
+			 * -allowFileTransferWithListObject: asks. Presence used to be asked as
+			 * well, and on a protocol that publishes none it shut the door on every
+			 * contact there is.
+			 *
+			 * What that looked like: a picture sent to a WhatsApp contact arrived as
+			 * an empty message. The picture is taken out of the message to be sent
+			 * as a file, the file send is refused here without a word, and what is
+			 * left of the message, which is nothing, goes out by itself. Two ticks
+			 * and an empty bubble. Measured in the log: the same picture into a group
+			 * went as a media message, because a group asks a different question and
+			 * never came past here.
+			 *
+			 * A protocol that really does need somebody present says so in
+			 * can_receive_file, and one that answers nothing gets a transfer that
+			 * fails in the open rather than a send that never happens. */
 			return ([self conformsToProtocol:@protocol(AIAccount_Files)] &&
-					((inContact.online || inContact.isStranger) && [self allowFileTransferWithListObject:inContact]));
+					[self allowFileTransferWithListObject:inContact]);
 		} else {
 			return [self conformsToProtocol:@protocol(AIAccount_Files)];
 		}
