@@ -15,23 +15,26 @@
  */
 
 #import "AIVoiceNotePlugin.h"
+#import "AIVoiceNoteShelfView.h"
 #import "AIVoiceRecorder.h"
+#import "AIMessageViewController.h"
+#import <Adium/AIChat.h>
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIToolbarControllerProtocol.h>
-#import <Adium/AITextAttachmentExtension.h>
 #import <Adium/AIMessageEntryAccessory.h>
+#import <Adium/AIMessageEntryTextView.h>
 #import <Adium/AIPreferenceControllerProtocol.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <AIUtilities/AIToolbarUtilities.h>
-#import <AIUtilities/AIWindowAdditions.h>
 
-#define VOICE_ITEM_IDENTIFIER @"VoiceNote"
 #define KEY_VOICE_NOTE_BUTTON @"Voice Note Button"
 
 @interface AIVoiceNotePlugin ()
 - (void)registerToolbarItem;
-- (IBAction)toggleRecording:(id)sender;
-- (NSTextView *)entryFieldForSender:(id)sender;
+- (IBAction)toggleRecorder:(id)sender;
+- (AIChat *)chatForSender:(id)sender;
+- (AIChat *)chatForToolbar:(NSToolbarItem *)senderItem;
+- (void)recorderStateDidChange:(NSNotification *)notification;
 @end
 
 @implementation AIVoiceNotePlugin
@@ -45,16 +48,22 @@
 	[AIMessageEntryAccessory registerAccessory:
 	 [AIMessageEntryAccessory accessoryWithIdentifier:VOICE_ITEM_IDENTIFIER
 												 label:AILocalizedString(@"Record Voice Note", nil)
-											   toolTip:AILocalizedString(@"Record a voice note; click again to stop", nil)
+											   toolTip:AILocalizedString(@"Record a voice note", nil)
 												 image:[NSImage imageNamed:@"entry_voice" forClass:[self class]]
 										 preferenceKey:KEY_VOICE_NOTE_BUTTON
 												 group:PREF_GROUP_MESSAGE_ENTRY
 												target:self
-												action:@selector(toggleRecording:)]];
+												action:@selector(toggleRecorder:)]];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(recorderStateDidChange:)
+												 name:AIVoiceRecorderStateDidChangeNotification
+											   object:nil];
 }
 
 - (void)uninstallPlugin
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[ticker invalidate];
 	ticker = nil;
 	[AIMessageEntryAccessory unregisterAccessoryWithIdentifier:VOICE_ITEM_IDENTIFIER];
@@ -124,31 +133,128 @@
 	toolbarItem = [AIToolbarUtilities toolbarItemWithIdentifier:VOICE_ITEM_IDENTIFIER
 														  label:AILocalizedString(@"Voice", "Toolbar button that records a voice note")
 												   paletteLabel:AILocalizedString(@"Record Voice Note", nil)
-														toolTip:AILocalizedString(@"Record a voice note; click again to stop", nil)
+														toolTip:AILocalizedString(@"Record a voice note", nil)
 														 target:self
 												settingSelector:@selector(setImage:)
 													itemContent:microphone
-														 action:@selector(toggleRecording:)
+														 action:@selector(toggleRecorder:)
 														   menu:nil];
 
 	[adium.toolbarController registerToolbarItem:toolbarItem forToolbarType:@"TextEntry"];
 }
 
+//Opening the recorder ---------------------------------------------------------------------------------------------------
+#pragma mark Opening the recorder
+
 /*!
- * @brief Where a message is being written right now
+ * @brief Which conversation a click means
  *
- * A button in a message field says which field it stands in. A toolbar item does not, and asks
- * the same question the link editor asks, with the same answer: the field the key window is
- * typing into. Between start and stop the button that started the recording is remembered, so
- * the note lands in the conversation it was spoken for even if another has become key since.
+ * A button in a message field belongs to that field's chat, and a toolbar item is answered from
+ * its own window, not from whichever chat happens to be frontmost. Either can be clicked in a
+ * window that is not key, and taking the active chat then would open the recorder on the wrong
+ * conversation.
  */
-- (NSTextView *)entryFieldForSender:(id)sender
+- (AIChat *)chatForSender:(id)sender
 {
 	if ([sender isKindOfClass:[AIMessageEntryAccessoryButton class]])
-		return (NSTextView *)[(AIMessageEntryAccessoryButton *)sender messageEntryTextView];
+		return [(AIMessageEntryAccessoryButton *)sender messageEntryTextView].chat;
+	else if ([sender isKindOfClass:[NSToolbarItem class]])
+		return [self chatForToolbar:(NSToolbarItem *)sender];
+	else
+		return adium.interfaceController.activeChat;
+}
 
-	NSWindow *key = [NSApp keyWindow];
-	return (NSTextView *)[key earliestResponderOfClass:[NSTextView class]];
+- (AIChat *)chatForToolbar:(NSToolbarItem *)senderItem
+{
+	NSToolbar *senderToolbar = [senderItem toolbar];
+
+	for (NSWindow *currentWindow in [NSApp windows]) {
+		if ([currentWindow toolbar] && ([currentWindow toolbar] == senderToolbar))
+			return [adium.interfaceController activeChatInWindow:currentWindow];
+	}
+
+	return nil;
+}
+
+/*!
+ * @brief The microphone button was pressed
+ *
+ * With no recorder open in that conversation it opens one and starts recording. With one open
+ * the same button pauses and resumes, and never closes: a note is only ever thrown away by the
+ * bin on the shelf, which is a deliberate act, not a second click on the button that began it.
+ *
+ * There is one recorder for the whole application, so a note under way in another conversation
+ * is not interrupted from here; it is said where the other one is.
+ */
+- (IBAction)toggleRecorder:(id)sender
+{
+	AIChat *chat = [self chatForSender:sender];
+	AIMessageViewController *messageViewController = chat.chatContainer.messageViewController;
+	if (!messageViewController) return;
+
+	NSView *shelf = [messageViewController shelfView];
+	if ([shelf isKindOfClass:[AIVoiceNoteShelfView class]]) {
+		[(AIVoiceNoteShelfView *)shelf togglePause:sender];
+		return;
+	}
+
+	if ([[AIVoiceRecorder sharedRecorder] holdsRecording]) {
+		[adium.interfaceController handleErrorMessage:AILocalizedString(@"Voice note", nil)
+									  withDescription:AILocalizedString(@"A voice note is already being recorded in another conversation.", nil)];
+		return;
+	}
+
+	if ([messageViewController shelfIsBusy]) {
+		NSBeep();
+		return;
+	}
+
+	AIVoiceNoteShelfView *recorder = [[AIVoiceNoteShelfView alloc] initWithChat:chat];
+	[messageViewController setShelfView:recorder];
+	[recorder startRecording];
+}
+
+//Keeping the buttons in step --------------------------------------------------------------------------------------------
+#pragma mark Keeping the buttons in step
+
+/*!
+ * @brief The recorder began, paused, resumed or finished
+ *
+ * The toolbar item shows the dot and counts while the microphone is open, in every window, since
+ * a toolbar cannot tell which conversation is recording. The button in a message field shows the
+ * dot only in the conversation whose shelf holds the recorder, which is the one it belongs to.
+ */
+- (void)recorderStateDidChange:(NSNotification *)notification
+{
+	BOOL recording = [[AIVoiceRecorder sharedRecorder] isRecording];
+
+	[toolbarItem setImage:[self microphoneRecording:recording]];
+	if (recording) {
+		if (!ticker) {
+			ticker = [NSTimer scheduledTimerWithTimeInterval:1.0
+													  target:self
+													selector:@selector(showElapsed)
+													userInfo:nil
+													 repeats:YES];
+		}
+		[self showElapsed];
+	} else {
+		[ticker invalidate];
+		ticker = nil;
+		[toolbarItem setLabel:AILocalizedString(@"Voice", "Toolbar button that records a voice note")];
+	}
+
+	for (AIChat *chat in adium.interfaceController.openChats) {
+		AIMessageViewController *messageViewController = chat.chatContainer.messageViewController;
+		AIMessageEntryAccessoryButton *button = [[messageViewController textEntryView] accessoryButtonWithIdentifier:VOICE_ITEM_IDENTIFIER];
+		if (!button) continue;
+
+		BOOL here = (recording && [[messageViewController shelfView] isKindOfClass:[AIVoiceNoteShelfView class]]);
+		[button setImage:(here ?
+						  [self recordingDotOn:button.accessory.image
+									 described:AILocalizedString(@"Recording a voice note", "The microphone button while it is listening")] :
+						  button.accessory.image)];
+	}
 }
 
 - (void)showElapsed
@@ -156,94 +262,8 @@
 	AIVoiceRecorder *recorder = [AIVoiceRecorder sharedRecorder];
 	if (!recorder.recording) return;
 
-	NSInteger seconds = (NSInteger)recorder.elapsed;
+	NSInteger seconds = (NSInteger)recorder.duration;
 	[toolbarItem setLabel:[NSString stringWithFormat:@"%ld:%02ld", (long)(seconds / 60), (long)(seconds % 60)]];
-}
-
-- (void)stopTicking
-{
-	[ticker invalidate];
-	ticker = nil;
-	[toolbarItem setLabel:AILocalizedString(@"Voice", "Toolbar button that records a voice note")];
-	[toolbarItem setImage:[self microphoneRecording:NO]];
-	[recordingButton setImage:recordingButton.accessory.image];
-	recordingButton = nil;
-}
-
-- (IBAction)toggleRecording:(id)sender
-{
-	AIVoiceRecorder *recorder = [AIVoiceRecorder sharedRecorder];
-
-	if (recorder.recording) {
-		AIMessageEntryAccessoryButton *startedFrom = recordingButton;
-		[self stopTicking];
-
-		__weak __typeof__(self) weakSelf = self;
-		[recorder stopAndWrite:^(NSString *path, NSTimeInterval duration, NSString *problem) {
-			if (!path) {
-				if (problem) [adium.interfaceController handleErrorMessage:AILocalizedString(@"Voice note", nil)
-														  withDescription:problem];
-				return;
-			}
-			[weakSelf placeNoteAtPath:path lasting:duration into:[weakSelf entryFieldForSender:(startedFrom ? startedFrom : sender)]];
-		}];
-		return;
-	}
-
-	if (![self entryFieldForSender:sender]) return;			//nothing to put it in, so nothing to record
-
-	[recorder startWithCompletion:^(BOOL began, NSString *problem) {
-		if (!began) {
-			if (problem) [adium.interfaceController handleErrorMessage:AILocalizedString(@"Voice note", nil)
-													  withDescription:problem];
-			return;
-		}
-
-		[self->toolbarItem setImage:[self microphoneRecording:YES]];
-		if ([sender isKindOfClass:[AIMessageEntryAccessoryButton class]]) {
-			self->recordingButton = sender;
-			[self->recordingButton setImage:[self recordingDotOn:self->recordingButton.accessory.image
-														   described:AILocalizedString(@"Recording a voice note", "The microphone button while it is listening")]];
-		}
-		self->ticker = [NSTimer scheduledTimerWithTimeInterval:1.0
-														target:self
-													  selector:@selector(showElapsed)
-													  userInfo:nil
-													   repeats:YES];
-	}];
-}
-
-/*!
- * @brief Put the finished note where the message is being written
- *
- * As an attachment, the way a formula is placed, so that the send path that carries pictures
- * and files carries this too and there is nothing new to go wrong. What is drawn in the field
- * is a microphone and the length, since a sound has no picture of its own.
- */
-- (void)placeNoteAtPath:(NSString *)path lasting:(NSTimeInterval)duration into:(NSTextView *)field
-{
-	if (!field) return;
-
-	NSString *shown = [NSString stringWithFormat:AILocalizedString(@"Voice note (%ld:%02ld)",
-								"A recorded voice note in the entry field, with its length"),
-					   (long)(duration / 60), (long)((NSInteger)duration % 60)];
-
-	AITextAttachmentExtension *attachment = [[AITextAttachmentExtension alloc] init];
-	[attachment setPath:path];
-	[attachment setString:shown];
-	[attachment setShouldSaveImageForLogging:NO];
-	//A note said is part of the conversation, so the chat keeps a player for it once it is sent
-	[attachment setLeavesLinkWhenSent:YES];
-
-	NSImage *icon = [NSImage imageWithSystemSymbolName:@"waveform" accessibilityDescription:shown];
-	if (icon) {
-		[icon setSize:NSMakeSize(18, 18)];
-		[attachment setImage:icon];
-		[attachment setAttachmentCell:[[NSTextAttachmentCell alloc] initImageCell:icon]];
-	}
-
-	[field insertText:[NSAttributedString attributedStringWithAttachment:attachment]
-	 replacementRange:[field selectedRange]];
 }
 
 @end

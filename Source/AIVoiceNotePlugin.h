@@ -16,21 +16,20 @@
 
 #import <Adium/AIPlugin.h>
 
-@class AIMessageEntryAccessoryButton;
+//The toolbar item and the button in the message field, and the name the recorder's shelf answers with
+#define VOICE_ITEM_IDENTIFIER		@"VoiceNote"
 
 /*!
  * @class AIVoiceNotePlugin
- * @brief A button that records, and puts what it recorded where a message is written
+ * @brief A button that opens the recorder on the conversation's shelf
  *
- * The recording does not go anywhere by itself. It is placed in the entry field as an
- * attachment, exactly as a formula is, which means a sentence can stand beside it, it can be
- * thought better of, and every step after that is the sending that was already there.
+ * The recorder itself is AIVoiceNoteShelfView. It belongs to one conversation, records, pauses,
+ * plays back and sends; the button here opens it, and while it is open the same button pauses
+ * and resumes. The toolbar item is the same button for people who keep the message field bare.
  */
 @interface AIVoiceNotePlugin : AIPlugin {
 	NSToolbarItem	*toolbarItem;
 	NSTimer			*ticker;
-	//The button in a message field the recording was started from, if it was one
-	__weak AIMessageEntryAccessoryButton *recordingButton;
 }
 
 @end

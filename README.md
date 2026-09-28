@@ -69,10 +69,11 @@ Current version: **1.8.0**.
   address, with the classic file transfer as the fallback
 * **Bonjour is back**: chatting with the people on the same network,
   with no server.
-* **Voice messages**: record one from the conversation's toolbar, or from
-  a button beside the message field, and it goes into the message you
-  are writing, sent the way other clients expect it so they play it
-  rather than offer a download
+* **Voice messages**: a recorder on a shelf below the conversation,
+  opened from the toolbar or from a button beside the message field.
+  Record, pause, listen to it, then send it with the arrow; it goes out
+  the way other clients expect it, so they play it rather than offer a
+  download
 * OTR migrated to the libotr 4.x API, and OMEMO (XEP-0384) added beside
   it, which is what other XMPP clients encrypt with today
 * Removed services whose networks no longer exist: AIM, ICQ, MSN,
