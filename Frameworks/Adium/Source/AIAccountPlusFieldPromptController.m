@@ -75,7 +75,7 @@
 														  account:account 
 															  UID:UID];
 		} else {			
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedStringFromTableInBundle(@"Contact not found",
 																	 nil,
 																	 [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
@@ -165,11 +165,6 @@
     return self;
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-}
-
 // Setup the window before it is displayed
 - (void)windowDidLoad
 {
@@ -182,9 +177,9 @@
 	[textField_handle setMinStringLength:2];
 	
 	// Account menu
-	accountMenu = [[AIAccountMenu accountMenuWithDelegate:self
-											  submenuType:AIAccountNoSubmenu
-										   showTitleVerbs:NO] retain];
+	accountMenu = [AIAccountMenu accountMenuWithDelegate:self
+											 submenuType:AIAccountNoSubmenu
+										  showTitleVerbs:NO];
 	[self _restoreLastAccountIfPossible];
 	[self AI_configureTextFieldForAccount:[[popUp_service selectedItem] representedObject]];
 
@@ -201,7 +196,8 @@
 {
 	[super windowWillClose:sender];
 	
-	[accountMenu release];
+	//Let the account menu go now, so it stops observing before the window is torn down
+	accountMenu = nil;
 	
 	[[self class] destroySharedInstance];
 }
@@ -241,13 +237,13 @@
 		if ([self accountMenu:inAccountMenu shouldIncludeAccount:account]) {
 			numberOfOnlineAccounts += 1;
 			if (numberOfOnlineAccounts > 1) {
-				anyItem = [[[NSMenuItem alloc] initWithTitle:
-							AILocalizedStringFromTableInBundle(@"Any",
-															   nil,
-															   [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
-															   nil)
-													  action:nil
-											   keyEquivalent:@""] autorelease];
+				anyItem = [[NSMenuItem alloc] initWithTitle:
+						   AILocalizedStringFromTableInBundle(@"Any",
+															  nil,
+															  [NSBundle bundleForClass:[AIAccountPlusFieldPromptController class]],
+															  nil)
+													 action:nil
+											  keyEquivalent:@""];
 				break;
 			}
 		}

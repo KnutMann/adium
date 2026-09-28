@@ -37,12 +37,13 @@
 
 + (void)popUpMenuForTextView:(AIMessageEntryTextView *)aTextView atPoint:(NSPoint)aPoint
 {
-	/* The menu runs synchronously inside the initializer, so by the time the
-	 * autorelease pool drains, tracking is over and the controller may go. The
-	 * nib's top level objects are handed out unowned (see AIBundleAdditions)
-	 * and stay behind; that mirrors the user picture menu, which lives the
-	 * same way. */
-	[[[self alloc] initWithNibName:@"MessageViewEmoticonsMenu" textView:aTextView atPoint:aPoint] autorelease];
+	/* Nobody owns this controller, and it is still the menu's and the collection view's
+	 * delegate when the menu is done being built. The pool is its home until the current
+	 * event is over: the menu runs synchronously inside the initializer, so by the time the
+	 * pool drains, tracking is over and the controller may go. The nib's top level objects
+	 * are handed out unowned (see AIBundleAdditions) and stay behind; that mirrors the user
+	 * picture menu, which lives the same way. */
+	CFAutorelease(CFBridgingRetain([[self alloc] initWithNibName:@"MessageViewEmoticonsMenu" textView:aTextView atPoint:aPoint]));
 }
 
 /*!
@@ -120,16 +121,6 @@
 	}
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[textView release];
-	[emoticons release];
-	[emoticonTitles release];
-	[emoticonSymbols release];
-
-	[super dealloc];
 }
 
 #pragma mark - AIImageCollectionView delegate

@@ -71,7 +71,7 @@
 	NSSet				*disabledAccessoryIdentifiers;
 }
 
-@property (readwrite, assign, atomic) id<AIMessageEntryTextViewDelegate, NSTextDelegate> delegate;
+@property (readwrite, unsafe_unretained, atomic) id<AIMessageEntryTextViewDelegate, NSTextDelegate> delegate;
 
 //Configure
 @property (readwrite, nonatomic) BOOL clearOnEscape;

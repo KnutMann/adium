@@ -233,8 +233,8 @@ static NSArray *AIContactKeysToFetch(void)
 
 		//If Address Book integration is enabled, we need those preferences to determine contact's names
 		if (enableImport) {
-			displayFormat = [[adium.preferenceController preferenceForKey:KEY_AB_DISPLAYFORMAT
-																	group:PREF_GROUP_ADDRESSBOOK] retain];
+			displayFormat = [adium.preferenceController preferenceForKey:KEY_AB_DISPLAYFORMAT
+																   group:PREF_GROUP_ADDRESSBOOK];
 			useFirstName = [[adium.preferenceController preferenceForKey:KEY_AB_USE_FIRSTNAME
 																   group:PREF_GROUP_ADDRESSBOOK] boolValue];
 			useNickNameOnly = [[adium.preferenceController preferenceForKey:KEY_AB_USE_NICKNAME
@@ -244,8 +244,6 @@ static NSArray *AIContactKeysToFetch(void)
 		//If old format-menu preference is set, perform migration
 		if ([adium.preferenceController preferenceForKey:@"AB Display Format" group:PREF_GROUP_ADDRESSBOOK]) {
 
-			[displayFormat release];
-
 			NSInteger oldPreference = [[adium.preferenceController preferenceForKey:@"AB Display Format" group:PREF_GROUP_ADDRESSBOOK] integerValue];
 
 			switch (oldPreference) {
@@ -253,7 +251,7 @@ static NSArray *AIContactKeysToFetch(void)
 					displayFormat = [[NSString alloc] initWithFormat:@"%@ %@", FORMAT_FIRST_FULL, FORMAT_LAST_FULL];
 					break;
 				case 1: //first
-					displayFormat = [FORMAT_FIRST_FULL retain];
+					displayFormat = FORMAT_FIRST_FULL;
 					break;
 				case 2: //lastfirst
 					displayFormat = [[NSString alloc] initWithFormat:@"%@, %@", FORMAT_LAST_FULL, FORMAT_FIRST_FULL];
@@ -282,8 +280,7 @@ static NSArray *AIContactKeysToFetch(void)
 		if ([displayFormat rangeOfString:@"]%["].location != NSNotFound) {
 			NSString *repaired = [displayFormat stringByReplacingOccurrencesOfString:@"]%[" withString:@"] %["];
 
-			[displayFormat release];
-			displayFormat = [repaired retain];
+			displayFormat = repaired;
 
 			[adium.preferenceController setPreference:displayFormat
 											   forKey:KEY_AB_DISPLAYFORMAT
@@ -293,7 +290,7 @@ static NSArray *AIContactKeysToFetch(void)
 		/* Which card field holds a name for which service. One entry: Jabber. What the modern
 		 * services are recognised by is not a field of their own but the number or the address on
 		 * the card, which is indexed separately. */
-		serviceDict = [[NSDictionary dictionaryWithObjectsAndKeys:AB_JABBER_INSTANT_PROPERTY,@"Jabber", nil] retain];
+		serviceDict = [NSDictionary dictionaryWithObjectsAndKeys:AB_JABBER_INSTANT_PROPERTY,@"Jabber", nil];
 
 		//The contact store, once we are allowed to read it
 		[self openAddressBookWhenAllowed];
@@ -328,9 +325,10 @@ static NSArray *AIContactKeysToFetch(void)
 			[self openAddressBook];
 			break;
 
-		case CNAuthorizationStatusNotDetermined:
-			[[[[CNContactStore alloc] init] autorelease] requestAccessForEntityType:CNEntityTypeContacts
-																 completionHandler:^(BOOL granted, NSError *error) {
+		case CNAuthorizationStatusNotDetermined: {
+			//Braced: the block below is an object whose lifetime the jump to the next label may not cross
+			[[[CNContactStore alloc] init] requestAccessForEntityType:CNEntityTypeContacts
+													completionHandler:^(BOOL granted, NSError *error) {
 				if (!granted)
 					return;
 
@@ -345,6 +343,7 @@ static NSArray *AIContactKeysToFetch(void)
 				});
 			}];
 			break;
+		}
 
 		default:
 			AILogWithSignature(@"No permission to read contacts; the address book stays closed");
@@ -354,7 +353,6 @@ static NSArray *AIContactKeysToFetch(void)
 
 - (void)openAddressBook
 {
-	[sharedStore release];
 	sharedStore = [[CNContactStore alloc] init];
 }
 
@@ -423,26 +421,22 @@ static NSArray *AIContactKeysToFetch(void)
 	[adium.preferenceController unregisterPreferenceObserver:addressBookController];
 	[[NSNotificationCenter defaultCenter] removeObserver:addressBookController];
 
-	[addressBookController release]; addressBookController = nil;
+	addressBookController = nil;
 }
 
 - (void)dealloc
 {
-	[serviceDict release]; serviceDict = nil;
+	//The file statics outlive the instance; clear them so a later start begins from nothing
+	serviceDict = nil;
 
-	[sharedStore release]; sharedStore = nil;
-	[personCache release]; personCache = nil;
-	[meUniqueId release]; meUniqueId = nil;
-	[addressBookDict release]; addressBookDict = nil;
-	[personUniqueIdToMetaContactDict release]; personUniqueIdToMetaContactDict = nil;
+	sharedStore = nil;
+	personCache = nil;
+	meUniqueId = nil;
+	addressBookDict = nil;
 
 	[[AIContactObserverManager sharedManager] unregisterListObjectObserver:self];
 	[adium.preferenceController unregisterPreferenceObserver:self];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[displayFormat release]; displayFormat = nil;
-
-	[super dealloc];
 }
 
 /*!
@@ -454,15 +448,15 @@ static NSArray *AIContactKeysToFetch(void)
 - (void)adiumFinishedLaunching:(NSNotification *)notification
 {
 	//Create our contextual menus
-	showInABContextualMenuItem = [[[NSMenuItem alloc] initWithTitle:SHOW_IN_AB_CONTEXTUAL_MENU_TITLE
-											   action:@selector(showInAddressBook)
-										    keyEquivalent:@""] autorelease];
+	showInABContextualMenuItem = [[NSMenuItem alloc] initWithTitle:SHOW_IN_AB_CONTEXTUAL_MENU_TITLE
+															action:@selector(showInAddressBook)
+													 keyEquivalent:@""];
 	[showInABContextualMenuItem setTarget:self];
 	[showInABContextualMenuItem setTag:AIRequiresAddressBookEntry];
 
-	editInABContextualMenuItem = [[[NSMenuItem alloc] initWithTitle:EDIT_IN_AB_CONTEXTUAL_MENU_TITLE
-											   action:@selector(editInAddressBook)
-										    keyEquivalent:@""] autorelease];
+	editInABContextualMenuItem = [[NSMenuItem alloc] initWithTitle:EDIT_IN_AB_CONTEXTUAL_MENU_TITLE
+															action:@selector(editInAddressBook)
+													 keyEquivalent:@""];
 	[editInABContextualMenuItem setTarget:self];
 	[editInABContextualMenuItem setKeyEquivalentModifierMask:NSEventModifierFlagOption];
 	[editInABContextualMenuItem setAlternate:YES];
@@ -753,7 +747,7 @@ static NSArray *AIContactKeysToFetch(void)
 	enableImport = [[prefDict objectForKey:KEY_AB_ENABLE_IMPORT] boolValue];
 	useFirstName = [[prefDict objectForKey:KEY_AB_USE_FIRSTNAME] boolValue];
 	useNickNameOnly = [[prefDict objectForKey:KEY_AB_USE_NICKNAME] boolValue];
-	displayFormat = [[prefDict objectForKey:KEY_AB_DISPLAYFORMAT] retain];
+	displayFormat = [prefDict objectForKey:KEY_AB_DISPLAYFORMAT];
 
 
 	createMetaContacts = [[prefDict objectForKey:KEY_AB_CREATE_METACONTACTS] boolValue];
@@ -1011,7 +1005,6 @@ static NSArray *AIContactKeysToFetch(void)
 
 	if (!me) return;
 
-	[meUniqueId release];
 	meUniqueId = [me.uniqueId copy];
 
 	//Default buddy icon
@@ -1067,10 +1060,10 @@ static NSArray *AIContactKeysToFetch(void)
 	//Delay listObjectNotifications to speed up metaContact creation
 	[[AIContactObserverManager sharedManager] delayListObjectNotifications];
 
-	[addressBookDict release]; addressBookDict = [[NSMutableDictionary alloc] init];
-	[personCache release]; personCache = [[NSMutableDictionary alloc] init];
+	addressBookDict = [[NSMutableDictionary alloc] init];
+	personCache = [[NSMutableDictionary alloc] init];
 
-	CNContactFetchRequest	*request = [[[CNContactFetchRequest alloc] initWithKeysToFetch:AIContactKeysToFetch()] autorelease];
+	CNContactFetchRequest	*request = [[CNContactFetchRequest alloc] initWithKeysToFetch:AIContactKeysToFetch()];
 	NSMutableArray			*people = [NSMutableArray array];
 
 	request.unifyResults = YES;
@@ -1183,8 +1176,8 @@ static NSArray *AIContactKeysToFetch(void)
 													forKey:uniqueId];
 				if (metaContact != metaContactHint) {
 					//Keep track of the use of this metacontact for this address book card
-					NSMutableDictionary *prefsDict = [[[adium.preferenceController preferenceForKey:KEY_AB_TO_METACONTACT_DICT
-																						   group:PREF_GROUP_ADDRESSBOOK] mutableCopy] autorelease];
+					NSMutableDictionary *prefsDict = [[adium.preferenceController preferenceForKey:KEY_AB_TO_METACONTACT_DICT
+																						  group:PREF_GROUP_ADDRESSBOOK] mutableCopy];
 					if (!prefsDict) prefsDict = [NSMutableDictionary dictionary];
 					[prefsDict setObject:[metaContact objectID]
 								  forKey:uniqueId];

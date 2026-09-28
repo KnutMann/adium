@@ -23,15 +23,9 @@
 {
 	if (!inContact) return nil;
 
-	AIAddressBookPerson *person = [[[self alloc] init] autorelease];
-	person->contact = [inContact retain];
+	AIAddressBookPerson *person = [[self alloc] init];
+	person->contact = inContact;
 	return person;
-}
-
-- (void)dealloc
-{
-	[contact release];
-	[super dealloc];
 }
 
 - (CNContact *)contact
@@ -98,11 +92,11 @@
 
 	if (![withImage isKeyAvailable:CNContactImageDataKey]) {
 		NSError *error = nil;
-		withImage = [[[[CNContactStore alloc] init] autorelease] unifiedContactWithIdentifier:contact.identifier
-																				  keysToFetch:[NSArray arrayWithObjects:
-																							   CNContactImageDataKey,
-																							   CNContactThumbnailImageDataKey, nil]
-																						error:&error];
+		withImage = [[[CNContactStore alloc] init] unifiedContactWithIdentifier:contact.identifier
+																	 keysToFetch:[NSArray arrayWithObjects:
+																				  CNContactImageDataKey,
+																				  CNContactThumbnailImageDataKey, nil]
+																		   error:&error];
 		if (!withImage) {
 			AILogWithSignature(@"Image fetch for %@ failed: %@", contact.identifier, error);
 			return nil;

@@ -56,8 +56,9 @@ static AINewMessagePromptController *sharedNewMessageInstance = nil;
 	/* The static holds the only reference, and this is reached from -windowWillClose: while
 	 * -[NSWindow close] is still running and still talking to the controller as its delegate
 	 * and window controller; the pool keeps it alive until the end of the run loop turn, which
-	 * is the timing the autorelease had. */
-	CFAutorelease(CFBridgingRetain(sharedNewMessageInstance));
+	 * is the timing the autorelease had. Guarded, as its sibling is: CFAutorelease of nothing is
+	 * a trap, where the autorelease it replaced was a no-op. */
+	if (sharedNewMessageInstance) CFAutorelease(CFBridgingRetain(sharedNewMessageInstance));
 	sharedNewMessageInstance = nil;
 }
 

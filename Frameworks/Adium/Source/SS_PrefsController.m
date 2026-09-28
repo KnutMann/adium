@@ -29,30 +29,30 @@
 
 + (id)preferencesWithPanesSearchPath:(NSString*)path bundleExtension:(NSString *)ext
 {
-    return [[[SS_PrefsController alloc] initWithPanesSearchPath:path bundleExtension:ext] autorelease];
+    return [[SS_PrefsController alloc] initWithPanesSearchPath:path bundleExtension:ext];
 }
 
 
 + (id)preferencesWithBundleExtension:(NSString *)ext
 {
-    return [[[SS_PrefsController alloc] initWithBundleExtension:ext] autorelease];
+    return [[SS_PrefsController alloc] initWithBundleExtension:ext];
 }
 
 
 + (id)preferencesWithPanesSearchPath:(NSString*)path
 {
-    return [[[SS_PrefsController alloc] initWithPanesSearchPath:path] autorelease];
+    return [[SS_PrefsController alloc] initWithPanesSearchPath:path];
 }
 
 
 + (id)preferences
 {
-    return [[[SS_PrefsController alloc] init] autorelease];
+    return [[SS_PrefsController alloc] init];
 }
 
 + (id)preferencesWithPanes:(NSArray *)inArray delegate:(id)inDelegate
 {
-	return [[[SS_PrefsController alloc] initWithPanes:inArray delegate:inDelegate] autorelease];
+	return [[SS_PrefsController alloc] initWithPanes:inArray delegate:inDelegate];
 }
 
 - (id)initWithPanesSearchPath:(NSString*)path
@@ -90,15 +90,15 @@
 {
     if ((self = [self init])) {
         if (!ext || [ext isEqualToString:@""]) {
-            bundleExtension = [[NSString alloc] initWithString:@"preferencePane"];
+            bundleExtension = @"preferencePane";
         } else {
-            bundleExtension = [ext retain];
+            bundleExtension = ext;
         }
         
         if (!path || [path isEqualToString:@""]) {
             searchPath = [[NSString alloc] initWithString:[[NSBundle mainBundle] resourcePath]];
         } else {
-            searchPath = [path retain];
+            searchPath = path;
         }
         
         // Read PreferencePanes
@@ -133,14 +133,6 @@
 - (void)dealloc
 {
 	[prefsWindow close]; prefsWindow = nil;
-	[prefsToolbar release];
-	[prefsToolbarItems release];
-	[preferencePanes release];
-	[panesOrder release];
-	[bundleExtension release];
-	[searchPath release];
-
-    [super dealloc];
 }
 
 
@@ -194,7 +186,9 @@
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
     [prefsWindow setDelegate:self];
-    [prefsWindow setReleasedWhenClosed:YES];
+	/* The ivar owns the window now; -windowWillClose: gives that reference up, at the moment
+	 * AppKit used to give up its own. Letting AppKit release it as well would be one too many. */
+    [prefsWindow setReleasedWhenClosed:NO];
     [prefsWindow setTitle:@"Preferences"]; // initial default title
 
     [self createPrefsToolbar];
@@ -240,7 +234,7 @@
     
     // Show alert dialog.
     NSString *appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
-    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:@"Preferences"];
     [alert setInformativeText:[NSString stringWithFormat:@"Preferences are not available for %@.", appName]];
     [alert addButtonWithTitle:@"OK"];
@@ -252,18 +246,20 @@
 
 - (void)destroyPreferencesWindow
 {
-	//Closing the window could release us; make sure we get to the end of the method to avoid double-releases
-	[self retain];
+	/* Closing the window tells the delegate, which may give up the last reference to this
+	 * controller while this method still has a line to run. Stay alive until the pool drains. */
+	CFAutorelease(CFBridgingRetain(self));
 
 	[prefsWindow close];
     prefsWindow = nil;
-
-	[self release];
 }
 
 - (void)windowWillClose:(NSNotification *)aNotification
 {
-	//Don't continue to work with prefsWindow
+	/* Don't continue to work with prefsWindow. The reference goes to the pool rather than away
+	 * on the spot: this runs from inside AppKit's own close, which goes on addressing the window
+	 * afterwards, and a window released when closed died after the current event, not during it. */
+	if (prefsWindow) CFAutorelease(CFBridgingRetain(prefsWindow));
 	prefsWindow = nil;
 
 	//Let the preference panes know we're closing	
@@ -352,7 +348,6 @@
 
         NSView *tempView = [[NSView alloc] initWithFrame:[[prefsWindow contentView] frame]];
         [prefsWindow setContentView:tempView];
-        [tempView release]; 
     }
     
     // Preserve upper left point of window during resize.
@@ -458,7 +453,6 @@ CGFloat ToolbarHeightForWindow(NSWindow *window)
             [item setTarget:self];
             [item setAction:@selector(prefsToolbarItemClicked:)]; // action called when item is clicked
             [prefsToolbarItems setObject:item forKey:identifier]; // add to items
-            [item release];
         } else {
             [self debugLog:[NSString stringWithFormat:@"Could not create toolbar item for preference pane \"%@\", because that pane does not exist.", identifier]];
         }

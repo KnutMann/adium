@@ -44,7 +44,7 @@
  */
 + (id)soundSetWithContentsOfFile:(NSString *)inPath
 {
-	return [[[self alloc] initWithContentsOfFile:inPath] autorelease];
+	return [[self alloc] initWithContentsOfFile:inPath];
 }
 
 /*!
@@ -60,20 +60,10 @@
 			return nil;
 		}
 
-		sourcePath = [inPath retain];
+		sourcePath = inPath;
 	}
 	
 	return self;
-}
-
-- (void)dealloc
-{
-	[name release]; name = nil;
-	[info release]; info = nil;
-	[sounds release]; sounds = nil;
-	[sourcePath release]; sourcePath = nil;
-
-	[super dealloc];
 }
 
 #pragma mark Accessors
@@ -112,7 +102,7 @@
 	NSBundle * xtraBundle = [NSBundle bundleWithPath:inPath];
 	if (xtraBundle && ([[xtraBundle objectForInfoDictionaryKey:@"XtraBundleVersion"] intValue] == 1)) {
 		inPath = [xtraBundle resourcePath];
-		name = [[xtraBundle objectForInfoDictionaryKey:@"CFBundleName"]retain];
+		name = [xtraBundle objectForInfoDictionaryKey:@"CFBundleName"];
 	}
 	
 	//If we don't have a Sound.plist, assume this is an old format soundset and attempt to upgrade it
@@ -131,7 +121,7 @@
 				   toPath:[newFolder stringByAppendingPathComponent:[inPath lastPathComponent]]
 				  error:NULL];
 
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"Sound set upgrade failed", nil)];
 			[alert setInformativeText:[NSString stringWithFormat:
 									   AILocalizedString(@"This version of Adium uses a new format for sound sets. Adium was not able to update the sound set %@ located at %@. It has been disabled.", nil),
@@ -150,8 +140,8 @@
 		if (version == 1) {			
 			//Retrieve the set name and information
 			if(!name) //this will have been set from info.plist if it's a new-format xtra
-				name = [[[inPath lastPathComponent] stringByDeletingPathExtension] retain];
-			info = [[soundSet objectForKey:SOUNDSET_INFO] retain];
+				name = [[inPath lastPathComponent] stringByDeletingPathExtension];
+			info = [soundSet objectForKey:SOUNDSET_INFO];
 			
 			//Search locations.  If none are provided, search within the soundset folder.
 			NSArray *locations = [soundSet objectForKey:SOUNDSET_SOUND_LOCATIONS];
@@ -168,7 +158,7 @@
 			}
 			
 		} else {
-			NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+			NSAlert *alert = [[NSAlert alloc] init];
 			[alert setMessageText:AILocalizedString(@"Cannot open sound set", nil)];
 			[alert setInformativeText:[NSString stringWithFormat:
 									   AILocalizedString(@"The sound set %@ is version %i, and this version of Adium does not know how to handle that; perhaps try a later version of Adium.", nil),
