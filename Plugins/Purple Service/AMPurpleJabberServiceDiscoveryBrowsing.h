@@ -20,7 +20,7 @@
 
 @interface AMPurpleJabberServiceDiscoveryBrowsing : NSObject {
     PurpleConnection *gc;
-	AIAccount *account;
+	__unsafe_unretained AIAccount *account; //Not retained: the account owns this object
 	
 	NSMutableArray *browsers;
 	AMPurpleJabberNode *rootnode;

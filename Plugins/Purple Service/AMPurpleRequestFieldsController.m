@@ -89,12 +89,6 @@
 
 @implementation AMPurpleRequestFieldString
 
-- (void)dealloc
-{
-	[textField release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
 	//An invisible field is not shown, and -submit answers it with its default
@@ -136,12 +130,6 @@
 
 @implementation AMPurpleRequestFieldMultilineString
 
-- (void)dealloc
-{
-	[textView release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
 	if (!purple_request_field_is_visible(field)) return;
@@ -149,7 +137,7 @@
 	const char *defaultvalue = purple_request_field_string_get_default_value(field);
 	NSRect frame = NSMakeRect(0, 0, 220.0, 72.0);
 
-	NSScrollView *scrollView = [[[NSScrollView alloc] initWithFrame:frame] autorelease];
+	NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:frame];
 	[scrollView setBorderType:NSBezelBorder];
 	[scrollView setHasVerticalScroller:YES];
 	[scrollView setAutohidesScrollers:YES];
@@ -188,12 +176,6 @@
 
 @implementation AMPurpleRequestFieldInteger
 
-- (void)dealloc
-{
-	[textField release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
 	textField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100.0, 24.0)];
@@ -201,7 +183,7 @@
 
 	/* The formatter is what the old HTML form never had: it refuses non-digits at the
 	 * source instead of silently reading them as zero on submit. */
-	NSNumberFormatter *formatter = [[[NSNumberFormatter alloc] init] autorelease];
+	NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
 	[formatter setNumberStyle:NSNumberFormatterNoStyle];
 	[formatter setAllowsFloats:NO];
 	[textField setFormatter:formatter];
@@ -229,15 +211,9 @@
 
 @implementation AMPurpleRequestFieldBoolean
 
-- (void)dealloc
-{
-	[toggle release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
-	toggle = [[AISettingsFormView switchWithTarget:nil action:NULL] retain];
+	toggle = [AISettingsFormView switchWithTarget:nil action:NULL];
 	[toggle setState:(purple_request_field_bool_get_default_value(field) ? NSControlStateValueOn : NSControlStateValueOff)];
 
 	[form addRowWithLabel:[self rowLabel] control:toggle];
@@ -259,12 +235,6 @@
 
 @implementation AMPurpleRequestFieldChoice
 
-- (void)dealloc
-{
-	[popUp release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
 	NSMutableArray *titles = [NSMutableArray array];
@@ -274,7 +244,7 @@
 	}
 	if (![titles count]) return;
 
-	popUp = [[AISettingsFormView popUpButtonWithTitles:titles target:nil action:NULL] retain];
+	popUp = [AISettingsFormView popUpButtonWithTitles:titles target:nil action:NULL];
 
 	NSInteger defaultvalue = purple_request_field_choice_get_default_value(field);
 	if (defaultvalue >= 0 && defaultvalue < [popUp numberOfItems])
@@ -301,12 +271,6 @@
 
 @implementation AMPurpleRequestFieldList
 
-- (void)dealloc
-{
-	[popUp release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
 	NSMutableArray	*titles = [NSMutableArray array];
@@ -319,7 +283,7 @@
 	}
 	if (![titles count]) return;
 
-	popUp = [[AISettingsFormView popUpButtonWithTitles:titles target:nil action:NULL] retain];
+	popUp = [AISettingsFormView popUpButtonWithTitles:titles target:nil action:NULL];
 	if (selectedIndex >= 0) [popUp selectItemAtIndex:selectedIndex];
 
 	[form addRowWithLabel:[self rowLabel] popUpButton:popUp accessoryButton:nil];
@@ -352,12 +316,6 @@
 
 @implementation AMPurpleRequestFieldMultiList
 
-- (void)dealloc
-{
-	[checkBoxes release];
-	[super dealloc];
-}
-
 - (void)addToForm:(AISettingsFormView *)form
 {
 	checkBoxes = [[NSMutableArray alloc] init];
@@ -365,7 +323,7 @@
 	for (const GList *item = purple_request_field_list_get_items(field); item; item = g_list_next(item)) {
 		if (!item->data) continue;
 
-		NSButton *checkBox = [[[NSButton alloc] initWithFrame:NSZeroRect] autorelease];
+		NSButton *checkBox = [[NSButton alloc] initWithFrame:NSZeroRect];
 		[checkBox setButtonType:NSButtonTypeSwitch];
 		[checkBox setTitle:[NSString stringWithUTF8String:item->data]];
 		[checkBox setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
@@ -381,7 +339,7 @@
 	CGFloat rowHeight = NSHeight([[checkBoxes objectAtIndex:0] frame]);
 	CGFloat totalHeight = ([checkBoxes count] * rowHeight) + (([checkBoxes count] - 1) * spacing);
 
-	NSView *column = [[[NSView alloc] initWithFrame:NSMakeRect(0, 0, 220.0, totalHeight)] autorelease];
+	NSView *column = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 220.0, totalHeight)];
 	CGFloat y = totalHeight;
 
 	for (NSButton *checkBox in checkBoxes) {
@@ -427,6 +385,13 @@
 
 @implementation AMPurpleRequestFieldsController
 
+/* The ownership home of every open form. libpurple holds one reference, the request handle
+ * that adiumPurpleRequestFields returns, and gives it back through -purpleRequestClose; this set
+ * holds the other for as long as the window is shown, and -windowWillClose: takes it back out.
+ * Under manual counting that second reference was a [self retain] in init and a [self autorelease]
+ * on close. The same design as ESTextAndButtonsWindowController. */
+static NSMutableSet *openRequestFieldsControllers = nil;
+
 - (id)initWithTitle:(NSString*)title
         primaryText:(NSString*)primary
       secondaryText:(NSString*)secondary
@@ -461,7 +426,7 @@
 		CGFloat		 contentWidth = REQUEST_WINDOW_WIDTH - 2.0 * REQUEST_MARGIN;
 
 		//The form: one row per field, one card per group
-		AISettingsFormView *form = [[[AISettingsFormView alloc] initWithWidth:REQUEST_WINDOW_WIDTH] autorelease];
+		AISettingsFormView *form = [[AISettingsFormView alloc] initWithWidth:REQUEST_WINDOW_WIDTH];
 
 		GList	*groups = purple_request_fields_get_groups(fields);
 		BOOL	 severalGroups = (g_list_length(groups) > 1);
@@ -511,7 +476,6 @@
 					AMPurpleRequestField *fieldobject = [[fieldClass alloc] initWithRequestField:field];
 					[fieldobjects addObject:fieldobject];
 					[fieldobject addToForm:form];
-					[fieldobject release];
 				}
 			}
 		}
@@ -547,7 +511,7 @@
 		CGFloat formHeight = [form totalHeight];
 		CGFloat formDisplayHeight = MIN(formHeight, REQUEST_FORM_MAX_HEIGHT);
 
-		NSScrollView *scrollView = [[[NSScrollView alloc] initWithFrame:NSMakeRect(0, y, REQUEST_WINDOW_WIDTH, formDisplayHeight)] autorelease];
+		NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, y, REQUEST_WINDOW_WIDTH, formDisplayHeight)];
 		[scrollView setBorderType:NSNoBorder];
 		[scrollView setDrawsBackground:NO];
 		[scrollView setHasVerticalScroller:YES];
@@ -586,18 +550,13 @@
 
 		[self showWindow:nil];
 		[[self window] makeKeyAndOrderFront:nil];
+
+		//Kept alive as long as the form is open; see -windowWillClose:
+		if (!openRequestFieldsControllers) openRequestFieldsControllers = [[NSMutableSet alloc] init];
+		[openRequestFieldsControllers addObject:self];
 	}
 
-	[window release];
-
-	return [self retain]; //Kept alive as long as the form is open; see -windowWillClose:
-}
-
-- (void)dealloc
-{
-	[fieldobjects release];
-
-	[super dealloc];
+	return self;
 }
 
 /*!
@@ -605,7 +564,7 @@
  */
 - (NSTextField *)wrappedLabelWithString:(NSString *)string font:(NSFont *)font width:(CGFloat)width
 {
-	NSTextField *label = [[[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, width, 17.0)] autorelease];
+	NSTextField *label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, width, 17.0)];
 
 	[label setStringValue:string];
 	[label setFont:font];
@@ -660,8 +619,11 @@
 {
 	[super windowWillClose:sender];
 
-	//Balances the retain in init, on every close path; super has already told libpurple
-	[self autorelease];
+	/* Out of the set on every close path; super has already told libpurple. Not before this
+	 * turn of the run loop ends: we are inside AppKit's own close, which goes on addressing
+	 * this object afterwards. */
+	CFAutorelease(CFBridgingRetain(self));
+	[openRequestFieldsControllers removeObject:self];
 }
 
 /*!

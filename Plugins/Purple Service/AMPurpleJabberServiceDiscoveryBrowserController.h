@@ -22,7 +22,7 @@
 
 @interface AMPurpleJabberServiceDiscoveryBrowserController : AIWindowController <AMPurpleJabberNodeDelegate>
 {
-	AIAccount *account;
+	__unsafe_unretained AIAccount *account; //Not retained: the account owns the browsing object that owns this browser
     PurpleConnection *gc;
 	
     IBOutlet NSTextField *servicename;

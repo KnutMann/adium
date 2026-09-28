@@ -88,14 +88,13 @@
 - (void)uninstallPlugin
 {
 	[adium.interfaceController unregisterContactListTooltipEntry:tunetooltip secondaryEntry:YES];
-	[tunetooltip release];
 	tunetooltip = nil;	
 	
 	[ircPasswordPlugin uninstallPlugin];
-	[ircPasswordPlugin release];
+	ircPasswordPlugin = nil;
 	
 	[messageHiderPlugin uninstallPlugin];
-	[messageHiderPlugin release];
+	messageHiderPlugin = nil;
 }
 
 @end

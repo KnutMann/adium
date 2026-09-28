@@ -69,7 +69,7 @@
 	[resource setStore:AIAccountFieldStorePreference];
 	[resource setPreferenceKey:KEY_JABBER_RESOURCE];
 	[resource setLabel:AILocalizedString(@"Resource", "XMPP account row: the name this connection goes by beside the account's other connections")];
-	[resource setPlaceholder:[(NSString *)SCDynamicStoreCopyLocalHostName(NULL) autorelease]];
+	[resource setPlaceholder:CFBridgingRelease(SCDynamicStoreCopyLocalHostName(NULL))];
 	[resource setWidth:160.0];
 	[self addField:resource toCard:AIAccountCardOptions];
 

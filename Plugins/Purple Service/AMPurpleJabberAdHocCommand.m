@@ -33,17 +33,13 @@
 
 - (void)dealloc {
 	xmlnode_free(command);
-	[jid release];
-	[iqid release];
-	[sessionid release];
-	[super dealloc];
 }
 
 - (AMPurpleJabberFormGenerator*)form {
 	xmlnode *jabberForm = xmlnode_get_child_with_namespace(command,"x","jabber:x:data");
 	if(!jabberForm)
 		return nil;
-	return [[[AMPurpleJabberFormGenerator alloc] initWithXML:jabberForm] autorelease];
+	return [[AMPurpleJabberFormGenerator alloc] initWithXML:jabberForm];
 }
 
 - (NSString*)jid {
@@ -60,9 +56,7 @@
 }
 
 - (void)setSessionid:(NSString*)_sessionid {
-	id old = sessionid;
 	sessionid = [_sessionid copy];
-	[old release];
 }
 
 - (AMPurpleJabberAdHocCommand*)generateReplyWithForm:(AMPurpleJabberFormGenerator*)jabberForm actions:(NSArray*)actions defaultAction:(NSUInteger)defaultAction status:(enum AMPurpleJabberAdHocCommandStatus)status {
@@ -99,7 +93,7 @@
 	
 	AMPurpleJabberAdHocCommand *cmd = [[AMPurpleJabberAdHocCommand alloc] initWithServer:server command:newcmd jid:jid iqid:iqid];
 	xmlnode_free(newcmd);
-	return [cmd autorelease];
+	return cmd;
 }
 
 - (AMPurpleJabberAdHocCommand*)generateReplyWithNote:(NSString*)text type:(enum AMPurpleJabberAdHocCommandNoteType)type status:(enum AMPurpleJabberAdHocCommandStatus)status {
@@ -141,7 +135,7 @@
 	
 	AMPurpleJabberAdHocCommand *cmd = [[AMPurpleJabberAdHocCommand alloc] initWithServer:server command:newcmd jid:jid iqid:iqid];
 	xmlnode_free(newcmd);
-	return [cmd autorelease];
+	return cmd;
 }
 
 - (void)send {

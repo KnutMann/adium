@@ -25,6 +25,11 @@
 
 extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 
+/* The ownership home of every open browser: init puts the controller in, -windowWillClose: takes
+ * it back out. Under manual counting this was a [self retain] in init and a [self release] on
+ * close. The same design as ESTextAndButtonsWindowController. */
+static NSMutableSet *openDiscoveryBrowsers = nil;
+
 - (id)initWithAccount:(AIAccount*)_account purpleConnection:(PurpleConnection *)_gc node:(AMPurpleJabberNode *)_node
 {
     if ((self = [super initWithWindowNibName:@"AMPurpleJabberDiscoveryBrowser"])) {
@@ -34,7 +39,7 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 		//Load the window immediately
 		[self window];
 
-		node = [_node retain];
+		node = _node;
 		[node addDelegate:self];
 		if (![node items])
 			[node fetchItems];
@@ -49,8 +54,10 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 		[nodename setStringValue:([node node] ?: @"")];
 
         [[self window] makeKeyAndOrderFront:nil];
-		
-        [self retain];
+
+        //Kept alive as long as the window is shown; see -windowWillClose:
+        if (!openDiscoveryBrowsers) openDiscoveryBrowsers = [[NSMutableSet alloc] init];
+        [openDiscoveryBrowsers addObject:self];
         [outlineview setTarget:self];
         [outlineview setDoubleAction:@selector(openService:)];
     }
@@ -60,9 +67,6 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-
-	[node release];
-    [super dealloc];
 }
 
 - (NSString *)adiumFrameAutosaveName
@@ -80,7 +84,8 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 	 * clipped — German "Knoten:" showed as "Knote". Each label takes the width of its
 	 * text and keeps its right edge against its field.
 	 */
-	for (NSTextField *label in [NSArray arrayWithObjects:label_service, label_node, nil]) {
+	NSArray *labels = [NSArray arrayWithObjects:label_service, label_node, nil];
+	for (NSTextField *label in labels) {
 		CGFloat rightEdge = NSMaxX([label frame]);
 		[label sizeToFit];
 		[label setFrameOrigin:NSMakePoint(rightEdge - NSWidth([label frame]), NSMinY([label frame]))];
@@ -162,7 +167,7 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 		NSArray *commands = [(AMPurpleJabberNode*)item commands];
 		
 		if (commands) {
-			menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+			menu = [[NSMenu alloc] initWithTitle:@""];
 			AMPurpleJabberNode *command;
 			
 			for (command in commands) {
@@ -172,7 +177,6 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 				[mitem setTarget:self];
 				[mitem setRepresentedObject:command];
 				[menu addItem:mitem];
-				[mitem release];
 			}
 		}
 	}
@@ -199,7 +203,6 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 		return;
 	}
 
-	[node release];
 	node = [[AMPurpleJabberNode alloc] initWithJID:jid node:nodeName name:nil connection:gc];
 	[node addDelegate:self];
 	[node fetchInfo];
@@ -208,9 +211,12 @@ extern void jabber_adhoc_execute(JabberStream *js, JabberAdHocCommands *cmd);
 
 - (void)windowWillClose:(NSNotification *)notification
 {
-    [self release];
-	
 	[super windowWillClose:notification];
+
+	/* Out of the set, but not before this turn of the run loop ends: we are inside AppKit's own
+	 * close, which goes on addressing this object afterwards. */
+	CFAutorelease(CFBridgingRetain(self));
+	[openDiscoveryBrowsers removeObject:self];
 }
 
 - (void)jabberNodeGotItems:(AMPurpleJabberNode*)node {

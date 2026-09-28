@@ -47,8 +47,6 @@ static NSString * const kFlavours[] = { @"urn:xmpp:mam:2", @"urn:xmpp:mam:1", ni
    that a server is not asked for a year of chatter every time somebody clicks a name. */
 #define HOW_MANY_MESSAGES 25
 
-static int am_purple_jabber_mam_handle;
-
 @interface AMPurpleJabberMAM ()
 - (void)discover;
 - (void)chatDidOpen:(NSNotification *)notification;
@@ -95,7 +93,12 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 
 		void *jabber = purple_plugins_find_with_id("prpl-jabber");
 		if (jabber) {
-			purple_signal_connect(jabber, "jabber-receiving-xmlnode", &am_purple_jabber_mam_handle,
+			/* The handle is this object, not a static shared by every instance: an account
+			 * makes a new one of these on each connect and lets the old one go, and a handle
+			 * shared between them would let the old one's dealloc disconnect the new one's
+			 * signal, and every other account's, silently. libpurple compares the handle
+			 * and never dereferences it. */
+			purple_signal_connect(jabber, "jabber-receiving-xmlnode", (__bridge void *)self,
 								  PURPLE_CALLBACK(mam_receiving_xmlnode_cb), (__bridge void *)self);
 		}
 
@@ -112,7 +115,7 @@ static void mam_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, gpo
 
 - (void)dealloc
 {
-	purple_signals_disconnect_by_handle(&am_purple_jabber_mam_handle);
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 

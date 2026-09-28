@@ -17,7 +17,7 @@
 //@class AITextFieldWithDraggingDelegate;
 
 @interface AITextFieldWithDraggingDelegate : NSTextField {
-	id				dragDelegate;		// the delegate for dragging purposes
+	__unsafe_unretained id	dragDelegate;		// the delegate for dragging purposes; not retained, it owns the view this field sits in
 	
 	NSDragOperation	lastEnteredOp;		// Last operation we returned from dragEntered
 }

@@ -200,11 +200,6 @@
 - (void)dealloc
 {
 	[xmlConsoleController close];
-	[xmlConsoleController release];
-	[adhocServer release];
-	[gateways release];
-
-	[super dealloc];
 }
 
 - (NSSet *)supportedPropertyKeys
@@ -324,7 +319,7 @@
     NSString *resource = [self preferenceForKey:KEY_JABBER_RESOURCE group:GROUP_ACCOUNT_STATUS];
     
     if(resource == nil || [resource length] == 0)
-        resource = [(NSString*)SCDynamicStoreCopyLocalHostName(NULL) autorelease];
+        resource = CFBridgingRelease(SCDynamicStoreCopyLocalHostName(NULL));
     
 	return resource;
 }
@@ -431,10 +426,10 @@
 			}
 			// fallthrough
 		case 1: // always accept
-			[[self purpleAdapter] doAuthRequestCbValue:[[[dict objectForKey:@"authorizeCB"] retain] autorelease] withUserDataValue:[[[dict objectForKey:@"userData"] retain] autorelease]];
+			[[self purpleAdapter] doAuthRequestCbValue:[dict objectForKey:@"authorizeCB"] withUserDataValue:[dict objectForKey:@"userData"]];
 			break;
 		case 3: // always deny
-			[[self purpleAdapter] doAuthRequestCbValue:[[[dict objectForKey:@"denyCB"] retain] autorelease] withUserDataValue:[[[dict objectForKey:@"userData"] retain] autorelease]];
+			[[self purpleAdapter] doAuthRequestCbValue:[dict objectForKey:@"denyCB"] withUserDataValue:[dict objectForKey:@"userData"]];
 			break;
 		default: // ask (should be 0)
 			return [super authorizationRequestWithDict:dict];
@@ -549,7 +544,7 @@
 	return nil;
 }
 
-- (AIReconnectDelayType)shouldAttemptReconnectAfterDisconnectionError:(NSString **)disconnectionError
+- (AIReconnectDelayType)shouldAttemptReconnectAfterDisconnectionError:(NSString * __strong *)disconnectionError
 {
 	AIReconnectDelayType shouldAttemptReconnect = [super shouldAttemptReconnectAfterDisconnectionError:disconnectionError];
 
@@ -712,7 +707,7 @@
 - (NSDictionary *)willJoinChatUsingDictionary:(NSDictionary *)chatCreationDictionary
 {
 	if (![[chatCreationDictionary objectForKey:@"handle"] length]) {
-		NSMutableDictionary *dict = [[chatCreationDictionary mutableCopy] autorelease];
+		NSMutableDictionary *dict = [chatCreationDictionary mutableCopy];
 		
 		[dict setObject:self.displayName
 				 forKey:@"handle"];
@@ -958,7 +953,8 @@
 	if(atsign.location != NSNotFound)
 		[super removeContact:theContact];
 	else {
-		for (NSDictionary *gatewaydict in [[gateways copy] autorelease]) {
+		NSArray *snapshot = [gateways copy];
+		for (NSDictionary *gatewaydict in snapshot) {
 			if([[[gatewaydict objectForKey:@"contact"] UID] isEqualToString:theContact.UID]) {
 				[[self purpleAdapter] removeUID:theContact.UID onAccount:self fromGroup:[gatewaydict objectForKey:@"remoteGroup"]];
 				
@@ -980,7 +976,6 @@
 }
 
 - (void)didConnect {
-	[gateways release];
 	gateways = [[NSMutableArray alloc] init];
 
 	[adhocServer addCommand:@"ping" delegate:(id<AMPurpleJabberAdHocServerDelegate>)[AMPurpleJabberAdHocPing class] name:@"Ping"];
@@ -996,30 +991,29 @@
 																				purpleConnection:purple_account_get_connection(account)];
 
 	//Look for the server's HTTP upload service; found or not, sending falls back gracefully
-	[httpUpload release];
 	httpUpload = [[AMPurpleJabberHTTPFileUpload alloc] initWithAccount:self];
 
 	/* And whether it keeps an archive. A window that opens then shows what was said while
 	   this machine was not listening, which the local log by definition cannot. */
-	mam = nil;
 	mam = [[AMPurpleJabberMAM alloc] initWithAccount:self];
 
 	//And for its STUN and TURN servers; calls read the answer when they build their connection
-	[externalServices release];
 	externalServices = [[AMPurpleJabberExternalServices alloc] initWithAccount:self];
 }
 
 - (void)didDisconnect {
 	[xmlConsoleController setPurpleConnection:NULL];
 
-	[discoveryBrowserController release]; discoveryBrowserController = nil;
-	[adhocServer release]; adhocServer = nil;
-	[httpUpload release]; httpUpload = nil;
-	[externalServices release]; externalServices = nil;
+	discoveryBrowserController = nil;
+	adhocServer = nil;
+	httpUpload = nil;
+	externalServices = nil;
+	//Let go here like the others: its dealloc disconnects its own signal handler, so the next session starts with one
+	mam = nil;
 
 	[super didDisconnect];
 
-	[gateways release]; gateways = nil;
+	gateways = nil;
 }
 
 - (IBAction)showXMLConsole:(id)sender {
@@ -1090,17 +1084,14 @@
 			[removeItem setTarget:self];
 			[removeItem setRepresentedObject:gateway];
 			[submenu addItem:removeItem];
-			[removeItem release];
 			
 			[mitem setSubmenu:submenu];
-			[submenu release];
 			[mitem setRepresentedObject:gateway];
 			[mitem setImage:[AIStatusIcons statusIconForListObject:gateway
 															  type:AIStatusIconTab
 														 direction:AIIconNormal]];
 			[mitem setTarget:self];
 			[menu addObject:mitem];
-			[mitem release];
 		}
         [menu addObject:[NSMenuItem separatorItem]];
 	}
@@ -1117,7 +1108,6 @@
 															 keyEquivalent:@""];
 		[xmlConsoleMenuItem setTarget:self];
 		[menu addObject:xmlConsoleMenuItem];
-		[xmlConsoleMenuItem release];
 	}
 
 	NSMenuItem *discoveryBrowserMenuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Discovery Browser",nil)
@@ -1125,9 +1115,8 @@
 															   keyEquivalent:@""];
     [discoveryBrowserMenuItem setTarget:self];
     [menu addObject:discoveryBrowserMenuItem];
-    [discoveryBrowserMenuItem release];
 	
-    return [menu autorelease];
+    return menu;
 }
 
 - (void)registerGateway:(NSMenuItem*)mitem {
@@ -1142,7 +1131,7 @@
 	if(![gateway isKindOfClass:[AIListContact class]])
 		return;
 	// since this is a potentially dangerous operation, get a confirmation from the user first
-	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+	NSAlert *alert = [[NSAlert alloc] init];
 	[alert setMessageText:AILocalizedString(@"Really remove gateway?",nil)];
 	[alert setInformativeText:[NSString stringWithFormat:
 							   AILocalizedString(@"This operation would remove the gateway %@ itself and all contacts belonging to the gateway on your contact list. It cannot be undone.",nil),
@@ -1155,7 +1144,8 @@
 		NSString *pattern = [@"@" stringByAppendingString:jid];
 		NSMutableArray *gatewayContacts = [[NSMutableArray alloc] init];
 		NSMutableSet *removeGroups = [NSMutableSet set];
-		for (AIListContact *contact in self.contacts) {
+		NSArray *contacts = self.contacts;
+		for (AIListContact *contact in contacts) {
 			if([contact.UID hasSuffix:pattern]) {
 				[gatewayContacts addObject:contact];
 				[removeGroups unionSet:contact.groups];
@@ -1164,8 +1154,6 @@
 		// now, remove them from the roster
 		[self removeContacts:gatewayContacts
 				  fromGroups:removeGroups.allObjects];
-		
-		[gatewayContacts release];
 		
 		// finally, remove the gateway itself
 		[self removeContact:gateway];

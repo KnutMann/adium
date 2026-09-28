@@ -221,13 +221,62 @@ paths), and five more agents reviewed the diffs against every caller. What recur
   load site would free the menu mid-tracking. A fix has to hold the top level objects and release
   them in a restored dealloc.
 
+## Round four: the Purple service, the files that never touch the boundary
+
+The service was named above as the one part meant to stay manual, and the reason still holds
+for the part that hands objects to libpurple as `void *`. It does not hold for the other part.
+A scan of the seventy files for `ui_data`, `ui_handle`, `user_data`, `(void *)`, `gpointer`
+and bridging casts split them 41 to 29; the 41 (services, accounts that subclass the manual
+CBPurpleAccount, join-chat panes, account plans, the XMPP helpers for forms, ad-hoc commands
+and service discovery, four callback tables that own nothing) were converted the way rounds
+two and three were, five converters and four reviewers, each converter told to stop on any
+file where an object crosses after all. Four did cross and stayed manual: the request window
+controllers, whose instance is the request's `ui_handle`, created at +1 by manual code and
+consumed by their own `[self release]` when libpurple closes the request. The subclass
+AMPurpleRequestFieldsController converted regardless, since the +1 is created and consumed
+entirely in the manual code around it; its own self-retain, for the time the form is open,
+became a static set with the pool deferral at the exit, as the precedents have it.
+
+What this round taught:
+
+- **A helper that was never freed can have a dealloc nobody ever ran.** The MAM helper
+  disconnected its libpurple signal handler by a file-static handle shared by every instance;
+  under manual counting the account dropped it without a release, so the dealloc never ran and
+  the leak hid the bug. Counted, the old instance dies on every reconnect and its dealloc would
+  have disconnected the new instance's handler and every other account's. The handle is the
+  instance now. Read the dealloc of anything a conversion makes mortal for the first time.
+- **A helper that holds its owner is a cycle the moment both sides count.** The same helper
+  held its account in a plain ivar, retained since the helper's own conversion in an earlier
+  batch, harmless only while the account never released it. Unsafe unretained, with the
+  comment, and the account lets it go on disconnect like its siblings. Three more helpers
+  (ad-hoc server, HTTP upload, external services) carry the same unqualified back-pointer and
+  are harmless only while they stay manual; qualify them the day they convert.
+- **An interior pointer returned from a method is fine.** `return [temporary UTF8String]`
+  looks like it hands out a pointer into an object that dies at the return; it does not, because
+  `objc_returns_inner_pointer` makes the compiler retain and autorelease the receiver, which the
+  IR shows. Same lifetime the autorelease had.
+- **`NSString **` out-parameters must agree across the seam.** An ARC subclass overriding a
+  manual superclass's `(NSString **)` method needs `NSString * __strong *` to match the counted
+  declaration further up; the bare form reads as autoreleasing under ARC.
+- **A method that returns +1 under an ordinary name needs the attribute on the declaration,
+  not the definition.** `authorizationRequestWithDict:` carries `ns_returns_retained` in the
+  header, so the counted override inherits it and passes the manual +1 through untouched.
+
+Found while reading, and left for their own commits: a request window the user closes is not
+closed in libpurple (the adapter compares the wrong handle), so it lives until the account
+disconnects, as it always did; the authorization request dictionary leaks once per answered
+request in manual CBPurpleAccount; the form generator never frees what xmlnode_get_data hands
+it. A join-chat pane held itself through a text field's drag delegate since the AIUtilities
+round; that one is fixed here, the delegate is unsafe unretained and the pane clears it.
+
 ## Where this stands, and what waits
 
-`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception), AutoHyperlinks
-and every plugin but one count automatically. The Purple service stays manual on purpose, and its
-seventy build files now say so with `-fno-objc-arc`, as does the date formatter in AIUtilities;
-sixteen files inside the service that were written counted (the Jingle, OMEMO and MAM code) keep
-their flag. The Bonjour plugin named above as the second deliberate exception no longer exists; the
+`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception), AutoHyperlinks,
+every plugin, and the 41 files of the Purple service that never hand an object across count
+automatically. The 33 that do stay manual on purpose and say so with `-fno-objc-arc`, as does the
+date formatter in AIUtilities: CBPurpleAccount and SLPurpleCocoaAdapter, the adiumPurple* callback
+tables that carry ui_data, the request window controllers whose instance is a ui_handle, and the
+XMPP helpers whose objects travel as signal or request handles. The Bonjour plugin named above as the second deliberate exception no longer exists; the
 protocol is libpurple's now. Left over and not worth a round: the Spotlight importer and the two
 helper tools in AIUtilities, and the unit test target.
 
