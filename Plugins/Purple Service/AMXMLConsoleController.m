@@ -34,75 +34,64 @@ xmlnode_received_cb(PurpleConnection *gc, xmlnode **packet, gpointer this)
 	 * the carbons handler does. */
 	if (!packet || !*packet)
 		return;
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-    AMXMLConsoleController *self = (AMXMLConsoleController *)this;
-    
-    if (!this || [self gc] != gc) {
-		[pool release];
-		return;
+	@autoreleasepool {
+		/* Identity only: the user data handed to purple_signal_connect carries no
+		 * reference, see -showWindow:. */
+		AMXMLConsoleController *self = (__bridge AMXMLConsoleController *)this;
+
+		if (!this || [self gc] != gc)
+			return;
+
+		char *str = xmlnode_to_formatted_str(*packet, NULL);
+		NSString *sstr = [NSString stringWithUTF8String:str];
+
+		if ([sstr hasPrefix:XML_PREFIX])
+			sstr = [sstr substringFromIndex:[XML_PREFIX length]];
+
+		NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
+																   attributes:nil];
+		[self appendToLog:astr];
+
+		g_free(str);
 	}
-    
-	char *str = xmlnode_to_formatted_str(*packet, NULL);
-    NSString *sstr = [NSString stringWithUTF8String:str];
-    
-    if ([sstr hasPrefix:XML_PREFIX])
-        sstr = [sstr substringFromIndex:[XML_PREFIX length]];
-    
-    NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
-                                                               attributes:nil];
-    [self appendToLog:astr];
-    [astr release];
-    
-	g_free(str);
-	
-	[pool release];
 }
 
 static void
 xmlnode_sent_cb(PurpleConnection *gc, char **packet, gpointer this)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    AMXMLConsoleController *self = (AMXMLConsoleController *)this;
-	xmlnode *node;
+	@autoreleasepool {
+		AMXMLConsoleController *self = (__bridge AMXMLConsoleController *)this;
+		xmlnode *node;
 
-    if (!this || [self gc] != gc) {
-		[pool release];
-		return;
+		if (!this || [self gc] != gc)
+			return;
+
+		node = ((*packet && strlen(*packet) && ((*packet)[0] == '<')) ?
+				xmlnode_from_str(*packet, -1) :
+				NULL);
+
+		if (!node)
+			return;
+
+		char *str = xmlnode_to_formatted_str(node, NULL);
+		NSString *sstr = [NSString stringWithUTF8String:str];
+
+		if ([sstr hasPrefix:XML_PREFIX])
+			sstr = [sstr substringFromIndex:[XML_PREFIX length]];
+
+		NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
+																   attributes:[NSDictionary dictionaryWithObject:[NSColor blueColor] forKey:NSForegroundColorAttributeName]];
+		[self appendToLog:astr];
+
+		g_free(str);
+		xmlnode_free(node);
 	}
-
-	node = ((*packet && strlen(*packet) && ((*packet)[0] == '<')) ?
-			xmlnode_from_str(*packet, -1) :
-			NULL);
-
-	if (!node) {
-		[pool release];
-		return;
-	}
-	
-	char *str = xmlnode_to_formatted_str(node, NULL);
-    NSString *sstr = [NSString stringWithUTF8String:str];
-    
-    if ([sstr hasPrefix:XML_PREFIX])
-        sstr = [sstr substringFromIndex:[XML_PREFIX length]];
-
-    NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
-                                                               attributes:[NSDictionary dictionaryWithObject:[NSColor blueColor] forKey:NSForegroundColorAttributeName]];
-    [self appendToLog:astr];
-    [astr release];
-    
-	g_free(str);
-	xmlnode_free(node);
-	
-	[pool release];
 }
 
 @implementation AMXMLConsoleController
 
 - (void)dealloc {
-    purple_signals_disconnect_by_handle(self);
-    
-    [super dealloc];
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 }
 
 - (IBAction)sendXML:(id)sender {
@@ -130,10 +119,14 @@ xmlnode_sent_cb(PurpleConnection *gc, char **packet, gpointer this)
 		PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
 		if (!jabber) AILog(@"Unable to locate jabber prpl");
 		
-		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
-							  PURPLE_CALLBACK(xmlnode_received_cb), self);
-		purple_signal_connect(jabber, "jabber-sending-text", self,
-							  PURPLE_CALLBACK(xmlnode_sent_cb), self);
+		/* The handle and the user data are this object's identity, not a reference:
+		 * libpurple compares the handle and never dereferences it, and the callbacks
+		 * only run while connected. Disconnected in -windowWillClose: and again in
+		 * -dealloc, both synchronous, so neither can fire on a freed object. */
+		purple_signal_connect(jabber, "jabber-receiving-xmlnode", (__bridge void *)self,
+							  PURPLE_CALLBACK(xmlnode_received_cb), (__bridge void *)self);
+		purple_signal_connect(jabber, "jabber-sending-text", (__bridge void *)self,
+							  PURPLE_CALLBACK(xmlnode_sent_cb), (__bridge void *)self);
 	}
 	
     [xmlConsoleWindow makeKeyAndOrderFront:sender];
@@ -142,10 +135,14 @@ xmlnode_sent_cb(PurpleConnection *gc, char **packet, gpointer this)
 
 - (void)windowWillClose:(NSNotification *)notification
 {
+	/* Letting go from inside the window's own close is safe only because the window is still
+	 * held elsewhere: the nib says releasedWhenClosed NO, and the loader's unowned +1 on it is
+	 * never consumed (a leak per opening, carried over from manual counting). Whoever consumes
+	 * that +1 in a dealloc must defer this line to the pool, or the window dies mid close. */
 	xmlConsoleWindow = nil;
 
 	//We don't need to watch the signals with the window closed
-	purple_signals_disconnect_by_handle(self);
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 }
 
 - (void)close

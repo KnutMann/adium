@@ -54,7 +54,7 @@
 
 		infoDict = [self translatedInfoDict:infoDict];
 
-		theInfoDict = [infoDict retain];
+		theInfoDict = infoDict;
 
 		title = [infoDict objectForKey:@"TitleString"];
 		
@@ -100,8 +100,10 @@
 																					  andMessage:attributedMessage
 																						  target:self
 																						userInfo:infoDict];
-		// We retain it once more, as showOnWindow will (eventually) do a release.
-		[requestController retain];
+		/* -showOnWindow: consumes its receiver (ns_consumes_self): the compiler hands it a +1 that
+		 * the callee lets go of at its own exit, and the sheet controller's own set keeps a
+		 * reference of its own for as long as it is shown. Our ivar is the second reference,
+		 * which is what the explicit retain that stood here used to be. */
 		[requestController showOnWindow:nil];
 		
 		if ([infoDict objectForKey:@"Image"])
@@ -111,14 +113,6 @@
 	}
 	
 	return self;
-}
-
-- (void)dealloc
-{
-	[requestController release]; requestController = nil;
-	[theInfoDict release];
-
-	[super dealloc];
 }
 
 - (BOOL)textAndButtonsWindowDidEnd:(NSWindow *)window returnCode:(AITextAndButtonsReturnCode)returnCode suppression:(BOOL)suppression userInfo:(id)userInfo
@@ -159,7 +153,7 @@
 	}
 	
 	//We won't need to try to close it ourselves later
-	[requestController release]; requestController = nil;
+	requestController = nil;
 	
 	//Inform libpurple that the request window closed
 	[ESPurpleRequestAdapter requestCloseWithHandle:self];	
@@ -182,18 +176,28 @@
 /*!
  * @brief libpurple has been made aware we closed or has informed us we should close
  *
- * Close our requestController's window if it's open; then release (we returned without autoreleasing initially).
+ * Close our requestController's window if it's open; then give back the reference libpurple held.
+ *
+ * The instance is the request's ui_handle. adiumPurpleRequest.m (manual counting) creates it with
+ * alloc/init, never releases it, and hands that +1 to libpurple; libpurple gives it back through
+ * adiumPurpleRequestClose, which sends this message. Under manual counting this was
+ * [self autorelease]; the CFAutorelease acts on the count outside ARC's view exactly as that did.
  */
 - (void)purpleRequestClose
 {
 	AILogWithSignature(@"");
 
-	if (requestController) {
-		[[requestController window] orderOut:self];
-		[requestController close];
+	/* A strong local for the length of the close. Closing runs the sheet controller's own
+	 * -windowWillClose:, which defers it to the pool itself; the local is belt and braces
+	 * against the ivar being nulled from inside the call, as -textAndButtonsWindowDidEnd: does. */
+	ESTextAndButtonsWindowController *controller = requestController;
+	if (controller) {
+		[[controller window] orderOut:self];
+		[controller close];
 	}
 	
-	[self autorelease];
+	//The +1 from adiumPurpleRequest.m; see above
+	CFAutorelease((__bridge CFTypeRef)self);
 }
 
 /*!
@@ -266,7 +270,7 @@
 	[translatedDict setObject:buttonNamesArray
 					   forKey:@"Button Names"];
 
-	return [translatedDict autorelease];
+	return translatedDict;
 }
 
 - (NSString *)description

@@ -33,7 +33,7 @@
  * online at the moment of sending.
  */
 @interface AMPurpleJabberHTTPFileUpload : NSObject {
-	ESPurpleJabberAccount	*account;			//not retained; owns us
+	__unsafe_unretained ESPurpleJabberAccount *account;	//Not retained: the account owns this object
 	NSString				*serviceJid;
 	NSString				*serviceNamespace;	//urn:xmpp:http:upload:0, or the older unversioned form
 	unsigned long long		 maxSize;			//0 = the service named no limit

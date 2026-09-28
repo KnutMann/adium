@@ -35,7 +35,7 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 	if (!packet || !*packet)
 		return;
 
-	AMPurpleJabberExternalServices *self = this;
+	AMPurpleJabberExternalServices *self = (__bridge AMPurpleJabberExternalServices *)this;
 	if (purple_account_get_connection([self->account purpleAccount]) != gc ||
 		strcmp((*packet)->name, "iq"))
 		return;
@@ -44,20 +44,18 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 	if (!idattr || !self->iqId || strcmp(idattr, [self->iqId UTF8String]))
 		return;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		const char *type = xmlnode_get_attrib(*packet, "type");
+		if (type && !strcmp(type, "result")) {
+			xmlnode *servicesElement = xmlnode_get_child_with_namespace(*packet, "services", NS_EXTDISCO);
+			if (servicesElement)
+				[self handleServicesElement:servicesElement];
+		}
+		//An error answer means a server without the feature; the empty list stands
 
-	const char *type = xmlnode_get_attrib(*packet, "type");
-	if (type && !strcmp(type, "result")) {
-		xmlnode *servicesElement = xmlnode_get_child_with_namespace(*packet, "services", NS_EXTDISCO);
-		if (servicesElement)
-			[self handleServicesElement:servicesElement];
+		xmlnode_free(*packet);
+		*packet = NULL;
 	}
-	//An error answer means a server without the feature; the empty list stands
-
-	xmlnode_free(*packet);
-	*packet = NULL;
-
-	[pool release];
 }
 
 - (id)initWithAccount:(ESPurpleJabberAccount *)inAccount
@@ -68,13 +66,12 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 
 		PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
 		PurpleConnection *gc = purple_account_get_connection([account purpleAccount]);
-		if (!jabber || !gc) {
-			[self release];
+		if (!jabber || !gc)
 			return nil;
-		}
 
-		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
-							  PURPLE_CALLBACK(AMPurpleJabberExternalServices_received_cb), self);
+		//Identity only, as the handle and as the callback's data; dealloc disconnects it
+		purple_signal_connect(jabber, "jabber-receiving-xmlnode", (__bridge void *)self,
+							  PURPLE_CALLBACK(AMPurpleJabberExternalServices_received_cb), (__bridge void *)self);
 		[self ask];
 	}
 	return self;
@@ -101,7 +98,6 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 		return;
 
 	static unsigned long sequence = 0;
-	[iqId release];
 	iqId = [[NSString alloc] initWithFormat:@"adium-extdisco-%lu", sequence++];
 
 	xmlnode *iq = xmlnode_new("iq");
@@ -117,10 +113,7 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 
 - (void)dealloc
 {
-	purple_signals_disconnect_by_handle(self);
-	[services release];
-	[iqId release];
-	[super dealloc];
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 }
 
 - (void)handleServicesElement:(xmlnode *)servicesElement
@@ -160,7 +153,7 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 		if (password)
 			[entry setObject:[NSString stringWithUTF8String:password] forKey:@"credential"];
 		if (expires) {
-			NSISO8601DateFormatter *reader = [[[NSISO8601DateFormatter alloc] init] autorelease];
+			NSISO8601DateFormatter *reader = [[NSISO8601DateFormatter alloc] init];
 			NSDate *when = [reader dateFromString:[NSString stringWithUTF8String:expires]];
 			if (when)
 				[entry setObject:when forKey:@"expires"];
@@ -177,7 +170,8 @@ static void AMPurpleJabberExternalServices_received_cb(PurpleConnection *gc, xml
 	 * else may refuse to answer questions about addresses, and losing it costs
 	 * far more than keeping a dead address in a list nobody waits on. The answer
 	 * is for the person to read in the self test, not for the call to act on. */
-	for (NSDictionary *service in [[services copy] autorelease]) {
+	NSArray *snapshot = [services copy];
+	for (NSDictionary *service in snapshot) {
 		NSString *host = nil, *port = nil;
 		if (![AIJingleCallDiagnostics host:&host port:&port ofIceURL:service[@"urls"]])
 			continue;

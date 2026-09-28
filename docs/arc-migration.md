@@ -269,14 +269,59 @@ request in manual CBPurpleAccount; the form generator never frees what xmlnode_g
 it. A join-chat pane held itself through a text field's drag delegate since the AIUtilities
 round; that one is fixed here, the delegate is unsafe unretained and the pane clears it.
 
+## Round five: the Purple service files that hand `self` to libpurple
+
+Fifteen files whose objects cross into libpurple as `void *`, converted with the crossing made
+explicit rather than avoided. Two shapes covered all of them. A signal handle or callback
+user_data that the object itself disconnects on every exit is identity, `(__bridge void *)self`
+both ways, no ownership at all: the consoles, the ad-hoc server, the discovery node, the HTTP
+upload and the external services helpers. A request or notification `ui_handle` is a +1 that a
+manual creator made with alloc/init and never released, given back through a manual callback
+that casts it to `id`: the consuming `[self release]` is `CFRelease((__bridge CFTypeRef)self)`
+and the consuming `[self autorelease]` is `CFAutorelease((__bridge CFTypeRef)self)`, acting on
+the count outside the compiler's view exactly as the message did, with no CFBridgingRetain on
+the counted side, since the creator stays manual and already hands +1. The abstract request
+window controller carries the single consumption for its whole family.
+
+What this round taught:
+
+- **A factory returning a handle needs its family spelled out.** `+showImageRequestWithTitle:`
+  lacked the `objc_method_family(new)` its siblings had; counted, it would have returned +0,
+  the manual creator's pool would have drained it, and libpurple would have held a freed pointer
+  until the pairing dialog closed. The attribute goes on the declaration.
+- **Two consumers need two references, and the count has to be read at the consumer.** The
+  notification adapter sends `purpleRequestClose` and then releases the handle a second time;
+  the manual init's `return [self retain]` fed that. Counted, the init keeps a `CFRetain` of
+  its own with a comment naming both consumers. The cleaner shape, one reference and one
+  consumer, is a change to the manual adapter and waits for its own commit.
+- **A self-retain that nothing ever gave back** (the certificate viewer) was a leak, not a
+  scheme; counted, the object dies when its work is done, which also showed that its sheet has
+  been unreachable since the account editor was rebuilt.
+- **Read what runs inside a signal emission.** A helper freed inside libpurple's emission of the
+  signal it is connected to unlinks a handler mid-walk; libpurple saves the next link before each
+  callback, and newer handlers of equal priority sort before older ones, so in the one such place
+  here (a replaced commands node) the freed handler has already been visited. The deferral to
+  the next run loop turn stays as a guard, with a comment that says why it is only that.
+- **A window let go from inside its own close** survives only while something else holds it.
+  The console windows lean on the nib's unconsumed +1 and `releasedWhenClosed` NO; the line
+  that lets go says so, for whoever consumes that +1 one day.
+
+Found while reading and left for their own commits: the wrong-handle close (a user-closed
+request lives until disconnect), the notification adapter's second release, the helpers that
+can die off the main thread or outlive their account (HTTP upload, external services), a
+discovery browser that never removes itself as a node delegate, the leaked console windows,
+and "Show Server Certificate", which shows nothing. Fixed here because the file was open: the
+search results window read a freed ivar after libpurple closed it.
+
 ## Where this stands, and what waits
 
 `Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception), AutoHyperlinks,
-every plugin, and the 41 files of the Purple service that never hand an object across count
-automatically. The 33 that do stay manual on purpose and say so with `-fno-objc-arc`, as does the
-date formatter in AIUtilities: CBPurpleAccount and SLPurpleCocoaAdapter, the adiumPurple* callback
-tables that carry ui_data, the request window controllers whose instance is a ui_handle, and the
-XMPP helpers whose objects travel as signal or request handles. The Bonjour plugin named above as the second deliberate exception no longer exists; the
+every plugin, and 52 of the 70 files of the Purple service count automatically. The 18 that
+remain are the core, manual on purpose and marked `-fno-objc-arc`, as is the date formatter in
+AIUtilities: CBPurpleAccount, SLPurpleCocoaAdapter, adiumPurpleSignals, adiumPurpleConversation,
+adiumPurpleRequest, adiumPurpleNotify and the other callback tables that store objects in
+`ui_data`. Those share three ownership conventions and can only go together, after an inventory
+of every store into and read out of a libpurple struct. The Bonjour plugin named above as the second deliberate exception no longer exists; the
 protocol is libpurple's now. Left over and not worth a round: the Spotlight importer and the two
 helper tools in AIUtilities, and the unit test target.
 

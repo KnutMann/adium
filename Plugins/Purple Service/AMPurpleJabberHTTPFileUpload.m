@@ -57,21 +57,20 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 	if (!packet || !*packet)
 		return;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AMPurpleJabberHTTPFileUpload *self = this;
+	@autoreleasepool {
+		AMPurpleJabberHTTPFileUpload *self = (__bridge AMPurpleJabberHTTPFileUpload *)this;
 
-	if (purple_account_get_connection([self->account purpleAccount]) == gc &&
-		!strcmp((*packet)->name, "iq")) {
-		const char *idattr = xmlnode_get_attrib(*packet, "id");
+		if (purple_account_get_connection([self->account purpleAccount]) == gc &&
+			!strcmp((*packet)->name, "iq")) {
+			const char *idattr = xmlnode_get_attrib(*packet, "id");
 
-		if (idattr && [[NSString stringWithUTF8String:idattr] hasPrefix:IQ_ID_PREFIX]) {
-			[self handleResult:*packet];
-			xmlnode_free(*packet);
-			*packet = NULL;
+			if (idattr && [[NSString stringWithUTF8String:idattr] hasPrefix:IQ_ID_PREFIX]) {
+				[self handleResult:*packet];
+				xmlnode_free(*packet);
+				*packet = NULL;
+			}
 		}
 	}
-
-	[pool release];
 }
 
 - (id)initWithAccount:(ESPurpleJabberAccount *)inAccount
@@ -83,14 +82,16 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 
 		NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];
 		configuration.timeoutIntervalForRequest = 60;
-		urlSession = [[NSURLSession sessionWithConfiguration:configuration] retain];
+		urlSession = [NSURLSession sessionWithConfiguration:configuration];
 
 		PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
-		if (!jabber) {
-			[self release];
+		if (!jabber)
 			return nil;
-		}
 
+		/* The handle is the address of the static, an identity that never crosses as an
+		 * object, and the handler is never disconnected, by design: every account's outgoing
+		 * messages pass through it for the life of the process. The set itself is a strong
+		 * static now, which is the same process-long +1 the manual alloc never gave back. */
 		static dispatch_once_t once;
 		dispatch_once(&once, ^{
 			addressesAwaitingTheirHint = [[NSMutableSet alloc] init];
@@ -98,8 +99,9 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 								  PURPLE_CALLBACK(AMAddOutOfBandHint), NULL);
 		});
 
-		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
-							  PURPLE_CALLBACK(AMPurpleJabberHTTPFileUpload_received_cb), self);
+		//Identity only, as the handle and as the callback's data; dealloc disconnects it
+		purple_signal_connect(jabber, "jabber-receiving-xmlnode", (__bridge void *)self,
+							  PURPLE_CALLBACK(AMPurpleJabberHTTPFileUpload_received_cb), (__bridge void *)self);
 
 		[self discover];
 	}
@@ -109,14 +111,8 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 
 - (void)dealloc
 {
-	purple_signals_disconnect_by_handle(self);
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 	[urlSession invalidateAndCancel];
-	[urlSession release];
-	[serviceJid release];
-	[serviceNamespace release];
-	[queriedJids release];
-	[pendingSlots release];
-	[super dealloc];
 }
 
 //Discovery --------------------------------------------------------------------------------------
@@ -199,9 +195,7 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 	if ([serviceNamespace isEqualToString:@NS_HTTP_UPLOAD_0] && !current)
 		return;
 
-	[serviceJid release];
 	serviceJid = [from copy];
-	[serviceNamespace release];
 	serviceNamespace = [(current ? @NS_HTTP_UPLOAD_0 : @NS_HTTP_UPLOAD_LEGACY) copy];
 	maxSize = 0;
 
@@ -236,7 +230,7 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 {
 	NSString *iqid = [self nextIqId];
 
-	[pendingSlots setObject:[[completion copy] autorelease] forKey:iqid];
+	[pendingSlots setObject:[completion copy] forKey:iqid];
 
 	xmlnode *iq = xmlnode_new("iq");
 	xmlnode_set_attrib(iq, "type", "get");
@@ -270,7 +264,7 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 
 - (void)failSlotRequestWithId:(NSString *)iqid
 {
-	void (^completion)(NSURL *, NSDictionary *, NSURL *) = [[[pendingSlots objectForKey:iqid] retain] autorelease];
+	void (^completion)(NSURL *, NSDictionary *, NSURL *) = [pendingSlots objectForKey:iqid];
 
 	if (!completion)
 		return;
@@ -281,7 +275,7 @@ static void AMPurpleJabberHTTPFileUpload_received_cb(PurpleConnection *gc, xmlno
 
 - (void)handleSlot:(xmlnode *)slot iqid:(NSString *)iqid
 {
-	void (^completion)(NSURL *, NSDictionary *, NSURL *) = [[[pendingSlots objectForKey:iqid] retain] autorelease];
+	void (^completion)(NSURL *, NSDictionary *, NSURL *) = [pendingSlots objectForKey:iqid];
 
 	if (!completion)
 		return;
@@ -582,7 +576,7 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 		NSMutableURLRequest *sip = [NSMutableURLRequest requestWithURL:getURL];
 		[sip setValue:@"bytes=0-0" forHTTPHeaderField:@"Range"];
 
-		[[urlSession dataTaskWithRequest:sip completionHandler:^(NSData *d2, NSURLResponse *r2, NSError *e2) {
+		[[self->urlSession dataTaskWithRequest:sip completionHandler:^(NSData *d2, NSURLResponse *r2, NSError *e2) {
 			NSInteger second = [r2 isKindOfClass:[NSHTTPURLResponse class]] ? [(NSHTTPURLResponse *)r2 statusCode] : 0;
 			then(!e2 && second / 100 == 2);
 		}] resume];
@@ -637,12 +631,12 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 			 * can reach looks, from in here, exactly like an upload that did not work. Naming
 			 * the address turns a mystery into a line somebody can act on. */
 			NSString *said = [data length]
-				? [[[NSString alloc] initWithData:[data subdataWithRange:
+				? [[NSString alloc] initWithData:[data subdataWithRange:
 					NSMakeRange(0, MIN((NSUInteger)200, [data length]))]
-										 encoding:NSUTF8StringEncoding] autorelease]
+										encoding:NSUTF8StringEncoding]
 				: nil;
 
-			AILog(@"%@: PUT to %@ failed: %@ (status %ld)%@%@", account, putURL,
+			AILog(@"%@: PUT to %@ failed: %@ (status %ld)%@%@", self->account, putURL,
 				  error ? [error localizedDescription] : @"no error reported", (long)code,
 				  said ? @", server said: " : @"", said ?: @"");
 
@@ -655,7 +649,7 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 			}
 
 			AILog(@"%@: that address could not be reached; trying the same path on %@, which is "
-				   @"the machine this account is connected to", account, [elsewhere host]);
+				   @"the machine this account is connected to", self->account, [elsewhere host]);
 
 			[self uploadFileAtPath:path encrypted:encrypted contentType:contentType
 							 toURL:elsewhere
@@ -681,7 +675,7 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 		 * a link built on a guess, which they cannot open and cannot find out why. */
 		[self confirmFetchable:getURL then:^(BOOL confirmed) {
 			if (confirmed)
-				AILog(@"%@: the corrected address works, sending that one", account);
+				AILog(@"%@: the corrected address works, sending that one", self->account);
 			else
 				AILog(@"%@: the file went up but cannot be fetched from %@, so it is not being "
 					   @"sent. The server's upload service is reachable under a name it does not "
@@ -689,7 +683,7 @@ static NSString *AMAddressForUpload(NSURL *getURL, NSData *ivAndKey)
 					   @"goes nowhere, and the one that answers is refused because the name does "
 					   @"not match. Only its operator can settle that, by pointing the service's "
 					   @"published address at the machine it runs on, or by letting that machine's "
-					   @"name count as the same domain", account, getURL);
+					   @"name count as the same domain", self->account, getURL);
 
 			dispatch_async(dispatch_get_main_queue(), ^{
 				if (confirmed)

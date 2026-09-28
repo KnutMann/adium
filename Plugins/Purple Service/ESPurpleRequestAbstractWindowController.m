@@ -52,7 +52,14 @@
 /*!
  * @brief libpurple has been made aware we closed or has informed us we should close
  *
- * Close our requestController's window if it's open; then release (we returned without autoreleasing initially).
+ * Close our window if it's open; then give back the reference libpurple held.
+ *
+ * The instance is the request's ui_handle. adiumPurpleRequest.m (manual counting) creates it with
+ * alloc/init, never releases it, and hands that +1 to libpurple as the return value of the request
+ * ui op; libpurple gives it back through adiumPurpleRequestClose, which sends this message. This is
+ * the one place that +1 is consumed, for every subclass. Under manual counting it was [self release];
+ * the CFRelease acts on the count outside ARC's view exactly as that did. Nothing may touch self
+ * after it.
  */
 - (void)purpleRequestClose
 {
@@ -61,7 +68,8 @@
 		[self closeWindow:nil];
 	}
 	
-	[self release];
+	//The +1 from adiumPurpleRequest.m; see above
+	CFRelease((__bridge CFTypeRef)self);
 }
 
 @end
