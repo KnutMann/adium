@@ -50,7 +50,6 @@
 #define EDGE_CATCH_X						40.0f
 #define EDGE_CATCH_Y						40.0f
 
-#define	MENU_BAR_HEIGHT				22
 
 #define KEY_CONTACT_LIST_DOCKED_TO_BOTTOM_OF_SCREEN	[NSString stringWithFormat:@"Contact List Docked To Bottom:%@", [[self contactList] contentsBasedIdentifier]]
 
@@ -330,17 +329,15 @@
 
 	if ((windowOnEdge && (dockToBottomOfScreen != AIDockToBottom_VisibleFrame)) ||
 	   (dockToBottomOfScreen == AIDockToBottom_TotalFrame)) {
-		NSArray *screens;
-
 		boundingFrame = screenFrame;
 
-		//We still should not violate the menuBar, so account for it here if we are on the menuBar screen.
-		if (([NSApp isOnMavericksOrNewer] && [NSScreen screensHaveSeparateSpaces]) ||
-			((screens = [NSScreen screens]) &&
-			([screens count]) &&
-			(currentScreen == [screens objectAtIndex:0]))) {
-			boundingFrame.size.height -= MENU_BAR_HEIGHT;
-		}
+		/* The menu bar is still off limits. Its height is what the screen keeps back at the top,
+		 * the difference between its frame and its visible frame, which is a bare 22 points on
+		 * an older display, 33 around the camera housing of a newer MacBook, and 0 on a screen
+		 * that shows no menu bar or hides it. This used to be a constant 22, and on a display
+		 * with a taller bar the list grew up under it. Nothing sits at the top edge but the menu
+		 * bar: the Dock cannot be put there. */
+		boundingFrame.size.height -= (NSMaxY(screenFrame) - NSMaxY(visibleScreenFrame));
 
 	} else {
 		boundingFrame = visibleScreenFrame;
