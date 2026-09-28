@@ -36,6 +36,7 @@
 #define THUMBNAIL_POINT_SIZE		11.0
 #define THUMBNAIL_MAXIMUM_WIDTH		200.0f
 #define SEND_SYMBOL_POINT_SIZE		20.0
+#define HELP_SYMBOL_POINT_SIZE		18.0
 
 @interface AITypstEditorView ()
 - (void)buildInterface;
@@ -244,9 +245,20 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[popUp_history sizeToFit];
 	CGFloat menuWidth = AIceil(NSWidth([popUp_history frame]));
 
+	/* A question mark from the system's symbols rather than the help bezel: the bezel comes in
+	 * three sizes and draws its mark large in all of them, and beside a menu in small type the
+	 * mark has to be as light as that type. The filled circle at the bezel's size, the mark cut
+	 * out of it at the symbol's own proportion, the circle in the lighter of the two shades. */
 	button_help = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[button_help setBezelStyle:NSBezelStyleHelpButton];
-	[button_help setControlSize:NSControlSizeSmall];	//The same size as the menu beside it
+	NSImageSymbolConfiguration *helpLook = [[NSImageSymbolConfiguration configurationWithPointSize:HELP_SYMBOL_POINT_SIZE
+																				 weight:NSFontWeightRegular]
+											 configurationByApplyingConfiguration:
+											 [NSImageSymbolConfiguration configurationWithHierarchicalColor:[NSColor secondaryLabelColor]]];
+	[button_help setImage:[[NSImage imageWithSystemSymbolName:@"questionmark.circle.fill"
+								accessibilityDescription:AILocalizedString(@"Help", nil)]
+						   imageWithSymbolConfiguration:helpLook]];
+	[button_help setImagePosition:NSImageOnly];
+	[button_help setBordered:NO];
 	[button_help setTitle:@""];
 	[button_help setToolTip:AILocalizedString(@"Help", nil)];
 	[button_help setTarget:self];
