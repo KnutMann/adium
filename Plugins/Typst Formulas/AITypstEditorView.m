@@ -246,6 +246,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 	button_help = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[button_help setBezelStyle:NSBezelStyleHelpButton];
+	[button_help setControlSize:NSControlSizeSmall];	//The same size as the menu beside it
 	[button_help setTitle:@""];
 	[button_help setToolTip:AILocalizedString(@"Help", nil)];
 	[button_help setTarget:self];
