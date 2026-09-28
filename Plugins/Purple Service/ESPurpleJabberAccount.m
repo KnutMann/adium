@@ -771,21 +771,7 @@
 
 - (NSMenu *)actionMenuForChat:(AIChat *)chat
 {
-	NSMenu *menu;
-	
-	NSArray *listObjects = chat.chatContainer.messageViewController.selectedListObjects;
-	AIListObject *listObject = nil;
-	
-	if (listObjects.count) {
-		listObject = [listObjects objectAtIndex:0];
-	}
-	
-	menu = [adium.menuController contextualMenuWithLocations:[NSArray arrayWithObjects:
-															  [NSNumber numberWithInteger:Context_Contact_GroupChat_ParticipantAction],
-															  [NSNumber numberWithInteger:Context_Contact_Manage],
-															  nil]
-											   forListObject:listObject
-													  inChat:chat];
+	NSMenu *menu = [super actionMenuForChat:chat];
 
 	if (chat.isGroupChat) {
 		[menu addItem:[NSMenuItem separatorItem]];

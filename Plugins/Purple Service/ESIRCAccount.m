@@ -423,24 +423,8 @@ BOOL contactUIDIsServerContact(NSString *contactUID)
 #pragma mark Action Menu
 -(NSMenu*)actionMenuForChat:(AIChat*)chat
 {
-	NSMenu *menu;
-	
-	NSArray *listObjects = chat.chatContainer.messageViewController.selectedListObjects;
-	AIListObject *listObject = nil;
-	
-	if (listObjects.count) {
-		listObject = [listObjects objectAtIndex:0];
-	}
-	
-	menu = [adium.menuController contextualMenuWithLocations:[NSArray arrayWithObjects:
-															   [NSNumber numberWithInteger:Context_Contact_GroupChat_ParticipantAction],		
-															   [NSNumber numberWithInteger:Context_Contact_Manage],
-															   nil]
-												forListObject:listObject
-													   inChat:chat];
-	
-	
-	
+	NSMenu *menu = [super actionMenuForChat:chat];
+
 	[menu addItem:[NSMenuItem separatorItem]];
 	
 	[menu addItemWithTitle:AILocalizedString(@"Op", nil)
