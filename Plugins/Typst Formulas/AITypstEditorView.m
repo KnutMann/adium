@@ -24,6 +24,7 @@
 #import <AIUtilities/AIStringUtilities.h>
 
 #import "AIMessageViewController.h"
+#import <Adium/AISettingsFormView.h>
 
 /* Long enough that typing a formula does not start a render per keystroke, short enough that the
  * picture appears to follow the typing rather than lag behind it. A render takes about twenty
@@ -31,8 +32,9 @@
 #define PREVIEW_DELAY				0.25
 
 #define EDITOR_MARGIN				8.0f
+#define CARD_PADDING				8.0f
+#define BAR_PADDING					6.0f
 #define PREVIEW_MINIMUM_HEIGHT		56.0f
-#define HISTORY_STRIP_HEIGHT		48.0f
 #define THUMBNAIL_POINT_SIZE		11.0
 #define THUMBNAIL_MAXIMUM_WIDTH		200.0f
 #define SEND_SYMBOL_POINT_SIZE		20.0
@@ -52,13 +54,39 @@
 - (void)sendFormula:(id)sender;
 - (void)sendEnteredMessage:(id)sender;
 - (BOOL)insertRenderedFormula;
+- (void)showHelpMenu:(id)sender;
 - (void)openDocumentation:(id)sender;
 - (void)recallFormula:(id)sender;
 - (void)forgetFormula:(id)sender;
+- (void)clearHistory:(id)sender;
 - (void)historyDidChange:(NSNotification *)notification;
 - (void)reloadHistory;
 - (void)renderNextThumbnail;
-- (NSButton *)linkButtonWithTitle:(NSString *)title url:(NSString *)url;
+@end
+
+/*!
+ * @brief The rounded card the preview sits on, in the settings cards' own colour
+ */
+@interface AITypstPreviewCard : NSView
+@end
+
+@implementation AITypstPreviewCard
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+	CGFloat radius = [AISettingsFormView cardCornerRadius];
+
+	[[AISettingsFormView cardFillColorForAppearance:[self effectiveAppearance]] setFill];
+	[[NSBezierPath bezierPathWithRoundedRect:[self bounds] xRadius:radius yRadius:radius] fill];
+}
+
+//The colour is chosen by appearance, so a change of appearance is a reason to draw again
+- (void)viewDidChangeEffectiveAppearance
+{
+	[super viewDidChangeEffectiveAppearance];
+	[self setNeedsDisplay:YES];
+}
+
 @end
 
 @implementation AITypstEditorView
@@ -180,41 +208,44 @@ static NSMutableDictionary *thumbnailCache = nil;
 /*!
  * @brief Build the whole thing in code
  *
- * Layout inside here is Auto Layout, which is safe because this subtree is self contained and its
- * own root keeps its autoresizing mask: the chat window around it positions views by writing frames
- * and would fight constraints reaching outside.
+ * A card with the picture and the button that sends it, then a bar with the formulas used before
+ * and the help. Layout inside here is Auto Layout, which is safe because this subtree is self
+ * contained and its own root keeps its autoresizing mask: the chat window around it positions
+ * views by writing frames and would fight constraints reaching outside.
  */
 - (void)buildInterface
 {
+	view_card = [[AITypstPreviewCard alloc] initWithFrame:NSZeroRect];
+	[view_card setTranslatesAutoresizingMaskIntoConstraints:NO];
+
 	imageView_preview = [[NSImageView alloc] initWithFrame:NSZeroRect];
 	[imageView_preview setImageScaling:NSImageScaleProportionallyDown];
 	[imageView_preview setImageAlignment:NSImageAlignCenter];
 	[imageView_preview setTranslatesAutoresizingMaskIntoConstraints:NO];
 
+	/* Until there is a formula the card says what it is for, so that an empty card is never taken
+	 * for a picture that failed to appear. */
+	textField_placeholder = [[NSTextField alloc] initWithFrame:NSZeroRect];
+	[textField_placeholder setEditable:NO];
+	[textField_placeholder setBordered:NO];
+	[textField_placeholder setDrawsBackground:NO];
+	[textField_placeholder setAlignment:NSTextAlignmentCenter];
+	[textField_placeholder setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
+	[textField_placeholder setTextColor:[NSColor secondaryLabelColor]];
+	[textField_placeholder setStringValue:AILocalizedString(@"Type a formula in the message field", "Shown on the formula editor's empty preview card")];
+	[textField_placeholder setTranslatesAutoresizingMaskIntoConstraints:NO];
+
 	textField_error = [[NSTextField alloc] initWithFrame:NSZeroRect];
 	[textField_error setEditable:NO];
 	[textField_error setBordered:NO];
 	[textField_error setDrawsBackground:NO];
+	[textField_error setAlignment:NSTextAlignmentCenter];
 	[textField_error setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
 	[textField_error setTextColor:[NSColor systemRedColor]];
 	[textField_error setLineBreakMode:NSLineBreakByWordWrapping];
 	[[textField_error cell] setWraps:YES];
 	[textField_error setHidden:YES];
 	[textField_error setTranslatesAutoresizingMaskIntoConstraints:NO];
-
-	scrollView_history = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-	[scrollView_history setHasHorizontalScroller:YES];
-	[scrollView_history setHasVerticalScroller:NO];
-	[scrollView_history setBorderType:NSNoBorder];
-	[scrollView_history setDrawsBackground:NO];
-	[scrollView_history setTranslatesAutoresizingMaskIntoConstraints:NO];
-
-	NSStackView *stack_history = [[NSStackView alloc] initWithFrame:NSZeroRect];
-	[stack_history setOrientation:NSUserInterfaceLayoutOrientationHorizontal];
-	[stack_history setSpacing:6.0f];
-	[stack_history setTranslatesAutoresizingMaskIntoConstraints:NO];
-	[scrollView_history setDocumentView:stack_history];
-	view_historyStrip = stack_history;
 
 	button_send = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[button_send setImage:[self sendButtonImage]];
@@ -230,72 +261,100 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[button_send setEnabled:NO];
 	[button_send setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	NSStackView *stack_links = [[NSStackView alloc] initWithFrame:NSZeroRect];
-	[stack_links setOrientation:NSUserInterfaceLayoutOrientationHorizontal];
-	[stack_links setSpacing:12.0f];
-	[stack_links setTranslatesAutoresizingMaskIntoConstraints:NO];
-	[stack_links addView:[self linkButtonWithTitle:AILocalizedString(@"Math reference", "Link to the Typst documentation, from the formula editor")
-											   url:@"https://typst.app/docs/reference/math/"]
-			   inGravity:NSStackViewGravityLeading];
-	[stack_links addView:[self linkButtonWithTitle:AILocalizedString(@"Symbols", "Link to Typst's list of symbols, from the formula editor")
-											   url:@"https://typst.app/docs/reference/symbols/sym/"]
-			   inGravity:NSStackViewGravityLeading];
-	[stack_links addView:[self linkButtonWithTitle:AILocalizedString(@"Coming from LaTeX", "Link to Typst's guide for LaTeX users, from the formula editor")
-											   url:@"https://typst.app/docs/guides/for-latex-users/"]
-			   inGravity:NSStackViewGravityLeading];
+	/* The formulas used before, as a menu of their pictures. A menu rather than a strip: it holds
+	 * forty without scrolling, it costs no height, and a picture in a menu is recognised as quickly
+	 * as one in a row. The first item of a pull down is its title. */
+	popUp_history = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES];
+	[popUp_history setControlSize:NSControlSizeSmall];
+	[popUp_history setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+	[popUp_history addItemWithTitle:AILocalizedString(@"Recently Used", "Title of the menu of formulas used before, in the formula editor")];
+	[popUp_history setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	[self addSubview:imageView_preview];
-	[self addSubview:textField_error];
-	[self addSubview:scrollView_history];
-	[self addSubview:stack_links];
-	[self addSubview:button_send];
+	button_help = [[NSButton alloc] initWithFrame:NSZeroRect];
+	[button_help setBezelStyle:NSBezelStyleHelpButton];
+	[button_help setTitle:@""];
+	[button_help setToolTip:AILocalizedString(@"Help", nil)];
+	[button_help setTarget:self];
+	[button_help setAction:@selector(showHelpMenu:)];
+	[button_help setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	NSDictionary *views = NSDictionaryOfVariableBindings(imageView_preview,
-														textField_error, scrollView_history,
-														stack_links, button_send);
+	NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
+	[separator setBoxType:NSBoxSeparator];
+	[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+	[view_card addSubview:imageView_preview];
+	[view_card addSubview:textField_placeholder];
+	[view_card addSubview:textField_error];
+	[view_card addSubview:button_send];
+	[self addSubview:view_card];
+	[self addSubview:separator];
+	[self addSubview:popUp_history];
+	[self addSubview:button_help];
+
+	NSDictionary *views = NSDictionaryOfVariableBindings(view_card, imageView_preview, textField_placeholder,
+														textField_error, button_send, separator,
+														popUp_history, button_help);
 	NSDictionary *metrics = [NSDictionary dictionaryWithObjectsAndKeys:
 							 [NSNumber numberWithFloat:EDITOR_MARGIN], @"margin",
-							 [NSNumber numberWithFloat:PREVIEW_MINIMUM_HEIGHT], @"previewMin",
-							 [NSNumber numberWithFloat:HISTORY_STRIP_HEIGHT], @"stripHeight",
+							 [NSNumber numberWithFloat:CARD_PADDING], @"padding",
+							 [NSNumber numberWithFloat:BAR_PADDING], @"barPadding",
+							 [NSNumber numberWithFloat:(PREVIEW_MINIMUM_HEIGHT + 2.0f * CARD_PADDING)], @"cardMin",
 							 nil];
 
 	NSMutableArray *constraints = [NSMutableArray array];
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[imageView_preview]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[view_card]-margin-|"
 											 options:0 metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[scrollView_history]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[separator]|"
 											 options:0 metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[stack_links]-(>=margin)-[button_send]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[popUp_history]-(>=margin)-[button_help]-margin-|"
 											 options:NSLayoutFormatAlignAllCenterY metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
 	 [NSLayoutConstraint constraintsWithVisualFormat:
-	  @"V:|-margin-[imageView_preview(>=previewMin)]-margin-[scrollView_history(stripHeight)]-margin-[button_send]-margin-|"
+	  @"V:|-margin-[view_card(>=cardMin)]-margin-[separator]-barPadding-[popUp_history]-barPadding-|"
 											 options:0 metrics:metrics views:views]];
 
-	/* The complaint occupies the same space as the picture rather than a row of its own. There is
-	 * never both, and a row that is empty most of the time would take height from the two things that
-	 * need it and make the panel jump every time a formula was briefly incomplete. */
+	/* Inside the card: the button that sends at the right edge, level with the middle, and the
+	 * picture centred on the card itself rather than on what is left beside the button. The
+	 * picture takes its own width, and only a wide one is squeezed, evenly from both sides, to
+	 * stay clear of the button. */
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[textField_error]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:[button_send]-padding-|"
 											 options:0 metrics:metrics views:views]];
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:textField_error
-													   attribute:NSLayoutAttributeCenterY
-													   relatedBy:NSLayoutRelationEqual
-														  toItem:imageView_preview
-													   attribute:NSLayoutAttributeCenterY
-													  multiplier:1.0f
-														constant:0.0f]];
+	[constraints addObject:[NSLayoutConstraint constraintWithItem:button_send attribute:NSLayoutAttributeCenterY
+													   relatedBy:NSLayoutRelationEqual toItem:view_card
+													   attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:0.0f]];
+	[constraints addObjectsFromArray:
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-padding-[imageView_preview]-padding-|"
+											 options:0 metrics:metrics views:views]];
+	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview attribute:NSLayoutAttributeCenterX
+													   relatedBy:NSLayoutRelationEqual toItem:view_card
+													   attribute:NSLayoutAttributeCenterX multiplier:1.0f constant:0.0f]];
+	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview attribute:NSLayoutAttributeLeading
+													   relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:view_card
+													   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:CARD_PADDING]];
+	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview attribute:NSLayoutAttributeTrailing
+													   relatedBy:NSLayoutRelationLessThanOrEqual toItem:button_send
+													   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:-CARD_PADDING]];
+	[imageView_preview setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+												forOrientation:NSLayoutConstraintOrientationHorizontal];
 
-	/* The strip's content decides its own width; it is the clip view's height it has to match. */
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:view_historyStrip
-													   attribute:NSLayoutAttributeHeight
-													   relatedBy:NSLayoutRelationEqual
-														  toItem:[scrollView_history contentView]
-													   attribute:NSLayoutAttributeHeight
-													  multiplier:1.0f
-														constant:0.0f]];
+	/* The placeholder and the complaint occupy the card rather than a row of their own. There is
+	 * never more than one of the three, and a row that is empty most of the time would take height
+	 * from the picture and make the panel jump every time a formula was briefly incomplete. */
+	for (NSView *label in [NSArray arrayWithObjects:textField_placeholder, textField_error, nil]) {
+		[constraints addObject:[NSLayoutConstraint constraintWithItem:label attribute:NSLayoutAttributeLeading
+														   relatedBy:NSLayoutRelationEqual toItem:view_card
+														   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:CARD_PADDING]];
+		[constraints addObject:[NSLayoutConstraint constraintWithItem:label attribute:NSLayoutAttributeTrailing
+														   relatedBy:NSLayoutRelationEqual toItem:button_send
+														   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:-CARD_PADDING]];
+		[constraints addObject:[NSLayoutConstraint constraintWithItem:label attribute:NSLayoutAttributeCenterY
+														   relatedBy:NSLayoutRelationEqual toItem:view_card
+														   attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:0.0f]];
+	}
 
 	[NSLayoutConstraint activateConstraints:constraints];
 }
@@ -318,29 +377,43 @@ static NSMutableDictionary *thumbnailCache = nil;
 														   weight:NSFontWeightRegular]];
 }
 
-- (NSButton *)linkButtonWithTitle:(NSString *)title url:(NSString *)url
+/*!
+ * @brief The help: Typst's own documentation, opened from a menu under the question mark
+ *
+ * Built each time it is asked for. Three items are not worth keeping, and a menu that exists only
+ * while it is open has nothing to keep in step.
+ */
+- (void)showHelpMenu:(id)sender
 {
-	NSButton *button = [[NSButton alloc] initWithFrame:NSZeroRect];
+	NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+	NSArray *links = [NSArray arrayWithObjects:
+					  [NSArray arrayWithObjects:AILocalizedString(@"Math reference", "Link to the Typst documentation, from the formula editor"),
+					   @"https://typst.app/docs/reference/math/", nil],
+					  [NSArray arrayWithObjects:AILocalizedString(@"Symbols", "Link to Typst's list of symbols, from the formula editor"),
+					   @"https://typst.app/docs/reference/symbols/sym/", nil],
+					  [NSArray arrayWithObjects:AILocalizedString(@"Coming from LaTeX", "Link to Typst's guide for LaTeX users, from the formula editor"),
+					   @"https://typst.app/docs/guides/for-latex-users/", nil],
+					  nil];
 
-	NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-								[NSColor linkColor], NSForegroundColorAttributeName,
-								[NSNumber numberWithInteger:NSUnderlineStyleSingle], NSUnderlineStyleAttributeName,
-								[NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName,
-								nil];
+	for (NSArray *link in links) {
+		NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:[link objectAtIndex:0]
+													  action:@selector(openDocumentation:)
+											   keyEquivalent:@""];
+		[item setTarget:self];
+		[item setRepresentedObject:[link objectAtIndex:1]];
+		[item setToolTip:[link objectAtIndex:1]];
+		[menu addItem:item];
+	}
 
-	[button setAttributedTitle:[[NSAttributedString alloc] initWithString:title attributes:attributes]];
-	[button setBordered:NO];
-	[button setTarget:self];
-	[button setAction:@selector(openDocumentation:)];
-	[button setToolTip:url];
-	[button setTranslatesAutoresizingMaskIntoConstraints:NO];
-
-	return button;
+	//Above the button: the bar is at the bottom of the window, and a menu has more room upwards
+	[menu popUpMenuPositioningItem:nil
+						atLocation:NSMakePoint(0.0f, NSHeight([button_help bounds]) + 4.0f)
+							inView:button_help];
 }
 
 - (void)openDocumentation:(id)sender
 {
-	NSURL *url = [NSURL URLWithString:[sender toolTip]];
+	NSURL *url = [NSURL URLWithString:[sender representedObject]];
 
 	if (url)
 		[[NSWorkspace sharedWorkspace] openURL:url];
@@ -367,6 +440,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 	if (![formula length]) {
 		[imageView_preview setImage:nil];
 		[textField_error setHidden:YES];
+		[textField_placeholder setHidden:NO];
 		[button_send setEnabled:NO];
 		return;
 	}
@@ -399,6 +473,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 			[self->imageView_preview setImage:image];
 			[self->textField_error setHidden:YES];
+			[self->textField_placeholder setHidden:(image != nil)];
 			[self->button_send setEnabled:(image != nil)];
 
 			/* The picture this one replaces is not needed any more, unless it went into a message: an
@@ -420,6 +495,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 - (void)showError:(NSString *)message
 {
 	[imageView_preview setImage:nil];
+	[textField_placeholder setHidden:YES];
 	[textField_error setStringValue:(message ? message : @"")];
 	[textField_error setHidden:NO];
 	[button_send setEnabled:NO];
@@ -565,44 +641,63 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[self reloadHistory];
 }
 
+/*!
+ * @brief Fill the menu with the formulas used before, most recent first
+ *
+ * Each formula is one item showing its picture, or its source until the picture has been rendered,
+ * which is also what a formula that no longer renders shows for good. Held with option, the same
+ * entry offers to forget the formula instead. The last item empties the list.
+ */
 - (void)reloadHistory
 {
-	for (NSView *view in [[[view_historyStrip subviews] copy] reverseObjectEnumerator])
-		[(NSStackView *)view_historyStrip removeView:view];
+	NSMenu *menu = [popUp_history menu];
+	NSString *forgetTitle = AILocalizedString(@"Remove from History", "Menu item, shown with the option key held, which drops one formula from the formula editor's history");
+
+	//The first item is the title of the pull down; everything after it is ours to replace
+	while ([menu numberOfItems] > 1)
+		[menu removeItemAtIndex:1];
 
 	pendingThumbnails = [[NSMutableArray alloc] init];
 
-	for (NSString *formula in [AITypstHistory formulas]) {
-		NSButton *button = [[NSButton alloc] initWithFrame:NSZeroRect];
-		[button setBordered:NO];
-		[button setTarget:self];
-		[button setAction:@selector(recallFormula:)];
-		[button setToolTip:formula];
-		[button setTranslatesAutoresizingMaskIntoConstraints:NO];
-
+	NSArray *formulas = [AITypstHistory formulas];
+	for (NSString *formula in formulas) {
 		NSImage *thumbnail = [thumbnailCache objectForKey:formula];
+
+		NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"" action:@selector(recallFormula:) keyEquivalent:@""];
+		[item setTarget:self];
+		[item setRepresentedObject:formula];
+		[item setToolTip:formula];
+		[item setKeyEquivalentModifierMask:0];
 		if (thumbnail) {
-			[button setImage:thumbnail];
-			[button setImagePosition:NSImageOnly];
+			[item setImage:thumbnail];
 		} else {
-			/* Until the picture arrives the source is shown, which is also what happens permanently
-			 * for a formula that no longer renders. */
-			[button setTitle:formula];
-			[button setFont:[NSFont monospacedSystemFontOfSize:10.0 weight:NSFontWeightRegular]];
+			[item setAttributedTitle:[[NSAttributedString alloc] initWithString:formula attributes:
+									  [NSDictionary dictionaryWithObject:[NSFont monospacedSystemFontOfSize:11.0 weight:NSFontWeightRegular]
+																  forKey:NSFontAttributeName]]];
 			[pendingThumbnails addObject:formula];
 		}
+		[menu addItem:item];
 
-		NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
-		NSMenuItem *forget = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Remove from History", "Context menu item on a formula in the formula editor's history strip")
-														action:@selector(forgetFormula:)
-												 keyEquivalent:@""];
+		NSMenuItem *forget = [[NSMenuItem alloc] initWithTitle:forgetTitle action:@selector(forgetFormula:) keyEquivalent:@""];
 		[forget setTarget:self];
 		[forget setRepresentedObject:formula];
+		[forget setImage:thumbnail];
+		[forget setAlternate:YES];
+		[forget setKeyEquivalentModifierMask:NSEventModifierFlagOption];
 		[menu addItem:forget];
-		[button setMenu:menu];
-
-		[(NSStackView *)view_historyStrip addView:button inGravity:NSStackViewGravityLeading];
 	}
+
+	if ([formulas count]) {
+		[menu addItem:[NSMenuItem separatorItem]];
+
+		NSMenuItem *clear = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Clear History", "Menu item which empties the formula editor's list of formulas used before")
+													   action:@selector(clearHistory:)
+												keyEquivalent:@""];
+		[clear setTarget:self];
+		[menu addItem:clear];
+	}
+
+	[popUp_history setEnabled:([formulas count] > 0)];
 
 	[self renderNextThumbnail];
 }
@@ -611,8 +706,7 @@ static NSMutableDictionary *thumbnailCache = nil;
  * @brief Render the thumbnails one after another
  *
  * One at a time on purpose. Each render is a separate process, and starting forty of them because
- * the history happens to be full would be a burst of work for a strip most of which is scrolled out
- * of sight.
+ * the history happens to be full would be a burst of work for a menu that may never be opened.
  */
 - (void)renderNextThumbnail
 {
@@ -638,11 +732,13 @@ static NSMutableDictionary *thumbnailCache = nil;
 				//The picture is in memory now, so the file has done its job
 				[AITypstRenderer discardRenderAtPath:path];
 
-				for (NSView *view in [self->view_historyStrip subviews]) {
-					if ([view isKindOfClass:[NSButton class]] &&
-						[[(NSButton *)view toolTip] isEqualToString:formula]) {
-						[(NSButton *)view setImage:image];
-						[(NSButton *)view setImagePosition:NSImageOnly];
+				for (NSMenuItem *item in [[self->popUp_history menu] itemArray]) {
+					if ([[item representedObject] isEqualToString:formula]) {
+						[item setImage:image];
+						if (![item isAlternate]) {
+							[item setAttributedTitle:nil];
+							[item setTitle:@""];
+						}
 					}
 				}
 			}
@@ -654,7 +750,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 
 - (void)recallFormula:(id)sender
 {
-	NSString *formula = [sender toolTip];
+	NSString *formula = [sender representedObject];
 	if (!formula) return;
 
 	NSTextView *entry = [self entryTextView];
@@ -675,6 +771,11 @@ static NSMutableDictionary *thumbnailCache = nil;
 - (void)forgetFormula:(id)sender
 {
 	[AITypstHistory forgetFormula:[sender representedObject]];
+}
+
+- (void)clearHistory:(id)sender
+{
+	[AITypstHistory forgetAllFormulas];
 }
 
 //The button in the message field that opened this editor; it stays usable, to close it again

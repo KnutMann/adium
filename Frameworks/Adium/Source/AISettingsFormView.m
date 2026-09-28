@@ -725,16 +725,7 @@ typedef enum {
  */
 - (NSColor *)cardFillTint
 {
-	NSString *match = [[self effectiveAppearance] bestMatchFromAppearancesWithNames:
-					   [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil]];
-
-	if ([match isEqualToString:NSAppearanceNameDarkAqua])
-		return [NSColor colorWithWhite:1.0 alpha:0.08];
-
-	if (@available(macOS 14.0, *))
-		return [NSColor quaternarySystemFillColor];
-
-	return [[NSColor labelColor] colorWithAlphaComponent:0.05];
+	return [AISettingsFormView cardFillColorForAppearance:[self effectiveAppearance]];
 }
 
 - (void)drawRect:(NSRect)rect
@@ -2735,6 +2726,20 @@ typedef enum {
 + (CGFloat)cardCornerRadius
 {
 	return AISettingsCardCornerRadius;
+}
+
++ (NSColor *)cardFillColorForAppearance:(NSAppearance *)appearance
+{
+	NSString *match = [appearance bestMatchFromAppearancesWithNames:
+					   [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil]];
+
+	if ([match isEqualToString:NSAppearanceNameDarkAqua])
+		return [NSColor colorWithWhite:1.0 alpha:0.08];
+
+	if (@available(macOS 14.0, *))
+		return [NSColor quaternarySystemFillColor];
+
+	return [[NSColor labelColor] colorWithAlphaComponent:0.05];
 }
 
 + (CGFloat)standardControlGap

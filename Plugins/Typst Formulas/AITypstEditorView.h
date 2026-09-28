@@ -23,12 +23,13 @@
  * @class AITypstEditorView
  * @brief The formula editor that sits on a chat's shelf
  *
- * The formula is written in the conversation's own message field. The picture it produces sits here,
- * with the formulas used before along the bottom, and the view belongs to one conversation, so
- * sending has somewhere unambiguous to send to.
+ * The formula is written in the conversation's own message field. The picture it produces sits here
+ * on a card, with the button that sends it, and the view belongs to one conversation, so sending
+ * has somewhere unambiguous to send to. Below the card a bar holds the formulas used before, as a
+ * menu of pictures, and the help.
  *
  * There is no palette of symbols. Typst's own documentation is better than any list that could be
- * put here, and unlike a copy it does not go out of date, so the bottom bar links to it instead.
+ * put here, and unlike a copy it does not go out of date, so the help menu opens it instead.
  *
  * The view owns its own logic rather than having a separate controller. That is not laziness: it has
  * no model of its own beyond the text in its field, its lifetime is exactly the lifetime of the
@@ -38,11 +39,13 @@
 @interface AITypstEditorView : NSView <AIMessageEntryShelf> {
 	AIChat			*chat;
 
+	NSView			*view_card;
 	NSImageView		*imageView_preview;
+	NSTextField		*textField_placeholder;
 	NSTextField		*textField_error;
 	NSButton		*button_send;
-	NSStackView		*view_historyStrip;
-	NSScrollView	*scrollView_history;
+	NSPopUpButton	*popUp_history;
+	NSButton		*button_help;
 
 	AITypstRenderer	*activeRender;
 	NSUInteger		 renderGeneration;
