@@ -65,22 +65,22 @@
  */
 + (id)emoticonPackFromPath:(NSString *)inPath
 {
-    return [[[self alloc] initFromPath:inPath] autorelease];
+    return [[self alloc] initFromPath:inPath];
 }
 
 //Init
 - (AIEmoticonPack *)initFromPath:(NSString *)inPath
 {
     if ((self = [super init])) {
-		path = [inPath retain];
+		path = inPath;
 
-		bundle = [[NSBundle bundleWithPath:path] retain];
+		bundle = [NSBundle bundleWithPath:path];
 
 		/*
 		if (xtraBundle && ([[xtraBundle objectForInfoDictionaryKey:@"XtraBundleVersion"] intValue] == 1)) {
 			//This checks for a new-style xtra
 			//New style xtras store the same info, but it's in Contents/Resources/ so that we can have an info.plist file and use NSBundle.
-			emoticonLocation = [[xtraBundle resourcePath] retain];
+			emoticonLocation = [xtraBundle resourcePath];
 		} 
 		 */
 
@@ -89,7 +89,6 @@
 		if ((localizedName = [[bundle localizedInfoDictionary] objectForKey:name])) {
 			name = localizedName;
 		}
-		[name retain];
 
 		emoticonArray = nil;
 		enabledEmoticonArray = nil;
@@ -98,19 +97,6 @@
 	}
     
     return self;
-}
-
-//Dealloc
-- (void)dealloc
-{
-    [path release];
-	[bundle release];
-    [name release];
-    [emoticonArray release];
-	[enabledEmoticonArray release];
-	[serviceClass release];
-
-    [super dealloc];
 }
 
 /*!
@@ -233,7 +219,6 @@
 	
 	//reset the emabled emoticon list
 	if (enabledEmoticonArray) {
-		[enabledEmoticonArray release];
 		enabledEmoticonArray = nil;
 	}
 }
@@ -262,10 +247,10 @@
     AIEmoticonPack	*newPack = [[AIEmoticonPack alloc] initFromPath:path];   
 
 	newPack->emoticonArray = [emoticonArray mutableCopy];
-	newPack->serviceClass = [serviceClass retain];
-	newPack->path = [path retain];
-	newPack->bundle = [bundle retain];
-	newPack->name = [name retain];
+	newPack->serviceClass = serviceClass;
+	newPack->path = path;
+	newPack->bundle = bundle;
+	newPack->name = name;
 
     return newPack;
 }
@@ -279,8 +264,8 @@
  */
 - (void)loadEmoticons
 {
-	[emoticonArray release]; emoticonArray = [[NSMutableArray alloc] init];
-	[serviceClass release]; serviceClass = nil;
+	emoticonArray = [[NSMutableArray alloc] init];
+	serviceClass = nil;
 
 	//
 	NSString		*infoDictPath = [bundle pathForResource:EMOTICON_PLIST_FILENAME ofType:nil];
@@ -292,7 +277,7 @@
 		AILog(@"Upgrading Emoticon Pack %@ at %@...", self, bundle);
 		[self _upgradeEmoticonPack:path];
 		infoDict = [NSDictionary dictionaryWithContentsOfFile:infoDictPath];
-		[bundle release]; bundle = [[NSBundle bundleWithPath:path] retain];
+		bundle = [NSBundle bundleWithPath:path];
 	}
 
 	//Load the emoticons
@@ -338,8 +323,7 @@
 				 */
 				BOOL isDir;
 				if ([[NSFileManager defaultManager] fileExistsAtPath:possiblePath isDirectory:&isDir] && isDir) {
-					[bundle release];
-					bundle = [[NSBundle bundleWithPath:possiblePath] retain];
+					bundle = [NSBundle bundleWithPath:possiblePath];
 					break;
 				}
 			}
@@ -358,7 +342,7 @@
 		 * could only ever produce a class no account belongs to. A pack that names none simply has
 		 * none, which is what the tie breaker in the emoticon controller expects.
 		 */
-		serviceClass = [[infoDict objectForKey:EMOTICON_SERVICE_CLASS] retain];
+		serviceClass = [infoDict objectForKey:EMOTICON_SERVICE_CLASS];
 	}
 	
 	//Sort the emoticons in this pack using the AIEmoticon compare: selector
@@ -582,7 +566,7 @@
     //Step through all the invalid endlines
     charRange = [inString rangeOfCharacterFromSet:newlineSet];
     while (charRange.length != 0) {
-        if (!newString) newString = [[inString mutableCopy] autorelease];
+        if (!newString) newString = [inString mutableCopy];
 		
         //Replace endline and continue
         [newString replaceCharactersInRange:charRange withString:@"\r"];

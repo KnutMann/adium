@@ -25,7 +25,7 @@
 	
 	CGFloat minimumWidthForToolbar;
 	
-	id delegate;
+	__unsafe_unretained id delegate; // not retained
 }
 
 // Convenience constructors

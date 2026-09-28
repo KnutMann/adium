@@ -136,10 +136,7 @@
 
 - (void)setBackgroundImage:(NSImage *)inImage
 {
-	if (backgroundImage != inImage) {
-		[backgroundImage release];
-		backgroundImage = [inImage retain];		
-	}
+	backgroundImage = inImage;
 	
 	[self setNeedsDisplay:YES];
 }
@@ -155,8 +152,8 @@
 	backgroundOpacity = opacity;
 	
 	//Reset all our opacity dependent values
-	[_backgroundColorWithOpacity release]; _backgroundColorWithOpacity = nil;
-	[_rowColorWithOpacity release]; _rowColorWithOpacity = nil;
+	_backgroundColorWithOpacity = nil;
+	_rowColorWithOpacity = nil;
 	
 	windowStyle = inWindowStyle;
 	
@@ -188,9 +185,7 @@
 - (void)setBackgroundColor:(NSColor *)inColor
 {
 	if (backgroundColor != inColor) {
-		[backgroundColor release];
-		backgroundColor = [inColor retain];
-		[_backgroundColorWithOpacity release];
+		backgroundColor = inColor;
 		_backgroundColorWithOpacity = nil;
 	}
 	[self setNeedsDisplay:YES];
@@ -200,7 +195,7 @@
 	//Factor in opacity
 	if (!_backgroundColorWithOpacity) { 
 		CGFloat backgroundAlpha = ([backgroundColor alphaComponent] * backgroundOpacity);
-		_backgroundColorWithOpacity = [[backgroundColor colorWithAlphaComponent:backgroundAlpha] retain];
+		_backgroundColorWithOpacity = [backgroundColor colorWithAlphaComponent:backgroundAlpha];
 		
 		//Mockie and pillow lists always require a non-opaque window, other lists only require a non-opaque window when
 		//the user has requested transparency.
@@ -252,8 +247,7 @@
 {
 	if (highlightColor != inColor) {
 		[self willChangeValueForKey:@"highlightColor"];
-		[highlightColor release];
-		highlightColor = [inColor retain];
+		highlightColor = inColor;
 		[self  didChangeValueForKey:@"highlightColor"];
 	}
 	[self setNeedsDisplay:YES];
@@ -267,9 +261,7 @@
 - (void)setAlternatingRowColor:(NSColor *)color
 {
 	if (rowColor != color) {
-		[rowColor release];
-		rowColor = [color retain];
-		[_rowColorWithOpacity release];
+		rowColor = color;
 		_rowColorWithOpacity = nil;
 	}
 	
@@ -280,7 +272,7 @@
 {
 	if (!_rowColorWithOpacity) {
 		CGFloat rowAlpha = [rowColor alphaComponent];
-		_rowColorWithOpacity = [[rowColor colorWithAlphaComponent:(rowAlpha * backgroundOpacity)] retain];
+		_rowColorWithOpacity = [rowColor colorWithAlphaComponent:(rowAlpha * backgroundOpacity)];
 	}
 	
 	return _rowColorWithOpacity;

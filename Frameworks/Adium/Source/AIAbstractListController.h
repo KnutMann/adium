@@ -189,7 +189,7 @@ typedef enum {
 	
 	BOOL									configuredViewsAndTooltips;
 
-	id										delegate;
+	__unsafe_unretained id					delegate;	//Not retained: the owner that made us (a window or view controller); it outlives us
 	
 	BOOL									showTooltips;
 	BOOL									showTooltipsInBackground;

@@ -26,11 +26,13 @@
  * active pack; picking one inserts its text equivalent into the entry view.
  */
 @interface AIMessageViewEmoticonsController : NSObject <AIImageCollectionViewDelegate, NSMenuDelegate> {
-	IBOutlet NSMenu *menu;
-	IBOutlet AIImageCollectionView *emoticonsCollectionView;
-	IBOutlet NSTextField *emoticonTitleLabel;
-	IBOutlet NSTextField *emoticonSymbolLabel;
-	IBOutlet NSView *alignmentView;
+	/* The outlets are not retained: the nib's objects live on their own unowned reference
+	 * (see +popUpMenuForTextView:atPoint:), and the properties below are assign to match. */
+	__unsafe_unretained IBOutlet NSMenu *menu;
+	__unsafe_unretained IBOutlet AIImageCollectionView *emoticonsCollectionView;
+	__unsafe_unretained IBOutlet NSTextField *emoticonTitleLabel;
+	__unsafe_unretained IBOutlet NSTextField *emoticonSymbolLabel;
+	__unsafe_unretained IBOutlet NSView *alignmentView;
 
 	AIMessageEntryTextView *textView;
 

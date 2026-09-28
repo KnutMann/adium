@@ -43,7 +43,7 @@
 	AIFileTransferStatus		status;
 
 	NSString					*uniqueID;
-	id <FileTransferDelegate>   delegate;
+	__unsafe_unretained id <FileTransferDelegate>   delegate;
 	
 	ESFileTransferRequestPromptController *promptController;
 }
@@ -84,7 +84,7 @@
  */
 @property (readwrite, nonatomic) BOOL carriedInConversation;
 
-@property (readwrite, nonatomic, assign) id <FileTransferDelegate> delegate;
+@property (readwrite, nonatomic, unsafe_unretained) id <FileTransferDelegate> delegate;
 
 @property (readonly, nonatomic) BOOL isStopped;
 
