@@ -1,8 +1,10 @@
 GCC_PREFIX_HEADER = UnitTests/UnitTests_Prefix.pch
 INFOPLIST_FILE = Plists/UnitTests/Info.plist
 PRODUCT_NAME = Unit tests
-FRAMEWORK_SEARCH_PATHS = $(value) $(DEVELOPER_FRAMEWORKS_DIR_QUOTED)
+PRODUCT_BUNDLE_IDENTIFIER = im.adium.UnitTests
+// XCTest.framework lives in the platform's developer frameworks, not in $(DEVELOPER_FRAMEWORKS_DIR) where SenTestingKit once was.
+FRAMEWORK_SEARCH_PATHS = $(inherited) "$(PLATFORM_DIR)/Developer/Library/Frameworks"
 GCC_PRECOMPILE_PREFIX_HEADER = YES
-WRAPPER_EXTENSION = octest
+WRAPPER_EXTENSION = xctest
 LD_RUNPATH_SEARCH_PATHS = @loader_path/../Frameworks
 INSTALL_PATH = $(USER_LIBRARY_DIR)/Bundles

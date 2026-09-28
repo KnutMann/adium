@@ -108,17 +108,20 @@
 		11F1460C0B546C1200CA91F6 /* AIMenuBarIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 11F1460A0B546C1200CA91F6 /* AIMenuBarIcons.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		11FC23C20F768C1600C1C906 /* AIXMLElement.h in Headers */ = {isa = PBXBuildFile; fileRef = 11FC23BF0F768C0900C1C906 /* AIXMLElement.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11FC23C30F768C2900C1C906 /* AIXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = 11FC23C00F768C0900C1C906 /* AIXMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		31034EFF0C8142680003F5AA /* TestStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 31034EFE0C8142680003F5AA /* TestStringAdditions.m */; };
+		31034EFF0C8142680003F5AA /* TestStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 31034EFE0C8142680003F5AA /* TestStringAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		31034F0C0C8142720003F5AA /* UTF8Snowman.txt in Resources */ = {isa = PBXBuildFile; fileRef = 31034F0B0C8142720003F5AA /* UTF8Snowman.txt */; };
-		3107D5250F63134F0051DDD5 /* TestAttributedStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3107D5240F63134F0051DDD5 /* TestAttributedStringAdditions.m */; };
+		3107D5250F63134F0051DDD5 /* TestAttributedStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3107D5240F63134F0051DDD5 /* TestAttributedStringAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		312ED3D30C7E876E00A6BDA9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3448758D06D1EBDF00DA778C /* Cocoa.framework */; };
-		312ED3D50C7E878300A6BDA9 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 312ED3D40C7E878300A6BDA9 /* SenTestingKit.framework */; };
-		312ED3E20C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.m in Sources */ = {isa = PBXBuildFile; fileRef = 312ED3E10C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.m */; };
-		313C2F940D4B19B50032334D /* TestDictionaryAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 313C2F930D4B19B50032334D /* TestDictionaryAdditions.m */; };
-		31455C9A0CC353F800D231A0 /* TestDataAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 31455C990CC353F800D231A0 /* TestDataAdditions.m */; };
+		312ED3D50C7E878300A6BDA9 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 312ED3D40C7E878300A6BDA9 /* XCTest.framework */; };
+		ADC6E57E0000000000000005 /* TestRichTextCoercion.m in Sources */ = {isa = PBXBuildFile; fileRef = 31FA7F100D4A75D000ABE634 /* TestRichTextCoercion.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		ADC6E57E0000000000000001 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
+		ADC6E57E0000000000000002 /* AIUtilities.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		312ED3E20C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.m in Sources */ = {isa = PBXBuildFile; fileRef = 312ED3E10C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		313C2F940D4B19B50032334D /* TestDictionaryAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 313C2F930D4B19B50032334D /* TestDictionaryAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		31455C9A0CC353F800D231A0 /* TestDataAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 31455C990CC353F800D231A0 /* TestDataAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		317D83680E89F40500298BDB /* msg-bookmark-chat.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 317D83670E89F40500298BDB /* msg-bookmark-chat.tiff */; };
-		318EA69C0D7A659900EDB105 /* TestColorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 318EA69B0D7A659900EDB105 /* TestColorAdditions.m */; };
-		319B29800CE8EC6F00C65398 /* TestDateAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 319B297F0CE8EC6E00C65398 /* TestDateAdditions.m */; };
+		318EA69C0D7A659900EDB105 /* TestColorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 318EA69B0D7A659900EDB105 /* TestColorAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		319B29800CE8EC6F00C65398 /* TestDateAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 319B297F0CE8EC6E00C65398 /* TestDateAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		31E0CD810C5EEF5200271DB1 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 31E0CD800C5EEF5200271DB1 /* CoreAudio.framework */; };
 		31FA804C0D4A8EB200ABE634 /* Adium.sdef in Resources */ = {isa = PBXBuildFile; fileRef = 0CAC6A130C0C657A0090AE95 /* Adium.sdef */; };
 		3402D5A5080DBC91004E50B4 /* SortConfiguration.xib in Resources */ = {isa = PBXBuildFile; fileRef = 347E791D07CAA52300350507 /* SortConfiguration.xib */; };
@@ -999,7 +1002,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DF00000000000105 /* AIXtraDetailsPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000102 /* AIXtraDetailsPage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000015 /* AIPassthroughScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000012 /* AIPassthroughScrollView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000006 /* AIXtrasPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000004 /* AIXtrasPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */; };
+		634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 634BCD1E0DDC1542005AF1C2 /* TestMutableStringAdditions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		636D8C980E4E95A500E5F558 /* AIAddressBookController.m in Sources */ = {isa = PBXBuildFile; fileRef = 636D8C970E4E95A500E5F558 /* AIAddressBookController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000CE01 /* AIAddressBookPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CE03 /* AIAddressBookPerson.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		636D92790E4E95CE00E5F558 /* AIAddressBookController.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E2A2EE07B018B1006735BC /* AIAddressBookController.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1143,6 +1146,13 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			remoteInfo = "Spotlight Importer";
 		};
 		4D9164C125780B4400930BC8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6334FBFB0F9C11DC003C77A9;
+			remoteInfo = AIUtilities.framework;
+		};
+		ADC6E57E0000000000000003 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */;
 			proxyType = 1;
@@ -1360,6 +1370,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				ADC6E57E0000000000000002 /* AIUtilities.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1552,8 +1563,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		31034F0B0C8142720003F5AA /* UTF8Snowman.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = UTF8Snowman.txt; path = UnitTests/UTF8Snowman.txt; sourceTree = "<group>"; };
 		3107D5230F63134F0051DDD5 /* TestAttributedStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestAttributedStringAdditions.h; path = UnitTests/TestAttributedStringAdditions.h; sourceTree = "<group>"; };
 		3107D5240F63134F0051DDD5 /* TestAttributedStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestAttributedStringAdditions.m; path = UnitTests/TestAttributedStringAdditions.m; sourceTree = "<group>"; };
-		312ED3CA0C7E875B00A6BDA9 /* Unit tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Unit tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		312ED3D40C7E878300A6BDA9 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		312ED3CA0C7E875B00A6BDA9 /* Unit tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Unit tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		312ED3D40C7E878300A6BDA9 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		312ED3E00C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestDateFormatterStringRepWithInterval.h; path = UnitTests/TestDateFormatterStringRepWithInterval.h; sourceTree = "<group>"; };
 		312ED3E10C7E8A0700A6BDA9 /* TestDateFormatterStringRepWithInterval.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestDateFormatterStringRepWithInterval.m; path = UnitTests/TestDateFormatterStringRepWithInterval.m; sourceTree = "<group>"; };
 		312ED3E30C7E8A4A00A6BDA9 /* UnitTests_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UnitTests_Prefix.pch; path = UnitTests/UnitTests_Prefix.pch; sourceTree = "<group>"; };
@@ -3047,7 +3058,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			buildActionMask = 2147483647;
 			files = (
 				312ED3D30C7E876E00A6BDA9 /* Cocoa.framework in Frameworks */,
-				312ED3D50C7E878300A6BDA9 /* SenTestingKit.framework in Frameworks */,
+				312ED3D50C7E878300A6BDA9 /* XCTest.framework in Frameworks */,
+				ADC6E57E0000000000000001 /* AIUtilities.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3269,7 +3281,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34BD9DA9053146CC000AB133 /* Adium.app */,
 				34BD9DE105314751000AB133 /* Adium.framework */,
 				3485D68009EB416300232CC4 /* AdiumLibpurple.framework */,
-				312ED3CA0C7E875B00A6BDA9 /* Unit tests.octest */,
+				312ED3CA0C7E875B00A6BDA9 /* Unit tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -5592,7 +5604,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			children = (
 				34C846E5101E518F00140B4B /* QuickTime.framework */,
 				34C846AE101E515900140B4B /* QTKit.framework */,
-				312ED3D40C7E878300A6BDA9 /* SenTestingKit.framework */,
+				312ED3D40C7E878300A6BDA9 /* XCTest.framework */,
 				31E0CD800C5EEF5200271DB1 /* CoreAudio.framework */,
 				11AA1EF90BCAE9C3003DDA66 /* Quartz.framework */,
 				815D37460A765E83009338C2 /* CoreServices.framework */,
@@ -6446,20 +6458,20 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			isa = PBXNativeTarget;
 			buildConfigurationList = 312ED3CC0C7E875C00A6BDA9 /* Build configuration list for PBXNativeTarget "Unit tests" */;
 			buildPhases = (
-				637864600F9BE1B70040DEDA /* Copy Frameworks */,
 				312ED3C50C7E875B00A6BDA9 /* Resources */,
 				312ED3C60C7E875B00A6BDA9 /* Sources */,
 				312ED3C70C7E875B00A6BDA9 /* Frameworks */,
-				312ED3C80C7E875B00A6BDA9 /* Run Unit Tests */,
+				637864600F9BE1B70040DEDA /* Copy Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				ADC6E57E0000000000000004 /* PBXTargetDependency */,
 			);
 			name = "Unit tests";
 			productName = "Unit tests";
-			productReference = 312ED3CA0C7E875B00A6BDA9 /* Unit tests.octest */;
-			productType = "com.apple.product-type.bundle.ocunit-test";
+			productReference = 312ED3CA0C7E875B00A6BDA9 /* Unit tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		3485D67F09EB416300232CC4 /* AdiumLibpurple */ = {
 			isa = PBXNativeTarget;
@@ -7049,21 +7061,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		312ED3C80C7E875B00A6BDA9 /* Run Unit Tests */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Unit Tests";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
-		};
 		344DE6AD0E436276005FF022 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -7127,6 +7124,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				318EA69C0D7A659900EDB105 /* TestColorAdditions.m in Sources */,
 				634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */,
 				3107D5250F63134F0051DDD5 /* TestAttributedStringAdditions.m in Sources */,
+				ADC6E57E0000000000000005 /* TestRichTextCoercion.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7648,6 +7646,11 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			isa = PBXTargetDependency;
 			name = AIUtilities.framework;
 			targetProxy = 4D9164C125780B4400930BC8 /* PBXContainerItemProxy */;
+		};
+		ADC6E57E0000000000000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AIUtilities.framework;
+			targetProxy = ADC6E57E0000000000000003 /* PBXContainerItemProxy */;
 		};
 		4D9164C425780B4900930BC8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
