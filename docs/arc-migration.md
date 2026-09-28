@@ -105,19 +105,17 @@ sharedInstance = nil;
 Measured: a bare `static = nil` deallocates before the next statement, and the pair above survives
 until the pool drains, which is exactly what the autorelease did.
 
-## The one file left alone
+## The file that was left alone, and then was not
 
-`Frameworks/AIUtilities/Source/ISO8601DateFormatter.m` stays manual, and on purpose.
-
-It is compiled by two targets from one file reference: the framework and the Spotlight importer. The
-source is shared, so it cannot be counted for one and not the other, and converting it converts a
-second binary along with it. Inside, the parser reads a `const unichar *` obtained from
-`-cStringUsingEncoding:` and walks it for four hundred lines. That is exactly the shape where a
-shortened lifetime produces a fault that appears sometimes, on some inputs, with no diagnostic
-anywhere.
-
-Eighty-six of the framework's eighty-seven files are converted. This one is worth less than the
-afternoon it would take to be sure about.
+`Frameworks/AIUtilities/Source/ISO8601DateFormatter.m` stayed manual through the first rounds, on
+purpose: it is compiled by two targets from one file reference, the framework and the Spotlight
+importer, and its parser walks a `const unichar *` from `-cStringUsingEncoding:` for four hundred
+lines, which looked like the shape where a shortened lifetime produces a fault that appears
+sometimes. Round six read it properly: `-cStringUsingEncoding:` is declared to return an inner
+pointer, so the compiler retains and autoreleases its receiver, the receiver is a method parameter
+held for the whole method anyway, and the pointer lives until the pool drains, which is what it
+did under manual counting. Converted, with the comment at the call, and the flag on both build
+files.
 
 ## Batch 1 of the main project (this session)
 
@@ -313,17 +311,40 @@ discovery browser that never removes itself as a node delegate, the leaked conso
 and "Show Server Certificate", which shows nothing. Fixed here because the file was open: the
 search results window read a freed ivar after libpurple closed it.
 
+## Round six: the leftovers outside the core
+
+Seven files in AIUtilities that no round had taken (the date formatter above, the Spotlight
+importer's three metadata files and its test application, the AppleScript runner) and the unit
+test target, which had been dead since SenTestingKit stopped shipping. Two agents, one each.
+
+What the importer taught: a C function named `Copy...` returns +1 by the Core Foundation rule,
+and an ARC caller elsewhere (the logger plugin) was already consuming it that way with a
+`NS_RETURNS_RETAINED` prototype of its own. Converted, the definitions carry the attribute too,
+so the object files end in a plain return and not in an autorelease; the IR shows it. And a CF
+type cast straight from a method result, `CFStringRef x = (CFStringRef)[url pathExtension]`, is
+released at the end of its statement under ARC, so the two compares after it read a freed string;
+held in a strong local now. The AppleScript runner's `__block id blockTarget = [target retain]`
+with a release inside the main-queue block was the scheme that puts the last release of a text
+view on the main thread; counted, the byref slot is the claim and the nil store inside the block
+is the release, same thread, as the round-three precedent has it.
+
+The tests: `SenTestCase` to `XCTestCase`, the macros to their XCTest names, floats compared with a
+named tolerance, ranges with `NSEqualRanges`, identities with `XCTAssertIdentical`; the product
+an `.xctest` bundle that links XCTest and, for the first time, the framework it tests. `xcrun
+xctest` runs the bundle without a host: 356 tests, 44 failures, none from the migration. Forty
+are the colour category converting through generic RGB while the system colours are sRGB now, a
+decision for the category; one is an AppleScript term that only Adium's own process knows.
+
 ## Where this stands, and what waits
 
-`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception), AutoHyperlinks,
-every plugin, and 52 of the 70 files of the Purple service count automatically. The 18 that
-remain are the core, manual on purpose and marked `-fno-objc-arc`, as is the date formatter in
-AIUtilities: CBPurpleAccount, SLPurpleCocoaAdapter, adiumPurpleSignals, adiumPurpleConversation,
-adiumPurpleRequest, adiumPurpleNotify and the other callback tables that store objects in
-`ui_data`. Those share three ownership conventions and can only go together, after an inventory
-of every store into and read out of a libpurple struct. The Bonjour plugin named above as the second deliberate exception no longer exists; the
-protocol is libpurple's now. Left over and not worth a round: the Spotlight importer and the two
-helper tools in AIUtilities, and the unit test target.
+Everything counts automatically but the core of the Purple service: `Source/`,
+`Frameworks/Adium/Source`, all of AIUtilities with its importer and tools, AutoHyperlinks, every
+plugin, the unit tests, and 52 of the 70 files of the service. The 18 that remain are manual on
+purpose and marked `-fno-objc-arc`: CBPurpleAccount, SLPurpleCocoaAdapter, adiumPurpleSignals,
+adiumPurpleConversation, adiumPurpleRequest, adiumPurpleNotify and the other callback tables that
+store objects in `ui_data`. Those share three ownership conventions and can only go together,
+after an inventory of every store into and read out of a libpurple struct. The Bonjour plugin named above as the second deliberate exception no longer exists; the
+protocol is libpurple's now. Nothing else is left over.
 
 Run any future round like the three before it: clusters, the playbook, central flag-flipping, the
 compiler pass, then the adversarial review, whose finding classes are all recorded above. Two

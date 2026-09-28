@@ -17,4 +17,7 @@
 #import <Foundation/Foundation.h>
 
 Boolean GetMetadataForHTMLLog(NSMutableDictionary *attributes, NSString *pathToFile);
-NSString *CopyTextContentForHTMLLogData(NSData *logData);
+/* Copy rule: the caller owns the string. The attribute is what makes that true for a caller which
+ * counts references automatically; a manual one follows the name, as it always did.
+ */
+NSString *CopyTextContentForHTMLLogData(NSData *logData) NS_RETURNS_RETAINED;
