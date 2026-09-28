@@ -547,13 +547,6 @@
 + (CGFloat)cardCornerRadius;
 
 /*!
- * @brief The translucent fill that lifts a card off the window, for @a appearance
- *
- * For a view elsewhere that wants to look like one of these cards.
- */
-+ (NSColor *)cardFillColorForAppearance:(NSAppearance *)appearance;
-
-/*!
  * @brief The standard gap between two adjacent controls of one bar.
  *
  * Use it instead of a hand-picked number so every pane keeps the same rhythm;

@@ -832,11 +832,11 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 	[inView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	[view_shelf addSubview:inView];
 
-	/* As high as the view asks to be, when it says. A view laid out with constraints knows its
-	 * own height; the default is for one that does not, or that asks for less than is worth
-	 * showing. The position is measured from the top, the split view being flipped. */
-	CGFloat wanted = AIceil([inView fittingSize].height);
-	if (wanted >= SHELF_MINIMUM_HEIGHT) {
+	/* As high as the view asks to be, when it says, and at least the minimum. A view laid out
+	 * with constraints knows its own height; the default is for one that does not. The position
+	 * is measured from the top, the split view being flipped. */
+	CGFloat wanted = MAX(AIceil([inView fittingSize].height), SHELF_MINIMUM_HEIGHT);
+	if ([inView fittingSize].height > 0.0f) {
 		[splitView_shelf setPosition:(NSHeight([splitView_shelf frame]) - wanted - [splitView_shelf dividerThickness])
 					ofDividerAtIndex:0];
 	}

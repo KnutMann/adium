@@ -133,7 +133,7 @@ int main(int argc, const char *argv[])
 		}];
 		while (!rendered) spin(0.1);
 
-		/* Two heights: the one a shelf opens at today, and the one the editor asks for */
+		/* Two heights: the old default of a shelf, and the one the editor asks for */
 		for (NSString *mode in @[@"light", @"dark"]) {
 			NSAppearance *appearance = [NSAppearance appearanceNamed:
 										([mode isEqualToString:@"dark"] ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];

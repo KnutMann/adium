@@ -24,7 +24,6 @@
 #import <AIUtilities/AIStringUtilities.h>
 
 #import "AIMessageViewController.h"
-#import <Adium/AISettingsFormView.h>
 
 /* Long enough that typing a formula does not start a render per keystroke, short enough that the
  * picture appears to follow the typing rather than lag behind it. A render takes about twenty
@@ -32,9 +31,8 @@
 #define PREVIEW_DELAY				0.25
 
 #define EDITOR_MARGIN				8.0f
-#define CARD_PADDING				8.0f
 #define BAR_PADDING					6.0f
-#define PREVIEW_MINIMUM_HEIGHT		56.0f
+#define PREVIEW_MINIMUM_HEIGHT		72.0f
 #define THUMBNAIL_POINT_SIZE		11.0
 #define THUMBNAIL_MAXIMUM_WIDTH		200.0f
 #define SEND_SYMBOL_POINT_SIZE		20.0
@@ -64,30 +62,6 @@
 - (void)renderNextThumbnail;
 @end
 
-/*!
- * @brief The rounded card the preview sits on, in the settings cards' own colour
- */
-@interface AITypstPreviewCard : NSView
-@end
-
-@implementation AITypstPreviewCard
-
-- (void)drawRect:(NSRect)dirtyRect
-{
-	CGFloat radius = [AISettingsFormView cardCornerRadius];
-
-	[[AISettingsFormView cardFillColorForAppearance:[self effectiveAppearance]] setFill];
-	[[NSBezierPath bezierPathWithRoundedRect:[self bounds] xRadius:radius yRadius:radius] fill];
-}
-
-//The colour is chosen by appearance, so a change of appearance is a reason to draw again
-- (void)viewDidChangeEffectiveAppearance
-{
-	[super viewDidChangeEffectiveAppearance];
-	[self setNeedsDisplay:YES];
-}
-
-@end
 
 @implementation AITypstEditorView
 
@@ -208,22 +182,31 @@ static NSMutableDictionary *thumbnailCache = nil;
 /*!
  * @brief Build the whole thing in code
  *
- * A card with the picture and the button that sends it, then a bar with the formulas used before
- * and the help. Layout inside here is Auto Layout, which is safe because this subtree is self
- * contained and its own root keeps its autoresizing mask: the chat window around it positions
- * views by writing frames and would fight constraints reaching outside.
+ * The picture above, a bar below: the formulas used before and the help on the left, the button
+ * that sends on the right. Layout inside here is Auto Layout, which is safe because this subtree
+ * is self contained and its own root keeps its autoresizing mask: the chat window around it
+ * positions views by writing frames and would fight constraints reaching outside.
+ *
+ * Nothing here takes its size from its content. The picture is scaled into the space it is
+ * given, and asks for none; the menu is as wide as its title. A formula that grows by a line
+ * must not move the bar, and a menu must not widen as its pictures come in.
  */
 - (void)buildInterface
 {
-	view_card = [[AITypstPreviewCard alloc] initWithFrame:NSZeroRect];
-	[view_card setTranslatesAutoresizingMaskIntoConstraints:NO];
-
 	imageView_preview = [[NSImageView alloc] initWithFrame:NSZeroRect];
 	[imageView_preview setImageScaling:NSImageScaleProportionallyDown];
 	[imageView_preview setImageAlignment:NSImageAlignCenter];
+	[imageView_preview setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+												forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[imageView_preview setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+												forOrientation:NSLayoutConstraintOrientationVertical];
+	[imageView_preview setContentHuggingPriority:NSLayoutPriorityDefaultLow
+								  forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[imageView_preview setContentHuggingPriority:NSLayoutPriorityDefaultLow
+								  forOrientation:NSLayoutConstraintOrientationVertical];
 	[imageView_preview setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	/* Until there is a formula the card says what it is for, so that an empty card is never taken
+	/* Until there is a formula the space says what it is for, so that an empty panel is never taken
 	 * for a picture that failed to appear. */
 	textField_placeholder = [[NSTextField alloc] initWithFrame:NSZeroRect];
 	[textField_placeholder setEditable:NO];
@@ -232,7 +215,7 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[textField_placeholder setAlignment:NSTextAlignmentCenter];
 	[textField_placeholder setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
 	[textField_placeholder setTextColor:[NSColor secondaryLabelColor]];
-	[textField_placeholder setStringValue:AILocalizedString(@"Type a formula in the message field", "Shown on the formula editor's empty preview card")];
+	[textField_placeholder setStringValue:AILocalizedString(@"Type a formula in the message field", "Shown in the formula editor's empty preview")];
 	[textField_placeholder setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 	textField_error = [[NSTextField alloc] initWithFrame:NSZeroRect];
@@ -246,6 +229,28 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[[textField_error cell] setWraps:YES];
 	[textField_error setHidden:YES];
 	[textField_error setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+	/* The formulas used before, as a menu of their pictures. A menu rather than a strip: it holds
+	 * forty without scrolling, it costs no height, and a picture in a menu is recognised as quickly
+	 * as one in a row. The first item of a pull down is its title. */
+	popUp_history = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES];
+	[popUp_history setControlSize:NSControlSizeSmall];
+	[popUp_history setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
+	[popUp_history addItemWithTitle:AILocalizedString(@"Recently Used", "Title of the menu of formulas used before, in the formula editor")];
+	[popUp_history setTranslatesAutoresizingMaskIntoConstraints:NO];
+	/* Measured now, with the title as its only item, and held there. A pop up button otherwise
+	 * takes its width from the widest of its items, and the items here are pictures that arrive
+	 * one after another, which would have the button growing as they came. */
+	[popUp_history sizeToFit];
+	CGFloat menuWidth = AIceil(NSWidth([popUp_history frame]));
+
+	button_help = [[NSButton alloc] initWithFrame:NSZeroRect];
+	[button_help setBezelStyle:NSBezelStyleHelpButton];
+	[button_help setTitle:@""];
+	[button_help setToolTip:AILocalizedString(@"Help", nil)];
+	[button_help setTarget:self];
+	[button_help setAction:@selector(showHelpMenu:)];
+	[button_help setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 	button_send = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[button_send setImage:[self sendButtonImage]];
@@ -261,99 +266,61 @@ static NSMutableDictionary *thumbnailCache = nil;
 	[button_send setEnabled:NO];
 	[button_send setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	/* The formulas used before, as a menu of their pictures. A menu rather than a strip: it holds
-	 * forty without scrolling, it costs no height, and a picture in a menu is recognised as quickly
-	 * as one in a row. The first item of a pull down is its title. */
-	popUp_history = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:YES];
-	[popUp_history setControlSize:NSControlSizeSmall];
-	[popUp_history setFont:[NSFont systemFontOfSize:[NSFont smallSystemFontSize]]];
-	[popUp_history addItemWithTitle:AILocalizedString(@"Recently Used", "Title of the menu of formulas used before, in the formula editor")];
-	[popUp_history setTranslatesAutoresizingMaskIntoConstraints:NO];
-
-	button_help = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[button_help setBezelStyle:NSBezelStyleHelpButton];
-	[button_help setTitle:@""];
-	[button_help setToolTip:AILocalizedString(@"Help", nil)];
-	[button_help setTarget:self];
-	[button_help setAction:@selector(showHelpMenu:)];
-	[button_help setTranslatesAutoresizingMaskIntoConstraints:NO];
-
 	NSBox *separator = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[separator setBoxType:NSBoxSeparator];
 	[separator setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	[view_card addSubview:imageView_preview];
-	[view_card addSubview:textField_placeholder];
-	[view_card addSubview:textField_error];
-	[view_card addSubview:button_send];
-	[self addSubview:view_card];
+	[self addSubview:imageView_preview];
+	[self addSubview:textField_placeholder];
+	[self addSubview:textField_error];
 	[self addSubview:separator];
 	[self addSubview:popUp_history];
 	[self addSubview:button_help];
+	[self addSubview:button_send];
 
-	NSDictionary *views = NSDictionaryOfVariableBindings(view_card, imageView_preview, textField_placeholder,
-														textField_error, button_send, separator,
-														popUp_history, button_help);
+	NSDictionary *views = NSDictionaryOfVariableBindings(imageView_preview, textField_placeholder,
+														textField_error, separator,
+														popUp_history, button_help, button_send);
 	NSDictionary *metrics = [NSDictionary dictionaryWithObjectsAndKeys:
 							 [NSNumber numberWithFloat:EDITOR_MARGIN], @"margin",
-							 [NSNumber numberWithFloat:CARD_PADDING], @"padding",
 							 [NSNumber numberWithFloat:BAR_PADDING], @"barPadding",
-							 [NSNumber numberWithFloat:(PREVIEW_MINIMUM_HEIGHT + 2.0f * CARD_PADDING)], @"cardMin",
+							 [NSNumber numberWithFloat:PREVIEW_MINIMUM_HEIGHT], @"previewMin",
+							 [NSNumber numberWithFloat:menuWidth], @"menuWidth",
 							 nil];
 
 	NSMutableArray *constraints = [NSMutableArray array];
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[view_card]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[imageView_preview]-margin-|"
 											 options:0 metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
 	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[separator]|"
 											 options:0 metrics:metrics views:views]];
 	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[popUp_history]-(>=margin)-[button_help]-margin-|"
+	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-margin-[popUp_history(menuWidth)]-barPadding-[button_help]-(>=margin)-[button_send]-margin-|"
 											 options:NSLayoutFormatAlignAllCenterY metrics:metrics views:views]];
+	/* The picture's space is the minimum, or more if the person drags the shelf taller; it is never
+	 * the picture that decides, since a taller formula is scaled to fit rather than given room. */
 	[constraints addObjectsFromArray:
 	 [NSLayoutConstraint constraintsWithVisualFormat:
-	  @"V:|-margin-[view_card(>=cardMin)]-margin-[separator]-barPadding-[popUp_history]-barPadding-|"
+	  @"V:|-margin-[imageView_preview(>=previewMin)]-margin-[separator]-barPadding-[popUp_history]-barPadding-|"
 											 options:0 metrics:metrics views:views]];
 
-	/* Inside the card: the button that sends at the right edge, level with the middle, and the
-	 * picture centred on the card itself rather than on what is left beside the button. The
-	 * picture takes its own width, and only a wide one is squeezed, evenly from both sides, to
-	 * stay clear of the button. */
-	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"H:[button_send]-padding-|"
-											 options:0 metrics:metrics views:views]];
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:button_send attribute:NSLayoutAttributeCenterY
-													   relatedBy:NSLayoutRelationEqual toItem:view_card
-													   attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:0.0f]];
-	[constraints addObjectsFromArray:
-	 [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-padding-[imageView_preview]-padding-|"
-											 options:0 metrics:metrics views:views]];
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview attribute:NSLayoutAttributeCenterX
-													   relatedBy:NSLayoutRelationEqual toItem:view_card
-													   attribute:NSLayoutAttributeCenterX multiplier:1.0f constant:0.0f]];
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview attribute:NSLayoutAttributeLeading
-													   relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:view_card
-													   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:CARD_PADDING]];
-	[constraints addObject:[NSLayoutConstraint constraintWithItem:imageView_preview attribute:NSLayoutAttributeTrailing
-													   relatedBy:NSLayoutRelationLessThanOrEqual toItem:button_send
-													   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:-CARD_PADDING]];
-	[imageView_preview setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
-												forOrientation:NSLayoutConstraintOrientationHorizontal];
-
-	/* The placeholder and the complaint occupy the card rather than a row of their own. There is
-	 * never more than one of the three, and a row that is empty most of the time would take height
-	 * from the picture and make the panel jump every time a formula was briefly incomplete. */
+	/* The placeholder and the complaint occupy the picture's space rather than a row of their own.
+	 * There is never more than one of the three, and a row that is empty most of the time would take
+	 * height from the picture and make the panel jump every time a formula was briefly incomplete. */
 	for (NSView *label in [NSArray arrayWithObjects:textField_placeholder, textField_error, nil]) {
-		[constraints addObject:[NSLayoutConstraint constraintWithItem:label attribute:NSLayoutAttributeLeading
-														   relatedBy:NSLayoutRelationEqual toItem:view_card
-														   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:CARD_PADDING]];
-		[constraints addObject:[NSLayoutConstraint constraintWithItem:label attribute:NSLayoutAttributeTrailing
-														   relatedBy:NSLayoutRelationEqual toItem:button_send
-														   attribute:NSLayoutAttributeLeading multiplier:1.0f constant:-CARD_PADDING]];
-		[constraints addObject:[NSLayoutConstraint constraintWithItem:label attribute:NSLayoutAttributeCenterY
-														   relatedBy:NSLayoutRelationEqual toItem:view_card
-														   attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:0.0f]];
+		for (NSNumber *attribute in [NSArray arrayWithObjects:
+									 [NSNumber numberWithInteger:NSLayoutAttributeLeading],
+									 [NSNumber numberWithInteger:NSLayoutAttributeTrailing],
+									 [NSNumber numberWithInteger:NSLayoutAttributeCenterY], nil]) {
+			[constraints addObject:[NSLayoutConstraint constraintWithItem:label
+															   attribute:[attribute integerValue]
+															   relatedBy:NSLayoutRelationEqual
+																  toItem:imageView_preview
+															   attribute:[attribute integerValue]
+															  multiplier:1.0f
+																constant:0.0f]];
+		}
 	}
 
 	[NSLayoutConstraint activateConstraints:constraints];

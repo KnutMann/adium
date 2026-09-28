@@ -23,10 +23,11 @@
  * @class AITypstEditorView
  * @brief The formula editor that sits on a chat's shelf
  *
- * The formula is written in the conversation's own message field. The picture it produces sits here
- * on a card, with the button that sends it, and the view belongs to one conversation, so sending
- * has somewhere unambiguous to send to. Below the card a bar holds the formulas used before, as a
- * menu of pictures, and the help.
+ * The formula is written in the conversation's own message field. The picture it produces sits
+ * here, and the view belongs to one conversation, so sending has somewhere unambiguous to send
+ * to. Below the picture a bar holds the formulas used before, as a menu of pictures, the help,
+ * and the button that sends. Nothing in here moves when the formula changes size: the picture
+ * fits itself into a fixed space, and the menu is as wide as its title, not as its widest item.
  *
  * There is no palette of symbols. Typst's own documentation is better than any list that could be
  * put here, and unlike a copy it does not go out of date, so the help menu opens it instead.
@@ -39,7 +40,6 @@
 @interface AITypstEditorView : NSView <AIMessageEntryShelf> {
 	AIChat			*chat;
 
-	NSView			*view_card;
 	NSImageView		*imageView_preview;
 	NSTextField		*textField_placeholder;
 	NSTextField		*textField_error;
