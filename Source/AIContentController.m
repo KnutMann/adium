@@ -617,7 +617,7 @@
 						   (int)([inContentMessage.destination isKindOfClass:[AIListContact class]] &&
 								 [messageChat.account availableForSendingContentType:CONTENT_FILE_TRANSFER_TYPE
 																		   toContact:(AIListContact *)inContentMessage.destination]));
-		//Simply return if we can't do anything about file sends for this message.
+		[self dropAttachmentsThatCannotBeSentFromContentMessage:inContentMessage];
 		return;
 	}
 	
@@ -729,6 +729,58 @@
 	if (newAttributedString) {
 		[inContentMessage setMessage:newAttributedString];
 	}
+}
+
+/*!
+ * @brief Take out of a message what would have gone as a file, and say so in the chat
+ *
+ * For a message whose account cannot send files to where it is going. An attachment left
+ * in a message is one character, the one that stands in for it, and a message of that
+ * character alone arrives as an empty bubble with two ticks; a picture dropped into a
+ * WhatsApp chat was lost that way, silently, twice. What may be said as text, an
+ * emoticon, stays. What remains is sent; if nothing remains, nothing is sent and nothing
+ * is shown or logged as sent. Either way the chat says what did not go.
+ */
+- (void)dropAttachmentsThatCannotBeSentFromContentMessage:(AIContentMessage *)inContentMessage
+{
+	NSAttributedString	*message = inContentMessage.message;
+	NSMutableArray		*ranges = [NSMutableArray array];
+	NSRange				 range = NSMakeRange(0, 0);
+
+	while (NSMaxRange(range) < [message length]) {
+		NSTextAttachment *attachment = [message attribute:NSAttachmentAttributeName
+												  atIndex:NSMaxRange(range)
+										   effectiveRange:&range];
+		if (!attachment) continue;
+		if ([attachment isKindOfClass:[AITextAttachmentExtension class]] &&
+			[(AITextAttachmentExtension *)attachment shouldAlwaysSendAsText]) continue;
+
+		[ranges addObject:[NSValue valueWithRange:range]];
+	}
+
+	if (![ranges count]) return;
+
+	//From the end, so that what is cut out does not move what is still to be cut
+	NSMutableAttributedString *kept = [message mutableCopy];
+	for (NSValue *value in [ranges reverseObjectEnumerator])
+		[kept deleteCharactersInRange:[value rangeValue]];
+
+	[inContentMessage setMessage:kept];
+	if (![[kept string] length]) {
+		[inContentMessage setDisplayContent:NO];
+		[inContentMessage setTrackContent:NO];
+	}
+
+	AILogWithSignature(@"Dropped %lu attachment(s) from a message to %@; the account cannot send files there",
+					   (unsigned long)[ranges count], inContentMessage.chat);
+
+	//The event is read as HTML, so the names go in as HTML
+	[self displayEvent:[NSString stringWithFormat:AILocalizedString(@"The attachment was not sent: %@ cannot send files to %@.",
+																	"Notice in a chat when a picture or file in a message could not be sent; the first %@ is the account, the second the contact or room"),
+						[[(AIAccount *)inContentMessage.source formattedUID] stringByEscapingForXMLWithEntities:nil],
+						[inContentMessage.chat.displayName stringByEscapingForXMLWithEntities:nil]]
+				ofType:@"fileTransfer"
+				inChat:inContentMessage.chat];
 }
 
 /*!
