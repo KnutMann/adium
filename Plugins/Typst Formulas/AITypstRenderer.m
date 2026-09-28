@@ -19,15 +19,16 @@
 #import <AIUtilities/AIStringUtilities.h>
 
 /* Rendered at this many dots per inch and drawn at this size, a formula of ordinary length comes out
- * a few hundred pixels wide. Twice the nominal 72 gives a picture that still holds up when the
- * recipient's phone scales it onto a display finer than the one it was made on.
+ * a few hundred pixels wide. Exactly twice the nominal 72: the picture holds up when the recipient's
+ * phone scales it onto a display finer than the one it was made on, and on a Retina screen here it
+ * is drawn pixel for pixel at half its pixel size, with nothing resampled.
  *
- * This number decides sharpness and nothing else. typst writes no pHYs chunk, so the PNG carries no
- * physical resolution of its own, and a reader that is handed only the file has to assume 72 dots to
- * the inch, which would make the pixel count the display size as well. Callers therefore ask for the
- * size separately, with naturalSizeForPixelSize, and raising the resolution here no longer makes the
- * formula grow on screen. */
-#define TYPST_RENDER_PPI		150
+ * This number decides sharpness and nothing else. typst writes no pHYs chunk, so the file is stamped
+ * with the resolution afterwards, in stampResolutionIntoImageAtPath:, and a reader that is handed only
+ * the file, Preview, a word processor, the chat, draws it at half size and keeps every pixel for
+ * whatever is done with it next. Callers that already hold the picture ask for the size with
+ * naturalSizeForPixelSize, which says the same thing. */
+#define TYPST_RENDER_PPI		144
 #define TYPST_DEFAULT_POINTSIZE	32.0
 
 /*!
@@ -110,6 +111,26 @@ static NSString * const AITypstDocumentTemplate =
 	CGFloat scale = 72.0 / (CGFloat)TYPST_RENDER_PPI;
 
 	return NSMakeSize(pixelSize.width * scale, pixelSize.height * scale);
+}
+
+/*!
+ * @brief Write the resolution into the picture itself
+ *
+ * typst leaves it out, and without it every pixel counts as a point, which makes the formula twice
+ * as large on screen as it is meant to be. With it in the file, a reader that is handed nothing but
+ * the file draws the picture at its intended size and keeps all of its pixels. The picture is
+ * written again for this, losslessly; only the resolution changes.
+ */
++ (void)stampResolutionIntoImageAtPath:(NSString *)path
+{
+	NSBitmapImageRep *rep = [NSBitmapImageRep imageRepWithContentsOfFile:path];
+	if (!rep) return;
+
+	[rep setSize:[self naturalSizeForPixelSize:NSMakeSize((CGFloat)[rep pixelsWide], (CGFloat)[rep pixelsHigh])]];
+
+	NSData *stamped = [rep representationUsingType:NSBitmapImageFileTypePNG properties:[NSDictionary dictionary]];
+	if (stamped)
+		[stamped writeToFile:path atomically:YES];
 }
 
 + (void)discardRenderAtPath:(NSString *)path
@@ -271,6 +292,9 @@ static NSString * const AITypstDocumentTemplate =
 	 * on standard error and simply writes nothing, and there is no sense in handing back a path to a
 	 * file that is not there. */
 	BOOL didProduceImage = [[NSFileManager defaultManager] fileExistsAtPath:outputPath];
+
+	if (didProduceImage)
+		[[self class] stampResolutionIntoImageAtPath:outputPath];
 
 	if (completion) {
 		if (didProduceImage) {

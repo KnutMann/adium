@@ -424,6 +424,9 @@
 			 * live path kept, under the whatsapp_image_ name; they become
 			 * pictures again. Live images never pass here - they arrive
 			 * through the image store - so nothing is converted twice. */
+			/* A link may say how wide the picture is meant to be drawn, in points, the way a
+			 * file at a resolution above 72 dots to the inch would be drawn by a reader that
+			 * understands resolution; this view does not, so the sender wrote it into the link. */
 			@"  var pics = document.querySelectorAll('a[href^=\"file://\"][href*=\"whatsapp_image_\"]');"
 			@"  for (var i = 0; i < pics.length; i++) {"
 			@"    var a = pics[i];"
@@ -431,6 +434,8 @@
 			@"    img.src = a.href;"
 			@"    img.style.maxWidth = '100%';"
 			@"    img.style.height = 'auto';"
+			@"    var pointWidth = (a.hash.match(/width=(\\d+)/) || [])[1];"
+			@"    if (pointWidth) img.style.width = pointWidth + 'px';"
 			@"    a.parentNode.replaceChild(img, a);"
 			@"  }"
 			@"  var vids = document.querySelectorAll('a[href^=\"file://\"][href*=\"AdiumVideo_\"]');"

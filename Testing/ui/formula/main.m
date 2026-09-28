@@ -125,6 +125,9 @@ int main(int argc, const char *argv[])
 			if (path) {
 				preview = [[NSImage alloc] initWithContentsOfFile:path];
 				NSImageRep *rep = [[preview representations] lastObject];
+				//What the file says about itself: the pixels, and the size a reader of the file would draw
+				fprintf(stderr, "rendered file: %ld px wide, drawn %.0f pt wide by its own resolution\n",
+						(long)rep.pixelsWide, [rep size].width);
 				if (rep) [preview setSize:[AITypstRenderer naturalSizeForPixelSize:NSMakeSize(rep.pixelsWide, rep.pixelsHigh)]];
 			} else {
 				fprintf(stderr, "no preview: %s\n", errorMessage.UTF8String);

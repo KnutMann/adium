@@ -809,9 +809,22 @@
 
 	NSString					*shown = ([description length] ? description : [path lastPathComponent]);
 	NSMutableAttributedString	*message = [[NSMutableAttributedString alloc] initWithString:shown];
+	NSURL						*link = [NSURL fileURLWithPath:path];
+
+	/* A picture that says in its file how large it is meant to be drawn, at a resolution above the
+	 * nominal 72 dots to the inch, is drawn that large in the chat and not at its pixel count. The
+	 * message view is a web view, which reads no resolution out of a file, so the width in points
+	 * travels in the link, where the view can read it. A rendered formula is the case: twice the
+	 * pixels for sharpness, half the size on screen. */
+	NSImageRep *rep = [[[[NSImage alloc] initWithContentsOfFile:path] representations] lastObject];
+	if (rep && [rep pixelsWide] > 0 && [rep size].width < (CGFloat)[rep pixelsWide] - 0.5f) {
+		NSURLComponents *components = [NSURLComponents componentsWithURL:link resolvingAgainstBaseURL:NO];
+		[components setFragment:[NSString stringWithFormat:@"width=%ld", (long)AIround([rep size].width)]];
+		link = ([components URL] ?: link);
+	}
 
 	[message addAttribute:NSLinkAttributeName
-					value:[NSURL fileURLWithPath:path]
+					value:link
 					range:NSMakeRange(0, [message length])];
 
 	AIContentMessage *content = [AIContentMessage messageInChat:chat

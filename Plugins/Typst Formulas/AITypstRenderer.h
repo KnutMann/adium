@@ -84,6 +84,11 @@
 + (NSSize)naturalSizeForPixelSize:(NSSize)pixelSize;
 
 /*!
+ * @brief Write the render resolution into a picture, so that its file says how large it is meant to be drawn
+ */
++ (void)stampResolutionIntoImageAtPath:(NSString *)path;
+
+/*!
  * @brief Wrap a rendered formula so that it can be put into a message
  *
  * The attachment carries the path, which is what the send path hands to the account, and the formula
