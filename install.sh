@@ -165,8 +165,12 @@ xattr -cr "$REPO/build/$CONFIGURATION/Adium.app" 2>/dev/null || true
 # shell reports the last command in the pipe, and grep is happy to have found
 # the line that says the build failed. This script used to read that as success
 # and carry on to install an application it had not built.
+# The destination named outright. A scheme offers two, this Mac and "Any Mac",
+# and asked to choose, xcodebuild takes the first and says so in a warning that
+# reads as if something went wrong. Nothing did: this Mac is the one meant.
 set -o pipefail
 if ! xcodebuild -project Adium.xcodeproj -scheme "$SCHEME" \
+	-destination "platform=macOS,arch=arm64" \
 	SYMROOT="$REPO/build" OBJROOT="$REPO/build/Intermediates" \
 	${SIGNING_OVERRIDES[@]+"${SIGNING_OVERRIDES[@]}"} \
 	build | grep -E "^\*\* BUILD|error:"
