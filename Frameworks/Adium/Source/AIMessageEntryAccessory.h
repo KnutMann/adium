@@ -80,10 +80,15 @@
  * shelf has taken over what they would put into the message. The one that opened the
  * shelf is the one that closes it again and stays usable; a shelf says which by
  * answering this.
+ *
+ * A shelf can also say that it holds something which would be lost if it were taken
+ * away, a recording under way say. While it does, nothing replaces or closes it but
+ * the shelf itself; whoever else asks is refused.
  */
 @protocol AIMessageEntryShelf <NSObject>
 @optional
 - (NSString *)messageEntryAccessoryIdentifier;
+- (BOOL)messageEntryShelfIsBusy;
 @end
 
 /*!

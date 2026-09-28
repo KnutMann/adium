@@ -1381,6 +1381,16 @@
 		[button setEnabled:![disabledAccessoryIdentifiers containsObject:button.accessory.identifier]];
 }
 
+- (AIMessageEntryAccessoryButton *)accessoryButtonWithIdentifier:(NSString *)identifier
+{
+	for (AIMessageEntryAccessoryButton *button in accessoryButtons) {
+		if ([button.accessory.identifier isEqualToString:identifier])
+			return button;
+	}
+
+	return nil;
+}
+
 /**
  * @brief Keep the buttons in the lower right corner of the entry area, side by side
  *

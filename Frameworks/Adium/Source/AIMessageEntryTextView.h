@@ -18,7 +18,7 @@
 #import <Adium/AIInterfaceControllerProtocol.h>
 #import <Adium/AIContactObserverManager.h>
 
-@class AIListContact, AIAccount, AIChat, AIMessageEntryAccessory;
+@class AIListContact, AIAccount, AIChat, AIMessageEntryAccessory, AIMessageEntryAccessoryButton;
 
 @protocol AIMessageEntryTextViewDelegate <NSTextViewDelegate,NSObject>
 @optional
@@ -119,5 +119,7 @@
 - (NSArray *)accessories;
 //! Grey out the buttons with these identifiers and no others; an empty set or nil enables them all
 - (void)setDisabledAccessoryIdentifiers:(NSSet *)identifiers;
+//The button standing in this field for an accessory, or nil if the accessory is not shown
+- (AIMessageEntryAccessoryButton *)accessoryButtonWithIdentifier:(NSString *)identifier;
 
 @end

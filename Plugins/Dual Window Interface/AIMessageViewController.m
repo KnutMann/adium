@@ -814,8 +814,39 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 	return [[view_shelf subviews] lastObject];
 }
 
+- (BOOL)shelfIsBusy
+{
+	NSView *shelf = [self shelfView];
+
+	return ([shelf respondsToSelector:@selector(messageEntryShelfIsBusy)] &&
+			[(id<AIMessageEntryShelf>)shelf messageEntryShelfIsBusy]);
+}
+
+/*!
+ * @brief The least height a shelf is shown at
+ *
+ * A view laid out with constraints says how high it needs to be, and that is its minimum: below
+ * it the constraints break rather than the view shrinking. One that does not say gets the
+ * default, which is low enough to be worth having and high enough to show something.
+ */
+- (CGFloat)_shelfMinimumHeight
+{
+	CGFloat fitting = [[self shelfView] fittingSize].height;
+
+	return (fitting > 0.0f ? AIceil(fitting) : SHELF_MINIMUM_HEIGHT);
+}
+
 - (void)setShelfView:(NSView *)inView
 {
+	/* A shelf that holds something unfinished, a recording under way, is not taken away by anybody
+	 * but itself: it says so, and this refuses. Audibly, since the asker may be a keyboard shortcut
+	 * with no button to have greyed out. The shelf's own way out empties it first, so it is never
+	 * busy when it asks. */
+	if (inView != [self shelfView] && [self shelfIsBusy]) {
+		NSBeep();
+		return;
+	}
+
 	if (!inView) {
 		[self _destroyShelfSplitView];
 		[self updateFramesForAccountSelectionView];
@@ -832,12 +863,12 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 	[inView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 	[view_shelf addSubview:inView];
 
-	/* As high as the view asks to be, when it says, and at least the minimum. A view laid out
-	 * with constraints knows its own height; the default is for one that does not. The position
-	 * is measured from the top, the split view being flipped. */
-	CGFloat wanted = MAX(AIceil([inView fittingSize].height), SHELF_MINIMUM_HEIGHT);
+	/* As high as the view asks to be, when it says. A view laid out with constraints knows its
+	 * own height, and a bar that needs fifty points is not shown at a hundred and twenty because
+	 * a picture would be; one that does not say keeps the default height of the shelf. The
+	 * position is measured from the top, the split view being flipped. */
 	if ([inView fittingSize].height > 0.0f) {
-		[splitView_shelf setPosition:(NSHeight([splitView_shelf frame]) - wanted - [splitView_shelf dividerThickness])
+		[splitView_shelf setPosition:(NSHeight([splitView_shelf frame]) - [self _shelfMinimumHeight] - [splitView_shelf dividerThickness])
 					ofDividerAtIndex:0];
 	}
 
@@ -1711,7 +1742,7 @@ static void *AIMessageViewAppearanceContext = &AIMessageViewAppearanceContext;
 		}
 	} else if (splitView == splitView_shelf) {
 		//How far down the divider may go: far enough to leave the shelf its minimum
-		return AIfloor(NSHeight(splitView_shelf.frame) - SHELF_MINIMUM_HEIGHT - [splitView dividerThickness] + 0.5f);
+		return AIfloor(NSHeight(splitView_shelf.frame) - [self _shelfMinimumHeight] - [splitView dividerThickness] + 0.5f);
 	}
 
 	return proposedMax;

@@ -119,7 +119,8 @@
 		AIChat *chat = adium.interfaceController.activeChat;
 		[menuItem setState:([self editorIsVisibleForChat:chat] ? NSControlStateValueOn : NSControlStateValueOff)];
 
-		return (chat != nil);
+		//Not while something else on the shelf, a recording say, would be lost by opening this
+		return (chat != nil && ![chat.chatContainer.messageViewController shelfIsBusy]);
 	}
 
 	if (menuItem == menuItem_renderSelection) {
@@ -170,6 +171,13 @@
 
 	if (!visible) {
 		[messageViewController setShelfView:nil];
+		return;
+	}
+
+	/* Asked before the editor is built: building it takes the field's sending over, and an editor
+	 * that is then refused a place would have to hand it back for nothing. */
+	if ([messageViewController shelfIsBusy]) {
+		NSBeep();
 		return;
 	}
 

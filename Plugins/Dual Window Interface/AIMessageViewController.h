@@ -103,7 +103,9 @@
  * meant for.
  *
  * There is room for one shelf. A second caller passing a view replaces the first one's, so a plugin
- * should ask what is there before it takes the space.
+ * should ask what is there before it takes the space. The exception is a shelf that says it is busy
+ * (see AIMessageEntryShelf): that one is neither replaced nor removed by anybody but itself, and a
+ * caller that tries hears a beep and gets nothing.
  *
  * @param inView The view to install, or nil to remove the shelf entirely
  */
@@ -113,6 +115,13 @@
  * @brief What is currently on the shelf, or nil
  */
 - (NSView *)shelfView;
+
+/*!
+ * @brief Whether the shelf holds something that would be lost if it were replaced
+ *
+ * Ask before building a view for the shelf; while this is YES, setShelfView: refuses.
+ */
+- (BOOL)shelfIsBusy;
 
 //Account Selection
 - (void)redisplaySourceAndDestinationSelector:(NSNotification *)notification;
