@@ -189,18 +189,53 @@ needs the cast that says the pointer is an identity and not a reference; and a m
 class the file had only ever seen forward-declared, which counting turns from a warning into an
 error.
 
+## Round three: the rest of Frameworks/Adium
+
+Fourteen files of `Frameworks/Adium/Source` had been left behind by batch one, which skipped what a
+concurrent pass was editing, and "Where this stands" below said for a month that the framework was
+done. It was not; measure, do not remember. Five agents converted them in a worktree, each file was
+compiled alone with the flag before the build (a script that reuses the baseline build's own compile
+line with `-fobjc-arc -fsyntax-only` added; the response file in Intermediates carries the include
+paths), and five more agents reviewed the diffs against every caller. What recurred and what was new:
+
+- **A `switch` case that holds a block literal needs braces.** The block's lifetime reaches the next
+  label, and the jump into it is refused ("cannot jump from switch statement to this case label").
+  Twice in one afternoon, in a file of this round and in one written the same day.
+- **`setReleasedWhenClosed:YES` on a window a strong ivar owns is one release too many.** The
+  legacy preferences window had it; NO, and the window handed to the pool in `windowWillClose:`
+  so that it outlives `-[NSWindow close]` the way the old scheme's timing did.
+- **`CFAutorelease(CFBridgingRetain(nil))` traps.** `[nil autorelease]` was a no-op, so a deferral
+  written as its replacement needs the guard the original never needed; measured, exit 133.
+- **A redeclared `@dynamic` delegate keeps `assign` or `unsafe_unretained`.** NSTextView's own
+  weak slot is the storage; the redeclaration exists to narrow the protocol type, and the compiler
+  compares only copy, retain and atomic when it checks it against the superclass.
+- **An object that retains itself across its own close** (the preferences controller around
+  `-[NSWindow close]`) is the pool deferral again, not a new owner: the static in its caller already
+  owns it and defers the same way.
+- **Two cycles predate the conversion and were left.** The emoticon pack and its emoticons hold
+  each other since the manual code retained both ways; an emoticon can outlive a pack reset in the
+  emoticon menu's represented objects, so an unsafe back-pointer is not provably safe, and a weak one
+  is barred from the header by the rule above (the escape would be a class extension in the .m). The
+  emoticon menu controller's nib objects leak once per opening, as they did under manual counting;
+  its unowned +1 is what keeps the menu alive while it tracks inside `init`, so consuming it at the
+  load site would free the menu mid-tracking. A fix has to hold the top level objects and release
+  them in a restored dealloc.
+
 ## Where this stands, and what waits
 
-`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception),
-AutoHyperlinks and five plugins count automatically. What remains is the Purple service (69
-files, where C callbacks and `void *` contexts cross the language boundary on nearly every page)
-and the plugins named as deliberately manual at the top of this file. The service is not a
-mechanical round and should not be run as one.
+`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception), AutoHyperlinks
+and every plugin but one count automatically. The Purple service stays manual on purpose, and its
+seventy build files now say so with `-fno-objc-arc`, as does the date formatter in AIUtilities;
+sixteen files inside the service that were written counted (the Jingle, OMEMO and MAM code) keep
+their flag. The Bonjour plugin named above as the second deliberate exception no longer exists; the
+protocol is libpurple's now. Left over and not worth a round: the Spotlight importer and the two
+helper tools in AIUtilities, and the unit test target.
 
-Run any future round like the two before it: clusters, the playbook, central flag-flipping, the
+Run any future round like the three before it: clusters, the playbook, central flag-flipping, the
 compiler pass, then the adversarial review, whose finding classes are all recorded above. Two
 pieces of logistics learned the hard way in round two: a fresh worktree needs
-`git submodule update --init Dependencies/MMTabBarView` before it can build at all, and when an
-agent run dies in the middle, every file it did not report must be taken back with
+`git submodule update --init Dependencies/MMTabBarView` before it can build at all, plus the fetched
+dependencies (`Dependencies/fetch.sh`, or symlinks to another checkout's WebRTC and picomemo), and
+when an agent run dies in the middle, every file it did not report must be taken back with
 `git checkout --`, because a file that has given up its retains without the flag owns nothing it
 thinks it owns.

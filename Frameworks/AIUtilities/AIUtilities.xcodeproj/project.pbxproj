@@ -74,9 +74,9 @@
 		5A5F601D12962EC0007A2232 /* AISegmentedControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A5F601A12962D06007A2232 /* AISegmentedControl.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		5A5F601E12962ECE007A2232 /* AISegmentedControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 5A5F601912962D06007A2232 /* AISegmentedControl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5AA2A0EE14B3EFF500B4DB65 /* AIOSCompatibility.h in Headers */ = {isa = PBXBuildFile; fileRef = 5AA2A0ED14B3EFF500B4DB65 /* AIOSCompatibility.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5AD04C2C1821E8D3009801F8 /* ISO8601DateFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5AD04C2A1821E8D3009801F8 /* ISO8601DateFormatter.m */; };
+		5AD04C2C1821E8D3009801F8 /* ISO8601DateFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5AD04C2A1821E8D3009801F8 /* ISO8601DateFormatter.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		5AD04C2D1821E8D3009801F8 /* ISO8601DateFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 5AD04C2B1821E8D3009801F8 /* ISO8601DateFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5AD04C311821E910009801F8 /* ISO8601DateFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5AD04C2A1821E8D3009801F8 /* ISO8601DateFormatter.m */; };
+		5AD04C311821E910009801F8 /* ISO8601DateFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 5AD04C2A1821E8D3009801F8 /* ISO8601DateFormatter.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		633400000F9C14C2003C77A9 /* AIFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF040F9C14BF003C77A9 /* AIFunctions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		633400010F9C14C2003C77A9 /* JVMarkedScroller.h in Headers */ = {isa = PBXBuildFile; fileRef = 6334FF070F9C14BF003C77A9 /* JVMarkedScroller.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		633400020F9C14C2003C77A9 /* JVMarkedScroller.m in Sources */ = {isa = PBXBuildFile; fileRef = 6334FF080F9C14BF003C77A9 /* JVMarkedScroller.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
