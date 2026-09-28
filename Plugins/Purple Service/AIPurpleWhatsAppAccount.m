@@ -361,17 +361,22 @@ static NSString *escapedForWhatsAppWire(NSString *text)
  * On this network a file transfer is a transfer only in the plumbing: the plugin uploads the
  * file and sends a message that carries it, and the other side sees a picture, not an offer.
  * So no window, no sound and no announcement, and the picture itself in the chat, from the
- * copy the transfer is pointed at, whose name tells the message view what it is. A file that
- * is not a picture goes the way it always did.
+ * copy the transfer is pointed at, whose name tells the message view what it is.
+ *
+ * A voice note is carried the same way and heard the same way, and its player is already
+ * standing in the chat, put there by the sender of the message it was attached to; so no
+ * window for it either. A file that is neither goes the way it always did, window and all,
+ * since for a document the window is the only sign that anything is happening.
  */
 - (void)beginSendOfFileTransfer:(ESFileTransfer *)fileTransfer
 {
 	NSString *copy = [self keptCopyOfPictureAtPath:[fileTransfer localFilename]];
+	BOOL voiceNote = [[[fileTransfer localFilename] lastPathComponent] hasPrefix:AIVoiceNoteFilePrefix];
 
-	if (copy) {
+	if (copy)
 		[fileTransfer setLocalFilename:copy];
+	if (copy || voiceNote)
 		[fileTransfer setCarriedInConversation:YES];
-	}
 
 	[super beginSendOfFileTransfer:fileTransfer];
 
