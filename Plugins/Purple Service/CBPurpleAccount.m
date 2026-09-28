@@ -71,6 +71,8 @@
 
 #ifdef HAVE_CDSA
 #import "AIPurpleCertificateViewer.h"
+#import "AIMessageViewController.h"
+#import <Adium/AIMenuControllerProtocol.h>
 #endif
 
 #define NO_GROUP						@"__NoGroup__"
@@ -3486,6 +3488,28 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
  * actions that aren't otherwise supported by Adium.  It will only be queried if the account is online.
  * @return NSArray of NSMenuItem instances for this account
  */
+/*!
+ * @brief The menu behind the gear under a group chat's participant list
+ *
+ * What every protocol has in common: the actions for the participant selected in the list,
+ * the same ones a right click on the list offers. Here rather than in each account, so that
+ * the gear does something on every service and not only on the two that add room commands
+ * of their own; those two, XMPP with its room configuration and IRC with its modes, take
+ * this menu and add to it.
+ */
+- (NSMenu *)actionMenuForChat:(AIChat *)chat
+{
+	NSArray			*listObjects = chat.chatContainer.messageViewController.selectedListObjects;
+	AIListObject	*listObject = ([listObjects count] ? [listObjects objectAtIndex:0] : nil);
+
+	return [adium.menuController contextualMenuWithLocations:[NSArray arrayWithObjects:
+															  [NSNumber numberWithInteger:Context_Contact_GroupChat_ParticipantAction],
+															  [NSNumber numberWithInteger:Context_Contact_Manage],
+															  nil]
+											   forListObject:listObject
+													  inChat:chat];
+}
+
 - (NSArray *)accountActionMenuItems
 {
 	NSMutableArray			*menuItemArray = nil;
