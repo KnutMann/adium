@@ -133,6 +133,19 @@ typedef enum {
 - (void)displayContentObject:(AIContentObject *)inObject usingContentFilters:(BOOL)useContentFilters immediately:(BOOL)immediately;
 - (void)displayEvent:(NSString *)message ofType:(NSString *)type inChat:(AIChat *)inChat;
 
+/*!
+ * @brief Leave a link to a file that was sent in the chat, as a message of the sender's
+ *
+ * Shown, not sent: the other side is getting the file itself. The message view turns a
+ * link to a voice note, a video or a picture kept under its marker name into the thing
+ * itself, so the sender sees what they sent where they sent it.
+ */
+- (void)showLinkToSentFile:(NSString *)path
+			   describedAs:(NSString *)description
+					inChat:(AIChat *)chat
+					  from:(AIAccount *)account
+						to:(AIListObject *)destination;
+
 	//Encryption
 - (NSAttributedString *)decodedIncomingMessage:(NSString *)inString
 								   fromContact:(AIListContact *)inListContact 

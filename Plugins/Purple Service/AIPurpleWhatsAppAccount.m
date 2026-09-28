@@ -20,6 +20,10 @@
 #import <Adium/AIListContact.h>
 #import <Adium/ESFileTransfer.h>
 #import "SLPurpleCocoaAdapter.h"
+#import <Adium/AIChatControllerProtocol.h>
+#import <Adium/AIContentControllerProtocol.h>
+#import <Adium/AITextAttachmentExtension.h>
+#import <CommonCrypto/CommonDigest.h>
 
 /* The key the protocol plug-in reads the correction target from. Spelled here rather than
  * included, because the plug-in's headers are not on this side's search path. */
@@ -284,6 +288,109 @@ static NSString *escapedForWhatsAppWire(NSString *text)
 	}
 
 	return encoded;
+}
+
+#pragma mark Pictures sent as messages
+
+/*!
+ * @brief The name a picture keeps on this computer once it has been sent
+ *
+ * The same name the receiving side gives a picture it downloads, the content hash in hex under
+ * the whatsapp_image_ marker, in the same folder. Two things follow from that. The message view
+ * turns a link to a file of that name into the picture itself, so the chat shows what was sent
+ * the way it shows what was received. And a replay of the conversation's history from the phone
+ * finds the file by that hash and shows the picture again instead of a placeholder. The plugin
+ * hashes the bytes it uploads and names the extension after the type it sniffs from them, so the
+ * copy is byte for byte the file and the extension follows the bytes, not the name the file
+ * happened to have.
+ *
+ * @result The path of the copy, or nil if the file is not a picture the plugin would send as one
+ */
+- (NSString *)keptCopyOfPictureAtPath:(NSString *)path
+{
+	NSData *data = [NSData dataWithContentsOfFile:path];
+	if ([data length] < 12) return nil;
+
+	const unsigned char *bytes = [data bytes];
+	NSString *extension = nil;
+	if (bytes[0] == 0x89 && bytes[1] == 'P' && bytes[2] == 'N' && bytes[3] == 'G')
+		extension = @".png";
+	else if (bytes[0] == 0xFF && bytes[1] == 0xD8)
+		extension = @".jpg";
+	else if (memcmp(bytes, "GIF8", 4) == 0)
+		extension = @".gif";
+	else if (memcmp(bytes, "RIFF", 4) == 0 && memcmp(bytes + 8, "WEBP", 4) == 0)
+		extension = @".webp";
+	if (!extension) return nil;
+
+	unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+	CC_SHA256([data bytes], (CC_LONG)[data length], digest);
+	NSMutableString *hex = [NSMutableString stringWithCapacity:(CC_SHA256_DIGEST_LENGTH * 2)];
+	for (int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++)
+		[hex appendFormat:@"%02x", digest[i]];
+
+	NSString *copy = [NSTemporaryDirectory() stringByAppendingPathComponent:
+					  [NSString stringWithFormat:@"%@%@%@", AIInlinePictureFilePrefix, hex, extension]];
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	if (![fileManager fileExistsAtPath:copy] &&
+		![fileManager copyItemAtPath:path toPath:copy error:NULL])
+		return nil;
+
+	return copy;
+}
+
+/*!
+ * @brief Put the picture that was just sent into the chat, as a message of ours
+ *
+ * Shown before the file goes, on purpose: the plugin reports the id of the media message once
+ * it is out, and the id lands on the newest outgoing message that has none. With the picture
+ * already on the page, that is this one, and the receipts that follow the id find it.
+ */
+- (void)showSentPictureAtPath:(NSString *)path inChat:(AIChat *)chat to:(AIListObject *)destination
+{
+	[adium.contentController showLinkToSentFile:path
+									describedAs:AILocalizedString(@"Image", "What a picture sent over WhatsApp is called in the chat's log; the chat itself shows the picture")
+										 inChat:chat
+										   from:self
+											 to:destination];
+}
+
+/*!
+ * @brief A file to a contact goes as a media message, and a picture is shown as one
+ *
+ * On this network a file transfer is a transfer only in the plumbing: the plugin uploads the
+ * file and sends a message that carries it, and the other side sees a picture, not an offer.
+ * So no window, no sound and no announcement, and the picture itself in the chat, from the
+ * copy the transfer is pointed at, whose name tells the message view what it is. A file that
+ * is not a picture goes the way it always did.
+ */
+- (void)beginSendOfFileTransfer:(ESFileTransfer *)fileTransfer
+{
+	NSString *copy = [self keptCopyOfPictureAtPath:[fileTransfer localFilename]];
+
+	if (copy) {
+		[fileTransfer setLocalFilename:copy];
+		[fileTransfer setCarriedInConversation:YES];
+	}
+
+	[super beginSendOfFileTransfer:fileTransfer];
+
+	if (copy) {
+		[self showSentPictureAtPath:copy
+							 inChat:[adium.chatController chatWithContact:[fileTransfer contact]]
+								 to:[fileTransfer contact]];
+	}
+}
+
+//The same for a group, which takes a file by a different door
+- (void)sendFilePath:(NSString *)inPath toGroupChat:(AIChat *)inChat
+{
+	NSString *copy = [self keptCopyOfPictureAtPath:inPath];
+
+	[super sendFilePath:(copy ? copy : inPath) toGroupChat:inChat];
+
+	if (copy)
+		[self showSentPictureAtPath:copy inChat:inChat to:nil];
 }
 
 @end

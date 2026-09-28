@@ -439,9 +439,11 @@ static ESFileTransferPreferences *preferences;
 	/* A file the account is carrying itself and showing in the conversation announces nothing:
 	 * no window, no sound, no notification that a transfer finished. The person sent a picture
 	 * and a picture appeared, and every one of these would be telling them about a separate
-	 * thing that is not happening. If the account gives up and falls back to a real transfer it
-	 * clears this first, so a failure is still heard about. */
-	if ([fileTransfer carriedInConversation])
+	 * thing that is not happening. A failure, or the other side giving up, is heard about all
+	 * the same: an account that carries a file itself may have no other way to send it, and a
+	 * picture already standing in the chat must not stand for one that never went. */
+	if ([fileTransfer carriedInConversation] &&
+		status != Failed_FileTransfer && status != Cancelled_Remote_FileTransfer)
 		return;
 
 	switch (status) {

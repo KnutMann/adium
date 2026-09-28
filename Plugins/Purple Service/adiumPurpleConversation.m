@@ -282,15 +282,18 @@ static void adiumPurpleConvWriteConv(PurpleConversation *conv, const char *who, 
 		BOOL				shouldDisplayMessage = TRUE;
 
 		/* libpurple narrates a file transfer into the conversation: offered, then finished. For a
-		 * voice note that narration would be all there is to see, since the note goes as a file,
-		 * and it says twice in words what the chat says once as a player. Adium puts that player
-		 * there itself, so these are swallowed.
+		 * voice note, a picture or a video that narration would be all there is to see, since
+		 * they go as files, and it says twice in words what the chat says once as a player or a
+		 * picture. Adium puts those there itself, so these are swallowed; the marker in the file's
+		 * name is what says the chat is showing it.
 		 *
 		 * Only what libpurple itself writes, so a person who types the name of a note is heard,
 		 * and only what went right: a refused or failed transfer carries the error flag and was
 		 * answered above, where it belongs, because then the words are the only word there is. */
 		if ((flags & PURPLE_MESSAGE_SYSTEM) &&
-			[messageString rangeOfString:AIVoiceNoteFilePrefix].location != NSNotFound) {
+			([messageString rangeOfString:AIVoiceNoteFilePrefix].location != NSNotFound ||
+			 [messageString rangeOfString:AIInlinePictureFilePrefix].location != NSNotFound ||
+			 [messageString rangeOfString:AIInlineVideoFilePrefix].location != NSNotFound)) {
 			shouldDisplayMessage = FALSE;
 		}
 

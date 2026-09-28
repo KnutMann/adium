@@ -22,6 +22,11 @@
  * and the protocol side all mean the same thing by it.
  */
 #define AIVoiceNoteFilePrefix		@"AdiumVoice_"
+/* The names the message view turns into a player or a picture when a file: link carries
+ * one. All three are a contract with the WhatsApp plugin, which keeps what it receives under
+ * them; the picture's name is the plugin's own and older than the other two. */
+#define AIInlineVideoFilePrefix		@"AdiumVideo_"
+#define AIInlinePictureFilePrefix	@"whatsapp_image_"
 
 @interface AITextAttachmentExtension : NSTextAttachment <NSCopying> {
 	NSString	*stringRepresentation;
