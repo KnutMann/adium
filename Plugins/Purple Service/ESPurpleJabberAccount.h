@@ -37,7 +37,7 @@
 
 @class AMPurpleJabberMAM;
 
-@interface ESPurpleJabberAccount : CBPurpleAccount <AIAccount_Files> {
+@interface ESPurpleJabberAccount : CBPurpleAccount {
     AMXMLConsoleController *xmlConsoleController;
 	AMPurpleJabberServiceDiscoveryBrowsing *discoveryBrowserController;
 

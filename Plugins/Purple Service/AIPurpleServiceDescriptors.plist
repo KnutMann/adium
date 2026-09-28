@@ -48,9 +48,6 @@
 		<!-- tdlib keeps its own connection; there is no host to probe -->
 		<key>NetworkReachability</key>
 		<false/>
-		<!-- Store and forward: a file reaches a contact who looks offline -->
-		<key>OfflineFileTransfers</key>
-		<true/>
 	</dict>
 
 	<key>prpl-bonjour</key>
@@ -154,9 +151,6 @@
 		<true/>
 		<!-- presage echoes what was sent, including from the phone -->
 		<key>EchoesOutgoingMessages</key>
-		<true/>
-		<!-- Store and forward, and presence is sparse -->
-		<key>OfflineFileTransfers</key>
 		<true/>
 	</dict>
 

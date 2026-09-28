@@ -1822,6 +1822,19 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	return NO;
 }
 
+/*!
+ * @brief Send a file the way libpurple sends one
+ *
+ * Every purple account can send a file when its protocol can, which
+ * -allowFileTransferWithListObject: asks the protocol about. A subclass with a better
+ * way, the Jabber account with its HTTP upload, overrides this and falls back to
+ * _beginSendOfFileTransfer: when that way is closed.
+ */
+- (void)beginSendOfFileTransfer:(ESFileTransfer *)fileTransfer
+{
+	[self _beginSendOfFileTransfer:fileTransfer];
+}
+
 //Create a protocol-specific xfer object, set it up as requested, and begin sending
 - (void)_beginSendOfFileTransfer:(ESFileTransfer *)fileTransfer
 {

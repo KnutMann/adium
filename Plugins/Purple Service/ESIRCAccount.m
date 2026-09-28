@@ -598,11 +598,6 @@ BOOL contactUIDIsServerContact(NSString *contactUID)
 	return NO;
 }
 
-- (void)beginSendOfFileTransfer:(ESFileTransfer *)fileTransfer
-{
-	[super _beginSendOfFileTransfer:fileTransfer];
-}
-
 - (void)acceptFileTransferRequest:(ESFileTransfer *)fileTransfer
 {
     [super acceptFileTransferRequest:fileTransfer];    

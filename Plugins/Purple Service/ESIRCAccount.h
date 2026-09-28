@@ -31,7 +31,7 @@ typedef enum {
 
 @class AIIRCConsoleController;
 
-@interface ESIRCAccount : CBPurpleAccount <AIAccount_Files, NSMenuItemValidation> {
+@interface ESIRCAccount : CBPurpleAccount <NSMenuItemValidation> {
 	AIIRCConsoleController *consoleController;
 }
 

@@ -32,7 +32,7 @@
 @class SLPurpleCocoaAdapter, ESFileTransfer, AIService, AIContentMessage, AIStatus, AIWindowController;
 @protocol AIAccountControllerRemoveConfirmationDialog;
 
-@interface CBPurpleAccount : AIAccount <AIAccount_Privacy>
+@interface CBPurpleAccount : AIAccount <AIAccount_Privacy, AIAccount_Files>
 {   	
     PurpleAccount         *account;
 

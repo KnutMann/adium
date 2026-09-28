@@ -170,23 +170,4 @@
 	return reachability ? [reachability boolValue] : [super connectivityBasedOnNetworkReachability];
 }
 
-/*!
- * @brief May a file be sent to a contact who looks offline?
- *
- * On a store and forward network it may: the server holds it. Presence on those networks is sparse
- * enough that most contacts look offline whether they are or not, so asking after presence answers
- * the wrong question.
- */
-- (BOOL)availableForSendingContentType:(NSString *)inType toContact:(AIListContact *)inContact
-{
-	if ([inType isEqualToString:CONTENT_FILE_TRANSFER_TYPE] &&
-		[[(AIPurpleGenericService *)self.service descriptorValueForKey:@"OfflineFileTransfers"] boolValue]) {
-		return (self.online &&
-				[self conformsToProtocol:@protocol(AIAccount_Files)] &&
-				(!inContact || [self allowFileTransferWithListObject:inContact]));
-	}
-
-	return [super availableForSendingContentType:inType toContact:inContact];
-}
-
 @end
