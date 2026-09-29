@@ -17,6 +17,7 @@
 #import "ESPanelApplescriptDetailPane.h"
 #import "ESApplescriptContactAlertPlugin.h"
 #import <AIUtilities/AIStringAdditions.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface ESPanelApplescriptDetailPane ()
 - (void)setScriptPath:(NSString *)inPath;
@@ -84,7 +85,11 @@
 {
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setTitle:AILocalizedString(@"Select an AppleScript",nil)];
-	[openPanel setAllowedFileTypes:[NSArray arrayWithObjects:@"applescript",@"scptd",@"scpt",nil]];
+	/* The same three kinds by type instead of by extension: com.apple.applescript.text is
+	 * .applescript, com.apple.applescript.script-bundle is .scptd and
+	 * com.apple.applescript.script is .scpt. (Checked against each constant's filename
+	 * extension tag.) */
+	[openPanel setAllowedContentTypes:@[UTTypeAppleScript, UTTypeOSAScriptBundle, UTTypeOSAScript]];
 	
 	if ([openPanel runModal] == NSModalResponseOK) {
 		[self setScriptPath:[[openPanel URL] path]];

@@ -402,23 +402,23 @@
 	return image;
 }
 
-//Our default drag image will be cropped incorrectly, so we need a custom one here
-- (NSImage *)dragImageForRows:(NSArray *)dragRows event:(NSEvent *)dragEvent dragImageOffset:(NSPointPointer)dragImageOffset
-{
-	NSImage			*image;
-	NSUInteger	i, bufSize = [dragRows count];
-	NSUInteger	*buf = malloc(bufSize * sizeof(NSUInteger));
-
-	for (i = 0; i < bufSize; i++) {
-		buf[i] = [[dragRows objectAtIndex:0] unsignedIntValue];
-	}
-
-	image = [self dragImageForRows:buf count:bufSize tableColumns:nil event:dragEvent offset:dragImageOffset];
-
-	free(buf);
-
-	return image;
-}
+/* The 10.4 era -dragImageForRows:event:dragImageOffset: used to sit here and is
+ * gone. It could not be reached:
+ *
+ * 1. Its replacement, -dragImageForRowsWithIndexes:tableColumns:event:offset:
+ *    above, is implemented by this class and does not call super. NSTableView.h
+ *    says of that replacement "If present, this is used instead of the deprecated
+ *    method".
+ * 2. Measured against macOS 26, NSTableView's own implementation of the
+ *    replacement does not call the deprecated method either, so there is no path
+ *    left that leads to it.
+ *
+ * It would also have drawn nothing if it had been reached: it passed
+ * tableColumns:nil into the shared helper, whose per column loop then ran zero
+ * times, so the picture it returned was a blank faded rectangle rather than the
+ * dragged rows. The drag image that the user actually sees comes from the
+ * replacement above for a cell based table, and from the row views for a view
+ * based one. */
 
 - (NSInteger)totalHeight
 {

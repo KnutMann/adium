@@ -1013,6 +1013,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000CE04 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C102 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C101 /* Contacts.framework */; };
 		ADD1E5C0DE0000000000C302 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */; };
+		ADD1E5C0DE0000000000C402 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C301 /* UniformTypeIdentifiers.framework */; };
 		636D92BE0E4E97AA00E5F558 /* AIAddressBookUserIconSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3403F4310D2EF01D006B08FB /* AIAddressBookUserIconSource.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		636D93400E4E9ED600E5F558 /* AB Display Format Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BCAC4E207B59B65006641B9 /* AB Display Format Defaults.plist */; };
 		636D938C0E4EA23F00E5F558 /* AdiumAddressBookAction_Jabber.scpt in Resources */ = {isa = PBXBuildFile; fileRef = 636D93690E4E9FD300E5F558 /* AdiumAddressBookAction_Jabber.scpt */; };
@@ -3124,6 +3125,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADD1E5C0DE0000000000C402 /* UniformTypeIdentifiers.framework in Frameworks */,
 				4DAA97BB2577C4140000D3F7 /* AutoHyperlinks.framework in Frameworks */,
 				4D4A20EE2577585E008BB8E3 /* MMTabBarView.framework in Frameworks */,
 				4DAA979F2577BEE40000D3F7 /* AIUtilities.framework in Frameworks */,

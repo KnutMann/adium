@@ -379,7 +379,20 @@
 	return [super draggingEntered:sender];
 }
 
-- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal
+/*!
+ * @brief What the list allows when it is the one being dragged from
+ *
+ * The same answer for a drag that stays in Adium and one that leaves it, which
+ * is what the deprecated -draggingSourceOperationMaskForLocal: said here too:
+ * it was handed the local flag and ignored it.
+ *
+ * Saying it here rather than there changes nothing. NSTableView implements both
+ * methods, and the modern one is a pass-through to the old one: a table that
+ * overrides only -draggingSourceOperationMaskForLocal: sees this method hand
+ * that answer straight back, for either context. Measured on macOS 26 against a
+ * bare NSTableView subclass.
+ */
+- (NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
 {
 	return (NSDragOperationCopy | NSDragOperationMove | NSDragOperationPrivate);
 }

@@ -405,6 +405,20 @@
 
 #pragma mark Accessibility
 
+/* This deliberately stays on the deprecated -accessibilityAttributeValue:.
+ *
+ * Measured against macOS 26: on an NSCell the old getter answers both the old and
+ * the new question, because the modern properties fall back to it, while the
+ * modern properties are not consulted when something asks the old way. A cell
+ * held by a control or by a cell based table is asked the old way, so converting
+ * this would keep the answers for new style callers and lose them for old style
+ * ones. That is the wrong direction for a screen reader.
+ *
+ * Nothing asks this cell either way at the moment: the only user of
+ * AIImageTextCell in the tree is AIImageTextCellView, which draws the cell by
+ * hand and never hands it to a control, so the cell is not in the accessibility
+ * tree. Leaving the method costs nothing and keeps the answers for anything that
+ * later puts an AIImageTextCell into a control or a cell based table. */
 - (id)accessibilityAttributeValue:(NSString *)attribute
 {
 	if([attribute isEqualToString:NSAccessibilityRoleAttribute]) {

@@ -37,6 +37,16 @@ DEVELOPER=$(xcode-select -print-path)
 SDK_ROOT="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
 MIN_OS_VERSION="12.0"
+
+# The same number again, as the environment variable clang reads when nobody hands it a
+# flag. The flags below only reach the packages that are configured with them, and the
+# minimum of a finished library is decided at the link, not at the compile: anything
+# whose link line we do not control - a meson subproject such as libffi or pcre2, a
+# nested build, a recipe that forgets to export LDFLAGS - would otherwise be stamped for
+# whatever macOS this machine happens to be running, and the application, built for
+# MIN_OS_VERSION, collects a linker warning for each one.
+export MACOSX_DEPLOYMENT_TARGET="$MIN_OS_VERSION"
+
 BASE_CFLAGS="-fstack-protector -isysroot $SDK_ROOT \
 	-mmacosx-version-min=$MIN_OS_VERSION \
 	-I$ROOTDIR/build/include \

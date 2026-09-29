@@ -58,7 +58,7 @@ build_glib() {
 		status "Configuring glib"
 		log ln -sf /usr/bin/python3 "$ROOTDIR/build/bin/python3"
 		export PYTHON=/usr/bin/python3
-		#Meson has to be told about our tree four times over, and missing any one of them
+		#Meson has to be told about our tree five times over, and missing any one of them
 		#fails in a way that looks like something else:
 		#  - cpp_args/cpp_link_args as well as the c_ ones: glib is a C *and* C++ project, and
 		#    the intl probe runs through the C++ compiler. Without them it reports
@@ -69,7 +69,24 @@ build_glib() {
 		#    not exist on macOS 26.
 		#  - LIBRARY_PATH, which is what clang consults for -l at the final link; the meson
 		#    options only reach the probes.
+		#  - c_link_args/cpp_link_args have to carry -mmacosx-version-min as well, not only
+		#    the compile arguments. A Mach-O's minimum is written by the linker, not the
+		#    compiler, and clang with no flag on the link line falls back to the machine it
+		#    runs on: the five glib libraries came out stamped for macOS 26 while every
+		#    object inside them said 12, and the application, built for 12, collected a
+		#    linker warning for each of them.
 		#-Dnls=enabled makes the fallback an error rather than a silent downgrade.
+		#
+		#The libffi that PKG_CONFIG_LIBDIR points meson at is older than this script:
+		#build/lib/libffi.7.dylib and its libffi.pc say version 3.2.9999, they date from
+		#before the arm64 pipeline, and no recipe here has ever built them. So they are
+		#reused forever and carry whatever minimum the machine had on the day they were
+		#made, while a fresh clone has no libffi at all and silently builds
+		#subprojects/libffi.wrap instead - a different library under the same name.
+		#Deleting build/lib/libffi*, build/lib/pkgconfig/libffi.pc and
+		#build/include/ffi*.h makes the wrap the only answer on every machine, which is
+		#the shape this wants; it also renames the framework from Versions/7 to
+		#Versions/8, so it is not a change to make halfway.
 		export PKG_CONFIG_PATH="$ROOTDIR/build/lib/pkgconfig"
 		export PKG_CONFIG_LIBDIR="$ROOTDIR/build/lib/pkgconfig"
 		export LIBRARY_PATH="$ROOTDIR/build/lib"
@@ -82,9 +99,9 @@ build_glib() {
         -Dintrospection=disabled \
         -Dnls=enabled \
         -Dc_args="-I$ROOTDIR/build/include -mmacosx-version-min=$MIN_OS_VERSION" \
-        -Dc_link_args="-L$ROOTDIR/build/lib -Wl,-headerpad_max_install_names" \
+        -Dc_link_args="-L$ROOTDIR/build/lib -Wl,-headerpad_max_install_names -mmacosx-version-min=$MIN_OS_VERSION" \
         -Dcpp_args="-I$ROOTDIR/build/include -mmacosx-version-min=$MIN_OS_VERSION" \
-        -Dcpp_link_args="-L$ROOTDIR/build/lib -Wl,-headerpad_max_install_names" \
+        -Dcpp_link_args="-L$ROOTDIR/build/lib -Wl,-headerpad_max_install_names -mmacosx-version-min=$MIN_OS_VERSION" \
         _build
     status "Configured."
 

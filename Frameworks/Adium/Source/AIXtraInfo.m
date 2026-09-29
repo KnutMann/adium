@@ -17,6 +17,7 @@
 #import "AIXtraInfo.h"
 #import <Adium/AIDockControllerProtocol.h>
 #import "AIIconState.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface AIXtraInfo ()
 - (NSString *)manifestStringForKey:(NSString *)key;
@@ -137,7 +138,23 @@
 				icon = [previewState image];
 
 			} else {
-				icon = [[NSWorkspace sharedWorkspace] iconForFileType:[path pathExtension]];
+				/* By tag, and with no conformance demanded. The convenience
+				 * +typeWithFilenameExtension: is documented as asking for a type conforming
+				 * to UTTypeData, and every Xtra type Adium declares is a PACKAGE, so that
+				 * question answers a made up dyn.* type whose icon is the generic document
+				 * rather than the icon Adium declared for its own kind. Asked this way the
+				 * answer is the declared type, which is what -iconForFileType: took. */
+				NSString *pathExtension = [path pathExtension];
+				UTType *contentType = ([pathExtension length] ?
+									   [UTType typeWithTag:pathExtension
+												  tagClass:UTTagClassFilenameExtension
+										  conformingToType:nil] :
+									   nil);
+
+				if (contentType)
+					icon = [[NSWorkspace sharedWorkspace] iconForContentType:contentType];
+				else
+					icon = [[NSWorkspace sharedWorkspace] iconForFile:path];
 			}
 		}
 		if(!previewImage)

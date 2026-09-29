@@ -20,10 +20,29 @@ REVISION=616b7014ea293a1fd5f785b2535db5bdaa0acfdf
 SOURCE=picomemo
 LIBRARY="$SOURCE/o/libpicomemo.a"
 
-if [ -f "$LIBRARY" ] && [ "$(git -C "$SOURCE" rev-parse HEAD 2>/dev/null)" = "$REVISION" ]; then
+# The same number as MIN_OS_VERSION in ../build.sh, and it has to be spelled out for
+# this build too: clang left to itself stamps the objects for the machine it runs on,
+# and the application, which is built for 12.0, then gets a linker warning for every
+# member it pulls out of the archive.
+MIN_OS_VERSION=12.0
+
+# An archive built before that flag existed is the right revision and still wrong, so
+# the minimum is part of what "already built" means. Otherwise every checkout that has
+# one keeps it, and the warnings come back with no way to tell why.
+archive_is_current() {
+	[ -f "$LIBRARY" ] || return 1
+	[ "$(git -C "$SOURCE" rev-parse HEAD 2>/dev/null)" = "$REVISION" ] || return 1
+	local stamps
+	stamps=$(otool -l "$LIBRARY" 2>/dev/null \
+		| awk '/LC_BUILD_VERSION/{f=1} f&&/minos/{print $2; f=0}' | sort -u)
+	[ "$stamps" = "$MIN_OS_VERSION" ]
+}
+
+if archive_is_current; then
 	echo "picomemo ($REVISION) is already built"
 	exit 0
 fi
+rm -rf "$SOURCE/o"
 
 if [ ! -d "$SOURCE" ]; then
 	git clone -q https://github.com/mierenhoop/picomemo.git "$SOURCE"
@@ -38,6 +57,8 @@ SSL="$(brew --prefix openssl@3 2>/dev/null || echo /opt/homebrew/opt/openssl@3)"
 # Only the static library: the shared one wants GNU ld's -soname, which macOS spells
 # differently, and embedding a static library is what we want anyway.
 cd "$SOURCE"
-DRIVERS="c25519.c openssl.c" CFLAGS="-O2 -I$SSL/include" make o/libpicomemo.a >/dev/null
+DRIVERS="c25519.c openssl.c" \
+	CFLAGS="-O2 -mmacosx-version-min=$MIN_OS_VERSION -I$SSL/include" \
+	make o/libpicomemo.a >/dev/null
 
-echo "picomemo ($REVISION) built: $(cd .. && ls -lh "$LIBRARY" | awk '{print $5}'), $(lipo -info o/libpicomemo.a | sed 's/.*: //')"
+echo "picomemo ($REVISION) built: $(cd .. && ls -lh "$LIBRARY" | awk '{print $5}'), $(lipo -info o/libpicomemo.a | sed 's/.*: //'), macOS $MIN_OS_VERSION"

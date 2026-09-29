@@ -44,6 +44,11 @@ build_libgcrypt(){
 	if needsconfigure $@; then
 	(
 		status "Configuring libgcrypt"
+		# Its neighbours in this file export these two and it did not, which is why the
+		# dylib it produced was the only one here stamped for the running macOS rather
+		# than for MIN_OS_VERSION.
+		export CFLAGS="$ARCH_CFLAGS -Os"
+		export LDFLAGS="$ARCH_LDFLAGS"
 		# Its own assembly for this processor does not get past Apple's
 		# assembler: the aarch64 sources under mpi carry frame directives it
 		# rejects outright, and the build stops with "Unfinished frame!" on

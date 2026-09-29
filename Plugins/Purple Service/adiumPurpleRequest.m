@@ -440,7 +440,11 @@ static void *adiumPurpleRequestFile(const char *title, const char *filename,
 			if (savedialog) {
 				NSSavePanel *savePanel = [NSSavePanel savePanel];
 				if ([titleString length]) [savePanel setTitle:titleString];
-				[savePanel setAllowedFileTypes:nil];
+				/* libpurple names no kinds here, and the panel must take any file. nil said
+				 * that to -setAllowedFileTypes:; the empty array says it to
+				 * -setAllowedContentTypes:, which is documented as "any file type can be
+				 * used" and is nonnull, so nil is not an option. */
+				[savePanel setAllowedContentTypes:@[]];
 
 				if ([savePanel runModal] == NSModalResponseOK) {
 					((PurpleRequestFileCb)ok_cb)(user_data, [[[savePanel URL] path] UTF8String]);
@@ -448,7 +452,8 @@ static void *adiumPurpleRequestFile(const char *title, const char *filename,
 			} else {
 				NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 				if ([titleString length]) [openPanel setTitle:titleString];
-				[openPanel setAllowedFileTypes:nil];
+				//As above: the empty array is how "all files should be enabled" is spelled now
+				[openPanel setAllowedContentTypes:@[]];
 
 				if ([openPanel runModal] == NSModalResponseOK) {
 					((PurpleRequestFileCb)ok_cb)(user_data, [[[openPanel URL] path] UTF8String]);

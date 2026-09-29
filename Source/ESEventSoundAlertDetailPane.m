@@ -21,6 +21,7 @@
 #import <AIUtilities/AIStringAdditions.h>
 #import <AIUtilities/AIImageAdditions.h>
 #import <Adium/AISoundSet.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 #define PLAY_A_SOUND			AILocalizedString(@"Play a sound",nil)
 #define KEY_DEFAULT_SOUND_DICT	@"Default Sound Dict"
@@ -238,7 +239,17 @@
 		[self detailsForHeaderChanged];
     } else { //selected "Other..."
         NSOpenPanel *openPanel = [NSOpenPanel openPanel];
-        openPanel.allowedFileTypes = [NSSound soundUnfilteredTypes]; //allow all the sounds NSSound understands
+        /* All the sounds NSSound understands, as before: +soundUnfilteredTypes has answered
+         * type identifiers rather than extensions since 10.5, so each one is simply looked
+         * up. (Measured: all nine it lists resolve; a type the system did not know would be
+         * left out rather than passed on as nil.) */
+        NSMutableArray<UTType *> *soundTypes = [NSMutableArray array];
+        for (NSString *identifier in [NSSound soundUnfilteredTypes]) {
+            UTType *soundType = [UTType typeWithIdentifier:identifier];
+
+            if (soundType) [soundTypes addObject:soundType];
+        }
+        openPanel.allowedContentTypes = soundTypes;
 		[openPanel beginSheetModalForWindow:[view window] completionHandler:^(NSInteger result) {
 			if (result == NSModalResponseOK) {
 				NSString *path = openPanel.URL.path;

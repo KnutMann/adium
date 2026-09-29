@@ -28,7 +28,7 @@
 #import "AHHyperlinkScanner.h"
 #import "AHLinkLexer.h"
 #import "AHMarkedHyperlink.h"
-#import <libkern/OSAtomic.h>
+#include <stdatomic.h>
 
 #define DEFAULT_URL_SCHEME @"http://"
 #define ENC_INDEX_KEY @"encIndex"
@@ -314,11 +314,22 @@
 				case AH_URL_TENTATIVE:
 				{
 					NSString *scheme = [_scanString substringToIndex:schemeLength];
-					NSArray *apps = (NSArray *)LSCopyAllHandlersForURLScheme((CFStringRef)scheme);
+					// Ask the same question LSCopyAllHandlersForURLScheme() used to answer
+					// before macOS 12 deprecated it: is at least one application registered
+					// for this scheme? NSWorkspace wants a URL rather than a bare scheme, so
+					// we hand it a throwaway one that carries nothing but the scheme.
+					// The "//localhost/" is not decoration: for a bare "file:" Launch Services
+					// looks for a file that does not exist and reports no handler at all,
+					// while "file://localhost/" is the root directory and reports the same
+					// handlers the old call did. Every other scheme answers the same either way.
+					// A scheme the lexer accepts but NSURL rejects (a leading digit, an
+					// underscore) yields a nil URL, and nothing can be registered for those.
+					NSURL *schemeProbeURL = [NSURL URLWithString:[scheme stringByAppendingString:@"://localhost/"]];
+					// Unlike the array the Copy function returned, this one is autoreleased.
+					NSArray *apps = schemeProbeURL ? [[NSWorkspace sharedWorkspace] URLsForApplicationsToOpenURL:schemeProbeURL] : nil;
 
 					if(!apps.count)
 						makeLink = FALSE;
-					[apps release];
 					break;
 				}
                 default:
@@ -393,7 +404,12 @@
 		NSString *newLinkifiedString = [self _createLinkifiedString];
 		// compare the old object to nil, and swap in the new value if they match.
 		// if the old object (m_linkifiedString) already has a value, release the duplicated new object
-		if(OSAtomicCompareAndSwapPtrBarrier(nil, newLinkifiedString, (void *)&m_linkifiedString))
+		// atomic_compare_exchange_strong() is the C11 replacement the deprecation of
+		// OSAtomicCompareAndSwapPtrBarrier() points at. It defaults to memory_order_seq_cst
+		// on both the winning and the losing path, so the full barrier of the old call is kept.
+		// expected is overwritten by the current value when the swap loses; we do not use it.
+		void *expected = NULL;
+		if(atomic_compare_exchange_strong((_Atomic(void *) *)&m_linkifiedString, &expected, (void *)newLinkifiedString))
 			[m_linkifiedString retain];
 	}
 	return m_linkifiedString;
@@ -434,7 +450,12 @@
 		NSAttributedString *newLinkifiedString = [self _createLinkifiedString];
 		// compare the old object to nil, and swap in the new value if they match.
 		// if the old object (m_linkifiedString) already has a value, release the duplicated new object
-		if(OSAtomicCompareAndSwapPtrBarrier(nil, newLinkifiedString, (void *)&m_linkifiedString))
+		// atomic_compare_exchange_strong() is the C11 replacement the deprecation of
+		// OSAtomicCompareAndSwapPtrBarrier() points at. It defaults to memory_order_seq_cst
+		// on both the winning and the losing path, so the full barrier of the old call is kept.
+		// expected is overwritten by the current value when the swap loses; we do not use it.
+		void *expected = NULL;
+		if(atomic_compare_exchange_strong((_Atomic(void *) *)&m_linkifiedString, &expected, (void *)newLinkifiedString))
 			[m_linkifiedString retain];
 	}
 	return m_linkifiedString;

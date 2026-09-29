@@ -71,13 +71,13 @@
 - (void)outlineViewDeleteSelectedRows:(NSOutlineView *)outlineView;
 
 /*!
- * @brief Passes on NSObject's <tt>draggedImage:endedAt:operation:</tt> to the delegate
+ * @brief Informs the delegate that a drag which began in the outline view has ended
  *
- * Passes on NSObject's <tt>draggedImage:endedAt:operation:</tt>, which is invoked in the dragging source as the drag ends, 
- * to the delegate.  See <tt>NSObject</tt>'s documentation for more details.
+ * Called from <tt>AIOutlineView</tt>'s <tt>draggingSession:endedAtPoint:operation:</tt>, the
+ * <tt>NSDraggingSource</tt> method invoked in the dragging source as the drag ends.
  *
  * @param outlineView The <tt>NSOutlineView</tt> which ended the drag
- * @param image The <tt>NSImage</tt> drag image
+ * @param image Always nil. It was already nil before this class moved off the old image based drag API, because AppKit hands no image to that API's end of drag callback any more. The argument is kept so that existing implementations keep compiling.
  * @param screenPoint An <tt>NSPoint</tt> in screen coordinates
  * @param operation The <tt>NSDragOperation</tt> of the drag
  */
