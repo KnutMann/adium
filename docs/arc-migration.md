@@ -60,17 +60,19 @@ file compiles, and every object it used to own is left dangling. Do both in one 
   automatic.** Where `__block __typeof__(self) bself = self` was the trick for getting into a block
   without an ownership cycle, it silently becomes the cycle.
 
-## What stays behind
+## What stayed behind, and for how long
 
-Two subsystems are meant to remain manual, and their build files should say so with an explicit
-`-fno-objc-arc` rather than relying on the absence of a flag:
+Two subsystems were meant to remain manual, and both reasons were good ones at the time:
 
-- **Plugins/Purple Service.** Objects are handed to libpurple through `void *ui_data` under three
-  different ownership conventions that coexist on purpose. Reference counting cannot see any of
-  them, and confusing two is a double free.
-- **Plugins/Bonjour, including libezv.** `-dealloc` hands a dying object across into the account
-  layer. The moment the receiving side counts references it retains something that is already going
-  away, which ends the process.
+- **Plugins/Purple Service.** Objects are handed to libpurple through `void *ui_data` under several
+  ownership conventions that coexist on purpose. Reference counting cannot see any of them, and confusing
+  two is a double free. That held until rounds four to seven, which wrote the conventions down first (see
+  those sections) and converted the service to them.
+- **Plugins/Bonjour, including libezv.** `-dealloc` handed a dying object across into the account layer,
+  and a counted receiver would have retained something already going away. That plugin is gone; the
+  protocol is libpurple's own now.
+
+Nothing is left manual. The flags that once marked the exceptions are gone with them.
 
 ## Order
 
@@ -335,15 +337,67 @@ xctest` runs the bundle without a host: 356 tests, 44 failures, none from the mi
 are the colour category converting through generic RGB while the system colours are sRGB now, a
 decision for the category; one is an AppleScript term that only Adium's own process knows.
 
+## Round seven: the core of the Purple service
+
+The eighteen files the playbook had kept manual since the beginning: the account class every protocol
+subclasses, the adapter that is the hub between Adium and libpurple, and the callback tables libpurple
+calls. They store Objective-C objects in libpurple structs and hand them to C functions, which is why
+they were left, and the reason held only until somebody wrote down what each crossing actually does.
+
+That is how the round began: an inventory before a single line changed. Three readers went through every
+`ui_data` store, every `user_data`, every handle and every cast, in these files and in libpurple's own
+sources, and wrote down for each one who takes the reference, who gives it back, and what guarantees the
+object outlives the C pointer. It came to four conventions, not the three the old note claimed:
+
+- **a slot in a libpurple struct owns a reference** (the account, the contact, the conversation, the file
+  transfer): `slot = (__bridge_retained void *)object;` to store, `(__bridge X *)slot` to read, and
+  `CFRelease(slot); slot = NULL;` in the destroy or remove op that gives it back;
+- **a window controller handed over as a request or notification handle owns one too**: the op returns
+  `(__bridge_retained void *)controller`, the close op reads it borrowed, and the controller consumes its
+  own reference;
+- **an object travelling as an unretained context** (the account inside a request, a registration
+  callback): `(__bridge void *)` out, `(__bridge X *)` back, and a comment naming what keeps it alive;
+- **a C pointer in an NSValue** changes no ownership at all and stays exactly as it was.
+
+The five converters worked to that one vocabulary, which mattered: six references are stored in one file
+and given back in another, by different hands, and a mismatch would have been a double free.
+
+What the round taught, beyond the conventions:
+
+- **`[nil release]` was a no-op and `CFRelease(NULL)` is a trap.** Every place the manual code could
+  release an empty slot without thinking needed a guard. Three were added, and one of them, the
+  authorization request's close, removes a crash that was already reachable: a blocked contact, and
+  equally an automatically answered Jabber request, left libpurple holding a record with a null handle,
+  and the next disconnect released it.
+- **Counting the references is what finds the leak.** The authorization dictionary carried two of them
+  across the boundary and the close gave two back, so the two close paths balanced by accident while the
+  answered path leaked both. One reference, one consumer: the conversion halves that leak to the one
+  libpurple never asks for back, which stays for a later commit.
+- **An attribute on a declaration is inherited by the implementation, and by an override that does not
+  repeat it.** `ns_consumed` and `ns_returns_retained` decide what a counted caller does at the call site,
+  so the same attribute means different work depending on whether the caller counts. Measured in the
+  compiler's own output rather than argued.
+- **A method whose body is now a `CFRelease` must guard itself,** not rely on its one caller to do it.
+  A file transfer the protocol made for itself never had a reference to give back.
+- **A borrowed read of a slot retains under counting.** A stale slot that manual code only crashed on at
+  first use now crashes at the read, which is why every consumer nulls its slot and why that was checked
+  on every path.
+
+Left as it was found, and stated so nobody mistakes it for conversion damage: a user-closed request is
+never closed in libpurple, because the adapter compares the wrong handle, so it lives until the account
+disconnects; request fields are never destroyed; a conversation with somebody not on the roster makes a
+buddy structure nobody owns; the answered authorization path still leaks its one reference.
+
 ## Where this stands, and what waits
 
-Everything counts automatically but the core of the Purple service: `Source/`,
-`Frameworks/Adium/Source`, all of AIUtilities with its importer and tools, AutoHyperlinks, every
-plugin, the unit tests, and 52 of the 70 files of the service. The 18 that remain are manual on
-purpose and marked `-fno-objc-arc`: CBPurpleAccount, SLPurpleCocoaAdapter, adiumPurpleSignals,
-adiumPurpleConversation, adiumPurpleRequest, adiumPurpleNotify and the other callback tables that
-store objects in `ui_data`. Those share three ownership conventions and can only go together,
-after an inventory of every store into and read out of a libpurple struct. The Bonjour plugin named above as the second deliberate exception no longer exists; the
+Everything counts automatically. `Source/`, `Frameworks/Adium/Source`, all of AIUtilities with its
+importer and tools, AutoHyperlinks, every plugin, the unit tests and all seventy files of the Purple
+service; not one `-fno-objc-arc` is left in either project, and the only file that ever earned the
+flag on purpose, the date formatter, earned it out of caution that did not survive reading.
+
+What remains is not conversion work. The faults the inventories found are listed at the end of the
+round they were found in, each with the file and the line; none of them is caused by counting, and
+each is a commit of its own. The Bonjour plugin named above as the second deliberate exception no longer exists; the
 protocol is libpurple's now. Nothing else is left over.
 
 Run any future round like the three before it: clusters, the playbook, central flag-flipping, the

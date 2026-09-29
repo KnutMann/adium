@@ -124,13 +124,6 @@
 		[tableview sizeToFit];
 		[self showWindow:nil];
 		[self tableViewSelectionDidChange:[NSNotification notificationWithName:@"SelectionChanged" object:nil]];
-
-		/* This object is the notification's ui_handle, and libpurple holds it twice. The manual
-		 * creator in adiumPurpleNotify.m keeps the +1 that init returns, and adiumPurpleNotifyClose
-		 * gives that one back through -purpleRequestClose; then it releases the handle a second
-		 * time, and this is the reference that second release consumes. Outside ARC's view, exactly
-		 * as the [self retain] that stood here was. */
-		CFRetain((__bridge CFTypeRef)self);
 	}
 	return self;
 }

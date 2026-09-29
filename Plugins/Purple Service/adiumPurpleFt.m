@@ -25,20 +25,23 @@ static void adiumPurpleNewXfer(PurpleXfer *xfer)
 
 static void adiumPurpleDestroy(PurpleXfer *xfer)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	ESFileTransfer *fileTransfer = (ESFileTransfer *)xfer->ui_data;
+    @autoreleasepool {
+		ESFileTransfer *fileTransfer = (__bridge ESFileTransfer *)xfer->ui_data;
 
-	/* The transfer object outlives this xfer: the file transfer window keeps every one of them in a
-	 * list of its own, so releasing the account's reference below is not the last one. What it kept
-	 * of the xfer has to go first, or it holds a pointer into freed memory that still looks perfectly
-	 * good, and the next Cancel or Reject reads it. Both of those already ask whether they have one;
-	 * clearing it here is what makes the question worth asking. */
-	[fileTransfer setAccountData:nil];
+		/* The transfer object outlives this xfer: the file transfer window keeps every one of them in a
+		 * list of its own, so releasing the account's reference below is not the last one. What it kept
+		 * of the xfer has to go first, or it holds a pointer into freed memory that still looks perfectly
+		 * good, and the next Cancel or Reject reads it. Both of those already ask whether they have one;
+		 * clearing it here is what makes the question worth asking. */
+		[fileTransfer setAccountData:nil];
 
-	[accountLookup(xfer->account) destroyFileTransfer:fileTransfer];
+		/* -destroyFileTransfer: is where the reference this slot holds is given back. A transfer the
+		 * prpl made for itself never got one, because the new_xfer op above stores nothing; that
+		 * method takes nil as it always did. */
+		[accountLookup(xfer->account) destroyFileTransfer:fileTransfer];
 
-	xfer->ui_data = nil;
-    [pool drain];
+		xfer->ui_data = NULL;
+    }
 }
 
 static void adiumPurpleAddXfer(PurpleXfer *xfer)
@@ -48,33 +51,33 @@ static void adiumPurpleAddXfer(PurpleXfer *xfer)
 
 static void adiumPurpleUpdateProgress(PurpleXfer *xfer, double percent)
 {	
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	ESFileTransfer *fileTransfer = (ESFileTransfer *)xfer->ui_data;
-	
-	if (fileTransfer) {
-		[accountLookup(xfer->account) updateProgressForFileTransfer:fileTransfer
-															percent:[NSNumber numberWithDouble:percent]
-														  bytesSent:[NSNumber numberWithUnsignedLong:xfer->bytes_sent]];
-	}
-    [pool drain];
+    @autoreleasepool {
+		ESFileTransfer *fileTransfer = (__bridge ESFileTransfer *)xfer->ui_data;
+		
+		if (fileTransfer) {
+			[accountLookup(xfer->account) updateProgressForFileTransfer:fileTransfer
+																percent:[NSNumber numberWithDouble:percent]
+															  bytesSent:[NSNumber numberWithUnsignedLong:xfer->bytes_sent]];
+		}
+    }
 }
 
 static void adiumPurpleCancelLocal(PurpleXfer *xfer)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AILog(@"adiumPurpleCancelLocal");
-	ESFileTransfer *fileTransfer = (ESFileTransfer *)xfer->ui_data;
-    [accountLookup(xfer->account) fileTransferCancelledLocally:fileTransfer];
-    [pool drain];
+    @autoreleasepool {
+		AILog(@"adiumPurpleCancelLocal");
+		ESFileTransfer *fileTransfer = (__bridge ESFileTransfer *)xfer->ui_data;
+		[accountLookup(xfer->account) fileTransferCancelledLocally:fileTransfer];
+    }
 }
 
 static void adiumPurpleCancelRemote(PurpleXfer *xfer)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AILog(@"adiumPurpleCancelRemote");
-	ESFileTransfer *fileTransfer = (ESFileTransfer *)xfer->ui_data;
-    [accountLookup(xfer->account) fileTransferCancelledRemotely:fileTransfer];
-    [pool drain];
+    @autoreleasepool {
+		AILog(@"adiumPurpleCancelRemote");
+		ESFileTransfer *fileTransfer = (__bridge ESFileTransfer *)xfer->ui_data;
+		[accountLookup(xfer->account) fileTransferCancelledRemotely:fileTransfer];
+    }
 }
 
 static PurpleXferUiOps adiumPurpleFileTransferOps = {

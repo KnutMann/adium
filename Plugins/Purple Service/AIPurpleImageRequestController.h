@@ -26,8 +26,8 @@
  * cannot handle image fields.
  *
  * The instance is the request's ui_handle. +showImageRequestWithTitle:... returns it at +1 (it is
- * spelled as a new-family method for that, like its siblings); the manual request adapter hands
- * that +1 to libpurple, and -purpleRequestClose consumes it when libpurple gives it back.
+ * spelled as a new-family method for that, like its siblings); the request adapter hands that +1
+ * to libpurple, and -purpleRequestClose consumes it when libpurple gives it back.
  */
 @interface AIPurpleImageRequestController : NSObject {
 	NSPanel					*panel;

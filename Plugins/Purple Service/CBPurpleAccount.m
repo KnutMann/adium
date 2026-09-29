@@ -124,7 +124,7 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 - (SLPurpleCocoaAdapter *)purpleAdapter
 {
 	if (!purpleAdapter) {
-		purpleAdapter = [[SLPurpleCocoaAdapter sharedInstance] retain];	
+		purpleAdapter = [SLPurpleCocoaAdapter sharedInstance];
 	}	
 	return purpleAdapter;
 }
@@ -371,7 +371,7 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 {
 	NSMutableString *returnString = nil;
 	if ([inString rangeOfString:@"Purple could not find any information in the user's profile. The user most likely does not exist."].location != NSNotFound) {
-		returnString = [[inString mutableCopy] autorelease];
+		returnString = [inString mutableCopy];
 		[returnString replaceOccurrencesOfString:@"Purple could not find any information in the user's profile. The user most likely does not exist."
 									  withString:AILocalizedString(@"Adium could not find any information in the user's profile. This may not be a registered name.", "Message shown when a contact's profile can't be found")
 										 options:NSLiteralSearch
@@ -443,7 +443,6 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 																		forKey:KEY_VALUE]];
 						}
 					}
-					[value release];
 				}	
 				break;
 			}
@@ -459,7 +458,7 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 		NSString *value = [dict objectForKey:KEY_VALUE];
 		if (value &&
 			[value rangeOfString:webProfileValue options:(NSBackwardsSearch | NSAnchoredSearch | NSLiteralSearch)].location != NSNotFound) {
-			NSMutableString *newValue = [[value mutableCopy] autorelease];
+			NSMutableString *newValue = [value mutableCopy];
 			[newValue replaceOccurrencesOfString:webProfileValue
 									  withString:[self webProfileStringForContact:contact]
 										 options:(NSBackwardsSearch | NSAnchoredSearch | NSLiteralSearch)];
@@ -467,7 +466,6 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 			NSMutableDictionary *replacementDict = [dict mutableCopy];
 			[replacementDict setObject:newValue forKey:KEY_VALUE];
 			[array replaceObjectAtIndex:i withObject:replacementDict];
-			[replacementDict release];
 
 			/* There will only be 1 (at most) web profile link */
 			break;
@@ -745,21 +743,23 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 
 - (id)authorizationRequestWithDict:(NSDictionary*)dict
 {
-	// We retain this in case libpurple wants to close the request early. It is freed below.
-	return [[AdiumAuthorization showAuthorizationRequestWithDict:dict forAccount:self] retain];
+	/* Handed out at +0. The reference libpurple keeps on this handle is the one
+	 * +[AdiumAuthorization showAuthorizationRequestWithDict:forAccount:] takes for itself, and
+	 * close_account_request is what gives that one back. */
+	return [AdiumAuthorization showAuthorizationRequestWithDict:dict forAccount:self];
 }
 
-- (void)authorizationWithDict:(NSDictionary *)infoDict response:(AIAuthorizationResponse)authorizationResponse
+- (void)authorizationWithDict:(NSDictionary *)__attribute__((ns_consumed))infoDict response:(AIAuthorizationResponse)authorizationResponse
 {
 	if (account) {
 		NSValue	*callback = nil;
 
 		switch (authorizationResponse) {
 			case AIAuthorizationAllowed:
-				callback = [[[infoDict objectForKey:@"authorizeCB"] retain] autorelease];
+				callback = [infoDict objectForKey:@"authorizeCB"];
 				break;
 			case AIAuthorizationDenied:
-				callback = [[[infoDict objectForKey:@"denyCB"] retain] autorelease];
+				callback = [infoDict objectForKey:@"denyCB"];
 				break;
 			case AIAuthorizationNoResponse:
 				callback = nil;
@@ -768,12 +768,11 @@ static SLPurpleCocoaAdapter *purpleAdapter = nil;
 		
 		//libpurple will remove its reference to the handle for this request, which is inDict, in response to this callback invocation
 		if (callback) {
-			[purpleAdapter doAuthRequestCbValue:callback withUserDataValue:[[[infoDict objectForKey:@"userData"] retain] autorelease]];
+			[purpleAdapter doAuthRequestCbValue:callback withUserDataValue:[infoDict objectForKey:@"userData"]];
 
-			/* Retained in -[self authorizationRequestWithDict:].  We kept it around before now in case libpurle wanted us to close it early, such as because the
-			 * account disconnected.
+			/* The dictionary arrives consumed, the way the superclass declares it, so the caller's
+			 * reference is this method's to end, and it is ended on every exit from here.
 			 */
-			[infoDict release];
 		} else {
 			[purpleAdapter closeAuthRequestWithHandle:infoDict];
 			
@@ -1062,24 +1061,25 @@ AIGroupChatFlags groupChatFlagsFromPurpleConvChatBuddyFlags(PurpleConvChatBuddyF
  */
 - (BOOL)rejoinChat:(AIChat *)chat
 {
-	[chat retain];
+	/* What the conversation holds is a reference of its own, and it is given back below without
+	 * the conversation being destroyed. A strong local for the whole method is what the
+	 * [chat retain] ... [chat autorelease] pair around that release was for. */
+	AIChat *heldChat = chat;
 
-	PurpleConversation *conv = [[chat identifier] pointerValue];
+	PurpleConversation *conv = [[heldChat identifier] pointerValue];
 	if (conv && conv->ui_data) {
-		[(AIChat *)(conv->ui_data) release];
+		CFRelease(conv->ui_data);
 		conv->ui_data = NULL;
 	}
 
 	/* The identifier is how we associate a PurpleConversation with an AIChat.
 	 * Clear the identifier so a new PurpleConversation will be made. The ChatCreationInfo for the chat is still around, so it can join.
 	 */
-	[chat setIdentifier:nil];
+	[heldChat setIdentifier:nil];
 	
-	[chat setValue:[NSNumber numberWithBool:YES] forProperty:@"Rejoining Chat" notify:NotifyNever];
+	[heldChat setValue:[NSNumber numberWithBool:YES] forProperty:@"Rejoining Chat" notify:NotifyNever];
 	
-	[purpleAdapter openChat:chat onAccount:self];
-
-	[chat autorelease];
+	[purpleAdapter openChat:heldChat onAccount:self];
 
 	//We don't get any immediate feedback as to our success; just return YES.
 	return YES;
@@ -1845,7 +1845,7 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	if (xfer) {
 		//Associate the fileTransfer and the xfer with each other
 		[fileTransfer setAccountData:[NSValue valueWithPointer:xfer]];
-		xfer->ui_data = [fileTransfer retain];
+		xfer->ui_data = (__bridge_retained void *)fileTransfer;
 		
 		//Set the filename
 		purple_xfer_set_local_filename(xfer, [[fileTransfer localFilename] UTF8String]);
@@ -1933,7 +1933,14 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 - (void)destroyFileTransfer:(ESFileTransfer *)fileTransfer
 {
 	AILog(@"Destroy file transfer %@",fileTransfer);
-	[fileTransfer release];
+
+	/* The reference xfer->ui_data held. The parameter arrives borrowed, so the reference is ended
+	 * outside the compiler's view, exactly as the release did; adiumPurpleFt.m clears ui_data.
+	 * Nothing to end for a transfer the prpl made for itself, which never got a reference because
+	 * the new_xfer op stores none; the guard sits here rather than at the one call site, so that
+	 * this stays as safe to call as it was when [nil release] did nothing. */
+	if (fileTransfer)
+		CFRelease((__bridge CFTypeRef)fileTransfer);
 }
 
 //Accept a send or receive ESFileTransfer object, beginning the transfer.
@@ -2024,20 +2031,26 @@ static NSDictionary *chatCreationDictionaryFromPrplDefaults(PurpleConnection *gc
 	[purpleAdapter unregisterAccount:self];
 }
 
-static void prompt_host_cancel_cb(CBPurpleAccount *self) {
-	[self disconnect];
+/* The account travels to libpurple as the request's user_data, unretained: nothing gives that
+ * reference back, and the account controller is what keeps the account alive. */
+static void prompt_host_cancel_cb(void *userData) {
+	CBPurpleAccount *purpleAccount = (__bridge CBPurpleAccount *)userData;
+
+	[purpleAccount disconnect];
 }
 
 
-static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
-	if(host && *host) {
-		[self setPreference:[NSString stringWithUTF8String:host]
-					 forKey:KEY_CONNECT_HOST
-					  group:GROUP_ACCOUNT_STATUS];	
+static void prompt_host_ok_cb(void *userData, const char *host) {
+	CBPurpleAccount *purpleAccount = (__bridge CBPurpleAccount *)userData;
 
-		[self configurePurpleAccountNotifyingTarget:self selector:@selector(continueConnectWithConfiguredPurpleAccount)];
+	if(host && *host) {
+		[purpleAccount setPreference:[NSString stringWithUTF8String:host]
+							  forKey:KEY_CONNECT_HOST
+							   group:GROUP_ACCOUNT_STATUS];
+
+		[purpleAccount configurePurpleAccountNotifyingTarget:purpleAccount selector:@selector(continueConnectWithConfiguredPurpleAccount)];
 	} else {
-		prompt_host_cancel_cb(self);
+		prompt_host_cancel_cb(userData);
 	}
 }
 
@@ -2052,7 +2065,9 @@ static void prompt_host_ok_cb(CBPurpleAccount *self, const char *host) {
 						 [AILocalizedString(@"Connect", "Button title to connect; this is a verb") UTF8String], G_CALLBACK(prompt_host_ok_cb),
 						 [AILocalizedString(@"Cancel", nil) UTF8String], G_CALLBACK(prompt_host_cancel_cb),
 						 /* account */ NULL, /* who */ NULL, /* conv */ NULL,
-						 self);
+						 /* user_data, unretained: the account controller owns this account, and the
+						  * request is given no handle, so nothing closes it if the account goes first */
+						 (__bridge void *)self);
 						 
 }
 
@@ -2636,7 +2651,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	[[NSNotificationCenter defaultCenter] removeObserver:self
 										  name:Adium_iTunesTrackChangedNotification
 										object:nil];
-	[tuneinfo release];
 	tuneinfo = nil;
 	
 	if (deletePurpleAccountAfterDisconnecting) {
@@ -2670,7 +2684,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	[self didDisconnect];
 }
 
-- (AIReconnectDelayType)shouldAttemptReconnectAfterDisconnectionError:(NSString **)disconnectionError
+- (AIReconnectDelayType)shouldAttemptReconnectAfterDisconnectionError:(NSString * __strong *)disconnectionError
 {
 	AIReconnectDelayType reconnectDelayType;
 
@@ -2703,7 +2717,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 - (void)registerNewAccountWithUID:(NSString *)inUID password:(NSString *)inPassword
 {
 	//The name to give back if the service says no
-	[UIDBeforeRegistration release];
 	UIDBeforeRegistration = [self.UID copy];
 
 	if (self.online || [self boolValueForProperty:@"isConnecting"]) {
@@ -2713,7 +2726,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 		 * by then. Taking a connection down answers through didDisconnect, which is where the
 		 * registration then starts. An account that is only about to connect may have no
 		 * connection to take down and answers with nothing; for that one it starts right away. */
-		[pendingRegistration release];
 		pendingRegistration = [[NSDictionary alloc] initWithObjectsAndKeys:
 							   inUID, @"UID",
 							   inPassword, @"password",
@@ -2736,7 +2748,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
  */
 - (void)startPendingRegistration
 {
-	NSDictionary *pending = [pendingRegistration autorelease];
+	NSDictionary *pending = pendingRegistration;
 
 	pendingRegistration = nil;
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(startPendingRegistration) object:nil];
@@ -2757,7 +2769,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 {
 	//Save the new password
 	if (inPassword && ![password isEqualToString:inPassword]) {
-		[password release]; password = [inPassword retain];
+		password = inPassword;
 	}
 
 	//Ensure we have a purple account if one does not already exist
@@ -2823,7 +2835,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 	if (pw)
 		[adium.accountController setPassword:pw forAccount:self];
 
-	[UIDBeforeRegistration release];
 	UIDBeforeRegistration = nil;
 
 	NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
@@ -2853,7 +2864,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 
 	if (UIDBeforeRegistration) {
 		[self filterAndSetUID:UIDBeforeRegistration];
-		[UIDBeforeRegistration release];
 		UIDBeforeRegistration = nil;
 	}
 
@@ -2992,8 +3002,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 }
 
 - (void)iTunesDidUpdate:(NSNotification*)notification {
-	[tuneinfo release];
-	tuneinfo = [[notification object] retain];
+	tuneinfo = [notification object];
 
 	/* Only if we're including the information in all statuses do we need to do an update;
 	 * if we just have a 'now playing' status, the dynamic stats update will call
@@ -3092,7 +3101,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 		if ([self shouldAddMusicalNoteToNowPlayingStatus]) {
 #define MUSICAL_NOTE_AND_SPACE [NSString stringWithUTF8String:"\xe2\x99\xab "]
 			NSMutableAttributedString *temporaryStatusMessage;
-			temporaryStatusMessage = [[[NSMutableAttributedString alloc] initWithString:MUSICAL_NOTE_AND_SPACE] autorelease];
+			temporaryStatusMessage = [[NSMutableAttributedString alloc] initWithString:MUSICAL_NOTE_AND_SPACE];
 			[temporaryStatusMessage appendAttributedString:inStatusMessage];
 
 			inStatusMessage = temporaryStatusMessage;
@@ -3126,8 +3135,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 				statusID:statusID
 				isActive:[NSNumber numberWithBool:YES] /* We're only using exclusive states for now... I hope.  */
 			   arguments:arguments];
-	
-	[arguments release];
 }
 
 /*!
@@ -3420,12 +3427,10 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 				}
 				
 				[menuItem setSubmenu:submenu];
-				[submenu release];
 			}
 		}
 
 		[menuItemArray addObject:menuItem];
-		[menuItem release];
 	}
 
 	purple_menu_action_free(act);
@@ -3542,10 +3547,10 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 						action->plugin = plugin;
 						action->context = purple_account_get_connection(account);
 
-						menuItem = [[[NSMenuItem alloc] initWithTitle:title
+						menuItem = [[NSMenuItem alloc] initWithTitle:title
 																						 target:self
 																						 action:@selector(performAccountMenuAction:)
-																				  keyEquivalent:@""] autorelease];
+																				  keyEquivalent:@""];
 						dict = [NSDictionary dictionaryWithObjectsAndKeys:
 							[NSValue valueWithPointer:action->callback], @"PurplePluginActionCallback",
 							[NSValue valueWithPointer:action->user_data], @"PurplePluginActionCallbackUserData",
@@ -3579,10 +3584,10 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 			[menuItemArray addObject:[NSMenuItem separatorItem]];
 		}
 		
-		NSMenuItem *showCertificateMenuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show Server Certificate",nil)
+		NSMenuItem *showCertificateMenuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Show Server Certificate",nil)
 																		 target:self
 																		 action:@selector(showServerCertificate) 
-																  keyEquivalent:@""] autorelease];
+																  keyEquivalent:@""];
 		
 		[menuItemArray addObject:showCertificateMenuItem];
 	}
@@ -3679,7 +3684,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 		 * mapping is: NSAlertFirstButtonReturn = Delete (was NSAlertDefaultReturn),
 		 * NSAlertSecondButtonReturn = Cancel, NSAlertThirdButtonReturn = Delete & Unregister
 		 * (was NSAlertOtherReturn). */
-		NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText:AILocalizedString(@"Delete Account",nil)];
 		[alert setInformativeText:[NSString stringWithFormat:
 								   AILocalizedString(@"Delete the account %@? You can also optionally unregister the account on the server if possible.",nil),
@@ -3703,7 +3708,7 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 		switch (returnCode) {
 			case NSAlertThirdButtonReturn: {
 				// delete & unregister ("Delete & Unregister" is the third button of alertForAccountDeletion)
-				NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+				NSAlert *alert = [[NSAlert alloc] init];
 				[alert setMessageText:AILocalizedString(@"Delete Account from Server", nil)];
 				[alert setInformativeText:[NSString stringWithFormat:
 										   AILocalizedString(@"WARNING! This will delete the account %@ from the Jabber server, and can not be undone.\nAre you sure you want to proceed?", nil),
@@ -3745,8 +3750,10 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 		}
 	}
 	
-	//Release dialog as required by AIAccount's documentation since we didn't call super's implementation.
-	[dialog release];
+	/* Consumes the owned reference -confirmationDialogForAccountDeletion handed out, as
+	 * AIAccount's documentation requires of an override that does not call super's
+	 * implementation; the same form AIAccount's own implementation uses. */
+	CFRelease((__bridge CFTypeRef)dialog);
 }
 
 - (void)unregisteredAccount:(BOOL)success {
@@ -3796,13 +3803,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 - (void)dealloc
 {	
 	[adium.preferenceController unregisterPreferenceObserver:self];
-
-	[permittedContactsArray release];
-	[deniedContactsArray release];
-	[UIDBeforeRegistration release];
-	[pendingRegistration release];
-	
-    [super dealloc];
 }
 
 - (NSString *)unknownGroupName {
@@ -3906,8 +3906,6 @@ static PurpleConversation *commandConversation(PurpleAccount *account)
 			
 			// Don't log the psychic message.
 			newStatusMessage.postProcessContent = NO;
-			
-			[forceString release];
 
 			[adium.contentController receiveContentObject:newStatusMessage];
 		}

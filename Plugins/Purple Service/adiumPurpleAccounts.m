@@ -68,20 +68,26 @@ static void *adiumPurpleAccountRequestAuthorize(PurpleAccount *account, const ch
 	if (message && strlen(message)) [infoDict setObject:[NSString stringWithUTF8String:message] forKey:@"Reason"];
 	if (alias && strlen(alias)) [infoDict setObject:[NSString stringWithUTF8String:alias] forKey:@"Alias"];
 
-	//Note that CBPurpleAccount will retain ownership of this object to keep it around for us in case adiumPurpleAccountRequestClose() is called.
-	return [accountLookup(account) authorizationRequestWithDict:infoDict];
+	/* The dictionary goes to libpurple as an opaque ui_handle. The reference libpurple holds is
+	 * the one +[AdiumAuthorization showAuthorizationRequestWithDict:forAccount:] takes with
+	 * CFBridgingRetain; what comes back here is at +0, so it crosses borrowed and the close op
+	 * below gives that single reference up. */
+	return (__bridge void *)[accountLookup(account) authorizationRequestWithDict:infoDict];
 }
 
 static void adiumPurpleAccountRequestClose(void *ui_handle)
 {
-	id	ourHandle = (id)ui_handle;
+	/* A request from a blocked contact is answered without ever showing anything, so libpurple
+	 * keeps a NULL ui_handle for it and hands that NULL back here at the next disconnect. There
+	 * is no reference behind it, and the CFRelease at the end of the close would trap on it. */
+	if (!ui_handle) return;
 
 	// Remove the request; we're passing the pointer to it.
-	[AdiumAuthorization closeAuthorizationForUIHandle:ourHandle];
+	[AdiumAuthorization closeAuthorizationForUIHandle:(__bridge id)ui_handle];
 }
 
 void adiumPurpleAccountRegisterCb(PurpleAccount *account, gboolean succeeded, void *user_data) {
-	id ourHandle = user_data;
+	id ourHandle = (__bridge id)user_data;
 	
 	if([ourHandle respondsToSelector:@selector(purpleAccountRegistered:)])
 		[ourHandle purpleAccountRegistered:(succeeded ? YES : NO)];

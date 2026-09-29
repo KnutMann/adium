@@ -44,10 +44,8 @@ static PurplePlugin *jingle_jabber_prpl(void)
 
 void adiumPurpleJingleSetHandler(id<AdiumJingleStanzaHandler> handler)
 {
-	if (jingleHandler != handler) {
-		[jingleHandler release];
-		jingleHandler = [handler retain];
-	}
+	//A strong static: the assignment holds the handler and lets the previous one go
+	jingleHandler = handler;
 }
 
 #pragma mark Receiving
@@ -122,13 +120,13 @@ static gboolean jingle_handle_message(PurpleConnection *gc, xmlnode *message)
 	}
 
 	gboolean owned = FALSE;
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	owned = [jingleHandler handleJingleMessageOfKind:[NSString stringWithUTF8String:kind]
-												 sid:[NSString stringWithUTF8String:sid]
-												from:[NSString stringWithUTF8String:from]
-										 offersVideo:offersVideo
-										   onAccount:accountLookup(purple_connection_get_account(gc))];
-	[pool release];
+	@autoreleasepool {
+		owned = [jingleHandler handleJingleMessageOfKind:[NSString stringWithUTF8String:kind]
+													 sid:[NSString stringWithUTF8String:sid]
+													from:[NSString stringWithUTF8String:from]
+											 offersVideo:offersVideo
+											   onAccount:accountLookup(purple_connection_get_account(gc))];
+	}
 	return owned;
 }
 
@@ -165,35 +163,33 @@ static void jingle_receiving_xmlnode_cb(PurpleConnection *gc, xmlnode **packet, 
 	if (!from || !iqid || !action)
 		return;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		int length = 0;
+		char *text = xmlnode_to_str(jingle, &length);
+		BOOL owned = [jingleHandler handleJingleElement:[NSString stringWithUTF8String:text]
+												   from:[NSString stringWithUTF8String:from]
+												 action:[NSString stringWithUTF8String:action]
+											  onAccount:accountLookup(purple_connection_get_account(gc))];
+		g_free(text);
 
-	int length = 0;
-	char *text = xmlnode_to_str(jingle, &length);
-	BOOL owned = [jingleHandler handleJingleElement:[NSString stringWithUTF8String:text]
-											   from:[NSString stringWithUTF8String:from]
-											 action:[NSString stringWithUTF8String:action]
-										  onAccount:accountLookup(purple_connection_get_account(gc))];
-	g_free(text);
+		if (owned) {
+			/* The ACK first, as XEP-0166 orders the conversation: an empty result for the
+			 * iq, before any answer of substance travels in an iq of its own. */
+			xmlnode *ack = xmlnode_new("iq");
+			xmlnode_set_attrib(ack, "type", "result");
+			xmlnode_set_attrib(ack, "to", from);
+			xmlnode_set_attrib(ack, "id", iqid);
 
-	if (owned) {
-		/* The ACK first, as XEP-0166 orders the conversation: an empty result for the
-		 * iq, before any answer of substance travels in an iq of its own. */
-		xmlnode *ack = xmlnode_new("iq");
-		xmlnode_set_attrib(ack, "type", "result");
-		xmlnode_set_attrib(ack, "to", from);
-		xmlnode_set_attrib(ack, "id", iqid);
+			PurplePlugin *jabber = jingle_jabber_prpl();
+			if (jabber)
+				purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &ack);
+			if (ack)
+				xmlnode_free(ack);
 
-		PurplePlugin *jabber = jingle_jabber_prpl();
-		if (jabber)
-			purple_signal_emit(jabber, "jabber-sending-xmlnode", gc, &ack);
-		if (ack)
-			xmlnode_free(ack);
-
-		xmlnode_free(*packet);
-		*packet = NULL;
+			xmlnode_free(*packet);
+			*packet = NULL;
+		}
 	}
-
-	[pool release];
 }
 
 #pragma mark Sending

@@ -178,7 +178,7 @@
  *
  * Close our requestController's window if it's open; then give back the reference libpurple held.
  *
- * The instance is the request's ui_handle. adiumPurpleRequest.m (manual counting) creates it with
+ * The instance is the request's ui_handle. adiumPurpleRequest.m creates it with
  * alloc/init, never releases it, and hands that +1 to libpurple; libpurple gives it back through
  * adiumPurpleRequestClose, which sends this message. Under manual counting this was
  * [self autorelease]; the CFAutorelease acts on the count outside ARC's view exactly as that did.

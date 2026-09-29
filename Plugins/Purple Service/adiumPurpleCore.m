@@ -52,15 +52,15 @@
 static void adiumPurpleDebugPrint(PurpleDebugLevel level, const char *category, const char *debug_msg)
 {
 	//Log error
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	if (!category) category = "general"; //Category can be nil
-	/* Session debugging aid: mirror libpurple debug output to stderr when
-	 * ADIUM_PURPLE_DEBUG is set in the environment. */
-	static int mirrorToStderr = -1;
-	if (mirrorToStderr == -1) mirrorToStderr = (getenv("ADIUM_PURPLE_DEBUG") != NULL);
-	if (mirrorToStderr) fprintf(stderr, "[purple:%s] %s", category, debug_msg);
-	AILog(@"(Libpurple: %s) %s",category, debug_msg);
-    [pool drain];
+	@autoreleasepool {
+		if (!category) category = "general"; //Category can be nil
+		/* Session debugging aid: mirror libpurple debug output to stderr when
+		 * ADIUM_PURPLE_DEBUG is set in the environment. */
+		static int mirrorToStderr = -1;
+		if (mirrorToStderr == -1) mirrorToStderr = (getenv("ADIUM_PURPLE_DEBUG") != NULL);
+		if (mirrorToStderr) fprintf(stderr, "[purple:%s] %s", category, debug_msg);
+		AILog(@"(Libpurple: %s) %s",category, debug_msg);
+	}
 }
 
 static int adiumPurpleDebugIsEnabled(PurpleDebugLevel level, const char *category)
@@ -101,9 +101,9 @@ static void init_all_plugins(void)
 	//Load each plugin
 	for (id <AILibpurplePlugin>	plugin in [SLPurpleCocoaAdapter libpurplePluginArray]) {
 		if ([plugin respondsToSelector:@selector(installLibpurplePlugin)]) {
-            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-			[plugin installLibpurplePlugin];
-            [pool drain];
+			@autoreleasepool {
+				[plugin installLibpurplePlugin];
+			}
 		}
 	}
 #ifdef HAVE_CDSA
@@ -122,9 +122,9 @@ static void load_external_plugins(void)
 	//Load each plugin	
 	for (id <AILibpurplePlugin>	plugin in [SLPurpleCocoaAdapter libpurplePluginArray]) {
 		if ([plugin respondsToSelector:@selector(loadLibpurplePlugin)]) {
-            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-			[plugin loadLibpurplePlugin];
-            [pool drain];
+			@autoreleasepool {
+				[plugin loadLibpurplePlugin];
+			}
 		}
 	}	
 }
@@ -161,12 +161,10 @@ void configurePurpleDebugLogging(void)
 
 static void adiumPurpleCoreDebugInit(void)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	AILogWithSignature(@"");
-	configurePurpleDebugLogging();
-	
-	[pool release];
+	@autoreleasepool {
+		AILogWithSignature(@"");
+		configurePurpleDebugLogging();
+	}
 }
 
 static void associateLibpurpleAccounts(void)
@@ -175,8 +173,11 @@ static void associateLibpurpleAccounts(void)
 		if ([adiumAccount isKindOfClass:[CBPurpleAccount class]]) {
 			PurpleAccount *account = purple_accounts_find(adiumAccount.purpleAccountName, adiumAccount.protocolPlugin);
 			if (account) {
-				[(CBPurpleAccount *)account->ui_data autorelease];
-				account->ui_data = [adiumAccount retain];
+				/* Whoever was in the slot owned a reference; hand it to the pool so it outlives this
+				 * statement exactly as its -autorelease did. CFAutorelease traps on NULL, which
+				 * [nil autorelease] did not, so the slot is asked first. */
+				if (account->ui_data) CFAutorelease(account->ui_data);
+				account->ui_data = (__bridge_retained void *)adiumAccount;
 
 				[adiumAccount setPurpleAccount:account];				
 			}
@@ -223,61 +224,61 @@ void adiumPurpleSetLocale(void)
 /* The core is ready... finish configuring libpurple and its plugins */
 static void adiumPurpleCoreUiInit(void)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
 
 
-	//Initialize all external plugins.
-	init_all_plugins();
+		//Initialize all external plugins.
+		init_all_plugins();
 
-	AILog(@"adiumPurpleCoreUiInit");
-	//Initialize the core UI ops
-    purple_blist_set_ui_ops(adium_purple_blist_get_ui_ops());
-    purple_connections_set_ui_ops(adium_purple_connection_get_ui_ops());
-    purple_privacy_set_ui_ops (adium_purple_privacy_get_ui_ops());	
-	purple_accounts_set_ui_ops(adium_purple_accounts_get_ui_ops());
+		AILog(@"adiumPurpleCoreUiInit");
+		//Initialize the core UI ops
+	    purple_blist_set_ui_ops(adium_purple_blist_get_ui_ops());
+	    purple_connections_set_ui_ops(adium_purple_connection_get_ui_ops());
+	    purple_privacy_set_ui_ops (adium_purple_privacy_get_ui_ops());	
+		purple_accounts_set_ui_ops(adium_purple_accounts_get_ui_ops());
 
-	//Configure signals for receiving purple events
-	configureAdiumPurpleSignals();
-	configureAdiumPurpleCarbons();
-	configureAdiumPurpleCSI();
-	configureAdiumPurpleFallback();
-	configureAdiumPurpleOMEMO();
-	configureAdiumPurpleBookmarks();
-	configureAdiumPurpleJingle();
-	[AIJingleCallManager install];
-	[AIJingleCallUI install];
-	configureAdiumPurpleWhatsApp();
+		//Configure signals for receiving purple events
+		configureAdiumPurpleSignals();
+		configureAdiumPurpleCarbons();
+		configureAdiumPurpleCSI();
+		configureAdiumPurpleFallback();
+		configureAdiumPurpleOMEMO();
+		configureAdiumPurpleBookmarks();
+		configureAdiumPurpleJingle();
+		[AIJingleCallManager install];
+		[AIJingleCallUI install];
+		configureAdiumPurpleWhatsApp();
 	
-	//Associate each libpurple account with the appropriate Adium AIAccount.
-	associateLibpurpleAccounts();
+		//Associate each libpurple account with the appropriate Adium AIAccount.
+		associateLibpurpleAccounts();
 
-	/* Why use Purple's accounts and blist list when we have the information locally?
-		*		- Faster account connection: Purple doesn't have to recreate the local list
-		*		- Privacy/blocking support depends on the accounts and blist files existing
-		*
-		*	Another possible advantage:
-		*		- Using Purple's own buddy icon caching (which depends on both files) allows us to avoid
-		*			re-requesting icons we already have locally on some protocols such as AIM.
-		*/	
-	//Setup the buddy list; then load the blist.
-	purple_set_blist(purple_blist_new());
-	AILog(@"adiumPurpleCore: purple_blist_load()...");
-	purple_blist_load();
+		/* Why use Purple's accounts and blist list when we have the information locally?
+			*		- Faster account connection: Purple doesn't have to recreate the local list
+			*		- Privacy/blocking support depends on the accounts and blist files existing
+			*
+			*	Another possible advantage:
+			*		- Using Purple's own buddy icon caching (which depends on both files) allows us to avoid
+			*			re-requesting icons we already have locally on some protocols such as AIM.
+			*/	
+		//Setup the buddy list; then load the blist.
+		purple_set_blist(purple_blist_new());
+		AILog(@"adiumPurpleCore: purple_blist_load()...");
+		purple_blist_load();
 
-	//Configure the GUI-related UI ops last
-	purple_roomlist_set_ui_ops (adium_purple_roomlist_get_ui_ops());
-    purple_notify_set_ui_ops(adium_purple_notify_get_ui_ops());
-    purple_request_set_ui_ops(adium_purple_request_get_ui_ops());
-	purple_xfers_set_ui_ops(adium_purple_xfers_get_ui_ops());
-	purple_dnsquery_set_ui_ops(adium_purple_dns_request_get_ui_ops());
+		//Configure the GUI-related UI ops last
+		purple_roomlist_set_ui_ops (adium_purple_roomlist_get_ui_ops());
+	    purple_notify_set_ui_ops(adium_purple_notify_get_ui_ops());
+	    purple_request_set_ui_ops(adium_purple_request_get_ui_ops());
+		purple_xfers_set_ui_ops(adium_purple_xfers_get_ui_ops());
+		purple_dnsquery_set_ui_ops(adium_purple_dns_request_get_ui_ops());
 	
-	adiumPurpleConversation_init();
+		adiumPurpleConversation_init();
 	
-	load_external_plugins();
+		load_external_plugins();
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:AILibpurpleDidInitialize
-														object:nil];
-    [pool drain];
+		[[NSNotificationCenter defaultCenter] postNotificationName:AILibpurpleDidInitialize
+															object:nil];
+    }
 }
 
 static void adiumPurpleCoreQuit(void)
@@ -288,24 +289,23 @@ static void adiumPurpleCoreQuit(void)
 
 static GHashTable *adiumPurpleCoreGetUiInfo(void)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
 	static GHashTable *ui_info = NULL;
-	if (!ui_info) {
-		ui_info = g_hash_table_new(g_str_hash, g_str_equal);
-		g_hash_table_insert(ui_info, "name", "Adium");
-		
-		/* I have a vague recollection of a crash if we didn't g_strdup() this, but it really shouldn't be necessary.
-		 * The ui_info stays in memory forever, anyways, so it hardly matters. -evands
-		 */
-		g_hash_table_insert(ui_info, "version", g_strdup([[NSApp applicationVersion] UTF8String])); 
-		g_hash_table_insert(ui_info, "website", "http://www.adium.im");
-		g_hash_table_insert(ui_info, "dev_website", "http://trac.adium.im");
-		g_hash_table_insert(ui_info, "client_type", "mac");
-		
+
+	@autoreleasepool {
+		if (!ui_info) {
+			ui_info = g_hash_table_new(g_str_hash, g_str_equal);
+			g_hash_table_insert(ui_info, "name", "Adium");
+			
+			/* I have a vague recollection of a crash if we didn't g_strdup() this, but it really shouldn't be necessary.
+			 * The ui_info stays in memory forever, anyways, so it hardly matters. -evands
+			 */
+			g_hash_table_insert(ui_info, "version", g_strdup([[NSApp applicationVersion] UTF8String])); 
+			g_hash_table_insert(ui_info, "website", "http://www.adium.im");
+			g_hash_table_insert(ui_info, "dev_website", "http://trac.adium.im");
+			g_hash_table_insert(ui_info, "client_type", "mac");
+			
+		}
 	}
-	
-	[pool release];
 
 	return ui_info;
 }
