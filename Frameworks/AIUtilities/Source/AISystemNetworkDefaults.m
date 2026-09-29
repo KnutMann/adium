@@ -87,8 +87,6 @@
 		/* Taken over rather than borrowed: a Create or Copy hands back something owned and nothing
 	 * here ever gave it back, so this was a leak. */
 	if ((proxyDict = CFBridgingRelease(SCDynamicStoreCopyProxies(NULL)))) {
-		proxyDict;
-
 		//Enabled?
 		enable = [[proxyDict objectForKey:(__bridge NSString *)enableKey] intValue];
 		if (enable) {

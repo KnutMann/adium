@@ -123,8 +123,13 @@ static NSString * const AITypstDocumentTemplate =
  */
 + (void)stampResolutionIntoImageAtPath:(NSString *)path
 {
-	NSBitmapImageRep *rep = [NSBitmapImageRep imageRepWithContentsOfFile:path];
-	if (!rep) return;
+	/* Asked of the file rather than of the class: the loader answers whatever kind of representation
+	 * the file holds, and only a bitmap has a resolution to write. typst writes PNG, so the check
+	 * never fails today; it is what makes the cast below honest. */
+	NSImageRep *loaded = [NSImageRep imageRepWithContentsOfFile:path];
+	if (![loaded isKindOfClass:[NSBitmapImageRep class]]) return;
+
+	NSBitmapImageRep *rep = (NSBitmapImageRep *)loaded;
 
 	[rep setSize:[self naturalSizeForPixelSize:NSMakeSize((CGFloat)[rep pixelsWide], (CGFloat)[rep pixelsHigh])]];
 
