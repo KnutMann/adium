@@ -26,8 +26,8 @@
 	     recipe fetched. Every version that was ever typed into one of these by hand
 	     had drifted by the time somebody looked. -->
 	<key>CFBundleShortVersionString</key>
-	<string>1.61</string>
+	<string>@FRAMEWORK_VERSION@</string>
 	<key>CFBundleVersion</key>
-	<string>1.61</string>
+	<string>@FRAMEWORK_VERSION@</string>
 </dict>
 </plist>

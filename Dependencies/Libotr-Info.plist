@@ -4,11 +4,11 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
-	<!-- Without this, codesign cannot find the framework's binary and writes a
-	     detached bundle signature of four files beside it instead of embedding one
-	     in the Mach-O. The committed libotr.framework carries this key and signs
-	     as a bundle with Mach-O; rtool writes it for the other two frameworks by
-	     itself, and this plist overwrites the one it wrote for libotr. -->
+	<!-- rtool writes this key for every framework it makes, and this plist replaces
+	     the whole file, so it has to carry it too. Measured in a signed application
+	     rather than assumed: all six frameworks there have both an embedded Mach-O
+	     signature and a sealed CodeResources, whether or not this key is present, so
+	     it is not what decides that. libpurple ships without it. -->
 	<key>CFBundleExecutable</key>
 	<string>libotr</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -17,15 +17,14 @@
 	<string>FMWK</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<!-- The release this framework wraps, which is also the number the committed
-	     libotr.framework carries in both of these keys. It tracks OTR_VERSION in
-	     phases/build_otr.sh, so the two move together. It used to read 2.2.0, a
-	     number from the libotr 3 era that nothing here has built since, and which
-	     made the framework this script writes differ from the one it replaces. -->
+	<!-- install_framework_plist fills this in from OTR_VERSION in
+	     phases/build_otr.sh. It used to be typed here, and by the time anybody looked
+	     it read 2.2.0, a number from the libotr 3 era that nothing has built since.
+	     Typing it again, even correctly, would only start that clock over. -->
 	<key>CFBundleShortVersionString</key>
-	<string>4.1.1</string>
+	<string>@FRAMEWORK_VERSION@</string>
 	<key>CFBundleVersion</key>
-	<string>4.1.1</string>
+	<string>@FRAMEWORK_VERSION@</string>
 	<key>CFBundleIdentifier</key>
 	<string>im.adium.libotr</string>
 </dict>

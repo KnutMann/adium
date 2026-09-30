@@ -10,8 +10,17 @@
 	<string>FMWK</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<!-- install_framework_plist fills this in from LIBPURPLE_VERSION, which
+	     phases/build_purple.sh reads out of the version.h the release ships. It used
+	     to read 0.0.1d1, which named no release of anything. -->
+	<key>CFBundleShortVersionString</key>
+	<string>0.14.14</string>
 	<key>CFBundleVersion</key>
-	<string>0.0.1d1</string>
+	<string>0.14.14</string>
+	<!-- Load bearing, unlike the identifier of any other framework here:
+	     adiumPurpleCore.m calls bindtextdomain with the resource path of the bundle
+	     it finds under this name, so libpurple's own translations are reached
+	     through it. It is not ours to rename. -->
 	<key>CFBundleIdentifier</key>
 	<string>im.pidgin.libpurple</string>
 </dict>

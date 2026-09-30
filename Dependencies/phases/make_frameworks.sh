@@ -119,6 +119,59 @@ prep_headers() {
 }
 
 ##
+# install_framework_plist <template> <framework directory> <version>
+#
+# rtool writes an Info.plist for every framework it makes, taking the bundle identifier
+# from its own author's domain and the version from the library number in the dylib file
+# name. For most of the frameworks here that is what ships. Four of them carry a template
+# in this directory instead, and this is the step that installs one.
+#
+# The version is not in the template. Every version that was ever typed into one of these
+# by hand had drifted away from the recipe by the time somebody looked:
+#
+#   Libotr-Info.plist       said 2.2.0   against a pinned 4.1.1
+#   libgcrypt.framework     said 1.11    against a pinned 1.12.4
+#   libgpgerror.framework   said 1.55    against a pinned 1.61
+#   Libpurple-Info.plist    said 0.0.1d1 against no release of anything
+#
+# Four out of four, which is what a number kept in two places does. So the template
+# carries a placeholder and the caller passes the version variable its own recipe already
+# holds, and the two cannot disagree.
+#
+install_framework_plist() {
+	local template="$1"
+	local frameworkDir="$2"
+	local version="$3"
+	local target="${frameworkDir}/Resources/Info.plist"
+
+	if [ ! -f "${template}" ]; then
+		error "There is no Info.plist template at ${template}."
+		exit 1
+	fi
+	if [ -z "${version}" ]; then
+		error "No version was passed for ${template}."
+		exit 1
+	fi
+
+	status "Writing the Info.plist for $(basename "${frameworkDir}" .framework), version ${version}"
+
+	# Not sed -i. The log helper expands its arguments unquoted, so the empty string
+	# that sed -i wants on a Mac would be dropped and sed would read the next argument
+	# as the suffix. Writing the copy out is one fewer thing to get wrong, so this runs
+	# without log and is checked afterwards instead.
+	sed "s|@FRAMEWORK_VERSION@|${version}|g" "${template}" > "${target}"
+
+	if grep -q "@FRAMEWORK_VERSION@" "${target}"; then
+		error "${target} still holds a placeholder after substitution."
+		exit 1
+	fi
+	if ! plutil -lint "${target}" > /dev/null 2>&1; then
+		error "${target} is not a readable property list."
+		exit 1
+	fi
+}
+
+##
 # make_framework
 #
 make_framework() {
@@ -175,8 +228,12 @@ make_framework() {
 		quiet rm -rf "${otrHeaders}"
 		log ditto "${ROOTDIR}/build/include/libotr" "${otrHeaders}/libotr"
 
-		log cp "${ROOTDIR}/Libotr-Info.plist" \
-			"${FRAMEWORK_DIR}/libotr.subproj/libotr.framework/Resources/Info.plist"
+		install_framework_plist "${ROOTDIR}/Libotr-Info.plist" \
+			"${FRAMEWORK_DIR}/libotr.subproj/libotr.framework" "${OTR_VERSION}"
+		install_framework_plist "${ROOTDIR}/Libgcrypt-Info.plist" \
+			"${FRAMEWORK_DIR}/libgcrypt.subproj/libgcrypt.framework" "${LIBGCRYPT_VERSION}"
+		install_framework_plist "${ROOTDIR}/Libgpgerror-Info.plist" \
+			"${FRAMEWORK_DIR}/libgpgerror.subproj/libgpgerror.framework" "${LIBGPGERROR_VERSION}"
 	else
 		local purpleLibPath
 		purpleLibPath="$(find "${ROOTDIR}/build/lib" -maxdepth 1 -type f -name 'libpurple.*.dylib' ! -name 'libpurple.dylib' | head -n 1)"
@@ -202,8 +259,8 @@ make_framework() {
 		log cp "${ROOTDIR}/source/libpurple/config.h" \
 			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Headers/libpurple/config.h"
 
-		log cp "${ROOTDIR}/Libpurple-Info.plist" \
-			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework/Resources/Info.plist"
+		install_framework_plist "${ROOTDIR}/Libpurple-Info.plist" \
+			"${FRAMEWORK_DIR}/libpurple.subproj/libpurple.framework" "${LIBPURPLE_VERSION}"
 	fi
 	
 	status "Done making framework!"
