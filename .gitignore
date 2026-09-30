@@ -8,7 +8,7 @@ syntax: glob
 build
 # A measurement build goes into its own directory beside it, so that it never disturbs
 # the one /Applications/Adium.app is a symbolic link to. Those are build output too.
-build-*
+/build-*
 Icon
 docs/*.html
 Dependencies/build
