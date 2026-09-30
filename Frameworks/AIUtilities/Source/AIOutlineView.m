@@ -15,6 +15,7 @@
  */
 
 #import "AIOutlineView.h"
+#import "AIFunctions.h"
 #import "AIOutlineViewAdditions.h"
 
 @interface AIOutlineView ()
@@ -91,7 +92,10 @@
 			//doubleAction is NULL by default
 			SEL doubleActionSelector = [self doubleAction];
 			if (doubleActionSelector) {
-				[[self delegate] performSelector:doubleActionSelector withObject:self];
+				/* The delegate, not the target, which is where NSTableView itself sends
+				 * a double click. That is how this has always behaved and its callers
+				 * are written for it, so only the dispatch changes here. */
+				AISendActionToTarget([self delegate], doubleActionSelector, self);
 			}
 
         } else if (pressedChar == NSLeftArrowFunctionKey) { //left

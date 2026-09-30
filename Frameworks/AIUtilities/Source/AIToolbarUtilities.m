@@ -15,6 +15,7 @@
  */
 
 #import "AIToolbarUtilities.h"
+#import "AIFunctions.h"
 
 @implementation AIToolbarUtilities
 
@@ -43,7 +44,7 @@
      * (in the itemContent parameter).  Then this next line will do the right thing automatically.
 	 */
     if (settingSelector && itemContent) {
-        [item performSelector:settingSelector withObject:itemContent];
+        AISendActionToTarget(item, settingSelector, itemContent);
     }
 	if (action) {
 		[item setAction:action];

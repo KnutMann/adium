@@ -15,6 +15,31 @@
  */
 
 #import <time.h>
+#import <objc/message.h>
+
+#pragma mark Target and action
+
+/*!	@brief Send an action to a target, the way the target and action pattern means it
+ *
+ *	performSelector:withObject: answers id, and the compiler cannot tell from a SEL held in a
+ *	variable whether the method behind it hands back something owned or something borrowed. So
+ *	under reference counting it warns, "performSelector may cause a leak because its selector is
+ *	unknown", and it is right to: if the selector ever did return +1, nobody would release it.
+ *
+ *	An action does not return anything, which is the piece of knowledge the compiler is missing.
+ *	Saying so in the cast is the whole fix. objc_msgSend has no variadic form on arm64, so a cast
+ *	to the exact signature is how it has to be called anyway.
+ *
+ *	A nil target is a no-op, which is what sending to nil already did. This is deliberately not
+ *	NSApplication's sendAction:to:from:, which walks the responder chain when the target is nil
+ *	and would deliver the action somewhere nobody asked for.
+ */
+static inline void AISendActionToTarget(id target, SEL action, id sender)
+{
+	if (!target || !action) return;
+
+	((void (*)(id, SEL, id))objc_msgSend)(target, action, sender);
+}
 
 #pragma mark Elapsed time
 
