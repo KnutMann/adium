@@ -5,3 +5,16 @@ FRAMEWORK_SEARCH_PATHS = $(inherited) "$(SYSTEM_LIBRARY_DIR)/Frameworks/Quartz.f
 GCC_PRECOMPILE_PREFIX_HEADER = YES
 DYLIB_COMPATIBILITY_VERSION = 1
 LD_DYLIB_INSTALL_NAME = @rpath/AIUtilities.framework/Versions/A/AIUtilities
+
+// Automatic reference counting, for every Objective-C file this target compiles.
+//
+// It used to be a -fobjc-arc on each file in the project, 574 of them across this project
+// and AIUtilities, which is how the conversion was carried out: one file at a time, so
+// that a file that was not converted yet kept counting by hand. That is over. Every
+// Objective-C source in both projects was converted, no file is excluded, and a flag
+// repeated 574 times only hides the next file somebody adds without it.
+//
+// The two C files here, ssl.c and ssl-cdsa.c, are not affected; ARC is an Objective-C
+// setting. AutoHyperlinks is a separate project, uses no xcconfig, and still counts by
+// hand, so nothing here reaches it.
+CLANG_ENABLE_OBJC_ARC = YES
