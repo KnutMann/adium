@@ -35,11 +35,25 @@ relink() {
 	fi
 }
 
+BUILD="$(cd "$(dirname "$0")/../../build/lib" && pwd)"
+
 # The build-tree dylibs. These two are the ones that actually break the plugin.
-relink "$(cd "$(dirname "$0")/../../build/lib" && pwd)/libpurple.0.dylib" \
-       "$FW/libpurple.framework/Versions/0/libpurple"
-relink "$(cd "$(dirname "$0")/../../build/lib" && pwd)/libglib-2.0.0.dylib" \
-       "$FW/libglib.framework/Versions/2.0.0/libglib"
+relink "$BUILD/libpurple.0.dylib"   "$FW/libpurple.framework/Versions/0/libpurple"
+relink "$BUILD/libglib-2.0.0.dylib" "$FW/libglib.framework/Versions/2.0.0/libglib"
+
+# The rest of what Adium bundles. Each one has two rules: the prefix, which is what a
+# plugin records once Dependencies/build.sh has built these libraries itself, and
+# Homebrew, which is what it recorded before and still records if pkg-config finds
+# Homebrew first. relink does nothing when the path it names is not in the binary, so
+# both can stand.
+relink "$BUILD/libintl.8.dylib"              "$FW/libintl.framework/Versions/8/libintl"
+relink "$BUILD/libwebp.7.dylib"              "$FW/libwebp.7.dylib"
+relink "$BUILD/libsharpyuv.0.dylib"          "$FW/libsharpyuv.0.dylib"
+relink "$BUILD/libpng16.16.dylib"            "$FW/libpng16.16.dylib"
+relink "$BUILD/libjpeg.8.dylib"              "$FW/libjpeg.8.dylib"
+relink "$BUILD/libgdk_pixbuf-2.0.0.dylib"    "$FW/libgdk_pixbuf-2.0.0.dylib"
+relink "$BUILD/libssl.3.dylib"               "$FW/libssl.3.dylib"
+relink "$BUILD/libcrypto.3.dylib"            "$FW/libcrypto.3.dylib"
 
 # Homebrew's copies of libraries Adium bundles itself.
 # libintl.framework. The bundle used to carry a second copy beside it, and gettext keeps its per-domain

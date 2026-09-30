@@ -48,6 +48,13 @@ relink "$BUILD/libglib-2.0.0.dylib"    "$FW/libglib.framework/Versions/2.0.0/lib
 relink "$BUILD/libgobject-2.0.0.dylib" "$FW/libgobject.framework/Versions/2.0.0/libgobject"
 
 # Homebrew's copies of libraries Adium bundles itself.
+# Two rules each: the prefix, which is what the plugin records once
+# Dependencies/build.sh has built these libraries itself, and Homebrew, which is what it
+# recorded before. relink does nothing when the path it names is not in the binary.
+relink "$BUILD/libintl.8.dylib"                                 "$FW/libintl.framework/Versions/8/libintl"
+relink "$BUILD/libgdk_pixbuf-2.0.0.dylib"                       "$FW/libgdk_pixbuf-2.0.0.dylib"
+relink "$BUILD/libpng16.16.dylib"                               "$FW/libpng16.16.dylib"
+relink "$BUILD/libjpeg.8.dylib"                                 "$FW/libjpeg.8.dylib"
 relink /opt/homebrew/opt/gettext/lib/libintl.8.dylib            "$FW/libintl.framework/Versions/8/libintl"
 relink /opt/homebrew/opt/gdk-pixbuf/lib/libgdk_pixbuf-2.0.0.dylib "$FW/libgdk_pixbuf-2.0.0.dylib"
 

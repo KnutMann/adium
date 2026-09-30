@@ -6,6 +6,9 @@ syntax: glob
 *.xcworkspace
 *.xcuserdatad
 build
+# A measurement build goes into its own directory beside it, so that it never disturbs
+# the one /Applications/Adium.app is a symbolic link to. Those are build output too.
+build-*
 Icon
 docs/*.html
 Dependencies/build
@@ -36,3 +39,6 @@ xcuserdata/
 *~
 Testing/xmpp/peer/.venv/
 Dependencies/picomemo/picomemo/
+
+# Python leaves these beside frameworkize.py and its test
+__pycache__/
