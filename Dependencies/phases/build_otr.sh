@@ -213,6 +213,21 @@ build_otr(){
 		"https://otr.cypherpunks.ca/libotr-${OTR_VERSION}.tar.gz" \
 		"8b3b182424251067a952fb4e6c7b95a21e644fbb27fbd5f8af2b2ed87ca419f5"
 
+	# Two declarations in libotr's own headers say () where they mean (void), and the
+	# headers travel in the framework, so every file that includes <libotr/context.h>
+	# collects a -Wstrict-prototypes warning: ten of them in a Release build. The
+	# framework committed in this tree does not have the problem, because somebody
+	# edited the two lines in place after it was built, and that edit was in no
+	# recipe. See patches/libotr-4.1.1/README.
+	if [ -d "$ROOTDIR/patches/libotr-${OTR_VERSION}" ] && \
+	   [ ! -f "$ROOTDIR/source/otr/.adium-otr-patches-applied" ]; then
+		status "Applying Adium libotr patches"
+		for otr_patch in "$ROOTDIR/patches/libotr-${OTR_VERSION}/"*.patch; do
+			patch -d "$ROOTDIR/source/otr" -p1 -N < "$otr_patch"
+		done
+		touch "$ROOTDIR/source/otr/.adium-otr-patches-applied"
+	fi
+
 	quiet pushd "${ROOTDIR}/source/otr"
 
 	# See the note in build_libgpgerror.
