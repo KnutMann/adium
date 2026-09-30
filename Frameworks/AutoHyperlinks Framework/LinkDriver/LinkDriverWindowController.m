@@ -13,10 +13,11 @@
 @implementation LinkDriverWindowController
 -(void) performLinkification:(NSTextView *)inView
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AHHyperlinkScanner	*scanner = [AHHyperlinkScanner hyperlinkScannerWithAttributedString:[inView textStorage]];
-	[[inView textStorage] setAttributedString:[scanner linkifiedString]];
-	[pool release];
+	/* This runs on a detached thread, so it needs a pool of its own. */
+	@autoreleasepool {
+		AHHyperlinkScanner	*scanner = [AHHyperlinkScanner hyperlinkScannerWithAttributedString:[inView textStorage]];
+		[[inView textStorage] setAttributedString:[scanner linkifiedString]];
+	}
 }
 
 -(IBAction) linkifyTextView:(id)sender {

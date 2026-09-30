@@ -1,5 +1,5 @@
 #import <Cocoa/Cocoa.h>
-#import <SenTestingKit/SenTestingKit.h>
+#import <XCTest/XCTest.h>
 #import "ThreadedStressTest.h"
 
 #include <stdlib.h>
@@ -17,10 +17,10 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
 
-	ThreadedStressTest *test = [[[ThreadedStressTest alloc] initWithSelector:@selector(threadedStressTest)] autorelease];
-	SenTestRun *run = [[[SenTestRun alloc] initWithTest:test] autorelease];
+	ThreadedStressTest *test = [[ThreadedStressTest alloc] initWithSelector:@selector(threadedStressTest)];
+	XCTestRun *run = [[XCTestRun alloc] initWithTest:test];
 
 	NSDate *startDate, *endDate;
 
@@ -35,7 +35,6 @@ int main(int argc, char **argv) {
 	BOOL success = [run hasSucceeded];
 	NSLog(@"Test %@ in %f seconds", success ? @"succeeded" : @"failed", [endDate timeIntervalSinceDate:startDate]);
 
-	[pool drain]; //Glug glug glug
-
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;
+	}
 }
