@@ -21,14 +21,32 @@ sniff_libpurple_version() {
 # fetch_libpurple
 #
 fetch_libpurple() {
-	local libpurple_url="${LIBPURPLE_URL:-https://downloads.sourceforge.net/project/pidgin/Pidgin/2.14.14/pidgin-2.14.14.tar.bz2}"
+	local pinned_url="https://downloads.sourceforge.net/project/pidgin/Pidgin/2.14.14/pidgin-2.14.14.tar.bz2"
+	local pinned_sha="0ffc9994def10260f98a55cd132deefa8dc4a9835451cc0e982747bd458e2356"
+
+	local libpurple_url="${LIBPURPLE_URL:-$pinned_url}"
+	local libpurple_sha="${LIBPURPLE_SHA256:-}"
+
+	# The only source here whose address can be overridden from the environment, which
+	# means it is the only one where the checksum beside it can go stale without the
+	# address changing. Point LIBPURPLE_URL somewhere else and you have to say what you
+	# expect to find, or the pin says nothing.
+	if [ -z "$libpurple_sha" ]; then
+		if [ "$libpurple_url" = "$pinned_url" ]; then
+			libpurple_sha="$pinned_sha"
+		else
+			error "LIBPURPLE_URL points at $libpurple_url, which is not the release pinned here."
+			error "Set LIBPURPLE_SHA256 to the SHA-256 of that archive as well."
+			exit 1
+		fi
+	fi
 
 	if [ -d "$ROOTDIR/source/libpurple" ]; then
 		status "Using existing libpurple checkout in $ROOTDIR/source/libpurple"
 		return 0
 	fi
 
-	prereq "libpurple" "${libpurple_url}"
+	prereq "libpurple" "${libpurple_url}" "${libpurple_sha}"
 }
 
 ##
@@ -86,7 +104,8 @@ build_libpurple() {
 	fi
 	
 	prereq "cyrus-sasl" \
-		"https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz"
+		"https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz" \
+		"26866b1549b00ffd020f188a43c258017fa1c382b3ddadd8201536f72efb05d5"
 	
 	# Copy the headers from Cyrus-SASL
 	status "Copying headers from Cyrus-SASL"
@@ -116,8 +135,11 @@ build_libpurple() {
 	if needsconfigure $@; then
 	(
 		status "Configuring libpurple"
-		log cp -f /opt/homebrew/bin/intltool-extract /opt/homebrew/bin/intltool-merge /opt/homebrew/bin/intltool-update "$ROOTDIR/build/bin/"
-		perl -0pi -e 's{^#!.*perl\n}{#!/usr/bin/perl\n}' "$ROOTDIR/build/bin/intltool-extract" "$ROOTDIR/build/bin/intltool-merge" "$ROOTDIR/build/bin/intltool-update"
+		# The three intltool scripts used to be copied out of Homebrew here, with
+		# their shebang rewritten. build_intltool builds them from a pinned release
+		# into the prefix instead, which is what put build/bin first on PATH below,
+		# and it does the shebang itself. The last thing this chain took from
+		# Homebrew at build time was those three files.
 		export PATH="$ROOTDIR/build/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$DEVELOPER/usr/bin:$DEVELOPER/usr/sbin"
 		export ACLOCAL_FLAGS="-I $ROOTDIR/build/share/aclocal"
 		export LIBXML_CFLAGS="-I/usr/include/libxml2"

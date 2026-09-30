@@ -8,10 +8,17 @@ HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread = "$(SRCROOT)/Frameworks/libgth
 // picomemo carries the cryptography of OMEMO. Fetched and built by Dependencies/picomemo/fetch-picomemo.sh,
 // pinned to one commit, so the headers live where that script puts them rather than in the tree.
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_picomemo = "$(SRCROOT)/Dependencies/picomemo/picomemo/gen"
-// OpenSSL's own headers, for the AES-GCM that encrypted file sharing (XEP-0454) needs. The
-// library itself already ships in Frameworks and came from here; only the headers were missing.
-// Both Homebrew layouts are listed and a path that does not exist is simply ignored.
-HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "/opt/homebrew/opt/openssl@3/include" "/usr/local/opt/openssl@3/include"
+// OpenSSL's own headers, for the AES-GCM that encrypted file sharing (XEP-0454) needs.
+// They have to be the headers of the library named at the end of OTHER_LDFLAGS below,
+// Frameworks/libcrypto.3.dylib, which Dependencies/phases/build_openssl.sh builds and
+// installs into Dependencies/build. That one is pinned to OpenSSL's long term support
+// branch while Homebrew tracks the newest one, so compiling here against Homebrew and
+// linking there against ours is how the two drift apart - and what drift produces is not
+// a compiler error, it is a symbol that is missing when the application starts. Our own
+// prefix therefore comes first.
+// The two Homebrew layouts stay behind it so that a checkout which has not built the
+// dependencies yet still compiles; a search path that does not exist is simply ignored.
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "$(SRCROOT)/Dependencies/build/include" "/opt/homebrew/opt/openssl@3/include" "/usr/local/opt/openssl@3/include"
 LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SDKROOT)/usr/lib"
 PRODUCT_NAME = AdiumLibpurple
 SKIP_INSTALL = YES
