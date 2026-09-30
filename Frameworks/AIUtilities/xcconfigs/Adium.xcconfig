@@ -8,6 +8,29 @@ HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_jsxtras = "$(SRCROOT)/Plugins/JavaScript X
 // Opus and ogg, for writing a voice note in the one format that arrives as a voice note
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_opus = "$(SRCROOT)/Frameworks/opus/include" "$(SRCROOT)/Frameworks/opus/include/opus"
 PRODUCT_NAME = Adium
+
+// Xcode's own default is YES, which asks it to strip debug symbols out of each binary as
+// it is copied into the bundle. Every binary copied here is signed before it arrives, the
+// frameworks by Xcode and the bundled libraries and protocol plug-ins by the scripts that
+// build them, and stripping a signed Mach-O would invalidate its signature. So Xcode
+// declines and says so: eighteen "not stripping binary because it is signed" lines in
+// every build, one per binary.
+//
+// It was not doing nothing for the rest, though, and that is the trade this makes. The
+// seven frameworks the dependency build produces are not signed when they arrive, so
+// Xcode stripped those and said nothing. Measured across the whole bundle:
+//
+//   libgio       2.2 MB -> 2.9 MB    11681 symbols -> 51193
+//   libglib      2.1 MB -> 2.5 MB     7192        -> 34314
+//   libpurple    1.6 MB -> 2.0 MB     7313        -> 33172
+//   libgobject, libjson-glib, libgmodule, libgthread, smaller amounts
+//
+// 1.7 MB more in a bundle of 134 MB, and what those 1.7 MB are is the local symbols of
+// glib and libpurple. A crash report from a user that lands inside either of them now
+// names functions instead of addresses, which for a fork this size is worth more than the
+// megabyte. STRIP_INSTALLED_PRODUCT, which strips the application's own binary, is a
+// different setting and is untouched.
+COPY_PHASE_STRIP = NO
 FRAMEWORK_SEARCH_PATHS = $(inherited)
 INFOPLIST_OTHER_PREPROCESSOR_FLAGS = -C
 INFOPLIST_FILE = Resources/Info.plist
