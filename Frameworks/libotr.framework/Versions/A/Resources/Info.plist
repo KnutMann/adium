@@ -4,17 +4,29 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<!-- Without this, codesign cannot find the framework's binary and writes a
+	     detached bundle signature of four files beside it instead of embedding one
+	     in the Mach-O. The committed libotr.framework carries this key and signs
+	     as a bundle with Mach-O; rtool writes it for the other two frameworks by
+	     itself, and this plist overwrites the one it wrote for libotr. -->
 	<key>CFBundleExecutable</key>
 	<string>libotr</string>
-	<key>CFBundleIdentifier</key>
-	<string>im.adium.libotr</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<!-- The release this framework wraps, which is also the number the committed
+	     libotr.framework carries in both of these keys. It tracks OTR_VERSION in
+	     phases/build_otr.sh, so the two move together. It used to read 2.2.0, a
+	     number from the libotr 3 era that nothing here has built since, and which
+	     made the framework this script writes differ from the one it replaces. -->
 	<key>CFBundleShortVersionString</key>
 	<string>4.1.1</string>
 	<key>CFBundleVersion</key>
 	<string>4.1.1</string>
+	<key>CFBundleIdentifier</key>
+	<string>im.adium.libotr</string>
 </dict>
 </plist>
