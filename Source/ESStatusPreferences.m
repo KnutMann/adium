@@ -122,12 +122,11 @@
 	return [NSImage imageNamed:@"pref-status" forClass:[self class]];
 }
 
-/*!
- * @brief Nib name
+/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib
+ * for us, and StatusPreferences.xib is gone. Naming a nib that is not there would be a trap
+ * for whoever removes the -view override next: the base class would try to load it and
+ * the pane would come up empty.
  */
-- (NSString *)nibName{
-    return @"StatusPreferences";
-}
 
 #pragma mark View
 

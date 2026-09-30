@@ -652,9 +652,11 @@ static NSTextField *AIAccountListLabel(CGFloat fontSize, NSColor *textColor)
 - (NSString *)paneName{
     return AILocalizedString(@"Accounts","Accounts preferences label");
 }
-- (NSString *)nibName{
-    return @"AccountListPreferences";
-}
+/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib
+ * for us, and AccountListPreferences.xib is gone. Naming a nib that is not there would be a trap
+ * for whoever removes the -view override next: the base class would try to load it and
+ * the pane would come up empty.
+ */
 - (NSImage *)paneIcon
 {
 	return [NSImage imageNamed:@"pref-accounts" forClass:[self class]];

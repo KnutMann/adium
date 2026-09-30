@@ -123,10 +123,11 @@ static BOOL AIRowIsOMEMO(NSDictionary *fingerprintDict)
 {
     return AILocalizedString(@"Encryption",nil);
 }
-- (NSString *)nibName
-{
-    return @"OTRPrefs";
-}
+/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib
+ * for us, and OTRPrefs.xib is gone. Naming a nib that is not there would be a
+ * trap for whoever removes the -view override next: the base class would try to load
+ * it and the pane would come up empty.
+ */
 - (NSImage *)image
 {
 	return [NSImage imageNamed:@"lock-locked" forClass:[adium class]];

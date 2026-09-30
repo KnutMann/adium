@@ -137,7 +137,6 @@
 		34082675075B079800703011 /* Dock Icons in Copy Built-in Xtras */ = {isa = PBXBuildFile; fileRef = 3408254D075B078B00703011 /* Dock Icons */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		340C1ABF0BD58FAB00D09235 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 340C1ABE0BD58FAB00D09235 /* Security.framework */; };
 		340D859B0ADC82D100D05B3F /* sourceListBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 340670790A55A044004E22AC /* sourceListBackground.png */; };
-		ADD1E5C0DE00000000001102 /* DualWindowMessageAdvanced.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001101 /* DualWindowMessageAdvanced.xib */; };
 		3419DE730A81042F00C3FC68 /* AccountPrefs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8326107CBD598006466F2 /* AccountPrefs.plist */; };
 		3419DE740A81042F00C3FC68 /* BuiltInStatusStates.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8327507CBD5B3006466F2 /* BuiltInStatusStates.plist */; };
 		3419DE750A81042F00C3FC68 /* ContactPrefs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34D8326607CBD598006466F2 /* ContactPrefs.plist */; };
@@ -164,7 +163,6 @@
 		341BD56C0965E9A500CF83F5 /* AdiumOTREncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = 341BD56A0965E9A500CF83F5 /* AdiumOTREncryption.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		341BD5700965EC3500CF83F5 /* OTRFingerprintDetailsWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 341BD56E0965EC3500CF83F5 /* OTRFingerprintDetailsWindow.xib */; };
 		341BD5710965EC3500CF83F5 /* OTRPrivateKeyGenerationWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 341BD56F0965EC3500CF83F5 /* OTRPrivateKeyGenerationWindow.xib */; };
-		ADD1E5C0DE00000000001802 /* OTRPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001801 /* OTRPrefs.xib */; };
 		342353D709D45726009FF634 /* AILogViewerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 342353D509D45725009FF634 /* AILogViewerWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		3428328907D2643F004F01C9 /* ESStatusPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 3428328507D2643F004F01C9 /* ESStatusPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DF00000000000025 /* AIStatusListView.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DF00000000000022 /* AIStatusListView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -181,7 +179,6 @@
 		343700A90A9C1E170028604E /* AIAdvancedPreferencePane.h in Headers */ = {isa = PBXBuildFile; fileRef = 343700A50A9C1E170028604E /* AIAdvancedPreferencePane.h */; };
 		34382CEF0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */; };
 		343BB5020C96CB2000506F9B /* AINewBookmarkWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34A970670C965F6900F46006 /* AINewBookmarkWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */; };
 		ADD1E5C0DE00000000001402 /* StatusSortConfiguration.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000001401 /* StatusSortConfiguration.xib */; };
 		343EC9810970C29400349098 /* OfflineContactHidingDefaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 343EC9800970C29400349098 /* OfflineContactHidingDefaults.plist */; };
 		343ECBEB0971B18200349098 /* ESShowContactInfoPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 343ECBE90971B18200349098 /* ESShowContactInfoPromptController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -190,7 +187,6 @@
 		344458F0070B5BEF00D8E932 /* ESDebugWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 344458EE070B5BEF00D8E932 /* ESDebugWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		344499E90B23CA5D0054B761 /* adiumPurpleAccounts.h in Headers */ = {isa = PBXBuildFile; fileRef = 344499E70B23CA5D0054B761 /* adiumPurpleAccounts.h */; };
 		344499EA0B23CA5D0054B761 /* adiumPurpleAccounts.m in Sources */ = {isa = PBXBuildFile; fileRef = 344499E80B23CA5D0054B761 /* adiumPurpleAccounts.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		344838690BC85EF70083723B /* AccountListPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */; };
 		344838B50BC860770083723B /* AIAccountListPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B8C3C980825EAF9004B9F45 /* AIAccountListPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000D003 /* AIAccountOptionsPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D002 /* AIAccountOptionsPage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000D013 /* AIAccountRegistrationPage.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000D012 /* AIAccountRegistrationPage.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -277,9 +273,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		346935D60BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 346935D40BA6C89D00E1CF7E /* AIFileTransferProgressOutlineView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		346BA33F0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 346BA33D0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		346BA3450774C2D200628F06 /* ESGlobalEventsPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 346BA3430774C2D200628F06 /* ESGlobalEventsPreferences.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */; };
 		3474E000082550FD00BF30F0 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 3474DFFF082550FD00BF30F0 /* Credits.rtf */; };
-		ADD1E5C0DE00000000000C02 /* StatusPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */; };
 		347933F30C861017007ADCAA /* AIColorStringTransformer.h in Headers */ = {isa = PBXBuildFile; fileRef = 347933F10C861017007ADCAA /* AIColorStringTransformer.h */; };
 		347933F40C861017007ADCAA /* AIColorStringTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 347933F20C861017007ADCAA /* AIColorStringTransformer.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		347E39DC0A98AA4A00961B0E /* missing_image.png in Resources */ = {isa = PBXBuildFile; fileRef = 347E39DB0A98AA4A00961B0E /* missing_image.png */; };
@@ -593,7 +587,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		34DC88570A7EEE2E003E1636 /* ESFileTransferRequestPromptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3452A9F707891C8A00C3C494 /* ESFileTransferRequestPromptController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC88590A7EEE2E003E1636 /* FileTransferProgressWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E2B07CBA70D004A4FFF /* FileTransferProgressWindow.xib */; };
 		34DC885A0A7EEE2E003E1636 /* FileTransferPrefs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34575E2C07CBA70D004A4FFF /* FileTransferPrefs.plist */; };
-		34DC885B0A7EEE2E003E1636 /* FileTransferPrefs.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34575E2D07CBA70D004A4FFF /* FileTransferPrefs.xib */; };
 		34DC885D0A7EEE2E003E1636 /* ESFileTransferProgressRow.m in Sources */ = {isa = PBXBuildFile; fileRef = 349FE300074D01D300E36B3B /* ESFileTransferProgressRow.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC885F0A7EEE2E003E1636 /* ESFileTransferProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 349FE2FE074D01D300E36B3B /* ESFileTransferProgressView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		34DC88620A7EEE2F003E1636 /* ESFileTransferProgressWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 349FE2FC074D01D200E36B3B /* ESFileTransferProgressWindowController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -975,7 +968,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		6311F4710E340DD2004234B8 /* AISharedAdium.h in Headers */ = {isa = PBXBuildFile; fileRef = 6311F46F0E340DD2004234B8 /* AISharedAdium.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6311F4720E340DD2004234B8 /* AISharedAdium.m in Sources */ = {isa = PBXBuildFile; fileRef = 6311F4700E340DD2004234B8 /* AISharedAdium.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		6318DBA10F8D93F200C5E584 /* WebKit Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 347065E406015DC5004F0D20 /* WebKit Defaults.plist */; };
-		ADD1E5C0DE00000000000E02 /* WebKitPreferencesView.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */; };
 		6318DBA30F8D93F200C5E584 /* Preview.plist in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DBE5063449AF0018E5D2 /* Preview.plist */; };
 		6318DBA40F8D93F200C5E584 /* SoulEdge.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF00063498ED0018E5D2 /* SoulEdge.png */; };
 		6318DBA50F8D93F200C5E584 /* terminator.png in Resources */ = {isa = PBXBuildFile; fileRef = 34C2DF01063498ED0018E5D2 /* terminator.png */; };
@@ -1730,16 +1722,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		343700A60A9C1E170028604E /* AIAdvancedPreferencePane.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAdvancedPreferencePane.m; path = Frameworks/Adium/Source/AIAdvancedPreferencePane.m; sourceTree = "<group>"; };
 		3437FF5B0A9BF0A70028604E /* tr */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = tr; path = Resources/tr.lproj/Buttons.strings; sourceTree = "<group>"; };
 		34382CEE0A50387A004BF6A2 /* MessageContextDisplayDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = MessageContextDisplayDefaults.plist; path = Resources/MessageContextDisplayDefaults.plist; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AppearancePrefs.xib; path = Resources/AppearancePrefs.xib; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusPreferences.xib; path = Resources/StatusPreferences.xib; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000001101 /* DualWindowMessageAdvanced.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DualWindowMessageAdvanced.xib; path = Resources/DualWindowMessageAdvanced.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001201 /* EditStateSheet.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = EditStateSheet.xib; path = "Frameworks/Adium/Resources/EditStateSheet.xib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001301 /* DCPurpleJabberJoinChatView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DCPurpleJabberJoinChatView.xib; path = "Plugins/Purple Service/Resources/Base.lproj/DCPurpleJabberJoinChatView.xib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001401 /* StatusSortConfiguration.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = StatusSortConfiguration.xib; path = Resources/StatusSortConfiguration.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001501 /* PasswordPrompt.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = PasswordPrompt.xib; path = Resources/PasswordPrompt.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001503 /* ProxyPasswordPrompt.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ProxyPasswordPrompt.xib; path = Resources/ProxyPasswordPrompt.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001701 /* AIAdvancedInspectorPane.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIAdvancedInspectorPane.xib; path = Resources/AIAdvancedInspectorPane.xib; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000001801 /* OTRPrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = OTRPrefs.xib; path = Resources/OTRPrefs.xib; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000001803 /* ESFileTransferProgressView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ESFileTransferProgressView.xib; path = Resources/ESFileTransferProgressView.xib; sourceTree = "<group>"; };
 		3439FD8C05794B4500B2E449 /* AlertMessageContactAlert.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AlertMessageContactAlert.xib; path = "Plugins/Error Message Handler/AlertMessageContactAlert.xib"; sourceTree = "<group>"; };
 		343C45E50816C13300FF5FA7 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = Resources/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -1845,7 +1833,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		3456233E0A3773D000E7FC97 /* AILoggerPlugin.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AILoggerPlugin.h; path = Source/AILoggerPlugin.h; sourceTree = "<group>"; };
 		34575E2B07CBA70D004A4FFF /* FileTransferProgressWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = FileTransferProgressWindow.xib; path = Resources/FileTransferProgressWindow.xib; sourceTree = "<group>"; };
 		34575E2C07CBA70D004A4FFF /* FileTransferPrefs.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = FileTransferPrefs.plist; path = Resources/FileTransferPrefs.plist; sourceTree = "<group>"; };
-		34575E2D07CBA70D004A4FFF /* FileTransferPrefs.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = FileTransferPrefs.xib; path = Resources/FileTransferPrefs.xib; sourceTree = "<group>"; };
 		34575E3407CBA7DF004A4FFF /* LoginSelect.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = LoginSelect.xib; path = Resources/LoginSelect.xib; sourceTree = "<group>"; };
 		34575E3607CBA874004A4FFF /* DebugWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = DebugWindow.xib; path = Resources/DebugWindow.xib; sourceTree = "<group>"; };
 		34575E3807CBA88E004A4FFF /* MainMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainMenu.xib; path = Resources/MainMenu.xib; sourceTree = "<group>"; };
@@ -1961,7 +1948,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		346BA33D0774C27400628F06 /* ESGlobalEventsPreferencesPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGlobalEventsPreferencesPlugin.m; path = Source/ESGlobalEventsPreferencesPlugin.m; sourceTree = "<group>"; };
 		346BA3420774C2D200628F06 /* ESGlobalEventsPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESGlobalEventsPreferences.h; path = Source/ESGlobalEventsPreferences.h; sourceTree = "<group>"; };
 		346BA3430774C2D200628F06 /* ESGlobalEventsPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ESGlobalEventsPreferences.m; path = Source/ESGlobalEventsPreferences.m; sourceTree = "<group>"; };
-		346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = GlobalEventsPreferences.xib; path = Resources/GlobalEventsPreferences.xib; sourceTree = "<group>"; };
 		346C9BFA0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/Buttons.strings; sourceTree = "<group>"; };
 		346C9C020E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Frameworks/Adium/Resources/hu.lproj/EmoticonNames.strings; sourceTree = "<group>"; };
 		346C9C0F0E70E1F7002314EE /* hu */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = hu; path = Resources/hu.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -2568,7 +2554,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE00000000000D07 /* AIWebKitMessageViewWKContextMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWebKitMessageViewWKContextMenu.h; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000F101 /* AIWKGestureBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIWKGestureBridge.h; path = "Plugins/WebKit Message View/AIWKGestureBridge.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000D08 /* AIWebKitMessageViewWKContextMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIWebKitMessageViewWKContextMenu.m; path = "Plugins/WebKit Message View/AIWebKitMessageViewWKContextMenu.m"; sourceTree = "<group>"; };
-		ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = WebKitPreferencesView.xib; path = "Plugins/WebKit Message View/Resources/WebKitPreferencesView.xib"; sourceTree = "<group>"; };
 		4B5827E80613CE9D0004BD25 /* AIMessageEntryTextView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIMessageEntryTextView.h; path = Frameworks/Adium/Source/AIMessageEntryTextView.h; sourceTree = "<group>"; };
 		4B5827E90613CE9D0004BD25 /* AIMessageEntryTextView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIMessageEntryTextView.m; path = Frameworks/Adium/Source/AIMessageEntryTextView.m; sourceTree = "<group>"; };
 		4B588C9B07AC23B2001832A9 /* AIEditStateWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIEditStateWindowController.h; path = Frameworks/Adium/Source/AIEditStateWindowController.h; sourceTree = "<group>"; };
@@ -2596,7 +2581,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		B11DB00C0000000000000002 /* AIAddressBookPictureWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAddressBookPictureWindowController.m; path = "Source/AIAddressBookPictureWindowController.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAccountSettingsPage.m; path = "Source/AIAccountSettingsPage.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000773 /* AIAccountSettingsPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAccountSettingsPage.h; path = "Source/AIAccountSettingsPage.h"; sourceTree = "<group>"; };
-		4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AccountListPreferences.xib; path = Resources/AccountListPreferences.xib; sourceTree = "<group>"; };
 		4B93588A06DBC71B007977AA /* AIUserIcons.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIUserIcons.h; path = Frameworks/Adium/Source/AIUserIcons.h; sourceTree = "<group>"; };
 		4B93588B06DBC71B007977AA /* AIStatusIcons.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIStatusIcons.m; path = Frameworks/Adium/Source/AIStatusIcons.m; sourceTree = "<group>"; };
 		4B93588C06DBC71B007977AA /* AIServiceIcons.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIServiceIcons.m; path = Frameworks/Adium/Source/AIServiceIcons.m; sourceTree = "<group>"; };
@@ -2785,7 +2769,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		6329EF070F9D335800112489 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		632ADC130E9EDDCA00AB6817 /* SGKeyCodeTranslator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SGKeyCodeTranslator.m; path = Source/SGKeyCodeTranslator.m; sourceTree = "<group>"; };
 		632ADC140E9EDDCA00AB6817 /* SGKeyCodeTranslator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SGKeyCodeTranslator.h; path = Source/SGKeyCodeTranslator.h; sourceTree = "<group>"; };
-		632D801608E7E0A40032C187 /* XtrasManager.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = XtrasManager.xib; path = Resources/XtrasManager.xib; sourceTree = "<group>"; };
 		632D859C0DB70FC800040EC7 /* AIMentionEventPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMentionEventPlugin.h; path = Source/AIMentionEventPlugin.h; sourceTree = "<group>"; };
 		632D859D0DB70FC800040EC7 /* AIMentionEventPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMentionEventPlugin.m; path = Source/AIMentionEventPlugin.m; sourceTree = "<group>"; };
 		633F175808F905A700C76383 /* AIXtrasManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIXtrasManager.h; path = Source/AIXtrasManager.h; sourceTree = "<group>"; };
@@ -3373,7 +3356,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			children = (
 				341BD5690965E9A500CF83F5 /* AdiumOTREncryption.h */,
 				341BD56A0965E9A500CF83F5 /* AdiumOTREncryption.m */,
-				ADD1E5C0DE00000000001801 /* OTRPrefs.xib */,
 				341BD56E0965EC3500CF83F5 /* OTRFingerprintDetailsWindow.xib */,
 				341BD56F0965EC3500CF83F5 /* OTRPrivateKeyGenerationWindow.xib */,
 				341BD55C0965E97F00CF83F5 /* ESOTRPreferences.h */,
@@ -3401,7 +3383,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DF00000000000021 /* AIStatusListView.h */,
 				ADD1E5C0DF00000000000022 /* AIStatusListView.m */,
 				34A250B507E0F822009854E1 /* StatusDefaults.plist */,
-				ADD1E5C0DE00000000000C01 /* StatusPreferences.xib */,
 			);
 			name = "Status Preferences";
 			sourceTree = "<group>";
@@ -3844,7 +3825,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000C513 /* emoticonBlank@2x.png */,
 				ADD1E5C0DE0000000000C515 /* sidebarActionWidget@2x.png */,
 				34BFDF1707E8977D00AD984D /* SoundLow.png */,
-				346BA3630774C35400628F06 /* GlobalEventsPreferences.xib */,
 			);
 			name = "Global Events Preferences";
 			sourceTree = "<group>";
@@ -3921,7 +3901,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				3452A9F707891C8A00C3C494 /* ESFileTransferRequestPromptController.m */,
 						34575E2B07CBA70D004A4FFF /* FileTransferProgressWindow.xib */,
 				34575E2C07CBA70D004A4FFF /* FileTransferPrefs.plist */,
-				34575E2D07CBA70D004A4FFF /* FileTransferPrefs.xib */,
 				349FE301074D01D300E36B3B /* ESFileTransferProgressRow.h */,
 				349FE300074D01D300E36B3B /* ESFileTransferProgressRow.m */,
 				349FE2FF074D01D300E36B3B /* ESFileTransferProgressView.h */,
@@ -4890,7 +4869,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			children = (
 				4B970BF80535B864002F28F9 /* ESDualWindowMessageAdvancedPreferences.h */,
 				4B970BF90535B864002F28F9 /* ESDualWindowMessageAdvancedPreferences.m */,
-				ADD1E5C0DE00000000001101 /* DualWindowMessageAdvanced.xib */,
 			);
 			name = Preferences;
 			sourceTree = "<group>";
@@ -4913,7 +4891,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4BAE6D3B07CFA0BC007E2820 /* AIAppearancePreferences.m */,
 				AD1057A0FADE0003C0DE0001 /* AIContactListAppearancePage.h */,
 				AD1057A0FADE0003C0DE0102 /* AIContactListAppearancePage.m */,
-				ADD1E5C0DE00000000000901 /* AppearancePrefs.xib */,
 				4B08399207D2350D0034A001 /* AIDockIconSelectionSheet.h */,
 				4B08399307D2350D0034A001 /* AIDockIconSelectionSheet.m */,
 				4B08399B07D235190034A001 /* DockIconSelectionSheet.xib */,
@@ -5399,7 +5376,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				112B47650F82E0FC00690E84 /* AIXtraInfo.h */,
 				112B47660F82E0FC00690E84 /* AIXtraInfo.m */,
 				34F312BC0ADC43CA00A4310E /* xtras_duck.png */,
-				632D801608E7E0A40032C187 /* XtrasManager.xib */,
 			);
 			name = "Xtras Management";
 			sourceTree = "<group>";
@@ -5690,7 +5666,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34C2DF01063498ED0018E5D2 /* terminator.png */,
 				3470663806015FB6004F0D20 /* WebKit Additions */,
 				347065E406015DC5004F0D20 /* WebKit Defaults.plist */,
-				ADD1E5C0DE00000000000E01 /* WebKitPreferencesView.xib */,
 			);
 			name = "WebKit Message View";
 			sourceTree = "<group>";
@@ -6117,7 +6092,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				B11DB00C0000000000000002 /* AIAddressBookPictureWindowController.m */,
 				ADD1E5C0DE00000000000771 /* AIAccountSettingsPage.m */,
 				ADD1E5C0DE00000000000773 /* AIAccountSettingsPage.h */,
-				4B8C3CE80825F60B004B9F45 /* AccountListPreferences.xib */,
 			);
 			name = "Accounts Preferences";
 			sourceTree = "<group>";
@@ -6771,7 +6745,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			buildActionMask = 2147483647;
 			files = (
 				6318DBA10F8D93F200C5E584 /* WebKit Defaults.plist in Resources */,
-				ADD1E5C0DE00000000000E02 /* WebKitPreferencesView.xib in Resources */,
 				6318DBA30F8D93F200C5E584 /* Preview.plist in Resources */,
 				6318DBA40F8D93F200C5E584 /* SoulEdge.png in Resources */,
 				6318DBA50F8D93F200C5E584 /* terminator.png in Resources */,
@@ -6833,7 +6806,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				3461621406FB482D009181D8 /* UserList Theme.plist in Resources */,
 				ADD1E5C0DE0000000000C801 /* UserList Theme Dark.plist in Resources */,
 				3461621706FB482D009181D8 /* UserList Layout.plist in Resources */,
-				346BA3640774C35500628F06 /* GlobalEventsPreferences.xib in Resources */,
 				34C6A3BC077A8CB500EB423C /* AppearanceDefaults.plist in Resources */,
 				4BCAC4D907B59B2E006641B9 /* AddressBook.tiff in Resources */,
 				4BCAC4E607B59B65006641B9 /* Alias Defaults.plist in Resources */,
@@ -6847,11 +6819,9 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4BAE6C4C07CF941C007E2820 /* events-dock-alert.tiff in Resources */,
 				4BAE6C4D07CF941C007E2820 /* DockBehaviorContactAlert.xib in Resources */,
 				4BAE6C9507CF94C4007E2820 /* events-message.tiff in Resources */,
-				ADD1E5C0DE00000000000902 /* AppearancePrefs.xib in Resources */,
 				4BF3CB4207D1771E00A8112A /* pref-appearance.tiff in Resources */,
 				4BF3CBED07D192F500A8112A /* pref-accounts.tiff in Resources */,
 				4B08399C07D235190034A001 /* DockIconSelectionSheet.xib in Resources */,
-				ADD1E5C0DE00000000000C02 /* StatusPreferences.xib in Resources */,
 				342838EE07D2D004004F01C9 /* Shared Dock Icon Images in Resources */,
 				4BB5B78207D2DC4900CFE06F /* pref-status.tiff in Resources */,
 				34A6FB2607D6F97B00972830 /* EventSoundContactAlert.xib in Resources */,
@@ -6907,7 +6877,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				345F57400817FF80001F733C /* pref-contactList.tiff in Resources */,
 				345F583E08197E74001F733C /* AdiumStatusIcons.icns in Resources */,
 				345F58C7081990FF001F733C /* msg-log-viewer.tiff in Resources */,
-				ADD1E5C0DE00000000001102 /* DualWindowMessageAdvanced.xib in Resources */,
 				0779934F08221D9700F698DC /* Service Icons in Resources */,
 				3474E000082550FD00BF30F0 /* Credits.rtf in Resources */,
 				071C56330827933100399C0F /* Shared Dock Icon Images in Resources */,
@@ -6917,7 +6886,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34D0FF8509569FE500DCB678 /* PersonalPreferencesDefaults.plist in Resources */,
 				341BD5700965EC3500CF83F5 /* OTRFingerprintDetailsWindow.xib in Resources */,
 				341BD5710965EC3500CF83F5 /* OTRPrivateKeyGenerationWindow.xib in Resources */,
-				ADD1E5C0DE00000000001802 /* OTRPrefs.xib in Resources */,
 				349710DD096C4C7700699948 /* Buttons.strings in Resources */,
 				343EC9810970C29400349098 /* OfflineContactHidingDefaults.plist in Resources */,
 				343ECBEE0971B18E00349098 /* ShowContactInfoPrompt.xib in Resources */,
@@ -6929,7 +6897,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC884F0A7EEE2E003E1636 /* FormattingDefaults.plist in Resources */,
 				34DC88590A7EEE2E003E1636 /* FileTransferProgressWindow.xib in Resources */,
 				34DC885A0A7EEE2E003E1636 /* FileTransferPrefs.plist in Resources */,
-				34DC885B0A7EEE2E003E1636 /* FileTransferPrefs.xib in Resources */,
 				34DC88650A7EEE2F003E1636 /* FTProgressRevealRollover.tif in Resources */,
 				34DC88660A7EEE2F003E1636 /* FTProgressRevealRollover_Selected.tif in Resources */,
 				34DC88670A7EEE2F003E1636 /* FTProgressStopRollover_Selected.tif in Resources */,
@@ -6962,7 +6929,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34DC13050A81417700D710F3 /* LoginSelect.xib in Resources */,
 				34F312BD0ADC43CA00A4310E /* xtras_duck.png in Resources */,
 				117D6DC00BC5F0C40080D02B /* msg-request-attention.tiff in Resources */,
-				344838690BC85EF70083723B /* AccountListPreferences.xib in Resources */,
 				344839380BC862780083723B /* pref-messages.tiff in Resources */,
 				07C6EA890C06676400B79CBD /* AdiumHelp in Resources */,
 				0CAC6A140C0C657A0090AE95 /* Adium.sdef in Resources */,
