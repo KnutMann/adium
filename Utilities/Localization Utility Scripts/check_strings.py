@@ -31,8 +31,17 @@ import sys
 # AILocalizedString(key, comment), and the two that name a table before the rest.
 CALL = re.compile(
     r'AILocalizedString(?P<kind>FromTableInBundle|FromTable|)\s*\(\s*'
-    r'@"(?P<key>(?:[^"\\]|\\.)*)"\s*'
-    r'(?:,\s*(?P<table>@"(?:[^"\\]|\\.)*"|nil))?',
+    # A key may be written as several literals in a row, which C joins into one before the
+    # compiler ever sees it. Three OTR texts are written that way, over four lines each.
+    # Taking only the first literal yields a fragment that no table can ever carry, and
+    # all three were reported as untranslated while the full key sat in de.lproj.
+    r'@"(?P<key>(?:[^"\\]|\\.)*)"(?P<more>(?:\s*"(?:[^"\\]|\\.)*")*)\s*'
+    # The table may be spelled either way. AILocalizedStringFromTable takes it as a plain
+    # C string in most calls, "EmoticonNames", and as an Objective-C one in others,
+    # @"Statuses". Accepting only the second put every emoticon name down as a Localizable
+    # key, looked for it in the wrong table, and reported forty of them as untranslated
+    # while EmoticonNames.strings had carried them all along.
+    r'(?:,\s*(?P<table>@?"(?:[^"\\]|\\.)*"|nil))?',
     re.S)
 
 ENTRY = re.compile(r'^"((?:[^"\\]|\\.)*)" =', re.M)
@@ -50,12 +59,27 @@ def table_of(match):
     if not table or table == 'nil':
         return 'Localizable'
 
-    return table[2:-1]
+    # Both spellings reach here, @"Statuses" and "EmoticonNames", so strip what is actually
+    # there rather than a fixed two characters, which ate the first letter of every plain
+    # C table name and turned EmoticonNames into moticonName.
+    return table.lstrip('@').strip('"')
+
+
+CONTINUATION = re.compile(r'"((?:[^"\\]|\\.)*)"')
+
+
+def key_of(match):
+    """The whole key, with the literals that follow it joined on."""
+    key = match.group('key')
+    more = match.group('more')
+    if more:
+        key += "".join(CONTINUATION.findall(more))
+    return key
 
 
 def keys_in(text):
     """The (table, key) pairs a piece of source asks for."""
-    return {(table_of(m), m.group('key')) for m in CALL.finditer(text)}
+    return {(table_of(m), key_of(m)) for m in CALL.finditer(text)}
 
 
 def keys_in_tree():
@@ -81,8 +105,44 @@ def entries_in(path):
     return set(ENTRY.findall(raw.decode(encoding, 'replace')))
 
 
+def string_roots():
+    """Every directory in the tree that holds .lproj tables.
+
+    The application keeps its own under Resources, and several plug-ins keep theirs beside
+    their code: Purple Service has thirty language tables of its own. Looking only at
+    Resources is how this check spent weeks reporting strings as untranslated that had been
+    translated all along, which is the one thing a check like this must not do, because a
+    warning nobody can act on is a warning everybody learns to ignore.
+    """
+    roots = []
+    for base in ['.', 'Plugins', 'Frameworks']:
+        if not os.path.isdir(base):
+            continue
+        candidates = ([base] if base == '.' else
+                      [os.path.join(base, d) for d in sorted(os.listdir(base))])
+        for candidate in candidates:
+            resources = os.path.join(candidate, 'Resources')
+            if candidate == '.':
+                resources = 'Resources'
+            if not os.path.isdir(resources):
+                continue
+            # A .lproj alone is not enough. Every bundled C library carries one holding
+            # nothing but an InfoPlist.strings, which is a bundle's own name and version
+            # and not a translated string. Only a root with a real table counts.
+            if any(name.endswith('.strings') and name != 'InfoPlist.strings'
+                   for lproj in os.listdir(resources)
+                   if lproj.endswith('.lproj') and os.path.isdir(os.path.join(resources, lproj))
+                   for name in os.listdir(os.path.join(resources, lproj))):
+                roots.append(resources)
+    return roots
+
+
 def tables_for(language):
     """Every table that language has, as {table name: set of keys}.
+
+    Merged across all roots. A key counts as translated when any table of that name carries
+    it, which is what the question actually is: the source asks for a string, and either
+    some table this build ships answers it or none does.
 
     The keys stay exactly as the file spells them, escapes and all, because that is also
     how the source spells them: a literal in a .m file carries a backslash and an n, not a
@@ -90,16 +150,24 @@ def tables_for(language):
     not the other would make every string containing a newline or a quote look untranslated
     for ever, which is worse than useless in something meant to be trusted.
     """
-    directory = os.path.join('Resources', language)
     tables = {}
-    for name in os.listdir(directory):
-        if name.endswith('.strings') and name != 'InfoPlist.strings':
-            tables[name[:-len('.strings')]] = entries_in(os.path.join(directory, name))
+    for root in string_roots():
+        directory = os.path.join(root, language)
+        if not os.path.isdir(directory):
+            continue
+        for name in os.listdir(directory):
+            if name.endswith('.strings') and name != 'InfoPlist.strings':
+                table = name[:-len('.strings')]
+                tables.setdefault(table, set()).update(
+                    entries_in(os.path.join(directory, name)))
     return tables
 
 
 def languages():
-    return sorted(d for d in os.listdir('Resources') if d.endswith('.lproj'))
+    seen = set()
+    for root in string_roots():
+        seen.update(d for d in os.listdir(root) if d.endswith('.lproj'))
+    return sorted(seen)
 
 
 def staged_change():
