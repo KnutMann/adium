@@ -69,7 +69,6 @@
 		117866E20EC759B9003E9B97 /* FTProgressResendRollover_Selected.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866DC0EC759B9003E9B97 /* FTProgressResendRollover_Selected.tif */; };
 		117866E30EC759B9003E9B97 /* FTProgressResendRollover.tif in Resources */ = {isa = PBXBuildFile; fileRef = 117866DD0EC759B9003E9B97 /* FTProgressResendRollover.tif */; };
 		117D6DC00BC5F0C40080D02B /* msg-request-attention.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 117D6DBF0BC5F0C40080D02B /* msg-request-attention.tiff */; };
-		11819A1B10D0B95D003E8ECA /* AIMediaControllerProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 11819A0910D0B90E003E8ECA /* AIMediaControllerProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		118A44540FEEA82E008153C0 /* libjson-glib.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 118A444F0FEEA828008153C0 /* libjson-glib.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1192E6D90FD3056F003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 1192E6B10FD30307003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.h */; };
 		1192E6DA0FD30578003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1192E6B20FD30307003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -1463,10 +1462,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		1139011B0F85C9450081A418 /* AIURLHandlerPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIURLHandlerPlugin.m; path = Source/AIURLHandlerPlugin.m; sourceTree = "<group>"; };
 		1139FFA80F85260E0081A418 /* AIIRCChannelLinker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIIRCChannelLinker.h; path = Source/AIIRCChannelLinker.h; sourceTree = "<group>"; };
 		1139FFA90F85260E0081A418 /* AIIRCChannelLinker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIIRCChannelLinker.m; path = Source/AIIRCChannelLinker.m; sourceTree = "<group>"; };
-		113E06A910D0ABA0005D5B9A /* adiumPurpleMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleMedia.m; path = "Plugins/Purple Service/adiumPurpleMedia.m"; sourceTree = "<group>"; };
-		113E06AE10D0ABE3005D5B9A /* adiumPurpleMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleMedia.h; path = "Plugins/Purple Service/adiumPurpleMedia.h"; sourceTree = "<group>"; };
-		1147FCC210D1CB4C004E9E8D /* AIMediaWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMediaWindowController.h; path = Source/AIMediaWindowController.h; sourceTree = "<group>"; };
-		1147FCC310D1CB4C004E9E8D /* AIMediaWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMediaWindowController.m; path = Source/AIMediaWindowController.m; sourceTree = "<group>"; };
 		114849B70F7841C600EA5264 /* AIAuthorizationRequestsWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAuthorizationRequestsWindowController.h; path = Frameworks/Adium/Source/AIAuthorizationRequestsWindowController.h; sourceTree = "<group>"; };
 		114849B80F7841C600EA5264 /* AIAuthorizationRequestsWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAuthorizationRequestsWindowController.m; path = Frameworks/Adium/Source/AIAuthorizationRequestsWindowController.m; sourceTree = "<group>"; };
 		114849BB0F78420300EA5264 /* AIAuthorizationRequestsWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AIAuthorizationRequestsWindow.xib; path = Frameworks/Adium/Resources/AIAuthorizationRequestsWindow.xib; sourceTree = "<group>"; };
@@ -1517,12 +1512,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		117866DC0EC759B9003E9B97 /* FTProgressResendRollover_Selected.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FTProgressResendRollover_Selected.tif; path = Resources/FTProgressResendRollover_Selected.tif; sourceTree = "<group>"; };
 		117866DD0EC759B9003E9B97 /* FTProgressResendRollover.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FTProgressResendRollover.tif; path = Resources/FTProgressResendRollover.tif; sourceTree = "<group>"; };
 		117D6DBF0BC5F0C40080D02B /* msg-request-attention.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "msg-request-attention.tiff"; path = "Resources/msg-request-attention.tiff"; sourceTree = SOURCE_ROOT; };
-		1181981210D0B17C003E8ECA /* adiumPurpleMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleMedia.h; path = "Plugins/Purple Service/adiumPurpleMedia.h"; sourceTree = "<group>"; };
-		118199C410D0B65A003E8ECA /* AIMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMedia.h; path = Frameworks/Adium/Source/AIMedia.h; sourceTree = "<group>"; };
-		118199C510D0B65A003E8ECA /* AIMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMedia.m; path = Frameworks/Adium/Source/AIMedia.m; sourceTree = "<group>"; };
-		11819A0210D0B8BE003E8ECA /* AIMediaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMediaController.h; path = Source/AIMediaController.h; sourceTree = "<group>"; };
-		11819A0310D0B8BE003E8ECA /* AIMediaController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIMediaController.m; path = Source/AIMediaController.m; sourceTree = "<group>"; };
-		11819A0910D0B90E003E8ECA /* AIMediaControllerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMediaControllerProtocol.h; path = Frameworks/Adium/Source/AIMediaControllerProtocol.h; sourceTree = "<group>"; };
 		118A444F0FEEA828008153C0 /* libjson-glib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "libjson-glib.framework"; path = "Frameworks/libjson-glib.framework"; sourceTree = "<group>"; };
 		1192E6B10FD30307003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIAnnoyingIRCMessagesHiderPlugin.h; path = "Plugins/Purple Service/AIAnnoyingIRCMessagesHiderPlugin.h"; sourceTree = "<group>"; };
 		1192E6B20FD30307003CAEF5 /* AIAnnoyingIRCMessagesHiderPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIAnnoyingIRCMessagesHiderPlugin.m; path = "Plugins/Purple Service/AIAnnoyingIRCMessagesHiderPlugin.m"; sourceTree = "<group>"; };
@@ -3656,8 +3645,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE00000000000021 /* NSString+AIBidi.m */,
 				3483928505E68B05002BC6C0 /* AIIconState.h */,
 				3483928405E68B05002BC6C0 /* AIIconState.m */,
-				118199C410D0B65A003E8ECA /* AIMedia.h */,
-				118199C510D0B65A003E8ECA /* AIMedia.m */,
 				F5793924033E74C301A8010A /* AIPlugin.h */,
 				F5793912033E748F01A8010A /* AIPlugin.m */,
 				6311F46F0E340DD2004234B8 /* AISharedAdium.h */,
@@ -4203,9 +4190,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				344499E80B23CA5D0054B761 /* adiumPurpleAccounts.m */,
 				34BBE10907A2EE3700663CC9 /* adiumPurpleBlist.h */,
 				34BBE10A07A2EE3700663CC9 /* adiumPurpleBlist.m */,
-				113E06AE10D0ABE3005D5B9A /* adiumPurpleMedia.h */,
-				1181981210D0B17C003E8ECA /* adiumPurpleMedia.h */,
-				113E06A910D0ABA0005D5B9A /* adiumPurpleMedia.m */,
 				34BBE0E907A2ECCF00663CC9 /* adiumPurpleConnection.h */,
 				34BBE0EA07A2ECD000663CC9 /* adiumPurpleConnection.m */,
 				34BBE17E07A2F10400663CC9 /* adiumPurpleConversation.h */,
@@ -4840,7 +4824,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				340D0DFF0A7E7B090059A3AF /* AIInterfaceControllerProtocol.h */,
 				340D0E190A7E7DC30059A3AF /* AILoginControllerProtocol.h */,
 				340D0E1D0A7E7E7B0059A3AF /* AIMenuControllerProtocol.h */,
-				11819A0910D0B90E003E8ECA /* AIMediaControllerProtocol.h */,
 				340D0E210A7E7F160059A3AF /* AIPreferenceControllerProtocol.h */,
 				340D0E8A0A7E80000059A3AF /* AISoundControllerProtocol.h */,
 				340D0EA90A7E826C0059A3AF /* AIStatusControllerProtocol.h */,
@@ -4982,10 +4965,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				347F4B7F0D340F16006D5A56 /* AIPreferenceContainer.h */,
 				347F4B800D340F16006D5A56 /* AIPreferenceContainer.m */,
 				344C0D4306B6D5E300DA7200 /* Applescriptability */,
-				11819A0210D0B8BE003E8ECA /* AIMediaController.h */,
-				11819A0310D0B8BE003E8ECA /* AIMediaController.m */,
-				1147FCC210D1CB4C004E9E8D /* AIMediaWindowController.h */,
-				1147FCC310D1CB4C004E9E8D /* AIMediaWindowController.m */,
 			);
 			name = Other;
 			sourceTree = "<group>";
@@ -6316,7 +6295,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4D4A20B32577553E008BB8E3 /* AIMessageWindowController.h in Headers */,
 				4D4A23AE25776FDB008BB8E3 /* AIMessageWindow.h in Headers */,
 				4D4A20D625775793008BB8E3 /* AIMessageTabViewItem.h in Headers */,
-				11819A1B10D0B95D003E8ECA /* AIMediaControllerProtocol.h in Headers */,
 				111D58210F7FC1B900883487 /* AIListContactGroupChatCell.h in Headers */,
 				63218C720E518A940008E0D0 /* AdiumAuthorization.h in Headers */,
 				636D93F40E4EAB7500E5F558 /* AIContactObserverManager.h in Headers */,

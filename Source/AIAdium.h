@@ -28,7 +28,7 @@
 			AIPreferenceController, AIMenuController, AIApplescriptabilityController, AIStatusController,
 			AIContentController, AIToolbarController, AISoundController, AIEmoticonController,
 			AIFileTransferController, AILoginController, AIInterfaceController, AIContactController,
-			AIDockController, AIMediaController;
+			AIDockController;
 
 @interface AIAdium : NSObject <AIAdium> {
 @private
