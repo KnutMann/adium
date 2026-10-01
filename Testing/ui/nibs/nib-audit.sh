@@ -29,27 +29,40 @@ echo "Auditing $APP"
 echo
 
 fail=0
+seen=""
 
 # Every string literal that reaches a nib loader, and the file it came from.
 while IFS= read -r line; do
-	file="${line%%:*}"
+	# grep -A prints "file-NN-text" for context lines and "file:NN:text" for matches, so
+	# cut at whichever separator comes first rather than assuming one of them.
+	file=$(printf '%s' "$line" | sed -E 's/[:-][0-9]+[:-].*//')
 	name=$(printf '%s' "$line" | sed -n 's/.*@"\([A-Za-z0-9_ -]*\)".*/\1/p')
 	[ -z "$name" ] && continue
+	case " $seen " in *" $name "*) continue;; esac
+	seen="$seen $name"
 	if [ -z "$(find "$APP" -name "$name.nib" -print -quit 2>/dev/null)" ]; then
-		printf '  MISSING  %-28s named by %s\n' "$name.nib" "$(basename "$file")"
+		printf '  MISSING  %-32s named by %s\n' "$name.nib" "$(basename "$file")"
 		fail=1
 	else
-		printf '  ok       %-28s named by %s\n' "$name.nib" "$(basename "$file")"
+		printf '  ok       %-32s named by %s\n' "$name.nib" "$(basename "$file")"
 	fi
 done < <(
 	# Direct loads: the name is in the same statement.
 	grep -rn 'ai_loadNibNamed:@"\|loadNibNamed:@"\|initWithWindowNibName:@"' \
 		--include='*.m' Source Plugins Frameworks 2>/dev/null
-	# Indirect loads: the class asks itself, so take the answer of its -nibName.
-	for f in $(grep -rl 'ai_loadNibNamed:\[self nibName\]\|ai_loadNibNamed:\[\[self class\] nibName\]\|initWithWindowNibName:\[self nibName\]\|initWithWindowNibName:\[\[self class\] nibName\]' \
-			--include='*.m' Source Plugins Frameworks 2>/dev/null); do
-		grep -n 'nibName' -A3 "$f" 2>/dev/null | grep 'return @"' | sed "s|^|$f:|"
-	done
+	# Indirect loads. The name need not be in the file that loads it: a base class can load
+	# [[self class] nibName] while each subclass answers with its own name, which is how the
+	# contact list windows work. So once any file loads through -nibName, every -nibName in
+	# the tree is a candidate, and each one is checked.
+	#
+	# This is deliberately wider than the loaders. A pane that answers -nibName without
+	# loading anything is not a fault, but a name that points at nothing is still worth
+	# seeing, because the next person to add a load call inherits it.
+	if grep -rq 'NibNamed:\[self nibName\]\|NibNamed:\[\[self class\] nibName\]\|NibName:\[self nibName\]\|NibName:\[\[self class\] nibName\]' \
+			--include='*.m' Source Plugins Frameworks 2>/dev/null; then
+		grep -rn 'nibName' -A3 --include='*.m' Source Plugins Frameworks 2>/dev/null \
+			| grep 'return @"'
+	fi
 )
 
 echo
