@@ -34,6 +34,7 @@
 #import "adiumPurpleFallback.h"
 #import "adiumPurpleOMEMO.h"
 #import "adiumPurpleBookmarks.h"
+#import "adiumPurpleMUCSelfPing.h"
 #import "adiumPurpleJingle.h"
 #import "AIJingleCallManager.h"
 #import "AIJingleCallUI.h"
@@ -243,6 +244,7 @@ static void adiumPurpleCoreUiInit(void)
 	configureAdiumPurpleFallback();
 	configureAdiumPurpleOMEMO();
 	configureAdiumPurpleBookmarks();
+	configureAdiumPurpleMUCSelfPing();
 	configureAdiumPurpleJingle();
 	[AIJingleCallManager install];
 	[AIJingleCallUI install];

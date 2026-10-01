@@ -340,6 +340,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000CA01 /* adiumPurpleCarbons.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CA03 /* adiumPurpleCarbons.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		ADD1E5C0DE0000000000F111 /* adiumPurpleWhatsApp.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000E100 /* AIMUCSelfPingRules.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E104 /* AIMUCSelfPingRules.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		ADD1E5C0DE0000000000E102 /* adiumPurpleMUCSelfPing.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E106 /* adiumPurpleMUCSelfPing.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000FC00 /* adiumPurpleOMEMO.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FC02 /* adiumPurpleOMEMO.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE00000000FC01 /* adiumPurpleOMEMO.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE00000000FE00 /* AIOMEMOMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -357,6 +359,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE00000000FD01 /* AIOMEMOStore.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		ADD1E5C0DE0000000000FB00 /* adiumPurpleFallback.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		ADD1E5C0DE0000000000E101 /* AIMUCSelfPingRules.c in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E105 /* AIMUCSelfPingRules.c */; };
+		ADD1E5C0DE0000000000E103 /* adiumPurpleMUCSelfPing.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E107 /* adiumPurpleMUCSelfPing.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		ADD1E5C0DE0000000000FB01 /* adiumPurpleFallback.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		ADD1E5C0DE0000000000CC00 /* adiumPurpleBookmarks.h in Headers */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ADD1E5C0DE0000000000CC01 /* adiumPurpleBookmarks.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -2239,6 +2243,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleWhatsApp.m; path = "Plugins/Purple Service/adiumPurpleWhatsApp.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000F113 /* adiumPurpleWhatsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleWhatsApp.h; path = "Plugins/Purple Service/adiumPurpleWhatsApp.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleCSI.h; path = "Plugins/Purple Service/adiumPurpleCSI.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000E104 /* AIMUCSelfPingRules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIMUCSelfPingRules.h; path = "Plugins/Purple Service/AIMUCSelfPingRules.h"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000E106 /* adiumPurpleMUCSelfPing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleMUCSelfPing.h; path = "Plugins/Purple Service/adiumPurpleMUCSelfPing.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FC02 /* adiumPurpleOMEMO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleOMEMO.h; path = "Plugins/Purple Service/adiumPurpleOMEMO.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleOMEMO.m; path = "Plugins/Purple Service/adiumPurpleOMEMO.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIOMEMOMessage.h; path = "Plugins/Purple Service/AIOMEMOMessage.h"; sourceTree = "<group>"; };
@@ -2257,6 +2263,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIOMEMOStore.m; path = "Plugins/Purple Service/AIOMEMOStore.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleFallback.h; path = "Plugins/Purple Service/adiumPurpleFallback.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleCSI.m; path = "Plugins/Purple Service/adiumPurpleCSI.m"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000E105 /* AIMUCSelfPingRules.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = AIMUCSelfPingRules.c; path = "Plugins/Purple Service/AIMUCSelfPingRules.c"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000E107 /* adiumPurpleMUCSelfPing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleMUCSelfPing.m; path = "Plugins/Purple Service/adiumPurpleMUCSelfPing.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleFallback.m; path = "Plugins/Purple Service/adiumPurpleFallback.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = adiumPurpleBookmarks.h; path = "Plugins/Purple Service/adiumPurpleBookmarks.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = adiumPurpleBookmarks.m; path = "Plugins/Purple Service/adiumPurpleBookmarks.m"; sourceTree = "<group>"; };
@@ -4225,6 +4233,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000F112 /* adiumPurpleWhatsApp.m */,
 				ADD1E5C0DE0000000000F113 /* adiumPurpleWhatsApp.h */,
 				ADD1E5C0DE0000000000CB02 /* adiumPurpleCSI.h */,
+				ADD1E5C0DE0000000000E104 /* AIMUCSelfPingRules.h */,
+				ADD1E5C0DE0000000000E106 /* adiumPurpleMUCSelfPing.h */,
 				ADD1E5C0DE00000000FC02 /* adiumPurpleOMEMO.h */,
 				ADD1E5C0DE00000000FC03 /* adiumPurpleOMEMO.m */,
 				ADD1E5C0DE00000000FE02 /* AIOMEMOMessage.h */,
@@ -4243,6 +4253,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE00000000FD03 /* AIOMEMOStore.m */,
 				ADD1E5C0DE0000000000FB02 /* adiumPurpleFallback.h */,
 				ADD1E5C0DE0000000000CB03 /* adiumPurpleCSI.m */,
+				ADD1E5C0DE0000000000E105 /* AIMUCSelfPingRules.c */,
+				ADD1E5C0DE0000000000E107 /* adiumPurpleMUCSelfPing.m */,
 				ADD1E5C0DE0000000000FB03 /* adiumPurpleFallback.m */,
 				ADD1E5C0DE0000000000CC02 /* adiumPurpleBookmarks.h */,
 				ADD1E5C0DE0000000000CC03 /* adiumPurpleBookmarks.m */,
@@ -6223,6 +6235,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				3485DB2E09EBCE6500232CC4 /* adiumPurpleSignals.h in Headers */,
 				ADD1E5C0DE0000000000CA00 /* adiumPurpleCarbons.h in Headers */,
 				ADD1E5C0DE0000000000CB00 /* adiumPurpleCSI.h in Headers */,
+				ADD1E5C0DE0000000000E100 /* AIMUCSelfPingRules.h in Headers */,
+				ADD1E5C0DE0000000000E102 /* adiumPurpleMUCSelfPing.h in Headers */,
 				ADD1E5C0DE00000000FC00 /* adiumPurpleOMEMO.h in Headers */,
 				ADD1E5C0DE00000000FE00 /* AIOMEMOMessage.h in Headers */,
 				ADD1E5C0DE00000000FF00 /* AIOMEMOController.h in Headers */,
@@ -7133,6 +7147,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000CA01 /* adiumPurpleCarbons.m in Sources */,
 				ADD1E5C0DE0000000000F111 /* adiumPurpleWhatsApp.m in Sources */,
 				ADD1E5C0DE0000000000CB01 /* adiumPurpleCSI.m in Sources */,
+				ADD1E5C0DE0000000000E101 /* AIMUCSelfPingRules.c in Sources */,
+				ADD1E5C0DE0000000000E103 /* adiumPurpleMUCSelfPing.m in Sources */,
 				ADD1E5C0DE00000000FC01 /* adiumPurpleOMEMO.m in Sources */,
 				ADD1E5C0DE00000000FE01 /* AIOMEMOMessage.m in Sources */,
 				ADD1E5C0DE00000000FF01 /* AIOMEMOController.m in Sources */,
