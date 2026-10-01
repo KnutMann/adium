@@ -105,8 +105,8 @@ static NSString *AIRunAppleScript(NSString *path, NSString *function, NSArray *a
 		result = [script executeAndReturnError:&errorInfo];
 	}
 
-	//Hold on to the result past the release of the script which produced it
-	NSString	*resultString = [[[result stringValue] retain] autorelease];
+	//A counted local of its own, so the result outlives the script which produced it
+	NSString	*resultString = [result stringValue];
 
 	/* Keyed off resultString rather than result, because the caller cannot tell the two apart: a run
 	 * which succeeded but produced no text leaves the keyword standing exactly like a failed one.
@@ -124,8 +124,6 @@ static NSString *AIRunAppleScript(NSString *path, NSString *function, NSArray *a
 		}
 	}
 
-	[script release];
-
 	return resultString;
 }
 
@@ -134,6 +132,9 @@ static NSString *AIRunAppleScript(NSString *path, NSString *function, NSArray *a
 - (id)init
 {
 	if ((self = [super init])) {
+		/* The queue is simply let go when the runner dies, with no -waitUntilAllOperationsAreFinished:
+		 * a script which never returns must not be able to hold up quitting.
+		 */
 		scriptQueue = [[NSOperationQueue alloc] init];
 		[scriptQueue setName:@"im.adium.applescript"];
 
@@ -150,16 +151,6 @@ static NSString *AIRunAppleScript(NSString *path, NSString *function, NSArray *a
 	return self;
 }
 
-- (void)dealloc
-{
-	/* No -waitUntilAllOperationsAreFinished: a script which never returns must not be able to hold
-	 * up quitting.
-	 */
-	[scriptQueue release]; scriptQueue = nil;
-
-	[super dealloc];
-}
-
 /*!
  * @brief Run an applescript, optionally calling a function with arguments, and notify a target/selector with its output when it is done
  */
@@ -169,55 +160,60 @@ static NSString *AIRunAppleScript(NSString *path, NSString *function, NSArray *a
 	 * nil path -- has to end in the callback below, because a delayed content filter which never
 	 * hears back blocks the chat's send queue for good.
 	 *
-	 * Memory management, since this is not ARC: target and userInfo are held by hand rather than by
-	 * block capture. A block retains what it captures and releases it when the block itself dies --
-	 * and the operation's block dies on a worker thread, whenever the queue gets around to it. If
-	 * both blocks held a reference, the last release would land on whichever thread finished last.
-	 * That is a coin toss we must not take: callers may pass AppKit objects such as text views as
-	 * userInfo, and an AppKit object deallocated off the main thread is a crash looking for an
-	 * excuse. __block object variables are NOT retained by a block under manual retain/release, so
-	 * the pair below is the only claim on these objects, and it is given up on the main thread.
+	 * Memory management: target and userInfo travel in __block variables which the main-thread block
+	 * clears, rather than as ordinary captures. A block releases what it captured when the block
+	 * itself dies -- and the operation's block dies on a worker thread, whenever the queue gets
+	 * around to it. If both blocks held a reference, the last release would land on whichever thread
+	 * finished last. That is a coin toss we must not take: callers may pass AppKit objects such as
+	 * text views as userInfo, and an AppKit object deallocated off the main thread is a crash looking
+	 * for an excuse. A __block variable is one slot shared by both blocks, and the slot is the only
+	 * claim on these objects; storing nil into it is what releases them, and that store happens on
+	 * the main thread. The slot itself may die later on the worker thread, holding nothing.
 	 *
 	 * path, function and arguments are plain strings and arrays; ordinary capture is fine for them.
 	 */
-	__block id	blockTarget = [target retain];
-	__block id	blockUserInfo = [userInfo retain];
+	__block id	blockTarget = target;
+	__block id	blockUserInfo = userInfo;
 
 	[scriptQueue addOperationWithBlock:^{
-		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-		NSString			*errorDescription = nil;
-		NSString			*resultString = nil;
+		@autoreleasepool {
+			NSString			*errorDescription = nil;
+			NSString			*resultString = nil;
 
-		/* Swallowed rather than rethrown, and deliberately not @finally: an exception must not be
-		 * allowed to skip the callback (the promise in the header is what the send pipeline hangs
-		 * on), and unwinding out of here would take the worker thread with it. Releasing the pool
-		 * while an exception is in flight is its own kind of trouble, so we catch instead.
-		 */
-		@try {
-			resultString = AIRunAppleScript(path, function, arguments, &errorDescription);
-		}
-		@catch (NSException *exception) {
-			errorDescription = [NSString stringWithFormat:@"%@: %@", [exception name], [exception reason]];
-		}
-
-		//Make failures visible; they used to be entirely silent, which is how this went unnoticed for years
-		if (errorDescription) {
-			NSLog(@"AdiumApplescriptRunner: %@ (%@)", errorDescription, path);
-		}
-
-		/* Back to the main thread: the callbacks mutate attributed strings and touch views. This
-		 * block is copied -- and so retains resultString -- before the pool below is drained.
-		 */
-		[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-			if (blockTarget && selector) {
-				[blockTarget performSelector:selector withObject:blockUserInfo withObject:resultString];
+			/* Swallowed rather than rethrown, and deliberately not @finally: an exception must not be
+			 * allowed to skip the callback (the promise in the header is what the send pipeline hangs
+			 * on), and unwinding out of here would take the worker thread with it. Draining the pool
+			 * while an exception is in flight is its own kind of trouble, so we catch instead.
+			 */
+			@try {
+				resultString = AIRunAppleScript(path, function, arguments, &errorDescription);
+			}
+			@catch (NSException *exception) {
+				errorDescription = [NSString stringWithFormat:@"%@: %@", [exception name], [exception reason]];
 			}
 
-			[blockTarget release]; blockTarget = nil;
-			[blockUserInfo release]; blockUserInfo = nil;
-		}];
+			//Make failures visible; they used to be entirely silent, which is how this went unnoticed for years
+			if (errorDescription) {
+				NSLog(@"AdiumApplescriptRunner: %@ (%@)", errorDescription, path);
+			}
 
-		[pool release];
+			/* Back to the main thread: the callbacks mutate attributed strings and touch views. This
+			 * block is copied -- and so retains resultString -- before the pool is drained.
+			 */
+			[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+				if (blockTarget && selector) {
+					/* Void callback selector; no returned object to leak. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+					[blockTarget performSelector:selector withObject:blockUserInfo withObject:resultString];
+#pragma clang diagnostic pop
+				}
+
+				//Released here, on the main thread, by these stores
+				blockTarget = nil;
+				blockUserInfo = nil;
+			}];
+		}
 	}];
 }
 

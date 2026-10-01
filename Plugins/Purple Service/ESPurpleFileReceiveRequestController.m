@@ -53,18 +53,20 @@
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
-	[super dealloc];
 }
 
 /*!
  * @brief libpurple has been made aware we closed or has informed us we should close
  *
- * release (we returned without autoreleasing initially).
+ * Give back the reference libpurple held. The instance is the request's ui_handle: the manual
+ * request adapter creates it through +showFileReceiveWindowWithDict: (new family, +1), never
+ * releases it, and hands that +1 to libpurple, which gives it back through adiumPurpleRequestClose,
+ * the sender of this message. Under manual counting this was [self release]; the CFRelease acts on
+ * the count outside ARC's view exactly as that did. Nothing may touch self after it.
  */
 - (void)purpleRequestClose
 {	
-	[self release];
+	CFRelease((__bridge CFTypeRef)self);
 }
 
 /*!

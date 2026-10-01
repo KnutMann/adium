@@ -26,7 +26,7 @@
  * which is why an empty answer is no failure: the call tries with what it has.
  */
 @interface AMPurpleJabberExternalServices : NSObject {
-	ESPurpleJabberAccount	*account;		//not retained; owns us
+	__unsafe_unretained ESPurpleJabberAccount *account;	//Not retained: the account owns this object
 	NSMutableArray			*services;		//dictionaries: urls, username, credential
 	NSString				*iqId;
 	unsigned long			generation;		//so an old timer cannot speak for a new answer

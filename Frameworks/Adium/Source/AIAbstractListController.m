@@ -1036,11 +1036,32 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 	return YES;
 }
 
-/* AppKit's drag machinery still calls the old data-source method when a drag begins in the
- * outline view; nothing here implements -outlineView:pasteboardWriterForItem:, so removing
- * this would silently kill contact-list dragging. The body lives in
- * -writeListObjects:toPasteboard: so that non-drag callers, such as copying to the general
- * pasteboard, need not go through the deprecated selector. */
+/* Deprecated, and it stays deprecated on purpose. AppKit's drag machinery still calls this
+ * when a drag begins in the outline view, because nothing here implements the modern
+ * -outlineView:pasteboardWriterForItem:; removing it would silently kill contact-list
+ * dragging.
+ *
+ * The modern method cannot simply take its place. It is asked once per dragged item and
+ * gives each contact a pasteboard item of its own, while everything written below is an
+ * aggregate over the whole drag: one array of internal object IDs under
+ * "AIListObjectUniqueIDs", one joined block of text, one array of URLs and one of link
+ * titles. Three readers take that array as the whole drag and would see only the first
+ * item of a multi-item pasteboard: -[AIListController outlineView:acceptDrop:item:childIndex:]
+ * in Source/AIListController.m, which rebuilds the dragged contacts from it when the drag
+ * comes from another instance of Adium, and the two drop targets outside the list,
+ * DCJoinChatViewController and AIPrivacyPreferences, which iterate it the same way. The
+ * drop side also learns what is moving from a single AIListControllerDraggedItems
+ * notification carrying every dragged item, posted in -writeListObjects:toPasteboard:;
+ * posted per item, the last one would win and the rest would be forgotten.
+ *
+ * There is a route: hand out a writer per item, and re-declare the session's pasteboard in
+ * -outlineView:draggingSession:willBeginAtPoint:forItems:, which is the one modern hook
+ * that sees every item at once. It wants a live drag to prove - several contacts at a time,
+ * into another group, into another window, and out to another application - so it is not
+ * guessed at here.
+ *
+ * The body lives in -writeListObjects:toPasteboard: so that non-drag callers, such as
+ * copying to the general pasteboard, need not go through the deprecated selector. */
 - (BOOL)outlineView:(NSOutlineView *)outlineView writeItems:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
 {
 	return [self writeListObjects:items toPasteboard:pboard];

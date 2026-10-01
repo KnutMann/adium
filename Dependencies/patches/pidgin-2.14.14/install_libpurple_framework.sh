@@ -38,6 +38,10 @@ relink "$BUILD/libgmodule-2.0.0.dylib"   "$FW/libgmodule.framework/Versions/2.0.
 relink "$BUILD/libgthread-2.0.0.dylib"   "$FW/libgthread.framework/Versions/2.0.0/libgthread"
 relink "$BUILD/libglib-2.0.0.dylib"      "$FW/libglib.framework/Versions/2.0.0/libglib"
 relink "$BUILD/libjson-glib-1.0.0.dylib" "$FW/libjson-glib.framework/Versions/1.0.0/libjson-glib"
+# libintl is built into the prefix now rather than copied out of Homebrew, so a fresh
+# libpurple records the prefix path. The Homebrew rule stays for a libpurple that was
+# linked before that change; relink is a no-op when the path it names is not there.
+relink "$BUILD/libintl.8.dylib"                      "$FW/libintl.framework/Versions/8/libintl"
 relink /opt/homebrew/opt/gettext/lib/libintl.8.dylib "$FW/libintl.framework/Versions/8/libintl"
 
 if otool -L "$DEST" | tail -n +2 | grep -qE '^\s+/(Users|opt|usr/local)/'; then

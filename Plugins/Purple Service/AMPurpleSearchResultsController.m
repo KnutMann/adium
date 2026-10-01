@@ -81,8 +81,7 @@
 			[newbutton setAutoresizingMask:NSViewMinXMargin | NSViewMinYMargin];
 			
 			[searchButtons setObject:[NSValue valueWithPointer:button] forKey:[NSValue valueWithNonretainedObject:newbutton]];
-			
-			[newbutton release];
+
 			offset -= 20.0f;
 		}
 		
@@ -103,7 +102,6 @@
 			if(scol->title)
 				[[tcol headerCell] setStringValue:[NSString stringWithUTF8String:scol->title]];
 			[tableview addTableColumn:tcol];
-			[tcol release];
 		}
 		
 		// convert the rows
@@ -120,21 +118,14 @@
 				if(text)
 					[dict setObject:[NSString stringWithUTF8String:text] forKey:[[NSNumber numberWithUnsignedInteger:col++] stringValue]];
 			}
-			[dict release];
 		}
-		
+
 		[tableview reloadData];
 		[tableview sizeToFit];
 		[self showWindow:nil];
 		[self tableViewSelectionDidChange:[NSNotification notificationWithName:@"SelectionChanged" object:nil]];
 	}
-	return [self retain]; // will be released in -purpleRequestClose when we're done
-}
-
-- (void)dealloc {
-	[searchButtons release];
-	[searchResults release];
-	[super dealloc];
+	return self;
 }
 
 - (void)addResults:(PurpleNotifySearchResults*)results {
@@ -149,9 +140,8 @@
 			if(text)
 				[dict setObject:[NSString stringWithUTF8String:text] forKey:[[NSNumber numberWithUnsignedInteger:col++] stringValue]];
 		}
-		[dict release];
 	}
-	
+
 	[tableview reloadData];
 	[tableview sizeToFit];
 }
@@ -176,8 +166,15 @@
 }
 
 - (BOOL)windowShouldClose:(id)sender {
-	purple_notify_close(PURPLE_NOTIFY_SEARCHRESULTS, self);
-	return windowIsClosing;
+	/* Asked twice on a user close. The second time is the nested ask from purpleRequestClose's
+	 * own closeWindow:, with the flag set and this object alive: yes, close. The first time is
+	 * the close box: libpurple is told, which reaches purpleRequestClose, closes the window
+	 * through that nested path and lets go of this object, so when the call returns the window
+	 * is closed and self may be gone. No, without reading anything; it used to return the ivar,
+	 * which by then was freed. */
+	if (windowIsClosing) return YES;
+	purple_notify_close(PURPLE_NOTIFY_SEARCHRESULTS, (__bridge void *)self);
+	return NO;
 }
 
 - (IBAction)invokeAction:(id)sender {

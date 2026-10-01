@@ -1,2 +1,6 @@
-WebRTC.xcframework/
+# No trailing slash. With one this matches only a directory, and the framework was once
+# replaced by a symbolic link pointing at another checkout so that a worktree could build
+# without downloading it again. A link is a file, so it walked past this rule, got
+# committed, and on the next merge it overwrote the real framework with a link to itself.
+WebRTC.xcframework
 *.zip

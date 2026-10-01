@@ -67,15 +67,15 @@
 			continue;
 
 		//Registers itself with the account controller from AIService's init
-		[[[self alloc] initWithPrplID:prplID descriptor:descriptor] autorelease];
+		(void)[[self alloc] initWithPrplID:prplID descriptor:descriptor];
 	}
 }
 
 - (id)initWithPrplID:(NSString *)inPrplID descriptor:(NSDictionary *)inDescriptor
 {
-	prplID = [inPrplID retain];
+	prplID = inPrplID;
 	prplIDCString = strdup([inPrplID UTF8String]);
-	descriptor = [inDescriptor retain];
+	descriptor = inDescriptor;
 
 	/* Last, because AIService's init registers the service and asks it to register its statuses, by
 	 * which time everything above has to be answerable. */
@@ -84,11 +84,7 @@
 
 - (void)dealloc
 {
-	[prplID release];
-	[descriptor release];
 	free(prplIDCString);
-
-	[super dealloc];
 }
 
 - (const char *)prplIDCString
@@ -198,7 +194,7 @@
 	 * system will not take. Listing what is allowed is impossible there; listing what is not is not. */
 	NSString *forbidden = [descriptor objectForKey:@"ForbiddenCharacters"];
 	if (forbidden) {
-		NSMutableCharacterSet *excluded = [[[NSCharacterSet illegalCharacterSet] mutableCopy] autorelease];
+		NSMutableCharacterSet *excluded = [[NSCharacterSet illegalCharacterSet] mutableCopy];
 		[excluded formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
 		[excluded addCharactersInString:forbidden];
 

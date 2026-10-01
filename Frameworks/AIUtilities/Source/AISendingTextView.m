@@ -15,6 +15,7 @@
  */
 
 #import "AISendingTextView.h"
+#import "AIFunctions.h"
 #import "AIStringAdditions.h"
 
 //What's going on in here?
@@ -188,7 +189,7 @@
 //'Send' our content
 - (IBAction)sendContent:(id)sender
 {
-    [target performSelector:selector withObject:self];
+    AISendActionToTarget(target, selector, self);
 }
 
 @end

@@ -426,35 +426,43 @@ static NSMutableParagraphStyle	*leftParagraphStyleWithTruncatingTail = nil;
 
 #pragma mark Accessibility
 
-- (NSArray *)accessibilityAttributeNames
+/* The same four answers the deprecated attribute pair gave - role, value, title
+ * and window - through the members of the NSAccessibility protocol that NSCell
+ * adopts. Everything else the cell was asked for used to fall through to NSCell,
+ * and still does: these members are all a subclass has to write.
+ *
+ * Nothing reads them today. The contact list draws through views now - the
+ * controller hands out an AIListRowView and an AIListCellHostView per row - and
+ * it is the host view that stands in the accessibility tree and answers, with
+ * this cell's -labelString and -spokenDescription. They stay because the cell is
+ * the one that knows what the row says, and a list that ever drew through cells
+ * again would be back to asking it.
+ *
+ * One thing to know before that day: the old attribute path and these members
+ * are two paths side by side, not one behind the other. NSCell's own
+ * -accessibilityAttributeValue: does not consult an override of
+ * -accessibilityRole - measured on macOS 26, a cell answering AXRow through the
+ * member still reported AXStaticText through the attribute - so a caller left on
+ * the old API would get NSCell's defaults rather than what stands here.
+ */
+- (NSAccessibilityRole)accessibilityRole
 {
-	NSMutableArray *attributeNames = [[super accessibilityAttributeNames] mutableCopy];
-	[attributeNames addObject:NSAccessibilityValueAttribute];
-
-	return attributeNames;
+	return NSAccessibilityStaticTextRole;
 }
 
-- (id)accessibilityAttributeValue:(NSString *)attribute
+- (id)accessibilityValue
 {
-	id value;
+	return [self spokenDescription];
+}
 
-	if ([attribute isEqualToString:NSAccessibilityRoleAttribute]) {
-		value = NSAccessibilityStaticTextRole;
-		
-	} else if ([attribute isEqualToString:NSAccessibilityValueAttribute]) {
-		value = [self spokenDescription];
+- (NSString *)accessibilityTitle
+{
+	return [self labelString];
+}
 
-	} else if ([attribute isEqualToString:NSAccessibilityTitleAttribute]) {
-		value = [self labelString];
-		
-	} else if ([attribute isEqualToString:NSAccessibilityWindowAttribute]) {
-		value = [self.outlineControlView window];
-                
-	} else {
-		value = [super accessibilityAttributeValue:attribute];
-	}
-
-	return value;
+- (id)accessibilityWindow
+{
+	return [self.outlineControlView window];
 }
 
 /*!

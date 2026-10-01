@@ -8,10 +8,17 @@ HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread = "$(SRCROOT)/Frameworks/libgth
 // picomemo carries the cryptography of OMEMO. Fetched and built by Dependencies/picomemo/fetch-picomemo.sh,
 // pinned to one commit, so the headers live where that script puts them rather than in the tree.
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_picomemo = "$(SRCROOT)/Dependencies/picomemo/picomemo/gen"
-// OpenSSL's own headers, for the AES-GCM that encrypted file sharing (XEP-0454) needs. The
-// library itself already ships in Frameworks and came from here; only the headers were missing.
-// Both Homebrew layouts are listed and a path that does not exist is simply ignored.
-HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "/opt/homebrew/opt/openssl@3/include" "/usr/local/opt/openssl@3/include"
+// OpenSSL's own headers, for the AES-GCM that encrypted file sharing (XEP-0454) needs.
+// They have to be the headers of the library named at the end of OTHER_LDFLAGS below,
+// Frameworks/libcrypto.3.dylib, which Dependencies/phases/build_openssl.sh builds and
+// installs into Dependencies/build. That one is pinned to OpenSSL's long term support
+// branch while Homebrew tracks the newest one, so compiling here against Homebrew and
+// linking there against ours is how the two drift apart - and what drift produces is not
+// a compiler error, it is a symbol that is missing when the application starts. Our own
+// prefix therefore comes first.
+// The two Homebrew layouts stay behind it so that a checkout which has not built the
+// dependencies yet still compiles; a search path that does not exist is simply ignored.
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "$(SRCROOT)/Dependencies/build/include" "/opt/homebrew/opt/openssl@3/include" "/usr/local/opt/openssl@3/include"
 LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SDKROOT)/usr/lib"
 PRODUCT_NAME = AdiumLibpurple
 SKIP_INSTALL = YES
@@ -34,3 +41,16 @@ INSTALL_PATH = @executable_path/../Frameworks
 FRAMEWORK_VERSION = A
 GCC_PREPROCESSOR_DEFINITIONS = $(value) ENABLE_NLS HAVE_CDSA
 MACOSX_DEPLOYMENT_TARGET = 12.0
+
+// Automatic reference counting, for every Objective-C file this target compiles.
+//
+// It used to be a -fobjc-arc on each file in the project, 574 of them across this project
+// and AIUtilities, which is how the conversion was carried out: one file at a time, so
+// that a file that was not converted yet kept counting by hand. That is over. Every
+// Objective-C source in both projects was converted, no file is excluded, and a flag
+// repeated 574 times only hides the next file somebody adds without it.
+//
+// The two C files here, ssl.c and ssl-cdsa.c, are not affected; ARC is an Objective-C
+// setting. AutoHyperlinks is a separate project, uses no xcconfig, and still counts by
+// hand, so nothing here reaches it.
+CLANG_ENABLE_OBJC_ARC = YES

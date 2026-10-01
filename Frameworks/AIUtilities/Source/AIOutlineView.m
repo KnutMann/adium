@@ -15,6 +15,7 @@
  */
 
 #import "AIOutlineView.h"
+#import "AIFunctions.h"
 #import "AIOutlineViewAdditions.h"
 
 @interface AIOutlineView ()
@@ -91,7 +92,10 @@
 			//doubleAction is NULL by default
 			SEL doubleActionSelector = [self doubleAction];
 			if (doubleActionSelector) {
-				[[self delegate] performSelector:doubleActionSelector withObject:self];
+				/* The delegate, not the target, which is where NSTableView itself sends
+				 * a double click. That is how this has always behaved and its callers
+				 * are written for it, so only the dispatch changes here. */
+				AISendActionToTarget([self delegate], doubleActionSelector, self);
 			}
 
         } else if (pressedChar == NSLeftArrowFunctionKey) { //left
@@ -282,24 +286,70 @@
 
 #pragma mark Dragging
 //Draging ------------------------------------------
-//Invoked in the dragging source as the drag ends
-- (void)draggedImage:(NSImage *)image endedAt:(NSPoint)screenPoint operation:(NSDragOperation)operation
-{	
+/* Invoked in the dragging source as the drag ends.
+ *
+ * This used to be -draggedImage:endedAt:operation:, the end of drag callback of
+ * the old image based drag API. Measured against macOS 26: AppKit sends the
+ * modern -draggingSession:endedAtPoint:operation: to the drag source, and
+ * NSTableView's implementation of that calls the old method on itself for
+ * compatibility, handing it a nil image. So the delegate has been receiving nil
+ * for its image argument all along, and passing nil here is not a change it can
+ * see. The argument stays in the delegate method so that implementations keep
+ * compiling; the header says it is always nil.
+ *
+ * The delegate is told first and super second, exactly as before. The one shift
+ * is that whatever NSTableView does inside its own modern method now runs after
+ * the delegate has been told rather than before. The only implementer of the
+ * delegate method, AIAbstractListController, just posts a notification that
+ * lifts the tooltip suppression, so nothing observable depends on that order.
+ *
+ * No protocol declaration is needed here: NSTableView already declares
+ * <NSDraggingSource> and this class inherits that conformance. */
+- (void)draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation
+{
 	if ([[self delegate] respondsToSelector:@selector(outlineView:draggedImage:endedAt:operation:)]) {
-		[(id<AIOutlineViewDelegate>)[self delegate] outlineView:self draggedImage:image endedAt:screenPoint operation:operation];
+		[(id<AIOutlineViewDelegate>)[self delegate] outlineView:self draggedImage:nil endedAt:screenPoint operation:operation];
 	}
-	
-	[super draggedImage:image endedAt:screenPoint operation:operation];
+
+	[super draggingSession:session endedAtPoint:screenPoint operation:operation];
 }
 
-//Prevent dragging of items to another application
-- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal
+/* Prevent dragging of items to another application.
+ *
+ * This used to be the deprecated -draggingSourceOperationMaskForLocal:, which
+ * answered "isLocal ? NSDragOperationEvery : NSDragOperationNone". The two
+ * questions line up exactly, measured against macOS 26: NSTableView's own
+ * -draggingSession:sourceOperationMaskForDraggingContext: is a pass through to
+ * the old method, and it passes isLocal YES for NSDraggingContextWithinApplication
+ * and isLocal NO for NSDraggingContextOutsideApplication. So the answer below is
+ * bit for bit the old one.
+ *
+ * One rule follows for anything built on this class: a subclass must not go back
+ * to -draggingSourceOperationMaskForLocal:. This implementation now shadows
+ * NSTableView's pass through, so an old style override in a subclass would never
+ * be asked and its answer would be dropped in silence. Measured: a subclass
+ * answering NSDragOperationCopy|NSDragOperationMove|NSDragOperationPrivate under
+ * a base class on the modern method got NSDragOperationEvery instead.
+ * AIListOutlineView, the contact list, answers the modern question for that
+ * reason. */
+- (NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
 {
-    return (isLocal ? NSDragOperationEvery : NSDragOperationNone);
+    return (context == NSDraggingContextWithinApplication ? NSDragOperationEvery : NSDragOperationNone);
 }
 
 #pragma mark Accessibility
 
+/* This deliberately stays on the deprecated -accessibilityActionNames. It is what
+ * puts AXPress and AXShowMenu in front of a screen reader, and a plain
+ * NSOutlineView advertises no actions at all, so the two actions really do come
+ * from here.
+ *
+ * The modern accessibility protocol cannot answer for it, measured against
+ * macOS 26: overriding -accessibilityPerformPress and -accessibilityPerformShowMenu,
+ * with or without an -isAccessibilitySelectorAllowed: that returns YES for both
+ * selectors, leaves the advertised action list empty. No other member of the
+ * protocol adds an action to that list, so converting this would take both
+ * actions away from VoiceOver. */
 - (NSArray *)accessibilityActionNames
 {
 	NSMutableArray *accessibilityActionNames = [[super accessibilityActionNames] mutableCopy];

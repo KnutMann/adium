@@ -28,7 +28,6 @@
 #import "AHHyperlinkScanner.h"
 #import "AHLinkLexer.h"
 #import "AHMarkedHyperlink.h"
-#import <libkern/OSAtomic.h>
 
 #define DEFAULT_URL_SCHEME @"http://"
 #define ENC_INDEX_KEY @"encIndex"
@@ -70,46 +69,44 @@
 		[mutableSkipSet formUnionWithCharacterSet:[NSCharacterSet illegalCharacterSet]];
 		[mutableSkipSet formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
 		[mutableSkipSet formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]];
-		skipSet = [[NSCharacterSet characterSetWithBitmapRepresentation:[mutableSkipSet bitmapRepresentation]] retain];
-		[mutableSkipSet release];
+		skipSet = [NSCharacterSet characterSetWithBitmapRepresentation:[mutableSkipSet bitmapRepresentation]];
 		
-		endSet = [[NSCharacterSet characterSetWithCharactersInString:@"\"',:;>)]}.?!@"] retain];
+		endSet = [NSCharacterSet characterSetWithCharactersInString:@"\"',:;>)]}.?!@"];
 		
 		NSMutableCharacterSet *mutableStartSet = [[NSMutableCharacterSet alloc] init];
 		[mutableStartSet formUnionWithCharacterSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 		[mutableStartSet formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"\"'.,:;<?!-@%C%C", 0x2014, 0x2013]]];
-		startSet = [[NSCharacterSet characterSetWithBitmapRepresentation:[mutableStartSet bitmapRepresentation]] retain];
-		[mutableStartSet release];
+		startSet = [NSCharacterSet characterSetWithBitmapRepresentation:[mutableStartSet bitmapRepresentation]];
 		
-		puncSet = [[NSCharacterSet characterSetWithCharactersInString:@"\"'.,:;<?!"] retain];
-		hostnameComponentSeparatorSet = [[NSCharacterSet characterSetWithCharactersInString:@"./"] retain];
-		enclosureStartArray = [[NSArray arrayWithObjects:@"(",@"[",@"{",nil] retain];
-		enclosureSet = [[NSCharacterSet characterSetWithCharactersInString:@"()[]{}"] retain];
-		enclosureStopArray = [[NSArray arrayWithObjects:@")",@"]",@"}",nil] retain];
-		encKeys = [[NSArray arrayWithObjects:ENC_INDEX_KEY, ENC_CHAR_KEY, nil] retain];
+		puncSet = [NSCharacterSet characterSetWithCharactersInString:@"\"'.,:;<?!"];
+		hostnameComponentSeparatorSet = [NSCharacterSet characterSetWithCharactersInString:@"./"];
+		enclosureStartArray = [NSArray arrayWithObjects:@"(",@"[",@"{",nil];
+		enclosureSet = [NSCharacterSet characterSetWithCharactersInString:@"()[]{}"];
+		enclosureStopArray = [NSArray arrayWithObjects:@")",@"]",@"}",nil];
+		encKeys = [NSArray arrayWithObjects:ENC_INDEX_KEY, ENC_CHAR_KEY, nil];
 	}
 }
 
 #pragma mark Class Methods
 + (id)hyperlinkScannerWithString:(NSString *)inString
 {
-	return [[[[self class] alloc] initWithString:inString usingStrictChecking:NO] autorelease];
+	return [[[self class] alloc] initWithString:inString usingStrictChecking:NO];
 }
 
 + (id)strictHyperlinkScannerWithString:(NSString *)inString
 {
-	return [[[[self class] alloc] initWithString:inString usingStrictChecking:YES] autorelease];
+	return [[[self class] alloc] initWithString:inString usingStrictChecking:YES];
 }
 
 #if !TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR
 + (id)hyperlinkScannerWithAttributedString:(NSAttributedString *)inString
 {
-	return [[[[self class] alloc] initWithAttributedString:inString usingStrictChecking:NO] autorelease];
+	return [[[self class] alloc] initWithAttributedString:inString usingStrictChecking:NO];
 }
 
 + (id)strictHyperlinkScannerWithAttributedString:(NSAttributedString *)inString
 {
-	return [[[[self class] alloc] initWithAttributedString:inString usingStrictChecking:NO] autorelease];
+	return [[[self class] alloc] initWithAttributedString:inString usingStrictChecking:NO];
 }
 #endif
 
@@ -129,7 +126,7 @@
 - (id)initWithString:(NSString *)inString usingStrictChecking:(BOOL)flag
 {
 	if((self = [super init])){
-		m_scanString = [inString retain];
+		m_scanString = inString;
 		m_urlSchemes = [[NSDictionary alloc] initWithObjectsAndKeys:
 						@"ftp://", @"ftp",
 						nil];
@@ -143,8 +140,8 @@
 - (id)initWithAttributedString:(NSAttributedString *)inString usingStrictChecking:(BOOL)flag
 {
 	if((self = [super init])){
-		m_scanString = [[inString string] retain];
-		m_scanAttrString = [inString retain];
+		m_scanString = [inString string];
+		m_scanAttrString = inString;
 		m_urlSchemes = [[NSDictionary alloc] initWithObjectsAndKeys:
 						@"ftp://", @"ftp",
 						nil];
@@ -154,18 +151,6 @@
 	return self;
 }
 #endif
-
-- (void)dealloc
-{
-	self.scanLocation = 0;
-	[m_linkifiedString release];
-	[m_scanString release];
-	[m_urlSchemes release];
-#if !TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR
-	if(m_scanAttrString) [m_scanAttrString release];
-#endif
-	[super dealloc];
-}
 
 #pragma mark URI Verification
 
@@ -314,11 +299,22 @@
 				case AH_URL_TENTATIVE:
 				{
 					NSString *scheme = [_scanString substringToIndex:schemeLength];
-					NSArray *apps = (NSArray *)LSCopyAllHandlersForURLScheme((CFStringRef)scheme);
+					// Ask the same question LSCopyAllHandlersForURLScheme() used to answer
+					// before macOS 12 deprecated it: is at least one application registered
+					// for this scheme? NSWorkspace wants a URL rather than a bare scheme, so
+					// we hand it a throwaway one that carries nothing but the scheme.
+					// The "//localhost/" is not decoration: for a bare "file:" Launch Services
+					// looks for a file that does not exist and reports no handler at all,
+					// while "file://localhost/" is the root directory and reports the same
+					// handlers the old call did. Every other scheme answers the same either way.
+					// A scheme the lexer accepts but NSURL rejects (a leading digit, an
+					// underscore) yields a nil URL, and nothing can be registered for those.
+					NSURL *schemeProbeURL = [NSURL URLWithString:[scheme stringByAppendingString:@"://localhost/"]];
+					// Unlike the array the Copy function returned, this one is autoreleased.
+					NSArray *apps = schemeProbeURL ? [[NSWorkspace sharedWorkspace] URLsForApplicationsToOpenURL:schemeProbeURL] : nil;
 
 					if(!apps.count)
 						makeLink = FALSE;
-					[apps release];
 					break;
 				}
                 default:
@@ -331,7 +327,7 @@
 												  withValidationStatus:validStatus
 														  parentString:m_scanString
 															  andRange:scannedRange];
-				return [markedLink autorelease];
+				return markedLink;
 			}
         }
 		
@@ -374,7 +370,7 @@
 	unsigned long          _scanLocationCache = self.scanLocation;
 	NSEnumerator          *linkEnumerator = [[self allURIs] reverseObjectEnumerator];
 	
-	_linkifiedString = [[[NSMutableString alloc] initWithString:m_scanString] autorelease];
+	_linkifiedString = [[NSMutableString alloc] initWithString:m_scanString];
 	
 	while ((markedLink = [linkEnumerator nextObject])) {
 		[_linkifiedString replaceCharactersInRange:markedLink.range
@@ -384,18 +380,30 @@
 	}
 	
 	self.scanLocation = _scanLocationCache;
-	return [[_linkifiedString copy] autorelease];
+	return [_linkifiedString copy];
 }
 
 -(NSString *)linkifiedString
 {
-	if(!m_linkifiedString){
-		NSString *newLinkifiedString = [self _createLinkifiedString];
-		// compare the old object to nil, and swap in the new value if they match.
-		// if the old object (m_linkifiedString) already has a value, release the duplicated new object
-		if(OSAtomicCompareAndSwapPtrBarrier(nil, newLinkifiedString, (void *)&m_linkifiedString))
-			[m_linkifiedString retain];
-	}
+	/* The cache is worth having and the compare and swap around it was not.
+	 *
+	 * What it did: build the string, swap it in if the slot was still nil, and retain it
+	 * only after the swap had published it. A second thread reading the slot in that
+	 * window got a pointer that nobody owned yet, so the guard against two threads
+	 * racing here had a race of its own. It also stood alone: scanLocation, the
+	 * enumeration state and every other ivar of this class are unsynchronised, so one
+	 * atomic accessor never made an instance safe to share.
+	 *
+	 * Nothing shares one. Adium builds a scanner per call in AIAutoLinkingPlugin and
+	 * reads it once. The framework's own stress tests read the same scanner five and ten
+	 * times over, which is what the cache is for, and the threaded one gives each of its
+	 * ten threads a scanner of its own. So the cache stays and the atomics go, rather
+	 * than being rewritten to hold a +1 past ARC's back for a guarantee this class does
+	 * not otherwise offer.
+	 */
+	if(!m_linkifiedString)
+		m_linkifiedString = [self _createLinkifiedString];
+
 	return m_linkifiedString;
 }
 #else
@@ -407,9 +415,9 @@
 	unsigned long _scanLocationCache = self.scanLocation;
 	
 	if(m_scanAttrString) {
-		_linkifiedString = [[m_scanAttrString mutableCopy] autorelease];
+		_linkifiedString = [m_scanAttrString mutableCopy];
 	} else {
-		_linkifiedString = [[[NSMutableAttributedString alloc] initWithString:m_scanString] autorelease];
+		_linkifiedString = [[NSMutableAttributedString alloc] initWithString:m_scanString];
 	}
 	
 	//for each SHMarkedHyperlink, add the proper URL to the proper range in the string.
@@ -425,24 +433,40 @@
 	
 	self.scanLocation = _scanLocationCache;
 	return _didFindLinks? _linkifiedString :
-	m_scanAttrString ? [[m_scanAttrString retain] autorelease] : [[[NSMutableAttributedString alloc] initWithString:m_scanString] autorelease];
+		m_scanAttrString ? m_scanAttrString : (NSAttributedString *)[[NSMutableAttributedString alloc] initWithString:m_scanString];
 }
 
 -(NSAttributedString *)linkifiedString
 {
-	if(!m_linkifiedString){
-		NSAttributedString *newLinkifiedString = [self _createLinkifiedString];
-		// compare the old object to nil, and swap in the new value if they match.
-		// if the old object (m_linkifiedString) already has a value, release the duplicated new object
-		if(OSAtomicCompareAndSwapPtrBarrier(nil, newLinkifiedString, (void *)&m_linkifiedString))
-			[m_linkifiedString retain];
-	}
+	/* The cache is worth having and the compare and swap around it was not.
+	 *
+	 * What it did: build the string, swap it in if the slot was still nil, and retain it
+	 * only after the swap had published it. A second thread reading the slot in that
+	 * window got a pointer that nobody owned yet, so the guard against two threads
+	 * racing here had a race of its own. It also stood alone: scanLocation, the
+	 * enumeration state and every other ivar of this class are unsynchronised, so one
+	 * atomic accessor never made an instance safe to share.
+	 *
+	 * Nothing shares one. Adium builds a scanner per call in AIAutoLinkingPlugin and
+	 * reads it once. The framework's own stress tests read the same scanner five and ten
+	 * times over, which is what the cache is for, and the threaded one gives each of its
+	 * ten threads a scanner of its own. So the cache stays and the atomics go, rather
+	 * than being rewritten to hold a +1 past ARC's back for a guarantee this class does
+	 * not otherwise offer.
+	 */
+	if(!m_linkifiedString)
+		m_linkifiedString = [self _createLinkifiedString];
+
 	return m_linkifiedString;
 }
 #endif
 
 #pragma mark NSFastEnumeration
-- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackbuf count:(NSUInteger)len
+/* The buffer is spelled __unsafe_unretained because that is what the protocol declares
+ * and what fast enumeration means: the caller's stack holds borrowed pointers for the
+ * length of one loop, and nothing here owns them. Left as a plain id * it would be
+ * __autoreleasing under ARC, which is a different contract and does not match. */
+- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(__unsafe_unretained id *)stackbuf count:(NSUInteger)len
 {
 	AHMarkedHyperlink	*currentLink = nil;
 	
@@ -452,9 +476,14 @@
 		++fastEnumCount;
 	}
 	
-	state->state = (nil == currentLink)? (NSUInteger)currentLink : NSNotFound;
+	/* Zero rather than a cast of currentLink, which is nil on exactly this branch and
+	 * whose cast to an integer ARC will not perform without a bridge. Same value, and
+	 * it now says what it means. */
+	state->state = (nil == currentLink) ? 0 : NSNotFound;
 	state->itemsPtr = stackbuf;
-	state->mutationsPtr = (unsigned long *)self;
+	/* Not a mutation counter at all, just an address that never changes for the life of
+	 * the loop, which is what fast enumeration needs when there is nothing to count. */
+	state->mutationsPtr = (unsigned long *)(__bridge void *)self;
 	
 	return fastEnumCount;
 }

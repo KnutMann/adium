@@ -292,10 +292,6 @@
                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="429">
                         <rect key="frame" x="169" y="2" width="561" height="17"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
-                        <shadow key="shadow">
-                            <size key="offset" width="0.0" height="-1"/>
-                            <color key="color" red="0.81999999999999995" green="0.81999999999999995" blue="0.81999999999999995" alpha="1" colorSpace="deviceRGB"/>
-                        </shadow>
                         <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="center" title="Status Text Here" id="430">
                             <font key="font" metaFont="message" size="11"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -305,10 +301,6 @@
                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="483">
                         <rect key="frame" x="17" y="2" width="150" height="17"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <shadow key="shadow">
-                            <size key="offset" width="0.0" height="-1"/>
-                            <color key="color" red="0.81999999999999995" green="0.81999999999999995" blue="0.81999999999999995" alpha="1" colorSpace="deviceRGB"/>
-                        </shadow>
                         <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="# transcripts" id="484">
                             <font key="font" metaFont="message" size="11"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>

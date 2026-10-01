@@ -49,10 +49,6 @@
 - (void)dealloc
 {
 	[consoleController close];
-	[consoleController release];
-	consoleController = nil;
-
-	[super dealloc];
 }
 
 /*!
@@ -95,9 +91,9 @@
 	if (![self enableConsole])
 		return superItems;
 
-	NSMenuItem *consoleMenuItem = [[[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Console", nil)
-															  action:@selector(showConsole:)
-													   keyEquivalent:@""] autorelease];
+	NSMenuItem *consoleMenuItem = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Console", nil)
+															 action:@selector(showConsole:)
+													  keyEquivalent:@""];
 	[consoleMenuItem setTarget:self];
 
 	NSMutableArray *items = [NSMutableArray arrayWithObject:consoleMenuItem];

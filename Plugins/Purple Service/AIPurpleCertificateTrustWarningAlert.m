@@ -26,7 +26,9 @@
 
 //#define ALWAYS_SHOW_TRUST_WARNING
 
-@interface AIPurpleCertificateTrustWarningAlert ()
+@interface AIPurpleCertificateTrustWarningAlert () {
+	SFCertificateTrustPanel *trustPanel;
+}
 - (id)initWithAccount:(AIAccount*)account
 			 hostname:(NSString*)hostname
 		 certificates:(CFArrayRef)certs
@@ -34,8 +36,15 @@
 			 userData:(void*)ud;
 - (IBAction)showWindow:(id)sender;
 - (void)runTrustPanelOnWindow:(NSWindow *)window;
-- (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)trustpanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
+- (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)endedPanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
 @end
+
+/* The ownership home of every alert whose sheet is up. The creator's reference ends when
+ * +displayTrustWarningAlertWithAccount:... returns; what keeps an alert alive from there to the
+ * end of its sheet is its place in this set, which -certificateTrustSheetDidEnd:... leaves. Under
+ * manual counting that was the [self retain] in init and the [self release] at the end of the
+ * sheet. The same design as AMPurpleRequestFieldsController. */
+static NSMutableSet *openTrustWarningAlerts = nil;
 
 @implementation AIPurpleCertificateTrustWarningAlert
 
@@ -63,9 +72,11 @@
 		}
 	}
 
+	/* This local holds the alert through -showWindow:. Every synchronous exit in there has
+	 * answered libpurple before it returns and needs nothing more; only the sheet path outlives
+	 * this call, and that path puts the alert into the set above in -runTrustPanelOnWindow:. */
 	AIPurpleCertificateTrustWarningAlert *alert = [[self alloc] initWithAccount:account hostname:hostname certificates:certs resultCallback:_query_cert_cb userData:ud];
 	[alert showWindow:nil];
-	[alert release];
 }
 
 - (id)initWithAccount:(AIAccount*)_account
@@ -85,17 +96,13 @@
 		
 		userdata = ud;
 	}
-	return [self retain];
+	return self;
 }
 
 - (void)dealloc {
 	CFRelease(certificates);
-	//The early error paths release self before a trust ref exists, and CFRelease(NULL) aborts
+	//The early error paths let self go before a trust ref exists, and CFRelease(NULL) aborts
 	if (trustRef) CFRelease(trustRef);
-	
-	[hostname release];
-	
-	[super dealloc];
 }
 
 - (IBAction)showWindow:(id)sender {
@@ -104,12 +111,11 @@
 	/* An SSL evaluation policy for this hostname. This took a CSSM policy-database search and a
 	 * hand-packed options struct before; the one-call form has existed since 10.6 and is also
 	 * what the trust panel below is given. */
-	SecPolicyRef policyRef = SecPolicyCreateSSL(true, (CFStringRef)hostname);
+	SecPolicyRef policyRef = SecPolicyCreateSSL(true, (__bridge CFStringRef)hostname);
 	if (!policyRef) {
 		/* The old code beeped and returned without ever answering libpurple, leaving the
 		 * connection waiting forever. An unanswerable question is answered with no. */
 		query_cert_cb(false, userdata);
-		[self release];
 		return;
 	}
 
@@ -122,13 +128,12 @@
 		NSData *storedException = [adium.preferenceController preferenceForKey:hostname
 																		 group:PREF_GROUP_SSL_EXCEPTIONS];
 		if (storedException)
-			SecTrustSetExceptions(trustRef, (CFDataRef)storedException);
+			SecTrustSetExceptions(trustRef, (__bridge CFDataRef)storedException);
 	}
 
 	if(err != noErr) {
 		CFRelease(policyRef);
 		query_cert_cb(false, userdata);
-		[self release];
 		return;
 	}
 
@@ -144,7 +149,6 @@
 			case kSecTrustResultUnspecified: // trust ok, user has no particular opinion about this
 #ifndef ALWAYS_SHOW_TRUST_WARNING
 				query_cert_cb(true, userdata);
-				[self autorelease];
 				break;
 #endif
 			case kSecTrustResultDeny: // trust ok, but user previously said not to trust it anyway
@@ -160,10 +164,10 @@
 				 * the system presents free-standing dialogs anyway. Titled, because a
 				 * borderless window could not become key for the sheet's sake. */
 #define TRUST_PANEL_WIDTH 535
-				NSWindow *anchorWindow = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TRUST_PANEL_WIDTH, 1)
+				NSWindow *anchorWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TRUST_PANEL_WIDTH, 1)
 																	  styleMask:NSWindowStyleMaskTitled
 																		backing:NSBackingStoreBuffered
-																		  defer:NO] autorelease];
+																		  defer:NO];
 				[anchorWindow setReleasedWhenClosed:NO];
 				[anchorWindow setAlphaValue:0.0];
 				[anchorWindow setExcludedFromWindowsMenu:YES];
@@ -179,12 +183,10 @@
 				 * kSecTrustResultInvalid -> logic error; fix your program (SecTrust was used incorrectly)
 				 */
 				query_cert_cb(false, userdata);
-				[self autorelease];
 				break;
 		}
 	} else {
 		query_cert_cb(false, userdata);
-		[self autorelease];
 	}
 
 	CFRelease(policyRef);
@@ -192,7 +194,12 @@
 
 - (void)runTrustPanelOnWindow:(NSWindow *)window
 {
-	SFCertificateTrustPanel *trustPanel = [[SFCertificateTrustPanel alloc] init];
+	//Alive as long as the sheet is up; see -certificateTrustSheetDidEnd:returnCode:contextInfo:
+	if (!openTrustWarningAlerts) openTrustWarningAlerts = [[NSMutableSet alloc] init];
+	[openTrustWarningAlerts addObject:self];
+
+	//Held until the sheet ends, where the manual code released it
+	trustPanel = [[SFCertificateTrustPanel alloc] init];
 	
 	// this could probably be used for a more detailed message:
 	//	CFArrayRef certChain;
@@ -209,16 +216,18 @@
 	[trustPanel setAlternateButtonTitle:AILocalizedString(@"Cancel",nil)];
 	[trustPanel setShowsHelp:YES];
 
-	SecPolicyRef sslPolicy = SecPolicyCreateSSL(TRUE, (CFStringRef)hostname);
+	SecPolicyRef sslPolicy = SecPolicyCreateSSL(TRUE, (__bridge CFStringRef)hostname);
 	if (sslPolicy) {
-		[trustPanel setPolicies:(id)sslPolicy];
+		[trustPanel setPolicies:(__bridge id)sslPolicy];
 		CFRelease(sslPolicy);
 	}
 
+	/* The context is an identity, not a reference: the window is the sheet's parent and on
+	 * screen until the sheet ends, and -certificateTrustSheetDidEnd:... closes it only then. */
 	[trustPanel beginSheetForWindow:window
 					  modalDelegate:self
 					 didEndSelector:@selector(certificateTrustSheetDidEnd:returnCode:contextInfo:)
-						contextInfo:window
+						contextInfo:(__bridge void *)window
 							  trust:trustRef
 							message:title];
 }
@@ -229,9 +238,9 @@
 	[self runTrustPanelOnWindow:window];	
 }
 
-- (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)trustpanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
+- (void)certificateTrustSheetDidEnd:(SFCertificateTrustPanel *)endedPanel returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
 	BOOL didTrustCerficate = (returnCode == NSModalResponseOK);
-	NSWindow *parentWindow = (NSWindow *)contextInfo;
+	NSWindow *parentWindow = (__bridge NSWindow *)contextInfo;
 
 	/* Proceeding used to hold for one connection only, and the question returned at
 	 * every launch. The failures the user just waved through become a stored
@@ -239,7 +248,7 @@
 	if (didTrustCerficate) {
 		CFDataRef exceptions = SecTrustCopyExceptions(trustRef);
 		if (exceptions) {
-			[adium.preferenceController setPreference:(NSData *)exceptions
+			[adium.preferenceController setPreference:(__bridge NSData *)exceptions
 											   forKey:hostname
 												group:PREF_GROUP_SSL_EXCEPTIONS];
 			CFRelease(exceptions);
@@ -248,14 +257,19 @@
 
 	query_cert_cb(didTrustCerficate, userdata);
 
-	[trustpanel release];
+	//The reference -runTrustPanelOnWindow: took, given back where the manual code released it
+	trustPanel = nil;
 
 	/* -close, not -performClose:: the anchor has no close button, and -performClose:
 	 * refuses to close what the user could not have closed, so the invisible anchor
-	 * lived on. The autoreleased anchor is not released by closing; see above. */
+	 * lived on. Closing does not release the anchor (see above); being on screen is what
+	 * held it, and the local above holds it to the end of this method. */
 	[parentWindow close];
-	
-	[self release];
+
+	/* Out of the set: the sheet is over and libpurple has its answer. Not before this turn
+	 * of the run loop ends; the panel's sheet machinery is still on the stack below us. */
+	CFAutorelease(CFBridgingRetain(self));
+	[openTrustWarningAlerts removeObject:self];
 }
 
 @end

@@ -45,6 +45,14 @@ and return it as a dictionary
 ----------------------------------------------------------------------------- */
 
 Boolean GetMetadataForXMLLog(NSMutableDictionary *attributes, NSString *pathToFile);
+
+/* Every function in this file and its neighbours whose name says Copy hands back +1, as the name
+ * promises and as the prototypes in Source/AILoggerPlugin.m expect. Under automatic reference
+ * counting that is only true when the declaration says so: a C function is otherwise assumed to
+ * return something unowned, so each Copy function carries NS_RETURNS_RETAINED on its declaration
+ * and definition, and the CF-typed ones cross out of the counted world with CFBridgingRetain.
+ */
+
 /* Self-contained ISO 8601 parsing: a Spotlight importer loads inside mdworker, where
  * an @rpath framework has no chance of resolving — linking AIUtilities for its date
  * formatter is what kept this importer from loading at all. POSIX locale and Gregorian
@@ -55,7 +63,7 @@ static NSDate *AIDateFromISO8601(NSString *string, BOOL dotTimeSeparator)
 {
 	if (![string length]) return nil;
 
-	NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+	NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
 	formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
 	formatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
 
@@ -75,7 +83,7 @@ static NSDate *AIDateFromISO8601(NSString *string, BOOL dotTimeSeparator)
 	return nil;
 }
 
-NSString *CopyTextContentForXMLLogData(NSData *logData);
+NSString *CopyTextContentForXMLLogData(NSData *logData) NS_RETURNS_RETAINED;
 
 Boolean GetMetadataForFile(void* thisInterface, 
 						   CFMutableDictionaryRef attributes, 
@@ -87,29 +95,35 @@ Boolean GetMetadataForFile(void* thisInterface,
     /* Return TRUE if successful, FALSE if there was no data provided */
     
 	Boolean				success = FALSE;
-	NSAutoreleasePool	*pool;
-	pool = [[NSAutoreleasePool alloc] init];
 
-	if (CFStringCompare(contentTypeUTI, (CFStringRef)@"com.adiumx.htmllog", kCFCompareBackwards) == kCFCompareEqualTo) {
-		success = GetMetadataForHTMLLog((NSMutableDictionary *)attributes, (NSString *)pathToFile);
-	} else if (CFStringCompare(contentTypeUTI, (CFStringRef)@"com.adiumx.xmllog", kCFCompareBackwards) == kCFCompareEqualTo) {
-		success = GetMetadataForXMLLog((NSMutableDictionary *)attributes, (NSString *)pathToFile);
-	} else {
-		NSLog(@"We were passed %@, of type %@, which is an unknown type",pathToFile,contentTypeUTI);
+	@autoreleasepool {
+		/* The CF parameters are borrowed, so the casts are plain bridges; what the callees store into
+		 * the dictionary is retained by CFDictionarySetValue itself, no ownership changes hands here.
+		 */
+		if (CFStringCompare(contentTypeUTI, CFSTR("com.adiumx.htmllog"), kCFCompareBackwards) == kCFCompareEqualTo) {
+			success = GetMetadataForHTMLLog((__bridge NSMutableDictionary *)attributes, (__bridge NSString *)pathToFile);
+		} else if (CFStringCompare(contentTypeUTI, CFSTR("com.adiumx.xmllog"), kCFCompareBackwards) == kCFCompareEqualTo) {
+			success = GetMetadataForXMLLog((__bridge NSMutableDictionary *)attributes, (__bridge NSString *)pathToFile);
+		} else {
+			NSLog(@"We were passed %@, of type %@, which is an unknown type",pathToFile,contentTypeUTI);
+		}
 	}
 
-	[pool release];
-	
     return success;
 }
 
 static CFStringRef ResolveUTI(CFStringRef contentTypeUTI, NSURL *urlToFile) {
     //Deteremine the UTI type if we weren't passed one
-    CFStringRef pathExtension = (CFStringRef)[urlToFile pathExtension];
+	/* Held in a counted local, not bridged straight off the message: a bridged cast of a method
+	 * result is released at the end of its statement, and when the callee counts references too the
+	 * return handshake can hand over the only reference there is, which would leave the compares
+	 * below reading a freed string.
+	 */
+	NSString *pathExtension = [urlToFile pathExtension];
 	if (contentTypeUTI == NULL) {
-		if (CFStringCompare(pathExtension, CFSTR("chatLog"), (kCFCompareBackwards | kCFCompareCaseInsensitive)) == kCFCompareEqualTo) {
+		if (CFStringCompare((__bridge CFStringRef)pathExtension, CFSTR("chatLog"), (kCFCompareBackwards | kCFCompareCaseInsensitive)) == kCFCompareEqualTo) {
 			contentTypeUTI = CFSTR("com.adiumx.xmllog");
-		} else if (CFStringCompare(pathExtension, CFSTR("AdiumXMLLog"), (kCFCompareBackwards | kCFCompareCaseInsensitive)) == kCFCompareEqualTo) {
+		} else if (CFStringCompare((__bridge CFStringRef)pathExtension, CFSTR("AdiumXMLLog"), (kCFCompareBackwards | kCFCompareCaseInsensitive)) == kCFCompareEqualTo) {
 			contentTypeUTI = CFSTR("com.adiumx.xmllog");
 		} else {
 			//Treat all other log extensions as HTML logs (plaintext will come out fine this way, too)
@@ -119,40 +133,40 @@ static CFStringRef ResolveUTI(CFStringRef contentTypeUTI, NSURL *urlToFile) {
     return contentTypeUTI;
 }
 
-NSData *CopyDataForURL(CFStringRef contentTypeUTI, NSURL *urlToFile) {
-    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+NSData *CopyDataForURL(CFStringRef contentTypeUTI, NSURL *urlToFile) NS_RETURNS_RETAINED {
 	NSData			*content;
-	contentTypeUTI = ResolveUTI(contentTypeUTI, urlToFile);
-    
-	if (CFEqual(contentTypeUTI, CFSTR("com.adiumx.htmllog"))) {
-		content = [[NSData alloc] initWithContentsOfURL:urlToFile options:NSDataReadingUncached error:NULL];
-	} else if (CFEqual(contentTypeUTI, CFSTR("com.adiumx.xmllog"))) {
-		BOOL isDir;
-        NSString *path = [urlToFile path];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir]) {
-            if (isDir) {
-                /* If we have a chatLog bundle, we want to get the text content for the xml file inside */
-                urlToFile = [NSURL fileURLWithPath:[path stringByAppendingPathComponent:[[[path lastPathComponent] stringByDeletingPathExtension] stringByAppendingPathExtension:@"xml"]]];
-            }
-			
-			content = [[NSData alloc] initWithContentsOfURL:urlToFile options:NSUncachedRead error:NULL];
-            
+
+	@autoreleasepool {
+		contentTypeUTI = ResolveUTI(contentTypeUTI, urlToFile);
+
+		if (CFEqual(contentTypeUTI, CFSTR("com.adiumx.htmllog"))) {
+			content = [[NSData alloc] initWithContentsOfURL:urlToFile options:NSDataReadingUncached error:NULL];
+		} else if (CFEqual(contentTypeUTI, CFSTR("com.adiumx.xmllog"))) {
+			BOOL isDir;
+			NSString *path = [urlToFile path];
+			if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir]) {
+				if (isDir) {
+					/* If we have a chatLog bundle, we want to get the text content for the xml file inside */
+					urlToFile = [NSURL fileURLWithPath:[path stringByAppendingPathComponent:[[[path lastPathComponent] stringByDeletingPathExtension] stringByAppendingPathExtension:@"xml"]]];
+				}
+
+				content = [[NSData alloc] initWithContentsOfURL:urlToFile options:NSUncachedRead error:NULL];
+
+			} else {
+				content = nil;
+			}
+
 		} else {
 			content = nil;
+			NSLog(@"We were passed %@, of type %@, which is an unknown type", urlToFile, contentTypeUTI);
 		}
-		
-	} else {
-		content = nil;
-		NSLog(@"We were passed %@, of type %@, which is an unknown type", urlToFile, contentTypeUTI);
 	}
-    
-	[pool release];
-	
+
 	return content;
 }
 
-NSData *CopyDataForFile(CFStringRef contentTypeUTI, CFStringRef pathToFile) {
-    return CopyDataForURL(contentTypeUTI, [NSURL fileURLWithPath:(NSString *)pathToFile]);
+NSData *CopyDataForFile(CFStringRef contentTypeUTI, CFStringRef pathToFile) NS_RETURNS_RETAINED {
+    return CopyDataForURL(contentTypeUTI, [NSURL fileURLWithPath:(__bridge NSString *)pathToFile]);
 }
 
 CFStringRef CopyTextContentForFileData(CFStringRef contentTypeUTI, NSURL *urlToFile, NSData *fileData) {
@@ -167,7 +181,8 @@ CFStringRef CopyTextContentForFileData(CFStringRef contentTypeUTI, NSURL *urlToF
 	} else if (CFEqual(contentTypeUTI, CFSTR("com.adiumx.xmllog"))) {
         result = CopyTextContentForXMLLogData(fileData);
     }
-    return (CFStringRef)result;
+	//Copy rule: the caller owns the string and releases it with CFRelease
+    return CFBridgingRetain(result);
 }
 
 /*!
@@ -183,11 +198,13 @@ CFStringRef CopyTextContentForFileData(CFStringRef contentTypeUTI, NSURL *urlToF
 CFStringRef CopyTextContentForFile(CFStringRef contentTypeUTI,
 								   CFStringRef pathToFile)
 {
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-    NSData *logData = CopyDataForFile(contentTypeUTI, pathToFile);
-	CFStringRef	textContent = CopyTextContentForFileData(contentTypeUTI, [NSURL fileURLWithPath:(NSString *)pathToFile], logData);
-	[pool release];
-	
+	CFStringRef	textContent;
+
+	@autoreleasepool {
+		NSData *logData = CopyDataForFile(contentTypeUTI, pathToFile);
+		textContent = CopyTextContentForFileData(contentTypeUTI, [NSURL fileURLWithPath:(__bridge NSString *)pathToFile], logData);
+	}
+
 	return textContent;
 }
 
@@ -210,7 +227,7 @@ Boolean GetMetadataForXMLLog(NSMutableDictionary *attributes, NSString *pathToFi
 	 * transcript in Spotlight without text content, authors or dates. CopyDataForFile
 	 * already reaches for the xml inside a bundle and reads a flat legacy log as is.
 	 */
-	NSData *data = [(NSData *)CopyDataForFile((CFStringRef)@"com.adiumx.xmllog", (CFStringRef)pathToFile) autorelease];
+	NSData *data = CopyDataForFile(CFSTR("com.adiumx.xmllog"), (__bridge CFStringRef)pathToFile);
 	if (data) {
 		xmlDoc = [[NSXMLDocument alloc] initWithData:data options:NSXMLNodePreserveCDATA error:&err];
 	}
@@ -281,18 +298,13 @@ Boolean GetMetadataForXMLLog(NSMutableDictionary *attributes, NSString *pathToFi
 				
 				[attributes setObject:[NSString stringWithFormat:@"%@ on %@",toUID,[dateFormatter stringFromDate:startDate]]
 							   forKey:(NSString *)kMDItemDisplayName];
-				
-				[dateFormatter release];
 			}
-			[otherAuthors release];
 			
 		}
 		[attributes setObject:@"Chat log"
 					   forKey:(NSString *)kMDItemKind];
 		[attributes setObject:@"Adium"
 					   forKey:(NSString *)kMDItemCreator];
-		
-		[xmlDoc release];
 	}
 	else
 		ret = NO;
@@ -342,7 +354,7 @@ NSString *killXMLTags(NSString *inString)
     return ret;
 }
 
-NSString *CopyTextContentForXMLLogData(NSData *data) {
+NSString *CopyTextContentForXMLLogData(NSData *data) NS_RETURNS_RETAINED {
     NSString *contentString = nil;
 	NSError *err;
     NSXMLDocument *xmlDoc = [[NSXMLDocument alloc] initWithData:data options:NSXMLNodePreserveCDATA error:&err];
@@ -358,15 +370,11 @@ NSString *CopyTextContentForXMLLogData(NSData *data) {
 		}
 		
 		if (messages.count) contentString = [messages componentsJoinedByString:@" "];
-		
-        [xmlDoc release];
     } else {
 #ifdef AILogWithSignature
 		AILogWithSignature(@"Parsing log failed: %@", err);
 #endif
 	}
-	
-	[contentString retain];
 	
     return contentString;
 }

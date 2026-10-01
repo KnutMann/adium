@@ -37,7 +37,7 @@
 	
 	AMPurpleJabberNode *commands;
 	
-	NSMutableArray *delegates;
+	NSMutableArray *delegates; //A CFArray without retain callbacks: the delegates are not retained
 }
 
 - (id)initWithJID:(NSString*)_jid node:(NSString*)_node name:(NSString*)_name connection:(PurpleConnection*)_gc;

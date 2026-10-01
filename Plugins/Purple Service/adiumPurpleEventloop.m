@@ -41,7 +41,10 @@ static inline guint nextSourceTag(void) {
  * glib, unfortunately, identifies all sources and timers via unsigned 32 bit tags. We would like to map them to dispatch_source_t objects.
  * So: we make a CFDictionary with all null callbacks (hash on the value of the integer, cast to a void*, and don't retain/release anything).
  * That gives us a guint->dispatch_source_t map, but it's a little gross, so three inline wrapper functions are provided to make things nice:
- * sourceForTag, setSourceForTag, and removeSourceForTag. The names should be self-explanatory. No retains or releases are done by them.
+ * sourceForTag, setSourceForTag, and claimSourceForTag. The names should be self-explanatory. Dispatch objects are
+ * Objective-C objects, so the dictionary's slot owns one reference even though the callbacks are null: setSourceForTag
+ * puts it in with __bridge_retained, sourceForTag only borrows, and claimSourceForTag takes it back out with
+ * __bridge_transfer, which is where the dispatch_release used to be.
  */
 static inline CFMutableDictionaryRef sourceInfoDict(void) {
     static CFMutableDictionaryRef _sourceInfoDict;
@@ -56,13 +59,13 @@ static inline CFMutableDictionaryRef sourceInfoDict(void) {
 
 static inline dispatch_source_t sourceForTag(unsigned long tag) {
     os_unfair_lock_lock(&sourceDictLock);
-    dispatch_source_t source = (dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
+    dispatch_source_t source = (__bridge dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
     os_unfair_lock_unlock(&sourceDictLock);
     return source;
 }
 static inline void setSourceForTag(dispatch_source_t source, unsigned long tag) {
     os_unfair_lock_lock(&sourceDictLock);
-    CFDictionarySetValue(sourceInfoDict(), (void *)tag, source);
+    CFDictionarySetValue(sourceInfoDict(), (void *)tag, (__bridge_retained void *)source);
     os_unfair_lock_unlock(&sourceDictLock);
 }
 
@@ -71,7 +74,7 @@ static inline void setSourceForTag(dispatch_source_t source, unsigned long tag) 
  */
 static inline dispatch_source_t claimSourceForTag(unsigned long tag) {
     os_unfair_lock_lock(&sourceDictLock);
-    dispatch_source_t source = (dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
+    dispatch_source_t source = (__bridge_transfer dispatch_source_t)CFDictionaryGetValue(sourceInfoDict(), (void *)tag);
     if (source) {
         CFDictionaryRemoveValue(sourceInfoDict(), (void *)tag);
     }
@@ -91,8 +94,8 @@ gboolean adium_source_remove(guint tag) {
 
 	BOOL success = (dispatch_source_testcancel(src) != 0);
 
-	dispatch_release(src);
-
+	/* The dictionary's reference came out through claimSourceForTag; ARC gives it back when
+	 * src goes out of scope, which is where dispatch_release stood. */
 	return success;
 }
 
@@ -118,17 +121,15 @@ guint addTimer(uint64_t interval, uint64_t leeway, GSourceFunc function, gpointe
     setSourceForTag(src, tag);
 	
     dispatch_source_set_event_handler(src, ^{
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-		if (sourceForTag(tag)) {
-            if (!function || !function(data)) {
-                adium_timeout_remove(tag);
+        @autoreleasepool {
+            if (sourceForTag(tag)) {
+                if (!function || !function(data)) {
+                    adium_timeout_remove(tag);
+                }
+            } else {
+                AILogWithSignature(@"Timer with tag %i was already canceled!", tag);
             }
-        } else {
-			AILogWithSignature(@"Timer with tag %i was already canceled!", tag);
-		}
-  
-        [pool drain];
+        }
     });
 	
     dispatch_resume(src);
@@ -172,9 +173,9 @@ guint adium_input_add(gint fd, PurpleInputCondition condition,
     src = dispatch_source_create(type, fd, 0, dispatch_get_main_queue());
 	
     dispatch_source_set_event_handler(src, ^{
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-        if (func) func(user_data, fd, condition);
-        [pool drain];
+        @autoreleasepool {
+            if (func) func(user_data, fd, condition);
+        }
     });
 		
     setSourceForTag(src, tag);

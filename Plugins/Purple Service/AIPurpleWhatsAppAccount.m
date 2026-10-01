@@ -244,7 +244,7 @@
  * breaks. */
 static NSString *escapedForWhatsAppWire(NSString *text)
 {
-	NSMutableString *escaped = [[text mutableCopy] autorelease];
+	NSMutableString *escaped = [text mutableCopy];
 
 	[escaped replaceOccurrencesOfString:@"&" withString:@"&amp;" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];
 	[escaped replaceOccurrencesOfString:@"<" withString:@"&lt;" options:NSLiteralSearch range:NSMakeRange(0, escaped.length)];

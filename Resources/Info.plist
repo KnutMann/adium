@@ -413,8 +413,13 @@
 	<string>public.app-category.social-networking</string>
 	<key>LSFileQuarantineEnabled</key>
 	<true/>
+	<!-- The build setting, not a number typed here. It used to say 10.7.0, eleven
+	     releases below what this actually builds for, and Xcode corrected it to
+	     MACOSX_DEPLOYMENT_TARGET on every build and warned while doing it. Three
+	     other property lists in this tree already ask for the setting this way:
+	     XtrasCreator, the Spotlight importer and the MMTabBarView demo. -->
 	<key>LSMinimumSystemVersion</key>
-	<string>10.7.0</string>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSRequiresNativeExecution</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>

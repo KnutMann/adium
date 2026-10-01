@@ -126,10 +126,24 @@ step "Fetching what is not in the repository"
 "$REPO/Dependencies/fetch.sh"
 
 if [ "$REBUILD_DEPENDENCIES" = yes ]; then
-	# Everything under Frameworks/ is a prebuilt binary; these two steps make
-	# those binaries again from pinned sources and overwrite them in place.
-	step "Rebuilding libpurple, glib, libotr and friends from source"
-	( cd Dependencies && ./build.sh && ./copy_frameworks.sh )
+	# Everything under Frameworks/ is a prebuilt binary; these steps make those
+	# binaries again from pinned sources and overwrite them in place.
+	#
+	# Two runs of build.sh, because it branches: the first builds libpurple and
+	# everything the bundle loads beside it, the second builds libotr, libgcrypt
+	# and libgpg-error, which are the three frameworks the first run does not
+	# touch. This used to be one run without --build-otr, so the switch never
+	# rebuilt the three libraries its own description named, and one without
+	# --download-libpurple, which on a fresh clone walked into a source
+	# directory that was not there.
+	step "Rebuilding libpurple, glib and everything the bundle loads"
+	( cd Dependencies && ./build.sh --download-libpurple )
+
+	step "Rebuilding libotr and the two libraries under it"
+	( cd Dependencies && ./build.sh --build-otr )
+
+	step "Putting the rebuilt libraries where the application looks for them"
+	( cd Dependencies && ./copy_frameworks.sh )
 
 	step "Rebuilding libogg, libopus and libopusfile from source"
 	Dependencies/opus/build-opus.sh

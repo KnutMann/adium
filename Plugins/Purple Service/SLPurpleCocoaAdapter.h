@@ -95,7 +95,7 @@
 - (BOOL)doCommand:(NSString *)originalMessage fromAccount:(id)sourceAccount inChat:(AIChat *)chat;
 
 #ifdef HAVE_CDSA
-- (CFArrayRef)copyServerCertificates:(PurpleSslConnection*)gsc;
+- (CFArrayRef)copyServerCertificates:(PurpleSslConnection*)gsc CF_RETURNS_RETAINED;
 #endif
 @end
 

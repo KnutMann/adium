@@ -30,7 +30,7 @@ static NSDate *dateFromISO8601FileName(NSString *string)
 {
 	if (![string length]) return nil;
 
-	NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+	NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
 	formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
 	formatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
 
@@ -62,7 +62,7 @@ static NSDate *dateFromHTMLLog(NSString *pathToFile)
 	return nil;
 }
 
-NSString *CopyTextContentForHTMLLogData(NSData *logData) {
+NSString *CopyTextContentForHTMLLogData(NSData *logData) NS_RETURNS_RETAINED {
     /* Perhaps we want to decode the HTML instead of stripping it so we can process
 	 * the attributed contents to turn links into link (URL) for searching purposes...
 	 */
@@ -122,8 +122,6 @@ Boolean GetMetadataForHTMLLog(NSMutableDictionary *attributes, NSString *pathToF
 		[attributes setObject:textContent
 					   forKey:(NSString *)kMDItemTextContent];
 	}
-    [logData release];
-    [textContent release];
 	
 	[attributes setObject:serviceClass
 				   forKey:@"com_adiumX_service"];
@@ -137,7 +135,7 @@ Boolean GetMetadataForHTMLLog(NSMutableDictionary *attributes, NSString *pathToF
 					   forKey:@"com_adiumX_chatDestination"];
 		/* This target does not link AIUtilities, so the formatter is built here. POSIX locale, or
 		 * Spotlight shows a name in digits the machine's language happens to prefer. */
-		NSDateFormatter *dayFormatter = [[[NSDateFormatter alloc] init] autorelease];
+		NSDateFormatter *dayFormatter = [[NSDateFormatter alloc] init];
 		dayFormatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
 		dayFormatter.calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
 		dayFormatter.dateFormat = @"yy-MM-dd";

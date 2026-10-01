@@ -4,14 +4,27 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<!-- rtool writes this key for every framework it makes, and this plist replaces
+	     the whole file, so it has to carry it too. Measured in a signed application
+	     rather than assumed: all six frameworks there have both an embedded Mach-O
+	     signature and a sealed CodeResources, whether or not this key is present, so
+	     it is not what decides that. libpurple ships without it. -->
+	<key>CFBundleExecutable</key>
+	<string>libotr</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<!-- install_framework_plist fills this in from OTR_VERSION in
+	     phases/build_otr.sh. It used to be typed here, and by the time anybody looked
+	     it read 2.2.0, a number from the libotr 3 era that nothing has built since.
+	     Typing it again, even correctly, would only start that clock over. -->
+	<key>CFBundleShortVersionString</key>
+	<string>@FRAMEWORK_VERSION@</string>
 	<key>CFBundleVersion</key>
-	<string>2.2.0</string>
+	<string>@FRAMEWORK_VERSION@</string>
 	<key>CFBundleIdentifier</key>
 	<string>im.adium.libotr</string>
 </dict>

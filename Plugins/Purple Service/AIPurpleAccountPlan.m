@@ -77,23 +77,16 @@
 			NSLog(@"Account plan for %@ names %@, which is not a plan class", protocol, className);
 	}
 
-	return [[[planClass alloc] initWithAccount:account] autorelease];
+	return [[planClass alloc] initWithAccount:account];
 }
 
 - (id)initWithAccount:(AIAccount *)inAccount
 {
 	if ((self = [super initWithAccount:inAccount]))
-		description = [[AIPurpleAccountPlan descriptionForProtocol:
-							[NSString stringWithUTF8String:[self protocolPlugin]]] retain];
+		description = [AIPurpleAccountPlan descriptionForProtocol:
+							[NSString stringWithUTF8String:[self protocolPlugin]]];
 
 	return self;
-}
-
-- (void)dealloc
-{
-	[description release];
-
-	[super dealloc];
 }
 
 - (const char *)protocolPlugin

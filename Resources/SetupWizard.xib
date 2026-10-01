@@ -48,9 +48,10 @@
                         <rect key="frame" x="-9" y="20" width="600" height="391"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </customView>
-                    <box boxType="oldStyle" borderType="line" title="Box" titlePosition="noTitle" id="94">
+                    <box boxType="custom" borderType="line" title="Box" titlePosition="noTitle" id="94">
                         <rect key="frame" x="145" y="56" width="450" height="305"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <color key="borderColor" red="0.0" green="0.0" blue="0.0" alpha="0.41960799999999998" colorSpace="deviceRGB"/>
                         <view key="contentView" id="h5M-su-Vlp">
                             <rect key="frame" x="1" y="1" width="448" height="303"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

@@ -26,7 +26,7 @@
  * call window per running call. The manager stays the only one who talks Jingle;
  * this class only ever talks to the manager.
  */
-@interface AIJingleCallUI : NSObject <AIJingleCallManagerUI>
+@interface AIJingleCallUI : NSObject <AIJingleCallManagerUI, NSMenuItemValidation>
 
 + (void)install;
 

@@ -144,7 +144,7 @@
 
 - (void)removeContact:(AIListContact *)theContact;
 
-- (NSWindowController *)authorizationRequestWithDict:(NSDictionary*)dict __attribute__((ns_returns_retained));
+- (NSWindowController *)authorizationRequestWithDict:(NSDictionary*)dict;
 
 - (void)addChat:(AIChat *)chat;
 - (void)typingUpdateForIMChat:(AIChat *)chat typing:(NSNumber *)typing;

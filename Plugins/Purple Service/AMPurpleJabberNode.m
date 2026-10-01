@@ -44,167 +44,152 @@ static void AMPurpleJabberNode_received_data_cb(PurpleConnection *gc, xmlnode **
 	 * the carbons handler does. */
 	if (!packet || !*packet)
 		return;
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	AMPurpleJabberNode *self = (AMPurpleJabberNode*)this;
-	
-	// we're receiving *all* packets, so let's filter out those that don't concern us
-	const char *from = xmlnode_get_attrib(*packet, "from");
-	if (!from) {
-		[pool release];
-		return;
-	}
-	if (!(*packet)->name){
-		[pool release];
-		return;
-	}
-	const char *type = xmlnode_get_attrib(*packet, "type");
-	if (!type || (strcmp(type, "result") && strcmp(type, "error"))){
-		[pool release];
-		return;
-	}
-	if (strcmp((*packet)->name, "iq")){
-		[pool release];
-		return;
-	}
-	if (![[NSString stringWithUTF8String:from] isEqualToString:self.jid]){
-		[pool release];
-		return;
-	}
-	xmlnode *query = xmlnode_get_child_with_namespace(*packet,"query","http://jabber.org/protocol/disco#info");
-	if (query) {
-		if (self.features || self.identities) {
-			[pool release];
-			return; // we already have that information
-		}
-		const char *queryNode = xmlnode_get_attrib(query,"node");
-		if ((self.node && !queryNode) || (!self.node && queryNode)){
-			[pool release];
-			return;
-		}
-		if (queryNode && ![[NSString stringWithUTF8String:queryNode] isEqualToString:self.node]){
-			[pool release];
-			return;
-		}
-		
-		// it's us, fill in features and identities
-		NSMutableArray *identities = [NSMutableArray array];
-		NSMutableSet *features = [NSMutableSet set];
-		
-		xmlnode *item;
-		for(item = query->child; item; item = item->next) {
-			if (item->type == XMLNODE_TYPE_TAG) {
-				if (!strcmp(item->name, "identity")) {
-					const char *category = xmlnode_get_attrib(item,"category");
-					const char *ltype = xmlnode_get_attrib(item, "type");
-					const char *queryName = xmlnode_get_attrib(item, "name");
-					[identities addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-										   category?[NSString stringWithUTF8String:category]:[NSNull null], @"category",
-										   ltype?[NSString stringWithUTF8String:ltype]:[NSNull null], @"type",
-										   queryName?[NSString stringWithUTF8String:queryName]:[NSNull null], @"name",
-										   nil]];
-				} else if (!strcmp(item->name, "feature")) {
-					const char *var = xmlnode_get_attrib(item, "var");
-					if (var)
-						[features addObject:[NSString stringWithUTF8String:var]];
-				}
-			}
-		}
-		
-		self.identities = identities;
-		self.features = features;
+	@autoreleasepool {
+		AMPurpleJabberNode *self = (__bridge AMPurpleJabberNode *)this;
 
-		for (id delegate in self.delegates) {
-			if ([delegate respondsToSelector:@selector(jabberNodeGotInfo:)])
-				[delegate jabberNodeGotInfo:self];
-		}
-			
-		if ([features containsObject:@"http://jabber.org/protocol/commands"]) {
-			// in order to avoid endless loops, check if the current node isn't a command by itself (which can't contain other commands)
-			BOOL isCommand = NO;
-			NSDictionary *identity;
-			for (identity in identities) {
-				if ([[identity objectForKey:@"type"] isEqualToString:@"command-node"]) {
-					isCommand = YES;
-					break;
-				}
-			}
-			
-			if (!isCommand) {
-				// commands have to be prefetched to be available when the user tries to access the context menu
-				self.commandsNode = [[AMPurpleJabberNode alloc] initWithJID:self.jid
-																	node:@"http://jabber.org/protocol/commands"
-																	name:nil
-															  connection:self.gc];
-				[self.commandsNode fetchItems];
-			}
-		}
-		[pool release];
-		return;
-	}
-	
-	query = xmlnode_get_child_with_namespace(*packet,"query","http://jabber.org/protocol/disco#items");
-	if (query) {
-		if (self.itemsArray) {
-			[pool release];
-			return; // we already have that info
-		}
-		
-		const char *checkNode = xmlnode_get_attrib(query,"node");
-		if ((self.node && !checkNode) || (!self.node && checkNode)) {
-			[pool release];
+		// we're receiving *all* packets, so let's filter out those that don't concern us
+		const char *from = xmlnode_get_attrib(*packet, "from");
+		if (!from)
 			return;
-		}
-		if (checkNode && ![[NSString stringWithUTF8String:checkNode] isEqualToString:self.node]){ 
-			[pool release];
+		if (!(*packet)->name)
 			return;
-		}
-		
-		// it's us, create the subnodes
-		NSMutableArray *newItems = [NSMutableArray array];
-		for(xmlnode *item = query->child; item; item = item->next) {
-			if (item->type == XMLNODE_TYPE_TAG) {
-				if (!strcmp(item->name, "item")) {
-					const char *queryJID = xmlnode_get_attrib(item,"jid");
-					const char *queryNode = xmlnode_get_attrib(item,"node");
-					const char *queryName = xmlnode_get_attrib(item,"name");
-					
-					if (queryJID) {
-						AMPurpleJabberNode *newnode = [[AMPurpleJabberNode alloc] initWithJID:[NSString stringWithUTF8String:queryJID]
-																						 node:queryNode ? [NSString stringWithUTF8String:queryNode] : nil
-																						 name:queryName ? [NSString stringWithUTF8String:queryName] : nil
-																				   connection:self.gc];
-						// propagate delegates
-						newnode.delegates = [NSMakeCollectable(CFArrayCreateMutableCopy(kCFAllocatorDefault, /*capacity*/ 0, (CFArrayRef)self.delegates)) autorelease];
-						[newItems addObject:newnode];
-						// check if we're a conference service
-						if ([[self jid] rangeOfString:@"@"].location == NSNotFound) { // we can't be one when we have an @
-							NSDictionary *identity = nil;
-							for (identity in self.identities) {
-								if ([[identity objectForKey:@"category"] isEqualToString:@"conference"]) {
-									// since we're a conference service, assume that our children are conferences
-									newnode.identities = [NSArray arrayWithObject:identity];
-									break;
-								}
-							}
-							if (!identity)
-								[newnode fetchInfo];
-						} else
-							[newnode fetchInfo];
-						[newnode release];
+		const char *type = xmlnode_get_attrib(*packet, "type");
+		if (!type || (strcmp(type, "result") && strcmp(type, "error")))
+			return;
+		if (strcmp((*packet)->name, "iq"))
+			return;
+		if (![[NSString stringWithUTF8String:from] isEqualToString:self.jid])
+			return;
+		xmlnode *query = xmlnode_get_child_with_namespace(*packet,"query","http://jabber.org/protocol/disco#info");
+		if (query) {
+			if (self.features || self.identities)
+				return; // we already have that information
+			const char *queryNode = xmlnode_get_attrib(query,"node");
+			if ((self.node && !queryNode) || (!self.node && queryNode))
+				return;
+			if (queryNode && ![[NSString stringWithUTF8String:queryNode] isEqualToString:self.node])
+				return;
+
+			// it's us, fill in features and identities
+			NSMutableArray *identities = [NSMutableArray array];
+			NSMutableSet *features = [NSMutableSet set];
+
+			xmlnode *item;
+			for(item = query->child; item; item = item->next) {
+				if (item->type == XMLNODE_TYPE_TAG) {
+					if (!strcmp(item->name, "identity")) {
+						const char *category = xmlnode_get_attrib(item,"category");
+						const char *ltype = xmlnode_get_attrib(item, "type");
+						const char *queryName = xmlnode_get_attrib(item, "name");
+						[identities addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+											   category?[NSString stringWithUTF8String:category]:[NSNull null], @"category",
+											   ltype?[NSString stringWithUTF8String:ltype]:[NSNull null], @"type",
+											   queryName?[NSString stringWithUTF8String:queryName]:[NSNull null], @"name",
+											   nil]];
+					} else if (!strcmp(item->name, "feature")) {
+						const char *var = xmlnode_get_attrib(item, "var");
+						if (var)
+							[features addObject:[NSString stringWithUTF8String:var]];
 					}
 				}
 			}
+
+			self.identities = identities;
+			self.features = features;
+
+			for (id delegate in self.delegates) {
+				if ([delegate respondsToSelector:@selector(jabberNodeGotInfo:)])
+					[delegate jabberNodeGotInfo:self];
+			}
+
+			if ([features containsObject:@"http://jabber.org/protocol/commands"]) {
+				// in order to avoid endless loops, check if the current node isn't a command by itself (which can't contain other commands)
+				BOOL isCommand = NO;
+				NSDictionary *identity;
+				for (identity in identities) {
+					if ([[identity objectForKey:@"type"] isEqualToString:@"command-node"]) {
+						isCommand = YES;
+						break;
+					}
+				}
+
+				if (!isCommand) {
+					/* Defensive only. This runs inside libpurple's emission of the very signal an
+					 * earlier commands node is connected to, and that node's dealloc unlinks its
+					 * handler. By handler order (a newer handler of equal priority is inserted before
+					 * older ones) the earlier node has already been visited, so the emit loop's saved
+					 * next link is never the one freed; and no caller today refetches info once it
+					 * has been answered. Deferring its death to the next turn of the run loop costs
+					 * nothing and holds even if either of those facts changes. Under manual counting
+					 * the node simply leaked. */
+					AMPurpleJabberNode *previousCommandsNode = self.commandsNode;
+					if (previousCommandsNode)
+						dispatch_async(dispatch_get_main_queue(), ^{ (void)previousCommandsNode; });
+					// commands have to be prefetched to be available when the user tries to access the context menu
+					self.commandsNode = [[AMPurpleJabberNode alloc] initWithJID:self.jid
+																			node:@"http://jabber.org/protocol/commands"
+																			name:nil
+																	  connection:self.gc];
+					[self.commandsNode fetchItems];
+				}
+			}
+			return;
 		}
-		self.itemsArray = newItems;
-		
-		for (id delegate in self.delegates) {
-			if ([delegate respondsToSelector:@selector(jabberNodeGotItems:)])
-				[delegate jabberNodeGotItems:self];
+
+		query = xmlnode_get_child_with_namespace(*packet,"query","http://jabber.org/protocol/disco#items");
+		if (query) {
+			if (self.itemsArray)
+				return; // we already have that info
+
+			const char *checkNode = xmlnode_get_attrib(query,"node");
+			if ((self.node && !checkNode) || (!self.node && checkNode))
+				return;
+			if (checkNode && ![[NSString stringWithUTF8String:checkNode] isEqualToString:self.node])
+				return;
+
+			// it's us, create the subnodes
+			NSMutableArray *newItems = [NSMutableArray array];
+			for(xmlnode *item = query->child; item; item = item->next) {
+				if (item->type == XMLNODE_TYPE_TAG) {
+					if (!strcmp(item->name, "item")) {
+						const char *queryJID = xmlnode_get_attrib(item,"jid");
+						const char *queryNode = xmlnode_get_attrib(item,"node");
+						const char *queryName = xmlnode_get_attrib(item,"name");
+
+						if (queryJID) {
+							AMPurpleJabberNode *newnode = [[AMPurpleJabberNode alloc] initWithJID:[NSString stringWithUTF8String:queryJID]
+																								 node:queryNode ? [NSString stringWithUTF8String:queryNode] : nil
+																								 name:queryName ? [NSString stringWithUTF8String:queryName] : nil
+																						   connection:self.gc];
+							// propagate delegates; the copy keeps the source array's callbacks, so it retains nothing either
+							newnode.delegates = CFBridgingRelease(CFArrayCreateMutableCopy(kCFAllocatorDefault, /*capacity*/ 0, (__bridge CFArrayRef)self.delegates));
+							[newItems addObject:newnode];
+							// check if we're a conference service
+							if ([[self jid] rangeOfString:@"@"].location == NSNotFound) { // we can't be one when we have an @
+								NSDictionary *identity = nil;
+								for (identity in self.identities) {
+									if ([[identity objectForKey:@"category"] isEqualToString:@"conference"]) {
+										// since we're a conference service, assume that our children are conferences
+										newnode.identities = [NSArray arrayWithObject:identity];
+										break;
+									}
+								}
+								if (!identity)
+									[newnode fetchInfo];
+							} else
+								[newnode fetchInfo];
+						}
+					}
+				}
+			}
+			self.itemsArray = newItems;
+
+			for (id delegate in self.delegates) {
+				if ([delegate respondsToSelector:@selector(jabberNodeGotItems:)])
+					[delegate jabberNodeGotItems:self];
+			}
 		}
 	}
-	
-	[pool release];
 }
 
 - (id)initWithJID:(NSString*)_jid node:(NSString*)_node name:(NSString*)_name connection:(PurpleConnection*)_gc {
@@ -212,17 +197,18 @@ static void AMPurpleJabberNode_received_data_cb(PurpleConnection *gc, xmlnode **
 		PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
         if (!jabber) {
             AILog(@"Unable to locate jabber prpl");
-            [self release];
             return nil;
         }
 		self.jid = _jid;
 		self.node = _node;
 		self.name = _name;
 		self.gc = _gc;
-		self.delegates = [NSMakeCollectable(CFArrayCreateMutable(kCFAllocatorDefault, /*capacity*/ 0, &nonretainingArrayCallbacks)) autorelease];
-		
-		purple_signal_connect(jabber, "jabber-receiving-xmlnode", self,
-                              PURPLE_CALLBACK(AMPurpleJabberNode_received_data_cb), self);
+		self.delegates = CFBridgingRelease(CFArrayCreateMutable(kCFAllocatorDefault, /*capacity*/ 0, &nonretainingArrayCallbacks));
+
+		/* The handle and the callback data are this object's identity, not a reference: -dealloc
+		 * disconnects synchronously, so the callback cannot fire afterwards. */
+		purple_signal_connect(jabber, "jabber-receiving-xmlnode", (__bridge void *)self,
+                              PURPLE_CALLBACK(AMPurpleJabberNode_received_data_cb), (__bridge void *)self);
 	}
 	return self;
 }
@@ -231,7 +217,6 @@ static void AMPurpleJabberNode_received_data_cb(PurpleConnection *gc, xmlnode **
 	PurplePlugin *jabber = purple_find_prpl("prpl-jabber");
 	if (!jabber) {
 		AILog(@"Unable to locate jabber prpl");
-		[self release];
 		return nil;
 	}
 	AMPurpleJabberNode *copy = [[AMPurpleJabberNode alloc] init];
@@ -243,28 +228,19 @@ static void AMPurpleJabberNode_received_data_cb(PurpleConnection *gc, xmlnode **
 	copy.name = self.name;
 	copy.gc = self.gc;
 
-	copy.delegates = [NSMakeCollectable(CFArrayCreateMutable(kCFAllocatorDefault, /*capacity*/ 0, &nonretainingArrayCallbacks)) autorelease];
+	copy.delegates = CFBridgingRelease(CFArrayCreateMutable(kCFAllocatorDefault, /*capacity*/ 0, &nonretainingArrayCallbacks));
 	copy.features = self.features;
 	copy.identities = self.identities;
 	copy.itemsArray = self.itemsArray;
-	
-	purple_signal_connect(jabber, "jabber-receiving-xmlnode", copy,
-						  PURPLE_CALLBACK(AMPurpleJabberNode_received_data_cb), copy);
-	
+
+	purple_signal_connect(jabber, "jabber-receiving-xmlnode", (__bridge void *)copy,
+						  PURPLE_CALLBACK(AMPurpleJabberNode_received_data_cb), (__bridge void *)copy);
+
 	return copy;
 }
 
 - (void)dealloc {
-	purple_signals_disconnect_by_handle(self);
-	[jid release];
-	[node release];
-	[features release];
-	[identities release];
-	[items release];
-	[name release];
-	[commands release];
-	[delegates release];
-	[super dealloc];
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 }
 
 - (void)fetchItems {

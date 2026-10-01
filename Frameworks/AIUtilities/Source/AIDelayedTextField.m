@@ -15,6 +15,7 @@
  */
 
 #import "AIDelayedTextField.h"
+#import "AIFunctions.h"
 
 //  A text field that groups changes, sending its action to its target when 0.5 seconds elapses without a change
 
@@ -61,8 +62,7 @@
 											 selector:[self action]
 											   object:self];
 	
-	[[self target] performSelector:[self action] 
-						withObject:self];
+	AISendActionToTarget([self target], [self action], self);
 }
 
 - (void)textDidChange:(NSNotification *)notification

@@ -16,6 +16,8 @@
 
 #import "AFSIAppDelegate.h"
 
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
 extern Boolean GetMetadataForFile(void* thisInterface, 
 								  NSMutableDictionary *attributes, 
 								  NSString *contentTypeUTI,
@@ -24,8 +26,18 @@ extern Boolean GetMetadataForFile(void* thisInterface,
 @implementation AFSIAppDelegate
 
 - (void) importOneChatlogFromPath:(NSString *)path numFilesProcessed:(inout NSUInteger *)numFilesProcessed {
-	NSError *error = nil;
-	GetMetadataForFile(NULL, [NSMutableDictionary dictionary], [[NSWorkspace sharedWorkspace] typeOfFile:path error:&error], path);
+	/* The type of the file itself, which is the question -typeOfFile:error: asked; the URL
+	 * answers it with a UTType now. A file the system cannot type leaves it nil, which is
+	 * what the old call returned alongside its error, and the importer is handed nil either
+	 * way. */
+	NSURL	*url = [NSURL fileURLWithPath:path];
+	UTType	*contentType = nil;
+	NSError	*error = nil;
+
+	if (![url getResourceValue:&contentType forKey:NSURLContentTypeKey error:&error])
+		contentType = nil;
+
+	GetMetadataForFile(NULL, [NSMutableDictionary dictionary], [contentType identifier], path);
 	++*numFilesProcessed;
 }
 

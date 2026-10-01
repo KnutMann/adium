@@ -6,6 +6,9 @@ syntax: glob
 *.xcworkspace
 *.xcuserdatad
 build
+# A measurement build goes into its own directory beside it, so that it never disturbs
+# the one /Applications/Adium.app is a symbolic link to. Those are build output too.
+/build-*
 Icon
 docs/*.html
 Dependencies/build
@@ -35,4 +38,11 @@ xcuserdata/
 *.xcuserdatad/
 *~
 Testing/xmpp/peer/.venv/
-Dependencies/picomemo/picomemo/
+# No trailing slash, and the same reason as Dependencies/webrtc/.gitignore gives: with one
+# this matches only a directory, so a symbolic link put here to let a second worktree build
+# without fetching again slips past, gets committed, and overwrites the real checkout with a
+# link to itself on the next merge. That happened to both of them.
+Dependencies/picomemo/picomemo
+
+# Python leaves these beside frameworkize.py and its test
+__pycache__/

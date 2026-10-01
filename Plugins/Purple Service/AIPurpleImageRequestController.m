@@ -71,7 +71,7 @@
 	[controller buildPanelWithTitle:title primary:primary secondary:secondary
 							 okText:okText cancelText:cancelText];
 
-	//Retained until the panel closes
+	//+1 (new family, see the header): the caller hands it to libpurple as the ui_handle
 	return controller;
 }
 
@@ -114,7 +114,7 @@
 						gsize size = purple_request_field_image_get_size(field);
 						if (buffer && size > 0) {
 							NSData *data = [NSData dataWithBytes:buffer length:size];
-							image = [[[NSImage alloc] initWithData:data] autorelease];
+							image = [[NSImage alloc] initWithData:data];
 						}
 					}
 					break;
@@ -128,13 +128,13 @@
 	//Layout, bottom-up: buttons, pairing code, image, text
 	CGFloat y = MARGIN;
 
-	NSButton *cancelButton = [[[NSButton alloc] initWithFrame:NSMakeRect(MARGIN, y, 120, 32)] autorelease];
+	NSButton *cancelButton = [[NSButton alloc] initWithFrame:NSMakeRect(MARGIN, y, 120, 32)];
 	[cancelButton setBezelStyle:NSBezelStyleRounded];
 	[cancelButton setTitle:(cancelText ? cancelText : @"Cancel")];
 	[cancelButton setTarget:self];
 	[cancelButton setAction:@selector(cancelPressed:)];
 
-	NSButton *okButton = [[[NSButton alloc] initWithFrame:NSMakeRect(PANEL_WIDTH - MARGIN - 120, y, 120, 32)] autorelease];
+	NSButton *okButton = [[NSButton alloc] initWithFrame:NSMakeRect(PANEL_WIDTH - MARGIN - 120, y, 120, 32)];
 	[okButton setBezelStyle:NSBezelStyleRounded];
 	[okButton setTitle:(okText ? okText : @"OK")];
 	[okButton setTarget:self];
@@ -145,7 +145,7 @@
 
 	NSTextField *codeField = nil;
 	if (pairingCode) {
-		codeField = [[[NSTextField alloc] initWithFrame:NSMakeRect(MARGIN, y, PANEL_WIDTH - 2 * MARGIN, 40)] autorelease];
+		codeField = [[NSTextField alloc] initWithFrame:NSMakeRect(MARGIN, y, PANEL_WIDTH - 2 * MARGIN, 40)];
 		[codeField setStringValue:pairingCode];
 		[codeField setFont:[NSFont monospacedSystemFontOfSize:28.0f weight:NSFontWeightBold]];
 		[codeField setAlignment:NSTextAlignmentCenter];
@@ -158,14 +158,14 @@
 
 	NSImageView *imageView = nil;
 	if (image) {
-		imageView = [[[NSImageView alloc] initWithFrame:NSMakeRect((PANEL_WIDTH - IMAGE_SIDE) / 2.0f, y, IMAGE_SIDE, IMAGE_SIDE)] autorelease];
+		imageView = [[NSImageView alloc] initWithFrame:NSMakeRect((PANEL_WIDTH - IMAGE_SIDE) / 2.0f, y, IMAGE_SIDE, IMAGE_SIDE)];
 		[imageView setImage:image];
 		[imageView setImageScaling:NSImageScaleProportionallyUpOrDown];
 		if (imageTooltip) [imageView setToolTip:imageTooltip];
 		y += IMAGE_SIDE + MARGIN;
 	}
 
-	NSTextField *textField = [[[NSTextField alloc] initWithFrame:NSMakeRect(MARGIN, y, PANEL_WIDTH - 2 * MARGIN, 10)] autorelease];
+	NSTextField *textField = [[NSTextField alloc] initWithFrame:NSMakeRect(MARGIN, y, PANEL_WIDTH - 2 * MARGIN, 10)];
 	[textField setStringValue:infoText];
 	[textField setEditable:NO];
 	[textField setSelectable:YES];
@@ -205,8 +205,11 @@
 		((PurpleRequestFieldsCb)cb)(userData, fields);
 	}
 
-	//Tell libpurple this request is finished; it will call back to close us
-	purple_request_close(PURPLE_REQUEST_FIELDS, self);
+	/* Tell libpurple this request is finished; it will call back to close us. self goes across as
+	 * the ui_handle it already knows, a lookup key and nothing more: libpurple holds the +1 the
+	 * manual creator gave it, and -purpleRequestClose, reached from inside this call, is where
+	 * that +1 is consumed. */
+	purple_request_close(PURPLE_REQUEST_FIELDS, (__bridge void *)self);
 }
 
 - (void)okPressed:(id)sender
@@ -226,14 +229,22 @@
 	return NO;	//purple_request_close triggers purpleRequestClose, which closes us
 }
 
-//Called (via adiumPurpleRequestClose) when libpurple closes this request
+/*!
+ * @brief Called (via adiumPurpleRequestClose) when libpurple closes this request
+ *
+ * The instance is the request's ui_handle. adiumPurpleRequest.m (manual counting) keeps the +1
+ * that +showImageRequestWithTitle:... returns and hands it to libpurple, which gives it back
+ * through adiumPurpleRequestClose, the sender of this message. Under manual counting this was
+ * [self autorelease]; the CFAutorelease acts on the count outside ARC's view exactly as that did.
+ */
 - (void)purpleRequestClose
 {
 	callbackInvoked = YES;	//No callbacks once purple has torn the request down
 	[panel setDelegate:nil];
 	[panel orderOut:nil];
-	[panel release]; panel = nil;
-	[self autorelease];
+	panel = nil;
+	//The +1 from adiumPurpleRequest.m; see above
+	CFAutorelease((__bridge CFTypeRef)self);
 }
 
 @end

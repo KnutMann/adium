@@ -115,7 +115,7 @@ typedef unsigned long guintptr;
 
 #define GLIB_MAJOR_VERSION 2
 #define GLIB_MINOR_VERSION 88
-#define GLIB_MICRO_VERSION 2
+#define GLIB_MICRO_VERSION 3
 
 #define G_OS_UNIX
 

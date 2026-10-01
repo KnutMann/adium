@@ -44,26 +44,23 @@ text_received_cb(PurpleConnection *gc, char **text, gpointer this)
 	if (!text || !*text)
 		return;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		/* Identity only: the user data handed to purple_signal_connect carries no
+		 * reference, see -showWindow:. */
+		AIIRCConsoleController *self = (__bridge AIIRCConsoleController *)this;
 
-	AIIRCConsoleController *self = (AIIRCConsoleController *)this;
+		if (!this || [self gc] != gc)
+			return;
 
-	if (!this || [self gc] != gc) {
-		[pool release];
-		return;
+		//The server may send anything; salvage whatever is not valid UTF-8
+		char *salvaged = purple_utf8_salvage(*text);
+		NSString *sstr = [[NSString stringWithUTF8String:salvaged] stringByAppendingString:@"\n"];
+		g_free(salvaged);
+
+		NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
+																   attributes:AIConsoleAttributes(NO)];
+		[self appendToLog:astr];
 	}
-
-	//The server may send anything; salvage whatever is not valid UTF-8
-	char *salvaged = purple_utf8_salvage(*text);
-	NSString *sstr = [[NSString stringWithUTF8String:salvaged] stringByAppendingString:@"\n"];
-	g_free(salvaged);
-
-	NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
-															   attributes:AIConsoleAttributes(NO)];
-	[self appendToLog:astr];
-	[astr release];
-
-	[pool release];
 }
 
 static void
@@ -72,34 +69,27 @@ text_sent_cb(PurpleConnection *gc, char **text, gpointer this)
 	if (!text || !*text)
 		return;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
+		AIIRCConsoleController *self = (__bridge AIIRCConsoleController *)this;
 
-	AIIRCConsoleController *self = (AIIRCConsoleController *)this;
+		if (!this || [self gc] != gc)
+			return;
 
-	if (!this || [self gc] != gc) {
-		[pool release];
-		return;
+		char *salvaged = purple_utf8_salvage(*text);
+		//Sent lines already carry their line ending
+		NSString *sstr = [NSString stringWithUTF8String:salvaged];
+		g_free(salvaged);
+
+		NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
+																   attributes:AIConsoleAttributes(YES)];
+		[self appendToLog:astr];
 	}
-
-	char *salvaged = purple_utf8_salvage(*text);
-	//Sent lines already carry their line ending
-	NSString *sstr = [NSString stringWithUTF8String:salvaged];
-	g_free(salvaged);
-
-	NSAttributedString *astr = [[NSAttributedString alloc] initWithString:sstr
-															   attributes:AIConsoleAttributes(YES)];
-	[self appendToLog:astr];
-	[astr release];
-
-	[pool release];
 }
 
 @implementation AIIRCConsoleController
 
 - (void)dealloc {
-    purple_signals_disconnect_by_handle(self);
-
-    [super dealloc];
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 }
 
 - (IBAction)sendXML:(id)sender {
@@ -152,10 +142,14 @@ text_sent_cb(PurpleConnection *gc, char **text, gpointer this)
 			PurplePlugin *prpl = purple_find_prpl(prplIDs[i]);
 			if (!prpl) continue;
 
-			purple_signal_connect(prpl, "irc-receiving-text", self,
-								  PURPLE_CALLBACK(text_received_cb), self);
-			purple_signal_connect(prpl, "irc-sending-text", self,
-								  PURPLE_CALLBACK(text_sent_cb), self);
+			/* The handle and the user data are this object's identity, not a reference:
+			 * libpurple compares the handle and never dereferences it, and the callbacks
+			 * only run while connected. Disconnected in -windowWillClose: and again in
+			 * -dealloc, both synchronous, so neither can fire on a freed object. */
+			purple_signal_connect(prpl, "irc-receiving-text", (__bridge void *)self,
+								  PURPLE_CALLBACK(text_received_cb), (__bridge void *)self);
+			purple_signal_connect(prpl, "irc-sending-text", (__bridge void *)self,
+								  PURPLE_CALLBACK(text_sent_cb), (__bridge void *)self);
 			found = YES;
 		}
 
@@ -168,10 +162,14 @@ text_sent_cb(PurpleConnection *gc, char **text, gpointer this)
 
 - (void)windowWillClose:(NSNotification *)notification
 {
+	/* Letting go from inside the window's own close is safe only because the window is still
+	 * held elsewhere: the nib says releasedWhenClosed NO, and the loader's unowned +1 on it is
+	 * never consumed (a leak per opening, carried over from manual counting). Whoever consumes
+	 * that +1 in a dealloc must defer this line to the pool, or the window dies mid close. */
 	xmlConsoleWindow = nil;
 
 	//We don't need to watch the signals with the window closed
-	purple_signals_disconnect_by_handle(self);
+	purple_signals_disconnect_by_handle((__bridge void *)self);
 }
 
 - (void)close

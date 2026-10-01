@@ -19,7 +19,7 @@
 @protocol AMPurpleJabberAdHocServerDelegate;
 
 @interface AMPurpleJabberAdHocServer : NSObject {
-	ESPurpleJabberAccount *account;
+	__unsafe_unretained ESPurpleJabberAccount *account; //Not retained: the account owns this object
 	NSMutableDictionary *commands;
 }
 

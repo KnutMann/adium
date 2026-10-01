@@ -104,7 +104,8 @@ static NSString *bookmarks_room_jid(AIListBookmark *bookmark)
 
 static AIListBookmark *bookmarks_find(CBPurpleAccount *account, NSString *roomJid)
 {
-	for (AIListBookmark *bookmark in adium.contactController.allBookmarks) {
+	NSArray *bookmarks = adium.contactController.allBookmarks;	//a fresh copy; held for the loop
+	for (AIListBookmark *bookmark in bookmarks) {
 		if (bookmark.account == account && [bookmarks_room_jid(bookmark) isEqualToString:roomJid])
 			return bookmark;
 	}
@@ -312,7 +313,8 @@ static void bookmarks_apply_fetch(PurpleConnection *gc, xmlnode *items)
 	 * one made while offline. Up they go. A room deleted on another device while Adium
 	 * was offline comes back this way; live retractions are handled as they happen, but
 	 * absence in a fetch cannot be told apart from never-published. */
-	for (AIListBookmark *bookmark in adium.contactController.allBookmarks) {
+	NSArray *bookmarks = adium.contactController.allBookmarks;	//a fresh copy; held for the loop
+	for (AIListBookmark *bookmark in bookmarks) {
 		if (bookmark.account != account)
 			continue;
 		NSString *roomJid = bookmarks_room_jid(bookmark);

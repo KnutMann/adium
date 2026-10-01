@@ -14,6 +14,15 @@ TESTS = [('/opt/local/lib/libapr-1.0.dylib'   , ('libapr', '1.0')),
          ('/opt/svn/lib/libsvn_subr-1.0.dylib'  , ('libsvn_subr', '1.0')),
          ('/opt/svn/lib/libsvn_wc-1.0.dylib'  , ('libsvn_wc', '1.0')),
          ('/opt/local/lib/libintl.dylib'    , ('libintl', 'A')),
+         # The three the bundle addresses by another name. See
+         # FRAMEWORK_NAME_OVERRIDES: the file name carries the library's own
+         # number, the framework the application links has always been a
+         # Versions/A, and the name Adium.xcodeproj asks for has no hyphen in it.
+         ('/opt/local/lib/libotr.5.dylib'     , ('libotr', 'A')),
+         ('/opt/local/lib/libgcrypt.20.dylib'   , ('libgcrypt', 'A')),
+         ('/opt/local/lib/libgpg-error.0.dylib' , ('libgpgerror', 'A')),
+         # And still so after the numbers move.
+         ('/opt/local/lib/libgcrypt.21.dylib'   , ('libgcrypt', 'A')),
         ]
 
 

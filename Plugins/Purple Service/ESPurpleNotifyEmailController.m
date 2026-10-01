@@ -58,8 +58,8 @@
 	titleAttributes = [NSDictionary dictionaryWithObjectsAndKeys:titleFont,NSFontAttributeName,
 		centeredParagraphStyle,NSParagraphStyleAttributeName,nil];
 	
-	[message appendAttributedString:[[[NSAttributedString alloc] initWithString:title
-																	 attributes:titleAttributes] autorelease]];
+	[message appendAttributedString:[[NSAttributedString alloc] initWithString:title
+																	attributes:titleAttributes]];
 	
 	//Message
 	NSString		*numberMessage;
@@ -88,8 +88,8 @@
 	numberMessageAttributes = [NSDictionary dictionaryWithObjectsAndKeys:messageFont,NSFontAttributeName,
 		centeredParagraphStyle,NSParagraphStyleAttributeName,nil];
 	
-	[message appendAttributedString:[[[NSAttributedString alloc] initWithString:numberMessage
-																	 attributes:numberMessageAttributes] autorelease]];
+	[message appendAttributedString:[[NSAttributedString alloc] initWithString:numberMessage
+																	attributes:numberMessageAttributes]];
 	
 	if (count == 1) {
 		BOOL	haveFroms    = (froms    != NULL);
@@ -110,10 +110,10 @@
 			if (haveFroms) {
 				NSString	*fromString = [NSString stringWithUTF8String:(*froms)];
 				if (fromString && [fromString length]) {
-					[message appendAttributedString:[[[NSAttributedString alloc] initWithString:AILocalizedString(@"From: ",nil)
-																					 attributes:fieldAttributed] autorelease]];
-					[message appendAttributedString:[[[NSAttributedString alloc] initWithString:fromString
-																					 attributes:infoAttributed] autorelease]];
+					[message appendAttributedString:[[NSAttributedString alloc] initWithString:AILocalizedString(@"From: ",nil)
+																					attributes:fieldAttributed]];
+					[message appendAttributedString:[[NSAttributedString alloc] initWithString:fromString
+																					attributes:infoAttributed]];
 				}
 			}
 			
@@ -124,11 +124,11 @@
 			if (haveSubjects) {
 				NSString	*subjectString = [NSString stringWithUTF8String:(*subjects)];
 				if (subjectString && [subjectString length]) {
-					[message appendAttributedString:[[[NSAttributedString alloc] initWithString:AILocalizedString(@"Subject: ",nil)
-																					 attributes:fieldAttributed] autorelease]];
+					[message appendAttributedString:[[NSAttributedString alloc] initWithString:AILocalizedString(@"Subject: ",nil)
+																					attributes:fieldAttributed]];
 					AILog(@"%@: %@ appending %@",self,message,subjectString);
-					[message appendAttributedString:[[[NSAttributedString alloc] initWithString:subjectString
-																					 attributes:infoAttributed] autorelease]];				
+					[message appendAttributedString:[[NSAttributedString alloc] initWithString:subjectString
+																					attributes:infoAttributed]];
 				} else {
 					AILog(@"Got an invalid subjectString from %s",*subjects);
 				}
@@ -145,14 +145,15 @@
 		[infoDict setObject:urlString forKey:@"URL"];
 	}
 	
+	/* The hop retains its arguments (an NSInvocation behind it), and the URL then lives in the
+	 * text-and-buttons window's userInfo until a button hands it back below. */
 	[self mainPerformSelector:@selector(showNotifyEmailWindowForAccount:withMessage:URLString:)
 				   withObject:account
 				   withObject:message
 				   withObject:(urlString ? urlString : nil)];
 
-	[centeredParagraphStyle release];
-	[message release];
-	
+	/* No ui_handle: the window owns itself while shown, so libpurple gets nothing to
+	 * give back and its close callback is never reached for a mail notification. */
 	return NULL;
 }
 

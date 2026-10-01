@@ -31,7 +31,7 @@
  * nothing rings a second time.
  */
 @interface AMPurpleJabberMAM : NSObject {
-	ESPurpleJabberAccount	*account;
+	__unsafe_unretained ESPurpleJabberAccount	*account;	//Not retained: the account owns this object, and lets it go on disconnect
 	BOOL					 available;
 	NSString				*flavour;	//which urn:xmpp:mam the server and we have settled on
 	NSMutableArray			*untried;	//older ones to fall back to when a query goes wrong

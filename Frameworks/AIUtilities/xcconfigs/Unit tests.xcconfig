@@ -1,8 +1,23 @@
 GCC_PREFIX_HEADER = UnitTests/UnitTests_Prefix.pch
 INFOPLIST_FILE = Plists/UnitTests/Info.plist
 PRODUCT_NAME = Unit tests
-FRAMEWORK_SEARCH_PATHS = $(value) $(DEVELOPER_FRAMEWORKS_DIR_QUOTED)
+PRODUCT_BUNDLE_IDENTIFIER = im.adium.UnitTests
+// XCTest.framework lives in the platform's developer frameworks, not in $(DEVELOPER_FRAMEWORKS_DIR) where SenTestingKit once was.
+FRAMEWORK_SEARCH_PATHS = $(inherited) "$(PLATFORM_DIR)/Developer/Library/Frameworks"
 GCC_PRECOMPILE_PREFIX_HEADER = YES
-WRAPPER_EXTENSION = octest
+WRAPPER_EXTENSION = xctest
 LD_RUNPATH_SEARCH_PATHS = @loader_path/../Frameworks
 INSTALL_PATH = $(USER_LIBRARY_DIR)/Bundles
+
+// Automatic reference counting, for every Objective-C file this target compiles.
+//
+// It used to be a -fobjc-arc on each file in the project, 574 of them across this project
+// and AIUtilities, which is how the conversion was carried out: one file at a time, so
+// that a file that was not converted yet kept counting by hand. That is over. Every
+// Objective-C source in both projects was converted, no file is excluded, and a flag
+// repeated 574 times only hides the next file somebody adds without it.
+//
+// The two C files here, ssl.c and ssl-cdsa.c, are not affected; ARC is an Objective-C
+// setting. AutoHyperlinks is a separate project, uses no xcconfig, and still counts by
+// hand, so nothing here reaches it.
+CLANG_ENABLE_OBJC_ARC = YES

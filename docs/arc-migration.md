@@ -60,17 +60,19 @@ file compiles, and every object it used to own is left dangling. Do both in one 
   automatic.** Where `__block __typeof__(self) bself = self` was the trick for getting into a block
   without an ownership cycle, it silently becomes the cycle.
 
-## What stays behind
+## What stayed behind, and for how long
 
-Two subsystems are meant to remain manual, and their build files should say so with an explicit
-`-fno-objc-arc` rather than relying on the absence of a flag:
+Two subsystems were meant to remain manual, and both reasons were good ones at the time:
 
-- **Plugins/Purple Service.** Objects are handed to libpurple through `void *ui_data` under three
-  different ownership conventions that coexist on purpose. Reference counting cannot see any of
-  them, and confusing two is a double free.
-- **Plugins/Bonjour, including libezv.** `-dealloc` hands a dying object across into the account
-  layer. The moment the receiving side counts references it retains something that is already going
-  away, which ends the process.
+- **Plugins/Purple Service.** Objects are handed to libpurple through `void *ui_data` under several
+  ownership conventions that coexist on purpose. Reference counting cannot see any of them, and confusing
+  two is a double free. That held until rounds four to seven, which wrote the conventions down first (see
+  those sections) and converted the service to them.
+- **Plugins/Bonjour, including libezv.** `-dealloc` handed a dying object across into the account layer,
+  and a counted receiver would have retained something already going away. That plugin is gone; the
+  protocol is libpurple's own now.
+
+Nothing is left manual. The flags that once marked the exceptions are gone with them.
 
 ## Order
 
@@ -105,19 +107,17 @@ sharedInstance = nil;
 Measured: a bare `static = nil` deallocates before the next statement, and the pair above survives
 until the pool drains, which is exactly what the autorelease did.
 
-## The one file left alone
+## The file that was left alone, and then was not
 
-`Frameworks/AIUtilities/Source/ISO8601DateFormatter.m` stays manual, and on purpose.
-
-It is compiled by two targets from one file reference: the framework and the Spotlight importer. The
-source is shared, so it cannot be counted for one and not the other, and converting it converts a
-second binary along with it. Inside, the parser reads a `const unichar *` obtained from
-`-cStringUsingEncoding:` and walks it for four hundred lines. That is exactly the shape where a
-shortened lifetime produces a fault that appears sometimes, on some inputs, with no diagnostic
-anywhere.
-
-Eighty-six of the framework's eighty-seven files are converted. This one is worth less than the
-afternoon it would take to be sure about.
+`Frameworks/AIUtilities/Source/ISO8601DateFormatter.m` stayed manual through the first rounds, on
+purpose: it is compiled by two targets from one file reference, the framework and the Spotlight
+importer, and its parser walks a `const unichar *` from `-cStringUsingEncoding:` for four hundred
+lines, which looked like the shape where a shortened lifetime produces a fault that appears
+sometimes. Round six read it properly: `-cStringUsingEncoding:` is declared to return an inner
+pointer, so the compiler retains and autoreleases its receiver, the receiver is a method parameter
+held for the whole method anyway, and the pointer lives until the pool drains, which is what it
+did under manual counting. Converted, with the comment at the call, and the flag on both build
+files.
 
 ## Batch 1 of the main project (this session)
 
@@ -221,15 +221,184 @@ paths), and five more agents reviewed the diffs against every caller. What recur
   load site would free the menu mid-tracking. A fix has to hold the top level objects and release
   them in a restored dealloc.
 
+## Round four: the Purple service, the files that never touch the boundary
+
+The service was named above as the one part meant to stay manual, and the reason still holds
+for the part that hands objects to libpurple as `void *`. It does not hold for the other part.
+A scan of the seventy files for `ui_data`, `ui_handle`, `user_data`, `(void *)`, `gpointer`
+and bridging casts split them 41 to 29; the 41 (services, accounts that subclass the manual
+CBPurpleAccount, join-chat panes, account plans, the XMPP helpers for forms, ad-hoc commands
+and service discovery, four callback tables that own nothing) were converted the way rounds
+two and three were, five converters and four reviewers, each converter told to stop on any
+file where an object crosses after all. Four did cross and stayed manual: the request window
+controllers, whose instance is the request's `ui_handle`, created at +1 by manual code and
+consumed by their own `[self release]` when libpurple closes the request. The subclass
+AMPurpleRequestFieldsController converted regardless, since the +1 is created and consumed
+entirely in the manual code around it; its own self-retain, for the time the form is open,
+became a static set with the pool deferral at the exit, as the precedents have it.
+
+What this round taught:
+
+- **A helper that was never freed can have a dealloc nobody ever ran.** The MAM helper
+  disconnected its libpurple signal handler by a file-static handle shared by every instance;
+  under manual counting the account dropped it without a release, so the dealloc never ran and
+  the leak hid the bug. Counted, the old instance dies on every reconnect and its dealloc would
+  have disconnected the new instance's handler and every other account's. The handle is the
+  instance now. Read the dealloc of anything a conversion makes mortal for the first time.
+- **A helper that holds its owner is a cycle the moment both sides count.** The same helper
+  held its account in a plain ivar, retained since the helper's own conversion in an earlier
+  batch, harmless only while the account never released it. Unsafe unretained, with the
+  comment, and the account lets it go on disconnect like its siblings. Three more helpers
+  (ad-hoc server, HTTP upload, external services) carry the same unqualified back-pointer and
+  are harmless only while they stay manual; qualify them the day they convert.
+- **An interior pointer returned from a method is fine.** `return [temporary UTF8String]`
+  looks like it hands out a pointer into an object that dies at the return; it does not, because
+  `objc_returns_inner_pointer` makes the compiler retain and autorelease the receiver, which the
+  IR shows. Same lifetime the autorelease had.
+- **`NSString **` out-parameters must agree across the seam.** An ARC subclass overriding a
+  manual superclass's `(NSString **)` method needs `NSString * __strong *` to match the counted
+  declaration further up; the bare form reads as autoreleasing under ARC.
+- **A method that returns +1 under an ordinary name needs the attribute on the declaration,
+  not the definition.** `authorizationRequestWithDict:` carries `ns_returns_retained` in the
+  header, so the counted override inherits it and passes the manual +1 through untouched.
+
+Found while reading, and left for their own commits: a request window the user closes is not
+closed in libpurple (the adapter compares the wrong handle), so it lives until the account
+disconnects, as it always did; the authorization request dictionary leaks once per answered
+request in manual CBPurpleAccount; the form generator never frees what xmlnode_get_data hands
+it. A join-chat pane held itself through a text field's drag delegate since the AIUtilities
+round; that one is fixed here, the delegate is unsafe unretained and the pane clears it.
+
+## Round five: the Purple service files that hand `self` to libpurple
+
+Fifteen files whose objects cross into libpurple as `void *`, converted with the crossing made
+explicit rather than avoided. Two shapes covered all of them. A signal handle or callback
+user_data that the object itself disconnects on every exit is identity, `(__bridge void *)self`
+both ways, no ownership at all: the consoles, the ad-hoc server, the discovery node, the HTTP
+upload and the external services helpers. A request or notification `ui_handle` is a +1 that a
+manual creator made with alloc/init and never released, given back through a manual callback
+that casts it to `id`: the consuming `[self release]` is `CFRelease((__bridge CFTypeRef)self)`
+and the consuming `[self autorelease]` is `CFAutorelease((__bridge CFTypeRef)self)`, acting on
+the count outside the compiler's view exactly as the message did, with no CFBridgingRetain on
+the counted side, since the creator stays manual and already hands +1. The abstract request
+window controller carries the single consumption for its whole family.
+
+What this round taught:
+
+- **A factory returning a handle needs its family spelled out.** `+showImageRequestWithTitle:`
+  lacked the `objc_method_family(new)` its siblings had; counted, it would have returned +0,
+  the manual creator's pool would have drained it, and libpurple would have held a freed pointer
+  until the pairing dialog closed. The attribute goes on the declaration.
+- **Two consumers need two references, and the count has to be read at the consumer.** The
+  notification adapter sends `purpleRequestClose` and then releases the handle a second time;
+  the manual init's `return [self retain]` fed that. Counted, the init keeps a `CFRetain` of
+  its own with a comment naming both consumers. The cleaner shape, one reference and one
+  consumer, is a change to the manual adapter and waits for its own commit.
+- **A self-retain that nothing ever gave back** (the certificate viewer) was a leak, not a
+  scheme; counted, the object dies when its work is done, which also showed that its sheet has
+  been unreachable since the account editor was rebuilt.
+- **Read what runs inside a signal emission.** A helper freed inside libpurple's emission of the
+  signal it is connected to unlinks a handler mid-walk; libpurple saves the next link before each
+  callback, and newer handlers of equal priority sort before older ones, so in the one such place
+  here (a replaced commands node) the freed handler has already been visited. The deferral to
+  the next run loop turn stays as a guard, with a comment that says why it is only that.
+- **A window let go from inside its own close** survives only while something else holds it.
+  The console windows lean on the nib's unconsumed +1 and `releasedWhenClosed` NO; the line
+  that lets go says so, for whoever consumes that +1 one day.
+
+Found while reading and left for their own commits: the wrong-handle close (a user-closed
+request lives until disconnect), the notification adapter's second release, the helpers that
+can die off the main thread or outlive their account (HTTP upload, external services), a
+discovery browser that never removes itself as a node delegate, the leaked console windows,
+and "Show Server Certificate", which shows nothing. Fixed here because the file was open: the
+search results window read a freed ivar after libpurple closed it.
+
+## Round six: the leftovers outside the core
+
+Seven files in AIUtilities that no round had taken (the date formatter above, the Spotlight
+importer's three metadata files and its test application, the AppleScript runner) and the unit
+test target, which had been dead since SenTestingKit stopped shipping. Two agents, one each.
+
+What the importer taught: a C function named `Copy...` returns +1 by the Core Foundation rule,
+and an ARC caller elsewhere (the logger plugin) was already consuming it that way with a
+`NS_RETURNS_RETAINED` prototype of its own. Converted, the definitions carry the attribute too,
+so the object files end in a plain return and not in an autorelease; the IR shows it. And a CF
+type cast straight from a method result, `CFStringRef x = (CFStringRef)[url pathExtension]`, is
+released at the end of its statement under ARC, so the two compares after it read a freed string;
+held in a strong local now. The AppleScript runner's `__block id blockTarget = [target retain]`
+with a release inside the main-queue block was the scheme that puts the last release of a text
+view on the main thread; counted, the byref slot is the claim and the nil store inside the block
+is the release, same thread, as the round-three precedent has it.
+
+The tests: `SenTestCase` to `XCTestCase`, the macros to their XCTest names, floats compared with a
+named tolerance, ranges with `NSEqualRanges`, identities with `XCTAssertIdentical`; the product
+an `.xctest` bundle that links XCTest and, for the first time, the framework it tests. `xcrun
+xctest` runs the bundle without a host: 356 tests, 44 failures, none from the migration. Forty
+are the colour category converting through generic RGB while the system colours are sRGB now, a
+decision for the category; one is an AppleScript term that only Adium's own process knows.
+
+## Round seven: the core of the Purple service
+
+The eighteen files the playbook had kept manual since the beginning: the account class every protocol
+subclasses, the adapter that is the hub between Adium and libpurple, and the callback tables libpurple
+calls. They store Objective-C objects in libpurple structs and hand them to C functions, which is why
+they were left, and the reason held only until somebody wrote down what each crossing actually does.
+
+That is how the round began: an inventory before a single line changed. Three readers went through every
+`ui_data` store, every `user_data`, every handle and every cast, in these files and in libpurple's own
+sources, and wrote down for each one who takes the reference, who gives it back, and what guarantees the
+object outlives the C pointer. It came to four conventions, not the three the old note claimed:
+
+- **a slot in a libpurple struct owns a reference** (the account, the contact, the conversation, the file
+  transfer): `slot = (__bridge_retained void *)object;` to store, `(__bridge X *)slot` to read, and
+  `CFRelease(slot); slot = NULL;` in the destroy or remove op that gives it back;
+- **a window controller handed over as a request or notification handle owns one too**: the op returns
+  `(__bridge_retained void *)controller`, the close op reads it borrowed, and the controller consumes its
+  own reference;
+- **an object travelling as an unretained context** (the account inside a request, a registration
+  callback): `(__bridge void *)` out, `(__bridge X *)` back, and a comment naming what keeps it alive;
+- **a C pointer in an NSValue** changes no ownership at all and stays exactly as it was.
+
+The five converters worked to that one vocabulary, which mattered: six references are stored in one file
+and given back in another, by different hands, and a mismatch would have been a double free.
+
+What the round taught, beyond the conventions:
+
+- **`[nil release]` was a no-op and `CFRelease(NULL)` is a trap.** Every place the manual code could
+  release an empty slot without thinking needed a guard. Three were added, and one of them, the
+  authorization request's close, removes a crash that was already reachable: a blocked contact, and
+  equally an automatically answered Jabber request, left libpurple holding a record with a null handle,
+  and the next disconnect released it.
+- **Counting the references is what finds the leak.** The authorization dictionary carried two of them
+  across the boundary and the close gave two back, so the two close paths balanced by accident while the
+  answered path leaked both. One reference, one consumer: the conversion halves that leak to the one
+  libpurple never asks for back, which stays for a later commit.
+- **An attribute on a declaration is inherited by the implementation, and by an override that does not
+  repeat it.** `ns_consumed` and `ns_returns_retained` decide what a counted caller does at the call site,
+  so the same attribute means different work depending on whether the caller counts. Measured in the
+  compiler's own output rather than argued.
+- **A method whose body is now a `CFRelease` must guard itself,** not rely on its one caller to do it.
+  A file transfer the protocol made for itself never had a reference to give back.
+- **A borrowed read of a slot retains under counting.** A stale slot that manual code only crashed on at
+  first use now crashes at the read, which is why every consumer nulls its slot and why that was checked
+  on every path.
+
+Left as it was found, and stated so nobody mistakes it for conversion damage: a user-closed request is
+never closed in libpurple, because the adapter compares the wrong handle, so it lives until the account
+disconnects; request fields are never destroyed; a conversation with somebody not on the roster makes a
+buddy structure nobody owns; the answered authorization path still leaks its one reference.
+
 ## Where this stands, and what waits
 
-`Source/`, `Frameworks/Adium/Source`, AIUtilities (but for its deliberate exception), AutoHyperlinks
-and every plugin but one count automatically. The Purple service stays manual on purpose, and its
-seventy build files now say so with `-fno-objc-arc`, as does the date formatter in AIUtilities;
-sixteen files inside the service that were written counted (the Jingle, OMEMO and MAM code) keep
-their flag. The Bonjour plugin named above as the second deliberate exception no longer exists; the
-protocol is libpurple's now. Left over and not worth a round: the Spotlight importer and the two
-helper tools in AIUtilities, and the unit test target.
+Everything counts automatically. `Source/`, `Frameworks/Adium/Source`, all of AIUtilities with its
+importer and tools, AutoHyperlinks, every plugin, the unit tests and all seventy files of the Purple
+service; not one `-fno-objc-arc` is left in either project, and the only file that ever earned the
+flag on purpose, the date formatter, earned it out of caution that did not survive reading.
+
+What remains is not conversion work. The faults the inventories found are listed at the end of the
+round they were found in, each with the file and the line; none of them is caused by counting, and
+each is a commit of its own. The Bonjour plugin named above as the second deliberate exception no longer exists; the
+protocol is libpurple's now. Nothing else is left over.
 
 Run any future round like the three before it: clusters, the playbook, central flag-flipping, the
 compiler pass, then the adversarial review, whose finding classes are all recorded above. Two

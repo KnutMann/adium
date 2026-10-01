@@ -304,11 +304,18 @@ build step, and there is one switch for it:
 
     ./install.sh --rebuild-dependencies
 
-which runs `Dependencies/build.sh` and `Dependencies/copy_frameworks.sh`
-for libpurple, glib, libotr and the rest, and
-`Dependencies/opus/build-opus.sh` for the codec, each from pinned
-sources, and overwrites the binaries in place. It needs a Homebrew
-toolchain and takes the better part of an hour.
+which runs `Dependencies/build.sh` twice, once for libpurple and glib and
+everything the bundle loads beside them and once for libotr, then
+`Dependencies/copy_frameworks.sh`, and `Dependencies/opus/build-opus.sh`
+for the codec. Every source is fetched from a pinned address and checked
+against a recorded SHA-256 before anything unpacks it, and the binaries
+under `Frameworks/` are overwritten in place.
+
+It needs autoconf, automake, libtool, pkg-config, meson, cmake and ninja
+on the path, which is what the Homebrew toolchain is for here, and it
+takes the better part of an hour. Sources fetched before the checksums
+existed carry no sum beside them, so the first run after updating to a
+revision that has them fetches all sixteen again.
 
 ## License
 
@@ -357,12 +364,12 @@ local change on top of them):
 | `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3, with **AGPL v3** parts statically linked in (see below) |
 | `PurplePlugins/libteams.so`, `libteams-personal.so` | [purple-teams](https://github.com/EionRobb/purple-teams) | `62f6fff` | GPL v3 |
 | `PurplePlugins/libircv3.so` | [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3) | `0e73297` | GPL v2 |
-| `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL 3](https://www.openssl.org), used by TDLib inside the Telegram plugin | Homebrew build | Apache 2.0 |
-| `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) | Homebrew build | BSD 3-Clause |
-| `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) | Homebrew build | libpng/zlib |
-| `Frameworks/libotr.framework` and friends | [libotr](https://otr.cypherpunks.ca), [libgcrypt](https://gnupg.org), [libgpg-error](https://gnupg.org), [gettext](https://www.gnu.org/software/gettext/) | Homebrew builds | GPL v2 / LGPL v2.1 |
-| `Frameworks/libpurple.framework`, `libglib.framework`, `libgio`, `libgobject`, `libgmodule`, `libgthread`, `libintl`, `libffi`, `libjson-glib` | [libpurple](https://pidgin.im) 2.14.14, [glib](https://gitlab.gnome.org/GNOME/glib) and what it needs | built by `Dependencies/build.sh` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
-| `Frameworks/libgdk_pixbuf-2.0.0.dylib`, `libjpeg.8.dylib` | [gdk-pixbuf](https://gitlab.gnome.org/GNOME/gdk-pixbuf), [libjpeg-turbo](https://libjpeg-turbo.org), loading the images libpurple hands around | Homebrew builds | LGPL v2.1 / BSD-style |
+| `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL](https://www.openssl.org) 3.5.9, used by TDLib inside the Telegram plugin and by picomemo | built by `Dependencies/build.sh` from the pinned source it fetches | Apache 2.0 |
+| `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) 1.6.0 | built by `Dependencies/build.sh` from the pinned source it fetches | BSD 3-Clause |
+| `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) 1.6.58 | built by `Dependencies/build.sh` from the pinned source it fetches | libpng/zlib |
+| `Frameworks/libotr.framework`, `libgcrypt.framework`, `libgpgerror.framework` | [libotr](https://otr.cypherpunks.ca) 4.1.1, [libgcrypt](https://gnupg.org) 1.12.4, [libgpg-error](https://gnupg.org) 1.61 | built by `Dependencies/build.sh --build-otr` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
+| `Frameworks/libpurple.framework`, `libglib.framework`, `libgio`, `libgobject`, `libgmodule`, `libgthread`, `libintl`, `libffi`, `libjson-glib` | [libpurple](https://pidgin.im) 2.14.14, [glib](https://gitlab.gnome.org/GNOME/glib) 2.88.3, [gettext](https://www.gnu.org/software/gettext/) 1.0, [libffi](https://sourceware.org/libffi/) 3.8.0, [json-glib](https://gitlab.gnome.org/GNOME/json-glib) 1.10.8 | built by `Dependencies/build.sh` from the pinned sources it fetches | GPL v2 / LGPL v2.1 |
+| `Frameworks/libgdk_pixbuf-2.0.0.dylib`, `libjpeg.8.dylib` | [gdk-pixbuf](https://gitlab.gnome.org/GNOME/gdk-pixbuf) 2.44.7, [libjpeg-turbo](https://libjpeg-turbo.org) 3.2.0, drawing the Signal linking code and decoding Telegram stickers | built by `Dependencies/build.sh` from the pinned sources it fetches | LGPL v2.1 / BSD-style |
 | `Frameworks/opus/lib/libopus.a`, `libogg.a`, `libopusfile.a` | [Opus](https://opus-codec.org) 1.5.2, [libogg](https://xiph.org/ogg/) 1.3.6, [opusfile](https://opus-codec.org) 0.12 | built by `Dependencies/opus/build-opus.sh`, tarballs pinned by SHA-256 | BSD 3-Clause |
 
 Of the three Xiph libraries, only the first two are linked into the

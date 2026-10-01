@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>libgcrypt</string>
+	<!-- rtool names every framework it makes after its own author's domain, which is
+	     what these two carried until this file existed. Nothing in Adium looks either
+	     bundle up by its identifier, so this is not load bearing, but the identifier
+	     is what codesign writes into the framework's signature inside the shipped
+	     application, and a library Adium ships should not be signed under a stranger's
+	     name. libpurple is the one framework here whose identifier is load bearing:
+	     adiumPurpleCore.m looks it up by name to find its message catalogues. -->
+	<key>CFBundleIdentifier</key>
+	<string>im.adium.libgcrypt</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<!-- install_framework_plist fills this in from LIBGCRYPT_VERSION in
+	     phases/build_otr.sh, so that the number in the bundle is the release the
+	     recipe fetched. Every version that was ever typed into one of these by hand
+	     had drifted by the time somebody looked. -->
+	<key>CFBundleShortVersionString</key>
+	<string>@FRAMEWORK_VERSION@</string>
+	<key>CFBundleVersion</key>
+	<string>@FRAMEWORK_VERSION@</string>
+</dict>
+</plist>

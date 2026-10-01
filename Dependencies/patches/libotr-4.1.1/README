@@ -1,0 +1,18 @@
+Two declarations in libotr's own headers say () where they mean (void).
+
+    src/instag.h        otrl_instag_t otrl_instag_get_new();
+    src/context_priv.h  ConnContextPriv *otrl_context_priv_new();
+
+In C an empty parameter list is not "no arguments", it is "unspecified", and clang
+has warned about it under -Wstrict-prototypes for years. Adium compiles with that
+warning on, and the headers travel in libotr.framework, so every source file that
+reaches one of them collects the warning: ten of them in a Release build, from five
+files that include <libotr/context.h>, which pulls both.
+
+The framework committed in this tree does not have the problem, because somebody
+edited the two lines in place after the framework was built. That edit is not in any
+recipe, so the first freshly built libotr.framework brought the warnings back. This
+patch is that edit, in a form the build applies by itself.
+
+libotr 4.1.1 is from 2016 and has had no release since, so this is not going to be
+fixed upstream and the patch is not going to stop applying.

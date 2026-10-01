@@ -30,13 +30,40 @@ def recursively_discover_all_dependencies(lib):
         libraries[dep] = 1
   return list(old_libraries.keys())
 
+# Three frameworks are addressed inside the application by names that are not the
+# ones their files carry, and have been for as long as the bundle has existed.
+#
+# The file name a GNU library installs holds the library's own number, not its
+# release: libgcrypt 1.12.4 installs libgcrypt.20.dylib, libotr 4.1.1 installs
+# libotr.5.dylib and libgpg-error 1.61 installs libgpg-error.0.dylib. Read
+# straight through, the rules below would name them libgcrypt.framework with a
+# Versions/20, libotr.framework with a Versions/5 and libgpg-error.framework with
+# a Versions/0. What the application links is libgcrypt.framework,
+# libgpgerror.framework and libotr.framework, every one of them with a Versions/A:
+# that is what Adium.xcodeproj names, what the load commands in the shipped
+# binaries name, and what every released Adium has carried.
+#
+# So the number is dropped here on purpose instead of being carried through. The
+# framework is pinned to Versions/A, which means a release that bumps a library
+# number moves nothing the application has to be told about. Going the other way,
+# renaming what the application links so that it follows the file name, would
+# break every bundle already built for no gain at all.
+#
+# The key is the name the rules below derive rather than the file name, so it
+# survives that bump too.
+FRAMEWORK_NAME_OVERRIDES = {
+  'libgpg-error': ('libgpgerror', 'A'),
+  'libgcrypt':    ('libgcrypt',   'A'),
+  'libotr':       ('libotr',      'A'),
+}
+
 def lib_path_to_framework_and_version(library_path):
   library_name = library_path.split('/')[-1]
   # check to see if it's a "versionless" library name
   match = re.match(r'[A-Za-z]*\.dylib', library_name)
   library_name = library_name.replace('.dylib','')
   if match:
-    return (library_name, 'A')
+    return FRAMEWORK_NAME_OVERRIDES.get(library_name, (library_name, 'A'))
   # Note: these styles are named after where I noticed them, not necessarily
   # where they originate. -RAF
   regexes = [r'([A-Za-z0-9_-]*)-([0-9\.]*)$', #apr style
@@ -46,8 +73,9 @@ def lib_path_to_framework_and_version(library_path):
   for regex in regexes:
     match = re.match(regex, library_name)
     if match:
-      return match.groups()
-  
+      name, version = match.groups()
+      return FRAMEWORK_NAME_OVERRIDES.get(name, (name, version))
+
   # If we get here, we need a new regex. Throw an exception.
   raise ValueError('Library ' + library_path + ' with name ' + library_name +
                    ' did not match any known format, please update the'

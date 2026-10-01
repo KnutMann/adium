@@ -37,10 +37,10 @@
 			 parentString:(NSString *)pInString
 				 andRange:(NSRange)inRange
 {
-	return [[[[self class] alloc] initWithString:inString
+	return [[[self class] alloc] initWithString:inString
 							withValidationStatus:status
 									parentString:pInString
-										andRange:inRange] autorelease];
+										andRange:inRange];
 }
 
 // one really big init method that does it all...
@@ -71,16 +71,6 @@ withValidationStatus:(AH_URI_VERIFICATION_STATUS)status
 	return self;
 }
 
-- (void)dealloc
-{
-	self.range = NSMakeRange(0, 0);
-	self.validationStatus = 0;
-	self.parentString = nil;
-	self.URL = nil;
-	
-	[super dealloc];
-}
-
 #pragma mark Transformers
 
 - (void)setURLFromString:(NSString *)inString
@@ -98,7 +88,6 @@ withValidationStatus:(AH_URI_VERIFICATION_STATUS)status
 		allowedWithoutHash = [set copy];
 		[set addCharactersInString:@"#"];
 		allowedWithHash = [set copy];
-		[set release];
 	}
 
 	NSString	*linkString, *preString;
@@ -113,7 +102,7 @@ withValidationStatus:(AH_URI_VERIFICATION_STATUS)status
 		NSRange fragmentRange = [linkString rangeOfString:@"%23"];
 		NSMutableString *mutaLinkString = nil;
 		if (fragmentRange.location != NSNotFound) {
-			mutaLinkString = [[linkString mutableCopy] autorelease];
+			mutaLinkString = [linkString mutableCopy];
 			[mutaLinkString replaceOccurrencesOfString:@"%23" withString:@"#" options:0 range:fragmentRange];
 		}
 		self.URL = [NSURL URLWithString:mutaLinkString];

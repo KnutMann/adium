@@ -32,7 +32,7 @@ enum AMPurpleJabberAdHocCommandNoteType {
 @class AMPurpleJabberAdHocServer, AMPurpleJabberFormGenerator;
 
 @interface AMPurpleJabberAdHocCommand : NSObject {
-	AMPurpleJabberAdHocServer *server;
+	__unsafe_unretained AMPurpleJabberAdHocServer *server; //The server that made this command; not retained, the account owns it
 	NSString *jid;
 	NSString *node;
 	NSString *iqid;

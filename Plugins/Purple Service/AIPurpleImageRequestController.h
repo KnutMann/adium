@@ -24,6 +24,10 @@
  * and the image (e.g. a WhatsApp login QR code) in a simple non-modal
  * panel. Used because the generic HTML-form based request controller
  * cannot handle image fields.
+ *
+ * The instance is the request's ui_handle. +showImageRequestWithTitle:... returns it at +1 (it is
+ * spelled as a new-family method for that, like its siblings); the request adapter hands that +1
+ * to libpurple, and -purpleRequestClose consumes it when libpurple gives it back.
  */
 @interface AIPurpleImageRequestController : NSObject {
 	NSPanel					*panel;
@@ -42,7 +46,7 @@
 									 okCb:(GCallback)okCb
 							   cancelText:(NSString *)cancelText
 								 cancelCb:(GCallback)cancelCb
-								 userData:(void *)userData;
+								 userData:(void *)userData __attribute__((objc_method_family(new)));
 
 - (void)purpleRequestClose;
 

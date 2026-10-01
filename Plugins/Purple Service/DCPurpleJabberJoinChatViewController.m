@@ -31,6 +31,12 @@
 
 @implementation DCPurpleJabberJoinChatViewController
 
+- (void)dealloc
+{
+	//The field's delegate is not retained; a field that outlived us would otherwise call into freed memory
+	[textField_inviteUsers setDragDelegate:nil];
+}
+
 - (id)init
 {
 	if ((self = [super init]))

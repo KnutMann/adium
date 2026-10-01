@@ -62,14 +62,13 @@ static NSRect AIDockedFrame(NSRect windowFrame, NSRect screenFrame);
 
 	return self;
 }
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	if ((self = [super initWithCoder:aDecoder])) {
-		[self _initDockingWindow];
-	}
-
-	return self;
-}
+/* There is no -initWithCoder: here, and there must not be. NSWindow declares it
+ * NS_UNAVAILABLE and its implementation raises for any keyed coder, which is what a
+ * compiled nib is. A window in a nib is not decoded: the archive holds an
+ * NSWindowTemplate carrying the class name, the frame, the style mask and the backing,
+ * and the template builds the window through -initWithContentRect:styleMask:backing:defer:
+ * above, which is where the docking is set up. (Checked: the compiled
+ * ContactListWindow.nib contains NSWindowTemplate with NSWindowClass AIDockingPanel.) */
 - (id)init
 {
 	if ((self = [super init])) {
@@ -260,14 +259,8 @@ static void AIDockingWindowDidMove(NSWindow *window, AIDockingState *state)
 	return self;
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder
-{
-	if ((self = [super initWithCoder:aDecoder]))
-		[self _initDockingPanel];
-
-	return self;
-}
-
+/* No -initWithCoder: for the same reason as above: the nib hands the panel's class name
+ * to an NSWindowTemplate, which calls the designated initialiser. */
 - (id)init
 {
 	if ((self = [super init]))

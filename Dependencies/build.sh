@@ -2,6 +2,9 @@
 
 source phases/utility.sh
 source phases/build_dependencies.sh
+source phases/build_libffi.sh
+source phases/build_images.sh
+source phases/build_openssl.sh
 source phases/build_otr.sh
 #source phases/build_vv_dependencies.sh
 source phases/build_purple.sh
@@ -37,6 +40,16 @@ DEVELOPER=$(xcode-select -print-path)
 SDK_ROOT="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
 MIN_OS_VERSION="12.0"
+
+# The same number again, as the environment variable clang reads when nobody hands it a
+# flag. The flags below only reach the packages that are configured with them, and the
+# minimum of a finished library is decided at the link, not at the compile: anything
+# whose link line we do not control - a meson subproject such as pcre2 or gvdb, a
+# nested build, a recipe that forgets to export LDFLAGS - would otherwise be stamped for
+# whatever macOS this machine happens to be running, and the application, built for
+# MIN_OS_VERSION, collects a linker warning for each one.
+export MACOSX_DEPLOYMENT_TARGET="$MIN_OS_VERSION"
+
 BASE_CFLAGS="-fstack-protector -isysroot $SDK_ROOT \
 	-mmacosx-version-min=$MIN_OS_VERSION \
 	-I$ROOTDIR/build/include \
@@ -175,13 +188,30 @@ if $STRAIGHT_TO_LIBPURPLE; then
 else
     # TODO: Make this parameterizable 
     build_pkgconfig $@
+    build_intltool $@
     build_gettext $@
+    # Before glib, always: glib looks libffi up through PKG_CONFIG_LIBDIR and, finding
+    # none, builds its own bundled copy instead of ours.
+    build_libffi $@
     build_glib $@
 
     if $BUILD_OTR; then
     	build_otr $@
     else
     	build_jsonglib $@
+
+    	# The libraries the bundled protocol plug-ins link. libpurple needs none of
+    	# them, which is why they sit here and not above: OpenSSL is tdlib-purple and
+    	# picomemo, the four image libraries are tdlib-purple's sticker decoding and
+    	# the QR code purple-presage draws when it links a Signal device. Until now
+    	# every one of them was a copy of a Homebrew bottle committed into
+    	# ../Frameworks by hand, stamped for the macOS of whichever Mac did the
+    	# copying, with no recipe anywhere that could reproduce it.
+    	build_openssl $@
+    	build_libpng $@
+    	build_libjpeg $@
+    	build_libwebp $@
+    	build_gdkpixbuf $@
 
     	#build_gstreamer $@
     	#build_farsight $@
@@ -198,7 +228,14 @@ fi
 
 make_framework $@
 
-#ugly.  gotta be a better way
-if [[ !$BUILD_OTR ]] ; then
+if ! $BUILD_OTR ; then
+	# The seven libraries that travel as bare dylibs rather than as frameworks.
+	# frameworkize.py walks libpurple's dependency graph and libpurple links none of
+	# them, so nothing above this line has touched them.
+	stage_bundled_dylibs
+
+	# This used to read [[ !$BUILD_OTR ]], which tests whether the string "!false" is
+	# empty and is therefore true either way. So the OTR build, which has no libpurple
+	# source to take them from, came here too.
 	make_po_files $@
 fi

@@ -20,7 +20,7 @@
 	
 	for(long i = 0; i < THREAD_COUNT; i++)
 	{
-		threads[i] = [[[NSThread alloc] initWithTarget:self selector:@selector(performLinkTest:) object:nil] autorelease];
+		threads[i] = [[NSThread alloc] initWithTarget:self selector:@selector(performLinkTest:) object:nil];
 		[threads[i] setName:[NSString stringWithFormat:@"Thread %i",i]];
 	}
 	
@@ -42,10 +42,11 @@
 
 -(void) performLinkTest:(id)object
 {
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	/* A detached thread, so it brings its own pool. */
+	@autoreleasepool {
 	NSError				*error = nil;
 	NSString			*stressString = [NSString stringWithContentsOfFile:[NSString stringWithUTF8String:TEST_URIS_FILE_PATHNAME] encoding:NSUTF8StringEncoding error:&error];
-	STAssertNil(error, @"stringWithContentsOfFile:encoding:error: could not read file at path '%s': %@", TEST_URIS_FILE_PATHNAME, error);
+	XCTAssertNil(error, @"stringWithContentsOfFile:encoding:error: could not read file at path '%s': %@", TEST_URIS_FILE_PATHNAME, error);
 
 	AHHyperlinkScanner	*scanner = [AHHyperlinkScanner hyperlinkScannerWithString:stressString];
 	NSAttributedString	*attrString;
@@ -55,6 +56,6 @@
 		attrString = [scanner linkifiedString];
 		i--;
 	}
-	[pool release];
+	}
 }
 @end

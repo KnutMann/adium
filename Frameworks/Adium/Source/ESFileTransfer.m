@@ -22,6 +22,7 @@
 
 #import <AIUtilities/AIAttributedStringAdditions.h>
 #import <AIUtilities/AIBezierPathAdditions.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 #define MAGIC_ARROW_SCALE       0.85f
 #define MAGIC_ARROW_TRANSLATE_X 2.85f
@@ -335,11 +336,24 @@ static NSMutableDictionary *fileTransferDict = nil;
 	if (!extension || ![extension length]) extension = self.remoteFilename.pathExtension; 
 	
 	if (extension && [extension length]) {
-		systemIcon = [[NSWorkspace sharedWorkspace] iconForFileType:extension];
+		/* Asked by tag with no conformance demanded, which is what the extension-only
+		 * convenience does NOT do: +typeWithFilenameExtension: is documented as
+		 * conformingToType:UTTypeData, and anything that is not data - a package, a folder -
+		 * fails that and comes back as a made up dyn.* type. With nil the answer is the
+		 * system's own, exactly as -iconForFileType: took it. An extension the system does
+		 * not know still answers a dynamic type, whose icon is the generic document, which
+		 * is what the old call drew for it too. */
+		UTType *contentType = [UTType typeWithTag:extension
+										 tagClass:UTTagClassFilenameExtension
+								 conformingToType:nil];
+		systemIcon = (contentType ?
+					  [[NSWorkspace sharedWorkspace] iconForContentType:contentType] :
+					  [[NSWorkspace sharedWorkspace] iconForFile:self.localFilename]);
 
 	} else {
 		if ([self.account canSendFolders] && [self isDirectory]){
-			systemIcon = [[NSWorkspace sharedWorkspace] iconForFileType: NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
+			//public.folder is the type NSFileTypeForHFSTypeCode(kGenericFolderIcon) named
+			systemIcon = [[NSWorkspace sharedWorkspace] iconForContentType:UTTypeFolder];
 		} else {
 			systemIcon = [[NSWorkspace sharedWorkspace] iconForFile:self.localFilename];
 		}

@@ -111,10 +111,12 @@ static NSMutableArray		*libpurplePluginArray = nil;
 	PurpleAccount *account = purple_account_new([adiumAccount purpleAccountName], [adiumAccount protocolPlugin]);
 
 	if (account->ui_data) {
-		[(CBPurpleAccount *)account->ui_data autorelease];
-		[(CBPurpleAccount *)account->ui_data setPurpleAccount:nil];
+		/* The account in the slot owns a reference; hand it to the pool so it outlives this
+		 * statement, exactly as its -autorelease did. */
+		CFAutorelease(account->ui_data);
+		[(__bridge CBPurpleAccount *)account->ui_data setPurpleAccount:nil];
 	}
-	account->ui_data = [adiumAccount retain];
+	account->ui_data = (__bridge_retained void *)adiumAccount;
 
 	[adiumAccount setPurpleAccount:account];
 
@@ -128,8 +130,10 @@ static NSMutableArray		*libpurplePluginArray = nil;
 	PurpleAccount *account = accountLookupFromAdiumAccount(adiumAccount);
 
 	if (account) {
-		[(CBPurpleAccount *)account->ui_data release];
-		account->ui_data = nil;
+		if (account->ui_data) {
+			CFRelease(account->ui_data);
+			account->ui_data = NULL;
+		}
 		
 		purple_accounts_remove(account);
 	}
@@ -167,39 +171,39 @@ static void ZombieKiller_Signal(int i)
 
 void adium_glib_print(const char *string)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	AILog(@"(GLib): %s", string);
-    [pool drain];
+    @autoreleasepool {
+		AILog(@"(GLib): %s", string);
+    }
 }
 
 void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *message, gpointer user_data)
 {
 	if (!AIDebugLoggingIsEnabled()) return;
 	
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
     
-	NSString *level;
+		NSString *level;
 	
-	if (!log_domain) log_domain = "general";
+		if (!log_domain) log_domain = "general";
 	
-	if ((flags & G_LOG_LEVEL_ERROR) == G_LOG_LEVEL_ERROR)
-		level = @"ERROR";
-	else if ((flags & G_LOG_LEVEL_CRITICAL) == G_LOG_LEVEL_CRITICAL)
-		level = @"CRITICAL";
-	else if ((flags & G_LOG_LEVEL_WARNING) == G_LOG_LEVEL_WARNING)
-		level = @"WARNING";
-	else if ((flags & G_LOG_LEVEL_MESSAGE) == G_LOG_LEVEL_MESSAGE)
-		level = @"MESSAGE";
-	else if ((flags & G_LOG_LEVEL_INFO) == G_LOG_LEVEL_INFO)
-		level = @"INFO";
-	else if ((flags & G_LOG_LEVEL_DEBUG) == G_LOG_LEVEL_DEBUG)
-		level = @"MISC";
-	else
-		level = @"UNKNOWN";
+		if ((flags & G_LOG_LEVEL_ERROR) == G_LOG_LEVEL_ERROR)
+			level = @"ERROR";
+		else if ((flags & G_LOG_LEVEL_CRITICAL) == G_LOG_LEVEL_CRITICAL)
+			level = @"CRITICAL";
+		else if ((flags & G_LOG_LEVEL_WARNING) == G_LOG_LEVEL_WARNING)
+			level = @"WARNING";
+		else if ((flags & G_LOG_LEVEL_MESSAGE) == G_LOG_LEVEL_MESSAGE)
+			level = @"MESSAGE";
+		else if ((flags & G_LOG_LEVEL_INFO) == G_LOG_LEVEL_INFO)
+			level = @"INFO";
+		else if ((flags & G_LOG_LEVEL_DEBUG) == G_LOG_LEVEL_DEBUG)
+			level = @"MISC";
+		else
+			level = @"UNKNOWN";
 
 	
-	AILog(@"(GLib : %s): %@: %s", log_domain, level, message);
-    [pool drain];
+		AILog(@"(GLib : %s): %@: %s", log_domain, level, message);
+    }
 }
 
 - (void)initLibPurple
@@ -328,7 +332,7 @@ void adium_glib_log(const gchar *log_domain, GLogLevelFlags flags, const gchar *
  */
 CBPurpleAccount* accountLookup(PurpleAccount *account)
 {
-	CBPurpleAccount *adiumPurpleAccount = (account ? (CBPurpleAccount *)account->ui_data : nil);
+	CBPurpleAccount *adiumPurpleAccount = (account ? (__bridge CBPurpleAccount *)account->ui_data : nil);
 	/* If the account doesn't have its ui_data associated yet (we haven't tried to connect) but we want this
 	 * lookup data, we have to do some manual parsing.  This is used for example from the OTR preferences.
 	 */
@@ -361,7 +365,7 @@ PurpleAccount* accountLookupFromAdiumAccount(CBPurpleAccount *adiumAccount)
 AIListContact* contactLookupFromBuddy(PurpleBuddy *buddy)
 {
 	//Get the node's ui_data
-	AIListContact *theContact = (buddy ? (AIListContact *)buddy->node.ui_data : nil);
+	AIListContact *theContact = (buddy ? (__bridge AIListContact *)buddy->node.ui_data : nil);
 
 	//If the node does not have ui_data yet, we need to create a contact and associate it
 	if (!theContact && buddy) {
@@ -372,7 +376,7 @@ AIListContact* contactLookupFromBuddy(PurpleBuddy *buddy)
 		theContact = [accountLookup(purple_buddy_get_account(buddy)) contactWithUID:UID];
 		
 		//Associate the handle with ui_data and the buddy with our statusDictionary
-		buddy->node.ui_data = [theContact retain];
+		buddy->node.ui_data = (__bridge_retained void *)theContact;
 		
 		//This is the first time the contact has been accessed from the buddy; reset the icon cache for it
 		[AIUserIcons flushCacheForObject:theContact];
@@ -390,7 +394,7 @@ AIChat* groupChatLookupFromConv(PurpleConversation *conv)
 {
 	AIChat *chat;
 	
-	chat = (AIChat *)conv->ui_data;
+	chat = (__bridge AIChat *)conv->ui_data;
 	if (!chat) {
 		NSString *name = [NSString stringWithUTF8String:purple_conversation_get_name(conv)];
 		
@@ -414,9 +418,9 @@ AIChat* groupChatLookupFromConv(PurpleConversation *conv)
 			// If we don't have a chat creation dictionary (i.e., we didn't initiate the join), create one.
 			chat.chatCreationDictionary = [account extractChatCreationDictionaryFromConversation: conv];
 		}
-        if (conv->ui_data != chat) {
-            [(AIChat *)(conv->ui_data) release];
-            conv->ui_data = [chat retain];
+        if (conv->ui_data != (__bridge void *)chat) {
+            if (conv->ui_data) CFRelease(conv->ui_data);
+            conv->ui_data = (__bridge_retained void *)chat;
         }
 
 		/* purple runs purple_conversation_autoset_title() inside purple_conversation_new(),
@@ -451,7 +455,7 @@ AIChat* groupChatLookupFromConv(PurpleConversation *conv)
 
 AIChat* existingChatLookupFromConv(PurpleConversation *conv)
 {
-	return (conv ? conv->ui_data : nil);
+	return (conv ? (__bridge AIChat *)conv->ui_data : nil);
 }
 
 AIChat* chatLookupFromConv(PurpleConversation *conv)
@@ -473,7 +477,7 @@ AIChat* imChatLookupFromConv(PurpleConversation *conv)
 {
 	AIChat			*chat;
 	
-	chat = (AIChat *)conv->ui_data;
+	chat = (__bridge AIChat *)conv->ui_data;
 
 	if (!chat) {
 		//No chat is associated with the IM conversation
@@ -526,9 +530,9 @@ AIChat* imChatLookupFromConv(PurpleConversation *conv)
 		}
 
 		//Associate the PurpleConversation with the AIChat
-        if (conv->ui_data != chat) {
-            [(AIChat *)(conv->ui_data) release];
-            conv->ui_data = [chat retain];
+        if (conv->ui_data != (__bridge void *)chat) {
+            if (conv->ui_data) CFRelease(conv->ui_data);
+            conv->ui_data = (__bridge_retained void *)chat;
         }
 	}
     
@@ -784,7 +788,6 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 					
 					data = [bitmapRep representationUsingType:NSBitmapImageFileTypePNG properties:[NSDictionary dictionaryWithValuesForKeys:[NSArray array]]];
 					extension = @"png";
-					[image release];
 				}
 				
 				filename = [filename stringByAppendingPathExtension:extension];
@@ -803,7 +806,7 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 		}
 	}
 
-	return ([newString autorelease]);
+	return newString;
 }
 
 #pragma mark Notify
@@ -911,7 +914,7 @@ NSString *processPurpleImages(NSString* inString, AIAccount* adiumAccount)
 	}
 	
 	static AIHTMLDecoder	*notifyFormattedHTMLDecoder = nil;
-	if (!notifyFormattedHTMLDecoder) notifyFormattedHTMLDecoder = [[AIHTMLDecoder decoder] retain];
+	if (!notifyFormattedHTMLDecoder) notifyFormattedHTMLDecoder = [AIHTMLDecoder decoder];
 
 	NSString	*textString = (text ? [NSString stringWithUTF8String:text] : nil); 
 	if (textString) textString = [[notifyFormattedHTMLDecoder decodeHTML:textString] string];
@@ -1008,17 +1011,23 @@ gboolean jabber_chat_marker_send_displayed(PurpleConnection *gc, const char *who
 
 - (void)registerAccount:(id)adiumAccount
 {
-	purple_account_set_register_callback(accountLookupFromAdiumAccount(adiumAccount), adiumPurpleAccountRegisterCb, adiumAccount);
+	/* The account crosses unretained: libpurple parks this pointer in the PurpleAccount's
+	 * registration_cb_user_data and never clears it, and only a registration connection calls
+	 * back through it. What keeps the account alive is the account controller, which holds every
+	 * account for as long as it exists. */
+	purple_account_set_register_callback(accountLookupFromAdiumAccount(adiumAccount), adiumPurpleAccountRegisterCb, (__bridge void *)adiumAccount);
 	purple_account_register(accountLookupFromAdiumAccount(adiumAccount));
 }
 
 static void purpleUnregisterCb(PurpleAccount *account, gboolean success, void *user_data) {
-	[(CBPurpleAccount*)user_data unregisteredAccount:success?YES:NO];
+	[(__bridge CBPurpleAccount *)user_data unregisteredAccount:success?YES:NO];
 }
 
 - (void)unregisterAccount:(id)adiumAccount
 {
-	purple_account_unregister(accountLookupFromAdiumAccount(adiumAccount), purpleUnregisterCb, adiumAccount);
+	/* Unretained again: the prpl keeps this pointer for the life of the unregistering connection,
+	 * and the account outlives that because the account controller holds it. */
+	purple_account_unregister(accountLookupFromAdiumAccount(adiumAccount), purpleUnregisterCb, (__bridge void *)adiumAccount);
 }
 
 //Called on the purple thread, actually performs the specified command (it should have already been tested by 
@@ -1346,13 +1355,15 @@ static void purpleUnregisterCb(PurpleAccount *account, gboolean success, void *u
 	if (conv) {
 		[chat setIdentifier:nil];
 
-		/* We retained the chat when setting it as the ui_data; we are releasing here, so be sure to set conv->ui_data
-		 * to nil so we don't try to do it again.
+		/* The chat this conversation holds is given up here, and the slot emptied, so that neither
+		 * the destroy op nor a rejoin releases it a second time.
 		 */
         AILogWithSignature(@"Destroying %p (and releasing chat %p)", conv, conv->ui_data);
 
-		[(AIChat *)conv->ui_data release];
-		conv->ui_data = nil;
+		if (conv->ui_data) {
+			CFRelease(conv->ui_data);
+			conv->ui_data = NULL;
+		}
 
 		//Tell purple to destroy the conversation.
 		purple_conversation_destroy(conv);
@@ -1660,7 +1671,7 @@ GList *createListFromDictionary(NSDictionary *arguments)
  */
 - (void)closeAuthRequestWithHandle:(id)authRequestHandle
 {
-	purple_account_request_close(authRequestHandle);
+	purple_account_request_close((__bridge void *)authRequestHandle);
 }
 
 #pragma mark Secure messaging
@@ -1677,12 +1688,12 @@ GList *createListFromDictionary(NSDictionary *arguments)
 - (void)dealloc
 {
 	purple_signals_disconnect_by_handle(adium_purple_get_handle());
-
-	[super dealloc];
 }
 
 #ifdef HAVE_CDSA
-- (CFArrayRef)copyServerCertificates:(PurpleSslConnection*)gsc {
+/* The Copy in the name is the Core Foundation rule: the array comes back at +1 and
+ * CBPurpleAccount CFReleases it. ARC manages no part of it. */
+- (CFArrayRef)copyServerCertificates:(PurpleSslConnection*)gsc CF_RETURNS_RETAINED {
 	PurplePlugin *cdsa_plugin = purple_plugins_find_with_name("CDSA");
 	if(!cdsa_plugin)
 		return nil;

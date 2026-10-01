@@ -99,11 +99,28 @@ needsconfigure() {
 # source directory.
 #
 prereq() {
-	# What the source we already have was fetched from, written down when it was
-	local stampFile="$ROOTDIR/source/$1/.fetched-from"
+	local name="$1"
+	local url="$2"
+	local sha="${3:-}"
 
-	if [ -d "$ROOTDIR/source/$1" ]; then
-		if [ -f "$stampFile" ] && [ "$(cat "$stampFile")" = "$2" ]; then return 0; fi
+	# Every source this build fetches is pinned by content as well as by address.
+	# A sum cannot authenticate the very first download, and for the packages whose
+	# projects publish a signature rather than a checksum it is our own reading of
+	# the file and not theirs. What it does do is hold the pin still: once a version
+	# is recorded here, a later fetch that returns different bytes from the same
+	# address stops the build instead of quietly building something else. That is
+	# the failure a download over a long-lived URL actually has.
+	if [ -z "$sha" ]; then
+		error "No checksum recorded for package $name. Add its SHA-256 as the third argument to prereq."
+		exit 1
+	fi
+
+	# What the source we already have was fetched from, and what it hashed to
+	local stampFile="$ROOTDIR/source/$name/.fetched-from"
+	local stamp="$url $sha"
+
+	if [ -d "$ROOTDIR/source/$name" ]; then
+		if [ -f "$stampFile" ] && [ "$(cat "$stampFile")" = "$stamp" ]; then return 0; fi
 
 		# A folder that was already there used to be enough, whatever it held.
 		# Moving a pinned version then changed nothing at all: the old source was
@@ -112,9 +129,11 @@ prereq() {
 		# supposed: glib was pinned from 2.88.2 to 2.88.3 and 2.88.2 was built.
 		#
 		# A source with no note beside it is from before this existed, and is
-		# fetched once more so that it gets one.
-		status "Source for $1 is not the one pinned any more; fetching it again"
-		rm -rf "$ROOTDIR/source/$1"
+		# fetched once more so that it gets one. The note carries the checksum as
+		# well as the address, so correcting a sum re-fetches just as moving a
+		# version does.
+		status "Source for $name is not the one pinned any more; fetching it again"
+		rm -rf "$ROOTDIR/source/$name"
 	fi
 
 	quiet pushd "$ROOTDIR/source"
@@ -122,23 +141,40 @@ prereq() {
 	# Work out the file extension from the name
 	ext=""
 	for zxt in ".tar.gz" ".tar.xz" ".tgz" ".tar.bz2" ".tbz", ".tar", ".zip"; do
-		if expr "$2" : '.*'${zxt//./\.}'$' > /dev/null; then
+		if expr "$url" : '.*'${zxt//./\.}'$' > /dev/null; then
 			ext=$zxt
 			break
 		fi
 	done
 	
 	if [ "$ext" = "" ]; then
-		error "Couldn't autodetect file type of $2 for $1"
+		error "Couldn't autodetect file type of $url for $name"
 		exit 1
 	fi
 	
 	# Download the package
-	status "Downloading source for package $1"
-	curl -Lfo "$1$ext" "$2"
+	status "Downloading source for package $name"
+	curl -Lfo "$name$ext" "$url"
+
+	# And check it is the one we pinned, before anything unpacks it
+	status "Checking the download for package $name"
+	local expected actual
+	expected=$(echo "$sha" | tr 'A-Z' 'a-z')
+	actual=$(shasum -a 256 "$name$ext" | awk '{print $1}' | tr 'A-Z' 'a-z')
+	if [ "$actual" != "$expected" ]; then
+		error "The download for package $name is not what is pinned here."
+		error "  address:  $url"
+		error "  expected: $expected"
+		error "  received: $actual"
+		error "Nothing has been unpacked. Either the address now serves a different"
+		error "release, or the download was tampered with in transit."
+		rm -f "$name$ext"
+		quiet popd
+		exit 1
+	fi
 	
 	# Extract the source to a fixed directory name
-	status "Extracting source for package $1"
+	status "Extracting source for package $name"
 	case "$ext" in
 		\.tar\.gz|\.tgz)
 			tarflags=z
@@ -153,7 +189,7 @@ prereq() {
 			# Zip is a pain in the ass. We have to decide whether to make a
 			# directory and extract into it, or otherwise extract the archive
 			# and then rename the parent directory.
-			error "Too lazy to unzip package $1"
+			error "Too lazy to unzip package $name"
 			exit 1
 			;;
 	esac
@@ -161,21 +197,21 @@ prereq() {
  status "Done extracting."
 
 	# Count the number of parent directories there are
-	IFS="/" read -a firstfile < <(tar tf "$1$ext" | head -n 1)
+	IFS="/" read -a firstfile < <(tar tf "$name$ext" | head -n 1)
   status "IFS: ${IFS}."
 	levels=(${#firstfile[@]} - 1)
 
  status "Levels: ${levels}."
 
 	# Extract to the source directory
-	quiet mkdir "$1"
-	tar xf "$1$ext" --strip-components $levels -C "$1"
+	quiet mkdir "$name"
+	tar xf "$name$ext" --strip-components $levels -C "$name"
 	
 	# So that moving the pin above is noticed next time
-	echo "$2" > "$1/.fetched-from"
+	echo "$stamp" > "$name/.fetched-from"
 
 	# Clean up and resume previous operation
-	if [ -f "$1$ext" ]; then rm -f "$1$ext"; fi
+	if [ -f "$name$ext" ]; then rm -f "$name$ext"; fi
 	quiet popd
 }
 

@@ -1,0 +1,22 @@
+--- a/src/instag.h	2026-09-30 21:03:35
++++ b/src/instag.h	2026-09-30 21:03:35
+@@ -68,7 +68,7 @@
+ gcry_error_t otrl_instag_read_FILEp(OtrlUserState us, FILE *instf);
+ 
+ /* Return a new valid instance tag */
+-otrl_instag_t otrl_instag_get_new();
++otrl_instag_t otrl_instag_get_new(void);
+ 
+ /* Get a new instance tag for the given account and write to file*/
+ gcry_error_t otrl_instag_generate(OtrlUserState us, const char *filename,
+--- a/src/context_priv.h	2026-09-30 21:03:35
++++ b/src/context_priv.h	2026-09-30 21:03:35
+@@ -86,7 +86,7 @@
+ } ConnContextPriv;
+ 
+ /* Create a new private connection context. */
+-ConnContextPriv *otrl_context_priv_new();
++ConnContextPriv *otrl_context_priv_new(void);
+ 
+ /* Frees up memory that was used in otrl_context_priv_new */
+ void otrl_context_priv_force_finished(ConnContextPriv *context_priv);
