@@ -1,71 +1,71 @@
 # XMPP capabilities: what we have and what comes next
 
-Inventory taken on 2026-08-19, checked against libpurple 2.14.14
-(`Dependencies/source/libpurple/.../jabber/`), the fork patches
-(`Dependencies/patches/pidgin-2.14.14/jabber/`) and the AdiumY tree, not from memory. This is the
-inventory document M17 of the platform roadmap asks for.
+First taken on 2026-08-19 against libpurple 2.14.14, the fork patches under
+`Dependencies/patches/pidgin-2.14.14/jabber/` and the AdiumY tree. **Rewritten on 2026-10-01,
+because almost everything the 2026-08-19 order of work called "next" had been built in the
+meantime and the document still called it open.** Every line below was checked in the code on
+that date, not recalled: for each extension, the namespace or the obvious identifier was searched
+for under `Plugins/Purple Service`, `Source` and `Dependencies/patches`, and the file that
+carries it is named.
 
-## Already there, costs nothing
+A document like this goes stale quietly, so the rule for the next reader is: distrust it and
+grep. A one line check for any of them, for example XEP-0280:
 
-- **XEP-0198 Stream Management**: upstream in libpurple 2.14. Done.
-- **XEP-0191 Blocking**: complete in the prpl, wired to the UI through adiumPurplePrivacy and
-  ESBlockingPlugin. Needs a verification (M16) only, no code.
-- **XEP-0184 receipts / XEP-0333 markers**: our own fork patches (receipt.c, chatmarker.c);
-  receiving, automatic receipts and "displayed" on reading all work. What is missing is only the
-  per message display.
-- Also covered: 0030/0115, 0045, 0249, 0085, 0203, 0199, 0084/0153, 0163, 0237, 0047/0065/0096.
+    grep -rl "urn:xmpp:carbons" --include='*.m' --include='*.patch' \
+      "Plugins/Purple Service" Source Dependencies/patches
 
-**AdiumY as a model**: no newer XEP series than the ones listed in M17; the AdiumY tree was
-migrated to ARC and reformatted after its XEP commits, so the diffs are a design model and never
-cherry-pickable. AdiumY's own XEP audit stands at "Proposed", so conformance is unverified there
-too.
+## Built
 
-## Order of work
+- **0198 stream management, including resumption.** Upstream in libpurple 2.14 for the counting
+  half; the resumption half is ours, in `stream_management.c.patch`. Adium used to tear a
+  connection down before libpurple ever saw the socket fail, which is the one thing that makes
+  resumption impossible, so `ESAccountNetworkConnectivityPlugin.m` now gives a vanished network
+  ten seconds before it acts, and asks for an acknowledgement when the network settles, because
+  a dead socket is only discovered by writing to it. Checks in `Testing/xmpp/smsession-test.sh`.
+- **0280 carbons** plus **0334 hints**: `adiumPurpleCarbons.m`.
+- **0352 CSI**: `adiumPurpleCSI.m`, `<inactive/>` when Adium stops being the active application.
+- **0402 PEP bookmarks**: `adiumPurpleBookmarks.m`.
+- **0313 MAM**: `AMPurpleJabberMAM.m`.
+- **0363 HTTP upload**: `AMPurpleJabberHTTPFileUpload.m`.
+- **0308 last message correction**: `ESPurpleJabberAccount.m` and the message view's id mapping.
+- **0444 reactions**, one to one and in rooms: `adiumPurpleSignals.m` and the chip Xtra.
+- **0393 message styling**: `Source/AIMessageStyling.m`, as a display filter for every protocol.
+- **0384 OMEMO**, one to one, namespace `eu.siacs.conversations.axolotl`, over picomemo (ISC,
+  pinned to one commit): `AIOMEMOStore`, `AIOMEMOMessage`, `adiumPurpleOMEMO.m`,
+  `AIOMEMOController`. **0454 media** is there too, `AIOMEMOMedia.m`. Checks under
+  `Testing/omemo/`.
+- **0166 Jingle** with native WebRTC, our own code rather than farstream: sixteen files from
+  `AIJingleEngine.m` to `AIJingleCallWindowController.m`.
+- **0191 blocking**, **0184 receipts** and **0333 markers** including the per message display,
+  which was the piece the 2026-08-19 inventory listed as missing.
+- Also covered: 0030/0115, 0045, 0249, 0085, 0203, 0199, 0084/0153, 0163, 0237, 0047/0065/0096,
+  0077 registration, 0359 for deduplication.
 
-**Quick to take over (AdiumY as a model):**
-1. **XEP-0280 Carbons** plus the mandatory **XEP-0334 Hints**: messages from the phone appear here
-   too; the biggest everyday gain. Build it as a prpl patch following the pattern of receipt.c.
-   Risks: duplicates against the local logs, and without `<private/>` on OTR messages, OTR fragments
-   land on other devices. (AdiumY 186103ce, 3512b2b8, 69406099)
-2. **XEP-0352 CSI**: less traffic and fewer wakeups while idle; small, wires into the existing idle
-   detection; needs the explicit active policy from M17. (AdiumY a54fe609 plus 29901c55)
-3. **XEP-0402 PEP bookmarks**: the MUC list and autojoin in step with Gajim, Dino and Conversations;
-   manageable, and AdiumY has tests (407ebcf6). Do not build 0048 on its own, it has been deprecated
-   since 2020.
+**AdiumY as a model**: it has no newer XEP series than the ones above, and its tree was migrated
+to ARC and reformatted after its XEP commits, so its diffs were ever only a design model and
+never cherry-pickable.
 
-**Manageable, with no model to follow:**
-4. **XEP-0410 MUC Self-Ping**: notices room sessions that died quietly after a network change and
-   rejoins; a small timer over the existing ping code, with care taken against rejoin loops.
+## Not built
 
-**Valuable, but a project of its own:**
-5. **XEP-0313 MAM**: only once the history and reconnect model is settled, plus XEP-0359 dedup, or
-   it is a duplicate generator. 6. **XEP-0363 HTTP Upload**: the only file transfer that is reliable
-   in 2026, but HTTPS PUT, URL safety and the UI make it large. 7. **XEP-0308 corrections**, bundled
-   with the per message state model of the message view (the blocker is the missing id to DOM
-   mapping, documented in adiumPurpleSignals.m); whoever builds that one data model unlocks 0308,
-   the 0184 ticks and 0333 per message all at once.
+- **0410 MUC self-ping** and **MUC status code 333**. The two halves of one problem: after a
+  resumption a client can still believe it is in a room it was silently removed from, and a
+  presence carrying code 333 says the room removed an occupant over a technical fault, which
+  today reads to Adium like an ordinary departure. This is the last open piece of the
+  resumption work, where it is called step 9.
+- **OMEMO in rooms**, plus reading **0380** on receipt, key rotation by time
+  (`rotateSignedPreKey` exists and nobody calls it) and **omemo:2**.
+  `AIOMEMOController.m` refuses a group chat outright today.
 
-**OMEMO: BUILT on 2026-09-15** (XEP-0384, namespace `eu.siacs.conversations.axolotl`, one to one
-conversations; group rooms and XEP-0454 are still missing). The cryptographic layer is picomemo
-(ISC, pinned to one commit), the XMPP side is our own code as it is for Carbons, CSI and Jingle:
-`AIOMEMOStore` holds identity, sessions and trust, `AIOMEMOMessage` the wire form,
-`adiumPurpleOMEMO.m` the PEP and stanza work, `AIOMEMOController` the bridge to the interface.
-Checks live under `Testing/omemo/` and `Testing/xmpp/server.sh omemo-pep`. An earlier assessment,
-for the record: (the note from 22.08 that the shtrom fork carried a port of the Pidgin lurch plugin
-in `Lurch4Adium-0.0.4/*` is WRONG and was disproved on 2026-09-15: the branches contain not one line
-of it, only a checked in libgcrypt 1.6.2. What stands is the verdict on lurch itself, frozen since
-February 2022, and axc, which has no trust model at all. picomemo was chosen instead, C and ISC
-licensed, providing the cryptographic layer while the XMPP side stays our work as it does for
-Carbons, CSI and Jingle.)
+**Still no, and the reasons still hold:** Bind2 and SASL2, core surgery for no visible gain, and
+MIX, which nothing deploys. Two that stood here as "no" in August were built anyway, and the
+reasons they were refused are worth keeping because both turned out to be the real cost: 0393
+styling does reach into the whole presentation, and 0444 reactions were not presentable until
+the id to DOM mapping existed. Neither was cheap; both were done once that mapping was.
 
-**Tempting, but no:** 0393 styling (it reaches into the whole presentation, queue it behind
-Carbons), 0444/0461 (experimental, and not presentable without the id mapping), Bind2/SASL2 (core
-surgery for no visible gain), MIX (no deployment).
-
-**The agreed roadmap (2026-08-19): Carbons plus Hints, then CSI, then 0402 bookmarks, in that order,
-each as a prpl patch following the pattern of receipt.c and chatmarker.c and with an M16
-verification before the next step. XEP-0191 is only tested and booked as present. MAM, HTTP Upload
-and the per message state model stay projects of their own and are not started on the side.**
+**The 2026-08-19 roadmap, for the record, since it has been walked: Carbons plus Hints, then CSI,
+then 0402 bookmarks, each as its own step with a verification before the next. It held, and the
+three projects it called too large to start on the side, MAM, HTTP upload and the per message
+state model, were all built afterwards anyway.**
 
 ## Addendum: BeagleIM and Martin as a reference, video calls (research 2026-08-22)
 
