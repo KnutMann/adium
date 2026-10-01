@@ -109,11 +109,12 @@ static NSString *AIRowLabel(NSString *label)
 - (NSString *)paneName{
     return AILocalizedString(@"Events", "Name of preferences and tab for specifying what Adium should do when events occur - for example, display a notification when John signs on.");
 }
-/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib
- * for us, and GlobalEventsPreferences.xib is gone. Naming a nib that is not there would be a trap
- * for whoever removes the -view override next: the base class would try to load it and
- * the pane would come up empty.
+/*!
+ * @brief Nib name
  */
+- (NSString *)nibName{
+    return @"GlobalEventsPreferences";
+}
 - (NSImage *)paneIcon
 {
 	return [NSImage imageNamed:@"pref-events" forClass:[self class]];

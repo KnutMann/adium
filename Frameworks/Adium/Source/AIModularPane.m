@@ -92,7 +92,14 @@
 	return @"";
 }
 
-//Nib to load
+/* Nib to load, for the panes that load one.
+ *
+ * Most do not any more. A pane that builds its view in code overrides -view above, which
+ * means this is never asked, and such a pane must NOT answer with a name: the file it
+ * would name is gone, and the next person to remove that -view override would get an
+ * empty pane instead of a compiler error. Not implementing it is the signal that the
+ * pane builds its own view, and the empty string here is what keeps that harmless.
+ */
 - (NSString *)nibName
 {
     return @"";    

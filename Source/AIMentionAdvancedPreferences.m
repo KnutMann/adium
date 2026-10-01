@@ -388,12 +388,6 @@ static NSString *AIMentionUseAccessibilityLabel(NSString *term)
 	return [NSImage imageNamed:@"pref-mention" forClass:[AIPreferenceWindowController class]];
 }
 
-/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib for us.
- * AIMentionAdvancedPreferences.xib, which used to hold this interface, has been deleted along with its entry
- * in the target: nothing loaded it any more, and it still wired outlets this class no longer has,
- * so anything that did load it would have raised rather than fallen back.
- */
-
 #pragma mark View
 
 /*!

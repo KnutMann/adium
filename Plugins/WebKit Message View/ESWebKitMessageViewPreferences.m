@@ -122,14 +122,6 @@ static NSString *AIRowLabel(NSString *label)
 	return [NSImage imageNamed:@"pref-messages"];
 }
 
-/* No -nibName: the pane builds its own view below, so AIModularPane never loads
- * a nib for us. WebKitPreferencesView.xib is dead — and it must stay unloaded:
- * it still wires outlets this class no longer has (tabView_messageType, the
- * label fields, …), so loading it would raise NSUnknownKeyException rather than
- * fall back to the old interface. Removing it from the target needs project
- * file access this plugin's sources do not carry.
- */
-
 #pragma mark View
 
 /*!
@@ -872,7 +864,6 @@ static NSString *AIRowLabel(NSString *label)
 	[menuItem setTag:tag];
 	[menu addItem:menuItem];
 }
-
 
 //Chat Preview ---------------------------------------------------------------------------------------------------------
 #pragma mark Chat Preview

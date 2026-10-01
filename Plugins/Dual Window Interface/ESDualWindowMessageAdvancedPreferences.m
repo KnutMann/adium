@@ -105,14 +105,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	return [NSImage imageNamed:@"pref-messages" forClass:[AIPreferenceWindowController class]];
 }
 
-/* No -nibName: the pane builds its own view below, so AIModularPane never loads
- * a nib for us. DualWindowMessageAdvanced.xib is dead — and it must stay
- * unloaded: it still wires nineteen outlets this class no longer has
- * (tabView_messageType, tabViewItem_regular, label_tabs, …), so loading it
- * would raise NSUnknownKeyException rather than fall back to the old interface.
- * Removing it from the target needs project file access we do not have here.
- */
-
 #pragma mark View
 
 /*!

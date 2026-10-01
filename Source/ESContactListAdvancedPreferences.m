@@ -132,12 +132,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	return [NSImage imageNamed:@"pref-contactList" forClass:[AIPreferenceWindowController class]];
 }
 
-/* No -nibName: the pane builds its own view below, so AIModularPane never loads a nib for us.
- * ContactListAdvancedPrefs.xib, which used to hold this interface, has been deleted along with its entry
- * in the target: nothing loaded it any more, and it still wired outlets this class no longer has,
- * so anything that did load it would have raised rather than fallen back.
- */
-
 #pragma mark View
 
 /*!
@@ -548,7 +542,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	[self configureControlDimming];
 }
 
-
 /*!
  * @brief The window style, its sliders, and the names of the two saved sets
  *
@@ -780,7 +773,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 										  group:PREF_GROUP_CONTACT_LIST];
 }
 
-
 //The contact list's own window ---------------------------------------------------------------------------------------
 #pragma mark The window
 
@@ -819,7 +811,6 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	[menuItem setTag:tag];
 	[menu addItem:menuItem];
 }
-
 
 //Contact list layout & theme ----------------------------------------------------------------------------------------
 #pragma mark Contact list layout & theme
@@ -1215,9 +1206,7 @@ static NSString *AISentenceCaseLabel(NSString *label)
 	return menu;
 }
 
-
 //Dock icons -----------------------------------------------------------------------------------------------------------
-
 
 /*!
  * @brief The window our sheets belong on, or nil once the pane has closed
