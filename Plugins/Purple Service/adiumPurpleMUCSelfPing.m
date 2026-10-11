@@ -211,7 +211,7 @@ static gboolean selfping_rejoin_now(gpointer data)
 		goto done;
 	}
 
-	chat = (AIChat *)conv->ui_data;
+	chat = (__bridge AIChat *)conv->ui_data;
 	if (chat == nil || ![chat.account isKindOfClass:[CBPurpleAccount class]]) {
 		AILog(@"adiumPurpleMUCSelfPing: not rejoining %s, no chat of ours behind it", request->roomJid);
 		goto done;
