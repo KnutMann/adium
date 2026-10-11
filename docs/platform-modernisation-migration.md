@@ -28,7 +28,7 @@ another effort and is out of scope here.
 
 | ID | Priority | Scope | Status |
 | --- | --- | --- | --- |
-| M01 | P0 | AddressBook to Contacts | proposed |
+| M01 | P0 | AddressBook to Contacts | implemented; runtime acceptance cases not re-run |
 | M02 | P0 | Remove private system APIs | M02b implemented; M02a/M02c proposed |
 | M03 | P1 | Raise all owned targets to the macOS baseline | done, at 12.0 |
 | M04 | P1 | Replace AutoHyperlinks with a small native link detector | proposed |
@@ -41,21 +41,41 @@ another effort and is out of scope here.
 | M11 | P0 | Ship signed, notarized GitHub Releases; retire the obsolete release path | proposed |
 | M12 | P2 | Retire or rebuild unusable developer utilities | proposed |
 | M13 | P1 | Audit the shipped in-app help against supported functionality | proposed |
-| M14 | P1 | Make the application appearance-correct in Dark Mode | proposed |
+| M14 | P1 | Make the application appearance-correct in Dark Mode | partly implemented; fixed light colours remain, no appearance matrix |
 | M15 | P1 | Reject invalid plug-in registration enum values at runtime | proposed |
 | M16 | P2 | Add deterministic smoke coverage for controllable transports | proposed |
 | M17 | P2 | Define the next XMPP capability work from evidence | proposed |
 | M18 | P3 | Assess modern Xtra type registration without breaking bundles | proposed |
 | M19 | P2 | Make dependency acquisition verifiable and maintainable | proposed |
-| M20 | P2 | Restore automated unit tests by migrating SenTestingKit to XCTest | proposed |
+| M20 | P2 | Restore automated unit tests by migrating SenTestingKit to XCTest | partly implemented; bundles migrated, scheme TestAction still empty |
 
-M01 and M02 are the best first runtime work: they remove unsupported API
-surface. M11 is release-critical work, but requires a designated release owner
-and access to signing and publishing infrastructure. M03 should follow before
+M02 is the best first runtime work: it removes unsupported API surface, as
+M01 already did for AddressBook. M11 is release-critical work, but requires a
+designated release owner and access to signing and publishing infrastructure. M03 should follow before
 broadening any API migration, because it eliminates dead availability branches
 that otherwise obscure the code.
 
 ## M01: Migrate AddressBook data access to Contacts
+
+### Status (checked 2026-10-11)
+
+Implemented in `7e40b2674` ("Move the address book integration to
+Contacts"). Checked in the code: no source file imports AddressBook and no
+project links `AddressBook.framework`; `AIAddressBookPerson` is the value
+type over `CNContact` (step 1, under a different name than suggested);
+changes arrive through `CNContactStoreDidChangeNotification` as a coalesced
+full rebuild (step 4); Jabber entries are read through
+`CNContactInstantMessageAddressesKey` (step 5); `NSContactsUsageDescription`
+is in `Resources/Info.plist` (step 6). Stored AddressBook identifiers keep
+working because the Contacts store hands out the same `UUID:ABPerson` shape,
+and bare UUIDs are normalised to it (`AINormalizedUniqueId`, step 8).
+
+Deviation: step 7 asked to keep `addressbook://` only behind a documented
+public API. The "Show in Address Book" action still opens `addressbook://`
+URLs, which Apple does not document.
+
+Open: the acceptance cases below are runtime checks and were not re-run for
+this status update.
 
 ### Why
 
@@ -870,6 +890,33 @@ is restoring an old account or troubleshooting a modern macOS restriction.
 
 ## M14: Make the application appearance-correct in Dark Mode
 
+### Status (checked 2026-10-11)
+
+Partly implemented. Done: an app-wide appearance policy (system, light or
+dark, `ce0b358f1`, applied in `AIAppearancePreferencesPlugin.m`), a first
+pass of semantic colours over the chrome (`e61649ede`), and dark fixes for
+tooltips, input prompts, the group chat sidebar, typing colour and the
+settings cards. The list cells named under primary code now use semantic
+colours; `AIListCell` picks black or white only by the luminance of the
+background behind it. Two bundled message styles (Mockie, Smooth Operator)
+honour `prefers-color-scheme`.
+
+Open, read in the code but not yet looked at in the running application:
+
+- `Plugins/Dual Window Interface/AIMessageWindowController.m` gives the
+  split view beside a left or right tab bar a fixed light gradient
+  (`colorWithCalibratedWhite:0.91/0.92`).
+- `Source/AILogViewerWindowController.m` gives the find navigator a fixed
+  light gradient (`0.92` to `0.79`).
+- `Frameworks/Adium/Source/AIListOutlineView+Drawing.m` draws the drop
+  highlight's accent circle in fixed white and black.
+- `Source/ESGlassSplitView.m`, `Source/AIHoveringPopUpButtonCell.m` and
+  `Source/ESFileTransferProgressView.m` still draw with fixed grey, black or
+  white.
+- The appearance matrix of step 1 does not exist. `Testing/ui/entry` and
+  `Testing/ui/formula` take light and dark screenshots of their own views
+  only; high contrast is not covered anywhere.
+
 ### Why
 
 Upstream issue [adium/adium#49](https://github.com/adium/adium/issues/49)
@@ -1181,6 +1228,28 @@ Renovate proposals are useful references, but our dependency layout differs:
 - Dependency update PRs cannot bypass build and transport verification.
 
 ## M20: Restore automated unit tests by migrating SenTestingKit to XCTest
+
+### Status (checked 2026-10-11)
+
+Partly implemented. Both test targets are
+`com.apple.product-type.bundle.unit-test` bundles that link XCTest, no source file uses SenTestCase or an `STAssert`
+macro, and floating-point comparisons go through a named tolerance
+(`e8b4c1048` for the main suite, `71777ba6a` for AutoHyperlinks). The
+first of those commits records 356 tests run with `xcrun xctest`, 44 of them
+failing for reasons it puts outside the migration: 40 in the colour
+category, which converts through generic RGB while system colours are sRGB,
+and one AppleScript term only Adium's own process knows; it does not name the
+other three. The suite was not re-run for this status update.
+
+Open against the acceptance criteria:
+
+- The `TestAction` of `Adium - Debug` has no testables, so
+  `xcodebuild test -scheme 'Adium - Debug'` runs nothing (step 3).
+- `Frameworks/AIUtilities/AIUtilities.xcodeproj` still carries a file
+  reference to `SenTestingKit.framework` in a group; nothing links it.
+- `Utilities/GenerateWiredStringTests.py` still emits `STAssert` macros.
+- No CI runs the suite (step 4), and the 40 colour category failures need a
+  decision.
 
 ### Why
 

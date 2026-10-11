@@ -28,21 +28,25 @@ That is how a census of 418 was published when the real figure was 441.
 - **Two informal protocols written down**, so the compiler stops guessing `id` for a method that
   answers yes or no.
 
-## The one that can actually break the application
+## The one that could have broken the application
 
-**WebKit 1.** `WebView`, `WebFrame`, `DOMHTMLElement`, `DOMRange` and neighbours. Apple removed
-this from iOS years ago and keeps it on the Mac out of politeness. The chat window already runs
-on `WKWebView`; two users are left.
+**WebKit 1**: done, and the item this list was ordered around. `WebView`, `WebFrame`,
+`DOMHTMLElement`, `DOMRange` and neighbours, which Apple removed from iOS years ago and keeps on
+the Mac out of politeness. The chat window already ran on `WKWebView`; three users were left, and
+all three are gone:
 
-- `Plugins/WebKit Message View/ESWebKitMessageViewPreferences.m` — the live style preview, through
-  `AIWebKitPreviewMessageViewController`, which subclasses the old controller
-- `Plugins/WebKit Message View/AIWebKitMessageViewController.m` — kept compiled as a dormant
-  fallback and reachable from nothing
+- The live style preview in `ESWebKitMessageViewPreferences.m`: `AIWebKitPreviewMessageViewController`
+  subclasses `AIWebKitMessageViewWKController` now (144698659).
+- `AIWebKitMessageViewController`, which turned out not to be dormant after all, since the preview
+  held it up; it went with `AIWebKitDelegate` and `ESWebView` once the preview moved (144698659).
+- `AMPurpleRequestFieldsController`: the protocol form is built on `AISettingsFormView`, one row
+  per field, following the shape of the never released 1.6 (shtrom/adium b558e23d8) without its
+  per-type xibs (77b729b3d).
 
-The second is the cheapest: deciding it is dead removes most of the remaining calls on its own.
-`AMPurpleRequestFieldsController` was the third and is done: the protocol form is built on
-`AISettingsFormView` now, one row per field, following the shape of the never released 1.6
-(shtrom/adium b558e23d8) without its per-type xibs.
+Checked 2026-10-11: no source file uses a WebKit 1 class any more. What still names one is
+comments, and `AIInterfaceController.m` asking `NSClassFromString(@"WebHTMLView")` while it
+decides how to paste, a lookup by name that needs no link. `WebKit.framework` stays linked for
+`WKWebView`.
 
 ## The rest, by how much it matters
 
@@ -116,11 +120,8 @@ Where Network.framework IS the right tool is the reachability monitor, and that 
 written down as roadmap item M07 with the correct caveats (NWPathMonitor for the global path;
 it is not a host-reachability oracle and has nothing to do with proxies).
 
-**Accessibility**, 15 calls in the old attribute style.
-
-**Address Book**, 2 calls. Small only because the integration was cut back; `ABPerson` and friends
-are deprecated in favour of Contacts and the remaining uses are in the address book tab and the
-picture tool.
+**Address Book**: done. The integration runs on Contacts and nothing links AddressBook any more
+(7e40b2674, roadmap item M01).
 
 **Atomics**: done. All 15 OSAtomic sites in the log indexing moved to `<stdatomic.h>`, with the
 five variables retyped `_Atomic` so every plain read keeps full-barrier meaning, and the two
@@ -131,9 +132,11 @@ old-style status item view, a strftime date formatter in the message styles, and
 the Purple service UI. The census command above lists them all.
 
 **Help pages for services that are gone.** `AdiumHelp/pgs` still explains how to set up AIM, ICQ,
-MobileMe, Twitter, Sametime and Bonjour. Nothing links these to the build, so they are stale text
-shipped inside the application rather than anything that can break, and fixing one of them without
-the rest would only make the set less coherent. Worth one pass over the whole directory some day.
+MobileMe, Twitter and Sametime. (Its Bonjour page is current again: Bonjour came back on
+2026-09-21, efc24cd2b, though the page has not been checked against the new implementation.)
+Nothing links these to the build, so they are stale text shipped inside the application rather
+than anything that can break, and fixing one of them without the rest would only make the set
+less coherent. Worth one pass over the whole directory some day.
 
 ## Not warnings, and still worth doing
 
@@ -151,23 +154,10 @@ The usage descriptions this used to list as missing are there: `Resources/Info.p
 `NSAppleEventsUsageDescription`, and for Bonjour `NSLocalNetworkUsageDescription` together with
 `NSBonjourServices`. They arrived with the calls and with Bonjour.
 
-**The XtrasCreator.** A standalone tool under `Other/XtrasCreator` with its own project, not
-built by the main one, and demonstrably barely used: packs it writes never had their author shown,
-and nobody noticed for eighteen years. Its Info.plist declares editors for all seven Xtra kinds,
-but only the two icon-pack editors were ever written; the other five document classes
-(AXCSoundSetDocument, AXCEmoticonSetDocument, AXCMessageStyleDocument, AXCScriptPackDocument,
-AXCDockIconPackDocument) never existed at any point in the repository's history, so they are
-declarations of intent, not lost code, and would have to be built from the two that exist plus
-the AXCAbstractXtraDocument base, which already handles the bundle structure, Info.plist,
-version, author and readme. An overhaul also means: the service template for a new icon set
-still proposes the 2008 roster (AIM, Bonjour, MobileMe...) instead of asking the running app
-what it speaks; and whether the project builds on arm64 at all has not been checked. Worth doing
-if icon sets are going to be made for this fork; the sound and emoticon editors would be small,
-the message style editor is a project of its own. When the overhaul happens, upstream already
-converted five of the six nibs to xibs (found in jas8522/adium@6ff728a under
-`Other/XtrasCreator/`); the sixth, `IconPack_IconPlistView.nib`, was lost upstream in that
-conversion while the code still loads it by name, so our binary nib is the only surviving
-copy and has to be converted by hand.
+**The XtrasCreator**: done. The 2005 tool was retired and a new one took its name and place
+under `Other/XtrasCreator` (c0da452eb, roadmap item M09), built around a single
+`AXSXtraDocument`; the README lists the Xtra kinds it authors. What is left is the Finder UI
+check the roadmap names.
 
 **Reproducible plugin builds.** The Telegram plugin was a binary in `PurplePlugins/` whose build
 recipe had been lost, which cost an account when it was rebuilt from what the tree actually held.
@@ -198,11 +188,9 @@ commit hashes there; what has not been taken yet, in rough order of worth:
 
 ## Suggested order
 
-1. Decide whether the dormant `AIWebKitMessageViewController` can go. Cheap, and it settles most of
-   the WebKit count.
-2. The other two WebKit users. This is the item that decides whether the application still starts in
-   five years.
-3. Notarisation, with entitlements and the hardened runtime.
-4. Carbon file system and the modal-delegate sheets, both mechanical.
-5. Secure Transport.
-6. The long tail.
+WebKit 1, the Carbon file system and the modal-delegate sheets, which used to head this list, are
+done.
+
+1. Notarisation, with entitlements and the hardened runtime.
+2. Secure Transport.
+3. The long tail.
