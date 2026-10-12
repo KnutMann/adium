@@ -182,12 +182,15 @@ xattr -cr "$REPO/build/$CONFIGURATION/Adium.app" 2>/dev/null || true
 # The destination named outright. A scheme offers two, this Mac and "Any Mac",
 # and asked to choose, xcodebuild takes the first and says so in a warning that
 # reads as if something went wrong. Nothing did: this Mac is the one meant.
+# The whole log goes to build/xcodebuild.log on the way past, because the grep
+# throws away everything that is not a failure, and the warnings are worth
+# counting. Continuous integration reads that file; so can you.
 set -o pipefail
 if ! xcodebuild -project Adium.xcodeproj -scheme "$SCHEME" \
 	-destination "platform=macOS,arch=arm64" \
 	SYMROOT="$REPO/build" OBJROOT="$REPO/build/Intermediates" \
 	${SIGNING_OVERRIDES[@]+"${SIGNING_OVERRIDES[@]}"} \
-	build | grep -E "^\*\* BUILD|error:"
+	build | tee "$REPO/build/xcodebuild.log" | grep -E "^\*\* BUILD|error:"
 then
 	echo "Build failed; run xcodebuild yourself for the full log."
 	exit 1

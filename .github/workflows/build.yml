@@ -1,0 +1,99 @@
+# Build Adium the way the instructions tell a stranger to, and say so out loud.
+#
+# There was no continuous integration here until October 2026, and the cost
+# showed: master did not compile for twelve days before somebody outside the
+# project reported it. One unbridged cast, one line, and nobody noticed because
+# nobody builds master except by hand.
+#
+# So this runs the documented path, ./install.sh --build-only, rather than a
+# tidier set of xcodebuild invocations that could pass while the documented path
+# fails. It is the same command the report that found the break came with.
+#
+# Actions are pinned by commit, not by tag, for the same reason the dependency
+# scripts pin by checksum: a tag is a name somebody else can move.
+
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and verify
+    runs-on: macos-15
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out, with the submodule the build cannot start without
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Say what this machine is
+        run: |
+          sw_vers
+          echo "architecture: $(uname -m)"
+          ls -d /Applications/Xcode*.app
+
+      - name: Take the newest Xcode on the image
+        run: |
+          newest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "selecting $newest"
+          sudo xcode-select -s "$newest"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i macosx || true
+
+      # WebRTC is a 97 MB download and picomemo is a clone plus a compile.
+      # Neither changes unless its fetch script does, so the key is the hash of
+      # the scripts: a new pin or a new revision misses the cache by itself.
+      - name: Restore the two dependencies that are not in the repository
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            Dependencies/webrtc/WebRTC.xcframework
+            Dependencies/picomemo/picomemo
+          key: deps-${{ runner.os }}-${{ hashFiles('Dependencies/webrtc/fetch-webrtc.sh', 'Dependencies/picomemo/fetch-picomemo.sh') }}
+
+      - name: Fetch what the repository does not carry
+        run: Dependencies/fetch.sh
+
+      - name: Build and verify the plug-ins
+        run: ./install.sh --build-only
+
+      # The build is already green by here; this only tells the reader how much
+      # the compiler had to say. It must not fail the job: a warning is not a
+      # break, and a job that goes red over one teaches people to ignore red.
+      - name: Count what the compiler complained about
+        if: always()
+        run: |
+          log=build/xcodebuild.log
+          [ -f "$log" ] || { echo "no build log"; exit 0; }
+          total=$(grep -c "warning:" "$log" || true)
+          {
+            echo "### Warnings: ${total}"
+            echo
+            echo '```'
+            grep -oE "warning: .*" "$log" \
+              | sed -E "s/'[^']*'/'X'/g" \
+              | sort | uniq -c | sort -rn | head -20
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the log, especially when this went wrong
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: xcodebuild-log
+          path: build/xcodebuild.log
+          if-no-files-found: warn
+          retention-days: 14
