@@ -849,7 +849,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4B08399507D2350D0034A001 /* AIDockIconSelectionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B08399307D2350D0034A001 /* AIDockIconSelectionSheet.m */; };
 		4B08399C07D235190034A001 /* DockIconSelectionSheet.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4B08399B07D235190034A001 /* DockIconSelectionSheet.xib */; };
 		4B191D8A0611C10800E8A4E7 /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4B191D880611C10800E8A4E7 /* License.txt */; };
-		4B191D8B0611C10800E8A4E7 /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 4B191D890611C10800E8A4E7 /* ReadMe.rtf */; };
 		4B909C8A064D75400074C9A8 /* BGEmoticonMenuPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = C4243C930638E4EA007AD2D9 /* BGEmoticonMenuPlugin.m */; };
 		ADD1E5C0DE00000000000F03 /* AITypstRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000F00 /* AITypstRenderer.m */; };
 		ADD1E5C0DE00000000000912 /* AITypstPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000911 /* AITypstPlugin.m */; };
@@ -2535,7 +2534,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4B14CF28085FBC5900C88949 /* AdiumSpeech.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AdiumSpeech.h; path = Source/AdiumSpeech.h; sourceTree = "<group>"; };
 		4B14CF29085FBC5900C88949 /* AdiumSpeech.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AdiumSpeech.m; path = Source/AdiumSpeech.m; sourceTree = "<group>"; };
 		4B191D880611C10800E8A4E7 /* License.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
-		4B191D890611C10800E8A4E7 /* ReadMe.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = ReadMe.rtf; sourceTree = "<group>"; };
 		4B22E15C085CAE2E001864DE /* AIAbstractListObjectMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAbstractListObjectMenu.h; path = Frameworks/Adium/Source/AIAbstractListObjectMenu.h; sourceTree = "<group>"; };
 		4B22E15D085CAE2F001864DE /* AIAbstractListObjectMenu.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AIAbstractListObjectMenu.m; path = Frameworks/Adium/Source/AIAbstractListObjectMenu.m; sourceTree = "<group>"; };
 		4B25494603F6A32700A8010A /* AIAccountSelectionView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIAccountSelectionView.h; path = "Plugins/Dual Window Interface/AIAccountSelectionView.h"; sourceTree = "<group>"; };
@@ -5860,7 +5858,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				3402E04107CB0E4D0044F818 /* Localizable.strings */,
 				F59DB6AD033EB74801A8010A /* main.m */,
 				34575E3807CBA88E004A4FFF /* MainMenu.xib */,
-				4B191D890611C10800E8A4E7 /* ReadMe.rtf */,
 				34D8326307CBD598006466F2 /* msg-send-file.tiff */,
 				345DA0660CA09AD0009F1989 /* Statuses.strings */,
 				34D8327607CBD5B3006466F2 /* ToolbarPrefs.plist */,
@@ -6815,7 +6812,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4BD6755406001E1E0049CAF7 /* DualWindowDefaults.plist in Resources */,
 				4BD6756B06001E320049CAF7 /* EventSoundDefaults.plist in Resources */,
 				4B191D8A0611C10800E8A4E7 /* License.txt in Resources */,
-				4B191D8B0611C10800E8A4E7 /* ReadMe.rtf in Resources */,
 				4BAA1B530632EF0000D8B92C /* events-error-alert.tiff in Resources */,
 				4BAA1B610632EFE700D8B92C /* events-window-alert.tiff in Resources */,
 				9E217B7B06A74CA8002A3F27 /* StatusMenuItemDefaultPrefs.plist in Resources */,
