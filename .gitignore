@@ -10,7 +10,7 @@ build
 # the one /Applications/Adium.app is a symbolic link to. Those are build output too.
 /build-*
 Icon
-docs/*.html
+docs/
 Dependencies/build
 Dependencies/source
 Dependencies/Frameworks
