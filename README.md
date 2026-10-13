@@ -47,6 +47,11 @@ Current version: **1.8.0**.
 * Microsoft Teams (via
   [purple-teams](https://github.com/EionRobb/purple-teams)), both work
   and personal accounts
+* Matrix (via [purple-matrix](https://github.com/matrix-org/purple-matrix)),
+  plain text in unencrypted rooms, which is what Gitter's rooms are since
+  their move to Matrix; signing in with an access token where the
+  homeserver offers only SSO (see
+  `Dependencies/patches/purple-matrix/README.md`)
 * IRC modernized: the built-in IRC protocol is replaced by
   [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3), which
   speaks the same protocol plus typing notifications and other IRCv3
@@ -364,6 +369,7 @@ local change on top of them):
 | `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3, with **AGPL v3** parts statically linked in (see below) |
 | `PurplePlugins/libteams.so`, `libteams-personal.so` | [purple-teams](https://github.com/EionRobb/purple-teams) | `62f6fff` | GPL v3 |
 | `PurplePlugins/libircv3.so` | [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3) | `0e73297` | GPL v2 |
+| `PurplePlugins/libmatrix.so` | [purple-matrix](https://github.com/matrix-org/purple-matrix), with [http-parser](https://github.com/nodejs/http-parser) 2.9.4 compiled in | `2792d4d`, http-parser `2343fd6` | GPL v2+ / MIT |
 | `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL](https://www.openssl.org) 3.5.9, used by TDLib inside the Telegram plugin and by picomemo | built by `Dependencies/build.sh` from the pinned source it fetches | Apache 2.0 |
 | `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) 1.6.0 | built by `Dependencies/build.sh` from the pinned source it fetches | BSD 3-Clause |
 | `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) 1.6.58 | built by `Dependencies/build.sh` from the pinned source it fetches | libpng/zlib |

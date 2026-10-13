@@ -1,0 +1,36 @@
+diff --git a/libmatrix.c b/libmatrix.c
+index a422e0f..af428ad 100644
+--- a/libmatrix.c
++++ b/libmatrix.c
+@@ -377,6 +377,17 @@ static void matrixprpl_init(PurplePlugin *plugin)
+                     _("Prefer Markdown over HTML"),
+                     PRPL_ACCOUNT_OPT_PREFER_MARKDOWN, FALSE));
+ 
++    /* A homeserver that only offers SSO (gitter.im, for one) never hands out a password login, so
++     * the token obtained in a browser is the only way in. The plugin already prefers a stored
++     * token over a password; this just lets the user supply one. Masked: it is a credential. */
++    {
++        PurpleAccountOption *token = purple_account_option_string_new(
++                _("Access token (instead of a password)"),
++                PRPL_ACCOUNT_OPT_ACCESS_TOKEN, NULL);
++        purple_account_option_set_masked(token, TRUE);
++        protocol_options = g_list_append(protocol_options, token);
++    }
++
+     prpl_info.protocol_options = protocol_options;
+ }
+ 
+diff --git a/matrix-connection.c b/matrix-connection.c
+index 9d1bac6..888bd47 100644
+--- a/matrix-connection.c
++++ b/matrix-connection.c
+@@ -374,7 +374,8 @@ void matrix_connection_start_login(PurpleConnection *pc)
+     purple_connection_set_state(pc, PURPLE_CONNECTING);
+     purple_connection_update_progress(pc, _("Logging in"), 0, 3);
+ 
+-    if (access_token) {
++    /* An option left empty in the account editor comes back as "", not NULL */
++    if (access_token && *access_token) {
+         conn->access_token = g_strdup(access_token);
+         matrix_api_whoami(conn, _whoami_completed, _whoami_error,
+                 _whoami_badresp, conn);

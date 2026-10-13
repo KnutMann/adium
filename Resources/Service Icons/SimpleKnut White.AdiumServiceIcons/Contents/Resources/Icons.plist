@@ -16,6 +16,8 @@
 		<string>irc-large.png</string>
 		<key>Jabber</key>
 		<string>jabber-large.png</string>
+		<key>Matrix</key>
+		<string>matrix-large.png</string>
 		<key>SIMPLE</key>
 		<string>simple-large.png</string>
 		<key>Signal</key>
@@ -41,6 +43,10 @@
 		<string>irc-small.png</string>
 		<key>Jabber</key>
 		<string>jabber-small.png</string>
+		<key>Matrix</key>
+		<string>matrix-small.png</string>
+		<key>Matrix</key>
+		<string>matrix-small.png</string>
 		<key>SIMPLE</key>
 		<string>simple-small.png</string>
 		<key>Signal</key>
