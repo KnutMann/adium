@@ -469,9 +469,19 @@
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(__unsafe_unretained id *)stackbuf count:(NSUInteger)len
 {
 	AHMarkedHyperlink	*currentLink = nil;
-	
+
+	/* The buffer does not retain what is put in it, and nextURI hands back a link that nothing
+	 * else holds: as soon as currentLink moved on to the next one, the previous link was gone and
+	 * the caller's loop retained a freed object. Under manual counting the autorelease pool kept
+	 * them alive for long enough by accident; under ARC the first linkified string crashed. So
+	 * the scanner keeps them itself, for the length of the enumeration, and lets go of the last
+	 * batch when the next enumeration starts. */
+	if (state->state == 0)
+		m_enumeratedLinks = [NSMutableArray array];
+
 	NSUInteger fastEnumCount = 0;
 	while (fastEnumCount < len && nil != (currentLink = [self nextURI])) {
+		[m_enumeratedLinks addObject:currentLink];
 		stackbuf[fastEnumCount] = currentLink;
 		++fastEnumCount;
 	}
