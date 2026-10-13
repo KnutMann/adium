@@ -32,24 +32,41 @@ The Gitter homeserver offers no password login, only SSO (GitHub, GitLab) and to
     curl https://gitter.ems.host/_matrix/client/v3/login
 
 purple-matrix only speaks password login itself, but it keeps and prefers an access token once it
-has one. `adium.patch` makes that token an account option, so the way in is:
+has one. `adium.patch` lets the token be typed in as the password, so the way in is:
 
 1. Sign in to the homeserver in a browser (Element Web at `app.gitter.im`, or any Element).
 2. Copy the access token: Settings → Help & About → Advanced → Access Token.
-3. In Adium, add a Matrix account with the full Matrix id (`@name:gitter.im`), leave the password
-   empty, set the home server URL to `https://gitter.ems.host` and paste the token.
+3. In Adium, add a Matrix account with the full Matrix id (`@name:gitter.im`), paste the token as
+   the password, set the home server URL to `https://gitter.ems.host` and tick "The password is an
+   access token" under Options.
 
 The token stays valid until that browser session logs out. An ordinary Matrix account with a
 password, on `matrix.org` for instance, signs in without any of this and can join the same rooms.
 
+## Where the token lives
+
+In the keychain, like every other Adium password, and nowhere else. The first version of this patch
+made the token an account option, and account options are plain text: libpurple writes them to
+`libpurple/accounts.xml` and Adium mirrors them in `AccountPrefs.plist`, both in the user's
+profile. Only the mode switch is an option now; it is a bool, and nothing of it is secret.
+
+Upstream still stores the token it obtains from a password login in `accounts.xml`, to reuse the
+device on the next connection. That is unchanged for password accounts. In token mode the plugin
+removes that setting, so a profile that had the first version of this patch is cleaned up at the
+next connection.
+
 ## adium.patch
 
-Two changes, both in the login path:
+Three changes, all in the login path:
 
-* `libmatrix.c`: the `access_token` setting, which the plugin already reads before trying a
-  password, becomes a (masked) account option, so it can be supplied rather than only remembered.
-* `matrix-connection.c`: an option left empty comes back as `""`, not `NULL`, and the plugin took
-  that as a token and asked `whoami` with nothing. Empty now means absent.
+* `libmatrix.c`, `libmatrix.h`: a bool option, "The password is an access token". When it is set
+  the password is used as the token and goes straight to `whoami`; a failure there is reported
+  rather than falling back to a password login that cannot exist.
+* `matrix-connection.c`: an `access_token` setting left empty comes back as `""`, not `NULL`, and
+  the plugin took that as a token and asked `whoami` with nothing. Empty now means absent.
+* `matrix-connection.c`: `_whoami_error` read its `user_data` as the account, but every caller
+  passes the connection, so the password fallback after a stale token ran on the wrong struct.
+  It takes the account from the connection now.
 
 ## build.sh
 

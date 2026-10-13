@@ -1,36 +1,83 @@
 diff --git a/libmatrix.c b/libmatrix.c
-index a422e0f..af428ad 100644
+index a422e0f..8502706 100644
 --- a/libmatrix.c
 +++ b/libmatrix.c
-@@ -377,6 +377,17 @@ static void matrixprpl_init(PurplePlugin *plugin)
+@@ -377,6 +377,16 @@ static void matrixprpl_init(PurplePlugin *plugin)
                      _("Prefer Markdown over HTML"),
                      PRPL_ACCOUNT_OPT_PREFER_MARKDOWN, FALSE));
  
 +    /* A homeserver that only offers SSO (gitter.im, for one) never hands out a password login, so
-+     * the token obtained in a browser is the only way in. The plugin already prefers a stored
-+     * token over a password; this just lets the user supply one. Masked: it is a credential. */
-+    {
-+        PurpleAccountOption *token = purple_account_option_string_new(
-+                _("Access token (instead of a password)"),
-+                PRPL_ACCOUNT_OPT_ACCESS_TOKEN, NULL);
-+        purple_account_option_set_masked(token, TRUE);
-+        protocol_options = g_list_append(protocol_options, token);
-+    }
++     * a token obtained in a browser is the only way in. It goes into the password field: the
++     * settings are plain text on disk, the password is the client's business (Adium keeps it in
++     * the keychain), and this switch only says how to read it. */
++    protocol_options = g_list_append(protocol_options,
++            purple_account_option_bool_new(
++                    _("The password is an access token "
++                      "(for homeservers that only offer SSO)"),
++                    PRPL_ACCOUNT_OPT_PASSWORD_IS_TOKEN, FALSE));
 +
      prpl_info.protocol_options = protocol_options;
  }
  
+diff --git a/libmatrix.h b/libmatrix.h
+index 73ba79e..04cff28 100644
+--- a/libmatrix.h
++++ b/libmatrix.h
+@@ -120,6 +120,9 @@
+ #define PRPL_ACCOUNT_OPT_OLM_ACCOUNT_KEYS "olm_account_keys"
+ /* Access token, after a login */
+ #define PRPL_ACCOUNT_OPT_ACCESS_TOKEN "access_token"
++/* The password field holds an access token rather than a password. Kept as a bool so that the
++ * token itself stays wherever the client keeps passwords, never in the settings. */
++#define PRPL_ACCOUNT_OPT_PASSWORD_IS_TOKEN "password_is_token"
+ 
+ /* defaults for account options */
+ #define DEFAULT_HOME_SERVER "https://matrix.org"
 diff --git a/matrix-connection.c b/matrix-connection.c
-index 9d1bac6..888bd47 100644
+index 9d1bac6..ee2bdf3 100644
 --- a/matrix-connection.c
 +++ b/matrix-connection.c
-@@ -374,7 +374,8 @@ void matrix_connection_start_login(PurpleConnection *pc)
+@@ -319,8 +319,18 @@ static void _password_login(MatrixConnectionData *conn, PurpleAccount *acct)
+ static void _whoami_error(MatrixConnectionData *conn,
+         gpointer user_data, const gchar *error_message)
+ {
+-    PurpleAccount *acct = user_data;
++    /* user_data is the connection, which is what every caller passes; it used to be read as the
++     * account, so a stale token sent the fallback off with a pointer to the wrong struct. */
++    PurpleAccount *acct = conn->pc->account;
+     purple_debug_info("matrixprpl", "_whoami_error: %s\n", error_message);
++
++    /* A token that was typed in as the password has no password to fall back to. */
++    if (purple_account_get_bool(acct, PRPL_ACCOUNT_OPT_PASSWORD_IS_TOKEN, FALSE)) {
++        purple_connection_error_reason(conn->pc,
++                PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED,
++                _("The access token was not accepted"));
++        return;
++    }
+     _password_login(conn, acct);
+ }
+ 
+@@ -374,7 +384,22 @@ void matrix_connection_start_login(PurpleConnection *pc)
      purple_connection_set_state(pc, PURPLE_CONNECTING);
      purple_connection_update_progress(pc, _("Logging in"), 0, 3);
  
 -    if (access_token) {
-+    /* An option left empty in the account editor comes back as "", not NULL */
-+    if (access_token && *access_token) {
++    if (purple_account_get_bool(acct, PRPL_ACCOUNT_OPT_PASSWORD_IS_TOKEN, FALSE)) {
++        /* The token is the password. It is never written into the settings, and one the plugin
++         * stored there after an earlier password login goes, for the same reason. */
++        const char *password = purple_account_get_password(acct);
++        purple_account_remove_setting(acct, PRPL_ACCOUNT_OPT_ACCESS_TOKEN);
++        if (!(password && *password)) {
++            purple_connection_error_reason(pc,
++                    PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED,
++                    _("No access token: enter it as the password"));
++            return;
++        }
++        conn->access_token = g_strdup(password);
++        matrix_api_whoami(conn, _whoami_completed, _whoami_error,
++                _whoami_badresp, conn);
++    } else if (access_token && *access_token) {
++        /* "" is what a setting left empty comes back as, and it is not a token */
          conn->access_token = g_strdup(access_token);
          matrix_api_whoami(conn, _whoami_completed, _whoami_error,
                  _whoami_badresp, conn);
