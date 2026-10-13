@@ -259,6 +259,13 @@
 		<string>Matrix</string>
 		<key>NetworkReachability</key>
 		<false/>
+		<!--
+			The plugin writes what it sends into the room itself, so Adium's own copy would be a
+			second one. It also means a message the plugin refuses, into an encrypted room for one,
+			never appears as sent.
+		-->
+		<key>EchoesOutgoingMessages</key>
+		<true/>
 	</dict>
 </dict>
 </plist>

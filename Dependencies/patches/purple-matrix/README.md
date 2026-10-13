@@ -29,6 +29,13 @@ leaves a "cannot be read here" line with its sender, and a message typed into an
 refused with an error instead of going out unencrypted. Gitter's public rooms are not encrypted,
 so none of this shows up there.
 
+Adium shows the refusal as a grey status line, the way it shows every line a libpurple protocol
+writes without a sender. What it no longer does is show the refused message as sent: the plugin
+writes its own outgoing messages into the room itself, so the descriptor says
+`EchoesOutgoingMessages` and Adium keeps no local copy. A message that was not sent is simply not
+there. Adium's lock icon in the chat toolbar is OTR, which has nothing to do with Matrix
+encryption and cannot switch it on.
+
 ## Why it is here
 
 Gitter moved to Matrix. Its rooms live on the homeserver `gitter.ems.host` (which is what
