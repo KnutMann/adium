@@ -70,6 +70,9 @@ jobs:
       - name: Build and verify the plug-ins
         run: ./install.sh --build-only
 
+      - name: Every shipped binary carries its licence
+        run: ./Utilities/verify-licenses.sh
+
       # The build is already green by here; this only tells the reader how much
       # the compiler had to say. It must not fail the job: a warning is not a
       # break, and a job that goes red over one teaches people to ignore red.

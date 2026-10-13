@@ -1,5 +1,70 @@
-Adium is distributed under the GNU public license, found below. Please see the
-bottom of this document for any other licenses applicable to code used within Adium.
+Adium: what is licensed how
+===========================
+
+Adium's own source code is free software under the GNU General Public License,
+version 2 or, at your option, any later version. Its full text is reproduced
+below, and it is the licence under which this source tree is offered.
+
+The application that gets built from it is a different question, and this file
+used to answer it wrongly. Adium ships about two dozen libraries and six
+protocol plug-ins alongside its own code. Several of them are under GPL version
+3, and OpenSSL has been under the Apache licence since version 3.0. Apache 2.0
+cannot be combined with GPLv2, and GPLv3 code cannot be used under GPLv2
+either, so the built application, taken as a whole, can only be conveyed under
+GPL version 3. That is not a loss and not an accident: the "or any later
+version" above is what permits it, and it is the clause's purpose.
+
+Two things follow, and both matter:
+
+  * The source stays GPLv2-or-later. Taking a file from this tree into a
+    GPLv2 project is as allowed as it ever was.
+  * A build that leaves out the GPLv3 components would be conveyable under
+    GPLv2 again. Nothing here is one-way.
+
+The full text of GPL version 3 is in Licenses/GPL-3.0.txt, as its section 4
+requires.
+
+What is in the application
+--------------------------
+
+Every component below ships inside Adium.app, and the full text of its licence
+is in the Licenses folder beside this file, one file per component, each
+naming where the text was taken from.
+
+  AutoHyperlinks     BSD-3-Clause       https://github.com/adium/adium
+  cyrus-sasl         BSD-4-Clause       https://github.com/cyrusimap/cyrus-sasl
+  gdk-pixbuf         LGPL-2.1-or-later  https://gitlab.gnome.org/GNOME/gdk-pixbuf
+  gettext-runtime    LGPL-2.1-or-later  https://savannah.gnu.org/projects/gettext
+  glib               LGPL-2.1-or-later  https://gitlab.gnome.org/GNOME/glib
+  json-glib          LGPL-2.1-or-later  https://gitlab.gnome.org/GNOME/json-glib
+  libffi             MIT                https://github.com/libffi/libffi
+  libgcrypt          LGPL-2.1-or-later  https://gnupg.org/software/libgcrypt
+  libgpg-error       LGPL-2.1-or-later  https://gnupg.org/software/libgpg-error
+  libjpeg-turbo      BSD-3-Clause       https://libjpeg-turbo.org
+  libogg             BSD-3-Clause       https://gitlab.xiph.org/xiph/ogg
+  libotr             LGPL-2.1-or-later  https://otr.cypherpunks.ca
+  libpng             libpng-2.0         http://www.libpng.org
+  libpurple          GPL-2.0-or-later   https://pidgin.im
+  libwebp            BSD-3-Clause       https://developers.google.com/speed/webp
+  MMTabBarView       BSD-3-Clause       https://github.com/MrNoodle/MMTabBarView
+  openssl            Apache-2.0         https://www.openssl.org
+  opus               BSD-3-Clause       https://opus-codec.org
+  opusfile           BSD-3-Clause       https://opus-codec.org
+  picomemo           ISC                https://codeberg.org/pico/picomemo
+  purple-gowhatsapp  GPL-3.0-or-later   https://github.com/hoehermann/purple-gowhatsapp
+  purple-presage     GPL-3.0-or-later   https://github.com/hoehermann/purple-presage
+  purple-teams       GPL-3.0            https://github.com/EionRobb/purple-teams
+  purple2-ircv3      GPL-2.0            https://github.com/EionRobb/purple2-ircv3
+  tdlib              BSL-1.0            https://github.com/tdlib/td
+  tdlib-purple       GPL-2.0            https://github.com/ars3niy/tdlib-purple
+  WebRTC             BSD-3-Clause       https://github.com/stasel/WebRTC
+
+That list is not maintained by hand. Utilities/collect-licenses.sh reads each
+licence out of the source tree the component was built from and refuses to
+invent one it cannot find, which is how this file is kept honest. The previous
+version of it named exactly one library, libezv, which had been removed from
+the tree years before.
+
 --------------------------------------------------------------------
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
@@ -337,35 +402,3 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 This General Public License does not permit incorporating your program into
-proprietary programs.  If your program is a subroutine library, you may
-consider it more useful to permit linking proprietary applications with the
-library.  If this is what you want to do, use the GNU Library General
-Public License instead of this License.
-
---------------------------------------------------------------------------------
-Adium uses libezv by Andrew Wellington, which is distributed under the
-following license:
-
-Libezv 
-Copyright (c) 2004 Andrew Wellington. 
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, 
-are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this 
-list of conditions and the following disclaimer. 
-2. Redistributions in binary form must reproduce the above copyright notice, 
-this list of conditions and the following disclaimer in the documentation and/or 
-other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED 
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
-SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
-OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
-IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
-OF SUCH DAMAGE.
