@@ -56,6 +56,7 @@ extern void AH_delete_buffer(AH_BUFFER_STATE, yyscan_t scanner);
 	BOOL                 m_strictChecking;
 	unsigned long        m_scanLocation;
 	unsigned long        m_scanStringLength;
+	NSMutableArray      *m_enumeratedLinks;   // owns what fast enumeration hands out, see the .m
 }
 
 @property (assign) unsigned long scanLocation;
