@@ -79,13 +79,28 @@ That needed one more line in the plugin: `chat_info_defaults` returned an empty 
 the room it was asked about, and that table is what Adium turns into a bookmark's join data. Now
 it answers with the room id, which is all the protocol asks for when joining.
 
+Two more things stood between the bookmark and a live room:
+
+* Joining a room the account is already in is a no-op on the server, so the sync had nothing to
+  say about it and `_join_completed`, which only logged, never produced a conversation. The room
+  stayed an empty window until somebody wrote in it. Now a completed join whose room has no
+  conversation fetches `/rooms/<id>/state` and opens the room from that; messages arrive with the
+  sync as before, history before the join is not fetched.
+* Adium lowercased every chat name, and a Matrix room id is case sensitive (room version 12 ids
+  carry no server part at all, `!2cKIUR…` is the whole id). The generic service now keeps chat
+  names as they are when its descriptor says `CaseSensitive`. That is Adium's side, in
+  `AIPurpleGenericService.m`, not the patch. A bookmark made before that fix carries the lowercased
+  name and has to be made again.
+
 ## adium.patch
 
-Five changes:
+Six changes:
 
 * `libmatrix.c`, `matrix-room.c`, `matrix-room.h`: `chat_leave` no longer leaves the room on the
   server, see above; `/leave` does.
 * `libmatrix.c`: `chat_info_defaults` answers with the room id, so bookmarks work.
+* `matrix-connection.c`, `matrix-sync.c`, `matrix-api.c` and their headers: a completed join opens
+  the room from `/rooms/<id>/state` when the sync will not.
 
 * `libmatrix.c`, `libmatrix.h`: a bool option, "The password is an access token". When it is set
   the password is used as the token and goes straight to `whoami`; a failure there is reported

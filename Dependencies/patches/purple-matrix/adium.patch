@@ -111,8 +111,63 @@ index 73ba79e..04cff28 100644
  
  /* defaults for account options */
  #define DEFAULT_HOME_SERVER "https://matrix.org"
+diff --git a/matrix-api.c b/matrix-api.c
+index 9edea18..7a587ac 100644
+--- a/matrix-api.c
++++ b/matrix-api.c
+@@ -1026,6 +1026,29 @@ MatrixApiRequestData *matrix_api_download_thumb(MatrixConnectionData *conn,
+  * Returns the userid for our access token, mostly as a check our token
+  * is valid.
+  */
++MatrixApiRequestData *matrix_api_get_room_state(MatrixConnectionData *conn,
++        const gchar *room_id,
++        MatrixApiCallback callback,
++        MatrixApiErrorCallback error_callback,
++        MatrixApiBadResponseCallback bad_response_callback,
++        gpointer user_data)
++{
++    GString *url;
++    MatrixApiRequestData *fetch_data;
++
++    url = g_string_new(conn->homeserver);
++    g_string_append(url, "_matrix/client/r0/rooms/");
++    g_string_append(url, purple_url_encode(room_id));
++    g_string_append(url, "/state?access_token=");
++    g_string_append(url, purple_url_encode(conn->access_token));
++
++    fetch_data = matrix_api_start(url->str, "GET", NULL, conn, callback,
++            error_callback, bad_response_callback, user_data, 0);
++    g_string_free(url, TRUE);
++
++    return fetch_data;
++}
++
+ MatrixApiRequestData *matrix_api_whoami(MatrixConnectionData *conn,
+         MatrixApiCallback callback,
+         MatrixApiErrorCallback error_callback,
+diff --git a/matrix-api.h b/matrix-api.h
+index 6a22a40..eb6d9d9 100644
+--- a/matrix-api.h
++++ b/matrix-api.h
+@@ -377,6 +377,16 @@ MatrixApiRequestData *matrix_api_download_thumb(MatrixConnectionData *conn,
+  * @param user_data        Opaque data to be passed to the callbacks
+  *
+  */
++/**
++ * Fetch the current state of a room: GET /rooms/<id>/state, an array of state events
++ */
++MatrixApiRequestData *matrix_api_get_room_state(MatrixConnectionData *conn,
++        const gchar *room_id,
++        MatrixApiCallback callback,
++        MatrixApiErrorCallback error_callback,
++        MatrixApiBadResponseCallback bad_response_callback,
++        gpointer user_data);
++
+ MatrixApiRequestData *matrix_api_whoami(MatrixConnectionData *conn,
+         MatrixApiCallback callback,
+         MatrixApiErrorCallback error_callback,
 diff --git a/matrix-connection.c b/matrix-connection.c
-index 9d1bac6..ee2bdf3 100644
+index 9d1bac6..f881f30 100644
 --- a/matrix-connection.c
 +++ b/matrix-connection.c
 @@ -319,8 +319,18 @@ static void _password_login(MatrixConnectionData *conn, PurpleAccount *acct)
@@ -159,6 +214,48 @@ index 9d1bac6..ee2bdf3 100644
          conn->access_token = g_strdup(access_token);
          matrix_api_whoami(conn, _whoami_completed, _whoami_error,
                  _whoami_badresp, conn);
+@@ -384,6 +409,22 @@ void matrix_connection_start_login(PurpleConnection *pc)
+ }
+ 
+ 
++/*
++ * The state of a room we joined but which the sync did not bring: open it from that.
++ */
++static void _room_state_completed(MatrixConnectionData *conn,
++        gpointer user_data,
++        JsonNode *json_root,
++        const char *raw_body, size_t raw_body_len, const char *content_type)
++{
++    gchar *room_id = user_data;
++
++    matrix_sync_room_from_state(conn->pc, room_id,
++            matrix_json_node_get_array(json_root));
++    g_free(room_id);
++}
++
++
+ static void _join_completed(MatrixConnectionData *conn,
+         gpointer user_data,
+         JsonNode *json_root,
+@@ -395,7 +436,17 @@ static void _join_completed(MatrixConnectionData *conn,
+ 
+     root_obj = matrix_json_node_get_object(json_root);
+     room_id = matrix_json_object_get_string_member(root_obj, "room_id");
+-    purple_debug_info("matrixprpl", "join %s completed", room_id);
++    purple_debug_info("matrixprpl", "join %s completed\n", room_id);
++
++    /* Joining a room the account is already in is a no-op on the server, so the sync has
++     * nothing to say about it and no conversation would ever appear: a bookmark opened after
++     * its window was closed stayed empty. Ask for the room's state instead and open it from
++     * that; the sync carries on with whatever happens next. */
++    if (room_id != NULL && purple_find_conversation_with_account(
++                PURPLE_CONV_TYPE_CHAT, room_id, conn->pc->account) == NULL) {
++        matrix_api_get_room_state(conn, room_id, _room_state_completed,
++                matrix_api_error, matrix_api_bad_response, g_strdup(room_id));
++    }
+ 
+     g_hash_table_destroy(components);
+ }
 diff --git a/matrix-room.c b/matrix-room.c
 index 4ac4684..63f2695 100644
 --- a/matrix-room.c
@@ -240,3 +337,59 @@ index b0bd396..c6b1801 100644
  
  /**
   * Update the state table on a room, based on a received state event
+diff --git a/matrix-sync.c b/matrix-sync.c
+index eb69189..03b0dba 100644
+--- a/matrix-sync.c
++++ b/matrix-sync.c
+@@ -122,6 +122,26 @@ static PurpleChat *_ensure_blist_entry(PurpleAccount *acct,
+ }
+ 
+ 
++void matrix_sync_room_from_state(PurpleConnection *pc,
++        const gchar *room_id, JsonArray *state_events)
++{
++    PurpleConversation *conv;
++
++    _ensure_blist_entry(pc->account, room_id);
++
++    conv = purple_find_conversation_with_account(
++            PURPLE_CONV_TYPE_CHAT, room_id, pc->account);
++    if(conv != NULL)
++        return;
++
++    purple_debug_info("matrixprpl", "Opening room %s from its state\n", room_id);
++    conv = matrix_room_create_conversation(pc, room_id);
++    if(state_events != NULL)
++        _parse_room_event_array(conv, state_events, TRUE);
++    matrix_room_complete_state_update(conv, FALSE);
++}
++
++
+ /**
+  * handle a joined room within the sync response
+  */
+diff --git a/matrix-sync.h b/matrix-sync.h
+index 70361c1..371e10f 100644
+--- a/matrix-sync.h
++++ b/matrix-sync.h
+@@ -24,6 +24,7 @@
+ 
+ struct _PurpleConnection;
+ struct _JsonNode;
++struct _JsonArray;
+ 
+ /**
+  * Parse and dispatch the results of a /sync call.
+@@ -36,5 +37,12 @@ struct _JsonNode;
+ void matrix_sync_parse(struct _PurpleConnection *pc, struct _JsonNode *body,
+         const gchar **next_batch);
+ 
++/**
++ * Open a room from its state events alone, as fetched from /rooms/<id>/state.
++ * Does nothing if the room already has a conversation.
++ */
++void matrix_sync_room_from_state(struct _PurpleConnection *pc,
++        const gchar *room_id, struct _JsonArray *state_events);
++
+ 
+ #endif /* MATRIX_SYNC_H_ */

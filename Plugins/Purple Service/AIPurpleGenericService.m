@@ -218,6 +218,21 @@
 	return sensitive ? [sensitive boolValue] : [super caseSensitive];
 }
 
+/*!
+ * @brief A chat name is kept as typed where the descriptor says names are case sensitive
+ *
+ * AIService lowercases every chat name whatever caseSensitive says, and the hand written services
+ * live with that: XMPP room names are case insensitive by specification, IRC channels likewise. A
+ * Matrix room id is not, "!2cKIUR…" and "!2ckiur…" are two different rooms, and a bookmark stored
+ * under the lowercased name opened a chat that no conversation would ever attach to. The hand
+ * written services are left alone on purpose; Jabber answers caseSensitive YES for its account
+ * names and would have its room names compared case sensitively too.
+ */
+- (NSString *)normalizeChatName:(NSString *)inChatName
+{
+	return [self caseSensitive] ? inChatName : [super normalizeChatName:inChatName];
+}
+
 - (AIServiceImportance)serviceImportance
 {
 	return [[descriptor objectForKey:@"ServiceImportance"] isEqualToString:@"Primary"] ?
