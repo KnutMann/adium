@@ -9,8 +9,10 @@ no Objective-C of its own.
 
 ## What it does
 
-Text messages in rooms you are already in or get invited to. The code also reads `m.room.topic`
-and fetches thumbnails for `m.image`, though neither has been tried from Adium yet.
+Text messages in rooms you are already in or get invited to. Tried against `gitter.ems.host` with
+a token (2026-10-13): the account connected and the rooms from Gitter came up straight away. The
+code also reads `m.room.topic` and fetches thumbnails for `m.image`; neither has been looked at
+closely yet.
 
 What it does not do, by upstream's own list: create rooms or one-to-one chats, presence, typing,
 rich text, calls. End-to-end encryption is compiled out here (`MATRIX_NO_E2E`):
