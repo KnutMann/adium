@@ -257,10 +257,57 @@ index 9d1bac6..f881f30 100644
      g_hash_table_destroy(components);
  }
 diff --git a/matrix-room.c b/matrix-room.c
-index 4ac4684..63f2695 100644
+index 4ac4684..8eb709d 100644
 --- a/matrix-room.c
 +++ b/matrix-room.c
-@@ -1157,28 +1157,16 @@ PurpleConversation *matrix_room_create_conversation(
+@@ -93,6 +93,17 @@ static MatrixRoomMemberTable *matrix_room_get_member_table(
+ /**
+  * Get the state table for a room
+  */
++static MatrixRoomStateEventTable *matrix_room_get_state_table(
++        PurpleConversation *conv);
++
++/* Does the room have an m.room.encryption state event, i.e. is it end-to-end encrypted? */
++static gboolean _room_is_encrypted(PurpleConversation *conv)
++{
++    MatrixRoomStateEventTable *state_table = matrix_room_get_state_table(conv);
++    return state_table != NULL &&
++        matrix_statetable_get_event(state_table, "m.room.encryption", "") != NULL;
++}
++
+ static MatrixRoomStateEventTable *matrix_room_get_state_table(
+         PurpleConversation *conv)
+ {
+@@ -295,6 +306,12 @@ static void _on_state_update(const gchar *event_type,
+     } else if (strcmp(event_type, "m.room.encryption") == 0) {
+         purple_debug_info("matrixprpl",
+                           "Got m.room.encryption on_state_update\n");
++        /* Said in the room rather than only in the log: without it the room looks like any
++         * other and messages simply never appear. */
++        purple_conv_chat_write(PURPLE_CONV_CHAT(conv), "",
++                _("This room is end-to-end encrypted. Messages in it cannot be read or sent "
++                  "from here."),
++                PURPLE_MESSAGE_SYSTEM, time(NULL));
+     }
+     else if(strcmp(event_type, "m.typing") == 0) {
+         _on_typing(conv, old_state, new_state);
+@@ -1029,8 +1046,15 @@ void matrix_room_handle_timeline_event(PurpleConversation *conv,
+         purple_debug_info("matrixprpl", "Got an m.room.encrypted!\n");
+         decrypted_parser = matrix_e2e_decrypt_room(conv, json_event_obj);
+         if (!decrypted_parser) {
++            gchar *note;
+             purple_debug_warning("matrixprpl",
+                                  "Failed to decrypt m.room.encrypted");
++            /* A dropped message is indistinguishable from no message; a line is not. */
++            note = g_strdup_printf(_("%s sent an encrypted message, which cannot be read here."),
++                    sender_id ? sender_id : "?");
++            purple_conv_chat_write(PURPLE_CONV_CHAT(conv), "", note,
++                    PURPLE_MESSAGE_SYSTEM, timestamp / 1000);
++            g_free(note);
+             return;
+         }
+         JsonNode *decrypted_node = json_parser_get_root(decrypted_parser);
+@@ -1157,28 +1181,16 @@ PurpleConversation *matrix_room_create_conversation(
   * Leave a chat: notify the server that we are leaving, and (ultimately)
   * free the memory structures
   */
@@ -293,7 +340,7 @@ index 4ac4684..63f2695 100644
  
      state_table = matrix_room_get_state_table(conv);
      matrix_statetable_destroy(state_table);
-@@ -1196,6 +1184,27 @@ void matrix_room_leave_chat(PurpleConversation *conv)
+@@ -1196,6 +1208,27 @@ void matrix_room_leave_chat(PurpleConversation *conv)
      matrix_e2e_cleanup_conversation(conv);
  }
  
@@ -321,6 +368,23 @@ index 4ac4684..63f2695 100644
  
  /* *****************************************************************************
   *
+@@ -1453,6 +1486,16 @@ void matrix_room_send_message(PurpleConversation *conv, const gchar *message)
+     gchar *message_to_send, *message_dup;
+     GData *image_attribs;
+ 
++    /* The alternative is what used to happen: the message went out as plain text, and every
++     * other client in the room showed it with a warning that it was not encrypted. */
++    if (_room_is_encrypted(conv)) {
++        purple_conv_chat_write(chat, "",
++                _("This room is end-to-end encrypted and nothing can be sent into it from "
++                  "here. The message was not sent."),
++                PURPLE_MESSAGE_ERROR, time(NULL));
++        return;
++    }
++
+     /* Matrix doesn't have messages that have both images and text in, so
+      * we have to split this message if it has an image.
+      */
 diff --git a/matrix-room.h b/matrix-room.h
 index b0bd396..c6b1801 100644
 --- a/matrix-room.h

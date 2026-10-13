@@ -19,6 +19,16 @@ rich text, calls. End-to-end encryption is compiled out here (`MATRIX_NO_E2E`):
 upstream only ever got as far as decrypting, it needs libolm, which has itself been retired, and
 public rooms are not encrypted anyway.
 
+## Encrypted rooms
+
+Element creates new private rooms end-to-end encrypted, and the first test room was one. Upstream
+dropped every `m.room.encrypted` event it could not decrypt with nothing but a debug line, and sent
+into such a room in the clear, which Element then flagged on every message. Both are said out loud
+now: an encrypted room announces itself with a system line when it opens, an encrypted message
+leaves a "cannot be read here" line with its sender, and a message typed into an encrypted room is
+refused with an error instead of going out unencrypted. Gitter's public rooms are not encrypted,
+so none of this shows up there.
+
 ## Why it is here
 
 Gitter moved to Matrix. Its rooms live on the homeserver `gitter.ems.host` (which is what
@@ -95,13 +105,15 @@ Two more things stood between the bookmark and a live room:
 
 ## adium.patch
 
-Six changes:
+Seven changes:
 
 * `libmatrix.c`, `matrix-room.c`, `matrix-room.h`: `chat_leave` no longer leaves the room on the
   server, see above; `/leave` does.
 * `libmatrix.c`: `chat_info_defaults` answers with the room id, so bookmarks work.
 * `matrix-connection.c`, `matrix-sync.c`, `matrix-api.c` and their headers: a completed join opens
   the room from `/rooms/<id>/state` when the sync will not.
+* `matrix-room.c`: encrypted rooms and messages are announced, and nothing is sent into an
+  encrypted room, see above.
 
 * `libmatrix.c`, `libmatrix.h`: a bool option, "The password is an access token". When it is set
   the password is used as the token and goes straight to `whoami`; a failure there is reported
