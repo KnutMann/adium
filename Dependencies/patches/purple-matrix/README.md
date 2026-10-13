@@ -55,9 +55,25 @@ device on the next connection. That is unchanged for password accounts. In token
 removes that setting, so a profile that had the first version of this patch is cleaned up at the
 next connection.
 
+## Closing a window is not leaving a room
+
+Upstream implemented libpurple's `chat_leave` as leaving the room on the server. libpurple calls
+`chat_leave` whenever a chat conversation is destroyed, and Adium destroys the conversation when
+its window closes (as Pidgin does). So closing the window of a room meant leaving it, for good,
+and closing a window with six Gitter rooms in it meant leaving six rooms. That is how it was
+noticed, on 2026-10-13.
+
+`adium.patch` makes `chat_leave` free the conversation's local state and nothing more. A closed
+room comes back with the next sync that mentions it, or with the next connection. Leaving for good
+is the `/leave` command, typed into the room; it tells the server and marks the conversation as
+left.
+
 ## adium.patch
 
-Three changes, all in the login path:
+Four changes:
+
+* `libmatrix.c`, `matrix-room.c`, `matrix-room.h`: `chat_leave` no longer leaves the room on the
+  server, see above; `/leave` does.
 
 * `libmatrix.c`, `libmatrix.h`: a bool option, "The password is an access token". When it is set
   the password is used as the token and goes straight to `whoami`; a failure there is reported
