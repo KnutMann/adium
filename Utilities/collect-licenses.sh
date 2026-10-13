@@ -23,28 +23,28 @@ cd "$(dirname "$0")/.."
 REPO=$(pwd)
 OUT="$REPO/Resources/Licenses"
 
-# component | SPDX | where the text lives, relative to the repository | upstream
+# component | SPDX | where the text lives in the tree | fallback URL if the tree is gone | upstream
 MANIFEST=$(cat <<'EOF'
-AutoHyperlinks|BSD-3-Clause|Frameworks/AutoHyperlinks Framework/License.txt|https://github.com/adium/adium
-cyrus-sasl|BSD-4-Clause|Dependencies/source/cyrus-sasl/COPYING|https://github.com/cyrusimap/cyrus-sasl
-gettext-runtime|LGPL-2.1-or-later|Dependencies/source/gettext/gettext-runtime/intl/COPYING.LIB|https://savannah.gnu.org/projects/gettext
-GPL-3.0|GPL-3.0|Dependencies/source/purple-gowhatsapp/LICENSE|https://www.gnu.org/licenses/gpl-3.0.html
-glib|LGPL-2.1-or-later|Dependencies/source/glib/COPYING|https://gitlab.gnome.org/GNOME/glib
-json-glib|LGPL-2.1-or-later|Dependencies/source/json-glib-1.6.2/COPYING|https://gitlab.gnome.org/GNOME/json-glib
-libgcrypt|LGPL-2.1-or-later|Dependencies/source/libgcrypt/COPYING.LIB|https://gnupg.org/software/libgcrypt
-libgpg-error|LGPL-2.1-or-later|Dependencies/source/gpgerror/COPYING.LIB|https://gnupg.org/software/libgpg-error
-libogg|BSD-3-Clause|Dependencies/source/libogg-1.3.6/COPYING|https://gitlab.xiph.org/xiph/ogg
-libotr|LGPL-2.1-or-later|Dependencies/source/otr/COPYING.LIB|https://otr.cypherpunks.ca
-libpurple|GPL-2.0-or-later|Dependencies/source/libpurple/COPYING|https://pidgin.im
-MMTabBarView|BSD-3-Clause|Dependencies/MMTabBarView/LICENSE|https://github.com/MrNoodle/MMTabBarView
-opus|BSD-3-Clause|Dependencies/source/opus-1.5.2/COPYING|https://opus-codec.org
-opusfile|BSD-3-Clause|Dependencies/source/opusfile-0.12/COPYING|https://opus-codec.org
-picomemo|ISC|Dependencies/picomemo/picomemo/LICENSE|https://codeberg.org/pico/picomemo
-purple-gowhatsapp|GPL-3.0-or-later|Dependencies/source/purple-gowhatsapp/LICENSE|https://github.com/hoehermann/purple-gowhatsapp
-purple-presage|GPL-3.0-or-later|Dependencies/source/purple-presage/LICENSE|https://github.com/hoehermann/purple-presage
-tdlib|BSL-1.0|Dependencies/source/td-1.8.67/LICENSE_1_0.txt|https://github.com/tdlib/td
-tdlib-purple|GPL-3.0|Dependencies/source/tdlib-purple-master/LICENSE|https://github.com/adrighem/tdlib-purple
-WebRTC|BSD-3-Clause|Dependencies/webrtc/WebRTC.xcframework/LICENSE|https://github.com/stasel/WebRTC
+AutoHyperlinks|BSD-3-Clause|Frameworks/AutoHyperlinks Framework/License.txt||https://github.com/adium/adium
+cyrus-sasl|BSD-4-Clause|Dependencies/source/cyrus-sasl/COPYING|https://raw.githubusercontent.com/cyrusimap/cyrus-sasl/cyrus-sasl-2.1.28/COPYING|https://github.com/cyrusimap/cyrus-sasl
+gettext-runtime|LGPL-2.1-or-later|Dependencies/source/gettext/gettext-runtime/intl/COPYING.LIB|https://raw.githubusercontent.com/autotools-mirror/gettext/v1.0/gettext-runtime/intl/COPYING.LIB|https://savannah.gnu.org/projects/gettext
+GPL-3.0|GPL-3.0|Dependencies/source/purple-gowhatsapp/LICENSE||https://www.gnu.org/licenses/gpl-3.0.html
+glib|LGPL-2.1-or-later|Dependencies/source/glib/COPYING|https://raw.githubusercontent.com/GNOME/glib/2.86.1/LICENSES/LGPL-2.1-or-later.txt|https://gitlab.gnome.org/GNOME/glib
+json-glib|LGPL-2.1-or-later|Dependencies/source/json-glib-1.10.8/COPYING|https://raw.githubusercontent.com/GNOME/json-glib/1.10.8/COPYING|https://gitlab.gnome.org/GNOME/json-glib
+libgcrypt|LGPL-2.1-or-later|Dependencies/source/libgcrypt/COPYING.LIB|https://raw.githubusercontent.com/gpg/libgcrypt/master/COPYING.LIB|https://gnupg.org/software/libgcrypt
+libgpg-error|LGPL-2.1-or-later|Dependencies/source/gpgerror/COPYING.LIB|https://raw.githubusercontent.com/gpg/libgpg-error/libgpg-error-1.50/COPYING.LIB|https://gnupg.org/software/libgpg-error
+libogg|BSD-3-Clause|Dependencies/source/libogg-1.3.6/COPYING|https://raw.githubusercontent.com/xiph/ogg/v1.3.6/COPYING|https://gitlab.xiph.org/xiph/ogg
+libotr|LGPL-2.1-or-later|Dependencies/source/otr/COPYING.LIB|https://raw.githubusercontent.com/off-the-record/libotr/master/COPYING.LIB|https://otr.cypherpunks.ca
+libpurple|GPL-2.0-or-later|Dependencies/source/libpurple/COPYING||https://pidgin.im
+MMTabBarView|BSD-3-Clause|Dependencies/MMTabBarView/LICENSE||https://github.com/MrNoodle/MMTabBarView
+opus|BSD-3-Clause|Dependencies/source/opus-1.5.2/COPYING|https://raw.githubusercontent.com/xiph/opus/v1.5.2/COPYING|https://opus-codec.org
+opusfile|BSD-3-Clause|Dependencies/source/opusfile-0.12/COPYING|https://raw.githubusercontent.com/xiph/opusfile/v0.12/COPYING|https://opus-codec.org
+picomemo|ISC|Dependencies/picomemo/picomemo/LICENSE||https://codeberg.org/pico/picomemo
+purple-gowhatsapp|GPL-3.0-or-later|Dependencies/source/purple-gowhatsapp/LICENSE|https://raw.githubusercontent.com/hoehermann/purple-gowhatsapp/master/LICENSE|https://github.com/hoehermann/purple-gowhatsapp
+purple-presage|GPL-3.0-or-later|Dependencies/source/purple-presage/LICENSE|https://raw.githubusercontent.com/hoehermann/purple-presage/master/LICENSE|https://github.com/hoehermann/purple-presage
+tdlib|BSL-1.0|Dependencies/source/td-1.8.67/LICENSE_1_0.txt|https://www.boost.org/LICENSE_1_0.txt|https://github.com/tdlib/td
+tdlib-purple|GPL-3.0|Dependencies/source/tdlib-purple-master/LICENSE|https://raw.githubusercontent.com/adrighem/tdlib-purple/master/LICENSE|https://github.com/adrighem/tdlib-purple
+WebRTC|BSD-3-Clause|Dependencies/webrtc/WebRTC.xcframework/LICENSE||https://github.com/stasel/WebRTC
 EOF
 )
 
@@ -78,11 +78,16 @@ write_one() {                                  # name spdx upstream source-descr
 missing=0
 mkdir -p "$OUT"
 
-while IFS='|' read -r name spdx path upstream; do
+while IFS='|' read -r name spdx path url upstream; do
 	[ -z "$name" ] && continue
 	if [ -r "$REPO/$path" ]; then
 		write_one "$name" "$spdx" "$upstream" "$path" < "$REPO/$path"
 		printf "  %-20s %-22s %s\n" "$name" "$spdx" "$path"
+	elif [ -n "$url" ] && body=$(curl -fsSL --max-time 30 "$url" 2>/dev/null) && [ -n "$body" ]; then
+		# Dependencies/source is not kept forever. Where the tree is gone, the pinned
+		# release the component was built from still has its licence.
+		printf '%s\n' "$body" | write_one "$name" "$spdx" "$upstream" "$url"
+		printf "  %-20s %-22s %s\n" "$name" "$spdx" "fetched (tree gone)"
 	else
 		printf "  %-20s %-22s MISSING: %s\n" "$name" "$spdx" "$path"
 		missing=$((missing + 1))
