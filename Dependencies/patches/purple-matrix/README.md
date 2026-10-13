@@ -68,12 +68,24 @@ room comes back with the next sync that mentions it, or with the next connection
 is the `/leave` command, typed into the room; it tells the server and marks the conversation as
 left.
 
+## Bookmarks
+
+A room can be bookmarked from its window (Add Group Chat Bookmark), and the bookmark is a row in
+the contact list, which also makes the borderless list visible again when nothing else is in it.
+Opening the bookmark joins the room, which for a room the account is still in simply brings the
+window back.
+
+That needed one more line in the plugin: `chat_info_defaults` returned an empty table and ignored
+the room it was asked about, and that table is what Adium turns into a bookmark's join data. Now
+it answers with the room id, which is all the protocol asks for when joining.
+
 ## adium.patch
 
-Four changes:
+Five changes:
 
 * `libmatrix.c`, `matrix-room.c`, `matrix-room.h`: `chat_leave` no longer leaves the room on the
   server, see above; `/leave` does.
+* `libmatrix.c`: `chat_info_defaults` answers with the room id, so bookmarks work.
 
 * `libmatrix.c`, `libmatrix.h`: a bool option, "The password is an access token". When it is set
   the password is used as the token and goes straight to `whoami`; a failure there is reported
