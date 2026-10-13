@@ -1,4 +1,24 @@
 #!/usr/bin/env python3
+"""Turn a plain dylib into a macOS framework, and make everything point at it.
+
+A library built by Dependencies/build.sh comes out as libfoo.1.dylib with an
+install name naming the place it was built. Inside an application bundle neither
+is any use: the name has to be a path relative to the bundle, and macOS wants the
+Versions/A layout around it before it will treat the thing as a framework.
+
+This does both. It lays out Foo.framework/Versions/A with the binary, the headers
+and the symlinks, rewrites the install name to @executable_path/../Frameworks,
+and walks the library's own dependencies, rewriting each one that points at the
+build tree to the framework it has become. That walk is the part that matters:
+libpurple alone pulls in glib, gobject, gmodule, gthread and intl, and one missed
+path is a library that loads from the build directory on this machine and nowhere
+else.
+
+Called by Dependencies/phases/make_frameworks.sh, never by hand. Names that do
+not follow the library's own spelling are listed in FRAMEWORK_NAME_OVERRIDES
+below. otool_parse.py beside this file reads otool's output; frameworkize_test.py
+and otool_parse_test.py are its self-tests and are run by hand.
+"""
 import otool_parse
 
 import sys

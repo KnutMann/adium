@@ -1338,7 +1338,7 @@ static BOOL AIScreenRectEdgeAdjacentToAnyOtherScreen(NSRectEdge edge, NSScreen *
 		[[NSNotificationCenter defaultCenter] postNotificationName:DetachedContactListIsEmpty
 												  object:from
 												userInfo:nil];
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"Contact_ListChanged"
+		[[NSNotificationCenter defaultCenter] postNotificationName:Contact_ListChanged
 												  object:to
 												userInfo:nil]; 
 	}
