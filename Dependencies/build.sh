@@ -1,4 +1,30 @@
 #!/bin/bash -eu
+#
+# Build every library Adium bundles, from source, into Dependencies/build.
+#
+# This is the entry point of the dependency chain: nineteen libraries, from glib
+# and libpurple down to the image codecs, each fetched by checksum, built for the
+# deployment target the application uses, and then turned into the frameworks and
+# dylibs that live in Frameworks/ and ship inside the bundle. The phases it pulls
+# in below run in that order and depend on each other; this is a sequence, not a
+# menu.
+#
+# Running it is not part of an ordinary build. The results are committed, so a
+# fresh checkout compiles Adium without ever touching this. Run it when a library
+# needs to move, when a pin changes, or to prove that what is committed can still
+# be reproduced from source.
+#
+#   cd Dependencies && ./build.sh
+#
+# It must be run from the Dependencies directory, and it checks. It needs a
+# Homebrew toolchain for autoconf, automake, libtool, pkg-config and meson, and
+# it takes the better part of an hour.
+#
+# MIN_OS_VERSION below is the floor every library is stamped with, and it has to
+# match Base.xcconfig: a library built for a newer macOS than the application
+# earns a linker warning for every object, and one built for an older one is
+# simply fine. See Dependencies/phases/utility.sh for how a package is fetched
+# and verified, and make_frameworks.sh for how the results are assembled.
 
 source phases/utility.sh
 source phases/build_dependencies.sh

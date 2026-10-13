@@ -302,7 +302,7 @@
 		
 		[adium.contactController removeDetachedContactList:(AIContactList *)[windowController contactList]];
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"Contact_ListChanged"
+		[[NSNotificationCenter defaultCenter] postNotificationName:Contact_ListChanged
 												  object:adium.contactController.contactList 
 												userInfo:nil];
 			

@@ -1,38 +1,76 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+"""Find places where a macro's name was written inside a string instead of used.
 
-"Searches the code base, starting from the current working directory, for defined macros being used inside quotes."
+Adium defines a great many names with #define, preference groups and keys above
+all, and a name in quotes looks exactly like the name used. `@"PREF_GROUP_GENERAL"`
+compiles, reads correctly to a human, and silently means something different from
+`PREF_GROUP_GENERAL`. This walks the source for that shape.
 
-import optparse
-parser = optparse.OptionParser(description=__doc__)
-opts, args = parser.parse_args()
+It reports candidates, not faults. A macro named after the string it expands to
+will match itself, and so will a comment quoting a macro on purpose, so every hit
+wants a human. What it does is narrow the search from the whole tree to a list.
 
-import subprocess
-from subprocess import PIPE
+    Utilities/FindMacroMisuses.py [directories...]
 
-# Find all macro definitions.
-grep = subprocess.Popen(['grep', '-RhF', '#define', 'Frameworks', 'Plugins', 'Source', '--include=*.[hmc]'], stdout=PIPE)
-# Extract the macro name.
-sed = subprocess.Popen(['sed', '-nE', 's/^#define[ \\t]*([A-Za-z_0-9]+)[ \\t]*.*/\\1/p'], stdin=grep.stdout, stdout=PIPE)
-# Reduce to one instance of each macro name.
-sort = subprocess.Popen(['sort'], env={ 'LC_ALL': 'C' }, stdin=sed.stdout, stdout=PIPE)
-uniq = subprocess.Popen(['uniq'], env={ 'LC_ALL': 'C' }, stdin=sort.stdout, stdout=PIPE)
+Defaults to our own source. Frameworks/ as a whole is not a default: the built
+third-party frameworks live there, and their headers bury the signal.
 
-# I tried both grep and the re module for searching for quoted macros, but the resulting regular expression is too long. --boredzo
-macros_in_quotes = ['"%s"' % (line.rstrip('\n'),) for line in uniq.stdout]
-
-import itertools
+Rewritten in October 2026. The version before had been dead since Adium left
+Subversion: it descended only into directories containing a .svn folder, so in a
+git checkout it walked nothing and always printed nothing.
+"""
 import os
-for (directory, dirnames, filenames) in itertools.chain(os.walk('Frameworks'), os.walk('Plugins'), os.walk('Source')):
-	if '.svn' not in dirnames:
-		del dirnames[:]
-	else:
-		del dirnames[dirnames.index('.svn')]
-		for fn in filenames:
-			if os.path.splitext(fn)[-1] in ['.m', '.c', '.h']:
-				path = os.path.join(directory, fn)
-				for i, line in enumerate(open(path, 'r')):
-					if line.startswith('#define'):
-						continue
-					for quoted_macro in macros_in_quotes:
-						if quoted_macro in line:
-							print '%s:%u:%s' % (path, i + 1, line.rstrip('\n'))
+import re
+import sys
+
+SUFFIXES = (".m", ".h", ".c")
+DEFINE = re.compile(r"^\s*#\s*define\s+([A-Za-z_][A-Za-z_0-9]*)")
+
+
+def sources(roots):
+	for root in roots:
+		for directory, dirnames, filenames in os.walk(root):
+			dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+			for name in filenames:
+				if name.endswith(SUFFIXES):
+					yield os.path.join(directory, name)
+
+
+def main():
+	roots = sys.argv[1:] or ["Source", "Plugins", "Frameworks/Adium",
+	                         "Frameworks/AIUtilities",
+	                         "Frameworks/AutoHyperlinks Framework"]
+	roots = [r for r in roots if os.path.isdir(r)]
+	if not roots:
+		sys.exit("none of those directories exist; run this from the repository root")
+
+	files = list(sources(roots))
+
+	macros = set()
+	for path in files:
+		with open(path, encoding="utf-8", errors="replace") as f:
+			for line in f:
+				m = DEFINE.match(line)
+				if m:
+					macros.add(m.group(1))
+	# One character and two character names match far too much to be worth reading.
+	quoted = {'"%s"' % name: name for name in macros if len(name) > 2}
+
+	hits = 0
+	for path in files:
+		with open(path, encoding="utf-8", errors="replace") as f:
+			for number, line in enumerate(f, start=1):
+				if DEFINE.match(line):
+					continue
+				for text, name in quoted.items():
+					if text in line:
+						print("%s:%d: %s" % (path, number, line.strip()))
+						hits += 1
+						break
+
+	print("\n%d macro definitions, %d lines worth a look" % (len(macros), hits),
+	      file=sys.stderr)
+
+
+if __name__ == "__main__":
+	main()

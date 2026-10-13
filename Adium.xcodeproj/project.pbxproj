@@ -2721,9 +2721,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4BFC5407043E509A00A8010A /* AIContentStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIContentStatus.h; path = Frameworks/Adium/Source/AIContentStatus.h; sourceTree = "<group>"; };
 		4BFC5408043E509A00A8010A /* AIContentStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIContentStatus.m; path = Frameworks/Adium/Source/AIContentStatus.m; sourceTree = "<group>"; };
 		4BFE2E9F07E61A4E00C07EBE /* NewAlertNoEvents.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = NewAlertNoEvents.xib; path = "Frameworks/Adium/Resources/NewAlertNoEvents.xib"; sourceTree = "<group>"; };
-		4D4A20A125775535008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
 		4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MMTabBarView.xcodeproj; path = Dependencies/MMTabBarView/MMTabBarView/MMTabBarView.xcodeproj; sourceTree = "<group>"; };
-		4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AIMessageWindow.h; sourceTree = "<group>"; };
+		4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AIMessageWindow.h; path = Source/AIMessageWindow.h; sourceTree = "<group>"; };
 		4D4B482E25F3EFC5000CEF01 /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.dylib"; path = "libglib-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B483525F3F04B000CEF01 /* libgobject-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgobject-2.0.dylib"; path = "libgobject-2.0.dylib"; sourceTree = "<group>"; };
 		4D4B483725F3F058000CEF01 /* libgthread-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libgthread-2.0.dylib"; path = "libgthread-2.0.dylib"; sourceTree = "<group>"; };
@@ -3292,7 +3291,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */,
 				4D4B483D25F3F204000CEF01 /* adium-dependencies.xcodeproj */,
 				4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */,
-				4D4A20A125775535008BB8E3 /* AIMessageWindow.h */,
 				34DE9E60237E2BFC006D5C7F /* Adium.entitlements */,
 				F59DB3D6033EA9CD01A8010A /* AIAdium.h */,
 				F59DB3D7033EA9CD01A8010A /* AIAdium.m */,

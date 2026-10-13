@@ -1,10 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-"This program generates the implementations of the test methods for +colorWithHTMLString:."
+"""Generate the test methods for +colorWithHTMLString:.
+
+Its output is UnitTests/TestColorAdditions.m, which is checked in. Run this only
+to change the matrix of colours, digit counts and letter case that gets covered,
+then paste the result in.
+
+Brought to Python 3 in October 2026, and with it off STAssert. The checked-in
+tests had moved to XCTest and to comparing floats with a tolerance rather than
+for equality; a generator still writing SenTestingKit macros and bare equality
+would have quietly undone both the next time anybody ran it.
+"""
 
 import sys
-#Iterators are our friends.
-from itertools import izip as zip
 
 prototype = '- (void)testColorWith%(num_digits)uDigitHTMLStringFor%(color)s%(case)scase'
 declaration = prototype + ';'
@@ -12,11 +20,11 @@ implementation = prototype + """
 {
 	NSString *string = @"%(html_string)s";
 	NSColor *%(color_lowercase)s = [NSColor colorWithHTMLString:string];
-	STAssertEquals([%(color_lowercase)s   redComponent], %(red)sf,   @"Red component of %(color_human_readable)s should be %(red)s");
-	STAssertEquals([%(color_lowercase)s greenComponent], %(green)sf, @"Green component of %(color_human_readable)s should be %(green)s");
-	STAssertEquals([%(color_lowercase)s  blueComponent], %(blue)sf,  @"Blue component of %(color_human_readable)s should be %(blue)s");
+	XCTAssertEqualWithAccuracy([%(color_lowercase)s   redComponent], (CGFloat)%(red)sf, AIFloatComparisonAccuracy,   @"Red component of %(color_human_readable)s should be %(red)s");
+	XCTAssertEqualWithAccuracy([%(color_lowercase)s greenComponent], (CGFloat)%(green)sf, AIFloatComparisonAccuracy, @"Green component of %(color_human_readable)s should be %(green)s");
+	XCTAssertEqualWithAccuracy([%(color_lowercase)s  blueComponent], (CGFloat)%(blue)sf, AIFloatComparisonAccuracy,  @"Blue component of %(color_human_readable)s should be %(blue)s");
 !!! Alpha 1 line
-	STAssertEquals([%(color_lowercase)s alphaComponent], %(alpha)sf, @"Alpha component of %(color_human_readable)s should be %(alpha)s");
+	XCTAssertEqualWithAccuracy([%(color_lowercase)s alphaComponent], (CGFloat)%(alpha)sf, AIFloatComparisonAccuracy, @"Alpha component of %(color_human_readable)s should be %(alpha)s");
 }\
 """
 
@@ -76,7 +84,7 @@ if all_color_names != set(color_names_to_rgba):
 		all_color_names = tuple(all_color_names) + (None,) * diff
 
 	for names in zip(all_color_names, color_names_to_rgba):
-		print >>sys.stderr, '\t'.join(('%r',) * len(names)) % names
+		print('\t'.join(('%r',) * len(names)) % names, file=sys.stderr)
 	sys.exit('Cannot continue because our lists of color names are not equal')
 
 def rgba_to_html_string(rgba, num_digits=6, use_uppercase=False):
@@ -97,7 +105,7 @@ def rgba_to_html_string(rgba, num_digits=6, use_uppercase=False):
 	try:
 		return format % tuple(values)
 	except:
-		print >>sys.stderr, 'Got an exception while trying to format %r with values %r' % (format,)
+		print('Got an exception while trying to format %r with values %r' % (format,), file=sys.stderr)
 		raise
 
 ################################################################################
@@ -109,7 +117,7 @@ if __name__ == "__main__":
 	opts, args = parser.parse_args()
 
 	noun = 'method declaration' if opts.generate_declarations else 'method'
-	print "//These methods are automatically generated! If you want to change them, please change the program in the Utilities folder instead. Otherwise, your changes may be clobbered by the next person.".replace('method', noun)
+	print("//These methods are automatically generated! If you want to change them, please change the program in the Utilities folder instead. Otherwise, your changes may be clobbered by the next person.".replace('method', noun))
 
 	import re
 	camel_case_sep_exp = re.compile('[A-Z]')
@@ -176,8 +184,8 @@ if __name__ == "__main__":
 			yield '' # Evil hax: This is here in order to print a new line between groups of methods with each number of digits.
 
 	for method in method_implementations(color_names, generate_implementations=not opts.generate_declarations):
-		print method
+		print(method)
 	for method in method_implementations(transparent_color_names, generate_implementations=not opts.generate_declarations):
-		print method
+		print(method)
 
-	print "//End of automatically-generated methods".replace('method', noun)
+	print("//End of automatically-generated methods".replace('method', noun))
