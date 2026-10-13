@@ -73,7 +73,8 @@ left.
 A room can be bookmarked from its window (Add Group Chat Bookmark), and the bookmark is a row in
 the contact list, which also makes the borderless list visible again when nothing else is in it.
 Opening the bookmark joins the room, which for a room the account is still in simply brings the
-window back.
+window back. Tried on 2026-10-13: close the window, open the bookmark, the room is back with its
+members.
 
 That needed one more line in the plugin: `chat_info_defaults` returned an empty table and ignored
 the room it was asked about, and that table is what Adium turns into a bookmark's join data. Now
