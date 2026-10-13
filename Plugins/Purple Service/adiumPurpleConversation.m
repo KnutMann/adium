@@ -92,7 +92,10 @@ static void adiumPurpleConvWriteChat(PurpleConversation *conv, const char *who,
 			NSDate				*date = [NSDate dateWithTimeIntervalSince1970:mtime];
 			PurpleAccount		*purpleAccount = purple_conversation_get_account(conv);
 		
-			if ((flags & PURPLE_MESSAGE_SYSTEM) == PURPLE_MESSAGE_SYSTEM || !who) {
+			/* An empty sender is no sender. A protocol that writes a line with "" and without
+			 * SYSTEM used to produce a message from a contact with no UID, which the logger then
+			 * refused to store, by throwing, and the application went with it. */
+			if ((flags & PURPLE_MESSAGE_SYSTEM) == PURPLE_MESSAGE_SYSTEM || !who || !*who) {
 				CBPurpleAccount *account = accountLookup(purpleAccount);
 			
 				[account receivedEventForChat:groupChatLookupFromConv(conv)

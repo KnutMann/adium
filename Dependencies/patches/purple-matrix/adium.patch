@@ -257,7 +257,7 @@ index 9d1bac6..f881f30 100644
      g_hash_table_destroy(components);
  }
 diff --git a/matrix-room.c b/matrix-room.c
-index 4ac4684..8eb709d 100644
+index 4ac4684..bde9097 100644
 --- a/matrix-room.c
 +++ b/matrix-room.c
 @@ -93,6 +93,17 @@ static MatrixRoomMemberTable *matrix_room_get_member_table(
@@ -284,7 +284,7 @@ index 4ac4684..8eb709d 100644
                            "Got m.room.encryption on_state_update\n");
 +        /* Said in the room rather than only in the log: without it the room looks like any
 +         * other and messages simply never appear. */
-+        purple_conv_chat_write(PURPLE_CONV_CHAT(conv), "",
++        purple_conv_chat_write(PURPLE_CONV_CHAT(conv), NULL,
 +                _("This room is end-to-end encrypted. Messages in it cannot be read or sent "
 +                  "from here."),
 +                PURPLE_MESSAGE_SYSTEM, time(NULL));
@@ -301,7 +301,7 @@ index 4ac4684..8eb709d 100644
 +            /* A dropped message is indistinguishable from no message; a line is not. */
 +            note = g_strdup_printf(_("%s sent an encrypted message, which cannot be read here."),
 +                    sender_id ? sender_id : "?");
-+            purple_conv_chat_write(PURPLE_CONV_CHAT(conv), "", note,
++            purple_conv_chat_write(PURPLE_CONV_CHAT(conv), NULL, note,
 +                    PURPLE_MESSAGE_SYSTEM, timestamp / 1000);
 +            g_free(note);
              return;
@@ -368,17 +368,19 @@ index 4ac4684..8eb709d 100644
  
  /* *****************************************************************************
   *
-@@ -1453,6 +1486,16 @@ void matrix_room_send_message(PurpleConversation *conv, const gchar *message)
+@@ -1453,6 +1486,18 @@ void matrix_room_send_message(PurpleConversation *conv, const gchar *message)
      gchar *message_to_send, *message_dup;
      GData *image_attribs;
  
 +    /* The alternative is what used to happen: the message went out as plain text, and every
 +     * other client in the room showed it with a warning that it was not encrypted. */
 +    if (_room_is_encrypted(conv)) {
-+        purple_conv_chat_write(chat, "",
++        /* SYSTEM as well as ERROR, and no sender: a line with a sender and without SYSTEM is a
++         * message from somebody to a client, and "" is nobody. */
++        purple_conv_chat_write(chat, NULL,
 +                _("This room is end-to-end encrypted and nothing can be sent into it from "
 +                  "here. The message was not sent."),
-+                PURPLE_MESSAGE_ERROR, time(NULL));
++                PURPLE_MESSAGE_SYSTEM | PURPLE_MESSAGE_ERROR, time(NULL));
 +        return;
 +    }
 +
