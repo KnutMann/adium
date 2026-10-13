@@ -40,6 +40,7 @@ covers() {
 	MMTabBarView)                                echo "MMTabBarView" ;;
 	WebRTC)                                      echo "WebRTC" ;;
 	libircv3.so)                                 echo "purple2-ircv3" ;;
+	libmatrix.so)                                echo "purple-matrix-rs" ;;
 	libsignal-presage.so)                        echo "purple-presage" ;;
 	libteams.so|libteams-personal.so)            echo "purple-teams" ;;
 	libtelegram-tdlib.so)                        echo "tdlib-purple" ;;

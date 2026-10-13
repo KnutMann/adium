@@ -41,6 +41,7 @@ opus|BSD-3-Clause|Dependencies/source/opus-1.5.2/COPYING|https://opus-codec.org
 opusfile|BSD-3-Clause|Dependencies/source/opusfile-0.12/COPYING|https://opus-codec.org
 picomemo|ISC|Dependencies/picomemo/picomemo/LICENSE|https://codeberg.org/pico/picomemo
 purple-gowhatsapp|GPL-3.0-or-later|Dependencies/source/purple-gowhatsapp/LICENSE|https://github.com/hoehermann/purple-gowhatsapp
+purple-matrix-rs|GPL-2.0-or-later|Dependencies/source/purple-matrix-rs/LICENSE|https://github.com/iilonmasc/purple-matrix-rs
 purple-presage|GPL-3.0-or-later|Dependencies/source/purple-presage/LICENSE|https://github.com/hoehermann/purple-presage
 tdlib|BSL-1.0|Dependencies/source/td-1.8.67/LICENSE_1_0.txt|https://github.com/tdlib/td
 tdlib-purple|GPL-3.0|Dependencies/source/tdlib-purple-master/LICENSE|https://github.com/adrighem/tdlib-purple
@@ -56,6 +57,7 @@ libffi|MIT|https://raw.githubusercontent.com/libffi/libffi/v3.8.0/LICENSE|https:
 libjpeg-turbo|BSD-3-Clause|https://raw.githubusercontent.com/libjpeg-turbo/libjpeg-turbo/3.2.0/LICENSE.md|https://libjpeg-turbo.org
 libpng|libpng-2.0|https://raw.githubusercontent.com/pnggroup/libpng/v1.6.58/LICENSE|http://www.libpng.org
 libwebp|BSD-3-Clause|https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/COPYING|https://developers.google.com/speed/webp
+matrix-rust-sdk|Apache-2.0|https://raw.githubusercontent.com/matrix-org/matrix-rust-sdk/matrix-sdk-0.19.1/LICENSE|https://github.com/matrix-org/matrix-rust-sdk
 openssl|Apache-2.0|https://raw.githubusercontent.com/openssl/openssl/openssl-3.5.9/LICENSE.txt|https://www.openssl.org
 purple-teams|GPL-3.0|https://raw.githubusercontent.com/EionRobb/purple-teams/master/LICENSE|https://github.com/EionRobb/purple-teams
 purple2-ircv3|GPL-2.0|https://raw.githubusercontent.com/EionRobb/purple2-ircv3/master/LICENSE|https://github.com/EionRobb/purple2-ircv3
