@@ -3,17 +3,43 @@
 `Dependencies/source` is not under version control, so these files are the only record of what
 `PurplePlugins/libtelegram-tdlib.so` was built from.
 
-Base revision: `b277ac1941dbed946444454f67b89265541237b7`, release 2.1.0, of
-<https://github.com/adrighem/tdlib-purple>, built against TDLib 1.8.65
-(`a8f21f5230172634becc1739050ef23ecd6ea291`), which its CMakeLists requires as a minimum.
+Base revision: `024919c45c937af20c0f464cf007a82e38f61732`, the master branch of
+<https://github.com/adrighem/tdlib-purple> as of 2026-10-14, which reports itself as 2.1.1. Built
+against TDLib 1.8.67, the version the session on this machine was written by.
 
-The tree this replaced was `43e6cc2` of the 0.8.1 line, and it carried five local changes. Four of
-them are upstream now, in this release, having been merged as pull requests #29, #30 and #31: the
-scheduling on purple2, which became `purple2-scheduler.cpp` and removed every `g_idle_add` and
-`g_timeout_add` in the plugin; `tgprpl_add_buddy` no longer resolving a username for a contact
-already known; `tgprpl_request_delete_contact` no longer deleting a contact that is merely being
-unfiled from a group; and the deletion confirmation that had been commented out since 2020. What
-remains local is one change, below.
+Master rather than the 2.1.1 tag, deliberately: the five adaptations TDLib 1.8.67 forced are on
+master and in no release, so a release build would need them made again by hand. They are counted
+rather than assumed, `addedProxies` three times, `inputDocument` once, `importedContact` eleven,
+exactly as in the tree that carried them locally.
+
+Two local changes remain, both in `adium.patch`, and they are the only ones. Everything else this
+tree used to carry locally is upstream now: the purple2 scheduling, which is `purple2-scheduler.cpp`
+there and leaves no `g_idle_add` anywhere in the plugin, the `tgprpl_add_buddy` username lookup, the
+contact that is merely being unfiled from a group, the deletion confirmation, and the five
+adaptations above.
+
+## 2026-10-14: the shipped plug-in was two major versions behind, and nobody could see it
+
+Until this date `PurplePlugins/libtelegram-tdlib.so` announced itself as **0.8.1**, not 2.1.x. It was
+built from `Dependencies/source/tdlib-purple`, a checkout of `43e6cc2` from BenWiederhake's 0.8.1
+line, while this file described a 2.1.0 tree beside it that was never what shipped. The move to 2.1.0
+was prepared, the directory is still there, and the rebuild of 2026-09-27 went into the old one.
+
+The evidence had already been written down and read the wrong way. The note below says the source
+tree "no longer matches the base revision named at the top of this file, nor the 2.1.0 tag, by
+thousands of lines in the larger files", and blames tags moving under a reconciliation merge. The
+difference was real: 10871 lines against 27619. It was the other directory.
+
+What that cost: reactions, forum topics, and three quarters of the code. What it did not cost: the
+event-loop fix was present in both, so nothing was broken, only old.
+
+Two things follow for whoever is next here. A plug-in states its own version, and that is the thing
+to believe:
+
+    strings PurplePlugins/libtelegram-tdlib.so | grep -E '^[0-9.]+, tdlib'
+
+And `cmake` needs `PKG_CONFIG_PATH` pointing at `Dependencies/build/lib/pkgconfig`, or it will not
+find libpurple at all. The earlier build had it set by accident and this file never said so.
 
 ## adium.patch
 

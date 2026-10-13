@@ -56,7 +56,7 @@ naming where the text was taken from.
   purple-teams       GPL-3.0            https://github.com/EionRobb/purple-teams
   purple2-ircv3      GPL-2.0            https://github.com/EionRobb/purple2-ircv3
   tdlib              BSL-1.0            https://github.com/tdlib/td
-  tdlib-purple       GPL-2.0            https://github.com/ars3niy/tdlib-purple
+  tdlib-purple       GPL-3.0            https://github.com/adrighem/tdlib-purple
   WebRTC             BSD-3-Clause       https://github.com/stasel/WebRTC
 
 That list is not maintained by hand. Utilities/collect-licenses.sh reads each

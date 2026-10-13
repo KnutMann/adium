@@ -43,7 +43,7 @@ picomemo|ISC|Dependencies/picomemo/picomemo/LICENSE|https://codeberg.org/pico/pi
 purple-gowhatsapp|GPL-3.0-or-later|Dependencies/source/purple-gowhatsapp/LICENSE|https://github.com/hoehermann/purple-gowhatsapp
 purple-presage|GPL-3.0-or-later|Dependencies/source/purple-presage/LICENSE|https://github.com/hoehermann/purple-presage
 tdlib|BSL-1.0|Dependencies/source/td-1.8.67/LICENSE_1_0.txt|https://github.com/tdlib/td
-tdlib-purple|GPL-2.0|Dependencies/source/tdlib-purple/LICENSE|https://github.com/ars3niy/tdlib-purple
+tdlib-purple|GPL-3.0|Dependencies/source/tdlib-purple-master/LICENSE|https://github.com/adrighem/tdlib-purple
 WebRTC|BSD-3-Clause|Dependencies/webrtc/WebRTC.xcframework/LICENSE|https://github.com/stasel/WebRTC
 EOF
 )

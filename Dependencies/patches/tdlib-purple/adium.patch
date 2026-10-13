@@ -1,5 +1,5 @@
 diff --git a/client-utils.cpp b/client-utils.cpp
-index e734c82..3ab3aeb 100644
+index e734c82..65ec5c5 100644
 --- a/client-utils.cpp
 +++ b/client-utils.cpp
 @@ -505,6 +505,22 @@ void updatePrivateChat(TdAccountData &account, const td::td_api::chat *chat, con
@@ -10,10 +10,10 @@ index e734c82..3ab3aeb 100644
 +    /* Note the phone number down where a user interface can find it.
 +     *
 +     * A buddy here is named after the Telegram user id, because a name has to be stable and unique
-+     * and a phone number is neither. The number is known all the same, and until now it went only
-+     * into the info dialog, as a line of text assembled when someone opens it. That is a fine place
-+     * to read it and no place at all to look it up: an interface that wants to match this person
-+     * against an address book has nothing to match on.
++     * and a phone number is neither. The number is known all the same, and it went only into the
++     * info dialog, as a line of text assembled when somebody opens it. That is a fine place to read
++     * it and no place at all to look it up: an interface that wants to match this person against an
++     * address book has nothing to match on.
 +     *
 +     * Telegram hands out a contact's number only when they share it, so this is often empty, and
 +     * empty is written as the absence of the setting rather than as a blank string. */
@@ -26,17 +26,76 @@ index e734c82..3ab3aeb 100644
  
  static void updateGroupChat(TdAccountData &account, const td::td_api::chat &chat,
 diff --git a/purple-info.h b/purple-info.h
-index 07efd5d..12039fd 100644
+index 07efd5d..88ac810 100644
 --- a/purple-info.h
 +++ b/purple-info.h
-@@ -59,6 +59,10 @@ namespace AccountOptions {
+@@ -33,6 +33,12 @@ ChatId       getTdlibChatId(const char *chatName);
+ ChatTarget   parsePurpleChatName(const char *chatName);
  
- namespace BuddyOptions {
-     constexpr const char *ProfilePhotoId = "tdlib-profile-photo-id";
-+    /* Deliberately not prefixed like the one above. That one is this plugin talking to itself about
-+     * a photo it downloaded; this one is a fact about the person that any user interface might want,
-+     * and a name only this plugin knows is a fact nobody can use. */
-+    constexpr const char *PhoneNumber = "phone-number";
+ namespace AccountOptions {
++
++    /* Telegram announces when somebody already in the address book starts using it.
++     * Off by default: it is worth knowing and it is not worth a chat window opening
++     * by itself for it, which is what showing it does. */
++    constexpr const char *ShowContactRegistered      = "show-contact-registered";
++    constexpr gboolean    ShowContactRegisteredDefault = FALSE;
+     constexpr const char *AutoDownloadLimit          = "media-size-threshold";
+     constexpr const char *AutoDownloadLimitDefault   = "32";
+     constexpr const char *BigDownloadHandling        = "media-handling-behavior";
+@@ -58,6 +64,12 @@ namespace AccountOptions {
  };
  
- unsigned getAutoDownloadLimitKb(PurpleAccount *account);
+ namespace BuddyOptions {
++
++    /* Deliberately not prefixed like the neighbouring key. That one is this plugin talking to itself
++     * about a photo it downloaded; this one is a fact about the person that any user interface might
++     * want, and a name only this plugin knows is a fact nobody can use. Adium reads exactly this key
++     * to offer the contact an address book card. */
++    constexpr const char *PhoneNumber = "phone-number";
+     constexpr const char *ProfilePhotoId = "tdlib-profile-photo-id";
+ };
+ 
+diff --git a/receiving.cpp b/receiving.cpp
+index a97d381..3c1b582 100644
+--- a/receiving.cpp
++++ b/receiving.cpp
+@@ -1822,6 +1822,23 @@ void showMessage(const td::td_api::chat &chat, IncomingMessage &fullMessage,
+             showMessageText(account, chat, messageInfo, NULL, notice.c_str());
+             break;
+         }
++        case td::td_api::messageContactRegistered::ID: {
++            /* Telegram sends this when somebody already in the address book starts using it.
++             * It is an ordinary thing to be told and not a gap in what this plug-in supports,
++             * so it is said in words rather than reported as an unsupported wire type.
++             *
++             * And only if it is asked for. Showing it opens a chat window by itself, which is
++             * a lot of window for a piece of news nobody was waiting for, so the setting is
++             * off unless somebody turns it on. */
++            if (purple_account_get_bool(account.purpleAccount, AccountOptions::ShowContactRegistered,
++                                        AccountOptions::ShowContactRegisteredDefault)) {
++                // TRANSLATOR: In-chat service message, shown when a contact starts using Telegram. Appears after the sender's name
++                const char *text   = _("joined Telegram");
++                std::string notice = makeNoticeWithSender(chat, messageInfo, text, account.purpleAccount);
++                showMessageText(account, chat, messageInfo, NULL, notice.c_str());
++            }
++            break;
++        }
+         case td::td_api::messageForumTopicCreated::ID:
+         case td::td_api::messageForumTopicEdited::ID:
+         case td::td_api::messageForumTopicIsClosedToggled::ID:
+diff --git a/tdlib-purple.cpp b/tdlib-purple.cpp
+index 4bed964..c554b66 100644
+--- a/tdlib-purple.cpp
++++ b/tdlib-purple.cpp
+@@ -1345,6 +1345,11 @@ static void tgprpl_init (PurplePlugin *plugin)
+                                          AccountOptions::ShowSelfDestructDefault);
+     prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, opt);
+ 
++    // TRANSLATOR: Account settings, key (boolean)
++    opt = purple_account_option_bool_new(_("Say when a contact joins Telegram"), AccountOptions::ShowContactRegistered,
++                                         AccountOptions::ShowContactRegisteredDefault);
++    prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, opt);
++
+     if (canDisableReadReceipts()) {
+         opt = purple_account_option_bool_new ("Send read receipts",
+                                               AccountOptions::ReadReceipts,
