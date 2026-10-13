@@ -37,7 +37,7 @@ mkdir -p "$SOURCE" "$TARGET/lib" "$TARGET/include"
 # joining something built for a newer macOS than it is linking for.
 export MACOSX_DEPLOYMENT_TARGET="$(sed -n 's/^MACOSX_DEPLOYMENT_TARGET *= *//p' \
 	"$ROOT/Frameworks/AIUtilities/xcconfigs/Base.xcconfig" | head -1)"
-: "${MACOSX_DEPLOYMENT_TARGET:=12.0}"
+: "${MACOSX_DEPLOYMENT_TARGET:=13.0}"
 echo "built for macOS $MACOSX_DEPLOYMENT_TARGET and later"
 
 build_xiph () {

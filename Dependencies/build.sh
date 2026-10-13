@@ -39,7 +39,7 @@ NUMBER_OF_CORES=`sysctl -n hw.activecpu`
 DEVELOPER=$(xcode-select -print-path)
 SDK_ROOT="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
-MIN_OS_VERSION="12.0"
+MIN_OS_VERSION="13.0"
 
 # The same number again, as the environment variable clang reads when nobody hands it a
 # flag. The flags below only reach the packages that are configured with them, and the

@@ -24,7 +24,7 @@ LIBRARY="$SOURCE/o/libpicomemo.a"
 # this build too: clang left to itself stamps the objects for the machine it runs on,
 # and the application, which is built for 12.0, then gets a linker warning for every
 # member it pulls out of the archive.
-MIN_OS_VERSION=12.0
+MIN_OS_VERSION=13.0
 
 # Which OpenSSL's headers this is compiled against. It has to be the one the archive will
 # be linked against, which is Frameworks/libcrypto.3.dylib: ../phases/build_openssl.sh

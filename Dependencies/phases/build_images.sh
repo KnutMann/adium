@@ -16,7 +16,7 @@
 #   libwebp.7.dylib          minos 15.0
 #   libsharpyuv.0.dylib      minos 15.0
 #
-# Adium is built for MIN_OS_VERSION, which is 12.0, so each of them is one of the linker
+# Adium is built for MIN_OS_VERSION, which is 13.0, so each of them is one of the linker
 # warnings the build prints. These recipes fetch pinned releases and build them with the
 # project's own flags, which is what makes the warnings go away and what lets a second Mac
 # produce the same libraries.
