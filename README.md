@@ -47,11 +47,12 @@ Current version: **1.8.0**.
 * Microsoft Teams (via
   [purple-teams](https://github.com/EionRobb/purple-teams)), both work
   and personal accounts
-* Matrix (via [purple-matrix](https://github.com/matrix-org/purple-matrix)),
-  plain text in unencrypted rooms, which is what Gitter's rooms are since
-  their move to Matrix; signing in with an access token where the
-  homeserver offers only SSO (see
-  `Dependencies/patches/purple-matrix/README.md`)
+* Matrix (via [purple-matrix-rs](https://github.com/iilonmasc/purple-matrix-rs),
+  written for this bundle on the matrix-rust-sdk): rooms, invitations,
+  history, and end-to-end encryption in both directions; signing in
+  with an access token, which also covers homeservers that offer only
+  SSO, such as Gitter's (see
+  `Dependencies/patches/purple-matrix-rs/README.md`)
 * IRC modernized: the built-in IRC protocol is replaced by
   [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3), which
   speaks the same protocol plus typing notifications and other IRCv3
@@ -340,6 +341,9 @@ binary, not the licence of the sources.
   `Cargo.toml`. The Affero terms therefore reach the shipped binary.
 * `libwhatsmeow.so`, `libteams.so` and `libteams-personal.so` are
   GPL v3.
+* `libmatrix.so` is GPL v2 or later itself, and the matrix-rust-sdk it
+  links in statically is Apache 2.0, which combines with GPL v3 and not
+  with GPL v2.
 * `libtelegram-tdlib.so` links the bundled OpenSSL 3, whose Apache 2.0
   terms do not combine with GPL v2 at all. The same OpenSSL is now used
   by `AdiumLibpurple` itself, for the cryptography behind OMEMO, so this
@@ -369,7 +373,7 @@ local change on top of them):
 | `PurplePlugins/libsignal-presage.so` | [purple-presage](https://github.com/hoehermann/purple-presage) | `c4c9b8d8e1a822f973520e8870aba1d2347b18c6` (nightly-20260810) | GPL v3, with **AGPL v3** parts statically linked in (see below) |
 | `PurplePlugins/libteams.so`, `libteams-personal.so` | [purple-teams](https://github.com/EionRobb/purple-teams) | `62f6fff` | GPL v3 |
 | `PurplePlugins/libircv3.so` | [purple2-ircv3](https://github.com/EionRobb/purple2-ircv3) | `0e73297` | GPL v2 |
-| `PurplePlugins/libmatrix.so` | [purple-matrix](https://github.com/matrix-org/purple-matrix), with [http-parser](https://github.com/nodejs/http-parser) 2.9.4 compiled in | `2792d4d`, http-parser `2343fd6` | GPL v2+ / MIT |
+| `PurplePlugins/libmatrix.so` | [purple-matrix-rs](https://github.com/iilonmasc/purple-matrix-rs), with the [matrix-rust-sdk](https://github.com/matrix-org/matrix-rust-sdk) 0.19 statically linked in | `b2fb0ce276e0d84c8495a9a7a1a955251203c052` (v0.2.1) | GPL v2+, with **Apache 2.0** parts statically linked in (see below) |
 | `Frameworks/libssl.3.dylib`, `libcrypto.3.dylib` | [OpenSSL](https://www.openssl.org) 3.5.9, used by TDLib inside the Telegram plugin and by picomemo | built by `Dependencies/build.sh` from the pinned source it fetches | Apache 2.0 |
 | `Frameworks/libwebp.7.dylib`, `libsharpyuv.0.dylib` | [libwebp](https://chromium.googlesource.com/webm/libwebp) 1.6.0 | built by `Dependencies/build.sh` from the pinned source it fetches | BSD 3-Clause |
 | `Frameworks/libpng16.16.dylib` | [libpng](http://www.libpng.org) 1.6.58 | built by `Dependencies/build.sh` from the pinned source it fetches | libpng/zlib |
