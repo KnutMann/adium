@@ -79,6 +79,7 @@ jobs:
           log=build/xcodebuild.log
           [ -f "$log" ] || { echo "no build log"; exit 0; }
           total=$(grep -c "warning:" "$log" || true)
+          echo "warnings: ${total}"
           {
             echo "### Warnings: ${total}"
             echo
