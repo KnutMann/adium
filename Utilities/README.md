@@ -38,6 +38,7 @@ and that is the thing to fix rather than to describe here.
 * `anonymize-adium-debug-log.pl`  Trivial script to anonymize Adium debug logs.  It's a hack, and was
 * `collect-licenses.sh`  Gather the licence of everything Adium ships, from the trees it was built from
 * `draw-entry-icons.py`  Draw the three message field buttons (Resources/entry_*.png) in the style of the old smiley: a 16 pt glyph in one
+* `script-index.py`  Regenerate Testing/README.md and Utilities/README.md from the scripts themselves
 * `stamp-build.sh`  Writes into the built Info.plist what this build is: when it was made, to the
 * `tosupportpage.sh`  Usage: tosupportpage path/to/www/help
 * `verify-licenses.sh`  Every binary Adium ships must have a licence beside it

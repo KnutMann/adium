@@ -203,6 +203,19 @@ APP="$REPO/build/$CONFIGURATION/Adium.app"
 step "Verifying the built application"
 "$REPO/Utilities/verify-purple-plugins.sh" --app "$APP"
 
+# The application's own signature, which nothing checked until October 2026. It
+# was invalid for months and nobody could see it: libffi.framework kept an empty
+# Versions/7 beside its Versions/8 after the library moved, and codesign rejects a
+# framework with a version directory nothing names. Gatekeeper would have refused
+# the result, and notarisation will refuse it later, so it is checked here where a
+# person is already watching.
+if ! codesign --verify "$APP" 2>/dev/null; then
+	echo "FAIL: the built application does not verify:"
+	codesign --verify "$APP" 2>&1 | sed 's/^/  /'
+	exit 1
+fi
+echo "== the application's signature verifies"
+
 if [ "$INSTALL" = no ]; then
 	step "Done (build only)"
 	echo "The verified application is at: $APP"
