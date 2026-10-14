@@ -384,10 +384,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000F003 /* AIPurpleWhatsAppAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000F002 /* AIPurpleWhatsAppAccountPlan.m */; };
 		ADD1E5C0DE00000000000745 /* AIPurpleGenericAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */; };
 		ADD1E5C0DE0000000000C00B /* Teams-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C00A /* Teams-small.png */; };
+		ADD1E5C0DE0000000000A00B /* Matrix-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000A00A /* Matrix-small.png */; };
 		ADD1E5C0DE0000000000E00B /* TeamsPersonal-small.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E00A /* TeamsPersonal-small.png */; };
 		ADD1E5C0DE0000000000E00D /* TeamsPersonal-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E00C /* TeamsPersonal-large.png */; };
 		ADD1E5C0DE0000000000E00F /* prpl-eionrobb-msteams-personal.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E00E /* prpl-eionrobb-msteams-personal.json */; };
 		ADD1E5C0DE0000000000C00D /* Teams-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C00C /* Teams-large.png */; };
+		ADD1E5C0DE0000000000A00D /* Matrix-large.png in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000A00C /* Matrix-large.png */; };
 		ADD1E5C0DE0000000000C00F /* prpl-eionrobb-msteams.json in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C00E /* prpl-eionrobb-msteams.json */; };
 		ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */; };
 		3485DB6309EBCE7400232CC4 /* PurpleDefaultsGadu-Gadu.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B76473F07A07B620021CCD7 /* PurpleDefaultsGadu-Gadu.plist */; };
@@ -1297,6 +1299,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000C002 /* libteams.so in Copy Purple Plugins */,
 				ADD1E5C0DE0000000000E002 /* libteams-personal.so in Copy Purple Plugins */,
 				ADD1E5C0DE00000000000782 /* libircv3.so in Copy Purple Plugins */,
+				ADD1E5C0DE0000000000A002 /* libmatrix.so in Copy Purple Plugins */,
 			);
 			name = "Copy Purple Plugins";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1498,12 +1501,14 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000C002 /* libteams.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000C001 /* libteams.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE0000000000E002 /* libteams-personal.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000E001 /* libteams-personal.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000782 /* libircv3.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE00000000000781 /* libircv3.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ADD1E5C0DE0000000000A002 /* libmatrix.so in Copy Purple Plugins */ = {isa = PBXBuildFile; fileRef = ADD1E5C0DE0000000000A001 /* libmatrix.so */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ADD1E5C0DE00000000000301 /* libtelegram-tdlib.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libtelegram-tdlib.so"; path = "PurplePlugins/libtelegram-tdlib.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000302 /* libwhatsmeow.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwhatsmeow.so"; path = "PurplePlugins/libwhatsmeow.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000F04 /* libsignal-presage.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsignal-presage.so"; path = "PurplePlugins/libsignal-presage.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C001 /* libteams.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libteams.so"; path = "PurplePlugins/libteams.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000E001 /* libteams-personal.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libteams-personal.so"; path = "PurplePlugins/libteams-personal.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000781 /* libircv3.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libircv3.so"; path = "PurplePlugins/libircv3.so"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000A001 /* libmatrix.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libmatrix.so"; path = "PurplePlugins/libmatrix.so"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000201 /* libwebp.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwebp.7.dylib"; path = "Frameworks/libwebp.7.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsharpyuv.0.dylib"; path = "Frameworks/libsharpyuv.0.dylib"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000221 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libpng16.16.dylib"; path = "Frameworks/libpng16.16.dylib"; sourceTree = "<group>"; };
@@ -1766,10 +1771,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		ADD1E5C0DE0000000000F002 /* AIPurpleWhatsAppAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleWhatsAppAccountPlan.m; path = "Plugins/Purple Service/AIPurpleWhatsAppAccountPlan.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AIPurpleGenericAccount.m; path = "Plugins/Purple Service/AIPurpleGenericAccount.m"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C00A /* Teams-small.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = Teams-small.png; path = "Plugins/Purple Service/Teams-small.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000A00A /* Matrix-small.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = Matrix-small.png; path = "Plugins/Purple Service/Matrix-small.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000E00A /* TeamsPersonal-small.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = TeamsPersonal-small.png; path = "Plugins/Purple Service/TeamsPersonal-small.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000E00C /* TeamsPersonal-large.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = TeamsPersonal-large.png; path = "Plugins/Purple Service/TeamsPersonal-large.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000E00E /* prpl-eionrobb-msteams-personal.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-eionrobb-msteams-personal.json; path = "Plugins/Purple Service/Resources/prpl-eionrobb-msteams-personal.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C00C /* Teams-large.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = Teams-large.png; path = "Plugins/Purple Service/Teams-large.png"; sourceTree = "<group>"; };
+		ADD1E5C0DE0000000000A00C /* Matrix-large.png */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = image.png; name = Matrix-large.png; path = "Plugins/Purple Service/Matrix-large.png"; sourceTree = "<group>"; };
 		ADD1E5C0DE0000000000C00E /* prpl-eionrobb-msteams.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = prpl-eionrobb-msteams.json; path = "Plugins/Purple Service/Resources/prpl-eionrobb-msteams.json"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000746 /* AIPurpleGenericAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIPurpleGenericAccount.h; path = "Plugins/Purple Service/AIPurpleGenericAccount.h"; sourceTree = "<group>"; };
 		ADD1E5C0DE00000000000747 /* AIPurpleServiceDescriptors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = AIPurpleServiceDescriptors.plist; path = "Plugins/Purple Service/AIPurpleServiceDescriptors.plist"; sourceTree = "<group>"; };
@@ -3190,6 +3197,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000C001 /* libteams.so */,
 				ADD1E5C0DE0000000000E001 /* libteams-personal.so */,
 				ADD1E5C0DE00000000000781 /* libircv3.so */,
+				ADD1E5C0DE0000000000A001 /* libmatrix.so */,
 				ADD1E5C0DE00000000000201 /* libwebp.7.dylib */,
 				ADD1E5C0DE00000000000211 /* libsharpyuv.0.dylib */,
 				ADD1E5C0DE00000000000221 /* libpng16.16.dylib */,
@@ -3574,10 +3582,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000F002 /* AIPurpleWhatsAppAccountPlan.m */,
 				ADD1E5C0DE00000000000744 /* AIPurpleGenericAccount.m */,
 				ADD1E5C0DE0000000000C00A /* Teams-small.png */,
+				ADD1E5C0DE0000000000A00A /* Matrix-small.png */,
 				ADD1E5C0DE0000000000E00A /* TeamsPersonal-small.png */,
 				ADD1E5C0DE0000000000E00C /* TeamsPersonal-large.png */,
 				ADD1E5C0DE0000000000E00E /* prpl-eionrobb-msteams-personal.json */,
 				ADD1E5C0DE0000000000C00C /* Teams-large.png */,
+				ADD1E5C0DE0000000000A00C /* Matrix-large.png */,
 				ADD1E5C0DE0000000000C00E /* prpl-eionrobb-msteams.json */,
 				ADD1E5C0DE0000000000B009 /* AIPurpleAccountPlan.h */,
 				ADD1E5C0DE0000000000B00B /* AIPurpleAccountPlan.m */,
@@ -6724,10 +6734,12 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE00000000000748 /* AIPurpleServiceDescriptors.plist in Resources */,
 				ADD1E5C0DE0000000000B016 /* prpl-jabber.json in Resources */,
 				ADD1E5C0DE0000000000C00B /* Teams-small.png in Resources */,
+				ADD1E5C0DE0000000000A00B /* Matrix-small.png in Resources */,
 				ADD1E5C0DE0000000000E00B /* TeamsPersonal-small.png in Resources */,
 				ADD1E5C0DE0000000000E00D /* TeamsPersonal-large.png in Resources */,
 				ADD1E5C0DE0000000000E00F /* prpl-eionrobb-msteams-personal.json in Resources */,
 				ADD1E5C0DE0000000000C00D /* Teams-large.png in Resources */,
+				ADD1E5C0DE0000000000A00D /* Matrix-large.png in Resources */,
 				ADD1E5C0DE0000000000C00F /* prpl-eionrobb-msteams.json in Resources */,
 				ADD1E5C0DE0000000000B018 /* prpl-irc.json in Resources */,
 				ADD1E5C0DE0000000000B022 /* prpl-simple.json in Resources */,

@@ -226,5 +226,46 @@
 		<key>NetworkReachability</key>
 		<false/>
 	</dict>
+
+	<!--
+		purple-matrix, see Dependencies/patches/purple-matrix/README.md. The homeserver is an account
+		option of the protocol's, not part of the name, so there is no host to take from the name
+		and nothing to probe.
+	-->
+	<key>prpl-matrix</key>
+	<dict>
+		<key>ServiceCodeUniqueID</key>
+		<string>libpurple-Matrix</string>
+		<key>ServiceID</key>
+		<string>Matrix</string>
+		<key>ServiceClass</key>
+		<string>Matrix</string>
+		<key>ShortDescription</key>
+		<string>Matrix</string>
+		<key>LongDescription</key>
+		<string>Matrix</string>
+		<!-- The full Matrix id, @name:example.org; the plugin sends it as typed -->
+		<key>UserNameLabel</key>
+		<string>Matrix ID</string>
+		<key>AllowedLength</key>
+		<integer>255</integer>
+		<key>CaseSensitive</key>
+		<true/>
+		<key>AccountNameFromUID</key>
+		<true/>
+		<key>ServiceImportance</key>
+		<string>Secondary</string>
+		<key>IconBaseName</key>
+		<string>Matrix</string>
+		<key>NetworkReachability</key>
+		<false/>
+		<!--
+			The plugin writes what it sends into the room itself, so Adium's own copy would be a
+			second one. It also means a message the plugin refuses, into an encrypted room for one,
+			never appears as sent.
+		-->
+		<key>EchoesOutgoingMessages</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
