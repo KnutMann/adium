@@ -27,9 +27,6 @@ adium:
 test:
 	$(XCODEBUILD) -version
 	$(XCODEBUILD) -project Adium.xcodeproj -configuration $(BUILDCONFIGURATION) CFLAGS="$(ADIUM_CFLAGS)" $(ADIUM_NIGHTLY_FLAGS) -target "Unit tests" build
-astest:
-	osascript unittest\ runner.applescript | tr '\r' '\n'
-
 install:
 	mkdir -p ~/Applications
 	cp -R build/$(BUILDCONFIGURATION)/Adium.app ~/Applications/
