@@ -264,6 +264,10 @@
 			second one. It also means a message the plugin refuses, into an encrypted room for one,
 			never appears as sent.
 		-->
+		<!-- Early, and offered only to somebody who asks for it; see -isHidden in
+		     AIPurpleGenericService. -->
+		<key>Experimental</key>
+		<true/>
 		<key>EchoesOutgoingMessages</key>
 		<true/>
 	</dict>

@@ -233,6 +233,29 @@
 	return [self caseSensitive] ? inChatName : [super normalizeChatName:inChatName];
 }
 
+/*!
+ * @brief An experimental service is not offered until somebody asks for it
+ *
+ * A protocol that works but is plainly early should not meet a person who merely wanted to add an
+ * account: they would judge Adium by the roughest thing in it. So a descriptor can say Experimental,
+ * and such a service stays out of every service menu until a hidden preference is set:
+ *
+ *     defaults write com.adiumX.adiumX AIShowExperimentalServices -bool YES
+ *
+ * This hides the offer, not the service. An account already configured keeps working, keeps
+ * connecting and keeps its conversations, whatever the preference says; somebody testing one does
+ * not lose it at the next launch. AIService has carried isHidden since long before this and nothing
+ * ever overrode it, and AIServiceMenu is the single way a service is offered anywhere: the account
+ * list, the setup assistant, a new contact, a new bookmark.
+ */
+- (BOOL)isHidden
+{
+	if (![[descriptor objectForKey:@"Experimental"] boolValue])
+		return [super isHidden];
+
+	return ![[NSUserDefaults standardUserDefaults] boolForKey:@"AIShowExperimentalServices"];
+}
+
 - (AIServiceImportance)serviceImportance
 {
 	return [[descriptor objectForKey:@"ServiceImportance"] isEqualToString:@"Primary"] ?
