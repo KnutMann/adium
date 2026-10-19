@@ -53,7 +53,8 @@ needs the AppleScript term "rich text" from `Adium.sdef`, which AppleScript
 resolves against a running application, and `xcrun xctest` has none. It would
 take a host application, and nothing in the job is one.
 
-**Verified** 19 October 2026: `xcrun xctest` on the Release bundle reports 1,801
-tests, 0 failures, 3 skipped, in 1.5 seconds, 94 of them expected failures that
-each name a defect; `Testing/README.md` lists 45 harnesses;
+**Verified** 19 October 2026: `xcrun xctest` on the Release bundle reports 1,806
+tests, 0 failures, 3 skipped, in 1.5 seconds. Of the 94 expected failures the
+agents had written down that afternoon, 89 were fixed the same evening and 5
+remain, each naming its defect; `Testing/README.md` lists 45 harnesses;
 `.github/workflows/build.yml` carries the two steps.
