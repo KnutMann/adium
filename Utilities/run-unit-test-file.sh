@@ -2,6 +2,13 @@
 # Build one or more unit test files into a throwaway bundle and run them, without xcodebuild.
 #
 # Usage:  Utilities/run-unit-test-file.sh UnitTests/TestFoo.m [UnitTests/TestBar.m ...]
+#         Utilities/run-unit-test-file.sh --products DIR UnitTests/TestFoo.m ...
+#
+# With --products, a framework found in DIR (a build products directory such as the
+# Release folder of a private SYMROOT) is taken from there instead of from the built
+# application, headers included. That is how a fix to AIUtilities, Adium.framework or
+# AutoHyperlinks is tested before it goes anywhere near build/: build the one target
+# into a directory of your own and point the runner at it.
 #
 # For iterating on a single test file, and for several people or agents doing so at once:
 # xcodebuild writes to build/ and two of them collide, while this compiles only the files
@@ -17,7 +24,11 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 APP_FRAMEWORKS="$REPO/build/Release/Adium.app/Contents/Frameworks"
-[ $# -ge 1 ] || { sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 64; }
+PRODUCTS=""
+if [ "${1:-}" = "--products" ]; then
+	PRODUCTS="$(cd "$2" && pwd)"; shift 2
+fi
+[ $# -ge 1 ] || { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 64; }
 [ -d "$APP_FRAMEWORKS/Adium.framework" ] \
 	|| { echo "No built application in build/Release; run ./install.sh --build-only first." >&2; exit 1; }
 
@@ -49,10 +60,19 @@ cp "$REPO"/UnitTests/*.txt "$REPO/Resources/Adium.sdef" "$BUNDLE/Contents/Resour
 # the application lost them on the way in. Two links under a private include directory let
 # <AIUtilities/X.h> and <Adium/X.h> resolve without showing the linker build/Release, whose
 # frameworks carry the names that do not load here.
+# headers_of NAME answers the directory whose NAME.framework carries headers: the products
+# directory when it has that framework, build/Release otherwise.
+headers_of() {
+	if [ -n "$PRODUCTS" ] && [ -d "$PRODUCTS/$1.framework/Versions/A/Headers" ]; then
+		echo "$PRODUCTS/$1.framework/Versions/A/Headers"
+	else
+		echo "$REPO/build/Release/$1.framework/Versions/A/Headers"
+	fi
+}
 mkdir -p "$OUT/include"
-ln -s "$REPO/build/Release/AIUtilities.framework/Versions/A/Headers" "$OUT/include/AIUtilities"
-ln -s "$REPO/build/Release/Adium.framework/Versions/A/Headers" "$OUT/include/Adium"
-ln -s "$REPO/build/Release/AutoHyperlinks.framework/Versions/A/Headers" "$OUT/include/AutoHyperlinks"
+for one in AIUtilities Adium AutoHyperlinks; do
+	ln -s "$(headers_of "$one")" "$OUT/include/$one"
+done
 
 # The frameworks travel with the bundle, as the real one carries AIUtilities: xctest ignores
 # DYLD_FRAMEWORK_PATH, and Adium.framework names its neighbours relative to the application's
@@ -62,7 +82,12 @@ ln -s "$REPO/build/Release/AutoHyperlinks.framework/Versions/A/Headers" "$OUT/in
 FW="$BUNDLE/Contents/Frameworks"
 mkdir -p "$FW"
 for one in Adium AIUtilities AutoHyperlinks MMTabBarView; do
-	cp -R "$APP_FRAMEWORKS/$one.framework" "$FW/"
+	if [ -n "$PRODUCTS" ] && [ -d "$PRODUCTS/$one.framework" ]; then
+		echo "taking $one.framework from $PRODUCTS"
+		cp -R "$PRODUCTS/$one.framework" "$FW/"
+	else
+		cp -R "$APP_FRAMEWORKS/$one.framework" "$FW/"
+	fi
 done
 adium="$FW/Adium.framework/Versions/A/Adium"
 install_name_tool -id "@rpath/Adium.framework/Versions/A/Adium" \
