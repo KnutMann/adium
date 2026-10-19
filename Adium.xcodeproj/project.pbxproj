@@ -3509,20 +3509,10 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34B3241D09B9FF6900029361 /* IRC */,
 				34416053059FC2270019246B /* Jabber */,
 				343A7F2206935DAF00150CEC /* Meanwhile */,
-				34415960059F94F80019246B /* Oscar */,
 				34C2E6650634CF010018E5D2 /* Novell GroupWise */,
 				345A7B560954ACD900FF3113 /* SIMPLE */,
 			);
 			name = Services;
-			sourceTree = "<group>";
-		};
-		34415960059F94F80019246B /* Oscar */ = {
-			isa = PBXGroup;
-			children = (
-				4B76459307A06CB60021CCD7 /* AIM */,
-				34F52BD506E2B22800887BE2 /* ICQ */,
-			);
-			name = Oscar;
 			sourceTree = "<group>";
 		};
 		34416053059FC2270019246B /* Jabber */ = {
@@ -4570,20 +4560,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			name = Emoticons;
 			sourceTree = "<group>";
 		};
-		34EF90440E2EB152003E5DC7 /* MobileMe */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = MobileMe;
-			sourceTree = "<group>";
-		};
-		34F52BD506E2B22800887BE2 /* ICQ */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = ICQ;
-			sourceTree = "<group>";
-		};
 		34F59B760667A33900F01E8C /* Notify UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -4699,13 +4675,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			name = "Chat Cycling";
 			sourceTree = "<group>";
 		};
-		4B387DE10719931C004DE713 /* .Mac */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = .Mac;
-			sourceTree = "<group>";
-		};
 		4B4F5B2D042D645F00A8010A /* Accounts & Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -4804,15 +4773,6 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				F5F0FEA204B133AB01A80106 /* EmoticonDefaults.plist */,
 			);
 			name = "Emoticon Preferences";
-			sourceTree = "<group>";
-		};
-		4B76459307A06CB60021CCD7 /* AIM */ = {
-			isa = PBXGroup;
-			children = (
-				34EF90440E2EB152003E5DC7 /* MobileMe */,
-				4B387DE10719931C004DE713 /* .Mac */,
-			);
-			name = AIM;
 			sourceTree = "<group>";
 		};
 		4B7F278605440C6200CDFC90 /* Libpurple */ = {
