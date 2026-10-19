@@ -70,6 +70,26 @@ jobs:
       - name: Build and verify the plug-ins
         run: ./install.sh --build-only
 
+      # The unit tests are the one check that needs no person, server or device,
+      # so they run here; everything under Testing/ needs one of the three. The
+      # signing overrides are the ones install.sh takes on a machine without an
+      # identity, so the frameworks it just built are reused, not built again.
+      - name: Build the unit tests against what was just built
+        run: |
+          xcodebuild -project Adium.xcodeproj -target "Unit tests" -configuration Release \
+            -destination "platform=macOS,arch=arm64" SYMROOT="$PWD/build" \
+            OBJROOT="$PWD/build/Intermediates" CODE_SIGN_IDENTITY=- \
+            CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build \
+            > build/unittests-build.log 2>&1 \
+            || { grep -E "error:" build/unittests-build.log | head -20; tail -30 build/unittests-build.log; exit 1; }
+          grep -E "^\*\* BUILD" build/unittests-build.log
+
+      - name: Run the unit tests
+        run: |
+          set -o pipefail
+          DYLD_FRAMEWORK_PATH="$PWD/build/Release" xcrun xctest "build/Release/Unit tests.xctest" \
+            2>&1 | tee build/unittests-run.log | grep -E "^Test Suite|error:|skipped"
+
       - name: Every shipped binary carries its licence
         run: ./Utilities/verify-licenses.sh
 
@@ -101,6 +121,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: xcodebuild-log
-          path: build/xcodebuild.log
+          path: |
+            build/xcodebuild.log
+            build/unittests-build.log
+            build/unittests-run.log
           if-no-files-found: warn
           retention-days: 14

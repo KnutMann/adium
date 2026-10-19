@@ -55,7 +55,8 @@ protocol plug-in registers with the bundled libpurple, and verifies the
 application's signature. Xcode alone skips the fetch and fails at a header it
 cannot find. The Makefile and Release/ are leftovers of the upstream project.
 
-No scheme runs the unit tests. They build and run by hand:
+No scheme runs the unit tests. Continuous integration builds and runs them
+after the application, and by hand it is the same two commands:
 
     xcodebuild -project Adium.xcodeproj -target "Unit tests" -configuration Release \
         -destination "platform=macOS,arch=arm64" SYMROOT="$PWD/build" \
@@ -63,8 +64,10 @@ No scheme runs the unit tests. They build and run by hand:
         CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build
     DYLD_FRAMEWORK_PATH="$PWD/build/Release" xcrun xctest "build/Release/Unit tests.xctest"
 
-Continuous integration builds, verifies the plug-ins and the licences, and
-runs nothing else. Files join the project by editing
+Continuous integration builds, runs the unit tests, and verifies the
+plug-ins, the licences and the maps; nothing under Testing/ runs there,
+because every harness needs a person, a server or a device. Files join the
+project by editing
 Adium.xcodeproj/project.pbxproj; there is no workspace, package or Podfile.
 /Applications/Adium.app is often a symbolic link into build/Debug, so a
 script that builds for its own purposes builds somewhere else.
