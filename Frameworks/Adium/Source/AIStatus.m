@@ -163,7 +163,7 @@
 	NSAttributedString	*statusMessage;
 	NSString			*title = nil;
 	AIStatusType		statusType;
-	NSRange				linebreakRange;
+	NSUInteger			firstLineEnd = 0;
 
 	//Start off using super's implementation, looking for a directly assigned title
 	title = [super title];
@@ -196,12 +196,11 @@
 	//Strip newlines and whitespace from the beginning and the end
 	title = [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
-	//Only use the first line of a multi-line title
-	linebreakRange = [title lineRangeForRange:NSMakeRange(0, 0)];
-	//check to make sure that there actually is a linebreak to account for
-	//	by comparing the linebreak range against the whole string's range.
-	if ( !NSEqualRanges(linebreakRange, NSMakeRange(0, [title length])) ) {  
-		title = [title substringWithRange:linebreakRange];  
+	/* Only use the first line of a multi-line title. contentsEnd stops before the line terminator;
+	 * -lineRangeForRange: would include it, and the newline would survive the trimming above. */
+	[title getLineStart:NULL end:NULL contentsEnd:&firstLineEnd forRange:NSMakeRange(0, 0)];
+	if (firstLineEnd < [title length]) {
+		title = [title substringToIndex:firstLineEnd];
 	}
 	
 	return title;

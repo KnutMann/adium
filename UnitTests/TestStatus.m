@@ -271,7 +271,6 @@ static id TStatusRoundTrip(AIStatusItem *item)
 
 - (void)testTitleFromMessageIsItsFirstLineOnly
 {
-	XCTExpectFailure(@"AIStatus.m:200-205 takes the first line with -lineRangeForRange:, whose range includes the line terminator, so the title keeps a trailing newline that the method's own comments say is stripped");
 	AIStatus *status = [AIStatus status];
 	status.statusMessage = [[NSAttributedString alloc] initWithString:@"Out to lunch\nback at two"];
 	XCTAssertEqualObjects(status.title, @"Out to lunch");

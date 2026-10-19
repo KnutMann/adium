@@ -100,7 +100,6 @@
 
 - (void)testTransformedValueClassIsWhatTheForwardTransformReturns
 {
-	XCTExpectFailure(@"transformedValueClass answers NSString (AIColorStringTransformer.m:34) and the header says NSColor to NSString, but transformedValue: turns a string into an NSColor and reverseTransformedValue: an NSColor into a string, so the forward class is NSColor");
 	XCTAssertTrue([[transformer transformedValue:@"255,0,0"] isKindOfClass:[AIColorStringTransformer transformedValueClass]]);
 }
 

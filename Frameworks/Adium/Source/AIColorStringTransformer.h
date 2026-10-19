@@ -17,7 +17,10 @@
 
 /*! 
  * @class AIColorStringTransformer
- * @brief NSValueTransformer which reversibly transforms NSColor objects to NSString representations
+ * @brief NSValueTransformer which reversibly transforms the string a colour is stored as into an NSColor
+ *
+ * The forward transformation takes the "r,g,b" or "r,g,b,a" string the preferences keep and answers
+ * the NSColor it names; the reverse takes an NSColor and answers that string again.
  */
 @interface AIColorStringTransformer : NSValueTransformer {
 

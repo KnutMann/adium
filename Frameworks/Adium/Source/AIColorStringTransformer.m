@@ -30,8 +30,9 @@
 }
 
 + (Class)transformedValueClass
-{ 
-	return [NSString class];
+{
+	//The forward transformation reads the stored string and yields the colour
+	return [NSColor class];
 }
 
 + (BOOL)allowsReverseTransformation

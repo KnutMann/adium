@@ -124,7 +124,6 @@ static NSArray *TSGTitlesAfterSorting(NSArray *statuses)
 
 - (void)testRemovingAnItemClearsItsContainingGroup
 {
-	XCTExpectFailure(@"AIStatusGroup.m:168-178 -removeStatusItem: takes the item out of the array but leaves its containingStatusGroup pointing at this group, although the header says a status either sits in the container or it does not");
 	AIStatus *drop = TSGStatus(@"drop", AIAwayStatusType, AIEditableStatusState);
 	AIStatusGroup *group = [AIStatusGroup statusGroupWithContainedStatusItems:@[drop]];
 

@@ -108,9 +108,11 @@ NSArray *AISearchPathForDirectoriesInDomainsExpanding(NSUInteger directory, NSUI
 		[dirs addObject:[bundlePath stringByAppendingPathComponent:fullAppendPath]];
 	}
 
-	// Let NSSearchPathForDirectoriesInDomains do the rest of the work.
-	if (directory && domainMask) {
-		NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(directory, domainMask, expandTilde);
+	/* Let NSSearchPathForDirectoriesInDomains do the rest of the work, without the internal domain
+	 * bit: it is ours alone, and Foundation answers a bit it does not know with the user's Library. */
+	NSUInteger foundationDomainMask = domainMask & ~AIInternalDomainMask;
+	if (directory && foundationDomainMask) {
+		NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(directory, foundationDomainMask, expandTilde);
 
 		if (externalRelativePath) {
 			NSString *pathToAppend = [NSString pathWithComponents:externalRelativePath];

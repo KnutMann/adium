@@ -169,6 +169,13 @@ NSComparisonResult statusArraySort(id objectA, id objectB, void *context);
 {
 	[containedStatusItems removeObjectIdenticalTo:inStatusItem];
 
+	/* A status either sits in this container or it does not (see the header), and -setUniqueStatusID:
+	 * reads the containing group to decide whether a new ID is worth reporting. An item that was never
+	 * here, or belongs to another group, is left alone. */
+	if ([inStatusItem containingStatusGroup] == self) {
+		[inStatusItem setContainingStatusGroup:nil];
+	}
+
 	//Remove this item from our flat status set
 	if ([inStatusItem isKindOfClass:[AIStatus class]]) {
 		[_flatStatusSet removeObject:(AIStatus *)inStatusItem];

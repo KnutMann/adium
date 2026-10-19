@@ -167,7 +167,6 @@ static NSData *PNGDataOf(NSImage *image)
 
 - (void)testKeyedArchivingKeepsTheImageClassAndTheLinkFlag
 {
-	XCTExpectFailure(@"imageClass and leavesLinkWhenSent come back empty: encodeWithCoder at AITextAttachmentExtension.m:77 writes neither, though copyWithZone carries both");
 	AITextAttachmentExtension *attachment = [[AITextAttachmentExtension alloc] init];
 	attachment.imageClass = @"emoticon";
 	attachment.leavesLinkWhenSent = YES;

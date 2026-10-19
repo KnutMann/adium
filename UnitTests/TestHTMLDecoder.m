@@ -384,13 +384,11 @@ static NSImage *smallImage(void)
 
 - (void)testParseArgumentsSkipsALeadingValuelessAttribute
 {
-	XCTExpectFailure(@"A boolean attribute before another swallows it into the key, giving {\"ismap src\": \"a\"}: AIHTMLDecoder.m:155 scans a key up to the next = regardless of spaces");
 	XCTAssertEqualObjects([AIHTMLDecoder parseArguments:@"ismap src=\"a\""], @{ @"src": @"a" });
 }
 
 - (void)testParseArgumentsAcceptsAnyWhitespaceBetweenAttributes
 {
-	XCTExpectFailure(@"A tab between attributes is not a separator, giving {a: \"1\\tb=2\"}: AIHTMLDecoder.m:169 ends an unquoted value only at a space, and HTML allows any whitespace");
 	XCTAssertEqualObjects([AIHTMLDecoder parseArguments:@"a=1\tb=2\nc=3"], (@{ @"a": @"1", @"b": @"2", @"c": @"3" }));
 }
 
@@ -435,7 +433,6 @@ static NSImage *smallImage(void)
 
 - (void)testRelativeFontSizeIsRelativeToTheDefaultThree
 {
-	XCTExpectFailure(@"size=\"+1\" is read as size 1 (9pt): AIHTMLDecoder.m:1487 takes intValue of the string, while HTML defines +n and -n as relative to the base size 3");
 	XCTAssertEqualWithAccuracy([fontAt(decode(@"<font size=\"+1\">x</font>"), 0) pointSize], 14.0, AIFloatComparisonAccuracy);
 	XCTAssertEqualWithAccuracy([fontAt(decode(@"<font size=\"-1\">x</font>"), 0) pointSize], 10.0, AIFloatComparisonAccuracy);
 }
@@ -676,14 +673,12 @@ static NSImage *smallImage(void)
 
 - (void)testQuotedAttributeValueMayContainAGreaterThan
 {
-	XCTExpectFailure(@"title=\"a>b\" ends the tag at the >, and b\"> leaks into the text: AIHTMLDecoder.m:1077 scans to the first > without regard to quotes");
 	NSAttributedString *result = decode(@"<a href=\"http://example.com/\" title=\"a>b\">t</a>");
 	XCTAssertEqualObjects([result string], @"t");
 }
 
 - (void)testNewlineAfterTheTagNameStillOpensTheTag
 {
-	XCTExpectFailure(@"<a\\nhref=...> is shown as text: AIHTMLDecoder.m:1075 ends a tag name only at a space or >, and HTML allows any whitespace there");
 	NSAttributedString *result = decode(@"<a\nhref=\"http://example.com/\">t</a>");
 	XCTAssertEqualObjects([result string], @"t");
 	XCTAssertNotNil([result attribute:NSLinkAttributeName atIndex:0 effectiveRange:NULL]);
@@ -857,7 +852,6 @@ static NSImage *smallImage(void)
 
 - (void)testEncodeNonASCIIEncodesACombiningMarkAfterAnASCIIBase
 {
-	XCTExpectFailure(@"e followed by U+0301 is written raw: AIHTMLDecoder.m:640 copies the whole composed sequence when its first unit is ASCII, so the non-ASCII mark escapes the option");
 	XCTAssertEqualObjects(encode(decode(@"e\u0301"), (AIEncodeFlags){ .nonASCII = YES }), @"e&#x301;");
 }
 
@@ -1101,7 +1095,6 @@ static NSImage *smallImage(void)
 
 - (void)testStrictImgAltIsTheAttachmentsText
 {
-	XCTExpectFailure(@"The alt comes out as U+FFFC, the attachment placeholder character: AIHTMLDecoder.m:778 uses the run's text where the loose encoder uses the attachment's string");
 	NSString *source = [self writeSmallPNGNamed:@"source.png"];
 	NSString *imagesPath = [scratchDirectory stringByAppendingPathComponent:@"images"];
 	NSString *xml = [[self strictDecoder] encodeHTML:decode([NSString stringWithFormat:@"<img src=\"%@\" alt=\"pic\">", source]) imagesPath:imagesPath];

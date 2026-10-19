@@ -45,7 +45,6 @@
 
 - (void)testInternalDomainAloneYieldsOnlyTheApplicationsFolder
 {
-	XCTExpectFailure(@"AIPathUtilities.m:113 hands the internal domain bit on to NSSearchPathForDirectoriesInDomains, which answers it with the user's Library");
 
 	NSArray *paths = AISearchPathForDirectoriesInDomainsExpanding(AIEmoticonsDirectory, AIInternalDomainMask, YES);
 

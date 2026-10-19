@@ -172,14 +172,22 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 	static NSCharacterSet	*equalsSet = nil,
 		*dquoteSet = nil,
 		*squoteSet = nil,
-		*spaceSet = nil;
+		*keyEndSet = nil,
+		*valueEndSet = nil;
 	NSString				*key = nil, *value = nil;
 
 	//Setup
 	if (!equalsSet) equalsSet = [NSCharacterSet characterSetWithCharactersInString:@"="];
 	if (!dquoteSet) dquoteSet = [NSCharacterSet characterSetWithCharactersInString:@"\""];
 	if (!squoteSet) squoteSet = [NSCharacterSet characterSetWithCharactersInString:@"'"];
-	if (!spaceSet)  spaceSet  = [NSCharacterSet characterSetWithCharactersInString:@" "];
+	/* HTML separates attributes with any whitespace, not only a space: a key ends at whitespace or at
+	 * its =, and an unquoted value at whitespace. */
+	if (!valueEndSet) valueEndSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+	if (!keyEndSet) {
+		NSMutableCharacterSet *set = [valueEndSet mutableCopy];
+		[set addCharactersInString:@"="];
+		keyEndSet = [set copy];
+	}
 
 	scanner = [NSScanner scannerWithString:arguments];
 	argDict = [NSMutableDictionary dictionary];
@@ -188,8 +196,11 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 		BOOL	validKey, validValue;
 
 		//Find a tag
-		validKey = [scanner scanUpToCharactersFromSet:equalsSet intoString:&key];
-		[scanner scanCharactersFromSet:equalsSet intoString:nil];
+		validKey = [scanner scanUpToCharactersFromSet:keyEndSet intoString:&key];
+
+		/* A key with no = after it is a boolean attribute (ismap, checked): there is nothing to store,
+		 * and the attribute after it must not be read as part of its name. */
+		if (![scanner scanCharactersFromSet:equalsSet intoString:nil]) continue;
 
 		//check for quotes
 		if ([scanner scanCharactersFromSet:dquoteSet intoString:nil]) {
@@ -199,7 +210,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 			validValue = [scanner scanUpToCharactersFromSet:squoteSet intoString:&value];
 			[scanner scanCharactersFromSet:squoteSet intoString:nil];
 		} else {
-			validValue = [scanner scanUpToCharactersFromSet:spaceSet intoString:&value];
+			validValue = [scanner scanUpToCharactersFromSet:valueEndSet intoString:&value];
 		}
 
 		//Store in dict
@@ -209,6 +220,44 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 	}
 
 	return argDict;
+}
+
+/*!
+ * @brief Scan from the scanner's location to the > that closes the tag, leaving the scanner on it
+ *
+ * The first > is not always the end of the tag: HTML allows one inside a quoted attribute value
+ * (title="a>b"). A quote that is never closed falls back to the first >, because the alternative is
+ * swallowing the rest of the message, and people do type a stray quote.
+ *
+ * @result YES if any characters were scanned, as -scanUpToCharactersFromSet:intoString: answers
+ */
+- (BOOL)scanToEndOfTag:(NSScanner *)scanner intoString:(NSString **)outString
+{
+	NSString	*string = [scanner string];
+	NSUInteger	start = [scanner scanLocation], length = [string length], end = start;
+	unichar		quote = 0;
+
+	while (end < length) {
+		unichar c = [string characterAtIndex:end];
+		if (quote) {
+			if (c == quote) quote = 0;
+		} else if (c == '"' || c == '\'') {
+			quote = c;
+		} else if (c == '>') {
+			break;
+		}
+		end++;
+	}
+
+	if (quote) {
+		NSRange firstEnd = [string rangeOfString:@">" options:NSLiteralSearch range:NSMakeRange(start, length - start)];
+		end = ((firstEnd.location != NSNotFound) ? firstEnd.location : length);
+	}
+
+	[scanner setScanLocation:end];
+	if (end == start) return NO;
+	if (outString) *outString = [string substringWithRange:NSMakeRange(start, end - start)];
+	return YES;
 }
 
 - (NSString *)encodeLooseHTML:(NSAttributedString *)inMessage imagesPath:(NSString *)imagesSavePath
@@ -652,10 +701,9 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 						}
 
 					} else {
-						//unichar characters may have a length of up to 3; be careful to get the whole character
-						NSRange composedCharRange = [chunk rangeOfComposedCharacterSequenceAtIndex:i];
-						[string appendString:[chunk substringWithRange:composedCharRange]];
-						i += composedCharRange.length - 1;
+						/* Plain ASCII: only this unit is copied. A combining mark after it belongs to the same
+						 * composed sequence but is not ASCII, and the next pass has to encode it. */
+						[string appendString:[chunk substringWithRange:NSMakeRange(i, 1)]];
 					}
 				}
 
@@ -790,8 +838,11 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 				}
 			}
 
-			if (elementContent && [elementContent length]) {
-				[imageElement setValue:elementContent forAttribute:@"alt"];
+			/* The run's text is U+FFFC, the attachment placeholder; the alt is the attachment's own
+			 * string, as the loose encoder writes it. */
+			NSString *altText = [extension string];
+			if ([altText length]) {
+				[imageElement setValue:altText forAttribute:@"alt"];
 			}
 
 			if (thisElement) {
@@ -1065,7 +1116,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 	if (!inMessage) return [[NSAttributedString alloc] init];
 
 	NSScanner					*scanner;
-	static NSCharacterSet		*tagCharStart = nil, *tagEnd = nil, *charEnd = nil, *absoluteTagEnd = nil;
+	static NSCharacterSet		*tagCharStart = nil, *tagEnd = nil, *charEnd = nil;
 	NSString					*chunkString, *tagOpen;
 	NSMutableAttributedString	*attrString;
 	AITextAttributes			*textAttributes;
@@ -1088,9 +1139,13 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
     attrString = [[NSMutableAttributedString alloc] init];
 
 	if (!tagCharStart)     tagCharStart = [NSCharacterSet characterSetWithCharactersInString:@"<&"];
-	if (!tagEnd)                 tagEnd = [NSCharacterSet characterSetWithCharactersInString:@" >"];
+	if (!tagEnd) {
+		//HTML allows any whitespace after the tag name, not only a space
+		NSMutableCharacterSet *set = [[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy];
+		[set addCharactersInString:@">"];
+		tagEnd = [set copy];
+	}
 	if (!charEnd)               charEnd = [NSCharacterSet characterSetWithCharactersInString:@";"];
-	if (!absoluteTagEnd) absoluteTagEnd = [NSCharacterSet characterSetWithCharactersInString:@">"];
 
 	scanner = [NSScanner scannerWithString:inMessage];
 	[scanner setCharactersToBeSkipped:[NSCharacterSet characterSetWithCharactersInString:@""]];
@@ -1156,7 +1211,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 						//HTML
 						if ([chunkString caseInsensitiveCompare:@"HTML"] == NSOrderedSame) {
 							//We ignore most stuff inside the HTML tag, but don't want to see the end of it.
-							[scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString];
+							[self scanToEndOfTag:scanner intoString:&chunkString];
 	
 						} else if ([chunkString caseInsensitiveCompare:@"/HTML"] == NSOrderedSame) {
 							//We are done
@@ -1166,15 +1221,14 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 						} else if ([chunkString caseInsensitiveCompare:@"PRE"] == NSOrderedSame ||
 								 [chunkString caseInsensitiveCompare:@"/PRE"] == NSOrderedSame) {
 
-							[scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString];
+							[self scanToEndOfTag:scanner intoString:&chunkString];
 
 							//XXX what's going on here?
 							[textAttributes setTextColor:[NSColor blackColor]];
 
 						//DIV
 						} else if ([chunkString caseInsensitiveCompare:@"DIV"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd
-														intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								[self processDivTagArgs:[self parseArguments:chunkString] attributes:textAttributes];
 							}
 							inDiv = YES;
@@ -1184,7 +1238,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 
 						//LINK
 						} else if ([chunkString caseInsensitiveCompare:@"A"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								[self processLinkTagArgs:[self parseArguments:chunkString] 
 											  attributes:textAttributes]; //Process the linktag's contents
 							}
@@ -1194,7 +1248,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 
 						//Body
 						} else if ([chunkString caseInsensitiveCompare:@"BODY"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								[self processBodyTagArgs:[self parseArguments:chunkString] attributes:textAttributes]; //Process the font tag's contents
 							}
 
@@ -1204,7 +1258,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 
 						//Font
 						} else if ([chunkString caseInsensitiveCompare:@"FONT"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								NSDictionary *changedAttributes;
 
 								//Process the font tag's contents
@@ -1221,7 +1275,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 						
 						//span
 						} else if ([chunkString caseInsensitiveCompare:@"SPAN"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								NSDictionary *changedAttributes;
 
 								changedAttributes = [self processSpanTagArgs:[self parseArguments:chunkString] attributes:textAttributes];
@@ -1244,7 +1298,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 							/* Make sure the tag closes; it may have a <BR /> which stopped the scanner at
 							 * at the space rather than the '>'
 							 */
-							[scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString];
+							[self scanToEndOfTag:scanner intoString:&chunkString];
 
 							/* Skip any newlines following an HTML line break; if we have one we want to ignore the other.
 							 * This is generally unnecessary; it is a hack around a winAIM bug where 
@@ -1302,7 +1356,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 
 						//Image
 						} else if ([chunkString caseInsensitiveCompare:@"IMG"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								NSAttributedString *attachString = [self processImgTagArgs:[self parseArguments:chunkString] 
 																				attributes:textAttributes
 																				   baseURL:myBaseURL];
@@ -1324,17 +1378,17 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 						// Ignore <head> tags
 						} else if ([chunkString caseInsensitiveCompare:@"HEAD"] == NSOrderedSame ||
 								   ([chunkString caseInsensitiveCompare:@"/HEAD"] == NSOrderedSame)) {
-							[scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString];
+							[self scanToEndOfTag:scanner intoString:&chunkString];
 						
 						//Base URL tag
 						} else if ([chunkString caseInsensitiveCompare:@"BASE"] == NSOrderedSame) {
-							if ([scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString]) {
+							if ([self scanToEndOfTag:scanner intoString:&chunkString]) {
 								myBaseURL = [[self parseArguments:chunkString] objectForKey:@"href"];
 							}
 						//Ignore <meta> tags
 						} else if ([chunkString caseInsensitiveCompare:@"META"] == NSOrderedSame ||
 								   ([chunkString caseInsensitiveCompare:@"/META"] == NSOrderedSame)) {
-							[scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:&chunkString];
+							[self scanToEndOfTag:scanner intoString:&chunkString];
 					
 						//Ignore <ul>, </ul>, and </li>
 						} else if (([chunkString caseInsensitiveCompare:@"UL"] == NSOrderedSame) ||
@@ -1354,7 +1408,7 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 					//Skip over the end tag character '>' and any other characters we want to skip
 					if (validTag) {
 						//Get to the > if we're not there already, as will happen with XML namespacing...
-						[scanner scanUpToCharactersFromSet:absoluteTagEnd intoString:NULL];
+						[self scanToEndOfTag:scanner intoString:NULL];
 
 						//And skip it
 						if (![scanner isAtEnd]) {
@@ -1501,7 +1555,11 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 			if (![inArgs objectForKey:@"ABSZ"] && ![inArgs objectForKey:@"absz"]) {
 				/* size="0", or a size that is not a number at all, used to index the table at -1,
 				 * which is a crash any contact could send. Out of range means the default. */
-				unsigned absSize = [[inArgs objectForKey:arg] intValue];
+				NSString *sizeString = [inArgs objectForKey:arg];
+				int absSize = [sizeString intValue];
+				/* HTML reads size="+1" and size="-1" relative to the base size 3, where intValue alone
+				 * would read them as 1 and -1. Out of range still means the default. */
+				if ([sizeString hasPrefix:@"+"] || [sizeString hasPrefix:@"-"]) absSize += 3;
 				static int pointSizes[] = { 9, 10, 12, 14, 18, 24, 48, 72 };
 				int size = ((absSize >= 1 && absSize <= 8) ? pointSizes[absSize-1] : 12);
 				

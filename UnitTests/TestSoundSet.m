@@ -171,7 +171,6 @@
 
 - (void)testSoundInNoLocationIsPlacedInTheFirstLocation
 {
-	XCTExpectFailure(@"AISoundSet.m:220 returns a path in the last location; the comment above it, and the only reading that makes a bundle-relative last entry work, say the first");
 
 	NSString *first = [self makeDirectory:@"First"];
 	NSString *second = [self makeDirectory:@"Second"];

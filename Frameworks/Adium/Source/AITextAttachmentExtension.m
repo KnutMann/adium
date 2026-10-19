@@ -83,6 +83,8 @@
         [encoder encodeObject:[NSNumber numberWithBool:shouldAlwaysSendAsText] forKey:@"AITextAttachmentExtension_shouldAlwaysSendAsText"];
 		[encoder encodeObject:path forKey:@"AITextAttachmentExtension_path"];
 		[encoder encodeObject:image forKey:@"AITextAttachmentExtension_image"];
+		[encoder encodeObject:imageClass forKey:@"AITextAttachmentExtension_imageClass"];
+		[encoder encodeObject:[NSNumber numberWithBool:leavesLinkWhenSent] forKey:@"AITextAttachmentExtension_leavesLinkWhenSent"];
 		
     } else {
         [encoder encodeObject:stringRepresentation];
@@ -91,6 +93,8 @@
         [encoder encodeObject:[NSNumber numberWithBool:shouldAlwaysSendAsText]];
 		[encoder encodeObject:path];
 		[encoder encodeObject:image];
+		[encoder encodeObject:imageClass];
+		[encoder encodeObject:[NSNumber numberWithBool:leavesLinkWhenSent]];
     }
 }
 
@@ -109,6 +113,8 @@
 			[self setShouldAlwaysSendAsText:[[decoder decodeObjectForKey:@"AITextAttachmentExtension_shouldAlwaysSendAsText"] boolValue]];
 			[self setPath:[decoder decodeObjectForKey:@"AITextAttachmentExtension_path"]];
 			[self setImage:[decoder decodeObjectForKey:@"AITextAttachmentExtension_image"]];
+			[self setImageClass:[decoder decodeObjectForKey:@"AITextAttachmentExtension_imageClass"]];
+			[self setLeavesLinkWhenSent:[[decoder decodeObjectForKey:@"AITextAttachmentExtension_leavesLinkWhenSent"] boolValue]];
 			
 		} else {
 			// Must decode keys in same order as encodeWithCoder:		
@@ -118,6 +124,8 @@
 			[self setShouldAlwaysSendAsText:[[decoder decodeObject] boolValue]];
 			[self setPath:[decoder decodeObject]];
 			[self setImage:[decoder decodeObject]];
+			[self setImageClass:[decoder decodeObject]];
+			[self setLeavesLinkWhenSent:[[decoder decodeObject] boolValue]];
 		}
 	}
 	

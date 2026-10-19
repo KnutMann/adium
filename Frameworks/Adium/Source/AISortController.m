@@ -282,14 +282,19 @@ NSComparisonResult basicGroupSort(id objectA, id objectB, void *context)
 
 /*!
  * @brief NSSortDescriptor override to perform sorting our way.
+ *
+ * The sort functions read their context as a SortContext, so one is built here as the two sort
+ * methods above build theirs. A sort descriptor is handed no container; the sort functions only ask
+ * it for order indexes, so with nil every manual position reads as 0 and manual ordering degrades
+ * to ties. That is the limit of this signature.
  */
 - (NSComparisonResult)compareObject:(id)object1 toObject:(id)object2
 {
-	if (alwaysSortGroupsToTop) {
-		return basicGroupSort(object1, object2, sortFunction);
-	} else {
-		return basicSort(object1, object2, sortFunction);
-	}	
+	SortContext context = {
+		sortFunction,
+		nil
+	};
+	return (alwaysSortGroupsToTop ? basicGroupSort : basicSort)(object1, object2, &context);
 }
 
 //For subclasses -------------------------------------------------------------------------------------------------------

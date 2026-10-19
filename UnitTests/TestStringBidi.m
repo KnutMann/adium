@@ -109,14 +109,12 @@ static NSString *const arabic = @"\u0645\u0631\u062d\u0628\u0627";
 
 - (void)testDirectionalMarksAreStrong
 {
-	XCTExpectFailure(@"U+200F and U+200E are skipped as neutral: NSString+AIBidi.m:30 and :39 list script ranges and the marks are in none of them, though Unicode gives them bidirectional class R and L and they exist only to decide direction");
 	XCTAssertEqual([@"\u200f123" baseWritingDirection], NSWritingDirectionRightToLeft);
 	XCTAssertEqual([[@"\u200e" stringByAppendingString:hebrew] baseWritingDirection], NSWritingDirectionLeftToRight);
 }
 
 - (void)testNeutralSymbolsInTheLatin1BlockDoNotDecide
 {
-	XCTExpectFailure(@"The multiplication sign is taken as left-to-right: NSString+AIBidi.m:40 counts all of U+00C0 to U+058F as strong, and that range holds neutrals such as U+00D7 and U+00F7 and the combining marks U+0300 to U+036F");
 	XCTAssertEqual([[@"\u00d7 " stringByAppendingString:hebrew] baseWritingDirection], NSWritingDirectionRightToLeft);
 	XCTAssertEqual([[@"\u0301" stringByAppendingString:hebrew] baseWritingDirection], NSWritingDirectionRightToLeft);
 }

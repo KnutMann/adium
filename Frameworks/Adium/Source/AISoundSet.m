@@ -216,8 +216,10 @@
 		}
 	}
 
-	//Otherwise (or, if we cannot find our sound file), return a path in the first location
-	return [[locations lastObject] stringByAppendingPathComponent:localPath];
+	/* Otherwise (or, if we cannot find our sound file), return a path in the first location: that is
+	 * the set's own folder, where a person would look for the missing file, and it is what the
+	 * single-location case above answers too. */
+	return [[locations firstObject] stringByAppendingPathComponent:localPath];
 }
 
 /*!

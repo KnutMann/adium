@@ -25,6 +25,11 @@
 	for (NSUInteger i = 0; i < length; i++) {
 		unichar c = [self characterAtIndex:i];
 
+		// The directional marks are not letters but exist only to decide direction:
+		// Unicode gives U+200F class R and U+200E class L, so each is strong
+		if (c == 0x200F) return NSWritingDirectionRightToLeft;
+		if (c == 0x200E) return NSWritingDirectionLeftToRight;
+
 		// Strong right-to-left ranges: Hebrew through Arabic Extended,
 		// plus the Hebrew/Arabic presentation forms
 		if ((c >= 0x0590 && c <= 0x08FF) ||
@@ -34,10 +39,12 @@
 		}
 
 		// Strong left-to-right: Latin, Greek, Cyrillic, most other scripts.
-		// Digits, punctuation and whitespace are direction-neutral and skipped.
+		// Digits, punctuation and whitespace are direction-neutral and skipped,
+		// as are the multiplication and division signs and the combining
+		// diacritical marks, which sit among the Latin letters but decide nothing.
 		if ((c >= 0x0041 && c <= 0x005A) ||
 			(c >= 0x0061 && c <= 0x007A) ||
-			(c >= 0x00C0 && c <= 0x058F) ||
+			(c >= 0x00C0 && c <= 0x058F && c != 0x00D7 && c != 0x00F7 && !(c >= 0x0300 && c <= 0x036F)) ||
 			(c >= 0x0900 && c <= 0x1FFF) ||
 			(c >= 0x2C00 && c <= 0xD7FF) ||
 			(c >= 0xF900 && c <= 0xFB16)) {
