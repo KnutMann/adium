@@ -25,13 +25,18 @@ filters that element out, and why this fork does not go there.
 **What it costs.** Two traps, both found on 15 August 2026, both looking like the
 same bug, a password that would not stay remembered:
 
-A keychain item carries the identity of the application that wrote it. One
-written by the old, differently signed Adium 1.5 belongs to that identity, so
-macOS asks before this build may read it, and only "Always allow" ends the
-asking. That holds only since the code signature is stable, `identifier
-"com.adiumX.adiumX"` and a fixed certificate leaf; while every build changed its
-identity, every build was a stranger to the keychain. Issue #8, a password asked
-for at every launch, reports exactly this symptom.
+A keychain item carries the identity of the application that wrote it, and for
+an application signed with anything but an Apple-issued certificate that
+identity is the cdhash of the binary, not its designated requirement. Measured
+on 19 October 2026 with `security dump-keychain -a`: the Jabber item that Adium
+1.5 wrote in 2021 lists eighteen entries for `build/Debug/Adium.app`, one cdhash
+per rebuild that was allowed with "Always allow", and its partition list grows
+the same way. So a developer is asked once after every rebuild and never on an
+unchanged start. The local signing certificate, trusted for code signing as it
+is, does not change that, because it carries no team identifier; a Developer ID
+would. Issue #8, a password asked for at every launch, is a different thing: the
+`supportsPassword` default lost on 22 September and restored on 19 October,
+which had made Jabber connect without fetching its password at all.
 
 Some protocol plug-ins use the password slot for themselves: purple-teams stores
 its refresh token as the libpurple account password and reads it back from
