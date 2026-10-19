@@ -60,5 +60,7 @@ one are in Source/. AIAccountMenu, AIContactMenu and AIStatusMenu build the
 menus the application shows in several places. AIHTMLDecoder converts between
 HTML and attributed strings and is on the path of every message in and out.
 AIAddressBookController and AIAddressBookPerson are the Contacts framework
-integration. AILocalizationAssistance.h has the AILocalizedString macros, and
-the AILocalization* controls size themselves to a translated title.
+integration. The AILocalizedString macros live one framework over, in
+AIUtilities/Source/AIStringUtilities.h; AILocalizationAssistance.h is the
+category the AILocalization* controls use to size themselves to a translated
+title.

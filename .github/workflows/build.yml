@@ -73,6 +73,9 @@ jobs:
       - name: Every shipped binary carries its licence
         run: ./Utilities/verify-licenses.sh
 
+      - name: The CLAUDE.md files still describe the tree
+        run: ./Utilities/verify-claude-md.sh
+
       # The build is already green by here; this only tells the reader how much
       # the compiler had to say. It must not fail the job: a warning is not a
       # break, and a job that goes red over one teaches people to ignore red.
