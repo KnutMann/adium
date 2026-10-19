@@ -244,10 +244,31 @@ This is a work in progress; expect rough edges.
 * Apple Silicon Mac, macOS 13 or later
 * Everything is native arm64, including all bundled dependencies
   (libpurple, glib, libotr, ...): no Homebrew required to run
-* Xcode for building (there are no binary releases at this time)
+* Xcode, whether you build by hand or through Homebrew; there are no binary
+  releases at this time
 
 For Intel Macs and older systems, use the original
 [Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg).
+
+## Installing with Homebrew
+
+There are no signed downloads yet, so the application is built on your own
+Mac either way; Homebrew only takes the steps off your hands. The tap at
+<https://github.com/KnutMann/homebrew-adium> builds a pinned revision of this
+repository that has passed the build and the test suite:
+
+	brew tap KnutMann/adium
+	brew trust --formula KnutMann/adium/adium   # Homebrew 7 loads third-party formulae only once trusted
+	brew install KnutMann/adium/adium
+	ln -sf "$(brew --prefix)/var/adium/Adium.app" ~/Applications/Adium.app
+
+Spell the formula out: Homebrew's own tap has a cask called `adium` too, and
+that one is the Intel 1.5.10.4. The requirements are the ones above, Apple
+Silicon, macOS 13 and a full Xcode, because the formula runs xcodebuild; the
+build takes a few minutes. `brew upgrade KnutMann/adium/adium` moves to the
+next revision the tap has pinned, and `brew install --HEAD KnutMann/adium/adium`
+builds the tip of master instead. A bundle built on your own machine carries
+no quarantine attribute, so Gatekeeper lets it start without notarisation.
 
 ## Building
 
