@@ -23,6 +23,7 @@
 #import "AIFontManagerAdditions.h"
 
 #define FONT_DEFAULT_NAME	@"Helvetica"
+#define FONT_DEFAULT_SIZE	12
 
 @interface AITextAttributes ()
 - (id)initWithFontFamily:(NSString *)inFamilyName traits:(NSFontTraitMask)inTraits size:(NSInteger)inSize;
@@ -203,10 +204,8 @@
 //Disable a masked trait (bold, italic)
 - (void)disableTrait:(NSFontTraitMask)inTrait
 {
-    if (fontTraitsMask && inTrait) {
-        fontTraitsMask ^= inTrait;
-    }
-    
+	//Clear the bits rather than toggle them: disabling a trait that is not set must leave it unset.
+	fontTraitsMask &= ~inTrait;
 	[dictionary removeObjectForKey:NSFontAttributeName];
 }
 
@@ -246,6 +245,8 @@
 
 // Enable or disable subscript
 - (void)setSubscript:(BOOL)inSubscript{
+	//The size stays 0 until a font is asked for; the offset and the smaller face need the size that font will have.
+	if (!fontSize) fontSize = FONT_DEFAULT_SIZE;
 	if (inSubscript) {
 		[dictionary setObject:[NSNumber numberWithFloat:((float)fontSize / -2.0f)] forKey:NSBaselineOffsetAttributeName];
 		[self setFontSize:(fontSize - 2)];
@@ -263,6 +264,7 @@
 
 // Enable or disable superscript
 - (void)setSuperscript:(BOOL)inSuperscript{
+	if (!fontSize) fontSize = FONT_DEFAULT_SIZE;
 	if (inSuperscript) {
 		[dictionary setObject:[NSNumber numberWithFloat:((float)fontSize / 2.0f)] forKey:NSBaselineOffsetAttributeName];
 		[self setFontSize:(fontSize - 2)];
@@ -309,6 +311,8 @@
 {
 	fontFamilyName = nil;
 	fontSize = 0;
+	//The cached font is what -dictionary hands out; left in place, the old family and size would live on.
+	[dictionary removeObjectForKey:NSFontAttributeName];
 	[dictionary removeObjectForKey:NSForegroundColorAttributeName];
 	[dictionary removeObjectForKey:NSBackgroundColorAttributeName];
 	[dictionary removeObjectForKey:@"LanguageValue"];
@@ -320,7 +324,7 @@
     NSFont	*font = nil;
 
     //Ensure font size isn't 0
-    if (!fontSize) fontSize = 12;
+    if (!fontSize) fontSize = FONT_DEFAULT_SIZE;
 
     //Create the font
     if (fontFamilyName) {

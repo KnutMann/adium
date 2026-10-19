@@ -161,7 +161,6 @@ static NSDate *SampleDate(void)
 
 - (void)testConvertsSeconds
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:780 maps only a lowercase %s to seconds; strftime's seconds field is %S, which the converter drops, so %H:%M:%S becomes HH:mm:");
 	XCTAssertEqualObjects([NSDateFormatter ai_unicodeFormatFromCalendarFormat:@"%H:%M:%S"], @"HH:mm:ss");
 }
 
@@ -183,13 +182,11 @@ static NSDate *SampleDate(void)
 
 - (void)testConvertsFourDigitYear
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:813 treats %Y like %y because the width defaults to 2; strftime's %Y is the four-digit year, so %d.%m.%Y comes out as dd.MM.yy");
 	XCTAssertEqualObjects([NSDateFormatter ai_unicodeFormatFromCalendarFormat:@"%Y"], @"yyyy");
 }
 
 - (void)testConvertsDayOfYear
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:754 gives %j two digits because the width defaults to 2; strftime's %j is the three-digit day of the year");
 	XCTAssertEqualObjects([NSDateFormatter ai_unicodeFormatFromCalendarFormat:@"%j"], @"DDD");
 }
 
@@ -200,7 +197,6 @@ static NSDate *SampleDate(void)
 
 - (void)testWidthFlagOfOneDropsThePadding
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:695 skips two characters after a width digit, which swallows the field letter, so %1H:%1M yields :m instead of H:m and %5Y reads past the end");
 	XCTAssertEqualObjects([NSDateFormatter ai_unicodeFormatFromCalendarFormat:@"%1H:%1M"], @"H:m");
 }
 
@@ -219,7 +215,6 @@ static NSDate *SampleDate(void)
 
 - (void)testTrailingPercentSignDoesNotThrow
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:687 reads the character after a % without checking that there is one, so a message style whose format ends in % raises instead of being tolerated");
 	XCTAssertNoThrow([NSDateFormatter ai_unicodeFormatFromCalendarFormat:@"%H %"]);
 }
 
@@ -252,6 +247,24 @@ static NSDate *SampleDate(void)
 - (void)testCalendarFormatOfUnpaddedFields
 {
 	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"H:m:s"] dateCalendarFormat], @"%1H:%1M:%1S");
+}
+
+- (void)testCalendarFormatCopiesAQuotedLiteral
+{
+	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"'at' HH:mm"] dateCalendarFormat], @"at %H:%M");
+	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"'o''clock' HH"] dateCalendarFormat], @"o'clock %H");
+	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"'100%' HH"] dateCalendarFormat], @"100%% %H");
+}
+
+- (void)testCalendarFormatOfTheISOPattern
+{
+	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"yyyy-MM-dd'T'HH:mm:ss"] dateCalendarFormat], @"%Y-%m-%dT%H:%M:%S");
+}
+
+- (void)testCalendarFormatWithATrailingQuoteEndsCleanly
+{
+	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"HH:mm'"] dateCalendarFormat], @"%H:%M");
+	XCTAssertEqualObjects([[self unicodeFormatterWithFormat:@"HH:mm 'at"] dateCalendarFormat], @"%H:%M at");
 }
 
 - (void)testUnicodeFormatOfAUnicodeFormatterIsItsPattern

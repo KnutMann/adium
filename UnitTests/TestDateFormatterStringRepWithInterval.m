@@ -994,13 +994,11 @@
 
 - (void)testHalfASecondShowsAsOneSecond
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:419 admits seconds from 0.5 upwards, but line 387 prints them with %1.0lf, whose half-to-even rounding turns 0.5 into \"0 seconds\"");
 	AISimplifiedAssertEqualObjects([NSDateFormatter stringForTimeInterval:0.5 showingSeconds:YES abbreviated:NO approximated:NO], @"1 second", @"Half a second rounds up to one");
 }
 
 - (void)testASecondThatDisplaysAsOneIsSingular
 {
-	XCTExpectFailure(@"AIDateFormatterAdditions.m:387 picks the singular only when the unrounded value is exactly 1, so 1.4 seconds prints as \"1 seconds\"");
 	AISimplifiedAssertEqualObjects([NSDateFormatter stringForTimeInterval:1.4 showingSeconds:YES abbreviated:NO approximated:NO], @"1 second", @"A displayed 1 takes the singular");
 }
 

@@ -110,7 +110,6 @@
 
 - (void)testDisablingAnAbsentTraitLeavesTheMaskAlone
 {
-	XCTExpectFailure(@"AITextAttributes.m:207 removes a trait with ^= instead of &= ~, so disabling bold on an italic-only mask turns bold on");
 	AITextAttributes *attributes = [AITextAttributes textAttributesWithFontFamily:@"Helvetica" traits:NSItalicFontMask size:12];
 	[attributes disableTrait:NSBoldFontMask];
 	XCTAssertEqual([attributes traits], (NSFontTraitMask)NSItalicFontMask);
@@ -235,7 +234,6 @@
 
 - (void)testResetFontAttributesRestoresTheDefaults
 {
-	XCTExpectFailure(@"AITextAttributes.m:308 resetFontAttributes clears the family and size but leaves the old NSFont in the dictionary, so -dictionary keeps handing out Menlo 20 instead of the default Helvetica 12 the header promises");
 	AITextAttributes *attributes = [AITextAttributes textAttributesWithFontFamily:@"Menlo" traits:0 size:20];
 	[attributes setTextColor:[NSColor redColor]];
 	[attributes setTextBackgroundColor:[NSColor yellowColor]];

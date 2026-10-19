@@ -81,7 +81,11 @@
 - (NSString *)CSSRepresentation
 {
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:3];
-	[result addObject:[NSString stringWithFormat:@"%@pt %@", [NSString stringWithCGFloat:[self pointSize] maxDigits:2], [self familyName]]];
+	//CSS wants a family name of more than one word in quotes, the form AIAttributedStringAdditions.h documents.
+	NSString *family = [self familyName];
+	if ([family rangeOfCharacterFromSet:[NSCharacterSet whitespaceCharacterSet]].location != NSNotFound)
+		family = [NSString stringWithFormat:@"\"%@\"", family];
+	[result addObject:[NSString stringWithFormat:@"%@pt %@", [NSString stringWithCGFloat:[self pointSize] maxDigits:2], family]];
 
 	NSFontTraitMask traits = [[NSFontManager sharedFontManager] traitsOfFont:self];
 	if (traits & NSItalicFontMask) {

@@ -22,8 +22,10 @@ const unichar ISO8601DefaultTimeSeparatorCharacter = DEFAULT_TIME_SEPARATOR;
 #define ISO_TIME_FORMAT @"HH:mm:ss"
 //printf formats.
 #define ISO_TIMEZONE_UTC_FORMAT @"Z"
-#define ISO_TIMEZONE_OFFSET_FORMAT_NO_SEPARATOR @"%+.2d%.2d"
-#define ISO_TIMEZONE_OFFSET_FORMAT_WITH_SEPARATOR @"%+.2d%C%.2d"
+/* The sign is printed on its own, from the whole offset: carried by the hour it is lost for an
+ * offset below one hour, and the minute would carry a second one (St. John's gave "-03-30"). */
+#define ISO_TIMEZONE_OFFSET_FORMAT_NO_SEPARATOR @"%c%.2d%.2d"
+#define ISO_TIMEZONE_OFFSET_FORMAT_WITH_SEPARATOR @"%c%.2d%C%.2d"
 
 @interface ISO8601DateFormatter ()
 + (void) createGlobalCachesThatDoNotAlreadyExist;
@@ -124,6 +126,7 @@ static NSUInteger read_segment_4digits(const unichar *str, const unichar **next,
 static NSUInteger read_segment_2digits(const unichar *str, const unichar **next);
 static double read_double(const unichar *str, const unichar **next);
 static BOOL is_leap_year(NSUInteger year);
+static NSUInteger days_in_month(NSUInteger year, NSUInteger month);
 
 /*Valid ISO 8601 date formats:
  *
@@ -180,6 +183,12 @@ static BOOL is_leap_year(NSUInteger year);
 	return [self dateComponentsFromString:string timeZone:outTimeZone range:NULL fractionOfSecond:NULL];
 }
 - (NSDateComponents *) dateComponentsFromString:(NSString *)string timeZone:(out NSTimeZone **)outTimeZone range:(out NSRange *)outRange fractionOfSecond:(out NSTimeInterval *)outFractionOfSecond {
+	/* The header promises every out-parameter a value whether or not the string parses, so
+	 * the refusals below must not return before they are written. */
+	if (outRange) *outRange = (NSRange){ NSNotFound, 0U };
+	if (outTimeZone) *outTimeZone = nil;
+	if (outFractionOfSecond) *outFractionOfSecond = 0.0;
+
 	if (string == nil)
 		return nil;
 	// Bail if the string contains a slash delimiter (we don't yet support ISO 8601 intervals and we don't support slash-separated dates)
@@ -326,6 +335,11 @@ static BOOL is_leap_year(NSUInteger year);
 										}
 										break;
 
+									case 1: //M; M-D (extension)
+										if (strict) {
+											isValidDate = NO;
+											break;
+										}
 									case 2: //MM
 										month_or_week = segment;
 
@@ -444,8 +458,11 @@ static BOOL is_leap_year(NSUInteger year);
 									//Not really a week-based date; just a year followed by '-W'.
 									if (strict)
 										isValidDate = NO;
-									else
+									else {
+										//The header reads it as YYYY-W01-01, which is a week date: week 1 can begin in the year before.
 										month_or_week = day = 1U;
+										dateSpecification = week;
+									}
 								} else {
 									month_or_week = read_segment_2digits(ch, &ch);
 									if (*ch == '-') ++ch;
@@ -556,6 +573,14 @@ static BOOL is_leap_year(NSUInteger year);
 							second = read_double(ch, &ch);
 						}
 					}
+				} else if (isdigit(*ch)) {
+					//The basic format, hhmm or hhmmss with no separator at all (ISO 8601 4.2.2.2 and 4.2.2.4); the seconds may carry a fraction.
+					minute = read_segment_2digits(ch, &ch);
+					if (isdigit(*ch)) {
+						second = read_segment_2digits(ch, &ch);
+						if ((*ch == ',') || (*ch == '.'))
+							second += read_double(ch, &ch);
+					}
 				}
 
 				if (!strict) {
@@ -581,8 +606,11 @@ static BOOL is_leap_year(NSUInteger year);
 							tz_hour = (NSInteger)segment;
 							if (negative) tz_hour = -tz_hour;
 
-							//Optional separator.
-							if (*ch == self.timeZoneSeparator) ++ch;
+							/* Optional separator. ISO 8601 4.2.5.1 writes the extended form as ±hh:mm, so a colon
+							 * is always read, and so is the configured separator when there is one: a separator
+							 * of zero would match the string's terminator and step past it. */
+							unichar tzSep = self.timeZoneSeparator;
+							if ((*ch == ':') || (tzSep && (*ch == tzSep))) ++ch;
 
 							if (isdigit(*ch)) {
 								//Read minute offset.
@@ -617,16 +645,18 @@ static BOOL is_leap_year(NSUInteger year);
 			components.minute = (NSInteger)minute;
 			components.second = (NSInteger)second;
 
-			if (outFractionOfSecond != NULL) {
-				NSTimeInterval fractionOfSecond = second - components.second;
-				if (fractionOfSecond > 0.0) {
-					*outFractionOfSecond = fractionOfSecond;
-				}
-			}
+			//Zero when the string carried no fraction, as the header promises; the caller's old value is never kept.
+			if (outFractionOfSecond != NULL)
+				*outFractionOfSecond = second - components.second;
 
 			switch(dateSpecification) {
 				case monthAndDate:
 					components.month = month_or_week;
+					/* Lenient parsing lets the calendar roll a 13th month or a 29th of February in a
+					 * common year over; strict parsing refuses them, as the header says and as it
+					 * already refuses day 366. */
+					if (strict && ((month_or_week < 1U) || (month_or_week > 12U) || (day < 1U) || (day > days_in_month(year, month_or_week))))
+						isValidDate = NO;
 					break;
 
 				case week:;
@@ -763,12 +793,13 @@ static BOOL is_leap_year(NSUInteger year);
 		if (offset == 0)
 			str = [str stringByAppendingString:ISO_TIMEZONE_UTC_FORMAT];
 		else {
-			int timeZoneOffsetHour = (int)(offset / 60);
-			int timeZoneOffsetMinute = (int)(offset % 60);
+			char sign = (offset < 0) ? '-' : '+';
+			int timeZoneOffsetHour = (int)(labs(offset) / 60);
+			int timeZoneOffsetMinute = (int)(labs(offset) % 60);
 			if (self.timeZoneSeparator)
-				str = [str stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT_WITH_SEPARATOR, timeZoneOffsetHour, self.timeZoneSeparator, timeZoneOffsetMinute];
+				str = [str stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT_WITH_SEPARATOR, sign, timeZoneOffsetHour, self.timeZoneSeparator, timeZoneOffsetMinute];
 			else
-				str = [str stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT_NO_SEPARATOR, timeZoneOffsetHour, timeZoneOffsetMinute];
+				str = [str stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT_NO_SEPARATOR, sign, timeZoneOffsetHour, timeZoneOffsetMinute];
 		}
 	}
 
@@ -846,7 +877,8 @@ static BOOL is_leap_year(NSUInteger year);
 		}
 	}
 
-	NSString *string = [NSString stringWithFormat:@"%lu-W%02lu-%02lu", (unsigned long)year, (unsigned long)week, ((unsigned long)dayOfWeek) + 1U];
+	//YYYY-Www-D as ISO 8601 4.1.4.2 writes it: the year padded as the other two formats pad theirs, the weekday a single digit.
+	NSString *string = [NSString stringWithFormat:@"%04lu-W%02lu-%lu", (unsigned long)year, (unsigned long)week, ((unsigned long)dayOfWeek) + 1U];
 
 	NSString *timeString;
 	if(includeTime) {
@@ -865,15 +897,16 @@ static BOOL is_leap_year(NSUInteger year);
 		if (offset == 0)
 			timeString = [timeString stringByAppendingString:ISO_TIMEZONE_UTC_FORMAT];
 		else {
-			int timeZoneOffsetHour = (int)(offset / 60);
-			int timeZoneOffsetMinute = (int)(offset % 60);
+			char sign = (offset < 0) ? '-' : '+';
+			int timeZoneOffsetHour = (int)(labs(offset) / 60);
+			int timeZoneOffsetMinute = (int)(labs(offset) % 60);
 			if (self.timeZoneSeparator)
 				timeString = [timeString stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT_WITH_SEPARATOR,
-				                                                 timeZoneOffsetHour, self.timeZoneSeparator,
+				                                                 sign, timeZoneOffsetHour, self.timeZoneSeparator,
 				                                                 timeZoneOffsetMinute];
 			else
 				timeString = [timeString stringByAppendingFormat:ISO_TIMEZONE_OFFSET_FORMAT_NO_SEPARATOR,
-				                                                 timeZoneOffsetHour, timeZoneOffsetMinute];
+				                                                 sign, timeZoneOffsetHour, timeZoneOffsetMinute];
 		}
 
 		string = [string stringByAppendingFormat:@"T%@", timeString];
@@ -984,4 +1017,12 @@ static BOOL is_leap_year(NSUInteger year) {
 	    ((year %   4U) == 0U)
 	&& (((year % 100U) != 0U)
 	||  ((year % 400U) == 0U));
+}
+
+//Zero for a month outside 1 to 12, so that an out-of-range month fails any day as well.
+static NSUInteger days_in_month(NSUInteger year, NSUInteger month) {
+	static const NSUInteger days[12] = { 31U, 28U, 31U, 30U, 31U, 30U, 31U, 31U, 30U, 31U, 30U, 31U };
+	if ((month < 1U) || (month > 12U))
+		return 0U;
+	return days[month - 1U] + (((month == 2U) && is_leap_year(year)) ? 1U : 0U);
 }

@@ -119,7 +119,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testParsesBasicFormatTime
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:536 reads minutes and seconds only after a time separator, so the basic format hhmmss keeps the hour and drops the rest, the zone included");
 	NSTimeZone *zone = nil;
 	NSDate *date = [[self formatter] dateFromString:@"20130908T150611Z" timeZone:&zone];
 	XCTAssertEqualObjects(date, DateUTC(2013, 9, 8, 15, 6, 11));
@@ -168,7 +167,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testParsesExtendedFormatOffsetByDefault
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:585 skips only the configured timeZoneSeparator, which defaults to none, so the colon of +05:30 stops the read and the minutes are silently dropped: ISO 8601 4.2.5.1 allows +hh:mm regardless");
 	XCTAssertEqualObjects([[self formatter] dateFromString:@"2013-09-08T15:06:11+05:30"], DateUTC(2013, 9, 8, 9, 36, 11));
 }
 
@@ -224,7 +222,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testFractionOfSecondIsZeroWhenTheStringHasNone
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:622 stores the fraction only when it is positive, so a caller's variable keeps its old value although the header promises zero");
 	NSTimeInterval fraction = 0.75;
 	[[self formatter] dateComponentsFromString:@"2013-09-08T15:06:11Z" timeZone:NULL range:NULL fractionOfSecond:&fraction];
 	XCTAssertEqualWithAccuracy(fraction, 0.0, AIFloatComparisonAccuracy);
@@ -292,7 +289,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testYearFollowedByBareWIsWeekOneDayOneOnlyWhenLenient
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:448 turns YYYY-W into January 1st, while the header promises YYYY-W01-01, which for 2009 is December 29th, 2008");
 	ISO8601DateFormatter *formatter = [self formatter];
 	XCTAssertEqualObjects([formatter dateFromString:@"2009-WT00:00:00Z"], DateUTC(2008, 12, 29, 0, 0, 0));
 }
@@ -345,7 +341,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testSingleDigitMonthAndDayParseWhenLenient
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:340 rejects a one-digit segment after a four-digit year, although the header lists single-digit components among the lenient extensions");
 	NSDateComponents *components = [[self formatter] dateComponentsFromString:@"2013-9-8"];
 	XCTAssertEqual(components.year, (NSInteger)2013);
 	XCTAssertEqual(components.month, (NSInteger)9);
@@ -362,7 +357,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testStrictParsingRejectsMonthThirteen
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:629 hands any month number to the calendar; the header says strict parsing disables out-of-range components");
 	ISO8601DateFormatter *formatter = [self formatter];
 	formatter.parsesStrictly = YES;
 	XCTAssertNil([formatter dateFromString:@"2013-13-01"]);
@@ -370,7 +364,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testStrictParsingRejectsFebruaryTwentyNinthOfACommonYear
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:629 hands any day number to the calendar, which rolls 2013-02-29 over to March 1st; strict parsing should reject it as it rejects 2013-366");
 	ISO8601DateFormatter *formatter = [self formatter];
 	formatter.parsesStrictly = YES;
 	XCTAssertNil([formatter dateFromString:@"2013-02-29"]);
@@ -418,7 +411,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testRefusingAnIntervalStillReportsTheRangeAsNotFound
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:195 returns before the out-parameters are written when the string contains a slash, so the caller reads whatever was in its variable");
 	NSRange range = NSMakeRange(2, 10);
 	NSTimeZone *zone = UTCZone();
 	XCTAssertNil([[self formatter] dateComponentsFromString:@"2013-09-08/2013-09-09" timeZone:&zone range:&range fractionOfSecond:NULL]);
@@ -495,7 +487,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testFormatsNegativeHalfHourOffset
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:771 formats the minute part of a negative offset with its own sign, so Newfoundland comes out as -03-30");
 	ISO8601DateFormatter *formatter = [self formatter];
 	formatter.includeTime = YES;
 	NSString *string = [formatter stringFromDate:DateUTC(2013, 1, 15, 12, 0, 0) timeZone:[NSTimeZone timeZoneWithName:@"America/St_Johns"]];
@@ -602,7 +593,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testFormatsWeekDatesAtYearBoundaries
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:849 writes the weekday with two digits (2009-W01-01); ISO 8601 4.1.4.2 writes YYYY-Www-D with a single digit, and the parser is the only one that reads the long form");
 	ISO8601DateFormatter *formatter = [self formatter];
 	formatter.format = ISO8601DateFormatWeek;
 	for (NSArray *edge in [self weekDateEdges]) {
@@ -650,7 +640,6 @@ static NSDate *DateUTC(NSInteger year, NSInteger month, NSInteger day, NSInteger
 
 - (void)testWeekDatePadsEarlyYearsToFourDigits
 {
-	XCTExpectFailure(@"ISO8601DateFormatter.m:849 prints the week-year with %lu and no padding, so year 1 comes out as 1-W01-..., while the calendar and ordinal formats pad to 0001");
 	ISO8601DateFormatter *formatter = [self formatter];
 	formatter.format = ISO8601DateFormatWeek;
 	NSString *string = [formatter stringFromDate:DateUTC(1, 1, 1, 0, 0, 0) timeZone:UTCZone()];

@@ -247,7 +247,6 @@ static NSImage *smallImage(void)
 
 - (void)testSuperscriptAndSubscriptShiftTheBaseline
 {
-	XCTExpectFailure(@"Both offsets come out as 0: AITextAttributes.m:250 and :267 derive them from fontSize, which is still 0 until a font has been asked for, so <sup> and <sub> in a message without a font tag do nothing");
 	NSNumber *up = [decode(@"<sup>2</sup>") attribute:NSBaselineOffsetAttributeName atIndex:0 effectiveRange:NULL];
 	NSNumber *down = [decode(@"<sub>2</sub>") attribute:NSBaselineOffsetAttributeName atIndex:0 effectiveRange:NULL];
 	XCTAssertGreaterThan([up doubleValue], 0.0);

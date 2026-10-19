@@ -58,8 +58,6 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
         searchRange.length = searchRange.length - ((theRange.location + theRange.length) - searchRange.location);
         
         searchRange.location = theRange.location + replacementLength;
-        if (searchRange.length - searchRange.location < 1)
-            break;
     }
     return numberOfReplacements;
 }
@@ -80,8 +78,6 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
         searchRange.length = searchRange.length - ((theRange.location + theRange.length) - searchRange.location);
         
         searchRange.location = theRange.location + replacementLength;
-        if (searchRange.length - searchRange.location < 1)
-            break;
     }
     
     
@@ -372,11 +368,15 @@ NSString *AIFontStyleAttributeName  = @"AIFontStyle";
 	NSString *key;
 	while ((key = [keysEnum nextObject])) {
 		if ([key isEqualToString:NSUnderlineStyleAttributeName]) {
-			hasUnderline = YES;
+			//AppKit switches a decoration off with NSUnderlineStyleNone rather than by removing the key.
+			hasUnderline = ([[attrs objectForKey:key] integerValue] != NSUnderlineStyleNone);
 		} else if ([key isEqualToString:NSStrikethroughStyleAttributeName]) {
-			hasLineThrough = YES;
+			hasLineThrough = ([[attrs objectForKey:key] integerValue] != NSUnderlineStyleNone);
 		} else if ([key isEqualToString:NSSuperscriptAttributeName]) {
-			[CSSProperties addObject:@"vertical-align: baseline;"];
+			//The attribute counts levels up or down; CSS has one step each way, and baseline for none.
+			NSInteger level = [[attrs objectForKey:key] integerValue];
+			[CSSProperties addObject:((level > 0) ? @"vertical-align: super;" :
+									  (level < 0) ? @"vertical-align: sub;" : @"vertical-align: baseline;")];
 		} else {
 			NSString *CSSPropertyName = [attributeNamesToCSSPropertyNames objectForKey:key];
 			id obj = [attrs objectForKey:key];

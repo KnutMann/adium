@@ -237,7 +237,6 @@ static NSMutableAttributedString *StringWithAttachments(NSString *lead, NSTextAt
 
 - (void)testReplaceOccurrencesReplacesEveryMatchInTheRange
 {
-	XCTExpectFailure(@"AIAttributedStringAdditions.m:61 stops searching when the remaining length happens to equal the next location, so abXdXf keeps its second X where NSMutableString replaces both");
 	NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@"abXdXf"];
 	NSMutableString *oracle = [@"abXdXf" mutableCopy];
 	NSUInteger expected = [oracle replaceOccurrencesOfString:@"X" withString:@"Y" options:0 range:NSMakeRange(0, [oracle length])];
@@ -292,7 +291,6 @@ static NSMutableAttributedString *StringWithAttachments(NSString *lead, NSTextAt
 
 - (void)testReplaceOccurrencesWithAttributesReplacesEveryMatchInTheRange
 {
-	XCTExpectFailure(@"AIAttributedStringAdditions.m:83 has the same early exit as line 61, so abXdXf keeps its second X");
 	NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@"abXdXf"];
 	NSUInteger count = [string replaceOccurrencesOfString:@"X" withString:@"Y" attributes:@{ NSForegroundColorAttributeName: [NSColor redColor] } options:0 range:NSMakeRange(0, 6)];
 	XCTAssertEqual(count, (NSUInteger)2);
@@ -501,13 +499,11 @@ static NSMutableAttributedString *StringWithAttachments(NSString *lead, NSTextAt
 
 - (void)testCSSUnderlineStyleNoneProducesNoDecoration
 {
-	XCTExpectFailure(@"AIAttributedStringAdditions.m:374 looks only for the presence of the underline key, so a value of NSUnderlineStyleNone, which AppKit uses to switch an underline off, still produces text-decoration: underline");
 	XCTAssertEqualObjects([NSAttributedString CSSStringForTextAttributes:@{ NSUnderlineStyleAttributeName: @(NSUnderlineStyleNone) }], @"");
 }
 
 - (void)testCSSSuperscriptRaisesTheText
 {
-	XCTExpectFailure(@"AIAttributedStringAdditions.m:379 writes vertical-align: baseline for every superscript value, which is the CSS default and changes nothing; a positive superscript is vertical-align: super");
 	XCTAssertEqualObjects([NSAttributedString CSSStringForTextAttributes:@{ NSSuperscriptAttributeName: @1 }], @"vertical-align: super;");
 }
 

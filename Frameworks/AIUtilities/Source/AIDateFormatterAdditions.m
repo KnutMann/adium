@@ -371,6 +371,11 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 	                    minutes:&minutes
 	                    seconds:&seconds];
 
+	/* The seconds are shown whole. Round them once, here, so that the number printed, the
+	 * singular and the decision to show them at all agree: printf's %.0f rounds half to even,
+	 * which turned 0.5 into "0 seconds" after it had been admitted as half a second. */
+	NSInteger roundedSeconds = (NSInteger)lround(seconds);
+
 	//build the strings for the parts
 	if (abbreviate) {
 		//Note: after checking with a linguistics student, it appears that we're fine leaving it as w, h, etc... rather than localizing.
@@ -378,13 +383,14 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 		daysString		= [NSString stringWithFormat: @"%id",(int)days];
 		hoursString		= [NSString stringWithFormat: @"%ih",(int)hours];
 		minutesString	= [NSString stringWithFormat: @"%im",(int)minutes];
-		secondsString	= [NSString stringWithFormat: @"%.0fs",seconds];
+		secondsString	= [NSString stringWithFormat: @"%lis",(long)roundedSeconds];
 	} else {
 		weeksString		= (weeks == 1)		? ONE_WEEK		: [NSString stringWithFormat:MULTIPLE_WEEKS, (long)weeks];
 		daysString		= (days == 1)		? ONE_DAY		: [NSString stringWithFormat:MULTIPLE_DAYS, (long)days];
 		hoursString		= (hours == 1)		? ONE_HOUR		: [NSString stringWithFormat:MULTIPLE_HOURS, (long)hours];
 		minutesString	= (minutes == 1)	? ONE_MINUTE	: [NSString stringWithFormat:MULTIPLE_MINUTES, (long)minutes];
-		secondsString	= (seconds == 1)	? ONE_SECOND	: [NSString stringWithFormat:MULTIPLE_SECONDS, (double)seconds];
+		//The localized format keeps its %1.0lf, which prints a whole double exactly.
+		secondsString	= (roundedSeconds == 1)	? ONE_SECOND	: [NSString stringWithFormat:MULTIPLE_SECONDS, (double)roundedSeconds];
 	}
 
 	//assemble the parts
@@ -404,7 +410,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 		}
 		else if (minutes)
 			[parts addObject:minutesString];
-		else if (showSeconds && (seconds >= 0.5))
+		else if (showSeconds && roundedSeconds)
 			[parts addObject:secondsString];
 	} else {
 		//We want all of these that aren't zero.
@@ -416,7 +422,7 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 			[parts addObject:hoursString];
 		if (minutes)
 			[parts addObject:minutesString];
-		if (showSeconds && (seconds >= 0.5))
+		if (showSeconds && roundedSeconds)
 			[parts addObject:secondsString];
 	}
 
@@ -603,23 +609,30 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 				[scanner setScanLocation:[scanner scanLocation] - [span length] + 2];
 			
 			} else {
-				while(1) {
+				/* A quoted literal: copy its text, with '' standing for one quote and a percent
+				 * sign escaped for strftime, until the closing quote. The scanner stops at the
+				 * quote or percent sign itself, so that is the character to look at; an
+				 * unterminated literal simply runs to the end of the pattern. */
+				NSCharacterSet *quoteOrPercent = [NSCharacterSet characterSetWithCharactersInString:@"'%"];
+				while (![scanner isAtEnd]) {
 					NSString *text;
-					if ([scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"'%"]
-												intoString:&text]) {
+					if ([scanner scanUpToCharactersFromSet:quoteOrPercent intoString:&text]) {
 						[newFormat appendString:text];
 					}
-					
-					if ([format characterAtIndex:([scanner scanLocation] + 1)] == '\'') {
-						if (([scanner scanLocation] + 1 < [format length]) && ([format characterAtIndex:([scanner scanLocation] + 1)] == '\'')) {
+					if ([scanner isAtEnd]) break;
+
+					NSUInteger location = [scanner scanLocation];
+					if ([format characterAtIndex:location] == '\'') {
+						if ((location + 1 < [format length]) && ([format characterAtIndex:(location + 1)] == '\'')) {
 							[newFormat appendString:@"'"];
-							[scanner setScanLocation:([scanner scanLocation] + 2)];
+							[scanner setScanLocation:(location + 2)];
 						} else {
-							[scanner setScanLocation:([scanner scanLocation] + 1)];
+							[scanner setScanLocation:(location + 1)];
 							break;
 						}
 					} else {
 						[newFormat appendString:@"%%"];
+						[scanner setScanLocation:(location + 1)];
 					}
 				}
 			}
@@ -682,21 +695,32 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 		// Scan the percentage sign, we don't care about it
 		[scanner scanString:@"%" intoString:nil];
 
+		/* A pattern a message style supplies may end in a bare percent sign, or in a width
+		 * digit with no field letter after it. Neither is a field; keep the text and stop. */
+		if ([scanner isAtEnd]) {
+			[newFormat appendString:@"%"];
+			break;
+		}
+
 		// Get the character following the format string
-		NSUInteger n = 2;
 		unichar it = [format characterAtIndex:[scanner scanLocation]];
-		
-		// Did we get a numeric flag? These aren't actually documented, so
-		// it's unclear as to how to treat them. Can you have multiple digits?
-		// Currently we don't support padding, so %5Y will incorrectly yield
-		// 2008 (yyyy) instead of 02008 (yyyyy).
+
+		/* Did we get a numeric flag? These aren't actually documented, so it's unclear as
+		 * to how to treat them. Can you have multiple digits? Currently we don't support
+		 * padding, so %5Y will incorrectly yield 2008 (yyyy) instead of 02008 (yyyyy).
+		 * Without a flag, n stays NSNotFound and each field keeps strftime's own width:
+		 * two digits for most, but three for %j and four for %Y. */
+		NSUInteger n = NSNotFound;
 		if (it >= '0' && it <= '9') {
 			n = it - '0';
-			[scanner setScanLocation:[scanner scanLocation] + 2];
-			it = [format characterAtIndex:[scanner scanLocation]];
-		} else {
 			[scanner setScanLocation:[scanner scanLocation] + 1];
+			if ([scanner isAtEnd]) {
+				[newFormat appendFormat:@"%%%C", it];
+				break;
+			}
+			it = [format characterAtIndex:[scanner scanLocation]];
 		}
+		[scanner setScanLocation:[scanner scanLocation] + 1];
 		
 		// Perform the translation		
 		// XXX Not supported or not fully supported: 
@@ -777,7 +801,8 @@ static BOOL AIIsOnLocalizedFormatterQueue(void)
 		} else if (it == 'p') {
 			[newFormat appendString:@"a"];
 			
-		} else if (it == 's') {
+		} else if (it == 's' || it == 'S') {
+			//strftime's seconds are %S; the lowercase form stays accepted as it always was.
 			if (n < 2) {
 				[newFormat appendString:@"s"];
 			} else {

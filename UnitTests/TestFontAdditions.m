@@ -106,7 +106,6 @@
 
 - (void)testCSSRepresentationQuotesAFamilyNameWithSpaces
 {
-	XCTExpectFailure(@"AIFontAdditions.m:84 writes the family name bare; AIAttributedStringAdditions.h documents the CSS form as 12pt \"Lucida Grande\", and CSS needs the quotes for a name with a space");
 	NSFont *font = [NSFont fontWithName:@"HelveticaNeue" size:12];
 	XCTAssertEqualObjects([font familyName], @"Helvetica Neue");
 	XCTAssertEqualObjects([font CSSRepresentation], @"12pt \"Helvetica Neue\"");
