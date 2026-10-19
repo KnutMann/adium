@@ -606,6 +606,7 @@
 				GCC_PREFIX_HEADER = AutoHyperlinks.framework_Prefix.pch;
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
+				LD_DYLIB_INSTALL_NAME = "@rpath/AutoHyperlinks.framework/Versions/A/AutoHyperlinks";
 				MACH_O_TYPE = mh_dylib;
 				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AutoHyperlinks;
@@ -887,6 +888,7 @@
 				GCC_PREFIX_HEADER = AutoHyperlinks.framework_Prefix.pch;
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
+				LD_DYLIB_INSTALL_NAME = "@rpath/AutoHyperlinks.framework/Versions/A/AutoHyperlinks";
 				MACH_O_TYPE = mh_dylib;
 				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AutoHyperlinks;
@@ -908,6 +910,7 @@
 				GCC_PREFIX_HEADER = AutoHyperlinks.framework_Prefix.pch;
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
+				LD_DYLIB_INSTALL_NAME = "@rpath/AutoHyperlinks.framework/Versions/A/AutoHyperlinks";
 				MACH_O_TYPE = mh_dylib;
 				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adiumX.AutoHyperlinks;

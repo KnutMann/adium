@@ -5,6 +5,12 @@ DYLIB_COMPATIBILITY_VERSION = 1
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
 HEADER_SEARCH_PATHS = $(HEADER_SEARCH_PATHS_QUOTED_4)
 INSTALL_PATH = @executable_path/../Frameworks
+// Named by run path rather than by the application's executable, as AIUtilities and
+// MMTabBarView are. The application resolves @rpath through its own LD_RUNPATH_SEARCH_PATHS
+// above, so nothing changes for it; what changes is that a test bundle or a harness can
+// carry a copy of this framework beside itself and load it, which an install name spelled
+// relative to somebody else's executable never allowed.
+LD_DYLIB_INSTALL_NAME = @rpath/Adium.framework/Versions/A/Adium
 HEADER_SEARCH_PATHS_QUOTED_4 = Plugins/Purple\ Service/Include/
 FRAMEWORK_VERSION = A
 
