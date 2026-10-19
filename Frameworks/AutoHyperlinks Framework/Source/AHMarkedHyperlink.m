@@ -75,30 +75,38 @@ withValidationStatus:(AH_URI_VERIFICATION_STATUS)status
 
 - (void)setURLFromString:(NSString *)inString
 {
-	/* Replacement for CFURLCreateStringByReplacingPercentEscapesUsingEncoding/
-	 * CFURLCreateStringByAddingPercentEscapes: the legacy "add escapes" call with a NULL
+	/* Replacement for CFURLCreateStringByAddingPercentEscapes: the legacy call with a NULL
 	 * legal-set left exactly the URLQueryAllowedCharacterSet unescaped (verified empirically
 	 * against the old API); the charactersToLeaveUnescaped arguments ("#[]" resp. "[]")
 	 * are added on top of that set to reproduce the old byte-for-byte behavior.
+	 *
+	 * The escapes the text already carries stay as they are. Decoding them all and encoding
+	 * the unsafe ones again turned "%2F" into "/" and "%3F" into "?", and RFC 3986 section 2.2
+	 * says those name different resources. So '%' is left alone as well, once every '%' that
+	 * does not begin an escape has been made into "%25": that is what the old round trip did
+	 * with a stray '%' (decoding it failed and the raw text was encoded), and NSURL on the
+	 * oldest macOS this runs on refuses the string otherwise.
 	 */
 	static NSCharacterSet *allowedWithHash = nil, *allowedWithoutHash = nil;
+	static NSRegularExpression *strayPercent = nil;
 	if (!allowedWithHash) {
 		NSMutableCharacterSet *set = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
-		[set addCharactersInString:@"[]"];
+		[set addCharactersInString:@"[]%"];
 		allowedWithoutHash = [set copy];
 		[set addCharactersInString:@"#"];
 		allowedWithHash = [set copy];
+		strayPercent = [NSRegularExpression regularExpressionWithPattern:@"%(?![0-9A-Fa-f]{2})" options:0 error:NULL];
 	}
 
 	NSString	*linkString, *preString;
 
-	preString = [inString stringByRemovingPercentEncoding];
+	preString = inString ? [strayPercent stringByReplacingMatchesInString:inString options:0 range:NSMakeRange(0, [inString length]) withTemplate:@"%25"] : nil;
 
-	linkString = [(preString ? preString : inString) stringByAddingPercentEncodingWithAllowedCharacters:allowedWithHash];
+	linkString = [preString stringByAddingPercentEncodingWithAllowedCharacters:allowedWithHash];
 	self.URL = (linkString ? [NSURL URLWithString:linkString] : nil);
 	// Because -[NSURL URLWithString:(NSString*)inString] fails creating a link with 2 fragment hashes, but we don't want to escape the first one, we esape all '#' to "%23" then unescape the first back to '#'.  rdar://9927055
 	if(!self.URL) {
-		linkString = [(preString ? preString : inString) stringByAddingPercentEncodingWithAllowedCharacters:allowedWithoutHash];
+		linkString = [preString stringByAddingPercentEncodingWithAllowedCharacters:allowedWithoutHash];
 		NSRange fragmentRange = [linkString rangeOfString:@"%23"];
 		NSMutableString *mutaLinkString = nil;
 		if (fragmentRange.location != NSNotFound) {

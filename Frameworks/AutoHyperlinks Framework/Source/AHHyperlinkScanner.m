@@ -71,14 +71,20 @@
 		[mutableSkipSet formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]];
 		skipSet = [NSCharacterSet characterSetWithBitmapRepresentation:[mutableSkipSet bitmapRepresentation]];
 		
-		endSet = [NSCharacterSet characterSetWithCharactersInString:@"\"',:;>)]}.?!@"];
+		/* The quotes macOS puts in for the straight ones as one types, single and double, the
+		 * low German pair and the guillemets. They go wherever the straight quotes go, or a
+		 * link in quotes is not found at all. */
+		NSString *typographicQuotes = [NSString stringWithFormat:@"%C%C%C%C%C%C%C%C%C%C",
+									   0x2018, 0x2019, 0x201A, 0x201C, 0x201D, 0x201E, 0x00AB, 0x00BB, 0x2039, 0x203A];
+		
+		endSet = [NSCharacterSet characterSetWithCharactersInString:[@"\"',:;>)]}.?!@" stringByAppendingString:typographicQuotes]];
 		
 		NSMutableCharacterSet *mutableStartSet = [[NSMutableCharacterSet alloc] init];
 		[mutableStartSet formUnionWithCharacterSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-		[mutableStartSet formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"\"'.,:;<?!-@%C%C", 0x2014, 0x2013]]];
+		[mutableStartSet formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"\"'.,:;<?!-@%C%C%@", 0x2014, 0x2013, typographicQuotes]]];
 		startSet = [NSCharacterSet characterSetWithBitmapRepresentation:[mutableStartSet bitmapRepresentation]];
 		
-		puncSet = [NSCharacterSet characterSetWithCharactersInString:@"\"'.,:;<?!"];
+		puncSet = [NSCharacterSet characterSetWithCharactersInString:[@"\"'.,:;<?!" stringByAppendingString:typographicQuotes]];
 		hostnameComponentSeparatorSet = [NSCharacterSet characterSetWithCharactersInString:@"./"];
 		enclosureStartArray = [NSArray arrayWithObjects:@"(",@"[",@"{",nil];
 		enclosureSet = [NSCharacterSet characterSetWithCharactersInString:@"()[]{}"];
@@ -106,7 +112,7 @@
 
 + (id)strictHyperlinkScannerWithAttributedString:(NSAttributedString *)inString
 {
-	return [[[self class] alloc] initWithAttributedString:inString usingStrictChecking:NO];
+	return [[[self class] alloc] initWithAttributedString:inString usingStrictChecking:YES];
 }
 #endif
 
@@ -191,7 +197,16 @@
 	
     // call flex to parse the input
     *validStatus = (AH_URI_VERIFICATION_STATUS)AHlex(scanner);
-	if(sIndex) *sIndex += AHget_leng(scanner);
+	if(sIndex) {
+		/* The index is into the NSString and counts UTF-16 units; AHget_leng counts bytes of
+		 * the 8-bit buffer, which is more for anything beyond ASCII. So the advance is the
+		 * length of the string those bytes decode to. The lexer's catch-all rule takes one
+		 * byte and can stop inside a multi-byte character, where the bytes decode to nothing;
+		 * that is a failed match, after which the number means little, and the byte count
+		 * stands in. */
+		NSString *matched = [[NSString alloc] initWithBytes:inStringEnc length:AHget_leng(scanner) encoding:stringEnc];
+		*sIndex += matched ? [matched length] : AHget_leng(scanner);
+	}
 	if(schemeLength) *schemeLength = AHget_extra(scanner).schemeLength;
 	
     // condition for valid URI's
@@ -255,7 +270,8 @@
 		// Find balanced enclosure chars
 		NSRange longestEnclosure = [self _longestBalancedEnclosureInRange:scannedRange];
 		while (scannedRange.length > 2 && [endSet characterIsMember:[m_scanString characterAtIndex:(scannedRange.location + scannedRange.length - 1)]]) {
-			if((longestEnclosure.location + longestEnclosure.length) < scannedRange.length){
+			// Both ends are indices into m_scanString; compared with the token's length this held only for a token at offset 0.
+			if(NSMaxRange(longestEnclosure) < NSMaxRange(scannedRange)){
 				scannedRange.length--;
 			}else break;
 		}
@@ -266,8 +282,13 @@
 		AH_URI_VERIFICATION_STATUS	 validStatus;
 		NSString					*_scanString = nil;
 		unsigned long				 schemeLength = 0;
+		/* isStringValidURI advances the index it is given by what the lexer took, which for a
+		 * URI it accepts is the whole token. It gets the token's own start: m_scanLocation still
+		 * points before the whitespace skipped on the way here, and advanced from there it landed
+		 * inside the link just found and reported the tail of it as a second link. */
+		unsigned long				 tokenEnd = scannedRange.location;
 		if(4 < scannedRange.length) _scanString = [m_scanString substringWithRange:scannedRange];
-        if((4 < scannedRange.length) && [[self class] isStringValidURI:_scanString usingStrict:m_strictChecking fromIndex:&m_scanLocation withStatus:&validStatus schemeLength:&schemeLength]){
+        if((4 < scannedRange.length) && [[self class] isStringValidURI:_scanString usingStrict:m_strictChecking fromIndex:&tokenEnd withStatus:&validStatus schemeLength:&schemeLength]){
             AHMarkedHyperlink	*markedLink;
 			BOOL				 makeLink = TRUE;
             //insert typical specifiers if the URL is degenerate
@@ -322,6 +343,7 @@
             }
             
 			if(makeLink){
+				m_scanLocation = tokenEnd;
 				//make a marked link
 				markedLink = [[AHMarkedHyperlink alloc] initWithString:_scanString
 												  withValidationStatus:validStatus
@@ -336,7 +358,7 @@
 		if (startRange.location != NSNotFound)
 			m_scanLocation = startRange.location + startRange.length;
 		else
-			m_scanLocation += scannedRange.length;
+			m_scanLocation = NSMaxRange(scannedRange); // not a length added to a location that lagged behind the skipped whitespace
 		
 		scannedLocation = m_scanLocation;
     }
@@ -420,6 +442,9 @@
 		_linkifiedString = [[NSMutableAttributedString alloc] initWithString:m_scanString];
 	}
 	
+	/* From the start of the string, as allURIs does: the header promises the stored string
+	 * scanned, not what is left after wherever nextURI last stopped. Put back below. */
+	m_scanLocation = 0;
 	//for each SHMarkedHyperlink, add the proper URL to the proper range in the string.
 	for(markedLink in self) {
 		NSURL *markedLinkURL;

@@ -288,7 +288,6 @@
 // RFC 3986 section 2.2: "%2F" in a path is not the same as "/", so decoding it changes the resource.
 - (void)testPercentEncodedReservedCharacterStaysEncoded
 {
-	XCTExpectFailure(@"AHMarkedHyperlink.m:95-97 strips all percent-escapes and re-adds only the unsafe ones, so %2F becomes / and %3F becomes ?");
 	[self assertString:@"http://example.com/a%2Fb" linksText:@"http://example.com/a%2Fb" toURL:@"http://example.com/a%2Fb"];
 	[self assertString:@"http://example.com/a%3Fb" linksText:@"http://example.com/a%3Fb" toURL:@"http://example.com/a%3Fb"];
 }
@@ -340,7 +339,6 @@
 // The header promises "a new strict AHHyperlinkScanner with the given attributed string".
 - (void)testStrictAttributedScannerIsStrict
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:109 strictHyperlinkScannerWithAttributedString: passes usingStrictChecking:NO");
 	NSAttributedString *text = [[NSAttributedString alloc] initWithString:@"example.com foo@example.com"];
 	NSArray *links = [[AHHyperlinkScanner strictHyperlinkScannerWithAttributedString:text] allURIs];
 	XCTAssertEqual(links.count, (NSUInteger)0, @"%@", [links valueForKey:@"URL"]);

@@ -98,13 +98,11 @@
 	XCTAssertEqualObjects([scanner linkifiedString], [scanner linkifiedString]);
 }
 
-/* allURIs rewinds to the start of the string before it collects (AHHyperlinkScanner.m:355);
- * the header promises linkifiedString "scans the stored string" too, but it enumerates from
- * wherever nextURI last stopped. Adium never reads a scanner that way; the test records the
- * asymmetry. */
+/* The header promises linkifiedString "scans the stored string", so like allURIs it starts
+ * from the beginning whatever nextURI has already handed out. Adium never reads a scanner
+ * both ways; the test keeps the two accessors agreeing. */
 - (void)testLinkifiedStringCoversTheWholeStringAfterNextURIHasBeenCalled
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:424 enumerates from the current scan location instead of rewinding as allURIs does at :355");
 	AHHyperlinkScanner *scanner = [AHHyperlinkScanner hyperlinkScannerWithString:@"http://a.example/ and http://b.example/"];
 	[scanner nextURI];
 	NSAttributedString *linkified = [scanner linkifiedString];

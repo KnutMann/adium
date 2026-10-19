@@ -139,13 +139,11 @@
 // macOS substitutes curly quotes as one types, so this is what a quoted link usually looks like when sent.
 - (void)testCurlyDoubleQuotesAroundTheLinkAreNotPartOfIt
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:74-81 know only straight quotes; a link in “” is not found at all");
 	[self assertString:@"“http://example.com/”" linksText:@"http://example.com/" toURL:@"http://example.com/"];
 }
 
 - (void)testGuillemetsAroundTheLinkAreNotPartOfIt
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:74-81 know only straight quotes; a link in «» is not found at all");
 	[self assertString:@"«http://example.com/»" linksText:@"http://example.com/" toURL:@"http://example.com/"];
 }
 
@@ -169,17 +167,16 @@
 	[self assertString:[NSString stringWithFormat:@"(%@)", url] linksText:url toURL:url];
 }
 
-/* Passes when the link starts the string and fails once anything precedes it. */
+/* Both ends are indices into the string; the period must go whether or not anything precedes
+ * the link. */
 - (void)testTrailingPeriodAfterBalancedParenthesesIsNotPartOfTheLink
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:258 compares the enclosure's absolute end with the token's relative length, so the period stays whenever the link is not at offset 0");
 	NSString *url = @"https://en.wikipedia.org/wiki/Foo_(bar)";
 	[self assertString:[NSString stringWithFormat:@"see %@.", url] linksText:url toURL:url];
 }
 
 - (void)testClosingParenthesisAndPeriodAfterAParenthesisedWikipediaLinkAreNotPartOfIt
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:258, same comparison: \").\" stays on the link");
 	NSString *url = @"https://en.wikipedia.org/wiki/Foo_(bar)";
 	[self assertString:[NSString stringWithFormat:@"(see %@).", url] linksText:url toURL:url];
 }
@@ -264,12 +261,11 @@
 
 #pragma mark One link must not spawn or swallow the next
 
-/* The scanner advances by the UTF-8 byte count of the link it just matched, not by its UTF-16
- * length, so after a link with multi-byte characters it resumes too far along the string.
- * After a Greek domain it lands inside the next link and reports the tail of it as a link. */
+/* The lexer counts bytes and the scan location counts UTF-16 units; a Greek domain is nearly
+ * twice as long in the one as in the other, and the link after it must still be found whole
+ * rather than from somewhere inside it. */
 - (void)testLinkFollowingAnInternationalisedDomainIsFoundWhole
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:194/270 add the lexer's byte count to a UTF-16 scan location; the second link comes back as \"ample.com/\"");
 	NSString *host = @"ουτοπία.δπθ.gr";
 	NSString *text = [NSString stringWithFormat:@"%@ http://example.com/", host];
 	NSArray *links = [self linksIn:text];
@@ -279,21 +275,20 @@
 	XCTAssertEqualObjects([links.lastObject URL].absoluteString, @"http://example.com/");
 }
 
-// The same arithmetic, the other symptom: after an emoji the overshoot swallows the next link.
+// The same arithmetic past the BMP: an emoji is four bytes and two UTF-16 units.
 - (void)testLinkFollowingOneWithANonBMPPathIsFound
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:194/270, same byte-versus-UTF-16 arithmetic; the second link is lost");
 	NSString *text = @"https://example.com/\U0001F600 http://example.com/";
 	NSArray *links = [self linksIn:text];
 	XCTAssertEqual(links.count, (NSUInteger)2, @"%@", [links valueForKey:@"URL"]);
 	XCTAssertEqualObjects([self textOfLink:links.lastObject in:text], @"http://example.com/");
 }
 
-/* The scan location is not moved past the whitespace the scanner skipped before a link, so
- * after a run of spaces it resumes inside the link just found and can report its tail again. */
+/* After a link the scan resumes past the link itself, not a link's length past wherever it
+ * stood before the whitespace in front of the link was skipped; from there it would resume
+ * inside the link just found and report its tail again. */
 - (void)testExtraSpacesBeforeALinkDoNotProduceAPhantomSecondLink
 {
-	XCTExpectFailure(@"AHHyperlinkScanner.m:270/339 leave the scan location short by the skipped whitespace; \"e.com/\" is reported as a second link");
 	NSString *text = @"a      https://host.example/dir/example.com/ x";
 	NSArray *links = [self linksIn:text];
 	XCTAssertEqual(links.count, (NSUInteger)1, @"%@", [links valueForKey:@"URL"]);
