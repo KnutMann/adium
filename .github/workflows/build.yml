@@ -87,7 +87,7 @@ jobs:
       - name: Run the unit tests
         run: |
           set -o pipefail
-          DYLD_FRAMEWORK_PATH="$PWD/build/Release" xcrun xctest "build/Release/Unit tests.xctest" \
+          xcrun xctest "build/Release/Unit tests.xctest" \
             2>&1 | tee build/unittests-run.log | grep -E "^Test Suite|error:|skipped"
 
       - name: Every shipped binary carries its licence

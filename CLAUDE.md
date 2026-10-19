@@ -56,13 +56,15 @@ application's signature. Xcode alone skips the fetch and fails at a header it
 cannot find. The Makefile and Release/ are leftovers of the upstream project.
 
 No scheme runs the unit tests. Continuous integration builds and runs them
-after the application, and by hand it is the same two commands:
+after the application, and by hand it is the same two commands (one file at a
+time, in seconds and without xcodebuild, is Utilities/run-unit-test-file.sh;
+a new test file joins the target through Utilities/add-unit-tests.py):
 
     xcodebuild -project Adium.xcodeproj -target "Unit tests" -configuration Release \
         -destination "platform=macOS,arch=arm64" SYMROOT="$PWD/build" \
         OBJROOT="$PWD/build/Intermediates" CODE_SIGN_IDENTITY=- \
         CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build
-    DYLD_FRAMEWORK_PATH="$PWD/build/Release" xcrun xctest "build/Release/Unit tests.xctest"
+    xcrun xctest "build/Release/Unit tests.xctest"
 
 Continuous integration builds, runs the unit tests, and verifies the
 plug-ins, the licences and the maps; nothing under Testing/ runs there,
