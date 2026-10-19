@@ -61,6 +61,19 @@ int HTMLEquivalentForFontSize(int fontSize);
 - (NSString *)stringByConvertingSymbolToSymbolUnicode;
 @end
 
+/* The character a numeric character reference names, or nil when there is none: zero,
+ * a surrogate, or anything past U+10FFFF. Built from the code point itself, so that
+ * &#128512; comes out as the two UTF-16 units of the emoji and not as the number. The
+ * conversion to ARC had turned both branches into stringWithFormat:@"%d", which showed
+ * every &#65; in every incoming message as "65". */
+static NSString *AIStringFromCodePoint(unsigned int codePoint)
+{
+	if (codePoint == 0 || codePoint > 0x10FFFF || (codePoint >= 0xD800 && codePoint <= 0xDFFF))
+		return nil;
+	uint32_t littleEndian = CFSwapInt32HostToLittle(codePoint);
+	return [[NSString alloc] initWithBytes:&littleEndian length:sizeof(littleEndian) encoding:NSUTF32LittleEndianStringEncoding];
+}
+
 @implementation AIHTMLDecoder
 
 static NSString			*horizontalRule = nil;
@@ -411,7 +424,10 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 			 * If thingsToInclude.allowJavascriptURLs is NO, we refuse to create <a> tags for links starting with javascript.
 			 * This probably should be set to NO for outgoing messages, to avoid MSN-style-censorship accusations.
 			 */
-			if (thingsToInclude.allowJavascriptURLs || [linkString rangeOfString:@"javascript"].location > 0) {
+			NSString *trimmedLink = [linkString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+			BOOL isJavascriptURL = ([trimmedLink rangeOfString:@"javascript:"
+													   options:NSCaseInsensitiveSearch | NSAnchoredSearch].location != NSNotFound);
+			if (thingsToInclude.allowJavascriptURLs || !isJavascriptURL) {
 			
 				[string appendString:@"<a href=\""];
 				
@@ -1384,20 +1400,20 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 						} else if ([chunkString caseInsensitiveCompare:@"NBSP"] == NSOrderedSame) {
 							[attrString appendString:@" " withAttributes:[textAttributes dictionary]];
 
-						} else if ([chunkString hasPrefix:@"#x"]) {
+						} else if ([chunkString hasPrefix:@"#x"] || [chunkString hasPrefix:@"#X"]) {
 							NSString *hexString = [chunkString substringFromIndex:2];
 							NSScanner *hexScanner = [NSScanner scannerWithString:hexString];
-							unsigned int character = 0;
-							if([hexScanner scanHexInt:&character])
-								[attrString appendString:[NSString stringWithFormat:@"%d", character]
-										  withAttributes:[textAttributes dictionary]];
+							unsigned int codePoint = 0;
+							NSString *character;
+							if ([hexScanner scanHexInt:&codePoint] && (character = AIStringFromCodePoint(codePoint)))
+								[attrString appendString:character withAttributes:[textAttributes dictionary]];
 						} else if ([chunkString hasPrefix:@"#"]) {
 							NSString *decString = [chunkString substringFromIndex:1];
 							NSScanner *decScanner = [NSScanner scannerWithString:decString];
-							int character = 0;
-							if([decScanner scanInt:&character])
-								[attrString appendString:[NSString stringWithFormat:@"%d", character]
-										  withAttributes:[textAttributes dictionary]];
+							int codePoint = 0;
+							NSString *character;
+							if ([decScanner scanInt:&codePoint] && (character = AIStringFromCodePoint((unsigned int)codePoint)))
+								[attrString appendString:character withAttributes:[textAttributes dictionary]];
 						}
 						else { //Invalid
 							validTag = NO;
@@ -1483,9 +1499,11 @@ onlyIncludeOutgoingImages:(BOOL)onlyIncludeOutgoingImages
 		} else if ([arg caseInsensitiveCompare:@"size"] == NSOrderedSame) {
 			//Always prefer an ABSZ to a size
 			if (![inArgs objectForKey:@"ABSZ"] && ![inArgs objectForKey:@"absz"]) {
+				/* size="0", or a size that is not a number at all, used to index the table at -1,
+				 * which is a crash any contact could send. Out of range means the default. */
 				unsigned absSize = [[inArgs objectForKey:arg] intValue];
 				static int pointSizes[] = { 9, 10, 12, 14, 18, 24, 48, 72 };
-				int size = (absSize <= 8 ? pointSizes[absSize-1] : 12);
+				int size = ((absSize >= 1 && absSize <= 8) ? pointSizes[absSize-1] : 12);
 				
 				[originalAttributes setObject:[NSNumber numberWithDouble:[textAttributes fontSize]]
 									   forKey:@"setFontSizeFromNumber:"];
