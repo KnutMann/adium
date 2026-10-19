@@ -5,7 +5,11 @@ of libpurple. This fork brings it to macOS 13 and arm64 and adds the services
 people use now. The README says what it does and how to build it. This file
 says where things are and what a change has to satisfy. Four folders carry a
 CLAUDE.md of their own that says how that part is put together; it loads when a
-file there is opened, so read it before changing anything in that folder.
+file there is opened, so read it before changing anything in that folder. And
+Decisions/ says why the rules below are the rules: one page per choice somebody
+could reasonably make differently, with what was rejected and what it costs.
+Read the one that covers what you are about to change, and if you are about to
+argue with a rule, read its page first.
 
 ## Where things are
 
