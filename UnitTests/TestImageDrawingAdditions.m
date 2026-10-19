@@ -178,7 +178,6 @@ static int AIFrameCount(NSImage *image)
 
 - (void)testTileInRectRepeatsTheImageUpwardsAndCropsAtTheTop
 {
-	XCTExpectFailure(@"tileInRect: (AIImageDrawingAdditions.m, the two nested while loops) never resets destRect.origin.x when it moves up a row, so every row after the first starts at the right edge and draws nothing: a rect taller than the image is tiled only along its bottom");
 	CGContextRef canvas = AINewCanvas(4, 6);
 	AIBeginDrawing(canvas);
 	[AIQuadrantTile() tileInRect:NSMakeRect(0, 0, 4, 6)];
@@ -263,7 +262,6 @@ static int AIFrameCount(NSImage *image)
 
 - (void)testImageByScalingToSizeKeepsASquareImageSquare
 {
-	XCTExpectFailure(@"imageByScalingToSize:fraction:flipImage:proportionally:allowAnimation: (AIImageDrawingAdditions.m) only corrects the size when width and height differ, so a square image asked to scale proportionally into 50 by 20 is stretched to 50 by 20");
 	NSImage *scaled = [AISolidImage(100, 100, AIBlue()) imageByScalingToSize:NSMakeSize(50, 20)];
 
 	XCTAssertEqualWithAccuracy([scaled size].width, [scaled size].height, AIFloatComparisonAccuracy);
@@ -306,13 +304,8 @@ static int AIFrameCount(NSImage *image)
 
 - (void)testImageByScalingToSizeOfAnAnimationHasTheRequestedSize
 {
-	/* The frames are drawn through lockFocus and read back as TIFF, which carries the main
-	 * screen's pixel density but no point size, so on a Retina display the GIF comes out twice
-	 * as large as asked; on a one to one display it is right. Not strict for that reason. */
-	XCTExpectedFailureOptions *options = [[XCTExpectedFailureOptions alloc] init];
-	[options setStrict:NO];
-	XCTExpectFailureWithOptions(@"imageByScalingToSize:fraction:flipImage:proportionally:allowAnimation: (AIImageDrawingAdditions.m, the animation branch) builds the frames from lockFocus bitmaps whose pixel size follows the main screen, so the scaled animation is 8 by 8 points on a Retina display when 4 by 4 was asked", options);
-
+	/* The frames are drawn through lockFocus at the main screen's scale and read back through a
+	 * GIF, which carries no point size: the point size asked for is what must survive that. */
 	NSImage *scaled = [AIAnimatedImage() imageByScalingToSize:NSMakeSize(4, 4)];
 	XCTAssertTrue(NSEqualSizes([scaled size], NSMakeSize(4, 4)), @"%@", NSStringFromSize([scaled size]));
 }
@@ -350,7 +343,6 @@ static int AIFrameCount(NSImage *image)
 
 - (void)testImageByFittingInSizeKeepsTheWholeImageInsideAWiderBox
 {
-	XCTExpectFailure(@"imageByFittingInSize:fraction:flipImage:proportionally:allowAnimation: (AIImageDrawingAdditions.m) scales a landscape image by its width whatever the box's height, so 200 by 100 into 100 by 10 becomes 100 by 50 and is then drawn from a point 20 below the box: the result is blank, where a 20 by 10 picture centred in the box was asked for");
 	NSImage *fitted = [AISolidImage(200, 100, AIBlue()) imageByFittingInSize:NSMakeSize(100, 10)];
 
 	XCTAssertTrue(NSEqualSizes([fitted size], NSMakeSize(100, 10)));
@@ -363,7 +355,6 @@ static int AIFrameCount(NSImage *image)
 
 - (void)testImageByFittingInSizeKeepsASquareImageSquare
 {
-	XCTExpectFailure(@"imageByFittingInSize:fraction:flipImage:proportionally:allowAnimation: (AIImageDrawingAdditions.m) only corrects the size when width and height differ, so a square image is stretched across a 50 by 20 box instead of being drawn 20 by 20 in its middle");
 	NSImage *fitted = [AISolidImage(100, 100, AIBlue()) imageByFittingInSize:NSMakeSize(50, 20)];
 
 	XCTAssertTrue(NSEqualSizes([fitted size], NSMakeSize(50, 20)));

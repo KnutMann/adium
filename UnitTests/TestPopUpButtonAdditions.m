@@ -95,7 +95,6 @@
 
 - (void)testSelectItemWithRepresentedObjectUsingCompareDoesNotMatchAnItemWithoutARepresentedObject
 {
-	XCTExpectFailure(@"selectItemWithRepresentedObjectUsingCompare: (AIPopUpButtonAdditions.m) sends compare: to a nil represented object, and nil answers 0, which is NSOrderedSame: the first item without a represented object matches whatever is asked for");
 	NSPopUpButton *button = [self buttonWithRepresentedObjects:@[[NSNull null], @"b"]];
 
 	XCTAssertTrue([button selectItemWithRepresentedObjectUsingCompare:@"b"]);
@@ -114,7 +113,6 @@
 
 - (void)testCellSelectItemWithRepresentedObjectLeavesTheSelectionAloneWhenNothingMatches
 {
-	XCTExpectFailure(@"-[NSPopUpButtonCell(AIPopUpButtonAdditions) selectItemWithRepresentedObject:] (AIPopUpButtonAdditions.m, last method) tests the index against NSNotFound while indexOfItemWithRepresentedObject: answers -1, so a miss selects index -1, clearing the selection, and reports YES");
 	NSPopUpButton *button = [self buttonWithRepresentedObjects:@[@"one", @"two"]];
 	[button selectItemAtIndex:1];
 

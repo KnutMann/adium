@@ -24,6 +24,21 @@
 
 @end
 
+/* An image read back from GIF data takes a pixel for a point, the format having no resolution to
+ * say otherwise, while the frames were drawn through lockFocus at the screen's scale: on a Retina
+ * display an animation came back twice the size that was asked. It is given the size the frames
+ * were drawn for, which the image the still branch draws into has had all along; the pixels are
+ * the same as before, so what a caller encodes from it does not change. */
+static NSImage *AIImageFromGIFDataAtSize(NSData *data, NSSize size)
+{
+	NSImage *image = [[NSImage alloc] initWithData:data];
+	[image setSize:size];
+	for (NSImageRep *rep in [image representations]) {
+		[rep setSize:size];
+	}
+	return image;
+}
+
 @implementation NSImage (AIImageDrawingAdditions)
 
 
@@ -37,7 +52,8 @@
     
     // Tile vertically
     while (destRect.origin.y < top) {
-		// Tile horizontally
+		// Tile horizontally, each row from the left edge again
+		destRect.origin.x = rect.origin.x;
 		while (destRect.origin.x < right) {
 			NSRect  sourceRect = NSMakeRect(0, 0, size.width, size.height);
 			
@@ -114,17 +130,22 @@
 		NSImage *newImage;
 		NSRect	newRect;
 		
-		// Scale proportionally (rather than stretching to fit) if requested and needed
-		if (proportionally && (originalSize.width != originalSize.height)) {
+		// Scale proportionally (rather than stretching to fit) if requested
+		if (proportionally && originalSize.width > 0 && originalSize.height > 0) {
 			if (originalSize.width > originalSize.height) {
 				// Give width priority: Make the height change by the same proportion as the width will change
 				size.height = originalSize.height * (size.width / originalSize.width);
-			} else {
+			} else if (originalSize.height > originalSize.width) {
 				// Give height priority: Make the width change by the same proportion as the height will change
 				size.width = originalSize.width * (size.height / originalSize.height);
+			} else {
+				/* A square has no longer side to give the priority to, and used to be stretched to
+				 * whatever was asked. It takes the shorter side, so that it stays within the size
+				 * asked for, where fitting would place it too. */
+				size.width = size.height = MIN(size.width, size.height);
 			}
 		}
-		
+
 		newRect = NSMakeRect(0.0f, 0.0f, size.width, size.height);
 		newImage = [[NSImage alloc] initWithSize:size];
 		
@@ -177,9 +198,7 @@
 			// Write GIF Extension Blocks
 			[self writeGIFExtensionBlocksInData:GIFRepresentationData forRepresenation:(NSBitmapImageRep *)bestRep];
 			
-			//You must release before you re-allocate. The data is retained in an autorelease loop in the images array.
-			
-			newImage = [[NSImage alloc] initWithData:GIFRepresentationData];
+			newImage = AIImageFromGIFDataAtSize(GIFRepresentationData, size);
 		} else {
 			[newImage lockFocus];
 			// Highest quality interpolation
@@ -206,35 +225,21 @@
 {
 	NSSize originalSize = [self size];
 	NSSize scaleSize = size;
-	NSSize fitSize = size;
-	
+
 	// Proceed only if size or delta are changing
 	if ((NSEqualSizes(originalSize, size)) && (delta == 1.0) && !flipImage) {
 		return [self copy];
-		
+
 	} else {
-		// Scale proportionally (rather than stretching to fit) if requested and needed
-		if (proportionally && (originalSize.width != originalSize.height)) {
-			if (originalSize.width > originalSize.height) {
-				// Give width priority: Make the height change by the same proportion as the width will change
-				scaleSize.height = originalSize.height * (size.width / originalSize.width);
-			} else {
-				// Give height priority: Make the width change by the same proportion as the height will change
-				scaleSize.width = originalSize.width * (size.height / originalSize.height);
-			}
+		/* Scale proportionally (rather than stretching to fit) if requested. The side the box has
+		 * the least room for sets the scale, so that the whole picture lands inside the box: giving
+		 * the width priority, as scaling does, drew a wide picture in a flat box from below it, and
+		 * a square was not scaled at all. */
+		if (proportionally && originalSize.width > 0 && originalSize.height > 0) {
+			CGFloat scale = MIN(size.width / originalSize.width, size.height / originalSize.height);
+			scaleSize = NSMakeSize(originalSize.width * scale, originalSize.height * scale);
 		}
-		
-		// Fit
-		if (proportionally && (originalSize.width != originalSize.height)) {
-			if (originalSize.width > originalSize.height) {
-				// Give width priority: Make the height change by the same proportion as the width will change
-				fitSize.height = originalSize.height * (size.width / originalSize.width);
-			} else {
-				// Give height priority: Make the width change by the same proportion as the height will change
-				fitSize.width = originalSize.width * (size.height / originalSize.height);
-			}
-		}
-		
+
 		NSRect scaleRect = NSMakeRect(0.0f, 0.0f, scaleSize.width, scaleSize.height);
 		NSPoint fitFromPoint = NSMakePoint((size.width - scaleSize.width) / 2.0f, (size.height - scaleSize.height) / 2.0f);
 		
@@ -274,29 +279,27 @@
 				
 				[scaledImage unlockFocus];
 				[newImage lockFocus];
-				
+
 				// Fit
 				[scaledImage drawAtPoint:fitFromPoint
-						 fromRect:NSMakeRect(0.0f, 0.0f, newImage.size.width, newImage.size.height)
+						 fromRect:scaleRect
 						operation:NSCompositingOperationCopy
 						 fraction:delta];
-				
+
 				[newImage unlockFocus];
-				
+
 				// Add frame representation
 				[images addObject:[NSBitmapImageRep imageRepWithData:[newImage TIFFRepresentation]]];
 			}
-			
+
 			GIFRepresentationData = [NSMutableData dataWithData:[NSBitmapImageRep representationOfImageRepsInArray:images
 																										 usingType:NSBitmapImageFileTypeGIF
 																										properties:[self GIFPropertiesForRepresentation:(NSBitmapImageRep *)bestRep]]];
-			
+
 			// Write GIF Extension Blocks
 			[self writeGIFExtensionBlocksInData:GIFRepresentationData forRepresenation:(NSBitmapImageRep *)bestRep];
-			
-			// Release before you re-allocate.
 
-			newImage = [[NSImage alloc] initWithData:GIFRepresentationData];
+			newImage = AIImageFromGIFDataAtSize(GIFRepresentationData, size);
 		} else {
 			[scaledImage lockFocus];
 			// Highest quality interpolation
@@ -310,10 +313,10 @@
 			
 			[scaledImage unlockFocus];
 			[newImage lockFocus];
-			
+
 			// Fit
 			[scaledImage drawAtPoint:fitFromPoint
-							fromRect:NSMakeRect(0.0f, 0.0f, newImage.size.width, newImage.size.height)
+							fromRect:scaleRect
 						   operation:NSCompositingOperationCopy
 							fraction:delta];
 			

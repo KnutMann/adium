@@ -335,7 +335,6 @@ static NSBitmapImageRep *AIDecode(NSData *data)
 
 - (void)testGIFRepresentationOfAnAnimationKeepsEachFramesDuration
 {
-	XCTExpectFailure(@"writeGIFExtensionBlocksInData:forRepresenation: (AIImageAdditions.m, the while loop over the graphic control blocks) searches the blocks from the end but reads the durations from the start, so frame i is given the duration of frame count-1-i: the red frame comes back with the blue frame's second");
 	NSBitmapImageRep *decoded = AIDecode([AIAnimatedImage() GIFRepresentation]);
 
 	[decoded setProperty:NSImageCurrentFrame withValue:@0];
@@ -364,7 +363,6 @@ static NSBitmapImageRep *AIDecode(NSData *data)
 
 - (void)testBestRepresentationByTypeIsNilForAnImageWithoutRepresentations
 {
-	XCTExpectFailure(@"bestRepresentationByType (AIImageAdditions.m) asks the empty representations array for objectAtIndex:0 and raises NSRangeException; GIFRepresentation was fixed for the same case and answers nil");
 	NSImage *empty = [[NSImage alloc] initWithSize:NSMakeSize(8, 8)];
 
 	@try {
@@ -396,6 +394,15 @@ static NSBitmapImageRep *AIDecode(NSData *data)
 	NSBitmapImageRep *decoded = AIDecode(smaller);
 	XCTAssertLessThan([decoded pixelsWide], 400);
 	XCTAssertEqual([decoded pixelsWide], 2 * [decoded pixelsHigh]);
+}
+
+- (void)testRepresentationWithFileTypeIsNilWhenNoSizeFitsTheLimit
+{
+	/* The shrinking steps a hundred pixels at a time off the width. Eight pixels leave no room for
+	 * a step, and 150 leave room for one, to 50, and then none; the loop used to take the step
+	 * anyway, wrap the unsigned width round and never return. */
+	XCTAssertNil([AISolidImage(8, 8, AIRed()) representationWithFileType:NSBitmapImageFileTypeBMP maximumFileSize:1]);
+	XCTAssertNil([AISolidImage(150, 150, AIRed()) representationWithFileType:NSBitmapImageFileTypeBMP maximumFileSize:1]);
 }
 
 - (void)testGIFPropertiesForRepresentationCarryTheFrameCountAndStartAtTheFirstFrame

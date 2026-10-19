@@ -121,7 +121,6 @@
 
 - (void)testFirstSelectedItemIsTheItemOfTheFirstSelectedRow
 {
-	XCTExpectFailure(@"firstSelectedItem (AIOutlineViewAdditions.m, first method) reads selectedRow, which NSTableView documents as the last selected row, so with rows 1 and 3 selected it answers row 3's item instead of row 1's");
 	NSMutableIndexSet *rows = [NSMutableIndexSet indexSetWithIndex:3];
 	[rows addIndex:1];
 	[outlineView selectRowIndexes:rows byExtendingSelection:NO];

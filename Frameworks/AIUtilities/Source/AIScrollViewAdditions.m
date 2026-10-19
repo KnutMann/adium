@@ -29,14 +29,10 @@
     //Set the view
     [self setDocumentView:inView];
 
-    //Size the width appropriately
-    [NSScrollView contentSizeForFrameSize:[self frame].size
-                  horizontalScrollerClass:NSScroller.class
-                    verticalScrollerClass:NSScroller.class
-                               borderType:[self borderType]
-                              controlSize:NSControlSizeRegular
-                            scrollerStyle:NSScrollerStyleOverlay];
-    [inView setFrameSize:NSMakeSize(inView.frame.size.width,inView.frame.size.height)];
+    /* Size the width to the content area: the scroll view's own answer, now that the view is in it,
+     * rather than the class method's guess from a fixed scroller style and both scrollers, which
+     * was computed and thrown away, and which differs as soon as the scrollers are the legacy kind. */
+    [inView setFrameSize:NSMakeSize([self contentSize].width, inView.frame.size.height)];
     
     //Redisplay
     [self setNeedsDisplay:YES];

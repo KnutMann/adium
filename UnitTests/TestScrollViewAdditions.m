@@ -49,7 +49,6 @@
 
 - (void)testSetAndSizeDocumentViewMakesTheDocumentAsWideAsTheContentArea
 {
-	XCTExpectFailure(@"setAndSizeDocumentView: (AIScrollViewAdditions.m) computes the content size and throws it away, then sets the document's frame size to its own current size: the width is never changed, where the method promises to size the view to fit");
 	NSScrollView *scrollView = [self scrollView];
 	NSView *document = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 50, 500)];
 

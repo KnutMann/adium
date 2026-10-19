@@ -178,23 +178,34 @@
 	NSMenu	*menuB  = [itemB menu];
 	NSInteger		 indexB = menuB ? [menuB indexOfItem:itemB] : -1;
 
-	if ((menuA == menuB) && (indexA < indexB)) {
-		if (indexB > -1) {
-			[menuB removeItemAtIndex:indexB];
-			[menuA insertItem:itemB atIndex:indexA++];
-		}
-		if (indexA > -1) {
-			[menuA removeItemAtIndex:indexA];
-			[menuB insertItem:itemA atIndex:indexB];
-		}
+	/* Both come out before either goes in: an item cannot be inserted while a menu still holds it,
+	 * and once one has moved, the index the other was found at is stale. Within one menu the higher
+	 * index is removed first and the lower one filled first, so that every index still names what
+	 * it did when it was read. Interleaving the two held only for the first item sitting before the
+	 * second in one menu; given the other way round, or in two menus, it raised and lost an item.
+	 */
+	if (menuA && (menuA == menuB)) {
+		NSMenuItem	*lower  = (indexA < indexB) ? itemA : itemB;
+		NSMenuItem	*higher = (indexA < indexB) ? itemB : itemA;
+		NSInteger	 lowerIndex  = MIN(indexA, indexB);
+		NSInteger	 higherIndex = MAX(indexA, indexB);
+
+		[menuA removeItemAtIndex:higherIndex];
+		[menuA removeItemAtIndex:lowerIndex];
+		[menuA insertItem:higher atIndex:lowerIndex];
+		[menuA insertItem:lower atIndex:higherIndex];
 	} else {
 		if (indexA > -1) {
 			[menuA removeItemAtIndex:indexA];
-			[menuB insertItem:itemA atIndex:indexB];
 		}
 		if (indexB > -1) {
 			[menuB removeItemAtIndex:indexB];
+		}
+		if (indexA > -1) {
 			[menuA insertItem:itemB atIndex:indexA];
+		}
+		if (indexB > -1) {
+			[menuB insertItem:itemA atIndex:indexB];
 		}
 	}
 }

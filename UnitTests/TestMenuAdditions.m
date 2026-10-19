@@ -254,7 +254,6 @@
 
 - (void)testSwapMenuItemExchangesTwoItemsOfOneMenuGivenInTheOtherOrder
 {
-	XCTExpectFailure(@"+[NSMenu swapMenuItem:with:] (AIMenuAdditions.m, the else branch) only handles the first item coming before the second; the other way round it inserts the first item at the second's index, removes it again by that stale index, and then inserts the second item while it is still in the menu, which raises and leaves the menu one item short");
 	NSMenu *menu = [self menuWithTitles:@[@"X", @"B", @"Y", @"A"]];
 	NSMenuItem *a = [menu itemAtIndex:3];
 	NSMenuItem *b = [menu itemAtIndex:1];
@@ -269,7 +268,6 @@
 
 - (void)testSwapMenuItemExchangesItemsAcrossTwoMenus
 {
-	XCTExpectFailure(@"+[NSMenu swapMenuItem:with:] (AIMenuAdditions.m, the else branch) inserts the first item into the second menu and then removes by the second item's old index, which now names the item it just inserted; the second item is then inserted into the first menu while still in its own, which raises, and the first menu has lost its item");
 	NSMenu *one = [self menuWithTitles:@[@"A", @"P"]];
 	NSMenu *two = [self menuWithTitles:@[@"Q", @"B"]];
 	NSMenuItem *a = [one itemAtIndex:0];

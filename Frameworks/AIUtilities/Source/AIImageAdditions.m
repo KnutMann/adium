@@ -301,10 +301,15 @@
 - (NSData *)bestRepresentationByType
 {
 	NSData *data = nil;
-	NSImageRep *bitmap = nil;
-	
-	if ((bitmap = [[self representations] objectAtIndex:0]) &&
-		[bitmap isKindOfClass:[NSBitmapImageRep class]] &&
+	/* An image without representations has nothing to encode: asking its empty array for index 0
+	 * raised here, and nil is the answer, as GIFRepresentation gives it, before an encoder is asked
+	 * for a picture that is not there and complains to the console. */
+	NSImageRep *bitmap = [[self representations] firstObject];
+	if (!bitmap) {
+		return nil;
+	}
+
+	if ([bitmap isKindOfClass:[NSBitmapImageRep class]] &&
 		([[(NSBitmapImageRep *)bitmap valueForProperty:NSImageFrameCount] intValue] > 1)) {
 		data = [self GIFRepresentation];
 	} else {
@@ -343,10 +348,16 @@
 	
 	// Loop until we're small enough to fit into our max size
 	while (data.length > maximumSize) {
-		// New width/height using our ratio
-		NSUInteger width = (imageRep.pixelsWide - 100);
-		NSUInteger height = ((CGFloat)imageRep.pixelsWide - 100.0f)*ratio;
-		
+		/* A step is a hundred pixels off the width, the height following, and there is no other
+		 * way down: a picture with no room for another step cannot be made to fit. The width is
+		 * unsigned, so taking the step anyway wrapped it round to billions and the loop never came
+		 * back. Nil is what the JPEG limit answers for the same case. */
+		NSUInteger width = (imageRep.pixelsWide > 100) ? (imageRep.pixelsWide - 100) : 0;
+		NSUInteger height = (CGFloat)width * ratio;
+		if (width == 0 || height == 0) {
+			return nil;
+		}
+
 		// Create a new rep with the lowered size
 		NSBitmapImageRep *newImageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 																				 pixelsWide:width
@@ -390,8 +401,14 @@
 	unsigned i = 0;
 	
 	while (!NSEqualRanges(blockRange = [data rangeOfData:GIFGraphicControlExtensionBlock options:NSDataSearchBackwards range:NSMakeRange(0, blockLocation)], NSMakeRange(NSNotFound, 0))) {
+		/* The blocks are met from the end of the data, so the first one found is the last frame's,
+		 * and the frames are counted down to match; counting up gave each frame the duration of its
+		 * mirror image. A block beyond the count (a still image has none, and a false match is
+		 * possible) takes the first frame's. */
+		unsigned frame = (i + 1 < frameCount) ? (frameCount - 1 - i) : 0;
+		i++;
 		// Set current frame
-		[bitmap setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:i++]];
+		[bitmap setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame]];
 
 		// Frame Duration flag, 1/100 sec
 		frameDuration = [[bitmap valueForProperty:NSImageCurrentFrameDuration] floatValue] * 100;

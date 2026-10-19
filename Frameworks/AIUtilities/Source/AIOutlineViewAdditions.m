@@ -21,10 +21,11 @@
 
 - (id)firstSelectedItem
 {
-    NSInteger selectedRow = [self selectedRow];
-	
-    if (selectedRow >= 0 && selectedRow < [self numberOfRows]) {
-        return [self itemAtRow:selectedRow];
+	// The index set is in row order; selectedRow is the row selected last, not the first
+    NSUInteger selectedRow = [[self selectedRowIndexes] firstIndex];
+
+    if (selectedRow != NSNotFound && selectedRow < (NSUInteger)[self numberOfRows]) {
+        return [self itemAtRow:(NSInteger)selectedRow];
     } else {
         return nil;
     }

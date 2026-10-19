@@ -42,7 +42,10 @@
 		NSMenuItem	 *menuItem;
 		
 		while ((menuItem = [enumerator nextObject])) {
-			if ([[menuItem representedObject] compare:object] == NSOrderedSame) {
+			/* An item without a represented object is passed over rather than asked: compare: sent
+			 * to nil answers zero, which is NSOrderedSame, and such an item matched anything. */
+			id representedObject = [menuItem representedObject];
+			if (representedObject && [representedObject compare:object] == NSOrderedSame) {
 				[self selectItem:menuItem];
 				selectedItem = YES;
 				break;
@@ -72,7 +75,8 @@
 - (BOOL)selectItemWithRepresentedObject:(id)object
 {
     NSInteger	idx = [self indexOfItemWithRepresentedObject:object];
-	if (idx != NSNotFound) {
+	// -1 is what the cell answers for a miss, not NSNotFound; selecting index -1 clears the selection
+	if (idx != -1) {
 		[self selectItemAtIndex:idx];
 		return YES;
 	}
