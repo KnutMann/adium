@@ -1,0 +1,60 @@
+/* 
+ * Adium is the legal property of its developers, whose names are listed in the copyright file included
+ * with this source distribution.
+ * 
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program; if not,
+ * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#import <AIUtilities/AIScrollViewAdditions.h>
+
+@interface TestScrollViewAdditions : XCTestCase
+@end
+
+@implementation TestScrollViewAdditions
+
+- (NSScrollView *)scrollView
+{
+	NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, 200, 100)];
+	[scrollView setHasVerticalScroller:YES];
+	[scrollView setBorderType:NSBezelBorder];
+	return scrollView;
+}
+
+- (void)testSetAndSizeDocumentViewInstallsTheView
+{
+	NSScrollView *scrollView = [self scrollView];
+	NSView *document = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 50, 500)];
+
+	[scrollView setAndSizeDocumentView:document];
+	XCTAssertTrue([scrollView documentView] == document);
+}
+
+- (void)testSetAndSizeDocumentViewKeepsTheDocumentsHeight
+{
+	NSScrollView *scrollView = [self scrollView];
+	NSView *document = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 50, 500)];
+
+	[scrollView setAndSizeDocumentView:document];
+	XCTAssertEqualWithAccuracy(NSHeight([document frame]), 500, AIFloatComparisonAccuracy);
+}
+
+- (void)testSetAndSizeDocumentViewMakesTheDocumentAsWideAsTheContentArea
+{
+	XCTExpectFailure(@"setAndSizeDocumentView: (AIScrollViewAdditions.m) computes the content size and throws it away, then sets the document's frame size to its own current size: the width is never changed, where the method promises to size the view to fit");
+	NSScrollView *scrollView = [self scrollView];
+	NSView *document = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 50, 500)];
+
+	[scrollView setAndSizeDocumentView:document];
+	XCTAssertEqualWithAccuracy(NSWidth([document frame]), [scrollView contentSize].width, AIFloatComparisonAccuracy);
+}
+
+@end

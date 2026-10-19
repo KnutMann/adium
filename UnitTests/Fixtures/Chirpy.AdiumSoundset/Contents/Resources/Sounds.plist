@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AdiumSetVersion</key>
+	<integer>1</integer>
+	<key>Info</key>
+	<string>Created by Wren Wrenson
+
+Short chirps.
+</string>
+	<key>Sounds</key>
+	<dict>
+		<key>Message Received</key>
+		<string>Chirp.aif</string>
+	</dict>
+</dict>
+</plist>

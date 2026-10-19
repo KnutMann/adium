@@ -18,17 +18,19 @@
 
 #import <AIUtilities/AIStringAdditions.h>
 
+#import <limits.h>
+
 @implementation TestStringAdditions
 
 - (void)testRandomStringOfLength
 {
 	//Test at least two different lengths, and see what happens when we ask for 0.
 	NSString *str = [NSString randomStringOfLength:6];
-	XCTAssertEqual([str length], (NSUInteger)6U, @"+randomStringOfLength:6 did not return a 6-character string; it returned \"%@\", which is %u characters", str, [str length]);
+	XCTAssertEqual([str length], (NSUInteger)6U, @"+randomStringOfLength:6 did not return a 6-character string; it returned \"%@\", which is %lu characters", str, (unsigned long)[str length]);
 	str = [NSString randomStringOfLength:12];
-	XCTAssertEqual([str length], (NSUInteger)12U, @"+randomStringOfLength:12 did not return a 12-character string; it returned \"%@\", which is %u characters", str, [str length]);
+	XCTAssertEqual([str length], (NSUInteger)12U, @"+randomStringOfLength:12 did not return a 12-character string; it returned \"%@\", which is %lu characters", str, (unsigned long)[str length]);
 	str = [NSString randomStringOfLength:0];
-	XCTAssertEqual([str length], (NSUInteger)0U, @"+randomStringOfLength:0 did not return a 0-character string; it returned \"%@\", which is %u characters", str, [str length]);
+	XCTAssertEqual([str length], (NSUInteger)0U, @"+randomStringOfLength:0 did not return a 0-character string; it returned \"%@\", which is %lu characters", str, (unsigned long)[str length]);
 }
 - (void)testStringWithContentsOfUTF8File
 {
@@ -139,18 +141,11 @@
 	XCTAssertEqualObjects([@"/" volumePath], @"/", @"Volume path of / is \"%@\", not /", [@"/" volumePath]);
 
 	//Get the name of the startup volume, so that we can attempt to get the volume path of (what we hope is) a directory on it.
-	OSStatus err;
+	NSString *volumeName = nil;
+	NSError *error = nil;
+	BOOL gotVolumeName = [[NSURL fileURLWithPath:@"/"] getResourceValue:&volumeName forKey:NSURLVolumeNameKey error:&error];
+	XCTAssertTrue(gotVolumeName, @"Error while attempting to determine the name of the startup volume: %@", error);
 
-	FSRef ref;
-	err = FSPathMakeRef((const UInt8 *)"/", &ref, /*isDirectory*/ NULL);
-	XCTAssertTrue(err == noErr, @"Error while attempting to determine the path of the startup volume: FSPathMakeRef returned %i", err);
-
-	struct HFSUniStr255 volumeNameUnicode;
-	err = FSGetCatalogInfo(&ref, /*whichInfo*/ 0, /*catalogInfo*/ NULL, /*outName*/ &volumeNameUnicode, /*fsSpec*/ NULL, /*parentRef*/ NULL);
-	XCTAssertTrue(err == noErr, @"Error while attempting to determine the path of the startup volume: FSGetCatalogInfo returned %i", err);
-
-	NSString *volumeName = [[NSString alloc] initWithCharactersNoCopy:volumeNameUnicode.unicode length:volumeNameUnicode.length freeWhenDone:NO];
-	NSLog(@"Volume name from FSGetCatalogInfo is %@", volumeName);
 	NSString *inputPath = [[@"/Volumes" stringByAppendingPathComponent:volumeName] stringByAppendingPathComponent:@"Applications"];
 	NSString *outputPath = [inputPath volumePath];
 
@@ -467,11 +462,554 @@
 }
 - (void) testCaseInsensitivelyEqualToThingsThatAreNotStrings {
 	NSString *str = @"Adium rocks!";
-	XCTAssertThrows([str isCaseInsensitivelyEqualToString:[[NSObject alloc] init]], @"can't compare string to plain object; this should have thrown");
+	XCTAssertThrows([str isCaseInsensitivelyEqualToString:(NSString *)[[NSObject alloc] init]], @"can't compare string to plain object; this should have thrown");
 	XCTAssertThrows([str isCaseInsensitivelyEqualToString:(NSString *)[NSNumber numberWithInteger:42]], @"can't compare string to number; this should have thrown");
 	XCTAssertThrows([str isCaseInsensitivelyEqualToString:(NSString *)[NSValue valueWithRect:NSMakeRect(0.0f, 0.0f, 128.0f, 128.0f)]], @"can't compare string to rect value; this should have thrown");
 	XCTAssertThrows([str isCaseInsensitivelyEqualToString:(NSString *)[NSImage imageNamed:@"NSDefaultApplicationIcon"]], @"can't compare string to image; this should have thrown");
 }
 
+#pragma mark Construction
+
+- (void)testStringWithDataDecodesWithTheGivenEncoding
+{
+	char snowmanUTF8[] = { (char)0xe2, (char)0x98, (char)0x83 };
+	NSData *data = [NSData dataWithBytes:snowmanUTF8 length:3];
+	XCTAssertEqualObjects([NSString stringWithData:data encoding:NSUTF8StringEncoding], @"\u2603");
+}
+
+- (void)testStringWithDataNotValidForTheEncodingIsNil
+{
+	char invalidUTF8[] = { (char)0xff, (char)0xfe };
+	NSData *data = [NSData dataWithBytes:invalidUTF8 length:2];
+	XCTAssertNil([NSString stringWithData:data encoding:NSUTF8StringEncoding]);
+}
+
+- (void)testStringWithEmptyDataIsEmpty
+{
+	XCTAssertEqualObjects([NSString stringWithData:[NSData data] encoding:NSUTF8StringEncoding], @"");
+}
+
+- (void)testStringWithBytesDecodesWithTheGivenEncoding
+{
+	XCTAssertEqualObjects([NSString stringWithBytes:"caf\xc3\xa9" length:5 encoding:NSUTF8StringEncoding], @"caf\u00e9");
+	XCTAssertEqualObjects([NSString stringWithBytes:"caf\xe9" length:4 encoding:NSISOLatin1StringEncoding], @"caf\u00e9");
+}
+
+- (void)testStringWithZeroBytesIsEmpty
+{
+	XCTAssertEqualObjects([NSString stringWithBytes:"ignored" length:0 encoding:NSUTF8StringEncoding], @"");
+}
+
+- (void)testRandomStringIsUppercaseAlphanumeric
+{
+	NSCharacterSet *alphabet = [NSCharacterSet characterSetWithCharactersInString:@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+	NSString *str = [NSString randomStringOfLength:200];
+	XCTAssertEqual([str rangeOfCharacterFromSet:[alphabet invertedSet]].location, (NSUInteger)NSNotFound, @"\"%@\" has a character outside the alphabet", str);
+}
+
+- (void)testStringWithContentsOfUTF8FileOfNilPathIsNil
+{
+	XCTAssertNil([NSString stringWithContentsOfUTF8File:nil]);
+}
+
+- (void)testStringWithContentsOfUTF8FileOfMissingFileIsNil
+{
+	NSString *missing = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"TestStringAdditions-missing-%@", [[NSUUID UUID] UUIDString]]];
+	XCTAssertNil([NSString stringWithContentsOfUTF8File:missing]);
+}
+
+#pragma mark Ellipsis and truncation
+
+- (void)testAppendingEllipsisToTheEmptyString
+{
+	XCTAssertEqualObjects([@"" stringByAppendingEllipsis], [NSString ellipsis]);
+}
+
+- (void)testTruncatedStringHasExactlyTheRequestedLength
+{
+	NSString *original = @"The quick brown fox";
+	for (NSUInteger length = 1; length < [original length]; length++) {
+		NSString *truncated = [original stringWithEllipsisByTruncatingToLength:length];
+		XCTAssertEqual([truncated length], length, @"Truncating to %lu", (unsigned long)length);
+		XCTAssertTrue([truncated hasSuffix:[NSString ellipsis]]);
+		XCTAssertEqualObjects([truncated substringToIndex:length - 1], [original substringToIndex:length - 1]);
+	}
+}
+
+- (void)testTruncatingToOneLeavesOnlyTheEllipsis
+{
+	XCTAssertEqualObjects([@"abc" stringWithEllipsisByTruncatingToLength:1], [NSString ellipsis]);
+}
+
+- (void)testTruncationDoesNotSplitASurrogatePair
+{
+	XCTExpectFailure(@"AIStringAdditions.m:258 cuts at a UTF-16 index, so a cut inside a supplementary character leaves a lone high surrogate before the ellipsis");
+	NSString *truncated = [@"ab\U0001F600cd" stringWithEllipsisByTruncatingToLength:4];
+	XCTAssertFalse(CFStringIsSurrogateHighCharacter([truncated characterAtIndex:[truncated length] - 2]), @"\"%@\" ends in half a character", truncated);
+}
+
+#pragma mark Translating and compacting
+
+- (void)testTranslatingByOffsetShiftsEveryCharacter
+{
+	XCTAssertEqualObjects([@"abc" stringByTranslatingByOffset:1], @"bcd");
+	XCTAssertEqualObjects([@"HAL" stringByTranslatingByOffset:1], @"IBM");
+}
+
+- (void)testTranslatingByZeroIsIdentity
+{
+	XCTAssertEqualObjects([@"abc \u00e9" stringByTranslatingByOffset:0], @"abc \u00e9");
+}
+
+- (void)testTranslatingBackAndForthRoundTrips
+{
+	NSString *original = @"Adium \u00e9\u00e8";
+	XCTAssertEqualObjects([[original stringByTranslatingByOffset:13] stringByTranslatingByOffset:-13], original);
+}
+
+- (void)testTranslatingTheEmptyString
+{
+	XCTAssertEqualObjects([@"" stringByTranslatingByOffset:5], @"");
+}
+
+- (void)testCompactedStringLowercasesBeyondASCII
+{
+	XCTAssertEqualObjects([@"\u00c4\u00d6\u00dc \u0391" compactedString], @"\u00e4\u00f6\u00fc\u03b1");
+}
+
+- (void)testCompactedStringRemovesLeadingAndInnerSpaces
+{
+	XCTAssertEqualObjects([@"  a  b c" compactedString], @"abc");
+}
+
+- (void)testCompactedStringRemovesTrailingSpaces
+{
+	XCTExpectFailure(@"The loop at AIStringAdditions.m:209 deletes a run of spaces only when a non-space follows it, so spaces at the end of the string stay");
+	XCTAssertEqualObjects([@"a b  " compactedString], @"ab");
+	XCTAssertEqualObjects([@"   " compactedString], @"");
+}
+
+- (void)testCompactedEmptyString
+{
+	XCTAssertEqualObjects([@"" compactedString], @"");
+}
+
+#pragma mark Bundle path
+
+- (void)testPathInsideTheBundleCollapsesToTheMarkerAndExpandsBack
+{
+	NSString *inside = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Contents/Resources/x.png"];
+	NSString *collapsed = [inside stringByCollapsingBundlePath];
+	XCTAssertEqualObjects(collapsed, @"$$BundlePath$$/Contents/Resources/x.png");
+	XCTAssertEqualObjects([collapsed stringByExpandingBundlePath], inside);
+}
+
+- (void)testPathOutsideTheBundleIsNotCollapsed
+{
+	XCTAssertEqualObjects([@"/Library/Fonts/Menlo.ttc" stringByCollapsingBundlePath], @"/Library/Fonts/Menlo.ttc");
+}
+
+- (void)testMarkerNotAtTheStartIsNotExpanded
+{
+	XCTAssertEqualObjects([@"/Library/$$BundlePath$$/x" stringByExpandingBundlePath], @"/Library/$$BundlePath$$/x");
+}
+
+#pragma mark URL escapes
+
+- (void)testURLEscapesLeaveUnreservedCharactersAlone
+{
+	NSString *unreserved = @"abcxyzABCXYZ0189_-";
+	XCTAssertEqualObjects([unreserved stringByEncodingURLEscapes], unreserved);
+}
+
+- (void)testURLEscapesHexEncodeNonASCIIAsUTF8
+{
+	XCTAssertEqualObjects([[@"\u00e9" stringByEncodingURLEscapes] uppercaseString], @"%C3%A9");
+	XCTAssertEqualObjects([[@"\U0001F600" stringByEncodingURLEscapes] uppercaseString], @"%F0%9F%98%80");
+}
+
+- (void)testURLEscapesHexEncodeControlCharacters
+{
+	XCTAssertEqualObjects([[@"\n" stringByEncodingURLEscapes] uppercaseString], @"%0A");
+}
+
+- (void)testEncodingURLEscapesTurnsSpacesIntoPluses
+{
+	XCTExpectFailure(@"AIStringAdditions.m:383 maps a space to a space and :384 maps '+' to a space, the reverse of what the comment above the method says");
+	XCTAssertEqualObjects([@"a b" stringByEncodingURLEscapes], @"a+b");
+}
+
+- (void)testEncodingURLEscapesEscapesReservedCharacters
+{
+	XCTExpectFailure(@"AIStringAdditions.m:383-384 pass '&', '=', '/', '?', '#' and '+' through unescaped, so a UID containing one of them breaks the URL it is put into (AIAbstractListController.m:992)");
+	NSString *encoded = [@"&=/?#+" stringByEncodingURLEscapes];
+	XCTAssertEqual([encoded rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"&=/?#+ "]].location, (NSUInteger)NSNotFound, @"\"%@\" still contains a reserved character", encoded);
+}
+
+- (void)testDecodingURLEscapesTurnsPlusesIntoSpaces
+{
+	XCTAssertEqualObjects([@"a+b+c" stringByDecodingURLEscapes], @"a b c");
+}
+
+- (void)testDecodingURLEscapesDecodesHexInEitherCase
+{
+	XCTAssertEqualObjects([@"%41%2a%2A" stringByDecodingURLEscapes], @"A**");
+}
+
+- (void)testDecodingURLEscapesLeavesPlainTextAlone
+{
+	XCTAssertEqualObjects([@"plain-text_123" stringByDecodingURLEscapes], @"plain-text_123");
+	XCTAssertEqualObjects([@"" stringByDecodingURLEscapes], @"");
+}
+
+- (void)testDecodingURLEscapesDecodesUTF8Sequences
+{
+	XCTExpectFailure(@"AIStringAdditions.m:509 builds the result as ASCII, so the two bytes of an escaped 'é' come out as two Latin-1 characters; this is the path an adium:// message body takes in AIURLHandlerPlugin.m:286");
+	XCTAssertEqualObjects([@"caf%C3%A9" stringByDecodingURLEscapes], @"caf\u00e9");
+}
+
+- (void)testURLEscapesRoundTrip
+{
+	XCTExpectFailure(@"Encoding (AIStringAdditions.m:383) leaves a space as a space and decoding turns that space into '+', and non-ASCII comes back as Latin-1 (:509); the pair is not inverse");
+	NSString *original = @"a b caf\u00e9";
+	XCTAssertEqualObjects([[original stringByEncodingURLEscapes] stringByDecodingURLEscapes], original);
+}
+
+#pragma mark Percent escapes for all characters
+
+- (void)testPercentEscapesForAllCharactersLeaveTheDocumentedSetAlone
+{
+	NSString *allowed = @"!'()*,-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
+	XCTAssertEqualObjects([allowed stringByAddingPercentEscapesForAllCharacters], allowed);
+}
+
+- (void)testPercentEscapesForAllCharactersEscapeTheReservedOnes
+{
+	XCTAssertEqualObjects([@";/?:@&=+$" stringByAddingPercentEscapesForAllCharacters], @"%3B%2F%3F%3A%40%26%3D%2B%24");
+}
+
+- (void)testPercentEscapesForAllCharactersEscapeSpaceAndNonASCII
+{
+	XCTAssertEqualObjects([@"a b" stringByAddingPercentEscapesForAllCharacters], @"a%20b");
+	XCTAssertEqualObjects([@"\u00e9" stringByAddingPercentEscapesForAllCharacters], @"%C3%A9");
+	XCTAssertEqualObjects([@"\U0001F600" stringByAddingPercentEscapesForAllCharacters], @"%F0%9F%98%80");
+}
+
+- (void)testPercentEscapesForAllCharactersOfTheEmptyString
+{
+	XCTAssertEqualObjects([@"" stringByAddingPercentEscapesForAllCharacters], @"");
+}
+
+#pragma mark Safe file names
+
+- (void)testSafeFilenameReplacesEverySlash
+{
+	XCTAssertEqualObjects([@"a/b//c" safeFilenameString], @"a-b--c");
+}
+
+- (void)testSafeFilenameLeavesEverythingElseAlone
+{
+	XCTAssertEqualObjects([@"caf\u00e9 \U0001F600 (1).txt" safeFilenameString], @"caf\u00e9 \U0001F600 (1).txt");
+}
+
+- (void)testSafeFilenameOfTheEmptyString
+{
+	XCTAssertEqualObjects([@"" safeFilenameString], @"");
+}
+
+- (void)testSafeFilenameLongerThanNameMaxIsTruncated
+{
+	XCTExpectFailure(@"AIStringAdditions.m:274 logs that an over-long name will be truncated to NAME_MAX, but only shortens the replacement range and returns the whole string");
+	NSString *overlong = [@"" stringByPaddingToLength:300 withString:@"a" startingAtIndex:0];
+	XCTAssertLessThanOrEqual([[overlong safeFilenameString] length], (NSUInteger)NAME_MAX);
+}
+
+- (void)testSafeFilenameLongerThanNameMaxHasNoSlashLeft
+{
+	XCTExpectFailure(@"AIStringAdditions.m:281 replaces slashes only within the first NAME_MAX characters, so one further along survives");
+	NSString *overlong = [[@"" stringByPaddingToLength:290 withString:@"a" startingAtIndex:0] stringByAppendingString:@"/b"];
+	XCTAssertEqual([[overlong safeFilenameString] rangeOfString:@"/"].location, (NSUInteger)NSNotFound);
+}
+
+#pragma mark XML entities
+
+- (void)testEscapingForXMLEscapesTheFivePredefinedEntities
+{
+	XCTAssertEqualObjects([@"&" stringByEscapingForXMLWithEntities:nil], @"&amp;");
+	XCTAssertEqualObjects([@"<" stringByEscapingForXMLWithEntities:nil], @"&lt;");
+	XCTAssertEqualObjects([@">" stringByEscapingForXMLWithEntities:nil], @"&gt;");
+	XCTAssertEqualObjects([@"\"" stringByEscapingForXMLWithEntities:nil], @"&quot;");
+	XCTAssertEqualObjects([@"'" stringByEscapingForXMLWithEntities:nil], @"&apos;");
+}
+
+- (void)testEscapingForXMLEscapesEveryOccurrence
+{
+	XCTAssertEqualObjects([@"a<b<c&&" stringByEscapingForXMLWithEntities:nil], @"a&lt;b&lt;c&amp;&amp;");
+}
+
+- (void)testEscapingForXMLLeavesPlainAndNonASCIITextAlone
+{
+	NSString *plain = @"caf\u00e9 \U0001F600 \u05e9\u05dc\u05d5\u05dd e\u0301 123";
+	XCTAssertEqualObjects([plain stringByEscapingForXMLWithEntities:nil], plain);
+	XCTAssertEqualObjects([@"" stringByEscapingForXMLWithEntities:nil], @"");
+}
+
+- (void)testEscapingForXMLWithoutEntitiesEscapesWhitespace
+{
+	XCTExpectFailure(@"AIStringAdditions.h promises whitespace escaping when no entities are given, and AIStringAdditions.m:544 lists the entities, but CFXMLCreateStringByEscapingEntities (:555) ignores them: a tab stays a tab");
+	XCTAssertEqualObjects([@"\t" stringByEscapingForXMLWithEntities:nil], @"&#x09;");
+	XCTAssertEqualObjects([@"\n" stringByEscapingForXMLWithEntities:nil], @"&#x0a;");
+	XCTAssertEqualObjects([@"\r" stringByEscapingForXMLWithEntities:nil], @"&#x0d;");
+}
+
+- (void)testEscapingForXMLWithoutEntitiesEscapesNoBreakSpace
+{
+	XCTExpectFailure(@"AIStringAdditions.m:544 lists nbsp among the default entities, but CFXMLCreateStringByEscapingEntities (:555) ignores it");
+	XCTAssertEqualObjects([@"\u00a0" stringByEscapingForXMLWithEntities:nil], @"&nbsp;");
+}
+
+- (void)testUnescapingFromXMLDecodesTheFivePredefinedEntities
+{
+	XCTAssertEqualObjects([@"&amp;&lt;&gt;&quot;&apos;" stringByUnescapingFromXMLWithEntities:nil], @"&<>\"'");
+}
+
+- (void)testUnescapingFromXMLDecodesNumericReferences
+{
+	XCTAssertEqualObjects([@"&#65;&#x41;&#x61;" stringByUnescapingFromXMLWithEntities:nil], @"AAa");
+}
+
+- (void)testUnescapingFromXMLDecodesReferencesBeyondTheBasicPlane
+{
+	XCTAssertEqualObjects([@"&#x1F600;" stringByUnescapingFromXMLWithEntities:nil], @"\U0001F600");
+}
+
+- (void)testUnescapingFromXMLLeavesUnknownEntitiesAlone
+{
+	XCTAssertEqualObjects([@"&nbsp;&foo;" stringByUnescapingFromXMLWithEntities:nil], @"&nbsp;&foo;");
+}
+
+- (void)testUnescapingFromXMLUsesTheGivenEntities
+{
+	XCTAssertEqualObjects([@"a&nbsp;b" stringByUnescapingFromXMLWithEntities:@{@"nbsp": @"\u00a0"}], @"a\u00a0b");
+}
+
+- (void)testUnescapingFromXMLLeavesTextWithoutEntitiesAlone
+{
+	XCTAssertEqualObjects([@"plain & simple" stringByUnescapingFromXMLWithEntities:nil], @"plain & simple");
+	XCTAssertEqualObjects([@"" stringByUnescapingFromXMLWithEntities:nil], @"");
+}
+
+- (void)testXMLEscapingRoundTripsQuotesAndNonASCII
+{
+	NSString *original = @"\"caf\u00e9\" & 'th\u00e9' <\U0001F600>";
+	XCTAssertEqualObjects([[original stringByEscapingForXMLWithEntities:nil] stringByUnescapingFromXMLWithEntities:nil], original);
+}
+
+#pragma mark Shell and regexp escaping
+
+- (void)testEscapingForShellLeavesSafeCharactersAlone
+{
+	NSString *safe = @"abcXYZ019_-./:,+@";
+	XCTAssertEqualObjects([safe stringByEscapingForShell], safe);
+}
+
+- (void)testEscapingForShellLeavesNonASCIIAlone
+{
+	XCTAssertEqualObjects([@"caf\u00e9 \U0001F600" stringByEscapingForShell], @"caf\u00e9\\ \U0001F600");
+}
+
+- (void)testEscapingForShellOfTheEmptyString
+{
+	XCTAssertEqualObjects([@"" stringByEscapingForShell], @"");
+}
+
+- (void)testEscapingForShellEscapesEveryUnsafeCharacterInAMixedString
+{
+	XCTAssertEqualObjects([@"it's \"done\"!" stringByEscapingForShell], @"it\\'s\\ \\\"done\\\"\\!");
+}
+
+- (void)testEscapingForShellCopesWithAStringLongerThanItsBuffer
+{
+	//Ten thousand spaces double to twenty thousand characters, well past the page-sized buffer the method grows by.
+	NSString *spaces = [@"" stringByPaddingToLength:10000 withString:@" " startingAtIndex:0];
+	NSString *escaped = [spaces stringByEscapingForShell];
+	XCTAssertEqual([escaped length], (NSUInteger)20000);
+	XCTAssertEqualObjects([escaped substringToIndex:4], @"\\ \\ ");
+	XCTAssertEqualObjects([escaped substringFromIndex:19996], @"\\ \\ ");
+}
+
+- (void)testEscapingForShellEscapesControlOperators
+{
+	XCTExpectFailure(@"POSIX sh gives ; < > ( ) meaning outside quotes, and the table at AIStringAdditions.m:30-57 does not list them, so they pass through unescaped");
+	XCTAssertEqualObjects([@";<>()" stringByEscapingForShell], @"\\;\\<\\>\\(\\)");
+}
+
+- (void)testEscapingForRegexpEscapesEveryMetacharacter
+{
+	XCTAssertEqualObjects([@"\\$|/.*+?{}()[^" stringByEscapingForRegexp], @"\\\\\\$\\|\\/\\.\\*\\+\\?\\{\\}\\(\\)\\[\\^");
+}
+
+- (void)testEscapingForRegexpLeavesOrdinaryTextAlone
+{
+	NSString *ordinary = @"abc XYZ 019 _-=:,;<>@#~&!\u00e9\U0001F600";
+	XCTAssertEqualObjects([ordinary stringByEscapingForRegexp], ordinary);
+	XCTAssertEqualObjects([@"" stringByEscapingForRegexp], @"");
+}
+
+- (void)testEscapedStringMatchesItselfLiterally
+{
+	NSString *literal = @"a\\$|/.*+?{}()[^]b-c";
+	NSError *error = nil;
+	NSRegularExpression *expression = [NSRegularExpression regularExpressionWithPattern:[literal stringByEscapingForRegexp] options:0 error:&error];
+	XCTAssertNotNil(expression, @"%@", error);
+	NSTextCheckingResult *match = [expression firstMatchInString:literal options:NSMatchingAnchored range:NSMakeRange(0, [literal length])];
+	XCTAssertTrue(NSEqualRanges(match.range, NSMakeRange(0, [literal length])));
+
+	NSRegularExpression *dot = [NSRegularExpression regularExpressionWithPattern:[@"." stringByEscapingForRegexp] options:0 error:NULL];
+	XCTAssertNil([dot firstMatchInString:@"x" options:0 range:NSMakeRange(0, 1)], @"An escaped dot must not match as a wildcard");
+}
+
+#pragma mark Last characters
+
+- (void)testLastCharactersOfTheEmptyStringAreFFFF
+{
+	XCTAssertEqual([@"" lastCharacter], (unichar)0xffff);
+	XCTAssertEqual([@"" nextToLastCharacter], (unichar)0xffff);
+	XCTAssertEqual([@"" lastLongCharacter], (UTF32Char)0xffff);
+}
+
+- (void)testLastAndNextToLastCharacter
+{
+	XCTAssertEqual([@"ab" lastCharacter], (unichar)'b');
+	XCTAssertEqual([@"ab" nextToLastCharacter], (unichar)'a');
+	XCTAssertEqual([@"b" nextToLastCharacter], (unichar)0xffff, @"A one-character string has no next-to-last character");
+}
+
+- (void)testLastLongCharacterJoinsASurrogatePair
+{
+	XCTAssertEqual([@"a\U0001F600" lastLongCharacter], (UTF32Char)0x1F600);
+}
+
+- (void)testLastLongCharacterOfABasicPlaneCharacter
+{
+	XCTAssertEqual([@"\U0001F600a" lastLongCharacter], (UTF32Char)'a');
+	XCTAssertEqual([@"\u00e9" lastLongCharacter], (UTF32Char)0xe9);
+}
+
+#pragma mark UUID
+
+- (void)testUUIDHasTheCanonicalForm
+{
+	NSString *uuid = [NSString uuid];
+	XCTAssertEqual([uuid length], (NSUInteger)36);
+	XCTAssertNotNil([[NSUUID alloc] initWithUUIDString:uuid], @"\"%@\" is not a UUID string", uuid);
+	XCTAssertEqualObjects(uuid, [uuid uppercaseString]);
+}
+
+- (void)testUUIDsDiffer
+{
+	XCTAssertNotEqualObjects([NSString uuid], [NSString uuid]);
+}
+
+#pragma mark Formatting a CGFloat
+
+- (void)testStringWithCGFloatDropsTrailingZeros
+{
+	XCTAssertEqualObjects([NSString stringWithCGFloat:42.5 maxDigits:6], @"42.5");
+	XCTAssertEqualObjects([NSString stringWithCGFloat:0.125 maxDigits:6], @"0.125");
+}
+
+- (void)testStringWithCGFloatOfAWholeNumberHasNoDecimalPoint
+{
+	XCTAssertEqualObjects([NSString stringWithCGFloat:100 maxDigits:6], @"100");
+	XCTAssertEqualObjects([NSString stringWithCGFloat:0 maxDigits:6], @"0");
+	XCTAssertEqualObjects([NSString stringWithCGFloat:10 maxDigits:2], @"10");
+}
+
+- (void)testStringWithCGFloatKeepsTheSign
+{
+	XCTAssertEqualObjects([NSString stringWithCGFloat:-1.25 maxDigits:6], @"-1.25");
+	XCTAssertEqualObjects([NSString stringWithCGFloat:-3 maxDigits:6], @"-3");
+}
+
+- (void)testStringWithCGFloatRoundsToMaxDigits
+{
+	XCTAssertEqualObjects([NSString stringWithCGFloat:42.126 maxDigits:2], @"42.13");
+	XCTAssertEqualObjects([NSString stringWithCGFloat:0.5 maxDigits:0], @"0.5", @"Zero means the default precision, not none");
+}
+
+#pragma mark Lines
+
+- (void)testEmptyStringIsOneEmptyLine
+{
+	XCTAssertEqualObjects([@"" allLines], @[@""]);
+}
+
+- (void)testTrailingLineBreakYieldsATrailingEmptyLine
+{
+	XCTAssertEqualObjects([@"a\n" allLines], (@[@"a", @""]));
+}
+
+- (void)testCRLFIsOneLineBreak
+{
+	XCTAssertEqualObjects([@"a\r\nb" allLines], (@[@"a", @"b"]));
+}
+
+- (void)testConsecutiveLineBreaksYieldEmptyLines
+{
+	XCTAssertEqualObjects([@"a\n\nb" allLines], (@[@"a", @"", @"b"]));
+	XCTAssertEqualObjects([@"a\r\n\nb" allLines], (@[@"a", @"", @"b"]));
+}
+
+- (void)testEveryKindOfLineBreakSplits
+{
+	NSString *everyKind = [NSString stringWithFormat:@"a\nb\fc\rd%Ce\u2028f\u2029g", (unichar)0x85];
+	XCTAssertEqualObjects([everyKind allLines], (@[@"a", @"b", @"c", @"d", @"e", @"f", @"g"]));
+}
+
+- (void)testSeparatorObjectsAlternateWithLines
+{
+	XCTAssertEqualObjects([@"a\r\nb\nc" allLinesWithSeparator:@"|"], (@[@"a", @"|", @"b", @"|", @"c"]));
+}
+
+- (void)testStringWithoutLineBreaksIsOneLine
+{
+	XCTAssertEqualObjects([@"one line" allLinesWithSeparator:@"|"], @[@"one line"]);
+}
+
+#pragma mark Comparison and numbers
+
+- (void)testCompareLengthOrdersByLengthOnly
+{
+	XCTAssertEqual([@"ab" compareLength:@"abc"], NSOrderedAscending);
+	XCTAssertEqual([@"abc" compareLength:@"ab"], NSOrderedDescending);
+	XCTAssertEqual([@"zzz" compareLength:@"aaa"], NSOrderedSame, @"Content does not matter, only length");
+	XCTAssertEqual([@"" compareLength:@""], NSOrderedSame);
+}
+
+- (void)testCaseInsensitiveEqualityBeyondASCII
+{
+	XCTAssertTrue([@"\u00c4\u00d6\u00dc stra\u00dfe" isCaseInsensitivelyEqualToString:@"\u00e4\u00f6\u00fc STRA\u00dfE"]);
+	XCTAssertFalse([@"\u00e4" isCaseInsensitivelyEqualToString:@"a"]);
+}
+
+- (void)testUnsignedLongLongValueParsesDecimalDigits
+{
+	XCTAssertEqual([@"0" unsignedLongLongValue], 0ULL);
+	XCTAssertEqual([@"42" unsignedLongLongValue], 42ULL);
+	XCTAssertEqual([@"18446744073709551615" unsignedLongLongValue], ULLONG_MAX);
+}
+
+- (void)testUnsignedLongLongValueTruncatesAFraction
+{
+	XCTAssertEqual([@"1.9" unsignedLongLongValue], 1ULL);
+}
+
+- (void)testUnsignedLongLongValueOfNonNumericTextIsZero
+{
+	XCTExpectFailure(@"AIStringAdditions.m:899 goes through NSDecimalNumber, whose notANumber answers 9 here; every other -...Value on NSString answers 0 for text that is not a number");
+	XCTAssertEqual([@"abc" unsignedLongLongValue], 0ULL);
+	XCTAssertEqual([@"" unsignedLongLongValue], 0ULL);
+}
 
 @end

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleGetInfoString</key>
+	<string>2.1</string>
+	<key>CFBundleIdentifier</key>
+	<string>invalid.example.chirpy.soundset</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>CFBundleName</key>
+	<string>Chirpy Sounds</string>
+	<key>CFBundlePackageType</key>
+	<string>AdIM</string>
+	<key>CFBundleVersion</key>
+	<string>2.1</string>
+	<key>XtraAuthors</key>
+	<string>Wren Wrenson</string>
+	<key>XtraBundleVersion</key>
+	<string>1</string>
+	<key>XtraDescription</key>
+	<string>Short chirps for a quiet desk.</string>
+</dict>
+</plist>

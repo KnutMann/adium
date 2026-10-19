@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Trivia Scripts</string>
+	<key>CFBundleIdentifier</key>
+	<string>invalid.example.trivia.scripts</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>CFBundleName</key>
+	<string>Trivia</string>
+	<key>CFBundlePackageType</key>
+	<string>AIAS</string>
+	<key>OriginalAuthor</key>
+	<string>Robin Redbreast</string>
+	<key>Scripts</key>
+	<array>
+		<dict>
+			<key>File</key>
+			<string>Question</string>
+			<key>Keyword</key>
+			<string>%_question</string>
+			<key>Title</key>
+			<string>A Question</string>
+		</dict>
+	</array>
+	<key>Set</key>
+	<string>Trivia Questions</string>
+	<key>XtraVersion</key>
+	<string>0.9</string>
+</dict>
+</plist>

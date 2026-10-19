@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AdiumSetVersion</key>
+	<integer>1</integer>
+	<key>List</key>
+	<dict>
+		<key>Busy</key>
+		<string>busy.png</string>
+		<key>Generic Available</key>
+		<string>available.png</string>
+		<key>Generic Away</key>
+		<string>away.png</string>
+		<key>Idle</key>
+		<string>idle.png</string>
+		<key>Offline</key>
+		<string>offline.png</string>
+		<key>Unknown</key>
+		<string>unknown.png</string>
+		<key>content</key>
+		<string>content.png</string>
+	</dict>
+	<key>Tabs</key>
+	<dict>
+		<key>Busy</key>
+		<string>busy.png</string>
+		<key>Generic Available</key>
+		<string>tab-available.png</string>
+		<key>Generic Away</key>
+		<string>away.png</string>
+		<key>Idle</key>
+		<string>idle.png</string>
+		<key>Offline</key>
+		<string>offline.png</string>
+		<key>Unknown</key>
+		<string>unknown.png</string>
+		<key>content</key>
+		<string>content.png</string>
+		<key>typing</key>
+		<string>typing.png</string>
+	</dict>
+</dict>
+</plist>

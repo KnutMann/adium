@@ -1101,6 +1101,74 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		EE147A800896B33400A21377 /* OWABSearchWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = EE147A7E0896B33400A21377 /* OWABSearchWindowController.m */; };
 		EEC461B6096D68580028632F /* OWSpellingPerContactPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = EEC461B4096D68580028632F /* OWSpellingPerContactPlugin.m */; };
 		F5F8CA4D0A1A9C9400154550 /* GBQuestionHandlerPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F5F8CA4B0A1A9C9400154550 /* GBQuestionHandlerPlugin.m */; };
+		52AFDF40382B11405A2AD0AB /* Adium.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34BD9DE105314751000AB133 /* Adium.framework */; };
+		4172C34C189F1CC3C23D56E1 /* AutoHyperlinks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; };
+		B389CC8103530008BBBB6530 /* Adium.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 34BD9DE105314751000AB133 /* Adium.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03446949B79DC254FEB3D924 /* AutoHyperlinks.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		EEE3D0B33401D42DB55E6431 /* MMTabBarView.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4A20E425775815008BB8E3 /* MMTabBarView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		26231600F164C52CA9876D8D /* TestAccountPlan.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E2B2D9EF73F5780EFC807BE /* TestAccountPlan.m */; };
+		5381DAF8F86538A696C483C9 /* TestArrayAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = A2F4238A685E93EF48278E25 /* TestArrayAdditions.m */; };
+		1AC4A0FBE82CF3BFB6323324 /* TestBezierPathAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4191C9EE772D593FD5E5293B /* TestBezierPathAdditions.m */; };
+		76AAD1745A8CA188DEAED277 /* TestBoolToControlTextColorTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A60C5601247B2346E29A9E0 /* TestBoolToControlTextColorTransformer.m */; };
+		866EAB72BC0022AC5BD70DEC /* TestBundleAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8D7867F045512CD578C49FEB /* TestBundleAdditions.m */; };
+		333E46DDD1428123D984297C /* TestColorConversions.m in Sources */ = {isa = PBXBuildFile; fileRef = 652CBB4A42C288AA9DA2DC7A /* TestColorConversions.m */; };
+		A0EA21C27FE0426B9AD5C04E /* TestColorStringTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = A552A020190C99B7E579E631 /* TestColorStringTransformer.m */; };
+		F998CC5353D4F683A131F007 /* TestContentMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C9F00D8899BED9459E9E734E /* TestContentMessage.m */; };
+		2A3DD0DAE70316E2E4F4A270 /* TestContentObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F28C0B864A7C1AC4367EA7B /* TestContentObject.m */; };
+		34F4C8CFA6D7BCA8862D7BD9 /* TestCursorAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CA1C8C2452AD3F089931F18 /* TestCursorAdditions.m */; };
+		53263C298932502DF9BA810E /* TestDateFormatterAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = CC49C7A2BC6EC97B679276D3 /* TestDateFormatterAdditions.m */; };
+		8C18FFC9AADB98B66F2A6079 /* TestEmoticon.m in Sources */ = {isa = PBXBuildFile; fileRef = B54C8DD7D4F9D8FE7C06715D /* TestEmoticon.m */; };
+		750DA699B8BF84E4D787A424 /* TestEmoticonPack.m in Sources */ = {isa = PBXBuildFile; fileRef = 46BED996776D31D2979BFE96 /* TestEmoticonPack.m */; };
+		8E2924A569073F1FC11982C8 /* TestEventAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 490EFFECF4BBB683749D2EC2 /* TestEventAdditions.m */; };
+		5B184EB500D6823E4C967D41 /* TestFileManagerAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FAC50175D7966ADB03D94D1 /* TestFileManagerAdditions.m */; };
+		A2FCC872234E5A1A62E5345E /* TestFontAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F452E2E6638961610251AFDD /* TestFontAdditions.m */; };
+		3D8918044A8C43B7A65780CE /* TestFontManagerAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 47264EAB47CA3E1EAD11A598 /* TestFontManagerAdditions.m */; };
+		4031C8819F087889EE9B4EF6 /* TestFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 03E262C567854CBB3579E66C /* TestFunctions.m */; };
+		E4F4EC8C28F23F1829C727B3 /* TestHTMLDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = B632DE642F9A6CD715B3A779 /* TestHTMLDecoder.m */; };
+		484556E3679D60F28C45E888 /* TestHyperlinkBoundaries.m in Sources */ = {isa = PBXBuildFile; fileRef = 65FF347C05E4351E45FEF746 /* TestHyperlinkBoundaries.m */; };
+		55CBB9B9B1D42F532C7A107A /* TestHyperlinkFalsePositives.m in Sources */ = {isa = PBXBuildFile; fileRef = B86BCDC984BF630370CFCBD7 /* TestHyperlinkFalsePositives.m */; };
+		5C9BA741C6BF7360C508F147 /* TestHyperlinkOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = C670425CF937276FA3F9E30C /* TestHyperlinkOutput.m */; };
+		A464036F41E46646A43AC4F6 /* TestHyperlinkScanner.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A5EFFA3D95060F1AC08793 /* TestHyperlinkScanner.m */; };
+		C902D18B7EF88818BB4CBA8F /* TestISO8601DateFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = BB87A63E454F3490735075CC /* TestISO8601DateFormatter.m */; };
+		8DFFA6EA93D9C31AACB40574 /* TestIconState.m in Sources */ = {isa = PBXBuildFile; fileRef = 19F34654B1450DB769DE8C10 /* TestIconState.m */; };
+		B69A6E11F0E670F30CCC6722 /* TestImageAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B57DF0FE30D3787FFDBE0043 /* TestImageAdditions.m */; };
+		2252E73121B7869D5C1AE47A /* TestImageDrawingAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7773E8B3B210D7CAA3761C05 /* TestImageDrawingAdditions.m */; };
+		B03026C9214F1E6EF9C1877A /* TestListBookmark.m in Sources */ = {isa = PBXBuildFile; fileRef = 3ED6214E9303E530779B75CB /* TestListBookmark.m */; };
+		9E76824E239434869C2A74B7 /* TestListContact.m in Sources */ = {isa = PBXBuildFile; fileRef = BD3167A439D370500A55C8A4 /* TestListContact.m */; };
+		D5D16E081AB829345526EADB /* TestListGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 26EFCEFEFC9A4ED3CFCC1084 /* TestListGroup.m */; };
+		0D2C2BD868B3C96E3167AB81 /* TestListObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 182A4EB9238FDC8C8AE1FF62 /* TestListObject.m */; };
+		83CCA1F5DF9DCE3356E62C6A /* TestLocalizationTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 8126F29EBF8BDD87193EFDF9 /* TestLocalizationTextField.m */; };
+		02BC77344BDB1697E6EF9480 /* TestMenuAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B4234DB0130EEAE5FB03454A /* TestMenuAdditions.m */; };
+		1BC0EB9267E0BD4B88C5B573 /* TestMetaContact.m in Sources */ = {isa = PBXBuildFile; fileRef = C3924089AA94ACE430853B81 /* TestMetaContact.m */; };
+		2BB2C6C361F2970A823BA4D1 /* TestMutableOwnerArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 164505982A645639CBD4BFF0 /* TestMutableOwnerArray.m */; };
+		C7FF11C4BE3177A2A36EB2DD /* TestObjectAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E689F8CFE54856B12B1815A /* TestObjectAdditions.m */; };
+		AA07D7300F1C7925535D1A87 /* TestObjectWithProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 82096702C2567E562028E8C3 /* TestObjectWithProperties.m */; };
+		A808CC614B680B0713834636 /* TestOutlineViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FAF99601E20FA69BD8C8A59 /* TestOutlineViewAdditions.m */; };
+		5AD999452E5184F55F8D92D5 /* TestPathUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 90DCF5EC66661C2D681231EF /* TestPathUtilities.m */; };
+		7EB6FF783A4D93C61F9B9CB2 /* TestPopUpButtonAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A36B60BC0A5825EEC7E9E9C /* TestPopUpButtonAdditions.m */; };
+		EA6D6ABCB404F011B5FBFF7D /* TestProxyListObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B15363BB7BD2E4AFD696ADFE /* TestProxyListObject.m */; };
+		B16E0EAA94E2B5361C5CBF1A /* TestScannerAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = CA55A4F107B0AE900D7E971B /* TestScannerAdditions.m */; };
+		F299E2408B4331E11CDCA433 /* TestScrollViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4879570AE9D949A75E9FC041 /* TestScrollViewAdditions.m */; };
+		4A57EE91478A626BBA381932 /* TestService.m in Sources */ = {isa = PBXBuildFile; fileRef = 5319A5866E6A037406077905 /* TestService.m */; };
+		1C06F2979A0E5969D301B9DB /* TestServiceIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = F47F35AA3EDC3E6D43B01D13 /* TestServiceIcons.m */; };
+		5D223A62BEA3A63ED5D98673 /* TestSortController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55F5B14978905E84067E2BA6 /* TestSortController.m */; };
+		AA57A3465CBD4A51D7063045 /* TestSoundSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 5191E6B1118B19E93BCA42BC /* TestSoundSet.m */; };
+		05DA82604B627012A185CBD2 /* TestStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 2FE47E191AA14377D4A8299E /* TestStatus.m */; };
+		6C9759D07D0A10C3007ADEB1 /* TestStatusGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BB511678503D66459DC9ACE /* TestStatusGroup.m */; };
+		19C465A9181E9F64A6CD2068 /* TestStatusIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 687035A7351CA7FC93CFF171 /* TestStatusIcons.m */; };
+		CAECEA7834EE71B5083A48A4 /* TestStringBidi.m in Sources */ = {isa = PBXBuildFile; fileRef = DC80CA37AA620CEF2A72C128 /* TestStringBidi.m */; };
+		42E8BEC454419C45CEA05D2F /* TestStringFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = C5EFF0816A803E5B2616665D /* TestStringFormatter.m */; };
+		E3BCD19CD4E4CAA312E3C759 /* TestTableViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = C12F8C5BBDC04BD1793EA74B /* TestTableViewAdditions.m */; };
+		872A295ACB20E211EF0A130D /* TestTextAttachmentAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = FC610FCF93B6058C938384B2 /* TestTextAttachmentAdditions.m */; };
+		28839045E79D22EE91055903 /* TestTextAttachmentExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 54A8C64AA4CB492B03057804 /* TestTextAttachmentExtension.m */; };
+		E1EDF3B50AE02E00C83174C7 /* TestTextAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = B174F026813262A249370C30 /* TestTextAttributes.m */; };
+		92B3958F38770AE0AD6321A3 /* TestToolbarUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = F5E5FE464F90A4AF72FC7691 /* TestToolbarUtilities.m */; };
+		905033AA06A2655388F02D94 /* TestURLAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E7822B233E285DB9BF705AF /* TestURLAdditions.m */; };
+		ABB95F9F70D6EC71679FBECC /* TestViewAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F6E753315E0570D08F341FC /* TestViewAdditions.m */; };
+		BC87E000C617374C937E576A /* TestWindowAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 156320D987F4520286A46FDF /* TestWindowAdditions.m */; };
+		98ED0A2F06D910889F40EA9B /* TestXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = CDC5ADF3EEE3447E3ABF259C /* TestXMLElement.m */; };
+		CE1BBFD094DC6CB8148A0586 /* TestXtraInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F3DE41E3DD69FE3567D887C /* TestXtraInfo.m */; };
+		9C394C18F6DFB38630688085 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = DF7C1CAB84934F0A603657A3 /* Fixtures */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -1252,6 +1320,27 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			remoteGlobalIDString = 3485D67F09EB416300232CC4;
 			remoteInfo = AdiumLibpurple;
 		};
+		ED38DFBAE43E9D34F1417346 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34BD9DAF05314751000AB133;
+			remoteInfo = "Adium.Framework";
+		};
+		BA225F85C80804158E6E9901 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4DAA96852577B48D0000D3F7 /* AutoHyperlinks.framework.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = "AutoHyperlinks.framework";
+		};
+		2A5E06FBE7E226CC6C69BCE3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 06DB23A51609F5820071BDA0;
+			remoteInfo = "MMTabBarView";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1374,6 +1463,9 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			dstSubfolderSpec = 10;
 			files = (
 				ADC6E57E0000000000000002 /* AIUtilities.framework in Copy Frameworks */,
+				B389CC8103530008BBBB6530 /* Adium.framework in Copy Frameworks */,
+				03446949B79DC254FEB3D924 /* AutoHyperlinks.framework in Copy Frameworks */,
+				EEE3D0B33401D42DB55E6431 /* MMTabBarView.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3045,6 +3137,69 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		F5F0FEA204B133AB01A80106 /* EmoticonDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = EmoticonDefaults.plist; path = Plugins/Emoticons/EmoticonDefaults.plist; sourceTree = "<group>"; };
 		F5F8CA4A0A1A9C9400154550 /* GBQuestionHandlerPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GBQuestionHandlerPlugin.h; path = Source/GBQuestionHandlerPlugin.h; sourceTree = "<group>"; };
 		F5F8CA4B0A1A9C9400154550 /* GBQuestionHandlerPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GBQuestionHandlerPlugin.m; path = Source/GBQuestionHandlerPlugin.m; sourceTree = "<group>"; };
+		0E2B2D9EF73F5780EFC807BE /* TestAccountPlan.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestAccountPlan.m; path = UnitTests/TestAccountPlan.m; sourceTree = "<group>"; };
+		A2F4238A685E93EF48278E25 /* TestArrayAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestArrayAdditions.m; path = UnitTests/TestArrayAdditions.m; sourceTree = "<group>"; };
+		4191C9EE772D593FD5E5293B /* TestBezierPathAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestBezierPathAdditions.m; path = UnitTests/TestBezierPathAdditions.m; sourceTree = "<group>"; };
+		4A60C5601247B2346E29A9E0 /* TestBoolToControlTextColorTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestBoolToControlTextColorTransformer.m; path = UnitTests/TestBoolToControlTextColorTransformer.m; sourceTree = "<group>"; };
+		8D7867F045512CD578C49FEB /* TestBundleAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestBundleAdditions.m; path = UnitTests/TestBundleAdditions.m; sourceTree = "<group>"; };
+		652CBB4A42C288AA9DA2DC7A /* TestColorConversions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestColorConversions.m; path = UnitTests/TestColorConversions.m; sourceTree = "<group>"; };
+		A552A020190C99B7E579E631 /* TestColorStringTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestColorStringTransformer.m; path = UnitTests/TestColorStringTransformer.m; sourceTree = "<group>"; };
+		C9F00D8899BED9459E9E734E /* TestContentMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestContentMessage.m; path = UnitTests/TestContentMessage.m; sourceTree = "<group>"; };
+		0F28C0B864A7C1AC4367EA7B /* TestContentObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestContentObject.m; path = UnitTests/TestContentObject.m; sourceTree = "<group>"; };
+		8CA1C8C2452AD3F089931F18 /* TestCursorAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestCursorAdditions.m; path = UnitTests/TestCursorAdditions.m; sourceTree = "<group>"; };
+		CC49C7A2BC6EC97B679276D3 /* TestDateFormatterAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestDateFormatterAdditions.m; path = UnitTests/TestDateFormatterAdditions.m; sourceTree = "<group>"; };
+		B54C8DD7D4F9D8FE7C06715D /* TestEmoticon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestEmoticon.m; path = UnitTests/TestEmoticon.m; sourceTree = "<group>"; };
+		46BED996776D31D2979BFE96 /* TestEmoticonPack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestEmoticonPack.m; path = UnitTests/TestEmoticonPack.m; sourceTree = "<group>"; };
+		490EFFECF4BBB683749D2EC2 /* TestEventAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestEventAdditions.m; path = UnitTests/TestEventAdditions.m; sourceTree = "<group>"; };
+		1FAC50175D7966ADB03D94D1 /* TestFileManagerAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestFileManagerAdditions.m; path = UnitTests/TestFileManagerAdditions.m; sourceTree = "<group>"; };
+		F452E2E6638961610251AFDD /* TestFontAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestFontAdditions.m; path = UnitTests/TestFontAdditions.m; sourceTree = "<group>"; };
+		47264EAB47CA3E1EAD11A598 /* TestFontManagerAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestFontManagerAdditions.m; path = UnitTests/TestFontManagerAdditions.m; sourceTree = "<group>"; };
+		03E262C567854CBB3579E66C /* TestFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestFunctions.m; path = UnitTests/TestFunctions.m; sourceTree = "<group>"; };
+		B632DE642F9A6CD715B3A779 /* TestHTMLDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestHTMLDecoder.m; path = UnitTests/TestHTMLDecoder.m; sourceTree = "<group>"; };
+		65FF347C05E4351E45FEF746 /* TestHyperlinkBoundaries.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestHyperlinkBoundaries.m; path = UnitTests/TestHyperlinkBoundaries.m; sourceTree = "<group>"; };
+		B86BCDC984BF630370CFCBD7 /* TestHyperlinkFalsePositives.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestHyperlinkFalsePositives.m; path = UnitTests/TestHyperlinkFalsePositives.m; sourceTree = "<group>"; };
+		C670425CF937276FA3F9E30C /* TestHyperlinkOutput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestHyperlinkOutput.m; path = UnitTests/TestHyperlinkOutput.m; sourceTree = "<group>"; };
+		27A5EFFA3D95060F1AC08793 /* TestHyperlinkScanner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestHyperlinkScanner.m; path = UnitTests/TestHyperlinkScanner.m; sourceTree = "<group>"; };
+		BB87A63E454F3490735075CC /* TestISO8601DateFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestISO8601DateFormatter.m; path = UnitTests/TestISO8601DateFormatter.m; sourceTree = "<group>"; };
+		19F34654B1450DB769DE8C10 /* TestIconState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestIconState.m; path = UnitTests/TestIconState.m; sourceTree = "<group>"; };
+		B57DF0FE30D3787FFDBE0043 /* TestImageAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestImageAdditions.m; path = UnitTests/TestImageAdditions.m; sourceTree = "<group>"; };
+		7773E8B3B210D7CAA3761C05 /* TestImageDrawingAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestImageDrawingAdditions.m; path = UnitTests/TestImageDrawingAdditions.m; sourceTree = "<group>"; };
+		3ED6214E9303E530779B75CB /* TestListBookmark.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestListBookmark.m; path = UnitTests/TestListBookmark.m; sourceTree = "<group>"; };
+		BD3167A439D370500A55C8A4 /* TestListContact.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestListContact.m; path = UnitTests/TestListContact.m; sourceTree = "<group>"; };
+		26EFCEFEFC9A4ED3CFCC1084 /* TestListGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestListGroup.m; path = UnitTests/TestListGroup.m; sourceTree = "<group>"; };
+		182A4EB9238FDC8C8AE1FF62 /* TestListObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestListObject.m; path = UnitTests/TestListObject.m; sourceTree = "<group>"; };
+		8126F29EBF8BDD87193EFDF9 /* TestLocalizationTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestLocalizationTextField.m; path = UnitTests/TestLocalizationTextField.m; sourceTree = "<group>"; };
+		B4234DB0130EEAE5FB03454A /* TestMenuAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMenuAdditions.m; path = UnitTests/TestMenuAdditions.m; sourceTree = "<group>"; };
+		C3924089AA94ACE430853B81 /* TestMetaContact.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMetaContact.m; path = UnitTests/TestMetaContact.m; sourceTree = "<group>"; };
+		164505982A645639CBD4BFF0 /* TestMutableOwnerArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestMutableOwnerArray.m; path = UnitTests/TestMutableOwnerArray.m; sourceTree = "<group>"; };
+		6E689F8CFE54856B12B1815A /* TestObjectAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestObjectAdditions.m; path = UnitTests/TestObjectAdditions.m; sourceTree = "<group>"; };
+		82096702C2567E562028E8C3 /* TestObjectWithProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestObjectWithProperties.m; path = UnitTests/TestObjectWithProperties.m; sourceTree = "<group>"; };
+		1FAF99601E20FA69BD8C8A59 /* TestOutlineViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestOutlineViewAdditions.m; path = UnitTests/TestOutlineViewAdditions.m; sourceTree = "<group>"; };
+		90DCF5EC66661C2D681231EF /* TestPathUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestPathUtilities.m; path = UnitTests/TestPathUtilities.m; sourceTree = "<group>"; };
+		0A36B60BC0A5825EEC7E9E9C /* TestPopUpButtonAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestPopUpButtonAdditions.m; path = UnitTests/TestPopUpButtonAdditions.m; sourceTree = "<group>"; };
+		B15363BB7BD2E4AFD696ADFE /* TestProxyListObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestProxyListObject.m; path = UnitTests/TestProxyListObject.m; sourceTree = "<group>"; };
+		CA55A4F107B0AE900D7E971B /* TestScannerAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestScannerAdditions.m; path = UnitTests/TestScannerAdditions.m; sourceTree = "<group>"; };
+		4879570AE9D949A75E9FC041 /* TestScrollViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestScrollViewAdditions.m; path = UnitTests/TestScrollViewAdditions.m; sourceTree = "<group>"; };
+		5319A5866E6A037406077905 /* TestService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestService.m; path = UnitTests/TestService.m; sourceTree = "<group>"; };
+		F47F35AA3EDC3E6D43B01D13 /* TestServiceIcons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestServiceIcons.m; path = UnitTests/TestServiceIcons.m; sourceTree = "<group>"; };
+		55F5B14978905E84067E2BA6 /* TestSortController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestSortController.m; path = UnitTests/TestSortController.m; sourceTree = "<group>"; };
+		5191E6B1118B19E93BCA42BC /* TestSoundSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestSoundSet.m; path = UnitTests/TestSoundSet.m; sourceTree = "<group>"; };
+		2FE47E191AA14377D4A8299E /* TestStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestStatus.m; path = UnitTests/TestStatus.m; sourceTree = "<group>"; };
+		7BB511678503D66459DC9ACE /* TestStatusGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestStatusGroup.m; path = UnitTests/TestStatusGroup.m; sourceTree = "<group>"; };
+		687035A7351CA7FC93CFF171 /* TestStatusIcons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestStatusIcons.m; path = UnitTests/TestStatusIcons.m; sourceTree = "<group>"; };
+		DC80CA37AA620CEF2A72C128 /* TestStringBidi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestStringBidi.m; path = UnitTests/TestStringBidi.m; sourceTree = "<group>"; };
+		C5EFF0816A803E5B2616665D /* TestStringFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestStringFormatter.m; path = UnitTests/TestStringFormatter.m; sourceTree = "<group>"; };
+		C12F8C5BBDC04BD1793EA74B /* TestTableViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestTableViewAdditions.m; path = UnitTests/TestTableViewAdditions.m; sourceTree = "<group>"; };
+		FC610FCF93B6058C938384B2 /* TestTextAttachmentAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestTextAttachmentAdditions.m; path = UnitTests/TestTextAttachmentAdditions.m; sourceTree = "<group>"; };
+		54A8C64AA4CB492B03057804 /* TestTextAttachmentExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestTextAttachmentExtension.m; path = UnitTests/TestTextAttachmentExtension.m; sourceTree = "<group>"; };
+		B174F026813262A249370C30 /* TestTextAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestTextAttributes.m; path = UnitTests/TestTextAttributes.m; sourceTree = "<group>"; };
+		F5E5FE464F90A4AF72FC7691 /* TestToolbarUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestToolbarUtilities.m; path = UnitTests/TestToolbarUtilities.m; sourceTree = "<group>"; };
+		2E7822B233E285DB9BF705AF /* TestURLAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestURLAdditions.m; path = UnitTests/TestURLAdditions.m; sourceTree = "<group>"; };
+		4F6E753315E0570D08F341FC /* TestViewAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestViewAdditions.m; path = UnitTests/TestViewAdditions.m; sourceTree = "<group>"; };
+		156320D987F4520286A46FDF /* TestWindowAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestWindowAdditions.m; path = UnitTests/TestWindowAdditions.m; sourceTree = "<group>"; };
+		CDC5ADF3EEE3447E3ABF259C /* TestXMLElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestXMLElement.m; path = UnitTests/TestXMLElement.m; sourceTree = "<group>"; };
+		7F3DE41E3DD69FE3567D887C /* TestXtraInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestXtraInfo.m; path = UnitTests/TestXtraInfo.m; sourceTree = "<group>"; };
+		DF7C1CAB84934F0A603657A3 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fixtures; path = UnitTests/Fixtures; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3055,6 +3210,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				312ED3D30C7E876E00A6BDA9 /* Cocoa.framework in Frameworks */,
 				312ED3D50C7E878300A6BDA9 /* XCTest.framework in Frameworks */,
 				ADC6E57E0000000000000001 /* AIUtilities.framework in Frameworks */,
+				52AFDF40382B11405A2AD0AB /* Adium.framework in Frameworks */,
+				4172C34C189F1CC3C23D56E1 /* AutoHyperlinks.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3347,6 +3504,69 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				31034EFD0C8142680003F5AA /* TestStringAdditions.h */,
 				31034EFE0C8142680003F5AA /* TestStringAdditions.m */,
 				31034F0B0C8142720003F5AA /* UTF8Snowman.txt */,
+				0E2B2D9EF73F5780EFC807BE /* TestAccountPlan.m */,
+				A2F4238A685E93EF48278E25 /* TestArrayAdditions.m */,
+				4191C9EE772D593FD5E5293B /* TestBezierPathAdditions.m */,
+				4A60C5601247B2346E29A9E0 /* TestBoolToControlTextColorTransformer.m */,
+				8D7867F045512CD578C49FEB /* TestBundleAdditions.m */,
+				652CBB4A42C288AA9DA2DC7A /* TestColorConversions.m */,
+				A552A020190C99B7E579E631 /* TestColorStringTransformer.m */,
+				C9F00D8899BED9459E9E734E /* TestContentMessage.m */,
+				0F28C0B864A7C1AC4367EA7B /* TestContentObject.m */,
+				8CA1C8C2452AD3F089931F18 /* TestCursorAdditions.m */,
+				CC49C7A2BC6EC97B679276D3 /* TestDateFormatterAdditions.m */,
+				B54C8DD7D4F9D8FE7C06715D /* TestEmoticon.m */,
+				46BED996776D31D2979BFE96 /* TestEmoticonPack.m */,
+				490EFFECF4BBB683749D2EC2 /* TestEventAdditions.m */,
+				1FAC50175D7966ADB03D94D1 /* TestFileManagerAdditions.m */,
+				F452E2E6638961610251AFDD /* TestFontAdditions.m */,
+				47264EAB47CA3E1EAD11A598 /* TestFontManagerAdditions.m */,
+				03E262C567854CBB3579E66C /* TestFunctions.m */,
+				B632DE642F9A6CD715B3A779 /* TestHTMLDecoder.m */,
+				65FF347C05E4351E45FEF746 /* TestHyperlinkBoundaries.m */,
+				B86BCDC984BF630370CFCBD7 /* TestHyperlinkFalsePositives.m */,
+				C670425CF937276FA3F9E30C /* TestHyperlinkOutput.m */,
+				27A5EFFA3D95060F1AC08793 /* TestHyperlinkScanner.m */,
+				BB87A63E454F3490735075CC /* TestISO8601DateFormatter.m */,
+				19F34654B1450DB769DE8C10 /* TestIconState.m */,
+				B57DF0FE30D3787FFDBE0043 /* TestImageAdditions.m */,
+				7773E8B3B210D7CAA3761C05 /* TestImageDrawingAdditions.m */,
+				3ED6214E9303E530779B75CB /* TestListBookmark.m */,
+				BD3167A439D370500A55C8A4 /* TestListContact.m */,
+				26EFCEFEFC9A4ED3CFCC1084 /* TestListGroup.m */,
+				182A4EB9238FDC8C8AE1FF62 /* TestListObject.m */,
+				8126F29EBF8BDD87193EFDF9 /* TestLocalizationTextField.m */,
+				B4234DB0130EEAE5FB03454A /* TestMenuAdditions.m */,
+				C3924089AA94ACE430853B81 /* TestMetaContact.m */,
+				164505982A645639CBD4BFF0 /* TestMutableOwnerArray.m */,
+				6E689F8CFE54856B12B1815A /* TestObjectAdditions.m */,
+				82096702C2567E562028E8C3 /* TestObjectWithProperties.m */,
+				1FAF99601E20FA69BD8C8A59 /* TestOutlineViewAdditions.m */,
+				90DCF5EC66661C2D681231EF /* TestPathUtilities.m */,
+				0A36B60BC0A5825EEC7E9E9C /* TestPopUpButtonAdditions.m */,
+				B15363BB7BD2E4AFD696ADFE /* TestProxyListObject.m */,
+				CA55A4F107B0AE900D7E971B /* TestScannerAdditions.m */,
+				4879570AE9D949A75E9FC041 /* TestScrollViewAdditions.m */,
+				5319A5866E6A037406077905 /* TestService.m */,
+				F47F35AA3EDC3E6D43B01D13 /* TestServiceIcons.m */,
+				55F5B14978905E84067E2BA6 /* TestSortController.m */,
+				5191E6B1118B19E93BCA42BC /* TestSoundSet.m */,
+				2FE47E191AA14377D4A8299E /* TestStatus.m */,
+				7BB511678503D66459DC9ACE /* TestStatusGroup.m */,
+				687035A7351CA7FC93CFF171 /* TestStatusIcons.m */,
+				DC80CA37AA620CEF2A72C128 /* TestStringBidi.m */,
+				C5EFF0816A803E5B2616665D /* TestStringFormatter.m */,
+				C12F8C5BBDC04BD1793EA74B /* TestTableViewAdditions.m */,
+				FC610FCF93B6058C938384B2 /* TestTextAttachmentAdditions.m */,
+				54A8C64AA4CB492B03057804 /* TestTextAttachmentExtension.m */,
+				B174F026813262A249370C30 /* TestTextAttributes.m */,
+				F5E5FE464F90A4AF72FC7691 /* TestToolbarUtilities.m */,
+				2E7822B233E285DB9BF705AF /* TestURLAdditions.m */,
+				4F6E753315E0570D08F341FC /* TestViewAdditions.m */,
+				156320D987F4520286A46FDF /* TestWindowAdditions.m */,
+				CDC5ADF3EEE3447E3ABF259C /* TestXMLElement.m */,
+				7F3DE41E3DD69FE3567D887C /* TestXtraInfo.m */,
+				DF7C1CAB84934F0A603657A3 /* Fixtures */,
 			);
 			name = "Unit tests";
 			sourceTree = "<group>";
@@ -6415,6 +6635,9 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			);
 			dependencies = (
 				ADC6E57E0000000000000004 /* PBXTargetDependency */,
+				A1624FCC1122FA94E63D6EBD /* PBXTargetDependency */,
+				33C73E72BA3C2579E744F568 /* PBXTargetDependency */,
+				09D959389C74482CD1514D48 /* PBXTargetDependency */,
 			);
 			name = "Unit tests";
 			productName = "Unit tests";
@@ -6676,6 +6899,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			files = (
 				31034F0C0C8142720003F5AA /* UTF8Snowman.txt in Resources */,
 				31FA804C0D4A8EB200ABE634 /* Adium.sdef in Resources */,
+				9C394C18F6DFB38630688085 /* Fixtures in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7071,6 +7295,68 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				634BCD1F0DDC1542005AF1C2 /* TestMutableStringAdditions.m in Sources */,
 				3107D5250F63134F0051DDD5 /* TestAttributedStringAdditions.m in Sources */,
 				ADC6E57E0000000000000005 /* TestRichTextCoercion.m in Sources */,
+				26231600F164C52CA9876D8D /* TestAccountPlan.m in Sources */,
+				5381DAF8F86538A696C483C9 /* TestArrayAdditions.m in Sources */,
+				1AC4A0FBE82CF3BFB6323324 /* TestBezierPathAdditions.m in Sources */,
+				76AAD1745A8CA188DEAED277 /* TestBoolToControlTextColorTransformer.m in Sources */,
+				866EAB72BC0022AC5BD70DEC /* TestBundleAdditions.m in Sources */,
+				333E46DDD1428123D984297C /* TestColorConversions.m in Sources */,
+				A0EA21C27FE0426B9AD5C04E /* TestColorStringTransformer.m in Sources */,
+				F998CC5353D4F683A131F007 /* TestContentMessage.m in Sources */,
+				2A3DD0DAE70316E2E4F4A270 /* TestContentObject.m in Sources */,
+				34F4C8CFA6D7BCA8862D7BD9 /* TestCursorAdditions.m in Sources */,
+				53263C298932502DF9BA810E /* TestDateFormatterAdditions.m in Sources */,
+				8C18FFC9AADB98B66F2A6079 /* TestEmoticon.m in Sources */,
+				750DA699B8BF84E4D787A424 /* TestEmoticonPack.m in Sources */,
+				8E2924A569073F1FC11982C8 /* TestEventAdditions.m in Sources */,
+				5B184EB500D6823E4C967D41 /* TestFileManagerAdditions.m in Sources */,
+				A2FCC872234E5A1A62E5345E /* TestFontAdditions.m in Sources */,
+				3D8918044A8C43B7A65780CE /* TestFontManagerAdditions.m in Sources */,
+				4031C8819F087889EE9B4EF6 /* TestFunctions.m in Sources */,
+				E4F4EC8C28F23F1829C727B3 /* TestHTMLDecoder.m in Sources */,
+				484556E3679D60F28C45E888 /* TestHyperlinkBoundaries.m in Sources */,
+				55CBB9B9B1D42F532C7A107A /* TestHyperlinkFalsePositives.m in Sources */,
+				5C9BA741C6BF7360C508F147 /* TestHyperlinkOutput.m in Sources */,
+				A464036F41E46646A43AC4F6 /* TestHyperlinkScanner.m in Sources */,
+				C902D18B7EF88818BB4CBA8F /* TestISO8601DateFormatter.m in Sources */,
+				8DFFA6EA93D9C31AACB40574 /* TestIconState.m in Sources */,
+				B69A6E11F0E670F30CCC6722 /* TestImageAdditions.m in Sources */,
+				2252E73121B7869D5C1AE47A /* TestImageDrawingAdditions.m in Sources */,
+				B03026C9214F1E6EF9C1877A /* TestListBookmark.m in Sources */,
+				9E76824E239434869C2A74B7 /* TestListContact.m in Sources */,
+				D5D16E081AB829345526EADB /* TestListGroup.m in Sources */,
+				0D2C2BD868B3C96E3167AB81 /* TestListObject.m in Sources */,
+				83CCA1F5DF9DCE3356E62C6A /* TestLocalizationTextField.m in Sources */,
+				02BC77344BDB1697E6EF9480 /* TestMenuAdditions.m in Sources */,
+				1BC0EB9267E0BD4B88C5B573 /* TestMetaContact.m in Sources */,
+				2BB2C6C361F2970A823BA4D1 /* TestMutableOwnerArray.m in Sources */,
+				C7FF11C4BE3177A2A36EB2DD /* TestObjectAdditions.m in Sources */,
+				AA07D7300F1C7925535D1A87 /* TestObjectWithProperties.m in Sources */,
+				A808CC614B680B0713834636 /* TestOutlineViewAdditions.m in Sources */,
+				5AD999452E5184F55F8D92D5 /* TestPathUtilities.m in Sources */,
+				7EB6FF783A4D93C61F9B9CB2 /* TestPopUpButtonAdditions.m in Sources */,
+				EA6D6ABCB404F011B5FBFF7D /* TestProxyListObject.m in Sources */,
+				B16E0EAA94E2B5361C5CBF1A /* TestScannerAdditions.m in Sources */,
+				F299E2408B4331E11CDCA433 /* TestScrollViewAdditions.m in Sources */,
+				4A57EE91478A626BBA381932 /* TestService.m in Sources */,
+				1C06F2979A0E5969D301B9DB /* TestServiceIcons.m in Sources */,
+				5D223A62BEA3A63ED5D98673 /* TestSortController.m in Sources */,
+				AA57A3465CBD4A51D7063045 /* TestSoundSet.m in Sources */,
+				05DA82604B627012A185CBD2 /* TestStatus.m in Sources */,
+				6C9759D07D0A10C3007ADEB1 /* TestStatusGroup.m in Sources */,
+				19C465A9181E9F64A6CD2068 /* TestStatusIcons.m in Sources */,
+				CAECEA7834EE71B5083A48A4 /* TestStringBidi.m in Sources */,
+				42E8BEC454419C45CEA05D2F /* TestStringFormatter.m in Sources */,
+				E3BCD19CD4E4CAA312E3C759 /* TestTableViewAdditions.m in Sources */,
+				872A295ACB20E211EF0A130D /* TestTextAttachmentAdditions.m in Sources */,
+				28839045E79D22EE91055903 /* TestTextAttachmentExtension.m in Sources */,
+				E1EDF3B50AE02E00C83174C7 /* TestTextAttributes.m in Sources */,
+				92B3958F38770AE0AD6321A3 /* TestToolbarUtilities.m in Sources */,
+				905033AA06A2655388F02D94 /* TestURLAdditions.m in Sources */,
+				ABB95F9F70D6EC71679FBECC /* TestViewAdditions.m in Sources */,
+				BC87E000C617374C937E576A /* TestWindowAdditions.m in Sources */,
+				98ED0A2F06D910889F40EA9B /* TestXMLElement.m in Sources */,
+				CE1BBFD094DC6CB8148A0586 /* TestXtraInfo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7629,6 +7915,21 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			isa = PBXTargetDependency;
 			target = 3485D67F09EB416300232CC4 /* AdiumLibpurple */;
 			targetProxy = 639DF9E20F97E687003C9A32 /* PBXContainerItemProxy */;
+		};
+		A1624FCC1122FA94E63D6EBD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34BD9DAF05314751000AB133 /* Adium.Framework */;
+			targetProxy = ED38DFBAE43E9D34F1417346 /* PBXContainerItemProxy */;
+		};
+		33C73E72BA3C2579E744F568 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "AutoHyperlinks.framework";
+			targetProxy = BA225F85C80804158E6E9901 /* PBXContainerItemProxy */;
+		};
+		09D959389C74482CD1514D48 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "MMTabBarView";
+			targetProxy = 2A5E06FBE7E226CC6C69BCE3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

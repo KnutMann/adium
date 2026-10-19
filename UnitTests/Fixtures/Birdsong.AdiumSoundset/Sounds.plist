@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AdiumSetVersion</key>
+	<integer>1</integer>
+	<key>Info</key>
+	<string>Created by Jay Bird.
+
+Bird calls for every event.
+
+http://example.invalid/birdsong
+</string>
+	<key>Sounds</key>
+	<dict>
+		<key>Contact Signed On</key>
+		<string>Missing.aif</string>
+		<key>Message Received</key>
+		<string>Chirp.aif</string>
+	</dict>
+</dict>
+</plist>

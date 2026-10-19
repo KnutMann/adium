@@ -37,4 +37,126 @@
 								   @"After making the string longer, modifications no longer took into account the full length");
 }
 
+- (void)testMutableStringReturnsTheReceiver
+{
+	NSMutableString *string = [NSMutableString stringWithString:@"x"];
+	XCTAssertTrue([string mutableString] == string);
+}
+
+#pragma mark Replacing
+
+- (void)testReplaceOccurrencesReturnsHowManyWereReplaced
+{
+	NSMutableString *string = [NSMutableString stringWithString:@"a-b-c"];
+	XCTAssertEqual([string replaceOccurrencesOfString:@"-" withString:@"+" options:NSLiteralSearch], (NSUInteger)2);
+	XCTAssertEqualObjects(string, @"a+b+c");
+}
+
+- (void)testReplaceOccurrencesOfAnAbsentStringChangesNothing
+{
+	NSMutableString *string = [NSMutableString stringWithString:@"abc"];
+	XCTAssertEqual([string replaceOccurrencesOfString:@"x" withString:@"y" options:NSLiteralSearch], (NSUInteger)0);
+	XCTAssertEqualObjects(string, @"abc");
+}
+
+- (void)testReplaceOccurrencesHonoursTheOptions
+{
+	NSMutableString *string = [NSMutableString stringWithString:@"Ab ab AB"];
+	XCTAssertEqual([string replaceOccurrencesOfString:@"ab" withString:@"x" options:NSCaseInsensitiveSearch], (NSUInteger)3);
+	XCTAssertEqualObjects(string, @"x x x");
+}
+
+- (void)testReplaceOccurrencesWithAShorterStringCoversTheWholeString
+{
+	NSMutableString *string = [NSMutableString stringWithString:@"aaaa"];
+	XCTAssertEqual([string replaceOccurrencesOfString:@"aa" withString:@"a" options:NSLiteralSearch], (NSUInteger)2);
+	XCTAssertEqualObjects(string, @"aa");
+}
+
+- (void)testReplaceOccurrencesOnTheEmptyString
+{
+	NSMutableString *string = [NSMutableString string];
+	XCTAssertEqual([string replaceOccurrencesOfString:@"a" withString:@"b" options:NSLiteralSearch], (NSUInteger)0);
+	XCTAssertEqualObjects(string, @"");
+}
+
+#pragma mark Newlines to slashes
+
+- (NSString *)slashed:(NSString *)input
+{
+	NSMutableString *string = [input mutableCopy];
+	[string convertNewlinesToSlashes];
+	return string;
+}
+
+- (void)testLineFeedBecomesASlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\nb"], @"a / b");
+}
+
+- (void)testCarriageReturnBecomesASlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\rb"], @"a / b");
+}
+
+- (void)testCRLFBecomesOneSlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\r\nb"], @"a / b");
+}
+
+- (void)testRepeatedLineFeedsBecomeOneSlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\n\n\nb"], @"a / b");
+}
+
+- (void)testRepeatedCarriageReturnsBecomeOneSlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\r\rb"], @"a / b");
+}
+
+- (void)testRepeatedCRLFsBecomeOneSlash
+{
+	XCTExpectFailure(@"AIMutableStringAdditions.m:62 folds CRLF into LF only after :55 has already folded repeated LFs, so a blank line between CRLF lines becomes two slashes");
+	XCTAssertEqualObjects([self slashed:@"a\r\n\r\nb"], @"a / b");
+}
+
+- (void)testEveryLineGetsASlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\nb\nc"], @"a / b / c");
+}
+
+- (void)testTrailingLineBreakLeavesATrailingSlash
+{
+	XCTAssertEqualObjects([self slashed:@"a\n"], @"a / ");
+}
+
+- (void)testStringWithoutLineBreaksIsUnchanged
+{
+	XCTAssertEqualObjects([self slashed:@"no breaks here"], @"no breaks here");
+	XCTAssertEqualObjects([self slashed:@""], @"");
+}
+
+#pragma mark ASCII files
+
+- (void)testStringWithContentsOfASCIIFileReadsAMutableString
+{
+	NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"TestMutableStringAdditions-%@.txt", [[NSUUID UUID] UUIDString]]];
+	XCTAssertTrue([[NSData dataWithBytes:"plain ascii" length:11] writeToFile:path atomically:YES]);
+
+	NSMutableString *string = [NSMutableString stringWithContentsOfASCIIFile:path];
+	XCTAssertEqualObjects(string, @"plain ascii");
+	XCTAssertTrue([string isKindOfClass:[NSMutableString class]]);
+	[string appendString:@"!"];
+	XCTAssertEqualObjects(string, @"plain ascii!");
+
+	[[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
+}
+
+- (void)testStringWithContentsOfAMissingASCIIFileIsNil
+{
+	XCTExpectFailure(@"AIMutableStringAdditions.m:23 hands the nil data of a missing file to -initWithData:encoding:, which yields an empty string; the UTF-8 sibling in AIStringAdditions answers nil");
+	NSString *missing = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"TestMutableStringAdditions-missing-%@", [[NSUUID UUID] UUIDString]]];
+	XCTAssertNil([NSMutableString stringWithContentsOfASCIIFile:missing]);
+}
+
 @end

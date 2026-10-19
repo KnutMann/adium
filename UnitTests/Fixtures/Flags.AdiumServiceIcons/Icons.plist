@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AdiumSetVersion</key>
+	<integer>1</integer>
+	<key>Interface-Large</key>
+	<dict>
+		<key>Bonjour</key>
+		<string>bonjour.png</string>
+		<key>IRC</key>
+		<string>irc.png</string>
+		<key>Jabber</key>
+		<string>jabber.png</string>
+		<key>Telegram</key>
+		<string>telegram.png</string>
+		<key>WhatsApp</key>
+		<string>whatsapp.png</string>
+	</dict>
+	<key>Interface-Small</key>
+	<dict>
+		<key>Bonjour</key>
+		<string>bonjour-small.png</string>
+		<key>IRC</key>
+		<string>irc-small.png</string>
+		<key>Jabber</key>
+		<string>jabber-small.png</string>
+		<key>Telegram</key>
+		<string>telegram-small.png</string>
+		<key>WhatsApp</key>
+		<string>whatsapp-small.png</string>
+	</dict>
+	<key>List</key>
+	<dict>
+		<key>Bonjour</key>
+		<string>bonjour-small.png</string>
+		<key>IRC</key>
+		<string>irc-small.png</string>
+		<key>Jabber</key>
+		<string>jabber-small.png</string>
+		<key>Telegram</key>
+		<string>telegram-small.png</string>
+		<key>WhatsApp</key>
+		<string>whatsapp-small.png</string>
+	</dict>
+</dict>
+</plist>
