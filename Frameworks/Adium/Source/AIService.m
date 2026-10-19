@@ -365,6 +365,25 @@
 	return NO;
 }
 
+/*!
+ * @brief Supports password
+ *
+ * Subclasses return NO if the service does not use passwords for connectivity at all. If NO,
+ * every password field is hidden for the service, the account never fetches a password from
+ * the keychain before connecting, and the user is never prompted for one by Adium itself.
+ *
+ * This default was lost on 22 September 2026, when the proxy method that stood above it was
+ * removed and this one went with it. The property is readonly and was then synthesised with
+ * nothing setting its ivar, so every service that did not override it answered NO: the
+ * account card hid the password row, and the account connected without fetching its
+ * password, which left libpurple to ask for it at every launch. A unit test now pins the
+ * default.
+ */
+- (BOOL)supportsPassword
+{
+	return YES;
+}
+
 - (BOOL)userNamesArePhoneNumbers
 {
 	return NO;
