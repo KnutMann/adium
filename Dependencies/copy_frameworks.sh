@@ -37,6 +37,16 @@ if compgen -G "$ROOTDIR/Frameworks/dylibs/*.dylib" > /dev/null; then
 	cp -f "$ROOTDIR"/Frameworks/dylibs/*.dylib "$ADIUM/Frameworks/"
 fi
 
+# OpenSSL's headers travel with its two dylibs: AdiumLibpurple and picomemo compile against
+# them and have to see the release they will link, so they are checked in beside the
+# libraries rather than taken from whatever OpenSSL a machine happens to have.
+if [ -d "$ROOTDIR/build/include/openssl" ]; then
+	echo "Copying the OpenSSL headers"
+	rm -rf "$ADIUM/Frameworks/openssl/include/openssl"
+	mkdir -p "$ADIUM/Frameworks/openssl/include"
+	cp -Rf "$ROOTDIR/build/include/openssl" "$ADIUM/Frameworks/openssl/include/"
+fi
+
 # There used to be three rm lines here for libgstreamer plug-ins that "cause problems in
 # gst_init". Nothing has built gstreamer since the video and voice phase was commented
 # out, so under -eu those lines removed files that were not there and stopped the script

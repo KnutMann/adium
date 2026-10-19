@@ -10,15 +10,14 @@ HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_libgthread = "$(SRCROOT)/Frameworks/libgth
 HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_picomemo = "$(SRCROOT)/Dependencies/picomemo/picomemo/gen"
 // OpenSSL's own headers, for the AES-GCM that encrypted file sharing (XEP-0454) needs.
 // They have to be the headers of the library named at the end of OTHER_LDFLAGS below,
-// Frameworks/libcrypto.3.dylib, which Dependencies/phases/build_openssl.sh builds and
-// installs into Dependencies/build. That one is pinned to OpenSSL's long term support
-// branch while Homebrew tracks the newest one, so compiling here against Homebrew and
-// linking there against ours is how the two drift apart - and what drift produces is not
-// a compiler error, it is a symbol that is missing when the application starts. Our own
-// prefix therefore comes first.
-// The two Homebrew layouts stay behind it so that a checkout which has not built the
-// dependencies yet still compiles; a search path that does not exist is simply ignored.
-HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "$(SRCROOT)/Dependencies/build/include" "/opt/homebrew/opt/openssl@3/include" "/usr/local/opt/openssl@3/include"
+// Frameworks/libcrypto.3.dylib, and they are checked in beside it: Dependencies/phases/
+// build_openssl.sh builds both from a pinned release of OpenSSL's long term support branch
+// and Dependencies/copy_frameworks.sh places them. Homebrew used to stand behind this path
+// as a fallback for a checkout that had not built the dependencies, and that was the trap:
+// it tracks the newest branch, so such a checkout compiled against 3.6.4 headers over a
+// 3.5.9 library. What drift produces is not a compiler error, it is a symbol that is missing
+// when the application starts. So there is one path, and it is ours.
+HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_openssl = "$(SRCROOT)/Frameworks/openssl/include"
 LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "$(SDKROOT)/usr/lib"
 PRODUCT_NAME = AdiumLibpurple
 SKIP_INSTALL = YES

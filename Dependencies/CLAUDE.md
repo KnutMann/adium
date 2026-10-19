@@ -3,9 +3,11 @@
 What Adium links against beyond macOS, and how it got there. Three kinds of
 thing, and the distinction is the whole point of this folder.
 
-Checked in: the prebuilt arm64 frameworks and dylibs under Frameworks/ and
-the protocol plug-ins under PurplePlugins/. A fresh clone builds without ever
-running anything here.
+Checked in: the prebuilt arm64 frameworks and dylibs under Frameworks/, the
+OpenSSL headers under Frameworks/openssl/include because picomemo and the OMEMO
+media code compile against the release they link, and the protocol plug-ins
+under PurplePlugins/. A fresh clone builds without ever running anything here,
+and takes nothing from Homebrew while doing so.
 
 Fetched, by fetch.sh, which install.sh runs before every build: the
 MMTabBarView submodule; webrtc/fetch-webrtc.sh, a prebuilt WebRTC.xcframework
