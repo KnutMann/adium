@@ -84,7 +84,7 @@
  *	@par	This method does not adjust the saturation of the receiver. For a method that does, see <code>darkenAndAdjustSaturationBy:</code>.
  *
  *	@param	amount The amount (greater than 0.0 and at most 1.0) to subtract from the receiver's brightness.
- *	@return	A new, darker color, in the calibrated-RGB color space.
+ *	@return	A new, darker color, in the sRGB color space.
  */
 - (NSColor *)darkenBy:(CGFloat)amount;
 /*!	@brief	Returns a new color, darker than the receiver and more saturated, both by a single fixed amount.
@@ -96,7 +96,7 @@
  *	@par	You would use this method when you want to darken a color while preserving the “color” apparent to the user. The usual reason to do this is to create two ends of a gradient from a single input color.
  *
  *	@param	amount The amount (greater than 0.0 and at most 1.0) to subtract from the receiver's brightness and add to the receiver's saturation.
- *	@return	A new, darker, more saturated color, in the calibrated-RGB color space.
+ *	@return	A new, darker, more saturated color, in the sRGB color space.
  */
 - (NSColor *)darkenAndAdjustSaturationBy:(CGFloat)amount;
 /*!	@brief	Inverts a color's brightness without affecting the hue.
@@ -105,7 +105,7 @@
  *
  *	@par	This method, on the other hand, inverts the brightness of a color without moving it across the color wheel. For example, dark orange becomes light orange, and vice versa.
  *
- *	@return	The inverted color, in the calibrated-RGB color space.
+ *	@return	The inverted color, in the sRGB color space.
  */
 - (NSColor *)colorWithInvertedLuminance;
 /*!	@brief	Returns a color that contrasts well with the receiver.
@@ -156,7 +156,7 @@ void getRGBFromHueLuminanceSaturation(CGFloat *r, CGFloat *g, CGFloat *b, CGFloa
  *	@param	dHue	The hue delta.
  *	@param	dSat	The saturation delta.
  *	@param	dBrit	The brightness delta.
- *	@return	The adjusted color, in the calibrated-RGB color space.
+ *	@return	The adjusted color, in the sRGB color space.
  */
 - (NSColor *)adjustHue:(CGFloat)dHue saturation:(CGFloat)dSat brightness:(CGFloat)dBrit;
 
@@ -229,7 +229,7 @@ char intToHex(NSInteger digit);
  *
  *	@par	To create a string suitable for sending this message to, call <code>-[NSColor(AIColorAdditions) stringRepresentation].
  *
- *	@return	A color in the calibrated RGB color space, or \c nil.
+ *	@return	A color in the sRGB color space, or \c nil.
  */
 - (NSColor *)representedColor;
 /*!	@brief	Interprets a series of three or four decimal numbers as an RGB color, and overrides the alpha component.
@@ -244,7 +244,7 @@ char intToHex(NSInteger digit);
  *
  *	@par	To create a string suitable for sending this message to, call <code>-[NSColor(AIColorAdditions) stringRepresentation].
  *
- *	@return	A color in the calibrated-RGB color space, or \c nil.
+ *	@return	A color in the sRGB color space, or \c nil.
  */
 - (NSColor *)representedColorWithAlpha:(CGFloat)alpha;
 
@@ -258,7 +258,7 @@ char intToHex(NSInteger digit);
  *
  *	@par	If you want the alpha to be random as well, use <code>+randomColorWithAlpha</code> instead.
  *
- *	@return	A random color in the calibrated-RGB color space.
+ *	@return	A random color in the sRGB color space.
  */
 + (NSColor *)randomColor;
 /*!	@brief	Return a color with random red, green, blue, and alpha.
@@ -267,7 +267,7 @@ char intToHex(NSInteger digit);
  *
  *	@par	If you want the alpha to always be 1 as well, use <code>+randomColor</code> instead. You can change the alpha to another static value using <code>-[NSColor colorWithAlphaComponent:]</code>.
  *
- *	@return	A random color in the calibrated-RGB color space.
+ *	@return	A random color in the sRGB color space.
  */
 + (NSColor *)randomColorWithAlpha;
 
@@ -286,7 +286,7 @@ char intToHex(NSInteger digit);
  *	@par	This method does not support CSS' <code>rgba()</code> function; therefore, we do not recommend using it as the inverse of <code>-CSSRepresentation</code>.
  *
  *	@param	str	The string to interpret as an HTML color literal.
- *	@return	A color in the calibrated-RGB color space, or \c nil.
+ *	@return	A color in the sRGB color space, or \c nil.
  */
 + (id)colorWithHTMLString:(NSString *)str;
 /*!	@brief	Interpret an HTML color literal, with a specific fallback in case of a syntax error.
@@ -299,7 +299,7 @@ char intToHex(NSInteger digit);
  *
  *	@par	This method does not support CSS' <code>rgba()</code> function; therefore, we do not recommend using it as the inverse of <code>-CSSRepresentation</code>.
  *
- *	@par	If it creates the color from the input string, this method will use the calibrated-RGB color space. If, instead, it returns \a defaultColor, it will not convert it to the calibrated-RGB color space for you: you will get back whatever you passed in.
+ *	@par	If it creates the color from the input string, this method will use the sRGB color space. If, instead, it returns \a defaultColor, it will not convert it to the sRGB color space for you: you will get back whatever you passed in.
  *
  *	@param	str	The string to interpret as an HTML color literal.
  *	@param	defaultColor	The color to return if \a str is invalid. May be \c nil.

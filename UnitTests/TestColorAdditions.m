@@ -32,35 +32,35 @@
 #pragma mark -equalToRGBColor:
 - (void)testCompareEqualColors
 {
-	NSColor *colorA = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
-	NSColor *colorB = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorA = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorB = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
 	XCTAssertTrue([colorA equalToRGBColor:colorB], @"Two colors with equal R, G, B, and A must compare equal");
 }
 - (void)testCompareColorsInequalInRed
 {
-	NSColor *colorA = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
-	NSColor *colorB = [NSColor colorWithCalibratedRed:0.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorA = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorB = [NSColor colorWithSRGBRed:0.0f green:1.0f blue:1.0f alpha:1.0f];
 	//                                                ^ The difference
 	XCTAssertFalse([colorA equalToRGBColor:colorB], @"Two colors with inequal R must compare equal");
 }
 - (void)testCompareColorsInequalInGreen
 {
-	NSColor *colorA = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
-	NSColor *colorB = [NSColor colorWithCalibratedRed:1.0f green:0.0f blue:1.0f alpha:1.0f];
+	NSColor *colorA = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorB = [NSColor colorWithSRGBRed:1.0f green:0.0f blue:1.0f alpha:1.0f];
 	//                                                          ^ The difference
 	XCTAssertFalse([colorA equalToRGBColor:colorB], @"Two colors with inequal G must compare equal");
 }
 - (void)testCompareColorsInequalInBlue
 {
-	NSColor *colorA = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
-	NSColor *colorB = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:0.0f alpha:1.0f];
+	NSColor *colorA = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorB = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:0.0f alpha:1.0f];
 	//                                                                   ^ The difference
 	XCTAssertFalse([colorA equalToRGBColor:colorB], @"Two colors with inequal B must compare equal");
 }
 - (void)testCompareColorsInequalInAlpha
 {
-	NSColor *colorA = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
-	NSColor *colorB = [NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:0.0f];
+	NSColor *colorA = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
+	NSColor *colorB = [NSColor colorWithSRGBRed:1.0f green:1.0f blue:1.0f alpha:0.0f];
 	//                                                                             ^ The difference
 	XCTAssertFalse([colorA equalToRGBColor:colorB], @"Two colors with inequal A must compare equal");
 }
@@ -113,7 +113,7 @@
 }
 - (void)testDarkenAndSaturatePink
 {
-	NSColor *pink = [NSColor colorWithCalibratedHue:0.0f
+	NSColor *pink = [NSColor colorWithColorSpace:[NSColorSpace sRGBColorSpace] hue:0.0f
 										 saturation:0.5f //This is what makes it pink, rather than red.
 										 brightness:1.0f
 											  alpha:1.0f];

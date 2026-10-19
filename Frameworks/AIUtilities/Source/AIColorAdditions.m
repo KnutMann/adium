@@ -109,7 +109,7 @@ static NSString *defaultRGBTxtLocation2 = @"etc/rgb.txt";
 					.length   = (&ch[i]) - state.nameStart,
 				};
 				NSString *name = [NSString stringWithData:[data subdataWithRange:range] encoding:NSUTF8StringEncoding];
-				NSColor *color = [NSColor colorWithCalibratedRed:state.red
+				NSColor *color = [NSColor colorWithSRGBRed:state.red
 														   green:state.green
 															blue:state.blue
 														   alpha:1.0f];
@@ -197,13 +197,17 @@ end:
 
 @end
 
+/* Every conversion in this file, and every colour it makes, is in sRGB. The system colours
+ * are sRGB, a colour well hands back what the display profile says, and a CSS colour is sRGB
+ * by definition. Generic RGB, which is what "calibrated" means, was the one frame nothing
+ * else used: red went through it and came out as #fb0006. */
 @implementation NSColor (AIColorAdditions_Comparison)
 
 //Returns YES if the colors are equal
 - (BOOL)equalToRGBColor:(NSColor *)inColor
 {
-    NSColor	*convertedA = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
-    NSColor	*convertedB = [inColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+    NSColor	*convertedA = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+    NSColor	*convertedB = [inColor colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
     
     return (([convertedA redComponent]   == [convertedB redComponent])   &&
             ([convertedA blueComponent]  == [convertedB blueComponent])  &&
@@ -218,21 +222,21 @@ end:
 //Returns YES if this color is dark
 - (BOOL)colorIsDark
 {
-    return ([[self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]] brightnessComponent] < 0.5f);
+    return ([[self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]] brightnessComponent] < 0.5f);
 }
 
 - (BOOL)colorIsMedium
 {
-	CGFloat brightness = [[self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]] brightnessComponent];
+	CGFloat brightness = [[self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]] brightnessComponent];
 	return (0.35f < brightness && brightness < 0.65f);
 }
 
 //Percent should be -1.0 to 1.0 (negatives will make the color brighter)
 - (NSColor *)darkenBy:(CGFloat)amount
 {
-    NSColor	*convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+    NSColor	*convertedColor = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
     
-    return [NSColor colorWithCalibratedHue:[convertedColor hueComponent]
+    return [NSColor colorWithColorSpace:[NSColorSpace sRGBColorSpace] hue:[convertedColor hueComponent]
                                 saturation:[convertedColor saturationComponent]
                                 brightness:([convertedColor brightnessComponent] - amount)
                                      alpha:[convertedColor alphaComponent]];
@@ -240,9 +244,9 @@ end:
 
 - (NSColor *)darkenAndAdjustSaturationBy:(CGFloat)amount
 {
-    NSColor	*convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+    NSColor	*convertedColor = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
     
-    return [NSColor colorWithCalibratedHue:[convertedColor hueComponent]
+    return [NSColor colorWithColorSpace:[NSColorSpace sRGBColorSpace] hue:[convertedColor hueComponent]
                                 saturation:(([convertedColor saturationComponent] == 0.0f) ? [convertedColor saturationComponent] : ([convertedColor saturationComponent] + amount))
                                 brightness:([convertedColor brightnessComponent] - amount)
                                      alpha:[convertedColor alphaComponent]];
@@ -253,7 +257,7 @@ end:
 {
     CGFloat h,l,s;
 
-	NSColor *convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+	NSColor *convertedColor = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
 
     //Get our HLS
     [convertedColor getHue:&h saturation:&s brightness:&l alpha:NULL];
@@ -262,7 +266,7 @@ end:
     l = 1.0f - l;
 
     //Return the new color
-    return [NSColor colorWithCalibratedHue:h saturation:s brightness:l alpha:1.0f];
+    return [NSColor colorWithColorSpace:[NSColorSpace sRGBColorSpace] hue:h saturation:s brightness:l alpha:1.0f];
 }
 
 //Returns a color that contrasts well with this one
@@ -275,8 +279,8 @@ end:
 			return [NSColor blackColor];
 
 	} else {
-		NSColor *rgbColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
-		return [NSColor colorWithCalibratedRed:(1.0f - [rgbColor redComponent])
+		NSColor *rgbColor = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+		return [NSColor colorWithSRGBRed:(1.0f - [rgbColor redComponent])
 										 green:(1.0f - [rgbColor greenComponent])
 										  blue:(1.0f - [rgbColor blueComponent])
 										 alpha:1.0f];
@@ -293,7 +297,7 @@ end:
 {
     CGFloat hue, sat, brit, alpha;
     
-    [self getHue:&hue saturation:&sat brightness:&brit alpha:&alpha];
+    [[self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]] getHue:&hue saturation:&sat brightness:&brit alpha:&alpha];
 
 	//For some reason, redColor's hue is 1.0f, not 0.0f, as of Mac OS X 10.4.10 and 10.5.2. Therefore, we must normalize any multiple of 1.0 to 0.0. We do this by taking the remainder of hue ÷ 1.
 	hue = AIfmod(hue, 1.0f);
@@ -305,7 +309,7 @@ end:
     brit += dBrit;
     cap(brit);
     
-    return [NSColor colorWithCalibratedHue:hue saturation:sat brightness:brit alpha:alpha];
+    return [NSColor colorWithColorSpace:[NSColorSpace sRGBColorSpace] hue:hue saturation:sat brightness:brit alpha:alpha];
 }
 
 @end
@@ -319,7 +323,7 @@ end:
     NSInteger		tempNum;
     NSColor	*convertedColor;
 
-    convertedColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+    convertedColor = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
     [convertedColor getRed:&red green:&green blue:&blue alpha:NULL];
     
     tempNum = (red * 255.0f);
@@ -341,7 +345,7 @@ end:
 //String representation: R,G,B[,A].
 - (NSString *)stringRepresentation
 {
-    NSColor	*tempColor = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+    NSColor	*tempColor = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
 	CGFloat alphaComponent = [tempColor alphaComponent];
 
 	if (alphaComponent == 1.0) {
@@ -363,7 +367,7 @@ end:
 {
 	CGFloat alpha = [self alphaComponent];
 	if ((1.0 - alpha) >= 0.000001) {
-		NSColor *rgb = [self colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
+		NSColor *rgb = [self colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
 		//CSS3 defines rgba() to take 0..255 for the color components, but 0..1 for the alpha component. Thus, we must multiply by 255 for the color components, but not for the alpha component.
 		return [NSString stringWithFormat:@"rgba(%@,%@,%@,%@)",
 			[NSString stringWithCGFloat:[rgb redComponent]   * 255.0f maxDigits:6],
@@ -410,7 +414,7 @@ end:
 		goto scanFailed;
 	}
 
-    return [NSColor colorWithCalibratedRed:(r/255) green:(g/255) blue:(b/255) alpha:(a/255)] ;
+    return [NSColor colorWithSRGBRed:(r/255) green:(g/255) blue:(b/255) alpha:(a/255)] ;
 scanFailed:
 	return nil;
 }
@@ -440,7 +444,7 @@ scanFailed:
 	if (!isdigit(*selfUTF8)) goto scanFailed;
 	b = strtoul(selfUTF8, (char **)&selfUTF8, /*base*/ 10);
 
-    return [NSColor colorWithCalibratedRed:(r/255) green:(g/255) blue:(b/255) alpha:alpha];
+    return [NSColor colorWithSRGBRed:(r/255) green:(g/255) blue:(b/255) alpha:alpha];
 scanFailed:
 	return nil;
 }
@@ -451,14 +455,14 @@ scanFailed:
 
 + (NSColor *)randomColor
 {
-	return [NSColor colorWithCalibratedRed:(arc4random() % 65536) / 65536.0f
+	return [NSColor colorWithSRGBRed:(arc4random() % 65536) / 65536.0f
 	                                 green:(arc4random() % 65536) / 65536.0f
 	                                  blue:(arc4random() % 65536) / 65536.0f
 	                                 alpha:1.0f];
 }
 + (NSColor *)randomColorWithAlpha
 {
-	return [NSColor colorWithCalibratedRed:(arc4random() % 65536) / 65536.0f
+	return [NSColor colorWithSRGBRed:(arc4random() % 65536) / 65536.0f
 	                                 green:(arc4random() % 65536) / 65536.0f
 	                                  blue:(arc4random() % 65536) / 65536.0f
 	                                 alpha:(arc4random() % 65536) / 65536.0f];
@@ -504,6 +508,16 @@ static CGFloat hexCharsToFloat(char firstChar, char secondChar)
 	return hexValue;
 }
 
+/* A CSS colour function gives its three channels as 0 to 255 or as percentages, and only the
+ * alpha as 0 to 1. The raw numbers used to go straight to NSColor, which clamped them, so any
+ * channel that was not 0 came out as full: rgb(128, 0, 0) was red, not maroon. */
+static float AIColorChannelFromCSSComponent(NSString *component)
+{
+	NSString *trimmed = [component stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	if ([trimmed hasSuffix:@"%"]) return [trimmed floatValue] / 100.0f;
+	return [trimmed floatValue] / 255.0f;
+}
+
 + (id)colorWithHTMLString:(NSString *)str defaultColor:(NSColor *)defaultColor
 {
 	if (!str) return defaultColor;
@@ -529,12 +543,12 @@ static CGFloat hexCharsToFloat(char firstChar, char secondChar)
 			return defaultColor;
 		}
 		float red, green, blue, alpha = 1.0f;
-		red = [[colorComponents objectAtIndex:0] floatValue];
-		green = [[colorComponents objectAtIndex:1] floatValue];
-		blue = [[colorComponents objectAtIndex:2] floatValue];
+		red = AIColorChannelFromCSSComponent([colorComponents objectAtIndex:0]);
+		green = AIColorChannelFromCSSComponent([colorComponents objectAtIndex:1]);
+		blue = AIColorChannelFromCSSComponent([colorComponents objectAtIndex:2]);
 		if ([colorComponents count] == 4)
 			alpha = [[colorComponents objectAtIndex:3] floatValue];
-		return [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:alpha];
+		return [NSColor colorWithSRGBRed:red green:green blue:blue alpha:alpha];
 	}
 	
 	if ((!strLength) || ([str characterAtIndex:0] != '#')) {
@@ -611,7 +625,7 @@ static CGFloat hexCharsToFloat(char firstChar, char secondChar)
 		alpha = hexCharsToFloat(firstChar, secondChar);
 	}
 
-	return [self colorWithCalibratedRed:red green:green blue:blue alpha:alpha];
+	return [self colorWithSRGBRed:red green:green blue:blue alpha:alpha];
 }
 
 @end

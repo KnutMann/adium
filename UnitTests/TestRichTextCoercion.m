@@ -269,6 +269,12 @@
 #warning Implement me
 }
 - (void)testPlainTextToRichTextInAppleScript {
+	/* AppleScript resolves "rich text" against the host application's dictionary, which the
+	 * script suite registry only serves on behalf of a running application. Under xcrun xctest
+	 * there is no host, the term is unknown, and the script does not even compile. */
+	XCTSkipUnless([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.adiumX.adiumX"],
+	              @"needs Adium's own process to know the AppleScript term \"rich text\"");
+
 	NSString *source = 
 		@"\"Ducks eat for free at Subway!\" as rich text"
 		;
