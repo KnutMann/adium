@@ -514,8 +514,8 @@ static CGFloat hexCharsToFloat(char firstChar, char secondChar)
 static float AIColorChannelFromCSSComponent(NSString *component)
 {
 	NSString *trimmed = [component stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-	if ([trimmed hasSuffix:@"%"]) return [trimmed floatValue] / 100.0f;
-	return [trimmed floatValue] / 255.0f;
+	float channel = [trimmed hasSuffix:@"%"] ? [trimmed floatValue] / 100.0f : [trimmed floatValue] / 255.0f;
+	return MIN(MAX(channel, 0.0f), 1.0f); // CSS clips a channel outside the gamut rather than refusing it
 }
 
 + (id)colorWithHTMLString:(NSString *)str defaultColor:(NSColor *)defaultColor
@@ -562,6 +562,10 @@ static float AIColorChannelFromCSSComponent(NSString *component)
 #endif
 			return defaultColor;
 		}
+		/* The table holds the colours themselves. The code below used to go on and read the
+		 * name as hexadecimal digits, so "red" came out as #00eedd and no name ever worked. */
+		if ([colorValue isKindOfClass:[NSColor class]])
+			return colorValue;
 	}
 
 	//we need room for at least 9 characters (#00ff00ff) plus the NUL terminator.
