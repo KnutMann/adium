@@ -150,4 +150,16 @@
 		[self message]];
 }
 
+/*!
+ * @brief The message as plain text
+ *
+ * Declared in the header since the Adium 1.x days with no getter behind it, so the synthesised
+ * one returned an ivar nothing set, and AIChat's scripting support printed (null) for every
+ * message. The plain string of the message is what every caller wanted.
+ */
+- (NSString *)messageString
+{
+	return [self.message string];
+}
+
 @end
