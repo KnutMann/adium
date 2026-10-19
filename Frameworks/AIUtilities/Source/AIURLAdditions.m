@@ -26,10 +26,12 @@
 - (NSString *)queryArgumentForKey:(NSString *)key withDelimiter:(NSString *)delimiter
 {
 	for (NSString *obj in [[self query] componentsSeparatedByString:delimiter]) {
-		NSArray *keyAndValue = [obj componentsSeparatedByString:@"="];
-		
-		if (([keyAndValue count] >= 2) && ([[keyAndValue objectAtIndex:0] caseInsensitiveCompare:key] == NSOrderedSame)) {
-			return [keyAndValue objectAtIndex:1];
+		//Only the first '=' divides key from value; the value keeps any further ones (base64 padding, a nested pair).
+		//The key is matched exactly, as the header says; keys in a query string are case-sensitive.
+		NSRange equals = [obj rangeOfString:@"="];
+
+		if ((equals.location != NSNotFound) && [[obj substringToIndex:equals.location] isEqualToString:key]) {
+			return [obj substringFromIndex:NSMaxRange(equals)];
 		}
 	}
 	

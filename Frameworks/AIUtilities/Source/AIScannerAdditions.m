@@ -35,26 +35,30 @@
 	[string getCharacters:buf range:range];
 
 	unsigned i = 0;
+	BOOL scanned = NO;
 
 	if (length && (buf[i] == '+')) {
 		++i;
 	}
-	if (i >= length) return NO;
-	if ((buf[i] < '0') || (buf[i] > '9')) return NO;
-
-	unsigned total = 0;
-	while (i < length) {
-		if ((buf[i] >= '0') && (buf[i] <= '9')) {
-			total *= 10;
-			total += buf[i] - '0';
-			++i;
-		} else {
-			break;
+	if ((i < length) && (buf[i] >= '0') && (buf[i] <= '9')) {
+		unsigned total = 0;
+		while (i < length) {
+			if ((buf[i] >= '0') && (buf[i] <= '9')) {
+				total *= 10;
+				total += buf[i] - '0';
+				++i;
+			} else {
+				break;
+			}
 		}
+		//The buffer begins at the old scan location, so i counts from there and not from the start of the string
+		[self setScanLocation:range.location + i];
+		*unsignedIntValue = total;
+		scanned = YES;
 	}
-	[self setScanLocation:i];
-	*unsignedIntValue = total;
-	return YES;
+
+	free(buf);
+	return scanned;
 }
 
 @end

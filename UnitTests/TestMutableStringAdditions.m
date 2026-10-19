@@ -116,7 +116,6 @@
 
 - (void)testRepeatedCRLFsBecomeOneSlash
 {
-	XCTExpectFailure(@"AIMutableStringAdditions.m:62 folds CRLF into LF only after :55 has already folded repeated LFs, so a blank line between CRLF lines becomes two slashes");
 	XCTAssertEqualObjects([self slashed:@"a\r\n\r\nb"], @"a / b");
 }
 
@@ -154,7 +153,6 @@
 
 - (void)testStringWithContentsOfAMissingASCIIFileIsNil
 {
-	XCTExpectFailure(@"AIMutableStringAdditions.m:23 hands the nil data of a missing file to -initWithData:encoding:, which yields an empty string; the UTF-8 sibling in AIStringAdditions answers nil");
 	NSString *missing = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"TestMutableStringAdditions-missing-%@", [[NSUUID UUID] UUIDString]]];
 	XCTAssertNil([NSMutableString stringWithContentsOfASCIIFile:missing]);
 }

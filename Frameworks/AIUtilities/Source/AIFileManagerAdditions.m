@@ -26,8 +26,9 @@
 {
     NSParameterAssert(sourcePath != nil && [sourcePath length] != 0);
 
-	BOOL status = NO;
-	
+	//A path with nothing at it is already as trashed as it gets, and the header counts that as success
+	BOOL status = YES;
+
 	if ([self fileExistsAtPath:sourcePath]) {
 		/* Callers read the answer, so the move has to have happened by the time this returns:
 		 * -[NSFileManager trashItemAtURL:...] is the synchronous replacement for the retired
@@ -46,10 +47,11 @@
 {	
 	dirPath = [dirPath stringByExpandingTildeInPath];
 
-	if (!prefix) prefix = @"";
+	//No prefix, or an empty one, means every file; -hasPrefix: cannot be asked that, as it answers NO for an empty string
+	BOOL everyFile = ![prefix length];
 
 	for (NSString *fileName in [self contentsOfDirectoryAtPath:dirPath error:NULL]) {
-		if ([fileName hasPrefix:prefix]) {
+		if (everyFile || [fileName hasPrefix:prefix]) {
 			NSString *path = [dirPath stringByAppendingPathComponent:fileName];
 			
 			if (moveToTrash) {

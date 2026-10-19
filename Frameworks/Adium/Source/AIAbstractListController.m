@@ -971,6 +971,10 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 		 * not on Jabber found no scheme and logged a complaint. IRC is the other one with an address
 		 * form worth writing down; the rest identify people by a number or an opaque handle that no
 		 * scheme takes. */
+		/* The UID lands in the path of a URL, so it is escaped the way a path is: a space
+		 * becomes %20 and a channel's # becomes %23, while the @ and the dots of a JID stay,
+		 * because they are the JID. stringByEncodingURLEscapes is for form values and would
+		 * turn alice@example.org into alice%40example%2eorg. */
 		NSDictionary *URLFormats = [NSDictionary dictionaryWithObjectsAndKeys:
 			@"xmpp:%@?message", @"Jabber",
 			@"irc://%@", @"IRC",
@@ -989,7 +993,7 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 
 					format = [URLFormats objectForKey:subcontact.service.serviceID];
 					if (format) {
-						[URLStrings addObject:[NSString stringWithFormat:format, [subcontact.UID stringByEncodingURLEscapes]]];
+						[URLStrings addObject:[NSString stringWithFormat:format, [subcontact.UID stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPathAllowedCharacterSet]]]];
 						[linkTitles addObject:[NSString stringWithFormat:LINK_TITLE_FORMAT, subcontact.UID, [subcontact.service longDescription]]];
 					}
 				}
@@ -1002,7 +1006,7 @@ static NSString *AIWebURLsWithTitlesPboardType = @"WebURLsWithTitlesPboardType";
 									   listObject, listObject.service.serviceID);
 
 				} else {
-					[URLStrings addObject:[NSString stringWithFormat:format, [listObject.UID stringByEncodingURLEscapes]]];
+					[URLStrings addObject:[NSString stringWithFormat:format, [listObject.UID stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPathAllowedCharacterSet]]]];
 					[linkTitles addObject:[NSString stringWithFormat:LINK_TITLE_FORMAT, listObject.UID, listObject.service.longDescription]];
 				}
 			}

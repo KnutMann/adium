@@ -102,13 +102,11 @@
 
 - (void)testValueContainingAnEqualsSignIsReturnedWhole
 {
-	XCTExpectFailure(@"AIURLAdditions.m:32 returns only the text between the first and second '=', so a value such as base64 padding or a nested key=value loses everything after its first '='");
 	XCTAssertEqualObjects([[self URLWithQuery:@"token=abc=="] queryArgumentForKey:@"token"], @"abc==");
 }
 
 - (void)testKeyLookupIsCaseSensitiveAsTheHeaderSays
 {
-	XCTExpectFailure(@"AIURLAdditions.h promises a case-sensitive search; AIURLAdditions.m:31 compares with caseInsensitiveCompare:");
 	NSURL *url = [self URLWithQuery:@"Key=upper&key=lower"];
 	XCTAssertEqualObjects([url queryArgumentForKey:@"key"], @"lower");
 	XCTAssertNil([url queryArgumentForKey:@"KEY"]);

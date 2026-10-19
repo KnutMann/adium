@@ -543,7 +543,6 @@
 
 - (void)testTruncationDoesNotSplitASurrogatePair
 {
-	XCTExpectFailure(@"AIStringAdditions.m:258 cuts at a UTF-16 index, so a cut inside a supplementary character leaves a lone high surrogate before the ellipsis");
 	NSString *truncated = [@"ab\U0001F600cd" stringWithEllipsisByTruncatingToLength:4];
 	XCTAssertFalse(CFStringIsSurrogateHighCharacter([truncated characterAtIndex:[truncated length] - 2]), @"\"%@\" ends in half a character", truncated);
 }
@@ -584,7 +583,6 @@
 
 - (void)testCompactedStringRemovesTrailingSpaces
 {
-	XCTExpectFailure(@"The loop at AIStringAdditions.m:209 deletes a run of spaces only when a non-space follows it, so spaces at the end of the string stay");
 	XCTAssertEqualObjects([@"a b  " compactedString], @"ab");
 	XCTAssertEqualObjects([@"   " compactedString], @"");
 }
@@ -635,13 +633,11 @@
 
 - (void)testEncodingURLEscapesTurnsSpacesIntoPluses
 {
-	XCTExpectFailure(@"AIStringAdditions.m:383 maps a space to a space and :384 maps '+' to a space, the reverse of what the comment above the method says");
 	XCTAssertEqualObjects([@"a b" stringByEncodingURLEscapes], @"a+b");
 }
 
 - (void)testEncodingURLEscapesEscapesReservedCharacters
 {
-	XCTExpectFailure(@"AIStringAdditions.m:383-384 pass '&', '=', '/', '?', '#' and '+' through unescaped, so a UID containing one of them breaks the URL it is put into (AIAbstractListController.m:992)");
 	NSString *encoded = [@"&=/?#+" stringByEncodingURLEscapes];
 	XCTAssertEqual([encoded rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"&=/?#+ "]].location, (NSUInteger)NSNotFound, @"\"%@\" still contains a reserved character", encoded);
 }
@@ -664,13 +660,11 @@
 
 - (void)testDecodingURLEscapesDecodesUTF8Sequences
 {
-	XCTExpectFailure(@"AIStringAdditions.m:509 builds the result as ASCII, so the two bytes of an escaped 'é' come out as two Latin-1 characters; this is the path an adium:// message body takes in AIURLHandlerPlugin.m:286");
 	XCTAssertEqualObjects([@"caf%C3%A9" stringByDecodingURLEscapes], @"caf\u00e9");
 }
 
 - (void)testURLEscapesRoundTrip
 {
-	XCTExpectFailure(@"Encoding (AIStringAdditions.m:383) leaves a space as a space and decoding turns that space into '+', and non-ASCII comes back as Latin-1 (:509); the pair is not inverse");
 	NSString *original = @"a b caf\u00e9";
 	XCTAssertEqualObjects([[original stringByEncodingURLEscapes] stringByDecodingURLEscapes], original);
 }
@@ -719,14 +713,12 @@
 
 - (void)testSafeFilenameLongerThanNameMaxIsTruncated
 {
-	XCTExpectFailure(@"AIStringAdditions.m:274 logs that an over-long name will be truncated to NAME_MAX, but only shortens the replacement range and returns the whole string");
 	NSString *overlong = [@"" stringByPaddingToLength:300 withString:@"a" startingAtIndex:0];
 	XCTAssertLessThanOrEqual([[overlong safeFilenameString] length], (NSUInteger)NAME_MAX);
 }
 
 - (void)testSafeFilenameLongerThanNameMaxHasNoSlashLeft
 {
-	XCTExpectFailure(@"AIStringAdditions.m:281 replaces slashes only within the first NAME_MAX characters, so one further along survives");
 	NSString *overlong = [[@"" stringByPaddingToLength:290 withString:@"a" startingAtIndex:0] stringByAppendingString:@"/b"];
 	XCTAssertEqual([[overlong safeFilenameString] rangeOfString:@"/"].location, (NSUInteger)NSNotFound);
 }
@@ -756,7 +748,6 @@
 
 - (void)testEscapingForXMLWithoutEntitiesEscapesWhitespace
 {
-	XCTExpectFailure(@"AIStringAdditions.h promises whitespace escaping when no entities are given, and AIStringAdditions.m:544 lists the entities, but CFXMLCreateStringByEscapingEntities (:555) ignores them: a tab stays a tab");
 	XCTAssertEqualObjects([@"\t" stringByEscapingForXMLWithEntities:nil], @"&#x09;");
 	XCTAssertEqualObjects([@"\n" stringByEscapingForXMLWithEntities:nil], @"&#x0a;");
 	XCTAssertEqualObjects([@"\r" stringByEscapingForXMLWithEntities:nil], @"&#x0d;");
@@ -764,7 +755,7 @@
 
 - (void)testEscapingForXMLWithoutEntitiesEscapesNoBreakSpace
 {
-	XCTExpectFailure(@"AIStringAdditions.m:544 lists nbsp among the default entities, but CFXMLCreateStringByEscapingEntities (:555) ignores it");
+	XCTExpectFailure(@"Left as it is on purpose, pending a decision: &nbsp; is not a predefined XML entity, and AIXMLElement writes the chat logs through this method with no entities given, which NSXMLParser and NSXMLDocument then refuse to read (undeclared entity); a character reference such as &#xa0; would be the well-formed way to write it");
 	XCTAssertEqualObjects([@"\u00a0" stringByEscapingForXMLWithEntities:nil], @"&nbsp;");
 }
 
@@ -840,7 +831,6 @@
 
 - (void)testEscapingForShellEscapesControlOperators
 {
-	XCTExpectFailure(@"POSIX sh gives ; < > ( ) meaning outside quotes, and the table at AIStringAdditions.m:30-57 does not list them, so they pass through unescaped");
 	XCTAssertEqualObjects([@";<>()" stringByEscapingForShell], @"\\;\\<\\>\\(\\)");
 }
 
@@ -1007,7 +997,6 @@
 
 - (void)testUnsignedLongLongValueOfNonNumericTextIsZero
 {
-	XCTExpectFailure(@"AIStringAdditions.m:899 goes through NSDecimalNumber, whose notANumber answers 9 here; every other -...Value on NSString answers 0 for text that is not a number");
 	XCTAssertEqual([@"abc" unsignedLongLongValue], 0ULL);
 	XCTAssertEqual([@"" unsignedLongLongValue], 0ULL);
 }

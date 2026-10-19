@@ -27,6 +27,10 @@
 - (NSString *)constantName;
 - (NSString *)constantNameFor:(id)a;
 - (NSString *)constantNameFor:(id)a and:(id)b;
+- (NSMutableString *)freshName;
+- (NSMutableString *)freshNameFor:(id)a;
+- (NSMutableString *)freshNameFor:(id)a and:(id)b;
+- (NSMutableString *)freshNameFor:(id)a and:(id)b and:(id)c;
 @end
 
 @implementation TestObjectAdditions
@@ -51,6 +55,10 @@
 - (NSString *)constantName { return @"constant"; }
 - (NSString *)constantNameFor:(id)a { return @"constant-one"; }
 - (NSString *)constantNameFor:(id)a and:(id)b { return @"constant-two"; }
+- (NSMutableString *)freshName { return [NSMutableString stringWithString:@"fresh"]; }
+- (NSMutableString *)freshNameFor:(id)a { return [NSMutableString stringWithString:@"fresh"]; }
+- (NSMutableString *)freshNameFor:(id)a and:(id)b { return [NSMutableString stringWithString:@"fresh"]; }
+- (NSMutableString *)freshNameFor:(id)a and:(id)b and:(id)c { return [NSMutableString stringWithString:@"fresh"]; }
 
 #pragma mark Main thread, waiting
 
@@ -99,10 +107,8 @@
 
 #pragma mark Return values
 
-/* Constant strings only. The method writes the invocation's return value into a strong variable
- * without retaining it (AIObjectAdditions.m:47, :87, :119, :164), so anything with a finite lifetime
- * is released once too often, which kills the process rather than failing a test. A constant string
- * ignores the extra release, so these pin the value that comes back and nothing else. */
+/* The three constant-string tests pin the value that comes back; the fresh-string test after them pins its
+ * lifetime, which a constant string cannot, since it ignores a release too many. */
 - (void)testReturnValueWithoutArgumentsIsHandedBack
 {
 	XCTAssertEqualObjects([self mainPerformSelector:@selector(constantName) returnValue:YES], @"constant");
@@ -116,6 +122,23 @@
 - (void)testReturnValueWithTwoArgumentsIsHandedBack
 {
 	XCTAssertEqualObjects([self mainPerformSelector:@selector(constantNameFor:and:) withObject:@"a" withObject:@"b" returnValue:YES], @"constant-two");
+}
+
+- (void)testAnAutoreleasedReturnValueSurvivesBeingHandedBack
+{
+	/* A freshly made string lives only as long as its pool. Read into a strong variable without a retain, as the
+	 * four returnValue: methods once did, it was released once too often on every round, and a few hundred rounds
+	 * inside one pool turn that from a chance into a certain crash of the runner. */
+	@autoreleasepool {
+		for (NSUInteger round = 0; round < 300; round++) {
+			NSMutableString *fresh = [self mainPerformSelector:@selector(freshName) returnValue:YES];
+			[fresh appendString:@"!"];
+			XCTAssertEqualObjects(fresh, @"fresh!");
+			XCTAssertEqualObjects([self mainPerformSelector:@selector(freshNameFor:) withObject:@"a" returnValue:YES], @"fresh");
+			XCTAssertEqualObjects([self mainPerformSelector:@selector(freshNameFor:and:) withObject:@"a" withObject:@"b" returnValue:YES], @"fresh");
+			XCTAssertEqualObjects([self mainPerformSelector:@selector(freshNameFor:and:and:) withObject:@"a" withObject:@"b" withObject:@"c" returnValue:YES], @"fresh");
+		}
+	}
 }
 
 #pragma mark Current thread

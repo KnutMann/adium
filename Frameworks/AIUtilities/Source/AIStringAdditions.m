@@ -30,7 +30,7 @@
 
 enum characterNatureMask {
 	whitespaceNature = (1 << 0), //space + \t\n\r\f\a 
-	shellUnsafeNature = (1 << 1), //backslash + !$`"'
+	shellUnsafeNature = (1 << 1), //backslash + !$`"'&|;<>()
 	regexpUnsafeNature = (1 << 2), //backslash + |.*+?{}()$^
 };
 static const enum characterNatureMask characterNature[USHRT_MAX+1] = {
@@ -47,11 +47,17 @@ static const enum characterNatureMask characterNature[USHRT_MAX+1] = {
 	['`']  = shellUnsafeNature,
 	['!']  = shellUnsafeNature,
 	['&']  = shellUnsafeNature,
+	//Control operators and redirections: a word is cut short at any of them when it is not quoted
+	[';']  = shellUnsafeNature,
+	['<']  = shellUnsafeNature,
+	['>']  = shellUnsafeNature,
 
 	['\\'] = shellUnsafeNature | regexpUnsafeNature,
 	['$']  = shellUnsafeNature | regexpUnsafeNature,
 	['|']  = shellUnsafeNature | regexpUnsafeNature,
-			
+	['(']  = shellUnsafeNature | regexpUnsafeNature,
+	[')']  = shellUnsafeNature | regexpUnsafeNature,
+
 	['/']  = regexpUnsafeNature,
 	['.']  = regexpUnsafeNature,
 	['*']  = regexpUnsafeNature,
@@ -59,8 +65,6 @@ static const enum characterNatureMask characterNature[USHRT_MAX+1] = {
 	['?']  = regexpUnsafeNature,
 	['{']  = regexpUnsafeNature,
 	['}']  = regexpUnsafeNature,
-	['(']  = regexpUnsafeNature,
-	[')']  = regexpUnsafeNature,
 	['[']  = regexpUnsafeNature,
 	['^']  = regexpUnsafeNature,
 };
@@ -223,7 +227,11 @@ enum {
 			}
 		}
 	}
-	
+	//A run of spaces that reaches the end is never followed by another character, so it is still pending here
+	if (range.length) {
+		[outName deleteCharactersInRange:range];
+	}
+
 	return outName;
 }
 
@@ -254,8 +262,10 @@ enum {
 	NSString *returnString;
 	
 	if (length < [self length]) {
-		//Truncate and append the ellipsis
-		returnString = [[self substringToIndex:length-1] stringByAppendingString:[NSString ellipsis]];
+		//Truncate and append the ellipsis. The cut is at a character boundary: length counts UTF-16 units, and a cut
+		//inside a surrogate pair would leave half a character before the ellipsis.
+		NSUInteger cut = [self rangeOfComposedCharacterSequenceAtIndex:length-1].location;
+		returnString = [[self substringToIndex:cut] stringByAppendingString:[NSString ellipsis]];
 	} else {
 		//We don't need to truncate, so don't append an ellipsis
 		returnString = [self copy];
@@ -271,14 +281,17 @@ enum {
 	if (!length)
 		return self;
 
+	NSString *name = self;
+
 	if (length > NAME_MAX) {
 		NSLog(@"-safeFilenameString called on a string longer than %u characters (it will be truncated): @\"%@\"", NAME_MAX, self);
-		length = NAME_MAX;
+		//Cut at a character boundary: half a surrogate pair has no UTF-8 form and so cannot be a file name at all
+		name = [self substringToIndex:[self rangeOfComposedCharacterSequenceAtIndex:NAME_MAX].location];
 	}
 
-	NSMutableString *string = [self mutableCopy];
+	NSMutableString *string = [name mutableCopy];
 
-	[string replaceOccurrencesOfString:@"/" withString:@"-" options:NSLiteralSearch range:NSMakeRange(0, length)];
+	[string replaceOccurrencesOfString:@"/" withString:@"-" options:NSLiteralSearch range:NSMakeRange(0, [string length])];
 
 	return string;
 }
@@ -374,24 +387,25 @@ enum {
 	NSUInteger			 sourceLength = [UTF8Data length];
 	unsigned	 destIndex = 0;
 
-	//this table translates plusses to spaces, and flags all characters that need hex-encoding with 0x00.
+	//this table translates spaces to plusses, passes the letters, digits, '_' and '-' through, and flags every other
+	//character for hex-encoding with 0x00. A '+' is among the flagged ones, as a plain '+' in the result means a space.
 	static const char translationTable[256] = {
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
-		 ' ',  '!',  '"',  '#',   '$',  '%',  '&', '\'',
-		 '(',  ')',  '*',  ' ',   ',',  '-',  '.',  '/',
+		 '+', 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,  0x00,  '-', 0x00, 0x00,
 		 '0',  '1',  '2',  '3',   '4',  '5',  '6',  '7',
-		 '8',  '9',  ':',  ';',   '<',  '=',  '>',  '?',
-		 '@',  'A',  'B',  'C',   'D',  'E',  'F',  'G',
+		 '8',  '9', 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
+		0x00,  'A',  'B',  'C',   'D',  'E',  'F',  'G',
 		 'H',  'I',  'J',  'K',   'L',  'M',  'N',  'O',
 		 'P',  'Q',  'R',  'S',   'T',  'U',  'V',  'W',
-		 'X',  'Y',  'Z',  '[',  '\\',  ']',  '^',  '_',
-		 '`',  'a',  'b',  'c',   'd',  'e',  'f',  'g',
+		 'X',  'Y',  'Z', 0x00,  0x00, 0x00, 0x00,  '_',
+		0x00,  'a',  'b',  'c',   'd',  'e',  'f',  'g',
 		 'h',  'i',  'j',  'k',   'l',  'm',  'n',  'o',
 		 'p',  'q',  'r',  's',   't',  'u',  'v',  'w',
-		 'x',  'y',  'z',  '{',   '|',  '}',  '~', 0x00,
+		 'x',  'y',  'z', 0x00,  0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -506,7 +520,15 @@ enum {
 		destIndex++;
 	}
 
-	return [[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSASCIIStringEncoding];
+	/* The bytes are UTF-8, as the encoder above wrote them; read as ASCII, an escaped é came back as two Latin-1
+	 * characters, and this is the path an adium:// message body and password take. Escapes that are not valid UTF-8,
+	 * from an encoder that wrote Latin-1 bytes, are read as Latin-1 rather than answered with nil. */
+	NSString *decoded = [[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSUTF8StringEncoding];
+	if (!decoded) {
+		decoded = [[NSString alloc] initWithBytes:destPtr length:destIndex encoding:NSISOLatin1StringEncoding];
+	}
+
+	return decoded;
 }
 
 - (NSString *)string
@@ -530,29 +552,41 @@ enum {
  */
 - (NSString *)stringByEscapingForXMLWithEntities:(NSDictionary *)entities
 {
-	static const unichar nbsp = 0xa0;
-	NSDictionary *realEntities = entities;
-
-	if (!entities) {
-		realEntities = [NSDictionary dictionaryWithObjectsAndKeys:
-			@"amp",  @"&",
-			@"lt",   @"<",
-			@"gt",   @">",
-			@"quot", @"\"",
-			@"apos", @"'",
-			@"nbsp", [NSString stringWithCharacters:&nbsp length:1],
-			//Also escape whitespace. CF doesn't do this by default.
-			@"#x09", @"\t",
-			@"#x0a", @"\n",
-			@"#x0b", @"\v",
-			@"#x0c", @"\f",
-			@"#x0d", @"\r",
-			nil];
-	}
-
 	/* Create hands back something owned, and this method's name promises the opposite, so it was
 	 * leaked at every call site. Taken over here instead. */
-	return CFBridgingRelease(CFXMLCreateStringByEscapingEntities(kCFAllocatorDefault, (__bridge CFStringRef)self, (__bridge CFDictionaryRef)realEntities));
+	NSString *escaped = CFBridgingRelease(CFXMLCreateStringByEscapingEntities(kCFAllocatorDefault, (__bridge CFStringRef)self, (__bridge CFDictionaryRef)entities));
+
+	if (!entities) {
+		/* The whitespace this method promises to escape when no entities are given. CF never escapes more than the
+		 * five predefined entities, whatever dictionary it is handed (a dictionary of these very characters was passed
+		 * to it for years and ignored), so the three XML whitespace characters are done here: after CF, so that their
+		 * ampersands are not escaped a second time, and as character references, which every parser reads back where
+		 * it would fold a literal CR LF into LF and a tab in an attribute into a space. A no-break space stays as it
+		 * is on purpose: &nbsp; is not predefined in XML, and AIXMLElement writes the chat logs through this method,
+		 * which NSXMLParser then has to be able to read. */
+		static NSString * const references[][2] = {
+			{ @"\t", @"&#x09;" },
+			{ @"\n", @"&#x0a;" },
+			{ @"\r", @"&#x0d;" },
+		};
+		static NSCharacterSet *whitespace = nil;
+		if (!whitespace) {
+			whitespace = [NSCharacterSet characterSetWithCharactersInString:@"\t\n\r"];
+		}
+
+		if ([escaped rangeOfCharacterFromSet:whitespace].location != NSNotFound) {
+			NSMutableString *result = [escaped mutableCopy];
+			for (NSUInteger i = 0; i < sizeof(references) / sizeof(references[0]); i++) {
+				[result replaceOccurrencesOfString:references[i][0]
+										withString:references[i][1]
+										   options:NSLiteralSearch
+											 range:NSMakeRange(0, [result length])];
+			}
+			escaped = result;
+		}
+	}
+
+	return escaped;
 }
 - (NSString *)stringByUnescapingFromXMLWithEntities:(NSDictionary *)entities
 {
@@ -896,7 +930,13 @@ return nil; \
 
 - (unsigned long long)unsignedLongLongValue
 {
-	return [[NSDecimalNumber decimalNumberWithString:self] unsignedLongLongValue];
+	/* NSDecimalNumber, because it holds the whole unsigned long long range, which a double does not. Its answer for
+	 * text that is not a number is notANumber, though, and that does not read back as 0 the way every other
+	 * -...Value of NSString answers for such text. */
+	NSDecimalNumber *number = [NSDecimalNumber decimalNumberWithString:self];
+	NSDecimal decimal = [number decimalValue];
+
+	return (NSDecimalIsNotANumber(&decimal) ? 0 : [number unsignedLongLongValue]);
 }
 
 - (NSString *)stringByAddingPercentEscapesForAllCharacters

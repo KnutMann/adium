@@ -43,12 +43,17 @@
 		[self performSelectorOnMainThread:@selector(handleInvocation:)
 							   withObject:invocation
 							waitUntilDone:YES];
-		
-		[invocation getReturnValue:&returnValue];
-		
+
+		/* Read through an unretained pointer: getReturnValue: copies the bytes and retains nothing, so a write
+		 * straight into the strong variable was released at the end of this scope once more than it had been
+		 * retained, and an autoreleased result then went down with its pool. The assignment retains. */
+		__unsafe_unretained id unretainedReturnValue = nil;
+		[invocation getReturnValue:&unretainedReturnValue];
+		returnValue = unretainedReturnValue;
+
 	} else {
 		returnValue = nil;
-		[self performSelectorOnMainThread:aSelector 
+		[self performSelectorOnMainThread:aSelector
 							   withObject:nil
 							waitUntilDone:NO];
 	}
@@ -84,8 +89,11 @@
 							   withObject:invocation
 							waitUntilDone:YES];
 
-		[invocation getReturnValue:&returnValue];
-		
+		//Read unretained; see mainPerformSelector:returnValue:
+		__unsafe_unretained id unretainedReturnValue = nil;
+		[invocation getReturnValue:&unretainedReturnValue];
+		returnValue = unretainedReturnValue;
+
 	} else {
 		returnValue = nil;
 		[self performSelectorOnMainThread:aSelector withObject:argument1 waitUntilDone:NO];
@@ -115,9 +123,12 @@
 		[self performSelectorOnMainThread:@selector(handleInvocation:)
 							   withObject:invocation
 							waitUntilDone:YES];
-		
-		[invocation getReturnValue:&returnValue];
-		
+
+		//Read unretained; see mainPerformSelector:returnValue:
+		__unsafe_unretained id unretainedReturnValue = nil;
+		[invocation getReturnValue:&unretainedReturnValue];
+		returnValue = unretainedReturnValue;
+
 	} else {
 		returnValue = nil;
 		[self mainPerformSelector:aSelector withObject:argument1 withObject:argument2 waitUntilDone:NO];
@@ -160,9 +171,12 @@
 		[self performSelectorOnMainThread:@selector(handleInvocation:)
 							   withObject:invocation
 							waitUntilDone:YES];
-		
-		[invocation getReturnValue:&returnValue];
-		
+
+		//Read unretained; see mainPerformSelector:returnValue:
+		__unsafe_unretained id unretainedReturnValue = nil;
+		[invocation getReturnValue:&unretainedReturnValue];
+		returnValue = unretainedReturnValue;
+
 	} else {
 		returnValue = nil;
 		[self mainPerformSelector:aSelector withObject:argument1 withObject:argument2 withObject:argument3 waitUntilDone:NO];

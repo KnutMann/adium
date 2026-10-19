@@ -226,7 +226,6 @@
 
 - (void)testRemovingWithNilPrefixRemovesEverything
 {
-	XCTExpectFailure(@"AIFileManagerAdditions.m:49 stands in an empty string for a nil prefix so that every name matches, but -[NSString hasPrefix:] answers NO for an empty prefix, so nothing is removed");
 	[self makeFile:@"a"];
 	[self makeFile:@"b"];
 	[fileManager removeFilesInDirectory:workDirectory withPrefix:nil movingToTrash:NO];
@@ -251,7 +250,6 @@
 
 - (void)testTrashingAMissingPathCountsAsSuccess
 {
-	XCTExpectFailure(@"AIFileManagerAdditions.h says YES when the file already does not exist; AIFileManagerAdditions.m:29 starts from NO and only the existing-file branch changes it");
 	XCTAssertTrue([fileManager trashFileAtPath:[self missingPath]]);
 }
 

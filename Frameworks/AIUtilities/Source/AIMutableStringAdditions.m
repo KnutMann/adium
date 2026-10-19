@@ -20,8 +20,10 @@
 
 + (NSMutableString *)stringWithContentsOfASCIIFile:(NSString *)path
 {
-	return ([[NSMutableString alloc] initWithData:[NSData dataWithContentsOfFile:path]
-										  encoding:NSASCIIStringEncoding]);
+	//A file that cannot be read is nil, as it is from the UTF-8 reader on NSString; handed nil data, init would make an empty string
+	NSData *data = [NSData dataWithContentsOfFile:path];
+
+	return (data ? [[NSMutableString alloc] initWithData:data encoding:NSASCIIStringEncoding] : nil);
 }
 
 - (NSMutableString*)mutableString
@@ -32,7 +34,7 @@
 /*
  * @brief Convert new lines to slashes
  *
- * We first consolidate all duplicate line breaks and process \r\n into being just \n.
+ * We first process \r\n into being just \n, then consolidate all duplicate line breaks.
  * All remaining \r and \n characters are converted to " / " as is done with multiple lines of a poem
  * displayed on a single line
  */
@@ -41,23 +43,8 @@
 	NSRange fullRange = NSMakeRange(0, [self length]);
 	NSUInteger replacements = 0;
 
-	//First, we remove duplicate linebreaks.
-	do {
-		replacements = [self replaceOccurrencesOfString:@"\r\r"
-											 withString:@"\r"
-												options:NSLiteralSearch
-												  range:fullRange];
-		fullRange.length -= replacements;
-	} while (replacements > 0);
-	
-	do {
-		replacements = [self replaceOccurrencesOfString:@"\n\n"
-											 withString:@"\n"
-												options:NSLiteralSearch
-												  range:fullRange];
-		fullRange.length -= replacements;
-	} while (replacements > 0);
-	
+	//First, \r\n becomes \n. This has to come before the duplicates are removed: two \r\n in a row have no
+	//\r\r or \n\n in them, and only once they are two \n is the run one line break.
 	do {
 		replacements = [self replaceOccurrencesOfString:@"\r\n"
 											 withString:@"\n"
@@ -65,7 +52,24 @@
 												  range:fullRange];
 		fullRange.length -= replacements;
 	} while (replacements > 0);
-	
+
+	//Then we remove duplicate linebreaks.
+	do {
+		replacements = [self replaceOccurrencesOfString:@"\r\r"
+											 withString:@"\r"
+												options:NSLiteralSearch
+												  range:fullRange];
+		fullRange.length -= replacements;
+	} while (replacements > 0);
+
+	do {
+		replacements = [self replaceOccurrencesOfString:@"\n\n"
+											 withString:@"\n"
+												options:NSLiteralSearch
+												  range:fullRange];
+		fullRange.length -= replacements;
+	} while (replacements > 0);
+
 	//Now do the slash replacements
 	replacements = [self replaceOccurrencesOfString:@"\r"
 										 withString:@" / "

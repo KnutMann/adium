@@ -251,7 +251,6 @@
 
 - (void)testNumberValueOfSeveralNegativesIsTheGreatest
 {
-	XCTExpectFailure(@"AIMutableOwnerArray.m:132 starts the search at 0 and only accepts larger values, so several negative numbers yield an NSNumber 0 that is not even in the array");
 	[array setObject:@(-5) withOwner:@"a"];
 	[array setObject:@(-3) withOwner:@"b"];
 	XCTAssertEqualObjects([array numberValue], @(-3));
@@ -259,7 +258,6 @@
 
 - (void)testIntValueOfSeveralNegativesIsTheGreatest
 {
-	XCTExpectFailure(@"AIMutableOwnerArray.m:164 starts the search at 0, so several negative numbers yield 0");
 	[array setObject:@(-5) withOwner:@"a"];
 	[array setObject:@(-3) withOwner:@"b"];
 	XCTAssertEqual([array intValue], (NSInteger)-3);
@@ -267,7 +265,6 @@
 
 - (void)testDoubleValueOfSeveralNegativesIsTheGreatest
 {
-	XCTExpectFailure(@"AIMutableOwnerArray.m:197 starts the search at 0, so several negative numbers yield 0");
 	[array setObject:@(-5.5) withOwner:@"a"];
 	[array setObject:@(-3.5) withOwner:@"b"];
 	XCTAssertEqualWithAccuracy([array doubleValue], -3.5, AIFloatComparisonAccuracy);
@@ -295,7 +292,6 @@
 
 - (void)testNumberValueAfterObjectValueIsStillTheGreatest
 {
-	XCTExpectFailure(@"AIMutableOwnerArray.m:289 shares one valueIsSortedToFront flag between the priority search and the number searches, so whichever ran first decides what the other returns");
 	[array setObject:@1 withOwner:@"a" priorityLevel:Highest_Priority];
 	[array setObject:@9 withOwner:@"b" priorityLevel:Low_Priority];
 	XCTAssertEqualObjects([array objectValue], @1);
@@ -304,7 +300,6 @@
 
 - (void)testObjectValueAfterNumberValueIsStillTheHighestPriority
 {
-	XCTExpectFailure(@"AIMutableOwnerArray.m:289 shares one valueIsSortedToFront flag between the priority search and the number searches, so whichever ran first decides what the other returns");
 	[array setObject:@1 withOwner:@"a" priorityLevel:Highest_Priority];
 	[array setObject:@9 withOwner:@"b" priorityLevel:Low_Priority];
 	XCTAssertEqualObjects([array numberValue], @9);
@@ -324,7 +319,6 @@
 
 - (void)testOwnerWithObjectPrefersTheHighestPriorityOwner
 {
-	XCTExpectFailure(@"AIMutableOwnerArray.h promises the highest-priority owner when several own equal objects; AIMutableOwnerArray.m:316 returns whichever comes first in storage order");
 	[array setObject:@"x" withOwner:@"low" priorityLevel:Low_Priority];
 	[array setObject:@"x" withOwner:@"high" priorityLevel:High_Priority];
 	XCTAssertEqualObjects([array ownerWithObject:@"x"], @"high");

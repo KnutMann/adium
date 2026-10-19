@@ -192,7 +192,6 @@
 - (void)testACarriageReturnIsWrittenAsACharacterReference
 {
 	// A parser would fold a literal CR LF into LF; only a reference keeps the return.
-	XCTExpectFailure(@"The CR and LF are written literally: the table at AIStringAdditions.m:543-549 names nbsp and the whitespace characters so that they are escaped too, but CFXMLCreateStringByEscapingEntities leaves them alone, so the return does not survive a parser");
 	AIXMLElement *p = [AIXMLElement elementWithName:@"p"];
 	[p addObject:@"a\r\nb"];
 	XCTAssertEqualObjects([p XMLString], @"<p>a&#x0d;&#x0a;b</p>");

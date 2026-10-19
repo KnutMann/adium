@@ -113,7 +113,6 @@
 
 - (void)testScanLocationEndsAfterTheNumberWhenWhitespaceWasSkipped
 {
-	XCTExpectFailure(@"AIScannerAdditions.m:55 sets the scan location to an index relative to the old location instead of an absolute one, so after skipping two spaces and reading two digits it points at 2 rather than 4");
 	NSScanner *scanner = [NSScanner scannerWithString:@"  12x"];
 	unsigned int value = 0;
 	XCTAssertTrue([scanner scanUnsignedInt:&value]);
