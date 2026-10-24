@@ -1,0 +1,92 @@
+/* Dark appearance. Every variant imports this last: the ColorIn and ColorOut sheets use selectors
+ * as specific as the ones below, so only a later import beats them. Nothing outside the media
+ * query, which keeps the light appearance exactly as it was. The saturated live headers are left
+ * alone, as they read well on a dark page. */
+@media (prefers-color-scheme: dark)
+{
+	:root
+	{
+		color-scheme: dark;
+	}
+
+	body
+	{
+		color: #E6E6E6;
+		background: linear-gradient(rgb(28, 28, 30), rgb(38, 38, 40)) fixed repeat-x rgb(28, 28, 30);
+	}
+
+	.x-container
+	{
+		background: linear-gradient(rgb(44, 44, 46), rgb(44, 44, 46)) 0px top no-repeat;
+		border-left-color: rgb(58, 58, 60);
+		border-right-color: rgb(58, 58, 60);
+		border-bottom-color: rgb(58, 58, 60);
+		-webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, .8);
+	}
+
+	/* The avatar's backing, seen through transparent images. Mentions keep their own transparent
+	 * rule, which is more specific. */
+	.x-container .x-buddyicon
+	{
+		background-color: rgb(58, 58, 60) !important;
+	}
+
+	/* The mention badge sits on a white plate; darken it without redrawing its gradients. */
+	.x-container.mention .x-iconoverlay
+	{
+		filter: brightness(.4);
+	}
+
+	/* History headers are pastel in the light appearance. Dimming them keeps each colour's hue
+	 * without repeating the gradients of ten colour sheets. */
+	.x-container.history .x-header
+	{
+		filter: brightness(.6);
+	}
+
+	.x-message.consecutive
+	{
+		border-top-color: rgba(255, 255, 255, .12);
+	}
+
+	.x-message .x-time
+	{
+		background-color: rgba(72, 72, 74, .9);
+		color: rgba(235, 235, 235, .9);
+		-webkit-box-shadow: 0px 1px 4px rgba(0, 0, 0, .8);
+	}
+
+	a
+	{
+		color: #6CA6FF;
+	}
+
+	.x-status_container
+	{
+		background: linear-gradient(rgb(44, 44, 46), rgb(44, 44, 46)) no-repeat;
+		-webkit-box-shadow: 0px 1px 0px rgba(255, 255, 255, .06), 0px -1px 0px rgba(0, 0, 0, .5), 0px 0px 2px rgba(0, 0, 0, .5);
+	}
+
+	.x-status_container .x-text
+	{
+		color: rgb(152, 152, 157);
+	}
+
+	.x-status_container .x-time
+	{
+		color: rgb(130, 130, 135);
+	}
+
+	/* The "new message" marker. */
+	.focus > .x-message > .x-text:before,
+	.focus > .x-text:before
+	{
+		-webkit-box-shadow: 0px 2px 1px rgba(255, 255, 255, .15), 0px -1px 1px rgba(0, 0, 0, 1);
+	}
+
+	.x-status_container.focus > .x-text:before
+	{
+		background: linear-gradient(hsla(0, 0%, 40%, 1), hsla(0, 0%, 30%, 1));
+		-webkit-box-shadow: 0px 2px 1px rgba(255, 255, 255, .1), 0px -1px 1px rgba(0, 0, 0, .8);
+	}
+}
