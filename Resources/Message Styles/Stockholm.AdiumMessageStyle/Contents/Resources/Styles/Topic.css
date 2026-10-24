@@ -54,3 +54,31 @@
 {
 	color: dark grey;
 }
+
+@media (prefers-color-scheme: dark)
+{
+	#topic
+	{
+		background:
+			linear-gradient(hsla(0, 0%, 28%, 1), hsla(0, 0%, 28%, 1)) left top no-repeat,
+			linear-gradient(hsla(0, 0%, 8%, 1), hsla(0, 0%, 8%, 1)) left bottom no-repeat,
+
+			linear-gradient(hsla(0, 0%, 20%, 1), hsla(0, 0%, 14%, 1)) left top no-repeat;
+		-webkit-background-size:
+			100% 1px,
+			100% 1px,
+
+			100% 100%;
+	}
+
+	#topic #topicEdit
+	{
+		color: #E6E6E6;
+		text-shadow: rgba(0, 0, 0, 1) 0px 1px 1px;
+	}
+
+	#topic #topicEdit a
+	{
+		color: #6CA6FF;
+	}
+}
