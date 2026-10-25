@@ -23,9 +23,7 @@
 	<key>DefaultFontFamily</key>
 	<string>Lucida Grande</string>
 	<key>DefaultFontSize</key>
-	<integer>14</integer>
-	<key>CFBundleExecutable</key>
-	<string></string>
+	<integer>11</integer>
 	<key>DefaultVariant</key>
 	<string>Blue - Grey</string>
 	<key>MessageViewVersion</key>
