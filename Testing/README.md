@@ -31,6 +31,7 @@ and that is the thing to fix rather than to describe here.
 * `ui/editor/editor-shots.sh`  Photographs the contact list appearance editor without running Adium
 * `ui/entry/entry-shots.sh`  Photographs the message field with its accessory buttons, without running Adium
 * `ui/formula/formula-shots.sh`  Photographs the formula editor without running Adium
+* `ui/messagestyle/style-shots.sh`  Photographs a message style without running Adium: a short made-up conversation,
 * `ui/nibs/nib-audit.sh`  Every nib a class names must be in the built application
 * `ui/voice/voice-shots.sh`  Photographs the voice recorder's shelf without running Adium, and without a
 
