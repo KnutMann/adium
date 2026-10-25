@@ -32,6 +32,14 @@
 #                  (autoconf, automake, libtool, pkg-config) and takes the
 #                  better part of an hour.
 #
+#   --icon=NAME    build the application with the icon of the dock icon set
+#                  NAME (one of Resources/Dock Icons, say "Adiumy Red") as its
+#                  own, so the Finder and the Dock show it while Adium is
+#                  closed. The icon goes into the bundle before it is signed,
+#                  which is the one way it can change without breaking the
+#                  signature; Adium 1.x changed it at run time and did. NAME
+#                  may also be a path to a .png or an .icns.
+#
 # Given neither --install nor --build-only it asks, and only if there is a
 # terminal to ask at. Without one it builds and verifies and installs nothing,
 # because a build script waiting for an answer nobody can give is worse than
@@ -47,6 +55,7 @@ CONFIGURATION="${CONFIGURATION:-Release}"
 INSTALL=ask
 FORCE=no
 REBUILD_DEPENDENCIES=no
+ICON_CHOICE=""
 for option in "$@"; do
 	case "$option" in
 		--debug) CONFIGURATION=Debug ;;
@@ -54,6 +63,7 @@ for option in "$@"; do
 		--install) INSTALL=yes ;;
 		--force) FORCE=yes ;;
 		--rebuild-dependencies) REBUILD_DEPENDENCIES=yes ;;
+		--icon=*) ICON_CHOICE="${option#--icon=}" ;;
 		-h|-help|--help) sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
 		*) echo "unknown option: $option (try --help)"; exit 2 ;;
 	esac
@@ -152,6 +162,42 @@ fi
 step "Verifying the checked-in protocol plug-ins"
 "$REPO/Utilities/verify-purple-plugins.sh"
 
+# The application's own icon, when one was asked for. A dock icon set carries a 512 px
+# ApplicationIcon.png for exactly this; sips scales it to the sizes an .icns holds and
+# iconutil packs them. The result is handed to the build as ADIUM_APP_ICON, and the
+# project's "Pick the Application Icon Before Signing" phase copies it over Adium.icns in
+# the bundle before the signature is made. A Finder custom icon set at run time, which is
+# what Adium 1.x did, is detritus to codesign --strict; an icon sealed into the bundle is
+# not. The Finder and the Dock cache icons, so the Dock may show the old one until its tile
+# is made anew or the Dock is restarted.
+ICON_OVERRIDE=()
+if [ -n "$ICON_CHOICE" ]; then
+	step "Making the application icon from $ICON_CHOICE"
+	case "$ICON_CHOICE" in
+		*.icns) ICON_SOURCE="$ICON_CHOICE" ;;
+		*.png)  ICON_SOURCE="$ICON_CHOICE" ;;
+		*)      ICON_SOURCE="$REPO/Resources/Dock Icons/$ICON_CHOICE.AdiumIcon/ApplicationIcon.png" ;;
+	esac
+	[ -f "$ICON_SOURCE" ] || { echo "No icon at $ICON_SOURCE; the sets are: $(cd "$REPO/Resources/Dock Icons" && ls -d *.AdiumIcon | sed 's/\.AdiumIcon$//' | tr '\n' ',' | sed 's/,$//; s/,/, /g')"; exit 2; }
+	ICON_DIR="$REPO/build/icon"
+	rm -rf "$ICON_DIR" && mkdir -p "$ICON_DIR/Adium.iconset"
+	case "$ICON_SOURCE" in
+		*.icns) cp "$ICON_SOURCE" "$ICON_DIR/Adium.icns" ;;
+		*)
+			# Every size an .icns names, each scaled straight from the source. The @2x
+			# of 512 would be 1024 and the source has 512, so it is left out, as it is
+			# in the shipped icon.
+			for entry in 16x16:16 16x16@2x:32 32x32:32 32x32@2x:64 128x128:128 128x128@2x:256 256x256:256 256x256@2x:512 512x512:512; do
+				sips -z "${entry#*:}" "${entry#*:}" "$ICON_SOURCE" --out "$ICON_DIR/Adium.iconset/icon_${entry%:*}.png" >/dev/null
+			done
+			iconutil -c icns -o "$ICON_DIR/Adium.icns" "$ICON_DIR/Adium.iconset"
+			;;
+	esac
+	[ -f "$ICON_DIR/Adium.icns" ] || { echo "iconutil produced no Adium.icns"; exit 1; }
+	ICON_OVERRIDE=(ADIUM_APP_ICON="$ICON_DIR/Adium.icns")
+	echo "icon: $ICON_SOURCE"
+fi
+
 step "Building Adium ($CONFIGURATION)"
 # One xcodebuild for everything: the application target depends on AIUtilities,
 # MMTabBarView, AutoHyperlinks, Adium.framework, AdiumLibpurple and the
@@ -190,6 +236,7 @@ if ! xcodebuild -project Adium.xcodeproj -scheme "$SCHEME" \
 	-destination "platform=macOS,arch=arm64" \
 	SYMROOT="$REPO/build" OBJROOT="$REPO/build/Intermediates" \
 	${SIGNING_OVERRIDES[@]+"${SIGNING_OVERRIDES[@]}"} \
+	${ICON_OVERRIDE[@]+"${ICON_OVERRIDE[@]}"} \
 	build | tee "$REPO/build/xcodebuild.log" | grep -E "^\*\* BUILD|error:"
 then
 	echo "Build failed; run xcodebuild yourself for the full log."

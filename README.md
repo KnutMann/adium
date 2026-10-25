@@ -292,8 +292,13 @@ identity). `--build-only` stops there and installs nothing, `--install`
 installs without asking, and given neither it asks, unless there is no
 terminal to ask at, in which case it installs nothing. `--debug` builds the
 Debug configuration, and `--rebuild-dependencies` builds the bundled libraries
-from source first, which is otherwise never needed. `./install.sh --help`
-lists them all.
+from source first, which is otherwise never needed. `--icon="Adiumy Red"`
+builds the application with that dock icon set's icon as its own, so the
+Finder and the Dock show it while Adium is closed; it goes into the bundle
+before the signature is made, which is the one way the icon can change
+without breaking it (Adium 1.x changed it at run time, and did), and the Dock
+may keep showing the old one until its tile is made anew. `./install.sh
+--help` lists them all.
 
 `./bootstrap.sh` is the same script with `--build-only`, kept under its old
 name.

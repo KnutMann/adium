@@ -6680,6 +6680,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000D2B0 /* Copy JavaScript Plugins */,
 				34BD9D6A053146CC000AB133 /* Copy AdiumPlugins */,
 				345DFF4A05564DB200CEE7B3 /* Run Generate Buildnum File Script */,
+				ADD1E5C0DE0000000000A1C0 /* Pick the Application Icon Before Signing */,
 				ADD1E5C0DE00000000009901 /* Strip Custom Icon Before Signing */,
 			);
 			buildRules = (
@@ -7278,6 +7279,21 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "gcc -E -P -x c -Wno-trigraphs -include \"$SCRIPT_INPUT_FILE_0\" -C \"$SCRIPT_INPUT_FILE_1\" -o \"$SCRIPT_OUTPUT_FILE_0\"\n";
+		};
+		ADD1E5C0DE0000000000A1C0 /* Pick the Application Icon Before Signing */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Pick the Application Icon Before Signing";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# The application's own icon can be chosen when it is built: install.sh --icon=\"Adiumy Red\"\n# makes an .icns out of that dock icon set's ApplicationIcon.png and hands its path over as\n# ADIUM_APP_ICON. It is copied over the shipped icon here, after the resources were copied and\n# before the bundle is signed, so that the chosen icon is part of the seal. Adium 1.x stamped the\n# dock icon onto the bundle at run time as a Finder custom icon instead, which is what the next\n# phase strips, because codesign --strict refuses a bundle carrying one.\n#\n# Unset, the shipped icon is written, not merely left alone: the resources phase copies\n# Adium.icns only when the source is newer than what is in the bundle, so a chosen icon would\n# otherwise survive into the next build that did not ask for it.\nICON=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Adium.icns\"\nif [ -n \"${ADIUM_APP_ICON:-}\" ]; then\n\t[ -f \"$ADIUM_APP_ICON\" ] || { echo \"error: ADIUM_APP_ICON names no file: $ADIUM_APP_ICON\" >&2; exit 1; }\n\t/bin/cp \"$ADIUM_APP_ICON\" \"$ICON\"\nelse\n\t/bin/cp \"${SRCROOT}/Resources/Adium.icns\" \"$ICON\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
