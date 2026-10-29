@@ -68,7 +68,11 @@ jobs:
       # A keychain of its own, unlocked for the job and first in the search list,
       # so that install.sh finds the identity the way it finds one on a developer's
       # Mac. The partition list lets codesign use the key without a dialog nobody
-      # is there to click.
+      # is there to click. Apple's two Developer ID intermediates go in first: a
+      # .p12 exported from Keychain Access carries the leaf alone, a runner is not
+      # promised either intermediate, and a leaf whose chain does not close is no
+      # identity at all. find-identity says so, and the job stops there instead of
+      # failing in install.sh with a message about a missing identity.
       - name: Import the Developer ID certificate into a keychain of its own
         if: steps.creds.outputs.signed == 'true'
         env:
@@ -81,11 +85,20 @@ jobs:
           security create-keychain -p "$password" "$keychain"
           security set-keychain-settings -lut 21600 "$keychain"
           security unlock-keychain -p "$password" "$keychain"
+          for ca in DeveloperIDCA DeveloperIDG2CA; do
+            curl -sSfL -o "$RUNNER_TEMP/$ca.cer" "https://www.apple.com/certificateauthority/$ca.cer"
+            security import "$RUNNER_TEMP/$ca.cer" -k "$keychain"
+          done
           security import "$RUNNER_TEMP/developer-id.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
           security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
           rm "$RUNNER_TEMP/developer-id.p12"
-          security find-identity -v -p codesigning "$keychain"
+          identities=$(security find-identity -v -p codesigning "$keychain")
+          echo "$identities"
+          case "$identities" in
+            *"1 valid identities found"*) ;;
+            *) echo "the certificate imported, but no valid Developer ID identity came of it" >&2; exit 1 ;;
+          esac
 
       - name: Restore the two dependencies that are not in the repository
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
