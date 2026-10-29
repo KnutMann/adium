@@ -29,7 +29,7 @@ DMGBUILD_VERSION=1.6.7
 [ -f "$PNG" ] || { echo "no picture at $PNG" >&2; exit 1; }
 
 WORK=$(mktemp -d)
-trap 'hdiutil detach "$WORK/mnt" -quiet 2>/dev/null; rm -rf "$WORK"' EXIT
+trap 'hdiutil detach "$WORK/mnt" -quiet 2>/dev/null || true; rm -rf "$WORK"' EXIT
 
 read -r W H < <(sips -g pixelWidth -g pixelHeight "$PNG" | awk '/pixel/ {printf "%s ", $2} END {print ""}')
 if [ $((W % 2)) -ne 0 ] || [ $((H % 2)) -ne 0 ]; then

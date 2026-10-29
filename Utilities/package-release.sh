@@ -61,7 +61,10 @@ echo "==> $DMG"
 STAGE=$(mktemp -d)
 RW="$STAGE.rw.dmg"
 MOUNT="$STAGE.mnt"
-trap 'hdiutil detach "$MOUNT" -quiet 2>/dev/null; rm -rf "$STAGE" "$RW" "$MOUNT"' EXIT
+# The detach in the trap fails whenever the image was detached in the normal
+# course, and under set -e a failing command in the trap becomes the script's
+# exit status: the first run on GitHub's runner produced both files and exited 1.
+trap 'hdiutil detach "$MOUNT" -quiet 2>/dev/null || true; rm -rf "$STAGE" "$RW" "$MOUNT"' EXIT
 ditto "$APP" "$STAGE/$(basename "$APP")"
 ln -s /Applications "$STAGE/Applications"
 
