@@ -4,6 +4,11 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<!-- Without this, codesign treats the framework as a resource bundle with no program in
+	     it, signs the plist and the resources, and leaves the library itself with whatever
+	     signature the linker gave it; the notary service then refuses the whole application. -->
+	<key>CFBundleExecutable</key>
+	<string>libpurple</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

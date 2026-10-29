@@ -32,6 +32,13 @@
 #                  (autoconf, automake, libtool, pkg-config) and takes the
 #                  better part of an hour.
 #
+#   --sign=IDENTITY
+#                  sign for distribution: with the named identity (a prefix such
+#                  as "Developer ID Application" is enough), the hardened
+#                  runtime and a trusted timestamp, which is what notarisation
+#                  requires. Without it the build signs with the local
+#                  certificate if there is one and ad hoc otherwise, and runs
+#                  on this machine only.
 #   --icon=NAME    build the application with the icon of the dock icon set
 #                  NAME (one of Resources/Dock Icons, say "Adiumy Red") as its
 #                  own, so the Finder and the Dock show it while Adium is
@@ -56,6 +63,7 @@ INSTALL=ask
 FORCE=no
 REBUILD_DEPENDENCIES=no
 ICON_CHOICE=""
+SIGN_IDENTITY=""
 for option in "$@"; do
 	case "$option" in
 		--debug) CONFIGURATION=Debug ;;
@@ -64,6 +72,7 @@ for option in "$@"; do
 		--force) FORCE=yes ;;
 		--rebuild-dependencies) REBUILD_DEPENDENCIES=yes ;;
 		--icon=*) ICON_CHOICE="${option#--icon=}" ;;
+		--sign=*) SIGN_IDENTITY="${option#--sign=}" ;;
 		-h|-help|--help) sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
 		*) echo "unknown option: $option (try --help)"; exit 2 ;;
 	esac
@@ -212,7 +221,20 @@ step "Building Adium ($CONFIGURATION)"
 SIGNING_OVERRIDES=()
 # Guarded with [@]+ below, because bash 3.2, which is the bash on every Mac,
 # calls an empty array an unbound variable under set -u.
-if ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Local Signing"'; then
+if [ -n "$SIGN_IDENTITY" ]; then
+	# Distribution. The identity is looked up in the keychain so that a prefix
+	# will do, and the team comes out of its name. Manual style everywhere,
+	# because two of the subprojects are set to automatic signing and refuse a
+	# hand-picked identity otherwise. The hardened runtime and the timestamp
+	# are what notarisation checks on every Mach-O in the bundle; the copy
+	# phases re-sign what they copy with the same settings.
+	line=$(security find-identity -p codesigning -v 2>/dev/null | grep -F "\"$SIGN_IDENTITY" | head -1)
+	[ -n "$line" ] || { echo "No signing identity matching \"$SIGN_IDENTITY\" in this keychain."; exit 2; }
+	SIGN_NAME=$(echo "$line" | sed -E 's/^[^"]*"([^"]*)".*/\1/')
+	SIGN_TEAM=$(echo "$SIGN_NAME" | sed -E 's/.*\(([A-Z0-9]+)\)$/\1/')
+	echo "signing as $SIGN_NAME (team $SIGN_TEAM), hardened runtime, timestamped"
+	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY="$SIGN_NAME" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGN_TEAM" ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp)
+elif ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Local Signing"'; then
 	echo "No 'Adium Local Signing' certificate in this keychain; signing ad hoc"
 	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
 fi
