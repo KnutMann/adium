@@ -369,6 +369,14 @@
 	<string>Adium</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<!-- Sparkle: the newest release's appcast, published as an asset of every release, which
+	     GitHub serves at a fixed address through the latest redirect. The feed is signed with
+	     EdDSA; SUPublicEDKey below is the public half, the private half lives in the owner's
+	     keychain and, for the release workflow, in a secret. -->
+	<key>SUFeedURL</key>
+	<string>https://github.com/KnutMann/adium/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>jL2hYlbCuv2GzFM8mN20Jq0Iuq9fmq/4z+t5Z3KDSLM=</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.8.0</string>
 	<key>CFBundleSignature</key>

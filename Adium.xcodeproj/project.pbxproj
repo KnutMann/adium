@@ -1169,6 +1169,8 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		98ED0A2F06D910889F40EA9B /* TestXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = CDC5ADF3EEE3447E3ABF259C /* TestXMLElement.m */; };
 		CE1BBFD094DC6CB8148A0586 /* TestXtraInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F3DE41E3DD69FE3567D887C /* TestXtraInfo.m */; };
 		9C394C18F6DFB38630688085 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = DF7C1CAB84934F0A603657A3 /* Fixtures */; };
+		38AAE51B8B512D772F8A6FE7 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 873385B9FD554319B564037B /* Sparkle.framework */; };
+		A30881D37F66DDB044FF5F41 /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 873385B9FD554319B564037B /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -1425,6 +1427,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				A1D100022603150000000001 /* AutoHyperlinks.framework in Copy Frameworks */,
 				A1D100012603150000000001 /* AIUtilities.framework in Copy Frameworks */,
 				3419FE230531586A00C68BA3 /* Adium.framework in Copy Frameworks */,
+				A30881D37F66DDB044FF5F41 /* Sparkle.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3200,6 +3203,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		CDC5ADF3EEE3447E3ABF259C /* TestXMLElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestXMLElement.m; path = UnitTests/TestXMLElement.m; sourceTree = "<group>"; };
 		7F3DE41E3DD69FE3567D887C /* TestXtraInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestXtraInfo.m; path = UnitTests/TestXtraInfo.m; sourceTree = "<group>"; };
 		DF7C1CAB84934F0A603657A3 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fixtures; path = UnitTests/Fixtures; sourceTree = "<group>"; };
+		873385B9FD554319B564037B /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Dependencies/sparkle/Sparkle.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3269,6 +3273,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				639DF9140F97E639003C9A32 /* AdiumLibpurple.framework in Frameworks */,
 				4D9162642577EDC600930BC8 /* AIUtilities.framework in Frameworks */,
 				3419F7760531512200C68BA3 /* Adium.framework in Frameworks */,
+				38AAE51B8B512D772F8A6FE7 /* Sparkle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3373,6 +3378,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				A11B000CE5F0000000000003 /* QuartzCore.framework */,
 				A11B0008E5F0000000000009 /* AVFoundation.framework */,
 				A11B0008E5F000000000000B /* CoreMedia.framework */,
+				873385B9FD554319B564037B /* Sparkle.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -6673,6 +6679,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34BD9D57053146CC000AB133 /* Frameworks */,
 				F51BCD3E0A156281000FDC06 /* Copy Spotlight Importer */,
 				34BD9D5F053146CC000AB133 /* Copy Frameworks */,
+				FBE072DFA9888E93E7699607 /* Sign Sparkle's Helpers */,
 				ADD1E5C0DE00000000000305 /* Copy Purple Plugins */,
 				AD1057A0FADE0004C0DE0501 /* Stamp Build */,
 				ADD1E5C0DF00000000000901 /* Verify Purple Plugins */,
@@ -7294,6 +7301,21 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# The application's own icon can be chosen when it is built: install.sh --icon=\"Adiumy Red\"\n# makes an .icns out of that dock icon set's ApplicationIcon.png and hands its path over as\n# ADIUM_APP_ICON. It is copied over the shipped icon here, after the resources were copied and\n# before the bundle is signed, so that the chosen icon is part of the seal. Adium 1.x stamped the\n# dock icon onto the bundle at run time as a Finder custom icon instead, which is what the next\n# phase strips, because codesign --strict refuses a bundle carrying one.\n#\n# Unset, the shipped icon is written, not merely left alone: the resources phase copies\n# Adium.icns only when the source is newer than what is in the bundle, so a chosen icon would\n# otherwise survive into the next build that did not ask for it.\nICON=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Adium.icns\"\nif [ -n \"${ADIUM_APP_ICON:-}\" ]; then\n\t[ -f \"$ADIUM_APP_ICON\" ] || { echo \"error: ADIUM_APP_ICON names no file: $ADIUM_APP_ICON\" >&2; exit 1; }\n\t/bin/cp \"$ADIUM_APP_ICON\" \"$ICON\"\nelse\n\t/bin/cp \"${SRCROOT}/Resources/Adium.icns\" \"$ICON\"\nfi\n";
+		};
+		FBE072DFA9888E93E7699607 /* Sign Sparkle's Helpers */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Sign Sparkle's Helpers";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "# Xcode signs a copied framework but not the code nested in it, and Sparkle carries four\n# pieces: Autoupdate, Updater.app and two XPC services, each shipped with Sparkle's own ad\n# hoc signature. The notary service wants every one of them signed by the same identity as\n# the application, with the hardened runtime, so they are signed here with what this build\n# signs with, and the framework is sealed again afterwards, because its seal names them.\nFW=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Sparkle.framework\"\n[ -d \"$FW\" ] || exit 0\n[ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] || exit 0\nset -e\nOPTIONS=()\n[ \"${ENABLE_HARDENED_RUNTIME:-NO}\" = YES ] && OPTIONS+=(--options runtime)\nfor item in XPCServices/Installer.xpc XPCServices/Downloader.xpc Updater.app Autoupdate; do\n\t[ -e \"$FW/Versions/B/$item\" ] || continue\n\t/usr/bin/codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --preserve-metadata=entitlements ${OTHER_CODE_SIGN_FLAGS:-} \"${OPTIONS[@]}\" \"$FW/Versions/B/$item\"\ndone\n/usr/bin/codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" ${OTHER_CODE_SIGN_FLAGS:-} \"${OPTIONS[@]}\" \"$FW\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

@@ -43,6 +43,9 @@ Testing/xmpp/peer/.venv/
 # without fetching again slips past, gets committed, and overwrites the real checkout with a
 # link to itself on the next merge. That happened to both of them.
 Dependencies/picomemo/picomemo
+Dependencies/sparkle/Sparkle.framework
+Dependencies/sparkle/bin
+Dependencies/sparkle/LICENSE
 
 # Python leaves these beside frameworkize.py and its test
 __pycache__/

@@ -39,6 +39,7 @@ covers() {
 	libsharpyuv.0.dylib|libwebp.7.dylib)         echo "libwebp" ;;
 	MMTabBarView)                                echo "MMTabBarView" ;;
 	WebRTC)                                      echo "WebRTC" ;;
+	Sparkle)                                     echo "Sparkle" ;;
 	libircv3.so)                                 echo "purple2-ircv3" ;;
 	libmatrix.so)                                echo "purple-matrix-rs" ;;
 	libsignal-presage.so)                        echo "purple-presage" ;;

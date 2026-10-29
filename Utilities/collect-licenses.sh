@@ -46,6 +46,7 @@ purple-presage|GPL-3.0-or-later|Dependencies/source/purple-presage/LICENSE|https
 tdlib|BSL-1.0|Dependencies/source/td-1.8.67/LICENSE_1_0.txt|https://www.boost.org/LICENSE_1_0.txt|https://github.com/tdlib/td
 tdlib-purple|GPL-3.0|Dependencies/source/tdlib-purple-master/LICENSE|https://raw.githubusercontent.com/adrighem/tdlib-purple/master/LICENSE|https://github.com/adrighem/tdlib-purple
 WebRTC|BSD-3-Clause|Dependencies/webrtc/WebRTC.xcframework/LICENSE||https://github.com/stasel/WebRTC
+Sparkle|MIT|Dependencies/sparkle/LICENSE|https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/LICENSE|https://sparkle-project.org
 EOF
 )
 

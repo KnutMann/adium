@@ -62,7 +62,10 @@ jobs:
           path: |
             Dependencies/webrtc/WebRTC.xcframework
             Dependencies/picomemo/picomemo
-          key: deps-${{ runner.os }}-${{ hashFiles('Dependencies/webrtc/fetch-webrtc.sh', 'Dependencies/picomemo/fetch-picomemo.sh') }}
+            Dependencies/sparkle/Sparkle.framework
+            Dependencies/sparkle/bin
+            Dependencies/sparkle/LICENSE
+          key: deps-${{ runner.os }}-${{ hashFiles('Dependencies/webrtc/fetch-webrtc.sh', 'Dependencies/picomemo/fetch-picomemo.sh', 'Dependencies/sparkle/fetch-sparkle.sh') }}
 
       - name: Fetch what the repository does not carry
         run: Dependencies/fetch.sh

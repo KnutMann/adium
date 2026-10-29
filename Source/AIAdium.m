@@ -15,6 +15,7 @@
  */
 
 #import "AIAdium.h"
+#import <Sparkle/Sparkle.h>
 #import "AIURLHandlerPlugin.h"
 #import "AIAccountController.h"
 #import "AIChatController.h"
@@ -85,6 +86,14 @@ static NSString	*prefsCategory;
 - (void)unreadQuitQuestion:(NSNumber *)number userInfo:(id)info suppression:(NSNumber *)suppressed;
 @end
 
+/* The updater is created in code and so is its menu item, where Adium 1.5 had both in
+ * MainMenu.xib wired to an SUUpdater object. Sparkle 2's standard controller starts the
+ * updater on its own, reads SUFeedURL and SUPublicEDKey from Info.plist, draws its own
+ * windows, and enables or disables the menu item itself through menu validation. */
+@interface AIAdium ()
+@property (nonatomic, strong) SPUStandardUpdaterController *updaterController;
+@end
+
 @implementation AIAdium
 
 - (id)init
@@ -146,11 +155,31 @@ static NSString	*prefsCategory;
 //Adium has finished launching
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
+	[self installUpdater];
+
 	//Begin loading and initing the components
 	loginController = [[AILoginController alloc] init];
     
     //Begin Login
     [loginController requestUserNotifyingTarget:self selector:@selector(completeLogin)];
+}
+
+/* The menu item goes right after "About Adium" in the application menu, which is where
+ * every Mac application keeps it and where Adium 1.5 kept its own. The item is found by its
+ * action rather than by index, so a change to the xib does not move it somewhere odd. */
+- (void)installUpdater
+{
+	self.updaterController = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:YES
+																		   updaterDelegate:nil
+																		userDriverDelegate:nil];
+
+	NSMenu *applicationMenu = [[[NSApp mainMenu] itemAtIndex:0] submenu];
+	NSInteger aboutIndex = [applicationMenu indexOfItemWithTarget:nil andAction:@selector(showAboutBox:)];
+	NSMenuItem *checkForUpdates = [[NSMenuItem alloc] initWithTitle:AILocalizedString(@"Check for Updates…", "Menu item in the application menu that asks the updater to look for a newer version")
+															 action:@selector(checkForUpdates:)
+													  keyEquivalent:@""];
+	checkForUpdates.target = self.updaterController;
+	[applicationMenu insertItem:checkForUpdates atIndex:(aboutIndex == -1 ? 0 : aboutIndex + 1)];
 }
 
 //Forward a re-open message to the interface controller

@@ -31,7 +31,8 @@ PRODUCT_NAME = Adium
 // megabyte. STRIP_INSTALLED_PRODUCT, which strips the application's own binary, is a
 // different setting and is untouched.
 COPY_PHASE_STRIP = NO
-FRAMEWORK_SEARCH_PATHS = $(inherited)
+// Sparkle is fetched by Dependencies/sparkle/fetch-sparkle.sh and lives where that script puts it.
+FRAMEWORK_SEARCH_PATHS = $(inherited) "$(SRCROOT)/Dependencies/sparkle"
 INFOPLIST_OTHER_PREPROCESSOR_FLAGS = -C
 INFOPLIST_FILE = Resources/Info.plist
 LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks

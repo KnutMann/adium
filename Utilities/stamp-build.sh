@@ -28,4 +28,12 @@ fi
 /usr/libexec/PlistBuddy -c "Delete :AIBuildCommit" "$PLIST" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :AIBuildCommit string $hash" "$PLIST"
 
-echo "note: built $stamp from $hash"
+# CFBundleVersion is what the updater compares, so it has to grow with every build
+# that could be released. The number of commits behind HEAD does that on master and
+# costs nothing; the version people read stays CFBundleShortVersionString. Without
+# git the plist keeps what the source says.
+if count=$(git -C "$SRCROOT" rev-list --count HEAD 2>/dev/null); then
+	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $count" "$PLIST"
+fi
+
+echo "note: built $stamp from $hash, build ${count:-unknown}"

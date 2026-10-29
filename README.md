@@ -322,6 +322,8 @@ from Xcode alone does not run it**, so run it once after cloning:
   repository because it is a 200 MB binary framework
 * **picomemo**, the cryptographic half of OMEMO (ISC), fetched and built
   from source at a pinned commit
+* **Sparkle** 2.10.1 (MIT), the updater, fetched as the project's own signed
+  release and checked against a pinned SHA-256
 
 Without them the build fails at a compiler error naming a header, which
 says nothing about a download being what was missing.

@@ -32,4 +32,6 @@ Dependencies/webrtc/fetch-webrtc.sh
 
 echo "==> picomemo"
 Dependencies/picomemo/fetch-picomemo.sh
+echo "==> Sparkle"
+Dependencies/sparkle/fetch-sparkle.sh
 
