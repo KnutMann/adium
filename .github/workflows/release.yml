@@ -6,6 +6,10 @@
 # application and then the disk image are notarised and stapled, and what is
 # published opens on any Mac without a word. Without the secrets the job still
 # runs, unsigned, as a rehearsal of everything else, and says so in the notes.
+# With the certificate alone it signs and skips the notary, which is how the
+# certificate is rehearsed before the notary key exists; a tag refuses that
+# state, because a signed but unnotarised application is the one Gatekeeper
+# turns away most loudly.
 #
 # The secrets: DEVELOPER_ID_P12 (the certificate with its private key, exported
 # from Keychain Access as .p12 and base64 encoded), DEVELOPER_ID_P12_PASSWORD,
@@ -56,14 +60,24 @@ jobs:
           P12: ${{ secrets.DEVELOPER_ID_P12 }}
           KEY: ${{ secrets.NOTARY_KEY_P8 }}
         run: |
-          if [ -n "$P12" ] && [ -n "$KEY" ]; then
-            echo "signed=true" >> "$GITHUB_OUTPUT"
-            echo "sign_option=--sign=Developer ID Application" >> "$GITHUB_OUTPUT"
-          else
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-            echo "sign_option=" >> "$GITHUB_OUTPUT"
-            echo "No signing secrets, so this is a rehearsal: unsigned, and nothing notarised."
+          signed=false; notarised=false; sign_option=
+          if [ -n "$P12" ]; then signed=true; sign_option="--sign=Developer ID Application"; fi
+          if [ "$signed" = true ] && [ -n "$KEY" ]; then notarised=true; fi
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$signed" = true ] && [ "$notarised" = false ]; then
+            echo "there is a certificate but no notary key: a tag would publish a signed, unnotarised" >&2
+            echo "application, which macOS refuses outright; add NOTARY_KEY_P8 and its two ids first" >&2
+            exit 1
           fi
+          case "$signed$notarised" in
+            falsefalse) echo "No certificate, so this is a rehearsal: unsigned, and nothing notarised." ;;
+            truefalse)  echo "A certificate but no notary key: signed, not notarised, a rehearsal of the signing." ;;
+            truetrue)   echo "Certificate and notary key: signed and notarised." ;;
+          esac
+          {
+            echo "signed=$signed"
+            echo "notarised=$notarised"
+            echo "sign_option=$sign_option"
+          } >> "$GITHUB_OUTPUT"
 
       # A keychain of its own, unlocked for the job and first in the search list,
       # so that install.sh finds the identity the way it finds one on a developer's
@@ -140,7 +154,7 @@ jobs:
           echo "building $version"
 
       - name: Notarise the application and staple the ticket to it
-        if: steps.creds.outputs.signed == 'true'
+        if: steps.creds.outputs.notarised == 'true'
         env:
           KEY: ${{ secrets.NOTARY_KEY_P8 }}
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
@@ -153,7 +167,7 @@ jobs:
         run: ./Utilities/package-release.sh build/Release/Adium.app "${{ steps.name.outputs.version }}"
 
       - name: Notarise the disk image and staple the ticket to it
-        if: steps.creds.outputs.signed == 'true'
+        if: steps.creds.outputs.notarised == 'true'
         env:
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
@@ -166,13 +180,18 @@ jobs:
       # file is published with the release, and the application reads it through
       # GitHub's "latest" redirect, so the newest release is always the feed. The zip
       # alone goes into the feed: the updater installs from a zip, people from the dmg.
+      # A rehearsal without the key skips this; a tag without it stops, because a
+      # release with no feed entry is one the updater never sees.
       - name: Write the update feed
         if: steps.creds.outputs.signed == 'true'
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
           VERSION: ${{ steps.name.outputs.version }}
         run: |
-          [ -n "$SPARKLE_PRIVATE_KEY" ] || { echo "SPARKLE_PRIVATE_KEY is missing; a release without a feed entry is one the updater never sees" >&2; exit 1; }
+          if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+            [ "$GITHUB_REF_TYPE" != tag ] || { echo "SPARKLE_PRIVATE_KEY is missing; a release without a feed entry is one the updater never sees" >&2; exit 1; }
+            echo "No SPARKLE_PRIVATE_KEY, so no feed in this rehearsal."; exit 0
+          fi
           mkdir -p feed && cp dist/*.zip feed/
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_ed_key"
           Dependencies/sparkle/bin/generate_appcast \
@@ -188,12 +207,16 @@ jobs:
         run: |
           v='${{ steps.name.outputs.version }}'
           signed='${{ steps.creds.outputs.signed }}'
+          notarised='${{ steps.creds.outputs.notarised }}'
           {
             echo "Apple Silicon only, macOS 13 or later."
             echo
-            if [ "$signed" = true ]; then
+            if [ "$notarised" = true ]; then
               echo "Signed with a Developer ID and notarised by Apple: mount the disk image, drag"
               echo "Adium into your Applications folder, open it."
+            elif [ "$signed" = true ]; then
+              echo "**Signed but not notarised**: a rehearsal build that macOS will refuse to open."
+              echo "Not for publishing; see the workflow's header."
             else
               echo "**This build is not signed and not notarised**, so macOS will refuse to open it"
               echo "and say the application is damaged. It is not. After moving Adium into your"
