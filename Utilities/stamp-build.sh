@@ -32,7 +32,12 @@ fi
 # that could be released. The number of commits behind HEAD does that on master and
 # costs nothing; the version people read stays CFBundleShortVersionString. Without
 # git the plist keeps what the source says.
-if count=$(git -C "$SRCROOT" rev-list --count HEAD 2>/dev/null); then
+# A shallow clone, which is what a checkout on a build server makes unless told
+# otherwise, counts 1; that number is wrong rather than unknown, so it is not
+# written and the plist keeps what the source says.
+if [ "$(git -C "$SRCROOT" rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
+	echo "warning: shallow clone, so CFBundleVersion is not counted"
+elif count=$(git -C "$SRCROOT" rev-list --count HEAD 2>/dev/null); then
 	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $count" "$PLIST"
 fi
 

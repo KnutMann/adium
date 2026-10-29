@@ -43,10 +43,14 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - name: Check out, with the submodule the build cannot start without
+      # The whole history, not the one commit a checkout fetches by default: the
+      # build number is the count of commits behind HEAD, and in a shallow clone
+      # that count is 1. The first rehearsal published a feed saying so.
+      - name: Check out, with the submodule the build cannot start without and the history the build number counts
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - name: Take the newest Xcode on the image
         run: |
@@ -149,9 +153,14 @@ jobs:
             echo "the tag says $version but Resources/Info.plist says $plist; make them agree first" >&2
             exit 1
           fi
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            echo "shallow clone: the build number cannot be counted, and the updater would compare a wrong one" >&2
+            exit 1
+          fi
+          build=$(plutil -extract CFBundleVersion raw -o - build/Release/Adium.app/Contents/Info.plist)
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "build=$(plutil -extract CFBundleVersion raw -o - build/Release/Adium.app/Contents/Info.plist)" >> "$GITHUB_OUTPUT"
-          echo "building $version"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "building $version, build $build"
 
       - name: Notarise the application and staple the ticket to it
         if: steps.creds.outputs.notarised == 'true'
@@ -165,6 +174,17 @@ jobs:
 
       - name: Package a zip and a disk image
         run: ./Utilities/package-release.sh build/Release/Adium.app "${{ steps.name.outputs.version }}"
+
+      # The image itself carries a signature too, so that Gatekeeper can say who
+      # made it before anything inside is looked at; Apple's notarisation guide
+      # has this step. package-release.sh stays ignorant of signing on purpose.
+      - name: Sign the disk image
+        if: steps.creds.outputs.signed == 'true'
+        run: |
+          identity=$(security find-identity -v -p codesigning | grep -F '"Developer ID Application' | head -1 | sed 's/.*"\(.*\)"/\1/')
+          [ -n "$identity" ] || { echo "no Developer ID identity in the search list" >&2; exit 1; }
+          codesign --sign "$identity" --timestamp dist/*.dmg
+          codesign --verify --verbose=2 dist/*.dmg
 
       - name: Notarise the disk image and staple the ticket to it
         if: steps.creds.outputs.notarised == 'true'
