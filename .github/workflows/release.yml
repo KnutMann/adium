@@ -1,7 +1,7 @@
 # Cut a release: build, sign, notarise, package, publish.
 #
 # Issue #9 asked for something to download instead of a repository to build.
-# With the five secrets below in place the build is signed with the Developer
+# With the six secrets below in place the build is signed with the Developer
 # ID, every Mach-O in it carries the hardened runtime and a timestamp, the
 # application and then the disk image are notarised and stapled, and what is
 # published opens on any Mac without a word. Without the secrets the job still
