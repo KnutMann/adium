@@ -53,7 +53,9 @@ Build with ./install.sh --build-only, which is what continuous integration
 runs: it fetches what the repository does not carry, builds, checks that every
 protocol plug-in registers with the bundled libpurple, and verifies the
 application's signature. Xcode alone skips the fetch and fails at a header it
-cannot find. The Makefile and Release/ are leftovers of the upstream project.
+cannot find. The Makefile and most of Release/ are leftovers of the upstream
+project; Release/Artwork is live, it holds the disk image's picture and the
+Finder layout that Utilities/package-release.sh builds the image from.
 
 No scheme runs the unit tests. Continuous integration builds and runs them
 after the application, and by hand it is the same two commands (one file at a
