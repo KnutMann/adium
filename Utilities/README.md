@@ -28,9 +28,12 @@ and that is the thing to fix rather than to describe here.
 
 ## Utilities
 
+* `add-unit-tests.py`  Add test files and their fixtures to the "Unit tests" target in Adium.xcodeproj
 * `collect-licenses.sh`  Gather the licence of everything Adium ships, from the trees it was built from
 * `draw-entry-icons.py`  Draw the three message field buttons (Resources/entry_*.png) in the style of the old smiley: a 16 pt glyph in one
+* `notarize.sh`  Notarise a signed Adium.app or a disk image and staple the ticket to it
 * `package-release.sh`  Package a built Adium.app for people to download: a zip and a disk image
+* `run-unit-test-file.sh`  Build one or more unit test files into a throwaway bundle and run them, without xcodebuild
 * `script-index.py`  Regenerate Testing/README.md and Utilities/README.md from the scripts themselves
 * `stamp-build.sh`  Writes into the built Info.plist what this build is: when it was made, to the
 * `tosupportpage.sh`  Usage: tosupportpage path/to/www/help

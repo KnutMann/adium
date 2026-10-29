@@ -1,18 +1,22 @@
-# Cut a release: build, package, publish.
+# Cut a release: build, sign, notarise, package, publish.
 #
-# Issue #9 asks for something to download instead of a repository to build, and
-# this is the half that can exist today. It is not signed and not notarised,
-# because both need a paid Apple membership. What that costs the person
-# downloading it is one command, and the release text says so rather than leaving
-# them with "Adium is damaged" and no explanation.
+# Issue #9 asked for something to download instead of a repository to build.
+# With the five secrets below in place the build is signed with the Developer
+# ID, every Mach-O in it carries the hardened runtime and a timestamp, the
+# application and then the disk image are notarised and stapled, and what is
+# published opens on any Mac without a word. Without the secrets the job still
+# runs, unsigned, as a rehearsal of everything else, and says so in the notes.
 #
-# When there is a membership, three steps go in between build and package, and
-# nothing else here changes: import the Developer ID certificate, sign, then
-# notarytool submit --wait and stapler staple. The packaging script is deliberately
-# ignorant of all three.
+# The secrets: DEVELOPER_ID_P12 (the certificate with its private key, exported
+# from Keychain Access as .p12 and base64 encoded), DEVELOPER_ID_P12_PASSWORD,
+# and for the notary service an App Store Connect API key: NOTARY_KEY_P8 (the
+# .p8 file, base64 encoded), NOTARY_KEY_ID and NOTARY_ISSUER_ID; and for the
+# update feed SPARKLE_PRIVATE_KEY, the EdDSA private key as generate_keys -x
+# exports it. The certificate goes into a keychain of its own on the runner,
+# which the job throws away.
 #
-# Triggered by a tag. Run it by hand to rehearse: it builds and packages and
-# uploads the two files as a workflow artifact, and publishes nothing.
+# Triggered by a tag. Run it by hand to rehearse: it builds, signs and packages
+# and uploads the files as a workflow artifact, and publishes nothing.
 
 name: Release
 
@@ -46,19 +50,61 @@ jobs:
           sudo xcode-select -s "$newest"
           xcodebuild -version
 
+      - name: Decide whether this build can be signed and notarised
+        id: creds
+        env:
+          P12: ${{ secrets.DEVELOPER_ID_P12 }}
+          KEY: ${{ secrets.NOTARY_KEY_P8 }}
+        run: |
+          if [ -n "$P12" ] && [ -n "$KEY" ]; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "sign_option=--sign=Developer ID Application" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "sign_option=" >> "$GITHUB_OUTPUT"
+            echo "No signing secrets, so this is a rehearsal: unsigned, and nothing notarised."
+          fi
+
+      # A keychain of its own, unlocked for the job and first in the search list,
+      # so that install.sh finds the identity the way it finds one on a developer's
+      # Mac. The partition list lets codesign use the key without a dialog nobody
+      # is there to click.
+      - name: Import the Developer ID certificate into a keychain of its own
+        if: steps.creds.outputs.signed == 'true'
+        env:
+          P12: ${{ secrets.DEVELOPER_ID_P12 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password=$(uuidgen)
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/developer-id.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/developer-id.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/developer-id.p12"
+          security find-identity -v -p codesigning "$keychain"
+
       - name: Restore the two dependencies that are not in the repository
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             Dependencies/webrtc/WebRTC.xcframework
             Dependencies/picomemo/picomemo
-          key: deps-${{ runner.os }}-${{ hashFiles('Dependencies/webrtc/fetch-webrtc.sh', 'Dependencies/picomemo/fetch-picomemo.sh') }}
+            Dependencies/sparkle/Sparkle.framework
+            Dependencies/sparkle/bin
+            Dependencies/sparkle/LICENSE
+          key: deps-${{ runner.os }}-${{ hashFiles('Dependencies/webrtc/fetch-webrtc.sh', 'Dependencies/picomemo/fetch-picomemo.sh', 'Dependencies/sparkle/fetch-sparkle.sh') }}
 
       - name: Fetch what the repository does not carry
         run: Dependencies/fetch.sh
 
       - name: Build and verify
-        run: ./install.sh --build-only
+        env:
+          SIGN_OPTION: ${{ steps.creds.outputs.sign_option }}
+        run: ./install.sh --build-only ${SIGN_OPTION:+"$SIGN_OPTION"}
 
       - name: Every shipped binary carries its licence
         run: ./Utilities/verify-licenses.sh
@@ -68,26 +114,82 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           [ "$GITHUB_REF_TYPE" = tag ] || version="0.0.0-$(git rev-parse --short HEAD)"
+          # A tag that does not say what the application says of itself would publish
+          # a release whose files disagree with their name, and the updater reads the
+          # application, not the tag.
+          plist=$(plutil -extract CFBundleShortVersionString raw -o - build/Release/Adium.app/Contents/Info.plist)
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$plist" != "$version" ]; then
+            echo "the tag says $version but Resources/Info.plist says $plist; make them agree first" >&2
+            exit 1
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$(plutil -extract CFBundleVersion raw -o - build/Release/Adium.app/Contents/Info.plist)" >> "$GITHUB_OUTPUT"
           echo "building $version"
+
+      - name: Notarise the application and staple the ticket to it
+        if: steps.creds.outputs.signed == 'true'
+        env:
+          KEY: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          echo "$KEY" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          NOTARY_KEY_P8="$RUNNER_TEMP/AuthKey.p8" ./Utilities/notarize.sh build/Release/Adium.app
 
       - name: Package a zip and a disk image
         run: ./Utilities/package-release.sh build/Release/Adium.app "${{ steps.name.outputs.version }}"
 
+      - name: Notarise the disk image and staple the ticket to it
+        if: steps.creds.outputs.signed == 'true'
+        env:
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          NOTARY_KEY_P8="$RUNNER_TEMP/AuthKey.p8" ./Utilities/notarize.sh dist/*.dmg
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
+
+      # The feed the application polls. generate_appcast reads the version out of the
+      # zip, signs the entry with the EdDSA key and writes appcast.xml beside it; the
+      # file is published with the release, and the application reads it through
+      # GitHub's "latest" redirect, so the newest release is always the feed. The zip
+      # alone goes into the feed: the updater installs from a zip, people from the dmg.
+      - name: Write the update feed
+        if: steps.creds.outputs.signed == 'true'
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          VERSION: ${{ steps.name.outputs.version }}
+        run: |
+          [ -n "$SPARKLE_PRIVATE_KEY" ] || { echo "SPARKLE_PRIVATE_KEY is missing; a release without a feed entry is one the updater never sees" >&2; exit 1; }
+          mkdir -p feed && cp dist/*.zip feed/
+          printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_ed_key"
+          Dependencies/sparkle/bin/generate_appcast \
+            --ed-key-file "$RUNNER_TEMP/sparkle_ed_key" \
+            --download-url-prefix "https://github.com/KnutMann/adium/releases/download/$GITHUB_REF_NAME/" \
+            --link "https://github.com/KnutMann/adium/releases" \
+            feed/
+          rm -f "$RUNNER_TEMP/sparkle_ed_key"
+          mv feed/appcast.xml dist/appcast.xml
+          cat dist/appcast.xml
+
       - name: Write what the release says
         run: |
           v='${{ steps.name.outputs.version }}'
+          signed='${{ steps.creds.outputs.signed }}'
           {
             echo "Apple Silicon only, macOS 13 or later."
             echo
-            echo "**This build is not signed and not notarised.** Signing needs a paid Apple"
-            echo "developer membership, which this fork does not have yet, so macOS will refuse"
-            echo "to open it and will say the application is damaged. It is not. After moving"
-            echo "Adium into your Applications folder, run this once:"
-            echo
-            echo '```'
-            echo 'xattr -r -d com.apple.quarantine /Applications/Adium.app'
-            echo '```'
+            if [ "$signed" = true ]; then
+              echo "Signed with a Developer ID and notarised by Apple: mount the disk image, drag"
+              echo "Adium into your Applications folder, open it."
+            else
+              echo "**This build is not signed and not notarised**, so macOS will refuse to open it"
+              echo "and say the application is damaged. It is not. After moving Adium into your"
+              echo "Applications folder, run this once:"
+              echo
+              echo '```'
+              echo 'xattr -r -d com.apple.quarantine /Applications/Adium.app'
+              echo '```'
+            fi
             echo
             echo "Take the disk image if you are installing by hand, the zip if something else"
             echo "is unpacking it for you."
@@ -108,7 +210,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "Adium ${{ steps.name.outputs.version }}" \
             --notes-file dist/notes.md \
-            dist/*.zip dist/*.dmg
+            dist/*.zip dist/*.dmg $(ls dist/appcast.xml 2>/dev/null)
 
       - name: Keep the packages when this was only a rehearsal
         if: github.ref_type != 'tag'
