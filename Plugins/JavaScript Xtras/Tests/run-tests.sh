@@ -13,7 +13,7 @@
 
 set -e
 cd "$(dirname "$0")"
-BUILD="../../../Other/XtrasCreator/build"   # reuse a gitignored build dir near the tree
+BUILD="../../../build/javascript-xtras-tests"   # under the repository's one build folder
 mkdir -p "$BUILD"
 
 echo "== compile"

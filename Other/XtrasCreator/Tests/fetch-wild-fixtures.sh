@@ -1,7 +1,8 @@
 #!/bin/zsh
-# Fetches one real-world xtra per type from adiumxtras.com into
-# build/wild-fixtures, where run-tests.sh picks them up. They are cached and
-# deliberately not part of the repository: they are other people's work.
+# Fetches one real-world xtra per type from adiumxtras.com into the
+# repository's build/XtrasCreator/wild-fixtures, where run-tests.sh picks them
+# up. They are cached and deliberately not part of the repository: they are
+# other people's work.
 #
 # The download ids come from the site's category pages
 # (index.php?a=cats&cat_id=N); the adiumxtra:// links there carry the same
@@ -9,7 +10,8 @@
 
 set -e
 cd "$(dirname "$0")/.."
-WILD="build/wild-fixtures"
+REPO_ROOT="$(cd ../.. && pwd)"
+WILD="$REPO_ROOT/build/XtrasCreator/wild-fixtures"
 mkdir -p "$WILD"
 
 # type-directory:download-id  (one known-good specimen per category)

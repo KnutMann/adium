@@ -6,16 +6,20 @@
 # packs fetched from adiumxtras.com by fetch-wild-fixtures.sh. Fixtures whose
 # type the application has not learned yet report as SKIP.
 #
-# Usage: Tests/run-tests.sh   (from Other/XtrasCreator2, or anywhere)
+# Usage: Tests/run-tests.sh   (from Other/XtrasCreator, or anywhere)
+#
+# Everything it writes goes under the repository's build/XtrasCreator, the one
+# build folder of the tree; nothing is created beside the sources.
 
 set -e
 cd "$(dirname "$0")/.."
 REPO_ROOT="$(cd ../.. && pwd)"
-SCRATCH="build/test-scratch"
-WILD="build/wild-fixtures"
-RUNNER="build/AXSRoundTripTest"
+BUILD="$REPO_ROOT/build/XtrasCreator"
+SCRATCH="$BUILD/test-scratch"
+WILD="$BUILD/wild-fixtures"
+RUNNER="$BUILD/AXSRoundTripTest"
+mkdir -p "$BUILD"
 
-mkdir -p build
 rm -rf "$SCRATCH"
 
 echo "== compile"
