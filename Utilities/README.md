@@ -22,6 +22,7 @@ and that is the thing to fix rather than to describe here.
 * `add-unit-tests.py`  Add test files and their fixtures to the "Unit tests" target in Adium.xcodeproj
 * `collect-licenses.sh`  Gather the licence of everything Adium ships, from the trees it was built from
 * `draw-entry-icons.py`  Draw the three message field buttons (Resources/entry_*.png) in the style of the old smiley: a 16 pt glyph in one
+* `make-app-icon.sh`  Make an application icon, an .icns, from one square picture
 * `make-dmg-layout.sh`  Write the release disk image's Finder layout: Other/Artwork/Disk Image/DS_Store
 * `notarize.sh`  Notarise a signed Adium.app or a disk image and staple the ticket to it
 * `package-release.sh`  Package a built Adium.app for people to download: a zip and a disk image
