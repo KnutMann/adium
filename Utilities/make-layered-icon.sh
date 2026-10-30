@@ -10,9 +10,10 @@
 # headroom and shifted five percent down, so that it stands large on the tile. The
 # cut is made by make-layered-icon.m beside this script, from the eyes down.
 #
-# The package is committed; this is run again when the picture or the look changes.
-# Utilities/compile-layered-icon.sh turns the package into the Assets.car a build
-# ships, and the classic .icns stays beside it for older systems.
+# The package is committed; this is run again when the picture or the look changes,
+# and then Utilities/compile-layered-icon.sh, which turns the package into the
+# catalogue the build copies into the bundle. The classic .icns stays beside it for
+# older systems.
 #
 #   Utilities/make-layered-icon.sh <picture.png> <Name.icon>
 #
