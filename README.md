@@ -310,7 +310,9 @@ The **XtrasCreator** companion app (see Tools above) is a target the
 application depends on, so the same build produces it and puts it at
 `Adium.app/Contents/Helpers/XtrasCreator.app`. Open it from there, or
 build it alone with
-`xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
+`xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj CODE_SIGN_IDENTITY=- build`
+(its project names the same local signing identity as Adium's targets,
+which only this fork's development machine has).
 
 Three things are fetched rather than vendored, and `install.sh` gets
 them by running `Dependencies/fetch.sh` before it builds anything. It is

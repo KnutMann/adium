@@ -256,7 +256,8 @@
 		CAFE00000000000000000103 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Adium Local Signing";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Frameworks/Adium/Source";
@@ -270,7 +271,8 @@
 		CAFE00000000000000000104 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Adium Local Signing";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Frameworks/Adium/Source";
