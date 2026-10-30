@@ -51,9 +51,10 @@ python3 -m venv "$WORK/venv"
 
 # What the Finder is to remember. The window is the picture's size in points
 # plus 28 for the title bar, which the Finder counts into the window's bounds;
-# the icons stand on the grass, low enough to be whole and high enough that
-# their names survive a status bar, which is a Finder-wide setting the layout
-# cannot switch off. The positions are centres, in points from the top left.
+# the icons stand on the grass, close under the hands of the picture, low enough to
+# be whole and high enough that their names survive a status bar, a Finder-wide
+# setting the layout cannot switch off. The positions are centres, in points from
+# the top left; 350 since 30 October 2026, 380 before.
 mkdir "$WORK/Adium.app"
 cat > "$WORK/settings.py" <<EOF
 files = ["$WORK/Adium.app"]
@@ -71,7 +72,7 @@ text_size = 14
 label_pos = "bottom"
 arrange_by = None
 show_icon_preview = False
-icon_locations = {"Adium.app": (210, 380), "Applications": (558, 380)}
+icon_locations = {"Adium.app": (210, 350), "Applications": (558, 350)}
 format = "UDZO"
 EOF
 
