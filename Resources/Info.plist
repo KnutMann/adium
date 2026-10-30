@@ -359,6 +359,8 @@
 	<string>AdiumHelp</string>
 	<key>CFBundleHelpBookName</key>
 	<string>Adium Help</string>
+	<key>CFBundleIconName</key>
+	<string>Adium</string>
 	<key>CFBundleIconFile</key>
 	<string>Adium.icns</string>
 	<key>CFBundleIdentifier</key>

@@ -99,6 +99,7 @@
 				CAFE000000000000000000C1 /* Sources */,
 				CAFE000000000000000000C2 /* Frameworks */,
 				CAFE000000000000000000C3 /* Resources */,
+				CAFE000000000000000000C4 /* Compile the Layered Icon */,
 			);
 			buildRules = (
 			);
@@ -162,6 +163,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CAFE000000000000000000C4 /* Compile the Layered Icon */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Compile the Layered Icon";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# macOS 26 draws a classic .icns small on a grey tile. XtrasCreator.icon beside the project is\n# the layered form macOS 26 renders instead, compiled into Resources/Assets.car and named by\n# CFBundleIconName; the .icns stays for older systems. See Decisions/application-icon.md.\n\"${SRCROOT}/../../Utilities/compile-layered-icon.sh\" \"${SRCROOT}/XtrasCreator.icon\" \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\" \"${MACOSX_DEPLOYMENT_TARGET}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		CAFE000000000000000000C1 /* Sources */ = {

@@ -1,0 +1,30 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "srgb:0.70180,0.79880,0.70830,1.00000",
+      "srgb:0.59650,0.72000,0.60830,1.00000"
+    ],
+    "orientation" : {
+      "start" : { "x" : 0.5, "y" : 1.0 },
+      "stop" : { "x" : 0.5, "y" : 0.0 }
+    }
+  },
+  "groups" : [
+    {
+      "name" : "Duck",
+      "layers" : [
+        {
+          "name" : "duck",
+          "image-name" : "duck.png"
+        }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.5 },
+      "translucency" : { "enabled" : false, "value" : 0.5 },
+      "specular" : false
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [ "watchOS" ],
+    "squares" : "shared"
+  }
+}

@@ -102,6 +102,42 @@ jobs:
       # The build is already green by here; this only tells the reader how much
       # the compiler had to say. It must not fail the job: a warning is not a
       # break, and a job that goes red over one teaches people to ignore red.
+      - name: Draw the icons the way this macOS shows them
+        # The runner is the one macOS before 26 this fork can look at. Each bundle now
+        # carries two icons, the classic .icns and the layered form macOS 26 draws, and
+        # what an older system picks when it finds both is not documented; the pictures
+        # this uploads are the answer (Decisions/application-icon.md).
+        run: |
+          mkdir -p build/icon-renders
+          cat > build/icon-renders/render.m <<'EOF'
+          #import <Cocoa/Cocoa.h>
+          int main(int argc, char **argv) { @autoreleasepool {
+              NSImage *icon = [[NSWorkspace sharedWorkspace] iconForFile:@(argv[1])];
+              NSImage *out = [[NSImage alloc] initWithSize:NSMakeSize(272, 144)];
+              [out lockFocus];
+              [[NSColor whiteColor] setFill]; NSRectFill(NSMakeRect(0, 0, 272, 144));
+              [icon drawInRect:NSMakeRect(8, 8, 128, 128) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1];
+              [icon drawInRect:NSMakeRect(160, 56, 32, 32) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1];
+              [icon drawInRect:NSMakeRect(208, 64, 16, 16) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1];
+              [out unlockFocus];
+              NSBitmapImageRep *rep = [NSBitmapImageRep imageRepWithData:[out TIFFRepresentation]];
+              [[rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}] writeToFile:@(argv[2]) atomically:YES];
+          } return 0; }
+          EOF
+          clang -fobjc-arc -framework Cocoa build/icon-renders/render.m -o build/icon-renders/render
+          sw_vers -productVersion > build/icon-renders/macos-version.txt
+          build/icon-renders/render "$PWD/build/Release/Adium.app" build/icon-renders/Adium.png
+          build/icon-renders/render "$PWD/build/Release/Adium.app/Contents/Helpers/XtrasCreator.app" build/icon-renders/XtrasCreator.png
+          ls -la build/icon-renders
+
+      - name: Keep the icon pictures
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: icon-renders
+          path: |
+            build/icon-renders/*.png
+            build/icon-renders/macos-version.txt
+
       - name: Count what the compiler complained about
         if: always()
         run: |

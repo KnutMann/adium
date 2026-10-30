@@ -300,8 +300,10 @@ builds the application with that dock icon set's icon as its own, so the
 Finder and the Dock show it while Adium is closed; it goes into the bundle
 before the signature is made, which is the one way the icon can change
 without breaking it (Adium 1.x changed it at run time, and did), and the Dock
-may keep showing the old one until its tile is made anew. `./install.sh
---help` lists them all.
+may keep showing the old one until its tile is made anew. On macOS 26 the
+build also compiles a layered icon, the form that system draws large instead
+of shrinking a classic one into a grey tile; a chosen icon switches it off, so
+the choice shows there as well. `./install.sh --help` lists them all.
 
 `./bootstrap.sh` is the same script with `--build-only`, kept under its old
 name.

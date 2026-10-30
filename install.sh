@@ -299,6 +299,18 @@ if ! codesign --verify "$HELPER" 2>/dev/null; then
 fi
 echo "== XtrasCreator.app in Contents/Helpers verifies"
 
+# The layered icons macOS 26 draws, one per bundle, compiled by the build from the .icon
+# packages. A chosen icon switches Adium's off on purpose, so only the plain build is checked.
+if [ -z "$ICON_CHOICE" ]; then
+	for bundle in "$APP" "$HELPER"; do
+		if [ ! -f "$bundle/Contents/Resources/Assets.car" ]; then
+			echo "FAIL: no Assets.car in $(basename "$bundle"); the layered icon was not compiled"
+			exit 1
+		fi
+	done
+	echo "== both layered icons are compiled in"
+fi
+
 if [ "$INSTALL" = no ]; then
 	step "Done (build only)"
 	echo "The verified application is at: $APP"

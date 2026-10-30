@@ -474,6 +474,8 @@
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIconName</key>
+	<string>XtrasCreator</string>
 	<key>CFBundleIconFile</key>
 	<string>XtrasCreator</string>
 	<key>CFBundleIdentifier</key>
