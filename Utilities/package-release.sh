@@ -11,7 +11,10 @@
 #
 # The disk image opens on a picture, Other/Artwork/Disk Image/dmgBackground.png,
 # with Adium on the left and the Applications folder on the right, and the
-# mounted volume wears the application's icon. The Finder reads such a layout
+# mounted volume wears a drive with the duck embossed on it, VolumeIcon.icns in
+# the same folder, made from VolumeIcon.png there by Utilities/make-app-icon.sh
+# (a volume is not an application, so macOS 26 leaves it out of its tile). The
+# Finder reads such a layout
 # from a .DS_Store file; Utilities/make-dmg-layout.sh writes that file once,
 # without a Finder, and it is committed beside the picture as DS_Store. Two
 # things follow
@@ -33,7 +36,7 @@ OUT=${3:-dist}
 ART="$(cd "$(dirname "$0")/.." && pwd)/Other/Artwork/Disk Image"
 
 [ -d "$APP" ] || { echo "no application at $APP" >&2; exit 1; }
-for f in "$ART/dmgBackground.png" "$ART/DS_Store"; do
+for f in "$ART/dmgBackground.png" "$ART/DS_Store" "$ART/VolumeIcon.icns"; do
 	[ -f "$f" ] || { echo "the disk image's layout is incomplete: no $f" >&2; exit 1; }
 done
 
@@ -78,7 +81,7 @@ if ! out=$(tiffutil -cathidpicheck "$STAGE/background.png" "$ART/dmgBackground.p
 fi
 rm "$STAGE/background.png"
 cp "$ART/DS_Store" "$STAGE/.DS_Store"
-cp "$APP/Contents/Resources/Adium.icns" "$STAGE/.VolumeIcon.icns"
+cp "$ART/VolumeIcon.icns" "$STAGE/.VolumeIcon.icns"
 
 hdiutil create -quiet -srcfolder "$STAGE" -volname "Adium" -fs HFS+ -format UDRW "$RW"
 mkdir -p "$MOUNT"
