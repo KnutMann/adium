@@ -9,11 +9,12 @@
 # Neither is signed here. Signing and notarising belong to the release workflow,
 # and this script deliberately knows nothing about them.
 #
-# The disk image opens on a picture, Release/Artwork/dmgBackground.png, with
-# Adium on the left and the Applications folder on the right, and the mounted
-# volume wears the application's icon. The Finder reads such a layout from a
-# .DS_Store file; Utilities/make-dmg-layout.sh writes that file once, without
-# a Finder, and it is committed as Release/Artwork/DS_Store. Two things follow
+# The disk image opens on a picture, Other/Artwork/Disk Image/dmgBackground.png,
+# with Adium on the left and the Applications folder on the right, and the
+# mounted volume wears the application's icon. The Finder reads such a layout
+# from a .DS_Store file; Utilities/make-dmg-layout.sh writes that file once,
+# without a Finder, and it is committed beside the picture as DS_Store. Two
+# things follow
 # from how the Finder finds the picture, through an alias that names the volume
 # and the file: the volume is always called "Adium", whatever the version, since
 # a volume of another name opens on a white window (measured 29 October 2026),
@@ -29,7 +30,7 @@ set -euo pipefail
 APP=${1:?usage: package-release.sh <Adium.app> <version> [output directory]}
 VERSION=${2:?usage: package-release.sh <Adium.app> <version> [output directory]}
 OUT=${3:-dist}
-ART=$(cd "$(dirname "$0")/.." && pwd)/Release/Artwork
+ART="$(cd "$(dirname "$0")/.." && pwd)/Other/Artwork/Disk Image"
 
 [ -d "$APP" ] || { echo "no application at $APP" >&2; exit 1; }
 for f in "$ART/dmgBackground.png" "$ART/DS_Store"; do

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Write the Finder layout of the release disk image: Release/Artwork/DS_Store.
+# Write the release disk image's Finder layout: Other/Artwork/Disk Image/DS_Store.
 #
 # The disk image opens on a picture with Adium on the left and the Applications
 # folder on the right. The Finder keeps such a layout in a .DS_Store file, and
@@ -12,18 +12,19 @@
 # when the picture's size or the positions below change; it takes a minute and
 # fetches dmgbuild once, into a virtual environment it throws away.
 #
-# The picture is Release/Artwork/dmgBackground.png, drawn at twice the window's
-# size: 1536 x 1024 pixels for a window of 768 x 512 points. The Finder is
-# given a TIFF holding both resolutions. package-release.sh makes that TIFF the
-# same way and under the same name, because the layout finds it by that name.
+# The picture is dmgBackground.png in the same folder, next to its Photoshop
+# source, drawn at twice the window's size: 1536 x 1024 pixels for a window of
+# 768 x 512 points. The Finder is given a TIFF holding both resolutions.
+# package-release.sh makes that TIFF the same way and under the same name,
+# because the layout finds it by that name.
 #
 #   Utilities/make-dmg-layout.sh
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-ART=Release/Artwork
-PNG=$ART/dmgBackground.png
-OUT=$ART/DS_Store
+ART="Other/Artwork/Disk Image"
+PNG="$ART/dmgBackground.png"
+OUT="$ART/DS_Store"
 DMGBUILD_VERSION=1.6.7
 
 [ -f "$PNG" ] || { echo "no picture at $PNG" >&2; exit 1; }

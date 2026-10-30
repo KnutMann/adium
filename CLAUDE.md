@@ -45,7 +45,10 @@ installs, with accounts and logs, is under ~/Library/Application Support/Adium
 2.0. UnitTests/ is the XCTest target. Testing/ is harnesses run by hand and
 Utilities/ is developer tools; both READMEs are generated from the scripts'
 headers. Other/XtrasCreator is the companion application for making xtras,
-and AdiumHelp/ is the help book.
+Other/Artwork is where the sources behind the pictures live, one folder per
+subject (the Photoshop files of the service icons; the disk image's picture,
+its Photoshop file and the Finder layout the image is built from), and
+AdiumHelp/ is the help book.
 
 ## Building and checking
 
@@ -53,9 +56,8 @@ Build with ./install.sh --build-only, which is what continuous integration
 runs: it fetches what the repository does not carry, builds, checks that every
 protocol plug-in registers with the bundled libpurple, and verifies the
 application's signature. Xcode alone skips the fetch and fails at a header it
-cannot find. The Makefile is a leftover of the upstream project. Release/ is
-only Release/Artwork: the disk image's picture and the Finder layout that
-Utilities/package-release.sh builds the image from.
+cannot find. The Makefile is a leftover of the upstream project; the disk
+image is built by Utilities/package-release.sh from Other/Artwork/Disk Image.
 
 No scheme runs the unit tests. Continuous integration builds and runs them
 after the application, and by hand it is the same two commands (one file at a
