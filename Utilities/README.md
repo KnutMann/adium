@@ -9,15 +9,6 @@ and that is the thing to fix rather than to describe here.
 
 ## Utilities
 
-* `AppcastReplaceItem.py`  Usage:
-
-## Build
-
-* `Build/buildDMG.pl`  **no header**
-* `Build/buildDaily.sh`  filename: buildDaily.sh
-
-## Utilities
-
 * `FindMacroMisuses.py`  Find places where a macro's name was written inside a string instead of used
 * `GenerateColorTests.py`  Generate the test methods for +colorWithHTMLString:
 
@@ -37,7 +28,6 @@ and that is the thing to fix rather than to describe here.
 * `run-unit-test-file.sh`  Build one or more unit test files into a throwaway bundle and run them, without xcodebuild
 * `script-index.py`  Regenerate Testing/README.md and Utilities/README.md from the scripts themselves
 * `stamp-build.sh`  Writes into the built Info.plist what this build is: when it was made, to the
-* `tosupportpage.sh`  Usage: tosupportpage path/to/www/help
 * `verify-claude-md.sh`  Check that the CLAUDE.md files still describe the tree they describe
 * `verify-licenses.sh`  Every binary Adium ships must have a licence beside it
 * `verify-purple-plugins.sh`  Verifies that the shipped protocol plug-ins are actually shippable
