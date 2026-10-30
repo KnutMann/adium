@@ -192,6 +192,17 @@
 														   action:@selector(revealXtrasFolder:)]
 				   detail:[[adium applicationSupportDirectory] stringByAbbreviatingWithTildeInPath]];
 
+	/* The creator, which rides inside the bundle, for whoever reads this card and thinks of
+	 * making an Xtra rather than downloading one. The row exists only when the helper does, so a
+	 * build without it says nothing instead of offering a button that does nothing. */
+	if ([[self xtrasCreatorURL] checkResourceIsReachableAndReturnError:NULL]) {
+		[form addRowWithLabel:AILocalizedString(@"XtrasCreator", "Row leading to the application that makes Xtras, which ships inside Adium")
+					  control:[AISettingsFormView pushButtonWithTitle:AILocalizedString(@"Open", nil)
+															   target:self
+															   action:@selector(openXtrasCreator:)]
+					   detail:AILocalizedString(@"The application for making Xtras of your own. It comes with Adium.", "Second line of the XtrasCreator row in the Xtras pane")];
+	}
+
 	for (NSInteger index = 0; index < (NSInteger)[manager numberOfCategories]; index++) {
 		NSArray		*xtras = [manager xtrasForCategoryAtIndex:index];
 		NSString	*category = [manager nameOfCategoryAtIndex:index];
@@ -399,6 +410,21 @@
 {
 	[[NSWorkspace sharedWorkspace] selectFile:nil
 					 inFileViewerRootedAtPath:[adium applicationSupportDirectory]];
+}
+
+/*!
+ * @brief Where the creator lives: inside this bundle, as a helper application
+ */
+- (NSURL *)xtrasCreatorURL
+{
+	return [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"Contents/Helpers/XtrasCreator.app" isDirectory:YES];
+}
+
+- (IBAction)openXtrasCreator:(id)sender
+{
+	[[NSWorkspace sharedWorkspace] openApplicationAtURL:[self xtrasCreatorURL]
+										  configuration:[NSWorkspaceOpenConfiguration configuration]
+									  completionHandler:nil];
 }
 
 #pragma mark Xtra list delegate

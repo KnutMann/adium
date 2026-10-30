@@ -214,7 +214,8 @@ media runs through Google's WebRTC natively.
   and script packs, and writes the description Adium shows on an
   xtra's page. It is built with Adium and travels inside the
   application, at `Contents/Helpers/XtrasCreator.app`, so anyone who
-  looks into the bundle finds it
+  looks into the bundle finds it, and the Xtras settings card has a
+  button that opens it
 * **Contact Pictures**, opened from the Address Book settings: the
   cards linked to your chat contacts, each with the chat picture and
   the card picture side by side, and one button that puts the chat
