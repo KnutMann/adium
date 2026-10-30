@@ -212,7 +212,9 @@ media runs through Google's WebRTC natively.
   emoticon sets, sound sets, status/service/menu-bar/group-chat icon
   packs, dock icons, message styles, contact list themes and layouts,
   and script packs, and writes the description Adium shows on an
-  xtra's page
+  xtra's page. It is built with Adium and travels inside the
+  application, at `Contents/Helpers/XtrasCreator.app`, so anyone who
+  looks into the bundle finds it
 * **Contact Pictures**, opened from the Address Book settings: the
   cards linked to your chat contacts, each with the chat picture and
   the card picture side by side, and one button that puts the chat
@@ -303,8 +305,10 @@ may keep showing the old one until its tile is made anew. `./install.sh
 `./bootstrap.sh` is the same script with `--build-only`, kept under its old
 name.
 
-The **XtrasCreator** companion app (see Tools above) builds
-separately:
+The **XtrasCreator** companion app (see Tools above) is a target the
+application depends on, so the same build produces it and puts it at
+`Adium.app/Contents/Helpers/XtrasCreator.app`. Open it from there, or
+build it alone with
 `xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj build`.
 
 Three things are fetched rather than vendored, and `install.sh` gets

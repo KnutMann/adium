@@ -44,7 +44,8 @@ Icons, Service Icons, Menu Bar Icons, Contact List, Scripts). What the user
 installs, with accounts and logs, is under ~/Library/Application Support/Adium
 2.0. UnitTests/ is the XCTest target. Testing/ is harnesses run by hand and
 Utilities/ is developer tools; both READMEs are generated from the scripts'
-headers. Other/XtrasCreator is the companion application for making xtras,
+headers. Other/XtrasCreator is the companion application for making xtras, a
+dependency of the Adium target that ships inside the bundle at Contents/Helpers.
 Other/Artwork is where the sources behind the pictures live, one folder per
 subject (the Photoshop files of the service icons; the disk image's picture,
 its Photoshop file and the Finder layout the image is built from), and

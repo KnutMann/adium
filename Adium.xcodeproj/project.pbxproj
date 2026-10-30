@@ -952,6 +952,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		4D9162642577EDC600930BC8 /* AIUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; };
 		4D91645E2577F7C800930BC8 /* AutoHyperlinks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; };
 		4D9164BC25780B2D00930BC8 /* AdiumSpotlightImporter.mdimporter in Copy Spotlight Importer */ = {isa = PBXBuildFile; fileRef = 4DAA966B2577B2820000D3F7 /* AdiumSpotlightImporter.mdimporter */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		AD00C4EA70000000000000A7 /* XtrasCreator.app in Copy XtrasCreator */ = {isa = PBXBuildFile; fileRef = AD00C4EA70000000000000A4 /* XtrasCreator.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A1D100012603150000000001 /* AIUtilities.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA96672577B2820000D3F7 /* AIUtilities.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A1D100022603150000000001 /* AutoHyperlinks.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4DAA968E2577B48D0000D3F7 /* AutoHyperlinks.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A1D100032603150000000001 /* MMTabBarView.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 4D4A20E425775815008BB8E3 /* MMTabBarView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -1343,6 +1344,20 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			remoteGlobalIDString = 06DB23A51609F5820071BDA0;
 			remoteInfo = "MMTabBarView";
 		};
+		AD00C4EA70000000000000A3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AD00C4EA70000000000000A1 /* XtrasCreator.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CAFE000000000000000000A0;
+			remoteInfo = XtrasCreator;
+		};
+		AD00C4EA70000000000000A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AD00C4EA70000000000000A1 /* XtrasCreator.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = CAFE000000000000000000E0;
+			remoteInfo = XtrasCreator;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1497,6 +1512,17 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				ADD1E5C0DE0000000000D229 /* Reaction Chips.AdiumPlugin in Copy JavaScript Plugins */,
 			);
 			name = "Copy JavaScript Plugins";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD00C4EA70000000000000A8 /* Copy XtrasCreator */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				AD00C4EA70000000000000A7 /* XtrasCreator.app in Copy XtrasCreator */,
+			);
+			name = "Copy XtrasCreator";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -3204,6 +3230,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 		7F3DE41E3DD69FE3567D887C /* TestXtraInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TestXtraInfo.m; path = UnitTests/TestXtraInfo.m; sourceTree = "<group>"; };
 		DF7C1CAB84934F0A603657A3 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fixtures; path = UnitTests/Fixtures; sourceTree = "<group>"; };
 		873385B9FD554319B564037B /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Dependencies/sparkle/Sparkle.framework; sourceTree = "<group>"; };
+		AD00C4EA70000000000000A1 /* XtrasCreator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = XtrasCreator.xcodeproj; path = Other/XtrasCreator/XtrasCreator.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3453,6 +3480,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				4DAA965C2577B2820000D3F7 /* AIUtilities.xcodeproj */,
 				4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */,
 				4D4B483D25F3F204000CEF01 /* adium-dependencies.xcodeproj */,
+				AD00C4EA70000000000000A1 /* XtrasCreator.xcodeproj */,
 				4D4A23AD25776FDB008BB8E3 /* AIMessageWindow.h */,
 				34DE9E60237E2BFC006D5C7F /* Adium.entitlements */,
 				F59DB3D6033EA9CD01A8010A /* AIAdium.h */,
@@ -6400,6 +6428,14 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			name = "JavaScript Xtras";
 			sourceTree = "<group>";
 		};
+		AD00C4EA70000000000000A2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AD00C4EA70000000000000A4 /* XtrasCreator.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -6678,6 +6714,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				34BD9D24053146CC000AB133 /* Resources */,
 				34BD9D57053146CC000AB133 /* Frameworks */,
 				F51BCD3E0A156281000FDC06 /* Copy Spotlight Importer */,
+				AD00C4EA70000000000000A8 /* Copy XtrasCreator */,
 				34BD9D5F053146CC000AB133 /* Copy Frameworks */,
 				FBE072DFA9888E93E7699607 /* Sign Sparkle's Helpers */,
 				ADD1E5C0DE00000000000305 /* Copy Purple Plugins */,
@@ -6700,6 +6737,7 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 				11F6CB2E109BC6AC0070022D /* PBXTargetDependency */,
 				639DF9E30F97E687003C9A32 /* PBXTargetDependency */,
 				4D9164C025780B3B00930BC8 /* PBXTargetDependency */,
+				AD00C4EA70000000000000A6 /* PBXTargetDependency */,
 			);
 			name = Adium;
 			productInstallPath = /;
@@ -6830,6 +6868,10 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 					ProductGroup = 4D4A20E025775815008BB8E3 /* Products */;
 					ProjectRef = 4D4A20DF25775815008BB8E3 /* MMTabBarView.xcodeproj */;
 				},
+				{
+					ProductGroup = AD00C4EA70000000000000A2 /* Products */;
+					ProjectRef = AD00C4EA70000000000000A1 /* XtrasCreator.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -6896,6 +6938,13 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			fileType = "compiled.mach-o.executable";
 			path = AHThreadedStressTester;
 			remoteRef = 4DAA96952577B48D0000D3F7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AD00C4EA70000000000000A4 /* XtrasCreator.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = XtrasCreator.app;
+			remoteRef = AD00C4EA70000000000000A3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -7968,6 +8017,11 @@ ADD1E5C0AF00000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBX
 			isa = PBXTargetDependency;
 			name = "MMTabBarView";
 			targetProxy = 2A5E06FBE7E226CC6C69BCE3 /* PBXContainerItemProxy */;
+		};
+		AD00C4EA70000000000000A6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = XtrasCreator;
+			targetProxy = AD00C4EA70000000000000A5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

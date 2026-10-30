@@ -285,6 +285,20 @@ if ! codesign --verify "$APP" 2>/dev/null; then
 fi
 echo "== the application's signature verifies"
 
+# XtrasCreator rides inside the bundle as nested code with a signature of its
+# own, and a broken one fails notarisation the way a broken framework would.
+HELPER="$APP/Contents/Helpers/XtrasCreator.app"
+if [ ! -d "$HELPER" ]; then
+	echo "FAIL: no XtrasCreator.app in Contents/Helpers; the Adium target no longer embeds it"
+	exit 1
+fi
+if ! codesign --verify "$HELPER" 2>/dev/null; then
+	echo "FAIL: XtrasCreator.app in Contents/Helpers does not verify:"
+	codesign --verify "$HELPER" 2>&1 | sed 's/^/  /'
+	exit 1
+fi
+echo "== XtrasCreator.app in Contents/Helpers verifies"
+
 if [ "$INSTALL" = no ]; then
 	step "Done (build only)"
 	echo "The verified application is at: $APP"
