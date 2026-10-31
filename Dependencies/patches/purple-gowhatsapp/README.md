@@ -3,20 +3,25 @@
 `Dependencies/source` is not under version control, so this patch is the only record in this
 repository of what `PurplePlugins/libwhatsmeow.so` was built from.
 
-Base revision: `c58fcbac9aa7210ce08cf12ef3442932730ec312` (2026-08-19) of
-<https://github.com/hoehermann/purple-gowhatsapp>, branch `whatsmeow`; that revision is upstream's merge of our PR #273 (PNGs travel as image
-messages, confirmed by the maintainer on Electron, iOS and Android; WebP is silently swallowed
-by WhatsApp itself). Upstream is active, so the
-patch is expected to be rebased rather than carried forever. The working checkout also has a remote
-`knutmann` pointing at <https://github.com/KnutMann/purple-gowhatsapp>, where the earlier single
-purpose branches were pushed. The combined branch these changes now live on is local only.
+Base revision: `b618ef56d09f516958f89156cbdec0e9c2b82347` (2026-09-16) of
+<https://github.com/hoehermann/purple-gowhatsapp>, branch `whatsmeow`, the last commit before the
+1.26.0 release, whose own commit the patch includes. Upstream had merged our PR #273
+in August (PNGs travel as image messages, confirmed by the maintainer on Electron, iOS and Android;
+WebP is silently swallowed by WhatsApp itself), and the merge of 17 September brought the combined
+branch up to this base. Upstream is active, so the patch is expected to be rebased rather than
+carried forever. The working checkout also has a remote `knutmann` pointing at
+<https://github.com/KnutMann/purple-gowhatsapp>, where the single purpose branches are pushed. The
+combined branch these changes live on is `adium-adaptations-v2`. The patch is written with
+`git diff b618ef5 adium-adaptations-v2`, one diff rather than a series, because the branch merges
+upstream in September and a series cannot carry that merge; applied on the base it reproduces the
+tree the plug-in was built from, checked by tree hash on 31 October 2026.
 
 ## adium.patch
 
-A series of commits (git counts them, this text will not), all of them adjustments to what suits a Cocoa frontend rather than corrections to
-upstream's own behaviour, with one exception noted last.
+The sum of a series of commits on the fork's branch, all of them adjustments to what suits a Cocoa frontend rather than corrections to
+upstream's own behaviour, with the two plain fixes noted last.
 
-**Three of the commits are meant for upstream.** "Forward incoming receipts and
+**Four of the commits are meant for upstream.** "Forward incoming receipts and
 sent-message ids." and "Emit reactions and message ids as purple signals." exist
 as clean branches `receipt-signals` and `reaction-signals` on the upstream base,
 prepared as pull requests to hoehermann/purple-gowhatsapp; Adium consumes their
@@ -32,6 +37,9 @@ primary device for the messages before the newest one known, behind the
 phone remembers travel back through the two signals above, which is what lets a
 reopened window show its ticks and reaction chips again. The phone answers only
 while WhatsApp is running on it, so the option is off by default.
+
+"Retry the group list query instead of dropping the connection." is the fourth, and it stands
+alone: the branch `group-list-retry` carries it on upstream's 1.27.0. It is described last.
 
 **Reactions, inline media, voice notes, display names.** The largest of them. Voice notes arrive as
 Ogg/Opus, which WebKit will not play, so they are decoded to WAV next to the temporary file and
@@ -66,9 +74,18 @@ wrong. In a group chat `who` is the group, so the picture appeared under the gro
 Passing the account name also makes `gowhatsapp_display_text_message` recognise the message as
 outgoing, which it decides by comparing the sender against the account.
 
+**A group list that times out no longer takes the account offline.** After login the plugin asks
+for the list of joined groups by itself, and when that query ran into whatsmeow's 75 second timeout
+the error was reported as fatal. libpurple ranks a fatal error with a wrong password, so Adium
+showed the error and never reconnected, although messages could have flowed the whole time: the
+list only decides which group chats appear in the contact list. The query is now retried a few
+times and then given up on with a warning, the way the participants query has been since upstream's
+issue 146, and the list end marker is sent either way so the room list is not left in progress.
+
 ## Rebuilding the plugin
 
-There is no build phase for this; it is done by hand.
+There is no build phase for this; it is done by hand, or by `Dependencies/rebuild-whatsmeow.sh`,
+which builds, copies the result into PurplePlugins/ and verifies it. By hand it is this.
 
     cd Dependencies/source/purple-gowhatsapp
     git apply ../../patches/purple-gowhatsapp/adium.patch     # if starting from a fresh checkout
