@@ -1272,7 +1272,7 @@
 	NSString	*tooltip = nil;
 
 	if (chat.isGroupChat) {
-		tooltip = [NSString stringWithFormat:AILocalizedString(@"%@ in %@","AccountName on ChatRoomName"), chat.account.formattedUID, chat.name];
+		tooltip = [NSString stringWithFormat:AILocalizedString(@"%@ in %@","AccountName on ChatRoomName"), chat.account.formattedUID, chat.displayName];
 	} else {
 		AIListObject	*destination = chat.listObject;
 		NSString		*destinationDisplayName = destination.displayName;

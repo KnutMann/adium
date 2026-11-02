@@ -93,7 +93,9 @@
 				[entry appendString:@" " withAttributes:nil];
 			}
 			
-			[entry appendString:chat.name withAttributes:nil];
+			/* The chat's display name is what the window is titled; its name is the room's
+			 * identifier, for WhatsApp a group JID nobody recognises. */
+			[entry appendString:chat.displayName withAttributes:nil];
 			
 			NSString *alias = [chat aliasForContact:inObject];
 			

@@ -345,7 +345,7 @@
 		
 		if ([eventID isEqualToString:CONTENT_MESSAGE_SENT] ||
 			[eventID isEqualToString:CONTENT_MESSAGE_SENT_GROUP]) {
-			displayName = (listObject ? listObject.displayName : contentObject.chat.name);
+			displayName = (listObject ? listObject.displayName : contentObject.chat.displayName);
 		
 			if (messageText && messageText.length) {
 				description = [NSString stringWithFormat:

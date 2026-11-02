@@ -365,9 +365,18 @@ static void adiumPurpleConvChatAddUsers(PurpleConversation *conv, GList *cbuddie
 				/* Prefer the protocol-provided alias (e.g. the WhatsApp address book
 				 * name); fall back to cb->name, which XMPP formats as the nick. */
 				NSMutableDictionary *user = [NSMutableDictionary dictionary];
-				[user setObject:get_real_name_for_account_conv_buddy(account, conv, cb->name) forKey:@"UID"];
+				NSString *UID = get_real_name_for_account_conv_buddy(account, conv, cb->name);
+				NSString *alias = [NSString stringWithUTF8String:((cb->alias && *cb->alias) ? cb->alias : cb->name)];
+				[user setObject:UID forKey:@"UID"];
 				[user setObject:[NSNumber numberWithInteger:cb->flags] forKey:@"Flags"];
-				[user setObject:[NSString stringWithUTF8String:((cb->alias && *cb->alias) ? cb->alias : cb->name)] forKey:@"Alias"];
+				/* libpurple hands back the name itself when it knows no alias. A name that is the UID
+				 * (a WhatsApp JID) is no alias: as the chat's alias it would stand in front of the
+				 * contact's own display name, the address book name or the formatted number, and
+				 * updateUserListForChat would even record it as a stranger's serverside alias. XMPP's
+				 * nick and IRC's cased nick differ from the UID and stay. */
+				if (![alias isEqualToString:UID]) {
+					[user setObject:alias forKey:@"Alias"];
+				}
 			
 				[users addObject:user];
 			}
@@ -458,9 +467,15 @@ static void adiumPurpleConvUpdateUser(PurpleConversation *conv, const char *user
 		g_list_free(attribute);
 	
 		// We use cb->name for the alias field, since libpurple sets the one we're after (the chat name) formatted correctly inside.
+		NSString *UID = get_real_name_for_account_conv_buddy(account, conv, (char *)user);
 		NSString *name = cb->name ? [NSString stringWithUTF8String:cb->name] : nil;
+		if ([name isEqualToString:UID]) {
+			/* The name is the UID, so it is no alias (see adiumPurpleConvChatAddUsers); what
+			 * libpurple resolved at seating is, if it resolved anything. */
+			name = (cb->alias && *cb->alias && strcmp(cb->alias, cb->name)) ? [NSString stringWithUTF8String:cb->alias] : nil;
+		}
 	
-		[adiumAccount updateUser:get_real_name_for_account_conv_buddy(account, conv, (char *)user)
+		[adiumAccount updateUser:UID
 						 forChat:groupChatLookupFromConv(conv)
 						   flags:cb->flags
 						   alias:name

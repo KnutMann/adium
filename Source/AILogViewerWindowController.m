@@ -34,6 +34,7 @@
 #import <Adium/AIMenuControllerProtocol.h>
 
 #import <Adium/AIHTMLDecoder.h>
+#import <Adium/AIListBookmark.h>
 #import <Adium/AIListContact.h>
 #import <Adium/AIMetaContact.h>
 #import <Adium/AIService.h>
@@ -1120,6 +1121,38 @@ NSInteger compareRectLocation(id obj1, id obj2, void *context)
 	[textField_findCount setStringValue:[NSString stringWithFormat:@"%lu/%lu", (unsigned long)currentMatch, (unsigned long)[matches count]]];
 }
 
+/*!
+ * @brief The name a bookmark gives a transcript folder, or nil
+ *
+ * A transcript folder is named after what the account talked to: a contact's UID, or for a group
+ * chat the room's identifier, which for WhatsApp is the group's JID. A contact's folder is shown
+ * through the contact. A group chat's folder has no contact, but the account may hold a bookmark
+ * for the room, and the bookmark carries the room's name. Nil when there is nothing better than
+ * the folder's own name: no such service, account or bookmark, or a bookmark named after the room's
+ * identifier itself.
+ */
+- (NSString *)bookmarkNameForLogsFrom:(NSString *)from to:(NSString *)to serviceClass:(NSString *)serviceClass
+{
+	AIService *service = (serviceClass ? [adium.accountController firstServiceWithServiceID:serviceClass] : nil);
+	if (!service || !to.length) return nil;
+
+	for (AIAccount *account in [adium.accountController accountsCompatibleWithService:service]) {
+		/* The folder above this one names the account the way AILoggerPlugin writes it; another
+		 * account's bookmark says nothing about this account's room. */
+		if (![[account.UID safeFilenameString] isEqualToString:from]) continue;
+
+		AIListBookmark *bookmark = [adium.contactController existingBookmarkForChatName:to
+																			  onAccount:account
+																	   chatCreationInfo:nil];
+		if (bookmark) {
+			NSString *name = bookmark.displayName;
+			return (name.length && ![name isEqualToString:to]) ? name : nil;
+		}
+	}
+
+	return nil;
+}
+
 //Sorting --------------------------------------------------------------------------------------------------------------
 #pragma mark Sorting
 - (void)resortLogs
@@ -1909,8 +1942,9 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 			}
 
 		} else {
-			//No username available
-			value = [theLog to];
+			//No contact: a group chat's folder may still have a bookmark that names the room
+			NSString *roomName = [self bookmarkNameForLogsFrom:[theLog from] to:[theLog to] serviceClass:[theLog serviceClass]];
+			value = (roomName ? [NSString stringWithFormat:@"%@ (%@)", roomName, [theLog to]] : [theLog to]);
 		}
 
 	} else if ([identifier isEqualToString:@"From"]) {
@@ -2105,7 +2139,8 @@ NSArray *pathComponentsForDocument(SKDocumentRef inDocument)
 		} 
 		
 	} else if (itemClass == [AILogToGroup class]) {
-		return [(AILogToGroup *)item to];
+		AILogToGroup *toGroup = (AILogToGroup *)item;
+		return [self bookmarkNameForLogsFrom:toGroup.from to:toGroup.to serviceClass:toGroup.serviceClass] ?: toGroup.to;
 		
 	} else if (itemClass == [allContactsIdentifier class]) {
 		NSUInteger contactCount = [toArray count];
