@@ -82,6 +82,20 @@ list only decides which group chats appear in the contact list. The query is now
 times and then given up on with a warning, the way the participants query has been since upstream's
 issue 146, and the list end marker is sent either way so the room list is not left in progress.
 
+**A contact's name survives a restart.** libpurple keeps a buddy's server alias in memory only, and
+blist.xml saves the local alias, which this branch leaves to the user. After a restart every buddy
+was nameless until the contact sync spoke again, and for a name that had not changed the sync said
+nothing, because `gowhatsapp_ensure_buddy_in_blist` compares against the name it recorded. In a
+group chat libpurple then seated such a contact under the bare JID, without asking `get_cb_alias`,
+which it only does when no buddy exists. The login now hands every buddy its recorded name back
+through `purple_blist_server_alias_buddy`, which unlike `purple_serv_got_alias` writes no "is now
+known as" line into open conversations. `gowhatsapp_chat_set_participants` is upstream's again: the
+branch had passed each participant's resolved name as the third argument of
+`purple_conv_chat_add_user`, which is a join notice's extra text, never an alias, so it did nothing.
+
+**A poll vote whose poll is gone says so in Adium's words.** The notice for a vote whose poll has
+left the message cache named "this plug-in"; it now names Adium, as the notice about calls does.
+
 ## Rebuilding the plugin
 
 There is no build phase for this; it is done by hand, or by `Dependencies/rebuild-whatsmeow.sh`,
