@@ -96,6 +96,18 @@ branch had passed each participant's resolved name as the third argument of
 **A poll vote whose poll is gone says so in Adium's words.** The notice for a vote whose poll has
 left the message cache named "this plug-in"; it now names Adium, as the notice about calls does.
 
+**Group participants are seated by phone number on every path.** In a group that addresses its
+members anonymously, WhatsApp names them by LID, and the plug-in translates those to phone numbers
+where it knows them, because a LID is nobody in the buddy list: a participant seated under one shows
+neither the contact's name nor their picture. The translation covered the list of joined groups and
+the list the participants query returns, but not the group info that the same answer also queues as
+a message, so a chat opened by an incoming message was seated by number first and by LID a moment
+later, and only a chat open at login was put right again by the list of joined groups. The
+translation now happens where the answer arrives, which also covers the delayed answer upstream feeds
+back after a timeout; worth offering upstream. And the identical list arriving twice is no longer
+seated twice: Adium takes an unseating literally, forgets what it noted about each participant and
+lets go of every stranger among them.
+
 ## Rebuilding the plugin
 
 There is no build phase for this; it is done by hand, or by `Dependencies/rebuild-whatsmeow.sh`,

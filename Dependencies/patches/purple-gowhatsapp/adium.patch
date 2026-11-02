@@ -255,7 +255,7 @@ index 80a81c0..bc58404 100644
 +1.26.0
 \ No newline at end of file
 diff --git a/bridge.go b/bridge.go
-index 875ee04..3aeccd1 100644
+index 875ee04..f8929f4 100644
 --- a/bridge.go
 +++ b/bridge.go
 @@ -119,6 +119,15 @@ func gowhatsapp_go_send_message(account *PurpleAccount, who *C.char, message *C.
@@ -332,7 +332,15 @@ index 875ee04..3aeccd1 100644
  //export gowhatsapp_go_send_presence
  func gowhatsapp_go_send_presence(account *PurpleAccount, presence *C.char) {
  	handler, ok := handlers[account]
-@@ -230,19 +290,7 @@ func gowhatsapp_go_query_group_participants(account *PurpleAccount, groupid *C.c
+@@ -211,7 +271,6 @@ func gowhatsapp_go_query_group_participants(account *PurpleAccount, groupid *C.c
+ 					// the status broadcast is not an actual group which participants can be queried from
+ 				} else {
+ 					participants := handler.query_group_participants_retry(jid, 1, 10, 0)
+-					participants = handler.groupChatParticipantsLidToPn(participants, "group chat participants query")
+ 					return participants_to_ntcstrarray(participants)
+ 				}
+ 			} else {
+@@ -230,19 +289,7 @@ func gowhatsapp_go_query_group_participants(account *PurpleAccount, groupid *C.c
  func gowhatsapp_go_query_groups(account *PurpleAccount) {
  	handler, ok := handlers[account]
  	if ok {
@@ -353,7 +361,7 @@ index 875ee04..3aeccd1 100644
  	} else {
  		purple_error(account, "Cannot get list of groups: Not connected.", ERROR_TRANSIENT)
  	}
-@@ -276,10 +324,17 @@ func gowhatsapp_go_get_contacts(account *PurpleAccount, flush C.int) {
+@@ -276,10 +323,17 @@ func gowhatsapp_go_get_contacts(account *PurpleAccount, flush C.int) {
  						handler.log.Infof("Ignoring contact %s since they are on the blocklist.", jid.ToNonAD().String())
  						continue
  					}
@@ -373,7 +381,7 @@ index 875ee04..3aeccd1 100644
  						remoteJid: C.CString(jid.ToNonAD().String()),
  					}
  					name := info.FullName
-@@ -297,6 +352,16 @@ func gowhatsapp_go_get_contacts(account *PurpleAccount, flush C.int) {
+@@ -297,6 +351,16 @@ func gowhatsapp_go_get_contacts(account *PurpleAccount, flush C.int) {
  					}
  					C.gowhatsapp_process_message_bridge(cmessage)
  				}
@@ -390,7 +398,7 @@ index 875ee04..3aeccd1 100644
  				// send one "nil" contact to indicate end of list
  				cmessage := C.struct_gowhatsapp_message{
  					account:   account,
-@@ -440,6 +505,70 @@ func purple_display_text_message(account *PurpleAccount, remoteJid string, isGro
+@@ -440,6 +504,70 @@ func purple_display_text_message(account *PurpleAccount, remoteJid string, isGro
  	C.gowhatsapp_process_message_bridge(cmessage)
  }
  
@@ -461,7 +469,7 @@ index 875ee04..3aeccd1 100644
  /*
   * This will display a system message.
   * For soft errors regarding a specific conversation.
-@@ -462,6 +591,20 @@ func purple_display_system_message(account *PurpleAccount, remoteJid string, isG
+@@ -462,6 +590,20 @@ func purple_display_system_message(account *PurpleAccount, remoteJid string, isG
   * Does work for individuals, not for groups.
   */
  func purple_update_name(account *PurpleAccount, remoteJid string, pushName string) {
@@ -1005,7 +1013,7 @@ index 0945d37..d17c4a6 100644
  // commands
  enum gowhatsapp_command {
 diff --git a/glue/groups.c b/glue/groups.c
-index 0336962..063bd06 100644
+index 0336962..14e86aa 100644
 --- a/glue/groups.c
 +++ b/glue/groups.c
 @@ -168,6 +168,8 @@ void gowhatsapp_handle_group(PurpleConnection *pc, gowhatsapp_message_t *gwamsg)
@@ -1017,8 +1025,42 @@ index 0336962..063bd06 100644
              PurpleConvChat *conv_chat = purple_conversation_get_chat_data(conv);
              if (conv_chat != NULL) {
                  gowhatsapp_chat_set_participants(conv_chat, gwamsg->participants);
-@@ -192,7 +194,7 @@ void
+@@ -182,17 +184,41 @@ void gowhatsapp_handle_group(PurpleConnection *pc, gowhatsapp_message_t *gwamsg)
+ 
+ // Helper functions regarding the purple conversation representing a WhatsApp group
+ 
++/*
++ * Says whether exactly these participants are seated already, in any order.
++ *
++ * The group info that answers a participants query is also queued as a group message, so the
++ * same list arrives twice within a moment. Seating it again would unseat everyone first, and a
++ * front end takes that literally: Adium forgets what it noted about each participant and lets go
++ * of every stranger among them, only to meet them all again a moment later.
++ */
++static gboolean
++gowhatsapp_chat_has_participants(PurpleConvChat *conv_chat, char **participants) {
++    guint count = 0;
++    for (char **participant_ptr = participants; participant_ptr != NULL && *participant_ptr != NULL; participant_ptr++) {
++        if (purple_conv_chat_cb_find(conv_chat, *participant_ptr) == NULL) {
++            return FALSE;
++        }
++        count++;
++    }
++    return count == g_list_length(purple_conv_chat_get_users(conv_chat));
++}
++
+ /*
+  * Adds participants to chat.
+  * 
+  * NOTE: We cannot selectively add missing users since it looks like on Spectrum 
+  * only a remove-readd-cycle will trigger the display name resolution.
++ * An unchanged list is left alone, though: there is nothing to resolve anew.
+  */
+ void 
  gowhatsapp_chat_set_participants(PurpleConvChat *conv_chat, char **participants) {
++    if (gowhatsapp_chat_has_participants(conv_chat, participants)) {
++        return;
++    }
      // remove all users
      purple_conv_chat_clear_users(conv_chat);
 -    // now add all current users
@@ -2044,16 +2086,22 @@ index 3a08315..c066ac8 100644
      return ret;
  }
 diff --git a/groups.go b/groups.go
-index acdf515..3a62769 100644
+index acdf515..96e336c 100644
 --- a/groups.go
 +++ b/groups.go
-@@ -16,9 +16,10 @@ import (
+@@ -16,9 +16,16 @@ import (
  func (handler *Handler) query_group_participants_retry(group_jid types.JID, seconds_backoff int, max_retries int, retry_count int) []types.GroupParticipant {
  	group, err := handler.client.GetGroupInfo(context.TODO(), group_jid)
  	if err == nil && group != nil {
 -		if retry_count > 0 {
 -			purple_update_group(handler.account, group)
 -		} else {
++		// Participants by phone number, as the list of joined groups already names them. In a
++		// group that addresses its members anonymously the server names them by LID, and a LID is
++		// nobody in the buddy list: seated under one, a participant shows neither name nor picture.
++		// Translated here, where the answer arrives, so that the group message below, the delayed
++		// answer and the list returned to the caller all seat the same people.
++		group.Participants = handler.groupChatParticipantsLidToPn(group.Participants, "group chat participants query")
 +		// always feed the full group info (name included) back to purple,
 +		// so conversation titles resolve even on the first fetch
 +		purple_update_group(handler.account, group)
@@ -2061,7 +2109,7 @@ index acdf515..3a62769 100644
  			return group.Participants
  		}
  	} else {
-@@ -34,3 +35,34 @@ func (handler *Handler) query_group_participants_retry(group_jid types.JID, seco
+@@ -34,3 +41,34 @@ func (handler *Handler) query_group_participants_retry(group_jid types.JID, seco
  	}
  	return []types.GroupParticipant{}
  }
