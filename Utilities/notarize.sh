@@ -55,9 +55,16 @@ for target in "$@"; do
 	[ -e "$target" ] || { echo "no such file: $target" >&2; exit 1; }
 	case "$target" in
 		*.app)
-			if ! codesign -dv "$target" 2>&1 | grep -q "^Authority=Developer ID Application"; then
+			# The Authority lines come only at the second level of verbosity, and the
+			# output is kept in a variable: piped into grep -q under pipefail, codesign
+			# died of SIGPIPE when grep closed the pipe on the first match, and its 141
+			# became the pipeline's status. Either way every bundle looked unsigned
+			# here and nothing was ever submitted, until the first rehearsal on
+			# 3 November 2026.
+			signature=$(codesign -dvv "$target" 2>&1 || true)
+			if [[ "$signature" != *"Authority=Developer ID Application"* ]]; then
 				echo "$target is not signed with a Developer ID; nothing to notarise." >&2
-				codesign -dv "$target" 2>&1 | grep -E "^Authority|TeamIdentifier" | sed 's/^/  /' >&2
+				printf '%s\n' "$signature" | grep -E "^Authority|TeamIdentifier" | sed 's/^/  /' >&2
 				exit 1
 			fi
 			ZIP="$WORK/$(basename "$target" .app).zip"
