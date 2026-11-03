@@ -85,7 +85,7 @@ The code is Objective-C under ARC. No Swift, CocoaPods or Swift Package
 Manager; the deployment target and architecture are set once in
 Base.xcconfig; nothing the application needs at runtime comes from Homebrew.
 
-A new library follows the README's "Adding a library" and Dependencies/CLAUDE.md:
+A new library follows "Adding or moving a library" in Dependencies/CLAUDE.md:
 a script that produces it from a pinned source, a row in the README's table
 and its licence in the bundle, all in the same change.
 

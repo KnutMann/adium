@@ -11,10 +11,11 @@ and takes nothing from Homebrew while doing so.
 
 Fetched, by fetch.sh, which install.sh runs before every build: the
 MMTabBarView submodule; webrtc/fetch-webrtc.sh, a prebuilt WebRTC.xcframework
-checked against a pinned SHA-256 and kept out of git for its size; and
+checked against a pinned SHA-256 and kept out of git for its size;
 picomemo/fetch-picomemo.sh, which fetches and builds the cryptographic half
-of OMEMO from a pinned commit. All three are idempotent and quiet when there
-is nothing to do.
+of OMEMO from a pinned commit; and sparkle/fetch-sparkle.sh, the updater as
+the project's own signed release, checked against a pinned SHA-256. All four
+are idempotent and quiet when there is nothing to do.
 
 Built, by build.sh, from Dependencies/ and only when a library has to move:
 it sources phases/ in order (utility.sh for fetching and checksums,
@@ -40,12 +41,18 @@ clear it casually.
 
 ## Adding or moving a library
 
-The rule is in the README under "Adding a library", and the test is one line:
-every path under Frameworks/ or Dependencies/build named in an xcconfig must
-be produced by a script here, and listed in the README's table of bundled
-binaries or among the three fetched things. The script, the binary and the
-table row land in the same change. Every shipped binary also carries its
-licence in the bundle: Utilities/collect-licenses.sh gathers them from the
-source trees or the pinned release URL, and Utilities/verify-licenses.sh
-checks the built application, which continuous integration runs. A library
-added without its licence fails there.
+Anything the build reads out of Frameworks/ has to get there by a script in
+this folder, and both have to be in place before the change is pushed.
+Deciding how a new library is carried, vendored as a binary or fetched at
+build time, is part of introducing it, not something to leave until somebody
+else cannot build. The test is one line: every path under Frameworks/ or
+Dependencies/build named in an xcconfig must be produced by a script here,
+and listed in the README's table of bundled binaries or among the four
+fetched things. Opus was introduced without either and went unnoticed for
+weeks, because it had been built by hand on the one machine that mattered.
+The script, the binary and the table row land in the same change. Every
+shipped binary also carries its licence in the bundle:
+Utilities/collect-licenses.sh gathers them from the source trees or the
+pinned release URL, and Utilities/verify-licenses.sh checks the built
+application, which continuous integration runs. A library added without its
+licence fails there.

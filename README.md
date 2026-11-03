@@ -93,14 +93,9 @@ and tabbed chats in a modern look.
 ### End to end encryption over XMPP
 
 Conversations, Gajim, Dino and Monal encrypt with OMEMO, most of them by
-default, and until now a message from any of them arrived as the
-apology its sender attached for clients that cannot read one. Adium
-reads them now, and writes them.
+default, and Adium can now read and write them.
 
-* **Encrypted one to one conversations** (XEP-0384, the widely spoken
-  namespace rather than the newer one)
-* **A padlock that closes only when the message really is encrypted**,
-  not when it has merely been asked for
+* **Encrypted one to one conversations** (XEP-0384)
 * **Every device the other person has**, shown in the encryption menu
   with its fingerprint, each one to be accepted or turned down; ours is
   at the top to be read out
@@ -108,9 +103,7 @@ reads them now, and writes them.
   waits, and then says so, instead of going out in the clear
 * **Says what it used** so a client that cannot read the message can
   explain why (XEP-0380)
-* **Pictures and voice notes are encrypted too** (XEP-0454): what goes
-  up to the file server is bytes nobody there can read, and what arrives
-  is played or shown rather than left as an address
+* **Pictures and voice notes are encrypted too** (XEP-0454)
 
 Group chats are not encrypted yet.
 
@@ -138,12 +131,6 @@ media runs through Google's WebRTC natively.
 * A rebuilt preferences window in the style of System Settings: a
   source-list sidebar, cards instead of boxed groups, and a reusable
   settings form every pane is laid out on
-* Installed xtras are managed in that window rather than in a window of
-  their own, one card per category, and every row opens a page about
-  that xtra: its icon, what it says it is, and the fields its manifest
-  fills in
-* The chat message view renders with WKWebView; the last legacy
-  WebView is gone (libpurple's protocol forms are native Cocoa now)
 * Two bundled monochrome service icon sets in the plain style of
   macOS's own symbols, one for light and one for dark
 * Tab tear-off works again: drag a chat out into its own window, or
@@ -195,7 +182,7 @@ media runs through Google's WebRTC natively.
   the old code silently accepted anything
 * Passwords stored through the Keychain (SecItem) API
 * Address book integration moved from the AddressBook framework
-  (deprecated since 2015) to the Contacts framework, with the modern
+  to the Contacts framework, with the modern
   permission prompt; cards are matched by phone number, chat address
   or a manual link
 
@@ -213,9 +200,7 @@ media runs through Google's WebRTC natively.
   packs, dock icons, message styles, contact list themes and layouts,
   and script packs, and writes the description Adium shows on an
   xtra's page. It is built with Adium and travels inside the
-  application, at `Contents/Helpers/XtrasCreator.app`, so anyone who
-  looks into the bundle finds it, and the Xtras settings card has a
-  button that opens it
+  application, at `Contents/Helpers/XtrasCreator.app`.
 * **Contact Pictures**, opened from the Address Book settings: the
   cards linked to your chat contacts, each with the chat picture and
   the card picture side by side, and one button that puts the chat
@@ -224,41 +209,38 @@ media runs through Google's WebRTC natively.
 
 ### Adopted from the unreleased 1.6/1.7 line
 
-Adium's development did not stop at the last state of adium/adium:
+Adium's development did not stop at the last state of GitHub's adium/adium:
 the Mercurial mainline and community branches continued toward an
 Adium 1.6/1.7 that was never released, preserved today in forks such
 as [shtrom/adium](https://github.com/shtrom/adium).
 
 * The emoticon picker in the message entry field, which replaces the
-  old emoticon toolbar item. Two more buttons can stand beside it, one
-  that records a voice note and one that opens the formula editor; the
-  Messages settings switch each of the three on or off, and only the
-  emoticon button starts out on
+  old emoticon toolbar item. Two more buttons can stand beside it: one
+  that records a voice note and one that opens the formula editor
 * Room configuration window for owners of XMPP chat rooms
 * OTR messages routed to the contact's most recently active device
   instead of the best-ranked one
 * Transcripts split at midnight, so a chat left open for days shows
   up on every day it covers
 
-This is a work in progress; expect rough edges.
-
 ## System requirements
 
 * Apple Silicon Mac, macOS 13 or later
 * Everything is native arm64, including all bundled dependencies
   (libpurple, glib, libotr, ...): no Homebrew required to run
-* Xcode, whether you build by hand or through Homebrew; there are no binary
-  releases at this time
+* Xcode, if you build it yourself, by hand or through Homebrew
 
-For Intel Macs and older systems, use the original
-[Adium 1.5.10.4](https://adiumx.cachefly.net/Adium_1.5.10.4.dmg).
+## Download
+
+Fetch the [latest release](https://github.com/KnutMann/adium/releases/latest)
+as a disk image, mount it and drag Adium into your Applications folder like
+any other application. Updates are offered automatically.
 
 ## Installing with Homebrew
 
-There are no signed downloads yet, so the application is built on your own
-Mac either way; Homebrew only takes the steps off your hands. The tap at
-<https://github.com/KnutMann/homebrew-adium> builds a pinned revision of this
-repository that has passed the build and the test suite:
+If you would rather build it yourself, Homebrew takes the steps off your
+hands. The tap at <https://github.com/KnutMann/homebrew-adium> builds a
+pinned revision of this repository from source:
 
 	brew tap KnutMann/adium
 	brew trust --formula KnutMann/adium/adium   # Homebrew 7 loads third-party formulae only once trusted
@@ -267,11 +249,10 @@ repository that has passed the build and the test suite:
 
 Spell the formula out: Homebrew's own tap has a cask called `adium` too, and
 that one is the Intel 1.5.10.4. The requirements are the ones above, Apple
-Silicon, macOS 13 and a full Xcode, because the formula runs xcodebuild; the
-build takes a few minutes. `brew upgrade KnutMann/adium/adium` moves to the
+Silicon, macOS 13 and a full Xcode, because the formula runs xcodebuild.
+`brew upgrade KnutMann/adium/adium` moves to the
 next revision the tap has pinned, and `brew install --HEAD KnutMann/adium/adium`
-builds the tip of master instead. A bundle built on your own machine carries
-no quarantine attribute, so Gatekeeper lets it start without notarisation.
+builds the tip of master instead.
 
 ## Building
 
@@ -281,46 +262,15 @@ One command from a fresh checkout to an installed application:
 	cd adium
 	./install.sh
 
-Everything beyond Xcode is checked into the repository as prebuilt arm64
-binaries. The script verifies the bundled protocol plug-ins (including a
-functional probe that asks libpurple itself whether every plug-in's protocol
-registers - the failure mode it guards against is silent), builds the app,
-verifies the result and installs it to /Applications. The same verification
-runs as a phase of every Xcode build.
+Dependencies are checked into the repository as prebuilt arm64
+binaries. The script builds the app and offers to install it to
+/Applications. `./install.sh --rebuild-dependencies` builds the bundled
+libraries from source first; it needs a Homebrew toolchain, takes the
+better part of an hour and is otherwise never needed.
 
-The app lands in `build/Release/Adium.app` first (signed with a local
-certificate if there is one and ad hoc otherwise, so it runs on the machine
-that built it; handing binaries to others would need a proper signing
-identity). `--build-only` stops there and installs nothing, `--install`
-installs without asking, and given neither it asks, unless there is no
-terminal to ask at, in which case it installs nothing. `--debug` builds the
-Debug configuration, and `--rebuild-dependencies` builds the bundled libraries
-from source first, which is otherwise never needed. `--icon="Adiumy Red"`
-builds the application with that dock icon set's icon as its own, so the
-Finder and the Dock show it while Adium is closed; it goes into the bundle
-before the signature is made, which is the one way the icon can change
-without breaking it (Adium 1.x changed it at run time, and did), and the Dock
-may keep showing the old one until its tile is made anew. The bundle also
-carries a layered icon, the form macOS 26 draws large instead of shrinking a
-classic one into a grey tile; a chosen icon switches it off, so the choice
-shows there as well. `./install.sh --help` lists them all.
-
-`./bootstrap.sh` is the same script with `--build-only`, kept under its old
-name.
-
-The **XtrasCreator** companion app (see Tools above) is a target the
-application depends on, so the same build produces it and puts it at
-`Adium.app/Contents/Helpers/XtrasCreator.app`. Open it from there, or
-build it alone with
-`xcodebuild -project Other/XtrasCreator/XtrasCreator.xcodeproj CODE_SIGN_IDENTITY=- build`
-(its project names the same local signing identity as Adium's targets,
-which only this fork's development machine has).
-
-Three things are fetched rather than vendored, and `install.sh` gets
-them by running `Dependencies/fetch.sh` before it builds anything. It is
-idempotent and takes about a second once everything is in place, so there
-is no reason to skip it. **Building
-from Xcode alone does not run it**, so run it once after cloning:
+A few things are fetched rather than vendored, and `install.sh` gets
+them by running `Dependencies/fetch.sh` before it builds anything.
+Building from Xcode alone does not run it, so run it once after cloning.
 
 * the **MMTabBarView** submodule, which git clones only when asked a
   second time (`git submodule update --init --recursive`)
@@ -334,43 +284,14 @@ from Xcode alone does not run it**, so run it once after cloning:
 * **Sparkle** 2.10.1 (MIT), the updater, fetched as the project's own signed
   release and checked against a pinned SHA-256
 
-Without them the build fails at a compiler error naming a header, which
-says nothing about a download being what was missing.
-
-Everything else Adium links against is a prebuilt arm64 binary in the
-repository: the frameworks and libraries under `Frameworks/` and the
-protocol plug-ins under `PurplePlugins/`. A plain clone plus Xcode is
-therefore enough to build, and nothing here needs a Homebrew toolchain.
-
-Building those libraries from source instead is a developer's job, not a
-build step, and there is one switch for it:
-
-    ./install.sh --rebuild-dependencies
-
-which runs `Dependencies/build.sh` twice, once for libpurple and glib and
-everything the bundle loads beside them and once for libotr, then
-`Dependencies/copy_frameworks.sh`, and `Dependencies/opus/build-opus.sh`
-for the codec. Every source is fetched from a pinned address and checked
-against a recorded SHA-256 before anything unpacks it, and the binaries
-under `Frameworks/` are overwritten in place.
-
-It needs autoconf, automake, libtool, pkg-config, meson, cmake and ninja
-on the path, which is what the Homebrew toolchain is for here, and it
-takes the better part of an hour. Sources fetched before the checksums
-existed carry no sum beside them, so the first run after updating to a
-revision that has them fetches all sixteen again.
-
 ## License
 
 The source in this repository is GNU GPL v2 or later, see
 [License.txt](License.txt). Original code copyright the Adium team and
 contributors ([Copyright.txt](Copyright.txt)).
 
-**The application you build from it is not GPL v2**, and it is worth
-being plain about why. Several of the bundled plug-ins carry stronger
-terms, and since every source file here says "or later", combining them
-is permitted; what it costs is the GPL v2 option for the finished
-binary, not the licence of the sources.
+**The application you build from it is not GPL v2**, as several of the
+bundled plug-ins carry stronger terms.
 
 * `libsignal-presage.so` is GPL v3 itself, and the Rust it links in
   statically (`presage`, `presage-store-sqlite` and
@@ -389,11 +310,6 @@ binary, not the licence of the sources.
 The texts those terms require to travel with the work are in
 [Licenses/](Licenses): [GPL-3.0.txt](Licenses/GPL-3.0.txt) and
 [AGPL-3.0.txt](Licenses/AGPL-3.0.txt).
-
-Leaving out the plug-ins, which the scripts allow, drops the GPL v3 and
-AGPL terms but not the OpenSSL one, so such a build is GPL v3 or later
-rather than v2. The sources themselves stay GPL v2 or later, and it is
-only the combination that moves.
 
 ### Bundled third-party binaries and their sources
 
@@ -428,19 +344,3 @@ by rebuilding the bundle. The two Xiph libraries are the exception: they
 are linked statically, because a codec used by one source file is not
 worth a framework to embed and sign, and their licence does not ask for
 it.
-
-### Adding a library
-
-Anything the build reads out of `Frameworks/` has to get there by a
-script in `Dependencies/`, and both have to be in place before the
-change is pushed. Deciding how a new library is carried, vendored as a
-binary or fetched at build time, is part of introducing it, not
-something to leave until somebody else cannot build.
-
-The test is one line: every path under `Frameworks/` or
-`Dependencies/build` named in
-`Frameworks/AIUtilities/xcconfigs/*.xcconfig` must be produced by a
-script under `Dependencies/`, and must be listed in the table above or
-among the three fetched things. Opus was introduced without either and
-went unnoticed for weeks, because it had been built by hand on the one
-machine that mattered.
