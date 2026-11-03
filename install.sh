@@ -243,6 +243,14 @@ fi
 # calls it detritus and refuses.
 xattr -cr "$REPO/build/$CONFIGURATION/Adium.app" 2>/dev/null || true
 
+# Xcode does not copy the helper into Contents/Helpers again once a copy is
+# there, not even after the helper's own target has relinked and re-signed its
+# product: measured on 3 November 2026, when a Developer ID build validated the
+# embedded helper and found the copy the local identity had signed the day
+# before. Without a copy there is nothing to judge up to date, and the phase
+# copies and signs the helper this build makes.
+rm -rf "$REPO/build/$CONFIGURATION/Adium.app/Contents/Helpers/XtrasCreator.app"
+
 # The status of xcodebuild, not of the grep it is piped through. Piped, the
 # shell reports the last command in the pipe, and grep is happy to have found
 # the line that says the build failed. This script used to read that as success
