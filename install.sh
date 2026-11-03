@@ -227,13 +227,18 @@ if [ -n "$SIGN_IDENTITY" ]; then
 	# because two of the subprojects are set to automatic signing and refuse a
 	# hand-picked identity otherwise. The hardened runtime and the timestamp
 	# are what notarisation checks on every Mach-O in the bundle; the copy
-	# phases re-sign what they copy with the same settings.
+	# phases re-sign what they copy with the same settings. The base
+	# entitlements Xcode injects into a build that is not an archive amount to
+	# get-task-allow, the permission for a debugger to attach, and the notary
+	# service refuses any executable that asks for it: the first submission on
+	# 3 November 2026 was refused for the helper's, and the application had the
+	# same entitlement. So nothing is injected into a distribution build.
 	line=$(security find-identity -p codesigning -v 2>/dev/null | grep -F "\"$SIGN_IDENTITY" | head -1)
 	[ -n "$line" ] || { echo "No signing identity matching \"$SIGN_IDENTITY\" in this keychain."; exit 2; }
 	SIGN_NAME=$(echo "$line" | sed -E 's/^[^"]*"([^"]*)".*/\1/')
 	SIGN_TEAM=$(echo "$SIGN_NAME" | sed -E 's/.*\(([A-Z0-9]+)\)$/\1/')
 	echo "signing as $SIGN_NAME (team $SIGN_TEAM), hardened runtime, timestamped"
-	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY="$SIGN_NAME" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGN_TEAM" ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp)
+	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY="$SIGN_NAME" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGN_TEAM" ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO)
 elif ! security find-identity -p codesigning -v 2>/dev/null | grep -q '"Adium Local Signing"'; then
 	echo "No 'Adium Local Signing' certificate in this keychain; signing ad hoc"
 	SIGNING_OVERRIDES=(CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
