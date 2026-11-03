@@ -252,7 +252,11 @@ jobs:
             echo
             echo "| file | sha256 |"
             echo "| --- | --- |"
+            # The redirection below has already created notes.md by the time the loop
+            # runs, so without this line the table carried a row hashing the half
+            # written notes file itself, as the 1.8.0 notes did.
             for f in dist/*; do
+              [ "$f" = dist/notes.md ] && continue
               echo "| \`$(basename "$f")\` | \`$(shasum -a 256 "$f" | cut -d' ' -f1)\` |"
             done
           } > dist/notes.md
