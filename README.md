@@ -238,21 +238,16 @@ any other application. Updates are offered automatically.
 
 ## Installing with Homebrew
 
-If you would rather build it yourself, Homebrew takes the steps off your
-hands. The tap at <https://github.com/KnutMann/homebrew-adium> builds a
-pinned revision of this repository from source:
+The tap at <https://github.com/KnutMann/homebrew-adium> installs the same
+release as a cask:
 
 	brew tap KnutMann/adium
-	brew trust --formula KnutMann/adium/adium   # Homebrew 7 loads third-party formulae only once trusted
-	brew install KnutMann/adium/adium
-	ln -sf "$(brew --prefix)/var/adium/Adium.app" ~/Applications/Adium.app
+	brew trust --tap KnutMann/adium   # Homebrew 7 loads third-party taps only once trusted
+	brew install --cask KnutMann/adium/adium
 
-Spell the formula out: Homebrew's own tap has a cask called `adium` too, and
-that one is the Intel 1.5.10.4. The requirements are the ones above, Apple
-Silicon, macOS 13 and a full Xcode, because the formula runs xcodebuild.
-`brew upgrade KnutMann/adium/adium` moves to the
-next revision the tap has pinned, and `brew install --HEAD KnutMann/adium/adium`
-builds the tip of master instead.
+Spell the tap out: Homebrew's own tap has a cask called `adium` too, and
+that one is the Intel 1.5.10.4. The tap's formula builds the release from
+source instead, for which it needs a full Xcode; its README says how.
 
 ## Building
 
