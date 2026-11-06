@@ -224,6 +224,16 @@ static CGFloat AIXtraRowHeight(void)
 		NSLayoutConstraint *separatorTrailing = [[separator trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]];
 		[self setSeparatorTrailingConstraint:separatorTrailing];
 
+		/* One notch below required. While a table builds its row views it lays each cell out once at
+		 * the column's minimum width, 80 points, and the icon, the switch, the chevron and the gaps
+		 * between them add up to more than that. Something has to give in that pass, and this is the
+		 * harmless thing: the chevron sits a little outside the cell until the real width arrives a
+		 * moment later. With everything required, AppKit raised an exception for every row instead,
+		 * 25 of them for one opening of the pane; see the commit which added this. */
+		NSLayoutConstraint *chevronTrailing = [[disclosureButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]
+																							   constant:-CELL_H_PADDING];
+		[chevronTrailing setPriority:(NSLayoutPriorityRequired - 1)];
+
 		[NSLayoutConstraint activateConstraints:[NSArray arrayWithObjects:
 			//Icon
 			[[iconView leadingAnchor] constraintEqualToAnchor:[self leadingAnchor] constant:CELL_H_PADDING],
@@ -232,7 +242,7 @@ static CGFloat AIXtraRowHeight(void)
 			[[iconView heightAnchor] constraintEqualToConstant:XTRA_ICON_SIZE],
 
 			//Chevron
-			[[disclosureButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
+			chevronTrailing,
 			[[disclosureButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
 			[[disclosureButton widthAnchor] constraintEqualToConstant:chevronSize.width],
 			[[disclosureButton heightAnchor] constraintEqualToConstant:chevronSize.height],

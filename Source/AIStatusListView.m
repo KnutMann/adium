@@ -176,6 +176,14 @@ static CGFloat AIStatusRowHeight(void)
 		NSLayoutConstraint *separatorTrailing = [[separator trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]];
 		[self setSeparatorTrailingConstraint:separatorTrailing];
 
+		/* One notch below required, for the same reason as in AIXtraListCellView: a table lays a cell
+		 * out once at the column's minimum width while it builds the row, and the row's contents do
+		 * not fit into that. This list happens to have no rows at that moment today, so it never
+		 * raised; the two cells are built alike and should stay alike. */
+		NSLayoutConstraint *removeTrailing = [[removeButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor]
+																						  constant:-CELL_H_PADDING];
+		[removeTrailing setPriority:(NSLayoutPriorityRequired - 1)];
+
 		[NSLayoutConstraint activateConstraints:[NSArray arrayWithObjects:
 			//Icon
 			[[iconView leadingAnchor] constraintEqualToAnchor:[self leadingAnchor] constant:CELL_H_PADDING],
@@ -184,7 +192,7 @@ static CGFloat AIStatusRowHeight(void)
 			[[iconView heightAnchor] constraintEqualToConstant:STATUS_ICON_SIZE],
 
 			//Remove button
-			[[removeButton trailingAnchor] constraintEqualToAnchor:[self trailingAnchor] constant:-CELL_H_PADDING],
+			removeTrailing,
 			[[removeButton centerYAnchor] constraintEqualToAnchor:[self centerYAnchor]],
 			[[removeButton widthAnchor] constraintEqualToConstant:removeButtonSize.width],
 			[[removeButton heightAnchor] constraintEqualToConstant:removeButtonSize.height],

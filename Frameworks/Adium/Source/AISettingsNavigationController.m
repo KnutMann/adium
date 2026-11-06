@@ -95,7 +95,20 @@
 
 	[self addChildViewController:rootController];
 	[pageControllers addObject:rootController];
-	[[self view] addSubview:[rootController view]];
+
+	/* Until a host has put the container somewhere, its width is the 100 points -loadView made up,
+	 * and -layoutShowingPage would hand those to the first page: a form built 540 wide squeezed to
+	 * 100, whose rows cannot fit, and the layout engine raising once for every row that will not
+	 * (the Xtras pane raised three times at every opening). The page's own width is the better
+	 * guess at this point; the host overwrites it the moment the container goes on screen. */
+	NSView *container = [self view];
+	if (![container superview]) {
+		CGFloat pageWidth = NSWidth([[rootController view] frame]);
+		if (pageWidth > NSWidth([container frame]))
+			[container setFrameSize:NSMakeSize(pageWidth, NSHeight([container frame]))];
+	}
+
+	[container addSubview:[rootController view]];
 	[self observePage:rootController];
 
 	[self layoutShowingPage];
