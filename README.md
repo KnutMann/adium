@@ -32,6 +32,9 @@ Current version: **1.8.0**.
 
 ### Messaging and services
 
+<img src="Other/Artwork/Screenshots/conversation.png" width="672"
+     alt="A conversation in Adium: read receipts as ticks, a heart reaction on a message, a shared picture shown in the conversation, and the voice note recorder open below the message field, with four chats as tabs">
+
 * WhatsApp (via
   [purple-gowhatsapp](https://github.com/hoehermann/purple-gowhatsapp)):
   QR-code device linking, inline images and voice notes, reactions,
@@ -125,6 +128,9 @@ media runs through Google's WebRTC natively.
 * **Check Call Readiness…** Check whether Adium can make or receive calls
 
 ### Dark Mode and interface
+
+<img src="Other/Artwork/Screenshots/preferences.png" width="946"
+     alt="The preferences window in Dark Mode: a sidebar listing the panes on the left, the Xtras Manager pane on the right laid out as cards, with the installed xtras and their switches">
 
 * Full Dark Mode: the application chrome follows the system
   appearance, or a light/dark choice of its own
