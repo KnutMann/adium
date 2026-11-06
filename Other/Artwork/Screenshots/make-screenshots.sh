@@ -44,7 +44,7 @@ for c in Blue Green Purple Red Yellow; do
 	sips -s format png -Z 128 "$REPO/Resources/Dock Icons/Adiumy $c.AdiumIcon/ApplicationIcon.png" --out "$WORK/avatars/$c.png" >/dev/null
 done
 sips -s format tiff "$WORK/avatars/Red.png" --out "$WORK/avatars/Red.tiff" >/dev/null
-sips -s format png -Z 144 "$REPO/Resources/Adium.icon/Assets/duck.png" --out "$WORK/duck-144.png" >/dev/null
+sips -s format png -Z 160 "$REPO/Resources/AdiumyButler.png" --out "$WORK/butler-160.png" >/dev/null   # the best dressed duck, 160 points tall in the conversation
 read -r _ _ SCREEN_W SCREEN_H <<< "$(osascript -e 'tell application "Finder" to get bounds of window of desktop' | tr -d ',')"
 
 say "The accounts on the test server"
@@ -107,7 +107,7 @@ end run
 AS
 
 say "The conversation"
-PICTURE=$("$PY" -I -W ignore::DeprecationWarning "$HERE/upload.py" "$WORK/duck-144.png" image/png | awk '/^PUT 201/{print $3}')
+PICTURE=$("$PY" -I -W ignore::DeprecationWarning "$HERE/upload.py" "$WORK/butler-160.png" image/png | awk '/^PUT 201/{print $3}')
 [ -n "$PICTURE" ] || { echo "the picture did not reach the server"; exit 1; }
 : > "$WORK/commands.txt"
 SCREENSHOT_AVATARS=$WORK/avatars "$PY" -I -u -W ignore::DeprecationWarning "$HERE/stage.py" online "$WORK/commands.txt" > "$WORK/peers.log" 2>&1 &
